@@ -1,45 +1,49 @@
 <html>
 <head>
-<title>Project Home Page</title>
+<title>GlueGen Home Page</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 </head>
 
 <body bgcolor="#FFFFFF" text="#000000">
-<h1>Default project home page </h1>
-<p>Congratulations on your new java.net project! </p>
-<p>This page is the home page for your new project. This content is appearing 
-  because you have selected the option <b>Use project index.html</b>. To edit 
-  the information displayed on this page, just use CVS to check out your project's 
-  CVS repository and edit index.html in directory www. You can get more information 
-  on how to set-up your local CVS client, click on <b>Version Control</b> on the 
-  left nav bar. </p>
-<p>If you don't want to use CVS to manage your home page, click on the <b>Edit 
-  project</b> link on this page and unclick the option <b>Use project index.html</b>. 
-  Your project home page contents will be generated from the <b>Edit project</b> 
-  field <b>Description</b>. Edit the text on that field to change your home page 
-  contents. Click on <b>Submit changes</b> to save your edits. </p>
-<p>If you are looking for <a href="https://java-net.dev.java.net/ProjectPages.html#templates">sample 
-  home page templates</a>, check out the <a href="https://java-net.dev.java.net/ProjectPages.html">java.net 
-  Project Starter Kit</a>. Copy either of the templates into your project's html 
-  to get started on your project's home page. </p>
-<p>You can find lots of helpful information in the Starter Kit to get your project 
-  started. Some of the things you will find in there include:</p>
-<ul>
-  <li>Hints on how to <a href="https://java-net.dev.java.net/ProjectPages.html#pages">set-up 
-    your project's</a> home page</li>
-  <li>Ideas on how to <a href="https://java-net.dev.java.net/ProjectPages.html#publicity">publicize 
-    your project</a> including RSS feeds</li>
-  <li>Hints on <a href="https://java-net.dev.java.net/pagedesign.html">project 
-    page HTML</a></li>
-  <li>Setting up project <a href="https://java-net.dev.java.net/ProjectPages.html#wiki">wiki 
-    pages</a></li>
-  <li>And places to go if <a href="https://java-net.dev.java.net/ProjectPages.html#feedback">you 
-    have questions</a>.</li>
-</ul>
-<p>Remember that you will attract more new members and your project team will 
-  work more effectively if you, as the project owner, supply sufficient information 
-  about your project for visitors to your project space. Good luck with your new 
-  project! </p>
+
+<P>
+
+GlueGen is a tool which automatically generates the Java and JNI code
+necessary to call C libraries. It reads as input ANSI C header files
+and separate configuration files which provide control over many
+aspects of the glue code generation. GlueGen uses a complete ANSI C
+parser and an internal representation (IR) capable of representing all
+C types to represent the APIs for which it generates interfaces. It
+has the ability to perform significant transformations on the IR
+before glue code emission. GlueGen is currently powerful enough to
+bind even low-level APIs such as the Java Native Interface (JNI) and
+the AWT Native Interface (JAWT) back up to the Java programming
+language. GlueGen is currently used to generate the <a
+href="http://jogl.dev.java.net/">JOGL</a> interface to the OpenGL 3D
+graphics API and the <a href="http://joal.dev.java.net/">JOAL</a>
+interface to the OpenAL audio library.
+
+</P>
+
+<h4> Documentation and Source Code </h4>
+
+The source code for GlueGen can be obtained via CVS:
+<pre>
+  cvs co -d :pserver:guest@cvs.dev.java.net:/cvs co gluegen
+</pre>
+
+The preliminary <a
+href="https://gluegen.dev.java.net/unbranded-source/browse/*checkout*/gluegen/doc/manual/index.html?rev=HEAD&content-type=text/html">GlueGen
+manual</a> is also on-line.
+
+<h4> Community </h4>
+
+The GlueGen <a
+href="https://gluegen.dev.java.net/servlets/ProjectForumView">discussion
+forum</a> and <a
+href="https://gluegen.dev.java.net/servlets/ProjectMailingListList">mailing
+lists</a> are available for discussions on how to use and develop the
+tool.
+
 </body>
 </html>
-
