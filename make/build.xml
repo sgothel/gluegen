@@ -139,7 +139,7 @@
     </javac>
 
     <!-- Build gluegen.jar. -->
-    <jar destfile="${build}/gluegen.jar">
+    <jar destfile="${build}/gluegen.jar" manifest="Manifest">
       <fileset dir="${classes}">
         <include name="**/*.class" />
       </fileset>
@@ -151,6 +151,12 @@
         <include name="com/sun/gluegen/runtime/*.class" />
       </fileset>
     </jar>
+
+    <!-- Copy antlr.jar into build directory for convenience so
+         gluegen.jar can be run via "java -jar". antlr.jar is
+         referenced via a Class-Path entry in the Manifest of
+         gluegen.jar. -->
+    <copy file="${antlr.jar}" todir="${build}" />
   </target>
 
   <target name="all" depends="gluegen.build" />

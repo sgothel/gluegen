@@ -1,0 +1,2 @@
+Main-Class: com.sun.gluegen.GlueGen
+Class-Path: antlr.jar

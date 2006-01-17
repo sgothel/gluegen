@@ -12,7 +12,12 @@ Chapter 1 - Introduction
 
 Chapter 2 - Using GlueGen
 <UL>
+<LI> <a href = "#SecAcquiring">Acquiring and Building GlueGen</a>
+  <UL>
+  <LI> <a href = "#SecCommon">Common Build Problems</a>
+  </UL>
 <LI> <a href = "#SecBasic">Basic Operation</a>
+<LI> <a href = "#SecAnt">Running GlueGen as an Ant Task</a>
 <LI> <a href = "#SecPCPP">PCPP</a>
 <LI> <a href = "#SecError">Error Reporting</a>
 <LI> <a href = "#SecStub">Stub Headers</a>
@@ -304,11 +309,52 @@ libraries for other languages.
 
 </P>
 
+<H2> Chapter 2 - Using GlueGen </H2>
+
+<H3><a name="SecAcquiring">Acquiring and Building GlueGen</a></H3>
+
+The source code for GlueGen may be obtained via CVS:
+
+<pre>
+  cvs -d :pserver:guest@cvs.dev.java.net:/cvs co gluegen
+</pre>
+
+To build GlueGen, first download the current ANTLR jar file from <a
+href="http://antlr.org/">antlr.org</a>. (NOTE: do not place this jar
+file in the Extensions directory of the JRE or JDK, as this will cause
+the build to fail.) Next, copy <code>make/gluegen.properties</code>
+from the GlueGen workspace to your home directory (pointed to by the
+Java system property <code>user.home</code>; on Windows this is
+e.g. <code>C:\Documents and Settings\username</code>). Edit the copy
+of gluegen.properties in your home directory to point the
+<code>antlr.jar</code> property to the location of the ANTLR jar file
+on your local disk. Finally, cd to the <code>make/</code> subdirectory
+and type "ant". Ant 1.6.x or later is required.
+
+<H4><a name="SecCommon">Common Build Problems</a></H4>
+
+<P>
+
+<dl>
+<dt> <strong>CharScanner; panic: ClassNotFoundException: com.sun.gluegen.cgram.CToken</strong>
+<dd> This occurs because ANTLR was dropped into the Extensions
+     directory of the JRE/JDK. On Windows and Linux, delete any ANTLR
+     jars from jre/lib/ext, and on Mac OS X, delete them from
+     /Library/Java/Extensions. Use the antlr.jar property in the
+     build.xml to point to a JRE-external location of this jar file.
+</dl>
+
+</P>
+
 <H3><a name="SecBasic">Basic Operation</a></H3>
 
 <P>
 
-GlueGen accepts four kinds of command-line arguments:
+GlueGen can be run either as an executable jar file (<code>java -jar
+gluegen.jar</code>; note that antlr.jar must be in the same directory
+as gluegen.jar in order for this invocation to work) or from within
+Ant as described in the following section. When run from the command
+line, GlueGen accepts four kinds of command-line arguments:
 
 <UL>
 <LI> -I<em>dir</em> (optional) adds <em>dir</em> to the include path.
@@ -341,6 +387,46 @@ GlueGen accepts four kinds of command-line arguments:
      files to be parsed, write a small .c file #including the multiple
      headers and point GlueGen at the .c file.
 </UL>
+
+<H3><a name="SecAnt">Running GlueGen as an Ant Task</a></H3>
+
+<P>
+
+GlueGen can also be invoked as a subtask within Ant. In order to do
+so, a path element should be defined as follows:
+
+<pre>
+  &lt;path id="gluegen.classpath"&gt;
+    &lt;pathelement location="${gluegen.jar}" /&gt;
+    &lt;pathelement location="${antlr.jar}" /&gt;
+  &lt;/path&gt;
+</pre>
+
+where the <code>gluegen.jar</code> and <code>antlr.jar</code>
+properties point to the respective jar files. A taskdef defining the
+GlueGen task should then be specified as follows:
+
+<pre>
+ &lt;taskdef name="gluegen"
+      classname="com.sun.gluegen.ant.GlueGenTask"
+      classpathref="gluegen.classpath" /&gt;
+</pre>
+
+At this point GlueGen may be invoked as follows:
+
+<pre>
+  &lt;gluegen src="[header to parse]" 
+           config="[configuration file]"
+           includeRefid="[dirset for include path]"
+           emitter="com.sun.gluegen.JavaEmitter"&gt;
+    &lt;classpath refid="gluegen.classpath" /&gt;
+  &lt;/gluegen&gt;
+</pre>
+
+Please see the <a href="http://jogl.dev.java.net/">JOGL</a> and <a
+href="http://joal.dev.java.net/">JOAL</a> build.xml files for
+concrete, though non-trivial, examples of how to invoke GlueGen via
+Ant.
 
 <H3><a name="SecPCPP">PCPP</a></H3>
 
