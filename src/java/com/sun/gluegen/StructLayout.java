@@ -132,6 +132,7 @@ public class StructLayout {
         (os.startsWith("sunos") && cpu.equals("x86")) ||
         (os.startsWith("sunos") && cpu.equals("amd64")) ||
         (os.startsWith("mac os") && cpu.equals("ppc")) ||
+        (os.startsWith("mac os") && cpu.equals("i386")) ||
         (os.startsWith("freebsd") && cpu.equals("i386"))
 	) {
       // FIXME: make struct alignment configurable? May need to change
