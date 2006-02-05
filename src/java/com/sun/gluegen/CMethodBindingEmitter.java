@@ -988,13 +988,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer.print("  return (*env)->NewDirectByteBuffer(env, _res, ");
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
-          String[] argumentNames = new String[binding.getNumArguments()];
-          for (int i = 0; i < binding.getNumArguments(); i++)
-          {
-            argumentNames[i] = binding.getArgumentName(i);
-          }
           writer.print(
-            returnValueCapacityExpression.format(argumentNames));
+            returnValueCapacityExpression.format(argumentNameArray()));
         } else {
           if (cReturnType.isPointer() &&
               cReturnType.asPointer().getTargetType().isCompound()) {
@@ -1025,11 +1020,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           throw new RuntimeException("Error while generating C code: no length specified for array returned from function " +
                                      binding);
         }
-        String[] argumentNames = new String[binding.getNumArguments()];
-        for (int i = 0; i < binding.getNumArguments(); i++) {
-          argumentNames[i] = binding.getArgumentName(i);
-        }
-        writer.println("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNames) + ";");
+        writer.println("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNameArray()) + ";");
         writer.println("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
         writer.println("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
         Type retType = binding.getCSymbol().getReturnType();
@@ -1408,6 +1399,18 @@ public class CMethodBindingEmitter extends FunctionEmitter
     return binding.getArgumentName(i) + "_byte_offset_array";
   }
                                                                                                             
+  protected String[] argumentNameArray() {
+    String[] argumentNames = new String[binding.getNumArguments()];
+    for (int i = 0; i < binding.getNumArguments(); i++) {
+      argumentNames[i] = binding.getArgumentName(i);
+      if (binding.getJavaArgumentType(i).isPrimitiveArray()) {
+        // Add on _offset argument in comma-separated expression
+        argumentNames[i] = argumentNames[i] + ", " + byteOffsetArgName(i);
+      }
+    }
+    return argumentNames;
+  }
+
   protected String pointerConversionArgumentName(int i) {
     return "_ptr" + i;
   }

@@ -87,10 +87,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   // number of elements of the returned array.
   private String returnedArrayLengthExpression;
 
-  // Range-check expressions for various Buffer arguments
-  private Map/*<Integer, String>*/ rangeCheckExpressions;
-  private Map/*<Integer, String>*/ byteRangeCheckExpressions;
-
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
                                   String runtimeExceptionType,
@@ -133,8 +129,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     prologue                      = arg.prologue;
     epilogue                      = arg.epilogue;
     returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
-    rangeCheckExpressions         = arg.rangeCheckExpressions;
-    byteRangeCheckExpressions     = arg.byteRangeCheckExpressions;    
   }
 
   public final MethodBinding getBinding() { return binding; }
@@ -197,14 +191,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   /** Accessor for subclasses. */
   public void setForImplementingMethodCall(boolean impl) {
     this.forImplementingMethodCall = impl;
-  }
-
-  public void setRangeCheckExpressions(Map/*<Integer, String>*/ rangeChecks) {
-    this.rangeCheckExpressions = rangeChecks;
-  }
-
-  public void setByteRangeCheckExpressions(Map/*<Integer, String>*/ rangeChecks) {
-    this.byteRangeCheckExpressions = rangeChecks;
   }
 
   protected void emitReturnType(PrintWriter writer)
@@ -369,8 +355,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected void emitPrologueOrEpilogue(List/*<String>*/ code, PrintWriter writer) {
     if (code != null) {
+      String[] argumentNames = argumentNameArray();
       for (Iterator iter = code.iterator(); iter.hasNext(); ) {
-        writer.println("    " + (String) iter.next());
+        MessageFormat fmt = new MessageFormat((String) iter.next());
+        writer.println("    " + fmt.format(argumentNames));
       }
     }
   }
@@ -436,44 +424,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" (\" + " + offsetArg +
                          " + \") equals or exceeds array length (\" + " + argName + ".length + \")\");");
         }
-      }
-    }
-
-    emitManuallySpecifiedRangeChecks(rangeCheckExpressions, false, writer);
-    emitManuallySpecifiedRangeChecks(byteRangeCheckExpressions, true, writer);
-  }
-
-  protected void emitManuallySpecifiedRangeChecks(Map/*<Integer, String>*/ rangeChecks,
-                                                  boolean inBytes,
-                                                  PrintWriter writer) {
-    if (rangeChecks == null) {
-      return;
-    }
-
-    // Check lengths of arrays and buffers with user-specified checks
-    for (Iterator iter = rangeChecks.keySet().iterator(); iter.hasNext(); ) {
-      Integer argNumBox = (Integer) iter.next();
-      int argNum = argNumBox.intValue();
-      JavaType type = binding.getJavaArgumentType(argNum);
-      String argName = getArgumentName(argNum);
-      if (type.isPrimitiveArray()) {
-        String offsetArg = offsetArgName(argNum);
-        if (inBytes) {
-          throw new RuntimeException("Can not specify RangeCheckBytes for primitive array arguments (failed on function " +
-                                     binding.getName() + ", argument " + argName + ")");
-        }
-        writer.println("    BufferFactory.rangeCheck(" + argName + ", " + offsetArg + ", " +
-                       new MessageFormat((String) rangeChecks.get(argNumBox)).format(argumentNameArray()) +
-                       ");");
-      } else if (!type.isPrimitive()) {
-        // Assume it's a Buffer
-        writer.print("    BufferFactory.rangeCheck");
-        if (inBytes) {
-          writer.print("Bytes");
-        }
-        writer.println("(" + argName + ", " +
-                       new MessageFormat((String) rangeChecks.get(argNumBox)).format(argumentNameArray()) +
-                       ");");
       }
     }
   }
@@ -700,6 +650,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     String[] argumentNames = new String[binding.getNumArguments()];
     for (int i = 0; i < binding.getNumArguments(); i++) {
       argumentNames[i] = getArgumentName(i);
+      if (binding.getJavaArgumentType(i).isPrimitiveArray()) {
+        // Add on _offset argument in comma-separated expression
+        argumentNames[i] = argumentNames[i] + ", " + offsetArgName(i);
+      }
     }
     return argumentNames;
   }

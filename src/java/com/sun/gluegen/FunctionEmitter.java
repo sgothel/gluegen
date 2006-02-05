@@ -47,7 +47,7 @@ public abstract class FunctionEmitter
 {
   public static final EmissionModifier STATIC = new EmissionModifier("static");
 
-  private HashSet modifiers = new HashSet(4);
+  private ArrayList modifiers = new ArrayList();
   private CommentEmitter commentEmitter = null;
   private PrintWriter defaultOutput;
 
@@ -64,7 +64,7 @@ public abstract class FunctionEmitter
    * Makes this FunctionEmitter a copy of the passed one.
    */
   public FunctionEmitter(FunctionEmitter arg) {
-    modifiers      = (HashSet) arg.modifiers.clone();
+    modifiers      = (ArrayList) arg.modifiers.clone();
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
   }
@@ -203,6 +203,19 @@ public abstract class FunctionEmitter
     public final String toString() { return emittedForm; }
     
     private String emittedForm;
+
+    public int hashCode() {
+      return emittedForm.hashCode();
+    }
+
+    public boolean equals(Object arg) {
+      if (arg == null || (!(arg instanceof EmissionModifier))) {
+        return false;
+      }
+
+      return emittedForm.equals(((EmissionModifier) arg).emittedForm);
+    }
+
     protected EmissionModifier(String emittedForm) { this.emittedForm = emittedForm; } 
   }
 }

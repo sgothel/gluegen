@@ -44,6 +44,7 @@ import java.nio.*;
 public class BufferFactory {
   public static final int SIZEOF_BYTE = 1;
   public static final int SIZEOF_SHORT = 2;
+  public static final int SIZEOF_CHAR = 2;
   public static final int SIZEOF_INT = 4;
   public static final int SIZEOF_FLOAT = 4;
   public static final int SIZEOF_LONG = 8;
@@ -77,7 +78,7 @@ public class BufferFactory {
     } else if (buf instanceof LongBuffer) {
       return ((LongBuffer) buf).isDirect();
     }
-    throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
+    throw new RuntimeException("Unexpected buffer type " + buf.getClass().getName());
   }
 
 
@@ -101,6 +102,8 @@ public class BufferFactory {
       return (buf.position() * SIZEOF_DOUBLE);
     } else if (buf instanceof LongBuffer) {
       return (buf.position() * SIZEOF_LONG);
+    } else if (buf instanceof CharBuffer) {
+      return (buf.position() * SIZEOF_CHAR);
     } 
 
     throw new RuntimeException("Disallowed array backing store type in buffer "
@@ -127,6 +130,8 @@ public class BufferFactory {
        return ((DoubleBuffer) buf).array();
      } else if (buf instanceof LongBuffer) {
        return ((LongBuffer) buf).array();
+     } else if (buf instanceof CharBuffer) { 
+       return ((CharBuffer) buf).array();
      }
 
      throw new RuntimeException("Disallowed array backing store type in buffer "
@@ -156,48 +161,78 @@ public class BufferFactory {
       return (SIZEOF_DOUBLE*(((DoubleBuffer)buf).arrayOffset() + pos));
     } else if(buf instanceof LongBuffer) {
       return (SIZEOF_LONG*(((LongBuffer)buf).arrayOffset() + pos));
+    } else if(buf instanceof CharBuffer) {
+      return (SIZEOF_CHAR*(((CharBuffer)buf).arrayOffset() + pos));
     } 
 
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
   }
 
   public static void rangeCheck(byte[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
   }
 
   public static void rangeCheck(char[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
   }
 
   public static void rangeCheck(short[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
   }
 
   public static void rangeCheck(int[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
   }
 
   public static void rangeCheck(long[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
   }
 
   public static void rangeCheck(float[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
   }
 
   public static void rangeCheck(double[] array, int offset, int minElementsRemaining) {
+    if (array == null) {
+      return;
+    }
+
     if (array.length < offset + minElementsRemaining) {
       throw new ArrayIndexOutOfBoundsException("Required " + minElementsRemaining + " elements in array, only had " + (array.length - offset));
     }
@@ -232,6 +267,8 @@ public class BufferFactory {
       bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
     } else if (buffer instanceof LongBuffer) {
       bytesRemaining = elementsRemaining * SIZEOF_LONG;
+    } else if (buffer instanceof CharBuffer) {
+      bytesRemaining = elementsRemaining * SIZEOF_CHAR;
     }
     if (bytesRemaining < minBytesRemaining) {
       throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);

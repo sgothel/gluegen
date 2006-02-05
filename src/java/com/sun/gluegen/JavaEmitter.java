@@ -377,8 +377,6 @@ public class JavaEmitter implements GlueEmitter {
     emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
     emitter.setPrologue(prologue);
     emitter.setEpilogue(epilogue);
-    emitter.setRangeCheckExpressions(cfg.rangeCheckExpressions(binding.getName()));
-    emitter.setByteRangeCheckExpressions(cfg.byteRangeCheckExpressions(binding.getName()));
     allEmitters.add(emitter);
   }
 
@@ -432,8 +430,6 @@ public class JavaEmitter implements GlueEmitter {
         }
         emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
         emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-        emitter.setRangeCheckExpressions(cfg.rangeCheckExpressions(binding.getName()));
-        emitter.setByteRangeCheckExpressions(cfg.byteRangeCheckExpressions(binding.getName()));
         allEmitters.add(emitter);
 
         // Optionally emit the entry point taking arrays which handles
@@ -459,8 +455,6 @@ public class JavaEmitter implements GlueEmitter {
           }
           emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
           emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-          emitter.setRangeCheckExpressions(cfg.rangeCheckExpressions(binding.getName()));
-          emitter.setByteRangeCheckExpressions(cfg.byteRangeCheckExpressions(binding.getName()));
           allEmitters.add(emitter);
         }
       }

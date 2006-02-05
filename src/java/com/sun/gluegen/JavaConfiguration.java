@@ -116,8 +116,6 @@ public class JavaConfiguration {
   private Map/*<String,String>*/ javaMethodRenames = new HashMap();
   private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
   private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
-  private Map/*<String,Map<Integer,String>>*/ rangeChecks = new HashMap();
-  private Map/*<String,Map<Integer,String>>*/ byteRangeChecks = new HashMap();
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -569,22 +567,6 @@ public class JavaConfiguration {
                                                                        eraseBufferAndArrayTypes));
     }
     return res;
-  }
-
-  /** Returns a map of Integer argument numbers to expressions to be
-      used to range check the given arguments to the given function.
-      Returns null if there were no range check expressions supplied
-      for this function. */
-  public Map/*<Integer, String>*/ rangeCheckExpressions(String functionName) {
-    return (Map/*<Integer, String>*/) rangeChecks.get(functionName);
-  }
-
-  /** Returns a map of Integer argument numbers to expressions to be
-      used to range check (in size of bytes) the given arguments to
-      the given function.  Returns null if there were no range check
-      expressions supplied for this function. */
-  public Map/*<Integer, String>*/ byteRangeCheckExpressions(String functionName) {
-    return (Map/*<Integer, String>*/) byteRangeChecks.get(functionName);
   }
 
   //----------------------------------------------------------------------
@@ -1142,13 +1124,7 @@ public class JavaConfiguration {
           methodName = methodName + descriptor;
         }
       }
-      Map code = (prologue ? javaPrologues : javaEpilogues);
-      List/*<String>*/ data = (List/*<String>*/) code.get(methodName);
-      if (data == null) {
-        data = new ArrayList/*<String>*/();
-        code.put(methodName, data);
-      }
-      data.add(restOfLine);
+      addJavaPrologueOrEpilogue(methodName, restOfLine, prologue);
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"" + 
                                  (prologue ? "JavaPrologue" : "JavaEpilogue") +
@@ -1157,27 +1133,28 @@ public class JavaConfiguration {
     }
   }
 
+  protected void addJavaPrologueOrEpilogue(String methodName, String code, boolean prologue) {
+    Map codes = (prologue ? javaPrologues : javaEpilogues);
+    List/*<String>*/ data = (List/*<String>*/) codes.get(methodName);
+    if (data == null) {
+      data = new ArrayList/*<String>*/();
+      codes.put(methodName, data);
+    }
+    data.add(code);
+  }
+
   protected void readRangeCheck(StringTokenizer tok, String filename, int lineNo, boolean inBytes) {
     try {
       String functionName = tok.nextToken();
       int argNum = Integer.parseInt(tok.nextToken());
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
-      Map/*<Integer, String>*/ checksForFunction = null;
-      if (inBytes) {
-        checksForFunction = (Map/*<Integer, String>*/) byteRangeChecks.get(functionName);
-      } else {
-        checksForFunction = (Map/*<Integer, String>*/) rangeChecks.get(functionName);
-      }
-      if (checksForFunction == null) {
-        checksForFunction = new HashMap/*<Integer, String>*/();
-        if (inBytes) {
-          byteRangeChecks.put(functionName, checksForFunction);
-        } else {
-          rangeChecks.put(functionName, checksForFunction);
-        }
-      }
-      checksForFunction.put(new Integer(argNum), restOfLine);
+      // Construct a JavaPrologue for this
+      addJavaPrologueOrEpilogue(functionName,
+                                "BufferFactory.rangeCheck" +
+                                (inBytes ? "Bytes" : "") +
+                                "({" + argNum + "}, " + restOfLine + ");",
+                                true);
     } catch (Exception e) {
       throw new RuntimeException("Error parsing \"RangeCheck" + (inBytes ? "Bytes" : "") + "\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
