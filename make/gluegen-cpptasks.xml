@@ -94,7 +94,10 @@
     <condition property="isLinuxAMD64">
       <and>
         <istrue value="${isLinux}" />
-        <os arch="AMD64" />
+        <or>
+          <os arch="AMD64" />
+          <os arch="x86_64" />
+        </or>
       </and>
     </condition>
     <condition property="isLinuxIA64">
