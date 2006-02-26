@@ -38,11 +38,19 @@ Chapter 2 - Using GlueGen
 </UL>
 
 Chapter 3 - Configuration File Examples<BR>
+<UL>
+<LI> <a href = "#SecSimplest">Simplest possible example</a>
+<LI> <a href = "#SecArrays">Arrays and buffers</a>
+<LI> <a href = "#SecString">String handling</a>
+<LI> <a href = "#SecMemory">Memory allocation</a>
+<LI> <a href = "#SecStructs">Ingoing and outgoing structs</a>
+</UL>
+
 TO DO:
+
 <UL>
 <LI> Example with XVisualInfo* return type
 <LI> Example with GLXFBConfig* (e.g. glXChooseFBConfig)
-<LI> More...
 </UL>
 
 <H2> Chapter 1 - Introduction </H2>
@@ -1290,8 +1298,11 @@ and TemporaryCVariableAssignment directives.
 (optional) Indicates that the specified C function which returns a
 <code>char*</code> or compatible type actually returns a
 null-terminated C string which should be exposed as a
-java.lang.String.
-
+java.lang.String. NOTE: currently does not properly handle the case
+where this storage needs to be freed by the end user. In these
+situations the data should be returned as a direct ByteBuffer, the
+ByteBuffer converted to a String using custom Java code, and the
+ByteBuffer freed manually using another function bound to Java.
 
 <dt><strong><a name="ReturnValueCapacity">ReturnValueCapacity</a></strong>
 <dd> Syntax: <code>ReturnValueCapacity [C function name]
@@ -1605,6 +1616,360 @@ despite the fact that it has an associated function pointer typedef in
 the header.
 
 </dl>
+
+<H2> Chapter 3 - Configuration File Examples </H2>
+
+<H3><a name="SecSimplest">Simplest possible example</a></H3>
+
+Files:
+<UL>
+<LI> <a href="example1/function.c">function.c</a>
+<LI> <a href="example1/function.h">function.h</a>
+<LI> <a href="example1/function.cfg">function.cfg</a>
+<LI> <a href="example1/gen.sh">gen.sh</a>
+</UL>
+
+<P> This example shows the simplest possible usage of GlueGen; a
+single routine taking as arguments and returning only primitive
+types. The signature of the C function we are interested in binding is
+</P>
+
+<PRE>
+  int one_plus(int a);
+</PRE>
+
+<P> To bind this function to Java, we only need a configuration file
+with very basic settings, indicating the style of glue code emission,
+the package and class into which the glue code will be generated, and
+the output directories for the Java and native code. The contents of
+the configuration file are as follows: </P>
+
+<PRE>
+  Package testfunction
+  Style AllStatic
+  JavaClass TestFunction
+  JavaOutputDir   gensrc/java
+  NativeOutputDir gensrc/native
+</PRE>
+
+<P> GlueGen can then be invoked with approximately the following
+command line: </P>
+
+<PRE>
+  java -cp gluegen.jar:antlr.jar com.sun.gluegen.GlueGen \
+    -I. -Ecom.sun.gluegen.JavaEmitter -Cfunction.cfg function.h
+</PRE>
+
+<P> The resulting Java and native code needs to be compiled, and the
+application needs to load the native library for the Java binding
+before attempting to invoke the native method by calling
+<CODE>System.load()</CODE> or <CODE>System.loadLibrary()</CODE>. </P>
+
+<H3><a name="SecArrays">Arrays and buffers</a></H3>
+
+Files:
+<UL>
+<LI> <a href="example2/function.c">function.c</a>
+<LI> <a href="example2/function.h">function.h</a>
+<LI> <a href="example2/function.cfg">function.cfg</a>
+<LI> <a href="example2/gen.sh">gen.sh</a>
+</UL>
+
+<P> This example shows how C primitive arrays are bound to Java. The
+header file contains three functions to bind: </P>
+
+<PRE>
+  float process_data(float* data, int n);
+  void set_global_data(float* data);
+  float process_global_data(int n);
+</PRE>
+
+<P> The semantics of <CODE>process_data</CODE> are that it takes in a
+pointer to a set of primitive <CODE>float</CODE> values and the number
+of elements in the array and performs some operation on them,
+returning a floating-point value as the result. Afterward the passed
+data is no longer referenced. </P>
+
+<P> <CODE>set_global_data</CODE>, on the other hand, takes a pointer
+to the data and stores it persistently in the C code.
+<CODE>process_global_data</CODE> then accepts as argument the number
+of elements to process from the previously-set global data, performs
+this processing and returns a result. The global data may be accessed
+again afterward. As an example, these kinds of semantics are used in
+certain places in the OpenGL API. </P>
+
+<P> From a Java binding standpoint, <CODE>process_data</CODE> may
+accept data stored either inside the Java heap (in the form of a
+<CODE>float[]</CODE> or non-direct <CODE>FloatBuffer</CODE>) or
+outside the Java heap (in the form of a direct
+<CODE>FloatBuffer</CODE>), because it does not access the data after
+the function call has completed and therefore would not be affected if
+garbage collection moved the data after the function call was
+complete. However, <CODE>set_global_data</CODE> can cause the passed
+data to be accessed after the function call is complete, if
+<CODE>process_global_data</CODE> is called. Therefore the data passed
+to <CODE>set_global_data</CODE> may not reside in the Java
+garbage-collected heap, but must reside outside the heap in the form
+of a direct <CODE>FloatBuffer</CODE>. </P>
+
+<P> It is straightforward to take into account these differences in
+semantics in the configuration file using the <a
+href="#NioDirectOnly">NioDirectOnly</a> directive: </P>
+
+<PRE>
+  # The semantics of set_global_data imply that
+  # only direct Buffers are legal
+  NioDirectOnly set_global_data
+</PRE>
+
+<P> Note the differences in the generated Java-side overloadings for
+the two functions: </P>
+
+<PRE>
+  public static void process_data(java.nio.FloatBuffer data, int n) {...}
+  public static void process_data(float[] data, int data_offset, int n) {...}
+  public static void set_global_data(java.nio.FloatBuffer data) {...}
+</PRE>
+
+<P> No overloading is produced for <CODE>set_global_data</CODE> taking
+a <CODE>float[]</CODE>, as it can not handle data residing in the Java
+heap. Further, the generated glue code will verify that any
+<CODE>FloatBuffer</CODE> passed to this routine is direct, throwing a
+<CODE>RuntimeException</CODE> if not. The type of the exception thrown
+in this and other cases may be changed with the <a
+href="#RuntimeExceptionType">RuntimeExceptionType</a> directive.
+
+<H3><a name="SecString">String handling</a></H3>
+
+Files:
+<UL>
+<LI> <a href="example3/function.h">function.h</a>
+<LI> <a href="example3/function.cfg">function.cfg</a>
+<LI> <a href="example3/gen.sh">gen.sh</a>
+</UL>
+
+<P> This example shows how to pass and return C strings. The functions
+involved are a bit contrived, as nobody would ever need to bind the C
+library's string handling routines to Java, but they do illustrate
+situations in which Java strings might need to be passed to C and C
+strings returned to Java. As an example, both styles of function are
+present in the OpenGL and OpenAL APIs. </P>
+
+<P> The included source code exposes two functions to Java: </P>
+
+<PRE>
+  size_t strlen(const char* str);
+  char*  strstr(const char* str1, const char* str2);
+</PRE>
+
+<P> Note that we might just as easily parse the C standard library's
+<CODE>string.h</CODE> header file to pick up these function
+declarations. However for the purposes of this example it is easier to
+extract just the functions we need. </P>
+
+<P> Note that the <a href="example3/function.h">function.h</a> header
+file contains a typedef for <CODE>size_t</CODE>. This is needed
+because GlueGen does not inherently know about this data type. An
+equivalent data type for the purposes of this example is
+<CODE>int</CODE>, so we choose to tell GlueGen to use that data type
+in place of <CODE>size_t</CODE> while generating glue code. </P>
+
+<P> The following directive in the configuration file tells GlueGen
+that <CODE>strlen</CODE> takes a string as argument 0 (the first
+argument): </P>
+
+<PRE>
+  ArgumentIsString strlen 0
+</PRE>
+
+<P> The following directive tells GlueGen that <CODE>strstr</CODE>
+takes two strings as its arguments: </P>
+
+<PRE>
+  ArgumentIsString strstr 0 1
+</PRE>
+
+<P> Finally, the following directive tells GlueGen that
+<CODE>strstr</CODE> returns a string instead of an array of bytes:
+</P>
+
+<PRE>
+  ReturnsString strstr
+</PRE>
+
+<P> We also use the <a href="#CustomCCode">CustomCCode</a> directive
+to cause the <CODE>string.h</CODE> header file to be #included in the
+generated glue code: </P>
+
+<PRE>
+  CustomCCode /* Include string.h header */
+  CustomCCode #include &lt;string.h&gt;
+</PRE>
+
+<P> Now the bindings of these two functions to Java look as expected:
+<P>
+
+<PRE>
+  public static native int strlen(java.lang.String str);
+  public static native java.lang.String strstr(java.lang.String str1,
+                                               java.lang.String str2);
+</PRE>
+
+Note that the <a href="#ReturnsString">ReturnsString</a> directive
+does not currently correctly handle the case where the
+<CODE>char*</CODE> returned from C needs to be explicitly freed. As an
+example, a binding of the C function <CODE>strdup</CODE> using a
+ReturnsString directive would cause a C heap memory leak.
+
+<H3><a name="SecMemory">Memory allocation</a></H3>
+
+Files:
+<UL>
+<LI> <a href="example4/function.c">function.c</a>
+<LI> <a href="example4/function.h">function.h</a>
+<LI> <a href="example4/function.cfg">function.cfg</a>
+<LI> <a href="example4/gen.sh">gen.sh</a>
+</UL>
+
+<P> This example shows how memory allocation is handled when binding C
+to Java. It gives the example of a custom memory allocator being bound
+to Java; this is a construct that at least at one point was present in
+OpenGL in the NV_vertex_array_range extension. </P>
+
+<P> The two functions we are exposing to Java are as follows: </P>
+<PRE>
+  void* custom_allocate(int num_bytes);
+  void  custom_free(void* data);
+</PRE>
+
+<P> The Java-side return type of <CODE>custom_allocate</CODE> will
+necessarily be a <CODE>ByteBuffer</CODE>, as that is the only useful
+way of interacting with arbitrary memory produced by C. The question
+is how to inform the glue code generator of the size of the returned
+sequence of memory. The semantics of <CODE>custom_allocate</CODE> are
+obvious to the programmer; the incoming <CODE>num_bytes</CODE>
+argument specifies the amount of returned memory. We tell GlueGen this
+fact using the <a href="#ReturnValueCapacity">ReturnValueCapacity</a>
+directive: </P>
+
+<PRE>
+  # The length of the returned ByteBuffer from custom_allocate is
+  # specified as the argument
+  ReturnValueCapacity custom_allocate {0}
+</PRE>
+
+<P> Note that we name incoming argument 0 with the MessageFormat
+specifier "{0}" rather than the explicit name of the parameter
+("num_bytes") for generality, in case the header file is changed
+later. </P>
+
+<P> Because <CODE>custom_free</CODE> will only ever receive Buffers
+produced by custom_allocate, we use the <a
+href="#NioDirectOnly">NioDirectOnly</a> directive to prevent
+accidental usage with the wrong kind of Buffer: </P>
+
+<PRE>
+  # custom_free will only ever receive a direct Buffer
+  NioDirectOnly custom_free
+</PRE>
+
+<P> The generated Java APIs for these functions are as follows: </P>
+
+<PRE>
+  public static java.nio.ByteBuffer custom_allocate(int num_bytes) {...}
+  public static void custom_free(java.nio.Buffer data) {...}
+</PRE>
+
+<H3><a name="SecStructs">Ingoing and outgoing structs</a></H3>
+
+Files:
+<UL>
+<LI> <a href="example5/function.c">function.c</a>
+<LI> <a href="example5/function.h">function.h</a>
+<LI> <a href="example5/function.cfg">function.cfg</a>
+<LI> <a href="example5/gen.sh">gen.sh</a>
+</UL>
+
+<P> This example shows how GlueGen provides access to C structs and
+supports both passing them to and returning them from C functions. The
+header file defines a sample data structure that might describe the
+bit depth of a given screen: </P>
+
+<PRE>
+  typedef struct {
+    int redBits;
+    int greenBits;
+    int blueBits;
+  } ScreenInfo;
+</PRE>
+
+<P> Two functions are defined which take and return this data type:
+</P>
+
+<PRE>
+  ScreenInfo* default_screen_depth();
+  void set_screen_depth(ScreenInfo* info);
+</PRE>
+
+<P> The semantics of <CODE>default_screen_depth()</CODE> are that it
+returns a pointer to some static storage which does not need to be
+freed, which describes the default screen depth.
+<CODE>set_screen_depth()</CODE> is a hypothetical function which would
+take a newly-allocated <CODE>ScreenInfo</CODE> and cause the primary
+display to switch to the specified bit depth. </P>
+
+<P> The only additional information we need to tell GlueGen, beyond
+that in the header file, is how much storage is returned from
+<CODE>default_screen_depth()</CODE>. Note the semantic ambiguity,
+where it might return a pointer to a single <CODE>ScreenInfo</CODE> or
+a pointer to an array of <CODE>ScreenInfo</CODE>s. We tell GlueGen
+that the return value is a single value with the <a
+href="#ReturnValueCapacity">ReturnValueCapacity</a> directive,
+similarly to the <a href="#SecMemory">memory allocation</a> example
+above: </P>
+
+<PRE>
+  # Tell GlueGen that default_screen_depth() returns a pointer to a
+  # single ScreenInfo
+  ReturnValueCapacity default_screen_depth sizeof(ScreenInfo)
+</PRE>
+
+<P> Note that if <CODE>default_screen_depth</CODE> had returned
+newly-allocated storage, it would be up to the user to expose a
+<CODE>free()</CODE> function to Java and call it when necessary. </P>
+
+<P> GlueGen automatically generates a Java-side
+<CODE>ScreenInfo</CODE> class which supports not only access to any
+such objects returned from C, but also allocation of new
+<CODE>ScreenInfo</CODE> structs which can be passed (persistently)
+down to C. The Java API for the ScreenInfo class looks like this: </P>
+
+<PRE>
+  public abstract class ScreenInfo {
+    public static ScreenInfo create();
+    public abstract ScreenInfo redBits(int val);
+    public abstract int redBits();
+    ...
+  }
+</PRE>
+
+<P> The <CODE>create()</CODE> method allocates a new ScreenInfo struct
+which may be passed, even persistently, out to C. Its C-heap storage
+will be automatically reclaimed when the Java-side ScreenInfo object
+is no longer reachable, as it is backed by a direct New I/O
+<CODE>ByteBuffer</CODE>. The fields of the struct are exposed as
+methods which supply both getters and setters. </P>
+
+
+
+
+
+
+
+
+
+
+
 
 </BODY>
 </HTML>
