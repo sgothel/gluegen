@@ -8,7 +8,7 @@
 
 <H2> Table of Contents </H2>
 
-Chapter 1 - Introduction
+<a href="#Chapter1">Chapter 1</a> - Introduction
 <UL>
 <LI> <a href = "#SecIntroduction">Introduction</a>
 <LI> <a href = "#SecStructure">Structure of the Generated Glue Code</a>
@@ -16,7 +16,7 @@ Chapter 1 - Introduction
 <LI> <a href = "#SecBackground">Background and Design Principles</a>
 </UL>
 
-Chapter 2 - Using GlueGen
+<a href="#Chapter2">Chapter 2</a> - Using GlueGen
 <UL>
 <LI> <a href = "#SecAcquiring">Acquiring and Building GlueGen</a>
   <UL>
@@ -37,7 +37,7 @@ Chapter 2 - Using GlueGen
   </UL>
 </UL>
 
-Chapter 3 - Configuration File Examples<BR>
+<a href="#Chapter3">Chapter 3</a> - Configuration File Examples<BR>
 <UL>
 <LI> <a href = "#SecSimplest">Simplest possible example</a>
 <LI> <a href = "#SecArrays">Arrays and buffers</a>
@@ -48,7 +48,7 @@ Chapter 3 - Configuration File Examples<BR>
 <LI> <a href = "#SecPointerArrays">Returned arrays of pointers</a>
 </UL>
 
-<H2> Chapter 1 - Introduction </H2>
+<H2> <a name="Chapter1">Chapter 1 - Introduction</a> </H2>
 
 <H3> <a name="SecIntroduction">Introduction</a> </H3>
 
@@ -321,7 +321,7 @@ libraries for other languages.
 
 </P>
 
-<H2> Chapter 2 - Using GlueGen </H2>
+<H2> <a name="Chapter2">Chapter 2 - Using GlueGen</a> </H2>
 
 <H3><a name="SecAcquiring">Acquiring and Building GlueGen</a></H3>
 
@@ -873,8 +873,8 @@ case-insensitive.
 The following is an exhaustive list of the options currently supported
 by each of these emitters' configuration files. It is difficult to see
 exactly how to use the tool based simply on these descriptions, so the
-examples (FIXME) may be more helpful in seeing exactly how to
-structure a configuration file for proper glue code generation.
+<a href="#Chapter3">examples</a> may be more helpful in seeing exactly
+how to structure a configuration file for proper glue code generation.
 
 </P>
 
@@ -1197,13 +1197,14 @@ types for which it is not desired to generate full Java classes but
 instead expose them to Java as e.g. <code>long</code>s. It is also
 useful for forcing certain integral C data types to be exposed as e.g.
 <code>long</code> to Java to ensure 64-bit cleanliness of the
-generated glue code. See the (FIXME) examples. The C data type may
-be a multiple-level pointer type; for example <code>Opaque long
-void**</code>. Note that it is not currently supported to make a given
-data type opaque for just a few functions; the Opaque directive
-currently applies to all C functions in the headers being parsed.
-This means that sweeping Opaque declarations like <code>Opaque long
-void*</code> will likely have unforseen and undesirable consequences.
+generated glue code. See the <a href="#Chapter3">examples</a>. The C
+data type may be a multiple-level pointer type; for example
+<code>Opaque long void**</code>. Note that it is not currently
+supported to make a given data type opaque for just a few functions;
+the Opaque directive currently applies to all C functions in the
+headers being parsed.  This means that sweeping Opaque declarations
+like <code>Opaque long void*</code> will likely have unforseen and
+undesirable consequences.
 
 
 <dt><strong><a name="Package">Package</a></strong>
@@ -1324,10 +1325,10 @@ href="#ReturnedArrayLength">ReturnedArrayLength</a> directive handles
 slicing up of a linear array of structs, while the ReturnValueLength
 directive handles boxing of individual elements of the array (which
 are pointers) in to the Java class which wraps that C struct type. See
-the (FIXME) examples for a concrete example of usage. As in the <a
-href="#ReturnedArrayLength">ReturnedArrayLength</a> directive,
-<a href="#SecSubstitution">argument name substitution</a> is performed
-on MessageFormat expressions.
+the <a href="#Chapter3">examples</a> for a concrete example of usage.
+As in the <a href="#ReturnedArrayLength">ReturnedArrayLength</a>
+directive, <a href="#SecSubstitution">argument name substitution</a>
+is performed on MessageFormat expressions.
 
 
 <dt><strong><a name="RuntimeExceptionType">RuntimeExceptionType</a></strong>
@@ -1385,9 +1386,9 @@ underlying C function completes.  This is typically used in
 conjunction with the <a
 href="#ReturnValueCapacity">ReturnValueCapacity</a> or <a
 href="#ReturnValueLength">ReturnValueLength</a> directives to capture
-the size of a returned C buffer or array of pointers. See the (FIXME)
-examples for a concrete example of usage of this directive. Note that
-unlike, for example, the <a
+the size of a returned C buffer or array of pointers. See the <a
+href="#Chapter3">examples</a> for a concrete example of usage of this
+directive. Note that unlike, for example, the <a
 href="#ReturnedArrayLength">ReturnedArrayLength</a> directive, no
 substitution is performed on the supplied code, so the user must
 typically have previously looked at the generated code and seen what
@@ -1405,8 +1406,9 @@ conjunction with the <a
 href="#TemporaryCVariableAssignment">TemporaryCVariableAssignment</a>
 and <a href="#ReturnValueCapacity">ReturnValueCapacity</a> or <a
 href="#ReturnValueLength">ReturnValueLength</a> directives to capture
-the size of a returned C buffer or array of pointers. See the (FIXME)
-examples for a concrete example of usage of this directive.
+the size of a returned C buffer or array of pointers. See the <a
+href="#Chapter3">examples</a> for a concrete example of usage of this
+directive.
 
 
 <dt><strong><a name="Unignore">Unignore</a></strong>
@@ -1612,7 +1614,7 @@ the header.
 
 </dl>
 
-<H2> Chapter 3 - Configuration File Examples </H2>
+<H2> <a name="Chapter3">Chapter 3 - Configuration File Examples</a> </H2>
 
 <H3><a name="SecSimplest">Simplest possible example</a></H3>
 
