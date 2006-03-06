@@ -51,10 +51,10 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
   private final CommentEmitter commentEmitterForWrappedMethod =
     new WrappedMethodCommentEmitter();
 
-  private boolean callThroughProcAddress;
-  private String getProcAddressTableExpr;
-  private boolean changeNameAndArguments;
-  private ProcAddressEmitter emitter;
+  protected boolean callThroughProcAddress;
+  protected String getProcAddressTableExpr;
+  protected boolean changeNameAndArguments;
+  protected ProcAddressEmitter emitter;
   
   public ProcAddressJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
                                              boolean callThroughProcAddress,

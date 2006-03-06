@@ -134,6 +134,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   public final MethodBinding getBinding() { return binding; }
 
   public boolean isForImplementingMethodCall() { return forImplementingMethodCall; }
+  public boolean isForDirectBufferImplementation() { return forDirectBufferImplementation; }
+  public boolean isForIndirectBufferAndArrayImplementation() { return forIndirectBufferAndArrayImplementation; }
 
   public String getName() {
     return binding.getRenamedMethodName();
@@ -191,6 +193,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   /** Accessor for subclasses. */
   public void setForImplementingMethodCall(boolean impl) {
     this.forImplementingMethodCall = impl;
+  }
+
+  /** Accessor for subclasses. */
+  public void setForDirectBufferImplementation(boolean direct) {
+    this.forDirectBufferImplementation = direct;
+  }
+
+  /** Accessor for subclasses. */
+  public void setForIndirectBufferAndArrayImplementation(boolean indirect) {
+    this.forIndirectBufferAndArrayImplementation = indirect;
   }
 
   protected void emitReturnType(PrintWriter writer)
@@ -432,7 +444,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     writer.print(getImplMethodName(direct));
     writer.print("(");
     emitCallArguments(binding, writer, direct);
-    writer.print(");");
+    writer.print(")");
   }
 
 
@@ -481,9 +493,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       // Only one call being made in this body, going to indirect
       // buffer / array entry point
       emitCall(binding, writer, false);
+      writer.print(";");
       writer.println();
     } else {
       emitCall(binding, writer, true);
+      writer.print(";");
     }
 
     if (binding.signatureCanUseIndirectNIO() && !directNIOOnly) {
@@ -501,6 +515,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         }
       }
       emitCall(binding, writer, false);
+      writer.print(";");
       writer.println();
       writer.println("    }");
     } else {
@@ -556,8 +571,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         writer.print(getArgumentName(i));
         writer.print(".getBuffer())");
       }
-      needComma = true;
-      ++numArgsEmitted;
       if (type.isNIOBuffer()) {
         if (direct) {
           writer.print(", BufferFactory.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
@@ -589,6 +602,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         }
         writer.print(offsetArgName(i));
       }
+
+      needComma = true;
+      ++numArgsEmitted;
     }
     return numArgsEmitted;
   }
