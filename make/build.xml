@@ -21,7 +21,15 @@
     <echo message="antlr.jar=${antlr.jar}" />
   </target>
 
-  <target name="init" depends="load.user.properties">
+  <target name="setup-excludes-1" if="gluegen.nsig">
+    <property name="gluegen.excludes" value="" />
+  </target>
+
+  <target name="setup-excludes-2" unless="gluegen.nsig">
+    <property name="gluegen.excludes" value="com/sun/gluegen/runtime/BufferFactoryInternal.java,com/sun/gluegen/nativesig/**" />
+  </target>
+
+  <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- The source directories. -->
@@ -132,7 +140,7 @@
 
     <!-- Build GlueGen using the generated Java files along with the
       - original source. -->
-    <javac destdir="${classes}" source="1.4" debug="true" debuglevel="source,lines">
+    <javac destdir="${classes}" source="1.4" debug="true" debuglevel="source,lines" excludes="${gluegen.excludes}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="antlr.classpath" />
