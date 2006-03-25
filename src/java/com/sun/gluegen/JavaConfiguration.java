@@ -98,6 +98,7 @@ public class JavaConfiguration {
   private Set/*<Pattern>*/ ignores = new HashSet();
   private Map/*<String,Pattern>*/ ignoreMap = new HashMap();
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
+  private Set/*<Pattern>*/ unignores = new HashSet();
   private Set/*<Pattern>*/ unimplemented = new HashSet();
   private Set/*<String>*/ nioDirectOnly = new HashSet();
   private Set/*<String>*/ manuallyImplement = new HashSet();
@@ -468,7 +469,23 @@ public class JavaConfiguration {
         Pattern regexp = (Pattern)iter.next();
         Matcher matcher = regexp.matcher(symbol);
         if (!matcher.matches()) {
-          return true;
+          // Special case as this is most often likely to be the case. 
+          // Unignores are not used very often.
+          if(unignores.size() == 0)
+            return true;
+         	  
+          boolean unignoreFound = false;
+          for (Iterator iter2 = unignores.iterator(); iter2.hasNext(); ) {
+            Pattern unignoreRegexp = (Pattern)iter2.next();
+            Matcher unignoreMatcher = unignoreRegexp.matcher(symbol);
+            if (unignoreMatcher.matches()) {
+              unignoreFound = true;
+              break;
+            }
+          }
+         	  
+          if (!unignoreFound)
+            return true;
         }
       }
     }
@@ -819,6 +836,13 @@ public class JavaConfiguration {
       Pattern pattern = (Pattern) ignoreMap.get(regex);
       ignoreMap.remove(regex);
       ignores.remove(pattern);
+
+      // If the pattern wasn't registered before, then make sure we have a 
+      // valid pattern instance to put into the unignores set.
+      if(pattern == null)
+        pattern = Pattern.compile(regex);
+      unignores.add(pattern);
+       
       //System.err.println("UN-IGNORING " + regex + " / " + ignores.get(regex));
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Unignore\" command at line " + lineNo +
