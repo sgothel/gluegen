@@ -1027,10 +1027,12 @@ complex for GlueGen to handle.
 
 (optional) Similar to the <a href="#Ignore">Ignore</a> directive, but
 evaluates the negation of the passed regexp when deciding whether to
-ignore the given function or data type. NOTE: there is currently no
-mechanism for using <a href="#Unignore">Unignore</a> with
-IgnoreNot. This is a bug. The IgnoreNot mechanism may ultimately turn
-out to be superfluous.
+ignore the given function or data type. The <a
+href="#Unignore">Unignore</a> mechanism may be used with IgnoreNot as
+well. NOTE: the IgnoreNot mechanism may ultimately turn out to be
+superfluous; the authors do not have sufficient experience with
+regular expressions to know whether general negation of a regexp is
+possible. Feedback in this area would be appreciated.
 
 
 <dt><strong><a name="Implements">Implements</a></strong>
