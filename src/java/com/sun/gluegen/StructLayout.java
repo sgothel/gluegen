@@ -133,7 +133,8 @@ public class StructLayout {
         (os.startsWith("sunos") && cpu.equals("amd64")) ||
         (os.startsWith("mac os") && cpu.equals("ppc")) ||
         (os.startsWith("mac os") && cpu.equals("i386")) ||
-        (os.startsWith("freebsd") && cpu.equals("i386"))
+        (os.startsWith("freebsd") && cpu.equals("i386")) ||
+        (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))
 	) {
       // FIXME: make struct alignment configurable? May need to change
       // packing rules on a per-type basis?

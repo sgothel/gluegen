@@ -59,7 +59,8 @@ public class CPU {
         (os.startsWith("mac os") && cpu.equals("i386")) ||
         (os.startsWith("sunos") && cpu.equals("sparc")) ||
         (os.startsWith("sunos") && cpu.equals("x86")) ||
-        (os.startsWith("freebsd") && cpu.equals("i386"))) {
+        (os.startsWith("freebsd") && cpu.equals("i386")) ||
+        (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))) {
       is32Bit = true;
     } else if ((os.startsWith("linux") && cpu.equals("amd64")) ||
                (os.startsWith("linux") && cpu.equals("x86_64")) ||
