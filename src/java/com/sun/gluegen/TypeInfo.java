@@ -58,4 +58,13 @@ public class TypeInfo {
   public JavaType javaType()             { return javaType; }
   public void     setNext(TypeInfo info) { this.next = info; }
   public TypeInfo next()                 { return next; }
+
+  public String toString() {
+    StringBuffer buf = new StringBuffer("TypeInfo: ");
+    buf.append(name);
+    buf.append(" pointerDepth ");
+    buf.append(pointerDepth);
+    buf.append(" JavaType " + javaType);
+    return buf.toString();
+  }
 }
