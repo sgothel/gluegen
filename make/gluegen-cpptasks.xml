@@ -49,6 +49,8 @@
    -   isVC6
    -   isVC7
    -   isVC8
+   -   isVC8_X64
+   -   isVC8Family (= isVC8 || isVC8_X64)
    -   isMingW
   -->
 <project name="GlueGen-cpptasks" basedir=".">
@@ -160,6 +162,18 @@
         <equals arg1="${win32.c.compiler}" arg2="vc8" />
       </and>
     </condition>
+    <condition property="isVC8_X64">
+      <and>
+        <istrue value="${isWindows}" />
+        <equals arg1="${win32.c.compiler}" arg2="vc8_x64" />
+      </and>
+    </condition>
+    <condition property="isVC8Family">
+      <or>
+        <istrue value="${isVC8}" />
+        <istrue value="${isVC8_X64}" />
+      </or>
+    </condition>
     <condition property="isMingW">
       <and>
         <istrue value="${isWindows}" />
@@ -172,6 +186,7 @@
         <isfalse value="${isVC6}" />
         <isfalse value="${isVC7}" />
         <isfalse value="${isVC8}" />
+        <isfalse value="${isVC8_X64}" />
         <isfalse value="${isMingW}" />
       </and>
     </condition>
