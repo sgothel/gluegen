@@ -88,6 +88,11 @@ public class FunctionSymbol {
     return getType().toString(getName());
   }
 
+  /** Helper routine for emitting native javadoc tags */
+  public String toString(boolean emitNativeTag) {
+    return getType().toString(getName(), emitNativeTag);
+  }
+
   public int hashCode() {
     if (name == null) {
       return 0;

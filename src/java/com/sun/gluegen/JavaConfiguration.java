@@ -71,6 +71,12 @@ public class JavaConfiguration {
    */
   private boolean nativeOutputUsesJavaHierarchy;
   /**
+   * If true, then the comment of a native method binding will include a @native tag
+   * to allow taglets to augment the javadoc with additional information regarding
+   * the mapped C function. Defaults to false.
+   */
+  private boolean tagNativeBinding;
+  /**
    * Style of code emission. Can emit everything into one class
    * (AllStatic), separate interface and implementing classes
    * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
@@ -227,6 +233,8 @@ public class JavaConfiguration {
   public String      nativeOutputDir()               { return nativeOutputDir; }
   /** Returns whether the native code directory structure mirrors the Java hierarchy. */
   public boolean     nativeOutputUsesJavaHierarchy() { return nativeOutputUsesJavaHierarchy; }
+  /** Returns whether the comment of a native method binding should include a @native tag. */
+  public boolean     tagNativeBinding()              { return tagNativeBinding; }
   /** Returns the code emission style (constants in JavaEmitter) parsed from the configuration file. */
   public int         emissionStyle()                 { return emissionStyle; }
   /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
@@ -607,6 +615,8 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("HierarchicalNativeOutput")) {
       String tmp = readString("HierarchicalNativeOutput", tok, filename, lineNo);
       nativeOutputUsesJavaHierarchy = Boolean.valueOf(tmp).booleanValue();
+    } else if (cmd.equalsIgnoreCase("TagNativeBinding")) {
+      tagNativeBinding = readBoolean("TagNativeBinding", tok, filename, lineNo).booleanValue();
     } else if (cmd.equalsIgnoreCase("Style")) {
       String style = readString("Style", tok, filename, lineNo);
       if (style.equalsIgnoreCase("AllStatic")) {

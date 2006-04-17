@@ -73,6 +73,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   protected boolean forDirectBufferImplementation;
   protected boolean forIndirectBufferAndArrayImplementation;
   protected boolean isUnimplemented;
+  protected boolean tagNativeBinding;
 
   protected MethodBinding binding;
 
@@ -91,6 +92,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                   PrintWriter output,
                                   String runtimeExceptionType,
                                   boolean emitBody,
+                                  boolean tagNativeBinding,
                                   boolean eraseBufferAndArrayTypes,
                                   boolean directNIOOnly,
                                   boolean forImplementingMethodCall,
@@ -102,6 +104,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
     this.emitBody = emitBody;
+    this.tagNativeBinding = tagNativeBinding;
     this.eraseBufferAndArrayTypes = eraseBufferAndArrayTypes;
     this.directNIOOnly = directNIOOnly;
     this.forImplementingMethodCall = forImplementingMethodCall;
@@ -120,6 +123,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     binding                       = arg.binding;
     runtimeExceptionType          = arg.runtimeExceptionType;
     emitBody                      = arg.emitBody;
+    tagNativeBinding              = arg.tagNativeBinding;
     eraseBufferAndArrayTypes      = arg.eraseBufferAndArrayTypes;
     directNIOOnly                 = arg.directNIOOnly;
     forImplementingMethodCall     = arg.forImplementingMethodCall;
@@ -702,7 +706,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     }
     protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
       writer.print("<code> ");
-      writer.print(binding.getCSymbol());
+      writer.print(binding.getCSymbol().toString(tagNativeBinding));
       writer.print(" </code> ");
     }
     protected void emitEnding(FunctionEmitter emitter, PrintWriter writer) {

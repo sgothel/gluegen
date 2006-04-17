@@ -126,7 +126,7 @@ public class PointerType extends Type {
     if (!targetType.isFunction()) {
       throw new RuntimeException("<Internal error or misuse> This method is only for use when printing function pointers");
     }
-    return ((FunctionType) targetType).toString(functionName, true);
+    return ((FunctionType) targetType).toString(functionName, false, true);
   }
 
   public void visit(TypeVisitor arg) {

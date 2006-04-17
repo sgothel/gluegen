@@ -95,7 +95,7 @@ public class Field {
       return "" + getType() + " " + getName() + ";";
     } else {
       FunctionType ft = getType().asPointer().getTargetType().asFunction();
-      return ft.toString(getName(), true) + ";";
+      return ft.toString(getName(), false, true) + ";";
     }
   }
 }

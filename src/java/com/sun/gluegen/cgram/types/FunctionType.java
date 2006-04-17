@@ -107,7 +107,11 @@ public class FunctionType extends Type {
     return toString(functionName, false);
   }
 
-  String toString(String functionName, boolean isPointer) {
+  public String toString(String functionName, boolean emitNativeTag) {
+    return toString(functionName, emitNativeTag, false);
+  }
+
+  String toString(String functionName, boolean emitNativeTag, boolean isPointer) {
     StringBuffer res = new StringBuffer();
     res.append(getReturnType());
     res.append(" ");
@@ -115,7 +119,14 @@ public class FunctionType extends Type {
       res.append("(*");
     }
     if (functionName != null) {
+      if (emitNativeTag) {
+        // Emit @native tag for javadoc purposes
+        res.append("{@native ");
+      }
       res.append(functionName);
+      if (emitNativeTag) {
+        res.append("}");
+      }
     }
     if (isPointer) {
       res.append(")");
@@ -126,7 +137,7 @@ public class FunctionType extends Type {
       Type t = getArgumentType(i);
       if (t.isFunctionPointer()) {
         FunctionType ft = t.asPointer().getTargetType().asFunction();
-        res.append(ft.toString(getArgumentName(i), true));
+        res.append(ft.toString(getArgumentName(i), false, true));
       } else if (t.isArray()) {
         res.append(t.asArray().toString(getArgumentName(i)));
       } else {
