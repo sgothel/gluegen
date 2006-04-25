@@ -38,6 +38,7 @@
    -   isLinuxX86
    -   isOSX
    -   isSolaris
+   -   isSolarisSparcv9
    -   isUnix
    -   isWindows
    -   isX11
@@ -77,7 +78,14 @@
       <os name="Linux" />
     </condition>
     <condition property="isSolaris">
-      <os name="SunOS" />
+      <and>
+         <os name="SunOS" />
+         <or>
+          <os arch="i386" />
+          <os arch="x86" />
+          <os arch="sparc" />
+         </or>
+      </and>
     </condition>
     <condition property="isWindows">
       <os family="windows" />
@@ -115,6 +123,12 @@
     <condition property="isIA64">
       <os arch="IA64" />
     </condition>
+    <condition property="isSolarisSparcv9">
+       <and>
+          <os name="SunOS" />
+          <os arch="sparcv9" />
+       </and>
+    </condition>
     <!-- Note: assumes X11 platform by default -->
     <condition property="isX11">
       <and>
@@ -132,6 +146,7 @@
     <echo message="LinuxX86=${isLinuxX86}" />
     <echo message="OS X=${isOSX}" />
     <echo message="Solaris=${isSolaris}" />
+    <echo message="SolarisSparcv9=${isSolarisSparcv9}" />
     <echo message="Unix=${isUnix}" />
     <echo message="Windows=${isWindows}" />
     <echo message="X11=${isX11}" />

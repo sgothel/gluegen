@@ -130,6 +130,7 @@ public class StructLayout {
         (os.startsWith("linux") && cpu.equals("x86_64")) ||
         (os.startsWith("linux") && cpu.equals("ia64")) ||
         (os.startsWith("sunos") && cpu.equals("sparc")) ||
+        (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
         (os.startsWith("sunos") && cpu.equals("x86")) ||
         (os.startsWith("sunos") && cpu.equals("amd64")) ||
         (os.startsWith("mac os") && cpu.equals("ppc")) ||
