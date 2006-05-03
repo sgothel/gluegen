@@ -481,6 +481,7 @@ public class GlueGenTask extends Task
         // set the project and command line
         execute.setAntRun(project);
         execute.setCommandline(command);
+        execute.setWorkingDirectory( project.getBaseDir() );
         
         // execute the command
         try
