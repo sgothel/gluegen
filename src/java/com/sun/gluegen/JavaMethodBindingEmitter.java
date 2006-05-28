@@ -602,7 +602,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         } else {
           throw new RuntimeException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
-                                     "-- error occurred while processing Java glue code for " + getName());
+                                     " -- error occurred while processing Java glue code for " + getName());
         }
         writer.print(offsetArgName(i));
       }

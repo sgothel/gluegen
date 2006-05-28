@@ -354,7 +354,10 @@ public class MethodBinding {
       }
 
       if (cArgType.isPointer()) {
-        if (cArgType.asPointer().getTargetType().isPrimitive()) {
+        // Handle both real C primitive pointers and any constructions
+        // due to opaque directives
+        if (cArgType.asPointer().getTargetType().isPrimitive() ||
+            javaArgType.isCPrimitivePointerType()) {
           signatureUsesCPrimitivePointers = true;
         } else if (cArgType.asPointer().getTargetType().isVoid()) {
           signatureUsesCVoidPointers = true;

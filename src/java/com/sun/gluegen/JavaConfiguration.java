@@ -40,6 +40,7 @@
 package com.sun.gluegen;
 
 import java.io.*;
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.*;
 
@@ -252,6 +253,7 @@ public class JavaConfiguration {
   /** Returns the list of imports that should be emitted at the top of each .java file. */
   public List/*<String>*/ imports()                  { return imports; }
 
+  private static final boolean DEBUG_TYPE_INFO = false;
   /** If this type should be considered opaque, returns the TypeInfo
       describing the replacement type. Returns null if this type
       should not be considered opaque. */
@@ -259,16 +261,24 @@ public class JavaConfiguration {
     // Because typedefs of pointer types can show up at any point,
     // walk the pointer chain looking for a typedef name that is in
     // the TypeInfo map.
+    if (DEBUG_TYPE_INFO)
+      System.err.println("Incoming type = " + type);
     int pointerDepth = type.pointerDepth();
     for (int i = 0; i <= pointerDepth; i++) {
       String name = type.getName();
+      if (DEBUG_TYPE_INFO) {
+        System.err.println(" Type = " + type);
+        System.err.println(" Name = " + name);
+      }
       if (name != null) {
-        TypeInfo info = (TypeInfo) typeInfoMap.get(name);
-        while (info != null) {
-          if (info.name().equals(name) && info.pointerDepth() == i) {
-            return info;
+        TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
+        if (info != null) {
+          if (DEBUG_TYPE_INFO) {
+            System.err.println(" info.name=" + info.name() + ", name=" + name +
+                               ", info.pointerDepth=" + info.pointerDepth() +
+                               ", type.pointerDepth=" + type.pointerDepth());
           }
-          info = info.next();
+          return promoteTypeInfo(info, i);
         }
       }
 
@@ -276,12 +286,14 @@ public class JavaConfiguration {
         // Try struct name as well
         name = type.asCompound().getStructName();
         if (name != null) {
-          TypeInfo info = (TypeInfo) typeInfoMap.get(name);
-          while (info != null) {
-            if (info.name().equals(name) && info.pointerDepth() == i) {
-              return info;
+          TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
+          if (info != null) {
+            if (DEBUG_TYPE_INFO) {
+              System.err.println(" info.name=" + info.name() + ", name=" + name +
+                                 ", info.pointerDepth=" + info.pointerDepth() +
+                                 ", type.pointerDepth=" + type.pointerDepth());
             }
-            info = info.next();
+            return promoteTypeInfo(info, i);
           }
         }
       }
@@ -293,12 +305,17 @@ public class JavaConfiguration {
         // "eq" equality is OK to use here since all types have been canonicalized
         if (entry.getValue() == type) {
           name = (String) entry.getKey();
-          TypeInfo info = (TypeInfo) typeInfoMap.get(name);
-          while (info != null) {
-            if (info.name().equals(name) && info.pointerDepth() == i) {
-              return info;
+          if (DEBUG_TYPE_INFO) {
+            System.err.println("Looking under typedef name " + name);
+          }
+          TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
+          if (info != null) {
+            if (DEBUG_TYPE_INFO) {
+              System.err.println(" info.name=" + info.name() + ", name=" + name +
+                                 ", info.pointerDepth=" + info.pointerDepth() +
+                                 ", type.pointerDepth=" + type.pointerDepth());
             }
-            info = info.next();
+            return promoteTypeInfo(info, i);
           }
         }
       }
@@ -309,6 +326,68 @@ public class JavaConfiguration {
     }
 
     return null;
+  }
+
+  // Helper functions for above
+  private TypeInfo closestTypeInfo(String name, int pointerDepth) {
+    TypeInfo info = (TypeInfo) typeInfoMap.get(name);
+    TypeInfo closest = null;
+    while (info != null) {
+      if (DEBUG_TYPE_INFO)
+        System.err.println("  Checking TypeInfo for " + name + " at pointerDepth " + pointerDepth);
+      if (info.pointerDepth() <= pointerDepth &&
+          (closest == null ||
+           info.pointerDepth() > closest.pointerDepth())) {
+        if (DEBUG_TYPE_INFO)
+          System.err.println("   Accepted");
+        closest = info;
+      }
+      info = info.next();
+    }
+    return closest;
+  }
+
+  // Promotes a TypeInfo to a higher pointer type (if necessary)
+  private TypeInfo promoteTypeInfo(TypeInfo info, int numPointersStripped) {
+    int diff = numPointersStripped - info.pointerDepth();
+    if (diff == 0) {
+      return info;
+    }
+
+    if (diff < 0) {
+      throw new RuntimeException("TypeInfo for " + info.name() + " and pointerDepth " +
+                                 info.pointerDepth() + " should not have matched for depth " +
+                                 numPointersStripped);
+    }
+
+    Class c = info.javaType().getJavaClass();
+    int pd = info.pointerDepth();
+
+    // Handle single-pointer stripping for types compatible with C
+    // integral and floating-point types specially so we end up
+    // generating NIO variants for these
+    if (diff == 1) {
+      JavaType jt = null;
+      if      (c == Boolean.TYPE) jt = JavaType.createForCCharPointer();
+      else if (c == Byte.TYPE)    jt = JavaType.createForCCharPointer();
+      else if (c == Short.TYPE)   jt = JavaType.createForCShortPointer();
+      else if (c == Integer.TYPE) jt = JavaType.createForCInt32Pointer();
+      else if (c == Long.TYPE)    jt = JavaType.createForCInt64Pointer();
+      else if (c == Float.TYPE)   jt = JavaType.createForCFloatPointer();
+      else if (c == Double.TYPE)  jt = JavaType.createForCDoublePointer();
+
+      if (jt != null) 
+        return new TypeInfo(info.name(), pd + numPointersStripped, jt);
+    }
+
+    while (diff > 0) {
+      c = Array.newInstance(c, 0).getClass();
+      --diff;
+    }
+    
+    return new TypeInfo(info.name(),
+                        numPointersStripped,
+                        JavaType.createForClass(c));
   }
 
   /** Indicates whether the given function (which returns a
@@ -748,7 +827,7 @@ public class JavaConfiguration {
 
   protected Class stringToPrimitiveType(String type) throws ClassNotFoundException {
     if (type.equals("boolean")) return Boolean.TYPE;
-    if (type.equals("byte"))    return Integer.TYPE;
+    if (type.equals("byte"))    return Byte.TYPE;
     if (type.equals("char"))    return Character.TYPE;
     if (type.equals("short"))   return Short.TYPE;
     if (type.equals("int"))     return Integer.TYPE;
