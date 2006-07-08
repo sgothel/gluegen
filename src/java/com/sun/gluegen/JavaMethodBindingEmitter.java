@@ -223,6 +223,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           // returned as e.g. ByteBuffer)
           return "Object";
         }
+      } else if (type.isNIOBufferArray()) {
+        // Arrays of direct Buffers sent down as Object[]
+        // (Note we don't yet support returning void**)
+        return "Object[]";
       } else if (type.isCompoundTypeWrapper()) {
         // Compound type wrappers are unwrapped to ByteBuffer
         return "java.nio.ByteBuffer";
