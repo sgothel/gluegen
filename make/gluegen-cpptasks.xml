@@ -79,14 +79,7 @@
       <os name="Linux" />
     </condition>
     <condition property="isSolaris">
-      <and>
-         <os name="SunOS" />
-         <or>
-          <os arch="i386" />
-          <os arch="x86" />
-          <os arch="sparc" />
-         </or>
-      </and>
+      <os name="SunOS" />
     </condition>
     <condition property="isWindows">
       <os family="windows" />
@@ -124,15 +117,25 @@
     <condition property="isIA64">
       <os arch="IA64" />
     </condition>
+    <condition property="isSolaris32Bit">
+      <and>
+         <istrue value="${isSolaris}" />
+         <or>
+          <os arch="i386" />
+          <os arch="x86" />
+          <os arch="sparc" />
+         </or>
+      </and>
+    </condition>
     <condition property="isSolarisSparcv9">
        <and>
-          <os name="SunOS" />
+         <istrue value="${isSolaris}" />
           <os arch="sparcv9" />
        </and>
     </condition>
     <condition property="isSolarisAMD64">
        <and>
-          <os name="SunOS" />
+         <istrue value="${isSolaris}" />
           <os arch="AMD64" />
        </and>
     </condition>
@@ -214,7 +217,7 @@
         <isfalse value="${isMingW}" />
       </and>
     </condition>
-    <fail message="Must specify either win32.c.compiler in jogl.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
+    <fail message="Must specify either win32.c.compiler in e.g. jogl.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
     <echo message="VC6=${isVC6}" />
     <echo message="VC7=${isVC7}" />
     <echo message="VC8=${isVC8}" />
