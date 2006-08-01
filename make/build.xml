@@ -96,6 +96,425 @@
     </antlr>
   </target>
 
+  <!-- Use GlueGen to generate the source code for the NativeLibrary
+       implementation. Note that to make the build process simpler (in
+       particular, the nightly builds) we do not do this every time we
+       run the build, but instead check in the generated sources to
+       the source tree. -->
+
+  <property name="gluegen.root" value="../" />
+  <import file="gluegen-cpptasks.xml" />
+  <target name="generate.nativelibrary.sources" depends="init" >
+    <!-- Define the appropriate include paths -->
+    <dirset id="stub.includes.fileset.windows" dir=".">
+      <include name="stub_includes/windows/**" />
+    </dirset>
+    <dirset id="stub.includes.fileset.unix" dir=".">
+      <include name="stub_includes/unix/**" />
+    </dirset>
+    <dirset id="stub.includes.fileset.macosx" dir=".">
+      <include name="stub_includes/macosx/**" />
+    </dirset>
+    <!-- Define the classpath we should use -->
+    <path id="gluegen.classpath" >
+      <pathelement location="${classes}" />
+      <pathelement location="${antlr.jar}" />
+    </path>
+    <!-- Define the GlueGen task we just built -->
+    <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
+             classpathref="gluegen.classpath" />
+
+    <!-- Execute it against all of the OSs' header files -->
+    <gluegen src="stub_includes/windows/dynamic-linker.h"
+             config="dynlink-windows.cfg"
+             includeRefId="stub.includes.fileset.windows"
+             emitter="com.sun.gluegen.JavaEmitter">
+      <classpath refid="gluegen.classpath" />
+    </gluegen>
+    <gluegen src="stub_includes/unix/dynamic-linker.h"
+             config="dynlink-unix.cfg"
+             includeRefId="stub.includes.fileset.unix"
+             emitter="com.sun.gluegen.JavaEmitter">
+      <classpath refid="gluegen.classpath" />
+    </gluegen>
+    <gluegen src="stub_includes/macosx/dynamic-linker.h"
+             config="dynlink-macosx.cfg"
+             includeRefId="stub.includes.fileset.macosx"
+             emitter="com.sun.gluegen.JavaEmitter">
+      <classpath refid="gluegen.classpath" />
+    </gluegen>
+  </target>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Set up java.home.dir appropriately on all platforms.
+      -->
+    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="isOSX">
+      <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
+      <property name="java.home.dir" value="${java.home}/.." />
+    </target>
+    <target name="setup.java.home.dir.macosx" depends="load.user.properties" if="isOSX">
+      <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
+    </target>
+    <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx" >
+      <property name="java.includes.dir" value="${java.home.dir}/include" />
+    </target>
+
+    <!-- ================================================================== -->
+    <!-- 
+       - Compile the native C code for GlueGen's dynamic linker interface.
+      -->
+
+    <target name="declare.win32.vc6" if="isVC6">
+      <echo message="Win32.VC6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-windows-i586.jar" />
+    </target>
+    
+    <target name="declare.win32.vc7" if="isVC7">
+      <echo message="Win32.VC7" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-windows-i586.jar" />
+    </target>
+    
+    <target name="declare.win32.vc8" if="isVC8">
+      <echo message="Win32.VC8" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-windows-i586.jar" />
+    </target>
+    
+    <target name="declare.win32.vc8_x64" if="isVC8_X64">
+      <echo message="Win32.VC8_X64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-windows-amd64.jar" />
+    </target>
+    
+    <target name="declare.win32.mingw" if="isMingW">
+      <echo message="Win32.MingW" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-windows-i586.jar" />
+    </target>
+
+    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.mingw" if="isWindows" >
+      <property name="c.src.dir"                            value="windows" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir}/win32" />
+      <property name="gluegen.rt.natives.dso"               value="gluegen-rt.dll" />
+    </target>
+
+    <target name="declare.linux.x86" if="isLinuxX86">
+      <echo message="Linux.x86" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-linux-i586.jar" />
+    </target>
+    
+    <target name="declare.linux.amd64" if="isLinuxAMD64">
+      <echo message="Linux.AMD64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-linux-amd64.jar" />
+    </target>
+    
+    <target name="declare.linux.ia64" if="isLinuxIA64">
+      <echo message="Linux.IA64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-linux-ia64.jar" />
+    </target>
+
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64" if="isLinux" >
+      <property name="c.src.dir"                            value="unix" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
+      <property name="gluegen.rt.natives.dso"               value="libgluegen-rt.so" />
+    </target>
+
+    <target name="declare.solaris32" if="isSolaris32Bit">
+      <echo message="Solaris" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-solaris-${os.arch}.jar" />
+    </target>
+ 
+    <target name="declare.solarisSparcv9" if="isSolarisSparcv9">
+      <echo message="SolarisSparcv9" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisSparcv9" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.solarisSparcv9" /> 
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-solaris-sparcv9.jar" />
+    </target>
+
+    <target name="declare.solarisAMD64" if="isSolarisAMD64">
+      <echo message="SolarisAMD64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisAMD64" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.solarisAMD64" /> 
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-solaris-amd64.jar" />
+    </target>
+   
+    <target name="declare.solaris" depends="declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64" if="isSolaris" >
+      <property name="c.src.dir"                            value="unix" />
+      <property name="java.includes.dir.platform"           value="${java.includes.dir}/solaris" />
+      <property name="gluegen.rt.natives.dso"               value="libgluegen-rt.so" />
+    </target>
+
+    <target name="declare.macosx.ppc" unless="macosxfat">
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-macosx-ppc.jar" />
+    </target>
+
+    <target name="declare.macosx.universal" if="macosxfat">
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-macosx-universal.jar" />
+    </target>
+
+    <target name="declare.macosx" depends="declare.macosx.ppc,declare.macosx.universal" if="isOSX">
+      <echo message="MacOSX" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
+      <property name="c.src.dir"                            value="macosx" />
+      <property name="java.includes.dir.platform"           value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
+      <property name="gluegen.rt.natives.dso"               value="libgluegen-rt.jnilib" />
+    </target>
+    
+    <target name="declare.freebsd" if="isFreeBSD">
+      <echo message="FreeBSD" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" />
+      <property name="c.src.dir"                            value="unix" />
+      <property name="java.includes.dir.freebsd"            value="${java.includes.dir}/freebsd" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-freebsd-i586.jar" />
+      <property name="gluegen.rt.natives.dso"               value="libgluegen-rt.so" />
+    </target>
+
+    <target name="declare.hpux" if="isHPUX">
+      <echo message="HP-UX" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.hpux" />
+      <property name="c.src.dir"                            value="unix" />
+      <property name="java.includes.dir.hpux"               value="${java.includes.dir}/hp-ux" />
+      <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-hpux-hppa.jar" />
+      <property name="gluegen.rt.natives.dso"               value="libgluegen-rt.so" />
+    </target>
+
+    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.detect.compiler,setup.java.home.dir,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd,declare.hpux" unless="build.javaonly" >
+      <!-- compiler configuration -->
+      <compiler id="compiler.cfg.linux" name="gcc" />
+
+      <compiler id="compiler.cfg.linux.amd64" name="gcc">
+        <compilerarg value="-fPIC"/>
+      </compiler>
+
+      <compiler id="compiler.cfg.solaris" name="suncc">
+      </compiler>
+
+      <compiler id="compiler.cfg.solarisSparcv9" name="suncc">
+        <compilerarg value="-fast" />
+        <compilerarg value="-xchip=ultra" />
+        <compilerarg value="-xarch=v9a" />
+        <compilerarg value="-xcode=32" />
+      </compiler>
+
+      <compiler id="compiler.cfg.solarisAMD64" name="suncc">
+        <compilerarg value="-fast" />
+        <compilerarg value="-xchip=opteron" />
+        <compilerarg value="-xarch=amd64" />
+  <!--      <compilerarg value="-xcache=64/64/2:1024/64/16" />   -->
+      </compiler>
+
+      <compiler id="compiler.cfg.win32.mingw" name="gcc">
+        <defineset>
+          <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+          <define name="DEBUG"    if="c.compiler.use-debug"/>        
+          <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+
+          <define name="DBUILD_DLL" />
+          <define name="_WINGDI_" /> 
+          <define name="_STRICT_ANSI" /> 
+          <define name="_JNI_IMPLEMENTATION_" />
+        </defineset>
+      </compiler>
+
+      <compiler id="compiler.cfg.win32.msvc" name="msvc">
+        <compilerarg value="/W3"/>      <!-- set warning level -->
+        <compilerarg value="/Ob1"/>     <!-- inline only functions marked inline -->
+        <compilerarg value="/GF"/>      <!-- enable string pooling -->
+        <compilerarg value="/Gy"/>      <!-- enable function level linking -->
+        <compilerarg value="/GS"      if="isVC7"/>  <!-- buffer security checks -->
+        <compilerarg value="/Wp64"    if="isVC7"/>  <!-- detect 64-bit port problems -->
+        <compilerarg value="/RTCcsu"  if="isVC7"/>  <!-- various runtime checks -->
+	<!-- Note: previous compiler options for VC7 were:
+	     Debug:     /MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;
+             Optimized: /MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot; -->
+        <compilerarg value="/GS"      if="isVC8"/>  <!-- buffer security checks -->
+        <compilerarg value="/Wp64"    if="isVC8"/>  <!-- detect 64-bit port problems -->
+        <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
+
+        <defineset>
+          <define name="_DEBUG"   if="c.compiler.use-debug"/>
+          <define name="DEBUG"    if="c.compiler.use-debug"/>
+          <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+        </defineset>
+      </compiler>
+
+      <compiler id="compiler.cfg.macosx" name="gcc">
+        <compilerarg value="-arch" if="macosxfat"/>
+        <compilerarg value="ppc" if="macosxfat"/>
+        <compilerarg value="-arch" if="macosxfat"/>
+        <compilerarg value="i386" if="macosxfat"/>
+        <compilerarg value="-Wmost" />
+        <compilerarg value="-ObjC" />
+        <defineset>
+          <define name="macosx" />
+        </defineset>
+      </compiler>
+
+      <compiler id="compiler.cfg.freebsd" name="gcc" />
+
+      <compiler id="compiler.cfg.hpux" name="aCC">
+        <!-- Interpret source as ANSI C89 (not C++) -->
+        <compilerarg value="-Ae"/> 
+        <!-- Dereferences are performed with four-byte loads and stores. -->
+        <compilerarg value="+u4"/>
+        <!-- Suppress warnings: 
+                 942: signed/unsigned assignment compatibility
+                 129: redeclarations in stub_includes -->
+        <compilerarg value="+W942,129"/>
+        <defineset>
+           <!-- aCC doesn't seem to define a generic system macro, a la 
+               "__sun". The documentation claims it defines the following,
+               but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
+               HP-UX docs on JNI say to use the defs below 
+               (http://www.hp.com/products1/unix/java/infolibrary/prog_guide/JNI_java2.html) -->
+           <!-- Single underscore prefix, as recommended by aCC docs... -->
+           <define name="_HPUX"/> 
+           <define name="_POSIX_C_SOURCE" value="199506L"/>
+        </defineset>
+      </compiler>
+ 
+      <!-- linker configuration -->
+ 
+      <linker id="linker.cfg.linux" name="gcc" />
+
+      <linker id="linker.cfg.linux.amd64" name="gcc" />
+
+      <linker id="linker.cfg.solaris" name="suncc" />
+
+      <linker id="linker.cfg.solarisSparcv9" name="suncc">
+        <linkerarg value="-xarch=v9a" />
+      </linker>
+
+      <linker id="linker.cfg.solarisAMD64" name="suncc">
+        <linkerarg value="-xarch=amd64" />
+      </linker>
+
+      <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+      </linker>
+
+      <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
+        <linkerarg value="/OPT:REF,ICF" />        <!-- enable link-time optimisations -->
+        <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
+        <linkerarg value="/MACHINE:X86" if="isVC6" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X86" if="isVC7" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X86" if="isVC8" />       <!-- explicity set target platform -->
+        <linkerarg value="/MACHINE:X64" if="isVC8_X64"/>    <!-- explicity set target platform (IX64) -->
+      </linker>
+
+      <linker id="linker.cfg.macosx" name="gcc">
+        <linkerarg value="-arch" if="macosxfat"/>
+        <linkerarg value="ppc" if="macosxfat"/>
+        <linkerarg value="-arch" if="macosxfat"/>
+        <linkerarg value="i386" if="macosxfat"/>
+      </linker>
+
+      <linker id="linker.cfg.hpux" name="aCC" />
+
+      <!-- Common properties -->
+      <property name="java.includes.dir" value="${java.home.dir}/include" /> <!-- NOTE:  this MUST be relative for FileSet -->
+
+      <property name="c.compiler.src.files" value="src/native/${c.src.dir}/*.c" />
+
+      <property name="output.lib.name" value="gluegen-rt" />
+    </target>
+
+    <target name="c.rename.lib.mingw" if="isMingW">
+      <!-- FIXME: this is a hack; the cpptask should have an option to change the
+           suffix or at least understand the override from .so to .dll -->
+      <move file="../build/obj/libgluegen-rt.so" tofile="../build/obj/gluegen-rt.dll" />
+    </target>
+
+    <target name="c.rename.lib.macosx" if="isOSX">
+      <!-- FIXME: this is a hack; the cpptask should have an option to change the
+           suffix or at least understand the override from dylib to jnilib -->
+      <move file="../build/obj/libgluegen-rt.dylib" tofile="../build/obj/libgluegen-rt.jnilib" />
+    </target>
+
+    <target name="c.build" depends="c.configure" unless="build.javaonly" >
+      <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
+      <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
+      <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
+      <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
+
+      <echo message="Output lib name = ${output.lib.name}" />
+
+      <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
+      <property name="c.compiler.debug"     value="false" /> 
+      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
+      <property name="c.compiler.optimise"  value="none" /> 
+
+      <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
+
+      <mkdir dir="../build/obj" />
+
+      <echo message="Compiling ${c.compiler.src.files}" />
+      <echo message="user.dir=${user.dir}" />
+
+      <cc outtype="shared" 
+          objdir="../build/obj" 
+          outfile="../build/obj/${output.lib.name}"
+          optimize="${c.compiler.optimise}" 
+          debug="${c.compiler.debug}"
+          multithreaded="true" 
+          exceptions="false" 
+          rtti="false">   
+
+        <!-- TODO: versioninfo  companyname="java.net"
+                      legalcopyright="Copyright"
+                      productname="GlueGen" 
+                      productversion="x.y.z"
+                      description="Description"
+                      fileversion="x.y.z" 
+                      filecomments="File Comment" /-->      
+
+        <fileset dir="..">
+          <patternset>
+            <include name="${c.compiler.src.files}" />
+          </patternset>
+        </fileset>
+
+        <compiler extends="${compiler.cfg.id}" >
+          <sysincludepath path="${java.includes.dir}"/>
+          <sysincludepath path="${java.includes.dir.platform}"/>
+        </compiler>
+
+        <linker extends="${linker.cfg.id}" />
+      </cc>
+
+      <antcall target="c.rename.lib.mingw" inheritRefs="true" />
+      <antcall target="c.rename.lib.macosx" inheritRefs="true" />
+      <!-- Create Java Web Start jar file from built file -->
+      <jar destfile="../build/${gluegen.rt.natives.jar}">
+        <fileset dir="../build/obj">
+          <include name="${gluegen.rt.natives.dso}" />
+        </fileset>
+      </jar>
+    </target>  
+
+  <target name="build.nativelibrary" if="build.native" >
+    <antcall target="c.build" inheritRefs="true" />
+  </target>
+
   <!-- ================================================================== -->
   <!--
     - Build GlueGen.
@@ -145,6 +564,10 @@
       <src path="${src.generated.java}" />
       <classpath refid="antlr.classpath" />
     </javac>
+
+    <!-- Build the (native code) NativeLibrary support for
+         gluegen-rt.jar using the just-built GlueGen. -->
+    <antcall target="build.nativelibrary" inheritRefs="true" />
 
     <!-- Build gluegen.jar. -->
     <jar destfile="${build}/gluegen.jar" manifest="Manifest">
