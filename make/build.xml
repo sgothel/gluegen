@@ -511,7 +511,7 @@
       </jar>
     </target>  
 
-  <target name="build.nativelibrary" if="build.native" >
+  <target name="build.nativelibrary" unless="build.javaonly" >
     <antcall target="c.build" inheritRefs="true" />
   </target>
 
