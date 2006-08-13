@@ -242,15 +242,15 @@
  
     <target name="declare.solarisSparcv9" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisSparcv9" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solarisSparcv9" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris.sparcv9" /> 
       <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-solaris-sparcv9.jar" />
     </target>
 
     <target name="declare.solarisAMD64" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solarisAMD64" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solarisAMD64" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris.amd64" /> 
       <property name="gluegen.rt.natives.jar"               value="gluegen-rt-natives-solaris-amd64.jar" />
     </target>
    
