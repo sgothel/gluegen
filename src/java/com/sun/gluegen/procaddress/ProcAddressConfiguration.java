@@ -52,6 +52,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
   private String  tableClassName = "ProcAddressTable";
   private Set/*<String>*/ skipProcAddressGen  = new HashSet();
   private List/*<String>*/ forceProcAddressGen  = new ArrayList();
+  private Set/*<String>*/ forceProcAddressGenSet = new HashSet();
   private String  getProcAddressTableExpr;
   private ConvNode procAddressNameConverter;
 
@@ -78,6 +79,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
       {
         String sym = readString("ForceProcAddressGen", tok, filename, lineNo);
         forceProcAddressGen.add(sym);
+        forceProcAddressGenSet.add(sym);
       }
     else if (cmd.equalsIgnoreCase("GetProcAddressTableExpr"))
       {
@@ -252,5 +254,8 @@ public class ProcAddressConfiguration extends JavaConfiguration
     }
 
     return procAddressNameConverter.convert(funcName);
+  }
+  public boolean forceProcAddressGen(String funcName) {
+    return forceProcAddressGenSet.contains(funcName);
   }
 }

@@ -46,12 +46,14 @@ import com.sun.gluegen.cgram.types.*;
 
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
   private boolean callThroughProcAddress;
+  private boolean needsLocalTypedef;
   private static String procAddressJavaTypeName =
     JavaType.createForClass(Long.TYPE).jniTypeName();
   private ProcAddressEmitter emitter;
 
   public ProcAddressCMethodBindingEmitter(CMethodBindingEmitter methodToWrap,
                                           final boolean callThroughProcAddress,
+                                          boolean needsLocalTypedef,
                                           ProcAddressEmitter emitter) {
     super(
       new MethodBinding(methodToWrap.getBinding()) {
@@ -91,6 +93,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     
     setCommentEmitter(defaultCommentEmitter);
     this.callThroughProcAddress = callThroughProcAddress;
+    this.needsLocalTypedef = needsLocalTypedef;
     this.emitter = emitter;
   }
   
@@ -112,10 +115,24 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
   protected void emitBodyVariableDeclarations(PrintWriter writer) {
     if (callThroughProcAddress) {
       // create variable for the function pointer with the right type, and set
-      // it to the value of the passed-in glProcAddress 
+      // it to the value of the passed-in proc address
       FunctionSymbol cSym = getBinding().getCSymbol();
       String funcPointerTypedefName =
         emitter.getFunctionPointerTypedefName(cSym);
+
+      if (needsLocalTypedef) {
+        // We (probably) didn't get a typedef for this function
+        // pointer type in the header file; the user requested that we
+        // forcibly generate one. Here we force the emission of one.
+        PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
+        // Just for safety, emit this name slightly differently than
+        // the mangling would otherwise produce
+        funcPointerTypedefName = "_local_" + funcPointerTypedefName;
+
+        writer.print("  typedef ");
+        writer.print(funcPtrType.toString(funcPointerTypedefName));
+        writer.println(";");
+      }
     
       writer.print("  ");
       writer.print(funcPointerTypedefName);

@@ -40,7 +40,7 @@ public class UnixDynamicLinkerImpl implements DynamicLinker
     // other words, one can actually link against the library instead of
     // having to dlsym all entry points. System.loadLibrary() uses
     // RTLD_LOCAL visibility so can't be used for this purpose.
-    return dlopen(pathname, RTLD_GLOBAL);
+    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
   }
   
   public long lookupSymbol(long libraryHandle, String symbolName) {

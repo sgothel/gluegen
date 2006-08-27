@@ -61,6 +61,7 @@ public class NativeLibrary {
   private static final int WINDOWS = 1;
   private static final int UNIX    = 2;
   private static final int MACOSX  = 3;
+  private static boolean DEBUG;
   private static int platform;
   private static DynamicLinker dynLink;
   private static String prefix;
@@ -78,6 +79,9 @@ public class NativeLibrary {
           } else {
             platform = UNIX;
           }
+
+          DEBUG = (System.getProperty("gluegen.debug.NativeLibrary") != null);
+
           return null;
         }
       });
@@ -118,35 +122,58 @@ public class NativeLibrary {
   }
 
   /** Opens the given native library, assuming it has the same base
-      name on all platforms, in the context of the specified
-      ClassLoader, which is used to help find the library in the case
-      of e.g. Java Web Start. */
+      name on all platforms, looking first in the system's search
+      path, and in the context of the specified ClassLoader, which is
+      used to help find the library in the case of e.g. Java Web Start. */
   public static NativeLibrary open(String libName, ClassLoader loader) {
-    return open(libName, libName, libName, loader);
+    return open(libName, libName, libName, true, loader);
   }
 
   /** Opens the given native library, assuming it has the given base
       names (no "lib" prefix or ".dll/.so/.dylib" suffix) on the
       Windows, Unix and Mac OS X platforms, respectively, and in the
       context of the specified ClassLoader, which is used to help find
-      the library in the case of e.g. Java Web Start. */
+      the library in the case of e.g. Java Web Start. The
+      searchSystemPathFirst argument changes the behavior to first
+      search the default system path rather than searching it last.
+      Note that we do not currently handle DSO versioning on Unix.
+      Experience with JOAL and OpenAL has shown that it is extremely
+      problematic to rely on a specific .so version (for one thing,
+      ClassLoader.findLibrary on Unix doesn't work with files not
+      ending in .so, for example .so.0), and in general if this
+      dynamic loading facility is used correctly the version number
+      will be irrelevant.
+  */
   public static NativeLibrary open(String windowsLibName,
                                    String unixLibName,
                                    String macOSXLibName,
+                                   boolean searchSystemPathFirst,
                                    ClassLoader loader) {
     List possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                unixLibName,
                                                macOSXLibName,
+                                               searchSystemPathFirst,
                                                loader);
     // Iterate down these and see which one if any we can actually find.
     for (Iterator iter = possiblePaths.iterator(); iter.hasNext(); ) {
       String path = (String) iter.next();
+      if (DEBUG) {
+        System.out.println("Trying to load " + path);
+      }
       ensureNativeLibLoaded();
       long res = dynLink.openLibrary(path);
       if (res != 0) {
+        if (DEBUG) {
+          System.out.println("Successfully loaded " + path + ": res = 0x" + Long.toHexString(res));
+        }
         return new NativeLibrary(res, path);
       }
     }
+
+    if (DEBUG) {
+      System.out.println("Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
+    }
+
     // For now, just return null to indicate the open operation didn't
     // succeed (could also throw an exception if we could tell which
     // of the openLibrary operations actually failed)
@@ -188,18 +215,28 @@ public class NativeLibrary {
   private static List enumerateLibraryPaths(String windowsLibName,
                                             String unixLibName,
                                             String macOSXLibName,
+                                            boolean searchSystemPathFirst,
                                             ClassLoader loader) {
+    List paths = new ArrayList();
     String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
+    if (libName == null)
+      return paths;
     String[] baseNames = buildNames(libName);
 
-    List paths = new ArrayList();
+    if (searchSystemPathFirst) {
+      // Add just the library names to use the OS's search algorithm
+      for (int i = 0; i < baseNames.length; i++) {
+        paths.add(baseNames[i]);
+      }
+    }
 
     // The idea to ask the ClassLoader to find the library is borrowed
     // from the LWJGL library
     String clPath = getPathFromClassLoader(libName, loader);
-    if (clPath != null)
+    if (clPath != null) {
       paths.add(clPath);
-    
+    }
+
     // Add entries from java.library.path
     String javaLibraryPath =
       (String) AccessController.doPrivileged(new PrivilegedAction() {
@@ -223,9 +260,11 @@ public class NativeLibrary {
         });
     addPaths(userDir, baseNames, paths);
 
-    // Add just the library names to use the OS's search algorithm
-    for (int i = 0; i < baseNames.length; i++) {
-      paths.add(baseNames[i]);
+    if (!searchSystemPathFirst) {
+      // Add just the library names to use the OS's search algorithm
+      for (int i = 0; i < baseNames.length; i++) {
+        paths.add(baseNames[i]);
+      }
     }
 
     return paths;
