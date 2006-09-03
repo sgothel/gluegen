@@ -64,7 +64,7 @@ public class NativeLibrary {
   private static boolean DEBUG;
   private static int platform;
   private static DynamicLinker dynLink;
-  private static String prefix;
+  private static String[] prefixes;
   private static String[] suffixes;
 
   static {
@@ -89,18 +89,18 @@ public class NativeLibrary {
     switch (platform) {
       case WINDOWS:
         dynLink = new WindowsDynamicLinkerImpl();
-        prefix = "";
+        prefixes = new String[] { "" };
         suffixes = new String[] { ".dll" };
         break;
       case UNIX:
         dynLink = new UnixDynamicLinkerImpl();
-        prefix = "lib";
+        prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
         break;
       case MACOSX:
         dynLink = new MacOSXDynamicLinkerImpl();
-        prefix = "lib";
-        suffixes = new String[] { ".dylib", ".jnilib" };
+        prefixes = new String[] { "lib", "" };
+        suffixes = new String[] { ".dylib", ".jnilib", "" };
         break;
       default:
         throw new InternalError("Platform not initialized properly");
@@ -260,6 +260,14 @@ public class NativeLibrary {
         });
     addPaths(userDir, baseNames, paths);
 
+    // Add probable Mac OS X-specific paths
+    if (platform == MACOSX) {
+      // Add historical location
+      addPaths("/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
+      // Add current location
+      addPaths("/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
+    }
+
     if (!searchSystemPathFirst) {
       // Add just the library names to use the OS's search algorithm
       for (int i = 0; i < baseNames.length; i++) {
@@ -287,9 +295,12 @@ public class NativeLibrary {
   }
 
   private static String[] buildNames(String libName) {
-    String[] res = new String[suffixes.length];
-    for (int i = 0; i < suffixes.length; i++) {
-      res[i] = prefix + libName + suffixes[i];
+    String[] res = new String[prefixes.length * suffixes.length];
+    int idx = 0;
+    for (int i = 0; i < prefixes.length; i++) {
+      for (int j = 0; j < suffixes.length; j++) {
+        res[idx++] = prefixes[i] + libName + suffixes[j];
+      }
     }
     return res;
   }
