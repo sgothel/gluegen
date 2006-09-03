@@ -400,7 +400,6 @@
       <compilerarg value="-fast" />
       <compilerarg value="-xchip=ultra" />
       <compilerarg value="-xarch=v9a" />
-      <compilerarg value="-xcode=32" />
     </compiler>
 
     <compiler id="compiler.cfg.solaris.amd64" name="suncc">
