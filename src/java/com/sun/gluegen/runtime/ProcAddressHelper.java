@@ -48,7 +48,7 @@ public class ProcAddressHelper {
   public static void resetProcAddressTable(Object table,
                                            DynamicLookupHelper lookup) throws RuntimeException {
     Class tableClass = table.getClass();
-    java.lang.reflect.Field[] fields = tableClass.getDeclaredFields();
+    java.lang.reflect.Field[] fields = tableClass.getFields();
     
     for (int i = 0; i < fields.length; ++i) {
       String addressFieldName = fields[i].getName();
@@ -59,7 +59,7 @@ public class ProcAddressHelper {
       int startOfMethodName = ProcAddressHelper.PROCADDRESS_VAR_PREFIX.length();
       String funcName = addressFieldName.substring(startOfMethodName);
       try {
-        java.lang.reflect.Field addressField = tableClass.getDeclaredField(addressFieldName);
+        java.lang.reflect.Field addressField = fields[i];
         assert(addressField.getType() == Long.TYPE);
         long newProcAddress = lookup.dynamicLookupFunction(funcName);
         // set the current value of the proc address variable in the table object
