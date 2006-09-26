@@ -579,7 +579,7 @@ public class PCPP {
     if (!isIf) {
       popEnableBit();
     }
-    pushEnableBit(defineEvaluatedToTrue);
+    pushEnableBit(enabled() && defineEvaluatedToTrue == isIf);
     //System.out.println("OUT HANDLE_" + (isIf ? "IF" : "ELIF") +" (evaluated to " + defineEvaluatedToTrue + ")");
   }
 
