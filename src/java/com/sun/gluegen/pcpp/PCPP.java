@@ -58,7 +58,14 @@ public class PCPP {
   public void         setOut(OutputStream out) { this.out = out; writer = new PrintWriter(out); }
 
   public void run(Reader reader, String filename) throws IOException {
-    StreamTokenizer tok = new StreamTokenizer(reader);
+    StreamTokenizer tok = null;
+    BufferedReader bufReader = null;
+    if (reader instanceof BufferedReader) {
+      bufReader = (BufferedReader) reader;
+    } else {
+      bufReader = new BufferedReader(reader);
+    }
+    tok = new StreamTokenizer(new ConcatenatingReader(bufReader));
     tok.resetSyntax();
     tok.wordChars('a', 'z');
     tok.wordChars('A', 'Z');
