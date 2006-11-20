@@ -308,6 +308,7 @@ typeSpecifier [int specCount] returns [int retSpecCount]
         |       "char"
         |       "short"
         |       "int"
+        |       "__int32"
         |       "__int64"
         |       "long"
         |       "float"

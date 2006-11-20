@@ -651,6 +651,27 @@ public class PCPP {
             ifValue = ifValue || rhs;
         }
         break;
+        case '>':
+        {
+            // NOTE: we don't handle expressions like this properly
+            boolean rhs = handleIfRecursive(true);
+            ifValue = false;
+        }
+        break;
+        case '<':
+        {
+            // NOTE: we don't handle expressions like this properly
+            boolean rhs = handleIfRecursive(true);
+            ifValue = false;
+        }
+        break;
+        case '=':
+        {
+            // NOTE: we don't handle expressions like this properly
+            boolean rhs = handleIfRecursive(true);
+            ifValue = false;
+        }
+        break;
         case StreamTokenizer.TT_WORD: 
         {
           String word = curTokenAsString();

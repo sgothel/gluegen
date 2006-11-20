@@ -462,6 +462,7 @@ typeSpecifier[int attributes] returns [Type t] {
         |       "short"    { t = new IntType("short", SizeThunk.SHORT, unsigned, cvAttrs); }
         |       "int"      { t = new IntType("int"  , SizeThunk.INT,   unsigned, cvAttrs); }
         |       "long"     { t = new IntType("long" , SizeThunk.LONG,  unsigned, cvAttrs); }
+        |       "__int32"  { t = new IntType("__int32", SizeThunk.INT, unsigned, cvAttrs); }
         |       "__int64"  { t = new IntType("__int64", SizeThunk.INT64, unsigned, cvAttrs); }
         |       "float"    { t = new FloatType("float", SizeThunk.FLOAT, cvAttrs); }
         |       "double"   { t = new DoubleType("double", SizeThunk.DOUBLE, cvAttrs); }
