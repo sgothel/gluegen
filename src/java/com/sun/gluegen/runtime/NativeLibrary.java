@@ -221,6 +221,14 @@ public class NativeLibrary {
     String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
     if (libName == null)
       return paths;
+
+    // Allow user's full path specification to override our building pf paths
+    File file = new File(libName);
+    if (file.isAbsolute()) {
+	paths.add(libName);
+	return paths;
+    }
+
     String[] baseNames = buildNames(libName);
 
     if (searchSystemPathFirst) {
