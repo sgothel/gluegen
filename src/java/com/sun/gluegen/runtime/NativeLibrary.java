@@ -222,7 +222,7 @@ public class NativeLibrary {
     if (libName == null)
       return paths;
 
-    // Allow user's full path specification to override our building pf paths
+    // Allow user's full path specification to override our building of paths
     File file = new File(libName);
     if (file.isAbsolute()) {
 	paths.add(libName);
