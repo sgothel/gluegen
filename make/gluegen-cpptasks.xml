@@ -309,8 +309,8 @@
     <property name="native.library.suffix" value="so" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.windows.amd64" unless="gluegen.cpptasks.detected.os" if="isWindowsX86">
-    <property name="os.and.arch" value="windows-i586" />
+  <target name="gluegen.cpptasks.detect.os.windows.amd64" unless="gluegen.cpptasks.detected.os" if="isWindowsAMD64">
+    <property name="os.and.arch" value="windows-amd64" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os" if="isWindowsX86">
