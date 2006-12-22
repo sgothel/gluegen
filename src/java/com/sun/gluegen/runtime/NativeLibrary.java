@@ -241,6 +241,9 @@ public class NativeLibrary {
     // The idea to ask the ClassLoader to find the library is borrowed
     // from the LWJGL library
     String clPath = getPathFromClassLoader(libName, loader);
+    if (DEBUG) {
+      System.out.println("Class loader path to " + libName + ": " + clPath);
+    }
     if (clPath != null) {
       paths.add(clPath);
     }
@@ -321,7 +324,7 @@ public class NativeLibrary {
 
   private static boolean initializedFindLibraryMethod = false;
   private static Method  findLibraryMethod = null;
-  private static String getPathFromClassLoader(final String libName, ClassLoader loader) {
+  private static String getPathFromClassLoader(final String libName, final ClassLoader loader) {
     if (loader == null)
       return null;
     if (!initializedFindLibraryMethod) {
@@ -341,8 +344,19 @@ public class NativeLibrary {
     }
     if (findLibraryMethod != null) {
       try {
-        return (String) findLibraryMethod.invoke(loader, new Object[] { libName });
+        return (String) AccessController.doPrivileged(new PrivilegedAction() {
+            public Object run() {
+              try {
+                return findLibraryMethod.invoke(loader, new Object[] { libName });
+              } catch (Exception e) {
+                throw new RuntimeException(e);
+              }
+            }
+          });
       } catch (Exception e) {
+        if (DEBUG) {
+          e.printStackTrace();
+        }
         // Fail silently and continue with other search algorithms
       }
     }
