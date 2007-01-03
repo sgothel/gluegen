@@ -5,8 +5,8 @@
 #include <assert.h>
 
  #include <windows.h>
- /* This typedef is only needed for VC6 */
- #if _MSC_VER <= 1200
+ /* This typedef is apparently needed for compilers before VC8 */
+ #if _MSC_VER < 1400
  typedef int intptr_t;
  #endif
 
