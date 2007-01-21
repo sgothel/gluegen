@@ -306,6 +306,33 @@ public class NativeLibrary {
   }
 
   private static String[] buildNames(String libName) {
+    // If the library name already has the prefix / suffix added
+    // (principally because we want to force a version number on Unix
+    // operating systems) then just return the library name.
+    if (libName.startsWith(prefixes[0])) {
+      if (libName.endsWith(suffixes[0])) {
+        return new String[] { libName };
+      }
+
+      int idx = libName.indexOf(suffixes[0]);
+      boolean ok = true;
+      if (idx >= 0) {
+        // Check to see if everything after it is a Unix version number
+        for (int i = idx + suffixes[0].length();
+             i < libName.length();
+             i++) {
+          char c = libName.charAt(i);
+          if (!(c == '.' || (c >= '0' && c <= '9'))) {
+            ok = false;
+            break;
+          }
+        }
+        if (ok) {
+          return new String[] { libName };
+        }
+      }
+    }
+
     String[] res = new String[prefixes.length * suffixes.length];
     int idx = 0;
     for (int i = 0; i < prefixes.length; i++) {
