@@ -594,13 +594,29 @@ enumList[EnumType enumeration] {
 enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValue] {
 	newDefaultValue = defaultValue;
 }
-        :       eName:ID ( ASSIGN eVal:expr )? { 
-					// FIXME! Integer.parseInt() will throw if its argument is in octal or hex format.
-					long value = (eVal == null) ? defaultValue : Long.parseLong(eVal.getText());
+        :       eName:ID ( ASSIGN eVal:expr )? {
+                    long value = 0;
+                    if (eVal != null) {
+                      String vTxt = eVal.getText();
+                      if (enumHash.containsKey(vTxt)) {
+                        EnumType oldEnumType = (EnumType) enumHash.get(vTxt);
+                        value = oldEnumType.getEnumValue(vTxt);
+                      } else {
+                        try {
+                          value = Long.decode(vTxt).longValue();
+                        } catch (NumberFormatException e) {
+                          System.err.println("NumberFormatException: " + enumerator_AST_in);
+                          throw e;
+                        }
+                      }
+                    } else {
+                      value = defaultValue;
+                    }
+
 					newDefaultValue = value+1;
 	  				String eTxt = eName.getText();
 	  				if (enumHash.containsKey(eTxt)) {
-						EnumType oldEnumType = ((EnumType)enumHash.get(eTxt));
+						EnumType oldEnumType = (EnumType) enumHash.get(eTxt);
 						long oldValue = oldEnumType.getEnumValue(eTxt);
 	  					System.err.println("WARNING: redefinition of enumerated value '" + eTxt + "';" +
 		  				   " existing definition is in enumeration '" + oldEnumType.getName() +
