@@ -597,7 +597,7 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
         :       eName:ID ( ASSIGN eVal:expr )? {
                     long value = 0;
                     if (eVal != null) {
-                      String vTxt = eVal.getText();
+		      String vTxt = eVal.getAllChildrenText();
                       if (enumHash.containsKey(vTxt)) {
                         EnumType oldEnumType = (EnumType) enumHash.get(vTxt);
                         value = oldEnumType.getEnumValue(vTxt);
@@ -605,7 +605,7 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                         try {
                           value = Long.decode(vTxt).longValue();
                         } catch (NumberFormatException e) {
-                          System.err.println("NumberFormatException: " + enumerator_AST_in);
+			  System.err.println("NumberFormatException: ID[" + eName.getText() + "], VALUE=[" + vTxt + "]");
                           throw e;
                         }
                       }

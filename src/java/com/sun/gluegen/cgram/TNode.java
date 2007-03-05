@@ -153,6 +153,16 @@ public void initialize(AST tr) {
     text = text_; 
   }
   
+  /** Returns the text for this node and all children */
+  public String getAllChildrenText() {
+    StringBuffer buf = new StringBuffer();
+    buf.append(getText());
+    for (TNode node = (TNode) getFirstChild(); node != null; node = (TNode) node.getNextSibling()) {
+      buf.append(node.getText());
+    }
+    return buf.toString();
+  }
+
   /** return the last child of this node, or null if there is none */
   public TNode getLastChild() {
     TNode down = (TNode)getFirstChild();

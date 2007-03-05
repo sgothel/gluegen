@@ -867,7 +867,7 @@ public class PCPP {
   }
 
   private void lineDirective() {
-    print("#line " + lineNumber() + " \"" + filename() + "\"");
+    print("# " + lineNumber() + " \"" + filename() + "\"");
     println();
   }
 }
