@@ -606,11 +606,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
             // FIXME: if the arg type is non-const, the sematics might be that
             // the function modifies the argument -- we don't yet support
             // this.
-            //
-            // Note: the check for "const" in the CVAttributes string isn't
-            // truly checking the constness of the target types at both
-            // pointer depths. However, it's a quick approximation, and quite
-            // often C code doesn't get the constness right anyhow.
             throw new RuntimeException(
               "Cannot copy data for ptr-to-ptr arg type \"" + cArgType +
               "\": support for non-const ptr-to-ptr types not implemented.");
@@ -796,7 +791,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           Type cArgType = binding.getCArgumentType(i);
           String cArgTypeName = cArgType.getName();
 
-          if (cArgType.toString().indexOf("const") == -1) {
+          if (!isConstPtrPtr(cArgType)) {
             // FIXME: handle any cleanup from treatment of non-const args,
             // assuming they were treated differently in
             // emitBodyVariablePreCallSetup() (see the similar section in that
