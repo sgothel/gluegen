@@ -412,7 +412,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
               firstBuffer = false;
               writer.println("    boolean _direct = BufferFactory.isDirect(" + getArgumentName(i) + ");");
             } else {
-              writer.println("    if (_direct != BufferFactory.isDirect(" + getArgumentName(i) + "))");
+              writer.println("    if (" + getArgumentName(i) + " != null && _direct != BufferFactory.isDirect(" + getArgumentName(i) + "))");
               writer.println("      throw new " + getRuntimeExceptionType() +
                              "(\"Argument \\\"" + getArgumentName(i) +
                              "\\\" : Buffers passed to this method must all be either direct or indirect\");");
