@@ -342,7 +342,7 @@ public class ProcAddressEmitter extends JavaEmitter
     w.println("   *   it was statically linked.");
     w.println("   */");
     w.println("  public long getAddressFor(String functionName) {");
-    w.println("    String addressFieldName = com.sun.gluegen.runtime.ProcAddressHelper.PROCADDRESS_VAR_PREFIX + functionName;");
+    w.println("    String addressFieldName = " + getProcAddressConfig().gluegenRuntimePackage() + ".ProcAddressHelper.PROCADDRESS_VAR_PREFIX + functionName;");
     w.println("    try { ");
     w.println("      java.lang.reflect.Field addressField = getClass().getField(addressFieldName);");
     w.println("      return addressField.getLong(this);");

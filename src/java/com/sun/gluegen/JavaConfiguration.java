@@ -89,6 +89,13 @@ public class JavaConfiguration {
    */
   private List/*<String>*/ imports = new ArrayList();
   /**
+   * The package in which the generated glue code expects to find its
+   * run-time helper classes (BufferFactory, CPU,
+   * StructAccessor). Defaults to "com.sun.gluegen.runtime".
+   */
+  private String gluegenRuntimePackage = "com.sun.gluegen.runtime";
+
+  /**
    * The kind of exception raised by the generated code if run-time
    * checks fail. Defaults to RuntimeException.
    */
@@ -248,6 +255,10 @@ public class JavaConfiguration {
     return JavaEmitter.ACC_PUBLIC;
   }
 
+  /** Returns the package in which the generated glue code expects to
+      find its run-time helper classes (BufferFactory, CPU,
+      StructAccessor). Defaults to "com.sun.gluegen.runtime". */
+  public String gluegenRuntimePackage() { return gluegenRuntimePackage; }
   /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
   public String      runtimeExceptionType()          { return runtimeExceptionType; }
   /** Returns the list of imports that should be emitted at the top of each .java file. */
@@ -681,6 +692,8 @@ public class JavaConfiguration {
     //System.err.println("read cmd = [" + cmd + "]"); 
     if (cmd.equalsIgnoreCase("Package")) {
       packageName = readString("package", tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("GlueGenRuntimePackage")) {
+      gluegenRuntimePackage = readString("GlueGenRuntimePackage", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ImplPackage")) {
       implPackageName = readString("ImplPackage", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("JavaClass")) {

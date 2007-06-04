@@ -79,6 +79,7 @@ public class CodeGenUtils
     PrintWriter w,
     String packageName,
     String className,
+    String gluegenRuntimePackage,
     boolean isClassNotInterface,
     String[] imports,
     String[] accessModifiers,
@@ -94,7 +95,7 @@ public class CodeGenUtils
       w.print(imports[i]);
       w.println(';');
     }
-    w.println("import com.sun.gluegen.runtime.*;");
+    w.println("import " + gluegenRuntimePackage + ".*;");
 
     w.println();
 

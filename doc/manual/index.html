@@ -981,6 +981,17 @@ struct. Normally only those structs referenced directly by the parsed
 C APIs have corresponding Java classes emitted. 
 
 
+<dt><strong><a name="GlueGenRuntimePackage">GlueGenRuntimePackage</a></strong>
+<dd>Syntax: <code>GlueGenRuntimePackage [package name, like com.sun.gluegen.runtime]</code> <br>
+
+(optional) Changes the package in which the generated glue code
+expects to find its run-time helper classes (like BufferFactory, CPU,
+StructAccessor). Defaults to <CODE>com.sun.gluegen.runtime</CODE> (no
+quotes). This is useful if you want to bundle the runtime classes in
+your application without the possibility of interfering with other
+versions elsewhere in the system.
+
+
 <dt><strong><a name="Extends">Extends</a></strong>
 <dd>Syntax: <code>Extends [Java interface name] [interface name to
 extend] </code> <br>

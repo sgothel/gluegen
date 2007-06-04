@@ -772,7 +772,7 @@ public class JavaEmitter implements GlueEmitter {
     writer.println();
     writer.println("import java.nio.*;");
     writer.println();
-    writer.println("import com.sun.gluegen.runtime.*;");
+    writer.println("import " + cfg.gluegenRuntimePackage() + ".*;");
     writer.println();
     List/*<String>*/ imports = cfg.imports();
     for (Iterator iter = imports.iterator(); iter.hasNext(); ) {
@@ -1395,6 +1395,7 @@ public class JavaEmitter implements GlueEmitter {
           javaWriter,
           cfg.packageName(),
           cfg.className(),
+          cfg.gluegenRuntimePackage(),
           cfg.allStatic() ? true : false, 
           (String[]) cfg.imports().toArray(new String[] {}),
           new String[] { "public" },
@@ -1431,6 +1432,7 @@ public class JavaEmitter implements GlueEmitter {
           javaImplWriter,
           cfg.implPackageName(),
           cfg.implClassName(),
+          cfg.gluegenRuntimePackage(),
           true,
           (String[]) cfg.imports().toArray(new String[] {}),
           new String[] { "public" },
