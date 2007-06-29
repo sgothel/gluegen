@@ -331,12 +331,14 @@ The source code for GlueGen may be obtained via CVS:
   cvs -d :pserver:guest@cvs.dev.java.net:/cvs co gluegen
 </pre>
 
-To build GlueGen, first download the current ANTLR jar file from <a
-href="http://antlr.org/">antlr.org</a>. (NOTE: do not place this jar
-file in the Extensions directory of the JRE or JDK, as this will cause
-the build to fail.) Next, copy <code>make/gluegen.properties</code>
-from the GlueGen workspace to your home directory (pointed to by the
-Java system property <code>user.home</code>; on Windows this is
+To build GlueGen, first download the ANTLR jar file from <a
+href="http://antlr.org/">antlr.org</a>. Currently GlueGen is only
+compatible with ANTLR releases up to 2.7.x and does not work with
+ANTLR 3.x. (NOTE: do not place the ANTLR jar file in the Extensions
+directory of the JRE or JDK, as this will cause the build to fail.)
+Next, copy <code>make/gluegen.properties</code> from the GlueGen
+workspace to your home directory (pointed to by the Java system
+property <code>user.home</code>; on Windows this is
 e.g. <code>C:\Documents and Settings\username</code>). Edit the copy
 of gluegen.properties in your home directory to point the
 <code>antlr.jar</code> property to the location of the ANTLR jar file
