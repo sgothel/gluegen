@@ -197,11 +197,17 @@ public class ProcAddressEmitter extends JavaEmitter
                                               this);
     emitters.add(emitter);
 
-    // If this emitter doesn't have a body (i.e., is a public native
-    // call), we need to force it to emit a body, and produce another
-    // one to act as the entry point
+    // If this emitter doesn't have a body (i.e., is a direct native
+    // call with no intervening argument processing), we need to force
+    // it to emit a body, and produce another one to act as the entry
+    // point
+    // FIXME: the negative test against the PRIVATE modifier is a
+    // nasty hack to prevent the ProcAddressJavaMethodBindingEmitter
+    // from incorrectly introducing method bodies to the private
+    // native implementing methods; want this to work at least for
+    // public and package-private methods
     if (baseJavaEmitter.signatureOnly() &&
-        baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PUBLIC) &&
+        !baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) &&
         baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
         callThroughProcAddress) {
       emitter.setEmitBody(true);
