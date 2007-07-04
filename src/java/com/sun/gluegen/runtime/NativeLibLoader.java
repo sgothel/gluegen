@@ -39,6 +39,7 @@
 
 package com.sun.gluegen.runtime;
 
+import java.lang.reflect.Method;
 import java.security.*;
 
 /** Class providing control over whether GlueGen loads the native code
@@ -65,12 +66,29 @@ public class NativeLibLoader {
           didLoading = true;
           AccessController.doPrivileged(new PrivilegedAction() {
               public Object run() {
-                System.loadLibrary("gluegen-rt");
+                loadLibraryInternal("gluegen-rt");
                 return null;
               }
             });
         }
       }
+    }
+  }
+
+  private static void loadLibraryInternal(String libraryName) {
+    String sunAppletLauncher = System.getProperty("sun.jnlp.applet.launcher");
+    boolean usingJNLPAppletLauncher = Boolean.valueOf(sunAppletLauncher).booleanValue();
+
+    if (usingJNLPAppletLauncher) {
+        try {
+          Class jnlpAppletLauncherClass = Class.forName("org.jdesktop.applet.util.JNLPAppletLauncher");
+          Method jnlpLoadLibraryMethod = jnlpAppletLauncherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+          jnlpLoadLibraryMethod.invoke(null, new Object[] { libraryName });
+        } catch (Exception e) {
+          throw new RuntimeException(e);
+        }
+    } else {
+      System.loadLibrary(libraryName);
     }
   }
 }
