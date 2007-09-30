@@ -123,22 +123,24 @@ public class StructLayout {
     // Note: this code is replicated in CPU.java
     String os = System.getProperty("os.name").toLowerCase();
     String cpu = System.getProperty("os.arch").toLowerCase();
-    if ((os.startsWith("windows") && cpu.equals("x86")) ||
-        (os.startsWith("windows") && cpu.equals("amd64")) ||
-        (os.startsWith("linux") && cpu.equals("i386")) ||
-        (os.startsWith("linux") && cpu.equals("x86")) ||
-        (os.startsWith("linux") && cpu.equals("amd64")) ||
-        (os.startsWith("linux") && cpu.equals("x86_64")) ||
-        (os.startsWith("linux") && cpu.equals("ia64")) ||
-        (os.startsWith("sunos") && cpu.equals("sparc")) ||
-        (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
-        (os.startsWith("sunos") && cpu.equals("x86")) ||
-        (os.startsWith("sunos") && cpu.equals("amd64")) ||
-        (os.startsWith("mac os") && cpu.equals("ppc")) ||
-        (os.startsWith("mac os") && cpu.equals("i386")) ||
-        (os.startsWith("freebsd") && cpu.equals("i386")) ||
-        (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))
-	) {
+    if ((os.startsWith("windows") && cpu.equals("x86"))) {
+      // It appears that Windows uses a packing alignment of 4 bytes in 32-bit mode
+      return new StructLayout(0, 4);
+    } else if ((os.startsWith("windows") && cpu.equals("amd64")) ||
+               (os.startsWith("linux") && cpu.equals("i386")) ||
+               (os.startsWith("linux") && cpu.equals("x86")) ||
+               (os.startsWith("linux") && cpu.equals("amd64")) ||
+               (os.startsWith("linux") && cpu.equals("x86_64")) ||
+               (os.startsWith("linux") && cpu.equals("ia64")) ||
+               (os.startsWith("sunos") && cpu.equals("sparc")) ||
+               (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
+               (os.startsWith("sunos") && cpu.equals("x86")) ||
+               (os.startsWith("sunos") && cpu.equals("amd64")) ||
+               (os.startsWith("mac os") && cpu.equals("ppc")) ||
+               (os.startsWith("mac os") && cpu.equals("i386")) ||
+               (os.startsWith("freebsd") && cpu.equals("i386")) ||
+               (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))
+               ) {
       // FIXME: make struct alignment configurable? May need to change
       // packing rules on a per-type basis?
       return new StructLayout(0, 8);
