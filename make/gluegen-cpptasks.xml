@@ -440,6 +440,7 @@
       <compilerarg value="/GS"      if="isVC8"/>  <!-- buffer security checks -->
       <compilerarg value="/Wp64"    if="isVC8"/>  <!-- detect 64-bit port problems -->
       <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
+      <compilerarg value="/NODEFAULTLIB:oldnames.lib" if="isVC8"/>  <!-- library not available with VC8 -->
 
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
