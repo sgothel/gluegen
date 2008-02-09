@@ -454,6 +454,9 @@
       <compilerarg value="ppc" if="macosxfat"/>
       <compilerarg value="-arch" if="macosxfat"/>
       <compilerarg value="i386" if="macosxfat"/>
+      <compilerarg value="-arch" if="macosx64fat"/>
+      <compilerarg value="x86_64" if="macosx64fat"/>
+      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
       <defineset>
@@ -522,6 +525,9 @@
       <linkerarg value="ppc" if="macosxfat"/>
       <linkerarg value="-arch" if="macosxfat"/>
       <linkerarg value="i386" if="macosxfat"/>
+      <linkerarg value="-arch" if="macosx64fat"/>
+      <linkerarg value="x86_64" if="macosx64fat"/>
+      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
     </linker>
 
     <linker id="linker.cfg.hpux" name="aCC">
