@@ -67,6 +67,7 @@ public class CPU {
                (os.startsWith("linux") && cpu.equals("amd64")) ||
                (os.startsWith("linux") && cpu.equals("x86_64")) ||
                (os.startsWith("linux") && cpu.equals("ia64")) ||
+               (os.startsWith("mac os") && cpu.equals("x86_64")) ||
                (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
                (os.startsWith("sunos") && cpu.equals("amd64"))) {
     } else {
