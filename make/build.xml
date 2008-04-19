@@ -10,6 +10,10 @@
    -   clean:  clean all built
   -->
 <project name="GlueGen" basedir="." default="all">
+   <!-- On jpackage.org-compatible systems, antlr.jar can be found in /usr/share/java -->
+   <available property="antlr.jar" file="/usr/share/java/antlr.jar"
+              value="/usr/share/java/antlr.jar"/>
+
   <target name="load.user.properties" unless="user.properties.file">
     <!-- Load the user specified properties file that defines various host
       - specific paths.  The user will be notified if this is does not
