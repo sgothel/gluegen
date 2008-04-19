@@ -821,7 +821,7 @@ public class JavaEmitter implements GlueEmitter {
       writer.println("    return create(BufferFactory.newDirectByteBuffer(size()));");
       writer.println("  }");
       writer.println();
-      writer.println("  public static " + containingTypeName + " create(ByteBuffer buf) {");
+      writer.println("  public static " + containingTypeName + " create(java.nio.ByteBuffer buf) {");
       writer.println("    if (CPU.is32Bit()) {");
       writer.println("      return new " + containingTypeName + "32(buf);");
       writer.println("    } else {");
@@ -829,15 +829,15 @@ public class JavaEmitter implements GlueEmitter {
       writer.println("    }");
       writer.println("  }");
       writer.println();
-      writer.println("  " + containingTypeName + "(ByteBuffer buf) {");
+      writer.println("  " + containingTypeName + "(java.nio.ByteBuffer buf) {");
       writer.println("    accessor = new StructAccessor(buf);");
       writer.println("  }");
       writer.println();
-      writer.println("  public ByteBuffer getBuffer() {");
+      writer.println("  public java.nio.ByteBuffer getBuffer() {");
       writer.println("    return accessor.getBuffer();");
       writer.println("  }");
     } else {
-      writer.println("  " + containingTypeName + suffix + "(ByteBuffer buf) {");
+      writer.println("  " + containingTypeName + suffix + "(java.nio.ByteBuffer buf) {");
       writer.println("    super(buf);");
       writer.println("  }");
       writer.println();

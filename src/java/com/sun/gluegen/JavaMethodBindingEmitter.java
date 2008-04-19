@@ -464,10 +464,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     if (!returnType.isVoid()) {
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOByteBuffer()) {
-        writer.println("ByteBuffer _res;");
+        writer.println("java.nio.ByteBuffer _res;");
         needsResultAssignment = true;
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
-        writer.println("ByteBuffer[] _res;");
+        writer.println("java.nio.ByteBuffer[] _res;");
         needsResultAssignment = true;
       } else if ((epilogue != null) && (epilogue.size() > 0)) {
         emitReturnType(writer);
@@ -484,9 +484,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     }
 
     if (needsResultAssignment) {
-      writer.print("  _res = ");
+      writer.print("    _res = ");
     } else {
-      writer.print("  ");
+      writer.print("    ");
       if (!returnType.isVoid()) {
         writer.print("return ");
       }
@@ -624,9 +624,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       String fmt = getReturnedArrayLengthExpression();
       writer.println("    if (_res == null) return null;");
       if (fmt == null) {
-        writer.print("    return " + returnType.getName() + ".create(_res.order(ByteOrder.nativeOrder()))");
+        writer.print("    return " + returnType.getName() + ".create(_res.order(java.nio.ByteOrder.nativeOrder()))");
       } else {
-        writer.println("    _res.order(ByteOrder.nativeOrder());");
+        writer.println("    _res.order(java.nio.ByteOrder.nativeOrder());");
         String expr = new MessageFormat(fmt).format(argumentNameArray());
         PointerType cReturnTypePointer = binding.getCReturnType().asPointer();
         CompoundType cReturnType = null;
@@ -644,8 +644,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         // compound types (rounding up to machine-dependent alignment)
         writer.println("      _res.position(_count * " + getReturnTypeString(true) + ".size());");
         writer.println("      _res.limit   ((1 + _count) * " + getReturnTypeString(true) + ".size());");
-        writer.println("      ByteBuffer _tmp = _res.slice();");
-        writer.println("      _tmp.order(ByteOrder.nativeOrder());");
+        writer.println("      java.nio.ByteBuffer _tmp = _res.slice();");
+        writer.println("      _tmp.order(java.nio.ByteOrder.nativeOrder());");
         writer.println("      _res.position(0);");
         writer.println("      _res.limit(_res.capacity());");
         writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_tmp);");
@@ -655,7 +655,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println(";");
     } else if (returnType.isNIOBuffer()) {
       writer.println("    if (_res == null) return null;");
-      writer.println("    return _res.order(ByteOrder.nativeOrder());");
+      writer.println("    return _res.order(java.nio.ByteOrder.nativeOrder());");
     } else if (returnType.isArrayOfCompoundTypeWrappers()) {
       writer.println("    if (_res == null) return null;");
       writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");
