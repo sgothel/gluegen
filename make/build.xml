@@ -33,7 +33,21 @@
     <property name="gluegen.excludes" value="com/sun/gluegen/runtime/BufferFactoryInternal.java,com/sun/gluegen/nativesig/**" />
   </target>
 
-  <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2">
+  <target name="init.javame.cdc.fp" if="isCDCFP">
+    <property name="javac.bootclasspath.jar" value="lib/cdc_fp.jar" />
+  </target>
+
+  <target name="setup.javase" unless="isCDCFP">
+    <copy file="../src/java/com/sun/gluegen/runtime/BufferFactory.java.javase" tofile="../build/gensrc/java/com/sun/gluegen/runtime/BufferFactory.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/StructAccessor.java.javase" tofile="../build/gensrc/java/com/sun/gluegen/runtime/StructAccessor.java" />
+  </target>
+
+  <target name="setup.javame.cdc.fp" if="isCDCFP">
+    <copy file="../src/java/com/sun/gluegen/runtime/BufferFactory.java.javame_cdc_fp" tofile="../build/gensrc/java/com/sun/gluegen/runtime/BufferFactory.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/StructAccessor.java.javame_cdc_fp" tofile="../build/gensrc/java/com/sun/gluegen/runtime/StructAccessor.java" />
+  </target>
+
+  <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2,init.javame.cdc.fp">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- The source directories. -->
@@ -53,6 +67,10 @@
     <!-- Create the required output directories. -->
     <mkdir dir="${src.generated.java}" />
     <mkdir dir="${classes}" />
+
+    <!-- Set up compilation for either Java SE or Java ME / CDC / FP. -->
+    <antcall target="setup.javase"        inheritRefs="true" />
+    <antcall target="setup.javame.cdc.fp" inheritRefs="true" />
 
     <!-- Create the classpath for ANTLR.  This requires the user-defined
       - "antlr.jar" property. -->
@@ -404,7 +422,25 @@
 
     <!-- Build GlueGen using the generated Java files along with the
       - original source. -->
-    <javac destdir="${classes}" source="1.4" debug="true" debuglevel="source,lines" excludes="${gluegen.excludes}">
+    <javac destdir="${classes}"
+           source="1.4"
+           debug="true"
+           debuglevel="source,lines"
+           excludes="${gluegen.excludes}">
+      <src path="${src.java}" />
+      <src path="${src.generated.java}" />
+      <classpath refid="antlr.classpath" />
+    </javac>
+
+    <!-- Re-build just the gluegen-rt.jar classes using the Java ME
+         boot classes, if they're in use. -->
+    <delete dir="../build/classes/com/sun/gluegen/runtime" />
+    <javac destdir="${classes}"
+           source="1.4"
+           debug="true"
+           debuglevel="source,lines"
+           excludes="${gluegen.excludes}"
+           bootclasspath="${javac.bootclasspath.jar}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="antlr.classpath" />
