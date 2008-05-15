@@ -378,6 +378,23 @@
     <antcall target="c.build" inheritRefs="true" />
   </target>
 
+
+  <target name="gluegen.rebuild.gluegen-rt" if="isCDCFP">
+    <!-- Re-build just the gluegen-rt.jar classes using the Java ME
+         boot classes, if they're in use. -->
+    <delete dir="../build/classes/com/sun/gluegen/runtime" />
+    <javac destdir="${classes}"
+           source="1.4"
+           debug="true"
+           debuglevel="source,lines"
+           excludes="${gluegen.excludes}"
+           bootclasspath="${javac.bootclasspath.jar}">
+      <src path="${src.java}" />
+      <src path="${src.generated.java}" />
+      <classpath refid="antlr.classpath" />
+    </javac>
+  </target>
+
   <!-- ================================================================== -->
   <!--
     - Build GlueGen.
@@ -434,17 +451,7 @@
 
     <!-- Re-build just the gluegen-rt.jar classes using the Java ME
          boot classes, if they're in use. -->
-    <delete dir="../build/classes/com/sun/gluegen/runtime" />
-    <javac destdir="${classes}"
-           source="1.4"
-           debug="true"
-           debuglevel="source,lines"
-           excludes="${gluegen.excludes}"
-           bootclasspath="${javac.bootclasspath.jar}">
-      <src path="${src.java}" />
-      <src path="${src.generated.java}" />
-      <classpath refid="antlr.classpath" />
-    </javac>
+    <antcall target="gluegen.rebuild.gluegen-rt" inheritRefs="true" />
 
     <!-- Build the (native code) NativeLibrary support for
          gluegen-rt.jar using the just-built GlueGen. -->
