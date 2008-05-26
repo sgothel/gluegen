@@ -58,6 +58,7 @@ public class MethodBinding {
   private boolean        signatureUsesNIO;
   private boolean        signatureCanUseIndirectNIO;
   private boolean        signatureUsesCompoundTypeWrappers;
+  private boolean        signatureUsesArraysOfCompoundTypeWrappers;
   private boolean        signatureUsesCVoidPointers;
   private boolean        signatureUsesCPrimitivePointers;
   private boolean        signatureUsesCArrays;
@@ -84,6 +85,7 @@ public class MethodBinding {
     this.signatureUsesNIO                 = bindingToCopy.signatureUsesNIO;
     this.signatureCanUseIndirectNIO       = bindingToCopy.signatureCanUseIndirectNIO;
     this.signatureUsesCompoundTypeWrappers = bindingToCopy.signatureUsesCompoundTypeWrappers;
+    this.signatureUsesArraysOfCompoundTypeWrappers = bindingToCopy.signatureUsesArraysOfCompoundTypeWrappers;
     this.signatureUsesCVoidPointers       = bindingToCopy.signatureUsesCVoidPointers;
     this.signatureUsesCPrimitivePointers  = bindingToCopy.signatureUsesCPrimitivePointers;
     this.signatureUsesCArrays             = bindingToCopy.signatureUsesCArrays;
@@ -233,6 +235,16 @@ public class MethodBinding {
   }
 
   /**
+   * Returns true if the return type or any of the outgoing arguments
+   * in the method's signature use arrays of "compound type wrappers",
+   * or NIO-based wrappers for C data structures.
+   */
+  public boolean signatureUsesArraysOfCompoundTypeWrappers() {
+    computeSignatureProperties();
+    return signatureUsesArraysOfCompoundTypeWrappers;
+  }
+
+  /**
    * Returns true if the function needs NIO-related
    * wrapping/unwrapping or conversion of various arguments. Currently
    * this returns the logical OR of signatureUsesNIO() and
@@ -290,6 +302,7 @@ public class MethodBinding {
     signatureUsesNIO = false;
     signatureCanUseIndirectNIO = false;
     signatureUsesCompoundTypeWrappers = false;
+    signatureUsesArraysOfCompoundTypeWrappers = false;
     signatureUsesCVoidPointers = false;
     signatureUsesCPrimitivePointers = false;
     signatureUsesCArrays = false;
@@ -331,6 +344,12 @@ public class MethodBinding {
       if (javaArgType.isCompoundTypeWrapper()) {
         // Needs unwrapping of accessors
         signatureUsesCompoundTypeWrappers = true;
+      }
+
+      if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+        // Needs to be duplicated and this array lowered to an array
+        // of Buffers for code emission
+        signatureUsesArraysOfCompoundTypeWrappers = true;
       }
 
       if (javaArgType.isNIOBuffer() ||

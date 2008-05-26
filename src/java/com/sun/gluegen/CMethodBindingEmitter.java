@@ -415,7 +415,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
         continue;
       }
 
-      if (type.isArray() || type.isNIOBuffer() || type.isCompoundTypeWrapper()) {
+      if (type.isArray() || type.isNIOBuffer() || type.isCompoundTypeWrapper() || type.isArrayOfCompoundTypeWrappers()) {
         String convName = pointerConversionArgumentName(i);
         // handle array/buffer argument types
         boolean needsDataCopy =
@@ -558,7 +558,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
       }
 
       if (javaArgType.isArray() ||
-          (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation)) {
+          (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation) ||
+          javaArgType.isArrayOfCompoundTypeWrappers()) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
 
         // We only defer the emission of GetPrimitiveArrayCritical
@@ -602,7 +603,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
           //
           // FIXME: should factor out this whole block of code into a separate
           // method for clarity and maintenance purposes
-          if (!isConstPtrPtr(cArgType)) {
+          //
+          // Note that we properly handle only the case of an array of
+          // compound type wrappers in emitBodyVariablePostCallCleanup below
+          if (!isConstPtrPtr(cArgType) &&
+              !javaArgType.isArrayOfCompoundTypeWrappers()) {
             // FIXME: if the arg type is non-const, the sematics might be that
             // the function modifies the argument -- we don't yet support
             // this.
@@ -680,6 +685,16 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                        convName + "_copy[_copyIndex]",
                                        "_offsetHandle[_copyIndex]",
                                        true);
+          } else if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+            // These come down in similar fashion to an array of NIO
+            // Buffers only we do not pass down any integer byte
+            // offset argument
+            emitGetDirectBufferAddress(writer,
+                                       "_tmpObj",
+                                       cArgElementType.getName(),
+                                       convName + "_copy[_copyIndex]",
+                                       null,
+                                       true);
           } else {
             // Question: do we always need to copy the sub-arrays, or just
             // GetPrimitiveArrayCritical on each jobjectarray element and
@@ -734,10 +749,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
         if (EMIT_NULL_CHECKS) {
           writer.println("  }");
         }
-      } else if (javaArgType.isArrayOfCompoundTypeWrappers()) {
-
-        // FIXME
-        throw new RuntimeException("Outgoing arrays of StructAccessors not yet implemented");
       }
     }
   }
@@ -758,7 +769,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
       }
 
       if (javaArgType.isArray() ||
-          (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation)) {
+          (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation) ||
+          javaArgType.isArrayOfCompoundTypeWrappers()) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
 
         if ((!needsDataCopy && !emittingPrimitiveArrayCritical) ||
@@ -796,16 +808,40 @@ public class CMethodBindingEmitter extends FunctionEmitter
             // assuming they were treated differently in
             // emitBodyVariablePreCallSetup() (see the similar section in that
             // method for details). 
-            throw new RuntimeException(
-              "Cannot clean up copied data for ptr-to-ptr arg type \"" + cArgType +
-              "\": support for cleaning up non-const ptr-to-ptr types not implemented.");
+            if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+              // This is the only form of cleanup we handle right now
+              String argName = binding.getArgumentName(i);
+              writer.println("    _tmpArrayLen = (*env)->GetArrayLength(env, " + argName + ");");
+              writer.println("    for (_copyIndex = 0; _copyIndex < _tmpArrayLen; ++_copyIndex) {");
+              writer.println("      _tmpObj = (*env)->GetObjectArrayElement(env, " + argName + ", _copyIndex);");
+              // We only skip the copy back in limited situations
+              String copyName = pointerConversionArgumentName(i) + "_copy";
+              writer.println("      if ((" + copyName + "[_copyIndex] == NULL && _tmpObj == NULL) ||");
+              writer.println("          (" + copyName + "[_copyIndex] != NULL && _tmpObj != NULL &&");
+              writer.println("           (*env)->GetDirectBufferAddress(env, _tmpObj) == " + copyName + "[_copyIndex])) {");
+              writer.println("        /* No copy back needed */");
+              writer.println("      } else {");
+              writer.println("        if (" + copyName + "[_copyIndex] == NULL) {");
+              writer.println("          (*env)->SetObjectArrayElement(env, " + argName + ", _copyIndex, NULL);");
+              writer.println("        } else {");
+              writer.println("          _tmpObj = (*env)->NewDirectByteBuffer(env, " + copyName + "[_copyIndex], sizeof(" + cArgType.getName() + "));");
+              writer.println("          (*env)->SetObjectArrayElement(env, " + argName + ", _copyIndex, _tmpObj);");
+              writer.println("        }");
+              writer.println("      }");
+              writer.println("    }");
+            } else {
+              throw new RuntimeException(
+                "Cannot clean up copied data for ptr-to-ptr arg type \"" + cArgType +
+                "\": support for cleaning up most non-const ptr-to-ptr types not implemented.");
+            }
           }
 
           writer.println("    /* Clean up " + convName + "_copy */");
 
           // Only need to perform cleanup for individual array
           // elements if they are not direct buffers
-          if (!javaArgType.isNIOBufferArray()) {
+          if (!javaArgType.isNIOBufferArray() &&
+              !javaArgType.isArrayOfCompoundTypeWrappers()) {
             // Re-fetch length of array that was copied
             String arrayLenName = "_tmpArrayLen";
             writer.print("    ");
@@ -875,11 +911,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
         if (EMIT_NULL_CHECKS) {
           writer.println("  }");
         }
-      } else if (javaArgType.isArrayOfCompoundTypeWrappers()) {
-
-        // FIXME
-        throw new RuntimeException("Outgoing arrays of StructAccessors not yet implemented");
-
       }
     }
   }
@@ -912,7 +943,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
         if (binding.getCArgumentType(i).isPointer() && binding.getJavaArgumentType(i).isPrimitive()) {
           writer.print("(intptr_t) ");
         }
-        if (javaArgType.isArray() || javaArgType.isNIOBuffer() || javaArgType.isCompoundTypeWrapper()) {
+        if (javaArgType.isArray() || javaArgType.isNIOBuffer() ||
+            javaArgType.isCompoundTypeWrapper() || javaArgType.isArrayOfCompoundTypeWrappers()) {
           writer.print(pointerConversionArgumentName(i));
           if (javaArgTypeNeedsDataCopy(javaArgType)) {
             writer.print("_copy");
@@ -1115,6 +1147,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
         } else if (type.isCompoundTypeWrapper()) {
           // Mangle wrappers for C structs as ByteBuffer
           jniMangle(java.nio.ByteBuffer.class, buf, true);
+        } else if (type.isArrayOfCompoundTypeWrappers()) {
+          java.nio.Buffer[] tmp = new java.nio.Buffer[0];
+          // Mangle arrays of C structs as Buffer[]
+          jniMangle(tmp.getClass(), buf, true);
         } else if (type.isJNIEnv()) {
           // These are not exposed at the Java level
         } else {
@@ -1258,13 +1294,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                           String byteOffsetVarName,
                                           boolean emitElseClause) {
     if (EMIT_NULL_CHECKS) {
-      writer.print("  if (");
+      writer.print("    if (");
       writer.print(sourceVarName);
       writer.println(" != NULL) {");
-      writer.print("  ");
+      writer.print("    ");
     }
 
-    writer.print("  ");
+    writer.print("    ");
     writer.print(receivingVarName);
     writer.print(" = (");
     writer.print(receivingVarTypeString);
@@ -1274,13 +1310,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.println(")) + " + ((byteOffsetVarName != null) ? byteOffsetVarName : "0") + ");");
 
     if (EMIT_NULL_CHECKS) {
-      writer.print("  }");
+      writer.print("    }");
       if (emitElseClause) {
         writer.println(" else {");
-        writer.print("    ");
+        writer.print("      ");
         writer.print(receivingVarName);
         writer.println(" = NULL;");
-        writer.println("  }");
+        writer.println("    }");
       } else {
         writer.println();
       }
@@ -1305,10 +1341,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
     //
     if (javaType.isNIOBuffer()) {
       ptrTypeString = cType.getName();
-    } else if (javaType.isArray()) {
+    } else if (javaType.isArray() || javaType.isArrayOfCompoundTypeWrappers()) {
       needsDataCopy = javaArgTypeNeedsDataCopy(javaType);
       if (javaType.isPrimitiveArray() ||
-          javaType.isNIOBufferArray()) {
+          javaType.isNIOBufferArray() ||
+          javaType.isArrayOfCompoundTypeWrappers()) {
         ptrTypeString = cType.getName();
       } else if (!javaType.isStringArray()) {
         Class elementType = javaType.getJavaClass().getComponentType();
@@ -1328,9 +1365,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
           throw new RuntimeException("Unsupported pointer type: \"" + cType.getName() + "\"");    
         }
       }
-    } else if (javaType.isArrayOfCompoundTypeWrappers()) {
-      // FIXME
-      throw new RuntimeException("Outgoing arrays of StructAccessors not yet implemented");
     } else {
       ptrTypeString = cType.getName();
     }
@@ -1346,7 +1380,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
       // Declare a variable to hold a copy of the argument data in which the
       // incoming data has been properly laid out in memory to match the C
       // memory model
-      Class elementType = javaType.getJavaClass().getComponentType();
       if (javaType.isStringArray()) {
         writer.print("  const char **");
       } else {
@@ -1440,6 +1473,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
       return (javaArgType.isNIOBufferArray() ||
               javaArgType.isStringArray() ||
               javaArgType.getJavaClass().getComponentType().isArray());
+    }
+    if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+      return true;
     }
     return false;
   }

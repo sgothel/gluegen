@@ -52,6 +52,13 @@ public class BufferFactory {
     return buf;
   }
 
+  /** Helper routine to set a ByteBuffer to the native byte order, if
+      that operation is supported by the underlying NIO
+      implementation. */
+  public static ByteBuffer nativeOrder(ByteBuffer buf) {
+    return buf;
+  }
+
   /** Helper routine to tell whether a buffer is direct or not. Null
       pointers are considered direct. isDirect() should really be
       public in Buffer and not replicated in all subclasses. */

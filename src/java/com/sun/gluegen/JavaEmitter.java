@@ -1147,7 +1147,7 @@ public class JavaEmitter implements GlueEmitter {
           } else if (targetType.isPointer() && (targetType.pointerDepth() == 1) &&
                      targetType.asPointer().getTargetType().isCompound()) {
             // Array of pointers; convert as array of StructAccessors
-            return JavaType.createForCArray(targetType);
+            return JavaType.createForCArray(bottomType);
           } else {
             throw new RuntimeException(
               "Could not convert C type \"" + t + "\" " +
@@ -1456,6 +1456,7 @@ public class JavaEmitter implements GlueEmitter {
   
   protected void emitCHeader(PrintWriter cWriter, String className) {
     cWriter.println("#include <jni.h>");
+    cWriter.println("#include <stdlib.h>");
     cWriter.println();
 
     if (getConfig().emitImpl()) {
@@ -1557,7 +1558,6 @@ public class JavaEmitter implements GlueEmitter {
     return binding;
   }
   
-
   private MethodBinding lowerMethodBindingPointerTypes(MethodBinding inputBinding,
                                                        boolean convertToArrays,
                                                        boolean[] canProduceArrayVariant) {

@@ -268,13 +268,15 @@ public class ProcAddressEmitter extends JavaEmitter
     if (shouldWrap)
     {
       // Hoist argument names from function pointer if not supplied in prototype
-      FunctionType typedef = typedefDictionary.get(funcPointerTypedefName).asPointer().getTargetType().asFunction();
-      FunctionType fun = sym.getType();
-      int numarg = typedef.getNumArguments();
-      for ( int i =0; i < numarg; i++ )
-      {
-        if ( fun.getArgumentName(i) == null )
-          fun.setArgumentName(i,typedef.getArgumentName(i));
+      Type funcPointerType = typedefDictionary.get(funcPointerTypedefName);
+      if (funcPointerType != null) {
+        FunctionType typedef = funcPointerType.asPointer().getTargetType().asFunction();
+        FunctionType fun = sym.getType();
+        int numarg = typedef.getNumArguments();
+        for (int i =0; i < numarg; i++) {
+          if (fun.getArgumentName(i) == null)
+            fun.setArgumentName(i,typedef.getArgumentName(i));
+          }
       }
     }
     

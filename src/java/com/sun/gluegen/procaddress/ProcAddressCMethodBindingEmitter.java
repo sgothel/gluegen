@@ -153,6 +153,9 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         // set the function pointer to the value of the passed-in glProcAddress
         FunctionSymbol cSym = getBinding().getCSymbol();
         String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
+        if (needsLocalTypedef) {
+            funcPointerTypedefName = "_local_" + funcPointerTypedefName;
+        }
 
         String ptrVarName = "ptr_" + cSym.getName();
     

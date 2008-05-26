@@ -345,31 +345,31 @@ public class JavaType {
   }
 
   public boolean isFloatArray() {
-     return(clazz.isArray() && clazz.getComponentType() == Float.TYPE);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == Float.TYPE);
   }
 
   public boolean isDoubleArray() {
-     return(clazz.isArray() && clazz.getComponentType() == Double.TYPE);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == Double.TYPE);
   }
 
   public boolean isByteArray() {
-     return(clazz.isArray() && clazz.getComponentType() == Byte.TYPE);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == Byte.TYPE);
   }
 
   public boolean isIntArray() {
-     return(clazz.isArray() && clazz.getComponentType() == Integer.TYPE);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == Integer.TYPE);
   }
 
   public boolean isShortArray() {
-     return(clazz.isArray() && clazz.getComponentType() == Short.TYPE);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == Short.TYPE);
   }
 
   public boolean isLongArray() {
-     return(clazz.isArray() && clazz.getComponentType() == Long.TYPE);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == Long.TYPE);
   }
 
   public boolean isStringArray() {
-     return(clazz.isArray() && clazz.getComponentType() == java.lang.String.class);
+     return (clazz != null && clazz.isArray() && clazz.getComponentType() == java.lang.String.class);
   }
 
 

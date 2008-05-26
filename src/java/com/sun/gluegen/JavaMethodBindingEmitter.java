@@ -88,6 +88,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   // number of elements of the returned array.
   private String returnedArrayLengthExpression;
 
+  // A suffix used to create a temporary outgoing array of Buffers to
+  // represent an array of compound type wrappers
+  private static final String COMPOUND_ARRAY_SUFFIX = "_buf_array_copy";
+
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
                                   String runtimeExceptionType,
@@ -231,8 +235,19 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         // Compound type wrappers are unwrapped to ByteBuffer
         return "java.nio.ByteBuffer";
       } else if (type.isArrayOfCompoundTypeWrappers()) {
-        return "java.nio.ByteBuffer";
+        if (skipBuffers) {
+          return "java.nio.ByteBuffer";
+        } else {
+          // In the case where this is called with a false skipBuffers
+          // argument we want to erase the array of compound type
+          // wrappers to ByteBuffer[]
+          return "java.nio.ByteBuffer[]";
+        }
       }
+    }
+    if (type.isArrayOfCompoundTypeWrappers()) {
+      // We don't want to bake the array specification into the type name
+      return type.getName() + "[]";
     }
     return type.getName();
   }
@@ -385,6 +400,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
     emitArrayLengthAndNIOBufferChecks(binding, writer);
+    emitCompoundArrayCopies(binding, writer);
   }
 
   protected void emitArrayLengthAndNIOBufferChecks(MethodBinding binding, PrintWriter writer) {
@@ -448,6 +464,26 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     }
   }
 
+  protected void emitCompoundArrayCopies(MethodBinding binding, PrintWriter writer) {
+    // If the method binding uses outgoing arrays of compound type
+    // wrappers, we need to generate a temporary copy of this array
+    // into a ByteBuffer[] for processing by the native code
+    if (binding.signatureUsesArraysOfCompoundTypeWrappers()) {
+      for (int i = 0; i < binding.getNumArguments(); i++) {
+        JavaType javaType = binding.getJavaArgumentType(i);
+        if (javaType.isArrayOfCompoundTypeWrappers()) {
+          String argName = getArgumentName(i);
+          String tempArrayName = argName + COMPOUND_ARRAY_SUFFIX;
+          writer.println("    ByteBuffer[] " + tempArrayName + " = new ByteBuffer[" + argName + ".length];");
+          writer.println("    for (int _ctr = 0; _ctr < + " + argName + ".length; _ctr++) {");
+          writer.println("      " + javaType.getName() + " _tmp = " + argName + "[_ctr];");
+          writer.println("      " + tempArrayName + "[_ctr] = ((_tmp == null) ? null : _tmp.getBuffer());");
+          writer.println("    }");
+        }
+      }
+    }
+  }
+
   protected void emitCall(MethodBinding binding, PrintWriter writer, boolean direct) {
     writer.print(getImplMethodName(direct));
     writer.print("(");
@@ -469,7 +505,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
         writer.println("java.nio.ByteBuffer[] _res;");
         needsResultAssignment = true;
-      } else if ((epilogue != null) && (epilogue.size() > 0)) {
+      } else if (((epilogue != null) && (epilogue.size() > 0)) ||
+                 binding.signatureUsesArraysOfCompoundTypeWrappers()) {
         emitReturnType(writer);
         writer.println(" _res;");
         needsResultAssignment = true;
@@ -529,6 +566,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     } else {
       writer.println();
     }
+    emitPostCallCleanup(binding, writer);
     emitPrologueOrEpilogue(epilogue, writer);
     if (needsResultAssignment) {
       emitCallResultReturn(binding, writer);
@@ -569,9 +607,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       }
 
       if (type.isNIOBuffer() && !direct) {
-         writer.print("BufferFactory.getArray(" + getArgumentName(i) + ")");
+        writer.print("BufferFactory.getArray(" + getArgumentName(i) + ")");
+      } else if (type.isArrayOfCompoundTypeWrappers()) {
+        writer.print(getArgumentName(i) + COMPOUND_ARRAY_SUFFIX);
       } else {
-         writer.print(getArgumentName(i));
+        writer.print(getArgumentName(i));
       }
 
       if (type.isCompoundTypeWrapper()) {
@@ -617,6 +657,32 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return numArgsEmitted;
   }
 
+  protected void emitPostCallCleanup(MethodBinding binding, PrintWriter writer) {
+    if (binding.signatureUsesArraysOfCompoundTypeWrappers()) {
+      // For each such array, we need to take the ByteBuffer[] that
+      // came back from the C method invocation and wrap the
+      // ByteBuffers back into the wrapper types
+      for (int i = 0; i < binding.getNumArguments(); i++) {
+        JavaType javaArgType = binding.getJavaArgumentType(i);
+        if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+          String argName = binding.getArgumentName(i);
+          writer.println("    for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
+          writer.println("      if ((" + argName + "[_ctr] == null && " + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr] == null) ||");
+          writer.println("          (" + argName + "[_ctr] != null && " + argName + "[_ctr].getBuffer() == " + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr])) {");
+          writer.println("        // No copy back needed");
+          writer.println("      } else {");
+          writer.println("        if (" + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr] == null) {");
+          writer.println("          " + argName + "[_ctr] = null;");
+          writer.println("        } else {");
+          writer.println("          " + argName + "[_ctr] = " + javaArgType.getName() + ".create(" + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr]);");
+          writer.println("        }");
+          writer.println("      }");
+          writer.println("    }");
+        }
+      }
+    }
+  }
+
   protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer) {
     JavaType returnType = binding.getJavaReturnType();
 
@@ -624,9 +690,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       String fmt = getReturnedArrayLengthExpression();
       writer.println("    if (_res == null) return null;");
       if (fmt == null) {
-        writer.print("    return " + returnType.getName() + ".create(_res.order(java.nio.ByteOrder.nativeOrder()))");
+        writer.print("    return " + returnType.getName() + ".create(BufferFactory.nativeOrder(_res))");
       } else {
-        writer.println("    _res.order(java.nio.ByteOrder.nativeOrder());");
+        writer.println("    BufferFactory.nativeOrder(_res);");
         String expr = new MessageFormat(fmt).format(argumentNameArray());
         PointerType cReturnTypePointer = binding.getCReturnType().asPointer();
         CompoundType cReturnType = null;
@@ -645,7 +711,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         writer.println("      _res.position(_count * " + getReturnTypeString(true) + ".size());");
         writer.println("      _res.limit   ((1 + _count) * " + getReturnTypeString(true) + ".size());");
         writer.println("      java.nio.ByteBuffer _tmp = _res.slice();");
-        writer.println("      _tmp.order(java.nio.ByteOrder.nativeOrder());");
+        writer.println("      BufferFactory.nativeOrder(_tmp);");
         writer.println("      _res.position(0);");
         writer.println("      _res.limit(_res.capacity());");
         writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_tmp);");
