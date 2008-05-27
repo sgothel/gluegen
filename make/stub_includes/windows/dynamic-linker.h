@@ -17,6 +17,7 @@ typedef struct _handle*     HANDLE;
 typedef HANDLE              HMODULE;
 typedef long                LONG;
 typedef const char*         LPCSTR;
+typedef const short*        LPCWSTR;
 typedef void*               LPVOID;
 typedef struct _proc*       PROC;
 typedef unsigned int*       PUINT;
@@ -26,6 +27,6 @@ typedef unsigned short      WORD;
 
 // Dynamic loading routines
 WINBASEAPI DWORD WINAPI GetLastError(VOID);
-WINBASEAPI HMODULE WINAPI LoadLibraryA(LPCSTR lpLibFileName);
-WINBASEAPI PROC WINAPI GetProcAddress(HMODULE hModule, LPCSTR lpProcName);
+WINBASEAPI HMODULE WINAPI LoadLibraryW(LPCWSTR lpLibFileName);
+WINBASEAPI PROC WINAPI GetProcAddressA(HMODULE hModule, LPCSTR lpProcName);
 WINBASEAPI BOOL WINAPI FreeLibrary(HMODULE hLibModule);

@@ -1,9 +1,9 @@
 public long openLibrary(String libraryName) {
-  return LoadLibraryA(libraryName);
+  return LoadLibraryW(libraryName);
 }
 
 public long lookupSymbol(long libraryHandle, String symbolName) {
-  return GetProcAddress(libraryHandle, symbolName);
+  return GetProcAddressA(libraryHandle, symbolName);
 }
 
 public void closeLibrary(long libraryHandle) {

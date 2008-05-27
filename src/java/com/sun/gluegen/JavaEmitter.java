@@ -508,7 +508,8 @@ public class JavaEmitter implements GlueEmitter {
                                   true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
                                   cfg.allStatic(),
                                   (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
-                                  false);
+                                  false,
+                                  machDesc64);
       if (returnValueCapacityFormat != null) {
         cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
       }
@@ -532,7 +533,8 @@ public class JavaEmitter implements GlueEmitter {
                                     true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
                                     cfg.allStatic(),
                                     binding.needsNIOWrappingOrUnwrapping(),
-                                    true);
+                                    true,
+                                    machDesc64);
         if (returnValueCapacityFormat != null) {
           cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
         }
@@ -898,7 +900,8 @@ public class JavaEmitter implements GlueEmitter {
                                           true, // FIXME: this is optional at this point
                                           false,
                                           true,
-                                          false); // FIXME: should unify this with the general emission code
+                                          false, // FIXME: should unify this with the general emission code
+                                          machDesc64);
               cEmitter.emit();
             } catch (Exception e) {
               System.err.println("While processing field " + field + " of type " + name + ":");
@@ -1520,7 +1523,7 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     // List of the indices of the arguments in this function that should be
-    // converted from byte[] to String
+    // converted from byte[] or short[] to String
     List stringArgIndices = cfg.stringArguments(binding.getName());
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
@@ -1534,9 +1537,14 @@ public class JavaEmitter implements GlueEmitter {
         //System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
         if (mappedType.isCVoidPointerType() ||
             mappedType.isCCharPointerType() ||
-            (mappedType.isArray() && mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass)) {
-          // convert mapped type from void* and byte[] to String, or ByteBuffer[] to String[]
-          if (mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass) {
+            mappedType.isCShortPointerType() ||
+            (mappedType.isArray() &&
+             (mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass) ||
+             (mappedType.getJavaClass() == ArrayTypes.shortBufferArrayClass))) {
+          // convert mapped type from:
+          //   void*, byte[], and short[] to String
+          //   ByteBuffer[] and ShortBuffer[] to String[]
+          if (mappedType.isArray()) {
             mappedType = javaType(ArrayTypes.stringArrayClass);
           } else {         
             mappedType = javaType(String.class);
@@ -1546,7 +1554,7 @@ public class JavaEmitter implements GlueEmitter {
         throw new RuntimeException(
           "Cannot apply ArgumentIsString configuration directive to " +
           "argument " + i + " of \"" + sym + "\": argument type is not " +
-          "a \"void*\", \"char *\", or \"char**\" equivalent");
+          "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent");
         }
       }
       binding.addJavaArgumentType(mappedType);

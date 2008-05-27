@@ -105,7 +105,7 @@ public class JavaConfiguration {
   private Set/*<String>*/ returnsString = new HashSet();
   private Map/*<String, String>*/ returnedArrayLengths = new HashMap();
   /**
-   * Key is function that has some byte[] arguments that should be
+   * Key is function that has some byte[] or short[] arguments that should be
    * converted to String args; value is List of Integer argument indices
    */
   private Map/*<String,List<Integer>>*/ argumentsAreString = new HashMap();
@@ -1065,8 +1065,8 @@ public class JavaConfiguration {
    * </pre>
    *
    */
-   protected void readArgumentIsString(StringTokenizer tok, String filename, int lineNo) {
-     try {
+  protected void readArgumentIsString(StringTokenizer tok, String filename, int lineNo) {
+    try {
       String methodName = tok.nextToken();
       ArrayList argIndices = new ArrayList(2);
       while (tok.hasMoreTokens()) {
@@ -1074,10 +1074,9 @@ public class JavaConfiguration {
         argIndices.add(idx);
       }
 
-      if(argIndices.size() > 0) {
+      if (argIndices.size() > 0) {
         argumentsAreString.put(methodName, argIndices);
-      }
-      else {
+      } else {
         throw new RuntimeException("ERROR: Error parsing \"ArgumentIsString\" command at line " + lineNo +
           " in file \"" + filename + "\": directive requires specification of at least 1 index");
       }

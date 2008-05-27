@@ -113,6 +113,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
   // warnings are incorrect.
   private static final boolean EMIT_NULL_CHECKS = true;
 
+  protected static final String STRING_CHARS_PREFIX = "_strchars_";
+
+  // We need this in order to compute sizes of certain types
+  protected MachineDescription machDesc;
+
   /**
    * Constructs an emitter for the specified binding, and sets a default
    * comment emitter that will emit the signature of the C function that is
@@ -125,7 +130,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                boolean isOverloadedBinding,
                                boolean isJavaMethodStatic,
                                boolean forImplementingMethodCall,
-                               boolean forIndirectBufferAndArrayImplementation)
+                               boolean forIndirectBufferAndArrayImplementation,
+                               MachineDescription machDesc)
   {
     super(output);
 
@@ -141,6 +147,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
     this.forImplementingMethodCall = forImplementingMethodCall;
     this.forIndirectBufferAndArrayImplementation = forIndirectBufferAndArrayImplementation;
+    this.machDesc = machDesc;
 
     setCommentEmitter(defaultCommentEmitter);    
   }
@@ -291,6 +298,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
    */
   public final boolean forIndirectBufferAndArrayImplementation() { return forIndirectBufferAndArrayImplementation; }
 
+  /**
+   * Used for certain internal type size computations
+   */
+  public final MachineDescription getMachineDescription() { return machDesc; }
+
+
   protected void emitReturnType(PrintWriter writer)
   {    
     writer.print("JNIEXPORT ");
@@ -437,7 +450,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
           emittedDataCopyTemps = true;
         }
       } else if (type.isString()) {
-        writer.print("  const char* _UTF8");
+        Type cType = binding.getCArgumentType(i);
+        if (isUTF8Type(cType)) {
+          writer.print("  const char* ");
+        } else {
+          writer.print("  jchar* ");
+        }
+        writer.print(STRING_CHARS_PREFIX);
         writer.print(binding.getArgumentName(i));
         writer.println(" = NULL;");
       }
@@ -498,6 +517,33 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer.println(val);
       }
     }
+  }
+
+  /** Checks a type to see whether it is for a UTF-8 pointer type
+      (i.e., "const char *", "const char **"). False implies that this
+      type is for a Unicode pointer type ("jchar *", "jchar **"). */
+  protected boolean isUTF8Type(Type type) {
+    int i = 0;
+    // Try to dereference the type at most two levels
+    while (!type.isInt() && (i < 2)) {
+      PointerType pt = type.asPointer();
+      if (pt != null) {
+        type = pt.getTargetType();
+      } else {
+        ArrayType arrt = type.asArray();
+        if (arrt == null) {
+          throw new IllegalArgumentException("Type " + type + " should have been a pointer or array type");
+        }
+        type = arrt.getElementType();
+      }
+    }
+    if (!type.isInt()) {
+      throw new IllegalArgumentException("Type " + type + " should have been a one- or two-dimensional integer pointer or array type");
+    }
+    if (type.getSize(machDesc) != 1 && type.getSize(machDesc) != 2) {
+      throw new IllegalArgumentException("Type " + type + " should have been a one- or two-dimensional pointer to char or short");
+    }
+    return (type.getSize(machDesc) == 1);
   }
 
   /** Checks a type (expected to be pointer-to-pointer) for const-ness */
@@ -672,10 +718,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
           if (javaArgType.isStringArray()) {
             writer.print("  ");
-            emitGetStringUTFChars(writer,
-                                  "(jstring) _tmpObj",
-                                  convName+"_copy[_copyIndex]",
-                                  true);
+            emitGetStringChars(writer,
+                               "(jstring) _tmpObj",
+                               convName+"_copy[_copyIndex]",
+                               isUTF8Type(cArgType),
+                               true);
           } else if (javaArgType.isNIOBufferArray()) {
             /* We always assume an integer "byte offset" argument follows any Buffer
                in the method binding. */
@@ -735,20 +782,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
           continue;
         }
 
-        if (EMIT_NULL_CHECKS) {
-          writer.print("  if (");
-          writer.print(binding.getArgumentName(i));
-          writer.println(" != NULL) {");
-        }
-
-        emitGetStringUTFChars(writer,
-                              binding.getArgumentName(i),
-                              "_UTF8" + binding.getArgumentName(i),
-                              false);
-
-        if (EMIT_NULL_CHECKS) {
-          writer.println("  }");
-        }
+        emitGetStringChars(writer,
+                           binding.getArgumentName(i),
+                           STRING_CHARS_PREFIX + binding.getArgumentName(i),
+                           isUTF8Type(binding.getCArgumentType(i)),
+                           false);
       }
     }
   }
@@ -767,6 +805,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         continue;
       }
+      Type cArgType = binding.getCArgumentType(i);
 
       if (javaArgType.isArray() ||
           (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation) ||
@@ -800,9 +839,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
           //
           // FIXME: should factor out this whole block of code into a separate
           // method for clarity and maintenance purposes
-          Type cArgType = binding.getCArgumentType(i);
-          String cArgTypeName = cArgType.getName();
-
           if (!isConstPtrPtr(cArgType)) {
             // FIXME: handle any cleanup from treatment of non-const args,
             // assuming they were treated differently in
@@ -902,11 +938,15 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.println(" != NULL) {");
         }
 
-        writer.print("    (*env)->ReleaseStringUTFChars(env, ");
-        writer.print(binding.getArgumentName(i));
-        writer.print(", _UTF8");
-        writer.print(binding.getArgumentName(i));
-        writer.println(");");
+        if (isUTF8Type(cArgType)) {
+          writer.print("    (*env)->ReleaseStringUTFChars(env, ");
+          writer.print(binding.getArgumentName(i));
+          writer.print(", " + STRING_CHARS_PREFIX);
+          writer.print(binding.getArgumentName(i));
+          writer.println(");");
+        } else {
+          writer.println("    free((void*) " + STRING_CHARS_PREFIX + binding.getArgumentName(i) + ");");
+        }
 
         if (EMIT_NULL_CHECKS) {
           writer.println("  }");
@@ -950,7 +990,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             writer.print("_copy");
           }
         } else {
-          if (javaArgType.isString()) { writer.print("_UTF8"); }
+          if (javaArgType.isString()) { writer.print(STRING_CHARS_PREFIX); }
           writer.print(binding.getArgumentName(i));          
         }
       }
@@ -1249,43 +1289,81 @@ public class CMethodBindingEmitter extends FunctionEmitter
     }
   }
 
-  private void emitGetStringUTFChars(PrintWriter writer,
-                                     String sourceVarName,
-                                     String receivingVarName,
-                                     boolean emitElseClause)
+  private void emitCalloc(PrintWriter writer,
+                          String targetVarName,
+                          String elementTypeString,
+                          String numElementsExpression,
+                          String mallocFailureErrorString)
+  {
+    writer.print("    ");
+    writer.print(targetVarName);
+    writer.print(" = (");
+    writer.print(elementTypeString);
+    writer.print(" *) calloc(");
+    writer.print(numElementsExpression);
+    writer.print(", sizeof(");
+    writer.print(elementTypeString);
+    writer.println("));");
+    // Catch memory allocation failure
+    if (EMIT_NULL_CHECKS) {
+      emitOutOfMemoryCheck(
+        writer, targetVarName,
+        mallocFailureErrorString);
+    }
+  }
+
+  private void emitGetStringChars(PrintWriter writer,
+                                  String sourceVarName,
+                                  String receivingVarName,
+                                  boolean isUTF8,
+                                  boolean emitElseClause)
   {
     if (EMIT_NULL_CHECKS) {
-      writer.print("    if (");
+      writer.print("  if (");
       writer.print(sourceVarName);
       writer.println(" != NULL) {");
     }
-    writer.print("      ");
-    writer.print(receivingVarName);
-    writer.print(" = (*env)->GetStringUTFChars(env, ");
-    writer.print(sourceVarName);
-    writer.println(", (jboolean*)NULL);");
-    // Catch memory allocation failure in the event that the VM didn't pin
-    // the String and failed to allocate a copy    
-    if (EMIT_NULL_CHECKS) {
-      emitOutOfMemoryCheck(
-        writer, receivingVarName,
-        "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
+    if (isUTF8) {
+      writer.print("    ");
+      writer.print(receivingVarName);
+      writer.print(" = (*env)->GetStringUTFChars(env, ");
+      writer.print(sourceVarName);
+      writer.println(", (jboolean*)NULL);");
+      // Catch memory allocation failure in the event that the VM didn't pin
+      // the String and failed to allocate a copy    
+      if (EMIT_NULL_CHECKS) {
+        emitOutOfMemoryCheck(
+          writer, receivingVarName,
+          "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
+      }
+    } else {
+      // The UTF-16 case is basically Windows specific. Unix platforms
+      // tend to use only the UTF-8 encoding. On Windows the problem
+      // is that wide character strings are expected to be null
+      // terminated, but the JNI GetStringChars doesn't return a
+      // null-terminated Unicode string. For this reason we explicitly
+      // calloc our buffer, including the null terminator, and use
+      // GetStringRegion to fetch the string's characters.
+      emitCalloc(writer,
+                 receivingVarName,
+                 "jchar",
+                 "(*env)->GetStringLength(env, " + sourceVarName + ") + 1",
+                 "Could not allocate temporary buffer for copying string argument \\\""+sourceVarName+"\\\"");
+      writer.println("    (*env)->GetStringRegion(env, " + sourceVarName + ", 0, (*env)->GetStringLength(env, " + sourceVarName + "), " + receivingVarName + ");");
     }
     if (EMIT_NULL_CHECKS) {
-      writer.print("    }");
+      writer.print("  }");
       if (emitElseClause) {
         writer.print(" else {");
         writer.print("      ");
         writer.print(receivingVarName);
         writer.println(" = NULL;");
-        writer.println("    }");
+        writer.println("  }");
       } else {
         writer.println();
       }
     }
   }      
-
-
 
   private void emitGetDirectBufferAddress(PrintWriter writer,
                                           String sourceVarName,
