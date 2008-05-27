@@ -103,6 +103,9 @@
   <!-- import cpptasks -->
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
 
+  <available file="${user.home}/gluegen.compiler.xml" property="gluegen.compiler.present"/>
+  <import file="${user.home}/gluegen.compiler.xml" optional="true" />
+
   <!-- Detect OS and compiler configuration -->
   <target name="gluegen.cpptasks.detect.os.1" unless="gluegen.cpptasks.detected.os">
     <condition property="isOSX">
@@ -389,9 +392,9 @@
     <property name="c.compiler.debug"     value="false" /> 
   </target>
 
-  <target name="gluegen.cpptasks.configure.compiler">
+  <target name="gluegen.cpptasks.configure.compiler" unless="gluegen.compiler.present">
     <!-- compiler configuration -->
-    <compiler id="compiler.cfg.linux" name="gcc" />
+    <compiler id="compiler.cfg.linux" name="gcc"/>
 
     <compiler id="compiler.cfg.linux.amd64" name="gcc">
       <compilerarg value="-fPIC"/>
