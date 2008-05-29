@@ -525,7 +525,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   protected boolean isUTF8Type(Type type) {
     int i = 0;
     // Try to dereference the type at most two levels
-    while (!type.isInt() && (i < 2)) {
+    while (!type.isInt() && !type.isVoid() && (i < 2)) {
       PointerType pt = type.asPointer();
       if (pt != null) {
         type = pt.getTargetType();
@@ -536,6 +536,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
         }
         type = arrt.getElementType();
       }
+    }
+    if (type.isVoid()) {
+      // Assume UTF-8 since UTF-16 is rare
+      return true;
     }
     if (!type.isInt()) {
       throw new IllegalArgumentException("Type " + type + " should have been a one- or two-dimensional integer pointer or array type");
@@ -1188,8 +1192,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
           // Mangle wrappers for C structs as ByteBuffer
           jniMangle(java.nio.ByteBuffer.class, buf, true);
         } else if (type.isArrayOfCompoundTypeWrappers()) {
-          java.nio.Buffer[] tmp = new java.nio.Buffer[0];
-          // Mangle arrays of C structs as Buffer[]
+          // Mangle arrays of C structs as ByteBuffer[]
+          java.nio.ByteBuffer[] tmp = new java.nio.ByteBuffer[0];
           jniMangle(tmp.getClass(), buf, true);
         } else if (type.isJNIEnv()) {
           // These are not exposed at the Java level
@@ -1224,7 +1228,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (syntheticArgument) {
         if (c.isArray()) {
           res.append("_3");
-          jniMangle(c.getComponentType(), res, false);
+          Class componentType = c.getComponentType();
+          // Handle arrays of compound type wrappers differently for
+          // convenience of the Java-level glue code generation
+          jniMangle(componentType, res,
+                    (componentType == java.nio.ByteBuffer.class));
         } else {
           res.append("L");
           res.append(c.getName().replace('.', '_'));
