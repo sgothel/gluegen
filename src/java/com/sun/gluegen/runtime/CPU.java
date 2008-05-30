@@ -54,6 +54,7 @@ public class CPU {
     String os = System.getProperty("os.name").toLowerCase();
     String cpu = System.getProperty("os.arch").toLowerCase();
     if ((os.startsWith("windows") && cpu.equals("x86")) ||
+        (os.startsWith("windows") && cpu.equals("arm")) ||
         (os.startsWith("linux") && cpu.equals("i386")) ||
         (os.startsWith("linux") && cpu.equals("x86")) ||
         (os.startsWith("mac os") && cpu.equals("ppc")) ||
