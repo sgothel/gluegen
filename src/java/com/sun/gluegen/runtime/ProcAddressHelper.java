@@ -39,17 +39,52 @@
 
 package com.sun.gluegen.runtime;
 
+import java.security.*;
+
+// Debugging only
+import java.io.*;
+
 /** Helper class containing constants and methods to assist with the
     manipulation of auto-generated ProcAddressTables. */
 
 public class ProcAddressHelper {
   public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";
+  private static boolean DEBUG;
+  private static String DEBUG_PREFIX;
+  private static int debugNum;
+
+  static {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          DEBUG = (System.getProperty("gluegen.debug.ProcAddressHelper") != null);
+          if (DEBUG) {
+            DEBUG_PREFIX = System.getProperty("gluegen.debug.ProcAddressHelper.prefix");
+          }
+          return null;
+        }
+      });
+  }
 
   public static void resetProcAddressTable(Object table,
                                            DynamicLookupHelper lookup) throws RuntimeException {
     Class tableClass = table.getClass();
     java.lang.reflect.Field[] fields = tableClass.getFields();
+    PrintStream out = null;
     
+    if (DEBUG) {
+      if (DEBUG_PREFIX != null) {
+        try {
+          out = new PrintStream(new BufferedOutputStream(new FileOutputStream(DEBUG_PREFIX + File.separatorChar +
+                                                                              "procaddresshelper-" + (++debugNum) + ".txt")));
+        } catch (IOException e) {
+          e.printStackTrace();
+          out = System.err;
+        }
+      } else {
+        out = System.err;
+      }
+      out.println("ProcAddressHelper.resetProcAddressTable(" + table.getClass().getName() + ")");
+    }
     for (int i = 0; i < fields.length; ++i) {
       String addressFieldName = fields[i].getName();
       if (!addressFieldName.startsWith(ProcAddressHelper.PROCADDRESS_VAR_PREFIX)) {
@@ -64,10 +99,19 @@ public class ProcAddressHelper {
         long newProcAddress = lookup.dynamicLookupFunction(funcName);
         // set the current value of the proc address variable in the table object
         addressField.setLong(table, newProcAddress); 
+        if (DEBUG) {
+          out.println("  " + addressField.getName() + " = 0x" + Long.toHexString(newProcAddress));
+        }
       } catch (Exception e) {
         throw new RuntimeException("Can not get proc address for method \"" +
                                    funcName + "\": Couldn't set value of field \"" + addressFieldName +
                                    "\" in class " + tableClass.getName(), e);
+      }
+    }
+    if (DEBUG) {
+      out.flush();
+      if (DEBUG_PREFIX != null) {
+        out.close();
       }
     }
   }
