@@ -249,6 +249,9 @@ public class JavaType {
       return descriptor(clazz);
     }
     if (elementType != null) {
+      if(elementType.getName()==null) {
+           throw new RuntimeException("elementType.name is null: "+getDumpString());
+      }
       return "[" + descriptor(elementType.getName());
     }
     return descriptor(name);
@@ -472,8 +475,11 @@ public class JavaType {
   //
 
   // For debugging
+  public String getDumpString() {
+    return "[clazz = " + clazz + " , name = " + name + " , elementType = " + elementType + " , primitivePointerType = " + primitivePointerType + "]";
+  }
   public void dump() {
-    System.err.println("[clazz = " + clazz + " , name = " + name + " , elementType = " + elementType + " , primitivePointerType = " + primitivePointerType + "]");
+    System.err.println(getDumpString());
   }
 
   /**

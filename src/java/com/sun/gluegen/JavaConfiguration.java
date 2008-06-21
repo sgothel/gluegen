@@ -127,6 +127,7 @@ public class JavaConfiguration {
   private Map/*<String, List<String>>*/ temporaryCVariableAssignments = new HashMap();
   private Map/*<String,List<String>>*/ extendedInterfaces = new HashMap();
   private Map/*<String,List<String>>*/ implementedInterfaces = new HashMap();
+  private Map/*<String,String>*/ parentClass = new HashMap();
   private Map/*<String,String>*/ javaTypeRenames = new HashMap();
   private Map/*<String,String>*/ javaMethodRenames = new HashMap();
   private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
@@ -538,6 +539,13 @@ public class JavaConfiguration {
     return res;
   }
 
+  /** Returns a List of Strings indicating the interfaces the passed
+      class should declare it implements. May return null or a list
+      of zero length if there are none. */
+  public String extendedParentClass(String className) {
+    return (String) parentClass.get(className);
+  }
+
   /** Returns true if this #define, function, struct, or field within
       a struct should be ignored during glue code generation. */
   public boolean shouldIgnore(String symbol) {
@@ -791,6 +799,8 @@ public class JavaConfiguration {
       readExtend(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Implements")) {
       readImplements(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ParentClass")) {
+      readParentClass(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaType")) {
       readRenameJavaType(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaMethod")) {
@@ -863,6 +873,8 @@ public class JavaConfiguration {
         acc = JavaEmitter.ACC_PRIVATE;
       } else if (style.equalsIgnoreCase("PACKAGE_PRIVATE")) {
         acc = JavaEmitter.ACC_PACKAGE_PRIVATE;
+      } else if (style.equalsIgnoreCase("PUBLIC_ABSTRACT")) {
+        acc = JavaEmitter.ACC_PUBLIC_ABSTRACT;
       } else {
         throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo +
                            " in file \"" + filename + "\"");
@@ -1209,6 +1221,16 @@ public class JavaConfiguration {
       intfs.add(tok.nextToken());
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Implements\" command at line " + lineNo +
+        " in file \"" + filename + "\": missing expected parameter", e);
+    }
+  }
+
+  protected void readParentClass(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String className = tok.nextToken();
+      parentClass.put(className, tok.nextToken());
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"ParentClass\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }

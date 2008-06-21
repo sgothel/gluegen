@@ -324,7 +324,7 @@ public class ProcAddressEmitter extends JavaEmitter
     tableWriter.println(" * pointer is 0, the function is considered to be unavailable and can");
     tableWriter.println(" * not be called.");
     tableWriter.println(" */");
-    tableWriter.println("public class " + tableClassName);
+    tableWriter.println("public class " + tableClassName + " implements com.sun.gluegen.runtime.ProcAddressTable");
     tableWriter.println("{");
 
     for (Iterator iter = getProcAddressConfig().getForceProcAddressGen().iterator(); iter.hasNext(); ) {

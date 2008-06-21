@@ -179,7 +179,7 @@ public class BuildComposablePipeline
 		  pipelineClassName,
                   "com.sun.gluegen.runtime", // FIXME: should make configurable
 		  true,
-		  new String[] { "java.io.*" },
+		  new String[] { "java.io.*", "javax.media.opengl.*" },
 		  new String[] { "public" },
 		  new String[] { baseName },
 		  null,
@@ -327,10 +327,7 @@ public class BuildComposablePipeline
       output.print(  "    this." + getDownstreamObjectName());
       output.println(" = " + getDownstreamObjectName() + ";");
       output.println("    // Fetch GLContext object for better error checking (if possible)");
-      output.println("    // FIXME: should probably put this method in GL rather than GLImpl");
-      output.println("    if (" + getDownstreamObjectName() + " instanceof com.sun.opengl.impl.GLImpl) {");
-      output.println("      _context = ((com.sun.opengl.impl.GLImpl) " + getDownstreamObjectName() + ").getContext();");
-      output.println("    }");
+      output.println("    _context = " + getDownstreamObjectName() + ".getContext();");
       output.println("  }");
       output.println();
     }

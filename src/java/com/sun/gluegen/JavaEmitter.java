@@ -80,6 +80,7 @@ public class JavaEmitter implements GlueEmitter {
   public static final int ACC_PROTECTED = 2;
   public static final int ACC_PRIVATE = 3;
   public static final int ACC_PACKAGE_PRIVATE = 4;
+  public static final int ACC_PUBLIC_ABSTRACT = 5;
 
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
@@ -1394,6 +1395,13 @@ public class JavaEmitter implements GlueEmitter {
             }
           };
 
+        String[] accessModifiers = null;
+        if(cfg.accessControl(cfg.className())==ACC_PUBLIC_ABSTRACT) {
+            accessModifiers = new String[] { "public", "abstract" };
+        } else {
+            accessModifiers = new String[] { "public" };
+        }
+
         CodeGenUtils.emitJavaHeaders(
           javaWriter,
           cfg.packageName(),
@@ -1401,9 +1409,9 @@ public class JavaEmitter implements GlueEmitter {
           cfg.gluegenRuntimePackage(),
           cfg.allStatic() ? true : false, 
           (String[]) cfg.imports().toArray(new String[] {}),
-          new String[] { "public" },
+          accessModifiers,
           interfaces,
-          null,
+          cfg.extendedParentClass(cfg.className()),
           docEmitter);               
       }
     
@@ -1431,6 +1439,13 @@ public class JavaEmitter implements GlueEmitter {
           interfaces[userSpecifiedInterfaces.size()] = cfg.className();
         }
 
+        String[] accessModifiers = null;
+        if(cfg.accessControl(cfg.implClassName())==ACC_PUBLIC_ABSTRACT) {
+            accessModifiers = new String[] { "public", "abstract" };
+        } else {
+            accessModifiers = new String[] { "public" };
+        }
+
         CodeGenUtils.emitJavaHeaders(
           javaImplWriter,
           cfg.implPackageName(),
@@ -1438,9 +1453,9 @@ public class JavaEmitter implements GlueEmitter {
           cfg.gluegenRuntimePackage(),
           true,
           (String[]) cfg.imports().toArray(new String[] {}),
-          new String[] { "public" },
+          accessModifiers,
           interfaces,
-          null,
+          cfg.extendedParentClass(cfg.implClassName()),
           docEmitter);                      
       }
           
