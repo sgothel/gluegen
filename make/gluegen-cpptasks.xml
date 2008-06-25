@@ -256,79 +256,80 @@
     <echo message="X11=${isX11}" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.freebsd" unless="gluegen.cpptasks.detected.os" if="isFreeBSD">
+  <target name="gluegen.cpptasks.detect.os.freebsd" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSD">
     <property name="os.and.arch" value="freebsd-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.hpux" unless="gluegen.cpptasks.detected.os" if="isHPUX">
+  <target name="gluegen.cpptasks.detect.os.hpux" unless="gluegen.cpptasks.detected.os.2" if="isHPUX">
     <property name="os.and.arch" value="hpux-hppa" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux.amd64" unless="gluegen.cpptasks.detected.os" if="isLinuxAMD64">
+  <target name="gluegen.cpptasks.detect.os.linux.amd64" unless="gluegen.cpptasks.detected.os.2" if="isLinuxAMD64">
     <property name="os.and.arch" value="linux-amd64" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux.ia64" unless="gluegen.cpptasks.detected.os" if="isLinuxIA64">
+  <target name="gluegen.cpptasks.detect.os.linux.ia64" unless="gluegen.cpptasks.detected.os.2" if="isLinuxIA64">
     <property name="os.and.arch" value="linux-ia64" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os" if="isLinuxX86">
+  <target name="gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os.2" if="isLinuxX86">
     <property name="os.and.arch" value="linux-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os" />
+  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os.2" />
 
-  <target name="gluegen.cpptasks.detect.os.osx.ppc" unless="gluegen.cpptasks.detected.os" if="isOSXPPC">
+  <target name="gluegen.cpptasks.detect.os.osx.ppc" unless="gluegen.cpptasks.detected.os.2" if="isOSXPPC">
     <property name="os.and.arch" value="macosx-ppc" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.osx.universal" unless="gluegen.cpptasks.detected.os" if="isOSXUniversal">
+  <target name="gluegen.cpptasks.detect.os.osx.universal" unless="gluegen.cpptasks.detected.os.2" if="isOSXUniversal">
     <property name="os.and.arch" value="macosx-universal" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.osx" depends="gluegen.cpptasks.detect.os.osx.ppc,gluegen.cpptasks.detect.os.osx.universal" unless="gluegen.cpptasks.detected.os" if="isOSX">
+  <target name="gluegen.cpptasks.detect.os.osx" depends="gluegen.cpptasks.detect.os.osx.ppc,gluegen.cpptasks.detect.os.osx.universal" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.suffix" value="*lib" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.solaris.sparc" unless="gluegen.cpptasks.detected.os" if="isSolarisSparc">
+  <target name="gluegen.cpptasks.detect.os.solaris.sparc" unless="gluegen.cpptasks.detected.os.2" if="isSolarisSparc">
     <property name="os.and.arch" value="solaris-sparc" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.solaris.sparcv9" unless="gluegen.cpptasks.detected.os" if="isSolarisSparcv9">
+  <target name="gluegen.cpptasks.detect.os.solaris.sparcv9" unless="gluegen.cpptasks.detected.os.2" if="isSolarisSparcv9">
     <property name="os.and.arch" value="solaris-sparcv9" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.solaris.amd64" unless="gluegen.cpptasks.detected.os" if="isSolarisAMD64">
+  <target name="gluegen.cpptasks.detect.os.solaris.amd64" unless="gluegen.cpptasks.detected.os.2" if="isSolarisAMD64">
     <property name="os.and.arch" value="solaris-amd64" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.solaris.x86" unless="gluegen.cpptasks.detected.os" if="isSolarisX86">
+  <target name="gluegen.cpptasks.detect.os.solaris.x86" unless="gluegen.cpptasks.detected.os.2" if="isSolarisX86">
     <property name="os.and.arch" value="solaris-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.solaris" depends="gluegen.cpptasks.detect.os.solaris.sparc,gluegen.cpptasks.detect.os.solaris.sparcv9,gluegen.cpptasks.detect.os.solaris.amd64,gluegen.cpptasks.detect.os.solaris.x86" unless="gluegen.cpptasks.detected.os" />
+  <target name="gluegen.cpptasks.detect.os.solaris" depends="gluegen.cpptasks.detect.os.solaris.sparc,gluegen.cpptasks.detect.os.solaris.sparcv9,gluegen.cpptasks.detect.os.solaris.amd64,gluegen.cpptasks.detect.os.solaris.x86" unless="gluegen.cpptasks.detected.os.2" />
 
-  <target name="gluegen.cpptasks.detect.os.unix" unless="gluegen.cpptasks.detected.os" if="isUnix">
+  <target name="gluegen.cpptasks.detect.os.unix" unless="gluegen.cpptasks.detected.os.2" if="isUnix">
     <property name="native.library.suffix" value="so" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.windows.amd64" unless="gluegen.cpptasks.detected.os" if="isWindowsAMD64">
+  <target name="gluegen.cpptasks.detect.os.windows.amd64" unless="gluegen.cpptasks.detected.os.2" if="isWindowsAMD64">
     <property name="os.and.arch" value="windows-amd64" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os" if="isWindowsX86">
+  <target name="gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os.2" if="isWindowsX86">
     <property name="os.and.arch" value="windows-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.windows" depends="gluegen.cpptasks.detect.os.windows.amd64,gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os" if="isWindows">
+  <target name="gluegen.cpptasks.detect.os.windows" depends="gluegen.cpptasks.detect.os.windows.amd64,gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os.2" if="isWindows">
     <property name="native.library.suffix" value="dll" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os">
+  <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
   </target>
 
   <target name="gluegen.cpptasks.detect.os" depends="gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
     <property name="gluegen.cpptasks.detected.os" value="true" />
+    <property name="gluegen.cpptasks.detected.os.2" value="true" />
   </target>
 
   <!-- Detect compiler setup, in particular on Windows; separated
