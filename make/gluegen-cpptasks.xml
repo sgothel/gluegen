@@ -19,11 +19,10 @@
    -   c.compiler.debug:
    -       set to "true" if debug version of the compiled
    -       C code is desired.
-   -   macosxfat:
-   -       set to "true" if universal / fat binaries (both PowerPC
-   -       and Intel code) are desired on Mac OS X. Requires
-   -       support for cross-compilation from the underlying C
-   -       compiler.
+   -   macosx64:
+   -       set to "true" if 64-bit universal / fat binaries are desired
+   -       on Mac OS X. Requires support for cross-compilation from the
+   -       underlying C compiler.
    - 
    - The gluegen.cpptasks.detect.os target sets the following
    - properties appropriately. They are only set to "true" if the OS/CPU
@@ -58,10 +57,31 @@
    -   os.and.arch (i.e., "windows-i586")
    -   native.library.suffix (i.e.., "so", "dll")
    - 
+   - The gluegen.cpptasks.setup.compiler target is the preferred target
+   - to depend upon in your build.xml. It depends on gluegen.cpptasks.detect.compiler
+   - and gluegen.cpptasks.configure.compiler, below, and also sets up the following
+   - compiler and linker IDs for the host platform:
+   -
+   -   compiler.cfg.id.base
+   -   linker.cfg.id.base
+   -
+   - and the following properties:
+   -
+   -   java.home.dir               : path to the JDK home directory
+   -   java.includes.dir           : path to the JNI headers (.../jdk/include)
+   -   java.includes.dir.platform  : path to the platform JNI headers (.../jdk/include/linux)
+   -   java.lib.dir.platform       : path to the Java library dir (libjawt.so, etc.)
+   -
+   - If your project requires only minimal changes to the compiler
+   - configuration, you may be able to simply refer to the
+   - gluegen.cpptasks.setup.compiler target and avoid any platform-
+   - specific compiler subclassing.
+   - 
    - The gluegen.cpptasks.detect.compiler target sets the following
    - properties appropriately. They are only set to "true" if the OS/compiler
    - configuration is exactly as specified.
    - 
+   -   isVCFamily
    -   isVC6
    -   isVC7
    -   isVC8
@@ -69,7 +89,7 @@
    -   isVC8Family (= isVC8 || isVC8_X64)
    -   isMingW
    - 
-   - The gluegen.cpptasks.configure.compiler initializes several
+   - The gluegen.cpptasks.configure.compiler target initializes several
    - cpptasks compiler and linker configurations designed to support
    - compilation of C code on multiple platforms. Generally if it is
    - necessary to set up include paths, link paths, etc., then these
@@ -112,18 +132,6 @@
       <and>
         <os family="mac"/>
         <os family="unix"/>
-      </and>
-    </condition>
-    <condition property="isOSXPPC">
-      <and>
-        <istrue value="${isOSX}" />
-        <isfalse value="${macosxfat}" />
-      </and>
-    </condition>
-    <condition property="isOSXUniversal">
-      <and>
-        <istrue value="${isOSX}" />
-        <istrue value="${macosxfat}" />
       </and>
     </condition>
     <condition property="isUnix">
@@ -237,6 +245,19 @@
       </and>
     </condition>
 
+    <condition property="solaris.cpu" value="sparc">
+        <os name="SunOS" arch="sparc" />
+    </condition>
+    <condition property="solaris.cpu" value="sparcv9">
+        <os name="SunOS" arch="sparcv9" />
+    </condition>
+    <condition property="solaris.cpu" value="i386">
+        <os name="SunOS" arch="x86" />
+    </condition>
+    <condition property="solaris.cpu" value="amd64">
+        <os name="SunOS" arch="amd64" />
+    </condition>
+
     <echo message="FreeBSD=${isFreeBSD}" />
     <echo message="HPUX=${isHPUX}" />
     <echo message="IA64=${isIA64}" />
@@ -337,6 +358,14 @@
     -->
   <target name="gluegen.cpptasks.detect.compiler">
     <!-- Set up compiler selection on Windows -->
+    <condition property="isVCFamily">
+      <and>
+        <istrue value="${isWindows}" />
+        <not>
+          <equals arg1="${win32.c.compiler}" arg2="mingw" />
+        </not>
+      </and>
+    </condition>
     <condition property="isVC6">
       <and>
         <istrue value="${isWindows}" />
@@ -393,7 +422,22 @@
     <property name="c.compiler.debug"     value="false" /> 
   </target>
 
-  <target name="gluegen.cpptasks.configure.compiler" unless="gluegen.compiler.present">
+    <!-- ================================================================== -->
+    <!-- 
+       - Set up java.home.dir appropriately on all platforms.
+      -->
+    <target name="setup.java.home.dir.nonmacosx" unless="isOSX">
+      <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
+      <property name="java.home.dir" value="${java.home}/.." />
+    </target>
+    <target name="setup.java.home.dir.macosx" if="isOSX">
+      <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
+    </target>
+    <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx"/>
+
+  <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir" unless="gluegen.compiler.present">
+    <property name="java.includes.dir" value="${java.home.dir}/include" />
+
     <!-- compiler configuration -->
     <compiler id="compiler.cfg.linux" name="gcc"/>
 
@@ -458,8 +502,8 @@
       <compilerarg value="ppc" if="macosxfat"/>
       <compilerarg value="-arch" if="macosxfat"/>
       <compilerarg value="i386" if="macosxfat"/>
-      <compilerarg value="-arch" if="macosx64fat"/>
-      <compilerarg value="x86_64" if="macosx64fat"/>
+      <compilerarg value="-arch" if="macosx64"/>
+      <compilerarg value="x86_64" if="macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
@@ -529,8 +573,8 @@
       <linkerarg value="ppc" if="macosxfat"/>
       <linkerarg value="-arch" if="macosxfat"/>
       <linkerarg value="i386" if="macosxfat"/>
-      <linkerarg value="-arch" if="macosx64fat"/>
-      <linkerarg value="x86_64" if="macosx64fat"/>
+      <linkerarg value="-arch" if="macosx64"/>
+      <linkerarg value="x86_64" if="macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
     </linker>
 
@@ -538,4 +582,118 @@
     </linker>
   </target>
 
+    <!-- ================================================================== -->
+    <!--
+       - Platform specific declares.
+      -->
+    <target name="gluegen.cpptasks.declare.compiler.win32.vc6" if="isVC6">
+      <echo message="Win32.VC6" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="gluegen.cpptasks.declare.compiler.win32.vc7" if="isVC7">
+      <echo message="Win32.VC7" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="gluegen.cpptasks.declare.compiler.win32.vc8" if="isVC8">
+      <echo message="Win32.VC8" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.win32.vc8_x64" if="isVC8_X64">
+      <echo message="Win32.VC8_X64" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
+    </target>
+    
+    <target name="gluegen.cpptasks.declare.compiler.win32.mingw" if="isMingw">
+      <echo message="Win32.MingW" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.mingw" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win32.mingw" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.win32" depends="gluegen.cpptasks.declare.compiler.win32.vc6,gluegen.cpptasks.declare.compiler.win32.vc7,gluegen.cpptasks.declare.compiler.win32.vc8,gluegen.cpptasks.declare.compiler.win32.vc8_x64,gluegen.cpptasks.declare.compiler.win32.mingw" if="isWindows">
+      <property name="java.includes.dir.platform"    value="${java.includes.dir.win32}" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/lib" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.x86" if="isLinuxX86">
+      <echo message="Linux.x86" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+    </target>
+    
+    <target name="gluegen.cpptasks.declare.compiler.linux.amd64" if="isLinuxAMD64">
+      <echo message="Linux.AMD64" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.amd64" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/amd64" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinuxIA64">
+      <echo message="Linux.IA64" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/ia64" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinux">
+        <property name="java.includes.dir.platform" value="${java.includes.dir}/linux" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.solaris32" if="isSolaris32Bit">
+      <echo message="Solaris" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.solaris" /> 
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.solaris.sparcv9" if="isSolarisSparcv9">
+      <echo message="SolarisSparcv9" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris.sparcv9" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.solaris.sparcv9" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.solaris.amd64" if="isSolarisAMD64">
+      <echo message="SolarisAMD64" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris.amd64" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.solaris.amd64" /> 
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.solaris" depends="gluegen.cpptasks.declare.compiler.solaris32,gluegen.cpptasks.declare.compiler.solaris.sparcv9,gluegen.cpptasks.declare.compiler.solaris.amd64" if="isSolaris">
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/solaris" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/${cpu}" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.macosx" if="isOSX">
+      <echo message="MacOSX" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.macosx" /> 
+      <property name="java.includes.dir.platform"    value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
+      <property name="java.lib.dir.platform"         value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.freebsd" if="isFreeBSD">
+      <echo message="FreeBSD" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/freebsd" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.hpux" if="isHPUX">
+      <echo message="HP-UX" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.hpux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.hpux" />
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/hp-ux" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/PA_RISC2.0" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" unless="gluegen.compiler.present"/>
+
+    <target name="gluegen.cpptasks.setup.compiler" depends="gluegen.cpptasks.detect.compiler,gluegen.cpptasks.configure.compiler,gluegen.cpptasks.declare.compiler" />
 </project>
