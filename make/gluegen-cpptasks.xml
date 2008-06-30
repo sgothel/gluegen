@@ -498,10 +498,10 @@
     </compiler>
 
     <compiler id="compiler.cfg.macosx" name="gcc">
-      <compilerarg value="-arch" if="macosxfat"/>
-      <compilerarg value="ppc" if="macosxfat"/>
-      <compilerarg value="-arch" if="macosxfat"/>
-      <compilerarg value="i386" if="macosxfat"/>
+      <compilerarg value="-arch" />
+      <compilerarg value="ppc" />
+      <compilerarg value="-arch" />
+      <compilerarg value="i386" />
       <compilerarg value="-arch" if="macosx64"/>
       <compilerarg value="x86_64" if="macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
@@ -569,10 +569,10 @@
     </linker>
 
     <linker id="linker.cfg.macosx" name="gcc">
-      <linkerarg value="-arch" if="macosxfat"/>
-      <linkerarg value="ppc" if="macosxfat"/>
-      <linkerarg value="-arch" if="macosxfat"/>
-      <linkerarg value="i386" if="macosxfat"/>
+      <linkerarg value="-arch" />
+      <linkerarg value="ppc" />
+      <linkerarg value="-arch" />
+      <linkerarg value="i386" />
       <linkerarg value="-arch" if="macosx64"/>
       <linkerarg value="x86_64" if="macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
