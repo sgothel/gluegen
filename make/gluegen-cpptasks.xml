@@ -617,7 +617,7 @@
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.win32" depends="gluegen.cpptasks.declare.compiler.win32.vc6,gluegen.cpptasks.declare.compiler.win32.vc7,gluegen.cpptasks.declare.compiler.win32.vc8,gluegen.cpptasks.declare.compiler.win32.vc8_x64,gluegen.cpptasks.declare.compiler.win32.mingw" if="isWindows">
-      <property name="java.includes.dir.platform"    value="${java.includes.dir.win32}" />
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/win32" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib" />
     </target>
 
