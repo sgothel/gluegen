@@ -60,7 +60,7 @@ public class JavaEmitter implements GlueEmitter {
   private TypeDictionary typedefDictionary;
   private TypeDictionary structDictionary;
   private Map            canonMap;
-  private JavaConfiguration cfg;
+  protected JavaConfiguration cfg;
 
   /**
    * Style of code emission. Can emit everything into one class
@@ -145,6 +145,125 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
+  protected static int getJavaRadix(String name, String value) 
+  {
+    // FIXME: need to handle when type specifier is in last char (e.g.,
+    // "1.0d or 2759L", because parseXXX() methods don't allow the type
+    // specifier character in the string.
+    //
+    //char lastChar = value.charAt(value.length()-1);
+    
+    try {
+      // see if it's a long or int
+      int radix;
+      String parseValue;
+      // FIXME: are you allowed to specify hex/octal constants with
+      // negation, e.g. "-0xFF" or "-056"? If so, need to modify the
+      // following "if(..)" checks and parseValue computation
+      if (value.startsWith("0x") || value.startsWith("0X")) {
+        radix = 16;
+        parseValue = value.substring(2);
+      }
+      else if (value.startsWith("0") && value.length() > 1) {
+        // TODO: is "0" the prefix in C to indicate octal???
+        radix = 8; 
+        parseValue = value.substring(1);
+      }
+      else {
+        radix = 10;
+        parseValue = value;
+      }
+      //System.err.println("parsing " + value + " as long w/ radix " + radix);
+      long longVal = Long.parseLong(parseValue, radix);
+      return radix;
+    } catch (NumberFormatException e) { 
+      try {
+        // see if it's a double or float
+        double dVal = Double.parseDouble(value);
+        return 10;
+      } catch (NumberFormatException e2) {            
+        throw new RuntimeException(
+          "Cannot emit define \""+name+"\": value \""+value+
+          "\" cannot be assigned to a int, long, float, or double", e2);
+      }
+    }
+  }
+
+  protected static Object getJavaValue(String name, String value) 
+  {
+    // FIXME: need to handle when type specifier is in last char (e.g.,
+    // "1.0d or 2759L", because parseXXX() methods don't allow the type
+    // specifier character in the string.
+    //
+    //char lastChar = value.charAt(value.length()-1);
+    
+    try {
+      // see if it's a long or int
+      int radix;
+      String parseValue;
+      // FIXME: are you allowed to specify hex/octal constants with
+      // negation, e.g. "-0xFF" or "-056"? If so, need to modify the
+      // following "if(..)" checks and parseValue computation
+      if (value.startsWith("0x") || value.startsWith("0X")) {
+        radix = 16;
+        parseValue = value.substring(2);
+      }
+      else if (value.startsWith("0") && value.length() > 1) {
+        // TODO: is "0" the prefix in C to indicate octal???
+        radix = 8; 
+        parseValue = value.substring(1);
+      }
+      else {
+        radix = 10;
+        parseValue = value;
+      }
+      //System.err.println("parsing " + value + " as long w/ radix " + radix);
+      long longVal = Long.parseLong(parseValue, radix);
+      // if constant is small enough, store it as an int instead of a long
+      if (longVal > Integer.MIN_VALUE && longVal < Integer.MAX_VALUE) {
+        return new Integer((int)longVal);
+      }
+      return new Long(longVal);
+      
+    } catch (NumberFormatException e) {
+      try {
+        // see if it's a double or float
+        double dVal = Double.parseDouble(value);
+        // if constant is small enough, store it as a float instead of a double
+        if (dVal > Float.MIN_VALUE && dVal < Float.MAX_VALUE) {
+          return new Float((float)dVal);
+        }
+        return new Double(dVal);
+        
+      } catch (NumberFormatException e2) {            
+        throw new RuntimeException(
+          "Cannot emit define \""+name+"\": value \""+value+
+          "\" cannot be assigned to a int, long, float, or double", e2);
+      }
+    }
+  }
+
+  protected static String getJavaType(String name, String value) {
+    Object oval = getJavaValue(name, value);
+    return getJavaType(name, oval);
+  }
+
+  protected static String getJavaType(String name, Object oval) {
+    if(oval instanceof Integer) {
+        return "int";
+    } else if(oval instanceof Long) {
+        return "long";
+    } else if(oval instanceof Float) {
+        return "float";
+    } else if(oval instanceof Double) {
+        return "double";
+    }
+
+    throw new RuntimeException(
+      "Cannot emit define (2) \""+name+"\": value \""+oval+
+      "\" cannot be assigned to a int, long, float, or double");
+  }
+
   public void emitDefine(String name, String value, String optionalComment) throws Exception
   {
     if (cfg.allStatic() || cfg.emitInterface()) {
@@ -158,64 +277,7 @@ public class JavaEmitter implements GlueEmitter {
       // objects it would make a bigger difference.
  
       if (!cfg.shouldIgnore(name)) {
-        String type = null;
-
-        // FIXME: need to handle when type specifier is in last char (e.g.,
-        // "1.0d or 2759L", because parseXXX() methods don't allow the type
-        // specifier character in the string.
-        //
-        //char lastChar = value.charAt(value.length()-1);
-        
-        try {
-          // see if it's a long or int
-          int radix;
-          String parseValue;
-          // FIXME: are you allowed to specify hex/octal constants with
-          // negation, e.g. "-0xFF" or "-056"? If so, need to modify the
-          // following "if(..)" checks and parseValue computation
-          if (value.startsWith("0x") || value.startsWith("0X")) {
-            radix = 16;
-            parseValue = value.substring(2);
-          }
-          else if (value.startsWith("0") && value.length() > 1) {
-            // TODO: is "0" the prefix in C to indicate octal???
-            radix = 8; 
-            parseValue = value.substring(1);
-          }
-          else {
-            radix = 10;
-            parseValue = value;
-          }
-          //System.err.println("parsing " + value + " as long w/ radix " + radix);
-          long longVal = Long.parseLong(parseValue, radix);
-          type = "long";
-          // if constant is small enough, store it as an int instead of a long
-          if (longVal > Integer.MIN_VALUE && longVal < Integer.MAX_VALUE) {
-            type = "int";
-          }
-          
-        } catch (NumberFormatException e) {
-          try {
-            // see if it's a double or float
-            double dVal = Double.parseDouble(value);
-            type = "double";
-            // if constant is small enough, store it as a float instead of a double
-            if (dVal > Float.MIN_VALUE && dVal < Float.MAX_VALUE) {
-              type = "float";
-            }
-            
-          } catch (NumberFormatException e2) {            
-            throw new RuntimeException(
-              "Cannot emit define \""+name+"\": value \""+value+
-              "\" cannot be assigned to a int, long, float, or double", e2);
-          }
-        }
-
-        if (type == null) {
-            throw new RuntimeException(
-              "Cannot emit define (2) \""+name+"\": value \""+value+
-              "\" cannot be assigned to a int, long, float, or double");
-        }
+        String type = getJavaType(name, value);
         if (optionalComment != null && optionalComment.length() != 0) {
           javaWriter().println("  /** " + optionalComment + " */");
         }
