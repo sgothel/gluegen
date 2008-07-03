@@ -666,7 +666,7 @@
 
     <target name="gluegen.cpptasks.declare.compiler.solaris" depends="gluegen.cpptasks.declare.compiler.solaris32,gluegen.cpptasks.declare.compiler.solaris.sparcv9,gluegen.cpptasks.declare.compiler.solaris.amd64" if="isSolaris">
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/solaris" />
-      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/${cpu}" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/${solaris.cpu}" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.macosx" if="isOSX">
