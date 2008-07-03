@@ -433,11 +433,11 @@
     <target name="setup.java.home.dir.macosx" if="isOSX">
       <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
     </target>
-    <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx"/>
+    <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx">
+    <property name="java.includes.dir" value="${java.home.dir}/include" />
+    </target>
 
   <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir" unless="gluegen.compiler.present">
-    <property name="java.includes.dir" value="${java.home.dir}/include" />
-
     <!-- compiler configuration -->
     <compiler id="compiler.cfg.linux" name="gcc"/>
 
