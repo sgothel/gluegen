@@ -546,14 +546,23 @@ public class JavaConfiguration {
     return (String) parentClass.get(className);
   }
 
+  public void dumpIgnores() {
+    System.err.println("Ignores: ");
+    for (Iterator iter = ignores.iterator(); iter.hasNext(); ) {
+        System.err.println("\t"+(String)iter.next());
+    }
+  }
+
   /** Returns true if this #define, function, struct, or field within
       a struct should be ignored during glue code generation. */
   public boolean shouldIgnore(String symbol) {
 
-    //System.err.println("CHECKING IGNORE: " + symbol);
+    // System.err.println("CHECKING IGNORE: " + symbol);
 
     // Simple case; the entire symbol is in the ignore table.
     if (ignores.contains(symbol)) {
+      // System.err.println("Ignore: "+symbol);
+      // dumpIgnores();
       return true;
     }
 

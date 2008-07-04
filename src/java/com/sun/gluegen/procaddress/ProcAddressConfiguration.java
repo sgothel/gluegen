@@ -77,9 +77,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
       }
     else if (cmd.equalsIgnoreCase("ForceProcAddressGen"))
       {
-        String sym = readString("ForceProcAddressGen", tok, filename, lineNo);
-        forceProcAddressGen.add(sym);
-        forceProcAddressGenSet.add(sym);
+        addForceProcAddressGen( readString("ForceProcAddressGen", tok, filename, lineNo) );
       }
     else if (cmd.equalsIgnoreCase("GetProcAddressTableExpr"))
       {
@@ -257,5 +255,10 @@ public class ProcAddressConfiguration extends JavaConfiguration
   }
   public boolean forceProcAddressGen(String funcName) {
     return forceProcAddressGenSet.contains(funcName);
+  }
+
+  public void addForceProcAddressGen(String funcName) {
+        forceProcAddressGen.add(funcName);
+        forceProcAddressGenSet.add(funcName);
   }
 }

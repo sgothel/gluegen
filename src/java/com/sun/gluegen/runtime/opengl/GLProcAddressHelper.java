@@ -32,56 +32,21 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.runtime;
+package com.sun.gluegen.runtime.opengl;
+
+import com.sun.gluegen.runtime.*;
 
 import java.security.*;
 
 // Debugging only
-import java.io.*;
+import java.io.PrintStream;
 
 /** Helper class containing constants and methods to assist with the
     manipulation of auto-generated ProcAddressTables. */
 
-public class ProcAddressHelper {
-  public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";
-  protected static boolean DEBUG;
-  protected static String DEBUG_PREFIX;
-  protected static int debugNum;
-
-  static {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          DEBUG = (System.getProperty("gluegen.debug.ProcAddressHelper") != null);
-          if (DEBUG) {
-            DEBUG_PREFIX = System.getProperty("gluegen.debug.ProcAddressHelper.prefix");
-          }
-          return null;
-        }
-      });
-  }
-
-  protected static PrintStream getDebugOutStream() {
-    PrintStream out = null;
-    if (DEBUG) {
-      if (DEBUG_PREFIX != null) {
-        try {
-          out = new PrintStream(new BufferedOutputStream(new FileOutputStream(DEBUG_PREFIX + File.separatorChar +
-                                                                              "procaddresshelper-" + (++debugNum) + ".txt")));
-        } catch (IOException e) {
-          e.printStackTrace();
-          out = System.err;
-        }
-      } else {
-        out = System.err;
-      }
-    }
-    return out;
-  }
+public class GLProcAddressHelper extends ProcAddressHelper {
 
   public static void resetProcAddressTable(Object table,
                                            DynamicLookupHelper lookup) throws RuntimeException {
@@ -99,19 +64,41 @@ public class ProcAddressHelper {
         continue;
       }
       int startOfMethodName = ProcAddressHelper.PROCADDRESS_VAR_PREFIX.length();
-      String funcName = addressFieldName.substring(startOfMethodName);
+      String funcNameBase = addressFieldName.substring(startOfMethodName);
+      java.lang.reflect.Field addressField;
       try {
-        java.lang.reflect.Field addressField = fields[i];
+        addressField = fields[i];
         assert(addressField.getType() == Long.TYPE);
-        long newProcAddress = lookup.dynamicLookupFunction(funcName);
+      } catch (Exception e) {
+        throw new RuntimeException("Can not get proper proc address field for method \"" +
+                                   funcNameBase + "\": Couldn't get field \"" + addressFieldName +
+                                   "\" in class " + tableClass.getName(), e);
+      }
+      long newProcAddress = 0;
+      int  funcNamePermNum = GLUnifiedName.getNamePermutationNumber(funcNameBase);
+      for(int j = 0; 0==newProcAddress && j < funcNamePermNum; j++) {
+          String funcName = GLUnifiedName.getNamePermutation(funcNameBase, j);
+          try {
+            if (DEBUG) {
+              dout.println("  try function lookup: " + funcName + " / " + funcNameBase);
+            }
+            newProcAddress = lookup.dynamicLookupFunction(funcName);
+          } catch (Exception e) { 
+            if (DEBUG) {
+              dout.println(e);
+              e.printStackTrace();
+            }
+          }
+      } 
+      try {
         // set the current value of the proc address variable in the table object
         addressField.setLong(table, newProcAddress); 
         if (DEBUG) {
           dout.println("  " + addressField.getName() + " = 0x" + Long.toHexString(newProcAddress));
         }
       } catch (Exception e) {
-        throw new RuntimeException("Can not get proc address for method \"" +
-                                   funcName + "\": Couldn't set value of field \"" + addressFieldName +
+        throw new RuntimeException("Can not set proc address field for method \"" +
+                                   funcNameBase + "\": Couldn't set field \"" + addressFieldName +
                                    "\" in class " + tableClass.getName(), e);
       }
     }

@@ -468,6 +468,7 @@
     <jar destfile="${build}/gluegen-rt.jar">
       <fileset dir="${classes}">
         <include name="com/sun/gluegen/runtime/*.class" />
+        <include name="com/sun/gluegen/runtime/opengl/*.class" />
       </fileset>
     </jar>
 

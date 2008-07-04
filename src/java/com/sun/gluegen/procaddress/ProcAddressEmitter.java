@@ -57,10 +57,10 @@ public class ProcAddressEmitter extends JavaEmitter
   public static final String PROCADDRESS_VAR_PREFIX = ProcAddressHelper.PROCADDRESS_VAR_PREFIX;
   protected static final String WRAP_PREFIX = "dispatch_";
   private TypeDictionary typedefDictionary;
-  private PrintWriter tableWriter;
-  private Set emittedTableEntries;
-  private String tableClassPackage;
-  private String tableClassName;
+  protected PrintWriter tableWriter;
+  protected Set emittedTableEntries;
+  protected String tableClassPackage;
+  protected String tableClassName;
 
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
@@ -283,7 +283,7 @@ public class ProcAddressEmitter extends JavaEmitter
     return shouldWrap;
   }
 
-  private void beginProcAddressTable() throws Exception
+  protected void beginProcAddressTable() throws Exception
   {
     tableClassPackage = getProcAddressConfig().tableClassPackage();
     tableClassName    = getProcAddressConfig().tableClassName();
@@ -332,7 +332,7 @@ public class ProcAddressEmitter extends JavaEmitter
     }
   }
 
-  private void endProcAddressTable() throws Exception
+  protected void endProcAddressTable() throws Exception
   {
     PrintWriter w = tableWriter;
 

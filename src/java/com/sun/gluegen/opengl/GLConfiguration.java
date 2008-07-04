@@ -173,12 +173,25 @@ public class GLConfiguration extends ProcAddressConfiguration {
     return res;
   }
 
+  public void dumpIgnores() {
+    System.err.println("GL Ignores: ");
+    for (Iterator iter = ignoredExtensions.iterator(); iter.hasNext(); ) {
+        System.err.println("\t"+(String)iter.next());
+    }
+  }
+
   public boolean shouldIgnore(String symbol) {
+    return shouldIgnore(symbol, false);
+  }
+
+  public boolean shouldIgnore(String symbol, boolean skipExtensionCheck) {
     // Check ignored extensions based on our knowledge of the static GL info
-    if (glInfo != null) {
+    if (!skipExtensionCheck && glInfo != null) {
       String extension = glInfo.getExtension(symbol);
       if (extension != null &&
           ignoredExtensions.contains(extension)) {
+        // System.err.println("GL Ignore: "+symbol+" within extension "+extension);
+        // dumpIgnores();
         return true;
       }
     }

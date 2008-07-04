@@ -318,6 +318,8 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
 
+    validateFunctionsToBind(funcsToBindSet);
+
     ArrayList funcsToBind = new ArrayList(funcsToBindSet.size());
     funcsToBind.addAll(funcsToBindSet);
     // sort functions to make them easier to find in native code
@@ -609,6 +611,10 @@ public class JavaEmitter implements GlueEmitter {
         allEmitters.add(cEmitter);
       }
     }
+  }
+
+  protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
+    // nothing to be done per default
   }
 
   /**

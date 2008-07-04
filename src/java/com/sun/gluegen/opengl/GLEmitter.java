@@ -46,6 +46,7 @@ import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
 import com.sun.gluegen.runtime.*;
+import com.sun.gluegen.runtime.opengl.GLUnifiedName;
 
 /**
  * A subclass of ProcAddressEmitter with special OpenGL-specific
@@ -72,119 +73,16 @@ public class GLEmitter extends ProcAddressEmitter
     super.beginEmission(controls);
   }
 
-  static class UnifiedExtensionName implements Cloneable {
-    public UnifiedExtensionName(String name) {
-        this(name, normalizeARB(name));
-    }
-
-    protected UnifiedExtensionName(String orig, String uni) {
-        this.nameOrig=orig;
-        this.nameUni=uni;
-    }
-
-    public void useOriginal() {
-        nameUni=nameOrig;
-    }
-
-    public void addOrig(String name) {
-        if(nameOrig.indexOf(name)<0) {
-            nameOrig = nameOrig.concat(", "+name);
-        }
-    }
-
-    public void normalizeVEN() {
-        nameUni=normalizeVEN(nameUni);
-    }
-
-    public boolean isExtensionVEN() {
-        return isExtensionVEN(nameUni);
-    }
-
-    public boolean equals(Object obj) {
-        if(null==obj || !(obj instanceof UnifiedExtensionName)) return false;
-        UnifiedExtensionName uen = (UnifiedExtensionName) obj;
-        return nameUni.equals(uen.nameUni);
-    }
-
-    public String getCommentString() {
-        if(nameOrig.equals(nameUni)) {
-            return new String();
-        }
-        return " /** " + nameUni + ": Alias of: " + nameOrig + " */";
-    }
-
-    public String toString() {
-        if(nameOrig.equals(nameUni)) {
-            return nameUni;
-        }
-        return nameUni + " /* " + nameOrig + " */";
-    }
-
-    public Object clone() {
-        return new UnifiedExtensionName(nameOrig, nameUni);
-    }
-
-    //GL_XYZ : GL_XYZ, GL_XYZ_GL2, GL_XYZ_ARB, GL_XYZ_OES, GL_XYZ_OML
-    //GL_XYZ : GL_XYZ, GL_GL2_XYZ, GL_ARB_XYZ, GL_OES_XYZ, GL_OML_XYZ
-    //
-    // Pass-1 Unify ARB extensions with the same value
-    // Pass-2 Unify vendor extensions, 
-    //        if exist as an ARB extension with the same value.
-    // Pass-3 Emit
-
-    public static String[] extensionsARB = { "GL2", "ARB", "OES", "OML" };
-    public static String[] extensionsVEN = { "EXT", "NV", "ATI", "SGI", "SGIS", "SGIX", "HP", "IBM", "WIN" };
-
-    public static boolean isExtension(String[] extensions, String str) {
-        for(int i = extensions.length - 1 ; i>=0 ; i--) {
-            if(str.endsWith("_"+extensions[i])) {
-                return true;
-            }
-            if(str.startsWith("GL_"+extensions[i]+"_")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static String normalize(String[] extensions, String str) {
-        boolean touched = false;
-        for(int i = extensions.length - 1 ; !touched && i>=0 ; i--) {
-            if(str.endsWith("_"+extensions[i])) {
-                str = str.substring(0, str.length()-1-extensions[i].length());
-                touched=true;
-            }
-            if(str.startsWith("GL_"+extensions[i]+"_")) {
-                str = "GL_"+str.substring(4+extensions[i].length());
-                touched=true;
-            }
-        }
-        return str;
-    }
-    public static String normalizeARB(String str) {
-        return normalize(extensionsARB, str);
-    }
-    public static String normalizeVEN(String str) {
-        return normalize(extensionsVEN, str);
-    }
-    public static boolean isExtensionVEN(String str) {
-        return isExtension(extensionsVEN, str);
-    }
-
-    protected String nameOrig;
-    protected String nameUni;
-  }
-
   static class DefineEntry implements Cloneable {
     public DefineEntry(String namestr, String valuestr, String optionalComment) {
-        this.name=new UnifiedExtensionName(namestr);
+        this.name=new GLUnifiedName(namestr);
         this.value=getJavaValue(namestr, valuestr);
         this.type=getJavaType(namestr, this.value);
         this.radix=getJavaRadix(namestr, valuestr);
         this.optionalComment=optionalComment;
     }
 
-    protected DefineEntry(UnifiedExtensionName name, String type, Object value, int radix, String optionalComment) {
+    protected DefineEntry(GLUnifiedName name, String type, Object value, int radix, String optionalComment) {
         this.name=name;
         this.value=value;
         this.type=type;
@@ -193,10 +91,13 @@ public class GLEmitter extends ProcAddressEmitter
     }
 
     public Object clone() {
-        return new DefineEntry((UnifiedExtensionName)name.clone(), type, value, radix, optionalComment);
+        return new DefineEntry((GLUnifiedName)name.clone(), type, value, radix, optionalComment);
     }
 
     public boolean equals(Object obj) {
+        if (obj == this) {
+          return true;
+        }
         if(null==obj || !(obj instanceof DefineEntry)) return false;
         DefineEntry de = (DefineEntry) obj;
         return name.equals(de.name) &&
@@ -238,12 +139,23 @@ public class GLEmitter extends ProcAddressEmitter
     public void normalizeVEN() {
         name.normalizeVEN();
     }
+    public boolean shouldIgnore(GLConfiguration cfg) {
+        return GLEmitter.shouldIgnore(name, cfg);
+    }
 
-    protected UnifiedExtensionName name;
+    protected GLUnifiedName name;
     protected Object value;
     protected String type;
     protected int radix;
     protected String optionalComment;
+  }
+
+  protected static boolean shouldIgnore(GLUnifiedName name, GLConfiguration cfg) {
+        boolean res = cfg.shouldIgnore(name.getUni(), false);
+        for (Iterator iter = name.getOrig().iterator(); !res && iter.hasNext(); ) {
+            res = cfg.shouldIgnore((String)iter.next(), true);
+        }
+        return res;
   }
 
   protected LinkedHashMap/*<String name, DefineEntry entry>*/ defineMap = new LinkedHashMap();
@@ -256,28 +168,25 @@ public class GLEmitter extends ProcAddressEmitter
   /**
    * Pass-1 Unify ARB extensions with the same value
    */
-  public void emitDefine(String name, String value, String optionalComment) throws Exception
-  {
+  public void emitDefine(String name, String value, String optionalComment) throws Exception {
     if (cfg.allStatic() || cfg.emitInterface()) {
-      if (!cfg.shouldIgnore(name)) {
-        DefineEntry deNew = new DefineEntry(name, value, optionalComment);
-        DefineEntry deExist = (DefineEntry) defineMap.get(deNew.name.nameUni);
-        if(deExist!=null) {
-            if(deNew.equals(deExist)) {
-                if(deNew.getOptCommentString().length()>deExist.getOptCommentString().length()) {
-                    deExist.optionalComment=deNew.optionalComment;
-                }
-                deExist.addOrigName(deNew.name.nameOrig);
-                return; // done ..
+      DefineEntry deNew = new DefineEntry(name, value, optionalComment);
+      DefineEntry deExist = (DefineEntry) defineMap.get(deNew.name.getUni());
+      if(deExist!=null) {
+        if(deNew.equals(deExist)) {
+            if(deNew.getOptCommentString().length()>deExist.getOptCommentString().length()) {
+                deExist.optionalComment=deNew.optionalComment;
             }
-            deNew.name.useOriginal();
-            System.err.println("WARNING: Normalized entry with different value exists:"+
-                               "\n\tDef: "+deExist+
-                               "\n\tNew: "+deNew+
-                               "\n\t using original ARB entry");
+            deExist.addOrigName(name);
+            return; // done ..
         }
-        defineMap.put(deNew.name.nameUni, deNew);
+        deNew.name.resetUni();
+        System.err.println("WARNING: Normalized entry with different value exists:"+
+                           "\n\tDef: "+deExist+
+                           "\n\tNew: "+deNew+
+                           "\n\t using original ARB entry");
       }
+      defineMap.put(deNew.name.getUni(), deNew);
     }
   }
 
@@ -297,14 +206,14 @@ public class GLEmitter extends ProcAddressEmitter
             if(de.isExtensionVEN()) {
                 DefineEntry deUni = (DefineEntry) de.clone();
                 deUni.normalizeVEN();
-                DefineEntry deExist = (DefineEntry) defineMap.get(deUni.name.nameUni);
+                DefineEntry deExist = (DefineEntry) defineMap.get(deUni.name.getUni());
                 if(null!=deExist) {
                     if(deUni.equals(deExist)) {
                         if(deUni.getOptCommentString().length()>deExist.getOptCommentString().length()) {
                             deExist.optionalComment=deUni.optionalComment;
                         }
                         deIter.remove();
-                        deExist.addOrigName(deUni.name.nameOrig);
+                        deExist.addOrigName(de.name.getUni());
                     } else {
                         System.err.println("INFO: Normalized entry with different value exists:"+
                                            "\n\tDef: "+deExist+
@@ -318,12 +227,16 @@ public class GLEmitter extends ProcAddressEmitter
         deIter = defineMap.values().iterator();
         while( deIter.hasNext() ) {
             DefineEntry de = (DefineEntry) deIter.next();
+            if (de.shouldIgnore((GLConfiguration)cfg)) {
+                continue;
+            }
             String comment = de.getOptCommentString();
             if (comment.length() != 0) {
               javaWriter().println(comment);
             } else {
                 comment = de.name.getCommentString();
                 if (comment.length() != 0) {
+                  de.name.resetOriginal(); // just shorten the comment space
                   javaWriter().println(comment);
                 }
             }
@@ -410,6 +323,56 @@ public class GLEmitter extends ProcAddressEmitter
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
+    ArrayList newUniFuncs = new ArrayList();
+    for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
+      FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
+      GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
+      if (GLEmitter.shouldIgnore(uniName, (GLConfiguration)cfg)) {
+          iter.remove(); // remove ignored function 
+      } else {
+          if( uniName.isExtensionARB() && 
+              !((GLConfiguration)cfg).skipProcAddressGen(fsOrig.getName()) ) {
+              FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
+              if(!funcsSet.contains(fsUni)) {
+                newUniFuncs.add(fsUni); // add new uni name
+                System.err.println("INFO: New ARB Normalized Function:"+
+                                   "\n\tARB: "+fsOrig+
+                                   "\n\tUNI: "+fsUni);
+              } else {
+                System.err.println("INFO: Dub ARB Normalized Function:"+
+                                   "\n\tARB: "+fsOrig+
+                                   "\n\tDUB: "+fsUni);
+              }
+              iter.remove(); // remove ARB function
+              // make the function being dynamical fetched, due to it's dynamic naming scheme
+              ((GLConfiguration)cfg).addForceProcAddressGen(uniName.getUni());
+          }
+      }
+    }
+    funcsSet.addAll(newUniFuncs);
+
+    for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
+      FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
+      GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
+      if(uniName.isExtensionVEN()) {
+          uniName.normalizeVEN();
+          if (GLEmitter.shouldIgnore(uniName, (GLConfiguration)cfg)) {
+              iter.remove(); // remove ignored function 
+          } else {
+              FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
+              if(funcsSet.contains(fsUni)) {
+                  iter.remove(); // remove VEN function (already incl. as ARB)
+                  System.err.println("INFO: Dub VEN Function:"+
+                                     "\n\tVEN: "+fsOrig+
+                                     "\n\tDUB: "+fsUni);
+              }
+          }
+      }
+    }
+  }
+
   
   protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List emitters) {
     List superEmitters = new ArrayList();
@@ -439,4 +402,75 @@ public class GLEmitter extends ProcAddressEmitter
   protected GLConfiguration getGLConfig() {
     return (GLConfiguration) getConfig();
   }
+
+  protected void endProcAddressTable() throws Exception
+  {
+    PrintWriter w = tableWriter;
+
+    w.println("  /**");
+    w.println("   * This is a convenience method to get (by name) the native function");
+    w.println("   * pointer for a given function. It lets you avoid having to");
+    w.println("   * manually compute the &quot;" + PROCADDRESS_VAR_PREFIX + " + ");
+    w.println("   * &lt;functionName&gt;&quot; member variable name and look it up via");
+    w.println("   * reflection; it also will throw an exception if you try to get the");
+    w.println("   * address of an unknown function, or one that is statically linked");
+    w.println("   * and therefore does not have a function pointer in this table.");
+    w.println("   *");
+    w.println("   * @throws RuntimeException if the function pointer was not found in");
+    w.println("   *   this table, either because the function was unknown or because");
+    w.println("   *   it was statically linked.");
+    w.println("   */");
+    w.println("  public long getAddressFor(String functionNameUsr) {");
+    w.println("    String functionNameBase = com.sun.gluegen.runtime.opengl.GLUnifiedName.normalizeVEN(com.sun.gluegen.runtime.opengl.GLUnifiedName.normalizeARB(functionNameUsr));");
+    w.println("    String addressFieldNameBase = " + getProcAddressConfig().gluegenRuntimePackage() + ".ProcAddressHelper.PROCADDRESS_VAR_PREFIX + functionNameBase;");
+    w.println("    java.lang.reflect.Field addressField = null;");
+    w.println("    int  funcNamePermNum = com.sun.gluegen.runtime.opengl.GLUnifiedName.getNamePermutationNumber(functionNameBase);");
+    w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
+    w.println("        String addressFieldName = com.sun.gluegen.runtime.opengl.GLUnifiedName.getNamePermutation(addressFieldNameBase, i);");
+    w.println("        try {");
+    w.println("          addressField = getClass().getField(addressFieldName);");
+    w.println("        } catch (Exception e) { }");
+    w.println("    }");
+    w.println("");
+    w.println("    if(null==addressField) {");
+    w.println("      // The user is calling a bogus function or one which is not");
+    w.println("      // runtime linked");
+    w.println("      throw new RuntimeException(");
+    w.println("          \"WARNING: Address field query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+    w.println("          \"\\\"; it's either statically linked or address field is not a known \" +");
+    w.println("          \"function\");");
+    w.println("    } ");
+    w.println("    try {");
+    w.println("      return addressField.getLong(this);");
+    w.println("    } catch (Exception e) {");
+    w.println("      throw new RuntimeException(");
+    w.println("          \"WARNING: Address query failed for \\\"\" + functionNameBase + \"\\\"/\\\"\" + functionNameUsr +");
+    w.println("          \"\\\"; it's either statically linked or is not a known \" +");
+    w.println("          \"function\", e);");
+    w.println("    }");
+    w.println("  }");
+
+    w.println("} // end of class " + tableClassName);
+    w.flush();
+    w.close();
+  }
+
+  protected void emitProcAddressTableEntryForSymbol(FunctionSymbol cFunc)
+  {
+    emitProcAddressTableEntryForString(cFunc.getName());
+  }
+
+  protected void emitProcAddressTableEntryForString(String str)
+  {
+    // Deal gracefully with forced proc address generation in the face
+    // of having the function pointer typedef in the header file too
+    if (emittedTableEntries.contains(str))
+      return;
+    emittedTableEntries.add(str);
+    tableWriter.print("  public long ");
+    tableWriter.print(PROCADDRESS_VAR_PREFIX);
+    tableWriter.print(str);
+    tableWriter.println(";");
+  }
+
 }

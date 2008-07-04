@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="GlueGen-cpptasks" basedir="." >
 
-<target name="gluegen.cpptasks.configure.compiler">
+<target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
     <compiler id="compiler.cfg.linux" name="gcc">
       <compilerarg value="-m32" />
       <compilerarg value="-Wall" />
