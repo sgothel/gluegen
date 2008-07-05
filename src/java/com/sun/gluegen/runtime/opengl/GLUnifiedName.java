@@ -57,10 +57,6 @@ public class GLUnifiedName implements Cloneable {
             if(str.endsWith(extensions[i])) {
                 return true;
             }
-            /*
-            if(str.startsWith("GL_"+extensions[i]+"_")) {
-                return true;
-            } */
         }
         return false;
     }
@@ -77,11 +73,6 @@ public class GLUnifiedName implements Cloneable {
                 str = str.substring(0, str.length()-extensions[i].length());
                 touched=true;
             }
-            /*
-            if(str.startsWith("GL_"+extensions[i]+"_")) {
-                str = "GL_"+str.substring(4+extensions[i].length());
-                touched=true;
-            } */
         }
         return str;
     }

@@ -332,17 +332,16 @@ public class GLEmitter extends ProcAddressEmitter
 
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
     ArrayList newUniFuncs = new ArrayList();
+    HashSet   origFuncNames = new HashSet();
     for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
       FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
+      origFuncNames.add(fsOrig.getName());
       GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
       if (GLEmitter.shouldIgnore(uniName, (GLConfiguration)cfg)) {
           iter.remove(); // remove ignored function 
       } else {
           if( uniName.isExtensionARB() && 
               !((GLConfiguration)cfg).skipProcAddressGen(fsOrig.getName()) ) {
-              if(!funcNameMap.containsKey(uniName.getUni())) {
-                  funcNameMap.put(uniName.getUni(), uniName);
-              }
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(!funcsSet.contains(fsUni)) {
                 newUniFuncs.add(fsUni); // add new uni name
@@ -350,9 +349,13 @@ public class GLEmitter extends ProcAddressEmitter
                                    "\n\tARB: "+fsOrig+
                                    "\n\tUNI: "+fsUni);
               } else {
+                uniName.addOrig(uniName.getUni()); // the original name w/o extension
                 System.err.println("INFO: Dub ARB Normalized Function:"+
                                    "\n\tARB: "+fsOrig+
                                    "\n\tDUB: "+fsUni);
+              }
+              if(!funcNameMap.containsKey(uniName.getUni())) {
+                  funcNameMap.put(uniName.getUni(), uniName);
               }
               iter.remove(); // remove ARB function
               // make the function being dynamical fetched, due to it's dynamic naming scheme
@@ -374,10 +377,14 @@ public class GLEmitter extends ProcAddressEmitter
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(funcsSet.contains(fsUni)) {
                   GLUnifiedName uniNameMap = (GLUnifiedName) funcNameMap.get(uniName.getUni());
-                  if(null!=uniNameMap) {
-                    uniNameMap.addOrig(fsOrig.getName());
-                  } else {
+                  if(null==uniNameMap) {
                     funcNameMap.put(uniName.getUni(), uniName);
+                    uniNameMap=uniName;
+                  } else {
+                    uniNameMap.addOrig(fsOrig.getName()); // add the VEN extension name
+                  }
+                  if(origFuncNames.contains(uniName.getUni())) {
+                      uniNameMap.addOrig(uniName.getUni()); // the original name w/o extension
                   }
                   iter.remove(); // remove VEN function (already incl. as ARB)
                   System.err.println("INFO: Dub VEN Function:"+
