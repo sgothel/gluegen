@@ -57,9 +57,10 @@ public class GLUnifiedName implements Cloneable {
             if(str.endsWith(extensions[i])) {
                 return true;
             }
+            /*
             if(str.startsWith("GL_"+extensions[i]+"_")) {
                 return true;
-            }
+            } */
         }
         return false;
     }
@@ -76,10 +77,11 @@ public class GLUnifiedName implements Cloneable {
                 str = str.substring(0, str.length()-extensions[i].length());
                 touched=true;
             }
+            /*
             if(str.startsWith("GL_"+extensions[i]+"_")) {
                 str = "GL_"+str.substring(4+extensions[i].length());
                 touched=true;
-            }
+            } */
         }
         return str;
     }
@@ -185,14 +187,32 @@ public class GLUnifiedName implements Cloneable {
     }
 
     public String getCommentString() {
+        return getCommentString(true, " ");
+    }
+    public String getCommentString(boolean encloseCommentStartEnd, String seperator) {
         if(nameOrig.size()==1 && ((String)nameOrig.get(0)).equals(nameUni)) {
             return new String();
         }
-        String res = " /** " + nameUni + ": Alias of: ";
-        for (Iterator iter = nameOrig.iterator(); iter.hasNext(); ) {
-            res = res.concat((String)iter.next()+", ");
+        String res = new String();
+        if(encloseCommentStartEnd) {
+            res = res.concat(" /** ");
         }
-        res = res.concat(" */");
+        res = res.concat("Alias for: <code>");
+        res = res.concat(getOrigStringList(seperator));
+        res = res.concat("</code> ");
+        if(encloseCommentStartEnd) {
+            res = res.concat("*/");
+        }
+        return res;
+    }
+    public String getOrigStringList(String seperator) {
+        String res = new String();
+        for (Iterator iter = nameOrig.iterator(); iter.hasNext(); ) {
+            res = res.concat((String)iter.next());
+            if(iter.hasNext()) {
+                res = res.concat(seperator);
+            }
+        }
         return res;
     }
 

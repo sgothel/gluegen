@@ -324,6 +324,12 @@ public class GLEmitter extends ProcAddressEmitter
   // Internals only below this point
   //
 
+  // map the uniName to the GLUnifiedName type
+  protected HashMap/*<String uniNameStr, GLUnifiedName uniName>*/ funcNameMap = new HashMap();
+  protected Map/*<String uniNameStr, GLUnifiedName uniName>*/ getFuncNameMap() {
+    return funcNameMap;
+  }
+
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
     ArrayList newUniFuncs = new ArrayList();
     for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
@@ -334,6 +340,9 @@ public class GLEmitter extends ProcAddressEmitter
       } else {
           if( uniName.isExtensionARB() && 
               !((GLConfiguration)cfg).skipProcAddressGen(fsOrig.getName()) ) {
+              if(!funcNameMap.containsKey(uniName.getUni())) {
+                  funcNameMap.put(uniName.getUni(), uniName);
+              }
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(!funcsSet.contains(fsUni)) {
                 newUniFuncs.add(fsUni); // add new uni name
@@ -359,10 +368,17 @@ public class GLEmitter extends ProcAddressEmitter
       if(uniName.isExtensionVEN()) {
           uniName.normalizeVEN();
           if (GLEmitter.shouldIgnore(uniName, (GLConfiguration)cfg)) {
+              System.err.println("INFO: Ignored: Remove Function:"+ uniName);
               iter.remove(); // remove ignored function 
           } else {
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(funcsSet.contains(fsUni)) {
+                  GLUnifiedName uniNameMap = (GLUnifiedName) funcNameMap.get(uniName.getUni());
+                  if(null!=uniNameMap) {
+                    uniNameMap.addOrig(fsOrig.getName());
+                  } else {
+                    funcNameMap.put(uniName.getUni(), uniName);
+                  }
                   iter.remove(); // remove VEN function (already incl. as ARB)
                   System.err.println("INFO: Dub VEN Function:"+
                                      "\n\tVEN: "+fsOrig+
@@ -381,17 +397,13 @@ public class GLEmitter extends ProcAddressEmitter
     // See whether this is one of the Buffer Object variants
     boolean bufferObjectVariant = bufferObjectMethodBindings.containsKey(baseJavaEmitter.getBinding());
 
-    if (bufferObjectVariant) {
-      for (Iterator iter = superEmitters.iterator(); iter.hasNext(); ) {
+    for (Iterator iter = superEmitters.iterator(); iter.hasNext(); ) {
         JavaMethodBindingEmitter emitter = (JavaMethodBindingEmitter) iter.next();
         if (emitter instanceof ProcAddressJavaMethodBindingEmitter) {
-          emitters.add(new GLJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) emitter, bufferObjectVariant));
+          emitters.add(new GLJavaMethodBindingEmitter((ProcAddressJavaMethodBindingEmitter) emitter, this, bufferObjectVariant));
         } else {
           emitters.add(emitter);
         }
-      }
-    } else {
-      emitters.addAll(superEmitters);
     }
   }
 

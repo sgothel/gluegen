@@ -145,7 +145,7 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
   }
 
   /** This class emits the comment for the wrapper method */
-  private class WrappedMethodCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
+  public class WrappedMethodCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
     protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
       writer.print("Entry point (through function pointer) to C language function: <br> ");
     }

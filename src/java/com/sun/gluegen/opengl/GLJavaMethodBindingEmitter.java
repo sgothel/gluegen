@@ -44,6 +44,7 @@ import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
+import com.sun.gluegen.runtime.opengl.GLUnifiedName;
 
 /** A specialization of the proc address emitter which knows how to
     change argument names to take into account Vertex Buffer Object /
@@ -51,6 +52,7 @@ import com.sun.gluegen.procaddress.*;
 
 public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmitter {
   protected boolean bufferObjectVariant;
+  protected GLEmitter glEmitter;
   
   public GLJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap,
                                     boolean callThroughProcAddress,
@@ -64,16 +66,21 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
           changeNameAndArguments,
           emitter);
     this.bufferObjectVariant = bufferObjectVariant;
+    this.glEmitter=emitter;
+    setCommentEmitter(new WrappedMethodCommentEmitter());
   }
 
   public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap,
+                                    GLEmitter emitter,
                                     boolean bufferObjectVariant) {
     super(methodToWrap);
     this.bufferObjectVariant = bufferObjectVariant;
+    this.glEmitter=emitter;
+    setCommentEmitter(new WrappedMethodCommentEmitter());
   }
 
   public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
-    this(methodToWrap, methodToWrap.bufferObjectVariant);
+    this(methodToWrap, methodToWrap.glEmitter, methodToWrap.bufferObjectVariant);
   }
 
   protected String getArgumentName(int i) {
@@ -95,5 +102,24 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     }
 
     return name;
+  }
+  /** This class emits the comment for the wrapper method */
+  public class WrappedMethodCommentEmitter extends ProcAddressJavaMethodBindingEmitter.WrappedMethodCommentEmitter {
+    protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
+      if(null!=glEmitter) {
+          GLUnifiedName uniName = (GLUnifiedName) glEmitter.getFuncNameMap().get(binding.getCSymbol().getName());
+          if(null!=uniName) {
+              writer.print("- Alias for: <br> <code> ");
+              writer.print(binding.getCSymbol().getType().toString(uniName.getOrigStringList(", "), tagNativeBinding));
+              writer.print(" </code> ");
+              return ; // done
+          }
+      }
+      writer.print(": <br> ");
+      super.emitBindingCSignature(binding, writer);
+    }
+    protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
+      writer.print("Entry point (through function pointer) to C language function ");
+    }
   }
 }
