@@ -181,10 +181,9 @@ public class GLEmitter extends ProcAddressEmitter
             return; // done ..
         }
         deNew.name.resetUni();
-        System.err.println("WARNING: Normalized entry with different value exists:"+
+        System.err.println("WARNING: Normalized ARB entry with different value exists (keep ARB orig):"+
                            "\n\tDef: "+deExist+
-                           "\n\tNew: "+deNew+
-                           "\n\t using original ARB entry");
+                           "\n\tNew: "+deNew);
       }
       defineMap.put(deNew.name.getUni(), deNew);
     }
@@ -204,6 +203,7 @@ public class GLEmitter extends ProcAddressEmitter
         while( deIter.hasNext() ) {
             DefineEntry de = (DefineEntry) deIter.next();
             if(de.isExtensionVEN()) {
+                String extSuffix = GLUnifiedName.getExtensionSuffix(de.name.getUni());
                 DefineEntry deUni = (DefineEntry) de.clone();
                 deUni.normalizeVEN();
                 DefineEntry deExist = (DefineEntry) defineMap.get(deUni.name.getUni());
@@ -215,11 +215,18 @@ public class GLEmitter extends ProcAddressEmitter
                         deIter.remove();
                         deExist.addOrigName(de.name.getUni());
                     } else {
-                        System.err.println("INFO: Normalized entry with different value exists:"+
-                                           "\n\tDef: "+deExist+
-                                           "\n\tNew: "+de+
-                                           "\n\t using original vendor entry");
+                        if( ((GLConfiguration)cfg).getDropUniqVendorExtensions(extSuffix) ) {
+                            deIter.remove(); // remove non unified (uniq) vendor extension
+                            System.err.println("INFO: Drop uniq VEN entry: "+de.name.getUni());
+                        } else {
+                            System.err.println("INFO: Normalized VEN entry with different value exists (keep VEN orig):"+
+                                               "\n\tDef: "+deExist+
+                                               "\n\tNew: "+de);
+                       }
                    }
+                } else if( ((GLConfiguration)cfg).getDropUniqVendorExtensions(extSuffix) ) {
+                    deIter.remove(); // remove non unified (uniq) vendor extension
+                    System.err.println("INFO: Drop uniq VEN entry: "+de.name.getUni());
                 }
             }
         }
@@ -383,6 +390,7 @@ public class GLEmitter extends ProcAddressEmitter
               System.err.println("INFO: Ignored: Remove Function:"+ uniName);
               iter.remove(); // remove ignored function 
           } else {
+              String extSuffix = GLUnifiedName.getExtensionSuffix(fsOrig.getName());
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(funcsSet.contains(fsUni)) {
                   GLUnifiedName uniNameMap = (GLUnifiedName) funcNameMap.get(uniName.getUni());
@@ -399,8 +407,9 @@ public class GLEmitter extends ProcAddressEmitter
                   System.err.println("INFO: Dub VEN Function:"+
                                      "\n\tVEN: "+fsOrig+
                                      "\n\tDUB: "+fsUni);
-              } else if( ((GLConfiguration)cfg).getDropUniqVendorExtensions() ) {
-                iter.remove(); // remove uniq vendor extension
+              } else if( ((GLConfiguration)cfg).getDropUniqVendorExtensions(extSuffix) ) {
+                iter.remove(); // remove non unified (uniq) vendor extension
+                System.err.println("INFO: Drop uniq VEN Function: "+fsOrig.getName());
               }
           }
       }

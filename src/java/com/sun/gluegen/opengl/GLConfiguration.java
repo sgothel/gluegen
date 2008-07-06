@@ -53,7 +53,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
   // Maps function names to the kind of buffer object it deals with
   private Map/*<String,GLEmitter.BufferObjectKind>*/ bufferObjectKinds = new HashMap();
   private GLEmitter emitter;
-  private boolean dropUniqVendorExtensions = false;
+  private Set/*String*/ dropUniqVendorExtensions = new HashSet();
 
   public GLConfiguration(GLEmitter emitter) {
     super();
@@ -82,7 +82,8 @@ public class GLConfiguration extends ProcAddressConfiguration {
       }
     else if (cmd.equalsIgnoreCase("DropUniqVendorExtensions"))
       {
-        dropUniqVendorExtensions = true;
+        String sym = readString("DropUniqVendorExtensions", tok, filename, lineNo);
+        dropUniqVendorExtensions.add(sym);
       }
     else
       {
@@ -204,8 +205,9 @@ public class GLConfiguration extends ProcAddressConfiguration {
     return super.shouldIgnore(symbol);
   }
 
-  public boolean getDropUniqVendorExtensions() {
-      return dropUniqVendorExtensions;
+  /** shall the non unified (uniq) vendor extensions be dropped ?  */
+  public boolean getDropUniqVendorExtensions(String extName) {
+      return dropUniqVendorExtensions.contains(extName);
   }
 
   /** Returns the kind of buffer object this function deals with, or

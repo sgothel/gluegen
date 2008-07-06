@@ -49,16 +49,45 @@ public class GLUnifiedName implements Cloneable {
     //        if exist as an ARB extension with the same value.
     // Pass-3 Emit
 
-    public static final String[] extensionsARB = { "GL2", "ARB", "OES",  "OML" };
-    public static final String[] extensionsVEN = { "EXT", "SGI", "SGIS", "SGIX", "NV", "AMD", "ATI", "HP", "IBM", "WIN" };
+    public static final String[] extensionsARB = { "ARB", "GL2", "OES",  "OML" };
+    public static final String[] extensionsVEN = { "AMD",
+                                                   "APPLE",
+                                                   "ATI",
+                                                   "EXT",
+                                                   "HP",
+                                                   "IBM",
+                                                   "MESA",
+                                                   "NV",
+                                                   "SGI",
+                                                   "SGIS",
+                                                   "SGIX",
+                                                   "SUN",
+                                                   "WIN"
+                                                   };
 
-    public static final boolean isExtension(String[] extensions, String str) {
+    public static final int getExtensionIdx(String[] extensions, String str) {
         for(int i = extensions.length - 1 ; i>=0 ; i--) {
             if(str.endsWith(extensions[i])) {
-                return true;
+                return i;
             }
         }
-        return false;
+        return -1;
+    }
+
+    public static final boolean isExtension(String[] extensions, String str) {
+        return getExtensionIdx(extensions, str)>=0;
+    }
+
+    public static final String getExtensionSuffix(String str) {
+        int idx = getExtensionIdx(extensionsARB, str);
+        if(idx>=0) {
+            return extensionsARB[idx];
+        }
+        idx = getExtensionIdx(extensionsVEN, str);
+        if(idx>=0) {
+            return extensionsVEN[idx];
+        }
+        return null;
     }
 
     public static final String normalize(String[] extensions, String str) {
