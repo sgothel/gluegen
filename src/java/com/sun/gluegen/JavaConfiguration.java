@@ -1018,8 +1018,12 @@ public class JavaConfiguration {
   protected void readCustomJavaCode(StringTokenizer tok, String filename, int lineNo) {
     try {
       String className = tok.nextToken();
-      String restOfLine = tok.nextToken("\n\r\f");
-      addCustomJavaCode(className, restOfLine);
+      try {
+          String restOfLine = tok.nextToken("\n\r\f");
+          addCustomJavaCode(className, restOfLine);
+      } catch (NoSuchElementException e) {
+          addCustomJavaCode(className, "");
+      }
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"CustomJavaCode\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
@@ -1036,8 +1040,7 @@ public class JavaConfiguration {
       String restOfLine = tok.nextToken("\n\r\f");
       customCCode.add(restOfLine);
     } catch (NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"CustomCCode\" command at line " + lineNo +
-        " in file \"" + filename + "\"", e);
+      customCCode.add("");
     }
   }
 

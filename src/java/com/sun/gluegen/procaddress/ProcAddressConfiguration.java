@@ -55,6 +55,10 @@ public class ProcAddressConfiguration extends JavaConfiguration
   private Set/*<String>*/ forceProcAddressGenSet = new HashSet();
   private String  getProcAddressTableExpr;
   private ConvNode procAddressNameConverter;
+  // This is needed only on Windows. Ideally we would modify the
+  // HeaderParser and PCPP to automatically pick up the calling
+  // convention from the headers
+  private Map/*<String,String>*/ localProcAddressCallingConventionMap = new HashMap();
 
   protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
     if (cmd.equalsIgnoreCase("EmitProcAddressTable"))
@@ -86,6 +90,10 @@ public class ProcAddressConfiguration extends JavaConfiguration
     else if (cmd.equalsIgnoreCase("ProcAddressNameExpr"))
       {
         readProcAddressNameExpr(tok, filename, lineNo);
+      }
+    else if (cmd.equalsIgnoreCase("LocalProcAddressCallingConvention"))
+      {
+        readLocalProcAddressCallingConvention(tok, filename, lineNo);
       }
     else
       {
@@ -131,6 +139,17 @@ public class ProcAddressConfiguration extends JavaConfiguration
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ProcAddressNameExpr\" command at line " + lineNo +
                                  " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readLocalProcAddressCallingConvention(StringTokenizer tok, String filename, int lineNo) throws IOException {
+    try {
+      String functionName = tok.nextToken();
+      String callingConvention = tok.nextToken();
+      localProcAddressCallingConventionMap.put(functionName, callingConvention);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"LocalProcAddressCallingConvention\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
     }
   }
 
@@ -260,5 +279,13 @@ public class ProcAddressConfiguration extends JavaConfiguration
   public void addForceProcAddressGen(String funcName) {
         forceProcAddressGen.add(funcName);
         forceProcAddressGenSet.add(funcName);
+  }
+
+  public void addLocalProcAddressCallingConvention(String funcName, String callingConvention) {
+    localProcAddressCallingConventionMap.put(funcName, callingConvention);
+  }
+
+  public String getLocalProcAddressCallingConvention(String funcName) {
+    return (String) localProcAddressCallingConventionMap.get(funcName);
   }
 }

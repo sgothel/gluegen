@@ -95,7 +95,8 @@ public class Field {
       return "" + getType() + " " + getName() + ";";
     } else {
       FunctionType ft = getType().asPointer().getTargetType().asFunction();
-      return ft.toString(getName(), false, true) + ";";
+      // FIXME: pick up calling convention?
+      return ft.toString(getName(), null, false, true) + ";";
     }
   }
 }

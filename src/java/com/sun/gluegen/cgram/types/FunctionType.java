@@ -108,15 +108,19 @@ public class FunctionType extends Type {
   }
 
   public String toString(String functionName, boolean emitNativeTag) {
-    return toString(functionName, emitNativeTag, false);
+    return toString(functionName, null, emitNativeTag, false);
   }
 
-  String toString(String functionName, boolean emitNativeTag, boolean isPointer) {
+  String toString(String functionName, String callingConvention, boolean emitNativeTag, boolean isPointer) {
     StringBuffer res = new StringBuffer();
     res.append(getReturnType());
     res.append(" ");
     if (isPointer) {
-      res.append("(*");
+      res.append("(");
+      if (callingConvention != null) {
+        res.append(callingConvention);
+      }
+      res.append("*");
     }
     if (functionName != null) {
       if (emitNativeTag) {
@@ -137,7 +141,7 @@ public class FunctionType extends Type {
       Type t = getArgumentType(i);
       if (t.isFunctionPointer()) {
         FunctionType ft = t.asPointer().getTargetType().asFunction();
-        res.append(ft.toString(getArgumentName(i), false, true));
+        res.append(ft.toString(getArgumentName(i), callingConvention, false, true));
       } else if (t.isArray()) {
         res.append(t.asArray().toString(getArgumentName(i)));
       } else {

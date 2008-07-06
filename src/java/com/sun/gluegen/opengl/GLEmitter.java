@@ -360,6 +360,9 @@ public class GLEmitter extends ProcAddressEmitter
               iter.remove(); // remove ARB function
               // make the function being dynamical fetched, due to it's dynamic naming scheme
               ((GLConfiguration)cfg).addForceProcAddressGen(uniName.getUni());
+              // Make sure we produce the right calling convention for
+              // the typedefed function pointers on Windows
+              ((GLConfiguration)cfg).addLocalProcAddressCallingConvention(uniName.getUni(), "GL_APIENTRY");
           }
       }
     }

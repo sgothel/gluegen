@@ -117,16 +117,18 @@ public class PointerType extends Type {
       if (!targetType.isFunction()) {
         return targetType.toString() + " * " + getCVAttributesString();
       }
-      return toString(null); // this is a pointer to an unnamed function
+      return toString(null, null); // this is a pointer to an unnamed function
     }
   }
 
-  /** For use only when printing function pointers */
-  public String toString(String functionName) {
+  /** For use only when printing function pointers. Calling convention
+      string (i.e., "__stdcall") is optional and is generally only
+      needed on Windows. */
+  public String toString(String functionName, String callingConvention) {
     if (!targetType.isFunction()) {
       throw new RuntimeException("<Internal error or misuse> This method is only for use when printing function pointers");
     }
-    return ((FunctionType) targetType).toString(functionName, false, true);
+    return ((FunctionType) targetType).toString(functionName, callingConvention, false, true);
   }
 
   public void visit(TypeVisitor arg) {

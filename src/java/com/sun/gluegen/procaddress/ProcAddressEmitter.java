@@ -227,6 +227,10 @@ public class ProcAddressEmitter extends JavaEmitter
     // See whether we need a proc address entry for this one
     boolean callThroughProcAddress = needsProcAddressWrapper(baseCEmitter.getBinding().getCSymbol());
     boolean forceProcAddress       = getProcAddressConfig().forceProcAddressGen(baseCEmitter.getBinding().getCSymbol().getName());
+    String  forcedCallingConvention = null;
+    if (forceProcAddress) {
+        forcedCallingConvention = getProcAddressConfig().getLocalProcAddressCallingConvention(baseCEmitter.getBinding().getCSymbol().getName());
+    }
     // Note that we don't care much about the naming of the C argument
     // variables so to keep things simple we ignore the buffer object
     // property for the binding
@@ -237,6 +241,7 @@ public class ProcAddressEmitter extends JavaEmitter
     ProcAddressCMethodBindingEmitter res = new ProcAddressCMethodBindingEmitter(baseCEmitter,
                                                                                 callThroughProcAddress,
                                                                                 forceProcAddress,
+                                                                                forcedCallingConvention,
                                                                                 this);
     MessageFormat exp = baseCEmitter.getReturnValueCapacityExpression();
     if (exp != null) {

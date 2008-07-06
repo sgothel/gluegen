@@ -47,6 +47,7 @@ import com.sun.gluegen.cgram.types.*;
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
   private boolean callThroughProcAddress;
   private boolean needsLocalTypedef;
+  private String localTypedefCallingConvention;
   private static String procAddressJavaTypeName =
     JavaType.createForClass(Long.TYPE).jniTypeName();
   private ProcAddressEmitter emitter;
@@ -54,6 +55,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
   public ProcAddressCMethodBindingEmitter(CMethodBindingEmitter methodToWrap,
                                           final boolean callThroughProcAddress,
                                           boolean needsLocalTypedef,
+                                          String localTypedefCallingConvention,
                                           ProcAddressEmitter emitter) {
     super(
       new MethodBinding(methodToWrap.getBinding()) {
@@ -95,6 +97,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     setCommentEmitter(defaultCommentEmitter);
     this.callThroughProcAddress = callThroughProcAddress;
     this.needsLocalTypedef = needsLocalTypedef;
+    this.localTypedefCallingConvention = localTypedefCallingConvention;
     this.emitter = emitter;
   }
   
@@ -131,7 +134,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         funcPointerTypedefName = "_local_" + funcPointerTypedefName;
 
         writer.print("  typedef ");
-        writer.print(funcPtrType.toString(funcPointerTypedefName));
+        writer.print(funcPtrType.toString(funcPointerTypedefName, localTypedefCallingConvention));
         writer.println(";");
       }
     
@@ -151,7 +154,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
     if (callThroughProcAddress) {
       if (!emittingPrimitiveArrayCritical) {
-        // set the function pointer to the value of the passed-in glProcAddress
+        // set the function pointer to the value of the passed-in procAddress
         FunctionSymbol cSym = getBinding().getCSymbol();
         String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
         if (needsLocalTypedef) {
