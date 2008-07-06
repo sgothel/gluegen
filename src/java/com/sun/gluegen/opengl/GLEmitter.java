@@ -399,6 +399,8 @@ public class GLEmitter extends ProcAddressEmitter
                   System.err.println("INFO: Dub VEN Function:"+
                                      "\n\tVEN: "+fsOrig+
                                      "\n\tDUB: "+fsUni);
+              } else if( ((GLConfiguration)cfg).getDropUniqVendorExtensions() ) {
+                iter.remove(); // remove uniq vendor extension
               }
           }
       }
