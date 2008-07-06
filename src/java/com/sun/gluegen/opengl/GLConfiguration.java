@@ -53,6 +53,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
   // Maps function names to the kind of buffer object it deals with
   private Map/*<String,GLEmitter.BufferObjectKind>*/ bufferObjectKinds = new HashMap();
   private GLEmitter emitter;
+  private boolean dropUniqVendorExtensions = false;
 
   public GLConfiguration(GLEmitter emitter) {
     super();
@@ -78,6 +79,10 @@ public class GLConfiguration extends ProcAddressConfiguration {
     else if (cmd.equalsIgnoreCase("BufferObjectKind"))
       {
         readBufferObjectKind(tok, filename, lineNo);
+      }
+    else if (cmd.equalsIgnoreCase("DropUniqVendorExtensions"))
+      {
+        dropUniqVendorExtensions = true;
       }
     else
       {
@@ -197,6 +202,10 @@ public class GLConfiguration extends ProcAddressConfiguration {
     }
 
     return super.shouldIgnore(symbol);
+  }
+
+  public boolean getDropUniqVendorExtensions() {
+      return dropUniqVendorExtensions;
   }
 
   /** Returns the kind of buffer object this function deals with, or

@@ -53,12 +53,14 @@ public class ProcAddressConfiguration extends JavaConfiguration
   private Set/*<String>*/ skipProcAddressGen  = new HashSet();
   private List/*<String>*/ forceProcAddressGen  = new ArrayList();
   private Set/*<String>*/ forceProcAddressGenSet = new HashSet();
+  private boolean forceProcAddressGen4All=false;
   private String  getProcAddressTableExpr;
   private ConvNode procAddressNameConverter;
   // This is needed only on Windows. Ideally we would modify the
   // HeaderParser and PCPP to automatically pick up the calling
   // convention from the headers
   private Map/*<String,String>*/ localProcAddressCallingConventionMap = new HashMap();
+  private String localProcAddressCallingConvention4All=null;
 
   protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
     if (cmd.equalsIgnoreCase("EmitProcAddressTable"))
@@ -81,7 +83,12 @@ public class ProcAddressConfiguration extends JavaConfiguration
       }
     else if (cmd.equalsIgnoreCase("ForceProcAddressGen"))
       {
-        addForceProcAddressGen( readString("ForceProcAddressGen", tok, filename, lineNo) );
+        String funcName = readString("ForceProcAddressGen", tok, filename, lineNo);
+        if(funcName.equals("__ALL__")) {
+            forceProcAddressGen4All=true;
+        } else {
+            addForceProcAddressGen( readString("ForceProcAddressGen", tok, filename, lineNo) );
+        }
       }
     else if (cmd.equalsIgnoreCase("GetProcAddressTableExpr"))
       {
@@ -146,7 +153,11 @@ public class ProcAddressConfiguration extends JavaConfiguration
     try {
       String functionName = tok.nextToken();
       String callingConvention = tok.nextToken();
-      localProcAddressCallingConventionMap.put(functionName, callingConvention);
+      if(functionName.equals("__ALL__")) {
+        localProcAddressCallingConvention4All=callingConvention;
+      } else {
+        localProcAddressCallingConventionMap.put(functionName, callingConvention);
+      }
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"LocalProcAddressCallingConvention\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
@@ -258,6 +269,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
   public String  tableClassPackage()              { return tableClassPackage;                  }
   public String  tableClassName()                 { return tableClassName;                     }
   public boolean skipProcAddressGen (String name) { return skipProcAddressGen.contains(name);  }
+  public boolean isForceProcAddressGen4All()      { return forceProcAddressGen4All;            }
   public List    getForceProcAddressGen()         { return forceProcAddressGen;                }
   public String  getProcAddressTableExpr() {
     if (getProcAddressTableExpr == null) {
@@ -288,4 +300,6 @@ public class ProcAddressConfiguration extends JavaConfiguration
   public String getLocalProcAddressCallingConvention(String funcName) {
     return (String) localProcAddressCallingConventionMap.get(funcName);
   }
+  public boolean isLocalProcAddressCallingConvention4All()  { return localProcAddressCallingConvention4All!=null; }
+  public String  getLocalProcAddressCallingConvention4All()  { return localProcAddressCallingConvention4All; }
 }

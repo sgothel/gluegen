@@ -331,6 +331,12 @@ public class GLEmitter extends ProcAddressEmitter
   }
 
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
+    super.validateFunctionsToBind(funcsSet);
+
+    String localCallingConvention = ((GLConfiguration)cfg).getLocalProcAddressCallingConvention4All();
+    if(null==localCallingConvention) {
+        localCallingConvention="GL_APIENTRY";
+    }
     ArrayList newUniFuncs = new ArrayList();
     HashSet   origFuncNames = new HashSet();
     for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
@@ -362,7 +368,7 @@ public class GLEmitter extends ProcAddressEmitter
               ((GLConfiguration)cfg).addForceProcAddressGen(uniName.getUni());
               // Make sure we produce the right calling convention for
               // the typedefed function pointers on Windows
-              ((GLConfiguration)cfg).addLocalProcAddressCallingConvention(uniName.getUni(), "GL_APIENTRY");
+              ((GLConfiguration)cfg).addLocalProcAddressCallingConvention(uniName.getUni(), localCallingConvention);
           }
       }
     }
