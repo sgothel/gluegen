@@ -134,6 +134,10 @@
         <os family="unix"/>
       </and>
     </condition>
+    <!-- Need a way to be able to disable the macosx64 property specification in a build.xml -->
+    <condition property="use.macosx64">
+      <istrue value="${macosx64}" />
+    </condition>
     <condition property="isUnix">
       <and>
         <os family="unix" />
@@ -502,8 +506,8 @@
       <compilerarg value="ppc" />
       <compilerarg value="-arch" />
       <compilerarg value="i386" />
-      <compilerarg value="-arch" if="macosx64"/>
-      <compilerarg value="x86_64" if="macosx64"/>
+      <compilerarg value="-arch" if="use.macosx64"/>
+      <compilerarg value="x86_64" if="use.macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
@@ -573,8 +577,8 @@
       <linkerarg value="ppc" />
       <linkerarg value="-arch" />
       <linkerarg value="i386" />
-      <linkerarg value="-arch" if="macosx64"/>
-      <linkerarg value="x86_64" if="macosx64"/>
+      <linkerarg value="-arch" if="use.macosx64"/>
+      <linkerarg value="x86_64" if="use.macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
     </linker>
 
