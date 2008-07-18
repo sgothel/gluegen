@@ -117,6 +117,8 @@ public class JavaConfiguration {
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
   private Set/*<Pattern>*/ unignores = new HashSet();
   private Set/*<Pattern>*/ unimplemented = new HashSet();
+  private boolean forceNioOnly4All=false;
+  private Set/*<String>*/ nioOnly = new HashSet();
   private Set/*<String>*/ nioDirectOnly = new HashSet();
   private Set/*<String>*/ manuallyImplement = new HashSet();
   private Map/*<String,List<String>>*/ customJavaCode = new HashMap();
@@ -431,6 +433,18 @@ public class JavaConfiguration {
     return (List) argumentsAreString.get(functionName);
   }
 
+  public boolean isForceNioOnly4All()      { return forceNioOnly4All; }
+
+  public void addNioOnly(String fname ) {
+      nioOnly.add(fname);
+  }
+  public boolean nioOnly(String functionName) {
+    return forceNioOnly4All || nioOnly.contains(functionName);
+  }
+
+  public void addNioDirectOnly(String fname ) {
+      nioDirectOnly.add(fname);
+  }
   /** Returns true if the given function should only create a java.nio
       variant, and no array variants, for <code>void*</code> and other
       C primitive pointers. */
@@ -807,8 +821,20 @@ public class JavaConfiguration {
       readClassJavadoc(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because readClassJavadoc changes them.
+    } else if (cmd.equalsIgnoreCase("NioOnly")) {
+      String funcName = readString("NioOnly", tok, filename, lineNo);
+      if(funcName.equals("__ALL__")) {
+          forceNioOnly4All=true;
+      } else {
+          addNioOnly( funcName );
+      }
     } else if (cmd.equalsIgnoreCase("NioDirectOnly")) {
-      nioDirectOnly.add(readString("NioDirectOnly", tok, filename, lineNo));
+      String funcName = readString("NioDirectOnly", tok, filename, lineNo);
+      if(funcName.equals("__ALL__")) {
+          forceNioOnly4All=true;
+      } else {
+          addNioDirectOnly( funcName );
+      }
     } else if (cmd.equalsIgnoreCase("EmitStruct")) {
       forcedStructs.add(readString("EmitStruct", tok, filename, lineNo));
     } else if (cmd.equalsIgnoreCase("StructPackage")) {

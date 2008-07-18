@@ -182,21 +182,7 @@ public class ProcAddressEmitter extends JavaEmitter
   //
   
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
-    if(!((ProcAddressConfiguration)cfg).isForceProcAddressGen4All() && 
-       !((ProcAddressConfiguration)cfg).isLocalProcAddressCallingConvention4All()) {
-        return; // bail out, nothing todo ..
-    }
-
-    for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
-      FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
-      if(((ProcAddressConfiguration)cfg).isForceProcAddressGen4All()) {
-          ((ProcAddressConfiguration)cfg).addForceProcAddressGen(fsOrig.getName());
-      }
-      if(((ProcAddressConfiguration)cfg).isLocalProcAddressCallingConvention4All()) {
-          ((ProcAddressConfiguration)cfg).addLocalProcAddressCallingConvention(fsOrig.getName(), 
-                   ((ProcAddressConfiguration)cfg).getLocalProcAddressCallingConvention4All());
-      }
-    }
+    super.validateFunctionsToBind(funcsSet);
   }
 
   protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List emitters) {

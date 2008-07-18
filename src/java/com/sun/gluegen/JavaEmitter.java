@@ -622,7 +622,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
-    // nothing to be done per default
+    // nothing to do ..
   }
 
   /**
@@ -1768,7 +1768,8 @@ public class JavaEmitter implements GlueEmitter {
       if (canProduceArrayVariant[0] &&
           (binding.signatureUsesCPrimitivePointers() ||
            binding.signatureUsesCArrays()) &&
-          !cfg.nioDirectOnly(binding.getName())) {
+          !cfg.nioDirectOnly(binding.getName()) &&
+          !cfg.nioOnly(binding.getName())) {
         result.add(lowerMethodBindingPointerTypes(binding, true, null));
       }
     } else {

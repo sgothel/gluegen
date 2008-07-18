@@ -346,8 +346,6 @@ public class GLEmitter extends ProcAddressEmitter
   }
 
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
-    super.validateFunctionsToBind(funcsSet);
-
     String localCallingConvention = ((GLConfiguration)cfg).getLocalProcAddressCallingConvention4All();
     if(null==localCallingConvention) {
         localCallingConvention="GL_APIENTRY";
@@ -422,6 +420,8 @@ public class GLEmitter extends ProcAddressEmitter
           }
       }
     }
+
+    super.validateFunctionsToBind(funcsSet);
   }
 
   

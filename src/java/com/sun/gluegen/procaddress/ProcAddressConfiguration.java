@@ -87,7 +87,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
         if(funcName.equals("__ALL__")) {
             forceProcAddressGen4All=true;
         } else {
-            addForceProcAddressGen( readString("ForceProcAddressGen", tok, filename, lineNo) );
+            addForceProcAddressGen( funcName );
         }
       }
     else if (cmd.equalsIgnoreCase("GetProcAddressTableExpr"))
@@ -285,7 +285,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
     return procAddressNameConverter.convert(funcName);
   }
   public boolean forceProcAddressGen(String funcName) {
-    return forceProcAddressGenSet.contains(funcName);
+    return forceProcAddressGen4All || forceProcAddressGenSet.contains(funcName);
   }
 
   public void addForceProcAddressGen(String funcName) {
@@ -298,6 +298,7 @@ public class ProcAddressConfiguration extends JavaConfiguration
   }
 
   public String getLocalProcAddressCallingConvention(String funcName) {
+    if(isLocalProcAddressCallingConvention4All()) return getLocalProcAddressCallingConvention4All();
     return (String) localProcAddressCallingConventionMap.get(funcName);
   }
   public boolean isLocalProcAddressCallingConvention4All()  { return localProcAddressCallingConvention4All!=null; }
