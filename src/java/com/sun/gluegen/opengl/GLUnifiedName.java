@@ -35,132 +35,32 @@
  * 
  */
 
-package com.sun.gluegen.runtime.opengl;
+package com.sun.gluegen.opengl;
 
 import java.util.*;
 import com.sun.gluegen.runtime.*;
+import com.sun.gluegen.runtime.opengl.GLExtensionNames;
 
 public class GLUnifiedName implements Cloneable {
-    //GL_XYZ : GL_XYZ, GL_XYZ_GL2, GL_XYZ_ARB, GL_XYZ_OES, GL_XYZ_OML
-    //GL_XYZ : GL_XYZ, GL_GL2_XYZ, GL_ARB_XYZ, GL_OES_XYZ, GL_OML_XYZ
-    //
-    // Pass-1 Unify ARB extensions with the same value
-    // Pass-2 Unify vendor extensions, 
-    //        if exist as an ARB extension with the same value.
-    // Pass-3 Emit
-
-    public static final String[] extensionsARB = { "ARB", "GL2", "OES",  "OML" };
-    public static final String[] extensionsVEN = { "AMD",
-                                                   "APPLE",
-                                                   "ATI",
-                                                   "EXT",
-                                                   "HP",
-                                                   "IBM",
-                                                   "MESA",
-                                                   "NV",
-                                                   "SGI",
-                                                   "SGIS",
-                                                   "SGIX",
-                                                   "SUN",
-                                                   "WIN"
-                                                   };
-
-    public static final int getExtensionIdx(String[] extensions, String str) {
-        for(int i = extensions.length - 1 ; i>=0 ; i--) {
-            if(str.endsWith(extensions[i])) {
-                return i;
-            }
-        }
-        return -1;
-    }
-
-    public static final boolean isExtension(String[] extensions, String str) {
-        return getExtensionIdx(extensions, str)>=0;
-    }
-
-    public static final String getExtensionSuffix(String str) {
-        int idx = getExtensionIdx(extensionsARB, str);
-        if(idx>=0) {
-            return extensionsARB[idx];
-        }
-        idx = getExtensionIdx(extensionsVEN, str);
-        if(idx>=0) {
-            return extensionsVEN[idx];
-        }
-        return null;
-    }
-
-    public static final String normalize(String[] extensions, String str) {
-        boolean touched = false;
-        for(int i = extensions.length - 1 ; !touched && i>=0 ; i--) {
-            if(str.endsWith("_"+extensions[i])) {
-                // enums
-                str = str.substring(0, str.length()-1-extensions[i].length());
-                touched=true;
-            } else if(str.endsWith(extensions[i])) {
-                // functions
-                str = str.substring(0, str.length()-extensions[i].length());
-                touched=true;
-            }
-        }
-        return str;
-    }
-    public static final String normalizeARB(String str) {
-        return normalize(extensionsARB, str);
-    }
-    public static final boolean isExtensionARB(String str) {
-        return isExtension(extensionsARB, str);
-    }
-    public static final String normalizeVEN(String str) {
-        return normalize(extensionsVEN, str);
-    }
-    public static final boolean isExtensionVEN(String str) {
-        return isExtension(extensionsVEN, str);
-    }
-
-    public static final int getNamePermutationNumber(String name) {
-        if(isExtensionARB(name) || isExtensionVEN(name)) {
-            // no name permutation, if it's already a known extension
-            return 1;
-        }
-        return 1 + extensionsARB.length + extensionsVEN.length;
-    }
-
-    public static final String getNamePermutation(String name, int i) {
-        // identity
-        if(i==0) {
-            return name;
-        }
-        if(0>i || i>=(1+extensionsARB.length + extensionsVEN.length)) {
-            throw new RuntimeException("Index out of range [0.."+(1+extensionsARB.length+extensionsVEN.length-1)+"]: "+i);
-        }
-        // ARB
-        i-=1;
-        if(i<extensionsARB.length) {
-            return name+extensionsARB[i];
-        }
-        // VEN
-        i-=extensionsARB.length;
-        return name+extensionsVEN[i];
-    }
-
-    /** 
-     */
 
     public GLUnifiedName(String name) {
-        this(name, normalizeARB(name));
-    }
-
-    protected GLUnifiedName(String orig, String uni) {
+        isGLFunc = GLExtensionNames.isGLFunction(name);
+        isGLEnum = GLExtensionNames.isGLEnumeration(name);
+        if(!isGLFunc && !isGLEnum) {
+            nameUni=name;
+        } else {
+            nameUni=GLExtensionNames.normalizeARB(name, isGLFunc);
+        }
         this.nameOrig=new ArrayList();
-        this.nameOrig.add(orig);
-        this.nameUni=uni;
+        this.nameOrig.add(name);
     }
 
-    protected GLUnifiedName(List origs, String uni) {
+    protected GLUnifiedName(List origs, String uni, boolean isGLFunc, boolean isGLEnum) {
         this.nameOrig=new ArrayList();
         this.nameOrig.addAll(origs);
         this.nameUni=uni;
+        this.isGLFunc=isGLFunc;
+        this.isGLEnum=isGLEnum;
     }
 
     public void resetUni() {
@@ -177,22 +77,36 @@ public class GLUnifiedName implements Cloneable {
         }
     }
 
+    /**
+     * unique in case this name reflects only one
+     * original entry (no extension unification)
+     */
+    public boolean isUnique() {
+        return nameOrig.size()==1;
+    }
+
     public boolean isExtensionARB() {
         boolean res = false;
-        for (Iterator iter = nameOrig.iterator(); !res && iter.hasNext(); ) {
-            res = isExtensionARB((String)iter.next());
+        if(isGLFunc||isGLEnum) {
+            for (Iterator iter = nameOrig.iterator(); !res && iter.hasNext(); ) {
+                res = GLExtensionNames.isExtensionARB((String)iter.next(), isGLFunc);
+            }
         }
         return res;
     }
 
     public void normalizeVEN() {
-        nameUni=normalizeVEN(nameUni);
+        if(isGLFunc||isGLEnum) {
+            nameUni=GLExtensionNames.normalizeVEN(nameUni, isGLFunc);
+        }
     }
 
     public boolean isExtensionVEN() {
         boolean res = false;
-        for (Iterator iter = nameOrig.iterator(); !res && iter.hasNext(); ) {
-            res = isExtensionVEN((String)iter.next());
+        if(isGLFunc||isGLEnum) {
+            for (Iterator iter = nameOrig.iterator(); !res && iter.hasNext(); ) {
+                res = GLExtensionNames.isExtensionVEN((String)iter.next(), isGLFunc);
+            }
         }
         return res;
     }
@@ -249,7 +163,7 @@ public class GLUnifiedName implements Cloneable {
     }
 
     public Object clone() {
-        return new GLUnifiedName(nameOrig, nameUni);
+        return new GLUnifiedName(nameOrig, nameUni, isGLFunc, isGLEnum);
     }
 
     public String getUni() { return nameUni; }
@@ -258,5 +172,6 @@ public class GLUnifiedName implements Cloneable {
 
     private List   nameOrig;
     private String nameUni;
+    private boolean isGLFunc, isGLEnum;
 }
 

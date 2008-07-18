@@ -46,7 +46,7 @@ import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
 import com.sun.gluegen.runtime.*;
-import com.sun.gluegen.runtime.opengl.GLUnifiedName;
+import com.sun.gluegen.runtime.opengl.GLExtensionNames;
 
 /**
  * A subclass of ProcAddressEmitter with special OpenGL-specific
@@ -139,8 +139,8 @@ public class GLEmitter extends ProcAddressEmitter
     public void normalizeVEN() {
         name.normalizeVEN();
     }
-    public boolean shouldIgnore(GLConfiguration cfg) {
-        return GLEmitter.shouldIgnore(name, cfg);
+    public boolean shouldIgnoreInInterface(GLConfiguration cfg) {
+        return GLEmitter.shouldIgnoreInInterface(name, cfg);
     }
 
     protected GLUnifiedName name;
@@ -150,10 +150,18 @@ public class GLEmitter extends ProcAddressEmitter
     protected String optionalComment;
   }
 
-  protected static boolean shouldIgnore(GLUnifiedName name, GLConfiguration cfg) {
-        boolean res = cfg.shouldIgnore(name.getUni(), false);
+  protected static boolean shouldIgnoreInInterface(GLUnifiedName name, GLConfiguration cfg) {
+        boolean res = cfg.shouldIgnoreInInterface(name.getUni(), name.isUnique());
         for (Iterator iter = name.getOrig().iterator(); !res && iter.hasNext(); ) {
-            res = cfg.shouldIgnore((String)iter.next(), true);
+            res = cfg.shouldIgnoreInInterface((String)iter.next(), false);
+        }
+        return res;
+  }
+
+  protected static boolean shouldIgnoreInImpl(GLUnifiedName name, GLConfiguration cfg) {
+        boolean res = cfg.shouldIgnoreInImpl(name.getUni(), name.isUnique());
+        for (Iterator iter = name.getOrig().iterator(); !res && iter.hasNext(); ) {
+            res = cfg.shouldIgnoreInImpl((String)iter.next(), false);
         }
         return res;
   }
@@ -203,7 +211,7 @@ public class GLEmitter extends ProcAddressEmitter
         while( deIter.hasNext() ) {
             DefineEntry de = (DefineEntry) deIter.next();
             if(de.isExtensionVEN()) {
-                String extSuffix = GLUnifiedName.getExtensionSuffix(de.name.getUni());
+                String extSuffix = GLExtensionNames.getExtensionSuffix(de.name.getUni(), false);
                 DefineEntry deUni = (DefineEntry) de.clone();
                 deUni.normalizeVEN();
                 DefineEntry deExist = (DefineEntry) defineMap.get(deUni.name.getUni());
@@ -234,7 +242,7 @@ public class GLEmitter extends ProcAddressEmitter
         deIter = defineMap.values().iterator();
         while( deIter.hasNext() ) {
             DefineEntry de = (DefineEntry) deIter.next();
-            if (de.shouldIgnore((GLConfiguration)cfg)) {
+            if (de.shouldIgnoreInInterface((GLConfiguration)cfg)) {
                 continue;
             }
             String comment = de.getOptCommentString();
@@ -350,7 +358,7 @@ public class GLEmitter extends ProcAddressEmitter
       FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
       origFuncNames.add(fsOrig.getName());
       GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
-      if (GLEmitter.shouldIgnore(uniName, (GLConfiguration)cfg)) {
+      if (GLEmitter.shouldIgnoreInImpl(uniName, (GLConfiguration)cfg)) {
           iter.remove(); // remove ignored function 
       } else {
           if( uniName.isExtensionARB() && 
@@ -386,11 +394,11 @@ public class GLEmitter extends ProcAddressEmitter
       GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
       if(uniName.isExtensionVEN()) {
           uniName.normalizeVEN();
-          if (GLEmitter.shouldIgnore(uniName, (GLConfiguration)cfg)) {
+          if (GLEmitter.shouldIgnoreInImpl(uniName, (GLConfiguration)cfg)) {
               System.err.println("INFO: Ignored: Remove Function:"+ uniName);
               iter.remove(); // remove ignored function 
           } else {
-              String extSuffix = GLUnifiedName.getExtensionSuffix(fsOrig.getName());
+              String extSuffix = GLExtensionNames.getExtensionSuffix(fsOrig.getName(), true);
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(funcsSet.contains(fsUni)) {
                   GLUnifiedName uniNameMap = (GLUnifiedName) funcNameMap.get(uniName.getUni());
@@ -460,12 +468,12 @@ public class GLEmitter extends ProcAddressEmitter
     w.println("   *   it was statically linked.");
     w.println("   */");
     w.println("  public long getAddressFor(String functionNameUsr) {");
-    w.println("    String functionNameBase = com.sun.gluegen.runtime.opengl.GLUnifiedName.normalizeVEN(com.sun.gluegen.runtime.opengl.GLUnifiedName.normalizeARB(functionNameUsr));");
+    w.println("    String functionNameBase = com.sun.gluegen.runtime.opengl.GLExtensionNames.normalizeVEN(com.sun.gluegen.runtime.opengl.GLExtensionNames.normalizeARB(functionNameUsr, true), true);");
     w.println("    String addressFieldNameBase = " + getProcAddressConfig().gluegenRuntimePackage() + ".ProcAddressHelper.PROCADDRESS_VAR_PREFIX + functionNameBase;");
     w.println("    java.lang.reflect.Field addressField = null;");
-    w.println("    int  funcNamePermNum = com.sun.gluegen.runtime.opengl.GLUnifiedName.getNamePermutationNumber(functionNameBase);");
+    w.println("    int  funcNamePermNum = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(functionNameBase);");
     w.println("    for(int i = 0; null==addressField && i < funcNamePermNum; i++) {");
-    w.println("        String addressFieldName = com.sun.gluegen.runtime.opengl.GLUnifiedName.getNamePermutation(addressFieldNameBase, i);");
+    w.println("        String addressFieldName = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(addressFieldNameBase, i);");
     w.println("        try {");
     w.println("          addressField = getClass().getField(addressFieldName);");
     w.println("        } catch (Exception e) { }");

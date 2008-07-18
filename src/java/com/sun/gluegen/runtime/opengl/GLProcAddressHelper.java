@@ -75,9 +75,9 @@ public class GLProcAddressHelper extends ProcAddressHelper {
                                    "\" in class " + tableClass.getName(), e);
       }
       long newProcAddress = 0;
-      int  funcNamePermNum = GLUnifiedName.getNamePermutationNumber(funcNameBase);
+      int  funcNamePermNum = GLExtensionNames.getFuncNamePermutationNumber(funcNameBase);
       for(int j = 0; 0==newProcAddress && j < funcNamePermNum; j++) {
-          String funcName = GLUnifiedName.getNamePermutation(funcNameBase, j);
+          String funcName = GLExtensionNames.getFuncNamePermutation(funcNameBase, j);
           try {
             if (DEBUG) {
               dout.println("  try function lookup: " + funcName + " / " + funcNameBase);

@@ -186,23 +186,35 @@ public class GLConfiguration extends ProcAddressConfiguration {
     }
   }
 
-  public boolean shouldIgnore(String symbol) {
-    return shouldIgnore(symbol, false);
-  }
-
-  public boolean shouldIgnore(String symbol, boolean skipExtensionCheck) {
-    // Check ignored extensions based on our knowledge of the static GL info
-    if (!skipExtensionCheck && glInfo != null) {
+  protected boolean shouldIgnoreExtension(String symbol, boolean criteria) {
+    if (criteria && glInfo != null) {
       String extension = glInfo.getExtension(symbol);
       if (extension != null &&
           ignoredExtensions.contains(extension)) {
-        // System.err.println("GL Ignore: "+symbol+" within extension "+extension);
-        // dumpIgnores();
-        return true;
+          // System.err.println("GL Ignore: "+symbol+" within extension "+extension);
+          // Throwable t = new Throwable("XXX");
+          // t.printStackTrace();
+          // dumpIgnores();
+          return true;
       }
     }
+    return false;
+  }
 
-    return super.shouldIgnore(symbol);
+  public boolean shouldIgnoreInInterface(String symbol) {
+    return shouldIgnoreInInterface(symbol, true);
+  }
+
+  public boolean shouldIgnoreInInterface(String symbol, boolean checkEXT) {
+    return shouldIgnoreExtension(symbol, checkEXT) || super.shouldIgnoreInInterface(symbol);
+  }
+
+  public boolean shouldIgnoreInImpl(String symbol) {
+    return shouldIgnoreInImpl(symbol, true);
+  }
+
+  public boolean shouldIgnoreInImpl(String symbol, boolean checkEXT) {
+    return shouldIgnoreExtension(symbol, checkEXT) || super.shouldIgnoreInImpl(symbol);
   }
 
   /** shall the non unified (uniq) vendor extensions be dropped ?  */

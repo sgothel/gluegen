@@ -47,6 +47,7 @@ public abstract class FunctionEmitter
 {
   public static final EmissionModifier STATIC = new EmissionModifier("static");
 
+  private boolean isInterfaceVal;
   private ArrayList modifiers = new ArrayList();
   private CommentEmitter commentEmitter = null;
   private PrintWriter defaultOutput;
@@ -54,10 +55,11 @@ public abstract class FunctionEmitter
   /**
    * Constructs the FunctionEmitter with a CommentEmitter that emits nothing.
    */
-  public FunctionEmitter(PrintWriter defaultOutput)
+  public FunctionEmitter(PrintWriter defaultOutput, boolean isInterface)
   {
     assert(defaultOutput != null);
     this.defaultOutput = defaultOutput;
+    this.isInterfaceVal = isInterface;
   }
   
   /**
@@ -67,7 +69,10 @@ public abstract class FunctionEmitter
     modifiers      = (ArrayList) arg.modifiers.clone();
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
+    isInterfaceVal = arg.isInterfaceVal;
   }
+
+  public boolean isInterface() { return isInterfaceVal; }
 
   public PrintWriter getDefaultOutput() { return defaultOutput; }
 

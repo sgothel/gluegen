@@ -65,6 +65,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   
   // Exception type raised in the generated code if runtime checks fail
   private String runtimeExceptionType;
+  private String unsupportedExceptionType;
 
   protected boolean emitBody;
   protected boolean eraseBufferAndArrayTypes;
@@ -95,6 +96,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
                                   String runtimeExceptionType,
+                                  String unsupportedExceptionType,
                                   boolean emitBody,
                                   boolean tagNativeBinding,
                                   boolean eraseBufferAndArrayTypes,
@@ -102,11 +104,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                   boolean forImplementingMethodCall,
                                   boolean forDirectBufferImplementation,
                                   boolean forIndirectBufferAndArrayImplementation,
-                                  boolean isUnimplemented)
+                                  boolean isUnimplemented,
+                                  boolean isInterface)
   {
-    super(output);
+    super(output, isInterface);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
+    this.unsupportedExceptionType = unsupportedExceptionType;
     this.emitBody = emitBody;
     this.tagNativeBinding = tagNativeBinding;
     this.eraseBufferAndArrayTypes = eraseBufferAndArrayTypes;
@@ -126,6 +130,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     super(arg);
     binding                       = arg.binding;
     runtimeExceptionType          = arg.runtimeExceptionType;
+    unsupportedExceptionType      = arg.unsupportedExceptionType;
     emitBody                      = arg.emitBody;
     tagNativeBinding              = arg.tagNativeBinding;
     eraseBufferAndArrayTypes      = arg.eraseBufferAndArrayTypes;
@@ -158,6 +163,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       checks fail in the generated code. */
   public String getRuntimeExceptionType() {
     return runtimeExceptionType;
+  }
+
+  public String getUnsupportedExceptionType() {
+    return unsupportedExceptionType;
   }
 
   /** If the underlying function returns an array (currently only
@@ -377,7 +386,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println();
       writer.println("  {");
       if (isUnimplemented) {
-        writer.println("    throw new " + getRuntimeExceptionType() + "(\"Unimplemented\");");
+        writer.println("    throw new " + getUnsupportedExceptionType() + "(\"Unimplemented\");");
       } else {
         emitPrologueOrEpilogue(prologue, writer);
         emitPreCallSetup(binding, writer);

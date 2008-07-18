@@ -94,6 +94,10 @@ public class ProcAddressEmitter extends JavaEmitter
     return getConfig().runtimeExceptionType();
   }
 
+  public String unsupportedExceptionType() {
+    return getConfig().unsupportedExceptionType();
+  }
+
   protected JavaConfiguration createConfig() {
     return new ProcAddressConfiguration();
   }

@@ -276,7 +276,7 @@ public class JavaEmitter implements GlueEmitter {
       // currently only emits only numeric defines -- if it handled #define'd
       // objects it would make a bigger difference.
  
-      if (!cfg.shouldIgnore(name)) {
+      if (!cfg.shouldIgnoreInInterface(name)) {
         String type = getJavaType(name, value);
         if (optionalComment != null && optionalComment.length() != 0) {
           javaWriter().println("  /** " + optionalComment + " */");
@@ -340,7 +340,7 @@ public class JavaEmitter implements GlueEmitter {
     for (Iterator iter = funcsToBind.iterator(); iter.hasNext(); ) {
       FunctionSymbol cFunc = (FunctionSymbol) iter.next();
       // Check to see whether this function should be ignored
-      if (cfg.shouldIgnore(cFunc.getName())) {
+      if (cfg.shouldIgnoreInImpl(cFunc.getName())) {
         continue; // don't generate bindings for this symbol
       }
       
@@ -352,12 +352,14 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < methodBindingEmitters.size(); ++i) {
       FunctionEmitter emitter = (FunctionEmitter)methodBindingEmitters.get(i);      
       try {
-        emitter.emit();
+        if (!emitter.isInterface() || !cfg.shouldIgnoreInInterface(emitter.getName())) {
+            emitter.emit();
+            emitter.getDefaultOutput().println(); // put newline after method body
+        }
       } catch (Exception e) {
         throw new RuntimeException(
             "Error while emitting binding for \"" + emitter.getName() + "\"", e);
       }
-      emitter.getDefaultOutput().println(); // put newline after method body
     }
 
     // Return the list of FunctionSymbols that we generated gluecode for
@@ -420,6 +422,7 @@ public class JavaEmitter implements GlueEmitter {
       new JavaMethodBindingEmitter(binding,
                                    writer,
                                    cfg.runtimeExceptionType(),
+                                   cfg.unsupportedExceptionType(),
                                    !signatureOnly && needsBody,
                                    cfg.tagNativeBinding(),
                                    false,
@@ -427,7 +430,8 @@ public class JavaEmitter implements GlueEmitter {
                                    false,
                                    false,
                                    false,
-                                   isUnimplemented);
+                                   isUnimplemented,
+                                   signatureOnly);
     switch (accessControl) {
       case ACC_PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
       case ACC_PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
@@ -483,12 +487,14 @@ public class JavaEmitter implements GlueEmitter {
           new JavaMethodBindingEmitter(binding,
                                        writer,
                                        cfg.runtimeExceptionType(),
+                                       cfg.unsupportedExceptionType(),
                                        false,
                                        cfg.tagNativeBinding(),
                                        true,
                                        cfg.nioDirectOnly(binding.getName()),
                                        true,
                                        true,
+                                       false,
                                        false,
                                        false);
         emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
@@ -508,6 +514,7 @@ public class JavaEmitter implements GlueEmitter {
             new JavaMethodBindingEmitter(binding,
                                          writer,
                                          cfg.runtimeExceptionType(),
+                                         cfg.unsupportedExceptionType(),
                                          false,
                                          cfg.tagNativeBinding(),
                                          true,
@@ -515,6 +522,7 @@ public class JavaEmitter implements GlueEmitter {
                                          true,
                                          false,
                                          true,
+                                         false,
                                          false);
 
           emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
@@ -752,7 +760,7 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
-    if (cfg.shouldIgnore(name)) {
+    if (cfg.shouldIgnoreInInterface(name)) {
       return;
     }
 
@@ -916,7 +924,7 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < structType.getNumFields(); i++) {
       Field field = structType.getField(i);
       Type fieldType = field.getType();
-      if (!cfg.shouldIgnore(name + " " + field.getName())) {
+      if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
         if (fieldType.isFunctionPointer()) {
           if (doBaseClass) {
             try {
@@ -932,11 +940,13 @@ public class JavaEmitter implements GlueEmitter {
                 new JavaMethodBindingEmitter(binding,
                                              writer,
                                              cfg.runtimeExceptionType(),
+                                             cfg.unsupportedExceptionType(),
                                              true,
                                              cfg.tagNativeBinding(),
                                              false,
                                              true, // FIXME: should unify this with the general emission code
                                              false,
+                                             false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
                                              false);
@@ -948,12 +958,14 @@ public class JavaEmitter implements GlueEmitter {
                 new JavaMethodBindingEmitter(binding,
                                              writer,
                                              cfg.runtimeExceptionType(),
+                                             cfg.unsupportedExceptionType(),
                                              false,
                                              cfg.tagNativeBinding(),
                                              true,
                                              true, // FIXME: should unify this with the general emission code
                                              true,
                                              true, // FIXME: should unify this with the general emission code
+                                             false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
                                              false);
               emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);

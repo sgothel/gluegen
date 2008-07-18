@@ -133,7 +133,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                boolean forIndirectBufferAndArrayImplementation,
                                MachineDescription machDesc)
   {
-    super(output);
+    super(output, false);
 
     assert(binding != null);
     assert(javaClassName != null);

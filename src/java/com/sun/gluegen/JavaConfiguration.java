@@ -44,6 +44,7 @@ import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.*;
 
+import com.sun.gluegen.jgram.*;
 import com.sun.gluegen.cgram.types.*;
 
 /** Parses and provides access to the contents of .cfg files for the
@@ -100,6 +101,7 @@ public class JavaConfiguration {
    * checks fail. Defaults to RuntimeException.
    */
   private String runtimeExceptionType = "RuntimeException";
+  private String unsupportedExceptionType = "UnsupportedOperationException";
   private Map/*<String,Integer>*/ accessControl = new HashMap();
   private Map/*<String,TypeInfo>*/ typeInfoMap = new HashMap();
   private Set/*<String>*/ returnsString = new HashSet();
@@ -109,6 +111,7 @@ public class JavaConfiguration {
    * converted to String args; value is List of Integer argument indices
    */
   private Map/*<String,List<Integer>>*/ argumentsAreString = new HashMap();
+  private Set/*<String>*/ ignoresIf = new HashSet();
   private Set/*<Pattern>*/ ignores = new HashSet();
   private Map/*<String,Pattern>*/ ignoreMap = new HashMap();
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
@@ -262,6 +265,8 @@ public class JavaConfiguration {
   public String gluegenRuntimePackage() { return gluegenRuntimePackage; }
   /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
   public String      runtimeExceptionType()          { return runtimeExceptionType; }
+  /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
+  public String      unsupportedExceptionType()          { return unsupportedExceptionType; }
   /** Returns the list of imports that should be emitted at the top of each .java file. */
   public List/*<String>*/ imports()                  { return imports; }
 
@@ -547,7 +552,11 @@ public class JavaConfiguration {
   }
 
   public void dumpIgnores() {
-    System.err.println("Ignores: ");
+    System.err.println("Ignores (If): ");
+    for (Iterator iter = ignoresIf.iterator(); iter.hasNext(); ) {
+        System.err.println("\t"+(String)iter.next());
+    }
+    System.err.println("Ignores (All): ");
     for (Iterator iter = ignores.iterator(); iter.hasNext(); ) {
         System.err.println("\t"+(String)iter.next());
     }
@@ -555,13 +564,27 @@ public class JavaConfiguration {
 
   /** Returns true if this #define, function, struct, or field within
       a struct should be ignored during glue code generation. */
-  public boolean shouldIgnore(String symbol) {
+  public boolean shouldIgnoreInInterface(String symbol) {
+    // Simple case; the entire symbol is in the interface ignore table.
+    if (ignoresIf.contains(symbol)) {
+      // System.err.println("Ignore If: "+symbol);
+      // dumpIgnores();
+      return true;
+    }
+    return shouldIgnoreInImpl_Int(symbol);
+  }
+
+  public boolean shouldIgnoreInImpl(String symbol) {
+    return shouldIgnoreInImpl_Int(symbol);
+  }
+
+  private boolean shouldIgnoreInImpl_Int(String symbol) {
 
     // System.err.println("CHECKING IGNORE: " + symbol);
 
     // Simple case; the entire symbol is in the ignore table.
     if (ignores.contains(symbol)) {
-      // System.err.println("Ignore: "+symbol);
+      // System.err.println("Ignore Impl Simple: "+symbol);
       // dumpIgnores();
       return true;
     }
@@ -572,6 +595,7 @@ public class JavaConfiguration {
       Pattern regexp = (Pattern)iter.next();
       Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
+        // System.err.println("Ignore Impl RexEx: "+symbol);
         return true;
       }
     }
@@ -586,8 +610,10 @@ public class JavaConfiguration {
         if (!matcher.matches()) {
           // Special case as this is most often likely to be the case. 
           // Unignores are not used very often.
-          if(unignores.size() == 0)
+          if(unignores.size() == 0) {
+            // System.err.println("Ignore Impl unignores==0: "+symbol);
             return true;
+          }
          	  
           boolean unignoreFound = false;
           for (Iterator iter2 = unignores.iterator(); iter2.hasNext(); ) {
@@ -600,6 +626,7 @@ public class JavaConfiguration {
           }
          	  
           if (!unignoreFound)
+            // System.err.println("Ignore Impl !unignore: "+symbol);
             return true;
         }
       }
@@ -754,6 +781,8 @@ public class JavaConfiguration {
       // because ReturnedArrayLength changes them.
     } else if (cmd.equalsIgnoreCase("ArgumentIsString")) {
       readArgumentIsString(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("IgnoreExtendedInterfaceSymbols")) {
+      readIgnoreExtendedInterfaceSymbols(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Ignore")) {
       readIgnore(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Unignore")) {
@@ -816,6 +845,8 @@ public class JavaConfiguration {
       readRenameJavaMethod(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
       runtimeExceptionType = readString("RuntimeExceptionType", tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("UnsupportedExceptionType")) {
+      unsupportedExceptionType = readString("UnsupportedExceptionType", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("JavaPrologue")) {
       readJavaPrologueOrEpilogue(tok, filename, lineNo, true);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -940,6 +971,41 @@ public class JavaConfiguration {
     }
   }
 
+  protected void readIgnoreExtendedInterfaceSymbols(StringTokenizer tok, String filename, int lineNo) {
+    File javaFile;
+    BufferedReader javaReader;
+    try {
+      javaFile  = new File(tok.nextToken());
+      javaReader = new BufferedReader(new FileReader(javaFile));
+    } catch (FileNotFoundException e) {
+      System.err.println(e);
+      return;
+    }
+
+    JavaLexer lexer = new JavaLexer(javaReader);
+    lexer.setFilename(javaFile.getName());
+
+    JavaParser parser = new JavaParser(lexer);
+    parser.setFilename(javaFile.getName());
+
+    try {
+        parser.compilationUnit();
+    } catch (Exception e) {
+        System.err.println(e);
+        return;
+    }
+
+    Set set = parser.getParsedEnumNames();
+    for(Iterator iter = set.iterator(); iter.hasNext(); ) {
+        ignoresIf.add((String) iter.next());
+    }
+    System.out.println("Functions");
+    set = parser.getParsedFunctionNames();
+    for(Iterator iter = set.iterator(); iter.hasNext(); ) {
+        ignoresIf.add((String) iter.next());
+    }
+  }
+
   protected void readIgnore(StringTokenizer tok, String filename, int lineNo) {
     try {
       String regex = tok.nextToken();
@@ -959,6 +1025,7 @@ public class JavaConfiguration {
       Pattern pattern = (Pattern) ignoreMap.get(regex);
       ignoreMap.remove(regex);
       ignores.remove(pattern);
+      ignoresIf.remove(pattern.toString());
 
       // If the pattern wasn't registered before, then make sure we have a 
       // valid pattern instance to put into the unignores set.

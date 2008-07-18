@@ -65,7 +65,7 @@ public class BuildComposablePipeline
       classToComposeAround = Class.forName(nameOfClassToComposeAround);      
     } catch (Exception e) {
       throw new RuntimeException(
-	"Could not find class \"" + nameOfClassToComposeAround + "\"", e);
+        "Could not find class \"" + nameOfClassToComposeAround + "\"", e);
     }    
     
     String outputDir = args[1];
@@ -80,7 +80,7 @@ public class BuildComposablePipeline
     catch (IOException e)
     {
       throw new RuntimeException(
-	"Error generating composable pipeline source files", e);
+        "Error generating composable pipeline source files", e);
     }
   }
   
@@ -92,7 +92,7 @@ public class BuildComposablePipeline
     if (! classToComposeAround.isInterface())
     {
       throw new IllegalArgumentException(
-	classToComposeAround.getName() + " is not an interface class");
+        classToComposeAround.getName() + " is not an interface class");
     }    
 
     try {
@@ -116,13 +116,58 @@ public class BuildComposablePipeline
   {
     String pDir = outputDirectory;
     String pInterface = classToComposeAround.getName();    
-    List/*<Method>*/ publicMethods = Arrays.asList(classToComposeAround.getMethods());
+    List/*<Method>*/ publicMethodsRaw   = Arrays.asList(classToComposeAround.getMethods());
+    Set/*<Method>*/  publicMethodsPlain = new HashSet();
+    for (Iterator iter=publicMethodsRaw.iterator(); iter.hasNext(); ) {
+        publicMethodsPlain.add(new PlainMethod((Method)iter.next())); }
 
-    (new DebugPipeline(pDir, pInterface)).emit(publicMethods);
-    (new TracePipeline(pDir, pInterface)).emit(publicMethods);
+    (new DebugPipeline(pDir, pInterface)).emit(publicMethodsPlain);
+    (new TracePipeline(pDir, pInterface)).emit(publicMethodsPlain);
   }
 
   //-------------------------------------------------------
+
+  protected class PlainMethod
+  {
+    Method m;
+
+    public PlainMethod(Method m) {
+        this.m=m;
+    }
+
+    public Method getWrappedMethod() { return m; }
+
+    public boolean equals(Object obj) {
+        if(obj instanceof PlainMethod) {
+            PlainMethod b = (PlainMethod)obj;
+            boolean res =
+                   m.getName().equals(b.m.getName()) && 
+                   m.getModifiers() == b.m.getModifiers() &&
+                   m.getReturnType().equals(b.m.getReturnType()) &&
+                   Arrays.equals( m.getParameterTypes() , b.m.getParameterTypes() ) ;
+            return res;
+        }
+        return false;
+    }
+
+    public int hashCode() {
+        int hash = m.getName().hashCode() ^ m.getModifiers() ^ m.getReturnType().hashCode();
+        Class[] args = m.getParameterTypes();
+        for(int i=0; i<args.length; i++) {
+            hash ^= args[i].hashCode();
+        }
+        return hash;
+    }
+
+    public String toString() {
+        Class[] args = m.getParameterTypes();
+        return m.toString() +
+               "\n\tname: " + m.getName() +
+               "\n\tmods: " + m.getModifiers() +
+               "\n\tretu: " + m.getReturnType() +
+               "\n\targs[" + args.length + "]: "+Arrays.toString(args);
+    }
+  }
 
   /**
    * Emits a Java source file that represents one element of the composable
@@ -148,20 +193,20 @@ public class BuildComposablePipeline
       int lastDot = baseInterfaceClassName.lastIndexOf('.');
       if (lastDot == -1)
       {
-	// no package, class is at root level
-	this.baseName = baseInterfaceClassName;
-	this.basePackage = null;
+        // no package, class is at root level
+        this.baseName = baseInterfaceClassName;
+        this.basePackage = null;
       }
       else
-      {	
-	this.baseName = baseInterfaceClassName.substring(lastDot+1);
-	this.basePackage = baseInterfaceClassName.substring(0, lastDot);
+      {        
+        this.baseName = baseInterfaceClassName.substring(lastDot+1);
+        this.basePackage = baseInterfaceClassName.substring(0, lastDot);
       }
 
       this.outputDir = outputDir;
     }
 
-    public void emit(List/*<Method>*/ methodsToWrap) throws IOException
+    public void emit(Iterable/*<Method>*/ methodsToWrap) throws IOException
     {
       String pipelineClassName = getPipelineName();
       this.file = new File(outputDir + File.separatorChar + pipelineClassName + ".java"); 
@@ -175,29 +220,29 @@ public class BuildComposablePipeline
       PrintWriter output = new PrintWriter(new BufferedWriter(new FileWriter(file)));
 
       CodeGenUtils.emitJavaHeaders(output, 
-		  basePackage,
-		  pipelineClassName,
+                  basePackage,
+                  pipelineClassName,
                   "com.sun.gluegen.runtime", // FIXME: should make configurable
-		  true,
-		  new String[] { "java.io.*", "javax.media.opengl.*" },
-		  new String[] { "public" },
-		  new String[] { baseName },
-		  null,
-		  new CodeGenUtils.EmissionCallback() {
-		    public void emit(PrintWriter w) { emitClassDocComment(w); }
-		  }
-		  );
+                  true,
+                  new String[] { "java.io.*", "javax.media.opengl.*" },
+                  new String[] { "public" },
+                  new String[] { baseName },
+                  null,
+                  new CodeGenUtils.EmissionCallback() {
+                    public void emit(PrintWriter w) { emitClassDocComment(w); }
+                  }
+                  );
       
       preMethodEmissionHook(output);      
-		  
+                  
       constructorHook(output);
 
-      for (int i = 0; i < methodsToWrap.size(); ++i)
+      for (Iterator iter=methodsToWrap.iterator(); iter.hasNext(); )
       {
-	Method m = (Method)methodsToWrap.get(i);
-	emitMethodDocComment(output, m);
-	emitSignature(output, m);
-	emitBody(output, m);	
+        Method m = ((PlainMethod)iter.next()).getWrappedMethod();
+        emitMethodDocComment(output, m);
+        emitSignature(output, m);
+        emitBody(output, m);        
       }
 
       postMethodEmissionHook(output);
@@ -246,8 +291,8 @@ public class BuildComposablePipeline
       
       if (retType != Void.TYPE)
       {
-	output.print(JavaType.createForClass(retType).getName());
-	output.print(" _res = ");
+        output.print(JavaType.createForClass(retType).getName());
+        output.print(" _res = ");
       }
       output.print(getDownstreamObjectName());
       output.print('.');
@@ -260,7 +305,7 @@ public class BuildComposablePipeline
 
       if (retType != Void.TYPE)
       {
-	output.println("    return _res;");
+        output.println("    return _res;");
       }
       output.println("  }");
 
@@ -271,25 +316,25 @@ public class BuildComposablePipeline
       StringBuffer buf = new StringBuffer(256);
       if (!includeArgNames && !includeArgTypes)
       {
-	throw new IllegalArgumentException(
-	  "Cannot generate arglist without both arg types and arg names");
+        throw new IllegalArgumentException(
+          "Cannot generate arglist without both arg types and arg names");
       }
       
       Class[] argTypes = m.getParameterTypes();
       for (int i = 0; i < argTypes.length; ++i)
       {
-	if (includeArgTypes)
-	{
-	  buf.append(JavaType.createForClass(argTypes[i]).getName());
-	  buf.append(' ');
-	}
-	
-	if (includeArgNames)
-	{
-	  buf.append("arg");
-	  buf.append(i);
-	}
-	if (i < argTypes.length-1) { buf.append(','); }
+        if (includeArgTypes)
+        {
+          buf.append(JavaType.createForClass(argTypes[i]).getName());
+          buf.append(' ');
+        }
+        
+        if (includeArgNames)
+        {
+          buf.append("arg");
+          buf.append(i);
+        }
+        if (i < argTypes.length-1) { buf.append(','); }
       }
 
       return buf.toString();
@@ -387,16 +432,16 @@ public class BuildComposablePipeline
       }
       output.println("    // Debug code to make sure the pipeline is working; leave commented out unless testing this class");
       output.println("    //System.err.println(\"Checking for GL errors " +
-		     "after call to \" + caller + \"()\");");
+                     "after call to \" + caller + \"()\");");
       output.println();
       output.println("    int err = " +
-		     getDownstreamObjectName() +
-		     ".glGetError();");
+                     getDownstreamObjectName() +
+                     ".glGetError();");
       output.println("    if (err == GL_NO_ERROR) { return; }");
       output.println();
       output.println("    StringBuffer buf = new StringBuffer(");
       output.println("      \"glGetError() returned the following error codes " +
-		     "after a call to \" + caller + \"(): \");");
+                     "after a call to \" + caller + \"(): \");");
       output.println();
       output.println("    // Loop repeatedly to allow for distributed GL implementations,");
       output.println("    // as detailed in the glGetError() specification");
@@ -415,8 +460,8 @@ public class BuildComposablePipeline
       output.println("        default: throw new InternalError(\"Unknown glGetError() return value: \" + err);");
       output.println("      }");
       output.println("    } while ((--recursionDepth >= 0) && (err = " +
-		     getDownstreamObjectName() +
-		     ".glGetError()) != GL_NO_ERROR);");
+                     getDownstreamObjectName() +
+                     ".glGetError()) != GL_NO_ERROR);");
       output.println("    throw new GLException(buf.toString());");
       output.println("  }");
       if (hasImmediateMode) {
@@ -458,18 +503,18 @@ public class BuildComposablePipeline
     {
       if (m.getName().equals("glBegin"))
       {
-	output.println("    insideBeginEndPair = true;");
-	output.println("    // NOTE: can't check glGetError(); it's not allowed inside glBegin/glEnd pair");
+        output.println("    insideBeginEndPair = true;");
+        output.println("    // NOTE: can't check glGetError(); it's not allowed inside glBegin/glEnd pair");
       }
       else
       {
-	if (m.getName().equals("glEnd"))
-	{
-	  output.println("    insideBeginEndPair = false;");
-	}
-	
-	// calls to glGetError() are only allowed outside of glBegin/glEnd pairs
-	output.println("    checkGLGetError(\"" + m.getName() + "\");");
+        if (m.getName().equals("glEnd"))
+        {
+          output.println("    insideBeginEndPair = false;");
+        }
+        
+        // calls to glGetError() are only allowed outside of glBegin/glEnd pairs
+        output.println("    checkGLGetError(\"" + m.getName() + "\");");
       }
     }
 

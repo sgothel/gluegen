@@ -44,7 +44,6 @@ import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.procaddress.*;
-import com.sun.gluegen.runtime.opengl.GLUnifiedName;
 
 /** A specialization of the proc address emitter which knows how to
     change argument names to take into account Vertex Buffer Object /
