@@ -119,6 +119,7 @@ public class JavaConfiguration {
   private Set/*<Pattern>*/ unimplemented = new HashSet();
   private boolean forceNioOnly4All=false;
   private Set/*<String>*/ nioOnly = new HashSet();
+  private boolean forceNioDirectOnly4All=false;
   private Set/*<String>*/ nioDirectOnly = new HashSet();
   private Set/*<String>*/ manuallyImplement = new HashSet();
   private Map/*<String,List<String>>*/ customJavaCode = new HashMap();
@@ -442,6 +443,8 @@ public class JavaConfiguration {
     return forceNioOnly4All || nioOnly.contains(functionName);
   }
 
+  public boolean isForceNioDirectOnly4All()      { return forceNioDirectOnly4All; }
+
   public void addNioDirectOnly(String fname ) {
       nioDirectOnly.add(fname);
   }
@@ -449,7 +452,7 @@ public class JavaConfiguration {
       variant, and no array variants, for <code>void*</code> and other
       C primitive pointers. */
   public boolean nioDirectOnly(String functionName) {
-    return nioDirectOnly.contains(functionName);
+    return forceNioDirectOnly4All || nioDirectOnly.contains(functionName);
   }
 
   /** Returns true if the glue code for the given function will be
@@ -831,7 +834,7 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("NioDirectOnly")) {
       String funcName = readString("NioDirectOnly", tok, filename, lineNo);
       if(funcName.equals("__ALL__")) {
-          forceNioOnly4All=true;
+          forceNioDirectOnly4All=true;
       } else {
           addNioDirectOnly( funcName );
       }
