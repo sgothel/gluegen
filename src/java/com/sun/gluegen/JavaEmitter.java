@@ -769,18 +769,9 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
-    if(name.startsWith("GLXHyperpipeConfig")) {
-        System.err.println("XXXX 1 GLXHyperpipeConfig");
-    }
     if (cfg.shouldIgnoreInInterface(name)) {
-        if(name.startsWith("GLXHyperpipeConfig")) {
-            System.err.println("XXXX 2 GLXHyperpipeConfig .. dropped");
-        }
       return;
     }
-        if(name.startsWith("GLXHyperpipeConfig")) {
-            System.err.println("XXXX 3 GLXHyperpipeConfig .. taken");
-        }
 
     Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structType, 0));
     JavaType containingType = typeToJavaType(containingCType, false, null);
