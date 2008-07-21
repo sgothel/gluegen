@@ -44,6 +44,7 @@ import java.util.*;
 
 import com.sun.gluegen.*;
 import com.sun.gluegen.procaddress.*;
+import com.sun.gluegen.runtime.opengl.GLExtensionNames;
 
 public class GLConfiguration extends ProcAddressConfiguration {
   // The following data members support ignoring an entire extension at a time
@@ -180,10 +181,11 @@ public class GLConfiguration extends ProcAddressConfiguration {
   }
 
   public void dumpIgnores() {
-    System.err.println("GL Ignores: ");
+    System.err.println("GL Ignored extensions: ");
     for (Iterator iter = ignoredExtensions.iterator(); iter.hasNext(); ) {
         System.err.println("\t"+(String)iter.next());
     }
+    super.dumpIgnores();
   }
 
   protected boolean shouldIgnoreExtension(String symbol, boolean criteria) {
@@ -191,11 +193,20 @@ public class GLConfiguration extends ProcAddressConfiguration {
       String extension = glInfo.getExtension(symbol);
       if (extension != null &&
           ignoredExtensions.contains(extension)) {
-          // System.err.println("GL Ignore: "+symbol+" within extension "+extension);
-          // Throwable t = new Throwable("XXX");
-          // t.printStackTrace();
-          // dumpIgnores();
           return true;
+      }
+      boolean isGLFunc = GLExtensionNames.isGLFunction(symbol);
+      boolean isGLEnum = GLExtensionNames.isGLEnumeration(symbol);
+      if(isGLFunc || isGLEnum) {
+        if(GLExtensionNames.isExtensionVEN(symbol, isGLFunc)) {
+          String extSuffix = GLExtensionNames.getExtensionSuffix(symbol, isGLFunc);
+          if( getDropUniqVendorExtensions(extSuffix) ) {
+            if(DEBUG_IGNORES) {
+              System.err.println("Ignore UniqVendorEXT: "+symbol);
+            }
+            return true;
+          }
+        }
       }
     }
     return false;

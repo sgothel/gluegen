@@ -111,7 +111,8 @@ public class JavaConfiguration {
    * converted to String args; value is List of Integer argument indices
    */
   private Map/*<String,List<Integer>>*/ argumentsAreString = new HashMap();
-  private Set/*<String>*/ ignoresIf = new HashSet();
+  private Set/*<String>*/ extendedIfSymbols = new HashSet();
+  private boolean extendedIfSymbolsOnly=false;
   private Set/*<Pattern>*/ ignores = new HashSet();
   private Map/*<String,Pattern>*/ ignoreMap = new HashMap();
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
@@ -138,6 +139,9 @@ public class JavaConfiguration {
   private Map/*<String,String>*/ javaMethodRenames = new HashMap();
   private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
   private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
+  protected static Map/*<FuncName>,<UnifiedName>*/ uniqNameMap = new HashMap();
+  public static Map/*<UnifiedName>*/ getUniqNameMap() { return uniqNameMap; }
+
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -568,24 +572,42 @@ public class JavaConfiguration {
     return (String) parentClass.get(className);
   }
 
+  public boolean extendedIfSymbolsOnly() {
+    return extendedIfSymbolsOnly;
+  }
+
+  public static final boolean DEBUG_IGNORES = false;
+  public static boolean dumpedIgnores = false;
+
+  public void dumpIgnoresOnce() {
+    if(!dumpedIgnores) {
+        dumpedIgnores = true;
+        dumpIgnores();
+    }
+  }
+
   public void dumpIgnores() {
-    System.err.println("Ignores (If): ");
-    for (Iterator iter = ignoresIf.iterator(); iter.hasNext(); ) {
+    System.err.println("Extended If: ");
+    for (Iterator iter = extendedIfSymbols.iterator(); iter.hasNext(); ) {
         System.err.println("\t"+(String)iter.next());
     }
     System.err.println("Ignores (All): ");
     for (Iterator iter = ignores.iterator(); iter.hasNext(); ) {
-        System.err.println("\t"+(String)iter.next());
+        System.err.println("\t"+iter.next());
     }
   }
 
   /** Returns true if this #define, function, struct, or field within
       a struct should be ignored during glue code generation. */
   public boolean shouldIgnoreInInterface(String symbol) {
+    if(DEBUG_IGNORES) {
+        dumpIgnoresOnce();
+    }
     // Simple case; the entire symbol is in the interface ignore table.
-    if (ignoresIf.contains(symbol)) {
-      // System.err.println("Ignore If: "+symbol);
-      // dumpIgnores();
+    if (extendedIfSymbols.contains(symbol)) {
+      if(DEBUG_IGNORES) {
+          System.err.println("Ignore If: "+symbol);
+      }
       return true;
     }
     return shouldIgnoreInImpl_Int(symbol);
@@ -597,12 +619,31 @@ public class JavaConfiguration {
 
   private boolean shouldIgnoreInImpl_Int(String symbol) {
 
-    // System.err.println("CHECKING IGNORE: " + symbol);
+    if(DEBUG_IGNORES) {
+      dumpIgnoresOnce();
+    }
 
+    if (extendedIfSymbolsOnly) {
+      String uniSymbol;
+      UnifiedName uniName = (UnifiedName) getUniqNameMap().get(symbol);
+      if(null!=uniName) {
+        uniSymbol=uniName.getUni();
+      } else {
+        uniSymbol=symbol;
+      }
+      if(!extendedIfSymbols.contains(uniSymbol)) {
+          if(DEBUG_IGNORES) {
+              System.err.println("Ignore Impl !extended: "+uniSymbol+": "+uniName);
+          }
+          return true;
+      }
+    }
+        
     // Simple case; the entire symbol is in the ignore table.
     if (ignores.contains(symbol)) {
-      // System.err.println("Ignore Impl Simple: "+symbol);
-      // dumpIgnores();
+      if(DEBUG_IGNORES) {
+          System.err.println("Ignore Impl ignores: "+symbol);
+      }
       return true;
     }
 
@@ -612,7 +653,9 @@ public class JavaConfiguration {
       Pattern regexp = (Pattern)iter.next();
       Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
-        // System.err.println("Ignore Impl RexEx: "+symbol);
+        if(DEBUG_IGNORES) {
+            System.err.println("Ignore Impl RexEx: "+symbol);
+        }
         return true;
       }
     }
@@ -628,7 +671,9 @@ public class JavaConfiguration {
           // Special case as this is most often likely to be the case. 
           // Unignores are not used very often.
           if(unignores.size() == 0) {
-            // System.err.println("Ignore Impl unignores==0: "+symbol);
+            if(DEBUG_IGNORES) {
+                System.err.println("Ignore Impl unignores==0: "+symbol);
+            }
             return true;
           }
          	  
@@ -643,7 +688,9 @@ public class JavaConfiguration {
           }
          	  
           if (!unignoreFound)
-            // System.err.println("Ignore Impl !unignore: "+symbol);
+            if(DEBUG_IGNORES) {
+                System.err.println("Ignore Impl !unignore: "+symbol);
+            }
             return true;
         }
       }
@@ -798,8 +845,11 @@ public class JavaConfiguration {
       // because ReturnedArrayLength changes them.
     } else if (cmd.equalsIgnoreCase("ArgumentIsString")) {
       readArgumentIsString(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("IgnoreExtendedInterfaceSymbols")) {
-      readIgnoreExtendedInterfaceSymbols(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbols")) {
+      readExtendedInterfaceSymbols(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsOnly")) {
+      extendedIfSymbolsOnly=true;
+      readExtendedInterfaceSymbols(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Ignore")) {
       readIgnore(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Unignore")) {
@@ -1000,7 +1050,7 @@ public class JavaConfiguration {
     }
   }
 
-  protected void readIgnoreExtendedInterfaceSymbols(StringTokenizer tok, String filename, int lineNo) {
+  protected void readExtendedInterfaceSymbols(StringTokenizer tok, String filename, int lineNo) {
     File javaFile;
     BufferedReader javaReader;
     try {
@@ -1024,15 +1074,8 @@ public class JavaConfiguration {
         return;
     }
 
-    Set set = parser.getParsedEnumNames();
-    for(Iterator iter = set.iterator(); iter.hasNext(); ) {
-        ignoresIf.add((String) iter.next());
-    }
-    System.out.println("Functions");
-    set = parser.getParsedFunctionNames();
-    for(Iterator iter = set.iterator(); iter.hasNext(); ) {
-        ignoresIf.add((String) iter.next());
-    }
+    extendedIfSymbols.addAll(parser.getParsedEnumNames());
+    extendedIfSymbols.addAll(parser.getParsedFunctionNames());
   }
 
   protected void readIgnore(StringTokenizer tok, String filename, int lineNo) {
@@ -1054,7 +1097,6 @@ public class JavaConfiguration {
       Pattern pattern = (Pattern) ignoreMap.get(regex);
       ignoreMap.remove(regex);
       ignores.remove(pattern);
-      ignoresIf.remove(pattern.toString());
 
       // If the pattern wasn't registered before, then make sure we have a 
       // valid pattern instance to put into the unignores set.

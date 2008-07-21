@@ -50,7 +50,8 @@ public class GLExtensionNames {
     // Pass-3 Emit
 
     public static final String[] extensionsARB = { "ARB", "GL2", "OES",  "OML" };
-    public static final String[] extensionsVEN = { "AMD",
+    public static final String[] extensionsVEN = { "3DFX", 
+                                                   "AMD",
                                                    "APPLE",
                                                    "ATI",
                                                    "EXT",
@@ -142,6 +143,10 @@ public class GLExtensionNames {
     }
     public static final boolean isExtensionVEN(String str, boolean isGLFunc) {
         return isExtension(extensionsVEN, str, isGLFunc);
+    }
+    public static final boolean isExtension(String str, boolean isGLFunc) {
+        return isExtension(extensionsARB, str, isGLFunc) || 
+               isExtension(extensionsVEN, str, isGLFunc);
     }
 
     public static final int getFuncNamePermutationNumber(String name) {

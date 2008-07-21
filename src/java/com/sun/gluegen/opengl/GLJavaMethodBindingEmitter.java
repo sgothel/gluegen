@@ -66,7 +66,6 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
           emitter);
     this.bufferObjectVariant = bufferObjectVariant;
     this.glEmitter=emitter;
-    setCommentEmitter(new WrappedMethodCommentEmitter());
   }
 
   public GLJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap,
@@ -75,7 +74,6 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     super(methodToWrap);
     this.bufferObjectVariant = bufferObjectVariant;
     this.glEmitter=emitter;
-    setCommentEmitter(new WrappedMethodCommentEmitter());
   }
 
   public GLJavaMethodBindingEmitter(GLJavaMethodBindingEmitter methodToWrap) {
@@ -101,24 +99,5 @@ public class GLJavaMethodBindingEmitter extends ProcAddressJavaMethodBindingEmit
     }
 
     return name;
-  }
-  /** This class emits the comment for the wrapper method */
-  public class WrappedMethodCommentEmitter extends ProcAddressJavaMethodBindingEmitter.WrappedMethodCommentEmitter {
-    protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
-      if(null!=glEmitter) {
-          GLUnifiedName uniName = (GLUnifiedName) glEmitter.getFuncNameMap().get(binding.getCSymbol().getName());
-          if(null!=uniName) {
-              writer.print("- Alias for: <br> <code> ");
-              writer.print(binding.getCSymbol().getType().toString(uniName.getOrigStringList(", "), tagNativeBinding));
-              writer.print(" </code> ");
-              return ; // done
-          }
-      }
-      writer.print(": <br> ");
-      super.emitBindingCSignature(binding, writer);
-    }
-    protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
-      writer.print("Entry point (through function pointer) to C language function ");
-    }
   }
 }

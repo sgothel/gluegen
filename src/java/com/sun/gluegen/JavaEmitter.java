@@ -622,7 +622,16 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
-    // nothing to do ..
+    for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
+      FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
+      String name = fsOrig.getName();
+      UnifiedName uniName = UnifiedName.getOrPut(cfg.getUniqNameMap(), name);
+      String renamedName = cfg.getJavaMethodRename(fsOrig.getName());
+      if(null!=renamedName) {
+        uniName.setUni(renamedName);
+        uniName.remapAllNames(cfg.getUniqNameMap());
+      }
+    }
   }
 
   /**
@@ -760,9 +769,18 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
+    if(name.startsWith("GLXHyperpipeConfig")) {
+        System.err.println("XXXX 1 GLXHyperpipeConfig");
+    }
     if (cfg.shouldIgnoreInInterface(name)) {
+        if(name.startsWith("GLXHyperpipeConfig")) {
+            System.err.println("XXXX 2 GLXHyperpipeConfig .. dropped");
+        }
       return;
     }
+        if(name.startsWith("GLXHyperpipeConfig")) {
+            System.err.println("XXXX 3 GLXHyperpipeConfig .. taken");
+        }
 
     Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structType, 0));
     JavaType containingType = typeToJavaType(containingCType, false, null);

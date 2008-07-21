@@ -100,7 +100,7 @@ public class GLEmitter extends ProcAddressEmitter
         }
         if(null==obj || !(obj instanceof DefineEntry)) return false;
         DefineEntry de = (DefineEntry) obj;
-        return name.equals(de.name) &&
+        return name.getUni().equals(de.name.getUni()) &&
                type.equals(de.type) &&
                value.equals(de.value);
     }
@@ -130,8 +130,8 @@ public class GLEmitter extends ProcAddressEmitter
         return new String();
     }
 
-    public void addOrigName(String name) {
-        this.name.addOrig(name);
+    public void add(String name) {
+        this.name.add(name);
     }
     public boolean isExtensionVEN() {
         return name.isExtensionVEN();
@@ -152,17 +152,42 @@ public class GLEmitter extends ProcAddressEmitter
 
   protected static boolean shouldIgnoreInInterface(GLUnifiedName name, GLConfiguration cfg) {
         boolean res = cfg.shouldIgnoreInInterface(name.getUni(), name.isUnique());
-        for (Iterator iter = name.getOrig().iterator(); !res && iter.hasNext(); ) {
-            res = cfg.shouldIgnoreInInterface((String)iter.next(), false);
-        }
+        if(JavaConfiguration.DEBUG_IGNORES) {
+            if(res) {
+              System.err.println("Ignore If Uni: "+name);
+            }
+        } /*
+        for (Iterator iter = name.getNameList().iterator(); !res && iter.hasNext(); ) {
+            String s = (String)iter.next();
+            res = cfg.shouldIgnoreInInterface(s, false);
+            if(JavaConfiguration.DEBUG_IGNORES) {
+                if(res) {
+                  System.err.println("Ignore If Ext: "+name+", "+s);
+                }
+            }
+        } */
         return res;
   }
 
   protected static boolean shouldIgnoreInImpl(GLUnifiedName name, GLConfiguration cfg) {
         boolean res = cfg.shouldIgnoreInImpl(name.getUni(), name.isUnique());
-        for (Iterator iter = name.getOrig().iterator(); !res && iter.hasNext(); ) {
-            res = cfg.shouldIgnoreInImpl((String)iter.next(), false);
+        if(JavaConfiguration.DEBUG_IGNORES) {
+          if(res) {
+              System.err.println("Ignore Impl Uni: "+name);
+          }
         }
+        /*
+        if(!cfg.extendedIfSymbolsOnly()) {
+            for (Iterator iter = name.getNameList().iterator(); !res && iter.hasNext(); ) {
+                String s = (String)iter.next();
+                res = cfg.shouldIgnoreInImpl(s, false);
+                if(JavaConfiguration.DEBUG_IGNORES) {
+                  if(res) {
+                      System.err.println("Ignore Impl Ext: "+name+", "+s);
+                  }
+                }
+            }
+        } */
         return res;
   }
 
@@ -178,14 +203,16 @@ public class GLEmitter extends ProcAddressEmitter
    */
   public void emitDefine(String name, String value, String optionalComment) throws Exception {
     if (cfg.allStatic() || cfg.emitInterface()) {
+      // unify ARB and map names
       DefineEntry deNew = new DefineEntry(name, value, optionalComment);
       DefineEntry deExist = (DefineEntry) defineMap.get(deNew.name.getUni());
       if(deExist!=null) {
+        // non ARB counterpart exist ..
         if(deNew.equals(deExist)) {
             if(deNew.getOptCommentString().length()>deExist.getOptCommentString().length()) {
                 deExist.optionalComment=deNew.optionalComment;
             }
-            deExist.addOrigName(name);
+            deExist.add(name);
             return; // done ..
         }
         deNew.name.resetUni();
@@ -207,6 +234,7 @@ public class GLEmitter extends ProcAddressEmitter
     if (cfg.allStatic() || cfg.emitInterface()) {
         Iterator/*<DefineEntry>*/ deIter = null; 
 
+        // unify VEN
         deIter = defineMap.values().iterator();
         while( deIter.hasNext() ) {
             DefineEntry de = (DefineEntry) deIter.next();
@@ -221,7 +249,7 @@ public class GLEmitter extends ProcAddressEmitter
                             deExist.optionalComment=deUni.optionalComment;
                         }
                         deIter.remove();
-                        deExist.addOrigName(de.name.getUni());
+                        deExist.add(de.name.getUni());
                     } else {
                         if( ((GLConfiguration)cfg).getDropUniqVendorExtensions(extSuffix) ) {
                             deIter.remove(); // remove non unified (uniq) vendor extension
@@ -239,6 +267,7 @@ public class GLEmitter extends ProcAddressEmitter
             }
         }
 
+        // add mapping and emit ..
         deIter = defineMap.values().iterator();
         while( deIter.hasNext() ) {
             DefineEntry de = (DefineEntry) deIter.next();
@@ -339,28 +368,31 @@ public class GLEmitter extends ProcAddressEmitter
   // Internals only below this point
   //
 
-  // map the uniName to the GLUnifiedName type
-  protected HashMap/*<String uniNameStr, GLUnifiedName uniName>*/ funcNameMap = new HashMap();
-  protected Map/*<String uniNameStr, GLUnifiedName uniName>*/ getFuncNameMap() {
-    return funcNameMap;
-  }
-
   protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
+
     String localCallingConvention = ((GLConfiguration)cfg).getLocalProcAddressCallingConvention4All();
     if(null==localCallingConvention) {
         localCallingConvention="GL_APIENTRY";
     }
     ArrayList newUniFuncs = new ArrayList();
-    HashSet   origFuncNames = new HashSet();
+
+    // 1st Pass: map function names and process ARB extensions
     for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
       FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
-      origFuncNames.add(fsOrig.getName());
-      GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
-      if (GLEmitter.shouldIgnoreInImpl(uniName, (GLConfiguration)cfg)) {
-          iter.remove(); // remove ignored function 
-      } else {
-          if( uniName.isExtensionARB() && 
-              !((GLConfiguration)cfg).skipProcAddressGen(fsOrig.getName()) ) {
+      String fname = fsOrig.getName();
+      GLUnifiedName uniName;
+      {
+          uniName = (GLUnifiedName) GLUnifiedName.getOrPut(cfg.getUniqNameMap(), fname);
+          String renamedName = cfg.getJavaMethodRename(fname);
+          if(null!=renamedName) {
+            fname = renamedName;
+            uniName.setUni(fname);
+            uniName.remapAllNames(cfg.getUniqNameMap());
+          }
+      }
+
+      if(GLExtensionNames.isExtensionARB(fname, true)) {
+          if(!((GLConfiguration)cfg).skipProcAddressGen(fname)) {
               FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
               if(!funcsSet.contains(fsUni)) {
                 newUniFuncs.add(fsUni); // add new uni name
@@ -368,14 +400,11 @@ public class GLEmitter extends ProcAddressEmitter
                                    "\n\tARB: "+fsOrig+
                                    "\n\tUNI: "+fsUni);
               } else {
-                uniName.addOrig(uniName.getUni()); // the original name w/o extension
                 System.err.println("INFO: Dub ARB Normalized Function:"+
                                    "\n\tARB: "+fsOrig+
                                    "\n\tDUB: "+fsUni);
               }
-              if(!funcNameMap.containsKey(uniName.getUni())) {
-                  funcNameMap.put(uniName.getUni(), uniName);
-              }
+
               iter.remove(); // remove ARB function
               // make the function being dynamical fetched, due to it's dynamic naming scheme
               ((GLConfiguration)cfg).addForceProcAddressGen(uniName.getUni());
@@ -384,44 +413,55 @@ public class GLEmitter extends ProcAddressEmitter
               ((GLConfiguration)cfg).addLocalProcAddressCallingConvention(uniName.getUni(), localCallingConvention);
           }
       }
+      if(JavaConfiguration.DEBUG_IGNORES) {
+          System.err.println("1st Pass: "+uniName); 
+      }
     }
     funcsSet.addAll(newUniFuncs);
 
+    // 2nd Pass: Unify VEN extensions
     for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
       FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
-      GLUnifiedName uniName = new GLUnifiedName(fsOrig.getName());
-      if(uniName.isExtensionVEN()) {
+      String fname = fsOrig.getName();
+      GLUnifiedName uniName = (GLUnifiedName)cfg.getUniqNameMap().get(fname);
+      if(null==uniName) {
+        throw new RuntimeException("no mapping found for: "+fname);
+      }
+
+      if(GLExtensionNames.isExtensionVEN(fname, true)) {
           uniName.normalizeVEN();
-          if (GLEmitter.shouldIgnoreInImpl(uniName, (GLConfiguration)cfg)) {
-              System.err.println("INFO: Ignored: Remove Function:"+ uniName);
-              iter.remove(); // remove ignored function 
-          } else {
-              String extSuffix = GLExtensionNames.getExtensionSuffix(fsOrig.getName(), true);
-              FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
-              if(funcsSet.contains(fsUni)) {
-                  GLUnifiedName uniNameMap = (GLUnifiedName) funcNameMap.get(uniName.getUni());
-                  if(null==uniNameMap) {
-                    funcNameMap.put(uniName.getUni(), uniName);
-                    uniNameMap=uniName;
-                  } else {
-                    uniNameMap.addOrig(fsOrig.getName()); // add the VEN extension name
-                  }
-                  if(origFuncNames.contains(uniName.getUni())) {
-                      uniNameMap.addOrig(uniName.getUni()); // the original name w/o extension
-                  }
-                  iter.remove(); // remove VEN function (already incl. as ARB)
-                  System.err.println("INFO: Dub VEN Function:"+
-                                     "\n\tVEN: "+fsOrig+
-                                     "\n\tDUB: "+fsUni);
-              } else if( ((GLConfiguration)cfg).getDropUniqVendorExtensions(extSuffix) ) {
-                iter.remove(); // remove non unified (uniq) vendor extension
-                System.err.println("INFO: Drop uniq VEN Function: "+fsOrig.getName());
-              }
+          uniName.remapAllNames(cfg.getUniqNameMap());
+          String extSuffix = GLExtensionNames.getExtensionSuffix(fname, true);
+          FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
+          if(funcsSet.contains(fsUni)) {
+              iter.remove(); // remove VEN function (already incl. as ARB)
+              System.err.println("INFO: Dub VEN Function:"+
+                                 "\n\tVEN: "+fsOrig+
+                                 "\n\tDUB: "+fsUni);
+          } else if( ((GLConfiguration)cfg).getDropUniqVendorExtensions(extSuffix) ) {
+            iter.remove(); // remove non unified (uniq) vendor extension
+            System.err.println("INFO: Drop uniq VEN Function: "+fsOrig.getName());
           }
+      }
+      if(JavaConfiguration.DEBUG_IGNORES) {
+          System.err.println("2nd Pass: "+uniName); 
       }
     }
 
-    super.validateFunctionsToBind(funcsSet);
+    // 3rd Pass: Remove all ignored functions
+    for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
+      FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
+      GLUnifiedName uniName = (GLUnifiedName)cfg.getUniqNameMap().get(fsOrig.getName());
+      if(null==uniName) {
+        throw new RuntimeException("no mapping found for: "+fsOrig.getName());
+      }
+      if (cfg.shouldIgnoreInImpl(fsOrig.getName())) {
+        if(JavaConfiguration.DEBUG_IGNORES) {
+            System.err.println("INFO: Ignored: Remove Function:"+ uniName);
+        }
+        iter.remove(); // remove ignored function 
+      }
+    }
   }
 
   

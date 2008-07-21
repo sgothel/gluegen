@@ -781,9 +781,18 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       emitEnding(emitter, writer);
     }
     protected void emitBeginning(FunctionEmitter emitter, PrintWriter writer) {
-      writer.print("Entry point to C language function: <br> ");
+      writer.print("Entry point to C language function: ");
     }
     protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
+      UnifiedName uniName = (UnifiedName) JavaConfiguration.getUniqNameMap().get(binding.getCSymbol().getName());
+      if(null!=uniName) {
+          writer.print("- Alias for: <br> <code> ");
+          writer.print(binding.getCSymbol().getType().toString(uniName.getOrigStringList(", "), tagNativeBinding));
+          writer.print(" </code> ");
+          return ; // done
+      }
+      writer.print(": <br> ");
+
       writer.print("<code> ");
       writer.print(binding.getCSymbol().toString(tagNativeBinding));
       writer.print(" </code> ");
