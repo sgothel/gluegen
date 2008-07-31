@@ -121,8 +121,8 @@ public class BuildComposablePipeline
     for (Iterator iter=publicMethodsRaw.iterator(); iter.hasNext(); ) {
         publicMethodsPlain.add(new PlainMethod((Method)iter.next())); }
 
-    (new DebugPipeline(pDir, pInterface)).emit(publicMethodsPlain);
-    (new TracePipeline(pDir, pInterface)).emit(publicMethodsPlain);
+    (new DebugPipeline(pDir, pInterface)).emit(publicMethodsPlain.iterator());
+    (new TracePipeline(pDir, pInterface)).emit(publicMethodsPlain.iterator());
   }
 
   //-------------------------------------------------------
@@ -161,11 +161,19 @@ public class BuildComposablePipeline
 
     public String toString() {
         Class[] args = m.getParameterTypes();
+        StringBuffer argsString = new StringBuffer();
+        argsString.append("(");
+        for (int i = 0; i < args.length; i++) {
+            if (i > 0)
+                argsString.append(", ");
+            argsString.append(args[i].getName());
+        }
+        argsString.append(")");
         return m.toString() +
                "\n\tname: " + m.getName() +
                "\n\tmods: " + m.getModifiers() +
                "\n\tretu: " + m.getReturnType() +
-               "\n\targs[" + args.length + "]: "+Arrays.toString(args);
+               "\n\targs[" + args.length + "]: "+argsString.toString();
     }
   }
 
@@ -206,7 +214,7 @@ public class BuildComposablePipeline
       this.outputDir = outputDir;
     }
 
-    public void emit(Iterable/*<Method>*/ methodsToWrap) throws IOException
+    public void emit(Iterator/*<Method>*/ methodsToWrap) throws IOException
     {
       String pipelineClassName = getPipelineName();
       this.file = new File(outputDir + File.separatorChar + pipelineClassName + ".java"); 
@@ -237,9 +245,9 @@ public class BuildComposablePipeline
                   
       constructorHook(output);
 
-      for (Iterator iter=methodsToWrap.iterator(); iter.hasNext(); )
+      while (methodsToWrap.hasNext())
       {
-        Method m = ((PlainMethod)iter.next()).getWrappedMethod();
+        Method m = ((PlainMethod)methodsToWrap.next()).getWrappedMethod();
         emitMethodDocComment(output, m);
         emitSignature(output, m);
         emitBody(output, m);        
