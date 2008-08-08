@@ -139,8 +139,8 @@ public class JavaConfiguration {
   private Map/*<String,String>*/ javaMethodRenames = new HashMap();
   private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
   private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
-  protected static Map/*<FuncName>,<UnifiedName>*/ uniqNameMap = new HashMap();
-  public static Map/*<UnifiedName>*/ getUniqNameMap() { return uniqNameMap; }
+  protected Map/*<String, UnifiedName>*/ uniqNameMap = new HashMap();
+  public Map/*<String, UnifiedName>*/ getUniqNameMap() { return uniqNameMap; }
 
 
   /** Reads the configuration file.

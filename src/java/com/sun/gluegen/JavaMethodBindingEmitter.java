@@ -93,6 +93,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   // represent an array of compound type wrappers
   private static final String COMPOUND_ARRAY_SUFFIX = "_buf_array_copy";
 
+  // Only present to provide more clear comments
+  private JavaConfiguration cfg;
+
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
                                   String runtimeExceptionType,
@@ -105,7 +108,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                   boolean forDirectBufferImplementation,
                                   boolean forIndirectBufferAndArrayImplementation,
                                   boolean isUnimplemented,
-                                  boolean isInterface)
+                                  boolean isInterface,
+                                  JavaConfiguration configuration)
   {
     super(output, isInterface);
     this.binding = binding;
@@ -124,6 +128,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     } else {
       setCommentEmitter(defaultInterfaceCommentEmitter);
     }
+    cfg = configuration;
   }
   
   public JavaMethodBindingEmitter(JavaMethodBindingEmitter arg) {
@@ -142,6 +147,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     prologue                      = arg.prologue;
     epilogue                      = arg.epilogue;
     returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
+    cfg                           = arg.cfg;
   }
 
   public final MethodBinding getBinding() { return binding; }
@@ -784,7 +790,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.print("Entry point to C language function: ");
     }
     protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {      
-      UnifiedName uniName = (UnifiedName) JavaConfiguration.getUniqNameMap().get(binding.getCSymbol().getName());
+      UnifiedName uniName = (UnifiedName) cfg.getUniqNameMap().get(binding.getCSymbol().getName());
       if(null!=uniName) {
           writer.print("- Alias for: <br> <code> ");
           writer.print(binding.getCSymbol().getType().toString(uniName.getOrigStringList(", "), tagNativeBinding));

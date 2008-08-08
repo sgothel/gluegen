@@ -73,7 +73,7 @@ public class GLEmitter extends ProcAddressEmitter
     super.beginEmission(controls);
   }
 
-  static class DefineEntry implements Cloneable {
+  class DefineEntry implements Cloneable {
     public DefineEntry(String namestr, String valuestr, String optionalComment) {
         this.name=new GLUnifiedName(namestr);
         this.value=getJavaValue(namestr, valuestr);
@@ -140,7 +140,7 @@ public class GLEmitter extends ProcAddressEmitter
         name.normalizeVEN();
     }
     public boolean shouldIgnoreInInterface(GLConfiguration cfg) {
-        return GLEmitter.shouldIgnoreInInterface(name, cfg);
+        return GLEmitter.this.shouldIgnoreInInterface(name, cfg);
     }
 
     protected GLUnifiedName name;
@@ -150,7 +150,7 @@ public class GLEmitter extends ProcAddressEmitter
     protected String optionalComment;
   }
 
-  protected static boolean shouldIgnoreInInterface(GLUnifiedName name, GLConfiguration cfg) {
+  protected boolean shouldIgnoreInInterface(GLUnifiedName name, GLConfiguration cfg) {
         boolean res = cfg.shouldIgnoreInInterface(name.getUni(), name.isUnique());
         if(JavaConfiguration.DEBUG_IGNORES) {
             if(res) {
@@ -169,7 +169,7 @@ public class GLEmitter extends ProcAddressEmitter
         return res;
   }
 
-  protected static boolean shouldIgnoreInImpl(GLUnifiedName name, GLConfiguration cfg) {
+  protected boolean shouldIgnoreInImpl(GLUnifiedName name, GLConfiguration cfg) {
         boolean res = cfg.shouldIgnoreInImpl(name.getUni(), name.isUnique());
         if(JavaConfiguration.DEBUG_IGNORES) {
           if(res) {
@@ -393,24 +393,29 @@ public class GLEmitter extends ProcAddressEmitter
 
       if(GLExtensionNames.isExtensionARB(fname, true)) {
           if(!((GLConfiguration)cfg).skipProcAddressGen(fname)) {
-              FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
-              if(!funcsSet.contains(fsUni)) {
-                newUniFuncs.add(fsUni); // add new uni name
-                System.err.println("INFO: New ARB Normalized Function:"+
-                                   "\n\tARB: "+fsOrig+
-                                   "\n\tUNI: "+fsUni);
-              } else {
-                System.err.println("INFO: Dub ARB Normalized Function:"+
-                                   "\n\tARB: "+fsOrig+
-                                   "\n\tDUB: "+fsUni);
-              }
+              // Do not process ignored functions with this logic
+              // because if we do then we will not be able to later
+              // tell that the function should be ignored
+              if (!((GLConfiguration)cfg).shouldIgnoreInImpl(fname)) {
+                  FunctionSymbol fsUni = new FunctionSymbol(uniName.getUni(), fsOrig.getType());
+                  if(!funcsSet.contains(fsUni)) {
+                      newUniFuncs.add(fsUni); // add new uni name
+                      System.err.println("INFO: New ARB Normalized Function:"+
+                                         "\n\tARB: "+fsOrig+
+                                         "\n\tUNI: "+fsUni);
+                  } else {
+                      System.err.println("INFO: Dub ARB Normalized Function:"+
+                                         "\n\tARB: "+fsOrig+
+                                         "\n\tDUB: "+fsUni);
+                  }
 
-              iter.remove(); // remove ARB function
-              // make the function being dynamical fetched, due to it's dynamic naming scheme
-              ((GLConfiguration)cfg).addForceProcAddressGen(uniName.getUni());
-              // Make sure we produce the right calling convention for
-              // the typedefed function pointers on Windows
-              ((GLConfiguration)cfg).addLocalProcAddressCallingConvention(uniName.getUni(), localCallingConvention);
+                  iter.remove(); // remove ARB function
+                  // make the function being dynamical fetched, due to it's dynamic naming scheme
+                  ((GLConfiguration)cfg).addForceProcAddressGen(uniName.getUni());
+                  // Make sure we produce the right calling convention for
+                  // the typedefed function pointers on Windows
+                  ((GLConfiguration)cfg).addLocalProcAddressCallingConvention(uniName.getUni(), localCallingConvention);
+              }
           }
       }
       if(JavaConfiguration.DEBUG_IGNORES) {

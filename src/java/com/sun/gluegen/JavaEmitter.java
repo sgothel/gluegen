@@ -431,7 +431,8 @@ public class JavaEmitter implements GlueEmitter {
                                    false,
                                    false,
                                    isUnimplemented,
-                                   signatureOnly);
+                                   signatureOnly,
+                                   cfg);
     switch (accessControl) {
       case ACC_PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
       case ACC_PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
@@ -496,7 +497,8 @@ public class JavaEmitter implements GlueEmitter {
                                        true,
                                        false,
                                        false,
-                                       false);
+                                       false,
+                                       cfg);
         emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
         if (cfg.allStatic()) {
           emitter.addModifier(JavaMethodBindingEmitter.STATIC);
@@ -523,7 +525,8 @@ public class JavaEmitter implements GlueEmitter {
                                          false,
                                          true,
                                          false,
-                                         false);
+                                         false,
+                                         cfg);
 
           emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
           if (cfg.allStatic()) {
@@ -958,7 +961,8 @@ public class JavaEmitter implements GlueEmitter {
                                              false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
-                                             false);
+                                             false,
+                                             cfg);
               emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
               emitter.emit();
 
@@ -976,7 +980,8 @@ public class JavaEmitter implements GlueEmitter {
                                              true, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
-                                             false);
+                                             false,
+                                             cfg);
               emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
               emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
               emitter.emit();
