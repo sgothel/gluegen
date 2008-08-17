@@ -71,7 +71,7 @@ public class PCPP {
     tok.wordChars('A', 'Z');
     tok.wordChars('0', '9');
     tok.wordChars('_', '_');
-    tok.wordChars('.', '.');
+    tok.wordChars('-', '.');
     tok.wordChars(128 + 32, 255);
     tok.whitespaceChars(0, ' ');
     tok.quoteChar('"');

@@ -229,12 +229,12 @@ public class JavaEmitter implements GlueEmitter {
       try {
         // see if it's a double or float
         double dVal = Double.parseDouble(value);
+        double absVal = Math.abs(dVal);
         // if constant is small enough, store it as a float instead of a double
-        if (dVal > Float.MIN_VALUE && dVal < Float.MAX_VALUE) {
-          return new Float((float)dVal);
+        if (absVal < Float.MIN_VALUE || absVal > Float.MAX_VALUE) {
+            return new Double(dVal);
         }
-        return new Double(dVal);
-        
+        return new Float((float) dVal);
       } catch (NumberFormatException e2) {            
         throw new RuntimeException(
           "Cannot emit define \""+name+"\": value \""+value+
@@ -281,7 +281,8 @@ public class JavaEmitter implements GlueEmitter {
         if (optionalComment != null && optionalComment.length() != 0) {
           javaWriter().println("  /** " + optionalComment + " */");
         }
-        javaWriter().println("  public static final " + type + " " + name + " = " + value + ";");
+        String suffix = (type.equals("float") ? "f" : "");
+        javaWriter().println("  public static final " + type + " " + name + " = " + value + suffix + ";");
       }
     }
   }
