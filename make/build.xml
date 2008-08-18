@@ -10,6 +10,10 @@
    -   clean:  clean all built
   -->
 <project name="GlueGen" basedir="." default="all">
+
+  <!-- This is the version of GleuGen you are building -->
+  <property name="gluegen_base_version" value="1.0b07"/>
+
    <!-- On jpackage.org-compatible systems, antlr.jar can be found in /usr/share/java -->
    <available property="antlr.jar" file="/usr/share/java/antlr.jar"
               value="/usr/share/java/antlr.jar"/>
@@ -477,7 +481,14 @@
     </jar>
 
     <!-- Build gluegen-rt.jar. -->
-    <jar destfile="${build}/gluegen-rt.jar">
+    <copy file="Manifest-rt"
+          tofile="${build}/Manifest-rt.temp"
+          overwrite="true">
+        <filterset>
+            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+        </filterset>
+    </copy>
+    <jar destfile="${build}/gluegen-rt.jar" manifest="${build}/Manifest-rt.temp">
       <fileset dir="${classes}">
         <include name="com/sun/gluegen/runtime/*.class" />
         <include name="com/sun/gluegen/runtime/opengl/*.class" />
