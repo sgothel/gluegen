@@ -245,9 +245,9 @@ public class PCPP {
         if (nextTok != requiredToken) {
             String msg = "Expected token '" + requiredToken + "' but got ";
             switch (nextTok) {
-            case StreamTokenizer.TT_EOF: msg += "<EOF>"; break;
-            case StreamTokenizer.TT_EOL: msg += "<EOL>"; break;    
-            default: msg += "'" + curTokenAsString() + "'"; break;    
+                case StreamTokenizer.TT_EOF: msg += "<EOF>"; break;
+                case StreamTokenizer.TT_EOL: msg += "<EOL>"; break;    
+                default: msg += "'" + curTokenAsString() + "'"; break;    
             }
             msg += " at file " + filename() + ", line " + lineNumber();
             throw new IOException(msg);
@@ -315,7 +315,12 @@ public class PCPP {
             } else {
                 // Output white space plus current token, handling #defines
                 // (though not properly -- only handling #defines to constants and the empty string)
-                print(" ");
+                
+                // !!HACK!! - print space only for word tokens. This way multicharacter
+                // operators such as ==, != etc. are property printed. 
+                if (tok == StreamTokenizer.TT_WORD) {
+                    print(" ");
+                }
                 String s = curTokenAsString();
                 String newS = (String) defineMap.get(s);
                 if (newS == null) {
@@ -403,91 +408,85 @@ public class PCPP {
         // FOO" where FOO isn't defined), then don't actually alter the definition
         // map.
         debugPrint(true, "#define " + name);
-        if (enabled())
-            {
-                boolean emitDefine = true;
+        if (enabled()) {
+            boolean emitDefine = true;
      
-                // Handle #definitions to nothing or to a constant value
-                int sz = values.size();
-                if (sz == 0) {
-                    // definition to nothing, like "#define FOO"
-                    String oldDef = (String)defineMap.put(name, "");
+            // Handle #definitions to nothing or to a constant value
+            int sz = values.size();
+            if (sz == 0) {
+                // definition to nothing, like "#define FOO"
+                String oldDef = (String) defineMap.put(name, "");
+                if (oldDef != null) {
+                    System.err.println("WARNING: \"" + name + "\" redefined from \"" +
+                                       oldDef + "\" to \"\"");
+                }
+                // We don't want to emit the define, because it would serve no purpose
+                // and cause GlueGen errors (confuse the GnuCParser)
+                emitDefine = false;
+                //System.out.println("//---DEFINED: " + name + "to \"\"");
+            } else if (sz == 1) {        
+                // See whether the value is a constant
+                String value = (String) values.get(0);
+                if (isConstant(value)) {           
+                    // Value is numeric constant like "#define FOO 5".
+                    // Put it in the #define map
+                    String oldDef = (String)defineMap.put(name, value);
                     if (oldDef != null) {
                         System.err.println("WARNING: \"" + name + "\" redefined from \"" +
-                                           oldDef + "\" to \"\"");
+                                           oldDef + "\" to \"" + value + "\"");
                     }
-                    // We don't want to emit the define, because it would serve no purpose
-                    // and cause GlueGen errors (confuse the GnuCParser)
-                    emitDefine = false;
-                    //System.out.println("//---DEFINED: " + name + "to \"\"");
-                } else if (sz == 1) {        
-                    // See whether the value is a constant
-                    String value = (String) values.get(0);
-                    if (isConstant(value)) {           
-                        // Value is numeric constant like "#define FOO 5".
-                        // Put it in the #define map
-                        String oldDef = (String)defineMap.put(name, value);
-                        if (oldDef != null) {
-                            System.err.println("WARNING: \"" + name + "\" redefined from \"" +
-                                               oldDef + "\" to \"" + value + "\"");
-                        }
-                        //System.out.println("//---DEFINED: " + name + " to \"" + value + "\"");
+                    //System.out.println("//---DEFINED: " + name + " to \"" + value + "\"");
+                } else {
+                    // Value is a symbolic constant like "#define FOO BAR".
+                    // Try to look up the symbol's value
+                    String newValue = resolveDefine(value, true);
+                    if (newValue != null) {
+                        // Set the value to the value of the symbol.
+                        //
+                        // TO DO: Is this correct? Why not output the symbol unchanged?
+                        // I think that it's a good thing to see that some symbols are
+                        // defined in terms of others. -chris
+                        values.set(0, newValue);
                     } else {
-                        // Value is a symbolic constant like "#define FOO BAR".
-                        // Try to look up the symbol's value
-                        String newValue = resolveDefine(value, true);
-                        if (newValue != null) {
-                            // Set the value to the value of the symbol.
-                            //
-                            // TO DO: Is this correct? Why not output the symbol unchanged?
-                            // I think that it's a good thing to see that some symbols are
-                            // defined in terms of others. -chris
-                            values.set(0, newValue);
-                        }
-                        else
-                            {
-                                // Still perform textual replacement
-                                defineMap.put(name, value);
-                                nonConstantDefines.add(name);
-                                emitDefine = false;
-                            }
+                        // Still perform textual replacement
+                        defineMap.put(name, value);
+                        nonConstantDefines.add(name);
+                        emitDefine = false;
                     }
                 }
-                else
-                    {
-                        // Non-constant define; try to do reasonable textual substitution anyway
-                        // (FIXME: should identify some of these, like (-1), as constants)
-                        emitDefine = false;
-                        StringBuffer val = new StringBuffer();
-                        for (int i = 0; i < sz; i++) {
-                            if (i != 0) {
-                                val.append(" ");
-                            }
-                            val.append(resolveDefine((String) values.get(i), false));
-                        }
-                        if (defineMap.get(name) != null) {
-                            // This is probably something the user should investigate.
-                            throw new RuntimeException("Cannot redefine symbol \"" + name +
-                                                       " from \"" + defineMap.get(name) + "\" to non-constant " +
-                                                       " definition \"" + val.toString() + "\"");
-                        }
-                        defineMap.put(name, val.toString());
-                        nonConstantDefines.add(name);
-                    }        
-      
-                if (emitDefine)
-                    {
-                        // Print name and value
-                        print("# define ");
-                        print(name);
-                        for (Iterator iter = values.iterator(); iter.hasNext(); ) {
-                            print(" ");
-                            print((String) iter.next());
-                        }
-                        println();
+            } else {
+                // Non-constant define; try to do reasonable textual substitution anyway
+                // (FIXME: should identify some of these, like (-1), as constants)
+                emitDefine = false;
+                StringBuffer val = new StringBuffer();
+                for (int i = 0; i < sz; i++) {
+                    if (i != 0) {
+                        val.append(" ");
                     }
+                    val.append(resolveDefine((String) values.get(i), false));
+                }
+                if (defineMap.get(name) != null) {
+                    // This is probably something the user should investigate.
+                    throw new RuntimeException("Cannot redefine symbol \"" + name +
+                                               " from \"" + defineMap.get(name) + "\" to non-constant " +
+                                               " definition \"" + val.toString() + "\"");
+                }
+                defineMap.put(name, val.toString());
+                nonConstantDefines.add(name);
+            }        
+      
+            if (emitDefine) {
+                // Print name and value
+                print("# define ");
+                print(name);
+                for (Iterator iter = values.iterator(); iter.hasNext(); ) {
+                    print(" ");
+                    print((String) iter.next());
+                }
+                println();
+            }
 
-            } // end if (enabled())
+        } // end if (enabled())
     
         //System.err.println("OUT HANDLE_DEFINE: " + name);
     }
@@ -515,8 +514,7 @@ public class PCPP {
     private boolean checkDecimal(String s) {
         try {
             Float.valueOf(s);
-        }
-        catch (NumberFormatException e) {
+        } catch (NumberFormatException e) {
             // not parsable as a number
             return false;
         }
@@ -616,125 +614,121 @@ public class PCPP {
             tok = nextToken(true);          
             //System.out.println("-- READ: [" + (tok == StreamTokenizer.TT_EOL ? "<EOL>" :curTokenAsString()) + "]"); 
             switch (tok) {
-            case '(':
-                ++openParens;
-                //System.out.println("OPEN PARENS = " + openParens);
-                ifValue = ifValue && handleIfRecursive(true);
-                break;
-            case ')':
-                --openParens;
-                //System.out.println("OPEN PARENS = " + openParens);
-                break;
-            case '!':
-                {
-                    //System.out.println("HANDLE_IF_RECURSIVE HANDLING !");
-                    boolean rhs = handleIfRecursive(false);
-                    ifValue = !rhs;
-                    //System.out.println("HANDLE_IF_RECURSIVE HANDLED OUT !, RHS = " + rhs);
-                }
-                break;
-            case '&':        
-                {
-                    nextRequiredToken('&');
-                    //System.out.println("HANDLE_IF_RECURSIVE HANDLING &&, LHS = " + ifValue);
-                    boolean rhs = handleIfRecursive(true);
-                    //System.out.println("HANDLE_IF_RECURSIVE HANDLED &&, RHS = " + rhs);
-                    ifValue = ifValue && rhs;
-                }
-                break;
-            case '|':
-                {
-                    nextRequiredToken('|');
-                    //System.out.println("HANDLE_IF_RECURSIVE HANDLING ||, LHS = " + ifValue);
-                    boolean rhs = handleIfRecursive(true);
-                    //System.out.println("HANDLE_IF_RECURSIVE HANDLED ||, RHS = " + rhs);
-                    ifValue = ifValue || rhs;
-                }
-                break;
-            case '>':
-                {
-                    // NOTE: we don't handle expressions like this properly
-                    boolean rhs = handleIfRecursive(true);
-                    ifValue = false;
-                }
-                break;
-            case '<':
-                {
-                    // NOTE: we don't handle expressions like this properly
-                    boolean rhs = handleIfRecursive(true);
-                    ifValue = false;
-                }
-                break;
-            case '=':
-                {
-                    // NOTE: we don't handle expressions like this properly
-                    boolean rhs = handleIfRecursive(true);
-                    ifValue = false;
-                }
-                break;
-            case StreamTokenizer.TT_WORD: 
-                {
-                    String word = curTokenAsString();
-                    if (word.equals("defined")) {
-                        // Handle things like #if defined(SOMESYMBOL)
-                        nextRequiredToken('(');
-                        String symbol = nextWord();
-                        boolean isDefined = defineMap.get(symbol) != null;
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING defined(" + symbol + ") = " + isDefined);
-                        ifValue = ifValue && isDefined;
-                        nextRequiredToken(')');
+                case '(':
+                    ++openParens;
+                    //System.out.println("OPEN PARENS = " + openParens);
+                    ifValue = ifValue && handleIfRecursive(true);
+                    break;
+                case ')':
+                    --openParens;
+                    //System.out.println("OPEN PARENS = " + openParens);
+                    break;
+                case '!':
+                    {
+                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING !");
+                        boolean rhs = handleIfRecursive(false);
+                        ifValue = !rhs;
+                        //System.out.println("HANDLE_IF_RECURSIVE HANDLED OUT !, RHS = " + rhs);
                     }
-                    else {
-                        // Handle things like #if SOME_SYMBOL.
-                        String symbolValue = (String)defineMap.get(word);
-
-                        // See if the statement is "true"; i.e., a non-zero expression
-                        if (symbolValue != null) {
-                            // The statement is true if the symbol is defined and is a constant expression
-                            return (!nonConstantDefines.contains(word));
+                    break;
+                case '&':        
+                    {
+                        nextRequiredToken('&');
+                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING &&, LHS = " + ifValue);
+                        boolean rhs = handleIfRecursive(true);
+                        //System.out.println("HANDLE_IF_RECURSIVE HANDLED &&, RHS = " + rhs);
+                        ifValue = ifValue && rhs;
+                    }
+                    break;
+                case '|':
+                    {
+                        nextRequiredToken('|');
+                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING ||, LHS = " + ifValue);
+                        boolean rhs = handleIfRecursive(true);
+                        //System.out.println("HANDLE_IF_RECURSIVE HANDLED ||, RHS = " + rhs);
+                        ifValue = ifValue || rhs;
+                    }
+                    break;
+                case '>':
+                    {
+                        // NOTE: we don't handle expressions like this properly
+                        boolean rhs = handleIfRecursive(true);
+                        ifValue = false;
+                    }
+                    break;
+                case '<':
+                    {
+                        // NOTE: we don't handle expressions like this properly
+                        boolean rhs = handleIfRecursive(true);
+                        ifValue = false;
+                    }
+                    break;
+                case '=':
+                    {
+                        // NOTE: we don't handle expressions like this properly
+                        boolean rhs = handleIfRecursive(true);
+                        ifValue = false;
+                    }
+                    break;
+                case StreamTokenizer.TT_WORD: 
+                    {
+                        String word = curTokenAsString();
+                        if (word.equals("defined")) {
+                            // Handle things like #if defined(SOMESYMBOL)
+                            nextRequiredToken('(');
+                            String symbol = nextWord();
+                            boolean isDefined = defineMap.get(symbol) != null;
+                            //System.out.println("HANDLE_IF_RECURSIVE HANDLING defined(" + symbol + ") = " + isDefined);
+                            ifValue = ifValue && isDefined;
+                            nextRequiredToken(')');
                         } else {
-                            // The statement is true if the symbol evaluates to a non-zero value
-                            // 
-                            // NOTE: This doesn't yet handle evaluable expressions like "#if
-                            // SOME_SYMBOL > 5" or "#if SOME_SYMBOL == 0", both of which are
-                            // valid syntax. It only handles numeric symbols like "#if 1"
+                            // Handle things like #if SOME_SYMBOL.
+                            String symbolValue = (String)defineMap.get(word);
 
-                            try {
-                                // see if it's in decimal form
-                                return Double.parseDouble(word) != 0;
-                            }
-                            catch (NumberFormatException nfe1) {
+                            // See if the statement is "true"; i.e., a non-zero expression
+                            if (symbolValue != null) {
+                                // The statement is true if the symbol is defined and is a constant expression
+                                return (!nonConstantDefines.contains(word));
+                            } else {
+                                // The statement is true if the symbol evaluates to a non-zero value
+                                // 
+                                // NOTE: This doesn't yet handle evaluable expressions like "#if
+                                // SOME_SYMBOL > 5" or "#if SOME_SYMBOL == 0", both of which are
+                                // valid syntax. It only handles numeric symbols like "#if 1"
+
                                 try {
-                                    // ok, it's not a valid decimal value, try hex/octal value
-                                    return Long.parseLong(word) != 0;
-                                }
-                                catch (NumberFormatException nfe2) {
+                                    // see if it's in decimal form
+                                    return Double.parseDouble(word) != 0;
+                                } catch (NumberFormatException nfe1) {
                                     try {
-                                        // ok, it's not a valid hex/octal value, try boolean
-                                        return Boolean.valueOf(word) == Boolean.TRUE;
-                                    }
-                                    catch (NumberFormatException nfe3) {
-                                        // give up; the symbol isn't a numeric or boolean value
-                                        return false;
+                                        // ok, it's not a valid decimal value, try hex/octal value
+                                        return Long.parseLong(word) != 0;
+                                    } catch (NumberFormatException nfe2) {
+                                        try {
+                                            // ok, it's not a valid hex/octal value, try boolean
+                                            return Boolean.valueOf(word) == Boolean.TRUE;
+                                        } catch (NumberFormatException nfe3) {
+                                            // give up; the symbol isn't a numeric or boolean value
+                                            return false;
+                                        }
                                     }
                                 }
-                            }
-                        }     
-                    } 
-                } // end case TT_WORD
-                break;
-            case StreamTokenizer.TT_EOL:
-                //System.out.println("HANDLE_IF_RECURSIVE HIT <EOL>!");
-                pushBackToken(); // so caller hits EOL as well if we're recursing
-                break; 
-            case StreamTokenizer.TT_EOF: 
-                throw new RuntimeException("Unexpected end of file while parsing " +
-                                           "#if statement at file " + filename() + ", line " + lineNumber());        
+                            }     
+                        } 
+                    } // end case TT_WORD
+                    break;
+                case StreamTokenizer.TT_EOL:
+                    //System.out.println("HANDLE_IF_RECURSIVE HIT <EOL>!");
+                    pushBackToken(); // so caller hits EOL as well if we're recursing
+                    break; 
+                case StreamTokenizer.TT_EOF: 
+                    throw new RuntimeException("Unexpected end of file while parsing " +
+                                               "#if statement at file " + filename() + ", line " + lineNumber());        
         
-            default:
-                throw new RuntimeException("Unexpected token (" + curTokenAsString() +
-                                           ") while parsing " + "#if statement at file " + filename() +
-                                           ", line " + lineNumber());        
+                default:
+                    throw new RuntimeException("Unexpected token (" + curTokenAsString() +
+                                               ") while parsing " + "#if statement at file " + filename() +
+                                               ", line " + lineNumber());        
             }
             //System.out.println("END OF WHILE: greedy = " + greedy + " parens = " +openParens + " not EOL = " + (tok != StreamTokenizer.TT_EOL) + " --> " + ((greedy && openParens >= 0) && tok != StreamTokenizer.TT_EOL));
         } while ((greedy && openParens >= 0) && tok != StreamTokenizer.TT_EOL);
@@ -770,23 +764,20 @@ public class PCPP {
         // FOO" where FOO isn't defined), then don't actually process the
         // #included file.
         debugPrint(true, "#include [" + filename + "]");
-        if (enabled())
-            {
-                // Look up file in known #include path
-                String fullname = findFile(filename);
-                //System.out.println("ACTIVE BLOCK, LOADING " + filename);
-                if (fullname == null) {
-                    System.err.println("WARNING: unable to find #include file \"" + filename + "\"");
-                    return;
-                }      
-                // Process this file in-line
-                Reader reader = new BufferedReader(new FileReader(fullname));
-                run(reader, fullname);
-            }
-        else
-            {
-                //System.out.println("INACTIVE BLOCK, SKIPPING " + filename);      
-            }
+        if (enabled()) {
+            // Look up file in known #include path
+            String fullname = findFile(filename);
+            //System.out.println("ACTIVE BLOCK, LOADING " + filename);
+            if (fullname == null) {
+                System.err.println("WARNING: unable to find #include file \"" + filename + "\"");
+                return;
+            }      
+            // Process this file in-line
+            Reader reader = new BufferedReader(new FileReader(fullname));
+            run(reader, fullname);
+        } else {
+            //System.out.println("INACTIVE BLOCK, SKIPPING " + filename);      
+        }
     }
 
     ////////////
