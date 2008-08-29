@@ -303,16 +303,9 @@
 
   <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os.2" />
 
-  <target name="gluegen.cpptasks.detect.os.osx.ppc" unless="gluegen.cpptasks.detected.os.2" if="isOSXPPC">
-    <property name="os.and.arch" value="macosx-ppc" />
-  </target>
-
-  <target name="gluegen.cpptasks.detect.os.osx.universal" unless="gluegen.cpptasks.detected.os.2" if="isOSXUniversal">
-    <property name="os.and.arch" value="macosx-universal" />
-  </target>
-
-  <target name="gluegen.cpptasks.detect.os.osx" depends="gluegen.cpptasks.detect.os.osx.ppc,gluegen.cpptasks.detect.os.osx.universal" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
+  <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.suffix" value="*lib" />
+    <property name="os.and.arch" value="macosx-universal" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.solaris.sparc" unless="gluegen.cpptasks.detected.os.2" if="isSolarisSparc">
