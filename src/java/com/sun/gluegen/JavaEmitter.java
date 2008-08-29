@@ -281,7 +281,10 @@ public class JavaEmitter implements GlueEmitter {
         if (optionalComment != null && optionalComment.length() != 0) {
           javaWriter().println("  /** " + optionalComment + " */");
         }
-        String suffix = (type.equals("float") ? "f" : "");
+        String suffix = "";
+        if (type.equals("float") && !value.endsWith("f")) {
+            suffix = "f";
+        }
         javaWriter().println("  public static final " + type + " " + name + " = " + value + suffix + ";");
       }
     }
