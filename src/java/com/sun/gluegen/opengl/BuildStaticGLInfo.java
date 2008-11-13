@@ -92,11 +92,11 @@ public class BuildStaticGLInfo
 {
   // Handles function pointer 
   protected static Pattern funcPattern =
-    Pattern.compile("^(GLAPI|extern)?(\\s*)(\\w+)(\\*)?(\\s+)(GLAPIENTRY|APIENTRY|WINAPI)?(\\s*)([w]?gl\\w+)\\s?(\\(.*)");
+    Pattern.compile("^(EGLAPI|GLAPI|extern)?(\\s*)(\\w+)(\\*)?(\\s+)(EGLAPIENTRY|GLAPIENTRY|APIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
   protected static Pattern associationPattern =
-    Pattern.compile("\\#ifndef ([W]?GL[X]?_[A-Za-z0-9_]+)");
+    Pattern.compile("\\#ifndef ([EW]?GL[X]?_[A-Za-z0-9_]+)");
   protected static Pattern definePattern =
-    Pattern.compile("\\#define ([W]?GL[X]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)");
+    Pattern.compile("\\#define ([EW]?GL[X]?_[A-Za-z0-9_]+)\\s*([A-Za-z0-9_]+)");
   // Maps function / #define names to the names of the extensions they're declared in
   protected Map declarationToExtensionMap = new HashMap();
   // Maps extension names to Set of identifiers (both #defines and
@@ -256,7 +256,15 @@ public class BuildStaticGLInfo
     output.println("   */");
     output.println("  public static String getFunctionAssociation(String glFunctionName)");
     output.println("  {");
-    output.println("    return (String)funcToAssocMap.get(glFunctionName);");
+    output.println("    String mappedName = null;");
+    output.println("    int  funcNamePermNum = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutationNumber(glFunctionName);");
+    output.println("    for(int i = 0; null==mappedName && i < funcNamePermNum; i++) {");
+    output.println("        String tmp = com.sun.gluegen.runtime.opengl.GLExtensionNames.getFuncNamePermutation(glFunctionName, i);");
+    output.println("        try {");
+    output.println("          mappedName = (String)funcToAssocMap.get(tmp);");
+    output.println("        } catch (Exception e) { }");
+    output.println("    }");
+    output.println("    return mappedName;");
     output.println("  }");
     output.println();
 

@@ -49,7 +49,7 @@ public class GLExtensionNames {
     //        if exist as an ARB extension with the same value.
     // Pass-3 Emit
 
-    public static final String[] extensionsARB = { "ARB", "GL2", "OES",  "OML" };
+    public static final String[] extensionsARB = { "ARB", "GL2", "OES", "KHR", "OML" };
     public static final String[] extensionsVEN = { "3DFX", 
                                                    "AMD",
                                                    "APPLE",
