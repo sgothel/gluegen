@@ -436,19 +436,26 @@
 
   <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir" unless="gluegen.compiler.present">
     <!-- compiler configuration -->
-    <compiler id="compiler.cfg.linux" name="gcc"/>
+    <compiler id="compiler.cfg.linux" name="gcc">
+    </compiler>
 
     <compiler id="compiler.cfg.linux.amd64" name="gcc">
       <compilerarg value="-fPIC"/>
     </compiler>
 
     <compiler id="compiler.cfg.solaris" name="suncc">
+      <defineset>
+        <define name="SOLARIS" />
+      </defineset>
     </compiler>
 
     <compiler id="compiler.cfg.solaris.sparcv9" name="suncc">
       <compilerarg value="-fast" />
       <compilerarg value="-xchip=ultra" />
       <compilerarg value="-xarch=v9a" />
+      <defineset>
+        <define name="SOLARIS" />
+      </defineset>
     </compiler>
 
     <compiler id="compiler.cfg.solaris.amd64" name="suncc">
@@ -456,6 +463,9 @@
       <compilerarg value="-xchip=opteron" />
       <compilerarg value="-xarch=amd64" />
   <!--      <compilerarg value="-xcache=64/64/2:1024/64/16" />   -->
+      <defineset>
+        <define name="SOLARIS" />
+      </defineset>
     </compiler>
 
     <compiler id="compiler.cfg.win32.mingw" name="gcc">
@@ -468,6 +478,7 @@
         <define name="_WINGDI_" /> 
         <define name="_STRICT_ANSI" /> 
         <define name="_JNI_IMPLEMENTATION_" />
+        <define name="MINGW" />
       </defineset>
     </compiler>
 
@@ -510,6 +521,10 @@
     </compiler>
 
     <compiler id="compiler.cfg.freebsd" name="gcc">
+      <defineset>
+        <define name="FREEBSD" />
+        <define name="BSD" />
+      </defineset>
     </compiler>
 
     <compiler id="compiler.cfg.hpux" name="aCC">
