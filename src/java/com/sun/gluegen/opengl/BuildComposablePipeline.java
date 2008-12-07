@@ -119,7 +119,12 @@ public class BuildComposablePipeline
     List/*<Method>*/ publicMethodsRaw   = Arrays.asList(classToComposeAround.getMethods());
     Set/*<Method>*/  publicMethodsPlain = new HashSet();
     for (Iterator iter=publicMethodsRaw.iterator(); iter.hasNext(); ) {
-        publicMethodsPlain.add(new PlainMethod((Method)iter.next())); }
+        Method method = (Method) iter.next();
+        // Don't hook methods which aren't real GL methods,
+        // such as the synthetic "getGL2ES2"
+        boolean runHooks = (method.getName().startsWith("gl"));
+        publicMethodsPlain.add(new PlainMethod(method, runHooks));
+    }
 
     (new DebugPipeline(pDir, pInterface)).emit(publicMethodsPlain.iterator());
     (new TracePipeline(pDir, pInterface)).emit(publicMethodsPlain.iterator());
@@ -130,12 +135,16 @@ public class BuildComposablePipeline
   protected class PlainMethod
   {
     Method m;
+    boolean runHooks;
 
-    public PlainMethod(Method m) {
+    public PlainMethod(Method m, boolean runHooks) {
         this.m=m;
+        this.runHooks = runHooks;
     }
 
     public Method getWrappedMethod() { return m; }
+
+    public boolean runHooks() { return runHooks; }
 
     public boolean equals(Object obj) {
         if(obj instanceof PlainMethod) {
@@ -241,16 +250,17 @@ public class BuildComposablePipeline
                   }
                   );
       
-      preMethodEmissionHook(output);      
+      preMethodEmissionHook(output);
                   
       constructorHook(output);
 
       while (methodsToWrap.hasNext())
       {
-        Method m = ((PlainMethod)methodsToWrap.next()).getWrappedMethod();
+        PlainMethod pm = (PlainMethod)methodsToWrap.next();
+        Method m = pm.getWrappedMethod();
         emitMethodDocComment(output, m);
         emitSignature(output, m);
-        emitBody(output, m);        
+        emitBody(output, m, pm.runHooks());
       }
 
       postMethodEmissionHook(output);
@@ -289,13 +299,15 @@ public class BuildComposablePipeline
       output.println(")");
     }
     
-    protected void emitBody(PrintWriter output, Method m)
+    protected void emitBody(PrintWriter output, Method m, boolean runHooks)
     {
       output.println("  {");
       output.print("    ");
       Class retType = m.getReturnType();
 
-      preDownstreamCallHook(output, m);
+      if (runHooks) {
+          preDownstreamCallHook(output, m);
+      }
       
       if (retType != Void.TYPE)
       {
@@ -309,7 +321,9 @@ public class BuildComposablePipeline
       output.print(getArgListAsString(m, false, true));
       output.println(");");
       
-      postDownstreamCallHook(output, m);
+      if (runHooks) {
+          postDownstreamCallHook(output, m);
+      }
 
       if (retType != Void.TYPE)
       {
