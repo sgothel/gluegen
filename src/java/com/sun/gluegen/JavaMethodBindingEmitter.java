@@ -235,8 +235,17 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected String erasedTypeString(JavaType type, boolean skipBuffers) {
     if (eraseBufferAndArrayTypes) {
-      if (type.isNIOBuffer() ||
-          type.isPrimitiveArray()) {
+      if (type.isNIOBuffer()) {
+        if (!skipBuffers) {
+          // Direct buffers and arrays sent down as Object (but
+          // returned as e.g. ByteBuffer)
+          return "Object";
+        }
+        if (!type.isNIOByteBuffer()) {
+          // Return buffer requiring change of view from ByteBuffer to e.g. LongBuffer
+          return "java.nio.ByteBuffer";
+        }
+      } else if (type.isPrimitiveArray()) {
         if (!skipBuffers) {
           // Direct buffers and arrays sent down as Object (but
           // returned as e.g. ByteBuffer)
@@ -514,7 +523,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
     if (!returnType.isVoid()) {
       if (returnType.isCompoundTypeWrapper() ||
-          returnType.isNIOByteBuffer()) {
+          returnType.isNIOBuffer()) {
         writer.println("java.nio.ByteBuffer _res;");
         needsResultAssignment = true;
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
@@ -736,7 +745,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println(";");
     } else if (returnType.isNIOBuffer()) {
       writer.println("    if (_res == null) return null;");
-      writer.println("    return _res.order(java.nio.ByteOrder.nativeOrder());");
+      writer.print("    return BufferFactory.nativeOrder(_res)");
+      if (!returnType.isNIOByteBuffer()) {
+        String returnTypeName = returnType.getName().substring("java.nio.".length());
+        writer.print(".as" + returnTypeName + "()");
+      }
+      writer.println(";");
     } else if (returnType.isArrayOfCompoundTypeWrappers()) {
       writer.println("    if (_res == null) return null;");
       writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");

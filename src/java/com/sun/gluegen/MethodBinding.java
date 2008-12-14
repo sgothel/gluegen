@@ -314,10 +314,11 @@ public class MethodBinding {
       signatureUsesCompoundTypeWrappers = true;
     }
 
-    if (javaReturnType.isNIOByteBuffer() ||
+    if (javaReturnType.isNIOBuffer() ||
         javaReturnType.isArrayOfCompoundTypeWrappers()) {
-      // Needs setting of byte order which can't be done easily from
-      // native code
+      // Needs setting of byte order and possibly viewing as a
+      // different buffer type which can't be done easily from native
+      // code
       signatureUsesNIO = true;
     }
 
