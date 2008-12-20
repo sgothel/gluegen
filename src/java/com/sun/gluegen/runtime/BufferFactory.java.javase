@@ -281,4 +281,19 @@ public class BufferFactory {
       throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
     }
   }
+
+  public static LongBuffer asPointerBuffer(ByteBuffer src) {
+    if (CPU.is32Bit()) {
+      // Must convert each pointer from 32-bit to 64-bit
+      IntBuffer buf = src.asIntBuffer();
+      int len = buf.capacity();
+      LongBuffer res = LongBuffer.wrap(new long[len]);
+      for (int i = 0; i < len; i++) {
+        res.put(i, buf.get(i));
+      }
+      return res;
+    } else {
+      return src.asLongBuffer();
+    }
+  }
 }

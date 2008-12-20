@@ -745,12 +745,22 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println(";");
     } else if (returnType.isNIOBuffer()) {
       writer.println("    if (_res == null) return null;");
-      writer.print("    return BufferFactory.nativeOrder(_res)");
+      writer.println("    BufferFactory.nativeOrder(_res);");
       if (!returnType.isNIOByteBuffer()) {
-        String returnTypeName = returnType.getName().substring("java.nio.".length());
-        writer.print(".as" + returnTypeName + "()");
+        // See whether we have to expand pointers to longs
+        if (getBinding().getCReturnType().pointerDepth() >= 2) {
+          if (!returnType.isNIOLongBuffer()) {
+            throw new RuntimeException("While emitting glue code for " + getName() +
+                                       ": can not legally make pointers opaque to anything but longs");
+          }
+          writer.println("    return BufferFactory.asPointerBuffer(_res);");
+        } else {
+          String returnTypeName = returnType.getName().substring("java.nio.".length());
+          writer.println("    return _res.as" + returnTypeName + "()");
+        }
+      } else {
+        writer.println("    return _res;");
       }
-      writer.println(";");
     } else if (returnType.isArrayOfCompoundTypeWrappers()) {
       writer.println("    if (_res == null) return null;");
       writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");

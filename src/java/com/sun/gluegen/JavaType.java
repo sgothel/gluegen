@@ -339,6 +339,10 @@ public class JavaType {
             (java.nio.Buffer.class.isAssignableFrom(clazz.getComponentType())));
   }
 
+  public boolean isNIOLongBuffer() {
+    return (clazz == java.nio.LongBuffer.class);
+  }
+
   public boolean isString() {
     return (clazz == java.lang.String.class);
   }
