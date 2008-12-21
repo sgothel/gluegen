@@ -756,7 +756,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           writer.println("    return BufferFactory.asPointerBuffer(_res);");
         } else {
           String returnTypeName = returnType.getName().substring("java.nio.".length());
-          writer.println("    return _res.as" + returnTypeName + "()");
+          writer.println("    return _res.as" + returnTypeName + "();");
         }
       } else {
         writer.println("    return _res;");
