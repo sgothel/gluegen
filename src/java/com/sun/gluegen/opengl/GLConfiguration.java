@@ -161,7 +161,7 @@ public class GLConfiguration extends ProcAddressConfiguration {
         prologue = prologue + "Disabled";
       }
 
-      prologue = prologue + "();";
+      prologue = prologue + "(true);";
 
       res.add(0, prologue);
 

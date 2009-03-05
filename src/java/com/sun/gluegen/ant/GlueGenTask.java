@@ -65,6 +65,7 @@ import org.apache.tools.ant.util.JavaEnvUtils;
  * <p>Usage:</p>
  * <pre>
     &lt;gluegen src="[source C file]" 
+                outputrootdir="[optional output root dir]"
                 includes="[optional directory pattern of include files to include]"
                 excludes="[optional directory pattern of include files to exclude]"
                 includeRefid="[optional FileSet or DirSet for include files]"
@@ -92,6 +93,11 @@ public class GlueGenTask extends Task
     private CommandlineJava gluegenCommandline;
 
     // =========================================================================
+    /**
+     * <p>The optional output root dir.</p>
+     */
+    private String outputRootDir;
+
     /**
      * <p>The name of the emitter class.</p>
      */
@@ -152,6 +158,18 @@ public class GlueGenTask extends Task
 
     // =========================================================================
     // ANT getters and setters
+
+    /**
+     * <p>Set the output root dir (optional).  This is called by ANT.</p>
+     * 
+     * @param  outputRootDir the optional output root dir
+     */
+    public void setOutputRootDir(String outputRootDir)
+    {
+        log( ("Setting output root dir: " + outputRootDir), Project.MSG_VERBOSE);
+        this.outputRootDir=outputRootDir;
+    }
+
     /**
      * <p>Set the emitter class name.  This is called by ANT.</p>
      * 
@@ -350,6 +368,8 @@ public class GlueGenTask extends Task
     private void validateAttributes() 
         throws BuildException
     {
+        // outputRootDir is optional ..
+
         // validate that the emitter class is set
         if(!isValid(emitter))
             throw new BuildException("Invalid emitter class name: " + emitter);
@@ -397,6 +417,11 @@ public class GlueGenTask extends Task
     {
         // NOTE:  GlueGen uses concatenated flag / value rather than two 
         //        separate arguments
+        
+        // add the output root dir
+        if(null!=outputRootDir && outputRootDir.trim().length()>0) {
+            gluegenCommandline.createArgument().setValue("-O" + outputRootDir);
+        }
         
         // add the emitter class name
         gluegenCommandline.createArgument().setValue("-E" + emitter);

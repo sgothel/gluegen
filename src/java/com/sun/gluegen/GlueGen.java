@@ -67,6 +67,7 @@ public class GlueGen implements GlueEmitterControls {
       Reader reader = null;
       String filename = null;
       String emitterClass = null;
+      String outputRootDir = null;
       java.util.List cfgFiles = new ArrayList();
 
       if (args.length == 0) {
@@ -82,6 +83,8 @@ public class GlueGen implements GlueEmitterControls {
             for (int j = 0; j < paths.length; j++) {
               includePaths.add(paths[j]);
             }
+          } else if (arg.startsWith("-O")) {
+            outputRootDir = arg.substring(2);
           } else if (arg.startsWith("-E")) {
             emitterClass = arg.substring(2);
           } else if (arg.startsWith("-C")) {
@@ -178,6 +181,16 @@ public class GlueGen implements GlueEmitterControls {
 
       for (Iterator iter = cfgFiles.iterator(); iter.hasNext(); ) {
         emit.readConfigurationFile((String) iter.next());
+      }
+
+      if(null!=outputRootDir && outputRootDir.trim().length()>0) {
+        if(emit instanceof JavaEmitter) {
+          // FIXME: hack to interfere with the *Configuration setting via commandlines
+          JavaEmitter jemit = (JavaEmitter)emit;
+          if(null!=jemit.getConfig()) {
+            jemit.getConfig().setOutputRootDir(outputRootDir);
+          }
+        }
       }
 
       // Provide MachineDescriptions to emitter

@@ -62,6 +62,12 @@ public class JavaConfiguration {
    * working directory.
    */
   private String javaOutputDir = ".";
+
+  /**
+   * Top output root directory for all generated files. Default is null, ie not to use it.
+   */
+  private String outputRootDir = null;
+
   /**
    * Directory into which generated native JNI code will be written. Default
    * is current working directory.
@@ -238,6 +244,8 @@ public class JavaConfiguration {
     }
   }
 
+  public void setOutputRootDir(String s) { outputRootDir=s; }
+
   /** Returns the package name parsed from the configuration file. */
   public String      packageName()                   { return packageName; }
   /** Returns the implementation package name parsed from the configuration file. */
@@ -247,9 +255,9 @@ public class JavaConfiguration {
   /** Returns the implementation class name parsed from the configuration file. */
   public String      implClassName()                 { return implClassName; }
   /** Returns the Java code output directory parsed from the configuration file. */
-  public String      javaOutputDir()                 { return javaOutputDir; }
+  public String      javaOutputDir()                 { return (null!=outputRootDir)?(outputRootDir + "/" + javaOutputDir):javaOutputDir; }
   /** Returns the native code output directory parsed from the configuration file. */
-  public String      nativeOutputDir()               { return nativeOutputDir; }
+  public String      nativeOutputDir()               { return (null!=outputRootDir)?(outputRootDir + "/" + nativeOutputDir):nativeOutputDir; }
   /** Returns whether the native code directory structure mirrors the Java hierarchy. */
   public boolean     nativeOutputUsesJavaHierarchy() { return nativeOutputUsesJavaHierarchy; }
   /** Returns whether the comment of a native method binding should include a @native tag. */
