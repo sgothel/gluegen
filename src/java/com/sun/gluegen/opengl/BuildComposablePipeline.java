@@ -827,8 +827,9 @@ public class BuildComposablePipeline
       }
       output.println("        case GL_OUT_OF_MEMORY: buf.append(\"GL_OUT_OF_MEMORY \"); break;");
       output.println("        case GL_NO_ERROR: throw new InternalError(\"Should not be treating GL_NO_ERROR as error\");");
-      output.println("        default: throw new InternalError(\"Unknown glGetError() return value: \" + err);");
+      output.println("        default: buf.append(\"Unknown glGetError() return value: \");");
       output.println("      }");
+      output.println("      buf.append(\"( \" + err + \" 0x\"+Integer.toHexString(err).toUpperCase() + \"), \");");
       output.println("    } while ((--recursionDepth >= 0) && (err = " +
                      getDownstreamObjectName() +
                      ".glGetError()) != GL_NO_ERROR);");
