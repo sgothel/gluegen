@@ -34,12 +34,13 @@
  * facility.
  */
 
-package com.sun.opengl.impl;
+package com.sun.nwi.impl;
 
 import java.lang.reflect.*;
-import javax.media.opengl.*;
+import javax.media.nwi.*;
 
-public final class GLReflection {
+public final class NWReflection {
+  public static final boolean DEBUG = Debug.debug("NWReflection");
 
   public static final boolean isClassAvailable(String clazzName) {
     try {
@@ -49,6 +50,13 @@ public final class GLReflection {
     return false;
   }
 
+  public static final Class getClass(String clazzName) {
+    try {
+        return Class.forName(clazzName);
+    } catch (Throwable e) { }
+    return null;
+  }
+
   public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes) {
     Class factoryClass = null;
     Constructor factory = null;
@@ -56,19 +64,19 @@ public final class GLReflection {
     try {
         factoryClass = Class.forName(clazzName);
         if (factoryClass == null) {
-          throw new GLUnsupportedException(clazzName + " not available");
+          throw new NWException(clazzName + " not available");
         }
         try {
             factory = factoryClass.getDeclaredConstructor( cstrArgTypes );
         } catch(NoSuchMethodException nsme) {
-          throw new GLUnsupportedException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
+          throw new NWException("Constructor: '" + clazzName + "("+cstrArgTypes+")' not found");
         }
         return factory;
     } catch (Throwable e) { 
-      if (Debug.debug("GLReflection")) {
+      if (DEBUG) {
           e.printStackTrace();
       }
-      throw new GLUnsupportedException(e);
+      throw new NWException(e);
     }
   }
 
@@ -83,7 +91,7 @@ public final class GLReflection {
         factory = getConstructor(clazzName, cstrArgTypes);
         return factory.newInstance( cstrArgs ) ;
     } catch (Exception e) {
-      throw new GLUnsupportedException(e);
+      throw new NWException(e);
     }
   }
 
