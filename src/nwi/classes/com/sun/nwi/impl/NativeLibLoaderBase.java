@@ -37,33 +37,77 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.opengl.impl.jawt;
+package com.sun.nwi.impl;
 
-import com.sun.opengl.impl.*;
-
-import java.awt.Toolkit;
+// FIXME: refactor Java SE dependencies
+//import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.HashSet;
 
-public class JAWTNativeLibLoader extends NativeLibLoader {
-  public static void loadAWTImpl() {
+public class NativeLibLoaderBase {
+  public interface LoaderAction {
+    /**
+     * Loads the library specified by libname. Optionally preloads the libraries specified by
+     * preload. The implementation should ignore, if the preload-libraries have already been
+     * loaded.
+     * @param libname the library to load
+     * @param preload the libraries to load before loading the main library if not null
+     * @param preloadIgnoreError true, if errors during loading the preload-libraries should be ignored 
+     */
+    void loadLibrary(String libname, String[] preload, 
+        boolean preloadIgnoreError);
+  }
+  
+  private static class DefaultAction implements LoaderAction {
+    public void loadLibrary(String libname, String[] preload,
+        boolean preloadIgnoreError) {
+      if (null!=preload) {
+        for (int i=0; i<preload.length; i++) {
+          try {
+            System.loadLibrary(preload[i]);
+          }
+          catch (UnsatisfiedLinkError e) {
+            if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
+              throw e;
+            }
+          }
+        }
+      }
+      System.loadLibrary(libname);
+    }
+  }
+
+  private static final HashSet loaded = new HashSet();
+  private static LoaderAction loaderAction = new DefaultAction();
+
+  public static void disableLoading() {
+    setLoadingAction(null);
+  }
+
+  public static void enableLoading() {
+    setLoadingAction(new DefaultAction());
+  }
+  
+  public static synchronized void setLoadingAction(LoaderAction action) {
+    loaderAction = action;
+  }
+
+  protected static synchronized void loadLibrary(String libname, String[] preload, 
+      boolean preloadIgnoreError) {
+    if (loaderAction != null && !loaded.contains(libname))
+    {
+      loaderAction.loadLibrary(libname, preload, preloadIgnoreError);    
+      loaded.add(libname);
+    }
+  }
+  
+  public static void loadNWI(final String ossuffix) {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        // Make sure that awt.dll is loaded before loading jawt.dll. Otherwise
-        // a Dialog with "awt.dll not found" might pop up.
-        // See http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4481947.
-        Toolkit.getDefaultToolkit();
-        
-        // Must pre-load JAWT on all non-Mac platforms to
-        // ensure references from jogl_awt shared object
-        // will succeed since JAWT shared object isn't in
-        // default library path
-        boolean isOSX = System.getProperty("os.name").equals("Mac OS X");
-        String[] preload = { "jawt" };
-
-        loadLibrary("jogl_awt", preload, !isOSX, false);
+        loadLibrary("nwi_"+ossuffix, null, false);
         return null;
       }
     });
