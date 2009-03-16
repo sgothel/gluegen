@@ -445,12 +445,20 @@ public class BuildComposablePipeline
                                !( 0!=(GEN_PROLOG_XOR_DOWNSTREAM&getMode()) && callPreDownstreamHook ) ;
       boolean hasResult = (retType != Void.TYPE);
 
-      if(!callDownstream && !emptyDownstreamAllowed()) {
-        throw new RuntimeException("Method "+m+" has no downstream ("+downstreamName+")");
+      if(!callDownstream) {
+        if(!emptyDownstreamAllowed()) {
+            throw new RuntimeException("Method "+m+" has no downstream ("+downstreamName+")");
+        }
       }
 
-      if(!callPreDownstreamHook && !callPostDownstreamHook && !callDownstream && !emptyMethodAllowed()) {
-        throw new RuntimeException("Method "+m+" is empty, no downstream ("+downstreamName+") nor prolog ("+prologNameOpt+").");
+      if(!callPreDownstreamHook && !callPostDownstreamHook && !callDownstream) {
+        if(!emptyMethodAllowed()) {
+            throw new RuntimeException("Method "+m+" is empty, no downstream ("+downstreamName+") nor prolog ("+prologNameOpt+").");
+        } else {
+            output.print("    if(DEBUG) { System.out.println(\"WARNING: No prolog, no downstream, empty: \"+");
+            printFunctionCallString(output, m);
+            output.println("); } ");
+        }
       }
 
       if (callPreDownstreamHook) {
@@ -539,7 +547,9 @@ public class BuildComposablePipeline
      * Called after the class headers have been generated, but before any
      * method wrappers have been generated.
      */
-    protected abstract void preMethodEmissionHook(PrintWriter output);    
+    protected void preMethodEmissionHook(PrintWriter output) {
+      output.println("  public static final boolean DEBUG = com.sun.opengl.impl.Debug.debug(\""+getOutputName()+"\");");
+    }
 
     /**
      * Emits the constructor for the pipeline; called after the preMethodEmissionHook.
@@ -642,7 +652,7 @@ public class BuildComposablePipeline
     protected int getMode() { return mode; }
 
     protected boolean emptyMethodAllowed() {
-        return false;
+        return true;
     }
     protected boolean emptyDownstreamAllowed() {
         return true;
@@ -650,6 +660,7 @@ public class BuildComposablePipeline
 
     protected void preMethodEmissionHook(PrintWriter output)
     {
+        super.preMethodEmissionHook(output);
     }
 
     protected void constructorHook(PrintWriter output) {
@@ -709,9 +720,9 @@ public class BuildComposablePipeline
       output.println(" * ");
       output.println("<PRE>");
       if(null!=prologNameOpt) {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL(), new "+prologNameOpt+"(drawable.getGL()) ) );");
+          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"(drawable.getGL(.getGL2ES2())) ) );");
       } else {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL() ) );");
+          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2() ) );");
       }
       output.println("</PRE>");
       output.println("*/");
@@ -768,6 +779,7 @@ public class BuildComposablePipeline
 
     protected void preMethodEmissionHook(PrintWriter output)
     {
+        super.preMethodEmissionHook(output);
     }
 
     protected void constructorHook(PrintWriter output) {
@@ -939,6 +951,7 @@ public class BuildComposablePipeline
 
     protected void preMethodEmissionHook(PrintWriter output)
     {
+        super.preMethodEmissionHook(output);
     }
 
     protected void constructorHook(PrintWriter output) {
@@ -1008,7 +1021,6 @@ public class BuildComposablePipeline
 
     protected void preDownstreamCallHook(PrintWriter output, Method m)
     {
-      Class[] params = m.getParameterTypes();
       if ( m.getName().equals("glEnd") || m.getName().equals("glEndList")) 
       {
         output.println("indent-=2;");
@@ -1019,24 +1031,9 @@ public class BuildComposablePipeline
         output.println("printIndent();");
       }
       
-      output.print("    print(\"" + m.getName() + "(\"");
-      for ( int i =0; i < params.length; i++ ) 
-      {
-        if ( params[i].isArray() ) {
-          output.print("+dumpArray(arg"+i+")");
-        } else {
-          if(params[i].equals(int.class)) {
-            output.println("+\"<"+params[i].getName()+"> 0x\"+Integer.toHexString(arg"+i+").toUpperCase()");
-          } else {
-            output.println("+\"<"+params[i].getName()+">\"+arg"+i);
-          }
-        }
-        if ( i < params.length-1) {
-          output.print("+\",\"");      
-        }
-      }
-      output.println("+\")\");");
-      output.print("    ");
+      output.print("    println(");
+          printFunctionCallString(output, m);
+      output.println(");");
     }
 
     protected boolean hasPostDownstreamCallHook(Method m) {
@@ -1061,4 +1058,23 @@ public class BuildComposablePipeline
     }
 
   } // end class TracePipeline
+  
+  public static final void printFunctionCallString(PrintWriter output, Method m) {
+      Class[] params = m.getParameterTypes();
+      output.print("    \"" + m.getName() + "(\"");
+      for ( int i =0; i < params.length; i++ ) 
+      {
+        if ( params[i].isArray() ) {
+            output.print("+\"<"+params[i].getName()+">\"");
+        } else if(params[i].equals(int.class)) {
+            output.print("+\"<"+params[i].getName()+"> 0x\"+Integer.toHexString(arg"+i+").toUpperCase()");
+        } else {
+            output.print("+\"<"+params[i].getName()+">\"+arg"+i);
+        }
+        if ( i < params.length-1) {
+          output.print("+\",\"");      
+        }
+      }
+      output.print("+\")\"");
+  }
 }
