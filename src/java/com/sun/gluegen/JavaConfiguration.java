@@ -1065,7 +1065,7 @@ public class JavaConfiguration {
       javaFile  = new File(tok.nextToken());
       javaReader = new BufferedReader(new FileReader(javaFile));
     } catch (FileNotFoundException e) {
-      System.err.println(e);
+      e.printStackTrace();
       return;
     }
 
@@ -1078,7 +1078,7 @@ public class JavaConfiguration {
     try {
         parser.compilationUnit();
     } catch (Exception e) {
-        System.err.println(e);
+        e.printStackTrace();
         return;
     }
 

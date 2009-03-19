@@ -375,7 +375,7 @@ public class BuildComposablePipeline
                   
       constructorHook(output);
 
-      output.println(strGLGetMethods);
+      emitGLGetMethods(output);
 
       while (methodsToWrap.hasNext())
       {
@@ -593,41 +593,31 @@ public class BuildComposablePipeline
     /** Emit a Javadoc comment for this pipeline class. */
     protected abstract void emitClassDocComment(PrintWriter output);
 
-    protected final static String strGLGetMethods = 
-        "  public  javax.media.opengl.GL getGL() {\n"+
-        "    return (javax.media.opengl.GL) this;\n"+
-        "  }\n"+
-        "  public  javax.media.opengl.GL2ES1 getGL2ES1() {\n"+
-        "    if(GLProfile.implementationOfGL2ES1(this)) {\n"+
-        "        return (javax.media.opengl.GL2ES1) this;\n"+
-        "    }\n"+
-        "    throw new GLException(\"Not a GL2ES1 implementation\");\n"+
-        "  }\n"+
-        "  public  javax.media.opengl.GL2 getGL2() {\n"+
-        "    if(GLProfile.implementationOfGL2(this)) {\n"+
-        "        return (javax.media.opengl.GL2) this;\n"+
-        "    }\n"+
-        "    throw new GLException(\"Not a GL2 implementation\");\n"+
-        "  }\n"+
-        "  public  javax.media.opengl.GL2ES2 getGL2ES2() {\n"+
-        "    if(GLProfile.implementationOfGL2ES2(this)) {\n"+
-        "        return (javax.media.opengl.GL2ES2) this;\n"+
-        "    }\n"+
-        "    throw new GLException(\"Not a GL2ES2 implementation\");\n"+
-        "  }\n"+
-        "  public  javax.media.opengl.GLES1 getGLES1() {\n"+
-        "    if(GLProfile.implementationOfGLES1(this)) {\n"+
-        "        return (javax.media.opengl.GLES1) this;\n"+
-        "    }\n"+
-        "    throw new GLException(\"Not a GLES1 implementation\");\n"+
-        "  }\n"+
-        "  public  javax.media.opengl.GLES2 getGLES2() {\n"+
-        "    if(GLProfile.implementationOfGLES2(this)) {\n"+
-        "        return (javax.media.opengl.GLES2) this;\n"+
-        "    }\n"+
-        "    throw new GLException(\"Not a GLES2 implementation\");\n"+
-        "  }";
+    /**
+     * Emits one of the getGL* methods.
+     */
+    protected void emitGLGetMethod(PrintWriter output, String type) {
+      output.println("  public javax.media.opengl." + type + " get" + type + "() {");
+      Class clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+      if (clazz.isAssignableFrom(baseInterfaceClass)) {
+        output.println("    return this;");
+      } else {
+        output.println("    throw new GLException(\"Not a " + type + " implementation\");");
+      }
+      output.println("  }");
+    }
 
+    /**
+     * Emits all of the getGL* methods.
+     */
+    protected void emitGLGetMethods(PrintWriter output) {
+      emitGLGetMethod(output, "GL");
+      emitGLGetMethod(output, "GL2");
+      emitGLGetMethod(output, "GLES1");
+      emitGLGetMethod(output, "GLES2");
+      emitGLGetMethod(output, "GL2ES1");
+      emitGLGetMethod(output, "GL2ES2");
+    }
   } // end class PipelineEmitter
 
   //-------------------------------------------------------
