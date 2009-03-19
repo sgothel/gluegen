@@ -117,8 +117,8 @@ public class JavaConfiguration {
    * converted to String args; value is List of Integer argument indices
    */
   private Map/*<String,List<Integer>>*/ argumentsAreString = new HashMap();
-  private Set/*<String>*/ extendedIfSymbols = new HashSet();
-  private boolean extendedIfSymbolsOnly=false;
+  private Set/*<String>*/ extendedIntfSymbols = new HashSet();
+  private boolean extendedIntfSymbolsOnly=false;
   private Set/*<Pattern>*/ ignores = new HashSet();
   private Map/*<String,Pattern>*/ ignoreMap = new HashMap();
   private Set/*<Pattern>*/ ignoreNots = new HashSet();
@@ -580,8 +580,8 @@ public class JavaConfiguration {
     return (String) parentClass.get(className);
   }
 
-  public boolean extendedIfSymbolsOnly() {
-    return extendedIfSymbolsOnly;
+  public boolean extendedIntfSymbolsOnly() {
+    return extendedIntfSymbolsOnly;
   }
 
   public static final boolean DEBUG_IGNORES = false;
@@ -595,8 +595,8 @@ public class JavaConfiguration {
   }
 
   public void dumpIgnores() {
-    System.err.println("Extended If: ");
-    for (Iterator iter = extendedIfSymbols.iterator(); iter.hasNext(); ) {
+    System.err.println("Extended Intf: ");
+    for (Iterator iter = extendedIntfSymbols.iterator(); iter.hasNext(); ) {
         System.err.println("\t"+(String)iter.next());
     }
     System.err.println("Ignores (All): ");
@@ -612,9 +612,9 @@ public class JavaConfiguration {
         dumpIgnoresOnce();
     }
     // Simple case; the entire symbol is in the interface ignore table.
-    if (extendedIfSymbols.contains(symbol)) {
+    if (extendedIntfSymbols.contains(symbol)) {
       if(DEBUG_IGNORES) {
-          System.err.println("Ignore If: "+symbol);
+          System.err.println("Ignore Intf: "+symbol);
       }
       return true;
     }
@@ -631,7 +631,7 @@ public class JavaConfiguration {
       dumpIgnoresOnce();
     }
 
-    if (extendedIfSymbolsOnly) {
+    if (extendedIntfSymbolsOnly) {
       String uniSymbol;
       UnifiedName uniName = (UnifiedName) getUniqNameMap().get(symbol);
       if(null!=uniName) {
@@ -639,7 +639,7 @@ public class JavaConfiguration {
       } else {
         uniSymbol=symbol;
       }
-      if(!extendedIfSymbols.contains(uniSymbol)) {
+      if(!extendedIntfSymbols.contains(uniSymbol)) {
           if(DEBUG_IGNORES) {
               System.err.println("Ignore Impl !extended: "+uniSymbol+": "+uniName);
           }
@@ -662,7 +662,7 @@ public class JavaConfiguration {
       Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
         if(DEBUG_IGNORES) {
-            System.err.println("Ignore Impl RexEx: "+symbol);
+            System.err.println("Ignore Impl RegEx: "+symbol);
         }
         return true;
       }
@@ -856,7 +856,7 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbols")) {
       readExtendedInterfaceSymbols(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsOnly")) {
-      extendedIfSymbolsOnly=true;
+      extendedIntfSymbolsOnly=true;
       readExtendedInterfaceSymbols(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Ignore")) {
       readIgnore(tok, filename, lineNo);
@@ -1082,8 +1082,8 @@ public class JavaConfiguration {
         return;
     }
 
-    extendedIfSymbols.addAll(parser.getParsedEnumNames());
-    extendedIfSymbols.addAll(parser.getParsedFunctionNames());
+    extendedIntfSymbols.addAll(parser.getParsedEnumNames());
+    extendedIntfSymbols.addAll(parser.getParsedFunctionNames());
   }
 
   protected void readIgnore(StringTokenizer tok, String filename, int lineNo) {

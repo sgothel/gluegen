@@ -154,7 +154,7 @@ public class GLEmitter extends ProcAddressEmitter
         boolean res = cfg.shouldIgnoreInInterface(name.getUni(), name.isUnique());
         if(JavaConfiguration.DEBUG_IGNORES) {
             if(res) {
-              System.err.println("Ignore If Uni: "+name);
+              System.err.println("Ignore Intf Uni: "+name);
             }
         } /*
         for (Iterator iter = name.getNameList().iterator(); !res && iter.hasNext(); ) {
@@ -162,7 +162,7 @@ public class GLEmitter extends ProcAddressEmitter
             res = cfg.shouldIgnoreInInterface(s, false);
             if(JavaConfiguration.DEBUG_IGNORES) {
                 if(res) {
-                  System.err.println("Ignore If Ext: "+name+", "+s);
+                  System.err.println("Ignore Intf Ext: "+name+", "+s);
                 }
             }
         } */
@@ -177,7 +177,7 @@ public class GLEmitter extends ProcAddressEmitter
           }
         }
         /*
-        if(!cfg.extendedIfSymbolsOnly()) {
+        if(!cfg.extendedIntfSymbolsOnly()) {
             for (Iterator iter = name.getNameList().iterator(); !res && iter.hasNext(); ) {
                 String s = (String)iter.next();
                 res = cfg.shouldIgnoreInImpl(s, false);
