@@ -176,10 +176,10 @@ public class BuildComposablePipeline
     for (Iterator iter=publicMethodsRaw.iterator(); iter.hasNext(); ) {
         Method method = (Method) iter.next();
         // Don't hook methods which aren't real GL methods,
-        // such as the synthetic "getGL2ES2"
+        // such as the synthetic "isGL2ES2" "getGL2ES2"
         String name = method.getName();
         boolean runHooks = name.startsWith("gl");
-        if (!name.startsWith("getGL") && !name.equals("toString")) {
+        if (!name.startsWith("getGL") && !name.startsWith("isGL") && !name.equals("toString")) {
             publicMethodsPlain.add(new PlainMethod(method, runHooks));
         }
     }
@@ -375,6 +375,7 @@ public class BuildComposablePipeline
                   
       constructorHook(output);
 
+      emitGLIsMethods(output);
       emitGLGetMethods(output);
 
       while (methodsToWrap.hasNext())
@@ -594,6 +595,34 @@ public class BuildComposablePipeline
     protected abstract void emitClassDocComment(PrintWriter output);
 
     /**
+     * Emits one of the isGL* methods.
+     */
+    protected void emitGLIsMethod(PrintWriter output, String type) {
+      output.println("  public boolean is" + type + "() {");
+      Class clazz = BuildComposablePipeline.getClass("javax.media.opengl." + type);
+      if (clazz.isAssignableFrom(baseInterfaceClass)) {
+        output.println("    return true;");
+      } else {
+        output.println("    return false;");
+      }
+      output.println("  }");
+    }
+
+    /**
+     * Emits all of the isGL* methods.
+     */
+    protected void emitGLIsMethods(PrintWriter output) {
+      emitGLIsMethod(output, "GL");
+      emitGLIsMethod(output, "GL2");
+      emitGLIsMethod(output, "GLES1");
+      emitGLIsMethod(output, "GLES2");
+      emitGLIsMethod(output, "GL2ES1");
+      emitGLIsMethod(output, "GL2ES2");
+      output.println("  public boolean isGLES() {");
+      output.println("    return isGLES2() || isGLES1();");
+      output.println("  }");
+    }
+    /**
      * Emits one of the getGL* methods.
      */
     protected void emitGLGetMethod(PrintWriter output, String type) {
@@ -710,7 +739,7 @@ public class BuildComposablePipeline
       output.println(" * ");
       output.println("<PRE>");
       if(null!=prologNameOpt) {
-          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"(drawable.getGL(.getGL2ES2())) ) );");
+          output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2(), new "+prologNameOpt+"( drawable.getGL().getGL2ES2() ) ) );");
       } else {
           output.println("     drawable.setGL( new "+className+"( drawable.getGL().getGL2ES2() ) );");
       }
