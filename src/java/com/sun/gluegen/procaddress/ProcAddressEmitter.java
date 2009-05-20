@@ -181,10 +181,6 @@ public class ProcAddressEmitter extends JavaEmitter
   // Internals only below this point
   //
   
-  protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
-    super.validateFunctionsToBind(funcsSet);
-  }
-
   protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List emitters) {
     if (getConfig().manuallyImplement(baseJavaEmitter.getName())) {
       // User will provide Java-side implementation of this routine;

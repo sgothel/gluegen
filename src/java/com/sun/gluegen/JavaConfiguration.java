@@ -142,12 +142,9 @@ public class JavaConfiguration {
   private Map/*<String,List<String>>*/ implementedInterfaces = new HashMap();
   private Map/*<String,String>*/ parentClass = new HashMap();
   private Map/*<String,String>*/ javaTypeRenames = new HashMap();
-  private Map/*<String,String>*/ javaMethodRenames = new HashMap();
+  private Map/*<String,String>*/ javaSymbolRenames = new HashMap();
   private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
   private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
-  protected Map/*<String, UnifiedName>*/ uniqNameMap = new HashMap();
-  public Map/*<String, UnifiedName>*/ getUniqNameMap() { return uniqNameMap; }
-
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -632,16 +629,9 @@ public class JavaConfiguration {
     }
 
     if (extendedIntfSymbolsOnly) {
-      String uniSymbol;
-      UnifiedName uniName = (UnifiedName) getUniqNameMap().get(symbol);
-      if(null!=uniName) {
-        uniSymbol=uniName.getUni();
-      } else {
-        uniSymbol=symbol;
-      }
-      if(!extendedIntfSymbols.contains(uniSymbol)) {
+      if(!extendedIntfSymbols.contains(symbol)) {
           if(DEBUG_IGNORES) {
-              System.err.println("Ignore Impl !extended: "+uniSymbol+": "+uniName);
+              System.err.println("Ignore Impl !extended: " + symbol);
           }
           return true;
       }
@@ -742,12 +732,18 @@ public class JavaConfiguration {
     return javaTypeName;
   }
 
-  /** Returns a replacement name for this function which should be
-      used as the Java name for the bound method. It still calls the
-      originally-named C function under the hood. Returns null if this
-      function has not been explicitly renamed. */
-  public String getJavaMethodRename(String functionName) {
-    return (String) javaMethodRenames.get(functionName);
+  /** Returns a replacement name for this function or definition which
+      should be used as the Java name for the bound method or
+      constant. If a function, it still calls the originally-named C
+      function under the hood. Returns null if this symbol has not
+      been explicitly renamed. */
+  public String getJavaSymbolRename(String symbolName) {
+    return (String) javaSymbolRenames.get(symbolName);
+  }
+
+  /** Programmatically adds a rename directive for the given symbol. */
+  public void addJavaSymbolRename(String origName, String newName) {
+    javaSymbolRenames.put(origName, newName);
   }
 
   /** Returns true if the emission style is AllStatic. */
@@ -928,8 +924,10 @@ public class JavaConfiguration {
       readParentClass(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaType")) {
       readRenameJavaType(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("RenameJavaMethod")) {
-      readRenameJavaMethod(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("RenameJavaSymbol") ||
+               // Backward compatibility
+               cmd.equalsIgnoreCase("RenameJavaMethod")) {
+      readRenameJavaSymbol(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
       runtimeExceptionType = readString("RuntimeExceptionType", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("UnsupportedExceptionType")) {
@@ -1404,13 +1402,13 @@ public class JavaConfiguration {
     }
   }
 
-  protected void readRenameJavaMethod(StringTokenizer tok, String filename, int lineNo) {
+  protected void readRenameJavaSymbol(StringTokenizer tok, String filename, int lineNo) {
     try {
       String fromName = tok.nextToken();
       String toName   = tok.nextToken();
-      javaMethodRenames.put(fromName, toName);
+      javaSymbolRenames.put(fromName, toName);
     } catch (NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"RenameJavaMethod\" command at line " + lineNo +
+      throw new RuntimeException("Error parsing \"RenameJavaSymbol\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }

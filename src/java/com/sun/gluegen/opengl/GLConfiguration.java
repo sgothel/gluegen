@@ -50,11 +50,16 @@ public class GLConfiguration extends ProcAddressConfiguration {
   // The following data members support ignoring an entire extension at a time
   private List/*<String>*/ glHeaders = new ArrayList();
   private Set/*<String>*/ ignoredExtensions = new HashSet();
+  private Set/*<String>*/ extensionsRenamedIntoCore = new HashSet();
   private BuildStaticGLInfo glInfo;
   // Maps function names to the kind of buffer object it deals with
   private Map/*<String,GLEmitter.BufferObjectKind>*/ bufferObjectKinds = new HashMap();
   private GLEmitter emitter;
   private Set/*String*/ dropUniqVendorExtensions = new HashSet();
+  // This directive is off by default but can help automatically
+  // indicate which extensions have been folded into the core OpenGL
+  // namespace, and if not, then why not
+  private boolean autoUnifyExtensions;
 
   public GLConfiguration(GLEmitter emitter) {
     super();
@@ -71,6 +76,15 @@ public class GLConfiguration extends ProcAddressConfiguration {
       {
         String sym = readString("IgnoreExtension", tok, filename, lineNo);
         ignoredExtensions.add(sym);
+      }
+    else if (cmd.equalsIgnoreCase("RenameExtensionIntoCore"))
+      {
+        String sym = readString("RenameExtensionIntoCore", tok, filename, lineNo);
+        extensionsRenamedIntoCore.add(sym);
+      }
+    else if (cmd.equalsIgnoreCase("AutoUnifyExtensions"))
+      {
+        autoUnifyExtensions = readBoolean("AutoUnifyExtensions", tok, filename, lineNo).booleanValue();
       }
     else if (cmd.equalsIgnoreCase("GLHeader"))
       {
@@ -228,6 +242,13 @@ public class GLConfiguration extends ProcAddressConfiguration {
     return shouldIgnoreExtension(symbol, checkEXT) || super.shouldIgnoreInImpl(symbol);
   }
 
+  /** Should we automatically ignore extensions that have already been
+      fully subsumed into the OpenGL core namespace, and if they have
+      not been, indicate which definition is not already in the core? */
+  public boolean getAutoUnifyExtensions() {
+    return autoUnifyExtensions;
+  }
+
   /** shall the non unified (uniq) vendor extensions be dropped ?  */
   public boolean getDropUniqVendorExtensions(String extName) {
       return dropUniqVendorExtensions.contains(extName);
@@ -257,5 +278,20 @@ public class GLConfiguration extends ProcAddressConfiguration {
         glInfo.parse(fullPath);
       }
     }
+  }
+
+  /** Returns the information about the association between #defines,
+      function symbols and the OpenGL extensions they are defined
+      in. */
+  public BuildStaticGLInfo getGLInfo() {
+    return glInfo;
+  }
+
+  /** Returns the OpenGL extensions that should have all of their
+      constant definitions and functions renamed into the core
+      namespace; for example, glGenFramebuffersEXT to
+      glGenFramebuffers and GL_FRAMEBUFFER_EXT to GL_FRAMEBUFFER. */
+  public Set/*<String>*/ getExtensionsRenamedIntoCore() {
+    return extensionsRenamedIntoCore;
   }
 }

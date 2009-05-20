@@ -54,12 +54,28 @@ public class GlueGen implements GlueEmitterControls {
   private java.util.List forcedStructNames = new ArrayList();
   private PCPP preprocessor;
 
+  // State for SymbolFilters
+  private java.util.List/*<ConstantDefinition>*/ constants;
+  private java.util.List/*<FunctionSymbol>*/ functions;
+
   public void forceStructEmission(String typedefName) {
     forcedStructNames.add(typedefName);
   }
 
   public String findHeaderFile(String headerFileName) {
     return preprocessor.findFile(headerFileName);
+  }
+
+  public void runSymbolFilter(SymbolFilter filter) {
+    filter.filterSymbols(constants, functions);
+    java.util.List/*<ConstantDefinition>*/ newConstants = filter.getConstants();
+    java.util.List/*<FunctionSymbol>*/ newFunctions = filter.getFunctions();
+    if (newConstants != null) {
+      constants = newConstants;
+    }
+    if (newFunctions != null) {
+      functions = newFunctions;
+    }
   }
 
   public void run(String[] args) {
@@ -198,42 +214,64 @@ public class GlueGen implements GlueEmitterControls {
       MachineDescription md64 = new MachineDescription64Bit();
       emit.setMachineDescription(md32, md64);
 
+      // Repackage the enum and #define statements from the parser into a common format
+      // so that SymbolFilters can operate upon both identically
+      constants = new ArrayList/*<ConstantDefinition>*/();
+      for (Iterator iter = headerParser.getEnums().iterator(); iter.hasNext(); ) {
+        EnumType enumeration = (EnumType)iter.next();
+        String enumName = enumeration.getName();
+        if (enumName.equals("<anonymous>")) {
+          enumName = null;
+        }
+        // iterate over all values in the enumeration
+        for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
+          String enumElementName = enumeration.getEnumName(i);
+          String value = String.valueOf(enumeration.getEnumValue(i));
+          constants.add(new ConstantDefinition(enumElementName, value, enumName));
+        }
+      }
+      for (Iterator iter = lexer.getDefines().iterator(); iter.hasNext(); ) {
+        Define def = (Define) iter.next();
+        constants.add(new ConstantDefinition(def.getName(), def.getValue(), null));
+      }
+      
+      functions = headerParser.getParsedFunctions();
+
       // begin emission of glue code
       emit.beginEmission(this);
       
       emit.beginDefines();
       Set emittedDefines = new HashSet(100);
       // emit java equivalent of enum { ... } statements
-      for (Iterator iter = headerParser.getEnums().iterator(); iter.hasNext(); ) {
-        EnumType enumeration = (EnumType)iter.next();
-        // iterate over all values in the enumeration
-        for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
-          String enumElementName = enumeration.getEnumName(i);
-          if (emittedDefines.contains(enumElementName) == false) {
-            emittedDefines.add(enumElementName);
-            String comment = null;
-            if (! enumeration.getName().equals("<anonymous>")) {
-              comment = "Defined as part of enum type \"" +
-                enumeration.getName() + "\"";
-            }
-            emit.emitDefine(
-              enumElementName,
-              String.valueOf(enumeration.getEnumValue(i)),
-              comment);
-          }
-        }
-      }
-      // emit java equivalent of #define statements
-      for (Iterator iter = lexer.getDefines().iterator(); iter.hasNext(); ) {
-        Define def = (Define) iter.next();
-        if (emittedDefines.contains(def.getName()) == false) {
+      for (Iterator iter = constants.iterator(); iter.hasNext(); ) {
+        ConstantDefinition def = (ConstantDefinition) iter.next();
+        if (!emittedDefines.contains(def.getName())) {
           emittedDefines.add(def.getName());
-          emit.emitDefine(def.getName(), def.getValue(), null);
+          String comment = null;
+          Set/*<String>*/ aliases = def.getAliases();
+          if (aliases != null) {
+              comment = "Alias for: <code>";
+              for (Iterator i2 = aliases.iterator(); i2.hasNext(); ) {
+                  String alias = (String) i2.next();
+                  comment += " " + alias;
+              }
+              comment += "</code>";
+          }
+          if (def.getEnumName() != null) {
+            String enumName = "Defined as part of enum type \"" +
+              def.getEnumName() + "\"";
+            if (comment == null) {
+                comment = enumName;
+            } else {
+                comment += "<br>\n" + enumName;
+            }
+          }
+          emit.emitDefine(def.getName(),
+                          def.getValue(),
+                          comment);
         }
       }
       emit.endDefines();
-
-      java.util.List functions = headerParser.getParsedFunctions();
 
       // Iterate through the functions finding structs that are referenced in 
       // the function signatures; these will be remembered for later emission

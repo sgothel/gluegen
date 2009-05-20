@@ -144,6 +144,15 @@ public class GLExtensionNames {
     public static final boolean isExtensionVEN(String str, boolean isGLFunc) {
         return isExtension(extensionsVEN, str, isGLFunc);
     }
+    public static final String normalize(String str, boolean isGLFunc) {
+        if (isExtensionARB(str, isGLFunc)) {
+            return normalizeARB(str, isGLFunc);
+        }
+        if (isExtensionVEN(str, isGLFunc)) {
+            return normalizeVEN(str, isGLFunc);
+        }
+        return str;
+    }
     public static final boolean isExtension(String str, boolean isGLFunc) {
         return isExtension(extensionsARB, str, isGLFunc) || 
                isExtension(extensionsVEN, str, isGLFunc);

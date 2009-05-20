@@ -103,6 +103,40 @@ public class JavaEmitter implements GlueEmitter {
     machDesc64 = md64;
   }
 
+  class ConstantRenamer implements SymbolFilter {
+    private List/*<ConstantDefinition>*/ constants;
+
+    public void filterSymbols(List/*<ConstantDefinition>*/ constants,
+                              List/*<FunctionSymbol>*/ functions) {
+      this.constants = constants;
+      doWork();
+    }
+
+    public List/*<ConstantDefinition>*/ getConstants() {
+      return constants;
+    }
+
+    public List/*<FunctionSymbol>*/ getFunctions() {
+      return null;
+    }
+
+    private void doWork() {
+      List/*<ConstantDefinition>*/ newConstants = new ArrayList/*<ConstantDefinition>*/();
+      JavaConfiguration cfg = getConfig();
+      for (Iterator iter = constants.iterator(); iter.hasNext(); ) {
+        ConstantDefinition def = (ConstantDefinition) iter.next();
+        String rename = cfg.getJavaSymbolRename(def.getName());
+        if (rename != null) {
+          ConstantDefinition newDef = new ConstantDefinition(rename, def.getValue(), def.getEnumName());
+          newDef.addAlias(def.getName());
+          def = newDef;
+        }
+        newConstants.add(def);
+      }
+      constants = newConstants;
+    }
+  }
+
   public void beginEmission(GlueEmitterControls controls) throws IOException
   {
     try
@@ -121,6 +155,9 @@ public class JavaEmitter implements GlueEmitter {
     for (Iterator iter = cfg.forcedStructs().iterator(); iter.hasNext(); ) {
       controls.forceStructEmission((String) iter.next());
     }
+
+    // Handle renaming of constants
+    controls.runSymbolFilter(new ConstantRenamer());
   }
 
   public void endEmission()
@@ -322,7 +359,7 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
 
-    validateFunctionsToBind(funcsToBindSet);
+    //    validateFunctionsToBind(funcsToBindSet);
 
     ArrayList funcsToBind = new ArrayList(funcsToBindSet.size());
     funcsToBind.addAll(funcsToBindSet);
@@ -624,19 +661,6 @@ public class JavaEmitter implements GlueEmitter {
         cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
         cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
         allEmitters.add(cEmitter);
-      }
-    }
-  }
-
-  protected void validateFunctionsToBind(Set/*FunctionSymbol*/ funcsSet) {
-    for (Iterator iter = funcsSet.iterator(); iter.hasNext(); ) {
-      FunctionSymbol fsOrig = (FunctionSymbol) iter.next();
-      String name = fsOrig.getName();
-      UnifiedName uniName = UnifiedName.getOrPut(cfg.getUniqNameMap(), name);
-      String renamedName = cfg.getJavaMethodRename(fsOrig.getName());
-      if(null!=renamedName) {
-        uniName.setUni(renamedName);
-        uniName.remapAllNames(cfg.getUniqNameMap());
       }
     }
   }
@@ -1619,7 +1643,7 @@ public class JavaEmitter implements GlueEmitter {
 
     MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
     
-    binding.setRenamedMethodName(cfg.getJavaMethodRename(sym.getName()));
+    binding.setRenamedMethodName(cfg.getJavaSymbolRename(sym.getName()));
     
     if (cfg.returnsString(binding.getName())) {
       PointerType prt = sym.getReturnType().asPointer();

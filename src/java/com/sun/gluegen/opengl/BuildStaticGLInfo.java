@@ -92,7 +92,7 @@ public class BuildStaticGLInfo
 {
   // Handles function pointer 
   protected static Pattern funcPattern =
-    Pattern.compile("^(EGLAPI|GLAPI|extern)?(\\s*)(\\w+)(\\*)?(\\s+)(EGLAPIENTRY|GLAPIENTRY|APIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
+    Pattern.compile("^(GLAPI|GL_API|GL_APICALL|EGLAPI|extern)?(\\s*)(\\w+)(\\*)?(\\s+)(GLAPIENTRY|GL_APIENTRY|APIENTRY|EGLAPIENTRY|WINAPI)?(\\s*)([ew]?gl\\w+)\\s?(\\(.*)");
   protected static Pattern associationPattern =
     Pattern.compile("\\#ifndef ([EW]?GL[X]?_[A-Za-z0-9_]+)");
   protected static Pattern definePattern =
@@ -188,12 +188,13 @@ public class BuildStaticGLInfo
             // Handles #ifndef GL_... #define GL_...
             !identifier.equals(activeAssociation)) {
           addAssociation(identifier, activeAssociation);
+          // System.err.println("  ADDING ASSOCIATION: " + identifier + " " + activeAssociation);
         }
       } else if ((m = associationPattern.matcher(line)).matches()) {
         // found a new #ifndef GL_XXX block
         activeAssociation = m.group(1);
         
-        //System.err.println("FOUND NEW ASSOCIATION BLOCK: " + activeAssociation);
+        // System.err.println("FOUND NEW ASSOCIATION BLOCK: " + activeAssociation);
       }
     }
     reader.close();
@@ -217,8 +218,12 @@ public class BuildStaticGLInfo
     return (String) declarationToExtensionMap.get(identifier);
   }
   
-  public Set getDeclarations(String extension) {
+  public Set/*<String>*/ getDeclarations(String extension) {
     return (Set) extensionToDeclarationMap.get(extension);
+  }
+
+  public Set/*<String>*/ getExtensions() {
+    return extensionToDeclarationMap.keySet();
   }
 
   public void emitJavaCode(PrintWriter output, String packageName) {

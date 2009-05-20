@@ -415,8 +415,9 @@ public class PCPP {
             int sz = values.size();
             if (sz == 0) {
                 // definition to nothing, like "#define FOO"
-                String oldDef = (String) defineMap.put(name, "");
-                if (oldDef != null) {
+                String value = "";
+                String oldDef = (String) defineMap.put(name, value);
+                if (oldDef != null && !oldDef.equals(value)) {
                     System.err.println("WARNING: \"" + name + "\" redefined from \"" +
                                        oldDef + "\" to \"\"");
                 }
@@ -431,7 +432,7 @@ public class PCPP {
                     // Value is numeric constant like "#define FOO 5".
                     // Put it in the #define map
                     String oldDef = (String)defineMap.put(name, value);
-                    if (oldDef != null) {
+                    if (oldDef != null && !oldDef.equals(value)) {
                         System.err.println("WARNING: \"" + name + "\" redefined from \"" +
                                            oldDef + "\" to \"" + value + "\"");
                     }
