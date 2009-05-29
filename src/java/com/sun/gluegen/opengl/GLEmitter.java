@@ -100,7 +100,9 @@ public class GLEmitter extends ProcAddressEmitter
           }
           if (isGLFunction || isGLEnumeration) {
             String renamed = GLExtensionNames.normalize(decl, isGLFunction);
-            config.addJavaSymbolRename(decl, renamed);
+            if(!renamed.equals(decl)) {
+                config.addJavaSymbolRename(decl, renamed);
+            }
           }
         }
       }

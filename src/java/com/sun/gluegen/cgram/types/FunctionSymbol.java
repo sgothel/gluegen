@@ -110,6 +110,11 @@ public class FunctionSymbol {
     }
     
     FunctionSymbol other = (FunctionSymbol) arg;
+
+    if(getName()==null && other.getName()!=null) {
+        return false;
+    }
+
     return (
       (getName() == other.getName() || getName().equals(other.getName()))
       && type.equals(other.type));
