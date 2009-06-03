@@ -37,7 +37,7 @@ public class MacOSXDynamicLinkerImpl implements DynamicLinker
     return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
   }
   
-  public long openLibrary(String pathname) {
+  public long openLibraryGlobal(String pathname) {
     // Note we use RTLD_GLOBAL visibility to allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
     // requiring that all references to symbols in those libraries be

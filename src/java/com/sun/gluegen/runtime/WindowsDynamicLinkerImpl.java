@@ -27,7 +27,7 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker
     return LoadLibraryW(libraryName);
   }
   
-  public long openLibrary(String libraryName) {
+  public long openLibraryGlobal(String libraryName) {
     return LoadLibraryW(libraryName);
   }
   
