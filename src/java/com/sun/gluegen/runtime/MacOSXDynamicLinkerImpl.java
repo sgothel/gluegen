@@ -26,6 +26,17 @@ public class MacOSXDynamicLinkerImpl implements DynamicLinker
 
 
   // --- Begin CustomJavaCode .cfg declarations
+  public long openLibraryLocal(String pathname) {
+    // Note we use RTLD_LOCAL visibility to _NOT_ allow this functionality to
+    // be used to pre-resolve dependent libraries of JNI code without
+    // requiring that all references to symbols in those libraries be
+    // looked up dynamically via the ProcAddressTable mechanism; in
+    // other words, one can actually link against the library instead of
+    // having to dlsym all entry points. System.loadLibrary() uses
+    // RTLD_LOCAL visibility so can't be used for this purpose.
+    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
+  }
+  
   public long openLibrary(String pathname) {
     // Note we use RTLD_GLOBAL visibility to allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without

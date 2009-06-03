@@ -126,7 +126,15 @@ public class NativeLibrary {
       path, and in the context of the specified ClassLoader, which is
       used to help find the library in the case of e.g. Java Web Start. */
   public static NativeLibrary open(String libName, ClassLoader loader) {
-    return open(libName, libName, libName, true, loader);
+    return open(libName, libName, libName, true, loader, false);
+  }
+
+  /** Opens the given native library, assuming it has the same base
+      name on all platforms, looking first in the system's search
+      path, and in the context of the specified ClassLoader, which is
+      used to help find the library in the case of e.g. Java Web Start. */
+  public static NativeLibrary open(String libName, ClassLoader loader, boolean local) {
+    return open(libName, libName, libName, true, loader, local);
   }
 
   /** Opens the given native library, assuming it has the given base
@@ -149,6 +157,14 @@ public class NativeLibrary {
                                    String macOSXLibName,
                                    boolean searchSystemPathFirst,
                                    ClassLoader loader) {
+    return open(windowsLibName, unixLibName, macOSXLibName, searchSystemPathFirst, loader, false);
+  }
+
+  public static NativeLibrary open(String windowsLibName,
+                                   String unixLibName,
+                                   String macOSXLibName,
+                                   boolean searchSystemPathFirst,
+                                   ClassLoader loader, boolean local) {
     List possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                unixLibName,
                                                macOSXLibName,
@@ -161,7 +177,12 @@ public class NativeLibrary {
         System.out.println("Trying to load " + path);
       }
       ensureNativeLibLoaded();
-      long res = dynLink.openLibrary(path);
+      long res;
+      if(local) {
+          res = dynLink.openLibraryLocal(path);
+      } else {
+          res = dynLink.openLibrary(path);
+      }
       if (res != 0) {
         if (DEBUG) {
           System.out.println("Successfully loaded " + path + ": res = 0x" + Long.toHexString(res));

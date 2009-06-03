@@ -44,6 +44,7 @@ package com.sun.gluegen.runtime;
 
 interface DynamicLinker {
   public long openLibrary(String pathname);
+  public long openLibraryLocal(String pathname);
   public long lookupSymbol(long libraryHandle, String symbolName);
   public void closeLibrary(long libraryHandle);
 }

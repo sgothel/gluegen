@@ -22,6 +22,11 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker
 
 
   // --- Begin CustomJavaCode .cfg declarations
+  public long openLibraryLocal(String libraryName) {
+    // How does that work under Windows ?
+    return LoadLibraryW(libraryName);
+  }
+  
   public long openLibrary(String libraryName) {
     return LoadLibraryW(libraryName);
   }
