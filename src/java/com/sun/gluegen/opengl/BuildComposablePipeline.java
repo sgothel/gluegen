@@ -648,6 +648,9 @@ public class BuildComposablePipeline
       emitGLGetMethod(output, "GLES2");
       emitGLGetMethod(output, "GL2ES1");
       emitGLGetMethod(output, "GL2ES2");
+      output.println("  public GLProfile getGLProfile() {");
+      output.println("    return "+getDownstreamObjectName()+".getGLProfile();");
+      output.println("  }");
     }
   } // end class PipelineEmitter
 
