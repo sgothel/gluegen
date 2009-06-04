@@ -507,10 +507,8 @@
       <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
       <compilerarg value="/NODEFAULTLIB:oldnames.lib" if="isVC8"/>  <!-- library not available with VC8 -->
       <compilerarg value="/GS"      if="isVC9"/>  <!-- buffer security checks -->
-      <compilerarg value="/Wp64"    if="isVC9"/>  <!-- detect 64-bit port problems -->
       <compilerarg value="/RTCcsu"  if="isVC9"/>  <!-- various runtime checks -->
-      <!--compilerarg value="/D_MSC_VER=1500"  if="isVC9"/-->  <!-- force version VC9 -->
-      <compilerarg value="/NODEFAULTLIB:oldnames.lib" if="isVC9"/>  <!-- library not available with VC8 -->
+      <!--compilerarg value="/MT"      if="isVC9"/-->  <!-- static multithreaded - somehow overwritten by default /MD -->
 
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -643,7 +641,7 @@
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.win32.mingw" if="isMingw">
+    <target name="gluegen.cpptasks.declare.compiler.win32.mingw" if="isMingW">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.mingw" />
