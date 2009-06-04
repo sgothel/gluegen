@@ -87,6 +87,7 @@
    -   isVC8
    -   isVC8_X64
    -   isVC8Family (= isVC8 || isVC8_X64)
+   -   isVC9
    -   isMingW
    - 
    - The gluegen.cpptasks.configure.compiler target initializes several
@@ -381,6 +382,12 @@
         <equals arg1="${win32.c.compiler}" arg2="vc8" />
       </and>
     </condition>
+    <condition property="isVC9">
+      <and>
+        <istrue value="${isWindows}" />
+        <equals arg1="${win32.c.compiler}" arg2="vc9" />
+      </and>
+    </condition>
     <condition property="isVC8_X64">
       <and>
         <istrue value="${isWindows}" />
@@ -406,6 +413,7 @@
         <isfalse value="${isVC7}" />
         <isfalse value="${isVC8}" />
         <isfalse value="${isVC8_X64}" />
+        <isfalse value="${isVC9}" />
         <isfalse value="${isMingW}" />
       </and>
     </condition>
@@ -413,6 +421,7 @@
     <echo message="VC6=${isVC6}" />
     <echo message="VC7=${isVC7}" />
     <echo message="VC8=${isVC8}" />
+    <echo message="VC9=${isVC9}" />
     <echo message="MingW=${isMingW}" />
 
     <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
@@ -497,6 +506,11 @@
       <compilerarg value="/Wp64"    if="isVC8"/>  <!-- detect 64-bit port problems -->
       <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
       <compilerarg value="/NODEFAULTLIB:oldnames.lib" if="isVC8"/>  <!-- library not available with VC8 -->
+      <compilerarg value="/GS"      if="isVC9"/>  <!-- buffer security checks -->
+      <compilerarg value="/Wp64"    if="isVC9"/>  <!-- detect 64-bit port problems -->
+      <compilerarg value="/RTCcsu"  if="isVC9"/>  <!-- various runtime checks -->
+      <!--compilerarg value="/D_MSC_VER=1500"  if="isVC9"/-->  <!-- force version VC9 -->
+      <compilerarg value="/NODEFAULTLIB:oldnames.lib" if="isVC9"/>  <!-- library not available with VC8 -->
 
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -578,6 +592,7 @@
       <linkerarg value="/MACHINE:X86" if="isVC7" />       <!-- explicity set target platform -->
       <linkerarg value="/MACHINE:X86" if="isVC8" />       <!-- explicity set target platform -->
       <linkerarg value="/MACHINE:X64" if="isVC8_X64"/>    <!-- explicity set target platform (IX64) -->
+      <linkerarg value="/MACHINE:X86" if="isVC9" />       <!-- explicity set target platform -->
     </linker>
 
     <linker id="linker.cfg.macosx" name="gcc">
@@ -622,13 +637,19 @@
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
     </target>
     
+    <target name="gluegen.cpptasks.declare.compiler.win32.vc9" if="isVC9">
+      <echo message="Win32.VC9" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
+    </target>
+
     <target name="gluegen.cpptasks.declare.compiler.win32.mingw" if="isMingw">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.mingw" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.win32" depends="gluegen.cpptasks.declare.compiler.win32.vc6,gluegen.cpptasks.declare.compiler.win32.vc7,gluegen.cpptasks.declare.compiler.win32.vc8,gluegen.cpptasks.declare.compiler.win32.vc8_x64,gluegen.cpptasks.declare.compiler.win32.mingw" if="isWindows">
+    <target name="gluegen.cpptasks.declare.compiler.win32" depends="gluegen.cpptasks.declare.compiler.win32.vc6,gluegen.cpptasks.declare.compiler.win32.vc7,gluegen.cpptasks.declare.compiler.win32.vc8,gluegen.cpptasks.declare.compiler.win32.vc8_x64,gluegen.cpptasks.declare.compiler.win32.vc9,gluegen.cpptasks.declare.compiler.win32.mingw" if="isWindows">
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/win32" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib" />
     </target>
