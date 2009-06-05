@@ -32,7 +32,7 @@ public class UnixDynamicLinkerImpl implements DynamicLinker
 
 
   // --- Begin CustomJavaCode .cfg declarations
-  public long openLibraryLocal(String pathname) {
+  public long openLibraryLocal(String pathname, boolean debug) {
     // Note we use RTLD_GLOBAL visibility to _NOT_ allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
     // requiring that all references to symbols in those libraries be
@@ -43,7 +43,7 @@ public class UnixDynamicLinkerImpl implements DynamicLinker
     return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
   }
 
-  public long openLibraryGlobal(String pathname) {
+  public long openLibraryGlobal(String pathname, boolean debug) {
     // Note we use RTLD_GLOBAL visibility to allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
     // requiring that all references to symbols in those libraries be

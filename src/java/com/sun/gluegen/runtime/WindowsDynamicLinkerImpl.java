@@ -22,13 +22,19 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker
 
 
   // --- Begin CustomJavaCode .cfg declarations
-  public long openLibraryLocal(String libraryName) {
+  public long openLibraryLocal(String libraryName, boolean debug) {
     // How does that work under Windows ?
-    return LoadLibraryW(libraryName);
+    // Don't know .. so it's an alias for the time being
+    return openLibraryGlobal(libraryName, debug);
   }
   
-  public long openLibraryGlobal(String libraryName) {
-    return LoadLibraryW(libraryName);
+  public long openLibraryGlobal(String libraryName, boolean debug) {
+    long handle = LoadLibraryW(libraryName);
+    if(0==handle && debug) {
+        int err = GetLastError();
+        System.err.println("LoadLibraryW \""+libraryName+"\" failed, error code: 0x"+Integer.toHexString(err)+", "+err);
+    }
+    return handle;
   }
   
   public long lookupSymbol(long libraryHandle, String symbolName) {

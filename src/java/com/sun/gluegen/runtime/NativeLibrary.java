@@ -179,9 +179,9 @@ public class NativeLibrary {
       ensureNativeLibLoaded();
       long res;
       if(global) {
-          res = dynLink.openLibraryGlobal(path);
+          res = dynLink.openLibraryGlobal(path, DEBUG);
       } else {
-          res = dynLink.openLibraryLocal(path);
+          res = dynLink.openLibraryLocal(path, DEBUG);
       }
       if (res != 0) {
         if (DEBUG) {
