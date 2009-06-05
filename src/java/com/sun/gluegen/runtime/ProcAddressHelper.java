@@ -107,7 +107,7 @@ public class ProcAddressHelper {
         // set the current value of the proc address variable in the table object
         addressField.setLong(table, newProcAddress); 
         if (DEBUG) {
-          dout.println("  " + addressField.getName() + " = 0x" + Long.toHexString(newProcAddress));
+          dout.println("  " + addressField.getName() + " -> 0x" + Long.toHexString(newProcAddress));
         }
       } catch (Exception e) {
         throw new RuntimeException("Can not get proc address for method \"" +

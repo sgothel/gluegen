@@ -46,5 +46,8 @@ package com.sun.gluegen.runtime;
     code. */
 
 public interface DynamicLookupHelper {
+  /**
+   * Try to fetch the function pointer for function 'funcName'.
+   */
   public long dynamicLookupFunction(String funcName);
 }

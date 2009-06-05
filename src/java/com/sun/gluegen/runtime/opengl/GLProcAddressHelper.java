@@ -76,12 +76,10 @@ public class GLProcAddressHelper extends ProcAddressHelper {
       }
       long newProcAddress = 0;
       int  funcNamePermNum = GLExtensionNames.getFuncNamePermutationNumber(funcNameBase);
+      String funcName = null;
       for(int j = 0; 0==newProcAddress && j < funcNamePermNum; j++) {
-          String funcName = GLExtensionNames.getFuncNamePermutation(funcNameBase, j);
+          funcName = GLExtensionNames.getFuncNamePermutation(funcNameBase, j);
           try {
-            if (DEBUG) {
-              dout.println("  try function lookup: " + funcName + " / " + funcNameBase);
-            }
             newProcAddress = lookup.dynamicLookupFunction(funcName);
           } catch (Exception e) { 
             if (DEBUG) {
@@ -94,7 +92,7 @@ public class GLProcAddressHelper extends ProcAddressHelper {
         // set the current value of the proc address variable in the table object
         addressField.setLong(table, newProcAddress); 
         if (DEBUG) {
-          dout.println("  " + addressField.getName() + " = 0x" + Long.toHexString(newProcAddress));
+          dout.println("  " + addressField.getName() + " "+funcName+" -> 0x" + Long.toHexString(newProcAddress));
         }
       } catch (Exception e) {
         throw new RuntimeException("Can not set proc address field for method \"" +
