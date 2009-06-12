@@ -488,6 +488,8 @@
         <define name="_STRICT_ANSI" /> 
         <define name="_JNI_IMPLEMENTATION_" />
         <define name="MINGW" />
+        <define name="WINVER"         value="0x0500"/> <!-- set windows version to >= Windows 2000 -->
+        <define name="_WIN32_WINNT"   value="0x0500"/> <!-- set windows version to >= Windows 2000 -->
       </defineset>
     </compiler>
 
