@@ -416,8 +416,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     if (code != null) {
       String[] argumentNames = argumentNameArray();
       for (Iterator iter = code.iterator(); iter.hasNext(); ) {
-        MessageFormat fmt = new MessageFormat((String) iter.next());
-        writer.println("    " + fmt.format(argumentNames));
+        String str = (String) iter.next();
+        try {
+            MessageFormat fmt = new MessageFormat(str);
+            writer.println("    " + fmt.format(argumentNames));
+        } catch (IllegalArgumentException e) {
+            // (Poorly) handle case where prologue / epilogue contains blocks of code with braces
+            writer.println("    " + str);
+        }
       }
     }
   }
