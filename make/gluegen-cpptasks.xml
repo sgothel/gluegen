@@ -86,7 +86,7 @@
    -   isVC7
    -   isVC8
    -   isVC8_X64
-   -   isVC8Family (= isVC8 || isVC8_X64)
+   -   isVC8Family (= isVC8 || isVC8_X64 || isVC9) (requires manifest in DLL)
    -   isVC9
    -   isMingW
    - 
@@ -119,6 +119,11 @@
    -   linker.cfg.win32.msvc
    -   linker.cfg.macosx
    -   linker.cfg.hpux
+   - 
+   - This project file also defines a macrodef called "msvc.manifest"
+   - which helps insert manifests into DLLs compiled with MSVC 8.0 and
+   - later. Example usage is:
+   -   &lt;msvc.manifest objdir="${obj}" dllname="gluegen-rt" /&gt;
   -->
 <project name="GlueGen-cpptasks" basedir=".">
   <!-- import cpptasks -->
@@ -398,6 +403,7 @@
       <or>
         <istrue value="${isVC8}" />
         <istrue value="${isVC8_X64}" />
+        <istrue value="${isVC9}" />
       </or>
     </condition>
     <condition property="isMingW">
@@ -421,6 +427,7 @@
     <echo message="VC6=${isVC6}" />
     <echo message="VC7=${isVC7}" />
     <echo message="VC8=${isVC8}" />
+    <echo message="VC8_X64=${isVC8_X64}" />
     <echo message="VC9=${isVC9}" />
     <echo message="MingW=${isMingW}" />
 
@@ -729,4 +736,20 @@
     <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" unless="gluegen.compiler.present"/>
 
     <target name="gluegen.cpptasks.setup.compiler" depends="gluegen.cpptasks.detect.compiler,gluegen.cpptasks.configure.compiler,gluegen.cpptasks.declare.compiler" />
+
+    <!-- ================================================================== -->
+    <!--
+       - Helper macrodef for installing manifest in generated DLLs, needed for VC8 and later
+      -->
+    <macrodef name="msvc.manifest">
+      <attribute name="objdir" />
+      <attribute name="dllname" />
+      <sequential>
+        <exec executable="mt">
+          <arg value="-manifest"/>
+          <arg value="@{objdir}/@{dllname}.dll.manifest"/>
+          <arg value="-outputresource:@{objdir}/@{dllname}.dll;#2"/>
+        </exec>
+      </sequential>
+    </macrodef>
 </project>

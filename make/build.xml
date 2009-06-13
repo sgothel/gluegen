@@ -331,6 +331,11 @@
       <move file="../${rootrel.build}/obj/libgluegen-rt.dylib" tofile="../${rootrel.build}/obj/libgluegen-rt.jnilib" />
     </target>
 
+    <target name="c.manifest" if="isVC8Family">
+      <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
+      <msvc.manifest objdir="../${rootrel.build}/obj" dllname="gluegen-rt" />
+    </target>
+
     <target name="c.build" depends="c.configure" unless="build.javaonly" >
       <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
@@ -384,6 +389,7 @@
 
       <antcall target="c.rename.lib.mingw" inheritRefs="true" />
       <antcall target="c.rename.lib.macosx" inheritRefs="true" />
+      <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create Java Web Start jar file from built file -->
       <jar destfile="../${rootrel.build}/gluegen-rt-natives-${os.and.arch}.jar">
         <fileset dir="../${rootrel.build}/obj">
