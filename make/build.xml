@@ -11,8 +11,8 @@
   -->
 <project name="GlueGen" basedir="." default="all">
 
-  <!-- This is the version of GleuGen you are building -->
-  <property name="gluegen_base_version" value="1.0b07"/>
+  <!-- This is the version of GlueGen you are building -->
+  <property name="gluegen_base_version" value="1.0-beta07"/>
 
    <!-- On jpackage.org-compatible systems, antlr.jar can be found in /usr/share/java -->
    <available property="antlr.jar" file="/usr/share/java/antlr.jar"
