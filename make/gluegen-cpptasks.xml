@@ -433,6 +433,25 @@
 
     <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
     <property name="c.compiler.debug"     value="false" /> 
+
+    <condition property="isVC7Debug">
+      <and>
+        <istrue value="${isVC7}" />
+        <istrue value="${c.compiler.debug}" />
+      </and>
+    </condition>
+    <condition property="isVC8Debug">
+      <and>
+        <istrue value="${isVC8}" />
+        <istrue value="${c.compiler.debug}" />
+      </and>
+    </condition>
+    <condition property="isVC9Debug">
+      <and>
+        <istrue value="${isVC9}" />
+        <istrue value="${c.compiler.debug}" />
+      </and>
+    </condition>
   </target>
 
     <!-- ================================================================== -->
@@ -507,16 +526,16 @@
       <compilerarg value="/Gy"/>      <!-- enable function level linking -->
       <compilerarg value="/GS"      if="isVC7"/>  <!-- buffer security checks -->
       <compilerarg value="/Wp64"    if="isVC7"/>  <!-- detect 64-bit port problems -->
-      <compilerarg value="/RTCcsu"  if="isVC7"/>  <!-- various runtime checks -->
+      <compilerarg value="/RTCcsu"  if="isVC7Debug"/>  <!-- various runtime checks -->
       <!-- Note: previous compiler options for VC7 were:
            Debug:     /MDd /Yd /GS /RTCs /RTCu /RTCc /W3 /Od /GF /EHsc /Zi /GS /Gy /Wp64 /Zi /D &quot;_DEBUG&quot;
            Optimized: /MD /W3 /O2 /Ob1 /GF /EHsc /GS /Gy /Wp64 /D &quot;NDEBUG&quot; -->
       <compilerarg value="/GS"      if="isVC8"/>  <!-- buffer security checks -->
       <compilerarg value="/Wp64"    if="isVC8"/>  <!-- detect 64-bit port problems -->
-      <compilerarg value="/RTCcsu"  if="isVC8"/>  <!-- various runtime checks -->
+      <compilerarg value="/RTCcsu"  if="isVC8Debug"/>  <!-- various runtime checks -->
       <compilerarg value="/NODEFAULTLIB:oldnames.lib" if="isVC8"/>  <!-- library not available with VC8 -->
       <compilerarg value="/GS"      if="isVC9"/>  <!-- buffer security checks -->
-      <compilerarg value="/RTCcsu"  if="isVC9"/>  <!-- various runtime checks -->
+      <compilerarg value="/RTCcsu"  if="isVC9Debug"/>  <!-- various runtime checks -->
       <!--compilerarg value="/MT"      if="isVC9"/-->  <!-- static multithreaded - somehow overwritten by default /MD -->
 
       <defineset>
