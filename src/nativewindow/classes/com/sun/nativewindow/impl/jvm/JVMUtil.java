@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2009 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -30,48 +30,49 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.nativewindow.impl.x11;
+package com.sun.nativewindow.impl.jvm;
 
-import javax.media.nativewindow.*;
+import java.nio.ByteBuffer;
 import com.sun.nativewindow.impl.*;
 
-public class X11NativeWindowFactory extends NativeWindowFactoryImpl {
-    // On X11 platforms we need to do some locking; this basic
-    // implementation should suffice for some simple window toolkits
-    private ToolkitLock toolkitLock = new ToolkitLock() {
-            private Thread owner;
-            private int recursionCount;
-            
-            public synchronized void lock() {
-                Thread cur = Thread.currentThread();
-                if (owner == cur) {
-                    ++recursionCount;
-                    return;
-                }
-                while (owner != null) {
-                    try {
-                        wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-                owner = cur;
-            }
+/**
+ * Currently this tool works around the Hotspot race condition bugs:
+ <PRE>
+     4395095 JNI access to java.nio DirectBuffer constructor/accessor
+     6852404 Race condition in JNI Direct Buffer access and creation routines
+ </PRE>
+ *
+ * Make sure to initialize this class as soon as possible,
+ * before doing any multithreading work.
+ *
+ */
+public class JVMUtil {
+    private static final boolean DEBUG = Debug.debug("JVMUtil");
 
-            public synchronized void unlock() {
-                if (owner != Thread.currentThread()) {
-                    throw new RuntimeException("Not owner");
-                }
-                if (recursionCount > 0) {
-                    --recursionCount;
-                    return;
-                }
-                owner = null;
-                notifyAll();
-            }
-        };
-
-    public ToolkitLock getToolkitLock() {
-        return toolkitLock;
+    static {
+        initSingleton();
     }
+
+    private static volatile boolean isInit = false;
+
+    public static synchronized void initSingleton() {
+        if(isInit) return;
+        isInit=true;
+
+        NativeLibLoaderBase.loadNativeWindow("jvm");
+
+        ByteBuffer buffer = InternalBufferUtil.newByteBuffer(64);
+        if( ! initialize(buffer) ) {
+            throw new RuntimeException("Failed to initialize the JVMUtil "+Thread.currentThread().getName());
+        }
+        if(DEBUG) {
+            Exception e = new Exception("JVMUtil.initSingleton() .. initialized "+Thread.currentThread().getName());
+            e.printStackTrace();
+        }
+    }
+
+    private JVMUtil() {}
+
+    private static native boolean initialize(java.nio.ByteBuffer buffer);
 }
+
