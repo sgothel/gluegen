@@ -19,6 +19,10 @@
    -   c.compiler.debug:
    -       set to "true" if debug version of the compiled
    -       C code is desired.
+   -   macosppc:
+   -       set to "true" if ppc universal / fat binaries are desired
+   -       on Mac OS X. Requires support for cross-compilation from the
+   -       underlying C compiler. Note: Unsupported on Snow Leopard!
    -   macosx64:
    -       set to "true" if 64-bit universal / fat binaries are desired
    -       on Mac OS X. Requires support for cross-compilation from the
@@ -141,6 +145,9 @@
       </and>
     </condition>
     <!-- Need a way to be able to disable the macosx64 property specification in a build.xml -->
+    <condition property="use.macosppc">
+      <istrue value="${macosppc}" />
+    </condition>
     <condition property="use.macosx64">
       <istrue value="${macosx64}" />
     </condition>
@@ -546,8 +553,9 @@
     </compiler>
 
     <compiler id="compiler.cfg.macosx" name="gcc">
-      <compilerarg value="-arch" />
-      <compilerarg value="ppc" />
+      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
+      <compilerarg value="-arch" if="use.macosppc"/>
+      <compilerarg value="ppc" if="use.macosppc"/>
       <compilerarg value="-arch" />
       <compilerarg value="i386" />
       <compilerarg value="-arch" if="use.macosx64"/>
@@ -622,8 +630,8 @@
     </linker>
 
     <linker id="linker.cfg.macosx" name="gcc">
-      <linkerarg value="-arch" />
-      <linkerarg value="ppc" />
+      <linkerarg value="-arch" if="use.macosppc"/>
+      <linkerarg value="ppc" if="use.macosppc"/>
       <linkerarg value="-arch" />
       <linkerarg value="i386" />
       <linkerarg value="-arch" if="use.macosx64"/>
