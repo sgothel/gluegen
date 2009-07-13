@@ -50,11 +50,13 @@
   <target name="setup.javase" unless="isCDCFP">
     <copy file="../src/java/com/sun/gluegen/runtime/BufferFactory.java.javase" tofile="../${rootrel.build}/gensrc/java/com/sun/gluegen/runtime/BufferFactory.java" />
     <copy file="../src/java/com/sun/gluegen/runtime/StructAccessor.java.javase" tofile="../${rootrel.build}/gensrc/java/com/sun/gluegen/runtime/StructAccessor.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/PointerBuffer.java.javase" tofile="../${rootrel.build}/gensrc/java/com/sun/gluegen/runtime/PointerBuffer.java" />
   </target>
 
   <target name="setup.javame.cdc.fp" if="isCDCFP">
     <copy file="../src/java/com/sun/gluegen/runtime/BufferFactory.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/java/com/sun/gluegen/runtime/BufferFactory.java" />
     <copy file="../src/java/com/sun/gluegen/runtime/StructAccessor.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/java/com/sun/gluegen/runtime/StructAccessor.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/PointerBuffer.java.javame_cdc_fp" tofile="../${rootrel.build}/gensrc/java/com/sun/gluegen/runtime/PointerBuffer.java" />
   </target>
 
   <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2,init.javame.cdc.fp">

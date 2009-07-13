@@ -70,6 +70,7 @@ public class JavaType {
   private static JavaType nioShortBufferType;
   private static JavaType nioIntBufferType;
   private static JavaType nioLongBufferType;
+  private static JavaType nioPointerBufferType;
   private static JavaType nioFloatBufferType;
   private static JavaType nioDoubleBufferType;
   private static JavaType nioByteBufferArrayType;
@@ -189,6 +190,13 @@ public class JavaType {
       nioLongBufferType = createForClass(java.nio.LongBuffer.class);
     }
     return nioLongBufferType;
+  }
+
+  public static JavaType forNIOPointerBufferClass()
+  {
+    if(nioPointerBufferType == null)
+        nioPointerBufferType = createForClass(com.sun.gluegen.runtime.PointerBuffer.class);
+    return nioPointerBufferType;
   }
 
   public static JavaType forNIOFloatBufferClass() {
@@ -323,7 +331,7 @@ public class JavaType {
   }
 
   public boolean isNIOBuffer() {
-    return (clazz != null && java.nio.Buffer.class.isAssignableFrom(clazz));
+    return clazz != null && ((java.nio.Buffer.class).isAssignableFrom(clazz) || isNIOPointerBuffer());
   }
 
   public boolean isNIOByteBuffer() {
@@ -341,6 +349,11 @@ public class JavaType {
 
   public boolean isNIOLongBuffer() {
     return (clazz == java.nio.LongBuffer.class);
+  }
+
+  public boolean isNIOPointerBuffer()
+  {
+    return clazz == (com.sun.gluegen.runtime.PointerBuffer.class);
   }
 
   public boolean isString() {

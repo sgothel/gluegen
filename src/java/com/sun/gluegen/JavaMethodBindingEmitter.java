@@ -640,6 +640,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         writer.print("BufferFactory.getArray(" + getArgumentName(i) + ")");
       } else if (type.isArrayOfCompoundTypeWrappers()) {
         writer.print(getArgumentName(i) + COMPOUND_ARRAY_SUFFIX);
+      } else if(type.isNIOPointerBuffer()) {
+        writer.print(getArgumentName(i) + ".getBuffer()");
       } else {
         writer.print(getArgumentName(i));
       }
@@ -755,11 +757,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       if (!returnType.isNIOByteBuffer()) {
         // See whether we have to expand pointers to longs
         if (getBinding().getCReturnType().pointerDepth() >= 2) {
-          if (!returnType.isNIOLongBuffer()) {
+          if (!returnType.isNIOPointerBuffer()) {
             throw new RuntimeException("While emitting glue code for " + getName() +
                                        ": can not legally make pointers opaque to anything but longs");
           }
-          writer.println("    return BufferFactory.asPointerBuffer(_res);");
+          writer.println("    return PointerBuffer.wrapNative2Java(_res, false);");
         } else {
           String returnTypeName = returnType.getName().substring("java.nio.".length());
           writer.println("    return _res.as" + returnTypeName + "();");

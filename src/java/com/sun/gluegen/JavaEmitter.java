@@ -1741,7 +1741,7 @@ public class JavaEmitter implements GlueEmitter {
           if (convertToArrays) {
             result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.longArrayClass));
           } else {
-            result = result.replaceJavaArgumentType(i, JavaType.forNIOLongBufferClass());
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOPointerBufferClass());
           }
         } else if (t.isCFloatPointerType()) {
           arrayPossible = true;
@@ -1775,7 +1775,7 @@ public class JavaEmitter implements GlueEmitter {
       } else if (t.isCInt32PointerType()) {
         result = result.replaceJavaArgumentType(-1, JavaType.forNIOIntBufferClass());
       } else if (t.isCInt64PointerType()) {
-        result = result.replaceJavaArgumentType(-1, JavaType.forNIOLongBufferClass());
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOPointerBufferClass());
       } else if (t.isCFloatPointerType()) {
         result = result.replaceJavaArgumentType(-1, JavaType.forNIOFloatBufferClass());
       } else if (t.isCDoublePointerType()) {
