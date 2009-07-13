@@ -98,6 +98,33 @@ public class StructAccessor {
     intBuffer().put(slot, v);
   }
 
+  /** Retrieves the long at the specified slot (8-byte offset). */
+  public long getLongAt(int slot) {
+    slot = slot << 1 ; // 8-byte to 4-byte offset
+    IntBuffer intBuffer = intBuffer();
+    long lo = 0x00000000FFFFFFFFL & ( (long) intBuffer.get(slot)   );
+    long hi = 0x00000000FFFFFFFFL & ( (long) intBuffer.get(slot+1) );
+    if(BufferFactory.isLittleEndian()) {
+        return hi << 32 | lo ;
+    }
+    return lo << 32 | hi ;
+  }
+
+  /** Puts a long at the specified slot (8-byte offset). */
+  public void setLongAt(int slot, long v) {
+    slot = slot << 1 ; // 8-byte to 4-byte offset
+    IntBuffer intBuffer = intBuffer();
+    int lo = (int) ( ( v       ) & 0x00000000FFFFFFFFL ) ;
+    int hi = (int) ( ( v >> 32 ) & 0x00000000FFFFFFFFL ) ;
+    if(BufferFactory.isLittleEndian()) {
+        intBuffer.put(slot, lo);
+        intBuffer.put(slot+1, hi);
+    } else {
+        intBuffer.put(slot, hi);
+        intBuffer.put(slot+1, lo);
+    }
+  }
+
   /** Retrieves the short at the specified slot (2-byte offset). */
   public short getShortAt(int slot) {
     return shortBuffer().get(slot);

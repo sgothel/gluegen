@@ -41,23 +41,121 @@ import java.nio.*;
 public class PointerBuffer {
   private ByteBuffer   bb;
   private LongBuffer   lb;
+  private int capacity, position;
+  private long[] backup;
 
-  public PointerBuffer(ByteBuffer bb) {
+  private PointerBuffer(ByteBuffer bb) {
     this.bb = bb;
     this.lb = bb.asLongBuffer();
+    capacity = bb.capacity()/BufferFactory.SIZEOF_LONG;
+    position=0;
+    backup = new long[capacity];
+  }
+
+  public final int limit() {
+    return capacity;
+  }
+  public final int capacity() {
+    return capacity;
+  }
+
+  public final int position() {
+    return position;
+  }
+
+  public final int remaining() {
+    return capacity - position;
+  }
+
+  public final boolean hasRemaining() {
+    return position < capacity;
+  }
+
+  public final void rewind() {
+    position=0;
+  }
+
+  int   arrayOffset() { return 0; }
+
+  boolean   hasArray() { return true; }
+
+  public long[] array() {
+    return backup;
+  }
+
+  public static PointerBuffer allocate(int size) {
+      return new PointerBuffer(ByteBuffer.wrap(new byte[BufferFactory.SIZEOF_LONG * size]));
+  }
+
+  public static PointerBuffer allocateDirect(int size) {
+      return new PointerBuffer(BufferFactory.newDirectByteBuffer(size));
+  }
+
+  public static PointerBuffer wrap(ByteBuffer src) {
+    PointerBuffer res =  new PointerBuffer(src);
+    res.updateBackup();
+    return res;
+  }
+
+  /** 
+   * Wraps pointer arrays created by native code.
+   * Note: In case this is not a 64bit system, each pointer is being converted. */
+  public static PointerBuffer wrapNative2Java(ByteBuffer src, boolean keepDirect) {
+    PointerBuffer res;
+    if (CPU.is32Bit()) {
+      // Must convert each pointer from 32-bit to 64-bit
+      IntBuffer buf = src.asIntBuffer();
+      int len = buf.capacity();
+      res = (src.isDirect() && keepDirect) ? PointerBuffer.allocateDirect(len) : PointerBuffer.allocate(len);
+      for (int i = 0; i < len; i++) {
+        res.put(i, buf.get(i));
+      }
+    } else {
+      res = new PointerBuffer(src);
+      res.updateBackup();
+    }
+    return res;
   }
 
   public ByteBuffer getBuffer() {
     return bb;
   }
 
-  /** Retrieves the long at the specified slot (8-byte offset). */
-  public long get(int slot) {
-    return lb.get(slot);
+  public boolean isDirect() {
+    return bb.isDirect();
   }
 
-  /** Puts a long at the specified slot (8-byte offset). */
-  public void put(int slot, long v) {
-    lb.put(slot, v);
+  public long get(int idx) {
+    if(0>idx || idx>=capacity) {
+        throw new IndexOutOfBoundsException();
+    }
+    return lb.get(idx);
+  }
+
+  public long get() {
+    long r = get(position+1);
+    position++;
+    return r;
+  }
+
+  public PointerBuffer put(int idx, long v) {
+    if(0>idx || idx>=capacity) {
+        throw new IndexOutOfBoundsException();
+    }
+    backup[idx] = v;
+    lb.put(idx, v);
+    return this;
+  }
+
+  public PointerBuffer put(long v) {
+    put(position+1, v);
+    position++;
+    return this;
+  }
+
+  private void updateBackup() {
+    for (int i = 0; i < capacity; i++) {
+      backup[i] = get(i);
+    }
   }
 }

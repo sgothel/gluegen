@@ -50,10 +50,23 @@ public class BufferFactory {
   public static final int SIZEOF_LONG = 8;
   public static final int SIZEOF_DOUBLE = 8;
 
+  private static final boolean isLittleEndian;
+
+  static {
+    ByteBuffer tst_b = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_INT); // 32bit in native order
+    IntBuffer tst_i = tst_b.asIntBuffer();
+    ShortBuffer tst_s = tst_b.asShortBuffer();
+    tst_i.put(0, 0x0A0B0C0D);
+    isLittleEndian = 0x0C0D == tst_s.get(0) ;
+  }
+
+  public static boolean isLittleEndian() {
+    return isLittleEndian;
+  }
+
+  /** Helper routine to create a direct ByteBuffer with native order */
   public static ByteBuffer newDirectByteBuffer(int size) {
-    ByteBuffer buf = ByteBuffer.allocateDirect(size);
-    buf.order(ByteOrder.nativeOrder());
-    return buf;
+    return nativeOrder(ByteBuffer.allocateDirect(size));
   }
 
   /** Helper routine to set a ByteBuffer to the native byte order, if
@@ -66,7 +79,7 @@ public class BufferFactory {
   /** Helper routine to tell whether a buffer is direct or not. Null
       pointers are considered direct. isDirect() should really be
       public in Buffer and not replicated in all subclasses. */
-  public static boolean isDirect(Buffer buf) {
+  public static boolean isDirect(Object buf) {
     if (buf == null) {
       return true;
     }
@@ -84,6 +97,8 @@ public class BufferFactory {
       return ((IntBuffer) buf).isDirect();
     } else if (buf instanceof LongBuffer) {
       return ((LongBuffer) buf).isDirect();
+    } else if (buf instanceof PointerBuffer) {
+      return ((PointerBuffer) buf).isDirect();
     }
     throw new RuntimeException("Unexpected buffer type " + buf.getClass().getName());
   }
@@ -93,24 +108,29 @@ public class BufferFactory {
       account the Buffer position and the underlying type.  This is
       the total offset for Direct Buffers.  */
 
-  public static int getDirectBufferByteOffset(Buffer buf) {
+  public static int getDirectBufferByteOffset(Object buf) {
     if(buf == null) {
       return 0;
     }
-    if(buf instanceof ByteBuffer) {
-      return (buf.position());
-    } else if (buf instanceof FloatBuffer) {
-      return (buf.position() * SIZEOF_FLOAT);
-    } else if (buf instanceof IntBuffer) {
-      return (buf.position() * SIZEOF_INT);
-    } else if (buf instanceof ShortBuffer) {
-      return (buf.position() * SIZEOF_SHORT);
-    } else if (buf instanceof DoubleBuffer) {
-      return (buf.position() * SIZEOF_DOUBLE);
-    } else if (buf instanceof LongBuffer) {
-      return (buf.position() * SIZEOF_LONG);
-    } else if (buf instanceof CharBuffer) {
-      return (buf.position() * SIZEOF_CHAR);
+    if(buf instanceof Buffer) {
+        int pos = ((Buffer)buf).position();
+        if(buf instanceof ByteBuffer) {
+          return pos;
+        } else if (buf instanceof FloatBuffer) {
+          return pos * SIZEOF_FLOAT;
+        } else if (buf instanceof IntBuffer) {
+          return pos * SIZEOF_INT;
+        } else if (buf instanceof ShortBuffer) {
+          return pos * SIZEOF_SHORT;
+        } else if (buf instanceof DoubleBuffer) {
+          return pos * SIZEOF_DOUBLE;
+        } else if (buf instanceof LongBuffer) {
+          return pos * SIZEOF_LONG;
+        } else if (buf instanceof CharBuffer) {
+          return pos * SIZEOF_CHAR;
+        }
+    } else if (buf instanceof PointerBuffer) {
+      return (((PointerBuffer)buf).position() * SIZEOF_LONG);
     } 
 
     throw new RuntimeException("Disallowed array backing store type in buffer "
@@ -121,7 +141,7 @@ public class BufferFactory {
   /** Helper routine to return the array backing store reference from
       a Buffer object.  */
 
-   public static Object getArray(Buffer buf) {
+   public static Object getArray(Object buf) {
      if (buf == null) {
        return null;
      }
@@ -139,6 +159,8 @@ public class BufferFactory {
        return ((LongBuffer) buf).array();
      } else if (buf instanceof CharBuffer) { 
        return ((CharBuffer) buf).array();
+     } else if (buf instanceof PointerBuffer) { 
+       return ((PointerBuffer) buf).array();
      }
 
      throw new RuntimeException("Disallowed array backing store type in buffer "
@@ -151,26 +173,30 @@ public class BufferFactory {
       object.  The array offset also includes the position offset 
       within the buffer, in addition to any array offset. */
 
-  public static int getIndirectBufferByteOffset(Buffer buf) {
+  public static int getIndirectBufferByteOffset(Object buf) {
     if(buf == null) {
       return 0;
     }
-    int pos = buf.position();
-    if(buf instanceof ByteBuffer) {
-      return (((ByteBuffer)buf).arrayOffset() + pos);
-    } else if(buf instanceof FloatBuffer) {
-      return (SIZEOF_FLOAT*(((FloatBuffer)buf).arrayOffset() + pos));
-    } else if(buf instanceof IntBuffer) {
-      return (SIZEOF_INT*(((IntBuffer)buf).arrayOffset() + pos));
-    } else if(buf instanceof ShortBuffer) {
-      return (SIZEOF_SHORT*(((ShortBuffer)buf).arrayOffset() + pos));
-    } else if(buf instanceof DoubleBuffer) {
-      return (SIZEOF_DOUBLE*(((DoubleBuffer)buf).arrayOffset() + pos));
-    } else if(buf instanceof LongBuffer) {
-      return (SIZEOF_LONG*(((LongBuffer)buf).arrayOffset() + pos));
-    } else if(buf instanceof CharBuffer) {
-      return (SIZEOF_CHAR*(((CharBuffer)buf).arrayOffset() + pos));
-    } 
+    if (buf instanceof Buffer) {
+        int pos = ((Buffer)buf).position();
+        if(buf instanceof ByteBuffer) {
+          return (((ByteBuffer)buf).arrayOffset() + pos);
+        } else if(buf instanceof FloatBuffer) {
+          return (SIZEOF_FLOAT*(((FloatBuffer)buf).arrayOffset() + pos));
+        } else if(buf instanceof IntBuffer) {
+          return (SIZEOF_INT*(((IntBuffer)buf).arrayOffset() + pos));
+        } else if(buf instanceof ShortBuffer) {
+          return (SIZEOF_SHORT*(((ShortBuffer)buf).arrayOffset() + pos));
+        } else if(buf instanceof DoubleBuffer) {
+          return (SIZEOF_DOUBLE*(((DoubleBuffer)buf).arrayOffset() + pos));
+        } else if(buf instanceof LongBuffer) {
+          return (SIZEOF_LONG*(((LongBuffer)buf).arrayOffset() + pos));
+        } else if(buf instanceof CharBuffer) {
+          return (SIZEOF_CHAR*(((CharBuffer)buf).arrayOffset() + pos));
+        }
+    } else if(buf instanceof PointerBuffer) {
+        return (SIZEOF_LONG*(((PointerBuffer)buf).arrayOffset() + ((PointerBuffer)buf).position()));
+    }
 
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
   }
@@ -255,45 +281,34 @@ public class BufferFactory {
     }
   }
 
-  public static void rangeCheckBytes(Buffer buffer, int minBytesRemaining) {
+  public static void rangeCheckBytes(Object buffer, int minBytesRemaining) {
     if (buffer == null) {
       return;
     }
 
-    int elementsRemaining = buffer.remaining();
     int bytesRemaining = 0;
-    if (buffer instanceof ByteBuffer) {
-      bytesRemaining = elementsRemaining;
-    } else if (buffer instanceof FloatBuffer) {
-      bytesRemaining = elementsRemaining * SIZEOF_FLOAT;
-    } else if (buffer instanceof IntBuffer) {
-      bytesRemaining = elementsRemaining * SIZEOF_INT;
-    } else if (buffer instanceof ShortBuffer) {
-      bytesRemaining = elementsRemaining * SIZEOF_SHORT;
-    } else if (buffer instanceof DoubleBuffer) {
-      bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
-    } else if (buffer instanceof LongBuffer) {
-      bytesRemaining = elementsRemaining * SIZEOF_LONG;
-    } else if (buffer instanceof CharBuffer) {
-      bytesRemaining = elementsRemaining * SIZEOF_CHAR;
+    if (buffer instanceof Buffer) {
+        int elementsRemaining = ((Buffer)buffer).remaining();
+        if (buffer instanceof ByteBuffer) {
+          bytesRemaining = elementsRemaining;
+        } else if (buffer instanceof FloatBuffer) {
+          bytesRemaining = elementsRemaining * SIZEOF_FLOAT;
+        } else if (buffer instanceof IntBuffer) {
+          bytesRemaining = elementsRemaining * SIZEOF_INT;
+        } else if (buffer instanceof ShortBuffer) {
+          bytesRemaining = elementsRemaining * SIZEOF_SHORT;
+        } else if (buffer instanceof DoubleBuffer) {
+          bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
+        } else if (buffer instanceof LongBuffer) {
+          bytesRemaining = elementsRemaining * SIZEOF_LONG;
+        } else if (buffer instanceof CharBuffer) {
+          bytesRemaining = elementsRemaining * SIZEOF_CHAR;
+        }
+    } else if (buffer instanceof PointerBuffer) {
+      bytesRemaining = ((PointerBuffer)buffer).remaining() * SIZEOF_LONG;
     }
     if (bytesRemaining < minBytesRemaining) {
       throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
-    }
-  }
-
-  public static LongBuffer asPointerBuffer(ByteBuffer src) {
-    if (CPU.is32Bit()) {
-      // Must convert each pointer from 32-bit to 64-bit
-      IntBuffer buf = src.asIntBuffer();
-      int len = buf.capacity();
-      LongBuffer res = LongBuffer.wrap(new long[len]);
-      for (int i = 0; i < len; i++) {
-        res.put(i, buf.get(i));
-      }
-      return res;
-    } else {
-      return src.asLongBuffer();
     }
   }
 }
