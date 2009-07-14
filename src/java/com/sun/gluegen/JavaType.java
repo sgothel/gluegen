@@ -331,7 +331,8 @@ public class JavaType {
   }
 
   public boolean isNIOBuffer() {
-    return clazz != null && ((java.nio.Buffer.class).isAssignableFrom(clazz) || isNIOPointerBuffer());
+    return clazz != null && ( (java.nio.Buffer.class).isAssignableFrom(clazz) ||
+                              (com.sun.gluegen.runtime.PointerBuffer.class).isAssignableFrom(clazz) ) ;
   }
 
   public boolean isNIOByteBuffer() {
@@ -353,7 +354,7 @@ public class JavaType {
 
   public boolean isNIOPointerBuffer()
   {
-    return clazz == (com.sun.gluegen.runtime.PointerBuffer.class);
+    return (clazz == com.sun.gluegen.runtime.PointerBuffer.class);
   }
 
   public boolean isString() {
