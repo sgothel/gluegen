@@ -88,7 +88,7 @@ public class PointerBuffer {
   }
 
   public static PointerBuffer allocateDirect(int size) {
-      return new PointerBuffer(BufferFactory.newDirectByteBuffer(size));
+      return new PointerBuffer(BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG * size));
   }
 
   public static PointerBuffer wrap(ByteBuffer src) {

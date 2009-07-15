@@ -1,27 +1,29 @@
 
+package com.sun.gluegen.test;
+
 import com.sun.gluegen.runtime.*;
 import java.nio.*;
 
-public class TestPointerBufferEndian {
-    public static void main (String[] args) {
-        boolean direct = args.length>0 && args[0].equals("-direct");
+public class TestStructAccessorEndian {
+    public static void main (String args[]) {
         boolean ok = true;
-        System.out.println("Buffer is in: "+ (BufferFactory.isLittleEndian()?"little":"big") + " endian");
-        PointerBuffer ptr = direct ? PointerBuffer.allocateDirect(3) : PointerBuffer.allocate(3);
-        ptr.put(0, 0x0123456789ABCDEFL);
-        ptr.put(1, 0x8877665544332211L);
-        ptr.put(2, 0xAFFEDEADBEEFAFFEL);
-        long v = ptr.get(0);
+        System.out.println("CPU is : "+ (BufferFactory.isLittleEndian()?"little":"big") + " endian");
+        ByteBuffer tst = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG * 3);
+        StructAccessor acc = new StructAccessor(tst);
+        acc.setLongAt(0, 0x0123456789ABCDEFL);
+        acc.setLongAt(1, 0x8877665544332211L);
+        acc.setLongAt(2, 0xAFFEDEADBEEFAFFEL);
+        long v = acc.getLongAt(0);
         if( 0x0123456789ABCDEFL != v ) {
             System.out.println("Err[0] shall 0x0123456789ABCDEF, is: "+Long.toHexString(v));
             ok=false;
         }
-        v = ptr.get(1);
+        v = acc.getLongAt(1);
         if( 0x8877665544332211L != v ) {
             System.out.println("Err[1] shall 0x8877665544332211, is: "+Long.toHexString(v));
             ok=false;
         }
-        v = ptr.get(2);
+        v = acc.getLongAt(2);
         if( 0xAFFEDEADBEEFAFFEL != v ) {
             System.out.println("Err[2] shall 0xAFFEDEADBEEFAFFE, is: "+Long.toHexString(v));
             ok=false;

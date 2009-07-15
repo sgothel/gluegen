@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Implementation-Title: GlueGen Run-Time CDC
+Implementation-Version: @BASEVERSION@

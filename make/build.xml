@@ -50,9 +50,9 @@
   </target>
 
   <target name="setup.javacdc">
-    <copy file="../src/java/com/sun/gluegen/runtime/BufferFactory.java.javame_cdc_fp" tofile="${src.generated-cdc.java}/com/sun/gluegen/runtime/BufferFactory.java" />
-    <copy file="../src/java/com/sun/gluegen/runtime/StructAccessor.java.javame_cdc_fp" tofile="${src.generated-cdc.java}/com/sun/gluegen/runtime/StructAccessor.java" />
-    <copy file="../src/java/com/sun/gluegen/runtime/PointerBuffer.java.javame_cdc_fp" tofile="${src.generated-cdc.java}/com/sun/gluegen/runtime/PointerBuffer.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/BufferFactory.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/gluegen/runtime/BufferFactory.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/StructAccessor.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/gluegen/runtime/StructAccessor.java" />
+    <copy file="../src/java/com/sun/gluegen/runtime/PointerBuffer.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/gluegen/runtime/PointerBuffer.java" />
   </target>
 
   <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2">
@@ -66,9 +66,8 @@
 
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
-    <property name="src.generated-cdc"      value="${build}/gensrc-cdc" />
     <property name="src.generated.java"     value="${src.generated}/java" />
-    <property name="src.generated-cdc.java" value="${src.generated-cdc}/java" />
+    <property name="src.generated.java-cdc" value="${src.generated}/java-cdc" />
 
     <!-- The compiler output directories. -->
     <property name="classes" value="${build}/classes" />
@@ -79,11 +78,11 @@
 
     <!-- Create the required output directories. -->
     <mkdir dir="${src.generated.java}" />
-    <mkdir dir="${src.generated-cdc.java}" />
+    <mkdir dir="${src.generated.java-cdc}" />
     <mkdir dir="${classes}" />
     <mkdir dir="${classes-cdc}" />
 
-    <!-- Set up compilation for either Java SE or Java CDC -->
+    <!-- Set up Java SE and Java CDC files -->
     <antcall target="setup.javase"  inheritRefs="true" />
     <antcall target="setup.javacdc" inheritRefs="true" />
 
@@ -427,7 +426,7 @@
            excludes="${gluegen.excludes}"
            bootclasspath="${javac.bootclasspath-cdc.jar}">
       <src path="${src.java}" />
-      <src path="${src.generated-cdc.java}" />
+      <src path="${src.generated.java-cdc}" />
       <classpath refid="antlr.classpath" />
     </javac>
   </target>
@@ -511,6 +510,14 @@
         </filterset>
     </copy>
 
+    <copy file="Manifest-rt-cdc"
+          tofile="${build}/Manifest-rt-cdc.temp"
+          overwrite="true">
+        <filterset>
+            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+        </filterset>
+    </copy>
+
     <!-- Build gluegen-rt.jar. -->
     <jar destfile="${build}/gluegen-rt.jar" manifest="${build}/Manifest-rt.temp">
       <fileset dir="${classes}">
@@ -528,7 +535,7 @@
     <antcall target="gluegen.build.gluegen-rt-cdc" inheritRefs="true" />
 
     <!-- Build gluegen-rt-cdc.jar. -->
-    <jar destfile="${build}/gluegen-rt-cdc.jar" manifest="${build}/Manifest-rt.temp">
+    <jar destfile="${build}/gluegen-rt-cdc.jar" manifest="${build}/Manifest-rt-cdc.temp">
       <fileset dir="${classes-cdc}">
         <include name="com/sun/gluegen/runtime/*.class" />
         <include name="com/sun/gluegen/runtime/opengl/*.class" />
