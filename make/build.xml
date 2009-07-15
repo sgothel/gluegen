@@ -399,7 +399,7 @@
           <include name="*gluegen-rt.${native.library.suffix}" />
         </fileset>
       </jar>
-      <jar destfile="${build}/gluegen-rt-cdc-natives-${os.and.arch}.jar">
+      <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}-cdc.jar">
         <fileset dir="${build}/obj">
           <include name="*gluegen-rt.${native.library.suffix-cdc}" />
         </fileset>
