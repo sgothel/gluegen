@@ -7,6 +7,5 @@ fi
 #    -Dc.compiler.debug=true 
 
 ant -v \
-    -DisCDCFP=true \
-    -Drootrel.build=build-cdcfp-macosx \
-    $* 2>&1 | tee make.gluegen.cdcfp.macosx-x86.log
+    -Drootrel.build=build-macosx \
+    $* 2>&1 | tee make.gluegen.all.macosx-x86.log

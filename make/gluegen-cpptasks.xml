@@ -317,7 +317,8 @@
   <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
-    <property name="native.library.suffix" value="*lib" />
+    <property name="native.library.suffix"     value="*lib" />
+    <property name="native.library.suffix-cdc" value="so" />
     <property name="os.and.arch" value="macosx-universal" />
   </target>
 
@@ -340,7 +341,8 @@
   <target name="gluegen.cpptasks.detect.os.solaris" depends="gluegen.cpptasks.detect.os.solaris.sparc,gluegen.cpptasks.detect.os.solaris.sparcv9,gluegen.cpptasks.detect.os.solaris.amd64,gluegen.cpptasks.detect.os.solaris.x86" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.unix" unless="gluegen.cpptasks.detected.os.2" if="isUnix">
-    <property name="native.library.suffix" value="so" />
+    <property name="native.library.suffix"     value="so" />
+    <property name="native.library.suffix-cdc" value="so" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.windows.amd64" unless="gluegen.cpptasks.detected.os.2" if="isWindowsAMD64">
@@ -352,7 +354,8 @@
   </target>
 
   <target name="gluegen.cpptasks.detect.os.windows" depends="gluegen.cpptasks.detect.os.windows.amd64,gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os.2" if="isWindows">
-    <property name="native.library.suffix" value="dll" />
+    <property name="native.library.suffix"     value="dll" />
+    <property name="native.library.suffix-cdc" value="dll" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
