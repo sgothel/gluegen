@@ -53,6 +53,8 @@
    -   isWindowsX86
    -   isWindowsAMD64
    -   isX11
+   -
+   - isX11 is set if: !isWindows && !isOSX && !noX11
    - 
    - It also sets the following properties which are useful for
    - building native library jar files for Java Web Start and
@@ -259,6 +261,7 @@
       <and>
         <isfalse value="${isWindows}" />
         <isfalse value="${isOSX}" />
+        <isfalse value="${noX11}" />
       </and>
     </condition>
 
