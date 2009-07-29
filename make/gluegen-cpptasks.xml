@@ -11,22 +11,8 @@
    - directory (e.g., from which the parent project's build.xml is being
    - executed) to the top of the checked-out GlueGen workspace.
    - 
-   - This Ant project file depends on the following properties being set
-   - externally:
-   - 
-   -   win32.c.compiler (required to be set on Windows):
-   -       one of "vc6", "vc7", "vc8", or "mingw".
-   -   c.compiler.debug:
-   -       set to "true" if debug version of the compiled
-   -       C code is desired.
-   -   macosppc:
-   -       set to "true" if ppc universal / fat binaries are desired
-   -       on Mac OS X. Requires support for cross-compilation from the
-   -       underlying C compiler. Note: Unsupported on Snow Leopard!
-   -   macosx64:
-   -       set to "true" if 64-bit universal / fat binaries are desired
-   -       on Mac OS X. Requires support for cross-compilation from the
-   -       underlying C compiler.
+   - This Ant project file depends on properties being set
+   - via gluegen.properties, see: gluegen-properties.xml !
    - 
    - The gluegen.cpptasks.detect.os target sets the following
    - properties appropriately. They are only set to "true" if the OS/CPU
