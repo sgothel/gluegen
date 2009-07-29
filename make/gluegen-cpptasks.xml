@@ -286,6 +286,8 @@
     <echo message="LinuxIA64=${isLinuxIA64}" />
     <echo message="LinuxX86=${isLinuxX86}" />
     <echo message="OS X=${isOSX}" />
+    <echo message="OS X PPC=${use.macosppc}" />
+    <echo message="OS X x64=${use.macosx64}" />
     <echo message="Solaris=${isSolaris}" />
     <echo message="Solaris32Bit=${isSolaris32Bit}" />
     <echo message="SolarisSparc=${isSolarisSparc}" />
