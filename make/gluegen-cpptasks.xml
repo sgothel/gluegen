@@ -132,6 +132,10 @@
    -   &lt;msvc.manifest objdir="${obj}" dllname="gluegen-rt" /&gt;
   -->
 <project name="GlueGen-cpptasks" basedir=".">
+
+  <!-- import properties -->
+  <import file="gluegen-properties.xml" />
+
   <!-- import cpptasks -->
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
 
@@ -139,7 +143,7 @@
   <import file="${user.home}/gluegen.compiler.xml" optional="true" />
 
   <!-- Detect OS and compiler configuration -->
-  <target name="gluegen.cpptasks.detect.os.1" unless="gluegen.cpptasks.detected.os">
+  <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.properties.load.user" unless="gluegen.cpptasks.detected.os">
     <condition property="isOSX">
       <and>
         <os family="mac"/>
@@ -366,7 +370,7 @@
   <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
   </target>
 
-  <target name="gluegen.cpptasks.detect.os" depends="gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
+  <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
     <property name="gluegen.cpptasks.detected.os" value="true" />
     <property name="gluegen.cpptasks.detected.os.2" value="true" />
   </target>

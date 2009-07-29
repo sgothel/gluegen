@@ -18,16 +18,7 @@
    <available property="antlr.jar" file="/usr/share/java/antlr.jar"
               value="/usr/share/java/antlr.jar"/>
 
-  <target name="load.user.properties" unless="user.properties.file">
-    <!-- Load the user specified properties file that defines various host
-      - specific paths.  The user will be notified if this is does not
-      - exist. -->
-    <property name="user.properties.file" value="${user.home}/gluegen.properties" />
-    <property file="${user.properties.file}" />
-    <echo message="Loaded ${user.properties.file}." />
-    <fail message="antlr.jar was not specified in gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
-    <echo message="antlr.jar=${antlr.jar}" />
-  </target>
+  <import file="gluegen-cpptasks.xml" />
 
   <condition property="rootrel.build" value="build">
     <not>
@@ -55,7 +46,7 @@
     <copy file="../src/java/com/sun/gluegen/runtime/PointerBuffer.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/gluegen/runtime/PointerBuffer.java" />
   </target>
 
-  <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2">
+  <target name="init" depends="gluegen.properties.load.user,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
     <property name="javac.bootclasspath-cdc.jar" value="lib/cdc_fp.jar" />
@@ -141,7 +132,6 @@
        the source tree. -->
 
   <property name="gluegen.root" value="../" />
-  <import file="gluegen-cpptasks.xml" />
   <target name="generate.nativelibrary.sources" depends="init" >
     <!-- Define the appropriate include paths -->
     <dirset id="stub.includes.fileset.windows" dir=".">
@@ -187,11 +177,11 @@
     <!-- 
        - Set up java.home.dir appropriately on all platforms.
       -->
-    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="isOSX">
+    <target name="setup.java.home.dir.nonmacosx" depends="gluegen.properties.load.user" unless="isOSX">
       <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
       <property name="java.home.dir" value="${java.home}/.." />
     </target>
-    <target name="setup.java.home.dir.macosx" depends="load.user.properties" if="isOSX">
+    <target name="setup.java.home.dir.macosx" depends="gluegen.properties.load.user" if="isOSX">
       <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
     </target>
     <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx" >

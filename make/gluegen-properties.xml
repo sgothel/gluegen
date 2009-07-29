@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+   - This Ant project file depends on the following properties being set
+   - externally:
+   - 
+   -   win32.c.compiler (required to be set on Windows):
+   -       one of "vc6", "vc7", "vc8", or "mingw".
+   -   c.compiler.debug:
+   -       set to "true" if debug version of the compiled
+   -       C code is desired.
+   -   macosppc:
+   -       set to "true" if ppc universal / fat binaries are desired
+   -       on Mac OS X. Requires support for cross-compilation from the
+   -       underlying C compiler. Note: Unsupported on Snow Leopard!
+   -   macosx64:
+   -       set to "true" if 64-bit universal / fat binaries are desired
+   -       on Mac OS X. Requires support for cross-compilation from the
+   -       underlying C compiler.
+   - 
+  -->
+<project name="GlueGen-properties" basedir=".">
+
+  <target name="gluegen.properties.load.user" unless="user.properties.file">
+    <!-- Load the user specified properties file that defines various host
+      - specific paths.  The user will be notified if this is does not
+      - exist. -->
+    <property name="user.properties.file" value="${user.home}/gluegen.properties" />
+    <property file="${user.properties.file}" />
+    <echo message="Loaded ${user.properties.file}." />
+    <fail message="antlr.jar was not specified in gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
+    <echo message="antlr.jar=${antlr.jar}" />
+  </target>
+
+</project>
