@@ -47,35 +47,67 @@ public class CPU {
   private static boolean is32Bit;
 
   static {
-    // We don't seem to need an AccessController.doPrivileged() block
-    // here as these system properties are visible even to unsigned
-    // applets
-    // Note: this code is replicated in StructLayout.java
-    String os = System.getProperty("os.name").toLowerCase();
-    String cpu = System.getProperty("os.arch").toLowerCase();
-    if ((os.startsWith("windows") && cpu.equals("x86")) ||
-        (os.startsWith("windows") && cpu.equals("arm")) ||
-        (os.startsWith("linux") && cpu.equals("i386")) ||
-        (os.startsWith("linux") && cpu.equals("x86")) ||
-        (os.startsWith("mac os") && cpu.equals("ppc")) ||
-        (os.startsWith("mac os") && cpu.equals("i386")) ||
-        (os.startsWith("darwin") && cpu.equals("ppc")) ||
-        (os.startsWith("darwin") && cpu.equals("i386")) ||
-        (os.startsWith("sunos") && cpu.equals("sparc")) ||
-        (os.startsWith("sunos") && cpu.equals("x86")) ||
-        (os.startsWith("freebsd") && cpu.equals("i386")) ||
-        (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))) {
-      is32Bit = true;
-    } else if ((os.startsWith("windows") && cpu.equals("amd64")) ||
-               (os.startsWith("linux") && cpu.equals("amd64")) ||
-               (os.startsWith("linux") && cpu.equals("x86_64")) ||
-               (os.startsWith("linux") && cpu.equals("ia64")) ||
-               (os.startsWith("mac os") && cpu.equals("x86_64")) ||
-               (os.startsWith("darwin") && cpu.equals("x86_64")) ||
-               (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
-               (os.startsWith("sunos") && cpu.equals("amd64"))) {
-    } else {
-      throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + os + "/" + cpu + ")");
+    boolean done=false;
+
+    // Try to use Sun's sun.arch.data.model first ..
+    int bits = 0;
+    try {
+        String bitS =
+          (String) AccessController.doPrivileged(new PrivilegedAction() {
+              public Object run() {
+                return System.getProperty("sun.arch.data.model");
+              }
+            });
+        if(null!=bitS && bitS.length()>0) {
+            bits = Integer.parseInt(bitS);
+            is32Bit = ( 32 == bits );
+            done = true ;
+        }
+    } catch (NumberFormatException nfe) {}
+
+    if(!done) {
+        // We don't seem to need an AccessController.doPrivileged() block
+        // here as these system properties are visible even to unsigned
+        // applets
+        // Note: this code is replicated in StructLayout.java
+        String os = System.getProperty("os.name").toLowerCase();
+        String cpu = System.getProperty("os.arch").toLowerCase();
+
+        if(!done) {
+            if ((os.startsWith("windows") && cpu.equals("x86")) ||
+                (os.startsWith("windows") && cpu.equals("arm")) ||
+                (os.startsWith("linux") && cpu.equals("i386")) ||
+                (os.startsWith("linux") && cpu.equals("x86")) ||
+                (os.startsWith("mac os") && cpu.equals("ppc")) ||
+                (os.startsWith("mac os") && cpu.equals("i386")) ||
+                (os.startsWith("darwin") && cpu.equals("ppc")) ||
+                (os.startsWith("darwin") && cpu.equals("i386")) ||
+                (os.startsWith("sunos") && cpu.equals("sparc")) ||
+                (os.startsWith("sunos") && cpu.equals("x86")) ||
+                (os.startsWith("freebsd") && cpu.equals("i386")) ||
+                (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))) {
+              is32Bit = true;
+              done = true;
+            }
+        }
+
+        if(!done) {
+            if ((os.startsWith("windows") && cpu.equals("amd64")) ||
+                (os.startsWith("linux") && cpu.equals("amd64")) ||
+                (os.startsWith("linux") && cpu.equals("x86_64")) ||
+                (os.startsWith("linux") && cpu.equals("ia64")) ||
+                (os.startsWith("mac os") && cpu.equals("x86_64")) ||
+                (os.startsWith("darwin") && cpu.equals("x86_64")) ||
+                (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
+                (os.startsWith("sunos") && cpu.equals("amd64"))) {
+              is32Bit = false;
+              done = true;
+            }
+        }
+
+        if(!done) {
+          throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + os + "/" + cpu + ")");
+        }
     }
   }
 
