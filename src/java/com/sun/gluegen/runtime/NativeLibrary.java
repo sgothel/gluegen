@@ -412,7 +412,7 @@ public class NativeLibrary {
   }
 
   private static volatile boolean loadedDynLinkNativeLib;
-  private static void ensureNativeLibLoaded() {
+  static void ensureNativeLibLoaded() {
     if (!loadedDynLinkNativeLib) {
       synchronized (NativeLibrary.class) {
         if (!loadedDynLinkNativeLib) {

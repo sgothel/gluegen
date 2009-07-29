@@ -240,7 +240,7 @@
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.vc9,declare.win32.mingw" if="isWindows" >
-      <property name="c.src.dir"                            value="windows" />
+      <property name="c.src.dir.os"                         value="windows" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/win32" />
     </target>
 
@@ -263,7 +263,7 @@
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64" if="isLinux" >
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>
 
@@ -286,7 +286,7 @@
     </target>
    
     <target name="declare.solaris" depends="declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64" if="isSolaris" >
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/solaris" />
     </target>
 
@@ -294,7 +294,7 @@
       <echo message="MacOSX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
-      <property name="c.src.dir"                            value="macosx" />
+      <property name="c.src.dir.os"                         value="macosx" />
       <property name="java.includes.dir.platform"           value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
     </target>
     
@@ -302,7 +302,7 @@
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
       <property name="linker.cfg.id"                        value="linker.cfg.linux" />
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.freebsd"            value="${java.includes.dir}/freebsd" />
     </target>
 
@@ -310,7 +310,7 @@
       <echo message="HP-UX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
       <property name="linker.cfg.id"                        value="linker.cfg.hpux" />
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.hpux"               value="${java.includes.dir}/hp-ux" />
     </target>
 
@@ -318,7 +318,7 @@
       <!-- Common properties -->
       <property name="java.includes.dir" value="${java.home.dir}/include" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
-      <property name="c.compiler.src.files" value="src/native/${c.src.dir}/*.c" />
+      <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
 
       <property name="output.lib.name" value="gluegen-rt" />
     </target>
@@ -340,7 +340,7 @@
     </target>
 
     <target name="c.build" depends="c.configure" unless="build.javaonly" >
-      <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
+      <fail message="Requires '${c.compiler.src.files.os}'" unless="c.compiler.src.files.os"/>
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
       <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
@@ -356,7 +356,9 @@
 
       <mkdir dir="${build}/obj" />
 
-      <echo message="Compiling ${c.compiler.src.files}" />
+      <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
+
+      <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
       <echo message="user.dir=${user.dir}" />
 
       <cc outtype="shared" 
@@ -378,7 +380,8 @@
 
         <fileset dir="..">
           <patternset>
-            <include name="${c.compiler.src.files}" />
+            <include name="${c.compiler.src.files.os}" />
+            <include name="${c.compiler.src.files.common}" />
           </patternset>
         </fileset>
 
