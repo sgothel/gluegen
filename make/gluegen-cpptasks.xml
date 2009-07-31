@@ -509,6 +509,9 @@
     </compiler>
 
     <compiler id="compiler.cfg.win32.mingw" name="gcc">
+      <compilerarg value="-g" if="c.compiler.use-debug"/> 
+      <compilerarg value="-O0" if="c.compiler.use-debug"/> 
+      <compilerarg value="-O2" unless="c.compiler.use-debug"/>
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
