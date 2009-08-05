@@ -88,7 +88,7 @@ public interface GlueEmitter {
    * emit that string as a comment providing extra information about the
    * define.
    */
-  public void emitDefine(String name, String value, String optionalComment) throws Exception;
+  public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception;
   public void endDefines() throws Exception;
   
   public void beginFunctions(TypeDictionary typedefDictionary,

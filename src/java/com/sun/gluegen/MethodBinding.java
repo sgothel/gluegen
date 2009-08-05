@@ -51,6 +51,7 @@ public class MethodBinding {
 
   private FunctionSymbol sym;
   private String         renamedMethodName;
+  private HashSet        aliasedNames;
   private JavaType       javaReturnType;
   private List           javaArgumentTypes;
   private boolean        computedSignatureProperties;
@@ -76,6 +77,8 @@ public class MethodBinding {
     this.sym = bindingToCopy.sym;
 
     this.renamedMethodName                = bindingToCopy.renamedMethodName;
+    this.aliasedNames=new HashSet();
+    this.aliasedNames.addAll(bindingToCopy.aliasedNames);
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
     this.javaReturnType                   = bindingToCopy.javaReturnType;
@@ -96,6 +99,7 @@ public class MethodBinding {
   /** Constructor for calling a C function. */
   public MethodBinding(FunctionSymbol sym) {
     this.sym = sym;
+    this.aliasedNames=new HashSet();
   }
 
   /** Constructor for calling a function pointer contained in a
@@ -104,6 +108,7 @@ public class MethodBinding {
     this.sym = sym;
     this.containingType = containingType;
     this.containingCType = containingCType;
+    this.aliasedNames=new HashSet();
   }
 
   public void           setJavaReturnType(JavaType type) {
@@ -156,11 +161,11 @@ public class MethodBinding {
     return "arg" + i;
   }
 
-  public String         getName() {
+  public String         getOrigName() {
     return sym.getName();
   }
 
-  public String         getRenamedMethodName() {
+  public String         getName() {
     // Defaults to same as C symbol unless renamed
     if (renamedMethodName != null) {
       return renamedMethodName;
@@ -169,8 +174,19 @@ public class MethodBinding {
   }
 
   /** Supports renaming C function in Java binding. */
-  public void           setRenamedMethodName(String name) {
-    renamedMethodName = name;
+  public void           renameMethodName(String name) {
+    if(null!=name) {
+        renamedMethodName = name;
+        aliasedNames.add(sym.getName());
+    }
+  }
+
+  public void           addAliasedName(String name) {
+    aliasedNames.add(name);
+  }
+
+  public Collection     getAliasedNames() {
+    return aliasedNames;
   }
 
   /** Creates a new MethodBinding replacing the specified Java
@@ -451,9 +467,10 @@ public class MethodBinding {
     }
 
     MethodBinding other = (MethodBinding)obj;
-    if (!(sym.equals(other.sym))) { return false; }
+    if ( !getName().equals(other.getName()) ||
+         !sym.getType().equals(other.sym.getType()) ) { return false; }
     if (!(javaReturnType.equals(other.getJavaReturnType()))) { return false; }
-    if (containingType != null &&
+    if (containingCType != null &&
         other.getContainingCType() != null &&
         (!(containingCType.equals(other.getContainingCType())))) {
         return false;
@@ -473,14 +490,35 @@ public class MethodBinding {
     return true;
   }
 
-  // FIXME!! Implement hashCode() to match equals(Object)
+  public int hashCode() {
+    StringBuffer buf = new StringBuffer(200);
+    buf.append(getName());
+    buf.append(sym.getType().getName(true));
+    buf.append(getJavaReturnType().getName());
+    if (containingCType != null) {
+        buf.append(containingCType.getName(true));
+    }
+
+    for (int i = 0; i < getNumArguments(); i++) {
+      JavaType type = getJavaArgumentType(i);
+      if (type.isVoid()) {
+        // Make sure this is the only param to the method; if it isn't,
+        // there's something wrong with our parsing of the headers.
+        assert(getNumArguments() == 1);
+        continue;
+      } 
+      
+      buf.append(type.getName());
+    }
+    return buf.toString().hashCode();
+  }
 
   /** Returns the signature of this binding. */
   public String toString() {
     StringBuffer buf = new StringBuffer(200);
     buf.append(getJavaReturnType().getName());
     buf.append(" ");
-    buf.append(getRenamedMethodName());
+    buf.append(getName());
     buf.append("(");
     boolean needComma = false;
     for (int i = 0; i < getNumArguments(); i++) {

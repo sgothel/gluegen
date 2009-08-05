@@ -155,7 +155,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   public final MethodBinding getBinding() { return binding; }
 
   public String getName() {
-    return binding.getRenamedMethodName();
+    return binding.getName();
   }
 
   /**

@@ -126,11 +126,7 @@ public class JavaEmitter implements GlueEmitter {
       for (Iterator iter = constants.iterator(); iter.hasNext(); ) {
         ConstantDefinition def = (ConstantDefinition) iter.next();
         String rename = cfg.getJavaSymbolRename(def.getName());
-        if (rename != null) {
-          ConstantDefinition newDef = new ConstantDefinition(rename, def.getValue(), def.getEnumName());
-          newDef.addAlias(def.getName());
-          def = newDef;
-        }
+        def.rename(cfg.getJavaSymbolRename(def.getName()));
         newConstants.add(def);
       }
       constants = newConstants;
@@ -301,7 +297,7 @@ public class JavaEmitter implements GlueEmitter {
       "\" cannot be assigned to a int, long, float, or double");
   }
 
-  public void emitDefine(String name, String value, String optionalComment) throws Exception
+  public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception
   {
     if (cfg.allStatic() || cfg.emitInterface()) {
       // TODO: Some defines (e.g., GL_DOUBLE_EXT in gl.h) are defined in terms
@@ -313,6 +309,8 @@ public class JavaEmitter implements GlueEmitter {
       // currently only emits only numeric defines -- if it handled #define'd
       // objects it would make a bigger difference.
  
+      String name = def.getName();
+      String value = def.getValue();
       if (!cfg.shouldIgnoreInInterface(name)) {
         String type = getJavaType(name, value);
         if (optionalComment != null && optionalComment.length() != 0) {
@@ -377,6 +375,7 @@ public class JavaEmitter implements GlueEmitter {
         });
 
     // Bind all the C funcs to Java methods
+    HashSet/*<MethodBinding>*/ methodBindingSet = new HashSet();
     ArrayList/*<FunctionEmitter>*/ methodBindingEmitters = new ArrayList(2*funcsToBind.size());
     for (Iterator iter = funcsToBind.iterator(); iter.hasNext(); ) {
       FunctionSymbol cFunc = (FunctionSymbol) iter.next();
@@ -385,7 +384,7 @@ public class JavaEmitter implements GlueEmitter {
         continue; // don't generate bindings for this symbol
       }
       
-      List allBindings = generateMethodBindingEmitters(cFunc);
+      List allBindings = generateMethodBindingEmitters(methodBindingSet, cFunc);
       methodBindingEmitters.addAll(allBindings);
     }
 
@@ -669,14 +668,14 @@ public class JavaEmitter implements GlueEmitter {
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
-  protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception {
+  protected List generateMethodBindingEmitters(HashSet/*<MethodBinding>*/ methodBindingSet, FunctionSymbol sym) throws Exception {
 
     ArrayList/*<FunctionEmitter>*/ allEmitters = new ArrayList();
 
     try {
       // Get Java binding for the function
       MethodBinding mb = bindFunction(sym, null, null, machDesc64);
-      
+
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
       List bindings = expandMethodBinding(mb);
@@ -684,6 +683,11 @@ public class JavaEmitter implements GlueEmitter {
       for (Iterator iter = bindings.iterator(); iter.hasNext(); ) {
         MethodBinding binding = (MethodBinding) iter.next();        
 
+        if(!methodBindingSet.add(binding)) {
+            // skip .. already exisiting binding ..
+            continue;
+        }
+      
         if (cfg.allStatic() && binding.hasContainingType()) {
           // This should not currently happen since structs are emitted using a different mechanism
           throw new IllegalArgumentException("Cannot create binding in AllStatic mode because method has containing type: \"" +
@@ -1145,6 +1149,28 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
   public void endStructs() throws Exception {}
+
+  public static int addStrings2Buffer(StringBuffer buf, String sep, String first, Collection col) {
+    int num = 0;
+    if(null==buf) buf=new StringBuffer();
+
+    Iterator iter=col.iterator();
+    if(null!=first) {
+        buf.append(first);
+        if( iter.hasNext() ) {
+            buf.append(sep);
+        }
+        num++;
+    }
+    while( iter.hasNext() ) {
+        buf.append((String)iter.next());
+        if( iter.hasNext() ) {
+            buf.append(sep);
+        }
+        num++;
+    }
+    return num;
+  }
 
   //----------------------------------------------------------------------
   // Internals only below this point
@@ -1643,7 +1669,7 @@ public class JavaEmitter implements GlueEmitter {
 
     MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
     
-    binding.setRenamedMethodName(cfg.getJavaSymbolRename(sym.getName()));
+    binding.renameMethodName(cfg.getJavaSymbolRename(sym.getName()));
     
     if (cfg.returnsString(binding.getName())) {
       PointerType prt = sym.getReturnType().asPointer();

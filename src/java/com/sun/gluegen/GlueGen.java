@@ -266,9 +266,7 @@ public class GlueGen implements GlueEmitterControls {
                 comment += "<br>\n" + enumName;
             }
           }
-          emit.emitDefine(def.getName(),
-                          def.getValue(),
-                          comment);
+          emit.emitDefine(def, comment);
         }
       }
       emit.endDefines();

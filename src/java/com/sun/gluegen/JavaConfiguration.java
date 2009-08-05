@@ -598,14 +598,23 @@ public class JavaConfiguration {
     }
   }
 
+  public void dumpRenames() {
+    System.err.println("Symbol Renames: ");
+    for (Iterator iter = javaSymbolRenames.keySet().iterator(); iter.hasNext(); ) {
+        String key = (String)iter.next();
+        System.err.println("\t"+key+" -> "+javaSymbolRenames.get(key));
+    }
+  }
+
   /** Returns true if this #define, function, struct, or field within
       a struct should be ignored during glue code generation. */
   public boolean shouldIgnoreInInterface(String symbol) {
     if(DEBUG_IGNORES) {
         dumpIgnoresOnce();
     }
-    // Simple case; the entire symbol is in the interface ignore table.
-    if (extendedIntfSymbolsIgnore.contains(symbol)) {
+    // Simple case; the entire symbol (orig or renamed) is in the interface ignore table
+    if (extendedIntfSymbolsIgnore.contains(symbol) ||
+        extendedIntfSymbolsIgnore.contains(getJavaSymbolRename(symbol))) {
       if(DEBUG_IGNORES) {
           System.err.println("Ignore Intf: "+symbol);
       }
@@ -625,7 +634,8 @@ public class JavaConfiguration {
     }
 
     if (!extendedIntfSymbolsOnly.isEmpty()) {
-      if(!extendedIntfSymbolsOnly.contains(symbol)) {
+      if(!extendedIntfSymbolsOnly.contains(symbol) &&
+         !extendedIntfSymbolsOnly.contains(getJavaSymbolRename(symbol))) {
           if(DEBUG_IGNORES) {
               System.err.println("Ignore Impl !extended: " + symbol);
           }
