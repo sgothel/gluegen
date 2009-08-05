@@ -42,15 +42,18 @@ public class ConstantDefinition {
     private HashSet aliasedNames;
     private String name;
     private String value;
+    private boolean isEnum;
     private String enumName;
     private Set/*<String>*/ aliases;
 
     public ConstantDefinition(String name,
                               String value,
+                              boolean isEnum,
                               String enumName) {
         this.origName = name;
         this.name = name;
         this.value = value;
+        this.isEnum = isEnum;
         this.enumName = enumName;
         this.aliasedNames=new HashSet();
     }
@@ -103,6 +106,8 @@ public class ConstantDefinition {
     /** Returns null if this definition was not part of an
         enumeration, or if the enum was anonymous. */
     public String getEnumName() { return enumName; }
+
+    public boolean isEnum() { return isEnum; }
 
     public Set/*<String>*/ getAliases() {
         return aliases;
