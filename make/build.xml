@@ -18,16 +18,7 @@
    <available property="antlr.jar" file="/usr/share/java/antlr.jar"
               value="/usr/share/java/antlr.jar"/>
 
-  <target name="load.user.properties" unless="user.properties.file">
-    <!-- Load the user specified properties file that defines various host
-      - specific paths.  The user will be notified if this is does not
-      - exist. -->
-    <property name="user.properties.file" value="${user.home}/gluegen.properties" />
-    <property file="${user.properties.file}" />
-    <echo message="Loaded ${user.properties.file}." />
-    <fail message="antlr.jar was not specified in gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
-    <echo message="antlr.jar=${antlr.jar}" />
-  </target>
+  <import file="gluegen-cpptasks.xml" />
 
   <condition property="rootrel.build" value="build">
     <not>
@@ -55,7 +46,7 @@
     <copy file="../src/java/com/sun/gluegen/runtime/PointerBuffer.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/sun/gluegen/runtime/PointerBuffer.java" />
   </target>
 
-  <target name="init" depends="load.user.properties,setup-excludes-1,setup-excludes-2">
+  <target name="init" depends="gluegen.properties.load.user,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
     <property name="javac.bootclasspath-cdc.jar" value="lib/cdc_fp.jar" />
@@ -141,7 +132,6 @@
        the source tree. -->
 
   <property name="gluegen.root" value="../" />
-  <import file="gluegen-cpptasks.xml" />
   <target name="generate.nativelibrary.sources" depends="init" >
     <!-- Define the appropriate include paths -->
     <dirset id="stub.includes.fileset.windows" dir=".">
@@ -187,11 +177,11 @@
     <!-- 
        - Set up java.home.dir appropriately on all platforms.
       -->
-    <target name="setup.java.home.dir.nonmacosx" depends="load.user.properties" unless="isOSX">
+    <target name="setup.java.home.dir.nonmacosx" depends="gluegen.properties.load.user" unless="isOSX">
       <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
       <property name="java.home.dir" value="${java.home}/.." />
     </target>
-    <target name="setup.java.home.dir.macosx" depends="load.user.properties" if="isOSX">
+    <target name="setup.java.home.dir.macosx" depends="gluegen.properties.load.user" if="isOSX">
       <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
     </target>
     <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx" >
@@ -240,7 +230,7 @@
     </target>
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.vc9,declare.win32.mingw" if="isWindows" >
-      <property name="c.src.dir"                            value="windows" />
+      <property name="c.src.dir.os"                         value="windows" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/win32" />
     </target>
 
@@ -263,7 +253,7 @@
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64" if="isLinux" >
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>
 
@@ -286,7 +276,7 @@
     </target>
    
     <target name="declare.solaris" depends="declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64" if="isSolaris" >
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/solaris" />
     </target>
 
@@ -294,7 +284,7 @@
       <echo message="MacOSX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
-      <property name="c.src.dir"                            value="macosx" />
+      <property name="c.src.dir.os"                         value="macosx" />
       <property name="java.includes.dir.platform"           value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
     </target>
     
@@ -302,7 +292,7 @@
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
       <property name="linker.cfg.id"                        value="linker.cfg.linux" />
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.freebsd"            value="${java.includes.dir}/freebsd" />
     </target>
 
@@ -310,7 +300,7 @@
       <echo message="HP-UX" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
       <property name="linker.cfg.id"                        value="linker.cfg.hpux" />
-      <property name="c.src.dir"                            value="unix" />
+      <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.hpux"               value="${java.includes.dir}/hp-ux" />
     </target>
 
@@ -318,7 +308,7 @@
       <!-- Common properties -->
       <property name="java.includes.dir" value="${java.home.dir}/include" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
-      <property name="c.compiler.src.files" value="src/native/${c.src.dir}/*.c" />
+      <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
 
       <property name="output.lib.name" value="gluegen-rt" />
     </target>
@@ -340,7 +330,7 @@
     </target>
 
     <target name="c.build" depends="c.configure" unless="build.javaonly" >
-      <fail message="Requires '${c.compiler.src.files}'" unless="c.compiler.src.files"/>
+      <fail message="Requires '${c.compiler.src.files.os}'" unless="c.compiler.src.files.os"/>
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
       <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
@@ -356,7 +346,9 @@
 
       <mkdir dir="${build}/obj" />
 
-      <echo message="Compiling ${c.compiler.src.files}" />
+      <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
+
+      <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
       <echo message="user.dir=${user.dir}" />
 
       <cc outtype="shared" 
@@ -378,7 +370,8 @@
 
         <fileset dir="..">
           <patternset>
-            <include name="${c.compiler.src.files}" />
+            <include name="${c.compiler.src.files.os}" />
+            <include name="${c.compiler.src.files.common}" />
           </patternset>
         </fileset>
 

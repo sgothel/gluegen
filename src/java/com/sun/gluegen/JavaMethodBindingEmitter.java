@@ -157,7 +157,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   public boolean isForIndirectBufferAndArrayImplementation() { return forIndirectBufferAndArrayImplementation; }
 
   public String getName() {
-    return binding.getRenamedMethodName();
+    return binding.getName();
   }
 
   protected String getArgumentName(int i) {
@@ -370,9 +370,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
   protected String getImplMethodName(boolean direct) {
     if (direct) {
-      return binding.getRenamedMethodName() + "0";
+      return binding.getName() + "0";
     } else {
-      return binding.getRenamedMethodName() + "1";
+      return binding.getName() + "1";
     }
   }
 

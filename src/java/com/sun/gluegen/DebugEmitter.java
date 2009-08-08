@@ -58,7 +58,9 @@ public class DebugEmitter implements GlueEmitter {
     System.out.println("----- END EMISSION OF GLUE CODE -----");
   }
   public void beginDefines() {}
-  public void emitDefine(String name, String value, String optionalComment) {
+  public void emitDefine(ConstantDefinition def, String optionalComment) {
+    String name = def.getName();
+    String value = def.getValue();
     System.out.println("#define " + name + " " + value +
                        (optionalComment != null ? ("// " + optionalComment) : ""));
   }

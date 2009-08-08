@@ -102,23 +102,21 @@ public class ProcAddressEmitter extends JavaEmitter
     return new ProcAddressConfiguration();
   }
 
-  protected List generateMethodBindingEmitters(FunctionSymbol sym) throws Exception
-  {
-    return generateMethodBindingEmittersImpl(sym);
+  protected List generateMethodBindingEmitters(HashSet/*<MethodBinding>*/ methodBindingSet, FunctionSymbol sym) throws Exception {
+    return generateMethodBindingEmittersImpl(methodBindingSet, sym);
   }
 
   protected boolean needsModifiedEmitters(FunctionSymbol sym) {
     if (!needsProcAddressWrapper(sym) ||
-        getConfig().isUnimplemented(sym.getName())) {
+        getConfig().isUnimplemented(getAliasedSymName(sym))) {
       return false;
     }
 
     return true;
   }
 
-  private List generateMethodBindingEmittersImpl(FunctionSymbol sym) throws Exception
-  {
-    List defaultEmitters = super.generateMethodBindingEmitters(sym);
+  private List generateMethodBindingEmittersImpl(HashSet/*<MethodBinding>*/ methodBindingSet, FunctionSymbol sym) throws Exception {
+    List defaultEmitters = super.generateMethodBindingEmitters(methodBindingSet, sym);
 
     // if the superclass didn't generate any bindings for the symbol, let's
     // honor that (for example, the superclass might have caught an Ignore
@@ -140,7 +138,7 @@ public class ProcAddressEmitter extends JavaEmitter
     if (needsProcAddressWrapper(sym)) {
       if (getProcAddressConfig().emitProcAddressTable()) {
         // emit an entry in the GL proc address table for this method.
-        emitProcAddressTableEntryForSymbol(sym);
+        emitProcAddressTableEntryForString(getAliasedSymName(sym));
       }
     }
     
@@ -254,9 +252,15 @@ public class ProcAddressEmitter extends JavaEmitter
     emitters.add(res);
   }
     
+  private String getAliasedSymName(FunctionSymbol sym) {
+    String symName = getConfig().getJavaSymbolRename(sym.getName());
+    if(null==symName) symName=sym.getName();
+    return symName;
+  }
+
   protected boolean needsProcAddressWrapper(FunctionSymbol sym)
   {
-    String symName =  sym.getName();
+    String symName = getAliasedSymName(sym);
 
     ProcAddressConfiguration config = getProcAddressConfig();
 
@@ -376,11 +380,6 @@ public class ProcAddressEmitter extends JavaEmitter
     w.println("} // end of class " + tableClassName);
     w.flush();
     w.close();
-  }
-
-  protected void emitProcAddressTableEntryForSymbol(FunctionSymbol cFunc)
-  {
-    emitProcAddressTableEntryForString(cFunc.getName());
   }
 
   protected void emitProcAddressTableEntryForString(String str)

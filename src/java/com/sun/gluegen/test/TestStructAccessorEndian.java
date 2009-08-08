@@ -7,9 +7,11 @@ import java.nio.*;
 public class TestStructAccessorEndian {
     public static void main (String args[]) {
         boolean ok = true;
+        int bitsPtr = CPU.getPointerSizeInBits();
+        String bitsProp = System.getProperty("sun.arch.data.model");
         String os = System.getProperty("os.name");
         String cpu = System.getProperty("os.arch");
-        System.out.println("OS: <"+os+"> CPU: <"+cpu+">");
+        System.out.println("OS: <"+os+"> CPU: <"+cpu+"> Bits: <"+bitsPtr+"/"+bitsProp+">");
         System.out.println("CPU is: "+ (CPU.is32Bit()?"32":"64") + " bit");
         System.out.println("Buffer is in: "+ (BufferFactory.isLittleEndian()?"little":"big") + " endian");
         ByteBuffer tst = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG * 3);

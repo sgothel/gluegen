@@ -66,14 +66,6 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             return super.getName();
           }
         }
-
-        public String getRenamedMethodName() {
-          if (callThroughProcAddress) {
-            return ProcAddressEmitter.WRAP_PREFIX + super.getRenamedMethodName();
-          } else {
-            return super.getRenamedMethodName();
-          }
-        }
       },
       methodToWrap.getDefaultOutput(),
       methodToWrap.getJavaPackageName(),

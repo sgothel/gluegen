@@ -11,22 +11,8 @@
    - directory (e.g., from which the parent project's build.xml is being
    - executed) to the top of the checked-out GlueGen workspace.
    - 
-   - This Ant project file depends on the following properties being set
-   - externally:
-   - 
-   -   win32.c.compiler (required to be set on Windows):
-   -       one of "vc6", "vc7", "vc8", or "mingw".
-   -   c.compiler.debug:
-   -       set to "true" if debug version of the compiled
-   -       C code is desired.
-   -   macosppc:
-   -       set to "true" if ppc universal / fat binaries are desired
-   -       on Mac OS X. Requires support for cross-compilation from the
-   -       underlying C compiler. Note: Unsupported on Snow Leopard!
-   -   macosx64:
-   -       set to "true" if 64-bit universal / fat binaries are desired
-   -       on Mac OS X. Requires support for cross-compilation from the
-   -       underlying C compiler.
+   - This Ant project file depends on properties being set
+   - via gluegen.properties, see: gluegen-properties.xml !
    - 
    - The gluegen.cpptasks.detect.os target sets the following
    - properties appropriately. They are only set to "true" if the OS/CPU
@@ -132,6 +118,10 @@
    -   &lt;msvc.manifest objdir="${obj}" dllname="gluegen-rt" /&gt;
   -->
 <project name="GlueGen-cpptasks" basedir=".">
+
+  <!-- import properties -->
+  <import file="gluegen-properties.xml" />
+
   <!-- import cpptasks -->
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
 
@@ -139,7 +129,7 @@
   <import file="${user.home}/gluegen.compiler.xml" optional="true" />
 
   <!-- Detect OS and compiler configuration -->
-  <target name="gluegen.cpptasks.detect.os.1" unless="gluegen.cpptasks.detected.os">
+  <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.properties.load.user" unless="gluegen.cpptasks.detected.os">
     <condition property="isOSX">
       <and>
         <os family="mac"/>
@@ -286,6 +276,8 @@
     <echo message="LinuxIA64=${isLinuxIA64}" />
     <echo message="LinuxX86=${isLinuxX86}" />
     <echo message="OS X=${isOSX}" />
+    <echo message="OS X PPC=${use.macosppc}" />
+    <echo message="OS X x64=${use.macosx64}" />
     <echo message="Solaris=${isSolaris}" />
     <echo message="Solaris32Bit=${isSolaris32Bit}" />
     <echo message="SolarisSparc=${isSolarisSparc}" />
@@ -364,7 +356,7 @@
   <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
   </target>
 
-  <target name="gluegen.cpptasks.detect.os" depends="gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
+  <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
     <property name="gluegen.cpptasks.detected.os" value="true" />
     <property name="gluegen.cpptasks.detected.os.2" value="true" />
   </target>
@@ -517,6 +509,9 @@
     </compiler>
 
     <compiler id="compiler.cfg.win32.mingw" name="gcc">
+      <compilerarg value="-g" if="c.compiler.use-debug"/> 
+      <compilerarg value="-O0" if="c.compiler.use-debug"/> 
+      <compilerarg value="-O2" unless="c.compiler.use-debug"/>
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        

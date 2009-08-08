@@ -155,7 +155,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   public final MethodBinding getBinding() { return binding; }
 
   public String getName() {
-    return binding.getRenamedMethodName();
+    return binding.getName();
   }
 
   /**
@@ -691,11 +691,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
               "Could not copy data for type \"" + cArgType +
               "\"; currently only pointer types supported.");
           }
-          PointerType cArgElementType = cArgPtrType.getTargetType().asPointer();          
+          PointerType cArgElementType = cArgPtrType.getTargetType().asPointer();
           emitMalloc(
             writer,
             convName+"_copy",
             cArgElementType.getName(),
+            isConstPtrPtr(cArgPtrType),
             arrayLenName,
             "Could not allocate buffer for copying data in argument \\\""+binding.getArgumentName(i)+"\\\"");
 
@@ -757,6 +758,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                        writer,
                        convName+"_copy[_copyIndex]",
                        cArgElementType.getTargetType().getName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
+                       isConstPtrPtr(cArgPtrType),
                        "(*env)->GetArrayLength(env, _tmpObj)",
                        "Could not allocate buffer during copying of data in argument \\\""+binding.getArgumentName(i)+"\\\"");
             // FIXME: copy the data (use matched Get/ReleasePrimitiveArrayCritical() calls)
@@ -982,6 +984,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
       } else {
         writer.print("(");        
         Type cArgType = binding.getCSymbol().getArgumentType(i);
+        if (isConstPtrPtr(cArgType)) {
+            writer.print("const ");
+        }
         writer.print(cArgType.getName());
         writer.print(") ");
         if (binding.getCArgumentType(i).isPointer() && binding.getJavaArgumentType(i).isPrimitive()) {
@@ -1277,12 +1282,16 @@ public class CMethodBindingEmitter extends FunctionEmitter
   private void emitMalloc(PrintWriter writer,
                           String targetVarName,
                           String elementTypeString,
+                          boolean elementTypeIsConst,
                           String numElementsExpression,
                           String mallocFailureErrorString)
   {
     writer.print("    ");
     writer.print(targetVarName);
     writer.print(" = (");
+    if(elementTypeIsConst) {
+        writer.print("const ");
+    }
     writer.print(elementTypeString);
     writer.print(" *) malloc(");
     writer.print(numElementsExpression);
@@ -1467,9 +1476,22 @@ public class CMethodBindingEmitter extends FunctionEmitter
       // incoming data has been properly laid out in memory to match the C
       // memory model
       if (javaType.isStringArray()) {
-        writer.print("  const char **");
+        String cElementTypeName = "char *";
+        PointerType cPtrType = cType.asPointer();
+        if (cPtrType != null) {
+            cElementTypeName = cPtrType.getTargetType().asPointer().getName();
+        }
+        if (isConstPtrPtr(cType)) {
+            writer.print("  const "+cElementTypeName+" *");
+        } else {
+            writer.print("  "+cElementTypeName+" *");
+        }
       } else {
-        writer.print("  " + ptrTypeString);
+        if (isConstPtrPtr(cType)) {
+            writer.print("  const " + ptrTypeString);
+        } else {
+            writer.print("  " + ptrTypeString);
+        }
       }
       writer.print(" ");
       writer.print(cVariableName);

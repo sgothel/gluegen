@@ -436,8 +436,10 @@ public class PCPP {
                         System.err.println("WARNING: \"" + name + "\" redefined from \"" +
                                            oldDef + "\" to \"" + value + "\"");
                     }
+                    debugPrint(true, "#define " + name + " ["+oldDef+" ] -> "+value + " CONST");
                     //System.out.println("//---DEFINED: " + name + " to \"" + value + "\"");
                 } else {
+                    debugPrint(true, "#define " + name + " -> "+value + " SYMB");
                     // Value is a symbolic constant like "#define FOO BAR".
                     // Try to look up the symbol's value
                     String newValue = resolveDefine(value, true);
@@ -501,15 +503,25 @@ public class PCPP {
     }
 
     private boolean checkHex(String s) {
-        for (int i = 2; i < s.length(); i++) {
-            char c = s.charAt(i);
+        char c='\0';
+        int i;
+        for (i = 2; i < s.length(); i++) {
+            c = s.charAt(i);
             if (!((c >= '0' && c <= '9') ||
                   (c >= 'a' && c <= 'f') ||
                   (c >= 'A' && c <= 'F'))) {
-                return false;
+                break;
             }
         }
-        return true;
+        if(i==s.length()) {
+            return true;
+        } else if(i==s.length()-1) {
+            // Const qualifier ..
+            return c == 'l' || c == 'L' || 
+                   c == 'f' || c == 'F' ||
+                   c == 'u' || c == 'U' ;
+        }
+        return false;
     }
 
     private boolean checkDecimal(String s) {
@@ -553,7 +565,7 @@ public class PCPP {
         String symbolName = nextWord();
         debugPrint(true, (isIfdef ? "#ifdef " : "#ifndef ") + symbolName);
         boolean symbolIsDefined = defineMap.get(symbolName) != null;
-        //debugPrint(true, "HANDLE_IFDEF: ifdef(" + symbolName + ") = " + symbolIsDefined );    
+        debugPrint(true, (isIfdef ? "#ifdef " : "#ifndef ") + symbolName + "(defined: "+symbolIsDefined+")");
         pushEnableBit(enabled() && symbolIsDefined == isIfdef);    
     }
 
@@ -808,7 +820,7 @@ public class PCPP {
     private void pushEnableBit(boolean enabled) {
         enabledBits.add(new Boolean(enabled));
         ++debugPrintIndentLevel;
-        //debugPrint(false, "PUSH_ENABLED, NOW: " + enabled());
+        debugPrint(false, "PUSH_ENABLED, NOW: " + enabled());
     }
 
     private void popEnableBit() {
@@ -818,7 +830,7 @@ public class PCPP {
         }
         enabledBits.remove(enabledBits.size() - 1);
         --debugPrintIndentLevel;
-        //debugPrint(false, "POP_ENABLED, NOW: " + enabled());
+        debugPrint(false, "POP_ENABLED, NOW: " + enabled());
     }
 
     private boolean enabled() {

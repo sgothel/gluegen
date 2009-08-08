@@ -38,17 +38,24 @@ import java.util.*;
 /** Represents the definition of a constant which was provided either
     via a #define statement or through an enum definition. */
 public class ConstantDefinition {
+    private String origName;
+    private HashSet aliasedNames;
     private String name;
     private String value;
+    private boolean isEnum;
     private String enumName;
     private Set/*<String>*/ aliases;
 
     public ConstantDefinition(String name,
                               String value,
+                              boolean isEnum,
                               String enumName) {
+        this.origName = name;
         this.name = name;
         this.value = value;
+        this.isEnum = isEnum;
         this.enumName = enumName;
+        this.aliasedNames=new HashSet();
     }
 
     public boolean equals(ConstantDefinition other) {
@@ -72,11 +79,35 @@ public class ConstantDefinition {
         return name.hashCode();
     }
 
-    public String getName()     { return name;     }
+    /** Supports renaming in Java binding. */
+    public void rename(String name) {
+      if(null!=name) {
+          this.name = name;
+          aliasedNames.add(origName);
+      }
+    }
+
+    public void           addAliasedName(String name) {
+        aliasedNames.add(name);
+    }
+    public Collection     getAliasedNames() {
+        return aliasedNames;
+    }
+
+    public String getOrigName() { 
+        return origName;     
+    }
+
+    public String getName() { 
+        return name;     
+    }
+
     public String getValue()    { return value;    }
     /** Returns null if this definition was not part of an
         enumeration, or if the enum was anonymous. */
     public String getEnumName() { return enumName; }
+
+    public boolean isEnum() { return isEnum; }
 
     public Set/*<String>*/ getAliases() {
         return aliases;

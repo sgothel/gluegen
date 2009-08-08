@@ -227,12 +227,12 @@ public class GlueGen implements GlueEmitterControls {
         for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
           String enumElementName = enumeration.getEnumName(i);
           String value = String.valueOf(enumeration.getEnumValue(i));
-          constants.add(new ConstantDefinition(enumElementName, value, enumName));
+          constants.add(new ConstantDefinition(enumElementName, value, true, enumName));
         }
       }
       for (Iterator iter = lexer.getDefines().iterator(); iter.hasNext(); ) {
         Define def = (Define) iter.next();
-        constants.add(new ConstantDefinition(def.getName(), def.getValue(), null));
+        constants.add(new ConstantDefinition(def.getName(), def.getValue(), false, null));
       }
       
       functions = headerParser.getParsedFunctions();
@@ -266,9 +266,7 @@ public class GlueGen implements GlueEmitterControls {
                 comment += "<br>\n" + enumName;
             }
           }
-          emit.emitDefine(def.getName(),
-                          def.getValue(),
-                          comment);
+          emit.emitDefine(def, comment);
         }
       }
       emit.endDefines();
