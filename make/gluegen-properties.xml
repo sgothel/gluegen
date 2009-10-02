@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
+   - This Ant project file depends on properties being set
+   - via gluegen.properties, see: gluegen.properties !
+   - 
    - This Ant project file depends on the following properties being set
    - externally:
    - 
@@ -20,13 +23,19 @@
   -->
 <project name="GlueGen-properties" basedir=".">
 
-  <target name="gluegen.properties.load.user" unless="gluegen.user.properties.file">
+  <target name="gluegen.properties.load.user" unless="gluegen.user.properties.file.set">
     <!-- Load the user specified properties file that defines various host
       - specific paths.  The user will be notified if this is does not
       - exist. -->
-    <property name="gluegen.user.properties.file" value="${user.home}/gluegen.properties" />
-    <property file="${gluegen.user.properties.file}" />
-    <echo message="Loaded ${gluegen.user.properties.file}." />
+    <condition property="gluegen.user.properties.file"
+                 value="${user.home}/gluegen.properties">
+      <not>
+        <isset property="gluegen.user.properties.file" />
+      </not>
+    </condition>
+    <property name="gluegen.user.properties.file.set" value="${gluegen.user.properties.file}"/>
+    <property file="${gluegen.user.properties.file.set}" />
+    <echo message="Loaded ${gluegen.user.properties.file.set}." />
     <fail message="antlr.jar was not specified in gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
     <echo message="antlr.jar=${antlr.jar}" />
   </target>

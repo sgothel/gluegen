@@ -12,7 +12,11 @@
    - executed) to the top of the checked-out GlueGen workspace.
    - 
    - This Ant project file depends on properties being set
-   - via gluegen.properties, see: gluegen-properties.xml !
+   - via gluegen.properties, see: gluegen-properties.xml and gluegen.properties !
+   - 
+   - You may overwrite the following compiler configuration
+   - as define below in 'gluegen.cpptasks.configure.compiler'
+   - with your custom one, see gluegen.compiler.xml !
    - 
    - The gluegen.cpptasks.detect.os target sets the following
    - properties appropriately. They are only set to "true" if the OS/CPU
@@ -125,8 +129,14 @@
   <!-- import cpptasks -->
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
 
-  <available file="${user.home}/gluegen.compiler.xml" property="gluegen.compiler.present"/>
-  <import file="${user.home}/gluegen.compiler.xml" optional="true" />
+  <condition property="gluegen.user.compiler.file"
+             value="${user.home}/gluegen.compiler.xml">
+    <not>
+        <isset property="gluegen.user.compiler.file" />
+    </not>
+  </condition>
+  <available file="${gluegen.user.compiler.file}" property="gluegen.compiler.present"/>
+  <import file="${gluegen.user.compiler.file}" optional="true" />
 
   <!-- Detect OS and compiler configuration -->
   <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.properties.load.user" unless="gluegen.cpptasks.detected.os">

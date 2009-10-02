@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This is an example of how to add custom compiler/linker 
+    arguments for a crosscompiler.
+
+    You can use such files with setting the property 'gluegen.user.compiler.file', ie:
+
+        -Dgluegen.user.compiler.file=`pwd`/lib/gluegen.compiler.xml
+
+    or by having such file in your home directory, ie:
+
+        ~/gluegen.compiler.xml
+  -->
+
 <project name="GlueGen-cpptasks" basedir="." >
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
