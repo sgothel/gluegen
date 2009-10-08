@@ -456,6 +456,22 @@ public class PCPP {
                     }
                 }
             } else {
+
+                // find constant expressions like (1 << 3)
+                // if found just pass them through, they will most likely work in java too
+                // expressions containing identifiers are currently ignored (casts too)
+
+                boolean containsIdentifier = false;
+                for (String value : values) {
+                    if(isIdentifier(value)) {
+                        containsIdentifier = true;
+                        break;
+                    }
+                }
+
+                //TODO more work here e.g casts are currently not handled
+                if(containsIdentifier) { //skip
+
                     // Non-constant define; try to do reasonable textual substitution anyway
                     // (FIXME: should identify some of these, like (-1), as constants)
                     emitDefine = false;
@@ -474,14 +490,32 @@ public class PCPP {
                     }
                     defineMap.put(name, val.toString());
                     nonConstantDefines.add(name);
+
+                }else{ // constant expression -> pass through
+
+                    StringBuilder sb = new StringBuilder();
+                    for (String v : values) {
+                        sb.append(v);
                     }
+                    String value = sb.toString();
+
+                    String oldDef = defineMap.put(name, value);
+                    if (oldDef != null && !oldDef.equals(value)) {
+                        System.err.println("WARNING: \"" + name + "\" redefined from \"" +
+                                           oldDef + "\" to \"" + value + "\"");
+                    }
+                    debugPrint(true, "#define " + name + " ["+oldDef+" ] -> "+value + " CONST");
+//                    System.out.println("#define " + name +" "+value + " CONST EXPRESSION");
+                }
+
+            }
 
             if (emitDefine) {
                 // Print name and value
                 print("# define ");
                 print(name);
+                print(" ");
                 for (String v : values) {
-                    print(" ");
                     print(v);
                 }
                 println();
@@ -490,6 +524,28 @@ public class PCPP {
         } // end if (enabled())
 
         //System.err.println("OUT HANDLE_DEFINE: " + name);
+    }
+
+    private boolean isIdentifier(String value) {
+
+        boolean identifier = false;
+
+        char[] chars = value.toCharArray();
+
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (i == 0) {
+                if (Character.isJavaIdentifierStart(c)) {
+                    identifier = true;
+                }
+            } else {
+                if (!Character.isJavaIdentifierPart(c)) {
+                    identifier = false;
+                    break;
+                }
+            }
+        }
+        return identifier;
     }
 
     private boolean isConstant(String s) {
@@ -832,7 +888,7 @@ public class PCPP {
     }
 
     private boolean enabled() {
-        return (enabledBits.size() == 0 || enabledBits.get(enabledBits.size() - 1).booleanValue());
+        return (enabledBits.size() == 0 || enabledBits.get(enabledBits.size() - 1));
     }
 
     private void print(String s) {
