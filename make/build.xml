@@ -478,11 +478,27 @@
 
     <!-- Build GlueGen using the generated Java files along with the
       - original source. -->
+
+    <property name="gluegen-rt.classes" value="com/sun/gluegen/runtime/**"/>
+
+    <!--compile gluegen-rt with source=1.4 first-->
     <javac destdir="${classes}"
            source="1.4"
            debug="true"
            debuglevel="source,lines"
+           includes="${gluegen-rt.classes}"
            excludes="${gluegen.excludes}">
+      <src path="${src.java}" />
+      <src path="${src.generated.java}" />
+      <classpath refid="antlr.classpath" />
+    </javac>
+
+    <!--compile gluegen with source=1.5-->
+    <javac destdir="${classes}"
+           source="1.5"
+           debug="true"
+           debuglevel="source,lines"
+           excludes="${gluegen.excludes},${gluegen-rt.classes}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="antlr.classpath" />

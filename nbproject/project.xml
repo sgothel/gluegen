@@ -79,7 +79,7 @@
                 <package-root>build/gensrc/java</package-root>
                 <classpath mode="compile">build/classes:lib/antlr-2.7.7.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}</classpath>
                 <built-to>bin</built-to>
-                <source-level>1.4</source-level>
+                <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
         <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
