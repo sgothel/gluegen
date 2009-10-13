@@ -76,14 +76,14 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/1">
             <compilation-unit>
                 <package-root>src/java</package-root>
-                <classpath mode="compile">build/classes:lib/ant-antlr.jar:lib/antlr-2.7.7.jar:lib/antlr-runtime-3.0.1.jar:lib/ant.jar:/usr/lib/jvm/java-6-sun/lib/tools.jar</classpath>
-                <built-to>bin</built-to>
-                <source-level>1.4</source-level>
-            </compilation-unit>
-            <compilation-unit>
                 <package-root>build/gensrc/java</package-root>
-                <source-level>1.4</source-level>
+                <classpath mode="compile">build/classes:lib/antlr-2.7.7.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}</classpath>
+                <built-to>bin</built-to>
+                <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
+        <preferences xmlns="http://www.netbeans.org/ns/auxiliary-configuration-preferences/1">
+            <module name="org-netbeans-modules-editor-indent"/>
+        </preferences>
     </configuration>
 </project>

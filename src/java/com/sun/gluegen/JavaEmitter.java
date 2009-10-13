@@ -133,14 +133,10 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  public void beginEmission(GlueEmitterControls controls) throws IOException
-  {
-    try
-    {
+  public void beginEmission(GlueEmitterControls controls) throws IOException  {
+    try {
       openWriters();
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e)  {
       throw new RuntimeException(
         "Unable to open files for writing", e);
     }
@@ -156,30 +152,24 @@ public class JavaEmitter implements GlueEmitter {
     controls.runSymbolFilter(new ConstantRenamer());
   }
 
-  public void endEmission()
-  {
+  public void endEmission()  {
     emitAllFileFooters();
 
-    try
-    {
+    try  {
       closeWriters();
-    }
-    catch (Exception e)
-    {
+    } catch (Exception e)  {
       throw new RuntimeException(
         "Unable to close open files", e);
     }
   }
 
-  public void beginDefines() throws Exception
-  {
+  public void beginDefines() throws Exception {
     if (cfg.allStatic() || cfg.emitInterface()) {
       javaWriter().println();
     }
   }
 
-  protected static int getJavaRadix(String name, String value) 
-  {
+  protected static int getJavaRadix(String name, String value)  {
     // FIXME: need to handle when type specifier is in last char (e.g.,
     // "1.0d or 2759L", because parseXXX() methods don't allow the type
     // specifier character in the string.
@@ -222,14 +212,59 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  protected static Object getJavaValue(String name, String value) 
-  {
+  protected static Object getJavaValue(String name, String value) {
+
+    // "calculates" the result type of a simple expression
+    // example: (2+3)-(2.0f-3.0) -> Double
+    // example: (1 << 2) -> Integer
+
+    Scanner scanner = new Scanner(value).useDelimiter("[+-/*/></(/)]");
+
+    Object resultType = null;
+
+    while (scanner.hasNext()) {
+
+        String t = scanner.next().trim();
+
+        if(!t.isEmpty()) {
+            Object type = getJavaValue2(name, t);
+
+            //fast path
+            if(type instanceof Double)
+                return type;
+
+            if(resultType != null) {
+
+                if(resultType instanceof Integer) {
+                    if(type instanceof Long || type instanceof Float || type instanceof Double)
+                        resultType = type;
+                }else if(resultType instanceof Long) {
+                    if(type instanceof Float || type instanceof Double)
+                        resultType = type;
+                }else if(resultType instanceof Float) {
+                    if(type instanceof Float)
+                        resultType = type;
+                }
+            }else{
+                resultType = type;
+            }
+
+            //fast path
+            if(resultType instanceof Double)
+                return type;
+        }
+    }
+
+    return resultType;
+  }
+
+  private static Object getJavaValue2(String name, String value) {
     // FIXME: need to handle when type specifier is in last char (e.g.,
     // "1.0d or 2759L", because parseXXX() methods don't allow the type
     // specifier character in the string.
     //
     //char lastChar = value.charAt(value.length()-1);
-    
+
     try {
       // see if it's a long or int
       int radix;
@@ -243,7 +278,7 @@ public class JavaEmitter implements GlueEmitter {
       }
       else if (value.startsWith("0") && value.length() > 1) {
         // TODO: is "0" the prefix in C to indicate octal???
-        radix = 8; 
+        radix = 8;
         parseValue = value.substring(1);
       }
       else {
@@ -257,7 +292,7 @@ public class JavaEmitter implements GlueEmitter {
         return new Integer((int)longVal);
       }
       return new Long(longVal);
-      
+
     } catch (NumberFormatException e) {
       try {
         // see if it's a double or float
@@ -268,13 +303,14 @@ public class JavaEmitter implements GlueEmitter {
             return new Double(dVal);
         }
         return new Float((float) dVal);
-      } catch (NumberFormatException e2) {            
+      } catch (NumberFormatException e2) {
         throw new RuntimeException(
           "Cannot emit define \""+name+"\": value \""+value+
           "\" cannot be assigned to a int, long, float, or double", e2);
       }
     }
   }
+
 
   protected static String getJavaType(String name, String value) {
     Object oval = getJavaValue(name, value);
@@ -297,8 +333,8 @@ public class JavaEmitter implements GlueEmitter {
       "\" cannot be assigned to a int, long, float, or double");
   }
 
-  public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception
-  {
+  public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception  {
+
     if (cfg.allStatic() || cfg.emitInterface()) {
       // TODO: Some defines (e.g., GL_DOUBLE_EXT in gl.h) are defined in terms
       // of other defines -- should we emit them as references to the original
@@ -325,8 +361,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  public void endDefines() throws Exception
-  {
+  public void endDefines() throws Exception {
   }
 
   public void beginFunctions(TypeDictionary typedefDictionary,

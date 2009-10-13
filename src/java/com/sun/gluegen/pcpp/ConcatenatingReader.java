@@ -48,16 +48,17 @@ public class ConcatenatingReader extends FilterReader {
     // Any leftover characters go here
     private char[] curBuf;
     private int    curPos;
-    private BufferedReader in;
+    private BufferedReader reader;
     private static String newline = System.getProperty("line.separator");
 
     /** This class requires that the input reader be a BufferedReader so
         it can do line-oriented operations. */
     public ConcatenatingReader(BufferedReader in) {
         super(in);
-        this.in = in;
+        this.reader = in;
     }
 
+    @Override
     public int read() throws IOException {
         char[] tmp = new char[1];
         int num = read(tmp, 0, 1);
@@ -67,24 +68,29 @@ public class ConcatenatingReader extends FilterReader {
     }
 
     // It's easier not to support mark/reset since we don't need it
+    @Override
     public boolean markSupported() {
         return false;
     }
 
+    @Override
     public void mark(int readAheadLimit) throws IOException {
         throw new IOException("mark/reset not supported");
     }
 
+    @Override
     public void reset() throws IOException {
         throw new IOException("mark/reset not supported");
     }
 
+    @Override
     public boolean ready() throws IOException {
-        if (curBuf != null || in.ready())
+        if (curBuf != null || reader.ready())
             return true;
         return false;
     }
 
+    @Override
     public int read(char[] cbuf, int off, int len) throws IOException {
         if (curBuf == null) {
             nextLine();
@@ -110,6 +116,7 @@ public class ConcatenatingReader extends FilterReader {
         return numRead;
     }
 
+    @Override
     public long skip(long n) throws IOException {
         long numSkipped = 0;
 
@@ -126,7 +133,7 @@ public class ConcatenatingReader extends FilterReader {
     }
 
     private void nextLine() throws IOException {
-        String cur = in.readLine();
+        String cur = reader.readLine();
         if (cur == null) {
             curBuf = null;
             return;

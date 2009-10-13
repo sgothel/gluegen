@@ -1112,21 +1112,32 @@ options {
         :
         '#'
         ( ( "line" || (( ' ' | '\t' | '\014')+ '0'..'9')) => LineDirective      
-        | ( (Space)* "define" (Space)* i:ID (Space)* (n:Number)?
+        | ( (Space)* "define" (Space)* i:ID (Space)* (n:DefineExpr)?
             nw:NonWhitespace
-            ("\r\n" | "\r" | "\n") )               { if (n != null) {
+            ("\r\n" | "\r" | "\n") )               {
+                                                     if (n != null) {
+                                                       //System.out.println("addDefine: #define " + i.getText() + " " +  n.getText());
                                                        addDefine(i.getText(), n.getText());
                                                      } else {
-                                                       setPreprocessingDirective("#define " + i.getText() + " " + 
-                                                                                 nw.getText());
+                                                       setPreprocessingDirective("#define " + i.getText() + " " + nw.getText());
                                                      }
                                                    }
         | (~'\n')*                                 { setPreprocessingDirective(getText()); }
         )
-                {  
+                {
                     _ttype = Token.SKIP;
                 }
         ;
+
+DefineExpr:
+    ((LPAREN) (Space)* (DefineExpr2) (Space)* (RPAREN)) | (DefineExpr2)
+;
+
+DefineExpr2:
+    (Number)
+    ((Space)* (LSHIFT | RSHIFT | PLUS | MINUS | STAR | DIV | MOD) (Space)* (DefineExpr))?
+;
+
 
 protected  Space:
         ( ' ' | '\t' | '\014')
