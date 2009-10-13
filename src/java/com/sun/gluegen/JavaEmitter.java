@@ -226,7 +226,7 @@ public class JavaEmitter implements GlueEmitter {
 
         String t = scanner.next().trim();
 
-        if(!t.isEmpty()) {
+        if(0<t.length()) {
             Object type = getJavaValue2(name, t);
 
             //fast path
