@@ -29,6 +29,18 @@
                     <location>build/gensrc/java</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
+                <source-folder>
+                    <label>test/junit</label>
+                    <type>java</type>
+                    <location>test/junit</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
+                <source-folder>
+                    <label>build/test</label>
+                    <type>java</type>
+                    <location>build/test</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
             </folders>
             <ide-actions>
                 <action name="build">
@@ -44,10 +56,74 @@
                     <target>clean</target>
                     <target>all</target>
                 </action>
+                <action name="run.single">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>run-selected-file-in-junit</target>
+                    <context>
+                        <property>run.class</property>
+                        <folder>test/junit</folder>
+                        <pattern>\.java$</pattern>
+                        <format>java-name</format>
+                        <arity>
+                            <one-file-only/>
+                        </arity>
+                    </context>
+                </action>
+                <action name="test.single">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>test-selected-file-in-junit</target>
+                    <context>
+                        <property>run.class</property>
+                        <folder>test/junit</folder>
+                        <pattern>\.java$</pattern>
+                        <format>java-name</format>
+                        <arity>
+                            <one-file-only/>
+                        </arity>
+                    </context>
+                </action>
+                <action name="compile.single">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>compile-selected-files-in-junit</target>
+                    <context>
+                        <property>files</property>
+                        <folder>test/junit</folder>
+                        <pattern>\.java$</pattern>
+                        <format>relative-path</format>
+                        <arity>
+                            <separated-files>,</separated-files>
+                        </arity>
+                    </context>
+                </action>
+                <action name="debug.single">
+                    <script>nbproject/ide-file-targets.xml</script>
+                    <target>debug-selected-file-in-junit</target>
+                    <context>
+                        <property>debug.class</property>
+                        <folder>test/junit</folder>
+                        <pattern>\.java$</pattern>
+                        <format>java-name</format>
+                        <arity>
+                            <one-file-only/>
+                        </arity>
+                    </context>
+                </action>
             </ide-actions>
             <export>
                 <type>folder</type>
-                <location>bin</location>
+                <location>build/classes</location>
+                <script>${ant.script}</script>
+                <build-target>all</build-target>
+            </export>
+            <export>
+                <type>folder</type>
+                <location>build/classes</location>
+                <script>${ant.script}</script>
+                <build-target>all</build-target>
+            </export>
+            <export>
+                <type>folder</type>
+                <location>build/classes</location>
                 <script>${ant.script}</script>
                 <build-target>all</build-target>
             </export>
@@ -61,6 +137,14 @@
                         <label>build/gensrc/java</label>
                         <location>build/gensrc/java</location>
                     </source-folder>
+                    <source-folder style="packages">
+                        <label>test/junit</label>
+                        <location>test/junit</location>
+                    </source-folder>
+                    <source-folder style="packages">
+                        <label>build/test</label>
+                        <location>build/test</location>
+                    </source-folder>
                     <source-file>
                         <location>${ant.script}</location>
                     </source-file>
@@ -73,12 +157,28 @@
             </view>
             <subprojects/>
         </general-data>
-        <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/1">
+        <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>
                 <package-root>src/java</package-root>
+                <classpath mode="compile">build/classes:lib/antlr-2.7.7.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}</classpath>
+                <built-to>build/classes</built-to>
+                <source-level>1.5</source-level>
+            </compilation-unit>
+            <compilation-unit>
                 <package-root>build/gensrc/java</package-root>
                 <classpath mode="compile">build/classes:lib/antlr-2.7.7.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}</classpath>
-                <built-to>bin</built-to>
+                <built-to>build/classes</built-to>
+                <source-level>1.5</source-level>
+            </compilation-unit>
+            <compilation-unit>
+                <package-root>test/junit</package-root>
+                <unit-tests/>
+                <classpath mode="compile">build/classes:build/test/gensrc/java:lib/antlr-2.7.7.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:lib/junit-4.5.jar</classpath>
+                <built-to>build/classes</built-to>
+                <source-level>1.5</source-level>
+            </compilation-unit>
+            <compilation-unit>
+                <package-root>build/test</package-root>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>

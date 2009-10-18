@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="GlueGenTest" default="default" basedir=".">
+
+    <description>Tests GlueGen</description>
+
+    <property name="gluegen.root" value="${basedir}" />
+    <property name="build.dir" value="${gluegen.root}/build/test/build" />
+    <property name="src.dir"   value="${gluegen.root}/build/test/gensrc/java" />
+
+    <!-- Pull in GlueGen cpptasks build file -->
+    <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
+
+    <target name="compile.java" depends="c.configure.linux">
+        
+        <echo message=" - - - compiling java files - - - "/>
+        <property name="build.dir.java" value="${build.dir}/classes"/>
+        <echo message="src: ${src.dir} "/>
+        <echo message="build: ${build.dir.java} "/>
+
+        <mkdir dir="${build.dir.java}"/>
+
+        <javac destdir="${build.dir.java}" includes="test/**" source="1.5" debug="true" verbose="true" debuglevel="lines,vars,source">
+            <src path="${src.dir}"/>
+            <classpath path="build/test/build/java:build/classes:build/test/gensrc/java:lib/antlr-2.7.7.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+        </javac>
+
+        <echo message=" - - - java files compiled - - - "/>
+
+    </target>
+
+    <target name="compile.native" depends="c.configure.linux">
+
+        <echo message=" - - - compiling natives - - - "/>
+
+        <property name="obj.dir" value="${build.dir}/obj"/>
+        <property name="natives.dir" value="${build.dir}/natives"/>
+
+        <property name="output.lib.name" value="rofl"/>
+        <property name="obj.dir" value="${obj.dir}/${output.lib.name}"/>
+        <property name="natives.dir" value="${build.dir}/natives/${output.lib.name}"/>
+
+        <property name="c.compiler.optimise" value="none"/>
+        <property name="c.compiler.debug" value="false"/>
+
+        <mkdir dir="${obj.dir}" />
+        <mkdir dir="${natives.dir}" />
+
+        <cc outtype="shared"
+            objdir="${obj.dir}"
+            outfile="${natives.dir}/${output.lib.name}"
+            optimize="${c.compiler.optimise}"
+            debug="${c.compiler.debug}"
+            multithreaded="true"
+            exceptions="false"
+            rtti="false"
+            failonerror="true">
+
+            <fileset dir="${gluegen.root}/test/junit/com/sun/gluegen" includes="*.c"/>
+
+            <compiler extends="${compiler.cfg.id}" >
+                <includepath path="${java.includes.dir}"/>
+                <includepath path="${java.includes.dir.platform}"/>
+                <includepath path="${gluegen.root}/test/junit/com/sun/gluegen"/>
+            </compiler>
+
+            <linker extends="${linker.cfg.id}">
+
+            </linker>
+        </cc>
+
+        <echo message=" - - - natives compiled - - - "/>
+
+        <copy todir="${natives.dir}">
+            <fileset dir="${gluegen.root}/build/obj">
+                <include name="*.so"/>
+            </fileset>
+        </copy>
+
+    </target>
+
+    <target name="c.configure.linux" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
+
+        <echo message="configure for Linux.AMD64 build" />
+
+        <linker id="linker.cfg.linux.amd64.test">
+        </linker>
+
+        <property name="compiler.cfg.id" value="compiler.cfg.linux" />
+        <property name="linker.cfg.id"   value="linker.cfg.linux.amd64.test" />
+    </target>
+
+</project>
