@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -87,7 +87,7 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter cWriter;
   private MachineDescription machDesc32;
   private MachineDescription machDesc64;
-  
+
   public void readConfigurationFile(String filename) throws Exception {
     cfg = createConfig();
     cfg.read(filename);
@@ -140,7 +140,7 @@ public class JavaEmitter implements GlueEmitter {
       throw new RuntimeException(
         "Unable to open files for writing", e);
     }
-    
+
     emitAllFileHeaders();
 
     // Request emission of any structs requested
@@ -175,7 +175,7 @@ public class JavaEmitter implements GlueEmitter {
     // specifier character in the string.
     //
     //char lastChar = value.charAt(value.length()-1);
-    
+
     try {
       // see if it's a long or int
       int radix;
@@ -189,7 +189,7 @@ public class JavaEmitter implements GlueEmitter {
       }
       else if (value.startsWith("0") && value.length() > 1) {
         // TODO: is "0" the prefix in C to indicate octal???
-        radix = 8; 
+        radix = 8;
         parseValue = value.substring(1);
       }
       else {
@@ -199,12 +199,12 @@ public class JavaEmitter implements GlueEmitter {
       //System.err.println("parsing " + value + " as long w/ radix " + radix);
       long longVal = Long.parseLong(parseValue, radix);
       return radix;
-    } catch (NumberFormatException e) { 
+    } catch (NumberFormatException e) {
       try {
         // see if it's a double or float
         double dVal = Double.parseDouble(value);
         return 10;
-      } catch (NumberFormatException e2) {            
+      } catch (NumberFormatException e2) {
         throw new RuntimeException(
           "Cannot emit define \""+name+"\": value \""+value+
           "\" cannot be assigned to a int, long, float, or double", e2);
@@ -344,7 +344,7 @@ public class JavaEmitter implements GlueEmitter {
       // order. It's probably not an issue right now because the emitter
       // currently only emits only numeric defines -- if it handled #define'd
       // objects it would make a bigger difference.
- 
+
       String name = def.getName();
       String value = def.getValue();
       if (!cfg.shouldIgnoreInInterface(name)) {
@@ -383,7 +383,7 @@ public class JavaEmitter implements GlueEmitter {
     //
     // Note: this code assumes that on the equals() method in FunctionSymbol
     // only considers function name and argument types (i.e., it does not
-    // consider argument *names*) when comparing FunctionSymbols for equality    
+    // consider argument *names*) when comparing FunctionSymbols for equality
     Set funcsToBindSet = new HashSet(100);
     for (Iterator cIter = originalCFunctions.iterator(); cIter.hasNext(); ) {
       FunctionSymbol cFunc = (FunctionSymbol) cIter.next();
@@ -418,14 +418,14 @@ public class JavaEmitter implements GlueEmitter {
       if (cfg.shouldIgnoreInImpl(cFunc.getName())) {
         continue; // don't generate bindings for this symbol
       }
-      
+
       List allBindings = generateMethodBindingEmitters(methodBindingSet, cFunc);
       methodBindingEmitters.addAll(allBindings);
     }
 
     // Emit all the methods
     for (int i = 0; i < methodBindingEmitters.size(); ++i) {
-      FunctionEmitter emitter = (FunctionEmitter)methodBindingEmitters.get(i);      
+      FunctionEmitter emitter = (FunctionEmitter)methodBindingEmitters.get(i);
       try {
         if (!emitter.isInterface() || !cfg.shouldIgnoreInInterface(emitter.getName())) {
             emitter.emit();
@@ -624,8 +624,8 @@ public class JavaEmitter implements GlueEmitter {
         !binding.signatureUsesJavaPrimitiveArrays()) {
       // See whether we need an expression to help calculate the
       // length of any return type
-      MessageFormat returnValueCapacityFormat = null;         
-      MessageFormat returnValueLengthFormat = null;         
+      MessageFormat returnValueCapacityFormat = null;
+      MessageFormat returnValueLengthFormat = null;
       JavaType javaReturnType = binding.getJavaReturnType();
       if (javaReturnType.isNIOBuffer() ||
           javaReturnType.isCompoundTypeWrapper()) {
@@ -714,15 +714,15 @@ public class JavaEmitter implements GlueEmitter {
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
       List bindings = expandMethodBinding(mb);
-      
+
       for (Iterator iter = bindings.iterator(); iter.hasNext(); ) {
-        MethodBinding binding = (MethodBinding) iter.next();        
+        MethodBinding binding = (MethodBinding) iter.next();
 
         if(!methodBindingSet.add(binding)) {
             // skip .. already exisiting binding ..
             continue;
         }
-      
+
         if (cfg.allStatic() && binding.hasContainingType()) {
           // This should not currently happen since structs are emitted using a different mechanism
           throw new IllegalArgumentException("Cannot create binding in AllStatic mode because method has containing type: \"" +
@@ -790,7 +790,7 @@ public class JavaEmitter implements GlueEmitter {
     return allEmitters;
   }
 
-    
+
   public void endFunctions() throws Exception
   {
     if (cfg.allStatic() || cfg.emitInterface()) {
@@ -924,7 +924,7 @@ public class JavaEmitter implements GlueEmitter {
       throw new RuntimeException(
         "Unable to open files for emission of struct class", e);
     }
-    
+
     writer.println();
     writer.println("package " + structClassPkg + ";");
     writer.println();
@@ -938,11 +938,11 @@ public class JavaEmitter implements GlueEmitter {
       writer.print(iter.next());
       writer.println(";");
     }
+    writer.println();
     List/*<String>*/ javadoc = cfg.javadocForClass(containingTypeName);
     for (Iterator iter = javadoc.iterator(); iter.hasNext(); ) {
       writer.println((String) iter.next());
     }
-    writer.println();
     writer.print((doBaseClass ? "public " : "") + (doBaseClass ? "abstract " : "") + "class " + containingTypeName + suffix + " ");
     if (!doBaseClass) {
       writer.print("extends " + containingTypeName + " ");
@@ -958,6 +958,7 @@ public class JavaEmitter implements GlueEmitter {
       writer.print(" ");
     }
     writer.println("{");
+    writer.println();
     if (doBaseClass) {
       writer.println("  StructAccessor accessor;");
       writer.println();
@@ -1001,15 +1002,22 @@ public class JavaEmitter implements GlueEmitter {
       writer.println();
     }
     for (int i = 0; i < structType.getNumFields(); i++) {
+
       Field field = structType.getField(i);
       Type fieldType = field.getType();
+
       if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
+
+        String renamed = cfg.getJavaSymbolRename(field.getName());
+        String fieldName = renamed==null ? field.getName() : renamed;
+
         if (fieldType.isFunctionPointer()) {
+
           if (doBaseClass) {
             try {
               // Emit method call and associated native code
               FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
-              FunctionSymbol funcSym      = new FunctionSymbol(field.getName(), funcType);
+              FunctionSymbol funcSym      = new FunctionSymbol(fieldName, funcType);
               MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDesc64);
               binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
               writer.println();
@@ -1078,9 +1086,9 @@ public class JavaEmitter implements GlueEmitter {
             throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
                                        field + "\" in type \"" + name + "\")");
           }
-        
+
           writer.println();
-          writer.print("  public " + (doBaseClass ? "abstract " : "") + fieldType.getName() + " " + field.getName() + "()");
+          writer.print("  public " + (doBaseClass ? "abstract " : "") + fieldType.getName() + " get" + capitalizeString(fieldName) + "()");
           if (doBaseClass) {
             writer.println(";");
           } else {
@@ -1126,16 +1134,16 @@ public class JavaEmitter implements GlueEmitter {
             }
             String capitalized = null;
             if (!doBaseClass) {
-              capitalized =
-                "" + Character.toUpperCase(internalJavaTypeName.charAt(0)) + internalJavaTypeName.substring(1);
+              capitalized = capitalizeString(internalJavaTypeName);
             }
             int slot = -1;
             if (!doBaseClass) {
               slot = slot(fieldType, (int) field.getOffset(intMachDesc), intMachDesc);
             }
-            // Setter
             writer.println();
-            writer.print("  public " + (doBaseClass ? "abstract " : "") + containingTypeName + " " + field.getName() + "(" + externalJavaTypeName + " val)");
+            String capitalizedFieldName = capitalizeString(fieldName);
+            // Setter
+            writer.print("  public " + (doBaseClass ? "abstract " : "") + containingTypeName + " set" + capitalizedFieldName + "(" + externalJavaTypeName + " val)");
             if (doBaseClass) {
               writer.println(";");
             } else {
@@ -1150,7 +1158,7 @@ public class JavaEmitter implements GlueEmitter {
             }
             writer.println();
             // Getter
-            writer.print("  public " + (doBaseClass ? "abstract " : "") + externalJavaTypeName + " " + field.getName() + "()");
+            writer.print("  public " + (doBaseClass ? "abstract " : "") + externalJavaTypeName + " get" + capitalizedFieldName + "()");
             if (doBaseClass) {
               writer.println(";");
             } else {
@@ -1243,13 +1251,13 @@ public class JavaEmitter implements GlueEmitter {
       return javaType(Void.TYPE);
     } else {
       if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
-        Type targetType; // target type 
+        Type targetType; // target type
         if (t.isPointer()) {
           // t is <type>*, we need to get <type>
           targetType = t.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = t.asArray().getElementType(); 
+          targetType = t.asArray().getElementType();
         }
 
         // Handle Types of form pointer-to-type or array-of-type, like
@@ -1305,10 +1313,10 @@ public class JavaEmitter implements GlueEmitter {
           Type bottomType;
           if (targetType.isPointer()) {
             // t is<type>**, targetType is <type>*, we need to get <type>
-            bottomType = targetType.asPointer().getTargetType(); 
+            bottomType = targetType.asPointer().getTargetType();
           } else {
             // t is<type>[][], targetType is <type>[], we need to get <type>
-            bottomType = targetType.asArray().getElementType(); 
+            bottomType = targetType.asArray().getElementType();
           }
 
           if (bottomType.isPrimitive()) {
@@ -1340,7 +1348,7 @@ public class JavaEmitter implements GlueEmitter {
               "Could not convert C type \"" + t + "\" " +
               "to appropriate Java type; need to add more support for " +
               "depth=2 pointer/array types [debug info: targetType=\"" +
-              targetType + "\"]");            
+              targetType + "\"]");
           }
         } else {
           // can't handle this type of pointer/array argument
@@ -1351,13 +1359,13 @@ public class JavaEmitter implements GlueEmitter {
             "pointerDepth=" + t.pointerDepth() + " arrayDimension=" +
             t.arrayDimension() + " targetType=\"" + targetType + "\"]");
         }
-        
+
       } else {
         throw new RuntimeException(
           "Could not convert C type \"" + t + "\" (class " +
           t.getClass().getName() + ") to appropriate Java type");
       }
-    }    
+    }
   }
 
   private static boolean isIntegerType(Class c) {
@@ -1371,9 +1379,9 @@ public class JavaEmitter implements GlueEmitter {
   private int slot(Type t, int byteOffset, MachineDescription curMachDesc) {
     if (t.isInt()) {
       switch ((int) t.getSize(curMachDesc)) {
-       case 1:  
-       case 2:  
-       case 4:  
+       case 1:
+       case 2:
+       case 4:
        case 8:  return byteOffset / (int) t.getSize(curMachDesc);
        default: throw new RuntimeException("Illegal type");
       }
@@ -1446,7 +1454,7 @@ public class JavaEmitter implements GlueEmitter {
       nRoot +=
         File.separator + CodeGenUtils.packageAsPath(cfg.packageName());
     }
-    
+
     if (cfg.allStatic() || cfg.emitInterface()) {
       javaWriter = openFile(jRoot + File.separator + cfg.className() + ".java");
     }
@@ -1481,7 +1489,7 @@ public class JavaEmitter implements GlueEmitter {
     }
     return javaImplWriter;
   }
-  
+
   protected PrintWriter cWriter() {
     if (!cfg.emitImpl()) {
       throw new InternalError("Should not call this");
@@ -1544,19 +1552,19 @@ public class JavaEmitter implements GlueEmitter {
       return;
 
     writer.println();
-    writer.println("  // --- Begin CustomJavaCode .cfg declarations"); 
+    writer.println("  // --- Begin CustomJavaCode .cfg declarations");
     for (Iterator iter = code.iterator(); iter.hasNext(); ) {
       writer.println((String) iter.next());
     }
-    writer.println("  // ---- End CustomJavaCode .cfg declarations"); 
+    writer.println("  // ---- End CustomJavaCode .cfg declarations");
   }
-  
+
   /**
    * Write out any header information for the output files (class declaration
    * and opening brace, import statements, etc).
    */
-  protected void emitAllFileHeaders() throws IOException {    
-    try {    
+  protected void emitAllFileHeaders() throws IOException {
+    try {
       if (cfg.allStatic() || cfg.emitInterface()) {
         String[] interfaces;
         List userSpecifiedInterfaces = null;
@@ -1567,7 +1575,7 @@ public class JavaEmitter implements GlueEmitter {
         }
         interfaces = new String[userSpecifiedInterfaces.size()];
         userSpecifiedInterfaces.toArray(interfaces);
-        
+
         final List/*<String>*/ intfDocs = cfg.javadocForClass(cfg.className());
         CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
@@ -1590,14 +1598,14 @@ public class JavaEmitter implements GlueEmitter {
           cfg.packageName(),
           cfg.className(),
           cfg.gluegenRuntimePackage(),
-          cfg.allStatic() ? true : false, 
+          cfg.allStatic() ? true : false,
           (String[]) cfg.imports().toArray(new String[] {}),
           accessModifiers,
           interfaces,
           cfg.extendedParentClass(cfg.className()),
-          docEmitter);               
+          docEmitter);
       }
-    
+
       if (!cfg.allStatic() && cfg.emitImpl()) {
         final List/*<String>*/ implDocs = cfg.javadocForClass(cfg.implClassName());
         CodeGenUtils.EmissionCallback docEmitter =
@@ -1639,9 +1647,9 @@ public class JavaEmitter implements GlueEmitter {
           accessModifiers,
           interfaces,
           cfg.extendedParentClass(cfg.implClassName()),
-          docEmitter);                      
+          docEmitter);
       }
-          
+
       if (cfg.emitImpl()) {
         PrintWriter cWriter = cWriter();
         emitCHeader(cWriter, cfg.implClassName());
@@ -1650,18 +1658,18 @@ public class JavaEmitter implements GlueEmitter {
       throw new RuntimeException(
         "Error emitting all file headers: cfg.allStatic()=" + cfg.allStatic() +
         " cfg.emitImpl()=" + cfg.emitImpl() + " cfg.emitInterface()=" + cfg.emitInterface(),
-        e);       
+        e);
     }
-    
+
   }
-  
+
   protected void emitCHeader(PrintWriter cWriter, String className) {
     cWriter.println("#include <jni.h>");
     cWriter.println("#include <stdlib.h>");
     cWriter.println();
 
     if (getConfig().emitImpl()) {
-      cWriter.println("#include <assert.h>"); 
+      cWriter.println("#include <assert.h>");
       cWriter.println();
     }
 
@@ -1670,7 +1678,7 @@ public class JavaEmitter implements GlueEmitter {
     }
     cWriter.println();
   }
-  
+
   /**
    * Write out any footer information for the output files (closing brace of
    * class definition, etc).
@@ -1703,9 +1711,9 @@ public class JavaEmitter implements GlueEmitter {
                                      MachineDescription curMachDesc) {
 
     MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
-    
+
     binding.renameMethodName(cfg.getJavaSymbolRename(sym.getName()));
-    
+
     if (cfg.returnsString(binding.getName())) {
       PointerType prt = sym.getReturnType().asPointer();
       if (prt == null ||
@@ -1729,9 +1737,9 @@ public class JavaEmitter implements GlueEmitter {
       JavaType mappedType = typeToJavaType(cArgType, true, curMachDesc);
       //System.out.println("C arg type -> \"" + cArgType + "\"" );
       //System.out.println("      Java -> \"" + mappedType + "\"" );
-     
+
       // Take into account any ArgumentIsString configuration directives that apply
-      if (stringArgIndices != null && stringArgIndices.contains(new Integer(i))) {   
+      if (stringArgIndices != null && stringArgIndices.contains(new Integer(i))) {
         //System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
         if (mappedType.isCVoidPointerType() ||
             mappedType.isCCharPointerType() ||
@@ -1744,7 +1752,7 @@ public class JavaEmitter implements GlueEmitter {
           //   ByteBuffer[] and ShortBuffer[] to String[]
           if (mappedType.isArray()) {
             mappedType = javaType(ArrayTypes.stringArrayClass);
-          } else {         
+          } else {
             mappedType = javaType(String.class);
           }
         }
@@ -1763,13 +1771,13 @@ public class JavaEmitter implements GlueEmitter {
     //System.err.println("    ---> " + binding.getCSymbol());
     return binding;
   }
-  
+
   private MethodBinding lowerMethodBindingPointerTypes(MethodBinding inputBinding,
                                                        boolean convertToArrays,
                                                        boolean[] canProduceArrayVariant) {
     MethodBinding result = inputBinding;
     boolean arrayPossible = false;
-    
+
     for (int i = 0; i < inputBinding.getNumArguments(); i++) {
       JavaType t = inputBinding.getJavaArgumentType(i);
       if (t.isCPrimitivePointerType()) {
@@ -1894,4 +1902,12 @@ public class JavaEmitter implements GlueEmitter {
     canonMap.put(t, t);
     return t;
   }
+
+  /**
+   * Converts first letter to upper case.
+   */
+  private final String capitalizeString(String string) {
+      return Character.toUpperCase(string.charAt(0)) + string.substring(1);
+  }
+
 }
