@@ -487,10 +487,12 @@
   <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir" unless="gluegen.compiler.present">
     <!-- compiler configuration -->
     <compiler id="compiler.cfg.linux" name="gcc">
+      <compilerarg value="-m32"/>
     </compiler>
 
     <compiler id="compiler.cfg.linux.amd64" name="gcc">
       <compilerarg value="-fPIC"/>
+      <compilerarg value="-m64"/>
     </compiler>
 
     <compiler id="compiler.cfg.solaris" name="suncc">
@@ -610,9 +612,11 @@
     <!-- linker configuration -->
  
     <linker id="linker.cfg.linux" name="gcc">
+        <linkerarg value="-m32"/>
     </linker>
 
     <linker id="linker.cfg.linux.amd64" name="gcc">
+        <linkerarg value="-m64"/>
     </linker>
 
     <linker id="linker.cfg.solaris" name="suncc">
