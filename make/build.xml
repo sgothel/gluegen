@@ -560,8 +560,8 @@
 
   <target name="all" depends="gluegen.build" />
 
-  <target name="clean">
-    <delete includeEmptyDirs="true" quiet="true">
+  <target name="clean" depends="init">
+    <delete includeEmptyDirs="true">
       <fileset dir="${build}" />
     </delete>
   </target>    
