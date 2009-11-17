@@ -127,7 +127,7 @@
   <import file="gluegen-properties.xml" />
 
   <!-- import cpptasks -->
-  <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
+  <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar;${gluegen.root}/make/lib/CppTasksGCCNamespaceHack.jar"/>
 
   <condition property="gluegen.user.compiler.file"
              value="${user.home}/gluegen.compiler.xml">
@@ -495,6 +495,16 @@
       <compilerarg value="-m64"/>
     </compiler>
 
+    <compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64CCompiler">
+        <compilerarg value="-fPIC"/>
+        <compilerarg value="-m64"/>
+    </compiler>
+
+    <compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32CCompiler">
+        <compilerarg value="-m32"/>
+    </compiler>
+
+<!--
     <compiler id="compiler.cfg.solaris" name="suncc">
       <defineset>
         <define name="SOLARIS" />
@@ -509,16 +519,20 @@
         <define name="SOLARIS" />
       </defineset>
     </compiler>
-
+-->
+<!--
     <compiler id="compiler.cfg.solaris.amd64" name="suncc">
       <compilerarg value="-fast" />
       <compilerarg value="-xchip=opteron" />
       <compilerarg value="-xarch=amd64" />
+      -->
   <!--      <compilerarg value="-xcache=64/64/2:1024/64/16" />   -->
+<!--
       <defineset>
         <define name="SOLARIS" />
       </defineset>
     </compiler>
+      -->
 
     <compiler id="compiler.cfg.win32.mingw" name="gcc">
       <compilerarg value="-g" if="c.compiler.use-debug"/> 
@@ -619,6 +633,14 @@
         <linkerarg value="-m64"/>
     </linker>
 
+    <linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64Linker">
+        <linkerarg value="-m64"/>
+    </linker>
+    
+    <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker">
+        <linkerarg value="-m32"/>
+    </linker>
+<!--
     <linker id="linker.cfg.solaris" name="suncc">
     </linker>
 
@@ -629,7 +651,7 @@
     <linker id="linker.cfg.solaris.amd64" name="suncc">
       <linkerarg value="-xarch=amd64" />
     </linker>
-
+-->
     <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
       <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
     </linker>
