@@ -639,6 +639,7 @@
     
     <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker">
         <linkerarg value="-m32"/>
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
     </linker>
 <!--
     <linker id="linker.cfg.solaris" name="suncc">
@@ -653,7 +654,8 @@
     </linker>
 -->
     <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
-      <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+        <linkerarg value="-m32"/>
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
     </linker>
 
     <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">

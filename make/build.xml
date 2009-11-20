@@ -329,7 +329,8 @@
       <msvc.manifest objdir="${build}/obj" dllname="gluegen-rt" />
     </target>
 
-    <target name="c.build" depends="c.configure" unless="build.javaonly" >
+    <target name="c.build" depends="init, c.configure" unless="build.javaonly" >
+
       <fail message="Requires '${c.compiler.src.files.os}'" unless="c.compiler.src.files.os"/>
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
@@ -344,7 +345,10 @@
 
       <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-      <mkdir dir="${build}/obj" />
+      <!--namespace can be overwritten from outside-->
+      <property name="namespace" value=""/>
+
+      <mkdir dir="${build}/obj/${namespace}" />
 
       <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
 
@@ -352,8 +356,8 @@
       <echo message="user.dir=${user.dir}" />
 
       <cc outtype="shared" 
-          objdir="${build}/obj" 
-          outfile="${build}/obj/${output.lib.name}"
+          objdir="${build}/obj/${namespace}"
+          outfile="${build}/obj/${namespace}/${output.lib.name}"
           optimize="${c.compiler.optimise}" 
           debug="${c.compiler.debug}"
           multithreaded="true" 
@@ -399,7 +403,7 @@
       </jar>
     </target>  
 
-  <target name="build.nativelibrary" unless="build.javaonly" >
+  <target name="build.nativelibrary" depends="init" unless="build.javaonly" >
     <antcall target="c.build" inheritRefs="true" />
   </target>
 
