@@ -78,11 +78,11 @@ public class BufferFactory {
   }
 
   /** Helper routine to tell whether a buffer is direct or not. Null
-      pointers are considered direct. isDirect() should really be
+      pointers are considered NOT direct. isDirect() should really be
       public in Buffer and not replicated in all subclasses. */
   public static boolean isDirect(Object buf) {
     if (buf == null) {
-      return true;
+      return false;
     }
     if (buf instanceof ByteBuffer) {
       return ((ByteBuffer) buf).isDirect();
