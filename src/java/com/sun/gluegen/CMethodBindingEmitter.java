@@ -82,13 +82,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
   /**
    * Optional List of Strings containing temporary C variables to declare.
    */
-  private List/*<String>*/ temporaryCVariableDeclarations;
+  private List<String> temporaryCVariableDeclarations;
 
   /**
    * Optional List of Strings containing assignments to temporary C variables
    * to make after the call is completed.
    */
-  private List/*<String>*/ temporaryCVariableAssignments;
+  private List<String> temporaryCVariableAssignments;
 
   /**
    * Capacity of the return value in the event that it is encapsulated in a
@@ -161,8 +161,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   /**
    * Get the expression for the capacity of the returned java.nio.Buffer.
    */
-  public final MessageFormat getReturnValueCapacityExpression()
-  {
+  public final MessageFormat getReturnValueCapacityExpression()  {
     return returnValueCapacityExpression;
   }
 
@@ -183,13 +182,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * binding.getJavaReturnType().isCompoundTypeWrapper() == false
    * </code>
    */
-  public final void setReturnValueCapacityExpression(MessageFormat expression)
-  {
+  public final void setReturnValueCapacityExpression(MessageFormat expression)  {
     returnValueCapacityExpression = expression;
     
     if (!binding.getJavaReturnType().isNIOBuffer() &&
-        !binding.getJavaReturnType().isCompoundTypeWrapper())
-    {
+        !binding.getJavaReturnType().isCompoundTypeWrapper())    {
       throw new IllegalArgumentException(
         "Cannot specify return value capacity for a method that does not " +
         "return java.nio.Buffer or a compound type wrapper: \"" + binding + "\"");      
@@ -199,8 +196,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   /**
    * Get the expression for the length of the returned array
    */
-  public final MessageFormat getReturnValueLengthExpression()
-  {
+  public final MessageFormat getReturnValueLengthExpression()  {
     return returnValueLengthExpression;
   }
 
@@ -219,13 +215,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * binding.getJavaReturnType().isNIOBuffer() == false
    * </code>
    */
-  public final void setReturnValueLengthExpression(MessageFormat expression)
-  {
+  public final void setReturnValueLengthExpression(MessageFormat expression)  {
     returnValueLengthExpression = expression;
     
     if (!binding.getJavaReturnType().isArray() &&
-        !binding.getJavaReturnType().isArrayOfCompoundTypeWrappers())
-    {
+        !binding.getJavaReturnType().isArrayOfCompoundTypeWrappers())    {
       throw new IllegalArgumentException(
         "Cannot specify return value length for a method that does not " +
         "return an array: \"" + binding + "\"");      
@@ -236,7 +230,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * Returns the List of Strings containing declarations for temporary
    * C variables to be assigned to after the underlying function call.
    */
-  public final List/*<String>*/ getTemporaryCVariableDeclarations() {
+  public final List<String> getTemporaryCVariableDeclarations() {
     return temporaryCVariableDeclarations;
   }
 
@@ -245,7 +239,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * variables to be assigned to after the underlying function call. A
    * null argument indicates that no manual declarations are to be made.
    */
-  public final void setTemporaryCVariableDeclarations(List/*<String>*/ arg) {
+  public final void setTemporaryCVariableDeclarations(List<String> arg) {
     temporaryCVariableDeclarations = arg;
   }
 
@@ -255,7 +249,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * null argument indicates that no manual assignments are to be
    * made.
    */
-  public final List/*<String>*/ getTemporaryCVariableAssignments() {
+  public final List<String> getTemporaryCVariableAssignments() {
     return temporaryCVariableAssignments;
   }
 
@@ -264,7 +258,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * variables which are made after the underlying function call. A
    * null argument indicates that no manual assignments are to be made.
    */
-  public final void setTemporaryCVariableAssignments(List/*<String>*/ arg) {
+  public final void setTemporaryCVariableAssignments(List<String> arg) {
     temporaryCVariableAssignments = arg;
   }
 
@@ -304,29 +298,24 @@ public class CMethodBindingEmitter extends FunctionEmitter
   public final MachineDescription getMachineDescription() { return machDesc; }
 
 
-  protected void emitReturnType(PrintWriter writer)
-  {    
+  protected void emitReturnType(PrintWriter writer)  {    
     writer.print("JNIEXPORT ");
     writer.print(binding.getJavaReturnType().jniTypeName());
     writer.print(" JNICALL");
   }
 
-  protected void emitName(PrintWriter writer)
-  {
+  protected void emitName(PrintWriter writer)  {
     writer.println(); // start name on new line
     writer.print("Java_");
     writer.print(jniMangle(getJavaPackageName()));
     writer.print("_");
     writer.print(jniMangle(getJavaClassName()));
     writer.print("_");
-    if (isOverloadedBinding)
-    {
+    if (isOverloadedBinding)    {
       writer.print(jniMangle(binding));
       //System.err.println("OVERLOADED MANGLING FOR " + getName() +
       //                   " = " + jniMangle(binding));
-    }
-    else
-    {
+    } else {
       writer.print(jniMangle(getName()));
       //System.err.println("    NORMAL MANGLING FOR " + binding.getName() +
       //                   " = " + jniMangle(getName()));
@@ -344,23 +333,18 @@ public class CMethodBindingEmitter extends FunctionEmitter
     return "";
   }
 
-  protected int emitArguments(PrintWriter writer)
-  {
+  protected int emitArguments(PrintWriter writer)  {
     writer.print("JNIEnv *env, ");
     int numEmitted = 1; // initially just the JNIEnv
-    if (isJavaMethodStatic && !binding.hasContainingType())
-    {
+    if (isJavaMethodStatic && !binding.hasContainingType())    {
       writer.print("jclass");
-    }
-    else
-    {
+    } else {
       writer.print("jobject");
     }
     writer.print(" _unused");
     ++numEmitted;
     
-    if (binding.hasContainingType())
-    {
+    if (binding.hasContainingType())   {
       // "this" argument always comes down in argument 0 as direct buffer
       writer.print(", jobject " + JavaMethodBindingEmitter.javaThisArgumentName());
     }
@@ -394,8 +378,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   }
 
   
-  protected void emitBody(PrintWriter writer)
-  {    
+  protected void emitBody(PrintWriter writer)  {    
     writer.println(" {");
     emitBodyVariableDeclarations(writer);
     emitBodyUserVariableDeclarations(writer);
@@ -410,8 +393,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.println();
   }
 
-  protected void emitBodyVariableDeclarations(PrintWriter writer)
-  {
+  protected void emitBodyVariableDeclarations(PrintWriter writer)  {
     // Emit declarations for all pointer and String conversion variables
     if (binding.hasContainingType()) {
       emitPointerDeclaration(writer,
@@ -489,7 +471,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer.print(arrayResLength);
         writer.println(";");
 
-        Class componentType = javaReturnType.getJavaClass().getComponentType();
+        Class<?> componentType = javaReturnType.getJavaClass().getComponentType();
         if (componentType.isArray()) {
           throw new RuntimeException("Multi-dimensional arrays not supported yet");            
         }
@@ -511,8 +493,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       TemporaryCVariableDeclarations directive in the .cfg file. */
   protected void emitBodyUserVariableDeclarations(PrintWriter writer) {
     if (temporaryCVariableDeclarations != null) {
-      for (Iterator iter = temporaryCVariableDeclarations.iterator(); iter.hasNext(); ) {
-        String val = (String) iter.next();
+      for (String val : temporaryCVariableDeclarations) {
         writer.print("  ");
         writer.println(val);
       }
@@ -566,9 +547,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * emitBodyVariableDeclarations(), PRIOR TO calling the actual C
    * function.
    */
-  protected void emitBodyVariablePreCallSetup(PrintWriter writer,
-                                              boolean emittingPrimitiveArrayCritical)
-  {
+  protected void emitBodyVariablePreCallSetup(PrintWriter writer, boolean emittingPrimitiveArrayCritical)  {
+
     if (!emittingPrimitiveArrayCritical) {
       // Convert all Buffers to pointers first so we don't have to
       // call ReleasePrimitiveArrayCritical for any arrays if any
@@ -1033,8 +1013,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       TemporaryCVariableAssignments directive in the .cfg file. */
   protected void emitBodyUserVariableAssignments(PrintWriter writer) {
     if (temporaryCVariableAssignments != null) {
-      for (Iterator iter = temporaryCVariableAssignments.iterator(); iter.hasNext(); ) {
-        String val = (String) iter.next();
+      for (String val : temporaryCVariableAssignments) {
         writer.print("  ");
         writer.println(val);
       }
@@ -1178,7 +1157,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           throw new RuntimeException("Saw illegal \"void\" argument while emitting \"" + getName() + "\"");
         }
       } else {
-        Class c = type.getJavaClass();
+        Class<?> c = type.getJavaClass();
         if (c != null) {
           jniMangle(c, buf, false);
           // If Buffer offset arguments were added, we need to mangle the JNI for the 
@@ -1212,7 +1191,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     return buf.toString();
   }
 
-  protected void jniMangle(Class c, StringBuffer res, boolean syntheticArgument) {
+  protected void jniMangle(Class<?> c, StringBuffer res, boolean syntheticArgument) {
     if (c.isPrimitive()) {
            if (c == Boolean.TYPE)   res.append("Z");
       else if (c == Byte.TYPE)      res.append("B");
@@ -1233,7 +1212,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (syntheticArgument) {
         if (c.isArray()) {
           res.append("_3");
-          Class componentType = c.getComponentType();
+          Class<?> componentType = c.getComponentType();
           // Handle arrays of compound type wrappers differently for
           // convenience of the Java-level glue code generation
           jniMangle(componentType, res,
@@ -1260,9 +1239,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     }
   }
 
-  private void emitOutOfMemoryCheck(PrintWriter writer, String varName,
-                                    String errorMessage)
-  {
+  private void emitOutOfMemoryCheck(PrintWriter writer, String varName, String errorMessage)  {
     writer.print("    if (");
     writer.print(varName);
     writer.println(" == NULL) {");
@@ -1284,8 +1261,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                           String elementTypeString,
                           boolean elementTypeIsConst,
                           String numElementsExpression,
-                          String mallocFailureErrorString)
-  {
+                          String mallocFailureErrorString)  {
     writer.print("    ");
     writer.print(targetVarName);
     writer.print(" = (");
@@ -1310,8 +1286,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                           String targetVarName,
                           String elementTypeString,
                           String numElementsExpression,
-                          String mallocFailureErrorString)
-  {
+                          String mallocFailureErrorString)  {
     writer.print("    ");
     writer.print(targetVarName);
     writer.print(" = (");
@@ -1333,8 +1308,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                   String sourceVarName,
                                   String receivingVarName,
                                   boolean isUTF8,
-                                  boolean emitElseClause)
-  {
+                                  boolean emitElseClause)  {
     if (EMIT_NULL_CHECKS) {
       writer.print("  if (");
       writer.print(sourceVarName);
@@ -1443,9 +1417,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
           javaType.isArrayOfCompoundTypeWrappers()) {
         ptrTypeString = cType.getName();
       } else if (!javaType.isStringArray()) {
-        Class elementType = javaType.getJavaClass().getComponentType();
+        Class<?> elementType = javaType.getJavaClass().getComponentType();
         if (elementType.isArray()) {
-          Class subElementType = elementType.getComponentType();
+          Class<?> subElementType = elementType.getComponentType();
           if (subElementType.isPrimitive()) {
             // type is pointer to pointer to primitive
             ptrTypeString = cType.getName();

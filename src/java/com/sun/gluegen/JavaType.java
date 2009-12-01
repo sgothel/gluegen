@@ -57,7 +57,7 @@ public class JavaType {
   private static final int PTR_C_FLOAT  = 6;
   private static final int PTR_C_DOUBLE = 7;
 
-  private Class  clazz; // Primitive types and other types representable as Class objects
+  private Class<?> clazz; // Primitive types and other types representable as Class objects
   private String name;  // Types we're generating glue code for (i.e., C structs)
   private Type   elementType; // Element type if this JavaType represents a C array
   private int    primitivePointerType; // Represents C arrays that
@@ -75,6 +75,7 @@ public class JavaType {
   private static JavaType nioDoubleBufferType;
   private static JavaType nioByteBufferArrayType;
 
+  @Override
   public boolean equals(Object arg) {
     if ((arg == null) || (!(arg instanceof JavaType))) {
       return false;
@@ -82,13 +83,14 @@ public class JavaType {
     JavaType t = (JavaType) arg;
     return (this == t ||
             (t.clazz == clazz &&
-             ((name == t.name) ||
+             ((name == null ? t.name == null : name.equals(t.name)) ||
               ((name != null) && (t.name != null) && (name.equals(t.name)))) &&
              ((elementType == t.elementType) ||
               (elementType != null) && (t.elementType != null) && (elementType.equals(t.elementType))) &&
              (primitivePointerType == t.primitivePointerType)));
   }
 
+  @Override
   public int hashCode() {
     if (clazz == null) {
       if (name == null) {
@@ -107,7 +109,7 @@ public class JavaType {
       can be used to represent arrays of primitive values or Strings;
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
-  public static JavaType createForClass(Class clazz) {
+  public static JavaType createForClass(Class<?> clazz) {
     return new JavaType(clazz);
   }
 
@@ -225,7 +227,7 @@ public class JavaType {
    * Returns the Java Class corresponding to this type. Returns null if this
    * object corresponds to a C primitive array type.
    */
-  public Class getJavaClass() {
+  public Class<?> getJavaClass() {
     return clazz;
   }
 
@@ -301,7 +303,7 @@ public class JavaType {
         return "jobjectArray /*elements are String*/";
       }
 
-      Class elementType = clazz.getComponentType();
+      Class<?> elementType = clazz.getComponentType();
 
       if (isNIOBufferArray()) {
         return "jobjectArray /*elements are " + elementType.getName() + "*/";
@@ -471,9 +473,10 @@ public class JavaType {
   }
 
   public boolean isJNIEnv() {
-    return clazz == null && name == "JNIEnv";
+    return clazz == null && "JNIEnv".equals(name);
   }
 
+  @Override
   public Object clone() {
     JavaType clone = new JavaType(primitivePointerType);
 
@@ -484,6 +487,7 @@ public class JavaType {
     return clone;
   }
 
+  @Override
   public String toString() {
     return getName();
   }
@@ -504,7 +508,7 @@ public class JavaType {
    * Constructs a representation for a type corresponding to the given Class
    * argument.
    */
-  private JavaType(Class clazz) {
+  private JavaType(Class<?> clazz) {
     this.clazz = clazz;
   }
 
@@ -524,7 +528,7 @@ public class JavaType {
     this.primitivePointerType = primitivePointerType;
   }
 
-  private String arrayName(Class clazz) {
+  private String arrayName(Class<?> clazz) {
     StringBuffer buf = new StringBuffer();
     int arrayCount = 0;
     while (clazz.isArray()) {
@@ -538,7 +542,7 @@ public class JavaType {
     return buf.toString();
   }
 
-  private String arrayDescriptor(Class clazz) {
+  private String arrayDescriptor(Class<?> clazz) {
     StringBuffer buf = new StringBuffer();
     int arrayCount = 0;
     while (clazz.isArray()) {
@@ -549,7 +553,7 @@ public class JavaType {
     return buf.toString();
   }
 
-  private String descriptor(Class clazz) {
+  private String descriptor(Class<?> clazz) {
     if (clazz.isPrimitive()) {
       if (clazz == Boolean.TYPE) return "Z";
       if (clazz == Byte.TYPE)    return "B";

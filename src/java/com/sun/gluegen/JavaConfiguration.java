@@ -42,6 +42,7 @@ package com.sun.gluegen;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.regex.*;
 
 import com.sun.gluegen.jgram.*;
@@ -52,99 +53,106 @@ import com.sun.gluegen.cgram.types.*;
 
 public class JavaConfiguration {
 
-  private int nestedReads;
-  private String packageName;
-  private String implPackageName;
-  private String className;
-  private String implClassName;
-  /**
-   * Root directory for the hierarchy of generated java classes. Default is
-   * working directory.
-   */
-  private String javaOutputDir = ".";
+    private int nestedReads;
+    private String packageName;
+    private String implPackageName;
+    private String className;
+    private String implClassName;
+    
+    /**
+     * Root directory for the hierarchy of generated java classes. Default is
+     * working directory.
+     */
+    private String javaOutputDir = ".";
 
-  /**
-   * Top output root directory for all generated files. Default is null, ie not to use it.
-   */
-  private String outputRootDir = null;
+    /**
+     * Top output root directory for all generated files. Default is null, ie not to use it.
+     */
+    private String outputRootDir = null;
 
-  /**
-   * Directory into which generated native JNI code will be written. Default
-   * is current working directory.
-   */
-  private String nativeOutputDir = ".";
-  /**
-   * If true, then each native *.c and *.h file will be generated in the
-   * directory nativeOutputDir/packageAsPath(packageName). Default is false.
-   */
-  private boolean nativeOutputUsesJavaHierarchy;
-  /**
-   * If true, then the comment of a native method binding will include a @native tag
-   * to allow taglets to augment the javadoc with additional information regarding
-   * the mapped C function. Defaults to false.
-   */
-  private boolean tagNativeBinding;
-  /**
-   * Style of code emission. Can emit everything into one class
-   * (AllStatic), separate interface and implementing classes
-   * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
-   * the implementation (ImplOnly).
-   */
-  private int emissionStyle = JavaEmitter.ALL_STATIC;
-  /**
-   * List of imports to emit at the head of the output files.
-   */
-  private List/*<String>*/ imports = new ArrayList();
-  /**
-   * The package in which the generated glue code expects to find its
-   * run-time helper classes (BufferFactory, CPU,
-   * StructAccessor). Defaults to "com.sun.gluegen.runtime".
-   */
-  private String gluegenRuntimePackage = "com.sun.gluegen.runtime";
+    /**
+     * Directory into which generated native JNI code will be written. Default
+     * is current working directory.
+     */
+    private String nativeOutputDir = ".";
 
-  /**
-   * The kind of exception raised by the generated code if run-time
-   * checks fail. Defaults to RuntimeException.
-   */
-  private String runtimeExceptionType = "RuntimeException";
-  private String unsupportedExceptionType = "UnsupportedOperationException";
-  private Map/*<String,Integer>*/ accessControl = new HashMap();
-  private Map/*<String,TypeInfo>*/ typeInfoMap = new HashMap();
-  private Set/*<String>*/ returnsString = new HashSet();
-  private Map/*<String, String>*/ returnedArrayLengths = new HashMap();
-  /**
-   * Key is function that has some byte[] or short[] arguments that should be
-   * converted to String args; value is List of Integer argument indices
-   */
-  private Map/*<String,List<Integer>>*/ argumentsAreString = new HashMap();
-  private Set/*<String>*/ extendedIntfSymbolsIgnore = new HashSet();
-  private Set/*<String>*/ extendedIntfSymbolsOnly = new HashSet();
-  private Set/*<Pattern>*/ ignores = new HashSet();
-  private Map/*<String,Pattern>*/ ignoreMap = new HashMap();
-  private Set/*<Pattern>*/ ignoreNots = new HashSet();
-  private Set/*<Pattern>*/ unignores = new HashSet();
-  private Set/*<Pattern>*/ unimplemented = new HashSet();
-  private boolean forceNioOnly4All=false;
-  private Set/*<String>*/ nioOnly = new HashSet();
-  private boolean forceNioDirectOnly4All=false;
-  private Set/*<String>*/ nioDirectOnly = new HashSet();
-  private Set/*<String>*/ manuallyImplement = new HashSet();
-  private Map/*<String,List<String>>*/ customJavaCode = new HashMap();
-  private Map/*<String,List<String>>*/ classJavadoc = new HashMap();
-  private Map/*<String,String>*/ structPackages = new HashMap();
-  private List/*<String>*/ customCCode = new ArrayList();
-  private List/*<String>*/ forcedStructs = new ArrayList();
-  private Map/*<String, String>*/ returnValueCapacities = new HashMap(); 
-  private Map/*<String, String>*/ returnValueLengths = new HashMap(); 
-  private Map/*<String, List<String>>*/ temporaryCVariableDeclarations = new HashMap();
-  private Map/*<String, List<String>>*/ temporaryCVariableAssignments = new HashMap();
-  private Map/*<String,List<String>>*/ extendedInterfaces = new HashMap();
-  private Map/*<String,List<String>>*/ implementedInterfaces = new HashMap();
-  private Map/*<String,String>*/ parentClass = new HashMap();
-  private Map/*<String,String>*/ javaTypeRenames = new HashMap();
-  private Map/*<String,String>*/ javaSymbolRenames = new HashMap();
-  private Map/*<String,List<String>>*/ javaPrologues = new HashMap();
-  private Map/*<String,List<String>>*/ javaEpilogues = new HashMap();
+    /**
+     * If true, then each native *.c and *.h file will be generated in the
+     * directory nativeOutputDir/packageAsPath(packageName). Default is false.
+     */
+    private boolean nativeOutputUsesJavaHierarchy;
+
+    /**
+     * If true, then the comment of a native method binding will include a @native tag
+     * to allow taglets to augment the javadoc with additional information regarding
+     * the mapped C function. Defaults to false.
+     */
+    private boolean tagNativeBinding;
+
+    /**
+     * Style of code emission. Can emit everything into one class
+     * (AllStatic), separate interface and implementing classes
+     * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
+     * the implementation (ImplOnly).
+     */
+    private int emissionStyle = JavaEmitter.ALL_STATIC;
+
+    /**
+     * List of imports to emit at the head of the output files.
+     */
+    private List<String> imports = new ArrayList<String>();
+
+    /**
+     * The package in which the generated glue code expects to find its
+     * run-time helper classes (BufferFactory, CPU,
+     * StructAccessor). Defaults to "com.sun.gluegen.runtime".
+     */
+    private String gluegenRuntimePackage = "com.sun.gluegen.runtime";
+
+    /**
+     * The kind of exception raised by the generated code if run-time
+     * checks fail. Defaults to RuntimeException.
+     */
+    private String runtimeExceptionType = "RuntimeException";
+    private String unsupportedExceptionType = "UnsupportedOperationException";
+    private Map<String, Integer> accessControl = new HashMap<String, Integer>();
+    private Map<String, TypeInfo> typeInfoMap = new HashMap<String, TypeInfo>();
+    private Set<String> returnsString = new HashSet<String>();
+    private Map<String, String> returnedArrayLengths = new HashMap<String, String>();
+
+    /**
+     * Key is function that has some byte[] or short[] arguments that should be
+     * converted to String args; value is List of Integer argument indices
+     */
+    private Map<String, List<Integer>> argumentsAreString = new HashMap<String, List<Integer>>();
+    private Set<String> extendedIntfSymbolsIgnore = new HashSet<String>();
+    private Set<String> extendedIntfSymbolsOnly = new HashSet<String>();
+    private Set<Pattern> ignores = new HashSet<Pattern>();
+    private Map<String, Pattern> ignoreMap = new HashMap<String, Pattern>();
+    private Set<Pattern> ignoreNots = new HashSet<Pattern>();
+    private Set<Pattern> unignores = new HashSet<Pattern>();
+    private Set<Pattern> unimplemented = new HashSet<Pattern>();
+    private boolean forceNioOnly4All = false;
+    private Set<String> nioOnly = new HashSet<String>();
+    private boolean forceNioDirectOnly4All = false;
+    private Set<String> nioDirectOnly = new HashSet<String>();
+    private Set<String> manuallyImplement = new HashSet<String>();
+    private Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
+    private Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
+    private Map<String, String> structPackages = new HashMap<String, String>();
+    private List<String> customCCode = new ArrayList<String>();
+    private List<String> forcedStructs = new ArrayList<String>();
+    private Map<String, String> returnValueCapacities = new HashMap<String, String>();
+    private Map<String, String> returnValueLengths = new HashMap<String, String>();
+    private Map<String, List<String>> temporaryCVariableDeclarations = new HashMap<String, List<String>>();
+    private Map<String, List<String>> temporaryCVariableAssignments = new HashMap<String, List<String>>();
+    private Map<String, List<String>> extendedInterfaces = new HashMap<String, List<String>>();
+    private Map<String, List<String>> implementedInterfaces = new HashMap<String, List<String>>();
+    private Map<String, String> parentClass = new HashMap<String, String>();
+    private Map<String, String> javaTypeRenames = new HashMap<String, String>();
+    private Map<String, String> javaSymbolRenames = new HashMap<String, String>();
+    private Map<String, List<String>> javaPrologues = new HashMap<String, List<String>>();
+    private Map<String, List<String>> javaEpilogues = new HashMap<String, List<String>>();
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -175,20 +183,17 @@ public class JavaConfiguration {
       ++nestedReads;
       while ((line = reader.readLine()) != null) {
         ++lineNo;
-        if (hasPrefix)
-        {
+        if (hasPrefix)  {
           line = linePrefix + " " + line;
         }
 
-        if (line.trim().startsWith("#"))
-        {
+        if (line.trim().startsWith("#")) {
           // comment line
           continue;
         }
         
         StringTokenizer tok = new StringTokenizer(line);
-        if (tok.hasMoreTokens())
-        {
+        if (tok.hasMoreTokens()) {
           // always reset delimiters in case of CustomJavaCode, etc.
           String cmd = tok.nextToken(" \t\n\r\f");
 
@@ -243,44 +248,82 @@ public class JavaConfiguration {
 
   public void setOutputRootDir(String s) { outputRootDir=s; }
 
-  /** Returns the package name parsed from the configuration file. */
-  public String      packageName()                   { return packageName; }
-  /** Returns the implementation package name parsed from the configuration file. */
-  public String      implPackageName()               { return implPackageName; }
-  /** Returns the class name parsed from the configuration file. */
-  public String      className()                     { return className; }
-  /** Returns the implementation class name parsed from the configuration file. */
-  public String      implClassName()                 { return implClassName; }
-  /** Returns the Java code output directory parsed from the configuration file. */
-  public String      javaOutputDir()                 { return (null!=outputRootDir)?(outputRootDir + "/" + javaOutputDir):javaOutputDir; }
-  /** Returns the native code output directory parsed from the configuration file. */
-  public String      nativeOutputDir()               { return (null!=outputRootDir)?(outputRootDir + "/" + nativeOutputDir):nativeOutputDir; }
-  /** Returns whether the native code directory structure mirrors the Java hierarchy. */
-  public boolean     nativeOutputUsesJavaHierarchy() { return nativeOutputUsesJavaHierarchy; }
-  /** Returns whether the comment of a native method binding should include a @native tag. */
-  public boolean     tagNativeBinding()              { return tagNativeBinding; }
-  /** Returns the code emission style (constants in JavaEmitter) parsed from the configuration file. */
-  public int         emissionStyle()                 { return emissionStyle; }
-  /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
-  public int         accessControl(String methodName) {
-    Integer ret = (Integer) accessControl.get(methodName);
-    if (ret != null) {
-      return ret.intValue();
+    /** Returns the package name parsed from the configuration file. */
+    public String packageName() {
+        return packageName;
     }
-    // Default access control is public
-    return JavaEmitter.ACC_PUBLIC;
+
+    /** Returns the implementation package name parsed from the configuration file. */
+    public String implPackageName() {
+        return implPackageName;
+    }
+
+    /** Returns the class name parsed from the configuration file. */
+    public String className() {
+        return className;
+    }
+
+    /** Returns the implementation class name parsed from the configuration file. */
+    public String implClassName() {
+        return implClassName;
+    }
+
+    /** Returns the Java code output directory parsed from the configuration file. */
+    public String javaOutputDir() {
+        return (null != outputRootDir) ? (outputRootDir + "/" + javaOutputDir) : javaOutputDir;
+    }
+
+    /** Returns the native code output directory parsed from the configuration file. */
+    public String nativeOutputDir() {
+        return (null != outputRootDir) ? (outputRootDir + "/" + nativeOutputDir) : nativeOutputDir;
+    }
+
+    /** Returns whether the native code directory structure mirrors the Java hierarchy. */
+    public boolean nativeOutputUsesJavaHierarchy() {
+        return nativeOutputUsesJavaHierarchy;
+    }
+
+    /** Returns whether the comment of a native method binding should include a @native tag. */
+    public boolean tagNativeBinding() {
+        return tagNativeBinding;
+    }
+
+    /** Returns the code emission style (constants in JavaEmitter) parsed from the configuration file. */
+    public int emissionStyle() {
+        return emissionStyle;
+    }
+
+    /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
+    public int accessControl(String methodName) {
+        Integer ret = accessControl.get(methodName);
+        if (ret != null) {
+            return ret.intValue();
+        }
+        // Default access control is public
+        return JavaEmitter.ACC_PUBLIC;
   }
 
-  /** Returns the package in which the generated glue code expects to
-      find its run-time helper classes (BufferFactory, CPU,
-      StructAccessor). Defaults to "com.sun.gluegen.runtime". */
-  public String gluegenRuntimePackage() { return gluegenRuntimePackage; }
-  /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
-  public String      runtimeExceptionType()          { return runtimeExceptionType; }
-  /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
-  public String      unsupportedExceptionType()          { return unsupportedExceptionType; }
-  /** Returns the list of imports that should be emitted at the top of each .java file. */
-  public List/*<String>*/ imports()                  { return imports; }
+    /** Returns the package in which the generated glue code expects to
+    find its run-time helper classes (BufferFactory, CPU,
+    StructAccessor). Defaults to "com.sun.gluegen.runtime". */
+    public String gluegenRuntimePackage() {
+        return gluegenRuntimePackage;
+    }
+
+    /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
+    public String runtimeExceptionType() {
+        return runtimeExceptionType;
+    }
+
+    /** Returns the kind of exception to raise if run-time checks fail in the generated code. */
+    public String unsupportedExceptionType() {
+        return unsupportedExceptionType;
+    }
+
+    /** Returns the list of imports that should be emitted at the top of each .java file. */
+    public List<String> imports() {
+        return imports;
+    }
 
   private static final boolean DEBUG_TYPE_INFO = false;
   /** If this type should be considered opaque, returns the TypeInfo
@@ -328,12 +371,11 @@ public class JavaConfiguration {
       }
 
       // Try all typedef names that map to this type
-      Set entrySet = typedefDictionary.entrySet();
-      for (Iterator iter = entrySet.iterator(); iter.hasNext(); ) {
-        Map.Entry entry = (Map.Entry) iter.next();
+      Set<Entry<String, Type>> entrySet = typedefDictionary.entrySet();
+      for (Map.Entry<String, Type> entry : entrySet) {
         // "eq" equality is OK to use here since all types have been canonicalized
         if (entry.getValue() == type) {
-          name = (String) entry.getKey();
+          name = entry.getKey();
           if (DEBUG_TYPE_INFO) {
             System.err.println("Looking under typedef name " + name);
           }
@@ -359,14 +401,12 @@ public class JavaConfiguration {
 
   // Helper functions for above
   private TypeInfo closestTypeInfo(String name, int pointerDepth) {
-    TypeInfo info = (TypeInfo) typeInfoMap.get(name);
+    TypeInfo info = typeInfoMap.get(name);
     TypeInfo closest = null;
     while (info != null) {
       if (DEBUG_TYPE_INFO)
         System.err.println("  Checking TypeInfo for " + name + " at pointerDepth " + pointerDepth);
-      if (info.pointerDepth() <= pointerDepth &&
-          (closest == null ||
-           info.pointerDepth() > closest.pointerDepth())) {
+      if (info.pointerDepth() <= pointerDepth && (closest == null || info.pointerDepth() > closest.pointerDepth())) {
         if (DEBUG_TYPE_INFO)
           System.err.println("   Accepted");
         closest = info;
@@ -389,7 +429,7 @@ public class JavaConfiguration {
                                  numPointersStripped);
     }
 
-    Class c = info.javaType().getJavaClass();
+    Class<?> c = info.javaType().getJavaClass();
     int pd = info.pointerDepth();
 
     // Handle single-pointer stripping for types compatible with C
@@ -432,15 +472,15 @@ public class JavaConfiguration {
       pointer to a CompoundType, is actually an array of the
       CompoundType rather than a pointer to a single object. */
   public String returnedArrayLength(String functionName) {
-    return (String) returnedArrayLengths.get(functionName);
+    return returnedArrayLengths.get(functionName);
   }
 
   /** Returns a list of <code>Integer</code>s which are the indices of <code>const char*</code>
       arguments that should be converted to <code>String</code>s. Returns null if there are no
       such hints for the given function name. */
 
-  public List/*<Integer>*/ stringArguments(String functionName) {
-    return (List) argumentsAreString.get(functionName);
+  public List<Integer> stringArguments(String functionName) {
+    return argumentsAreString.get(functionName);
   }
 
   public boolean isForceNioOnly4All()      { return forceNioOnly4All; }
@@ -474,10 +514,10 @@ public class JavaConfiguration {
       the given Java type name (not fully-qualified, only the class
       name); returns either null or an empty list if there is no
       custom code for the class. */
-  public List customJavaCodeForClass(String className) {
-    List res = (List) customJavaCode.get(className);
+  public List<String> customJavaCodeForClass(String className) {
+    List<String> res = customJavaCode.get(className);
     if (res == null) {
-      res = new ArrayList();
+      res = new ArrayList<String>();
       customJavaCode.put(className, res);
     }
     return res;
@@ -487,10 +527,10 @@ public class JavaConfiguration {
       the given Java type name (not fully-qualified, only the class
       name); returns either null or an empty list if there is no
       Javadoc documentation for the class. */
-  public List javadocForClass(String className) {
-    List res = (List) classJavadoc.get(className);
+  public List<String> javadocForClass(String className) {
+    List<String> res = classJavadoc.get(className);
     if (res == null) {
-      res = new ArrayList();
+      res = new ArrayList<String>();
       classJavadoc.put(className, res);
     }
     return res;
@@ -500,7 +540,7 @@ public class JavaConfiguration {
       accessing the specified struct. Defaults to emitting into the
       regular package (i.e., the result of {@link #packageName}). */
   public String packageForStruct(String structName) {
-    String res = (String) structPackages.get(structName);
+    String res = structPackages.get(structName);
     if (res == null) {
       res = packageName;
     }
@@ -509,13 +549,13 @@ public class JavaConfiguration {
 
   /** Returns, as a List of Strings, the custom C code to be emitted
       along with the glue code for the main class. */
-  public List/*<String>*/ customCCode() {
+  public List<String> customCCode() {
     return customCCode;
   }
 
   /** Returns, as a List of Strings, the structs for which glue code
       emission should be forced. */
-  public List/*<String>*/ forcedStructs() {
+  public List<String> forcedStructs() {
     return forcedStructs;
   }
 
@@ -523,36 +563,36 @@ public class JavaConfiguration {
       the capacity of the java.nio.ByteBuffer being returned from a
       native method, or null if no expression has been specified. */
   public String returnValueCapacity(String functionName) {
-    return (String) returnValueCapacities.get(functionName);
+    return returnValueCapacities.get(functionName);
   }
 
   /** Returns a MessageFormat string of the C expression calculating
       the length of the array being returned from a native method, or
       null if no expression has been specified. */
   public String returnValueLength(String functionName) {
-    return (String) returnValueLengths.get(functionName);
+    return returnValueLengths.get(functionName);
   }
 
   /** Returns a List of Strings of expressions declaring temporary C
       variables in the glue code for the specified function. */
-  public List/*<String>*/ temporaryCVariableDeclarations(String functionName) {
-    return (List) temporaryCVariableDeclarations.get(functionName);
+  public List<String> temporaryCVariableDeclarations(String functionName) {
+    return temporaryCVariableDeclarations.get(functionName);
   }
 
   /** Returns a List of Strings of expressions containing assignments
       to temporary C variables in the glue code for the specified
       function. */
-  public List/*<String>*/ temporaryCVariableAssignments(String functionName) {
-    return (List) temporaryCVariableAssignments.get(functionName);
+  public List<String> temporaryCVariableAssignments(String functionName) {
+    return temporaryCVariableAssignments.get(functionName);
   }
 
   /** Returns a List of Strings indicating the interfaces the passed
       interface should declare it extends. May return null or a list
       of zero length if there are none. */
-  public List/*<String>*/ extendedInterfaces(String interfaceName) {
-    List res = (List) extendedInterfaces.get(interfaceName);
+  public List<String> extendedInterfaces(String interfaceName) {
+    List<String> res = extendedInterfaces.get(interfaceName);
     if (res == null) {
-      res = new ArrayList();
+      res = new ArrayList<String>();
       extendedInterfaces.put(interfaceName, res);
     }
     return res;
@@ -561,10 +601,10 @@ public class JavaConfiguration {
   /** Returns a List of Strings indicating the interfaces the passed
       class should declare it implements. May return null or a list
       of zero length if there are none. */
-  public List/*<String>*/ implementedInterfaces(String className) {
-    List res = (List) implementedInterfaces.get(className);
+  public List<String> implementedInterfaces(String className) {
+    List<String> res = implementedInterfaces.get(className);
     if (res == null) {
-      res = new ArrayList();
+      res = new ArrayList<String>();
       implementedInterfaces.put(className, res);
     }
     return res;
@@ -574,7 +614,7 @@ public class JavaConfiguration {
       class should declare it implements. May return null or a list
       of zero length if there are none. */
   public String extendedParentClass(String className) {
-    return (String) parentClass.get(className);
+    return parentClass.get(className);
   }
 
   public static final boolean DEBUG_IGNORES = false;
@@ -589,19 +629,18 @@ public class JavaConfiguration {
 
   public void dumpIgnores() {
     System.err.println("Extended Intf: ");
-    for (Iterator iter = extendedIntfSymbolsIgnore.iterator(); iter.hasNext(); ) {
-        System.err.println("\t"+(String)iter.next());
+    for (String str : extendedIntfSymbolsIgnore) {
+        System.err.println("\t"+str);
     }
     System.err.println("Ignores (All): ");
-    for (Iterator iter = ignores.iterator(); iter.hasNext(); ) {
-        System.err.println("\t"+iter.next());
+    for (Pattern pattern : ignores) {
+        System.err.println("\t"+pattern);
     }
   }
 
   public void dumpRenames() {
     System.err.println("Symbol Renames: ");
-    for (Iterator iter = javaSymbolRenames.keySet().iterator(); iter.hasNext(); ) {
-        String key = (String)iter.next();
+    for (String key : javaSymbolRenames.keySet()) {
         System.err.println("\t"+key+" -> "+javaSymbolRenames.get(key));
     }
   }
@@ -653,8 +692,7 @@ public class JavaConfiguration {
 
     // Ok, the slow case. We need to check the entire table, in case the table
     // contains an regular expression that matches the symbol.
-    for (Iterator iter = ignores.iterator(); iter.hasNext(); ) {
-      Pattern regexp = (Pattern)iter.next();
+    for (Pattern regexp : ignores) {
       Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
         if(DEBUG_IGNORES) {
@@ -668,8 +706,7 @@ public class JavaConfiguration {
     if (ignoreNots.size() > 0) {
       // Ok, the slow case. We need to check the entire table, in case the table
       // contains an regular expression that matches the symbol.
-      for (Iterator iter = ignoreNots.iterator(); iter.hasNext(); ) {
-        Pattern regexp = (Pattern)iter.next();
+      for (Pattern regexp : ignoreNots) {
         Matcher matcher = regexp.matcher(symbol);
         if (!matcher.matches()) {
           // Special case as this is most often likely to be the case. 
@@ -682,8 +719,7 @@ public class JavaConfiguration {
           }
          	  
           boolean unignoreFound = false;
-          for (Iterator iter2 = unignores.iterator(); iter2.hasNext(); ) {
-            Pattern unignoreRegexp = (Pattern)iter2.next();
+          for (Pattern unignoreRegexp : unignores) {
             Matcher unignoreMatcher = unignoreRegexp.matcher(symbol);
             if (unignoreMatcher.matches()) {
               unignoreFound = true;
@@ -715,8 +751,7 @@ public class JavaConfiguration {
 
     // Ok, the slow case. We need to check the entire table, in case the table
     // contains an regular expression that matches the symbol.
-    for (Iterator iter = unimplemented.iterator(); iter.hasNext(); ) {
-      Pattern regexp = (Pattern)iter.next();
+    for (Pattern regexp : unimplemented) {
       Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
         return true;
@@ -731,7 +766,7 @@ public class JavaConfiguration {
       unchanged if no RenameJavaType directive was specified for this
       type. */
   public String renameJavaType(String javaTypeName) {
-    String rename = (String) javaTypeRenames.get(javaTypeName);
+    String rename = javaTypeRenames.get(javaTypeName);
     if (rename != null) {
       return rename;
     }
@@ -744,7 +779,7 @@ public class JavaConfiguration {
       function under the hood. Returns null if this symbol has not
       been explicitly renamed. */
   public String getJavaSymbolRename(String symbolName) {
-    return (String) javaSymbolRenames.get(symbolName);
+    return javaSymbolRenames.get(symbolName);
   }
 
   /** Programmatically adds a rename directive for the given symbol. */
@@ -773,15 +808,13 @@ public class JavaConfiguration {
   /** Returns a list of Strings which should be emitted as a prologue
       to the body for the Java-side glue code for the given method.
       Returns null if no prologue was specified. */
-  public List/*<String>*/ javaPrologueForMethod(MethodBinding binding,
+  public List<String> javaPrologueForMethod(MethodBinding binding,
                                                 boolean forImplementingMethodCall,
                                                 boolean eraseBufferAndArrayTypes) {
-    List/*<String>*/ res = (List/*<String>*/) javaPrologues.get(binding.getName());
+    List<String> res = javaPrologues.get(binding.getName());
     if (res == null) {
       // Try again with method name and descriptor
-      res = (List/*<String>*/) javaPrologues.get(binding.getName() +
-                                                 binding.getDescriptor(forImplementingMethodCall,
-                                                                       eraseBufferAndArrayTypes));
+      res = javaPrologues.get(binding.getName() + binding.getDescriptor(forImplementingMethodCall, eraseBufferAndArrayTypes));
     }
     return res;
   }
@@ -789,15 +822,13 @@ public class JavaConfiguration {
   /** Returns a list of Strings which should be emitted as an epilogue
       to the body for the Java-side glue code for the given method.
       Returns null if no epilogue was specified. */
-  public List/*<String>*/ javaEpilogueForMethod(MethodBinding binding,
+  public List<String> javaEpilogueForMethod(MethodBinding binding,
                                                 boolean forImplementingMethodCall,
                                                 boolean eraseBufferAndArrayTypes) {
-    List/*<String>*/ res = (List/*<String>*/) javaEpilogues.get(binding.getName());
+    List<String> res = javaEpilogues.get(binding.getName());
     if (res == null) {
       // Try again with method name and descriptor
-      res = (List/*<String>*/) javaEpilogues.get(binding.getName() +
-                                                 binding.getDescriptor(forImplementingMethodCall,
-                                                                       eraseBufferAndArrayTypes));
+      res = javaEpilogues.get(binding.getName() + binding.getDescriptor(forImplementingMethodCall, eraseBufferAndArrayTypes));
     }
     return res;
   }
@@ -978,7 +1009,7 @@ public class JavaConfiguration {
     }
   }
 
-  protected Class stringToPrimitiveType(String type) throws ClassNotFoundException {
+  protected Class<?> stringToPrimitiveType(String type) throws ClassNotFoundException {
     if (type.equals("boolean")) return Boolean.TYPE;
     if (type.equals("byte"))    return Byte.TYPE;
     if (type.equals("char"))    return Character.TYPE;
@@ -1061,6 +1092,7 @@ public class JavaConfiguration {
     }
   }
 
+  @SuppressWarnings("unchecked")
   protected void readExtendedInterfaceSymbols(StringTokenizer tok, String filename, int lineNo, boolean onlyList) {
     File javaFile;
     BufferedReader javaReader;
@@ -1110,7 +1142,7 @@ public class JavaConfiguration {
   protected void readUnignore(StringTokenizer tok, String filename, int lineNo) {
     try {
       String regex = tok.nextToken();
-      Pattern pattern = (Pattern) ignoreMap.get(regex);
+      Pattern pattern = ignoreMap.get(regex);
       ignoreMap.remove(regex);
       ignores.remove(pattern);
 
@@ -1171,12 +1203,12 @@ public class JavaConfiguration {
 
   protected void readCustomJavaCode(StringTokenizer tok, String filename, int lineNo) {
     try {
-      String className = tok.nextToken();
+      String tokenClassName = tok.nextToken();
       try {
           String restOfLine = tok.nextToken("\n\r\f");
-          addCustomJavaCode(className, restOfLine);
+          addCustomJavaCode(tokenClassName, restOfLine);
       } catch (NoSuchElementException e) {
-          addCustomJavaCode(className, "");
+          addCustomJavaCode(tokenClassName, "");
       }
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"CustomJavaCode\" command at line " + lineNo +
@@ -1185,7 +1217,7 @@ public class JavaConfiguration {
   }
 
   protected void addCustomJavaCode(String className, String code) {
-    List codeList = customJavaCodeForClass(className);
+    List<String> codeList = customJavaCodeForClass(className);
     codeList.add(code);
   }
 
@@ -1200,9 +1232,9 @@ public class JavaConfiguration {
 
   protected void readClassJavadoc(StringTokenizer tok, String filename, int lineNo) {
     try {
-      String className = tok.nextToken();
+      String tokenClassName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
-      addClassJavadoc(className, restOfLine);
+      addClassJavadoc(tokenClassName, restOfLine);
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ClassJavadoc\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
@@ -1210,7 +1242,7 @@ public class JavaConfiguration {
   }
 
   protected void addClassJavadoc(String className, String code) {
-    List codeList = javadocForClass(className);
+    List<String> codeList = javadocForClass(className);
     codeList.add(code);
   }
 
@@ -1246,7 +1278,7 @@ public class JavaConfiguration {
   protected void readArgumentIsString(StringTokenizer tok, String filename, int lineNo) {
     try {
       String methodName = tok.nextToken();
-      ArrayList argIndices = new ArrayList(2);
+      ArrayList<Integer> argIndices = new ArrayList<Integer>(2);
       while (tok.hasMoreTokens()) {
         Integer idx = Integer.valueOf(tok.nextToken());
         argIndices.add(idx);
@@ -1305,9 +1337,9 @@ public class JavaConfiguration {
       String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
-      List list = (List) temporaryCVariableDeclarations.get(functionName);
+      List<String> list = temporaryCVariableDeclarations.get(functionName);
       if (list == null) {
-        list = new ArrayList/*<String>*/();
+        list = new ArrayList<String>();
         temporaryCVariableDeclarations.put(functionName, list);
       }
       list.add(restOfLine);
@@ -1322,9 +1354,9 @@ public class JavaConfiguration {
       String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
-      List list = (List) temporaryCVariableAssignments.get(functionName);
+      List<String> list = temporaryCVariableAssignments.get(functionName);
       if (list == null) {
-        list = new ArrayList/*<String>*/();
+        list = new ArrayList<String>();
         temporaryCVariableAssignments.put(functionName, list);
       }
       list.add(restOfLine);
@@ -1372,7 +1404,7 @@ public class JavaConfiguration {
   protected void readExtend(StringTokenizer tok, String filename, int lineNo) {
     try {
       String interfaceName = tok.nextToken();
-      List intfs = extendedInterfaces(interfaceName);
+      List<String> intfs = extendedInterfaces(interfaceName);
       intfs.add(tok.nextToken());
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Extends\" command at line " + lineNo +
@@ -1382,8 +1414,8 @@ public class JavaConfiguration {
 
   protected void readImplements(StringTokenizer tok, String filename, int lineNo) {
     try {
-      String className = tok.nextToken();
-      List intfs = implementedInterfaces(className);
+      String tokenClassName = tok.nextToken();
+      List<String> intfs = implementedInterfaces(tokenClassName);
       intfs.add(tok.nextToken());
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Implements\" command at line " + lineNo +
@@ -1393,8 +1425,8 @@ public class JavaConfiguration {
 
   protected void readParentClass(StringTokenizer tok, String filename, int lineNo) {
     try {
-      String className = tok.nextToken();
-      parentClass.put(className, tok.nextToken());
+      String tokenClassName = tok.nextToken();
+      parentClass.put(tokenClassName, tok.nextToken());
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ParentClass\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
@@ -1447,10 +1479,10 @@ public class JavaConfiguration {
   }
 
   protected void addJavaPrologueOrEpilogue(String methodName, String code, boolean prologue) {
-    Map codes = (prologue ? javaPrologues : javaEpilogues);
-    List/*<String>*/ data = (List/*<String>*/) codes.get(methodName);
+    Map<String, List<String>> codes = (prologue ? javaPrologues : javaEpilogues);
+    List<String> data = codes.get(methodName);
     if (data == null) {
-      data = new ArrayList/*<String>*/();
+      data = new ArrayList<String>();
       codes.put(methodName, data);
     }
     data.add(code);
@@ -1495,7 +1527,7 @@ public class JavaConfiguration {
   }
 
   protected void addTypeInfo(TypeInfo info) {
-    TypeInfo tmp = (TypeInfo) typeInfoMap.get(info.name());
+    TypeInfo tmp = typeInfoMap.get(info.name());
     if (tmp == null) {
       typeInfoMap.put(info.name(), info);
       return;

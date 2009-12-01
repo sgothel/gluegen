@@ -51,9 +51,9 @@ public class MethodBinding {
 
   private FunctionSymbol sym;
   private String         renamedMethodName;
-  private HashSet        aliasedNames;
+  private HashSet<String> aliasedNames;
   private JavaType       javaReturnType;
-  private List           javaArgumentTypes;
+  private List<JavaType> javaArgumentTypes;
   private boolean        computedSignatureProperties;
   private boolean        argumentsUseNIO;
   private boolean        signatureUsesNIO;
@@ -77,12 +77,11 @@ public class MethodBinding {
     this.sym = bindingToCopy.sym;
 
     this.renamedMethodName                = bindingToCopy.renamedMethodName;
-    this.aliasedNames=new HashSet();
-    this.aliasedNames.addAll(bindingToCopy.aliasedNames);
+    this.aliasedNames                     = new HashSet<String>(bindingToCopy.aliasedNames);
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
     this.javaReturnType                   = bindingToCopy.javaReturnType;
-    this.javaArgumentTypes                = (List)((ArrayList)bindingToCopy.javaArgumentTypes).clone();
+    this.javaArgumentTypes                = new ArrayList<JavaType>(bindingToCopy.javaArgumentTypes);
     this.computedSignatureProperties      = bindingToCopy.computedSignatureProperties;
     this.argumentsUseNIO                  = bindingToCopy.argumentsUseNIO;
     this.signatureUsesNIO                 = bindingToCopy.signatureUsesNIO;
@@ -99,7 +98,7 @@ public class MethodBinding {
   /** Constructor for calling a C function. */
   public MethodBinding(FunctionSymbol sym) {
     this.sym = sym;
-    this.aliasedNames=new HashSet();
+    this.aliasedNames = new HashSet<String>();
   }
 
   /** Constructor for calling a function pointer contained in a
@@ -108,92 +107,92 @@ public class MethodBinding {
     this.sym = sym;
     this.containingType = containingType;
     this.containingCType = containingCType;
-    this.aliasedNames=new HashSet();
+    this.aliasedNames = new HashSet<String>();
   }
 
-  public void           setJavaReturnType(JavaType type) {
-    javaReturnType = type;
-    computedSignatureProperties = false;
-  }
-
-  public void           addJavaArgumentType(JavaType type) {
-    if (javaArgumentTypes == null) {
-      javaArgumentTypes = new ArrayList();
+    public void setJavaReturnType(JavaType type) {
+        javaReturnType = type;
+        computedSignatureProperties = false;
     }
-    javaArgumentTypes.add(type);
-    computedSignatureProperties = false;
-  }
 
-  public JavaType       getJavaReturnType() {
-    return javaReturnType;
-  }
-
-  public int            getNumArguments() {
-    return sym.getNumArguments();
-  }
-
-  public JavaType       getJavaArgumentType(int i) {
-    return (JavaType) javaArgumentTypes.get(i);
-  }
-
-  public Type           getCReturnType() {
-    return sym.getReturnType();
-  }
-
-  public Type           getCArgumentType(int i) {
-    return sym.getArgumentType(i);
-  }
-
-  public FunctionSymbol getCSymbol() {
-    return sym;
-  }
-
-  /** Returns either the argument name specified by the underlying
-      FunctionSymbol or a fabricated argument name based on the
-      position. Note that it is currently not guaranteed that there
-      are no namespace clashes with these fabricated argument
-      names. */
-  public String         getArgumentName(int i) {
-    String ret = sym.getArgumentName(i);
-    if (ret != null) {
-      return ret;
+    public void addJavaArgumentType(JavaType type) {
+        if (javaArgumentTypes == null) {
+            javaArgumentTypes = new ArrayList<JavaType>();
+        }
+        javaArgumentTypes.add(type);
+        computedSignatureProperties = false;
     }
-    return "arg" + i;
-  }
 
-  public String         getOrigName() {
-    return sym.getName();
-  }
-
-  public String         getName() {
-    // Defaults to same as C symbol unless renamed
-    if (renamedMethodName != null) {
-      return renamedMethodName;
+    public JavaType getJavaReturnType() {
+        return javaReturnType;
     }
-    return sym.getName();
-  }
 
-  /** Supports renaming C function in Java binding. */
-  public void           renameMethodName(String name) {
-    if(null!=name) {
-        renamedMethodName = name;
-        aliasedNames.add(sym.getName());
+    public int getNumArguments() {
+        return sym.getNumArguments();
     }
-  }
 
-  public void           addAliasedName(String name) {
-    aliasedNames.add(name);
-  }
+    public JavaType getJavaArgumentType(int i) {
+        return javaArgumentTypes.get(i);
+    }
 
-  public Collection     getAliasedNames() {
-    return aliasedNames;
-  }
+    public Type getCReturnType() {
+        return sym.getReturnType();
+    }
+
+    public Type getCArgumentType(int i) {
+        return sym.getArgumentType(i);
+    }
+
+    public FunctionSymbol getCSymbol() {
+        return sym;
+    }
+
+    /** Returns either the argument name specified by the underlying
+    FunctionSymbol or a fabricated argument name based on the
+    position. Note that it is currently not guaranteed that there
+    are no namespace clashes with these fabricated argument
+    names. */
+    public String getArgumentName(int i) {
+        String ret = sym.getArgumentName(i);
+        if (ret != null) {
+            return ret;
+        }
+        return "arg" + i;
+    }
+
+    public String getOrigName() {
+        return sym.getName();
+    }
+
+    public String getName() {
+        // Defaults to same as C symbol unless renamed
+        if (renamedMethodName != null) {
+            return renamedMethodName;
+        }
+        return sym.getName();
+    }
+
+    /** Supports renaming C function in Java binding. */
+    public void renameMethodName(String name) {
+        if (null != name) {
+            renamedMethodName = name;
+            aliasedNames.add(sym.getName());
+        }
+    }
+
+    public void addAliasedName(String name) {
+        aliasedNames.add(name);
+    }
+
+    public Collection<String> getAliasedNames() {
+        return aliasedNames;
+    }
 
   /** Creates a new MethodBinding replacing the specified Java
       argument type with a new argument type. If argumentNumber is
       less than 0 then replaces the return type. */
-  public MethodBinding replaceJavaArgumentType(int argumentNumber,
-                                               JavaType newArgType) {
+  public MethodBinding replaceJavaArgumentType(int argumentNumber, JavaType newArgType) {
+
     MethodBinding binding = (MethodBinding) clone();
     binding.javaArgumentTypes = null;
     if (argumentNumber < 0) {
@@ -457,6 +456,7 @@ public class MethodBinding {
   public boolean isArgumentThisPointer(int i) {
     return (thisPointerIndex == i);
   }
+  @Override
   public boolean equals(Object obj) {
     if (obj == this) {
       return true;
@@ -490,6 +490,7 @@ public class MethodBinding {
     return true;
   }
 
+  @Override
   public int hashCode() {
     StringBuffer buf = new StringBuffer(200);
     buf.append(getName());
@@ -514,6 +515,7 @@ public class MethodBinding {
   }
 
   /** Returns the signature of this binding. */
+  @Override
   public String toString() {
     StringBuffer buf = new StringBuffer(200);
     buf.append(getJavaReturnType().getName());
@@ -547,6 +549,7 @@ public class MethodBinding {
     return buf.toString();
   }
 
+  @Override
   public final Object clone() {
     return new MethodBinding(this);
   }

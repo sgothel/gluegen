@@ -46,6 +46,7 @@ import com.sun.gluegen.cgram.types.*;
 /** Debug emitter which prints the parsing results to standard output. */
 
 public class DebugEmitter implements GlueEmitter {
+
   public void readConfigurationFile(String filename) {}
 
   public void setMachineDescription(MachineDescription md32,
@@ -54,10 +55,13 @@ public class DebugEmitter implements GlueEmitter {
   public void beginEmission(GlueEmitterControls controls) {
     System.out.println("----- BEGIN EMISSION OF GLUE CODE -----");
   }
+
   public void endEmission() { 
     System.out.println("----- END EMISSION OF GLUE CODE -----");
   }
+
   public void beginDefines() {}
+
   public void emitDefine(ConstantDefinition def, String optionalComment) {
     String name = def.getName();
     String value = def.getValue();
@@ -68,18 +72,16 @@ public class DebugEmitter implements GlueEmitter {
   
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
-                             Map            canonMap) {
-    Set keys = typedefDictionary.keySet();
-    for (Iterator iter = keys.iterator(); iter.hasNext(); ) {
-      String key = (String) iter.next();
+                             Map<Type, Type> canonMap) {
+    Set<String> keys = typedefDictionary.keySet();
+    for (String key: keys) {
       Type value = typedefDictionary.get(key);
       System.out.println("typedef " + value + " " + key + ";");
     }
   }
-  public Iterator emitFunctions(List/*<FunctionSymbol>*/ originalCFunctions)
-    throws Exception {
-    for (Iterator iter = originalCFunctions.iterator(); iter.hasNext(); ) {
-      FunctionSymbol sym = (FunctionSymbol) iter.next();
+  
+  public Iterator<FunctionSymbol> emitFunctions(List<FunctionSymbol> originalCFunctions) throws Exception {
+    for (FunctionSymbol sym : originalCFunctions) {
       emitSingleFunction(sym);
     }
     return originalCFunctions.iterator();
@@ -94,10 +96,9 @@ public class DebugEmitter implements GlueEmitter {
   public void layoutStruct(CompoundType t) throws Exception {}
   public void endStructLayout() throws Exception {}
 
-  public void beginStructs(TypeDictionary typedefDictionary,
-                           TypeDictionary structDictionary,
-                           Map            canonMap) {
+  public void beginStructs(TypeDictionary typedefDictionary, TypeDictionary structDictionary, Map<Type, Type> canonMap) {
   }
+
   public void emitStruct(CompoundType t, String alternateName) {
     String name = t.getName();
     if (name == null && alternateName != null) {
@@ -106,5 +107,6 @@ public class DebugEmitter implements GlueEmitter {
 
     System.out.println("Referenced type \"" + name + "\"");
   }
+
   public void endStructs() {}
 }

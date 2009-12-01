@@ -43,13 +43,14 @@ import java.util.*;
 import com.sun.gluegen.cgram.types.*;
 
 public class ReferencedStructs implements TypeVisitor {
-  private Set results = new HashSet();
+
+  private final Set<Type> results = new HashSet<Type>();
 
   public void clear() {
     results.clear();
   }
   
-  public Iterator results() {
+  public Iterator<Type> results() {
     return results.iterator();
   }
 

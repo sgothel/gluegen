@@ -41,8 +41,7 @@ package com.sun.gluegen;
 
 import java.io.*;
 
-public interface CommentEmitter
-{
+public interface CommentEmitter {
   /**
    * Emit the body of a comment for the specified function; do NOT emit the
    * open (e.g., comment "/*") or close (e.g., "*\/") characters.

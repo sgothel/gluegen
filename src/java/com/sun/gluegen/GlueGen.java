@@ -43,7 +43,6 @@ import java.io.*;
 import java.util.*;
 
 import antlr.*;
-import antlr.collections.*;
 import com.sun.gluegen.cgram.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.pcpp.*;
@@ -51,12 +50,13 @@ import com.sun.gluegen.pcpp.*;
 /** Glue code generator for C functions and data structures. */
 
 public class GlueGen implements GlueEmitterControls {
-  private java.util.List forcedStructNames = new ArrayList();
+    
+  private List<String> forcedStructNames = new ArrayList<String>();
   private PCPP preprocessor;
 
   // State for SymbolFilters
-  private java.util.List/*<ConstantDefinition>*/ constants;
-  private java.util.List/*<FunctionSymbol>*/ functions;
+  private List<ConstantDefinition> constants;
+  private List<FunctionSymbol> functions;
 
   public void forceStructEmission(String typedefName) {
     forcedStructNames.add(typedefName);
@@ -68,8 +68,8 @@ public class GlueGen implements GlueEmitterControls {
 
   public void runSymbolFilter(SymbolFilter filter) {
     filter.filterSymbols(constants, functions);
-    java.util.List/*<ConstantDefinition>*/ newConstants = filter.getConstants();
-    java.util.List/*<FunctionSymbol>*/ newFunctions = filter.getFunctions();
+    List<ConstantDefinition> newConstants = filter.getConstants();
+    List<FunctionSymbol> newFunctions = filter.getFunctions();
     if (newConstants != null) {
       constants = newConstants;
     }
@@ -84,13 +84,13 @@ public class GlueGen implements GlueEmitterControls {
       String filename = null;
       String emitterClass = null;
       String outputRootDir = null;
-      java.util.List cfgFiles = new ArrayList();
+      List<String> cfgFiles = new ArrayList<String>();
 
       if (args.length == 0) {
         usage();
       }
 
-      java.util.List includePaths = new ArrayList();
+      List<String> includePaths = new ArrayList<String>();
       for (int i = 0; i < args.length; i++) {
         if (i < args.length - 1) {
           String arg = args[i];
@@ -195,8 +195,8 @@ public class GlueGen implements GlueEmitterControls {
         }
       }
 
-      for (Iterator iter = cfgFiles.iterator(); iter.hasNext(); ) {
-        emit.readConfigurationFile((String) iter.next());
+      for (String cfgFile: cfgFiles) {
+        emit.readConfigurationFile(cfgFile);
       }
 
       if(null!=outputRootDir && outputRootDir.trim().length()>0) {
@@ -216,9 +216,9 @@ public class GlueGen implements GlueEmitterControls {
 
       // Repackage the enum and #define statements from the parser into a common format
       // so that SymbolFilters can operate upon both identically
-      constants = new ArrayList/*<ConstantDefinition>*/();
-      for (Iterator iter = headerParser.getEnums().iterator(); iter.hasNext(); ) {
-        EnumType enumeration = (EnumType)iter.next();
+      constants = new ArrayList<ConstantDefinition>();
+      for (Object elem: headerParser.getEnums()) {
+        EnumType enumeration = (EnumType)elem;
         String enumName = enumeration.getName();
         if (enumName.equals("<anonymous>")) {
           enumName = null;
@@ -230,8 +230,8 @@ public class GlueGen implements GlueEmitterControls {
           constants.add(new ConstantDefinition(enumElementName, value, true, enumName));
         }
       }
-      for (Iterator iter = lexer.getDefines().iterator(); iter.hasNext(); ) {
-        Define def = (Define) iter.next();
+      for (Object elem : lexer.getDefines()) {
+        Define def = (Define)elem;
         constants.add(new ConstantDefinition(def.getName(), def.getValue(), false, null));
       }
       
@@ -241,18 +241,16 @@ public class GlueGen implements GlueEmitterControls {
       emit.beginEmission(this);
       
       emit.beginDefines();
-      Set emittedDefines = new HashSet(100);
+      Set<String> emittedDefines = new HashSet<String>(100);
       // emit java equivalent of enum { ... } statements
-      for (Iterator iter = constants.iterator(); iter.hasNext(); ) {
-        ConstantDefinition def = (ConstantDefinition) iter.next();
+      for (ConstantDefinition def : constants) {
         if (!emittedDefines.contains(def.getName())) {
           emittedDefines.add(def.getName());
           String comment = null;
-          Set/*<String>*/ aliases = def.getAliases();
+          Set<String> aliases = def.getAliases();
           if (aliases != null) {
               comment = "Alias for: <code>";
-              for (Iterator i2 = aliases.iterator(); i2.hasNext(); ) {
-                  String alias = (String) i2.next();
+              for (String alias : aliases) {
                   comment += " " + alias;
               }
               comment += "</code>";
@@ -274,8 +272,7 @@ public class GlueGen implements GlueEmitterControls {
       // Iterate through the functions finding structs that are referenced in 
       // the function signatures; these will be remembered for later emission
       ReferencedStructs referencedStructs = new ReferencedStructs();
-      for (Iterator iter = functions.iterator(); iter.hasNext(); ) {
-        FunctionSymbol sym = (FunctionSymbol) iter.next();
+      for (FunctionSymbol sym : functions) {
         // FIXME: this doesn't take into account the possibility that some of
         // the functions we send to emitMethodBindings() might not actually be
         // emitted (e.g., if an Ignore directive in the JavaEmitter causes it
@@ -286,8 +283,7 @@ public class GlueGen implements GlueEmitterControls {
       // Normally only referenced types will be emitted. The user can force a
       // type to be emitted via a .cfg file directive. Those directives are
       // processed here.
-      for (Iterator iter = forcedStructNames.iterator(); iter.hasNext(); ) {
-        String name = (String) iter.next();
+      for (String name: forcedStructNames) {
         Type type = td.get(name);
         if (type == null) {
           System.err.println("WARNING: during forced struct emission: struct \"" + name + "\" not found");
@@ -300,8 +296,8 @@ public class GlueGen implements GlueEmitterControls {
       
       // Lay out structs
       emit.beginStructLayout();
-      for (Iterator iter = referencedStructs.results(); iter.hasNext(); ) {
-        Type t = (Type) iter.next();
+      for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext(); ) {
+        Type t = iter.next();
         if (t.isCompound()) {
           emit.layoutStruct(t.asCompound());
         } else if (t.isPointer()) {
@@ -314,8 +310,8 @@ public class GlueGen implements GlueEmitterControls {
 
       // Emit structs      
       emit.beginStructs(td, sd, headerParser.getCanonMap());
-      for (Iterator iter = referencedStructs.results(); iter.hasNext(); ) {
-        Type t = (Type) iter.next();
+      for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext(); ) {
+        Type t = iter.next();
         if (t.isCompound()) {
           emit.emitStruct(t.asCompound(), null);
         } else if (t.isPointer()) {

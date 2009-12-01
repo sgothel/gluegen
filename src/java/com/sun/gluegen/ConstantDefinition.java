@@ -38,13 +38,14 @@ import java.util.*;
 /** Represents the definition of a constant which was provided either
     via a #define statement or through an enum definition. */
 public class ConstantDefinition {
+
     private String origName;
-    private HashSet aliasedNames;
+    private HashSet<String> aliasedNames;
     private String name;
     private String value;
     private boolean isEnum;
     private String enumName;
-    private Set/*<String>*/ aliases;
+    private Set<String> aliases;
 
     public ConstantDefinition(String name,
                               String value,
@@ -55,7 +56,7 @@ public class ConstantDefinition {
         this.value = value;
         this.isEnum = isEnum;
         this.enumName = enumName;
-        this.aliasedNames=new HashSet();
+        this.aliasedNames=new HashSet<String>();
     }
 
     public boolean equals(ConstantDefinition other) {
@@ -75,6 +76,7 @@ public class ConstantDefinition {
         return s1.equals(s2);
     }
 
+    @Override
     public int hashCode() {
         return name.hashCode();
     }
@@ -90,7 +92,7 @@ public class ConstantDefinition {
     public void           addAliasedName(String name) {
         aliasedNames.add(name);
     }
-    public Collection     getAliasedNames() {
+    public Collection<String> getAliasedNames() {
         return aliasedNames;
     }
 
@@ -109,13 +111,13 @@ public class ConstantDefinition {
 
     public boolean isEnum() { return isEnum; }
 
-    public Set/*<String>*/ getAliases() {
+    public Set<String> getAliases() {
         return aliases;
     }
 
     public void addAlias(String alias) {
         if (aliases == null) {
-            aliases = new LinkedHashSet/*<String>*/();
+            aliases = new LinkedHashSet<String>();
         }
         aliases.add(alias);
     }

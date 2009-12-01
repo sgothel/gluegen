@@ -33,6 +33,7 @@
 
 package com.sun.gluegen;
 
+import com.sun.gluegen.cgram.types.FunctionSymbol;
 import java.util.List;
 
 /** Provides a mechanism by which the GlueEmitter can look at all of
@@ -49,16 +50,15 @@ public interface SymbolFilter {
      * @param defines a list of {@link com.sun.gluegen.cgram.Define Define} objects
      * @param functions a list of {@link com.sun.gluegen.cgram.types.FunctionSymbol FunctionSymbol} objects
      */
-    public void filterSymbols(List/*<ConstantDefinition>*/ constants,
-                              List/*<FunctionSymbol>*/ functions);
+    public void filterSymbols(List<ConstantDefinition> constants, List<FunctionSymbol> functions);
 
     /** Returns the filtered list of constants. This method may return
         a new list, the original list, or null, in which case the
         original list will be used. */
-    public List/*<ConstantDefinition>*/ getConstants();
+    public List<ConstantDefinition> getConstants();
 
     /** Returns the filtered list of function symbols. This method may
         return a new list, the original list, or null, in which case
         the original list will be used. */
-    public List/*<FunctionSymbol>*/ getFunctions();
+    public List<FunctionSymbol> getFunctions();
 }

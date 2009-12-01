@@ -41,22 +41,20 @@ package com.sun.gluegen;
 
 import java.util.*;
 import java.io.*;
-import com.sun.gluegen.cgram.types.MachineDescription;
 
-public abstract class FunctionEmitter
-{
+public abstract class FunctionEmitter {
+
   public static final EmissionModifier STATIC = new EmissionModifier("static");
 
   private boolean isInterfaceVal;
-  private ArrayList modifiers = new ArrayList();
+  private ArrayList<EmissionModifier> modifiers = new ArrayList<EmissionModifier>();
   private CommentEmitter commentEmitter = null;
   private PrintWriter defaultOutput;
 
   /**
    * Constructs the FunctionEmitter with a CommentEmitter that emits nothing.
    */
-  public FunctionEmitter(PrintWriter defaultOutput, boolean isInterface)
-  {
+  public FunctionEmitter(PrintWriter defaultOutput, boolean isInterface)  {
     assert(defaultOutput != null);
     this.defaultOutput = defaultOutput;
     this.isInterfaceVal = isInterface;
@@ -65,8 +63,9 @@ public abstract class FunctionEmitter
   /**
    * Makes this FunctionEmitter a copy of the passed one.
    */
+  @SuppressWarnings("unchecked")
   public FunctionEmitter(FunctionEmitter arg) {
-    modifiers      = (ArrayList) arg.modifiers.clone();
+    modifiers      = (ArrayList<EmissionModifier>)arg.modifiers.clone();
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
     isInterfaceVal = arg.isInterfaceVal;
@@ -76,11 +75,9 @@ public abstract class FunctionEmitter
 
   public PrintWriter getDefaultOutput() { return defaultOutput; }
 
-  public void addModifiers(Iterator/*<EmissionModifier>*/ mi)
-  {
-    while (mi.hasNext())
-    {
-      modifiers.add((EmissionModifier) mi.next());
+  public void addModifiers(Iterator<EmissionModifier> mi)  {
+    while (mi.hasNext())  {
+      modifiers.add(mi.next());
     }
   }
   public void addModifier(EmissionModifier m) { modifiers.add(m); }
@@ -91,7 +88,7 @@ public abstract class FunctionEmitter
 
   public boolean hasModifier(EmissionModifier m) { return modifiers.contains(m); }
 
-  public Iterator getModifiers() { return modifiers.iterator(); }
+  public Iterator<EmissionModifier> getModifiers() { return modifiers.iterator(); }
 
   public abstract String getName();
 
@@ -99,8 +96,7 @@ public abstract class FunctionEmitter
    * Emit the function to the specified output (instead of the default
    * output).
    */
-  public void emit(PrintWriter output)
-  {
+  public void emit(PrintWriter output)  {
     emitDocComment(output);
     //output.println("  // Emitter: " + getClass().getName());
     emitSignature(output);
@@ -111,14 +107,13 @@ public abstract class FunctionEmitter
    * Emit the function to the default output (the output that was passed to
    * the constructor)
    */
-  public final void emit()
-  {
+  public final void emit()  {
     emit(getDefaultOutput());
   }
 
   /** Returns, as a String, whatever {@link #emit} would output. */
-  public String toString()
-  {
+  @Override
+  public String toString()  {
     StringWriter sw = new StringWriter(500);
     PrintWriter w = new PrintWriter(sw);
     emit(w);
@@ -129,8 +124,7 @@ public abstract class FunctionEmitter
    * Set the object that will emit the comment for this function. If the
    * parameter is null, no comment will be emitted.
    */
-  public void setCommentEmitter(CommentEmitter cEmitter)
-  {
+  public void setCommentEmitter(CommentEmitter cEmitter)  {
     commentEmitter = cEmitter;
   }
 
@@ -140,10 +134,9 @@ public abstract class FunctionEmitter
    */
   public CommentEmitter getCommentEmitter() { return commentEmitter; }
   
-  protected void emitDocComment(PrintWriter writer)
-  {
-    if (commentEmitter != null)
-    {
+  protected void emitDocComment(PrintWriter writer) {
+
+    if (commentEmitter != null)    {
       writer.print(getBaseIndentString()); //indent
 
       writer.print(getCommentStartString());
@@ -156,13 +149,12 @@ public abstract class FunctionEmitter
     }
   }
   
-  protected void emitSignature(PrintWriter writer)
-  {
+  protected void emitSignature(PrintWriter writer)  {
+      
     writer.print(getBaseIndentString()); // indent method
 
     int numEmitted = emitModifiers(writer);
-    if (numEmitted > 0)
-    {
+    if (numEmitted > 0)  {
       writer.print(" ");
     }
 
@@ -176,16 +168,13 @@ public abstract class FunctionEmitter
     writer.print(")");
   }
 
-  protected int emitModifiers(PrintWriter writer)
-  {
+  protected int emitModifiers(PrintWriter writer)  {
     PrintWriter w = getDefaultOutput();
     int numEmitted = 0;
-    for (Iterator it = getModifiers(); it.hasNext(); )
-    {
+    for (Iterator<EmissionModifier> it = getModifiers(); it.hasNext(); )   {
       writer.print(it.next());
       ++numEmitted;
-      if (it.hasNext())
-      {
+      if (it.hasNext())  {
         writer.print(" ");
       }
     }
@@ -203,16 +192,19 @@ public abstract class FunctionEmitter
   protected abstract int emitArguments(PrintWriter writer);  
   protected abstract void emitBody(PrintWriter writer);
   
-  public static class EmissionModifier
-  {    
+  public static class EmissionModifier  {
+
+    @Override
     public final String toString() { return emittedForm; }
     
     private String emittedForm;
 
+    @Override
     public int hashCode() {
       return emittedForm.hashCode();
     }
 
+    @Override
     public boolean equals(Object arg) {
       if (arg == null || (!(arg instanceof EmissionModifier))) {
         return false;

@@ -93,10 +93,10 @@ public interface GlueEmitter {
   
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
-                             Map            canonMap) throws Exception;
+                             Map<Type, Type> canonMap) throws Exception;
 
   /** Emit glue code for the list of FunctionSymbols. */
-  public Iterator emitFunctions(java.util.List/*<FunctionSymbol>*/ cFunctions) throws Exception;
+  public Iterator<FunctionSymbol> emitFunctions(List<FunctionSymbol> cFunctions) throws Exception;
   public void endFunctions() throws Exception;
 
   /** Begins the process of computing field offsets and type sizes for
@@ -109,7 +109,7 @@ public interface GlueEmitter {
 
   public void beginStructs(TypeDictionary typedefDictionary,
                            TypeDictionary structDictionary,
-                           Map            canonMap) throws Exception;
+                           Map<Type, Type> canonMap) throws Exception;
   /** Emit glue code for the given CompoundType. alternateName is
       provided when the CompoundType (e.g. "struct foo_t") has not
       been typedefed to anything but the type of "pointer to struct

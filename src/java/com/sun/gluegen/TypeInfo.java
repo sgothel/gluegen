@@ -59,6 +59,7 @@ public class TypeInfo {
   public void     setNext(TypeInfo info) { this.next = info; }
   public TypeInfo next()                 { return next; }
 
+  @Override
   public String toString() {
     StringBuffer buf = new StringBuffer("TypeInfo: ");
     buf.append(name);

@@ -48,23 +48,23 @@ import java.nio.*;
  */
 public class ArrayTypes {
   /** Class for Java type boolean[] */
-  public static final Class booleanArrayClass;
+  public static final Class<?> booleanArrayClass;
   /** Class for Java type byte[] */
-  public static final Class byteArrayClass;
+  public static final Class<?> byteArrayClass;
   /** Class for Java type char[] */
-  public static final Class charArrayClass;
+  public static final Class<?> charArrayClass;
   /** Class for Java type short[] */
-  public static final Class shortArrayClass;
+  public static final Class<?> shortArrayClass;
   /** Class for Java type int[] */
-  public static final Class intArrayClass;
+  public static final Class<?> intArrayClass;
   /** Class for Java type long[] */
-  public static final Class longArrayClass;
+  public static final Class<?> longArrayClass;
   /** Class for Java type float[] */
-  public static final Class floatArrayClass;
+  public static final Class<?> floatArrayClass;
   /** Class for Java type double[] */
-  public static final Class doubleArrayClass;
+  public static final Class<?> doubleArrayClass;
   /** Class for Java type String[] */
-  public static final Class stringArrayClass;
+  public static final Class<?> stringArrayClass;
 
   // Classes for two-dimensional arrays.
   //
@@ -89,19 +89,19 @@ public class ArrayTypes {
   // certain OpenGL operations.
 
   /** Class for Java type Buffer[] */
-  public static final Class bufferArrayClass;
+  public static final Class<?> bufferArrayClass;
   /** Class for Java type ByteBuffer[] */
-  public static final Class byteBufferArrayClass;
+  public static final Class<?> byteBufferArrayClass;
   /** Class for Java type ShortBuffer[] */
-  public static final Class shortBufferArrayClass;
+  public static final Class<?> shortBufferArrayClass;
   /** Class for Java type IntBuffer[] */
-  public static final Class intBufferArrayClass;
+  public static final Class<?> intBufferArrayClass;
   /** Class for Java type LongBuffer[] */
-  public static final Class longBufferArrayClass;
+  public static final Class<?> longBufferArrayClass;
   /** Class for Java type FloatBuffer[] */
-  public static final Class floatBufferArrayClass;
+  public static final Class<?> floatBufferArrayClass;
   /** Class for Java type DoubleBuffer[] */
-  public static final Class doubleBufferArrayClass;
+  public static final Class<?> doubleBufferArrayClass;
 
   static {
     booleanArrayClass = new boolean[0].getClass();

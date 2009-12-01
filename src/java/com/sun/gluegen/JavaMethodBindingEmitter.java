@@ -60,8 +60,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   public static final EmissionModifier SYNCHRONIZED = new EmissionModifier("synchronized");
 
   protected final CommentEmitter defaultJavaCommentEmitter = new DefaultCommentEmitter();
-  protected final CommentEmitter defaultInterfaceCommentEmitter =
-    new InterfaceCommentEmitter();
+  protected final CommentEmitter defaultInterfaceCommentEmitter = new InterfaceCommentEmitter();
   
   // Exception type raised in the generated code if runtime checks fail
   private String runtimeExceptionType;
@@ -79,8 +78,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   protected MethodBinding binding;
 
   // Manually-specified prologue and epilogue code
-  protected List/*<String>*/ prologue;
-  protected List/*<String>*/ epilogue;
+  protected List<String> prologue;
+  protected List<String> epilogue;
 
   // A non-null value indicates that rather than returning a compound
   // type accessor we are returning an array of such accessors; this
@@ -109,8 +108,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                                   boolean forIndirectBufferAndArrayImplementation,
                                   boolean isUnimplemented,
                                   boolean isInterface,
-                                  JavaConfiguration configuration)
-  {
+                                  JavaConfiguration configuration) {
     super(output, isInterface);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
@@ -187,12 +185,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   }
 
   /** Sets the manually-generated prologue code for this emitter. */
-  public void setPrologue(List/*<String>*/ prologue) {
+  public void setPrologue(List<String> prologue) {
     this.prologue = prologue;
   }
 
   /** Sets the manually-generated epilogue code for this emitter. */
-  public void setEpilogue(List/*<String>*/ epilogue) {
+  public void setEpilogue(List<String> epilogue) {
     this.epilogue = epilogue;
   }
 
@@ -228,8 +226,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     this.forIndirectBufferAndArrayImplementation = indirect;
   }
 
-  protected void emitReturnType(PrintWriter writer)
-  {    
+  protected void emitReturnType(PrintWriter writer)  {    
     writer.print(getReturnTypeString(false));
   }
 
@@ -294,8 +291,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return erasedTypeString(binding.getJavaReturnType(), true) + "[]";
   }
 
-  protected void emitName(PrintWriter writer)
-  {
+  protected void emitName(PrintWriter writer)  {
     if (forImplementingMethodCall) {
       if (forIndirectBufferAndArrayImplementation) {
         writer.print(getImplMethodName(false));
@@ -307,8 +303,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     }
   }
 
-  protected int emitArguments(PrintWriter writer)
-  {
+  protected int emitArguments(PrintWriter writer) {
     boolean needComma = false;
     int numEmitted = 0;
 
@@ -392,31 +387,29 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return getArgumentName(i) + "_offset";
   }
 
-  protected void emitBody(PrintWriter writer)
-  {
+  protected void emitBody(PrintWriter writer)  {
     if (!emitBody) {
       writer.println(';');
     } else {
-      MethodBinding binding = getBinding();
+      MethodBinding mBinding = getBinding();
       writer.println();
       writer.println("  {");
       if (isUnimplemented) {
         writer.println("    throw new " + getUnsupportedExceptionType() + "(\"Unimplemented\");");
       } else {
         emitPrologueOrEpilogue(prologue, writer);
-        emitPreCallSetup(binding, writer);
+        emitPreCallSetup(mBinding, writer);
         //emitReturnVariableSetup(binding, writer);
-        emitReturnVariableSetupAndCall(binding, writer);
+        emitReturnVariableSetupAndCall(mBinding, writer);
       }
       writer.println("  }");
     }
   }
 
-  protected void emitPrologueOrEpilogue(List/*<String>*/ code, PrintWriter writer) {
+  protected void emitPrologueOrEpilogue(List<String> code, PrintWriter writer) {
     if (code != null) {
       String[] argumentNames = argumentNameArray();
-      for (Iterator iter = code.iterator(); iter.hasNext(); ) {
-        String str = (String) iter.next();
+      for (String str : code) {
         try {
             MessageFormat fmt = new MessageFormat(str);
             writer.println("    " + fmt.format(argumentNames));
@@ -434,7 +427,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
   }
 
   protected void emitArrayLengthAndNIOBufferChecks(MethodBinding binding, PrintWriter writer) {
-    int numBufferOffsetArrayArgs = 0;
+
     boolean firstBuffer = true;
     // Check lengths of any incoming arrays if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -799,8 +792,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     return "jthis0";
   }
 
+  @Override
   protected String getCommentStartString() { return "/** "; }
 
+  @Override
   protected String getBaseIndentString() { return "  "; }
 
   protected String getReturnedArrayLengthExpression() {
@@ -838,7 +833,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         // don't emit param comments for anonymous enums, since we can't
         // distinguish between the values found within multiple anonymous
         // enums in the same C translation unit.
-        if (type.isEnum() && type.getName() != HeaderParser.ANONYMOUS_ENUM_NAME) {
+        if (type.isEnum() && !HeaderParser.ANONYMOUS_ENUM_NAME.equals(type.getName())) {
           EnumType enumType = (EnumType)type;
           writer.println();
           writer.print(emitter.getBaseIndentString()); 
@@ -863,13 +858,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
     }
   }
 
-  protected class InterfaceCommentEmitter
-    extends JavaMethodBindingEmitter.DefaultCommentEmitter
-  {
-    protected void emitBeginning(FunctionEmitter emitter,
-                                 PrintWriter writer) {
-      writer.print("Interface to C language function: <br> ");
+    protected class InterfaceCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
+
+        @Override
+        protected void emitBeginning(FunctionEmitter emitter,
+                PrintWriter writer) {
+            writer.print("Interface to C language function: <br> ");
+        }
     }
-  }
 }
 

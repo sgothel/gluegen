@@ -45,10 +45,10 @@ import java.util.*;
 
 public class TypeDictionary {
   /** Mapping from type name to type.*/
-  private HashMap/*<String, Type>*/ map = new HashMap/*<String, Type>*/();
+  private HashMap<String, Type> map = new HashMap<String, Type>();
 
   /** Reverse mapping; created lazily from the regular map */
-  private HashMap/*<Set<Type>, String>*/ reverseMap = new HashMap/*<Set<Type>, String>*/();
+  private HashMap<Set<Type>, String> reverseMap = new HashMap<Set<Type>, String>();
 
   /** Has a type been added/removed since the last time the reverse map was
    * calculated? */
@@ -61,43 +61,44 @@ public class TypeDictionary {
    */
   public Type put(String name, Type type) {
     reverseMapOutOfDate = true;
-    return (Type) map.put(name, type);
+    return map.put(name, type);
   }
 
   /** Get the type corresponding to the given name. Returns null if no type
    * was found corresponding to the given name. */
   public Type get(String name) {
-    return (Type) map.get(name);
+    return map.get(name);
   }
 
+  //this method is broken
   /**
    * Get the names that correspond to the given type. There will be more than
    * one name in the returned list if the type has been defined to multiple
    * names. Returns null if no names were found for given type.
    */
-  public Set/*<String>*/ get(Type type) {
-    if (reverseMapOutOfDate) {
-      rebuildReverseMap();
-      reverseMapOutOfDate = false;
-    }
-    // Don't let callers muck with the set.
-    return Collections.unmodifiableSet((Set)reverseMap.get(type));
-  }
+//  public Set/*<String>*/ get(Type type) {
+//    if (reverseMapOutOfDate) {
+//      rebuildReverseMap();
+//      reverseMapOutOfDate = false;
+//    }
+//    // Don't let callers muck with the set.
+//    return Collections.unmodifiableSet((Set)reverseMap.get(type));
+//  }
 
   /** Remove the mapping from the specified name to its associated type.*/
   public Type remove(String name) {
     reverseMapOutOfDate = true;
-    return (Type) map.remove(name);
+    return map.remove(name);
   }
 
   /** Get all the names that map to Types. 
     * @return a Set of Strings that are the typedef names that map to Types in the dictionary.
   */
-  public Set keySet() {
+  public Set<String> keySet() {
     return map.keySet();
   }
 
-  public Set entrySet() {
+  public Set<Map.Entry<String, Type>> entrySet() {
     return map.entrySet();
   }
 
@@ -114,16 +115,17 @@ public class TypeDictionary {
   }
 
   /** Returns a collection of all the Types in the dictionary that are mapped via typedefs names. */
-  public Collection values() {
+  public Collection<Type> values() {
     return map.values();
   }
 
   /** Build the mapping of from each Type to all the names by which is may be
    * referenced. Warning: this is a slow operation!
-   */ 
+   */
+  /*
   private void rebuildReverseMap() {
     reverseMap.clear();
-    for (Iterator/*<String>*/ it = map.keySet().iterator(); it.hasNext(); ) {
+    for (Iterator<String> it = map.keySet().iterator(); it.hasNext(); ) {
       String name = (String)it.next();
       Type type = (Type)map.get(name);
       if (type == null) {
@@ -131,17 +133,18 @@ public class TypeDictionary {
       }
       HashSet allNamesForType = (HashSet)reverseMap.get(type);
       if (allNamesForType == null) {
-        allNamesForType = new HashSet/*<String>*/();
+        allNamesForType = new HashSet<String>();
         reverseMap.put(type, allNamesForType);
       }
       allNamesForType.add(name);
     }
   }
-
+*/
   /**
    * Dumps the dictionary contents to the specified output stream, annotated
    * with the specified description. Useful for debugging.
    */
+  /*
   public void dumpDictionary(java.io.PrintStream out, String description) {
     out.println("------------------------------------------------------------------------------");
     out.println("TypeDictionary: " + (description == null ? "" : description));
@@ -166,4 +169,5 @@ public class TypeDictionary {
     }
     out.println("------------------------------------------------------------------------------");
   }
+   */
 }
