@@ -45,8 +45,8 @@ import java.util.List;
     double. All types have an associated name. Structs and unions are
     modeled as "compound" types -- composed of fields of primitive or
     other types. */
-
 public abstract class Type {
+
   private String name;
   private SizeThunk size;
   private int    cvAttributes;
@@ -158,13 +158,13 @@ public abstract class Type {
   }
 
   /** Hashcode for Types. */
+  @Override
   public int hashCode() {
     if (name == null) {
       return 0;
     }
     
-    if (cvAttributes != 0)
-    {
+    if (cvAttributes != 0)  {
       String nameWithAttribs = name + cvAttributes;
       return nameWithAttribs.hashCode();
     }
@@ -174,6 +174,7 @@ public abstract class Type {
   /**
    * Equality test for Types.
    */
+  @Override
   public boolean equals(Object arg) {
     if (arg == this) {
       return true;
@@ -182,14 +183,14 @@ public abstract class Type {
       return false;
     }
     Type t = (Type) arg;
-    return ((name == t.name || (name != null && name.equals(name))) &&
-            (size == t.size) &&
-            (cvAttributes == t.cvAttributes));
+    return (((name == null ? t.name == null : name.equals(t.name)) || (name != null && name.equals(name))) &&
+            (size == t.size) && (cvAttributes == t.cvAttributes));
   }
 
   /** Returns a string representation of this type. This string is not
       necessarily suitable for use as a type specifier; for example,
       it will contain an expanded description of structs/unions. */
+  @Override
   public String toString() {
     return getName(true);
   }
@@ -256,7 +257,6 @@ public abstract class Type {
 
   /** Helper routine for list equality comparison */
   static boolean listsEqual(List a, List b) {
-    return ((a == null && b == null) ||
-            (a != null && b != null && a.equals(b)));
+    return ((a == null && b == null) || (a != null && b != null && a.equals(b)));
   }
 }

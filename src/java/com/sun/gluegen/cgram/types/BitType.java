@@ -53,6 +53,7 @@ public class BitType extends IntType {
     this.offset = lsbOffset;
   }
 
+  @Override
   public boolean equals(Object arg) {
     if (arg == this) return true;
     if (arg == null || (!(arg instanceof BitType))) {
@@ -63,6 +64,7 @@ public class BitType extends IntType {
             (sizeInBits == t.sizeInBits) && (offset == t.offset));
   }
 
+  @Override
   public BitType asBit() { return this; }
 
   /** Size in bits of this type. */
@@ -76,11 +78,13 @@ public class BitType extends IntType {
     return offset;
   }
 
+  @Override
   public void visit(TypeVisitor arg) {
     super.visit(arg);
     underlyingType.visit(arg);
   }
 
+  @Override
   Type newCVVariant(int cvAttributes) {
     return new BitType(underlyingType, sizeInBits, offset, cvAttributes);
   }  

@@ -36,29 +36,32 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
 /** Represents a double-word floating-point type (C type "double".) */
-
 public class DoubleType extends PrimitiveType {
-  public DoubleType(String name, SizeThunk size, int cvAttributes) {
-    super(name, size, cvAttributes);
-  }
 
-  public boolean equals(Object arg) {
-    if (arg == this) {
-      return true;
+    public DoubleType(String name, SizeThunk size, int cvAttributes) {
+        super(name, size, cvAttributes);
     }
-    if (arg == null || (!(arg instanceof DoubleType))) {
-      return false;
+
+    @Override
+    public boolean equals(Object arg) {
+        if (arg == this) {
+            return true;
+        }
+        if (arg == null || (!(arg instanceof DoubleType))) {
+            return false;
+        }
+        return super.equals(arg);
     }
-    return super.equals(arg);
-  }
 
-  public DoubleType asDouble() { return this; }
+    @Override
+    public DoubleType asDouble() {
+        return this;
+    }
 
-  Type newCVVariant(int cvAttributes) {
-    return new DoubleType(getName(), getSize(), cvAttributes);
-  }
+    Type newCVVariant(int cvAttributes) {
+        return new DoubleType(getName(), getSize(), cvAttributes);
+    }
 }

@@ -36,87 +36,93 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
-import java.util.*;
-
 /** Describes a function symbol, which includes the name and
-    type. Since we are currently only concerned with processing
-    functions this is the only symbol type, though plausibly more
-    types should be added and a true symbol table constructed during
-    parsing. */
-
+type. Since we are currently only concerned with processing
+functions this is the only symbol type, though plausibly more
+types should be added and a true symbol table constructed during
+parsing. */
 public class FunctionSymbol {
-  private String name;
-  private FunctionType type;
 
-  public FunctionSymbol(String name, FunctionType type) {
-    this.name = name;
-    this.type = type;
-  }
+    private String name;
+    private FunctionType type;
 
-  public String getName() { return name; }
-
-  /** Returns the type of this function. Do not add arguments to it
-      directly; use addArgument instead. */
-  public FunctionType getType() { return type; }
-
-  /** Returns the return type of this function. */
-  public Type getReturnType()   { return type.getReturnType(); }
-
-  public int getNumArguments()  { return type.getNumArguments(); }
-
-  /** Returns the name of the <i>i</i>th argument. May return null if
-      no argument names were available during parsing. */
-  public String getArgumentName(int i) {
-    return type.getArgumentName(i);
-  }
-
-  /** Returns the type of the <i>i</i>th argument. */
-  public Type getArgumentType(int i) {
-    return type.getArgumentType(i);
-  }
-  
-  /** Add an argument's name and type. Use null for unknown argument
-      names. */
-  public void addArgument(Type argumentType, String argumentName) {
-    type.addArgument(argumentType, argumentName);
-  }
-
-  public String toString() {
-    return getType().toString(getName());
-  }
-
-  /** Helper routine for emitting native javadoc tags */
-  public String toString(boolean emitNativeTag) {
-    return getType().toString(getName(), emitNativeTag);
-  }
-
-  public int hashCode() {
-    if (name == null) {
-      return 0;
-    }
-    return name.hashCode();
-  }
-
-  public boolean equals(Object arg) {
-    if (arg == this) {
-      return true;
-    }
-    
-    if (arg == null || (!(arg instanceof FunctionSymbol))) {
-      return false;
-    }
-    
-    FunctionSymbol other = (FunctionSymbol) arg;
-
-    if(getName()==null && other.getName()!=null) {
-        return false;
+    public FunctionSymbol(String name, FunctionType type) {
+        this.name = name;
+        this.type = type;
     }
 
-    return (
-      (getName() == other.getName() || getName().equals(other.getName()))
-      && type.equals(other.type));
-  }
+    public String getName() {
+        return name;
+    }
+
+    /** Returns the type of this function. Do not add arguments to it
+    directly; use addArgument instead. */
+    public FunctionType getType() {
+        return type;
+    }
+
+    /** Returns the return type of this function. */
+    public Type getReturnType() {
+        return type.getReturnType();
+    }
+
+    public int getNumArguments() {
+        return type.getNumArguments();
+    }
+
+    /** Returns the name of the <i>i</i>th argument. May return null if
+    no argument names were available during parsing. */
+    public String getArgumentName(int i) {
+        return type.getArgumentName(i);
+    }
+
+    /** Returns the type of the <i>i</i>th argument. */
+    public Type getArgumentType(int i) {
+        return type.getArgumentType(i);
+    }
+
+    /** Add an argument's name and type. Use null for unknown argument
+    names. */
+    public void addArgument(Type argumentType, String argumentName) {
+        type.addArgument(argumentType, argumentName);
+    }
+
+    @Override
+    public String toString() {
+        return getType().toString(getName());
+    }
+
+    /** Helper routine for emitting native javadoc tags */
+    public String toString(boolean emitNativeTag) {
+        return getType().toString(getName(), emitNativeTag);
+    }
+
+    @Override
+    public int hashCode() {
+        if (name == null) {
+            return 0;
+        }
+        return name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object arg) {
+        if (arg == this) {
+            return true;
+        }
+
+        if (arg == null || (!(arg instanceof FunctionSymbol))) {
+            return false;
+        }
+
+        FunctionSymbol other = (FunctionSymbol) arg;
+
+        if (getName() == null && other.getName() != null) {
+            return false;
+        }
+
+        return (getName().equals(other.getName()) || getName().equals(other.getName())) && type.equals(other.type);
+    }
 }

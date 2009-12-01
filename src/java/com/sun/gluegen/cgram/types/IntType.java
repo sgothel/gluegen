@@ -36,47 +36,57 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
 public class IntType extends PrimitiveType {
-  private boolean unsigned;
-  private boolean typedefedUnsigned;
 
-  public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes) {
-    this(name, size, unsigned, cvAttributes, false);
-  }
+    private boolean unsigned;
+    private boolean typedefedUnsigned;
 
-  private IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
-    super(name, size, cvAttributes);
-    this.unsigned = unsigned;
-    this.typedefedUnsigned = typedefedUnsigned;
-  }
-
-  public boolean equals(Object arg) {
-    if (arg == this) return true;
-    if (arg == null || (!(arg instanceof IntType))) {
-      return false;
+    public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes) {
+        this(name, size, unsigned, cvAttributes, false);
     }
-    IntType t = (IntType) arg;
-    return (super.equals(arg) && (unsigned == t.unsigned));
-  }  
 
-  public void setName(String name) {
-    super.setName(name);
-    typedefedUnsigned = unsigned;
-  }
+    private IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
+        super(name, size, cvAttributes);
+        this.unsigned = unsigned;
+        this.typedefedUnsigned = typedefedUnsigned;
+    }
 
-  public IntType asInt()      { return this; }
+    @Override
+    public boolean equals(Object arg) {
+        if (arg == this) {
+            return true;
+        }
+        if (arg == null || (!(arg instanceof IntType))) {
+            return false;
+        }
+        IntType t = (IntType) arg;
+        return (super.equals(arg) && (unsigned == t.unsigned));
+    }
 
-  /** Indicates whether this type is unsigned */
-  public boolean isUnsigned() { return unsigned; }
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        typedefedUnsigned = unsigned;
+    }
 
-  public String toString() {
-    return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getName();
-  }
+    @Override
+    public IntType asInt() {
+        return this;
+    }
 
-  Type newCVVariant(int cvAttributes) {
-    return new IntType(getName(), getSize(), isUnsigned(), cvAttributes, typedefedUnsigned);
-  }
+    /** Indicates whether this type is unsigned */
+    public boolean isUnsigned() {
+        return unsigned;
+    }
+
+    @Override
+    public String toString() {
+        return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getName();
+    }
+
+    Type newCVVariant(int cvAttributes) {
+        return new IntType(getName(), getSize(), isUnsigned(), cvAttributes, typedefedUnsigned);
+    }
 }

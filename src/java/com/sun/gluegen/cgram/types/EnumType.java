@@ -36,110 +36,140 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
 import java.util.*;
 
 /** Describes enumerated types. Enumerations are like ints except that
-    they have a set of named values. */
-
+they have a set of named values. */
 public class EnumType extends IntType {
-  private IntType underlyingType;
 
-  private static class Enum {
-    String name;
-    long   value;
-    Enum(String name, long value) {
-      this.name = name;
-      this.value = value;
+    private IntType underlyingType;
+
+    private static class Enum {
+
+        String name;
+        long value;
+
+        Enum(String name, long value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        String getName() {
+            return name;
+        }
+
+        long getValue() {
+            return value;
+        }
     }
 
-    String getName()  { return name; }
-    long   getValue() { return value; }
-  }
-  private List/*<Enum>*/ enums;
-  
-  public EnumType(String name) {
-    super(name, SizeThunk.LONG, false, CVAttributes.CONST ); 
-    this.underlyingType = new IntType(name, SizeThunk.LONG, false, CVAttributes.CONST);
-  }
+    private List<Enum> enums;
 
-  public EnumType(String name, SizeThunk enumSizeInBytes) {
-    super(name, enumSizeInBytes, false, CVAttributes.CONST );
-    this.underlyingType = new IntType(name, enumSizeInBytes, false, CVAttributes.CONST);
-  }
-
-  protected EnumType(String name, IntType underlyingType, int cvAttributes) {
-    super(name, underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
-    this.underlyingType = underlyingType;
-  }
-  
-  public boolean equals(Object arg) {
-    if (arg == this) return true;
-    if (arg == null || (!(arg instanceof EnumType))) {
-      return false;
+    public EnumType(String name) {
+        super(name, SizeThunk.LONG, false, CVAttributes.CONST);
+        this.underlyingType = new IntType(name, SizeThunk.LONG, false, CVAttributes.CONST);
     }
-    EnumType t = (EnumType) arg;
-    return (super.equals(arg) &&
-            underlyingType.equals(t.underlyingType) &&
-            listsEqual(enums, t.enums));
-  }
 
-  public EnumType asEnum()    { return this; }
-
-  public void addEnum(String name, long val) {
-    if (enums == null) {
-      enums = new ArrayList();
+    public EnumType(String name, SizeThunk enumSizeInBytes) {
+        super(name, enumSizeInBytes, false, CVAttributes.CONST);
+        this.underlyingType = new IntType(name, enumSizeInBytes, false, CVAttributes.CONST);
     }
-    enums.add(new Enum(name, val));
-  }
 
-  /** Number of enumerates defined in this enum. */
-  public int    getNumEnumerates()  { return enums.size(); }
-  /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) name */
-  public String getEnumName(int i)  { return ((Enum) enums.get(i)).getName();  }
-  /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) value */
-  public long   getEnumValue(int i) { return ((Enum) enums.get(i)).getValue(); }
-  /** Fetch the value of the enumerate with the given name. */
-  public long   getEnumValue(String name) {
-    for (int i = 0; i < enums.size(); ++i) {
-      Enum n = ((Enum)enums.get(i));
-      if (n.getName().equals(name)) { return n.getValue(); }
+    protected EnumType(String name, IntType underlyingType, int cvAttributes) {
+        super(name, underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
+        this.underlyingType = underlyingType;
     }
-    throw new NoSuchElementException(
-      "No enumerate named \"" + name + "\" in EnumType \"" +
-      getName() + "\"");
-  }
-  /** Does this enum type contain an enumerate with the given name? */
-  public boolean containsEnumerate(String name) {
-    for (int i = 0; i < enums.size(); ++i) {
-      if (((Enum)enums.get(i)).getName().equals(name)) { return true; }
-    }
-    return false;
-  }
-  /** Remove the enumerate with the given name. Returns true if it was found
-   * and removed; false if it was not found.
-   */
-  public boolean removeEnumerate(String name) {
-    for (int i = 0; i < enums.size(); ++i) {
-      Enum e = (Enum)enums.get(i);
-      if (e.getName().equals(name)) {
-        enums.remove(e);
-        return true;
-      }
-    }
-    return false;
-  }
 
-  public void visit(TypeVisitor arg) {
-    super.visit(arg);
-    underlyingType.visit(arg);
-  }
+    @Override
+    public boolean equals(Object arg) {
+        if (arg == this) {
+            return true;
+        }
+        if (arg == null || (!(arg instanceof EnumType))) {
+            return false;
+        }
+        EnumType t = (EnumType) arg;
+        return (super.equals(arg)
+                && underlyingType.equals(t.underlyingType)
+                && listsEqual(enums, t.enums));
+    }
 
-  Type newCVVariant(int cvAttributes) {
-    EnumType t = new EnumType(getName(), underlyingType, cvAttributes);
-    t.enums = enums;
-    return t;
-  }  
+    @Override
+    public EnumType asEnum() {
+        return this;
+    }
+
+    public void addEnum(String name, long val) {
+        if (enums == null) {
+            enums = new ArrayList<Enum>();
+        }
+        enums.add(new Enum(name, val));
+    }
+
+    /** Number of enumerates defined in this enum. */
+    public int getNumEnumerates() {
+        return enums.size();
+    }
+
+    /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) name */
+    public String getEnumName(int i) {
+        return (enums.get(i)).getName();
+    }
+
+    /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) value */
+    public long getEnumValue(int i) {
+        return (enums.get(i)).getValue();
+    }
+
+    /** Fetch the value of the enumerate with the given name. */
+    public long getEnumValue(String name) {
+        for (int i = 0; i < enums.size(); ++i) {
+            Enum n = (enums.get(i));
+            if (n.getName().equals(name)) {
+                return n.getValue();
+            }
+        }
+        throw new NoSuchElementException(
+                "No enumerate named \"" + name + "\" in EnumType \""
+                + getName() + "\"");
+    }
+
+    /** Does this enum type contain an enumerate with the given name? */
+    public boolean containsEnumerate(String name) {
+        for (int i = 0; i < enums.size(); ++i) {
+            if ((enums.get(i)).getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Remove the enumerate with the given name. Returns true if it was found
+     * and removed; false if it was not found.
+     */
+    public boolean removeEnumerate(String name) {
+        for (int i = 0; i < enums.size(); ++i) {
+            Enum e = enums.get(i);
+            if (e.getName().equals(name)) {
+                enums.remove(e);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void visit(TypeVisitor arg) {
+        super.visit(arg);
+        underlyingType.visit(arg);
+    }
+
+    @Override
+    Type newCVVariant(int cvAttributes) {
+        EnumType t = new EnumType(getName(), underlyingType, cvAttributes);
+        t.enums = enums;
+        return t;
+    }
 }

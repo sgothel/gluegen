@@ -36,21 +36,24 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
 public class VoidType extends Type {
-  public VoidType(int cvAttributes) {
-    this("void", cvAttributes);
-  }
 
-  private VoidType(String name, int cvAttributes) {
-    super(name, null, cvAttributes);
-  }
+    public VoidType(int cvAttributes) {
+        this("void", cvAttributes);
+    }
 
-  public VoidType asVoid() { return this; }
+    private VoidType(String name, int cvAttributes) {
+        super(name, null, cvAttributes);
+    }
 
-  Type newCVVariant(int cvAttributes) {
-    return new VoidType(getName(), cvAttributes);
-  }
+    @Override
+    public VoidType asVoid() {
+        return this;
+    }
+
+    Type newCVVariant(int cvAttributes) {
+        return new VoidType(getName(), cvAttributes);
+    }
 }

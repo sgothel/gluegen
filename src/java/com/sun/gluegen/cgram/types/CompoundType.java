@@ -49,7 +49,7 @@ public class CompoundType extends Type {
   private CompoundTypeKind kind;
   // The name "foo" in the construct "struct foo { ... }";
   private String structName;
-  private ArrayList fields;
+  private ArrayList<Field> fields;
   private boolean visiting;
   private boolean bodyParsed;
   private boolean computedHashcode;
@@ -66,6 +66,7 @@ public class CompoundType extends Type {
     this.structName = structName;
   }
 
+  @Override
   public int hashCode() {
     if (computedHashcode) {
       return hashcode;
@@ -83,16 +84,17 @@ public class CompoundType extends Type {
     return hashcode;
   }
 
+  @Override
   public boolean equals(Object arg) {
     if (arg == this) return true;
-    if (arg == null || (!(arg instanceof CompoundType))) {
+    if (arg == null || !(arg instanceof CompoundType)) {
       return false;
     }
     CompoundType t = (CompoundType) arg;
-    return (super.equals(arg) &&
-            (structName == t.structName || (structName != null && structName.equals(t.structName))) &&
-            kind == t.kind &&
-            listsEqual(fields, t.fields));
+    return super.equals(arg) &&
+        ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
+         (structName != null && structName.equals(t.structName))) &&
+        kind == t.kind && listsEqual(fields, t.fields);
   }
 
   /** Returns the struct name of this CompoundType, i.e. the "foo" in
@@ -107,10 +109,12 @@ public class CompoundType extends Type {
     this.structName = structName;
   }
 
+  @Override
   public void setSize(SizeThunk size) {
     super.setSize(size);
   }
 
+  @Override
   public CompoundType asCompound() { return this; }
 
   /** Returns the number of fields in this type. */
@@ -120,7 +124,7 @@ public class CompoundType extends Type {
 
   /** Returns the <i>i</i>th field of this type. */
   public Field getField(int i) {
-    return (Field) fields.get(i);
+    return fields.get(i);
   }
 
   /** Adds a field to this type. */
@@ -129,7 +133,7 @@ public class CompoundType extends Type {
       throw new RuntimeException("Body of this CompoundType has already been parsed; should not be adding more fields");
     }
     if (fields == null) {
-      fields = new ArrayList();
+      fields = new ArrayList<Field>();
     }
     fields.add(f);
   }
@@ -145,6 +149,7 @@ public class CompoundType extends Type {
   /** Indicates whether this type was declared as a union. */
   public boolean isUnion()  { return (kind == CompoundTypeKind.UNION); }
 
+  @Override
   public String toString() {
     String cvAttributesString = getCVAttributesString();
     if (getName() != null) {
@@ -156,6 +161,7 @@ public class CompoundType extends Type {
     }
   }
 
+  @Override
   public void visit(TypeVisitor arg) {
     if (visiting) {
       return;

@@ -36,15 +36,16 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
 public abstract class PrimitiveType extends Type {
-  protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
-    super(name, size, cvAttributes);
-  }
 
-  public boolean isPrimitive() {
-    return true;
-  }
+    protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
+        super(name, size, cvAttributes);
+    }
+
+    @Override
+    public boolean isPrimitive() {
+        return true;
+    }
 }

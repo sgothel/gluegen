@@ -52,10 +52,12 @@ public class Field {
     this.offset = offset;
   }
 
+  @Override
   public int hashCode() {
     return name.hashCode();
   }
 
+  @Override
   public boolean equals(Object arg) {
     if (arg == null || (!(arg instanceof Field))) {
       return false;
@@ -85,6 +87,7 @@ public class Field {
   /** Sets the offset of this field in the containing data structure. */
   public void    setOffset(SizeThunk offset) { this.offset = offset; }
 
+  @Override
   public String toString() {
     if (!getType().isFunctionPointer()) {
       if (getName() == null &&

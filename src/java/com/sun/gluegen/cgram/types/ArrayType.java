@@ -55,6 +55,7 @@ public class ArrayType extends Type {
     this.length      = length;
   }
 
+  @Override
   public boolean equals(Object arg) {
     if (arg == this) return true;
     if (arg == null || (!(arg instanceof ArrayType))) {
@@ -64,6 +65,7 @@ public class ArrayType extends Type {
     return (super.equals(arg) && elementType.equals(t.elementType) && (length == t.length));
   }
 
+  @Override
   public String getName(boolean includeCVAttrs) {
     // Lazy computation of name due to lazy setting of compound type
     // names during parsing
@@ -75,6 +77,7 @@ public class ArrayType extends Type {
     return computedName;
   }
 
+  @Override
   public ArrayType asArray()      { return this; }
 
   public Type    getElementType() { return elementType; }
@@ -103,6 +106,7 @@ public class ArrayType extends Type {
     super.setSize(SizeThunk.mul(SizeThunk.constant(getLength()), elementType.getSize()));
   }
 
+  @Override
   public String toString() {
     return toString(null);
   }
@@ -120,6 +124,7 @@ public class ArrayType extends Type {
     return buf.toString();
   }
 
+  @Override
   public void visit(TypeVisitor arg) {
     super.visit(arg);
     elementType.visit(arg);

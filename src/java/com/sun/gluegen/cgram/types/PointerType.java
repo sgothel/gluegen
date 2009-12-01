@@ -36,107 +36,123 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen.cgram.types;
 
 public class PointerType extends Type {
-  private Type targetType;
-  private String computedName;
-  private boolean hasTypedefedName;
 
-  public PointerType(SizeThunk size, Type targetType, int cvAttributes) {
-    // can pass null for the final name parameter because the PointerType's getName() 
-    // completely replaces superclass behavior
-    this(size, targetType, cvAttributes, false, null);
-  }
+    private Type targetType;
+    private String computedName;
+    private boolean hasTypedefedName;
 
-  private PointerType(SizeThunk size, Type targetType, int cvAttributes, boolean hasTypedefedName, String typedefedName) {
-    super(targetType.getName() + " *", size, cvAttributes);
-    this.hasTypedefedName = false;
-    this.targetType = targetType;
-    if (hasTypedefedName) {
-      setName(typedefedName);
+    public PointerType(SizeThunk size, Type targetType, int cvAttributes) {
+        // can pass null for the final name parameter because the PointerType's getName()
+        // completely replaces superclass behavior
+        this(size, targetType, cvAttributes, false, null);
     }
-  }
 
-  public int hashCode() {
-    return targetType.hashCode();
-  }
-
-  public boolean equals(Object arg) {
-    if (arg == this) return true;
-    if (arg == null || (!(arg instanceof PointerType))) {
-      return false;
+    private PointerType(SizeThunk size, Type targetType, int cvAttributes, boolean hasTypedefedName, String typedefedName) {
+        super(targetType.getName() + " *", size, cvAttributes);
+        this.hasTypedefedName = false;
+        this.targetType = targetType;
+        if (hasTypedefedName) {
+            setName(typedefedName);
+        }
     }
-    PointerType t = (PointerType) arg;
-    // Note we ignore the name of this type (which might be a typedef
-    // name) for comparison purposes because this is what allows
-    // e.g. a newly-fabricated type "PIXELFORMATDESCRIPTOR *" to be
-    // canonicalized to e.g. "LPPIXELFORMATDESCRIPTOR"
-    return ((getSize() == t.getSize()) &&
-            (getCVAttributes() == t.getCVAttributes()) &&
-            targetType.equals(t.targetType));
-  }
 
-  public void setName(String name) {
-    super.setName(name);
-    hasTypedefedName = true;
-  }
-
-  public String getName(boolean includeCVAttrs) {
-    if (hasTypedefedName) {
-      return super.getName(includeCVAttrs);
-    } else {
-      // Lazy computation of name due to lazy setting of compound type
-      // names during parsing
-      if (computedName == null) {
-        computedName = targetType.getName(includeCVAttrs) + " *";
-        computedName = computedName.intern();
-      }
-      if (!includeCVAttrs) {
-        return computedName;
-      }
-      return targetType.getName(includeCVAttrs) + " * " + getCVAttributesString();
+    @Override
+    public int hashCode() {
+        return targetType.hashCode();
     }
-  }
 
-  public boolean hasTypedefedName() {
-    return hasTypedefedName;
-  }
-
-  public PointerType asPointer() { return this; }
-
-  public Type getTargetType() { return targetType; }
-
-  public boolean isFunctionPointer() { return targetType.isFunction(); }
-
-  public String toString() {
-    if (hasTypedefedName) {
-      return super.getName(true);
-    } else {
-      if (!targetType.isFunction()) {
-        return targetType.toString() + " * " + getCVAttributesString();
-      }
-      return toString(null, null); // this is a pointer to an unnamed function
+    @Override
+    public boolean equals(Object arg) {
+        if (arg == this) {
+            return true;
+        }
+        if (arg == null || (!(arg instanceof PointerType))) {
+            return false;
+        }
+        PointerType t = (PointerType) arg;
+        // Note we ignore the name of this type (which might be a typedef
+        // name) for comparison purposes because this is what allows
+        // e.g. a newly-fabricated type "PIXELFORMATDESCRIPTOR *" to be
+        // canonicalized to e.g. "LPPIXELFORMATDESCRIPTOR"
+        return ((getSize() == t.getSize())
+                && (getCVAttributes() == t.getCVAttributes())
+                && targetType.equals(t.targetType));
     }
-  }
 
-  /** For use only when printing function pointers. Calling convention
-      string (i.e., "__stdcall") is optional and is generally only
-      needed on Windows. */
-  public String toString(String functionName, String callingConvention) {
-    if (!targetType.isFunction()) {
-      throw new RuntimeException("<Internal error or misuse> This method is only for use when printing function pointers");
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        hasTypedefedName = true;
     }
-    return ((FunctionType) targetType).toString(functionName, callingConvention, false, true);
-  }
 
-  public void visit(TypeVisitor arg) {
-    super.visit(arg);
-    targetType.visit(arg);
-  }
+    @Override
+    public String getName(boolean includeCVAttrs) {
+        if (hasTypedefedName) {
+            return super.getName(includeCVAttrs);
+        } else {
+            // Lazy computation of name due to lazy setting of compound type
+            // names during parsing
+            if (computedName == null) {
+                computedName = targetType.getName(includeCVAttrs) + " *";
+                computedName = computedName.intern();
+            }
+            if (!includeCVAttrs) {
+                return computedName;
+            }
+            return targetType.getName(includeCVAttrs) + " * " + getCVAttributesString();
+        }
+    }
 
-  Type newCVVariant(int cvAttributes) {
-    return new PointerType(getSize(), targetType, cvAttributes, hasTypedefedName, (hasTypedefedName ? getName() : null));
-  }  
+    public boolean hasTypedefedName() {
+        return hasTypedefedName;
+    }
+
+    @Override
+    public PointerType asPointer() {
+        return this;
+    }
+
+    public Type getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public boolean isFunctionPointer() {
+        return targetType.isFunction();
+    }
+
+    @Override
+    public String toString() {
+        if (hasTypedefedName) {
+            return super.getName(true);
+        } else {
+            if (!targetType.isFunction()) {
+                return targetType.toString() + " * " + getCVAttributesString();
+            }
+            return toString(null, null); // this is a pointer to an unnamed function
+        }
+    }
+
+    /** For use only when printing function pointers. Calling convention
+    string (i.e., "__stdcall") is optional and is generally only
+    needed on Windows. */
+    public String toString(String functionName, String callingConvention) {
+        if (!targetType.isFunction()) {
+            throw new RuntimeException("<Internal error or misuse> This method is only for use when printing function pointers");
+        }
+        return ((FunctionType) targetType).toString(functionName, callingConvention, false, true);
+    }
+
+    @Override
+    public void visit(TypeVisitor arg) {
+        super.visit(arg);
+        targetType.visit(arg);
+    }
+
+    Type newCVVariant(int cvAttributes) {
+        return new PointerType(getSize(), targetType, cvAttributes, hasTypedefedName, (hasTypedefedName ? getName() : null));
+    }
 }

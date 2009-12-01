@@ -46,6 +46,8 @@ public class FloatType extends PrimitiveType {
     super(name, size, cvAttributes);
   }
 
+
+  @Override
   public boolean equals(Object arg) {
     if (arg == this) {
       return true;
@@ -56,6 +58,7 @@ public class FloatType extends PrimitiveType {
     return super.equals(arg);
   }
 
+  @Override
   public FloatType asFloat() { return this; }
 
   Type newCVVariant(int cvAttributes) {
