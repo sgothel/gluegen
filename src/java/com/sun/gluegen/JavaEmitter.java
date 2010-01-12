@@ -388,8 +388,7 @@ public class JavaEmitter implements GlueEmitter {
 
     //    validateFunctionsToBind(funcsToBindSet);
 
-    ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet.size());
-    funcsToBind.addAll(funcsToBindSet);
+    ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet);
     // sort functions to make them easier to find in native code
     Collections.sort(
       funcsToBind,
@@ -408,16 +407,14 @@ public class JavaEmitter implements GlueEmitter {
     ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
     for (FunctionSymbol cFunc : funcsToBind) {
       // Check to see whether this function should be ignored
-      if (cfg.shouldIgnoreInImpl(cFunc.getName())) {
-        continue; // don't generate bindings for this symbol
+      if (!cfg.shouldIgnoreInImpl(cFunc.getName())) {
+          methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
       }
 
-      methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
     }
 
     // Emit all the methods
-    for (int i = 0; i < methodBindingEmitters.size(); ++i) {
-      FunctionEmitter emitter = methodBindingEmitters.get(i);
+    for (FunctionEmitter emitter : methodBindingEmitters) {
       try {
         if (!emitter.isInterface() || !cfg.shouldIgnoreInInterface(emitter.getName())) {
             emitter.emit();
@@ -1845,6 +1842,7 @@ public class JavaEmitter implements GlueEmitter {
   // multiple variants taking Java primitive arrays and NIO buffers, subject
   // to the per-function "NIO only" rule in the configuration file
   protected List<MethodBinding> expandMethodBinding(MethodBinding binding) {
+
     List<MethodBinding> result = new ArrayList<MethodBinding>();
     // Indicates whether it is possible to produce an array variant
     // Prevents e.g. char* -> String conversions from emitting two entry points
@@ -1853,14 +1851,12 @@ public class JavaEmitter implements GlueEmitter {
     if (binding.signatureUsesCPrimitivePointers() ||
         binding.signatureUsesCVoidPointers() ||
         binding.signatureUsesCArrays()) {
+
       result.add(lowerMethodBindingPointerTypes(binding, false, canProduceArrayVariant));
 
       // FIXME: should add new configuration flag for this
-      if (canProduceArrayVariant[0] &&
-          (binding.signatureUsesCPrimitivePointers() ||
-           binding.signatureUsesCArrays()) &&
-          !cfg.nioDirectOnly(binding.getName()) &&
-          !cfg.nioOnly(binding.getName())) {
+      if (canProduceArrayVariant[0] && (binding.signatureUsesCPrimitivePointers() || binding.signatureUsesCArrays()) &&
+          !cfg.nioDirectOnly(binding.getName()) && !cfg.nioOnly(binding.getName())) {
         result.add(lowerMethodBindingPointerTypes(binding, true, null));
       }
     } else {

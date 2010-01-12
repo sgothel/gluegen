@@ -392,8 +392,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println(';');
     } else {
       MethodBinding mBinding = getBinding();
-      writer.println();
       writer.println("  {");
+      writer.println();
       if (isUnimplemented) {
         writer.println("    throw new " + getUnsupportedExceptionType() + "(\"Unimplemented\");");
       } else {
@@ -449,7 +449,21 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           } else {
             if(firstBuffer) {
               firstBuffer = false;
-              writer.println("    boolean _direct = BufferFactory.isDirect(" + getArgumentName(i) + ");");
+              writer.print("    boolean _direct = ");
+              for (int j = i; j < binding.getNumArguments(); j++) {
+                  JavaType buff = binding.getJavaArgumentType(j);
+
+                  if(buff.isNIOBuffer()) {
+                      if(i!=j) { // not the first one
+                          writer.println();
+                          writer.print("                    ||");
+                      }
+                      writer.print(getArgumentName(j)+" != null && BufferFactory.isDirect(" + getArgumentName(j) + ")");
+                  }
+
+              }
+              writer.println(";");
+
             } else {
               writer.println("    if (" + getArgumentName(i) + " != null && _direct != BufferFactory.isDirect(" + getArgumentName(i) + "))");
               writer.println("      throw new " + getRuntimeExceptionType() +
@@ -634,7 +648,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       } else if (type.isArrayOfCompoundTypeWrappers()) {
         writer.print(getArgumentName(i) + COMPOUND_ARRAY_SUFFIX);
       } else if(type.isNIOPointerBuffer()) {
-        writer.print(getArgumentName(i) + ".getBuffer()");
+        writer.print(getArgumentName(i)+"!=null?"+getArgumentName(i) + ".getBuffer():null");
       } else {
         writer.print(getArgumentName(i));
       }

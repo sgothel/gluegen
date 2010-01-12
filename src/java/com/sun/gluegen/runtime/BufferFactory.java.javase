@@ -81,7 +81,7 @@ public class BufferFactory {
       public in Buffer and not replicated in all subclasses. */
   public static boolean isDirect(Object buf) {
     if (buf == null) {
-      return false;
+      return true;
     }
     if (buf instanceof ByteBuffer) {
       return ((ByteBuffer) buf).isDirect();
