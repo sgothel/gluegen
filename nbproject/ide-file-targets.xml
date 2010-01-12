@@ -12,7 +12,7 @@
         <mkdir dir="build/test/build/classes"/>
 
         <javac destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="test/junit" debug="true" debuglevel="lines,vars,source">
-            <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-2.7.7.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
     </target>
 
@@ -21,7 +21,7 @@
 
         <java classname="${run.class}" failonerror="true" fork="true">
             <classpath>
-                <path path="build/test/build/classes:build/classes:lib/antlr-2.7.7.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+                <path path="build/test/build/classes:build/classes:lib/antlr-3.2.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
         </java>
     </target>
@@ -33,7 +33,7 @@
             <test name="${run.class}">
             </test>
             <classpath>
-                <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-2.7.7.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+                <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
             <formatter usefile="false" type="brief"/>
             <formatter type="xml"/>
@@ -44,7 +44,7 @@
         <fail unless="debug.class">Must set property 'debug.class'</fail>
 
         <path id="cp">
-            <path path="build/test/build/classes:build/classes:lib/antlr-2.7.7.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <path path="build/test/build/classes:build/classes:lib/antlr-3.2.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </path>
 
         <nbjpdastart addressproperty="jpda.address" name="GlueGen" transport="dt_socket">
