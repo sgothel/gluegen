@@ -63,6 +63,14 @@ public class PointerBuffer {
     return position;
   }
 
+  public final PointerBuffer position(int newPos) {
+    if(0>newPos || newPos>=capacity) {
+        throw new IndexOutOfBoundsException();
+    }
+    position = newPos;
+    return this;
+  }
+
   public final int remaining() {
     return capacity - position;
   }
@@ -71,8 +79,9 @@ public class PointerBuffer {
     return position < capacity;
   }
 
-  public final void rewind() {
+  public final PointerBuffer rewind() {
     position=0;
+    return this;
   }
 
   int   arrayOffset() { return 0; }
@@ -139,7 +148,7 @@ public class PointerBuffer {
   }
 
   public long get() {
-    long r = get(position+1);
+    long r = get(position);
     position++;
     return r;
   }
@@ -163,7 +172,7 @@ public class PointerBuffer {
   }
 
   public PointerBuffer put(long v) {
-    put(position+1, v);
+    put(position, v);
     position++;
     return this;
   }
