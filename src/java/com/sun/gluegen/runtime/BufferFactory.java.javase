@@ -130,7 +130,8 @@ public class BufferFactory {
           return pos * SIZEOF_CHAR;
         }
     } else if (buf instanceof PointerBuffer) {
-      return (((PointerBuffer)buf).position() * SIZEOF_LONG);
+      PointerBuffer pb = (PointerBuffer)buf;
+      return pb.position() * pb.elementSize();
     } 
 
     throw new RuntimeException("Disallowed array backing store type in buffer "
@@ -195,7 +196,8 @@ public class BufferFactory {
           return (SIZEOF_CHAR*(((CharBuffer)buf).arrayOffset() + pos));
         }
     } else if(buf instanceof PointerBuffer) {
-        return (SIZEOF_LONG*(((PointerBuffer)buf).arrayOffset() + ((PointerBuffer)buf).position()));
+        PointerBuffer pb = (PointerBuffer)buf;
+        return pb.elementSize()*(pb.arrayOffset() + pb.position());
     }
 
     throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
@@ -305,7 +307,8 @@ public class BufferFactory {
           bytesRemaining = elementsRemaining * SIZEOF_CHAR;
         }
     } else if (buffer instanceof PointerBuffer) {
-      bytesRemaining = ((PointerBuffer)buffer).remaining() * SIZEOF_LONG;
+      PointerBuffer pb = (PointerBuffer)buffer;
+      bytesRemaining = pb.remaining() * pb.elementSize();
     }
     if (bytesRemaining < minBytesRemaining) {
       throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
