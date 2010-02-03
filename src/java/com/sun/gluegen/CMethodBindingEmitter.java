@@ -380,6 +380,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   
   protected void emitBody(PrintWriter writer)  {    
     writer.println(" {");
+//    writer.println("printf(\" - - - - "+ getName() + getImplSuffix() +" - - - -\\n\");");
     emitBodyVariableDeclarations(writer);
     emitBodyUserVariableDeclarations(writer);
     emitBodyVariablePreCallSetup(writer, false);
@@ -411,14 +412,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
       }
 
       if (type.isArray() || type.isNIOBuffer() || type.isCompoundTypeWrapper() || type.isArrayOfCompoundTypeWrappers()) {
-        String convName = pointerConversionArgumentName(i);
+        String javaArgName = binding.getArgumentName(i);
+        String convName = pointerConversionArgumentName(javaArgName);
         // handle array/buffer argument types
         boolean needsDataCopy =
           emitPointerDeclaration(writer,
-                                 binding.getJavaArgumentType(i),
+                                 type,
                                  binding.getCArgumentType(i),
-                                 convName,
-                                 binding.getArgumentName(i));
+                                 convName, javaArgName);
         if (needsDataCopy && !emittedDataCopyTemps) {
           // emit loop counter and array length variables used during data
           // copy 
@@ -570,10 +571,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
         if (type.isCompoundTypeWrapper() ||
             (type.isNIOBuffer() && !forIndirectBufferAndArrayImplementation)) {
+          String javaArgName = binding.getArgumentName(i);
           emitPointerConversion(writer, binding, type,
-                                binding.getCArgumentType(i),
-                                binding.getArgumentName(i),
-                                pointerConversionArgumentName(i),
+                                binding.getCArgumentType(i), javaArgName,
+                                pointerConversionArgumentName(javaArgName),
                                 byteOffsetArgName(i));
         }
       }
@@ -586,6 +587,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         continue;
       }
+      String javaArgName = binding.getArgumentName(i);
 
       if (javaArgType.isArray() ||
           (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation) ||
@@ -602,14 +604,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
         if (EMIT_NULL_CHECKS) {
           writer.print("  if (");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.println(" != NULL) {");
         }
 
         Type cArgType = binding.getCArgumentType(i);
         String cArgTypeName = cArgType.getName();
 
-        String convName = pointerConversionArgumentName(i);
+        String convName = pointerConversionArgumentName(javaArgName);
 
         if (!needsDataCopy) {
           writer.print("    ");
@@ -621,7 +623,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           }        
           writer.print(cArgTypeName);
           writer.print(") (((char*) (*env)->GetPrimitiveArrayCritical(env, ");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.println(", NULL)) + " + byteOffsetArgName(i) + ");");
 //if(cargtypename is void*)
 //   _ptrX = ((char*)convName + index1*sizeof(thisArgsJavaType));
@@ -647,15 +649,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
           }
 
           writer.println();
-          writer.println("    /* Copy contents of " + binding.getArgumentName(i) +
-                         " into " + convName + "_copy */");
+          writer.println("    /* Copy contents of " + javaArgName + " into " + convName + "_copy */");
 
           // get length of array being copied
           String arrayLenName = "_tmpArrayLen";
           writer.print("    ");
           writer.print(arrayLenName);
           writer.print(" = (*env)->GetArrayLength(env, ");
-          writer.print(binding.getArgumentName(i)); 
+          writer.print(javaArgName);
           writer.println(");");
 
           // allocate an array to hold each element
@@ -678,7 +679,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             cArgElementType.getName(),
             isConstPtrPtr(cArgPtrType),
             arrayLenName,
-            "Could not allocate buffer for copying data in argument \\\""+binding.getArgumentName(i)+"\\\"");
+            "Could not allocate buffer for copying data in argument \\\""+javaArgName+"\\\"");
 
           // Get the handle for the byte offset array sent down for Buffers
           // FIXME: not 100% sure this is correct with respect to the
@@ -696,9 +697,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.println("    for (_copyIndex = 0; _copyIndex < "+arrayLenName+"; ++_copyIndex) {");
 
           // get each array element
-          writer.println("      /* get each element of the array argument \"" + binding.getArgumentName(i) + "\" */");    
+          writer.println("      /* get each element of the array argument \"" + javaArgName + "\" */");
           writer.print("      _tmpObj = (*env)->GetObjectArrayElement(env, ");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.println(", _copyIndex);");            
 
           if (javaArgType.isStringArray()) {
@@ -740,12 +741,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
                        cArgElementType.getTargetType().getName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
                        isConstPtrPtr(cArgPtrType),
                        "(*env)->GetArrayLength(env, _tmpObj)",
-                       "Could not allocate buffer during copying of data in argument \\\""+binding.getArgumentName(i)+"\\\"");
+                       "Could not allocate buffer during copying of data in argument \\\""+javaArgName+"\\\"");
             // FIXME: copy the data (use matched Get/ReleasePrimitiveArrayCritical() calls)
-            if (true) throw new RuntimeException(
-                                                 "Cannot yet handle type \"" + cArgType.getName() +
-                                                 "\"; need to add support for copying ptr-to-ptr-to-primitiveType subarrays");
-
+            if (true) {
+                throw new RuntimeException("Cannot yet handle type \"" + cArgType.getName() +
+                              "\"; need to add support for copying ptr-to-ptr-to-primitiveType subarrays");
+            }
  
           }
           writer.println("    }");
@@ -768,9 +769,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
           continue;
         }
 
-        emitGetStringChars(writer,
-                           binding.getArgumentName(i),
-                           STRING_CHARS_PREFIX + binding.getArgumentName(i),
+        emitGetStringChars(writer, javaArgName,
+                           STRING_CHARS_PREFIX + javaArgName,
                            isUTF8Type(binding.getCArgumentType(i)),
                            false);
       }
@@ -782,16 +782,17 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * Code to clean up any variables that were declared in
    * emitBodyVariableDeclarations(), AFTER calling the actual C function.
    */
-  protected void emitBodyVariablePostCallCleanup(PrintWriter writer,
-                                                 boolean emittingPrimitiveArrayCritical)
-  {
+  protected void emitBodyVariablePostCallCleanup(PrintWriter writer, boolean emittingPrimitiveArrayCritical) {
+
     // Release primitive arrays and temporary UTF8 strings if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType javaArgType = binding.getJavaArgumentType(i);
       if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         continue;
       }
+
       Type cArgType = binding.getCArgumentType(i);
+      String javaArgName = binding.getArgumentName(i);
 
       if (javaArgType.isArray() ||
           (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation) ||
@@ -805,16 +806,16 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
         if (EMIT_NULL_CHECKS) {
           writer.print("  if (");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.println(" != NULL) {");
         }
 
-        String convName = pointerConversionArgumentName(i);
+        String convName = pointerConversionArgumentName(javaArgName);
 
         if (!needsDataCopy) {
           // Release array 
           writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, ");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.print(", ");
           writer.print(convName);
           writer.println(", 0);");
@@ -832,22 +833,21 @@ public class CMethodBindingEmitter extends FunctionEmitter
             // method for details). 
             if (javaArgType.isArrayOfCompoundTypeWrappers()) {
               // This is the only form of cleanup we handle right now
-              String argName = binding.getArgumentName(i);
-              writer.println("    _tmpArrayLen = (*env)->GetArrayLength(env, " + argName + ");");
+              writer.println("    _tmpArrayLen = (*env)->GetArrayLength(env, " + javaArgName + ");");
               writer.println("    for (_copyIndex = 0; _copyIndex < _tmpArrayLen; ++_copyIndex) {");
-              writer.println("      _tmpObj = (*env)->GetObjectArrayElement(env, " + argName + ", _copyIndex);");
+              writer.println("      _tmpObj = (*env)->GetObjectArrayElement(env, " + javaArgName + ", _copyIndex);");
               // We only skip the copy back in limited situations
-              String copyName = pointerConversionArgumentName(i) + "_copy";
+              String copyName = pointerConversionArgumentName(javaArgName) + "_copy";
               writer.println("      if ((" + copyName + "[_copyIndex] == NULL && _tmpObj == NULL) ||");
               writer.println("          (" + copyName + "[_copyIndex] != NULL && _tmpObj != NULL &&");
               writer.println("           (*env)->GetDirectBufferAddress(env, _tmpObj) == " + copyName + "[_copyIndex])) {");
               writer.println("        /* No copy back needed */");
               writer.println("      } else {");
               writer.println("        if (" + copyName + "[_copyIndex] == NULL) {");
-              writer.println("          (*env)->SetObjectArrayElement(env, " + argName + ", _copyIndex, NULL);");
+              writer.println("          (*env)->SetObjectArrayElement(env, " + javaArgName + ", _copyIndex, NULL);");
               writer.println("        } else {");
               writer.println("          _tmpObj = (*env)->NewDirectByteBuffer(env, " + copyName + "[_copyIndex], sizeof(" + cArgType.getName() + "));");
-              writer.println("          (*env)->SetObjectArrayElement(env, " + argName + ", _copyIndex, _tmpObj);");
+              writer.println("          (*env)->SetObjectArrayElement(env, " + javaArgName + ", _copyIndex, _tmpObj);");
               writer.println("        }");
               writer.println("      }");
               writer.println("    }");
@@ -869,7 +869,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             writer.print("    ");
             writer.print(arrayLenName);
             writer.print(" = (*env)->GetArrayLength(env, ");
-            writer.print(binding.getArgumentName(i)); 
+            writer.print(javaArgName);
             writer.println(");");
 
             // free each element
@@ -879,7 +879,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
                 "Could not copy data for type \"" + cArgType +
                 "\"; currently only pointer types supported.");
             }
-            PointerType cArgElementType = cArgPtrType.getTargetType().asPointer();          
          
             // process each element in the array
             writer.println("    for (_copyIndex = 0; _copyIndex < " + arrayLenName +"; ++_copyIndex) {");
@@ -887,7 +886,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
             // get each array element
             writer.println("      /* free each element of " +convName +"_copy */");    
             writer.print("      _tmpObj = (*env)->GetObjectArrayElement(env, ");
-            writer.print(binding.getArgumentName(i));
+            writer.print(javaArgName);
             writer.println(", _copyIndex);");            
 
             if (javaArgType.isStringArray()) {
@@ -920,18 +919,18 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
         if (EMIT_NULL_CHECKS) {
           writer.print("  if (");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.println(" != NULL) {");
         }
 
         if (isUTF8Type(cArgType)) {
           writer.print("    (*env)->ReleaseStringUTFChars(env, ");
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.print(", " + STRING_CHARS_PREFIX);
-          writer.print(binding.getArgumentName(i));
+          writer.print(javaArgName);
           writer.println(");");
         } else {
-          writer.println("    free((void*) " + STRING_CHARS_PREFIX + binding.getArgumentName(i) + ");");
+          writer.println("    free((void*) " + STRING_CHARS_PREFIX + javaArgName + ");");
         }
 
         if (EMIT_NULL_CHECKS) {
@@ -969,12 +968,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
         }
         writer.print(cArgType.getName());
         writer.print(") ");
-        if (binding.getCArgumentType(i).isPointer() && binding.getJavaArgumentType(i).isPrimitive()) {
+        if (binding.getCArgumentType(i).isPointer() && javaArgType.isPrimitive()) {
           writer.print("(intptr_t) ");
         }
         if (javaArgType.isArray() || javaArgType.isNIOBuffer() ||
             javaArgType.isCompoundTypeWrapper() || javaArgType.isArrayOfCompoundTypeWrappers()) {
-          writer.print(pointerConversionArgumentName(i));
+          writer.print(pointerConversionArgumentName(binding.getArgumentName(i)));
           if (javaArgTypeNeedsDataCopy(javaArgType)) {
             writer.print("_copy");
           }
@@ -1521,8 +1520,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
     return argumentNames;
   }
 
-  protected String pointerConversionArgumentName(int i) {
-    return "_ptr" + i;
+  protected String pointerConversionArgumentName(String argName) {
+    return "_" + argName + "_ptr";
   }
 
   /**
