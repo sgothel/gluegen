@@ -574,8 +574,10 @@
       <mkdir dir="${gluegen.root}/build/test/build/classes"/>
       <mkdir dir="${gluegen.root}/build/test/results"/>
 
+      <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
+
       <javac destdir="${gluegen.root}/build/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source">
-          <classpath path="${gluegen.root}/make/lib/junit-4.5.jar:${gluegen.root}/build/classes:${gluegen.root}/build/test/gensrc/java:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+          <classpath path="${gluegen.root}/make/lib/junit-4.5.jar:${gluegen.root}/build/classes:${gluegen.root}/build/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
       </javac>
 
       <junit forkmode="once" showoutput="true" fork="true">
@@ -588,7 +590,7 @@
               <formatter usefile="true" type="xml"/>
           </batchtest>
           <classpath>
-              <path path="${gluegen.root}/build/test/build/classes:${gluegen.root}/build/test/gensrc/java:${gluegen.root}/build/classes:${gluegen.root}/lib/antlr-3.2.jar:${gluegen.root}/make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+              <path path="${gluegen.root}/build/test/build/classes:${gluegen.root}/build/test/gensrc/java:${gluegen.root}/build/classes:${antlr.jar}:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
           </classpath>
       </junit>
   </target>
