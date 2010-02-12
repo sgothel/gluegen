@@ -419,7 +419,7 @@
     <javac destdir="${classes-cdc}"
            source="1.4"
            debug="true"
-           debuglevel="source,lines"
+           debuglevel="source,lines,vars"
            excludes="${gluegen.excludes}"
            bootclasspath="${javac.bootclasspath-cdc.jar}">
       <src path="${src.java}" />
@@ -489,7 +489,7 @@
     <javac destdir="${classes}"
            source="1.4"
            debug="true"
-           debuglevel="source,lines"
+           debuglevel="source,lines,vars"
            includes="${gluegen-rt.classes}"
            excludes="${gluegen.excludes}">
       <src path="${src.java}" />
@@ -501,7 +501,7 @@
     <javac destdir="${classes}"
            source="1.5"
            debug="true"
-           debuglevel="source,lines"
+           debuglevel="source,lines,vars"
            excludes="${gluegen.excludes},${gluegen-rt.classes}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
@@ -562,11 +562,35 @@
     <copy file="${antlr.jar}" todir="${build}" />
   </target>
 
-  <target name="all" depends="gluegen.build" />
+  <target name="all" depends="gluegen.build,test" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
       <fileset dir="${build}" />
     </delete>
   </target>    
+
+  <target name="test">
+      <mkdir dir="${basedir}/../build/test/build/classes"/>
+      <mkdir dir="${basedir}/../build/test/results"/>
+
+      <javac destdir="${basedir}/../build/test/build/classes" failonerror="false" source="1.5" srcdir="${basedir}/../test/junit" debug="true" debuglevel="lines,vars,source">
+          <classpath path="${basedir}/../make/lib/junit-4.5.jar:${basedir}/../build/classes:${basedir}/../build/test/gensrc/java:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+      </javac>
+
+      <junit forkmode="once" showoutput="true" fork="true">
+          <jvmarg value="-Djava.library.path=${basedir}/../build/test/build/natives"/>
+          <batchtest todir="${basedir}/../build/test/results">
+              <fileset dir="${basedir}/../build/test/build/classes">
+                  <include name="com/sun/gluegen/**"/>
+              </fileset>
+              <formatter usefile="false" type="brief"/>
+              <formatter usefile="true" type="xml"/>
+          </batchtest>
+          <classpath>
+              <path path="${basedir}/../build/test/build/classes:${basedir}/../build/test/gensrc/java:${basedir}/../build/classes:${basedir}/../lib/antlr-3.2.jar:${basedir}/../make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+          </classpath>
+      </junit>
+  </target>
+
 </project>

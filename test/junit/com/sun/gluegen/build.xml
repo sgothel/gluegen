@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="GlueGenTest" default="default" basedir=".">
+<project name="GlueGenTest" default="default" basedir="../../../../../">
 
     <description>Tests GlueGen</description>
 
@@ -20,9 +20,9 @@
 
         <mkdir dir="${build.dir.java}"/>
 
-        <javac destdir="${build.dir.java}" includes="test/**" source="1.5" debug="true" verbose="true" debuglevel="lines,vars,source">
+        <javac destdir="${build.dir.java}" source="1.5" debug="true" verbose="true" debuglevel="lines,vars,source">
             <src path="${src.dir}"/>
-            <classpath path="build/test/build/java:build/classes:build/test/gensrc/java:lib/antlr-2.7.7.jar:lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <classpath path="${basedir}/build/test/build/java:${basedir}/build/classes:${basedir}/build/test/gensrc/java:${basedir}/lib/antlr-2.7.7.jar:${basedir}/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
 
         <echo message=" - - - java files compiled - - - "/>
@@ -38,7 +38,6 @@
 
         <property name="output.lib.name" value="rofl"/>
         <property name="obj.dir" value="${obj.dir}/${output.lib.name}"/>
-        <property name="natives.dir" value="${build.dir}/natives/${output.lib.name}"/>
 
         <property name="c.compiler.optimise" value="none"/>
         <property name="c.compiler.debug" value="false"/>
@@ -84,9 +83,10 @@
         <echo message="configure for Linux.AMD64 build" />
 
         <linker id="linker.cfg.linux.amd64.test">
+            <linkerparam name="-m64"/>
         </linker>
 
-        <property name="compiler.cfg.id" value="compiler.cfg.linux" />
+        <property name="compiler.cfg.id" value="compiler.cfg.linux.amd64" />
         <property name="linker.cfg.id"   value="linker.cfg.linux.amd64.test" />
     </target>
 
