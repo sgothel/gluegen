@@ -5,27 +5,21 @@ import java.net.URISyntaxException;
 import org.apache.tools.ant.DefaultLogger;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.ProjectHelper;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
 
 import static java.lang.System.*;
 
 /**
  * @author Michael Bien
  */
-@Ignore
-public abstract class AbstractTest {
+public final class BuildUtil {
 
-    static final Project project = new Project();
+    private static final Project project;
     
-    protected static String gluegenRoot;
-    protected static String path;
-    protected static String output;
-
+    public static final String gluegenRoot;
+    public static final String path;
+    public static final String output;
     
-    @BeforeClass
-    public static void setUp() throws Exception {
+    static {
 
         out.println(" - - - System info - - - ");
         out.println("OS: " + System.getProperty("os.name"));
@@ -33,7 +27,7 @@ public abstract class AbstractTest {
 
         // setup paths
         try {
-            File executionRoot = new File(AbstractTest.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            File executionRoot = new File(BuildUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             out.println("execution root: " + executionRoot);
             gluegenRoot = executionRoot.getParentFile().getParentFile().getParentFile().getParentFile().toString();
             out.println("gluegen project root: " + gluegenRoot);
@@ -48,13 +42,14 @@ public abstract class AbstractTest {
         out.println("output: "+output);
         out.println(" - - - - - - - - - - - - ");
 
-        deleteDirectory(new File(output+"/gensrc"));
+        cleanGeneratedFiles();
 
         //setup ant build file
+        project = new Project();
         project.setBaseDir(new File(gluegenRoot));
 
         DefaultLogger logger = new DefaultLogger();
-        logger.setErrorPrintStream(err);
+        logger.setErrorPrintStream(out);
         logger.setOutputPrintStream(out);
         logger.setMessageOutputLevel(Project.MSG_INFO);
         project.addBuildListener(logger);
@@ -62,45 +57,53 @@ public abstract class AbstractTest {
         project.init();
 
         File buildFile = new File(path, "build.xml");
+        if(!buildFile.exists()) {
+            throw new RuntimeException("buildfile "+buildFile+" does not exist");
+        }
+
         ProjectHelper.configureProject(project, buildFile);
     }
 
-    @AfterClass
-    public static void tearDown() {
-//        deleteDirectory(new File(output));
+    public static void cleanGeneratedFiles() {
+        out.println("cleaning generated files");
+        deleteDirectory(new File(output+"/gensrc"));
+        out.println("done");
     }
 
     /**
      * fails if ant script fails (which is a good thing).
      * executeTarget throws RuntimeException on failure
      */
-    public final void compileJava() {
+    public static void compileJava() {
+        out.println("compiling java files");
         project.executeTarget("compile.java");
+        out.println("done");
     }
 
     /**
      * fails if ant script fails (which is a good thing)
      * executeTarget throws RuntimeException on failure
      */
-    public final void compileNatives() {
+    public static void compileNatives() {
+        out.println("compiling native files");
         project.executeTarget("compile.native");
-    }
-
-    static final void generate(String config) {
-        out.println("generate: "+config);
-        GlueGen.main(
-            new String[] {
-                "-I"+path,
-                "-O"+output+"/gensrc",
-//                "-Ecom.sun.gluegen.DebugEmitter",
-                "-C"+path+"/"+config+".cfg",
-                path+"/"+config+".h"
-            }
-        );
         out.println("done");
     }
 
-    static final void deleteDirectory(File path) {
+    public static void generate(String bindingName) {
+
+        out.println("generate binding: " + bindingName);
+
+        GlueGen.main(  "-I"+path,
+                       "-O"+output+"/gensrc",
+                    // "-Ecom.sun.gluegen.DebugEmitter",
+                       "-C"+path+"/"+bindingName+".cfg",
+                       path+"/"+bindingName+".h"   );
+
+        out.println("done");
+    }
+
+    public static void deleteDirectory(File path) {
         if(path.exists()) {
 
             File[] files = path.listFiles();

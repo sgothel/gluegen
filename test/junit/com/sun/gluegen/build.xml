@@ -4,25 +4,28 @@
 
     <description>Tests GlueGen</description>
 
-    <property name="gluegen.root" value="${basedir}" />
-    <property name="build.dir" value="${gluegen.root}/build/test/build" />
-    <property name="src.dir"   value="${gluegen.root}/build/test/gensrc/java" />
+    <property name="gluegen.root"   value="${basedir}" />
+    <property name="src.dir"        value="${gluegen.root}/build/test/gensrc/java" />
+    <property name="build.dir"      value="${gluegen.root}/build/test/build" />
 
     <!-- Pull in GlueGen cpptasks build file -->
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
 
-    <target name="compile.java" depends="c.configure.linux">
+    <target name="compile.java">
         
         <echo message=" - - - compiling java files - - - "/>
+
         <property name="build.dir.java" value="${build.dir}/classes"/>
+
         <echo message="src: ${src.dir} "/>
         <echo message="build: ${build.dir.java} "/>
+        <echo message="jdkhome: ${jdk.home} "/>
 
         <mkdir dir="${build.dir.java}"/>
 
-        <javac destdir="${build.dir.java}" source="1.5" debug="true" verbose="true" debuglevel="lines,vars,source">
+        <javac destdir="${build.dir.java}" source="1.5" failonerror="true" debug="true" verbose="true" debuglevel="lines,vars,source">
             <src path="${src.dir}"/>
-            <classpath path="${basedir}/build/test/build/java:${basedir}/build/classes:${basedir}/build/test/gensrc/java:${basedir}/lib/antlr-2.7.7.jar:${basedir}/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <classpath path="${gluegen.root}/build/classes:${src.dir}:${gluegen.root}/build/antlr-3.2.jar:${gluegen.root}/make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
 
         <echo message=" - - - java files compiled - - - "/>

@@ -14,14 +14,16 @@ import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
 import javax.tools.ToolProvider;
 import junit.framework.Assert;
+import org.junit.AfterClass;
 import org.junit.Test;
 import static java.lang.System.*;
+import static com.sun.gluegen.BuildUtil.*;
 
 /**
  *
  * @author Michael Bien
  */
-public class StructAccessorTest extends AbstractTest {
+public class StructAccessorTest {
 
     @Test
     public void generateStruct() {
@@ -30,13 +32,13 @@ public class StructAccessorTest extends AbstractTest {
 
     @Test
     public void compileStructJava() {
-        super.compileJava();
+        compileJava();
     }
 
     @Test
     public void compileStructNatives() {
         // this will only copy gluegen-rt to the right place
-        super.compileNatives();
+        compileNatives();
     }
 
     @Test
@@ -58,7 +60,7 @@ public class StructAccessorTest extends AbstractTest {
     // yeah, java 6 has even a compiler api...
     private void compile(File[] files, String destination) throws IOException {
 
-        out.println("compiling files:\n" + Arrays.asList(files));
+        out.println("compiling files:\n    " + Arrays.asList(files));
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<JavaFileObject>();
@@ -66,15 +68,17 @@ public class StructAccessorTest extends AbstractTest {
 
         Iterable<? extends JavaFileObject> fileObj = fileManager.getJavaFileObjects(files);
 
-        compiler.getTask(   new OutputStreamWriter(out),
-                            fileManager,
-                            collector,
-                            Arrays.asList("-d", destination/*, "-verbose"*/),
-                            null,
-                            fileObj ).call();
+        boolean success = compiler.getTask( new OutputStreamWriter(out),
+                                            fileManager,
+                                            collector,
+                                            Arrays.asList("-d", destination/*, "-verbose"*/),
+                                            null,
+                                            fileObj ).call();
+
+        fileManager.close();
 
         List<Diagnostic<? extends JavaFileObject>> list = collector.getDiagnostics();
-        if(!list.isEmpty()) {
+        if(!list.isEmpty() || !success) {
             for (Diagnostic<? extends JavaFileObject> d : list) {
                 out.println("Error on line "+ d.getLineNumber());
                 out.println("Compiler Message:\n"+d.getMessage(Locale.ENGLISH));
@@ -82,12 +86,13 @@ public class StructAccessorTest extends AbstractTest {
             Assert.fail("compilation failed");
         }
 
-        fileManager.close();
-
         out.println("done");
 
     }
 
-
+    @AfterClass
+    public static void tearDown() {
+//        cleanGeneratedFiles();
+    }
 
 }

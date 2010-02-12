@@ -78,6 +78,7 @@ public class GlueGen implements GlueEmitterControls {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public void run(String[] args) {
     try {
       Reader reader = null;
@@ -338,7 +339,7 @@ public class GlueGen implements GlueEmitterControls {
     }
   }
   
-  public static void main(String[] args) {
+  public static void main(String... args) {
       new GlueGen().run(args);
   }
 

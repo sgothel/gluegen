@@ -6,14 +6,16 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import org.junit.AfterClass;
 import org.junit.Test;
 import static java.lang.System.*;
+import static com.sun.gluegen.BuildUtil.*;
 
 /**
  *
  * @author Michael Bien
  */
-public class BasicTest extends AbstractTest {
+public class BasicTest {
 
     @Test
     public void generateBindingTest() {
@@ -96,6 +98,11 @@ public class BasicTest extends AbstractTest {
             out.println("success");
         }
 
+    }
+
+    @AfterClass
+    public static void tearDown() {
+//        cleanGeneratedFiles();
     }
 
 }
