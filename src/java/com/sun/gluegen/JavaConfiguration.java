@@ -214,7 +214,7 @@ public class JavaConfiguration {
       }
 
       if (className == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
-        throw new RuntimeException("Output class name was not specified in configuration file \"" + filename + "\"");
+//        throw new RuntimeException("Output class name was not specified in configuration file \"" + filename + "\"");
       }
       if (packageName == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
         throw new RuntimeException("Output package name was not specified in configuration file \"" + filename + "\"");
@@ -266,6 +266,10 @@ public class JavaConfiguration {
     /** Returns the implementation class name parsed from the configuration file. */
     public String implClassName() {
         return implClassName;
+    }
+
+    public boolean structsOnly() {
+        return className == null && implClassName == null;
     }
 
     /** Returns the Java code output directory parsed from the configuration file. */

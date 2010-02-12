@@ -132,36 +132,40 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  public void beginEmission(GlueEmitterControls controls) throws IOException  {
-    try {
-      openWriters();
-    } catch (Exception e)  {
-      throw new RuntimeException("Unable to open files for writing", e);
+    public void beginEmission(GlueEmitterControls controls) throws IOException {
+
+        // Request emission of any structs requested
+        for (String structs : cfg.forcedStructs()) {
+            controls.forceStructEmission(structs);
+        }
+
+        if (!cfg.structsOnly()) {
+            try {
+                openWriters();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to open files for writing", e);
+            }
+            emitAllFileHeaders();
+
+            // Handle renaming of constants
+            controls.runSymbolFilter(new ConstantRenamer());
+        }
     }
 
-    emitAllFileHeaders();
+    public void endEmission() {
+        if (!cfg.structsOnly()) {
+            emitAllFileFooters();
 
-    // Request emission of any structs requested
-    for (String structs : cfg.forcedStructs()) {
-      controls.forceStructEmission(structs);
+            try {
+                closeWriters();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to close open files", e);
+            }
+        }
     }
-
-    // Handle renaming of constants
-    controls.runSymbolFilter(new ConstantRenamer());
-  }
-
-  public void endEmission()  {
-    emitAllFileFooters();
-
-    try  {
-      closeWriters();
-    } catch (Exception e)  {
-      throw new RuntimeException("Unable to close open files", e);
-    }
-  }
 
   public void beginDefines() throws Exception {
-    if (cfg.allStatic() || cfg.emitInterface()) {
+    if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
       javaWriter().println();
     }
   }
@@ -362,10 +366,12 @@ public class JavaEmitter implements GlueEmitter {
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
                              Map<Type, Type> canonMap) throws Exception {
+
     this.typedefDictionary = typedefDictionary;
     this.structDictionary  = structDictionary;
     this.canonMap          = canonMap;
-    if (cfg.allStatic() || cfg.emitInterface()) {
+
+    if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
       javaWriter().println();
     }
   }
@@ -778,13 +784,14 @@ public class JavaEmitter implements GlueEmitter {
   }
 
 
-  public void endFunctions() throws Exception
-  {
-    if (cfg.allStatic() || cfg.emitInterface()) {
-      emitCustomJavaCode(javaWriter(), cfg.className());
-    }
-    if (!cfg.allStatic() && cfg.emitImpl()) {
-      emitCustomJavaCode(javaImplWriter(), cfg.implClassName());
+  public void endFunctions() throws Exception {
+    if (!cfg.structsOnly()) {
+        if (cfg.allStatic() || cfg.emitInterface()) {
+            emitCustomJavaCode(javaWriter(), cfg.className());
+        }
+        if (!cfg.allStatic() && cfg.emitImpl()) {
+            emitCustomJavaCode(javaImplWriter(), cfg.implClassName());
+        }
     }
   }
 
@@ -1069,7 +1076,7 @@ public class JavaEmitter implements GlueEmitter {
           }
 
           writer.println();
-          writer.print("  public " + (doBaseClass ? "abstract " : "") + fieldType.getName() + " get" + capitalizeString(fieldName) + "()");
+          generateGetterSignature(writer, doBaseClass, fieldType.getName(), capitalizeString(fieldName));
           if (doBaseClass) {
             writer.println(";");
           } else {
@@ -1078,12 +1085,46 @@ public class JavaEmitter implements GlueEmitter {
                            field.getOffset(intMachDesc) + ", " + fieldType.getSize(intMachDesc) + "));");
             writer.println("  }");
           }
-          // FIXME: add setter by autogenerating "copyTo" for all compound type wrappers
+
         } else if (fieldType.isArray()) {
-          if (!doBaseClass) {
-            System.err.println("WARNING: Array fields (field \"" + field + "\" of type \"" + name +
-                               "\") not implemented yet");
-          }
+
+            Type baseElementType = field.getType().asArray().getBaseElementType();
+
+            if(!baseElementType.isPrimitive())
+                break;
+
+            String paramType = typeToJavaType(baseElementType, false, extMachDesc).getName();
+            String capitalized = capitalizeString(fieldName);
+
+            int slot = -1;
+            if(!doBaseClass) {
+              slot = slot(fieldType, (int) field.getOffset(intMachDesc), intMachDesc);
+            }
+
+            // Setter
+            writer.println();
+            generateSetterSignature(writer, doBaseClass, containingTypeName, capitalized, paramType+"[]");
+            if (doBaseClass) {
+              writer.println(";");
+            } else {
+              writer.println(" {");
+              writer.print  ("    accessor.set" + capitalizeString(paramType) + "sAt(" + slot + ", ");
+              writer.println("val);");
+              writer.println("    return this;");
+              writer.println("  }");
+            }
+            writer.println();
+            // Getter
+            generateGetterSignature(writer, doBaseClass, paramType+"[]", capitalized);
+            if (doBaseClass) {
+              writer.println(";");
+            } else {
+              writer.println(" {");
+              writer.print  ("    return ");
+              writer.println("accessor.get" + capitalizeString(paramType) + "sAt(" + slot + ", new " +paramType+"["+fieldType.asArray().getLength()+"]);");
+              writer.println("  }");
+            }
+
         } else {
           JavaType internalJavaType = null;
           JavaType externalJavaType = null;
@@ -1124,7 +1165,7 @@ public class JavaEmitter implements GlueEmitter {
             writer.println();
             String capitalizedFieldName = capitalizeString(fieldName);
             // Setter
-            writer.print("  public " + (doBaseClass ? "abstract " : "") + containingTypeName + " set" + capitalizedFieldName + "(" + externalJavaTypeName + " val)");
+            generateSetterSignature(writer, doBaseClass, containingTypeName, capitalizedFieldName, externalJavaTypeName);
             if (doBaseClass) {
               writer.println(";");
             } else {
@@ -1139,7 +1180,7 @@ public class JavaEmitter implements GlueEmitter {
             }
             writer.println();
             // Getter
-            writer.print("  public " + (doBaseClass ? "abstract " : "") + externalJavaTypeName + " get" + capitalizedFieldName + "()");
+            generateGetterSignature(writer, doBaseClass, externalJavaTypeName, capitalizedFieldName);
             if (doBaseClass) {
               writer.println(";");
             } else {
@@ -1199,6 +1240,14 @@ public class JavaEmitter implements GlueEmitter {
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+    private void generateGetterSignature(PrintWriter writer, boolean baseClass, String returnTypeName, String capitalizedFieldName) {
+        writer.print("  public " + (baseClass ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "()");
+    }
+
+    private void generateSetterSignature(PrintWriter writer, boolean baseClass, String returnTypeName, String capitalizedFieldName, String paramTypeName) {
+        writer.print("  public " + (baseClass ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(" + paramTypeName + " val)");
+    }
 
   private JavaType typeToJavaType(Type cType, boolean outgoingArgument, MachineDescription curMachDesc) {
     // Recognize JNIEnv* case up front
@@ -1372,6 +1421,8 @@ public class JavaEmitter implements GlueEmitter {
       return byteOffset / 8;
     } else if (t.isPointer()) {
       return byteOffset / curMachDesc.pointerSizeInBytes();
+    } else if (t.isArray()) {
+      return slot(t.asArray().getBaseElementType(), byteOffset, curMachDesc);
     } else {
       throw new RuntimeException("Illegal type " + t);
     }

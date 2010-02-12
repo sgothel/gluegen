@@ -143,6 +143,71 @@ public class StructAccessor {
     shortBuffer().put(slot, v);
   }
 
+  public void setBytesAt(int slot, byte[] v) {
+      for (int i = 0; i < v.length; i++) {
+        bb.put(slot++, v[i]);
+      }
+  }
+
+  public byte[] getBytesAt(int slot, byte[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = bb.get(slot++);
+      }
+      return v;
+  }
+
+  public void setCharsAt(int slot, char[] v) {
+      for (int i = 0; i < v.length; i++) {
+        charBuffer().put(slot++, v[i]);
+      }
+  }
+
+  public char[] getCharsAt(int slot, char[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = charBuffer().get(slot++);
+      }
+      return v;
+  }
+
+  public void setIntsAt(int slot, int[] v) {
+      for (int i = 0; i < v.length; i++) {
+        intBuffer().put(slot++, v[i]);
+      }
+  }
+
+  public int[] getIntsAt(int slot, int[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = intBuffer().get(slot++);
+      }
+      return v;
+  }
+
+  public void setFloatsAt(int slot, float[] v) {
+      for (int i = 0; i < v.length; i++) {
+        floatBuffer().put(slot++, v[i]);
+      }
+  }
+
+  public float[] getFloatsAt(int slot, float[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = floatBuffer().get(slot++);
+      }
+      return v;
+  }
+
+  public void setDoublesAt(int slot, double[] v) {
+      for (int i = 0; i < v.length; i++) {
+        doubleBuffer().put(slot++, v[i]);
+      }
+  }
+
+  public double[] getDoublesAt(int slot, double[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = doubleBuffer().get(slot++);
+      }
+      return v;
+  }
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
