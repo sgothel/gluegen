@@ -149,7 +149,7 @@ public class GlueGen implements GlueEmitterControls {
       GnuCParser parser = new GnuCParser(lexer);
             
       // set AST node type to TNode or get nasty cast class errors
-      parser.setASTNodeType(TNode.class.getName());
+      parser.setASTNodeClass(TNode.class.getName());
       TNode.setTokenVocabulary(GNUCTokenTypes.class.getName());
 
       // invoke parser
@@ -167,7 +167,7 @@ public class GlueGen implements GlueEmitterControls {
       TypeDictionary sd = new TypeDictionary();
       headerParser.setStructDictionary(sd);
       // set AST node type to TNode or get nasty cast class errors
-      headerParser.setASTNodeType(TNode.class.getName());
+      headerParser.setASTNodeClass(TNode.class.getName());
       // walk that tree
       headerParser.translationUnit( parser.getAST() );
 

@@ -72,7 +72,7 @@ public class PCPP {
         contain either macro definitions or expressions) are currently
         not handled. */
     private Map<String, String> defineMap          = new HashMap<String, String>(128);
-//    private Map<String, Macro>  macroMap           = new HashMap<String, Macro>(128);
+    private Map<String, Macro>  macroMap           = new HashMap<String, Macro>(128);
     private Set<String>         nonConstantDefines = new HashSet<String>(128);
 
     /** List containing the #include paths as Strings */
@@ -201,7 +201,7 @@ public class PCPP {
         }
 
     }
-/*
+
     private static class Macro {
 
         private final List<String> values;
@@ -218,7 +218,6 @@ public class PCPP {
         }
 
     }
-*/
 
     // Accessors
 
@@ -339,11 +338,12 @@ public class PCPP {
                 if (newS == null) {
                     newS = s;
                 }
-                /*
+                
                 Macro macro = macroMap.get(newS);
                 if(macro != null) {
+                    newS = "";
                     List<String> args = new ArrayList<String>();
-                    while (nextToken(true) != StreamTokenizer.TT_EOL) {
+                    while (nextToken() != StreamTokenizer.TT_EOL) {
                         String token = curTokenAsString();
                         if(")".equals(token)) {
                             break;
@@ -371,7 +371,7 @@ public class PCPP {
 
                     }
 
-                }*/
+                }
 
                 print(newS);
             }
@@ -443,21 +443,35 @@ public class PCPP {
     }
 
     private void handleDefine() throws IOException {
+
+        // (workaround for not having a lookahead)
+        // macro functions have no space between identifier and '('
+        // since whitespace is our delimiter we can't determine wether we are dealing with
+        // macros or normal defines starting with a brace.
+        // this will glue the brace to the token if there is no whitespace between both
+        state.tok.wordChars('(', '(');
+
         // Next token is the name of the #define
         String name = nextWord();
 
-        // read the next char even when it is a space
-        // we need this to determine wether we have a macro definition <name>'('..
-        // macro functions have no space between identifier and '(', we would otherwise mix them with casts
-//        initTokenizer(state.tok, false);
-//        state.tok.nextToken();
-//        boolean macroDef = state.curToken() == '(';
-//        state.tok.pushBack();
-//        initTokenizer(state.tok, true);
+        boolean macroDefinition = name.contains("(");
 
         //System.err.println("IN HANDLE_DEFINE: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");
         // (Note that this is not actually proper handling for multi-line #defines)
         List<String> values = new ArrayList<String>();
+
+        if(macroDefinition) {
+            int index = name.indexOf('(');
+            String var = name.substring(index+1);
+            name = name.substring(0, index);
+
+            values.add("(");
+            values.add(var);
+        }
+
+        // restore normal syntax
+        state.tok.ordinaryChar('(');
+
         while (nextToken(true) != StreamTokenizer.TT_EOL) {
             values.add(curTokenAsString());
         }
@@ -515,8 +529,8 @@ public class PCPP {
                         emitDefine = false;
                     }
                 }
-            /*
-            } else if (macroDef) {
+            
+            } else if (macroDefinition) {
 
                 // list parameters
                 List<String> params = new ArrayList<String>();
@@ -524,7 +538,7 @@ public class PCPP {
                     String v = values.get(i);
                     if(")".equals(v)) { // end of params
                         if(i != values.size()-1) {
-                            values = values.subList(i+1, values.size()-1);
+                            values = values.subList(i+1, values.size());
                         }else{
                             values = Collections.emptyList();
                         }
@@ -541,7 +555,7 @@ public class PCPP {
                                        oldDef + "\" to \"" + macro + "\"");
                 }
                 emitDefine = false;
-             */
+             
             }else{
 
                 // find constant expressions like (1 << 3)
