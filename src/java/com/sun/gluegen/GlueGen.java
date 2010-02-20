@@ -154,15 +154,11 @@ public class GlueGen implements GlueEmitterControls {
 
       // invoke parser
       try {
-        parser.translationUnit();
-      }
-      catch (RecognitionException e) {
-        System.err.println("Fatal IO error:\n"+e);
-        System.exit(1);
-      }
-      catch (TokenStreamException e) {
-        System.err.println("Fatal IO error:\n"+e);
-        System.exit(1);
+          parser.translationUnit();
+      } catch (RecognitionException e) {
+          throw new RuntimeException("Fatal IO error", e);
+      } catch (TokenStreamException e) {
+          throw new RuntimeException("Fatal IO error", e);
       }
 
       HeaderParser headerParser = new HeaderParser();
@@ -190,9 +186,7 @@ public class GlueGen implements GlueEmitterControls {
         try {
           emit = (GlueEmitter) Class.forName(emitterClass).newInstance();
         } catch (Exception e) {
-          System.err.println("Exception occurred while instantiating emitter class. Exiting.");
-          e.printStackTrace();
-          System.exit(1);
+          throw new RuntimeException("Exception occurred while instantiating emitter class.", e);
         }
       }
 
@@ -333,9 +327,7 @@ public class GlueGen implements GlueEmitterControls {
       emit.endEmission();
 
     } catch ( Exception e ) {
-      e.printStackTrace();
-      System.err.println("Exception occurred while generating glue code. Exiting.");
-      System.exit(1);
+      throw new RuntimeException("Exception occurred while generating glue code.", e);
     }
   }
   

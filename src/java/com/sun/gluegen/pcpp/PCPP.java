@@ -39,23 +39,51 @@
 
 package com.sun.gluegen.pcpp;
 
-import java.io.*;
-import java.util.*;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.StreamTokenizer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /** A minimal pseudo-C-preprocessor designed in particular to preserve
     #define statements defining constants so they can be observed by a
     glue code generator. */
 
 public class PCPP {
+
     private static final boolean disableDebugPrint = true;
+
+    /** Map containing the results of #define statements. We must
+        evaluate certain very simple definitions (to properly handle
+        OpenGL's gl.h) but preserve the text of definitions evaluating
+        to constants.  Macros and multi-line defines (which typically
+        contain either macro definitions or expressions) are currently
+        not handled. */
+    private Map<String, String> defineMap          = new HashMap<String, String>(128);
+//    private Map<String, Macro>  macroMap           = new HashMap<String, Macro>(128);
+    private Set<String>         nonConstantDefines = new HashSet<String>(128);
+
+    /** List containing the #include paths as Strings */
+    private List<String> includePaths;
+
+    private ParseState  state;
 
     public PCPP(List<String> includePaths) {
         this.includePaths = includePaths;
         setOut(System.out);
     }
-
-    public OutputStream out()                    { return out;     }
-    public void         setOut(OutputStream out) { this.out = out; writer = new PrintWriter(out); }
 
     public void run(Reader reader, String filename) throws IOException {
         StreamTokenizer tok = null;
@@ -65,20 +93,10 @@ public class PCPP {
         } else {
             bufReader = new BufferedReader(reader);
         }
+
         tok = new StreamTokenizer(new ConcatenatingReader(bufReader));
-        tok.resetSyntax();
-        tok.wordChars('a', 'z');
-        tok.wordChars('A', 'Z');
-        tok.wordChars('0', '9');
-        tok.wordChars('_', '_');
-        tok.wordChars('-', '.');
-        tok.wordChars(128 + 32, 255);
-        tok.whitespaceChars(0, ' ');
-        tok.quoteChar('"');
-        tok.quoteChar('\'');
-        tok.eolIsSignificant(true);
-        tok.slashSlashComments(true);
-        tok.slashStarComments(true);
+        initTokenizer(tok);
+
         ParseState curState = new ParseState(tok, filename);
         ParseState oldState = state;
         state = curState;
@@ -90,46 +108,20 @@ public class PCPP {
         }
     }
 
-    public static void main(String[] args) {
-        try {
-            Reader reader = null;
-            String filename = null;
-
-            if (args.length == 0) {
-                usage();
-            }
-
-            List<String> includePaths = new ArrayList<String>();
-            for (int i = 0; i < args.length; i++) {
-                if (i < args.length - 1) {
-                    String arg = args[i];
-                    if (arg.startsWith("-I")) {
-                        String[] paths = arg.substring(2).split(System.getProperty("path.separator"));
-                        for (int j = 0; j < paths.length; j++) {
-                            includePaths.add(paths[j]);
-                        }
-                    } else {
-                        usage();
-                    }
-                } else {
-                    String arg = args[i];
-                    if (arg.equals("-")) {
-                        reader = new InputStreamReader(System.in);
-                        filename = "standard input";
-                    } else {
-                        if (arg.startsWith("-")) {
-                            usage();
-                        }
-                        filename = arg;
-                        reader = new BufferedReader(new FileReader(filename));
-                    }
-                }
-            }
-
-            new PCPP(includePaths).run(reader, filename);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void initTokenizer(StreamTokenizer tok) {
+        tok.resetSyntax();
+        tok.wordChars('a', 'z');
+        tok.wordChars('A', 'Z');
+        tok.wordChars('0', '9');
+        tok.wordChars('_', '_');
+        tok.wordChars('-', '.');
+        tok.wordChars(128, 255);
+        tok.whitespaceChars(0, ' ');
+        tok.quoteChar('"');
+        tok.quoteChar('\'');
+        tok.eolIsSignificant(true);
+        tok.slashSlashComments(true);
+        tok.slashStarComments(true);
     }
 
     public String findFile(String filename) {
@@ -144,36 +136,22 @@ public class PCPP {
         return null;
     }
 
-    //----------------------------------------------------------------------
-    // Internals only below this point
-    //
-
-    private static void usage() {
-        System.out.println("Usage: java PCPP [filename | -]");
-        System.out.println("Minimal pseudo-C-preprocessor.");
-        System.out.println("Output goes to standard output. Standard input can be used as input");
-        System.out.println("by passing '-' as the argument.");
-        System.exit(1);
+    public OutputStream out() {
+        return out;
     }
 
-    /** Map containing the results of #define statements. We must
-        evaluate certain very simple definitions (to properly handle
-        OpenGL's gl.h) but preserve the text of definitions evaluating
-        to constants.  Macros and multi-line defines (which typically
-        contain either macro definitions or expressions) are currently
-        not handled. */
-    private Map<String, String> defineMap          = new HashMap<String, String>(128);
-    private Set<String>         nonConstantDefines = new HashSet<String>(128);
-
-    /** List containing the #include paths as Strings */
-    private List<String> includePaths;
+    public void setOut(OutputStream out) {
+        this.out = out;
+        writer = new PrintWriter(out);
+    }
 
     // State
     static class ParseState {
+
         private StreamTokenizer tok;
-        private String          filename;
-        private boolean         startOfLine;
-        private boolean         startOfFile;
+        private String filename;
+        private boolean startOfLine;
+        private boolean startOfFile;
 
         ParseState(StreamTokenizer tok, String filename) {
             this.tok = tok;
@@ -182,22 +160,67 @@ public class PCPP {
             startOfFile = true;
         }
 
-        StreamTokenizer tok()                       { return tok;          }
-        String          filename()                  { return filename;     }
-        int             lineNumber()                { return tok.lineno(); }
-        boolean         startOfLine()               { return startOfLine;  }
-        void            setStartOfLine(boolean val) { startOfLine = val;   }
-        boolean         startOfFile()               { return startOfFile;  }
-        void            setStartOfFile(boolean val) { startOfFile = val;   }
-    }
+        void pushBackToken() throws IOException {
+            tok.pushBack();
+        }
 
-    private ParseState  state;
+        int curToken() {
+            return tok.ttype;
+        }
+
+        int nextToken() throws IOException {
+            return tok.nextToken();
+        }
+
+        String curWord() {
+            return tok.sval;
+        }
+
+        String filename() {
+            return filename;
+        }
+
+        int lineNumber() {
+            return tok.lineno();
+        }
+
+        boolean startOfLine() {
+            return startOfLine;
+        }
+
+        void setStartOfLine(boolean val) {
+            startOfLine = val;
+        }
+
+        boolean startOfFile() {
+            return startOfFile;
+        }
+
+        void setStartOfFile(boolean val) {
+            startOfFile = val;
+        }
+
+    }
+/*
+    private static class Macro {
+
+        private final List<String> values;
+        private final List<String> params;
+
+        public Macro(List<String> params, List<String> values) {
+            this.values = values;
+            this.params = params;
+        }
+
+        @Override
+        public String toString() {
+            return "params: "+params+" values: "+values;
+        }
+
+    }
+*/
 
     // Accessors
-
-    private void pushBackToken() throws IOException {
-        state.tok().pushBack();
-    }
 
     /** Equivalent to nextToken(false) */
     private int nextToken() throws IOException {
@@ -208,18 +231,18 @@ public class PCPP {
         int lineno = lineNumber();
         // Check to see whether the previous call to nextToken() left an
         // EOL on the stream
-        if (curToken() == StreamTokenizer.TT_EOL) {
+        if (state.curToken() == StreamTokenizer.TT_EOL) {
             state.setStartOfLine(true);
         } else if (!state.startOfFile()) {
             state.setStartOfLine(false);
         }
         state.setStartOfFile(false);
-        int val = state.tok().nextToken();
+        int val = state.nextToken();
         if (!returnEOLs) {
             if (val == StreamTokenizer.TT_EOL) {
                 do {
                     // Consume and return next token, setting state appropriately
-                    val = state.tok().nextToken();
+                    val = state.nextToken();
                     state.setStartOfLine(true);
                     println();
                 } while (val == StreamTokenizer.TT_EOL);
@@ -251,14 +274,11 @@ public class PCPP {
         }
     }
 
-    private int curToken() {
-        return state.tok().ttype;
-    }
 
     private String curTokenAsString() {
-        int t = curToken();
+        int t = state.curToken();
         if (t == StreamTokenizer.TT_WORD) {
-            return curWord();
+            return state.curWord();
         }
         if (t == StreamTokenizer.TT_EOL) {
             throw new RuntimeException("Should not be converting EOL characters to strings");
@@ -267,7 +287,7 @@ public class PCPP {
         if (c == '"' || c == '\'') {
             StringBuilder sb = new StringBuilder();
             sb.append(c);
-            sb.append(state.tok().sval);
+            sb.append(state.curWord());
             sb.append(c);
             return sb.toString();
         }
@@ -280,11 +300,7 @@ public class PCPP {
             throw new RuntimeException("Expected word at file " + filename() +
                                        ", line " + lineNumber());
         }
-        return curWord();
-    }
-
-    private String curWord() {
-        return state.tok().sval;
+        return state.curWord();
     }
 
     private boolean startOfLine() {
@@ -323,6 +339,40 @@ public class PCPP {
                 if (newS == null) {
                     newS = s;
                 }
+                /*
+                Macro macro = macroMap.get(newS);
+                if(macro != null) {
+                    List<String> args = new ArrayList<String>();
+                    while (nextToken(true) != StreamTokenizer.TT_EOL) {
+                        String token = curTokenAsString();
+                        if(")".equals(token)) {
+                            break;
+                        }else if(!",".equals(token) && !"(".equals(token)) {
+                            args.add(token);
+                        }
+                    }
+
+                    for (int i = 0; i < macro.values.size(); i++) {
+                        String value = macro.values.get(i);
+
+                        for (int j = 0; j < macro.params.size(); j++) {
+                            String param = macro.params.get(j);
+                            if(param.equals(value)) {
+                                value = args.get(j);
+                                break;
+                            }
+                        }
+
+                        if(isIdentifier(value)) {
+                            newS +=" ";
+                        }
+
+                        newS += value;
+
+                    }
+
+                }*/
+
                 print(newS);
             }
         }
@@ -395,6 +445,16 @@ public class PCPP {
     private void handleDefine() throws IOException {
         // Next token is the name of the #define
         String name = nextWord();
+
+        // read the next char even when it is a space
+        // we need this to determine wether we have a macro definition <name>'('..
+        // macro functions have no space between identifier and '(', we would otherwise mix them with casts
+//        initTokenizer(state.tok, false);
+//        state.tok.nextToken();
+//        boolean macroDef = state.curToken() == '(';
+//        state.tok.pushBack();
+//        initTokenizer(state.tok, true);
+
         //System.err.println("IN HANDLE_DEFINE: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");
         // (Note that this is not actually proper handling for multi-line #defines)
         List<String> values = new ArrayList<String>();
@@ -455,7 +515,34 @@ public class PCPP {
                         emitDefine = false;
                     }
                 }
-            } else {
+            /*
+            } else if (macroDef) {
+
+                // list parameters
+                List<String> params = new ArrayList<String>();
+                for (int i = 1; i < values.size(); i++) {
+                    String v = values.get(i);
+                    if(")".equals(v)) { // end of params
+                        if(i != values.size()-1) {
+                            values = values.subList(i+1, values.size()-1);
+                        }else{
+                            values = Collections.emptyList();
+                        }
+                        break;
+                    }else if(!",".equals(v)) {
+                        params.add(v);
+                    }
+                }
+
+                Macro macro = new Macro(params, values);
+                Macro oldDef = macroMap.put(name, macro);
+                if (oldDef != null) {
+                    System.err.println("WARNING: \"" + name + "\" redefined from \"" +
+                                       oldDef + "\" to \"" + macro + "\"");
+                }
+                emitDefine = false;
+             */
+            }else{
 
                 // find constant expressions like (1 << 3)
                 // if found just pass them through, they will most likely work in java too
@@ -475,7 +562,7 @@ public class PCPP {
                     // Non-constant define; try to do reasonable textual substitution anyway
                     // (FIXME: should identify some of these, like (-1), as constants)
                     emitDefine = false;
-                    StringBuffer val = new StringBuffer();
+                    StringBuilder val = new StringBuilder();
                     for (int i = 0; i < sz; i++) {
                         if (i != 0) {
                             val.append(" ");
@@ -786,7 +873,7 @@ public class PCPP {
                     break;
                 case StreamTokenizer.TT_EOL:
                     //System.out.println("HANDLE_IF_RECURSIVE HIT <EOL>!");
-                    pushBackToken(); // so caller hits EOL as well if we're recursing
+                    state.pushBackToken(); // so caller hits EOL as well if we're recursing
                     break;
                 case StreamTokenizer.TT_EOF:
                     throw new RuntimeException("Unexpected end of file while parsing " +
@@ -814,7 +901,7 @@ public class PCPP {
         int t = nextToken();
         String filename = null;
         if (t == '"') {
-            filename = curWord();
+            filename = state.curWord();
         } else if (t == '<') {
             // Components of path name are coming in as separate tokens;
             // concatenate them
@@ -856,8 +943,7 @@ public class PCPP {
     private List<Boolean> enabledBits = new ArrayList<Boolean>();
 
     private static int debugPrintIndentLevel = 0;
-    private void debugPrint(boolean onlyPrintIfEnabled, String msg)
-    {
+    private void debugPrint(boolean onlyPrintIfEnabled, String msg)   {
         if (disableDebugPrint) {
             return;
         }
@@ -927,4 +1013,55 @@ public class PCPP {
         print("# " + lineNumber() + " \"" + filename() + "\"");
         println();
     }
+    
+    private static void usage() {
+        System.out.println("Usage: java PCPP [filename | -]");
+        System.out.println("Minimal pseudo-C-preprocessor.");
+        System.out.println("Output goes to standard output. Standard input can be used as input");
+        System.out.println("by passing '-' as the argument.");
+        System.exit(1);
+    }
+
+    public static void main(String[] args) {
+        try {
+            Reader reader = null;
+            String filename = null;
+
+            if (args.length == 0) {
+                usage();
+            }
+
+            List<String> includePaths = new ArrayList<String>();
+            for (int i = 0; i < args.length; i++) {
+                if (i < args.length - 1) {
+                    String arg = args[i];
+                    if (arg.startsWith("-I")) {
+                        String[] paths = arg.substring(2).split(System.getProperty("path.separator"));
+                        for (int j = 0; j < paths.length; j++) {
+                            includePaths.add(paths[j]);
+                        }
+                    } else {
+                        usage();
+                    }
+                } else {
+                    String arg = args[i];
+                    if (arg.equals("-")) {
+                        reader = new InputStreamReader(System.in);
+                        filename = "standard input";
+                    } else {
+                        if (arg.startsWith("-")) {
+                            usage();
+                        }
+                        filename = arg;
+                        reader = new BufferedReader(new FileReader(filename));
+                    }
+                }
+            }
+
+            new PCPP(includePaths).run(reader, filename);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
