@@ -264,7 +264,7 @@ public class JavaEmitter implements GlueEmitter {
     // "1.0d or 2759L", because parseXXX() methods don't allow the type
     // specifier character in the string.
     //
-    //char lastChar = value.charAt(value.length()-1);
+    char lastChar = value.charAt(value.length()-1);
 
     try {
       // see if it's a long or int
@@ -284,6 +284,10 @@ public class JavaEmitter implements GlueEmitter {
         radix = 10;
         parseValue = value;
       }
+      if(lastChar == 'u' || lastChar == 'U') {
+          parseValue = parseValue.substring(0, parseValue.length()-1);
+      }
+
       //System.err.println("parsing " + value + " as long w/ radix " + radix);
       long longVal = Long.parseLong(parseValue, radix);
       // if constant is small enough, store it as an int instead of a long
@@ -346,6 +350,7 @@ public class JavaEmitter implements GlueEmitter {
 
       String name = def.getName();
       String value = def.getValue();
+
       if (!cfg.shouldIgnoreInInterface(name)) {
         String type = getJavaType(name, value);
         if (optionalComment != null && optionalComment.length() != 0) {
@@ -354,7 +359,10 @@ public class JavaEmitter implements GlueEmitter {
         String suffix = "";
         if (type.equals("float") && !value.endsWith("f")) {
             suffix = "f";
+        }else if(value.endsWith("u") || value.endsWith("U")) {
+            value = value.substring(0, value.length()-1);
         }
+
         javaWriter().println("  public static final " + type + " " + name + " = " + value + suffix + ";");
       }
     }

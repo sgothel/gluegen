@@ -1,3 +1,4 @@
+#define GL_INVALID_INDEX 0xFFFFFFFFu
 
 typedef unsigned long foo;
 
