@@ -562,7 +562,7 @@
     <copy file="${antlr.jar}" todir="${build}" />
   </target>
 
-  <target name="all" depends="gluegen.build,test" />
+  <target name="all" depends="gluegen.build" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
@@ -570,7 +570,7 @@
     </delete>
   </target>    
 
-  <target name="test">
+  <target name="test" depends="init">
       <mkdir dir="${gluegen.root}/build/test/build/classes"/>
       <mkdir dir="${gluegen.root}/build/test/results"/>
 
