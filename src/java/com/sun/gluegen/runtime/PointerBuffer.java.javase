@@ -113,26 +113,6 @@ public class PointerBuffer {
     return res;
   }
 
-  /**
-   * Wraps pointer arrays created by native code.
-   * Note: In case this is not a 64bit system, each pointer is being converted. */
-  public static PointerBuffer wrapNative2Java(ByteBuffer src, boolean keepDirect) {
-    PointerBuffer res;
-    if (CPU.is32Bit()) {
-      // Must convert each pointer from 32-bit to 64-bit
-      IntBuffer buf = src.asIntBuffer();
-      int len = buf.capacity();
-      res = (src.isDirect() && keepDirect) ? PointerBuffer.allocateDirect(len) : PointerBuffer.allocate(len);
-      for (int i = 0; i < len; i++) {
-        res.put(i, buf.get(i));
-      }
-    } else {
-      res = new PointerBuffer(src);
-      res.updateBackup();
-    }
-    return res;
-  }
-
   public ByteBuffer getBuffer() {
     return bb;
   }
@@ -145,10 +125,11 @@ public class PointerBuffer {
     if(0>idx || idx>=capacity) {
         throw new IndexOutOfBoundsException();
     }
-    if(CPU.is32Bit())
+    if(CPU.is32Bit()) {
         return ((IntBuffer)pb).get(idx);
-    else
+    } else {
         return ((LongBuffer)pb).get(idx);
+    }
   }
 
   public long get() {
@@ -162,10 +143,11 @@ public class PointerBuffer {
         throw new IndexOutOfBoundsException();
     }
     backup[idx] = v;
-    if (CPU.is32Bit())
+    if(CPU.is32Bit()) {
         ((IntBuffer)pb).put(idx, (int)v);
-    else
+    } else {
         ((LongBuffer)pb).put(idx, v);
+    }
     return this;
   }
 
@@ -184,5 +166,4 @@ public class PointerBuffer {
   public static int elementSize() {
     return CPU.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
   }
-
 }

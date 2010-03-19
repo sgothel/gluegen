@@ -768,7 +768,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
             throw new RuntimeException("While emitting glue code for " + getName() +
                                        ": can not legally make pointers opaque to anything but longs");
           }
-          writer.println("    return PointerBuffer.wrapNative2Java(_res, false);");
+          writer.println("    return PointerBuffer.wrap(_res);");
         } else {
           String returnTypeName = returnType.getName().substring("java.nio.".length());
           writer.println("    return _res.as" + returnTypeName + "();");

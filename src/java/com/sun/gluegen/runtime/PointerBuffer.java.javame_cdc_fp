@@ -47,7 +47,9 @@ public class PointerBuffer {
   private PointerBuffer(ByteBuffer bb) {
     this.bb = bb;
     this.ib = bb.asIntBuffer();
-    capacity = bb.capacity()/BufferFactory.SIZEOF_LONG;
+
+    capacity = bb.capacity() / elementSize();
+
     position=0;
     backup = new long[capacity];
   }
@@ -93,36 +95,16 @@ public class PointerBuffer {
   }
 
   public static PointerBuffer allocate(int size) {
-      return new PointerBuffer(ByteBuffer.wrap(new byte[BufferFactory.SIZEOF_LONG * size]));
+      return new PointerBuffer(ByteBuffer.wrap(new byte[elementSize()* size]));
   }
 
   public static PointerBuffer allocateDirect(int size) {
-      return new PointerBuffer(BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG * size));
+      return new PointerBuffer(BufferFactory.newDirectByteBuffer(elementSize() * size));
   }
 
   public static PointerBuffer wrap(ByteBuffer src) {
     PointerBuffer res =  new PointerBuffer(src);
     res.updateBackup();
-    return res;
-  }
-
-  /** 
-   * Wraps pointer arrays created by native code.
-   * Note: In case this is not a 64bit system, each pointer is being converted. */
-  public static PointerBuffer wrapNative2Java(ByteBuffer src, boolean keepDirect) {
-    PointerBuffer res;
-    if (CPU.is32Bit()) {
-      // Must convert each pointer from 32-bit to 64-bit
-      IntBuffer buf = src.asIntBuffer();
-      int len = buf.capacity();
-      res = (src.isDirect() && keepDirect) ? PointerBuffer.allocateDirect(len) : PointerBuffer.allocate(len);
-      for (int i = 0; i < len; i++) {
-        res.put(i, buf.get(i));
-      }
-    } else {
-      res = new PointerBuffer(src);
-      res.updateBackup();
-    }
     return res;
   }
 
@@ -138,13 +120,17 @@ public class PointerBuffer {
     if(0>idx || idx>=capacity) {
         throw new IndexOutOfBoundsException();
     }
-    idx = idx << 1 ; // 8-byte to 4-byte offset
-    long lo = 0x00000000FFFFFFFFL & ( (long) ib.get(idx)   );
-    long hi = 0x00000000FFFFFFFFL & ( (long) ib.get(idx+1) );
-    if(BufferFactory.isLittleEndian()) {
-        return hi << 32 | lo ;
+    if(CPU.is32Bit()) {
+        return ib.get(idx);
+    } else {
+        idx = idx << 1 ; // 8-byte to 4-byte offset
+        long lo = 0x00000000FFFFFFFFL & ( (long) ib.get(idx)   );
+        long hi = 0x00000000FFFFFFFFL & ( (long) ib.get(idx+1) );
+        if(BufferFactory.isLittleEndian()) {
+            return hi << 32 | lo ;
+        }
+        return lo << 32 | hi ;
     }
-    return lo << 32 | hi ;
   }
 
   public long get() {
@@ -158,15 +144,19 @@ public class PointerBuffer {
         throw new IndexOutOfBoundsException();
     }
     backup[idx] = v;
-    idx = idx << 1 ; // 8-byte to 4-byte offset
-    int lo = (int) ( ( v       ) & 0x00000000FFFFFFFFL ) ;
-    int hi = (int) ( ( v >> 32 ) & 0x00000000FFFFFFFFL ) ;
-    if(BufferFactory.isLittleEndian()) {
-        ib.put(idx, lo);
-        ib.put(idx+1, hi);
+    if(CPU.is32Bit()) {
+        ib.put(idx, (int)v);
     } else {
-        ib.put(idx, hi);
-        ib.put(idx+1, lo);
+        idx = idx << 1 ; // 8-byte to 4-byte offset
+        int lo = (int) ( ( v       ) & 0x00000000FFFFFFFFL ) ;
+        int hi = (int) ( ( v >> 32 ) & 0x00000000FFFFFFFFL ) ;
+        if(BufferFactory.isLittleEndian()) {
+            ib.put(idx, lo);
+            ib.put(idx+1, hi);
+        } else {
+            ib.put(idx, hi);
+            ib.put(idx+1, lo);
+        }
     }
     return this;
   }
@@ -182,4 +172,9 @@ public class PointerBuffer {
       backup[i] = get(i);
     }
   }
+
+  public static int elementSize() {
+    return CPU.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
+  }
+
 }
