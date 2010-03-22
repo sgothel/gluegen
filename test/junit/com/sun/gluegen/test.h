@@ -1,4 +1,5 @@
-#define GL_INVALID_INDEX 0xFFFFFFFFu
+#define GL_INVALID_INDEX             0xFFFFFFFFu
+#define AL_FLANGER_DEFAULT_FEEDBACK (-0.5f)
 
 typedef unsigned long foo;
 

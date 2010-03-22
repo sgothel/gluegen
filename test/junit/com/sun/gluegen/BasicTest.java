@@ -2,12 +2,13 @@ package com.sun.gluegen;
 
 import com.sun.gluegen.runtime.BufferFactory;
 import com.sun.gluegen.runtime.PointerBuffer;
-import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.junit.AfterClass;
 import org.junit.Test;
+import static org.junit.Assert.*;
 import static java.lang.System.*;
 import static com.sun.gluegen.BuildUtil.*;
 
@@ -40,14 +41,19 @@ public class BasicTest {
         compileNatives();
     }
 
-//    @Test
-    public void bindingTest() throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException {
+    @Test
+    public void bindingTest() throws Exception {
 
         String nativesPath = gluegenRoot + "/build/test/build/natives";
         System.load(nativesPath + "/librofl.so");
 
-        Object bindingTest = Class.forName("test.BindingTest").newInstance();
+        Class<?> clazz = Class.forName("test.BindingTest");
 
+        assertEquals((long)0xFFFFFFFF,  clazz.getDeclaredField("GL_INVALID_INDEX").get(null));
+        assertEquals(-0.5f,             clazz.getDeclaredField("AL_FLANGER_DEFAULT_FEEDBACK").get(null));
+
+        // TODO fix Exception: ...Caused by: java.lang.UnsatisfiedLinkError: test.BindingTest.arrayTest0(JLjava/lang/Object;I)I
+        /*
         // test values
         ByteBuffer dbb = BufferFactory.newDirectByteBuffer(32);
         ByteBuffer bb  = ByteBuffer.allocate(32).order(ByteOrder.nativeOrder());
@@ -59,8 +65,10 @@ public class BasicTest {
         int offset = 0;
         long id = 42;
 
+
         // invoke everything public
-        Method[] methods = bindingTest.getClass().getDeclaredMethods();
+        Object bindingTest = clazz.newInstance();
+        Method[] methods = clazz.getDeclaredMethods();
 
         for (Method method : methods) {
 
@@ -91,13 +99,11 @@ public class BasicTest {
                 out.print(param+", ");
             out.println();
 
-            // TODO fix Exception: ...Caused by: java.lang.UnsatisfiedLinkError: test.BindingTest.arrayTest0(JLjava/lang/Object;I)I
-
             Object result = method.invoke(bindingTest, paramInstances);
             out.println("result: "+result);
             out.println("success");
         }
-
+        */
     }
 
     @AfterClass

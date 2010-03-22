@@ -121,4 +121,12 @@ public class ConstantDefinition {
         }
         aliases.add(alias);
     }
+
+    @Override
+    public String toString() {
+        return "ConstantDefinition [name " + name + " origName " + origName + " value " + value
+                + " aliasedNames " + aliasedNames + " aliases " + aliases
+                + " enumName " + enumName + " isEnum " + isEnum + "]";
+    }
+    
 }

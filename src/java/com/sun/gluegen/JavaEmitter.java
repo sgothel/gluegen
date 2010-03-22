@@ -357,10 +357,12 @@ public class JavaEmitter implements GlueEmitter {
           javaWriter().println("  /** " + optionalComment + " */");
         }
         String suffix = "";
-        if (type.equals("float") && !value.endsWith("f")) {
-            suffix = "f";
-        }else if(value.endsWith("u") || value.endsWith("U")) {
-            value = value.substring(0, value.length()-1);
+        if(!value.endsWith(")")) {
+            if (type.equals("float") && !value.endsWith("f")) {
+                suffix = "f";
+            }else if(value.endsWith("u") || value.endsWith("U")) {
+                value = value.substring(0, value.length()-1);
+            }
         }
 
         javaWriter().println("  public static final " + type + " " + name + " = " + value + suffix + ";");
