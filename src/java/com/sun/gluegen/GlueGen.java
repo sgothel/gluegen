@@ -36,7 +36,6 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-
 package com.sun.gluegen;
 
 import java.io.*;
@@ -47,311 +46,323 @@ import com.sun.gluegen.cgram.*;
 import com.sun.gluegen.cgram.types.*;
 import com.sun.gluegen.pcpp.*;
 
+import static java.lang.System.*;
+
 /** Glue code generator for C functions and data structures. */
-
 public class GlueGen implements GlueEmitterControls {
+
+    private List<String> forcedStructNames = new ArrayList<String>();
+    private PCPP preprocessor;
     
-  private List<String> forcedStructNames = new ArrayList<String>();
-  private PCPP preprocessor;
+    // State for SymbolFilters
+    private List<ConstantDefinition> constants;
+    private List<FunctionSymbol> functions;
 
-  // State for SymbolFilters
-  private List<ConstantDefinition> constants;
-  private List<FunctionSymbol> functions;
-
-  public void forceStructEmission(String typedefName) {
-    forcedStructNames.add(typedefName);
-  }
-
-  public String findHeaderFile(String headerFileName) {
-    return preprocessor.findFile(headerFileName);
-  }
-
-  public void runSymbolFilter(SymbolFilter filter) {
-    filter.filterSymbols(constants, functions);
-    List<ConstantDefinition> newConstants = filter.getConstants();
-    List<FunctionSymbol> newFunctions = filter.getFunctions();
-    if (newConstants != null) {
-      constants = newConstants;
+    public void forceStructEmission(String typedefName) {
+        forcedStructNames.add(typedefName);
     }
-    if (newFunctions != null) {
-      functions = newFunctions;
+
+    public String findHeaderFile(String headerFileName) {
+        return preprocessor.findFile(headerFileName);
     }
-  }
 
-  @SuppressWarnings("unchecked")
-  public void run(String[] args) {
-    try {
-      Reader reader = null;
-      String filename = null;
-      String emitterClass = null;
-      String outputRootDir = null;
-      List<String> cfgFiles = new ArrayList<String>();
-
-      if (args.length == 0) {
-        usage();
-      }
-
-      List<String> includePaths = new ArrayList<String>();
-      for (int i = 0; i < args.length; i++) {
-        if (i < args.length - 1) {
-          String arg = args[i];
-          if (arg.startsWith("-I")) {
-            String[] paths = arg.substring(2).split(System.getProperty("path.separator"));
-            for (int j = 0; j < paths.length; j++) {
-              includePaths.add(paths[j]);
-            }
-          } else if (arg.startsWith("-O")) {
-            outputRootDir = arg.substring(2);
-          } else if (arg.startsWith("-E")) {
-            emitterClass = arg.substring(2);
-          } else if (arg.startsWith("-C")) {
-            cfgFiles.add(arg.substring(2));
-          } else {
-            usage();
-          }
-        } else {
-          String arg = args[i];
-          if (arg.equals("-")) {
-            reader = new InputStreamReader(System.in);
-            filename = "standard input";
-          } else {
-            if (arg.startsWith("-")) {
-              usage();
-            }
-            filename = arg;
-            reader = new BufferedReader(new FileReader(filename));
-          }
+    public void runSymbolFilter(SymbolFilter filter) {
+        filter.filterSymbols(constants, functions);
+        List<ConstantDefinition> newConstants = filter.getConstants();
+        List<FunctionSymbol> newFunctions = filter.getFunctions();
+        if (newConstants != null) {
+            constants = newConstants;
         }
-      }
-
-      preprocessor = new PCPP(includePaths);
-      PipedInputStream ppIn   = new PipedInputStream();
-      final PipedOutputStream ppOut = new PipedOutputStream(ppIn);
-      preprocessor.setOut(ppOut);
-      final Reader rdr = reader;
-      final String fn  = filename;
-      new Thread(new Runnable() {
-          public void run() {
-            try {
-              preprocessor.run(rdr, fn);
-              ppOut.close();
-            } catch (IOException e) {
-              e.printStackTrace();
-            }
-          }
-        }).start();
-
-      DataInputStream dis = new DataInputStream(ppIn);
-      GnuCLexer lexer = new GnuCLexer(dis);
-      lexer.setTokenObjectClass(CToken.class.getName());
-      lexer.initialize();
-      // Parse the input expression.
-      GnuCParser parser = new GnuCParser(lexer);
-            
-      // set AST node type to TNode or get nasty cast class errors
-      parser.setASTNodeClass(TNode.class.getName());
-      TNode.setTokenVocabulary(GNUCTokenTypes.class.getName());
-
-      // invoke parser
-      try {
-          parser.translationUnit();
-      } catch (RecognitionException e) {
-          throw new RuntimeException("Fatal IO error", e);
-      } catch (TokenStreamException e) {
-          throw new RuntimeException("Fatal IO error", e);
-      }
-
-      HeaderParser headerParser = new HeaderParser();
-      TypeDictionary td = new TypeDictionary();
-      headerParser.setTypedefDictionary(td);
-      TypeDictionary sd = new TypeDictionary();
-      headerParser.setStructDictionary(sd);
-      // set AST node type to TNode or get nasty cast class errors
-      headerParser.setASTNodeClass(TNode.class.getName());
-      // walk that tree
-      headerParser.translationUnit( parser.getAST() );
-
-      // For debugging: Dump type dictionary and struct dictionary to System.err
-      //td.dumpDictionary(System.err, "All Types");
-      //sd.dumpDictionary(System.err, "All Structs");
-      
-      // At this point we have all of the pieces we need in order to
-      // generate glue code: the #defines to constants, the set of
-      // typedefs, and the set of functions.
-
-      GlueEmitter emit = null;
-      if (emitterClass == null) {
-        emit = new JavaEmitter();
-      } else {
-        try {
-          emit = (GlueEmitter) Class.forName(emitterClass).newInstance();
-        } catch (Exception e) {
-          throw new RuntimeException("Exception occurred while instantiating emitter class.", e);
+        if (newFunctions != null) {
+            functions = newFunctions;
         }
-      }
-
-      for (String cfgFile: cfgFiles) {
-        emit.readConfigurationFile(cfgFile);
-      }
-
-      if(null!=outputRootDir && outputRootDir.trim().length()>0) {
-        if(emit instanceof JavaEmitter) {
-          // FIXME: hack to interfere with the *Configuration setting via commandlines
-          JavaEmitter jemit = (JavaEmitter)emit;
-          if(null!=jemit.getConfig()) {
-            jemit.getConfig().setOutputRootDir(outputRootDir);
-          }
-        }
-      }
-
-      // Provide MachineDescriptions to emitter
-      MachineDescription md32 = new MachineDescription32Bit();
-      MachineDescription md64 = new MachineDescription64Bit();
-      emit.setMachineDescription(md32, md64);
-
-      // Repackage the enum and #define statements from the parser into a common format
-      // so that SymbolFilters can operate upon both identically
-      constants = new ArrayList<ConstantDefinition>();
-      for (Object elem: headerParser.getEnums()) {
-        EnumType enumeration = (EnumType)elem;
-        String enumName = enumeration.getName();
-        if (enumName.equals("<anonymous>")) {
-          enumName = null;
-        }
-        // iterate over all values in the enumeration
-        for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
-          String enumElementName = enumeration.getEnumName(i);
-          String value = String.valueOf(enumeration.getEnumValue(i));
-          constants.add(new ConstantDefinition(enumElementName, value, true, enumName));
-        }
-      }
-      for (Object elem : lexer.getDefines()) {
-        Define def = (Define)elem;
-        constants.add(new ConstantDefinition(def.getName(), def.getValue(), false, null));
-      }
-      
-      functions = headerParser.getParsedFunctions();
-
-      // begin emission of glue code
-      emit.beginEmission(this);
-      
-      emit.beginDefines();
-      Set<String> emittedDefines = new HashSet<String>(100);
-      // emit java equivalent of enum { ... } statements
-      for (ConstantDefinition def : constants) {
-        if (!emittedDefines.contains(def.getName())) {
-          emittedDefines.add(def.getName());
-          String comment = null;
-          Set<String> aliases = def.getAliases();
-          if (aliases != null) {
-              comment = "Alias for: <code>";
-              for (String alias : aliases) {
-                  comment += " " + alias;
-              }
-              comment += "</code>";
-          }
-          if (def.getEnumName() != null) {
-            String enumName = "Defined as part of enum type \"" +
-              def.getEnumName() + "\"";
-            if (comment == null) {
-                comment = enumName;
-            } else {
-                comment += "<br>\n" + enumName;
-            }
-          }
-          emit.emitDefine(def, comment);
-        }
-      }
-      emit.endDefines();
-
-      // Iterate through the functions finding structs that are referenced in 
-      // the function signatures; these will be remembered for later emission
-      ReferencedStructs referencedStructs = new ReferencedStructs();
-      for (FunctionSymbol sym : functions) {
-        // FIXME: this doesn't take into account the possibility that some of
-        // the functions we send to emitMethodBindings() might not actually be
-        // emitted (e.g., if an Ignore directive in the JavaEmitter causes it
-        // to be skipped). 
-        sym.getType().visit(referencedStructs);
-      }
-      
-      // Normally only referenced types will be emitted. The user can force a
-      // type to be emitted via a .cfg file directive. Those directives are
-      // processed here.
-      for (String name: forcedStructNames) {
-        Type type = td.get(name);
-        if (type == null) {
-          System.err.println("WARNING: during forced struct emission: struct \"" + name + "\" not found");
-        } else if (!type.isCompound()) {
-          System.err.println("WARNING: during forced struct emission: type \"" + name + "\" was not a struct");
-        } else {
-          type.visit(referencedStructs);
-        }
-      }
-      
-      // Lay out structs
-      emit.beginStructLayout();
-      for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext(); ) {
-        Type t = iter.next();
-        if (t.isCompound()) {
-          emit.layoutStruct(t.asCompound());
-        } else if (t.isPointer()) {
-          PointerType p = t.asPointer();
-          CompoundType c = p.getTargetType().asCompound();
-          emit.layoutStruct(c);
-        }
-      }
-      emit.endStructLayout();
-
-      // Emit structs      
-      emit.beginStructs(td, sd, headerParser.getCanonMap());
-      for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext(); ) {
-        Type t = iter.next();
-        if (t.isCompound()) {
-          emit.emitStruct(t.asCompound(), null);
-        } else if (t.isPointer()) {
-          PointerType p = t.asPointer();
-          CompoundType c = p.getTargetType().asCompound();
-          assert p.hasTypedefedName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
-          emit.emitStruct(c, p.getName());
-        }
-      }
-      emit.endStructs();
-
-      // emit java and C code to interface with the native functions
-      emit.beginFunctions(td, sd, headerParser.getCanonMap());
-      emit.emitFunctions(functions);
-      emit.endFunctions();
-
-      // end emission of glue code
-      emit.endEmission();
-
-    } catch ( Exception e ) {
-      throw new RuntimeException("Exception occurred while generating glue code.", e);
     }
-  }
+
   
-  public static void main(String... args) {
-      new GlueGen().run(args);
-  }
+    @SuppressWarnings("unchecked")
+    public void run(final Reader reader, final String filename, Class<?> emitterClass, List<String> includePaths, List<String> cfgFiles, String outputRootDir) {
 
-  //----------------------------------------------------------------------
-  // Internals only below this point
-  //
+        try {
+            final PipedInputStream ppIn = new PipedInputStream();
+            final PipedOutputStream ppOut = new PipedOutputStream(ppIn);
 
-  private static void usage() {
-    System.out.println("Usage: java GlueGen [-I...] [-Eemitter_class_name] [-Ccfg_file_name...] <filename | ->");
-    System.out.println();
-    System.out.println("Runs C header parser on input file or standard input, first");
-    System.out.println("passing input through minimal pseudo-C-preprocessor. Use -I");
-    System.out.println("command-line arguments to specify the search path for #includes.");
-    System.out.println("Emitter class name can be specified with -E option: i.e.,");
-    System.out.println("-Ecom.sun.gluegen.JavaEmitter (the default). Use");
-    System.out.println("-Ecom.sun.gluegen.DebugEmitter to print recognized entities");
-    System.out.println("(#define directives to constant numbers, typedefs, and function");
-    System.out.println("declarations) to standard output. Emitter-specific configuration");
-    System.out.println("file or files can be specified with -C option; e.g,");
-    System.out.println("-Cjava-emitter.cfg.");
-    System.exit(1);
-  }
+            preprocessor = new PCPP(includePaths);
+            preprocessor.setOut(ppOut);
+
+            new Thread("PCPP") {
+
+                @Override
+                public void run() {
+                    try {
+                        preprocessor.run(reader, filename);
+                        ppOut.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }.start();
+
+            DataInputStream dis = new DataInputStream(ppIn);
+            GnuCLexer lexer = new GnuCLexer(dis);
+            lexer.setTokenObjectClass(CToken.class.getName());
+            lexer.initialize();
+            // Parse the input expression.
+            GnuCParser parser = new GnuCParser(lexer);
+
+            // set AST node type to TNode or get nasty cast class errors
+            parser.setASTNodeClass(TNode.class.getName());
+            TNode.setTokenVocabulary(GNUCTokenTypes.class.getName());
+
+            // invoke parser
+            try {
+                parser.translationUnit();
+            } catch (RecognitionException e) {
+                throw new RuntimeException("Fatal IO error", e);
+            } catch (TokenStreamException e) {
+                throw new RuntimeException("Fatal IO error", e);
+            }
+
+            HeaderParser headerParser = new HeaderParser();
+            TypeDictionary td = new TypeDictionary();
+            headerParser.setTypedefDictionary(td);
+            TypeDictionary sd = new TypeDictionary();
+            headerParser.setStructDictionary(sd);
+            // set AST node type to TNode or get nasty cast class errors
+            headerParser.setASTNodeClass(TNode.class.getName());
+            // walk that tree
+            headerParser.translationUnit(parser.getAST());
+
+            // For debugging: Dump type dictionary and struct dictionary to System.err
+            //td.dumpDictionary(err, "All Types");
+            //sd.dumpDictionary(err, "All Structs");
+
+            // At this point we have all of the pieces we need in order to
+            // generate glue code: the #defines to constants, the set of
+            // typedefs, and the set of functions.
+
+            GlueEmitter emit = null;
+            if (emitterClass == null) {
+                emit = new JavaEmitter();
+            } else {
+                try {
+                    emit = (GlueEmitter) emitterClass.newInstance();
+                } catch (Exception e) {
+                    throw new RuntimeException("Exception occurred while instantiating emitter class.", e);
+                }
+            }
+
+            for (String config : cfgFiles) {
+                emit.readConfigurationFile(config);
+            }
+
+            if (null != outputRootDir && outputRootDir.trim().length() > 0) {
+                if (emit instanceof JavaEmitter) {
+                    // FIXME: hack to interfere with the *Configuration setting via commandlines
+                    JavaEmitter jemit = (JavaEmitter) emit;
+                    if (null != jemit.getConfig()) {
+                        jemit.getConfig().setOutputRootDir(outputRootDir);
+                    }
+                }
+            }
+
+            // Provide MachineDescriptions to emitter
+            MachineDescription md32 = new MachineDescription32Bit();
+            MachineDescription md64 = new MachineDescription64Bit();
+            emit.setMachineDescription(md32, md64);
+
+            // Repackage the enum and #define statements from the parser into a common format
+            // so that SymbolFilters can operate upon both identically
+            constants = new ArrayList<ConstantDefinition>();
+            for (Object elem : headerParser.getEnums()) {
+                EnumType enumeration = (EnumType) elem;
+                String enumName = enumeration.getName();
+                if (enumName.equals("<anonymous>")) {
+                    enumName = null;
+                }
+                // iterate over all values in the enumeration
+                for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
+                    String enumElementName = enumeration.getEnumName(i);
+                    String value = String.valueOf(enumeration.getEnumValue(i));
+                    constants.add(new ConstantDefinition(enumElementName, value, true, enumName));
+                }
+            }
+            for (Object elem : lexer.getDefines()) {
+                Define def = (Define) elem;
+                constants.add(new ConstantDefinition(def.getName(), def.getValue(), false, null));
+            }
+
+            functions = headerParser.getParsedFunctions();
+
+            // begin emission of glue code
+            emit.beginEmission(this);
+
+            emit.beginDefines();
+            Set<String> emittedDefines = new HashSet<String>(100);
+            // emit java equivalent of enum { ... } statements
+            for (ConstantDefinition def : constants) {
+                if (!emittedDefines.contains(def.getName())) {
+                    emittedDefines.add(def.getName());
+                    String comment = null;
+                    Set<String> aliases = def.getAliases();
+                    if (aliases != null) {
+                        comment = "Alias for: <code>";
+                        for (String alias : aliases) {
+                            comment += " " + alias;
+                        }
+                        comment += "</code>";
+                    }
+                    if (def.getEnumName() != null) {
+                        String enumName = "Defined as part of enum type \"" + def.getEnumName() + "\"";
+                        if (comment == null) {
+                            comment = enumName;
+                        } else {
+                            comment += "<br>\n" + enumName;
+                        }
+                    }
+                    emit.emitDefine(def, comment);
+                }
+            }
+            emit.endDefines();
+
+            // Iterate through the functions finding structs that are referenced in
+            // the function signatures; these will be remembered for later emission
+            ReferencedStructs referencedStructs = new ReferencedStructs();
+            for (FunctionSymbol sym : functions) {
+                // FIXME: this doesn't take into account the possibility that some of
+                // the functions we send to emitMethodBindings() might not actually be
+                // emitted (e.g., if an Ignore directive in the JavaEmitter causes it
+                // to be skipped).
+                sym.getType().visit(referencedStructs);
+            }
+
+            // Normally only referenced types will be emitted. The user can force a
+            // type to be emitted via a .cfg file directive. Those directives are
+            // processed here.
+            for (String name : forcedStructNames) {
+                Type type = td.get(name);
+                if (type == null) {
+                    err.println("WARNING: during forced struct emission: struct \"" + name + "\" not found");
+                } else if (!type.isCompound()) {
+                    err.println("WARNING: during forced struct emission: type \"" + name + "\" was not a struct");
+                } else {
+                    type.visit(referencedStructs);
+                }
+            }
+
+            // Lay out structs
+            emit.beginStructLayout();
+            for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
+                Type t = iter.next();
+                if (t.isCompound()) {
+                    emit.layoutStruct(t.asCompound());
+                } else if (t.isPointer()) {
+                    PointerType p = t.asPointer();
+                    CompoundType c = p.getTargetType().asCompound();
+                    emit.layoutStruct(c);
+                }
+            }
+            emit.endStructLayout();
+
+            // Emit structs
+            emit.beginStructs(td, sd, headerParser.getCanonMap());
+            for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
+                Type t = iter.next();
+                if (t.isCompound()) {
+                    emit.emitStruct(t.asCompound(), null);
+                } else if (t.isPointer()) {
+                    PointerType p = t.asPointer();
+                    CompoundType c = p.getTargetType().asCompound();
+                    assert p.hasTypedefedName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
+                    emit.emitStruct(c, p.getName());
+                }
+            }
+            emit.endStructs();
+
+            // emit java and C code to interface with the native functions
+            emit.beginFunctions(td, sd, headerParser.getCanonMap());
+            emit.emitFunctions(functions);
+            emit.endFunctions();
+
+            // end emission of glue code
+            emit.endEmission();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Exception occurred while generating glue code.", e);
+        }
+    }
+
+    public static void main(String... args) {
+
+        if (args.length == 0) {
+            usage();
+        }
+
+        Reader reader = null;
+        String filename = null;
+        String emitterFQN = null;
+        String outputRootDir = null;
+        List<String> cfgFiles = new ArrayList<String>();
+
+        List<String> includePaths = new ArrayList<String>();
+        for (int i = 0; i < args.length; i++) {
+            if (i < args.length - 1) {
+                String arg = args[i];
+                if (arg.startsWith("-I")) {
+                    String[] paths = arg.substring(2).split(getProperty("path.separator"));
+                    includePaths.addAll(Arrays.asList(paths));
+                } else if (arg.startsWith("-O")) {
+                    outputRootDir = arg.substring(2);
+                } else if (arg.startsWith("-E")) {
+                    emitterFQN = arg.substring(2);
+                } else if (arg.startsWith("-C")) {
+                    cfgFiles.add(arg.substring(2));
+                } else {
+                    usage();
+                }
+            } else {
+                String arg = args[i];
+                if (arg.equals("-")) {
+                    reader = new InputStreamReader(in);
+                    filename = "standard input";
+                } else {
+                    if (arg.startsWith("-")) {
+                        usage();
+                    }
+                    filename = arg;
+                    try {
+                        reader = new BufferedReader(new FileReader(filename));
+                    } catch (FileNotFoundException ex) {
+                        throw new RuntimeException("input file not found", ex);
+                    }
+                }
+            }
+        }
+
+        try {
+            Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
+            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir);
+        } catch (ClassNotFoundException ex) {
+            throw new RuntimeException("specified emitter class was not in the classpath", ex);
+        }
+
+    }
+
+    //----------------------------------------------------------------------
+    // Internals only below this point
+    //
+    private static void usage() {
+        out.println("Usage: java GlueGen [-I...] [-Eemitter_class_name] [-Ccfg_file_name...] <filename | ->");
+        out.println();
+        out.println("Runs C header parser on input file or standard input, first");
+        out.println("passing input through minimal pseudo-C-preprocessor. Use -I");
+        out.println("command-line arguments to specify the search path for #includes.");
+        out.println("Emitter class name can be specified with -E option: i.e.,");
+        out.println("-Ecom.sun.gluegen.JavaEmitter (the default). Use");
+        out.println("-Ecom.sun.gluegen.DebugEmitter to print recognized entities");
+        out.println("(#define directives to constant numbers, typedefs, and function");
+        out.println("declarations) to standard output. Emitter-specific configuration");
+        out.println("file or files can be specified with -C option; e.g,");
+        out.println("-Cjava-emitter.cfg.");
+        exit(1);
+    }
 }
