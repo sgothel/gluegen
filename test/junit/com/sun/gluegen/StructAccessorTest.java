@@ -46,7 +46,7 @@ public class StructAccessorTest {
 
         // compile testcase
         String source = gluegenRoot + "/test/junit/com/sun/gluegen/StructValidator.java";
-        compile(new File(source), gluegenRoot+"/build/test/build/classes");
+        compile(new File(source), testOutput + "/build/classes");
 
         // invoke test
         Class<?> test = Class.forName("com.sun.gluegen.StructValidator");

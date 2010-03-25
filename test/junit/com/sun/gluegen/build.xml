@@ -4,9 +4,15 @@
 
     <description>Tests GlueGen</description>
 
+    <condition property="rootrel.build" value="build">
+      <not>
+        <isset property="rootrel.build"/>
+      </not>
+    </condition>
+
     <property name="gluegen.root"   value="${basedir}" />
-    <property name="src.dir"        value="${gluegen.root}/build/test/gensrc/java" />
-    <property name="build.dir"      value="${gluegen.root}/build/test/build" />
+    <property name="src.dir"        value="${gluegen.root}/${rootrel.build}/test/gensrc/java" />
+    <property name="build.dir"      value="${gluegen.root}/${rootrel.build}/test/build" />
 
     <!-- Pull in GlueGen cpptasks build file -->
     <import file="${gluegen.root}/make/gluegen-cpptasks.xml" />
@@ -25,7 +31,7 @@
 
         <javac destdir="${build.dir.java}" source="1.5" failonerror="true" debug="true" verbose="true" debuglevel="lines,vars,source">
             <src path="${src.dir}"/>
-            <classpath path="${gluegen.root}/build/classes:${src.dir}:${gluegen.root}/build/antlr-3.2.jar:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
+            <classpath path="${gluegen.root}/${rootrel.build}/classes:${src.dir}:${gluegen.root}/${rootrel.build}/antlr-3.2.jar:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
         </javac>
 
         <echo message=" - - - java files compiled - - - "/>
@@ -74,7 +80,7 @@
         <echo message=" - - - natives compiled - - - "/>
 
         <copy todir="${natives.dir}">
-            <fileset dir="${gluegen.root}/build/obj">
+            <fileset dir="${gluegen.root}/${rootrel.build}/obj">
                 <include name="*.so"/>
             </fileset>
         </copy>
@@ -82,15 +88,8 @@
     </target>
 
     <target name="c.configure.linux" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
-
-        <echo message="configure for Linux.AMD64 build" />
-
-        <linker id="linker.cfg.linux.amd64.test">
-            <linkerparam name="-m64"/>
-        </linker>
-
-        <property name="compiler.cfg.id" value="compiler.cfg.linux.amd64" />
-        <property name="linker.cfg.id"   value="linker.cfg.linux.amd64.test" />
+        <property name="compiler.cfg.id" value="${compiler.cfg.id.base}" />
+        <property name="linker.cfg.id"   value="${linker.cfg.id.base}" />
     </target>
 
 </project>

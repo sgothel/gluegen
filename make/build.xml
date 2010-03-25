@@ -571,26 +571,29 @@
   </target>    
 
   <target name="test" depends="init">
-      <mkdir dir="${gluegen.root}/build/test/build/classes"/>
-      <mkdir dir="${gluegen.root}/build/test/results"/>
+      <mkdir dir="${build}/test/build/classes"/>
+      <mkdir dir="${build}/test/results"/>
 
       <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
-      <javac destdir="${gluegen.root}/build/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source">
-          <classpath path="${gluegen.root}/make/lib/junit-4.5.jar:${gluegen.root}/build/classes:${gluegen.root}/build/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
+      <javac destdir="${build}/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source">
+          <classpath path="${gluegen.root}/make/lib/junit-4.5.jar:${build}/classes:${build}/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
       </javac>
 
       <junit forkmode="once" showoutput="true" fork="true">
-          <jvmarg value="-Djava.library.path=${gluegen.root}/build/test/build/natives"/>
-          <batchtest todir="${gluegen.root}/build/test/results">
-              <fileset dir="${gluegen.root}/build/test/build/classes">
+          <jvmarg value="-Djava.library.path=${build}/test/build/natives"/>
+          <jvmarg value="-Drootrel.build=${rootrel.build}"/>
+          <jvmarg value="-Dos.arch=${os.arch}"/>
+          <jvmarg value="-Dgluegen.user.compiler.file=${gluegen.user.compiler.file}"/>
+          <batchtest todir="${build}/test/results">
+              <fileset dir="${build}/test/build/classes">
                   <include name="com/sun/gluegen/**Test*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
           </batchtest>
           <classpath>
-              <path path="${gluegen.root}/build/test/build/classes:${gluegen.root}/build/test/gensrc/java:${gluegen.root}/build/classes:${antlr.jar}:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
+              <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/classes:${antlr.jar}:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
           </classpath>
       </junit>
   </target>

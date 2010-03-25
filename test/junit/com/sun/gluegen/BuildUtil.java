@@ -17,13 +17,21 @@ public final class BuildUtil {
     
     public static final String gluegenRoot;
     public static final String path;
-    public static final String output;
+    public static final String testOutput;
+    public static final String rootrel_build;
     
     static {
 
         out.println(" - - - System info - - - ");
         out.println("OS: " + System.getProperty("os.name"));
         out.println("VM: " + System.getProperty("java.vm.name"));
+
+        String rootrel_build_tmp = System.getProperty("rootrel.build");
+        if(null==rootrel_build_tmp || rootrel_build_tmp.length()==0) {
+            rootrel_build_tmp = "build" ;
+        }
+        rootrel_build = rootrel_build_tmp;
+        out.println("rootrel.build: " + rootrel_build);
 
         // setup paths
         try {
@@ -36,10 +44,10 @@ public final class BuildUtil {
         }
 
         path     = gluegenRoot + "/test/junit/com/sun/gluegen";
-        output   = gluegenRoot + "/build/test";
+        testOutput   = gluegenRoot + "/" + rootrel_build + "/test";
 
         out.println("path: "+path);
-        out.println("output: "+output);
+        out.println("testOutput: "+testOutput);
         out.println(" - - - - - - - - - - - - ");
 
         cleanGeneratedFiles();
@@ -47,6 +55,9 @@ public final class BuildUtil {
         //setup ant build file
         project = new Project();
         project.setBaseDir(new File(gluegenRoot));
+        project.setProperty("rootrel.build", rootrel_build);
+        passSystemProperty(project, "gluegen.user.compiler.file");
+        passSystemProperty(project, "os.arch");
 
         DefaultLogger logger = new DefaultLogger();
         logger.setErrorPrintStream(out);
@@ -64,9 +75,17 @@ public final class BuildUtil {
         ProjectHelper.configureProject(project, buildFile);
     }
 
+    public static Project passSystemProperty(Project p, String name) {
+        String tmp = System.getProperty(name);
+        if(null!=tmp && tmp.length()>0) {
+            p.setProperty(name, tmp);
+        }
+        return p;
+    }
+
     public static void cleanGeneratedFiles() {
         out.println("cleaning generated files");
-        deleteDirectory(new File(output+"/gensrc"));
+        deleteDirectory(new File(testOutput+"/gensrc"));
         out.println("done");
     }
 
@@ -95,7 +114,7 @@ public final class BuildUtil {
         out.println("generate binding: " + bindingName);
 
         GlueGen.main(  "-I"+path,
-                       "-O"+output+"/gensrc",
+                       "-O"+testOutput+"/gensrc",
                     // "-Ecom.sun.gluegen.DebugEmitter",
                        "-C"+path+"/"+bindingName+".cfg",
                        path+"/"+bindingName+".h"   );

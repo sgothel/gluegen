@@ -44,7 +44,7 @@ public class BasicTest {
     @Test
     public void bindingTest() throws Exception {
 
-        String nativesPath = gluegenRoot + "/build/test/build/natives";
+        String nativesPath = testOutput + "/build/natives";
         System.load(nativesPath + "/librofl.so");
 
         Class<?> clazz = Class.forName("test.BindingTest");
