@@ -155,6 +155,8 @@
           <fileset dir="${gluegen.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
   
           <compiler extends="@{compiler.cfg.id}" >
+            <sysincludepath path="${java.includes.dir}"/>
+            <sysincludepath path="${java.includes.dir.platform}"/>
             <includepath path="${test.junit.dir}"/>
             <includepath path="${build_t.gen}/native"/>
           </compiler>
