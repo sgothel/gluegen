@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This is an example of how to add custom compiler/linker 
+    arguments for a crosscompiler.
+
+    You can use such files with setting the property 'gluegen-cpptasks.file', ie:
+
+        -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml
+
+    In case you want to compile for 32bit on a 64bit machine,
+    you might also need to set the 'os.arch' to 'x86'.
+    Example: gluegen/make/make.gluegen.all.linux-x86.sh
+  -->
+
+<project name="GlueGen-cpptasks" basedir="." >
+
+<import file="../gluegen-cpptasks-base.xml" optional="false" />
+
+<target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
+    <echo message="Custom forced compiler.cfg.linux, linker.cfg.linux" />
+    <compiler id="compiler.cfg.linux" name="gcc">
+      <compilerarg value="-m32" />
+      <compilerarg value="-Wall" />
+      <defineset>
+        <define name="LINUX" />
+      </defineset>
+    </compiler>
+
+    <linker id="linker.cfg.linux" name="gcc">
+      <linkerarg value="-m32" />
+    </linker>
+
+</target>
+
+<target name="gluegen.cpptasks.declare.compiler" depends="setup.java.home.dir">
+  <echo message="Custom forced Linux.x86" />
+  <!--
+  <property name="isLinux"    value="true"/>
+  <property name="isLinuxX86" value="true"/>
+  -->
+  <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+  <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+  <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+  <property name="java.includes.dir.platform"    value="${java.includes.dir}/linux" />
+</target>
+
+</project>
+
+

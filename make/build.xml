@@ -598,4 +598,12 @@
       </junit>
   </target>
 
+  <target name="junit.compile">
+    <ant antfile="build-junit.xml" target="junit.compile"/>
+  </target>
+
+  <target name="junit.run">
+    <ant antfile="build-junit.xml" target="junit.run"/>
+  </target>
+
 </project>

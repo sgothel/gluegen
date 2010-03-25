@@ -38,7 +38,7 @@
 
     </target>
 
-    <target name="compile.native" depends="c.configure.linux">
+    <target name="compile.native" depends="c.configure">
 
         <echo message=" - - - compiling natives - - - "/>
 
@@ -87,7 +87,7 @@
 
     </target>
 
-    <target name="c.configure.linux" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
+    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
         <property name="compiler.cfg.id" value="${compiler.cfg.id.base}" />
         <property name="linker.cfg.id"   value="${linker.cfg.id.base}" />
     </target>
