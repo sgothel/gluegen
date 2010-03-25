@@ -23,13 +23,11 @@
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="validate-properties.xml" inheritall="true"/>
 
-        <property name="project.root" value=".." />
-
-        <property name="test.base.dir"  value="${project.root}/src/junit" />
+        <property name="test.base.dir"  value="${gluegen.root}/src/junit" />
         <property name="test.junit.rel" value="com/jogamp/gluegen/test/junit" />
         <property name="test.junit.dir" value="${test.base.dir}/${test.junit.rel}" />
 
-        <property name="test.dir"   value="${project.root}/${rootrel.build}/test"/>
+        <property name="test.dir"   value="${gluegen.root}/${rootrel.build}/test"/>
         <property name="results"    value="${test.dir}/results" />
         <property name="build"      value="${test.dir}/build" />
         <property name="build.gen"  value="${build}/gensrc"/>
@@ -152,7 +150,7 @@
             exceptions="false" 
             rtti="false">   
   
-          <fileset dir="${project.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
+          <fileset dir="${gluegen.root}"><patternset refid="@{c.compiler.src.files}"/></fileset>
   
           <compiler extends="@{compiler.cfg.id}" >
             <includepath path="${test.junit.dir}"/>
