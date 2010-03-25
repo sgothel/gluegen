@@ -570,7 +570,7 @@
     </delete>
   </target>    
 
-  <target name="test" depends="init">
+  <target name="test" depends="init, junit.run">
       <mkdir dir="${build}/test/build/classes"/>
       <mkdir dir="${build}/test/results"/>
 
