@@ -562,7 +562,7 @@
     <copy file="${antlr.jar}" todir="${build}" />
   </target>
 
-  <target name="all" depends="gluegen.build" />
+  <target name="all" depends="gluegen.build, junit.compile" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
