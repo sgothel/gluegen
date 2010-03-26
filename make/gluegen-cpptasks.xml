@@ -26,7 +26,7 @@
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar;${gluegen.root}/make/lib/CppTasksGCCNamespaceHack.jar"/>
 
   <condition property="gluegen-cpptasks.file"
-             value="${basedir}/${gluegen.root}/make/gluegen-cpptasks-base.xml">
+             value="${gluegen.root}/make/gluegen-cpptasks-base.xml">
     <not>
         <isset property="gluegen-cpptask.file" />
     </not>
