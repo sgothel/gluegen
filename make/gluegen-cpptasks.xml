@@ -26,18 +26,20 @@
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar;${gluegen.root}/make/lib/CppTasksGCCNamespaceHack.jar"/>
 
   <condition property="gluegen-cpptasks.file"
-             value="${basedir}/${gluegen.root}/make/gluegen-cpptasks-base.xml">
+             value="${gluegen.root}/make/gluegen-cpptasks-base.xml">
     <not>
         <isset property="gluegen-cpptask.file" />
     </not>
   </condition>
 
+  <property name="gluegen-cpptasks.file.abs-path" location="${gluegen-cpptasks.file}" />
+
   <!--
   <echo message="gluegen-cpptasks.xml: gluegen.root          ${gluegen.root}"/>
-  <echo message="gluegen-cpptasks.xml: gluegen-cpptasks.file ${gluegen-cpptasks.file}"/>
+  <echo message="gluegen-cpptasks.xml: gluegen-cpptasks.file ${gluegen-cpptasks.file} -> ${gluegen-cpptasks.file.abs-path}"/>
   <echo message="gluegen-cpptasks.xml: basedir               ${basedir}"/>
   -->
 
-  <import file="${gluegen-cpptasks.file}" optional="false" />
+  <import file="${gluegen-cpptasks.file.abs-path}" optional="false" />
 
 </project>
