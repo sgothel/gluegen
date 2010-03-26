@@ -54,7 +54,6 @@ public final class BuildUtil {
 
         //setup ant build file
         project = new Project();
-        project.setBaseDir(new File(gluegenRoot));
         project.setProperty("rootrel.build", rootrel_build);
         passSystemProperty(project, "gluegen-cpptasks.file");
         passSystemProperty(project, "os.arch");

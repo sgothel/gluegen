@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project name="GlueGenTest" default="default" basedir="../../../../../">
+<project name="GlueGenTest" default="default" basedir=".">
 
     <description>Tests GlueGen</description>
 
@@ -10,7 +10,7 @@
       </not>
     </condition>
 
-    <property name="gluegen.root"   value="${basedir}" />
+    <property name="gluegen.root"   value="../../../../.." />
     <property name="src.dir"        value="${gluegen.root}/${rootrel.build}/test/gensrc/java" />
     <property name="build.dir"      value="${gluegen.root}/${rootrel.build}/test/build" />
 
