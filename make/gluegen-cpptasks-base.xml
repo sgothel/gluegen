@@ -114,7 +114,7 @@
    - later. Example usage is:
    -   &lt;msvc.manifest objdir="${obj}" dllname="gluegen-rt" /&gt;
   -->
-<project name="GlueGen-cpptasks" basedir=".">
+<project name="GlueGen-cpptasks-base" basedir=".">
 
   <!-- Detect OS and compiler configuration -->
   <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.properties.load.user" unless="gluegen.cpptasks.detected.os">

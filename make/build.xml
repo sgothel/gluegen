@@ -452,30 +452,30 @@
     </copy>
 
     <!-- Generate the Java files from the C grammar using ANTLR. -->
-    <antcall target="generate.grammar">
+    <antcall target="generate.grammar"  inheritRefs="true">
       <param name="output.dir" value="${generated.java.from.c.grammar}" />
       <param name="target" value="StdCParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib">
+    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
       <param name="output.dir" value="${generated.java.from.c.grammar}" />
       <param name="target" value="GnuCParser.g" />
       <param name="glib" value="StdCParser.g" />
     </antcall>
-    <antcall target="generate.grammar">
+    <antcall target="generate.grammar"  inheritRefs="true">
       <param name="output.dir" value="${generated.java.from.c.grammar}" />
       <param name="target" value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib">
+    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
       <param name="output.dir" value="${generated.java.from.c.grammar}" />
       <param name="target" value="GnuCEmitter.g" />
       <param name="glib" value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib">
+    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
       <param name="output.dir" value="${generated.java.from.c.grammar}" />
       <param name="target" value="HeaderParser.g" />
       <param name="glib" value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.grammar">
+    <antcall target="generate.grammar"  inheritRefs="true">
       <param name="output.dir" value="${generated.java.from.j.grammar}" />
       <param name="target" value="JavaParser.g" />
     </antcall>
