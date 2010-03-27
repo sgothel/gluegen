@@ -31,7 +31,7 @@
  * 
  */
 
-package com.sun.opengl.util;
+package com.jogamp.opengl.util;
 
 import java.util.*;
 import java.nio.*;
