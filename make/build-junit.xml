@@ -48,6 +48,8 @@
 
         <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen.lib" value="${gluegen.root}/${rootrel.build}/obj" />
+
         <property name="junit.jar" value="${gluegen.root}/make/lib/junit-4.5.jar" />
 
         <property name="gluegen-test.jar" value="${build_t}/gluegen-test.jar" />
@@ -106,7 +108,7 @@
 
         <jar destfile="${gluegen-test.jar}">
           <fileset dir="${build_t.java}">
-            <include name="${test.junit.rel}/*.class"/>
+            <include name="${test.junit.rel}/**/*.class"/>
           </fileset>
         </jar>
     </target>
@@ -189,7 +191,7 @@
         <!-- Perform the junit tests-->
         <mkdir dir="${results}"/>
         <junit forkmode="once" showoutput="true" fork="true" haltonerror="true">
-            <jvmarg value="-Djava.library.path=${build_t.lib}"/>
+            <jvmarg value="-Djava.library.path=${gluegen.lib}:${build_t.lib}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
             <formatter usefile="false" type="plain"/>
             <formatter usefile="true" type="xml"/>
@@ -240,7 +242,7 @@
     <target name="junit.test1.c.build" unless="build.javaonly" >
         <patternset id="junit.test1.c.src.files">
           <include name="${test.junit.rootrel}/test1.c"/>
-          <include name="${build_t.gen.rootrel}/native/BindingTest1_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/BindingTest1Impl_JNI.c"/>
         </patternset>
 
         <c.build c.compiler.src.files="junit.test1.c.src.files"

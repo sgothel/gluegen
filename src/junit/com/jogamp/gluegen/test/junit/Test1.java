@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2010 Sven Gothel. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name Sven Gothel or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -32,8 +32,11 @@
 
 package com.jogamp.gluegen.test.junit;
 
+import com.jogamp.gluegen.test.junit.impl.BindingTest1Impl;
+
 import com.jogamp.gluegen.runtime.BufferFactory;
 import com.jogamp.gluegen.runtime.PointerBuffer;
+import java.nio.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -57,78 +60,92 @@ import static com.jogamp.gluegen.test.junit.BuildEnvironment.*;
  */
 public class Test1 {
 
+    /**
+     * Verifies loading of the new library.
+     */
     @Test
-    public void bindingTest1() throws Exception {
-
+    public void chapter01TestLoadLibrary() throws Exception {
         String nativesPath = testOutput + "/build/natives";
         System.load(nativesPath + "/libtest1.so");
+    }
 
-        Class<?> clazz = Class.forName("com.jogamp.gluegen.test.junit.BindingTest1");
+    /**
+     * Verifies the existence and creation of the generated class.
+     */
+    @Test
+    public void chapter01TestClassExist() throws Exception {
+        Class<?> clazzIf   = Class.forName("com.jogamp.gluegen.test.junit.BindingTest1");
+        Class<?> clazzImpl = Class.forName("com.jogamp.gluegen.test.junit.impl.BindingTest1Impl");
 
-        Assert.assertNotNull("com.jogamp.gluegen.test.junit.BindingTest1 does not exist", clazz);
-        Assert.assertEquals((int)1,  clazz.getDeclaredField("CONSTANT_ONE").get(null));
+        Assert.assertNotNull("com.jogamp.gluegen.test.junit.BindingTest1 does not exist", clazzIf);
+        Assert.assertNotNull("com.jogamp.gluegen.test.junit.impl.BindingTest1Impl does not exist", clazzImpl);
 
-        Object obj = clazz.newInstance();
+        Assert.assertEquals((int)1,  clazzIf.getDeclaredField("CONSTANT_ONE").get(null));
+
+        Object obj = clazzImpl.newInstance();
         Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.BindingTest1", (obj instanceof com.jogamp.gluegen.test.junit.BindingTest1));
 
-        com.jogamp.gluegen.test.junit.BindingTest1 bindingTest1 = (com.jogamp.gluegen.test.junit.BindingTest1) obj;
+        BindingTest1 bindingTest1 = (BindingTest1) obj;
         Assert.assertTrue("nopTest1 failed", 42==bindingTest1.nopTest());
+    }
 
-        // assertEquals((long)0xFFFFFFFF,  clazz.getDeclaredField("GL_INVALID_INDEX").get(null));
-        // assertEquals(-0.5f,             clazz.getDeclaredField("AL_FLANGER_DEFAULT_FEEDBACK").get(null));
+    /**
+     * Verifies if all methods / signatures are properly generated,
+     * and can be invoked.
+     * Gluegen Coverage test.
+     * This is a compilation and runtime time test.
+     */
+    @Test
+    public void chapter01TestCoverage() throws Exception {
+          int dummy;
 
-        // TODO fix Exception: ...Caused by: java.lang.UnsatisfiedLinkError: test.BindingTest.arrayTest0(JLjava/lang/Object;I)I
-        /*
-        // test values
-        ByteBuffer dbb = BufferFactory.newDirectByteBuffer(32);
-        ByteBuffer bb  = ByteBuffer.allocate(32).order(ByteOrder.nativeOrder());
+          int array_size = 10;
+          long context = 0;
+          ByteBuffer bb1 = BufferFactory.newDirectByteBuffer(PointerBuffer.elementSize() * array_size);
+          ByteBuffer bb2 = BufferFactory.newDirectByteBuffer(PointerBuffer.elementSize() * array_size);
 
-        PointerBuffer dpb = PointerBuffer.allocateDirect(32);
-        PointerBuffer pb  = PointerBuffer.allocate(32);
+          PointerBuffer pb1 = PointerBuffer.allocateDirect(array_size);
+          PointerBuffer pb2 = PointerBuffer.allocateDirect(array_size);
 
-        long[] array = new long[] {1,2,3,4,5,6,7,8,9};
-        int offset = 0;
-        long id = 42;
+          long[] larray1 = new long[array_size];
+          int array1_offset = 0;
 
+          long[] larray2 = new long[array_size];
+          int array2_offset = 0;
 
-        // invoke everything public
-        Object bindingTest = clazz.newInstance();
-        Method[] methods = clazz.getDeclaredMethods();
+          BindingTest1 binding = new BindingTest1Impl();
 
-        for (Method method : methods) {
+          /** Interface to C language function: <br> <code> int arrayTest(long context, foo *  array); </code>    */
+          dummy = binding.arrayTest(context, pb1);
+          Assert.assertTrue(42==dummy);
 
-            // prepare method parameters
-            Class<?>[] paramTypes = method.getParameterTypes();
-            Object[] paramInstances = new Object[paramTypes.length];
+          /** Interface to C language function: <br> <code> int arrayTest(long context, foo *  array); </code>    */
+          dummy = binding.arrayTest(context, larray1, array1_offset);
+          Assert.assertTrue(42==dummy);
 
-            for (int i = 0; i < paramTypes.length; i++) {
-                Class<?> paramType = paramTypes[i];
-                if(paramType.isInstance(dbb)) {
-                    paramInstances[i] = dbb;
-                }else if(paramType.isInstance(bb)) {
-                    paramInstances[i] = bb;
-                }else if(paramType.isInstance(dpb)) {
-                    paramInstances[i] = dpb;
-                }else if(paramType.isInstance(pb)) {
-                    paramInstances[i] = pb;
-                }else if(paramType.isPrimitive()) { // TODO primitive types
-                    paramInstances[i] = offset;
-                }else if(paramType.isArray()) {     // TODO array types
-                    paramInstances[i] = array;
-                }
-            }
+          /** Interface to C language function: <br> <code> int bufferTest(void *  object); </code>    */
+          dummy = binding.bufferTest(bb1);
+          Assert.assertTrue(42==dummy);
 
-            out.println("invoking: "+method);
-            out.println("with params: ");
-            for (Object param : paramInstances)
-                out.print(param+", ");
-            out.println();
+          /** Interface to C language function: <br> <code> int doubleTest(long context, void *  object1, foo *  array1, void *  object2, foo *  array2); </code>    */
+          dummy = binding.doubleTest(context, bb1, pb1, bb2, pb2);
+          Assert.assertTrue(42==dummy);
 
-            Object result = method.invoke(bindingTest, paramInstances);
-            out.println("result: "+result);
-            out.println("success");
-        }
-        */
+          /** Interface to C language function: <br> <code> int doubleTest(long context, void *  object1, foo *  array1, void *  object2, foo *  array2); </code>    */
+          dummy = binding.doubleTest(context, bb1, larray1, array1_offset, bb2, larray2, array2_offset);
+          Assert.assertTrue(42==dummy);
+
+          /** Interface to C language function: <br> <code> int mixedTest(long context, void *  object, foo *  array); </code>    */
+          dummy = binding.mixedTest(context, bb1, pb1);
+          Assert.assertTrue(42==dummy);
+
+          /** Interface to C language function: <br> <code> int mixedTest(long context, void *  object, foo *  array); </code>    */
+          dummy = binding.mixedTest(context, bb1, larray1, array1_offset);
+          Assert.assertTrue(42==dummy);
+
+          /** Interface to C language function: <br> <code> int nopTest(); </code>    */
+          dummy = binding.nopTest();
+          Assert.assertTrue(42==dummy);
     }
 
 }
