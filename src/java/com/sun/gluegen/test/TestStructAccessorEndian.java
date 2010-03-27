@@ -1,7 +1,7 @@
 
 package com.sun.gluegen.test;
 
-import com.sun.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.*;
 import java.nio.*;
 
 public class TestStructAccessorEndian {

@@ -44,7 +44,7 @@ import java.text.MessageFormat;
 import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
-import com.sun.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.*;
 
 /**
  * A subclass of JavaEmitter that modifies the normal emission of C
@@ -337,7 +337,7 @@ public class ProcAddressEmitter extends JavaEmitter
     tableWriter.println(" * pointer is 0, the function is considered to be unavailable and can");
     tableWriter.println(" * not be called.");
     tableWriter.println(" */");
-    tableWriter.println("public class " + tableClassName + " implements com.sun.gluegen.runtime.ProcAddressTable");
+    tableWriter.println("public class " + tableClassName + " implements com.jogamp.gluegen.runtime.ProcAddressTable");
     tableWriter.println("{");
 
     for (Iterator iter = getProcAddressConfig().getForceProcAddressGen().iterator(); iter.hasNext(); ) {

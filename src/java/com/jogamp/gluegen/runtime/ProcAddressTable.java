@@ -34,7 +34,7 @@
  * facility.
  */
 
-package com.sun.gluegen.runtime;
+package com.jogamp.gluegen.runtime;
 
 public interface ProcAddressTable {
   public long getAddressFor(String functionName);

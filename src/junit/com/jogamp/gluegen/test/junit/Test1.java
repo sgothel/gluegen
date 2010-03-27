@@ -32,8 +32,8 @@
 
 package com.jogamp.gluegen.test.junit;
 
-import com.sun.gluegen.runtime.BufferFactory;
-import com.sun.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

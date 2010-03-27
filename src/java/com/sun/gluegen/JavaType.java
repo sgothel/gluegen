@@ -194,10 +194,9 @@ public class JavaType {
     return nioLongBufferType;
   }
 
-  public static JavaType forNIOPointerBufferClass()
-  {
+  public static JavaType forNIOPointerBufferClass()  {
     if(nioPointerBufferType == null)
-        nioPointerBufferType = createForClass(com.sun.gluegen.runtime.PointerBuffer.class);
+        nioPointerBufferType = createForClass(com.jogamp.gluegen.runtime.PointerBuffer.class);
     return nioPointerBufferType;
   }
 
@@ -334,7 +333,7 @@ public class JavaType {
 
   public boolean isNIOBuffer() {
     return clazz != null && ( (java.nio.Buffer.class).isAssignableFrom(clazz) ||
-                              (com.sun.gluegen.runtime.PointerBuffer.class).isAssignableFrom(clazz) ) ;
+                              (com.jogamp.gluegen.runtime.PointerBuffer.class).isAssignableFrom(clazz) ) ;
   }
 
   public boolean isNIOByteBuffer() {
@@ -354,9 +353,8 @@ public class JavaType {
     return (clazz == java.nio.LongBuffer.class);
   }
 
-  public boolean isNIOPointerBuffer()
-  {
-    return (clazz == com.sun.gluegen.runtime.PointerBuffer.class);
+  public boolean isNIOPointerBuffer()  {
+    return (clazz == com.jogamp.gluegen.runtime.PointerBuffer.class);
   }
 
   public boolean isString() {

@@ -105,9 +105,9 @@ public class JavaConfiguration {
     /**
      * The package in which the generated glue code expects to find its
      * run-time helper classes (BufferFactory, CPU,
-     * StructAccessor). Defaults to "com.sun.gluegen.runtime".
+     * StructAccessor). Defaults to "com.jogamp.gluegen.runtime".
      */
-    private String gluegenRuntimePackage = "com.sun.gluegen.runtime";
+    private String gluegenRuntimePackage = "com.jogamp.gluegen.runtime";
 
     /**
      * The kind of exception raised by the generated code if run-time
@@ -309,7 +309,7 @@ public class JavaConfiguration {
 
     /** Returns the package in which the generated glue code expects to
     find its run-time helper classes (BufferFactory, CPU,
-    StructAccessor). Defaults to "com.sun.gluegen.runtime". */
+    StructAccessor). Defaults to "com.jogamp.gluegen.runtime". */
     public String gluegenRuntimePackage() {
         return gluegenRuntimePackage;
     }

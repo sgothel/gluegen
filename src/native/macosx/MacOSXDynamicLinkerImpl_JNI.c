@@ -8,12 +8,12 @@
  #include </usr/include/machine/types.h>
 
 /*   Java->C glue code:
- *   Java package: com.sun.gluegen.runtime.MacOSXDynamicLinkerImpl
+ *   Java package: com.jogamp.gluegen.runtime.MacOSXDynamicLinkerImpl
  *    Java method: int dlclose(long __handle)
  *     C function: int dlclose(void *  __handle);
  */
 JNIEXPORT jint JNICALL 
-Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong __handle) {
+Java_com_jogamp_gluegen_runtime_MacOSXDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong __handle) {
   int _res;
   _res = dlclose((void *) (intptr_t) __handle);
   return _res;
@@ -21,12 +21,12 @@ Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlclose__J(JNIEnv *env, jcl
 
 
 /*   Java->C glue code:
- *   Java package: com.sun.gluegen.runtime.MacOSXDynamicLinkerImpl
+ *   Java package: com.jogamp.gluegen.runtime.MacOSXDynamicLinkerImpl
  *    Java method: java.lang.String dlerror()
  *     C function: char *  dlerror(void);
  */
 JNIEXPORT jstring JNICALL 
-Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
+Java_com_jogamp_gluegen_runtime_MacOSXDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
   char *  _res;
   _res = dlerror();
   if (_res == NULL) return NULL;  return (*env)->NewStringUTF(env, _res);
@@ -34,12 +34,12 @@ Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlerror__(JNIEnv *env, jcla
 
 
 /*   Java->C glue code:
- *   Java package: com.sun.gluegen.runtime.MacOSXDynamicLinkerImpl
+ *   Java package: com.jogamp.gluegen.runtime.MacOSXDynamicLinkerImpl
  *    Java method: long dlopen(java.lang.String __path, int __mode)
  *     C function: void *  dlopen(const char *  __path, int __mode);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring __path, jint __mode) {
+Java_com_jogamp_gluegen_runtime_MacOSXDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring __path, jint __mode) {
   const char* _UTF8__path = NULL;
   void *  _res;
   if (__path != NULL) {
@@ -61,12 +61,12 @@ Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlopen__Ljava_lang_String_2
 
 
 /*   Java->C glue code:
- *   Java package: com.sun.gluegen.runtime.MacOSXDynamicLinkerImpl
+ *   Java package: com.jogamp.gluegen.runtime.MacOSXDynamicLinkerImpl
  *    Java method: long dlsym(long __handle, java.lang.String __symbol)
  *     C function: void *  dlsym(void *  __handle, const char *  __symbol);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_sun_gluegen_runtime_MacOSXDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong __handle, jstring __symbol) {
+Java_com_jogamp_gluegen_runtime_MacOSXDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong __handle, jstring __symbol) {
   const char* _UTF8__symbol = NULL;
   void *  _res;
   if (__symbol != NULL) {

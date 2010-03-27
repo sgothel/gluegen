@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,25 +28,30 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
  */
 
-package com.sun.gluegen.runtime;
+package com.jogamp.gluegen.runtime;
 
 import java.nio.*;
 
 public class PointerBuffer {
   private ByteBuffer   bb;
-  private IntBuffer    ib;
+  private Buffer       pb;
   private int capacity, position;
   private long[] backup;
 
   private PointerBuffer(ByteBuffer bb) {
     this.bb = bb;
-    this.ib = bb.asIntBuffer();
+
+    if(CPU.is32Bit()) {
+       this.pb = bb.asIntBuffer();
+    }else{
+       this.pb = bb.asLongBuffer();
+    }
 
     capacity = bb.capacity() / elementSize();
 
@@ -121,15 +126,9 @@ public class PointerBuffer {
         throw new IndexOutOfBoundsException();
     }
     if(CPU.is32Bit()) {
-        return ib.get(idx);
+        return ((IntBuffer)pb).get(idx);
     } else {
-        idx = idx << 1 ; // 8-byte to 4-byte offset
-        long lo = 0x00000000FFFFFFFFL & ( (long) ib.get(idx)   );
-        long hi = 0x00000000FFFFFFFFL & ( (long) ib.get(idx+1) );
-        if(BufferFactory.isLittleEndian()) {
-            return hi << 32 | lo ;
-        }
-        return lo << 32 | hi ;
+        return ((LongBuffer)pb).get(idx);
     }
   }
 
@@ -145,18 +144,9 @@ public class PointerBuffer {
     }
     backup[idx] = v;
     if(CPU.is32Bit()) {
-        ib.put(idx, (int)v);
+        ((IntBuffer)pb).put(idx, (int)v);
     } else {
-        idx = idx << 1 ; // 8-byte to 4-byte offset
-        int lo = (int) ( ( v       ) & 0x00000000FFFFFFFFL ) ;
-        int hi = (int) ( ( v >> 32 ) & 0x00000000FFFFFFFFL ) ;
-        if(BufferFactory.isLittleEndian()) {
-            ib.put(idx, lo);
-            ib.put(idx+1, hi);
-        } else {
-            ib.put(idx, hi);
-            ib.put(idx+1, lo);
-        }
+        ((LongBuffer)pb).put(idx, v);
     }
     return this;
   }
@@ -176,5 +166,4 @@ public class PointerBuffer {
   public static int elementSize() {
     return CPU.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
   }
-
 }

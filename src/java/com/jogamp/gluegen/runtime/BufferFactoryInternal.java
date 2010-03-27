@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.runtime;
+package com.jogamp.gluegen.runtime;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
