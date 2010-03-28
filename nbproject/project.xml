@@ -47,6 +47,12 @@
                     <location>build/test/gensrc/java</location>
                     <encoding>UTF-8</encoding>
                 </source-folder>
+                <source-folder>
+                    <label>src/junit</label>
+                    <type>java</type>
+                    <location>src/junit</location>
+                    <encoding>UTF-8</encoding>
+                </source-folder>
             </folders>
             <ide-actions>
                 <action name="build">
@@ -172,6 +178,10 @@
                         <label>build/test/gensrc/java</label>
                         <location>build/test/gensrc/java</location>
                     </source-folder>
+                    <source-folder style="packages">
+                        <label>src/junit</label>
+                        <location>src/junit</location>
+                    </source-folder>
                     <source-file>
                         <location>${ant.script}</location>
                     </source-file>
@@ -212,6 +222,12 @@
             <compilation-unit>
                 <package-root>build/test/gensrc/java</package-root>
                 <unit-tests/>
+                <source-level>1.5</source-level>
+            </compilation-unit>
+            <compilation-unit>
+                <package-root>src/junit</package-root>
+                <unit-tests/>
+                <classpath mode="compile">build/classes:build/test/build/classes:lib/antlr-3.2.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit-4.5.jar</classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
