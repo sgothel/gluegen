@@ -8,9 +8,9 @@ if [ -z "$builddir" ] ; then
     exit 1
 fi
 
-echo com.sun.gluegen.test.TestPointerBufferEndian
-java -Djava.library.path=$builddir/obj -classpath $builddir/classes  com.sun.gluegen.test.TestPointerBufferEndian
+echo com.jogamp.gluegen.test.TestPointerBufferEndian
+java -Djava.library.path=$builddir/obj -classpath $builddir/classes  com.jogamp.gluegen.test.TestPointerBufferEndian
 echo
-echo com.sun.gluegen.test.TestStructAccessorEndian
-java -Djava.library.path=$builddir/obj -classpath $builddir/classes  com.sun.gluegen.test.TestStructAccessorEndian
+echo com.jogamp.gluegen.test.TestStructAccessorEndian
+java -Djava.library.path=$builddir/obj -classpath $builddir/classes  com.jogamp.gluegen.test.TestStructAccessorEndian
 echo
