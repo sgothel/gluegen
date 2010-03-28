@@ -60,8 +60,8 @@ public class CPU {
         // here as these system properties are visible even to unsigned
         // applets
         // Note: this code is replicated in StructLayout.java
-        String os = System.getProperty("os.name").toLowerCase();
-        String cpu = System.getProperty("os.arch").toLowerCase();
+        String os = Platform.getOS().toLowerCase();
+        String cpu = Platform.getArch().toLowerCase();
 
         if ((os.startsWith("windows") && cpu.equals("x86")) ||
             (os.startsWith("windows") && cpu.equals("arm")) ||

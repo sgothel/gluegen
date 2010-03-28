@@ -35,15 +35,11 @@
   </target>
 
   <target name="setup.javase">
-    <copy file="../src/java/com/jogamp/gluegen/runtime/BufferFactory.java.javase" tofile="${src.generated.java}/com/jogamp/gluegen/runtime/BufferFactory.java" />
-    <copy file="../src/java/com/jogamp/gluegen/runtime/StructAccessor.java.javase" tofile="${src.generated.java}/com/jogamp/gluegen/runtime/StructAccessor.java" />
-    <copy file="../src/java/com/jogamp/gluegen/runtime/PointerBuffer.java.javase" tofile="${src.generated.java}/com/jogamp/gluegen/runtime/PointerBuffer.java" />
+      <!-- not needed anymore -->
   </target>
 
   <target name="setup.javacdc">
-    <copy file="../src/java/com/jogamp/gluegen/runtime/BufferFactory.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/gluegen/runtime/BufferFactory.java" />
-    <copy file="../src/java/com/jogamp/gluegen/runtime/StructAccessor.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/gluegen/runtime/StructAccessor.java" />
-    <copy file="../src/java/com/jogamp/gluegen/runtime/PointerBuffer.java.javame_cdc_fp" tofile="${src.generated.java-cdc}/com/jogamp/gluegen/runtime/PointerBuffer.java" />
+      <!-- not needed anymore -->
   </target>
 
   <target name="init" depends="gluegen.properties.load.user,setup-excludes-1,setup-excludes-2">
@@ -416,12 +412,13 @@
                  excludes="com/jogamp/gluegen/runtime/** com/sun/gluegen/test/**" />
     </copy>
 
+          <!-- bootclasspath="${javac.bootclasspath-cdc.jar}"-->
     <javac destdir="${classes-cdc}"
            source="1.4"
            debug="true"
            debuglevel="source,lines,vars"
            excludes="${gluegen.excludes}"
-           bootclasspath="${javac.bootclasspath-cdc.jar}">
+           >
       <src path="${src.java}" />
       <src path="${src.generated.java-cdc}" />
       <classpath refid="antlr.classpath" />
