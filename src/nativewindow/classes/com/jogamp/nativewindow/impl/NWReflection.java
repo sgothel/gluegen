@@ -34,7 +34,7 @@
  * facility.
  */
 
-package com.sun.nativewindow.impl;
+package com.jogamp.nativewindow.impl;
 
 import java.lang.reflect.*;
 import javax.media.nativewindow.*;
