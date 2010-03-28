@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.nativewindow.impl;
+package com.jogamp.nativewindow.impl;
 
 // FIXME: refactor Java SE dependencies
 //import java.awt.Toolkit;
