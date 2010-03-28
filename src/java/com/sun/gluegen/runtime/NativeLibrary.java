@@ -57,7 +57,7 @@ import java.util.*;
     ProcAddressTable glue code generation style without additional
     supporting code needed in the generated library. */
 
-public class NativeLibrary {
+public class NativeLibrary implements DynamicLookupHelper {
   private static final int WINDOWS = 1;
   private static final int UNIX    = 2;
   private static final int MACOSX  = 3;
@@ -202,10 +202,10 @@ public class NativeLibrary {
   }
 
   /** Looks up the given function name in this native library. */
-  public long lookupFunction(String functionName) {
+  public long dynamicLookupFunction(String funcName) {
     if (libraryHandle == 0)
       throw new RuntimeException("Library is not open");
-    return dynLink.lookupSymbol(libraryHandle, functionName);
+    return dynLink.lookupSymbol(libraryHandle, funcName);
   }
 
   /** Retrieves the low-level library handle from this NativeLibrary

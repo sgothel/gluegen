@@ -81,7 +81,7 @@ public class MethodBinding {
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
     this.javaReturnType                   = bindingToCopy.javaReturnType;
-    this.javaArgumentTypes                = new ArrayList<JavaType>(bindingToCopy.javaArgumentTypes);
+    this.javaArgumentTypes                = ( null != bindingToCopy.javaArgumentTypes ) ? new ArrayList<JavaType>(bindingToCopy.javaArgumentTypes) : null;
     this.computedSignatureProperties      = bindingToCopy.computedSignatureProperties;
     this.argumentsUseNIO                  = bindingToCopy.argumentsUseNIO;
     this.signatureUsesNIO                 = bindingToCopy.signatureUsesNIO;

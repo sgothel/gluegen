@@ -140,12 +140,10 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     super.emitBodyVariableDeclarations(writer);
   }
 
-  protected void emitBodyVariablePreCallSetup(PrintWriter writer,
-                                              boolean emittingPrimitiveArrayCritical) {
-    super.emitBodyVariablePreCallSetup(writer, emittingPrimitiveArrayCritical);
+  protected void emitBodyVariablePreCallSetup(PrintWriter writer) {
+    super.emitBodyVariablePreCallSetup(writer);
 
     if (callThroughProcAddress) {
-      if (!emittingPrimitiveArrayCritical) {
         // set the function pointer to the value of the passed-in procAddress
         FunctionSymbol cSym = getBinding().getCSymbol();
         String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
@@ -162,7 +160,6 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         writer.println(") (intptr_t) procAddress;");
 
         writer.println("  assert(" + ptrVarName + " != NULL);");
-      }
     }
   }
 

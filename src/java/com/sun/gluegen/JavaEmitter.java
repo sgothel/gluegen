@@ -586,36 +586,6 @@ public class JavaEmitter implements GlueEmitter {
         emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
         emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
         allEmitters.add(emitter);
-
-        // Optionally emit the entry point taking arrays which handles
-        // both the public entry point taking arrays as well as the
-        // indirect buffer case
-        if (!cfg.nioDirectOnly(binding.getName()) &&
-            binding.signatureCanUseIndirectNIO()) {
-          emitter =
-            new JavaMethodBindingEmitter(binding,
-                                         writer,
-                                         cfg.runtimeExceptionType(),
-                                         cfg.unsupportedExceptionType(),
-                                         false,
-                                         cfg.tagNativeBinding(),
-                                         true,
-                                         false,
-                                         true,
-                                         false,
-                                         true,
-                                         false,
-                                         false,
-                                         cfg);
-
-          emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
-          if (cfg.allStatic()) {
-            emitter.addModifier(JavaMethodBindingEmitter.STATIC);
-          }
-          emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-          emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-          allEmitters.add(emitter);
-        }
       }
     }
 
@@ -656,51 +626,27 @@ public class JavaEmitter implements GlueEmitter {
         }
       }
 
-      CMethodBindingEmitter cEmitter =
-        new CMethodBindingEmitter(binding,
-                                  cWriter(),
-                                  cfg.implPackageName(),
-                                  cfg.implClassName(),
-                                  true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
-                                  cfg.allStatic(),
-                                  (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
-                                  false,
-                                  machDesc64);
-      if (returnValueCapacityFormat != null) {
-        cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
-      }
-      if (returnValueLengthFormat != null) {
-        cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
-      }
-      cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
-      cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
-      allEmitters.add(cEmitter);
-
-      // Now see if we have to emit another entry point to handle the
-      // indirect buffer and array case
-      if (binding.argumentsUseNIO() &&
-          binding.signatureCanUseIndirectNIO() &&
-          !cfg.nioDirectOnly(binding.getName())) {
-        cEmitter =
+      CMethodBindingEmitter cEmitter;
+      // Generate a binding without mixed access (NIO-direct, -indirect, array)
+      cEmitter =
           new CMethodBindingEmitter(binding,
                                     cWriter(),
                                     cfg.implPackageName(),
                                     cfg.implClassName(),
-                                    true, /* NOTE: we always disambiguate with a suffix now, so this is optional */
+                                    true, // NOTE: we always disambiguate with a suffix now, so this is optional 
                                     cfg.allStatic(),
-                                    binding.needsNIOWrappingOrUnwrapping(),
-                                    true,
+                                    (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
+                                    !cfg.nioDirectOnly(binding.getName()),
                                     machDesc64);
-        if (returnValueCapacityFormat != null) {
+      if (returnValueCapacityFormat != null) {
           cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
-        }
-        if (returnValueLengthFormat != null) {
-          cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
-        }
-        cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
-        cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
-        allEmitters.add(cEmitter);
       }
+      if (returnValueLengthFormat != null) {
+          cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
+      }
+      cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
+      cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
+      allEmitters.add(cEmitter);
     }
   }
 
@@ -746,14 +692,15 @@ public class JavaEmitter implements GlueEmitter {
         //   Implementation class:
         //     public void fooMethod(Buffer arg) {
         //       ... bounds checks, etc. ...
-        //       if (arg.isDirect()) {
-        //         fooMethod0(arg, computeDirectBufferByteOffset(arg));
-        //       } else {
-        //         fooMethod1(getIndirectBufferArray(arg), computeIndirectBufferByteOffset(arg));
-        //       }
+        //
+        //       boolean arg_direct = arg != null && BufferFactory.isDirect(arg);
+        //
+        //       fooMethod0(arg_direct?arg:BufferFactory.getArray(arg),
+        //                  arg_direct?BufferFactory.getDirectBufferByteOffset(arg):BufferFactory.getIndirectBufferByteOffset(arg),
+        //                  arg_direct,
+        //                  ... );
         //     }
-        //     private native void fooMethod0(Object arg, int arg_byte_offset);
-        //     private native void fooMethod1(Object arg, int arg_byte_offset);
+        //     private native void fooMethod0(Object arg, int arg_byte_offset, boolean arg_is_direct, ...);
         //
         // Method taking primitive array argument:
         //   Interface class:
@@ -772,8 +719,7 @@ public class JavaEmitter implements GlueEmitter {
         //         fooMethod1(getIndirectBufferArray(arg), computeIndirectBufferByteOffset(arg));
         //       }
         //     }
-        //     private native void fooMethod0(Object arg, int arg_byte_offset);
-        //     private native void fooMethod1(Object arg, int arg_byte_offset);
+        //     private native void fooMethod0(Object arg, int arg_byte_offset, boolean arg_is_direct, ...);
         //
         // Note in particular that the public entry point taking an
         // array is merely a special case of the indirect buffer case.

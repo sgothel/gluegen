@@ -103,16 +103,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
    */
   private MessageFormat returnValueLengthExpression = null;
   
-  // Note: the VC++ 6.0 compiler emits hundreds of warnings when the
-  // (necessary) null-checking code is enabled. This appears to just
-  // be a compiler bug, but would be good to track down exactly why it
-  // is happening. When the null checking is enabled for just the
-  // GetPrimitiveArrayCritical calls, there are five warnings
-  // generated for several thousand new if tests added to the code.
-  // Which ones are the ones at fault? The line numbers for the
-  // warnings are incorrect.
-  private static final boolean EMIT_NULL_CHECKS = true;
-
   protected static final String STRING_CHARS_PREFIX = "_strchars_";
 
   // We need this in order to compute sizes of certain types
@@ -369,6 +359,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
       if (javaArgType.isPrimitiveArray() ||
           javaArgType.isNIOBuffer()) {
         writer.print(", jint " + byteOffsetArgName(i));
+        if(forIndirectBufferAndArrayImplementation) {
+            writer.print(", jboolean " + isNIOArgName(i));
+        }
       } else if (javaArgType.isNIOBufferArray()) {
         writer.print(", jintArray " + 
                      byteOffsetArrayArgName(i));
@@ -383,12 +376,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
 //    writer.println("printf(\" - - - - "+ getName() + getImplSuffix() +" - - - -\\n\");");
     emitBodyVariableDeclarations(writer);
     emitBodyUserVariableDeclarations(writer);
-    emitBodyVariablePreCallSetup(writer, false);
-    emitBodyVariablePreCallSetup(writer, true);
+    emitBodyVariablePreCallSetup(writer);
     emitBodyCallCFunction(writer);    
     emitBodyUserVariableAssignments(writer);
-    emitBodyVariablePostCallCleanup(writer, true);
-    emitBodyVariablePostCallCleanup(writer, false);
+    emitBodyVariablePostCallCleanup(writer);
     emitBodyReturnResult(writer);
     writer.println("}");
     writer.println();
@@ -548,22 +539,21 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * emitBodyVariableDeclarations(), PRIOR TO calling the actual C
    * function.
    */
-  protected void emitBodyVariablePreCallSetup(PrintWriter writer, boolean emittingPrimitiveArrayCritical)  {
+  protected void emitBodyVariablePreCallSetup(PrintWriter writer)  {
 
-    if (!emittingPrimitiveArrayCritical) {
-      // Convert all Buffers to pointers first so we don't have to
-      // call ReleasePrimitiveArrayCritical for any arrays if any
-      // incoming buffers aren't direct
-      if (binding.hasContainingType()) {
+    // Convert all Buffers to pointers first so we don't have to
+    // call ReleasePrimitiveArrayCritical for any arrays if any
+    // incoming buffers aren't direct
+    if (binding.hasContainingType()) {
         emitPointerConversion(writer, binding,
                               binding.getContainingType(),
                               binding.getContainingCType(),
                               JavaMethodBindingEmitter.javaThisArgumentName(),
                               CMethodBindingEmitter.cThisArgumentName(),
                               null);
-      }
+    }
     
-      for (int i = 0; i < binding.getNumArguments(); i++) {
+    for (int i = 0; i < binding.getNumArguments(); i++) {
         JavaType type = binding.getJavaArgumentType(i);
         if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
           continue;
@@ -577,7 +567,6 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                 pointerConversionArgumentName(javaArgName),
                                 byteOffsetArgName(i));
         }
-      }
     }
 
     // Convert all arrays to pointers, and get UTF-8 versions of jstring args
@@ -594,19 +583,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           javaArgType.isArrayOfCompoundTypeWrappers()) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
 
-        // We only defer the emission of GetPrimitiveArrayCritical
-        // calls that won't be matched up until after the function
-        // we're calling
-        if ((!needsDataCopy && !emittingPrimitiveArrayCritical) ||
-            (needsDataCopy  && emittingPrimitiveArrayCritical)) {
-          continue;
-        }
-
-        if (EMIT_NULL_CHECKS) {
-          writer.print("  if (");
-          writer.print(javaArgName);
-          writer.println(" != NULL) {");
-        }
+        writer.println("  if ( NULL != " + javaArgName + " ) {");
 
         Type cArgType = binding.getCArgumentType(i);
         String cArgTypeName = cArgType.getName();
@@ -622,12 +599,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
             cArgTypeName = "jstring *";
           }        
           writer.print(cArgTypeName);
-          writer.print(") (((char*) (*env)->GetPrimitiveArrayCritical(env, ");
-          writer.print(javaArgName);
-          writer.println(", NULL)) + " + byteOffsetArgName(i) + ");");
-//if(cargtypename is void*)
-//   _ptrX = ((char*)convName + index1*sizeof(thisArgsJavaType));
- 
+          writer.print(") (((char*) ( JNI_TRUE == " + isNIOArgName(i) + " ? "); 
+          writer.print(" (*env)->GetDirectBufferAddress(env, " + javaArgName + ") : ");
+          writer.print(" (*env)->GetPrimitiveArrayCritical(env, " + javaArgName + ", NULL) ) ) + ");
+          writer.println(byteOffsetArgName(i) + ");");
         } else {
           // Handle the case where the array elements are of a type that needs a
           // data copy operation to convert from the java memory model to the C
@@ -761,14 +736,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.println();
         } // end of data copy
         
-        if (EMIT_NULL_CHECKS) {
-          writer.println("  }");
-        }
-      } else if (javaArgType.isString()) {
-        if (!emittingPrimitiveArrayCritical) {
-          continue;
-        }
+        writer.println("  }");
 
+      } else if (javaArgType.isString()) {
         emitGetStringChars(writer, javaArgName,
                            STRING_CHARS_PREFIX + javaArgName,
                            isUTF8Type(binding.getCArgumentType(i)),
@@ -782,7 +752,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
    * Code to clean up any variables that were declared in
    * emitBodyVariableDeclarations(), AFTER calling the actual C function.
    */
-  protected void emitBodyVariablePostCallCleanup(PrintWriter writer, boolean emittingPrimitiveArrayCritical) {
+  protected void emitBodyVariablePostCallCleanup(PrintWriter writer) {
 
     // Release primitive arrays and temporary UTF8 strings if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -799,27 +769,16 @@ public class CMethodBindingEmitter extends FunctionEmitter
           javaArgType.isArrayOfCompoundTypeWrappers()) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
 
-        if ((!needsDataCopy && !emittingPrimitiveArrayCritical) ||
-            (needsDataCopy  && emittingPrimitiveArrayCritical)) {
-          continue;
-        }
-
-        if (EMIT_NULL_CHECKS) {
-          writer.print("  if (");
-          writer.print(javaArgName);
-          writer.println(" != NULL) {");
-        }
-
         String convName = pointerConversionArgumentName(javaArgName);
 
         if (!needsDataCopy) {
+          writer.println("  if ( NULL != " + javaArgName + " && JNI_FALSE == " + isNIOArgName(i) + " ) {");
+
           // Release array 
-          writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, ");
-          writer.print(javaArgName);
-          writer.print(", ");
-          writer.print(convName);
-          writer.println(", 0);");
+          writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, " + javaArgName + ", " + convName + ", 0);");
         } else {
+          writer.println("  if ( NULL != " + javaArgName + " ) {");
+
           // clean up the case where the array elements are of a type that needed
           // a data copy operation to convert from the java memory model to the
           // C memory model (e.g., int[][], String[], etc)
@@ -909,19 +868,10 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.println(");");
         } // end of cleaning up copied data
 
-        if (EMIT_NULL_CHECKS) {
-          writer.println("  }");
-        }
-      } else if (javaArgType.isString()) {
-        if (emittingPrimitiveArrayCritical) {
-          continue;
-        }
+        writer.println("  }");
 
-        if (EMIT_NULL_CHECKS) {
-          writer.print("  if (");
-          writer.print(javaArgName);
-          writer.println(" != NULL) {");
-        }
+      } else if (javaArgType.isString()) {
+        writer.println("  if ( NULL != " + javaArgName + " ) {");
 
         if (isUTF8Type(cArgType)) {
           writer.print("    (*env)->ReleaseStringUTFChars(env, ");
@@ -933,9 +883,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
           writer.println("    free((void*) " + STRING_CHARS_PREFIX + javaArgName + ");");
         }
 
-        if (EMIT_NULL_CHECKS) {
-          writer.println("  }");
-        }
+        writer.println("  }");
       }
     }
   }
@@ -1038,7 +986,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
         writer.println("_res;");
       } else if (javaReturnType.isNIOBuffer() ||
                  javaReturnType.isCompoundTypeWrapper()) {
-        writer.println("  if (_res == NULL) return NULL;");
+        writer.println("  if (NULL == _res) return NULL;");
         writer.print("  return (*env)->NewDirectByteBuffer(env, _res, ");
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
@@ -1065,11 +1013,11 @@ public class CMethodBindingEmitter extends FunctionEmitter
         }
         writer.println(");");
       } else if (javaReturnType.isString()) {
-        writer.print("  if (_res == NULL) return NULL;");
+        writer.println("  if (NULL == _res) return NULL;");
         writer.println("  return (*env)->NewStringUTF(env, _res);");
       } else if (javaReturnType.isArrayOfCompoundTypeWrappers() ||
                  (javaReturnType.isArray() && javaReturnType.isNIOByteBufferArray())) {
-        writer.println("  if (_res == NULL) return NULL;");
+        writer.println("  if (NULL == _res) return NULL;");
         if (returnValueLengthExpression == null) {
           throw new RuntimeException("Error while generating C code: no length specified for array returned from function " +
                                      binding);
@@ -1163,6 +1111,9 @@ public class CMethodBindingEmitter extends FunctionEmitter
           // extra arguments
           if (type.isNIOBuffer()) {
             jniMangle(Integer.TYPE, buf, false);
+            if(forIndirectBufferAndArrayImplementation) {
+                jniMangle(Boolean.TYPE, buf, false);
+            }
           } else if (type.isNIOBufferArray())   {
             int[] intArrayType = new int[0];
             c = intArrayType.getClass(); 
@@ -1239,9 +1190,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
   }
 
   private void emitOutOfMemoryCheck(PrintWriter writer, String varName, String errorMessage)  {
-    writer.print("    if (");
-    writer.print(varName);
-    writer.println(" == NULL) {");
+    writer.println("  if ( NULL == " + varName + " ) {");
     writer.println("      (*env)->ThrowNew(env, (*env)->FindClass(env, \"java/lang/OutOfMemoryError\"),");
     writer.print("                       \"" + errorMessage);
     writer.print(" in native dispatcher for \\\"");
@@ -1274,11 +1223,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.print(elementTypeString);
     writer.println("));");
     // Catch memory allocation failure
-    if (EMIT_NULL_CHECKS) {
-      emitOutOfMemoryCheck(
-        writer, targetVarName,
-        mallocFailureErrorString);
-    }
+    emitOutOfMemoryCheck( writer, targetVarName, mallocFailureErrorString);
   }
 
   private void emitCalloc(PrintWriter writer,
@@ -1296,11 +1241,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.print(elementTypeString);
     writer.println("));");
     // Catch memory allocation failure
-    if (EMIT_NULL_CHECKS) {
-      emitOutOfMemoryCheck(
-        writer, targetVarName,
-        mallocFailureErrorString);
-    }
+    emitOutOfMemoryCheck( writer, targetVarName, mallocFailureErrorString);
   }
 
   private void emitGetStringChars(PrintWriter writer,
@@ -1308,11 +1249,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                   String receivingVarName,
                                   boolean isUTF8,
                                   boolean emitElseClause)  {
-    if (EMIT_NULL_CHECKS) {
-      writer.print("  if (");
-      writer.print(sourceVarName);
-      writer.println(" != NULL) {");
-    }
+    writer.println("  if ( NULL != " + sourceVarName + " ) {");
+
     if (isUTF8) {
       writer.print("    ");
       writer.print(receivingVarName);
@@ -1321,11 +1259,7 @@ public class CMethodBindingEmitter extends FunctionEmitter
       writer.println(", (jboolean*)NULL);");
       // Catch memory allocation failure in the event that the VM didn't pin
       // the String and failed to allocate a copy    
-      if (EMIT_NULL_CHECKS) {
-        emitOutOfMemoryCheck(
-          writer, receivingVarName,
-          "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
-      }
+      emitOutOfMemoryCheck( writer, receivingVarName, "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
     } else {
       // The UTF-16 case is basically Windows specific. Unix platforms
       // tend to use only the UTF-8 encoding. On Windows the problem
@@ -1341,17 +1275,15 @@ public class CMethodBindingEmitter extends FunctionEmitter
                  "Could not allocate temporary buffer for copying string argument \\\""+sourceVarName+"\\\"");
       writer.println("    (*env)->GetStringRegion(env, " + sourceVarName + ", 0, (*env)->GetStringLength(env, " + sourceVarName + "), " + receivingVarName + ");");
     }
-    if (EMIT_NULL_CHECKS) {
-      writer.print("  }");
-      if (emitElseClause) {
-        writer.print(" else {");
-        writer.print("      ");
-        writer.print(receivingVarName);
-        writer.println(" = NULL;");
-        writer.println("  }");
-      } else {
-        writer.println();
-      }
+    writer.print("  }");
+    if (emitElseClause) {
+      writer.print(" else {");
+      writer.print("      ");
+      writer.print(receivingVarName);
+      writer.println(" = NULL;");
+      writer.println("  }");
+    } else {
+      writer.println();
     }
   }      
 
@@ -1361,12 +1293,8 @@ public class CMethodBindingEmitter extends FunctionEmitter
                                           String receivingVarName,
                                           String byteOffsetVarName,
                                           boolean emitElseClause) {
-    if (EMIT_NULL_CHECKS) {
-      writer.print("    if (");
-      writer.print(sourceVarName);
-      writer.println(" != NULL) {");
-      writer.print("    ");
-    }
+    writer.println("    if ( NULL != " + sourceVarName + " ) {");
+    writer.print("    ");
 
     writer.print("    ");
     writer.print(receivingVarName);
@@ -1377,17 +1305,15 @@ public class CMethodBindingEmitter extends FunctionEmitter
     writer.print(sourceVarName);
     writer.println(")) + " + ((byteOffsetVarName != null) ? byteOffsetVarName : "0") + ");");
 
-    if (EMIT_NULL_CHECKS) {
-      writer.print("    }");
-      if (emitElseClause) {
-        writer.println(" else {");
-        writer.print("      ");
-        writer.print(receivingVarName);
-        writer.println(" = NULL;");
-        writer.println("    }");
-      } else {
-        writer.println();
-      }
+    writer.print("    }");
+    if (emitElseClause) {
+      writer.println(" else {");
+      writer.print("      ");
+      writer.print(receivingVarName);
+      writer.println(" = NULL;");
+      writer.println("    }");
+    } else {
+      writer.println();
     }
   }
   
@@ -1502,6 +1428,14 @@ public class CMethodBindingEmitter extends FunctionEmitter
 
   protected String byteOffsetArgName(String s) {
     return s + "_byte_offset";
+  }
+                                                                                                            
+  protected String isNIOArgName(int i) {
+    return isNIOArgName(binding.getArgumentName(i));
+  }
+
+  protected String isNIOArgName(String s) {
+    return s + "_is_nio";
   }
                                                                                                             
   protected String byteOffsetArrayArgName(int i) {

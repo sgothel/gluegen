@@ -193,6 +193,8 @@
         <junit forkmode="once" showoutput="true" fork="true" haltonerror="true">
             <jvmarg value="-Djava.library.path=${gluegen.lib}:${build_t.lib}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
+            <!--jvmarg value="-Dgluegen.debug.NativeLibrary=true"/-->
+            <!--jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/-->
             <formatter usefile="false" type="plain"/>
             <formatter usefile="true" type="xml"/>
             <classpath refid="junit.run.classpath"/>
@@ -223,6 +225,7 @@
 
       -->
 
+
     <target name="junit.test1.java.generate">
         <echo message=" - - - junit.test1.java.generate" />
 
@@ -234,19 +237,50 @@
                  literalInclude="${test.junit.dir}"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.JavaEmitter">
-                 <!-- emitter="com.sun.gluegen.procaddress.ProcAddressEmitter" -->
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+
+        <gluegen src="${test.junit.dir}/test1-gluegen.c"
+                 outputRootDir="${build_t.gen}"
+                 config="${test.junit.dir}/test1p1-gluegen.cfg"
+                 literalInclude="${test.junit.dir}"
+                 includeRefid="stub.includes.fileset.test"
+                 emitter="com.sun.gluegen.JavaEmitter">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+
+        <gluegen src="${test.junit.dir}/test1-gluegen.c"
+                 outputRootDir="${build_t.gen}"
+                 config="${test.junit.dir}/test1p2-gluegen.cfg"
+                 literalInclude="${test.junit.dir}"
+                 includeRefid="stub.includes.fileset.test"
+                 emitter="com.sun.gluegen.procaddress.ProcAddressEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
 
-    <target name="junit.test1.c.build" unless="build.javaonly" >
-        <patternset id="junit.test1.c.src.files">
+    <target name="junit.test1.c.build" depends="junit.test1p1.c.build, junit.test1p2.c.build" unless="build.javaonly" />
+
+    <target name="junit.test1p1.c.build">
+        <patternset id="junit.test1p1.c.src.files">
           <include name="${test.junit.rootrel}/test1.c"/>
-          <include name="${build_t.gen.rootrel}/native/BindingTest1Impl_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/BindingTest1p1Impl_JNI.c"/>
         </patternset>
 
-        <c.build c.compiler.src.files="junit.test1.c.src.files"
-                 output.lib.name="test1"
+        <c.build c.compiler.src.files="junit.test1p1.c.src.files"
+                 output.lib.name="test1p1"
+                 compiler.cfg.id="${compiler.cfg.id}"
+                 linker.cfg.id="${linker.cfg.id}"/>
+    </target>
+
+    <target name="junit.test1p2.c.build">
+        <patternset id="junit.test1p2.c.src.files">
+          <include name="${test.junit.rootrel}/test1.c"/>
+          <include name="${build_t.gen.rootrel}/native/BindingTest1p2Impl_JNI.c"/>
+        </patternset>
+
+        <c.build c.compiler.src.files="junit.test1p2.c.src.files"
+                 output.lib.name="test1p2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="${linker.cfg.id}"/>
     </target>

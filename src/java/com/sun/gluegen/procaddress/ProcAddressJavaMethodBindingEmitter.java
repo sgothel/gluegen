@@ -110,8 +110,8 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     return numEmitted;
   }
 
-  protected String getImplMethodName(boolean direct) {
-    String name = super.getImplMethodName(direct);
+  protected String getImplMethodName() {
+    String name = super.getImplMethodName();
     if (callThroughProcAddress) {
       return ProcAddressEmitter.WRAP_PREFIX + name;
     }
@@ -131,8 +131,8 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
   }
 
-  protected int emitCallArguments(MethodBinding binding, PrintWriter writer, boolean indirect) {
-    int numEmitted = super.emitCallArguments(binding, writer, indirect);
+  protected int emitCallArguments(MethodBinding binding, PrintWriter writer) {
+    int numEmitted = super.emitCallArguments(binding, writer);
     if (callThroughProcAddress) {
       if (numEmitted > 0) {
         writer.print(", ");
