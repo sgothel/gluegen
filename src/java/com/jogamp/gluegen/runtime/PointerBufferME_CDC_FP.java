@@ -59,7 +59,7 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
-        if (CPU.is32Bit()) {
+        if (Platform.is32Bit()) {
             return pb.get(idx);
         } else {
             idx = idx << 1; // 8-byte to 4-byte offset
@@ -77,7 +77,7 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
             throw new IndexOutOfBoundsException();
         }
         backup[idx] = v;
-        if (CPU.is32Bit()) {
+        if (Platform.is32Bit()) {
             pb.put(idx, (int) v);
         } else {
             idx = idx << 1; // 8-byte to 4-byte offset

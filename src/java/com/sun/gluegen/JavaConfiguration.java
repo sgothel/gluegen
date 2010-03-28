@@ -104,7 +104,7 @@ public class JavaConfiguration {
 
     /**
      * The package in which the generated glue code expects to find its
-     * run-time helper classes (BufferFactory, CPU,
+     * run-time helper classes (BufferFactory, Platform,
      * StructAccessor). Defaults to "com.jogamp.gluegen.runtime".
      */
     private String gluegenRuntimePackage = "com.jogamp.gluegen.runtime";
@@ -308,7 +308,7 @@ public class JavaConfiguration {
   }
 
     /** Returns the package in which the generated glue code expects to
-    find its run-time helper classes (BufferFactory, CPU,
+    find its run-time helper classes (BufferFactory, Platform,
     StructAccessor). Defaults to "com.jogamp.gluegen.runtime". */
     public String gluegenRuntimePackage() {
         return gluegenRuntimePackage;

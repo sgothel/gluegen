@@ -909,7 +909,7 @@ public class JavaEmitter implements GlueEmitter {
     }
     writer.println("  public static int size() {");
     if (doBaseClass) {
-      writer.println("    if (CPU.is32Bit()) {");
+      writer.println("    if (Platform.is32Bit()) {");
       writer.println("      return " + containingTypeName + "32" + ".size();");
       writer.println("    } else {");
       writer.println("      return " + containingTypeName + "64" + ".size();");
@@ -925,7 +925,7 @@ public class JavaEmitter implements GlueEmitter {
       writer.println("  }");
       writer.println();
       writer.println("  public static " + containingTypeName + " create(java.nio.ByteBuffer buf) {");
-      writer.println("    if (CPU.is32Bit()) {");
+      writer.println("    if (Platform.is32Bit()) {");
       writer.println("      return new " + containingTypeName + "32(buf);");
       writer.println("    } else {");
       writer.println("      return new " + containingTypeName + "64(buf);");

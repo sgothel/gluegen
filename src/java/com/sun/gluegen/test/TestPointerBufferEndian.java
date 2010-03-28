@@ -8,12 +8,12 @@ public class TestPointerBufferEndian {
     public static void main (String[] args) {
         boolean direct = args.length>0 && args[0].equals("-direct");
         boolean ok = true;
-        int bitsPtr = CPU.getPointerSizeInBits();
+        int bitsPtr = Platform.getPointerSizeInBits();
         String bitsProp = System.getProperty("sun.arch.data.model");
         String os = System.getProperty("os.name");
         String cpu = System.getProperty("os.arch");
         System.out.println("OS: <"+os+"> CPU: <"+cpu+"> Bits: <"+bitsPtr+"/"+bitsProp+">");
-        System.out.println("CPU is: "+ (CPU.is32Bit()?"32":"64") + " bit");
+        System.out.println("CPU is: "+ (Platform.is32Bit()?"32":"64") + " bit");
         System.out.println("Buffer is in: "+ (BufferFactory.isLittleEndian()?"little":"big") + " endian");
         PointerBuffer ptr = direct ? PointerBuffer.allocateDirect(3) : PointerBuffer.allocate(3);
         ptr.put(0, 0x0123456789ABCDEFL);

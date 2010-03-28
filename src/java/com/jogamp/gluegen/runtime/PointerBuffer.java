@@ -87,7 +87,7 @@ public abstract class PointerBuffer {
     }
 
     public static int elementSize() {
-        return CPU.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
+        return Platform.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
     }
 
     public int limit() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010, Michael Bien
+ * Copyright (c) 2010, Michael Bien, Sven Gothel
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,15 +36,62 @@ import java.nio.ShortBuffer;
 
 /**
  * Utility class for querying platform specific properties.
- * @author Michael Bien
+ * @author Michael Bien, Sven Gothel
  */
 public class Platform {
 
     public static final boolean JAVA_SE;
     public static final boolean LITTLE_ENDIAN;
 
+    private final static boolean is32Bit;
+    private final static int pointerSizeInBits;
+    private final static String os, arch;
+
     static {
-        // platform
+        NativeLibrary.ensureNativeLibLoaded();
+
+        // We don't seem to need an AccessController.doPrivileged() block
+        // here as these system properties are visible even to unsigned
+        // applets
+        os =  System.getProperty("os.name");
+        arch = System.getProperty("os.arch");
+
+        pointerSizeInBits = getPointerSizeInBitsImpl();
+
+        // Try to use Sun's sun.arch.data.model first ..
+        if ( 32 == pointerSizeInBits || 64 == pointerSizeInBits ) {
+            is32Bit = ( 32 == pointerSizeInBits );
+        }else {
+            String os_lc = os.toLowerCase();
+            String arch_lc = arch.toLowerCase();
+
+            if ((os_lc.startsWith("windows") && arch_lc.equals("x86")) ||
+                (os_lc.startsWith("windows") && arch_lc.equals("arm")) ||
+                (os_lc.startsWith("linux") && arch_lc.equals("i386")) ||
+                (os_lc.startsWith("linux") && arch_lc.equals("x86")) ||
+                (os_lc.startsWith("mac os_lc") && arch_lc.equals("ppc")) ||
+                (os_lc.startsWith("mac os_lc") && arch_lc.equals("i386")) ||
+                (os_lc.startsWith("darwin") && arch_lc.equals("ppc")) ||
+                (os_lc.startsWith("darwin") && arch_lc.equals("i386")) ||
+                (os_lc.startsWith("sunos_lc") && arch_lc.equals("sparc")) ||
+                (os_lc.startsWith("sunos_lc") && arch_lc.equals("x86")) ||
+                (os_lc.startsWith("freebsd") && arch_lc.equals("i386")) ||
+                (os_lc.startsWith("hp-ux") && arch_lc.equals("pa_risc2.0"))) {
+              is32Bit = true;
+            } else if ((os_lc.startsWith("windows") && arch_lc.equals("amd64")) ||
+                      (os_lc.startsWith("linux") && arch_lc.equals("amd64")) ||
+                      (os_lc.startsWith("linux") && arch_lc.equals("x86_64")) ||
+                      (os_lc.startsWith("linux") && arch_lc.equals("ia64")) ||
+                      (os_lc.startsWith("mac os_lc") && arch_lc.equals("x86_64")) ||
+                      (os_lc.startsWith("darwin") && arch_lc.equals("x86_64")) ||
+                      (os_lc.startsWith("sunos_lc") && arch_lc.equals("sparcv9")) ||
+                      (os_lc.startsWith("sunos_lc") && arch_lc.equals("amd64"))) {
+              is32Bit = false;
+            }else{
+              throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + os_lc + "/" + arch_lc + ")");
+            }
+        }
+
         // fast path
         boolean se = System.getProperty("java.runtime.name").indexOf("Java SE") != -1;
 
@@ -69,6 +116,8 @@ public class Platform {
 
     private Platform() {}
 
+    private static native int getPointerSizeInBitsImpl();
+
     /**
      * Returns true only if this program is running on the Java Standard Edition.
      */
@@ -87,21 +136,27 @@ public class Platform {
      * Returns the OS name.
      */
     public static String getOS() {
-        return System.getProperty("os.name");
+        return os;
     }
 
     /**
      * Returns the CPU architecture String.
      */
     public static String getArch() {
-        return System.getProperty("os.arch");
+        return arch;
     }
 
     /**
      * Returns true if this JVM is a 32bit JVM.
      */
     public static boolean is32Bit() {
-        return CPU.is32Bit();
+        return is32Bit;
+    }
+
+    public static int getPointerSizeInBits() {
+        return pointerSizeInBits;
     }
 
 }
+
+

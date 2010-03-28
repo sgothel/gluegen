@@ -120,7 +120,7 @@ public class StructLayout {
   
 
   public static StructLayout createForCurrentPlatform() {
-    // Note: this code is replicated in CPU.java
+    // Note: this code is replicated in (from?) Platform.java
     String os = System.getProperty("os.name").toLowerCase();
     String cpu = System.getProperty("os.arch").toLowerCase();
     if ((os.startsWith("windows") && cpu.equals("x86"))) {

@@ -48,7 +48,7 @@ final class PointerBufferSE extends PointerBuffer {
     PointerBufferSE(ByteBuffer bb) {
         super(bb);
 
-        if (CPU.is32Bit()) {
+        if (Platform.is32Bit()) {
             this.pb = bb.asIntBuffer();
         } else {
             this.pb = bb.asLongBuffer();
@@ -64,7 +64,7 @@ final class PointerBufferSE extends PointerBuffer {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
-        if (CPU.is32Bit()) {
+        if (Platform.is32Bit()) {
             return ((IntBuffer) pb).get(idx);
         } else {
             return ((LongBuffer) pb).get(idx);
@@ -76,7 +76,7 @@ final class PointerBufferSE extends PointerBuffer {
             throw new IndexOutOfBoundsException();
         }
         backup[idx] = v;
-        if (CPU.is32Bit()) {
+        if (Platform.is32Bit()) {
             ((IntBuffer) pb).put(idx, (int) v);
         } else {
             ((LongBuffer) pb).put(idx, v);
