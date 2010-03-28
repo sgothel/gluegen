@@ -1,7 +1,7 @@
 package com.sun.gluegen;
 
-import com.sun.gluegen.runtime.BufferFactory;
-import com.sun.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.PointerBuffer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;

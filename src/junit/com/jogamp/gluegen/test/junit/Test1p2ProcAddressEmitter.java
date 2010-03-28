@@ -34,10 +34,10 @@ package com.jogamp.gluegen.test.junit;
 
 import com.jogamp.gluegen.test.junit.impl.BindingTest1p2Impl;
 
-import com.sun.gluegen.runtime.BufferFactory;
-import com.sun.gluegen.runtime.PointerBuffer;
-import com.sun.gluegen.runtime.NativeLibrary;
-import com.sun.gluegen.runtime.DynamicLookupHelper;
+import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.NativeLibrary;
+import com.jogamp.gluegen.runtime.DynamicLookupHelper;
 import java.nio.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

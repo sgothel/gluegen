@@ -37,18 +37,23 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.runtime;
+package com.jogamp.gluegen.runtime;
 
 import java.nio.*;
 
 public class StructAccessor {
   private ByteBuffer   bb;
+  private CharBuffer   cb;
+  private DoubleBuffer db;
   private FloatBuffer  fb;
   private IntBuffer    ib;
+  private LongBuffer   lb;
   private ShortBuffer  sb;
 
   public StructAccessor(ByteBuffer bb) {
-    this.bb = bb;
+    // Setting of byte order is concession to native code which needs
+    // to instantiate these
+    this.bb = bb.order(ByteOrder.nativeOrder());
   }
 
   public ByteBuffer getBuffer() {
@@ -78,6 +83,26 @@ public class StructAccessor {
     bb.put(slot, v);
   }
 
+  /** Retrieves the char at the specified slot (2-byte offset). */
+  public char getCharAt(int slot) {
+    return charBuffer().get(slot);
+  }
+
+  /** Puts a char at the specified slot (2-byte offset). */
+  public void setCharAt(int slot, char v) {
+    charBuffer().put(slot, v);
+  }
+
+  /** Retrieves the double at the specified slot (8-byte offset). */
+  public double getDoubleAt(int slot) {
+    return doubleBuffer().get(slot);
+  }
+
+  /** Puts a double at the specified slot (8-byte offset). */
+  public void setDoubleAt(int slot, double v) {
+    doubleBuffer().put(slot, v);
+  }
+
   /** Retrieves the float at the specified slot (4-byte offset). */
   public float getFloatAt(int slot) {
     return floatBuffer().get(slot);
@@ -98,6 +123,26 @@ public class StructAccessor {
     intBuffer().put(slot, v);
   }
 
+  /** Retrieves the long at the specified slot (8-byte offset). */
+  public long getLongAt(int slot) {
+    return longBuffer().get(slot);
+  }
+
+  /** Puts a long at the specified slot (8-byte offset). */
+  public void setLongAt(int slot, long v) {
+    longBuffer().put(slot, v);
+  }
+
+  /** Retrieves the short at the specified slot (2-byte offset). */
+  public short getShortAt(int slot) {
+    return shortBuffer().get(slot);
+  }
+
+  /** Puts a short at the specified slot (2-byte offset). */
+  public void setShortAt(int slot, short v) {
+    shortBuffer().put(slot, v);
+  }
+
   public void setBytesAt(int slot, byte[] v) {
       for (int i = 0; i < v.length; i++) {
         bb.put(slot++, v[i]);
@@ -107,6 +152,19 @@ public class StructAccessor {
   public byte[] getBytesAt(int slot, byte[] v) {
       for (int i = 0; i < v.length; i++) {
         v[i] = bb.get(slot++);
+      }
+      return v;
+  }
+
+  public void setCharsAt(int slot, char[] v) {
+      for (int i = 0; i < v.length; i++) {
+        charBuffer().put(slot++, v[i]);
+      }
+  }
+
+  public char[] getCharsAt(int slot, char[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = charBuffer().get(slot++);
       }
       return v;
   }
@@ -137,46 +195,36 @@ public class StructAccessor {
       return v;
   }
 
-  /** Retrieves the long at the specified slot (8-byte offset). */
-  public long getLongAt(int slot) {
-    slot = slot << 1 ; // 8-byte to 4-byte offset
-    IntBuffer intBuffer = intBuffer();
-    long lo = 0x00000000FFFFFFFFL & ( (long) intBuffer.get(slot)   );
-    long hi = 0x00000000FFFFFFFFL & ( (long) intBuffer.get(slot+1) );
-    if(BufferFactory.isLittleEndian()) {
-        return hi << 32 | lo ;
-    }
-    return lo << 32 | hi ;
+  public void setDoublesAt(int slot, double[] v) {
+      for (int i = 0; i < v.length; i++) {
+        doubleBuffer().put(slot++, v[i]);
+      }
   }
 
-  /** Puts a long at the specified slot (8-byte offset). */
-  public void setLongAt(int slot, long v) {
-    slot = slot << 1 ; // 8-byte to 4-byte offset
-    IntBuffer intBuffer = intBuffer();
-    int lo = (int) ( ( v       ) & 0x00000000FFFFFFFFL ) ;
-    int hi = (int) ( ( v >> 32 ) & 0x00000000FFFFFFFFL ) ;
-    if(BufferFactory.isLittleEndian()) {
-        intBuffer.put(slot, lo);
-        intBuffer.put(slot+1, hi);
-    } else {
-        intBuffer.put(slot, hi);
-        intBuffer.put(slot+1, lo);
-    }
-  }
-
-  /** Retrieves the short at the specified slot (2-byte offset). */
-  public short getShortAt(int slot) {
-    return shortBuffer().get(slot);
-  }
-
-  /** Puts a short at the specified slot (2-byte offset). */
-  public void setShortAt(int slot, short v) {
-    shortBuffer().put(slot, v);
+  public double[] getDoublesAt(int slot, double[] v) {
+      for (int i = 0; i < v.length; i++) {
+        v[i] = doubleBuffer().get(slot++);
+      }
+      return v;
   }
 
   //----------------------------------------------------------------------
   // Internals only below this point
   //
+
+  private CharBuffer charBuffer() {
+    if (cb == null) {
+      cb = bb.asCharBuffer();
+    }
+    return cb;
+  }
+
+  private DoubleBuffer doubleBuffer() {
+    if (db == null) {
+      db = bb.asDoubleBuffer();
+    }
+    return db;
+  }
 
   private FloatBuffer floatBuffer() {
     if (fb == null) {
@@ -190,6 +238,13 @@ public class StructAccessor {
       ib = bb.asIntBuffer();
     }
     return ib;
+  }
+
+  private LongBuffer longBuffer() {
+    if (lb == null) {
+      lb = bb.asLongBuffer();
+    }
+    return lb;
   }
 
   private ShortBuffer shortBuffer() {

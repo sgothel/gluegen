@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,14 +37,17 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.sun.gluegen.runtime;
+package com.jogamp.gluegen.runtime;
 
-/** Provides an abstract interface to the OS's low-level dynamic
-    linking functionality. */
+/** Interface callers may use to use the ProcAddressHelper's {@link
+    ProcAddressHelper#resetProcAddressTable resetProcAddressTable}
+    helper method to install function pointers into a
+    ProcAddressTable. This must typically be written with native
+    code. */
 
-interface DynamicLinker {
-  public long openLibraryGlobal(String pathname, boolean debug);
-  public long openLibraryLocal(String pathname, boolean debug);
-  public long lookupSymbol(long libraryHandle, String symbolName);
-  public void closeLibrary(long libraryHandle);
+public interface DynamicLookupHelper {
+  /**
+   * Try to fetch the function pointer for function 'funcName'.
+   */
+  public long dynamicLookupFunction(String funcName);
 }
