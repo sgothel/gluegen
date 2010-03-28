@@ -30,10 +30,10 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.sun.nativewindow.impl.jvm;
+package com.jogamp.nativewindow.impl.jvm;
 
 import java.nio.ByteBuffer;
-import com.sun.nativewindow.impl.*;
+import com.jogamp.nativewindow.impl.*;
 
 /**
  * Currently this tool works around the Hotspot race condition bugs:
