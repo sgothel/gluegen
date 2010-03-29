@@ -693,10 +693,10 @@ public class JavaEmitter implements GlueEmitter {
         //     public void fooMethod(Buffer arg) {
         //       ... bounds checks, etc. ...
         //
-        //       boolean arg_direct = arg != null && BufferFactory.isDirect(arg);
+        //       boolean arg_direct = arg != null && Buffers.isDirect(arg);
         //
-        //       fooMethod1(arg_direct?arg:BufferFactory.getArray(arg),
-        //                  arg_direct?BufferFactory.getDirectBufferByteOffset(arg):BufferFactory.getIndirectBufferByteOffset(arg),
+        //       fooMethod0(arg_direct?arg:Buffers.getArray(arg),
+        //                  arg_direct?Buffers.getDirectBufferByteOffset(arg):Buffers.getIndirectBufferByteOffset(arg),
         //                  arg_direct,
         //                  ... );
         //     }
@@ -923,7 +923,7 @@ public class JavaEmitter implements GlueEmitter {
     writer.println();
     if (doBaseClass) {
       writer.println("  public static " + containingTypeName + " create() {");
-      writer.println("    return create(BufferFactory.newDirectByteBuffer(size()));");
+      writer.println("    return create(Buffers.newDirectByteBuffer(size()));");
       writer.println("  }");
       writer.println();
       writer.println("  public static " + containingTypeName + " create(java.nio.ByteBuffer buf) {");

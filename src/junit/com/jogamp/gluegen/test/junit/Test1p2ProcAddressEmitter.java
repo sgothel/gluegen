@@ -34,7 +34,7 @@ package com.jogamp.gluegen.test.junit;
 
 import com.jogamp.gluegen.test.junit.impl.BindingTest1p2Impl;
 
-import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
 import com.jogamp.gluegen.runtime.NativeLibrary;
 import com.jogamp.gluegen.runtime.DynamicLookupHelper;

@@ -450,12 +450,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isNIOBuffer()) {
           if (directNIOOnly) {
-            writer.println("    if (!BufferFactory.isDirect(" + getArgumentName(i) + "))");
+            writer.println("    if (!Buffers.isDirect(" + getArgumentName(i) + "))");
             writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
                            getArgumentName(i) + "\\\" was not a direct buffer\");");
           } else {
             writer.print("    boolean " + isNIOArgName(i) + " = ");
-            writer.println(getArgumentName(i) + " != null && BufferFactory.isDirect(" + getArgumentName(i) + ");");
+            writer.println(getArgumentName(i) + " != null && Buffers.isDirect(" + getArgumentName(i) + ");");
           }
         } else if (javaType.isNIOBufferArray()) {
           // All buffers passed down in an array of NIO buffers must be direct
@@ -465,13 +465,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
           // Check direct buffer properties of all buffers within
           writer.println("    if (" + argName + " != null) {");
           writer.println("      for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
-          writer.println("        if (!BufferFactory.isDirect(" + argName + "[_ctr])) {");
+          writer.println("        if (!Buffers.isDirect(" + argName + "[_ctr])) {");
           writer.println("          throw new " + getRuntimeExceptionType() + 
                          "(\"Element \" + _ctr + \" of argument \\\"" +
                          getArgumentName(i) + "\\\" was not a direct buffer\");");
           writer.println("        }");
           // get the Buffer Array offset values and save them into another array to send down to JNI
-          writer.print  ("        " + arrayName + "[_ctr] = BufferFactory.getDirectBufferByteOffset(");
+          writer.print  ("        " + arrayName + "[_ctr] = Buffers.getDirectBufferByteOffset(");
           writer.println(argName + "[_ctr]);");
           writer.println("      }");
           writer.println("    }");
@@ -594,13 +594,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
                   writer.print( getArgumentName(i)+ " != null ? " + getArgumentName(i) + ".getBuffer() : null");
               } else {
                   writer.print( isNIOArgName(i) + " ? ( " + getArgumentName(i)+ " != null ? " + getArgumentName(i) + ".getBuffer() : null )");
-                  writer.print( " : BufferFactory.getArray(" + getArgumentName(i) + ")" );
+                  writer.print( " : Buffers.getArray(" + getArgumentName(i) + ")" );
               }
           } else {
               if (directNIOOnly) {
                   writer.print( getArgumentName(i) );
               } else {
-                  writer.print( isNIOArgName(i) + " ? " + getArgumentName(i) + " : BufferFactory.getArray(" + getArgumentName(i) + ")" );
+                  writer.print( isNIOArgName(i) + " ? " + getArgumentName(i) + " : Buffers.getArray(" + getArgumentName(i) + ")" );
               }
           }
       } else if (type.isArrayOfCompoundTypeWrappers()) {
@@ -617,26 +617,26 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
 
       if (type.isNIOBuffer()) {
         if (directNIOOnly) {
-          writer.print( ", BufferFactory.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
+          writer.print( ", Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
         } else {
-          writer.print( ", " + isNIOArgName(i) + " ? BufferFactory.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
-          writer.print(        " : BufferFactory.getIndirectBufferByteOffset(" + getArgumentName(i) + ")");
+          writer.print( ", " + isNIOArgName(i) + " ? Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
+          writer.print(        " : Buffers.getIndirectBufferByteOffset(" + getArgumentName(i) + ")");
         }
       } else if (type.isNIOBufferArray()) {
         writer.print(", " + byteOffsetArrayArgName(i));
       } else if (type.isPrimitiveArray()) {
         if(type.isFloatArray()) {
-          writer.print(", BufferFactory.SIZEOF_FLOAT * ");
+          writer.print(", Buffers.SIZEOF_FLOAT * ");
         } else if(type.isDoubleArray()) {
-          writer.print(", BufferFactory.SIZEOF_DOUBLE * ");
+          writer.print(", Buffers.SIZEOF_DOUBLE * ");
         } else if(type.isByteArray()) {
           writer.print(", ");
         } else if(type.isLongArray()) {
-          writer.print(", BufferFactory.SIZEOF_LONG * ");
+          writer.print(", Buffers.SIZEOF_LONG * ");
         } else if(type.isShortArray()) {
-          writer.print(", BufferFactory.SIZEOF_SHORT * ");
+          writer.print(", Buffers.SIZEOF_SHORT * ");
         } else if(type.isIntArray()) {
-          writer.print(", BufferFactory.SIZEOF_INT * ");
+          writer.print(", Buffers.SIZEOF_INT * ");
         } else {
           throw new RuntimeException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
@@ -695,9 +695,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       String fmt = getReturnedArrayLengthExpression();
       writer.println("    if (_res == null) return null;");
       if (fmt == null) {
-        writer.print("    return " + returnType.getName() + ".create(BufferFactory.nativeOrder(_res))");
+        writer.print("    return " + returnType.getName() + ".create(Buffers.nativeOrder(_res))");
       } else {
-        writer.println("    BufferFactory.nativeOrder(_res);");
+        writer.println("    Buffers.nativeOrder(_res);");
         String expr = new MessageFormat(fmt).format(argumentNameArray());
         PointerType cReturnTypePointer = binding.getCReturnType().asPointer();
         CompoundType cReturnType = null;
@@ -716,7 +716,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
         writer.println("      _res.position(_count * " + getReturnTypeString(true) + ".size());");
         writer.println("      _res.limit   ((1 + _count) * " + getReturnTypeString(true) + ".size());");
         writer.println("      java.nio.ByteBuffer _tmp = _res.slice();");
-        writer.println("      BufferFactory.nativeOrder(_tmp);");
+        writer.println("      Buffers.nativeOrder(_tmp);");
         writer.println("      _res.position(0);");
         writer.println("      _res.limit(_res.capacity());");
         writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_tmp);");
@@ -726,7 +726,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       writer.println(";");
     } else if (returnType.isNIOBuffer()) {
       writer.println("    if (_res == null) return null;");
-      writer.println("    BufferFactory.nativeOrder(_res);");
+      writer.println("    Buffers.nativeOrder(_res);");
       if (!returnType.isNIOByteBuffer()) {
         // See whether we have to expand pointers to longs
         if (getBinding().getCReturnType().pointerDepth() >= 2) {

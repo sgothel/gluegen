@@ -32,7 +32,7 @@
 
 package com.jogamp.gluegen.test.junit;
 
-import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
 import com.jogamp.gluegen.runtime.Int64Buffer;
 import java.nio.*;
@@ -144,11 +144,11 @@ public class BaseTest1 {
           Int64Buffer lb = Int64Buffer.allocateDirect(1);
           lb.put(0,  10);
 
-          ByteBuffer bb2 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG);
+          ByteBuffer bb2 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_LONG);
           Int64Buffer bb2L = Int64Buffer.wrap(bb2);
           bb2L.put(0, 100);
 
-          IntBuffer ib1 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_INT * BindingTest1.ARRAY_SIZE).asIntBuffer();
+          IntBuffer ib1 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * BindingTest1.ARRAY_SIZE).asIntBuffer();
           for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
             ib1.put(i,  1000);
           }
@@ -237,7 +237,7 @@ public class BaseTest1 {
           i = binding.stringArrayRead(new String[] { "1234", "5678", "9a" }, 3);
           Assert.assertTrue("Wrong result: "+i, 10==i);
 
-          ByteBuffer bb3 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_INT * 3);
+          ByteBuffer bb3 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * 3);
           IntBuffer ib = bb3.asIntBuffer();
           ib.put(0, 1);
           ib.put(1, 2);

@@ -1,6 +1,6 @@
 package com.sun.gluegen;
 
-import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -55,7 +55,7 @@ public class BasicTest {
         // TODO fix Exception: ...Caused by: java.lang.UnsatisfiedLinkError: test.BindingTest.arrayTest0(JLjava/lang/Object;I)I
         /*
         // test values
-        ByteBuffer dbb = BufferFactory.newDirectByteBuffer(32);
+        ByteBuffer dbb = Buffers.newDirectByteBuffer(32);
         ByteBuffer bb  = ByteBuffer.allocate(32).order(ByteOrder.nativeOrder());
 
         PointerBuffer dpb = PointerBuffer.allocateDirect(32);

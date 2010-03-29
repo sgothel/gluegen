@@ -58,9 +58,9 @@ public abstract class Int64Buffer {
 
     public static Int64Buffer allocateDirect(int size) {
         if (Platform.isJavaSE()) {
-            return new Int64BufferSE(BufferFactory.newDirectByteBuffer(elementSize() * size));
+            return new Int64BufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
         } else {
-            return new Int64BufferME_CDC_FP(BufferFactory.newDirectByteBuffer(elementSize() * size));
+            return new Int64BufferME_CDC_FP(Buffers.newDirectByteBuffer(elementSize() * size));
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class Int64Buffer {
     }
 
     public static int elementSize() {
-        return BufferFactory.SIZEOF_LONG;
+        return Buffers.SIZEOF_LONG;
     }
 
     public int limit() {

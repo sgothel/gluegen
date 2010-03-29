@@ -45,7 +45,7 @@ import java.nio.*;
  * @author Sven Gothel
  * @author Michael Bien
  */
-public class BufferFactory {
+public class Buffers {
 
     public static final int SIZEOF_BYTE     = 1;
     public static final int SIZEOF_SHORT    = 2;
@@ -55,15 +55,153 @@ public class BufferFactory {
     public static final int SIZEOF_LONG     = 8;
     public static final int SIZEOF_DOUBLE   = 8;
 
-    public static boolean isLittleEndian() {
-        return Platform.isLittleEndian();
+    private Buffers() {}
+
+    /**
+     * Allocates a new direct ByteBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
+     */
+    public static ByteBuffer newDirectByteBuffer(int numElements) {
+        return nativeOrder(ByteBuffer.allocateDirect(numElements));
+    }
+
+    public static ByteBuffer newDirectByteBuffer(byte[] values, int offset, int lenght) {
+        return (ByteBuffer)newDirectByteBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static ByteBuffer newDirectByteBuffer(byte[] values, int offset) {
+        return newDirectByteBuffer(values, offset, values.length-offset);
+    }
+
+    public static ByteBuffer newDirectByteBuffer(byte[] values) {
+        return newDirectByteBuffer(values, 0);
     }
 
     /**
-     * Helper routine to create a direct ByteBuffer with native order
+     * Allocates a new direct DoubleBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
      */
-    public static ByteBuffer newDirectByteBuffer(int size) {
-        return nativeOrder(ByteBuffer.allocateDirect(size));
+    public static DoubleBuffer newDirectDoubleBuffer(int numElements) {
+        return newDirectByteBuffer(numElements * SIZEOF_DOUBLE).asDoubleBuffer();
+    }
+
+    public static DoubleBuffer newDirectDoubleBuffer(double[] values, int offset, int lenght) {
+        return (DoubleBuffer)newDirectDoubleBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static DoubleBuffer newDirectDoubleBuffer(double[] values, int offset) {
+        return newDirectDoubleBuffer(values, offset, values.length - offset);
+    }
+
+    public static DoubleBuffer newDirectDoubleBuffer(double[] values) {
+        return newDirectDoubleBuffer(values, 0);
+    }
+
+    /**
+     * Allocates a new direct FloatBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
+     */
+    public static FloatBuffer newDirectFloatBuffer(int numElements) {
+        return newDirectByteBuffer(numElements * SIZEOF_FLOAT).asFloatBuffer();
+    }
+
+    public static FloatBuffer newDirectFloatBuffer(float[] values, int offset, int lenght) {
+        return (FloatBuffer)newDirectFloatBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static FloatBuffer newDirectFloatBuffer(float[] values, int offset) {
+        return newDirectFloatBuffer(values, offset, values.length - offset);
+    }
+
+    public static FloatBuffer newDirectFloatBuffer(float[] values) {
+        return newDirectFloatBuffer(values, 0);
+    }
+
+    /**
+     * Allocates a new direct IntBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
+     */
+    public static IntBuffer newDirectIntBuffer(int numElements) {
+        return newDirectByteBuffer(numElements * SIZEOF_INT).asIntBuffer();
+    }
+
+    public static IntBuffer newDirectIntBuffer(int[] values, int offset, int lenght) {
+        return (IntBuffer)newDirectIntBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static IntBuffer newDirectIntBuffer(int[] values, int offset) {
+        return newDirectIntBuffer(values, offset, values.length - offset);
+    }
+
+    public static IntBuffer newDirectIntBuffer(int[] values) {
+        return newDirectIntBuffer(values, 0);
+    }
+
+    /**
+     * Allocates a new direct LongBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
+     */
+    public static LongBuffer newDirectLongBuffer(int numElements) {
+        return newDirectByteBuffer(numElements * SIZEOF_LONG).asLongBuffer();
+    }
+
+    public static LongBuffer newDirectLongBuffer(long[] values, int offset, int lenght) {
+        return (LongBuffer)newDirectLongBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static LongBuffer newDirectLongBuffer(long[] values, int offset) {
+        return newDirectLongBuffer(values, offset, values.length - offset);
+    }
+
+    public static LongBuffer newDirectLongBuffer(long[] values) {
+        return newDirectLongBuffer(values, 0);
+    }
+
+    /**
+     * Allocates a new direct ShortBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
+     */
+    public static ShortBuffer newDirectShortBuffer(int numElements) {
+        return newDirectByteBuffer(numElements * SIZEOF_SHORT).asShortBuffer();
+    }
+
+    public static ShortBuffer newDirectShortBuffer(short[] values, int offset, int lenght) {
+        return (ShortBuffer)newDirectShortBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static ShortBuffer newDirectShortBuffer(short[] values, int offset) {
+        return newDirectShortBuffer(values, offset, values.length - offset);
+    }
+
+    public static ShortBuffer newDirectShortBuffer(short[] values) {
+        return newDirectShortBuffer(values, 0);
+    }
+
+    /**
+     * Allocates a new direct CharBuffer with the specified number of
+     * elements. The returned buffer will have its byte order set to
+     * the host platform's native byte order.
+     */
+    public static CharBuffer newDirectCharBuffer(int numElements) {
+        return newDirectByteBuffer(numElements * SIZEOF_SHORT).asCharBuffer();
+    }
+
+    public static CharBuffer newDirectCharBuffer(char[] values, int offset, int lenght) {
+        return (CharBuffer)newDirectCharBuffer(lenght).put(values, offset, lenght).rewind();
+    }
+
+    public static CharBuffer newDirectCharBuffer(char[] values, int offset) {
+        return newDirectCharBuffer(values, offset, values.length - offset);
+    }
+
+    public static CharBuffer newDirectCharBuffer(char[] values) {
+        return newDirectCharBuffer(values, 0);
     }
 
     /**
@@ -228,6 +366,201 @@ public class BufferFactory {
         throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
     }
 
+
+    //----------------------------------------------------------------------
+    // Copy routines (type-to-type)
+    //
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed ByteBuffer into
+     * a newly-allocated direct ByteBuffer. The returned buffer will
+     * have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
+        ByteBuffer dest = newDirectByteBuffer(orig.remaining());
+        dest.put(orig);
+        dest.rewind();
+        return dest;
+    }
+
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed FloatBuffer
+     * into a newly-allocated direct FloatBuffer. The returned buffer
+     * will have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
+        return copyFloatBufferAsByteBuffer(orig).asFloatBuffer();
+    }
+
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed IntBuffer
+     * into a newly-allocated direct IntBuffer. The returned buffer
+     * will have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static IntBuffer copyIntBuffer(IntBuffer orig) {
+        return copyIntBufferAsByteBuffer(orig).asIntBuffer();
+    }
+
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed ShortBuffer
+     * into a newly-allocated direct ShortBuffer. The returned buffer
+     * will have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static ShortBuffer copyShortBuffer(ShortBuffer orig) {
+        return copyShortBufferAsByteBuffer(orig).asShortBuffer();
+    }
+
+    //----------------------------------------------------------------------
+    // Copy routines (type-to-ByteBuffer)
+    //
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed FloatBuffer
+     * into a newly-allocated direct ByteBuffer. The returned buffer
+     * will have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static ByteBuffer copyFloatBufferAsByteBuffer(FloatBuffer orig) {
+        ByteBuffer dest = newDirectByteBuffer(orig.remaining() * SIZEOF_FLOAT);
+        dest.asFloatBuffer().put(orig);
+        dest.rewind();
+        return dest;
+    }
+
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed IntBuffer into
+     * a newly-allocated direct ByteBuffer. The returned buffer will
+     * have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static ByteBuffer copyIntBufferAsByteBuffer(IntBuffer orig) {
+        ByteBuffer dest = newDirectByteBuffer(orig.remaining() * SIZEOF_INT);
+        dest.asIntBuffer().put(orig);
+        dest.rewind();
+        return dest;
+    }
+
+    /**
+     * Copies the <i>remaining</i> elements (as defined by
+     * <code>limit() - position()</code>) in the passed ShortBuffer
+     * into a newly-allocated direct ByteBuffer. The returned buffer
+     * will have its byte order set to the host platform's native byte
+     * order. The position of the newly-allocated buffer will be zero,
+     * and the position of the passed buffer is unchanged (though its
+     * mark is changed).
+     */
+    public static ByteBuffer copyShortBufferAsByteBuffer(ShortBuffer orig) {
+        ByteBuffer dest = newDirectByteBuffer(orig.remaining() * SIZEOF_SHORT);
+        dest.asShortBuffer().put(orig);
+        dest.rewind();
+        return dest;
+    }
+
+    //----------------------------------------------------------------------
+    // Conversion routines
+    //
+    public final static FloatBuffer getFloatBuffer(DoubleBuffer source) {
+        source.rewind();
+        FloatBuffer dest = newDirectFloatBuffer(source.limit());
+        while (source.hasRemaining()) {
+            dest.put((float) source.get());
+        }
+        return dest;
+    }
+
+    //----------------------------------------------------------------------
+    // Convenient put methods with generic target Buffer
+    //
+    public static Buffer put(Buffer dest, Buffer src) {
+        if ((dest instanceof ByteBuffer) && (src instanceof ByteBuffer)) {
+            return ((ByteBuffer) dest).put((ByteBuffer) src);
+        } else if ((dest instanceof ShortBuffer) && (src instanceof ShortBuffer)) {
+            return ((ShortBuffer) dest).put((ShortBuffer) src);
+        } else if ((dest instanceof IntBuffer) && (src instanceof IntBuffer)) {
+            return ((IntBuffer) dest).put((IntBuffer) src);
+        } else if ((dest instanceof FloatBuffer) && (src instanceof FloatBuffer)) {
+            return ((FloatBuffer) dest).put((FloatBuffer) src);
+        } else if (Platform.isJavaSE()) {
+            if ((dest instanceof LongBuffer) && (src instanceof LongBuffer)) {
+                return ((LongBuffer) dest).put((LongBuffer) src);
+            } else if ((dest instanceof DoubleBuffer) && (src instanceof DoubleBuffer)) {
+                return ((DoubleBuffer) dest).put((DoubleBuffer) src);
+            } else if ((dest instanceof CharBuffer) && (src instanceof CharBuffer)) {
+                return ((CharBuffer) dest).put((CharBuffer) src);
+            }
+        }
+        throw new RuntimeException("Incompatible Buffer classes: dest = " + dest.getClass().getName() + ", src = " + src.getClass().getName());
+    }
+
+    public static Buffer putb(Buffer dest, byte v) {
+        if (dest instanceof ByteBuffer) {
+            return ((ByteBuffer) dest).put(v);
+        } else if (dest instanceof ShortBuffer) {
+            return ((ShortBuffer) dest).put((short) v);
+        } else if (dest instanceof IntBuffer) {
+            return ((IntBuffer) dest).put((int) v);
+        } else {
+            throw new RuntimeException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    public static Buffer puts(Buffer dest, short v) {
+        if (dest instanceof ShortBuffer) {
+            return ((ShortBuffer) dest).put(v);
+        } else if (dest instanceof IntBuffer) {
+            return ((IntBuffer) dest).put((int) v);
+        } else {
+            throw new RuntimeException("Short doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    public static void puti(Buffer dest, int v) {
+        if (dest instanceof IntBuffer) {
+            ((IntBuffer) dest).put(v);
+        } else {
+            throw new RuntimeException("Integer doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    public static void putf(Buffer dest, float v) {
+        if (dest instanceof FloatBuffer) {
+            ((FloatBuffer) dest).put(v);
+/* TODO FixedPoint required
+        } else if (dest instanceof IntBuffer) {
+            ((IntBuffer) dest).put(FixedPoint.toFixed(v));
+*/
+        } else {
+            throw new RuntimeException("Float doesn't match Buffer Class: " + dest);
+        }
+    }
+    public static void putd(Buffer dest, double v) {
+        if (dest instanceof FloatBuffer) {
+            ((FloatBuffer) dest).put((float) v);
+        } else {
+            throw new RuntimeException("Double doesn't match Buffer Class: " + dest);
+        }
+    }
+
     public static void rangeCheck(byte[] array, int offset, int minElementsRemaining) {
         if (array == null) {
             return;
@@ -344,4 +677,5 @@ public class BufferFactory {
             throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
         }
     }
+
 }

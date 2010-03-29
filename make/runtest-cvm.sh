@@ -11,9 +11,9 @@ if [ ! -x "$CVM" -o -z "$builddir" ] ; then
     exit 1
 fi
 
-echo com.sun.gluegen.test.TestPointerBufferEndian
-$CVM -Dsun.boot.library.path=$builddir/obj -Xbootclasspath/a:$builddir/classes-cdc  com.sun.gluegen.test.TestPointerBufferEndian
+echo com.jogamp.gluegen.test.TestPointerBufferEndian
+$CVM -Dsun.boot.library.path=$builddir/obj -Xbootclasspath/a:$builddir/classes-cdc  com.jogamp.gluegen.test.TestPointerBufferEndian
 echo
-echo com.sun.gluegen.test.TestStructAccessorEndian
-$CVM -Dsun.boot.library.path=$builddir/obj -Xbootclasspath/a:$builddir/classes-cdc  com.sun.gluegen.test.TestStructAccessorEndian
+echo com.jogamp.gluegen.test.TestStructAccessorEndian
+$CVM -Dsun.boot.library.path=$builddir/obj -Xbootclasspath/a:$builddir/classes-cdc  com.jogamp.gluegen.test.TestStructAccessorEndian
 echo

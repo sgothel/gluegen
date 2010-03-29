@@ -65,7 +65,7 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
             idx = idx << 1; // 8-byte to 4-byte offset
             long lo = 0x00000000FFFFFFFFL & ((long) pb.get(idx));
             long hi = 0x00000000FFFFFFFFL & ((long) pb.get(idx + 1));
-            if (BufferFactory.isLittleEndian()) {
+            if (Platform.isLittleEndian()) {
                 return hi << 32 | lo;
             }
             return lo << 32 | hi;
@@ -83,7 +83,7 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
             idx = idx << 1; // 8-byte to 4-byte offset
             int lo = (int) ((v) & 0x00000000FFFFFFFFL);
             int hi = (int) ((v >> 32) & 0x00000000FFFFFFFFL);
-            if (BufferFactory.isLittleEndian()) {
+            if (Platform.isLittleEndian()) {
                 pb.put(idx, lo);
                 pb.put(idx + 1, hi);
             } else {
