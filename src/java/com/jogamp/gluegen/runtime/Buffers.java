@@ -45,7 +45,7 @@ import java.nio.*;
  * @author Sven Gothel
  * @author Michael Bien
  */
-public class BufferFactory {
+public class Buffers {
 
     public static final int SIZEOF_BYTE     = 1;
     public static final int SIZEOF_SHORT    = 2;
@@ -55,7 +55,7 @@ public class BufferFactory {
     public static final int SIZEOF_LONG     = 8;
     public static final int SIZEOF_DOUBLE   = 8;
 
-    private BufferFactory() {}
+    private Buffers() {}
 
     /**
      * Allocates a new direct ByteBuffer with the specified number of

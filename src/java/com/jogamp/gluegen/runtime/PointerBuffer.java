@@ -58,9 +58,9 @@ public abstract class PointerBuffer {
 
     public static PointerBuffer allocateDirect(int size) {
         if (Platform.isJavaSE()) {
-            return new PointerBufferSE(BufferFactory.newDirectByteBuffer(elementSize() * size));
+            return new PointerBufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
         } else {
-            return new PointerBufferME_CDC_FP(BufferFactory.newDirectByteBuffer(elementSize() * size));
+            return new PointerBufferME_CDC_FP(Buffers.newDirectByteBuffer(elementSize() * size));
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class PointerBuffer {
     }
 
     public static int elementSize() {
-        return CPU.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
+        return CPU.is32Bit() ? Buffers.SIZEOF_INT : Buffers.SIZEOF_LONG;
     }
 
     public int limit() {

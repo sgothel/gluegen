@@ -32,7 +32,7 @@
 
 package com.jogamp.gluegen.test.junit;
 
-import com.jogamp.gluegen.runtime.BufferFactory;
+import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
 import java.nio.*;
 import java.io.File;
@@ -135,11 +135,11 @@ public class BaseTest1 {
           long result;
 
           long context = 1;
-          ByteBuffer bb1 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG);
+          ByteBuffer bb1 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_LONG);
           LongBuffer bb1L = bb1.asLongBuffer();
           bb1L.put(0,  10);
 
-          ByteBuffer bb2 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG);
+          ByteBuffer bb2 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_LONG);
           LongBuffer bb2L = bb2.asLongBuffer();
           bb2L.put(0, 100);
 
@@ -209,7 +209,7 @@ public class BaseTest1 {
           i = binding.stringArrayRead(new String[] { "1234", "5678", "9a" }, 3);
           Assert.assertTrue("Wrong result: "+i, 10==i);
 
-          ByteBuffer bb3 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_INT * 3);
+          ByteBuffer bb3 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * 3);
           IntBuffer ib = bb3.asIntBuffer();
           ib.put(0, 1);
           ib.put(1, 2);

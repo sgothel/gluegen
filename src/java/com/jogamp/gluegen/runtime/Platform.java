@@ -60,7 +60,7 @@ public class Platform {
         JAVA_SE = se;
 
         // byte order
-        ByteBuffer tst_b = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_INT); // 32bit in native order
+        ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
         IntBuffer tst_i = tst_b.asIntBuffer();
         ShortBuffer tst_s = tst_b.asShortBuffer();
         tst_i.put(0, 0x0A0B0C0D);
