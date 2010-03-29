@@ -251,7 +251,7 @@ public class StructAccessor {
         IntBuffer intBuffer = intBuffer();
         long lo = 0x00000000FFFFFFFFL & ((long) intBuffer.get(slot));
         long hi = 0x00000000FFFFFFFFL & ((long) intBuffer.get(slot + 1));
-        if (BufferFactory.isLittleEndian()) {
+        if (Platform.isLittleEndian()) {
             return hi << 32 | lo;
         }
         return lo << 32 | hi;
@@ -262,7 +262,7 @@ public class StructAccessor {
         IntBuffer intBuffer = intBuffer();
         int lo = (int) ((v) & 0x00000000FFFFFFFFL);
         int hi = (int) ((v >> 32) & 0x00000000FFFFFFFFL);
-        if (BufferFactory.isLittleEndian()) {
+        if (Platform.isLittleEndian()) {
             intBuffer.put(slot, lo);
             intBuffer.put(slot + 1, hi);
         } else {
