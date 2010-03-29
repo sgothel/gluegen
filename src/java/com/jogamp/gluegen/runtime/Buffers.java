@@ -55,7 +55,7 @@ public class Buffers {
     public static final int SIZEOF_LONG     = 8;
     public static final int SIZEOF_DOUBLE   = 8;
 
-    private Buffers() {}
+    protected Buffers() {}
 
     /**
      * Allocates a new direct ByteBuffer with the specified number of
@@ -220,6 +220,33 @@ public class Buffers {
     }
 
     /**
+     * Returns the size of a single element of this buffer in bytes.
+     */
+    public static final int sizeOfBufferElem(Buffer buffer) {
+        if (buffer == null) {
+            return 0;
+        }
+        if (buffer instanceof ByteBuffer) {
+            return SIZEOF_BYTE;
+        } else if (buffer instanceof IntBuffer) {
+            return SIZEOF_INT;
+        } else if (buffer instanceof ShortBuffer) {
+            return SIZEOF_SHORT;
+        } else if (buffer instanceof FloatBuffer) {
+            return SIZEOF_FLOAT;
+        } else if (Platform.isJavaSE()) {
+            if (buffer instanceof DoubleBuffer) {
+                return SIZEOF_DOUBLE;
+            } else if (buffer instanceof LongBuffer) {
+                return SIZEOF_LONG;
+            } else if (buffer instanceof CharBuffer) {
+                return SIZEOF_CHAR;
+            }
+        }
+        throw new RuntimeException("Unexpected buffer type " + buffer.getClass().getName());
+    }
+
+    /**
      * Helper routine to tell whether a buffer is direct or not. Null
      * pointers are considered NOT direct. isDirect() should really be
      * public in Buffer and not replicated in all subclasses.
@@ -288,8 +315,7 @@ public class Buffers {
             return pointerBuffer.position() * PointerBuffer.elementSize();
         }
 
-        throw new RuntimeException("Disallowed array backing store type in buffer "
-                + buf.getClass().getName());
+        throw new RuntimeException("Disallowed array backing store type in buffer " + buf.getClass().getName());
     }
 
     /**
@@ -322,8 +348,7 @@ public class Buffers {
             }
         }
 
-        throw new RuntimeException("Disallowed array backing store type in buffer "
-                + buf.getClass().getName());
+        throw new RuntimeException("Disallowed array backing store type in buffer " + buf.getClass().getName());
     }
 
     /**
