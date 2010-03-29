@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 
 foo nopTest() {
     return 42;
@@ -31,7 +32,38 @@ int64_t arrayTestInt64(int64_t context, int64_t * array) {
     return r+context;
 }
 
-foo arrayTestFoo(int64_t context, foo * array) {
+foo * arrayTestFoo2( foo * array ) {
+    int i;
+    foo * result = calloc(ARRAY_SIZE, sizeof(foo));
+    assert(NULL!=array);
+    for(i=0; i<ARRAY_SIZE; i++) {
+        result[i] = array[i] + 1;
+        // printf("array[%d]: %d -> %d\n", i, (int)array[i], (int)result[i]);
+    }
+    return result;
+}
+
+foo * * arrayTestFoo3ArrayToPtrPtr(foo * array) {
+    int j;
+    foo * * result = calloc(ARRAY_SIZE, sizeof(foo *));
+    for(j=0; j<ARRAY_SIZE; j++) {
+        result[j] = array + ARRAY_SIZE * j ;
+    }
+    return result;
+}
+
+foo * * arrayTestFoo3PtrPtr(foo * * array ) {
+    int i,j;
+    assert(NULL!=array);
+    for(j=0; j<ARRAY_SIZE; j++) {
+        for(i=0; i<ARRAY_SIZE; i++) {
+            array[j][i] += 1;
+        }
+    }
+    return array;
+}
+
+foo arrayTestFoo1(int64_t context, foo * array) {
     foo r=0;
     int i;
     assert(NULL!=array);
@@ -51,7 +83,7 @@ foo bufferTest(void * object) {
 foo mixedTest(int64_t context, void * object, foo * array){
     assert(NULL!=object);
     assert(NULL!=array);
-    return arrayTestFoo(context, array) + bufferTest(object);
+    return arrayTestFoo1(context, array) + bufferTest(object);
 }
 
 foo doubleTest(int64_t context, void * object1, foo * array1, void * object2, foo * array2) {
@@ -59,14 +91,14 @@ foo doubleTest(int64_t context, void * object1, foo * array1, void * object2, fo
     assert(NULL!=array1);
     assert(NULL!=object2);
     assert(NULL!=array2);
-    return arrayTestFoo(context, array1) + 
-           arrayTestFoo(      0, array2) + 
+    return arrayTestFoo1(context, array1) + 
+           arrayTestFoo1(      0, array2) + 
            bufferTest(object1) +
            bufferTest(object2);
 }
 
 foo arrayTestFooNioOnly(int64_t context, foo * array ) {
-    return arrayTestFoo(context, array);
+    return arrayTestFoo1(context, array);
 }
 
 foo bufferTestNioOnly(void * object) {
@@ -124,4 +156,17 @@ int intArrayWrite(int * *  ints, int num) {
     }
     return s;
 } */
+
+MYAPIConfig  typeTestAnonSingle(const MYAPIConfig a) {
+    return (MYAPIConfig) ( ((void *)a) + 1 );
+}
+
+MYAPIConfig *  MYAPIENTRY typeTestAnonPointer(const MYAPIConfig * a) {
+    int j;
+    MYAPIConfig * result = calloc(ARRAY_SIZE, sizeof(MYAPIConfig));
+    for(j=0; j<ARRAY_SIZE; j++) {
+        result[j] = (MYAPIConfig) ( ((void *)a[j]) + 1 );
+    }
+    return result;
+}
 

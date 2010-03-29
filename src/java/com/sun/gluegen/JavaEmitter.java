@@ -1215,13 +1215,40 @@ public class JavaEmitter implements GlueEmitter {
         (opt.getTargetType().getName().equals("JNIEnv"))) {
       return JavaType.createForJNIEnv();
     }
+    Type t = cType;
 
     // Opaque specifications override automatic conversions
-    TypeInfo info = cfg.typeInfo(cType, typedefDictionary);
+    // in case the identity is being used .. not if ptr-ptr
+    TypeInfo info = cfg.typeInfo(t, typedefDictionary);
     if (info != null) {
-      return info.javaType();
+      boolean isPointerPointer = false;
+      if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
+        Type targetType; // target type
+        if (t.isPointer()) {
+          // t is <type>*, we need to get <type>
+          targetType = t.asPointer().getTargetType();
+        } else {
+          // t is <type>[], we need to get <type>
+          targetType = t.asArray().getElementType();
+        }
+        if (t.pointerDepth() == 2 || t.arrayDimension() == 2) {
+          // Get the target type of the target type (targetType was computer earlier
+          // as to be a pointer to the target type, so now we need to get its
+          // target type)
+          if (targetType.isPointer()) {
+            isPointerPointer = true;
+
+            // t is<type>**, targetType is <type>*, we need to get <type>
+            Type bottomType = targetType.asPointer().getTargetType();
+            System.out.println("INFO: Opaque Type: "+t+", targetType: "+targetType+", bottomType: "+bottomType+" is ptr-ptr");
+          }
+        }
+      }
+      if(!isPointerPointer) {
+          return info.javaType();
+      }
     }
-    Type t = cType;
+
     if (t.isInt() || t.isEnum()) {
       switch ((int) t.getSize(curMachDesc)) {
        case 1:  return javaType(Byte.TYPE);
@@ -1302,11 +1329,16 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isPointer()) {
             // t is<type>**, targetType is <type>*, we need to get <type>
             bottomType = targetType.asPointer().getTargetType();
+            return JavaType.forNIOPointerBufferClass();
           } else {
             // t is<type>[][], targetType is <type>[], we need to get <type>
             bottomType = targetType.asArray().getElementType();
+            System.out.println("WARNING: typeToJavaType(ptr-ptr): "+t+", targetType: "+targetType+", bottomType: "+bottomType+" -> Unhandled!");
           }
 
+          // Warning: The below code is not backed up by an implementation,
+          //          the only working variant is a ptr-ptr type which results in a PointerBuffer.
+          //
           if (bottomType.isPrimitive()) {
             if (bottomType.isInt()) {
               switch ((int) bottomType.getSize(curMachDesc)) {
@@ -1700,6 +1732,8 @@ public class JavaEmitter implements GlueEmitter {
 
     binding.renameMethodName(cfg.getJavaSymbolRename(sym.getName()));
 
+    // System.out.println("bindFunction(0) "+sym.getReturnType());
+
     if (cfg.returnsString(binding.getName())) {
       PointerType prt = sym.getReturnType().asPointer();
       if (prt == null ||
@@ -1714,6 +1748,8 @@ public class JavaEmitter implements GlueEmitter {
       binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false, curMachDesc));
     }
 
+    // System.out.println("bindFunction(1) "+binding.getJavaReturnType());
+
     // List of the indices of the arguments in this function that should be
     // converted from byte[] or short[] to String
     List<Integer> stringArgIndices = cfg.stringArguments(binding.getName());
@@ -1721,22 +1757,23 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < sym.getNumArguments(); i++) {
       Type cArgType = sym.getArgumentType(i);
       JavaType mappedType = typeToJavaType(cArgType, true, curMachDesc);
-      //System.out.println("C arg type -> \"" + cArgType + "\"" );
-      //System.out.println("      Java -> \"" + mappedType + "\"" );
+      // System.out.println("C arg type -> \"" + cArgType + "\"" );
+      // System.out.println("      Java -> \"" + mappedType + "\"" );
 
       // Take into account any ArgumentIsString configuration directives that apply
       if (stringArgIndices != null && stringArgIndices.contains(i)) {
-        //System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
+        // System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
         if (mappedType.isCVoidPointerType() ||
             mappedType.isCCharPointerType() ||
             mappedType.isCShortPointerType() ||
+            mappedType.isNIOPointerBuffer() ||
             (mappedType.isArray() &&
              (mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass) ||
              (mappedType.getJavaClass() == ArrayTypes.shortBufferArrayClass))) {
           // convert mapped type from:
           //   void*, byte[], and short[] to String
           //   ByteBuffer[] and ShortBuffer[] to String[]
-          if (mappedType.isArray()) {
+          if (mappedType.isArray() || mappedType.isNIOPointerBuffer()) {
             mappedType = javaType(ArrayTypes.stringArrayClass);
           } else {
             mappedType = javaType(String.class);
@@ -1753,8 +1790,9 @@ public class JavaEmitter implements GlueEmitter {
       //System.out.println("During binding of [" + sym + "], added mapping from C type: " + cArgType + " to Java type: " + mappedType);
     }
 
-    //System.err.println("---> " + binding);
-    //System.err.println("    ---> " + binding.getCSymbol());
+    // System.out.println("---> " + binding);
+    // System.out.println("    ---> " + binding.getCSymbol());
+    // System.out.println("bindFunction(3) "+binding);
     return binding;
   }
 
@@ -1763,6 +1801,8 @@ public class JavaEmitter implements GlueEmitter {
                                                        boolean[] canProduceArrayVariant) {
     MethodBinding result = inputBinding;
     boolean arrayPossible = false;
+
+    // System.out.println("lowerMethodBindingPointerTypes(0): "+result);
 
     for (int i = 0; i < inputBinding.getNumArguments(); i++) {
       JavaType t = inputBinding.getJavaArgumentType(i);
@@ -1818,6 +1858,8 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
 
+    // System.out.println("lowerMethodBindingPointerTypes(1): "+result);
+
     // Always return primitive pointer types as NIO buffers
     JavaType t = result.getJavaReturnType();
     if (t.isCPrimitivePointerType()) {
@@ -1839,6 +1881,8 @@ public class JavaEmitter implements GlueEmitter {
         throw new RuntimeException("Unknown C pointer type " + t);
       }
     }
+
+    // System.out.println("lowerMethodBindingPointerTypes(2): "+result);
 
     if (canProduceArrayVariant != null) {
       canProduceArrayVariant[0] = arrayPossible;

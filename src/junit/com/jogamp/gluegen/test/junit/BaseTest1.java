@@ -35,6 +35,7 @@ package com.jogamp.gluegen.test.junit;
 import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
 import com.jogamp.gluegen.runtime.Int64Buffer;
+import com.jogamp.gluegen.runtime.Platform;
 import java.nio.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -89,6 +90,7 @@ public class BaseTest1 {
           long context = 0;
           ByteBuffer bb=null;
           Int64Buffer lb=null;
+          PointerBuffer pb=null;
           IntBuffer ib=null;
           long[] larray = null;
           int larray_offset = 0;
@@ -103,9 +105,15 @@ public class BaseTest1 {
           result = binding.arrayTestInt64(context, lb);
           result = binding.arrayTestInt64(context, larray, larray_offset);
 
-          result = binding.arrayTestFoo(context, lb);
-          result = binding.arrayTestFoo(context, larray, larray_offset);
+          result = binding.arrayTestFoo1(context, lb);
+          result = binding.arrayTestFoo1(context, larray, larray_offset);
           result = binding.arrayTestFooNioOnly(context, lb);
+
+          lb = binding.arrayTestFoo2(lb);
+          lb = binding.arrayTestFoo2(larray, larray_offset);
+
+          pb = binding.arrayTestFoo3ArrayToPtrPtr(lb);
+          pb = binding.arrayTestFoo3PtrPtr(pb);
 
           result = binding.bufferTest(bb);
           result = binding.bufferTestNioOnly(bb);
@@ -128,6 +136,9 @@ public class BaseTest1 {
           i = binding.intArrayRead(ib, i);
           i = binding.intArrayRead(iarray, iarray_offset, i);
 
+          long cfg=0;
+          cfg = binding.typeTestAnonSingle(cfg);
+          pb = binding.typeTestAnonPointer(pb);
     }
 
     /**
@@ -192,14 +203,83 @@ public class BaseTest1 {
           result = binding.arrayTestInt64(context, larray1, larray1_offset);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
-          result = binding.arrayTestFoo(context, lb1);
+          result = binding.arrayTestFoo1(context, lb1);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
-          result = binding.arrayTestFoo(context, larray1, larray1_offset);
+          result = binding.arrayTestFoo1(context, larray1, larray1_offset);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
           result = binding.arrayTestFooNioOnly(context, lb1);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
+
+          {
+              lb2.rewind();
+              Int64Buffer lb3 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+              lb3.put(lb2);
+              lb3.rewind();
+              lb2.rewind();
+
+              // System.out.println("lb3: "+lb3);
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), BindingTest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), BindingTest1.ARRAY_SIZE == lb3.remaining());
+
+              Int64Buffer lbR = binding.arrayTestFoo2(lb3);
+              // System.out.println("lbR: "+lbR);
+
+              Assert.assertNotNull(lbR);
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), BindingTest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), BindingTest1.ARRAY_SIZE == lb3.remaining());
+              Assert.assertTrue("Wrong result: "+lbR.capacity(), BindingTest1.ARRAY_SIZE == lbR.capacity());
+              Assert.assertTrue("Wrong result: "+lbR.remaining(), BindingTest1.ARRAY_SIZE == lbR.remaining());
+              int j=0;
+              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+lb3.get(j)+" d: "+lbR.get(j), 1+lb3.get(j)==lbR.get(j));
+              }
+          }
+          {
+              long[] larray3 = new long[BindingTest1.ARRAY_SIZE];
+              for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+                larray3[i]=  larray2[i];
+              }
+
+              Int64Buffer lbR = binding.arrayTestFoo2(larray3, 0);
+
+              Assert.assertNotNull(lbR);
+              Assert.assertTrue("Wrong result: "+lbR.capacity(), BindingTest1.ARRAY_SIZE == lbR.capacity());
+              Assert.assertTrue("Wrong result: "+lbR.remaining(), BindingTest1.ARRAY_SIZE == lbR.remaining());
+              int j=0;
+              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+larray3[j]+" d: "+lbR.get(j), 1+larray3[j]==lbR.get(j));
+              }
+          }
+          {
+              lb2.rewind();
+              Int64Buffer lb3 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE);
+              int j=0;
+              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+                  lb3.put(lb2);
+                  lb2.rewind();
+              }
+              lb3.rewind();
+
+              // System.out.println("lb3: "+lb3);
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE == lb3.remaining());
+
+              PointerBuffer pb = binding.arrayTestFoo3ArrayToPtrPtr(lb3);
+              // System.out.println("pb: "+pb);
+              Assert.assertTrue("Wrong result: "+pb.capacity(), BindingTest1.ARRAY_SIZE == pb.capacity());
+              Assert.assertTrue("Wrong result: "+pb.remaining(), BindingTest1.ARRAY_SIZE == pb.remaining());
+
+              PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);
+
+              Assert.assertNotNull(pb2);
+              Assert.assertTrue("Wrong result: "+pb2.capacity(), BindingTest1.ARRAY_SIZE == pb2.capacity());
+              Assert.assertTrue("Wrong result: "+pb2.remaining(), BindingTest1.ARRAY_SIZE == pb2.remaining());
+              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+lb2.get(j)+" d: "+lb3.get(j), 1+lb2.get(j)==lb3.get(j));
+              }
+          }
 
           result = binding.bufferTest(lb.getBuffer());
           Assert.assertTrue("Wrong result: "+result, 10==result);
@@ -251,6 +331,33 @@ public class BaseTest1 {
 
           i = binding.intArrayRead(iarray, 0, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
+
+          {
+              long cfg_base = 0xAABBCCDD11223344L;
+              
+              PointerBuffer pb = PointerBuffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+              for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+                long cfg_native;
+                if(Platform.is32Bit()) {
+                    cfg_native = (cfg_base+i) & 0x00000000FFFFFFFFL; // umask 1st 32bit
+                } else {
+                    cfg_native = (cfg_base+i);
+                }
+                long cfg = binding.typeTestAnonSingle(cfg_base + i);
+                Assert.assertTrue("Wrong result: 0x"+Long.toHexString(cfg_native)+"+1 != 0x"+Long.toHexString(cfg), (cfg_native+1)==cfg);
+                pb.put(i, cfg_base+i);
+
+                long t = pb.get(i);
+                Assert.assertTrue("Wrong result: 0x"+Long.toHexString(cfg_native)+" != 0x"+Long.toHexString(t), cfg_native==t);
+              }
+              pb.rewind();
+              PointerBuffer pb2 = binding.typeTestAnonPointer(pb);
+              Assert.assertTrue("Wrong result: "+pb2.capacity(), BindingTest1.ARRAY_SIZE == pb2.capacity());
+              Assert.assertTrue("Wrong result: "+pb2.remaining(), BindingTest1.ARRAY_SIZE == pb2.remaining());
+              for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+                  Assert.assertTrue("Wrong result: 0x"+Long.toHexString(pb.get(i))+"+1 != 0x"+Long.toHexString(pb2.get(i)), (pb.get(i)+1)==pb2.get(i));
+              }
+          }
     }
 
     /**

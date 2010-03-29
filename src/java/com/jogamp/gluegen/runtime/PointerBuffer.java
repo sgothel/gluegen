@@ -156,4 +156,18 @@ public abstract class PointerBuffer {
 
     public abstract PointerBuffer put(long value);
 
+    public PointerBuffer put(PointerBuffer src) {
+        if (remaining() < src.remaining()) {
+            throw new IndexOutOfBoundsException();
+        }
+        while (src.hasRemaining()) {
+                 put(src.get()); 
+        }
+        return this;
+    }
+
+    public String toString() {
+        return "PointerBuffer[capacity "+capacity+", position "+position+", elementSize "+elementSize()+", ByteBuffer.capacity "+bb.capacity()+"]";
+    }
+
 }

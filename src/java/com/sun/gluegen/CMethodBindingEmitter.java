@@ -1009,7 +1009,12 @@ public class CMethodBindingEmitter extends FunctionEmitter
           System.err.println(
             "WARNING: No capacity specified for java.nio.Buffer return " +
             "value for function \"" + binding + "\";" +
-            " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding); 
+            " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding);
+          /**
+          throw new RuntimeException(
+            "WARNING: No capacity specified for java.nio.Buffer return " +
+            "value for function \"" + binding + "\";" +
+            " C return type is " + cReturnType.getName() + ": " + binding);  */
         }
         writer.println(");");
       } else if (javaReturnType.isString()) {

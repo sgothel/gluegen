@@ -152,4 +152,18 @@ public abstract class Int64Buffer {
 
     public abstract Int64Buffer put(long value);
 
+    public Int64Buffer put(Int64Buffer src) {
+        if (remaining() < src.remaining()) {
+            throw new IndexOutOfBoundsException();
+        }
+        while (src.hasRemaining()) {
+                 put(src.get()); 
+        }
+        return this;
+    }
+
+    public String toString() {
+        return "Int64Buffer[capacity "+capacity+", position "+position+", elementSize "+elementSize()+", ByteBuffer.capacity "+bb.capacity()+"]";
+    }
+
 }

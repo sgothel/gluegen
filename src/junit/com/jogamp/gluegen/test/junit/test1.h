@@ -25,7 +25,16 @@ MYAPI int32_t MYAPIENTRY arrayTestInt32(int64_t context, int32_t * array );
 MYAPI int64_t MYAPIENTRY arrayTestInt64(int64_t context, int64_t * array );
 
 /** Returns Sum(array) + context */
-MYAPI foo MYAPIENTRY arrayTestFoo(int64_t context, foo * array );
+MYAPI foo MYAPIENTRY arrayTestFoo1(int64_t context, foo * array );
+
+/** Returns a copy of the passed array, each element incr by 1 */
+MYAPI foo * MYAPIENTRY arrayTestFoo2(foo * array );
+
+/** Returns a array-array of the passed array, split at ARRAY size - IDENTITY! */
+MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(foo * array);
+
+/** Returns a the passed array-array, each element incr by 1 - IDENTITY !*/
+MYAPI foo * * MYAPIENTRY arrayTestFoo3PtrPtr(foo * * array );
 
 /** Returns *((foo *)object) */
 MYAPI foo MYAPIENTRY bufferTest(void * object);
@@ -62,4 +71,12 @@ MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num);
 
 /** Increases the elements by 1, and returns the sum 
 MYAPI int MYAPIENTRY intArrayWrite(int *  *  ints, int num); */
+
+typedef struct __MYAPIConfig * MYAPIConfig;
+
+/** Returns the passed MYAPIConfig incremented by 1 */
+MYAPI MYAPIConfig  MYAPIENTRY typeTestAnonSingle(const MYAPIConfig a);
+
+/** Return a copy of the passed MYAPIConfig*, incremented by 1 */
+MYAPI MYAPIConfig *  MYAPIENTRY typeTestAnonPointer(const MYAPIConfig * a);
 
