@@ -589,7 +589,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter
       }
 
       if (type.isNIOBuffer()) {
-          if(type.isNIOPointerBuffer()) {
+          if(type.isNIOInt64Buffer() || type.isNIOPointerBuffer()) {
               if (directNIOOnly) {
                   writer.print( getArgumentName(i)+ " != null ? " + getArgumentName(i) + ".getBuffer() : null");
               } else {

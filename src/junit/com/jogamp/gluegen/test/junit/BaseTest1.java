@@ -34,6 +34,7 @@ package com.jogamp.gluegen.test.junit;
 
 import com.jogamp.gluegen.runtime.BufferFactory;
 import com.jogamp.gluegen.runtime.PointerBuffer;
+import com.jogamp.gluegen.runtime.Int64Buffer;
 import java.nio.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -87,30 +88,35 @@ public class BaseTest1 {
           long result;
           long context = 0;
           ByteBuffer bb=null;
-          PointerBuffer pb=null;
-          LongBuffer lb=null;
+          Int64Buffer lb=null;
+          IntBuffer ib=null;
           long[] larray = null;
-          int array_offset = 0;
+          int larray_offset = 0;
           String str=null;
           String[] strings = null;
-          IntBuffer ib = null;
           int[] iarray = null;
           int iarray_offset = 0;
 
-          result = binding.arrayTest(context, pb);
-          result = binding.arrayTest(context, larray, array_offset);
-          result = binding.arrayTestNioOnly(context, pb);
+          result = binding.arrayTestInt32(context, ib);
+          result = binding.arrayTestInt32(context, iarray, iarray_offset);
+
+          result = binding.arrayTestInt64(context, lb);
+          result = binding.arrayTestInt64(context, larray, larray_offset);
+
+          result = binding.arrayTestFoo(context, lb);
+          result = binding.arrayTestFoo(context, larray, larray_offset);
+          result = binding.arrayTestFooNioOnly(context, lb);
 
           result = binding.bufferTest(bb);
           result = binding.bufferTestNioOnly(bb);
 
-          result = binding.doubleTest(context, bb, pb, bb, pb);
-          result = binding.doubleTest(context, bb, larray, array_offset, bb, larray, array_offset);
-          result = binding.doubleTestNioOnly(context, bb, pb, bb, pb);
+          result = binding.doubleTest(context, bb, lb, bb, lb);
+          result = binding.doubleTest(context, bb, larray, larray_offset, bb, larray, larray_offset);
+          result = binding.doubleTestNioOnly(context, bb, lb, bb, lb);
 
-          result = binding.mixedTest(context, bb, pb);
-          result = binding.mixedTest(context, bb, larray, array_offset);
-          result = binding.mixedTestNioOnly(context, bb, pb);
+          result = binding.mixedTest(context, bb, lb);
+          result = binding.mixedTest(context, bb, larray, larray_offset);
+          result = binding.mixedTestNioOnly(context, bb, lb);
 
           result = binding.nopTest();
 
@@ -135,66 +141,88 @@ public class BaseTest1 {
           long result;
 
           long context = 1;
-          ByteBuffer bb1 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG);
-          LongBuffer bb1L = bb1.asLongBuffer();
-          bb1L.put(0,  10);
+          Int64Buffer lb = Int64Buffer.allocateDirect(1);
+          lb.put(0,  10);
 
           ByteBuffer bb2 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_LONG);
-          LongBuffer bb2L = bb2.asLongBuffer();
+          Int64Buffer bb2L = Int64Buffer.wrap(bb2);
           bb2L.put(0, 100);
 
-          PointerBuffer pb1 = PointerBuffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+          IntBuffer ib1 = BufferFactory.newDirectByteBuffer(BufferFactory.SIZEOF_INT * BindingTest1.ARRAY_SIZE).asIntBuffer();
           for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
-            pb1.put(i,  1000);
+            ib1.put(i,  1000);
           }
-          PointerBuffer pb2 = PointerBuffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+
+          Int64Buffer lb1 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
           for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
-            pb2.put(i, 10000);
+            lb1.put(i,  1000);
+          }
+          Int64Buffer lb2 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+            lb2.put(i, 10000);
+          }
+
+          int[] iarray1 = new int[BindingTest1.ARRAY_SIZE];
+          int iarray1_offset = 0;
+          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+            iarray1[i]=  1000;
           }
 
           long[] larray1 = new long[BindingTest1.ARRAY_SIZE];
-          int array1_offset = 0;
+          int larray1_offset = 0;
           for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
             larray1[i]=  1000;
           }
 
           long[] larray2 = new long[BindingTest1.ARRAY_SIZE];
-          int array2_offset = 0;
+          int larray2_offset = 0;
           for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
             larray2[i]= 10000;
           }
 
-          result = binding.arrayTest(context, pb1);
+          result = binding.arrayTestInt32(context, ib1);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
-          result = binding.arrayTest(context, larray1, array1_offset);
+          result = binding.arrayTestInt32(context, iarray1, iarray1_offset);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
-          result = binding.arrayTestNioOnly(context, pb1);
+          result = binding.arrayTestInt64(context, lb1);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
-          result = binding.bufferTest(bb1);
+          result = binding.arrayTestInt64(context, larray1, larray1_offset);
+          Assert.assertTrue("Wrong result: "+result, 1+8000==result);
+
+          result = binding.arrayTestFoo(context, lb1);
+          Assert.assertTrue("Wrong result: "+result, 1+8000==result);
+
+          result = binding.arrayTestFoo(context, larray1, larray1_offset);
+          Assert.assertTrue("Wrong result: "+result, 1+8000==result);
+
+          result = binding.arrayTestFooNioOnly(context, lb1);
+          Assert.assertTrue("Wrong result: "+result, 1+8000==result);
+
+          result = binding.bufferTest(lb.getBuffer());
           Assert.assertTrue("Wrong result: "+result, 10==result);
 
-          result = binding.bufferTestNioOnly(bb1);
+          result = binding.bufferTestNioOnly(lb.getBuffer());
           Assert.assertTrue("Wrong result: "+result, 10==result);
 
-          result = binding.doubleTest(context, bb1, pb1, bb2, pb2);
+          result = binding.doubleTest(context, lb.getBuffer(), lb1, bb2, lb2);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
-          result = binding.doubleTest(context, bb1, larray1, array1_offset, bb2, larray2, array2_offset);
+          result = binding.doubleTest(context, lb.getBuffer(), larray1, larray1_offset, bb2, larray2, larray2_offset);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
-          result = binding.doubleTestNioOnly(context, bb1, pb1, bb2, pb2);
+          result = binding.doubleTestNioOnly(context, lb.getBuffer(), lb1, bb2, lb2);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
-          result = binding.mixedTest(context, bb1, pb1);
+          result = binding.mixedTest(context, lb.getBuffer(), lb1);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
 
-          result = binding.mixedTest(context, bb1, larray1, array1_offset);
+          result = binding.mixedTest(context, lb.getBuffer(), larray1, larray1_offset);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
 
-          result = binding.mixedTestNioOnly(context, bb1, pb1);
+          result = binding.mixedTestNioOnly(context, lb.getBuffer(), lb1);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
 
           result = binding.nopTest();

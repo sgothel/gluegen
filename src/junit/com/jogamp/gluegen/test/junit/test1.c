@@ -1,18 +1,44 @@
 #include "test1.h"
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 foo nopTest() {
     return 42;
 }
 
-foo arrayTest(long context, foo * array) {
+int32_t arrayTestInt32(int64_t context, int32_t * array) {
+    int32_t r=0;
+    int i;
+    assert(NULL!=array);
+    // printf("array test - %p sizeof(int32_t) %d\n", array, sizeof(int32_t));
+    for(i=0; i<ARRAY_SIZE; i++) {
+        r+=array[i];
+        // printf("array[%d]: %d -> %d\n", i, array[i], r);
+    }
+    return r+context;
+}
+
+int64_t arrayTestInt64(int64_t context, int64_t * array) {
+    int64_t r=0;
+    int i;
+    assert(NULL!=array);
+    // printf("array test - %p sizeof(int64_t) %d\n", array, sizeof(int64_t));
+    for(i=0; i<ARRAY_SIZE; i++) {
+        r+=array[i];
+        // printf("array[%d]: %d -> %d\n", i, array[i], r);
+    }
+    return r+context;
+}
+
+foo arrayTestFoo(int64_t context, foo * array) {
     foo r=0;
     int i;
     assert(NULL!=array);
-    // printf("array test - %p\n", array);
+    // printf("array test - %p sizeof(foo) %d\n", array, sizeof(foo));
     for(i=0; i<ARRAY_SIZE; i++) {
         r+=array[i];
+        // printf("array[%d]: %d -> %d\n", i, array[i], r);
     }
     return r+context;
 }
@@ -22,36 +48,36 @@ foo bufferTest(void * object) {
     return *((foo *)object);
 }
 
-foo mixedTest(long context, void * object, foo * array){
+foo mixedTest(int64_t context, void * object, foo * array){
     assert(NULL!=object);
     assert(NULL!=array);
-    return arrayTest(context, array) + bufferTest(object);
+    return arrayTestFoo(context, array) + bufferTest(object);
 }
 
-foo doubleTest(long context, void * object1, foo * array1, void * object2, foo * array2) {
+foo doubleTest(int64_t context, void * object1, foo * array1, void * object2, foo * array2) {
     assert(NULL!=object1);
     assert(NULL!=array1);
     assert(NULL!=object2);
     assert(NULL!=array2);
-    return arrayTest(context, array1) + 
-           arrayTest(      0, array2) + 
+    return arrayTestFoo(context, array1) + 
+           arrayTestFoo(      0, array2) + 
            bufferTest(object1) +
            bufferTest(object2);
 }
 
-foo arrayTestNioOnly(long context, foo * array ) {
-    return arrayTest(context, array);
+foo arrayTestFooNioOnly(int64_t context, foo * array ) {
+    return arrayTestFoo(context, array);
 }
 
 foo bufferTestNioOnly(void * object) {
     return bufferTest(object);
 }
 
-foo mixedTestNioOnly(long context, void * object, foo * array ) {
+foo mixedTestNioOnly(int64_t context, void * object, foo * array ) {
     return mixedTest(context, object, array);
 }
 
-foo doubleTestNioOnly(long context, void * object1, foo * array1, void * object2, foo * array2 ) {
+foo doubleTestNioOnly(int64_t context, void * object1, foo * array1, void * object2, foo * array2 ) {
     return doubleTest(context, object1, array1, object2, array2);
 }
 

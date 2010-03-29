@@ -23,6 +23,8 @@
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="validate-properties.xml" inheritall="true"/>
 
+        <property name="make" value="." />
+
         <property name="test.base.dir"  value="${gluegen.root}/src/junit" />
         <property name="test.junit.rel" value="com/jogamp/gluegen/test/junit" />
         <property name="test.junit.dir" value="${test.base.dir}/${test.junit.rel}" />
@@ -73,6 +75,8 @@
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${gluegen-test.jar}" />
         </path>
+
+        <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
         <echo message="test.base.dir: ${test.base.dir} "/>
         <echo message="test.junit.dir: ${test.junit.dir} "/>
@@ -159,6 +163,7 @@
           <compiler extends="@{compiler.cfg.id}" >
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
+            <includepath path="${stub.includes.dir}/common"/>
             <includepath path="${test.junit.dir}"/>
             <includepath path="${build_t.gen}/native"/>
           </compiler>
@@ -229,7 +234,10 @@
     <target name="junit.test1.java.generate">
         <echo message=" - - - junit.test1.java.generate" />
 
-        <dirset id="stub.includes.fileset.test" dir="." includes="${test.junit.dir}/*" />
+        <dirset id="stub.includes.fileset.test" dir=".">
+            <include name="${test.junit.dir}/**"/>
+            <include name="${stub.includes.dir}/**" />
+        </dirset>
 
         <gluegen src="${test.junit.dir}/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"

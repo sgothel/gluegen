@@ -25,55 +25,51 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Created on Saturday, March 27 2010 11:55
- */
 package com.jogamp.gluegen.runtime;
 
 import java.nio.ByteBuffer;
 
 /**
- * Hardware independent container for native pointer arrays.
+ * Hardware independent container for native int64_t arrays.
  *
- * The native values (NIO direct ByteBuffer) might be 32bit or 64bit wide,
- * depending of the CPU pointer width.
+ * The native values (NIO direct ByteBuffer) are always 64bit wide.
  *
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class PointerBuffer {
+public abstract class Int64Buffer {
 
     protected final ByteBuffer bb;
     protected int capacity;
     protected int position;
     protected long[] backup;
 
-    protected PointerBuffer(ByteBuffer bb) {
+    protected Int64Buffer(ByteBuffer bb) {
         this.bb = bb;
     }
 
-    public static PointerBuffer allocate(int size) {
+    public static Int64Buffer allocate(int size) {
         if (Platform.isJavaSE()) {
-            return new PointerBufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
+            return new Int64BufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
         } else {
-            return new PointerBufferME_CDC_FP(ByteBuffer.wrap(new byte[elementSize() * size]));
+            return new Int64BufferME_CDC_FP(ByteBuffer.wrap(new byte[elementSize() * size]));
         }
     }
 
-    public static PointerBuffer allocateDirect(int size) {
+    public static Int64Buffer allocateDirect(int size) {
         if (Platform.isJavaSE()) {
-            return new PointerBufferSE(BufferFactory.newDirectByteBuffer(elementSize() * size));
+            return new Int64BufferSE(BufferFactory.newDirectByteBuffer(elementSize() * size));
         } else {
-            return new PointerBufferME_CDC_FP(BufferFactory.newDirectByteBuffer(elementSize() * size));
+            return new Int64BufferME_CDC_FP(BufferFactory.newDirectByteBuffer(elementSize() * size));
         }
     }
 
-    public static PointerBuffer wrap(ByteBuffer src) {
-        PointerBuffer res;
+    public static Int64Buffer wrap(ByteBuffer src) {
+        Int64Buffer res;
         if (Platform.isJavaSE()) {
-            res = new PointerBufferSE(src);
+            res = new Int64BufferSE(src);
         } else {
-            res = new PointerBufferME_CDC_FP(src);
+            res = new Int64BufferME_CDC_FP(src);
         }
         res.updateBackup();
         return res;
@@ -91,7 +87,7 @@ public abstract class PointerBuffer {
     }
 
     public static int elementSize() {
-        return Platform.is32Bit() ? BufferFactory.SIZEOF_INT : BufferFactory.SIZEOF_LONG;
+        return BufferFactory.SIZEOF_LONG;
     }
 
     public int limit() {
@@ -106,7 +102,7 @@ public abstract class PointerBuffer {
         return position;
     }
 
-    public PointerBuffer position(int newPos) {
+    public Int64Buffer position(int newPos) {
         if (0 > newPos || newPos >= capacity) {
             throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
                                                 "My capacity is "+capacity()+".");
@@ -123,7 +119,7 @@ public abstract class PointerBuffer {
         return position < capacity;
     }
 
-    public PointerBuffer rewind() {
+    public Int64Buffer rewind() {
         position = 0;
         return this;
     }
@@ -152,8 +148,8 @@ public abstract class PointerBuffer {
 
     public abstract long get(int idx);
 
-    public abstract PointerBuffer put(int index, long value);
+    public abstract Int64Buffer put(int index, long value);
 
-    public abstract PointerBuffer put(long value);
+    public abstract Int64Buffer put(long value);
 
 }

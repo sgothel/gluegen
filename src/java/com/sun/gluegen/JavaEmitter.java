@@ -695,12 +695,12 @@ public class JavaEmitter implements GlueEmitter {
         //
         //       boolean arg_direct = arg != null && BufferFactory.isDirect(arg);
         //
-        //       fooMethod0(arg_direct?arg:BufferFactory.getArray(arg),
+        //       fooMethod1(arg_direct?arg:BufferFactory.getArray(arg),
         //                  arg_direct?BufferFactory.getDirectBufferByteOffset(arg):BufferFactory.getIndirectBufferByteOffset(arg),
         //                  arg_direct,
         //                  ... );
         //     }
-        //     private native void fooMethod0(Object arg, int arg_byte_offset, boolean arg_is_direct, ...);
+        //     private native void fooMethod1(Object arg, int arg_byte_offset, boolean arg_is_direct, ...);
         //
         // Method taking primitive array argument:
         //   Interface class:
@@ -713,13 +713,15 @@ public class JavaEmitter implements GlueEmitter {
         //     }
         //     public void fooMethod(IntBuffer arg) {
         //       ... bounds checks, etc. ...
-        //       if (arg.isDirect()) {
-        //         fooMethod0(arg, computeDirectBufferByteOffset(arg));
-        //       } else {
-        //         fooMethod1(getIndirectBufferArray(arg), computeIndirectBufferByteOffset(arg));
-        //       }
+        //
+        //       boolean arg_direct = BufferFactory.isDirect(arg);
+        //
+        //       fooMethod1(arg_direct?arg:BufferFactory.getArray(arg),
+        //                  arg_direct?BufferFactory.getDirectBufferByteOffset(arg):BufferFactory.getIndirectBufferByteOffset(arg),
+        //                  arg_direct,
+        //                  ... );
         //     }
-        //     private native void fooMethod0(Object arg, int arg_byte_offset, boolean arg_is_direct, ...);
+        //     private native void fooMethod1(Object arg, int arg_byte_offset, boolean arg_is_direct, ...);
         //
         // Note in particular that the public entry point taking an
         // array is merely a special case of the indirect buffer case.
@@ -1794,7 +1796,7 @@ public class JavaEmitter implements GlueEmitter {
           if (convertToArrays) {
             result = result.replaceJavaArgumentType(i, javaType(ArrayTypes.longArrayClass));
           } else {
-            result = result.replaceJavaArgumentType(i, JavaType.forNIOPointerBufferClass());
+            result = result.replaceJavaArgumentType(i, JavaType.forNIOInt64BufferClass());
           }
         } else if (t.isCFloatPointerType()) {
           arrayPossible = true;
@@ -1828,7 +1830,7 @@ public class JavaEmitter implements GlueEmitter {
       } else if (t.isCInt32PointerType()) {
         result = result.replaceJavaArgumentType(-1, JavaType.forNIOIntBufferClass());
       } else if (t.isCInt64PointerType()) {
-        result = result.replaceJavaArgumentType(-1, JavaType.forNIOPointerBufferClass());
+        result = result.replaceJavaArgumentType(-1, JavaType.forNIOInt64BufferClass());
       } else if (t.isCFloatPointerType()) {
         result = result.replaceJavaArgumentType(-1, JavaType.forNIOFloatBufferClass());
       } else if (t.isCDoublePointerType()) {

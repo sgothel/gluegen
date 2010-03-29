@@ -98,6 +98,8 @@ public class BufferFactory {
             return ((IntBuffer) buf).isDirect();
         } else if (buf instanceof ShortBuffer) {
             return ((ShortBuffer) buf).isDirect();
+        } else if (buf instanceof Int64Buffer) {
+            return ((Int64Buffer) buf).isDirect();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).isDirect();
         } else if (Platform.isJavaSE()) {
@@ -140,6 +142,9 @@ public class BufferFactory {
                     return pos * SIZEOF_CHAR;
                 }
             }
+        } else if (buf instanceof Int64Buffer) {
+            Int64Buffer int64Buffer = (Int64Buffer) buf;
+            return int64Buffer.position() * Int64Buffer.elementSize();
         } else if (buf instanceof PointerBuffer) {
             PointerBuffer pointerBuffer = (PointerBuffer) buf;
             return pointerBuffer.position() * PointerBuffer.elementSize();
@@ -165,6 +170,8 @@ public class BufferFactory {
             return ((IntBuffer) buf).array();
         } else if (buf instanceof ShortBuffer) {
             return ((ShortBuffer) buf).array();
+        } else if (buf instanceof Int64Buffer) {
+            return ((Int64Buffer) buf).array();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).array();
         }else if(Platform.isJavaSE()) {
@@ -210,6 +217,9 @@ public class BufferFactory {
                     return (SIZEOF_CHAR * (((CharBuffer) buf).arrayOffset() + pos));
                 }
             }
+        } else if (buf instanceof Int64Buffer) {
+            Int64Buffer int64Buffer = (Int64Buffer) buf;
+            return Int64Buffer.elementSize() * (int64Buffer.arrayOffset() + int64Buffer.position());
         } else if (buf instanceof PointerBuffer) {
             PointerBuffer pointerBuffer = (PointerBuffer) buf;
             return PointerBuffer.elementSize() * (pointerBuffer.arrayOffset() + pointerBuffer.position());
@@ -323,6 +333,9 @@ public class BufferFactory {
                     bytesRemaining = elementsRemaining * SIZEOF_CHAR;
                 }
             }
+        } else if (buffer instanceof Int64Buffer) {
+            Int64Buffer int64Buffer = (Int64Buffer) buffer;
+            bytesRemaining = int64Buffer.remaining() * Int64Buffer.elementSize();
         } else if (buffer instanceof PointerBuffer) {
             PointerBuffer pointerBuffer = (PointerBuffer) buffer;
             bytesRemaining = pointerBuffer.remaining() * PointerBuffer.elementSize();
