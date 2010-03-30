@@ -31,6 +31,8 @@
 package com.jogamp.gluegen.runtime;
 
 import java.nio.ByteBuffer;
+import java.nio.Buffer;
+import java.util.HashMap;
 
 /**
  * Hardware independent container for native pointer arrays.
@@ -47,6 +49,12 @@ public abstract class PointerBuffer {
     protected int capacity;
     protected int position;
     protected long[] backup;
+
+    protected HashMap/*<aptr, buffer>*/ dataMap = new HashMap();
+
+    static {
+        NativeLibrary.ensureNativeLibLoaded();
+    }
 
     protected PointerBuffer(ByteBuffer bb) {
         this.bb = bb;
@@ -152,9 +160,53 @@ public abstract class PointerBuffer {
 
     public abstract long get(int idx);
 
+    /** put the pointer value at position index */
     public abstract PointerBuffer put(int index, long value);
 
+    /** put the pointer value at the end */
     public abstract PointerBuffer put(long value);
+
+    /** Put the address of the given direct Buffer at the given position
+        of this pointer array.
+        Adding a reference of the given direct Buffer to this object. */
+    public PointerBuffer referenceBuffer(int index, Buffer bb) {
+        if(null==bb) {
+            throw new RuntimeException("Buffer is null");
+        }
+        if(!bb.isDirect()) {
+            throw new RuntimeException("Buffer is not direct");
+        }
+        long bbAddr = getDirectBufferAddressImpl(bb);
+        if(0==bbAddr) {
+            throw new RuntimeException("Couldn't determine native address of given Buffer: "+bb);
+        }
+
+        put(index, bbAddr);
+        dataMap.put(new Long(bbAddr), bb);
+        return this;
+    }
+
+    /** Put the address of the given direct Buffer at the end
+        of this pointer array.
+        Adding a reference of the given direct Buffer to this object. */
+    public PointerBuffer referenceBuffer(Buffer bb) {
+        referenceBuffer(position, bb);
+        position++;
+        return this;
+    }
+
+    public Buffer getReferencedBuffer(int index) {
+        long addr = get(index);
+        return (Buffer) dataMap.get(new Long(addr));
+    }
+
+    public Buffer getReferencedBuffer() {
+        Buffer bb = getReferencedBuffer(position);
+        position++;
+        return bb;
+    }
+
+    private native long getDirectBufferAddressImpl(Object directBuffer);
 
     public PointerBuffer put(PointerBuffer src) {
         if (remaining() < src.remaining()) {
