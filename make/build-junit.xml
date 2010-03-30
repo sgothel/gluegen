@@ -103,7 +103,6 @@
         <javac destdir="${build_t.java}" 
                source="1.5" debug="true" 
                fork="yes"
-               verbose="true" 
                debuglevel="lines,vars,source">
             <classpath refid="junit.compile.classpath"/>
             <src path="${test.base.dir}"/>

@@ -43,7 +43,7 @@ import java.util.HashMap;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class PointerBuffer {
+public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
 
     protected final ByteBuffer bb;
     protected int capacity;

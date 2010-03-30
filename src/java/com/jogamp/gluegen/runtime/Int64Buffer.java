@@ -37,7 +37,7 @@ import java.nio.ByteBuffer;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class Int64Buffer {
+public abstract class Int64Buffer implements NativeBuffer/*<PointerBuffer>*/ {
 
     protected final ByteBuffer bb;
     protected int capacity;
