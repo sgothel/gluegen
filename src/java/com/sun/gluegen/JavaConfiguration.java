@@ -39,6 +39,8 @@
 
 package com.sun.gluegen;
 
+import com.sun.gluegen.JavaEmitter.EmissionStyle;
+import com.sun.gluegen.JavaEmitter.MethodAccess;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -47,6 +49,11 @@ import java.util.regex.*;
 
 import com.sun.gluegen.jgram.*;
 import com.sun.gluegen.cgram.types.*;
+import java.util.logging.Logger;
+
+import static java.util.logging.Level.*;
+import static com.sun.gluegen.JavaEmitter.MethodAccess.*;
+import static com.sun.gluegen.JavaEmitter.EmissionStyle.*;
 
 /** Parses and provides access to the contents of .cfg files for the
     JavaEmitter. */
@@ -58,6 +65,8 @@ public class JavaConfiguration {
     private String implPackageName;
     private String className;
     private String implClassName;
+
+    protected static final Logger LOG = Logger.getLogger(JavaConfiguration.class.getPackage().getName());
     
     /**
      * Root directory for the hierarchy of generated java classes. Default is
@@ -95,7 +104,7 @@ public class JavaConfiguration {
      * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
      * the implementation (ImplOnly).
      */
-    private int emissionStyle = JavaEmitter.ALL_STATIC;
+    private EmissionStyle emissionStyle = AllStatic;
 
     /**
      * List of imports to emit at the head of the output files.
@@ -115,7 +124,8 @@ public class JavaConfiguration {
      */
     private String runtimeExceptionType = "RuntimeException";
     private String unsupportedExceptionType = "UnsupportedOperationException";
-    private Map<String, Integer> accessControl = new HashMap<String, Integer>();
+
+    private Map<String, MethodAccess> accessControl = new HashMap<String, MethodAccess>();
     private Map<String, TypeInfo> typeInfoMap = new HashMap<String, TypeInfo>();
     private Set<String> returnsString = new HashSet<String>();
     private Map<String, String> returnedArrayLengths = new HashMap<String, String>();
@@ -207,16 +217,15 @@ public class JavaConfiguration {
 
     if (nestedReads == 0) {
       if (allStatic() && implClassName != null) {
-        throw new IllegalStateException(
-                                        "Error in configuration file \"" + filename + "\": Cannot use " +
+        throw new IllegalStateException("Error in configuration file \"" + filename + "\": Cannot use " +
                                         "directive \"ImplJavaClass\" in conjunction with " +
                                         "\"Style AllStatic\"");
       }
 
-      if (className == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
+      if (className == null && (emissionStyle() != ImplOnly)) {
 //        throw new RuntimeException("Output class name was not specified in configuration file \"" + filename + "\"");
       }
-      if (packageName == null && (emissionStyle() != JavaEmitter.IMPL_ONLY)) {
+      if (packageName == null && (emissionStyle() != ImplOnly)) {
         throw new RuntimeException("Output package name was not specified in configuration file \"" + filename + "\"");
       }
 
@@ -293,18 +302,18 @@ public class JavaConfiguration {
     }
 
     /** Returns the code emission style (constants in JavaEmitter) parsed from the configuration file. */
-    public int emissionStyle() {
+    public EmissionStyle emissionStyle() {
         return emissionStyle;
     }
 
     /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
-    public int accessControl(String methodName) {
-        Integer ret = accessControl.get(methodName);
+    public MethodAccess accessControl(String methodName) {
+        MethodAccess ret = accessControl.get(methodName);
         if (ret != null) {
-            return ret.intValue();
+            return ret;
         }
         // Default access control is public
-        return JavaEmitter.ACC_PUBLIC;
+        return PUBLIC;
   }
 
     /** Returns the package in which the generated glue code expects to
@@ -715,7 +724,7 @@ public class JavaConfiguration {
         if (!matcher.matches()) {
           // Special case as this is most often likely to be the case. 
           // Unignores are not used very often.
-          if(unignores.size() == 0) {
+          if(unignores.isEmpty()) {
             if(DEBUG_IGNORES) {
                 System.err.println("Ignore Impl unignores==0: "+symbol);
             }
@@ -793,20 +802,17 @@ public class JavaConfiguration {
 
   /** Returns true if the emission style is AllStatic. */
   public boolean allStatic() {
-    return (emissionStyle == JavaEmitter.ALL_STATIC);
+    return emissionStyle == AllStatic;
   }
 
   /** Returns true if an interface should be emitted during glue code generation. */
   public boolean emitInterface() {
-    return (emissionStyle() == JavaEmitter.INTERFACE_AND_IMPL ||
-            emissionStyle() == JavaEmitter.INTERFACE_ONLY);
+    return emissionStyle() == InterfaceAndImpl || emissionStyle() == InterfaceOnly;
   }
 
   /** Returns true if an implementing class should be emitted during glue code generation. */
   public boolean emitImpl() {
-    return (emissionStyle() == JavaEmitter.ALL_STATIC ||
-            emissionStyle() == JavaEmitter.INTERFACE_AND_IMPL ||
-            emissionStyle() == JavaEmitter.IMPL_ONLY);
+    return emissionStyle() == AllStatic || emissionStyle() == InterfaceAndImpl || emissionStyle() == ImplOnly;
   }
 
   /** Returns a list of Strings which should be emitted as a prologue
@@ -863,19 +869,11 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("TagNativeBinding")) {
       tagNativeBinding = readBoolean("TagNativeBinding", tok, filename, lineNo).booleanValue();
     } else if (cmd.equalsIgnoreCase("Style")) {
-      String style = readString("Style", tok, filename, lineNo);
-      if (style.equalsIgnoreCase("AllStatic")) {
-        emissionStyle = JavaEmitter.ALL_STATIC;
-      } else if (style.equalsIgnoreCase("InterfaceAndImpl")) {
-        emissionStyle = JavaEmitter.INTERFACE_AND_IMPL;
-      } else if (style.equalsIgnoreCase("InterfaceOnly")) {
-        emissionStyle = JavaEmitter.INTERFACE_ONLY;
-      } else if (style.equalsIgnoreCase("ImplOnly")) {
-        emissionStyle = JavaEmitter.IMPL_ONLY;
-      } else {
-        System.err.println("WARNING: Error parsing \"style\" command at line " + lineNo +
-                           " in file \"" + filename + "\"");
-      }
+        try{
+          emissionStyle = EmissionStyle.valueOf(readString("Style", tok, filename, lineNo));
+        }catch(IllegalArgumentException ex) {
+            LOG.log(WARNING, "Error parsing \"style\" command at line {0} in file \"{1}\"", new Object[]{lineNo, filename});
+        }
     } else if (cmd.equalsIgnoreCase("AccessControl")) {
       readAccessControl(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Import")) {
@@ -1025,31 +1023,17 @@ public class JavaConfiguration {
     throw new RuntimeException("Only primitive types are supported here");
   }
 
-  protected void readAccessControl(StringTokenizer tok, String filename, int lineNo) {
-    try {
-      String methodName = tok.nextToken();
-      String style = tok.nextToken();
-      int acc = 0;
-      if (style.equalsIgnoreCase("PUBLIC")) {
-        acc = JavaEmitter.ACC_PUBLIC;
-      } else if (style.equalsIgnoreCase("PROTECTED")) {
-        acc = JavaEmitter.ACC_PROTECTED;
-      } else if (style.equalsIgnoreCase("PRIVATE")) {
-        acc = JavaEmitter.ACC_PRIVATE;
-      } else if (style.equalsIgnoreCase("PACKAGE_PRIVATE")) {
-        acc = JavaEmitter.ACC_PACKAGE_PRIVATE;
-      } else if (style.equalsIgnoreCase("PUBLIC_ABSTRACT")) {
-        acc = JavaEmitter.ACC_PUBLIC_ABSTRACT;
-      } else {
-        throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo +
-                           " in file \"" + filename + "\"");
-      }
-      accessControl.put(methodName, new Integer(acc));
-    } catch (Exception e) {
-      throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo +
-        " in file \"" + filename + "\"", e);
+    protected void readAccessControl(StringTokenizer tok, String filename, int lineNo) {
+        try {
+            String methodName = tok.nextToken();
+            String style = tok.nextToken();
+            MethodAccess access = MethodAccess.valueOf(style.toUpperCase());
+            accessControl.put(methodName, access);
+        } catch (Exception e) {
+            throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo
+                    + " in file \"" + filename + "\"", e);
+        }
     }
-  }
 
   protected void readOpaque(StringTokenizer tok, String filename, int lineNo) {
     try {
@@ -1104,8 +1088,7 @@ public class JavaConfiguration {
       javaFile  = new File(tok.nextToken());
       javaReader = new BufferedReader(new FileReader(javaFile));
     } catch (FileNotFoundException e) {
-      e.printStackTrace();
-      return;
+      throw new RuntimeException(e);
     }
 
     JavaLexer lexer = new JavaLexer(javaReader);
@@ -1117,8 +1100,7 @@ public class JavaConfiguration {
     try {
         parser.compilationUnit();
     } catch (Exception e) {
-        e.printStackTrace();
-        return;
+      throw new RuntimeException(e);
     }
 
     if(onlyList) {
@@ -1386,7 +1368,7 @@ public class JavaConfiguration {
 
   protected void doIncludeAs(StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
     try {
-      StringBuffer linePrefix = new StringBuffer(128);
+      StringBuilder linePrefix = new StringBuilder(128);
       while (tok.countTokens() > 1)
       {
         linePrefix.append(tok.nextToken());

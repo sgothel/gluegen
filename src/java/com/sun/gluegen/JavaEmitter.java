@@ -39,20 +39,15 @@
 
 package com.sun.gluegen;
 
-import java.beans.PropertyChangeEvent;
 import java.io.*;
 import java.util.*;
 import java.text.MessageFormat;
 
 import com.sun.gluegen.cgram.types.*;
-import java.beans.PropertyChangeListener;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Filter;
-import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import javax.swing.plaf.basic.BasicComboBoxUI.PropertyChangeHandler;
+
 import static java.util.logging.Level.*;
+import static com.sun.gluegen.JavaEmitter.MethodAccess.*;
 
 // PROBLEMS:
 //  - what if something returns 'const int *'? Could we
@@ -78,19 +73,12 @@ public class JavaEmitter implements GlueEmitter {
    * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
    * the implementation (ImplOnly).
    */
-  public static final int ALL_STATIC = 1;
-  public static final int INTERFACE_AND_IMPL = 2;
-  public static final int INTERFACE_ONLY = 3;
-  public static final int IMPL_ONLY = 4;
+  public enum EmissionStyle {AllStatic, InterfaceAndImpl, InterfaceOnly, ImplOnly};
 
   /**
    * Access control for emitted Java methods.
    */
-  public static final int ACC_PUBLIC = 1;
-  public static final int ACC_PROTECTED = 2;
-  public static final int ACC_PRIVATE = 3;
-  public static final int ACC_PACKAGE_PRIVATE = 4;
-  public static final int ACC_PUBLIC_ABSTRACT = 5;
+  public enum MethodAccess {PUBLIC, PROTECTED, PRIVATE, PACKAGE_PRIVATE, PUBLIC_ABSTRACT}
 
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
@@ -485,9 +473,9 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
-    int accessControl = cfg.accessControl(binding.getName());
+    MethodAccess accessControl = cfg.accessControl(binding.getName());
     // We should not emit anything except public APIs into interfaces
-    if (signatureOnly && (accessControl != ACC_PUBLIC)) {
+    if (signatureOnly && (accessControl != PUBLIC)) {
       return;
     }
 
@@ -519,9 +507,9 @@ public class JavaEmitter implements GlueEmitter {
                                    signatureOnly,
                                    cfg);
     switch (accessControl) {
-      case ACC_PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
-      case ACC_PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
-      case ACC_PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
+      case PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
+      case PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
+      case PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
       default: break; // package-private adds no modifiers
     }
     if (cfg.allStatic()) {
@@ -793,7 +781,7 @@ public class JavaEmitter implements GlueEmitter {
 
     if (name == null) {
         LOG.log(WARNING, "skipping emission of unnamed struct \"{0}\"", structType);
-      return;
+        return;
     }
 
     if (cfg.shouldIgnoreInInterface(name)) {
@@ -1610,7 +1598,7 @@ public class JavaEmitter implements GlueEmitter {
           };
 
         String[] accessModifiers = null;
-        if(cfg.accessControl(cfg.className())==ACC_PUBLIC_ABSTRACT) {
+        if(cfg.accessControl(cfg.className()) == PUBLIC_ABSTRACT) {
             accessModifiers = new String[] { "public", "abstract" };
         } else {
             accessModifiers = new String[] { "public" };
@@ -1653,7 +1641,7 @@ public class JavaEmitter implements GlueEmitter {
         }
 
         String[] accessModifiers = null;
-        if(cfg.accessControl(cfg.implClassName())==ACC_PUBLIC_ABSTRACT) {
+        if(cfg.accessControl(cfg.implClassName()) == PUBLIC_ABSTRACT) {
             accessModifiers = new String[] { "public", "abstract" };
         } else {
             accessModifiers = new String[] { "public" };
