@@ -194,7 +194,7 @@
     <target name="junit.run" depends="init">
         <!-- Perform the junit tests-->
         <mkdir dir="${results}"/>
-        <junit forkmode="once" showoutput="true" fork="true" haltonerror="true">
+        <junit forkmode="once" showoutput="true" fork="true">
             <jvmarg value="-Djava.library.path=${gluegen.lib}:${build_t.lib}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
             <!--jvmarg value="-Dgluegen.debug.NativeLibrary=true"/-->
