@@ -551,6 +551,8 @@
       <fileset dir="${classes-cdc}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/gluegen/runtime/opengl/*.class" />
+        <include name="com/jogamp/common/nio/*.class" />
+        <include name="com/jogamp/common/os/*.class" />
         <include name="com/jogamp/common/*.class" />
       </fileset>
     </jar>

@@ -870,6 +870,7 @@ public class JavaEmitter implements GlueEmitter {
     writer.println();
     writer.println("import java.nio.*;");
     writer.println();
+
     writer.println("import " + cfg.gluegenRuntimePackage() + ".*;");
     writer.println("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
     writer.println("import " + Buffers.class.getPackage().getName() + ".*;");
@@ -905,6 +906,7 @@ public class JavaEmitter implements GlueEmitter {
       writer.println("  StructAccessor accessor;");
       writer.println();
     }
+
     writer.println("  public static int size() {");
     if (doBaseClass) {
       writer.println("    if (Platform.is32Bit()) {");
@@ -1582,7 +1584,13 @@ public class JavaEmitter implements GlueEmitter {
    */
   protected void emitAllFileHeaders() throws IOException {
     try {
+        List<String> imports = new ArrayList<String>(cfg.imports());
+        imports.add(cfg.gluegenRuntimePackage()+".*");
+        imports.add(DynamicLookupHelper.class.getPackage().getName()+".*");
+        imports.add(Buffers.class.getPackage().getName()+".*");
+
       if (cfg.allStatic() || cfg.emitInterface()) {
+
         String[] interfaces;
         List<String> userSpecifiedInterfaces = null;
         if (cfg.emitInterface()) {
@@ -1614,8 +1622,8 @@ public class JavaEmitter implements GlueEmitter {
           javaWriter,
           cfg.packageName(),
           cfg.className(),
-          cfg.gluegenRuntimePackage(),
-          cfg.allStatic() ? true : false, cfg.imports().toArray(new String[] {}),
+          cfg.allStatic() ? true : false,
+          imports,
           accessModifiers,
           interfaces,
           cfg.extendedParentClass(cfg.className()),
@@ -1657,9 +1665,8 @@ public class JavaEmitter implements GlueEmitter {
           javaImplWriter,
           cfg.implPackageName(),
           cfg.implClassName(),
-          cfg.gluegenRuntimePackage(),
           true,
-          cfg.imports().toArray(new String[] {}),
+          imports,
           accessModifiers,
           interfaces,
           cfg.extendedParentClass(cfg.implClassName()),
