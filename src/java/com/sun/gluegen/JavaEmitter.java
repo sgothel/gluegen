@@ -647,7 +647,7 @@ public class JavaEmitter implements GlueEmitter {
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
-  protected List<FunctionEmitter> generateMethodBindingEmitters(HashSet<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
+  protected List<? extends FunctionEmitter> generateMethodBindingEmitters(Set<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
 
     ArrayList<FunctionEmitter> allEmitters = new ArrayList<FunctionEmitter>();
 
@@ -1163,9 +1163,11 @@ public class JavaEmitter implements GlueEmitter {
   }
   public void endStructs() throws Exception {}
 
-  public static int addStrings2Buffer(StringBuffer buf, String sep, String first, Collection<String> col) {
+  public static int addStrings2Buffer(StringBuilder buf, String sep, String first, Collection<String> col) {
     int num = 0;
-    if(null==buf) buf = new StringBuffer();
+    if(null==buf) {
+        buf = new StringBuilder();
+    }
 
     Iterator<String> iter = col.iterator();
     if(null!=first) {
