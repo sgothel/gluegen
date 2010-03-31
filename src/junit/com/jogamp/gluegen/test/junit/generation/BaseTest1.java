@@ -307,6 +307,7 @@ public class BaseTest1 {
               // System.out.println("lb3: "+lb3);
               Assert.assertTrue("Wrong result: "+pb.capacity(), BindingTest1.ARRAY_SIZE == pb.capacity());
               Assert.assertTrue("Wrong result: "+pb.remaining(), BindingTest1.ARRAY_SIZE == pb.remaining());
+              Assert.assertNotNull(pb.getReferencedBuffer(0));
               Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2.getBuffer(), pb.getReferencedBuffer(0).equals(lb2.getBuffer()));
 
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);

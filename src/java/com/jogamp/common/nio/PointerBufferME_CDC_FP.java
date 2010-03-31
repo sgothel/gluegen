@@ -56,7 +56,7 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
             throw new IndexOutOfBoundsException();
         }
         if (Platform.is32Bit()) {
-            return pb.get(idx);
+            return (long) pb.get(idx) & 0x00000000FFFFFFFFL;
         } else {
             idx = idx << 1; // 8-byte to 4-byte offset
             long lo = 0x00000000FFFFFFFFL & ((long) pb.get(idx));
