@@ -39,11 +39,17 @@
 
 package com.sun.gluegen;
 
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.DynamicLookupHelper;
 import java.io.*;
 import java.util.*;
 import java.text.MessageFormat;
 
 import com.sun.gluegen.cgram.types.*;
+import java.util.logging.Logger;
+
+import static java.util.logging.Level.*;
+import static com.sun.gluegen.JavaEmitter.MethodAccess.*;
 
 // PROBLEMS:
 //  - what if something returns 'const int *'? Could we
@@ -69,25 +75,20 @@ public class JavaEmitter implements GlueEmitter {
    * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
    * the implementation (ImplOnly).
    */
-  public static final int ALL_STATIC = 1;
-  public static final int INTERFACE_AND_IMPL = 2;
-  public static final int INTERFACE_ONLY = 3;
-  public static final int IMPL_ONLY = 4;
+  public enum EmissionStyle {AllStatic, InterfaceAndImpl, InterfaceOnly, ImplOnly};
 
   /**
    * Access control for emitted Java methods.
    */
-  public static final int ACC_PUBLIC = 1;
-  public static final int ACC_PROTECTED = 2;
-  public static final int ACC_PRIVATE = 3;
-  public static final int ACC_PACKAGE_PRIVATE = 4;
-  public static final int ACC_PUBLIC_ABSTRACT = 5;
+  public enum MethodAccess {PUBLIC, PROTECTED, PRIVATE, PACKAGE_PRIVATE, PUBLIC_ABSTRACT}
 
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
   private PrintWriter cWriter;
   private MachineDescription machDesc32;
   private MachineDescription machDesc64;
+
+  protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
 
   public void readConfigurationFile(String filename) throws Exception {
     cfg = createConfig();
@@ -406,16 +407,10 @@ public class JavaEmitter implements GlueEmitter {
 
     ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet);
     // sort functions to make them easier to find in native code
-    Collections.sort(
-      funcsToBind,
-      new Comparator<FunctionSymbol>() {
-          public int compare(FunctionSymbol o1, FunctionSymbol o2) {
-            return o1.getName().compareTo(o2.getName());
-          }
-          @Override
-          public boolean equals(Object obj) {
-            return obj.getClass() == this.getClass();
-          }
+    Collections.sort(funcsToBind, new Comparator<FunctionSymbol>() {
+            public int compare(FunctionSymbol o1, FunctionSymbol o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
         });
 
     // Bind all the C funcs to Java methods
@@ -480,9 +475,9 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
 
-    int accessControl = cfg.accessControl(binding.getName());
+    MethodAccess accessControl = cfg.accessControl(binding.getName());
     // We should not emit anything except public APIs into interfaces
-    if (signatureOnly && (accessControl != ACC_PUBLIC)) {
+    if (signatureOnly && (accessControl != PUBLIC)) {
       return;
     }
 
@@ -514,9 +509,9 @@ public class JavaEmitter implements GlueEmitter {
                                    signatureOnly,
                                    cfg);
     switch (accessControl) {
-      case ACC_PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
-      case ACC_PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
-      case ACC_PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
+      case PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
+      case PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
+      case PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
       default: break; // package-private adds no modifiers
     }
     if (cfg.allStatic()) {
@@ -654,7 +649,7 @@ public class JavaEmitter implements GlueEmitter {
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
-  protected List<FunctionEmitter> generateMethodBindingEmitters(HashSet<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
+  protected List<? extends FunctionEmitter> generateMethodBindingEmitters(Set<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
 
     ArrayList<FunctionEmitter> allEmitters = new ArrayList<FunctionEmitter>();
 
@@ -787,8 +782,8 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     if (name == null) {
-      System.err.println("WARNING: skipping emission of unnamed struct \"" + structType + "\"");
-      return;
+        LOG.log(WARNING, "skipping emission of unnamed struct \"{0}\"", structType);
+        return;
     }
 
     if (cfg.shouldIgnoreInInterface(name)) {
@@ -851,7 +846,6 @@ public class JavaEmitter implements GlueEmitter {
 
     String structClassPkg = cfg.packageForStruct(name);
     PrintWriter writer = null;
-    PrintWriter cWriter = null;
     try  {
       writer = openFile(
         cfg.javaOutputDir() + File.separator +
@@ -863,9 +857,9 @@ public class JavaEmitter implements GlueEmitter {
         if (cfg.nativeOutputUsesJavaHierarchy()) {
           nRoot += File.separator + CodeGenUtils.packageAsPath(cfg.packageName());
         }
-        cWriter = openFile(nRoot + File.separator + containingTypeName + "_JNI.c");
-        CodeGenUtils.emitAutogeneratedWarning(cWriter, this);
-        emitCHeader(cWriter, containingTypeName);
+        PrintWriter newCWriter = openFile(nRoot + File.separator + containingTypeName + "_JNI.c");
+        CodeGenUtils.emitAutogeneratedWarning(newCWriter, this);
+        emitCHeader(newCWriter, containingTypeName);
       }
     } catch(Exception e)   {
       throw new RuntimeException("Unable to open files for emission of struct class", e);
@@ -877,6 +871,8 @@ public class JavaEmitter implements GlueEmitter {
     writer.println("import java.nio.*;");
     writer.println();
     writer.println("import " + cfg.gluegenRuntimePackage() + ".*;");
+    writer.println("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
+    writer.println("import " + Buffers.class.getPackage().getName() + ".*;");
     writer.println();
     List<String> imports = cfg.imports();
     for (String str : imports) {
@@ -1095,7 +1091,6 @@ public class JavaEmitter implements GlueEmitter {
           } catch (Exception e) {
             System.err.println("Error occurred while creating accessor for field \"" +
                                field.getName() + "\" in type \"" + name + "\"");
-            e.printStackTrace();
             throw(e);
           }
           if (externalJavaType.isPrimitive()) {
@@ -1152,8 +1147,7 @@ public class JavaEmitter implements GlueEmitter {
             }
           } else {
             // FIXME
-            System.err.println("WARNING: Complicated fields (field \"" + field + "\" of type \"" + name +
-                               "\") not implemented yet");
+            LOG.log(WARNING, "Complicated fields (field \"{0}\" of type \"{1}\") not implemented yet", new Object[]{field, name});
             //          throw new RuntimeException("Complicated fields (field \"" + field + "\" of type \"" + t +
             //                                     "\") not implemented yet");
           }
@@ -1173,9 +1167,11 @@ public class JavaEmitter implements GlueEmitter {
   }
   public void endStructs() throws Exception {}
 
-  public static int addStrings2Buffer(StringBuffer buf, String sep, String first, Collection<String> col) {
+  public static int addStrings2Buffer(StringBuilder buf, String sep, String first, Collection<String> col) {
     int num = 0;
-    if(null==buf) buf = new StringBuffer();
+    if(null==buf) {
+        buf = new StringBuilder();
+    }
 
     Iterator<String> iter = col.iterator();
     if(null!=first) {
@@ -1240,7 +1236,7 @@ public class JavaEmitter implements GlueEmitter {
 
             // t is<type>**, targetType is <type>*, we need to get <type>
             Type bottomType = targetType.asPointer().getTargetType();
-            System.out.println("INFO: Opaque Type: "+t+", targetType: "+targetType+", bottomType: "+bottomType+" is ptr-ptr");
+            LOG.log(INFO, "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr", new Object[]{t, targetType, bottomType});
           }
         }
       }
@@ -1333,7 +1329,7 @@ public class JavaEmitter implements GlueEmitter {
           } else {
             // t is<type>[][], targetType is <type>[], we need to get <type>
             bottomType = targetType.asArray().getElementType();
-            System.out.println("WARNING: typeToJavaType(ptr-ptr): "+t+", targetType: "+targetType+", bottomType: "+bottomType+" -> Unhandled!");
+            LOG.log(WARNING, "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2} -> Unhandled!", new Object[]{t, targetType, bottomType});
           }
 
           // Warning: The below code is not backed up by an implementation,
@@ -1569,7 +1565,7 @@ public class JavaEmitter implements GlueEmitter {
    */
   protected void emitCustomJavaCode(PrintWriter writer, String className) throws Exception  {
     List<String> code = cfg.customJavaCodeForClass(className);
-    if (code.size() == 0)
+    if (code.isEmpty())
       return;
 
     writer.println();
@@ -1608,7 +1604,7 @@ public class JavaEmitter implements GlueEmitter {
           };
 
         String[] accessModifiers = null;
-        if(cfg.accessControl(cfg.className())==ACC_PUBLIC_ABSTRACT) {
+        if(cfg.accessControl(cfg.className()) == PUBLIC_ABSTRACT) {
             accessModifiers = new String[] { "public", "abstract" };
         } else {
             accessModifiers = new String[] { "public" };
@@ -1651,7 +1647,7 @@ public class JavaEmitter implements GlueEmitter {
         }
 
         String[] accessModifiers = null;
-        if(cfg.accessControl(cfg.implClassName())==ACC_PUBLIC_ABSTRACT) {
+        if(cfg.accessControl(cfg.implClassName()) == PUBLIC_ABSTRACT) {
             accessModifiers = new String[] { "public", "abstract" };
         } else {
             accessModifiers = new String[] { "public" };

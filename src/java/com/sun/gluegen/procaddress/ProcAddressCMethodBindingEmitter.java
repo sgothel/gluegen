@@ -40,165 +40,170 @@
 package com.sun.gluegen.procaddress;
 
 import java.io.*;
-import java.util.*;
 import com.sun.gluegen.*;
 import com.sun.gluegen.cgram.types.*;
 
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
+
   private boolean callThroughProcAddress;
   private boolean needsLocalTypedef;
+
   private String localTypedefCallingConvention;
-  private static String procAddressJavaTypeName =
-    JavaType.createForClass(Long.TYPE).jniTypeName();
+
+  private static final String procAddressJavaTypeName = JavaType.createForClass(Long.TYPE).jniTypeName();
   private ProcAddressEmitter emitter;
 
-  public ProcAddressCMethodBindingEmitter(CMethodBindingEmitter methodToWrap,
-                                          final boolean callThroughProcAddress,
-                                          boolean needsLocalTypedef,
-                                          String localTypedefCallingConvention,
-                                          ProcAddressEmitter emitter) {
-    super(
-      new MethodBinding(methodToWrap.getBinding()) {
-        public String getName() {
-          if (callThroughProcAddress) {
-            return ProcAddressEmitter.WRAP_PREFIX + super.getName();
-          } else {
-            return super.getName();
-          }
+  public ProcAddressCMethodBindingEmitter(CMethodBindingEmitter methodToWrap, final boolean callThroughProcAddress,
+                          boolean needsLocalTypedef, String localTypedefCallingConvention, ProcAddressEmitter emitter) {
+        
+        super(
+                new MethodBinding(methodToWrap.getBinding()) {
+                    @Override
+                    public String getName() {
+                        if (callThroughProcAddress) {
+                            return ProcAddressEmitter.WRAP_PREFIX + super.getName();
+                        } else {
+                            return super.getName();
+                        }
+                    }
+                },
+                methodToWrap.getDefaultOutput(),
+                methodToWrap.getJavaPackageName(),
+                methodToWrap.getJavaClassName(),
+                methodToWrap.getIsOverloadedBinding(),
+                methodToWrap.getIsJavaMethodStatic(),
+                true,
+                methodToWrap.forIndirectBufferAndArrayImplementation(),
+                methodToWrap.getMachineDescription()
+        );
+
+        if (methodToWrap.getReturnValueCapacityExpression() != null) {
+            setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
         }
-      },
-      methodToWrap.getDefaultOutput(),
-      methodToWrap.getJavaPackageName(),
-      methodToWrap.getJavaClassName(),
-      methodToWrap.getIsOverloadedBinding(),
-      methodToWrap.getIsJavaMethodStatic(),
-      true,
-      methodToWrap.forIndirectBufferAndArrayImplementation(),
-      methodToWrap.getMachineDescription()
-    );
-
-    if (methodToWrap.getReturnValueCapacityExpression() != null) {
-      setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
-    }
-    if (methodToWrap.getReturnValueLengthExpression() != null) {
-      setReturnValueLengthExpression(methodToWrap.getReturnValueLengthExpression());
-    }
-    setTemporaryCVariableDeclarations(methodToWrap.getTemporaryCVariableDeclarations());
-    setTemporaryCVariableAssignments (methodToWrap.getTemporaryCVariableAssignments ());
-    
-    setCommentEmitter(defaultCommentEmitter);
-    this.callThroughProcAddress = callThroughProcAddress;
-    this.needsLocalTypedef = needsLocalTypedef;
-    this.localTypedefCallingConvention = localTypedefCallingConvention;
-    this.emitter = emitter;
-  }
-  
-  protected int emitArguments(PrintWriter writer) {
-    int numEmitted = super.emitArguments(writer);
-    if (callThroughProcAddress) {
-      if (numEmitted > 0)
-        {
-          writer.print(", ");
+        if (methodToWrap.getReturnValueLengthExpression() != null) {
+            setReturnValueLengthExpression(methodToWrap.getReturnValueLengthExpression());
         }
-      writer.print(procAddressJavaTypeName);
-      writer.print(" procAddress");
-      ++numEmitted;
+        setTemporaryCVariableDeclarations(methodToWrap.getTemporaryCVariableDeclarations());
+        setTemporaryCVariableAssignments(methodToWrap.getTemporaryCVariableAssignments());
+
+        setCommentEmitter(defaultCommentEmitter);
+
+        this.callThroughProcAddress = callThroughProcAddress;
+        this.needsLocalTypedef = needsLocalTypedef;
+        this.localTypedefCallingConvention = localTypedefCallingConvention;
+        this.emitter = emitter;
     }
 
-    return numEmitted;
-  }
-
-  protected void emitBodyVariableDeclarations(PrintWriter writer) {
-    if (callThroughProcAddress) {
-      // create variable for the function pointer with the right type, and set
-      // it to the value of the passed-in proc address
-      FunctionSymbol cSym = getBinding().getCSymbol();
-      String funcPointerTypedefName =
-        emitter.getFunctionPointerTypedefName(cSym);
-
-      if (needsLocalTypedef) {
-        // We (probably) didn't get a typedef for this function
-        // pointer type in the header file; the user requested that we
-        // forcibly generate one. Here we force the emission of one.
-        PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
-        // Just for safety, emit this name slightly differently than
-        // the mangling would otherwise produce
-        funcPointerTypedefName = "_local_" + funcPointerTypedefName;
-
-        writer.print("  typedef ");
-        writer.print(funcPtrType.toString(funcPointerTypedefName, localTypedefCallingConvention));
-        writer.println(";");
-      }
-    
-      writer.print("  ");
-      writer.print(funcPointerTypedefName);
-      writer.print(" ptr_");
-      writer.print(cSym.getName());
-      writer.println(";");
-    }
-
-    super.emitBodyVariableDeclarations(writer);
-  }
-
-  protected void emitBodyVariablePreCallSetup(PrintWriter writer) {
-    super.emitBodyVariablePreCallSetup(writer);
-
-    if (callThroughProcAddress) {
-        // set the function pointer to the value of the passed-in procAddress
-        FunctionSymbol cSym = getBinding().getCSymbol();
-        String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
-        if (needsLocalTypedef) {
-            funcPointerTypedefName = "_local_" + funcPointerTypedefName;
+    @Override
+    protected int emitArguments(PrintWriter writer) {
+        int numEmitted = super.emitArguments(writer);
+        if (callThroughProcAddress) {
+            if (numEmitted > 0) {
+                writer.print(", ");
+            }
+            writer.print(procAddressJavaTypeName);
+            writer.print(" procAddress");
+            ++numEmitted;
         }
 
-        String ptrVarName = "ptr_" + cSym.getName();
-    
-        writer.print("  ");
-        writer.print(ptrVarName);
-        writer.print(" = (");
-        writer.print(funcPointerTypedefName);
-        writer.println(") (intptr_t) procAddress;");
-
-        writer.println("  assert(" + ptrVarName + " != NULL);");
+        return numEmitted;
     }
-  }
 
-  protected void emitBodyCallCFunction(PrintWriter writer) {
-    if (!callThroughProcAddress) {
-      super.emitBodyCallCFunction(writer);
-    } else {
-      // Make the call to the actual C function
-      writer.print("  ");
+    @Override
+    protected void emitBodyVariableDeclarations(PrintWriter writer) {
+        if (callThroughProcAddress) {
+            // create variable for the function pointer with the right type, and set
+            // it to the value of the passed-in proc address
+            FunctionSymbol cSym = getBinding().getCSymbol();
+            String funcPointerTypedefName =
+                    emitter.getFunctionPointerTypedefName(cSym);
 
-      // WARNING: this code assumes that the return type has already been
-      // typedef-resolved.
-      Type cReturnType = binding.getCReturnType();
+            if (needsLocalTypedef) {
+                // We (probably) didn't get a typedef for this function
+                // pointer type in the header file; the user requested that we
+                // forcibly generate one. Here we force the emission of one.
+                PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
+                // Just for safety, emit this name slightly differently than
+                // the mangling would otherwise produce
+                funcPointerTypedefName = "_local_" + funcPointerTypedefName;
 
-      if (!cReturnType.isVoid()) {
-        writer.print("_res = ");
-      }
-      MethodBinding binding = getBinding();
-      if (binding.hasContainingType()) {
-        // FIXME: this can and should be handled and unified with the
-        // associated code in the CMethodBindingEmitter
-        throw new IllegalStateException("Cannot call through function pointer because binding has containing type: " + binding);
-      }
+                writer.print("  typedef ");
+                writer.print(funcPtrType.toString(funcPointerTypedefName, localTypedefCallingConvention));
+                writer.println(";");
+            }
 
-      // call throught the run-time function pointer
-      writer.print("(* ptr_");
-      writer.print(binding.getCSymbol().getName());
-      writer.print(") ");
-      writer.print("(");
-      emitBodyPassCArguments(writer);
-      writer.println(");");
+            writer.print("  ");
+            writer.print(funcPointerTypedefName);
+            writer.print(" ptr_");
+            writer.print(cSym.getName());
+            writer.println(";");
+        }
+
+        super.emitBodyVariableDeclarations(writer);
     }
-  }
 
-  protected String jniMangle(MethodBinding binding) {
-    StringBuffer buf = new StringBuffer(super.jniMangle(binding));
-    if (callThroughProcAddress) {
-      jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
+    @Override
+    protected void emitBodyVariablePreCallSetup(PrintWriter writer) {
+        super.emitBodyVariablePreCallSetup(writer);
+
+        if (callThroughProcAddress) {
+            // set the function pointer to the value of the passed-in procAddress
+            FunctionSymbol cSym = getBinding().getCSymbol();
+            String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
+            if (needsLocalTypedef) {
+                funcPointerTypedefName = "_local_" + funcPointerTypedefName;
+            }
+
+            String ptrVarName = "ptr_" + cSym.getName();
+
+            writer.print("  ");
+            writer.print(ptrVarName);
+            writer.print(" = (");
+            writer.print(funcPointerTypedefName);
+            writer.println(") (intptr_t) procAddress;");
+
+            writer.println("  assert(" + ptrVarName + " != NULL);");
+        }
     }
-    return buf.toString();
-  }
+
+    @Override
+    protected void emitBodyCallCFunction(PrintWriter writer) {
+        if (!callThroughProcAddress) {
+            super.emitBodyCallCFunction(writer);
+        } else {
+            // Make the call to the actual C function
+            writer.print("  ");
+
+            // WARNING: this code assumes that the return type has already been
+            // typedef-resolved.
+            Type cReturnType = binding.getCReturnType();
+
+            if (!cReturnType.isVoid()) {
+                writer.print("_res = ");
+            }
+            MethodBinding mBinding = getBinding();
+            if (mBinding.hasContainingType()) {
+                // FIXME: this can and should be handled and unified with the
+                // associated code in the CMethodBindingEmitter
+                throw new IllegalStateException("Cannot call through function pointer because binding has containing type: " + mBinding);
+            }
+
+            // call throught the run-time function pointer
+            writer.print("(* ptr_");
+            writer.print(mBinding.getCSymbol().getName());
+            writer.print(") ");
+            writer.print("(");
+            emitBodyPassCArguments(writer);
+            writer.println(");");
+        }
+    }
+
+    @Override
+    protected String jniMangle(MethodBinding binding) {
+        StringBuffer buf = new StringBuffer(super.jniMangle(binding));
+        if (callThroughProcAddress) {
+            jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
+        }
+        return buf.toString();
+    }
 }

@@ -28,7 +28,9 @@
 /*
  * Created on Saturday, March 27 2010 11:55
  */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
+
+import com.jogamp.common.os.*;
 
 import java.nio.ByteBuffer;
 import java.nio.Buffer;
@@ -38,7 +40,7 @@ import java.util.HashMap;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class AbstractBuffer {
+public abstract class AbstractBuffer implements NativeBuffer {
 
     protected final ByteBuffer bb;
     protected int capacity;
@@ -67,7 +69,7 @@ public abstract class AbstractBuffer {
         return position;
     }
 
-    public final AbstractBuffer position(int newPos) {
+    public final NativeBuffer position(int newPos) {
         if (0 > newPos || newPos >= capacity) {
             throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
                                                 "My capacity is "+capacity()+".");
@@ -84,7 +86,7 @@ public abstract class AbstractBuffer {
         return position < capacity;
     }
 
-    public final AbstractBuffer rewind() {
+    public final NativeBuffer rewind() {
         position = 0;
         return this;
     }

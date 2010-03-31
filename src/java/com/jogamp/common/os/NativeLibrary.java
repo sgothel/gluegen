@@ -37,8 +37,9 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.os;
 
+import com.jogamp.gluegen.runtime.NativeLibLoader;
 import java.io.*;
 import java.lang.reflect.*;
 import java.security.*;
@@ -412,7 +413,7 @@ public class NativeLibrary implements DynamicLookupHelper {
   }
 
   private static volatile boolean loadedDynLinkNativeLib;
-  static void ensureNativeLibLoaded() {
+  public static void ensureNativeLibLoaded() {
     if (!loadedDynLinkNativeLib) {
       synchronized (NativeLibrary.class) {
         if (!loadedDynLinkNativeLib) {

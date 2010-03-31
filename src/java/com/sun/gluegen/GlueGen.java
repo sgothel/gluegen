@@ -51,6 +51,10 @@ import static java.lang.System.*;
 /** Glue code generator for C functions and data structures. */
 public class GlueGen implements GlueEmitterControls {
 
+    static{
+        Logging.init();
+    }
+
     private List<String> forcedStructNames = new ArrayList<String>();
     private PCPP preprocessor;
     

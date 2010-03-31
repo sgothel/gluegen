@@ -34,8 +34,8 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.gluegen.test.junit.generation.impl.BindingTest1p1Impl;
 
-import com.jogamp.gluegen.runtime.Buffers;
-import com.jogamp.gluegen.runtime.PointerBuffer;
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.nio.PointerBuffer;
 import java.nio.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

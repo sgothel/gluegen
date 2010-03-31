@@ -39,6 +39,7 @@
 
 package com.jogamp.gluegen.runtime;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import java.security.*;
 
 // Debugging only

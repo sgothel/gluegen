@@ -1,7 +1,6 @@
 package com.sun.gluegen;
 
 import com.sun.gluegen.pcpp.PCPP;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
@@ -18,7 +17,7 @@ import static org.junit.Assert.*;
 public class PCPPTest {
 
     @Test
-    public void pcppTest() throws FileNotFoundException, IOException {
+    public void pcppMacroDefinitionTest() throws FileNotFoundException, IOException {
         
         PCPP pp = new PCPP(Collections.<String>emptyList());
         ByteArrayOutputStream output = new ByteArrayOutputStream();

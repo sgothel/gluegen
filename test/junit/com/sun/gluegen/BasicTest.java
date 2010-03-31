@@ -1,7 +1,7 @@
 package com.sun.gluegen;
 
-import com.jogamp.gluegen.runtime.Buffers;
-import com.jogamp.gluegen.runtime.PointerBuffer;
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.nio.PointerBuffer;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;

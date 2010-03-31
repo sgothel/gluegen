@@ -36,8 +36,9 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
 
+import com.jogamp.common.os.Platform;
 import java.nio.*;
 
 /**

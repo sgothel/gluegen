@@ -1,6 +1,7 @@
 package com.jogamp.gluegen.test.junit.runtime;
 
-import com.jogamp.gluegen.runtime.*;
+import com.jogamp.common.nio.*;
+import com.jogamp.common.os.*;
 
 import java.nio.*;
 

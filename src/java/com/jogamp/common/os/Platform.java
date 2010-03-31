@@ -28,8 +28,9 @@
 /*
  * Created on Sunday, March 28 2010 14:43
  */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.os;
 
+import com.jogamp.common.nio.Buffers;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;

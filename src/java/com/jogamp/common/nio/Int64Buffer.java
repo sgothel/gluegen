@@ -25,8 +25,9 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
 
+import com.jogamp.common.os.*;
 import java.nio.ByteBuffer;
 
 /**
