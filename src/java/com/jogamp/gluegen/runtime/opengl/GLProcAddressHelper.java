@@ -36,6 +36,7 @@
 
 package com.jogamp.gluegen.runtime.opengl;
 
+import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.gluegen.runtime.*;
 
 // Debugging only

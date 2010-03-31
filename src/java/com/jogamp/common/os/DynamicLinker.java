@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -32,63 +32,19 @@
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
+ * 
+ * Sun gratefully acknowledges that this software was originally authored
+ * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.runtime;
 
-import java.nio.*;
+package com.jogamp.common.os;
 
-/**
- * @author Sven Gothel
- * @author Michael Bien
- */
-final class Int64BufferME_CDC_FP extends Int64Buffer {
+/** Provides an abstract interface to the OS's low-level dynamic
+    linking functionality. */
 
-    private IntBuffer pb;
-
-    Int64BufferME_CDC_FP(ByteBuffer bb) {
-        super(bb);
-        this.pb = bb.asIntBuffer();
-
-        capacity = bb.capacity() / elementSize();
-
-        position = 0;
-        backup = new long[capacity];
-    }
-
-    public long get(int idx) {
-        if (0 > idx || idx >= capacity) {
-            throw new IndexOutOfBoundsException();
-        }
-        idx = idx << 1; // 8-byte to 4-byte offset
-        long lo = 0x00000000FFFFFFFFL & ((long) pb.get(idx));
-        long hi = 0x00000000FFFFFFFFL & ((long) pb.get(idx + 1));
-        if (Platform.isLittleEndian()) {
-            return hi << 32 | lo;
-        }
-        return lo << 32 | hi;
-    }
-
-    public Int64Buffer put(int idx, long v) {
-        if (0 > idx || idx >= capacity) {
-            throw new IndexOutOfBoundsException();
-        }
-        backup[idx] = v;
-        idx = idx << 1; // 8-byte to 4-byte offset
-        int lo = (int) ((v) & 0x00000000FFFFFFFFL);
-        int hi = (int) ((v >> 32) & 0x00000000FFFFFFFFL);
-        if (Platform.isLittleEndian()) {
-            pb.put(idx, lo);
-            pb.put(idx + 1, hi);
-        } else {
-            pb.put(idx, hi);
-            pb.put(idx + 1, lo);
-        }
-        return this;
-    }
-
-    public Int64Buffer put(long v) {
-        put(position, v);
-        position++;
-        return this;
-    }
+interface DynamicLinker {
+  public long openLibraryGlobal(String pathname, boolean debug);
+  public long openLibraryLocal(String pathname, boolean debug);
+  public long lookupSymbol(long libraryHandle, String symbolName);
+  public void closeLibrary(long libraryHandle);
 }

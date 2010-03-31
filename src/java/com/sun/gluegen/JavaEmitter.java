@@ -39,6 +39,8 @@
 
 package com.sun.gluegen;
 
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.DynamicLookupHelper;
 import java.io.*;
 import java.util.*;
 import java.text.MessageFormat;
@@ -869,6 +871,8 @@ public class JavaEmitter implements GlueEmitter {
     writer.println("import java.nio.*;");
     writer.println();
     writer.println("import " + cfg.gluegenRuntimePackage() + ".*;");
+    writer.println("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
+    writer.println("import " + Buffers.class.getPackage().getName() + ".*;");
     writer.println();
     List<String> imports = cfg.imports();
     for (String str : imports) {

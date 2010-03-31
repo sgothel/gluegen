@@ -1,21 +1,21 @@
 /*
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,23 +28,66 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
+package com.jogamp.common.nio;
 
-package com.jogamp.gluegen.runtime;
+import com.jogamp.common.os.Platform;
+import java.nio.*;
 
-/** Provides an abstract interface to the OS's low-level dynamic
-    linking functionality. */
+/**
+ * @author Sven Gothel
+ * @author Michael Bien
+ */
+final class PointerBufferSE extends PointerBuffer {
 
-interface DynamicLinker {
-  public long openLibraryGlobal(String pathname, boolean debug);
-  public long openLibraryLocal(String pathname, boolean debug);
-  public long lookupSymbol(long libraryHandle, String symbolName);
-  public void closeLibrary(long libraryHandle);
+    private Buffer pb;
+
+    PointerBufferSE(ByteBuffer bb) {
+        super(bb);
+
+        if (Platform.is32Bit()) {
+            this.pb = bb.asIntBuffer();
+        } else {
+            this.pb = bb.asLongBuffer();
+        }
+
+        capacity = bb.capacity() / elementSize();
+
+        position = 0;
+        backup = new long[capacity];
+    }
+
+    public long get(int idx) {
+        if (0 > idx || idx >= capacity) {
+            throw new IndexOutOfBoundsException();
+        }
+        if (Platform.is32Bit()) {
+            return ((IntBuffer) pb).get(idx);
+        } else {
+            return ((LongBuffer) pb).get(idx);
+        }
+    }
+
+    public PointerBuffer put(int idx, long v) {
+        if (0 > idx || idx >= capacity) {
+            throw new IndexOutOfBoundsException();
+        }
+        backup[idx] = v;
+        if (Platform.is32Bit()) {
+            ((IntBuffer) pb).put(idx, (int) v);
+        } else {
+            ((LongBuffer) pb).put(idx, v);
+        }
+        return this;
+    }
+
+    public PointerBuffer put(long v) {
+        put(position, v);
+        position++;
+        return this;
+    }
 }

@@ -1,8 +1,8 @@
 
 package com.sun.gluegen.test;
 
-import com.jogamp.gluegen.runtime.*;
-import java.nio.*;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.nio.PointerBuffer;
 
 public class TestPointerBufferEndian {
     public static void main (String[] args) {

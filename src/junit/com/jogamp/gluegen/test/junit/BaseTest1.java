@@ -32,10 +32,10 @@
 
 package com.jogamp.gluegen.test.junit;
 
-import com.jogamp.gluegen.runtime.Buffers;
-import com.jogamp.gluegen.runtime.PointerBuffer;
-import com.jogamp.gluegen.runtime.Int64Buffer;
-import com.jogamp.gluegen.runtime.Platform;
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.nio.Int64Buffer;
+import com.jogamp.common.os.Platform;
 import java.nio.*;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;

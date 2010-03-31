@@ -8,12 +8,12 @@
  #include <inttypes.h>
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.gluegen.runtime.UnixDynamicLinkerImpl
+ *   Java package: com.jogamp.common.os.UnixDynamicLinkerImpl
  *    Java method: int dlclose(long arg0)
  *     C function: int dlclose(void * );
  */
 JNIEXPORT jint JNICALL 
-Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong arg0) {
+Java_com_jogamp_common_os_UnixDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong arg0) {
   int _res;
   _res = dlclose((void *) (intptr_t) arg0);
   return _res;
@@ -21,12 +21,12 @@ Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlclose__J(JNIEnv *env, jc
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.gluegen.runtime.UnixDynamicLinkerImpl
+ *   Java package: com.jogamp.common.os.UnixDynamicLinkerImpl
  *    Java method: java.lang.String dlerror()
  *     C function: char *  dlerror(void);
  */
 JNIEXPORT jstring JNICALL 
-Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
+Java_com_jogamp_common_os_UnixDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
   char *  _res;
   _res = dlerror();
   if (_res == NULL) return NULL;  return (*env)->NewStringUTF(env, _res);
@@ -34,12 +34,12 @@ Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlerror__(JNIEnv *env, jcl
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.gluegen.runtime.UnixDynamicLinkerImpl
+ *   Java package: com.jogamp.common.os.UnixDynamicLinkerImpl
  *    Java method: long dlopen(java.lang.String arg0, int arg1)
  *     C function: void *  dlopen(const char * , int);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring arg0, jint arg1) {
+Java_com_jogamp_common_os_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring arg0, jint arg1) {
   const char* _UTF8arg0 = NULL;
   void *  _res;
   if (arg0 != NULL) {
@@ -61,12 +61,12 @@ Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.gluegen.runtime.UnixDynamicLinkerImpl
+ *   Java package: com.jogamp.common.os.UnixDynamicLinkerImpl
  *    Java method: long dlsym(long arg0, java.lang.String arg1)
  *     C function: void *  dlsym(void * , const char * );
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_gluegen_runtime_UnixDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong arg0, jstring arg1) {
+Java_com_jogamp_common_os_UnixDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong arg0, jstring arg1) {
   const char* _UTF8arg1 = NULL;
   void *  _res;
   if (arg1 != NULL) {

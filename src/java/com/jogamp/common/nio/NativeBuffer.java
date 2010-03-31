@@ -1,8 +1,7 @@
-
 /*
  * Created on Tuesday, March 30 2010 18:22
  */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
 
 import java.nio.ByteBuffer;
 

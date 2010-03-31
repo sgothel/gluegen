@@ -197,13 +197,13 @@ public class JavaType {
 
   public static JavaType forNIOInt64BufferClass()  {
     if(nioInt64BufferType == null)
-        nioInt64BufferType = createForClass(com.jogamp.gluegen.runtime.Int64Buffer.class);
+        nioInt64BufferType = createForClass(com.jogamp.common.nio.Int64Buffer.class);
     return nioInt64BufferType;
   }
 
   public static JavaType forNIOPointerBufferClass()  {
     if(nioPointerBufferType == null)
-        nioPointerBufferType = createForClass(com.jogamp.gluegen.runtime.PointerBuffer.class);
+        nioPointerBufferType = createForClass(com.jogamp.common.nio.PointerBuffer.class);
     return nioPointerBufferType;
   }
 
@@ -340,8 +340,8 @@ public class JavaType {
 
   public boolean isNIOBuffer() {
     return clazz != null && ( (java.nio.Buffer.class).isAssignableFrom(clazz) ||
-                              (com.jogamp.gluegen.runtime.PointerBuffer.class).isAssignableFrom(clazz) ||
-                              (com.jogamp.gluegen.runtime.Int64Buffer.class).isAssignableFrom(clazz) ) ;
+                              (com.jogamp.common.nio.PointerBuffer.class).isAssignableFrom(clazz) ||
+                              (com.jogamp.common.nio.Int64Buffer.class).isAssignableFrom(clazz) ) ;
   }
 
   public boolean isNIOByteBuffer() {
@@ -362,11 +362,11 @@ public class JavaType {
   }
 
   public boolean isNIOInt64Buffer()  {
-    return (clazz == com.jogamp.gluegen.runtime.Int64Buffer.class);
+    return (clazz == com.jogamp.common.nio.Int64Buffer.class);
   }
 
   public boolean isNIOPointerBuffer()  {
-    return (clazz == com.jogamp.gluegen.runtime.PointerBuffer.class);
+    return (clazz == com.jogamp.common.nio.PointerBuffer.class);
   }
 
   public boolean isString() {

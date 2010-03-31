@@ -33,7 +33,7 @@
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
  */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
 
 import java.nio.*;
 

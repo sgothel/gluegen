@@ -33,19 +33,20 @@
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
  */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
 
+import com.jogamp.common.os.Platform;
 import java.nio.*;
 
 /**
  * @author Sven Gothel
  * @author Michael Bien
  */
-final class PointerBufferME_CDC_FP extends PointerBuffer {
+final class Int64BufferME_CDC_FP extends Int64Buffer {
 
     private IntBuffer pb;
 
-    PointerBufferME_CDC_FP(ByteBuffer bb) {
+    Int64BufferME_CDC_FP(ByteBuffer bb) {
         super(bb);
         this.pb = bb.asIntBuffer();
 
@@ -59,42 +60,34 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
-        if (Platform.is32Bit()) {
-            return pb.get(idx);
-        } else {
-            idx = idx << 1; // 8-byte to 4-byte offset
-            long lo = 0x00000000FFFFFFFFL & ((long) pb.get(idx));
-            long hi = 0x00000000FFFFFFFFL & ((long) pb.get(idx + 1));
-            if (Platform.isLittleEndian()) {
-                return hi << 32 | lo;
-            }
-            return lo << 32 | hi;
+        idx = idx << 1; // 8-byte to 4-byte offset
+        long lo = 0x00000000FFFFFFFFL & ((long) pb.get(idx));
+        long hi = 0x00000000FFFFFFFFL & ((long) pb.get(idx + 1));
+        if (Platform.isLittleEndian()) {
+            return hi << 32 | lo;
         }
+        return lo << 32 | hi;
     }
 
-    public PointerBuffer put(int idx, long v) {
+    public Int64Buffer put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
         backup[idx] = v;
-        if (Platform.is32Bit()) {
-            pb.put(idx, (int) v);
+        idx = idx << 1; // 8-byte to 4-byte offset
+        int lo = (int) ((v) & 0x00000000FFFFFFFFL);
+        int hi = (int) ((v >> 32) & 0x00000000FFFFFFFFL);
+        if (Platform.isLittleEndian()) {
+            pb.put(idx, lo);
+            pb.put(idx + 1, hi);
         } else {
-            idx = idx << 1; // 8-byte to 4-byte offset
-            int lo = (int) ((v) & 0x00000000FFFFFFFFL);
-            int hi = (int) ((v >> 32) & 0x00000000FFFFFFFFL);
-            if (Platform.isLittleEndian()) {
-                pb.put(idx, lo);
-                pb.put(idx + 1, hi);
-            } else {
-                pb.put(idx, hi);
-                pb.put(idx + 1, lo);
-            }
+            pb.put(idx, hi);
+            pb.put(idx + 1, lo);
         }
         return this;
     }
 
-    public PointerBuffer put(long v) {
+    public Int64Buffer put(long v) {
         put(position, v);
         position++;
         return this;

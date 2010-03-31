@@ -37,7 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.os;
 
 /** Interface callers may use to use the ProcAddressHelper's {@link
     ProcAddressHelper#resetProcAddressTable resetProcAddressTable}

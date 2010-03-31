@@ -1,7 +1,9 @@
 
 package com.sun.gluegen.test;
 
-import com.jogamp.gluegen.runtime.*;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.nio.StructAccessor;
 import java.nio.*;
 
 public class TestStructAccessorEndian {

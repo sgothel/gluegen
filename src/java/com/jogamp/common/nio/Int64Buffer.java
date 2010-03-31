@@ -25,63 +25,52 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * Created on Saturday, March 27 2010 11:55
- */
-package com.jogamp.gluegen.runtime;
+package com.jogamp.common.nio;
 
+import com.jogamp.common.os.Platform;
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
-import java.util.HashMap;
 
 /**
- * Hardware independent container for native pointer arrays.
+ * Hardware independent container for native int64_t arrays.
  *
- * The native values (NIO direct ByteBuffer) might be 32bit or 64bit wide,
- * depending of the CPU pointer width.
+ * The native values (NIO direct ByteBuffer) are always 64bit wide.
  *
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
+public abstract class Int64Buffer implements NativeBuffer/*<PointerBuffer>*/ {
 
     protected final ByteBuffer bb;
     protected int capacity;
     protected int position;
     protected long[] backup;
 
-    protected HashMap/*<aptr, buffer>*/ dataMap = new HashMap();
-
-    static {
-        NativeLibrary.ensureNativeLibLoaded();
-    }
-
-    protected PointerBuffer(ByteBuffer bb) {
+    protected Int64Buffer(ByteBuffer bb) {
         this.bb = bb;
     }
 
-    public static PointerBuffer allocate(int size) {
+    public static Int64Buffer allocate(int size) {
         if (Platform.isJavaSE()) {
-            return new PointerBufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
+            return new Int64BufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
         } else {
-            return new PointerBufferME_CDC_FP(ByteBuffer.wrap(new byte[elementSize() * size]));
+            return new Int64BufferME_CDC_FP(ByteBuffer.wrap(new byte[elementSize() * size]));
         }
     }
 
-    public static PointerBuffer allocateDirect(int size) {
+    public static Int64Buffer allocateDirect(int size) {
         if (Platform.isJavaSE()) {
-            return new PointerBufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
+            return new Int64BufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
         } else {
-            return new PointerBufferME_CDC_FP(Buffers.newDirectByteBuffer(elementSize() * size));
+            return new Int64BufferME_CDC_FP(Buffers.newDirectByteBuffer(elementSize() * size));
         }
     }
 
-    public static PointerBuffer wrap(ByteBuffer src) {
-        PointerBuffer res;
+    public static Int64Buffer wrap(ByteBuffer src) {
+        Int64Buffer res;
         if (Platform.isJavaSE()) {
-            res = new PointerBufferSE(src);
+            res = new Int64BufferSE(src);
         } else {
-            res = new PointerBufferME_CDC_FP(src);
+            res = new Int64BufferME_CDC_FP(src);
         }
         res.updateBackup();
         return res;
@@ -99,7 +88,7 @@ public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
     }
 
     public static int elementSize() {
-        return Platform.is32Bit() ? Buffers.SIZEOF_INT : Buffers.SIZEOF_LONG;
+        return Buffers.SIZEOF_LONG;
     }
 
     public int limit() {
@@ -114,7 +103,7 @@ public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
         return position;
     }
 
-    public PointerBuffer position(int newPos) {
+    public Int64Buffer position(int newPos) {
         if (0 > newPos || newPos >= capacity) {
             throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
                                                 "My capacity is "+capacity()+".");
@@ -131,7 +120,7 @@ public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
         return position < capacity;
     }
 
-    public PointerBuffer rewind() {
+    public Int64Buffer rewind() {
         position = 0;
         return this;
     }
@@ -160,55 +149,11 @@ public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
 
     public abstract long get(int idx);
 
-    /** put the pointer value at position index */
-    public abstract PointerBuffer put(int index, long value);
+    public abstract Int64Buffer put(int index, long value);
 
-    /** put the pointer value at the end */
-    public abstract PointerBuffer put(long value);
+    public abstract Int64Buffer put(long value);
 
-    /** Put the address of the given direct Buffer at the given position
-        of this pointer array.
-        Adding a reference of the given direct Buffer to this object. */
-    public PointerBuffer referenceBuffer(int index, Buffer bb) {
-        if(null==bb) {
-            throw new RuntimeException("Buffer is null");
-        }
-        if(!bb.isDirect()) {
-            throw new RuntimeException("Buffer is not direct");
-        }
-        long bbAddr = getDirectBufferAddressImpl(bb);
-        if(0==bbAddr) {
-            throw new RuntimeException("Couldn't determine native address of given Buffer: "+bb);
-        }
-
-        put(index, bbAddr);
-        dataMap.put(new Long(bbAddr), bb);
-        return this;
-    }
-
-    /** Put the address of the given direct Buffer at the end
-        of this pointer array.
-        Adding a reference of the given direct Buffer to this object. */
-    public PointerBuffer referenceBuffer(Buffer bb) {
-        referenceBuffer(position, bb);
-        position++;
-        return this;
-    }
-
-    public Buffer getReferencedBuffer(int index) {
-        long addr = get(index);
-        return (Buffer) dataMap.get(new Long(addr));
-    }
-
-    public Buffer getReferencedBuffer() {
-        Buffer bb = getReferencedBuffer(position);
-        position++;
-        return bb;
-    }
-
-    private native long getDirectBufferAddressImpl(Object directBuffer);
-
-    public PointerBuffer put(PointerBuffer src) {
+    public Int64Buffer put(Int64Buffer src) {
         if (remaining() < src.remaining()) {
             throw new IndexOutOfBoundsException();
         }
@@ -219,7 +164,7 @@ public abstract class PointerBuffer implements NativeBuffer/*<PointerBuffer>*/ {
     }
 
     public String toString() {
-        return "PointerBuffer[capacity "+capacity+", position "+position+", elementSize "+elementSize()+", ByteBuffer.capacity "+bb.capacity()+"]";
+        return "Int64Buffer[capacity "+capacity+", position "+position+", elementSize "+elementSize()+", ByteBuffer.capacity "+bb.capacity()+"]";
     }
 
 }
