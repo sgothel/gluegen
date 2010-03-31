@@ -56,12 +56,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
+import static java.util.logging.Level.*;
 
 /** A minimal pseudo-C-preprocessor designed in particular to preserve
     #define statements defining constants so they can be observed by a
     glue code generator. */
 
 public class PCPP {
+
+    private static final Logger LOG = Logger.getLogger(PCPP.class.getPackage().getName());
 
     private static final boolean disableDebugPrint = true;
 
@@ -207,7 +211,7 @@ public class PCPP {
         private final List<String> values;
         private final List<String> params;
 
-        public Macro(List<String> params, List<String> values) {
+        Macro(List<String> params, List<String> values) {
             this.values = values;
             this.params = params;
         }
@@ -431,15 +435,15 @@ public class PCPP {
         if (enabled()) {
             String oldDef = defineMap.remove(name);
             if (oldDef == null) {
-                System.err.println("WARNING: ignoring redundant \"#undef " +
-                                   name + "\", at \"" + filename() + "\" line " + lineNumber() +
-                                   ": \"" + name + "\" was not previously defined");
+                LOG.log(WARNING, "ignoring redundant \"#undef {0}\", at \"{1}\" line {2}: \"{3}\" was not previously defined",
+                        new Object[]{name, filename(), lineNumber(), name});
             } else {
                 // System.err.println("UNDEFINED: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");
             }
             nonConstantDefines.remove(name);
+        } else {
+            LOG.log(WARNING, "FAILED TO UNDEFINE: ''{0}''  (line {1} file {2})", new Object[]{name, lineNumber(), filename()});
         }
-        else System.err.println("FAILED TO UNDEFINE: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");
     }
 
     private void handleDefine() throws IOException {
@@ -489,8 +493,7 @@ public class PCPP {
                 String value = "";
                 String oldDef = defineMap.put(name, value);
                 if (oldDef != null && !oldDef.equals(value)) {
-                    System.err.println("WARNING: \"" + name + "\" redefined from \"" +
-                                       oldDef + "\" to \"\"");
+                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"\"", new Object[]{name, oldDef});
                 }
                 // We don't want to emit the define, because it would serve no purpose
                 // and cause GlueGen errors (confuse the GnuCParser)
@@ -505,8 +508,7 @@ public class PCPP {
                     // Put it in the #define map
                     String oldDef = defineMap.put(name, value);
                     if (oldDef != null && !oldDef.equals(value)) {
-                        System.err.println("WARNING: \"" + name + "\" redefined from \"" +
-                                           oldDef + "\" to \"" + value + "\"");
+                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, value});
                     }
                     debugPrint(true, "#define " + name + " ["+oldDef+" ] -> "+value + " CONST");
                     //System.out.println("//---DEFINED: " + name + " to \"" + value + "\"");
@@ -551,8 +553,7 @@ public class PCPP {
                 Macro macro = new Macro(params, values);
                 Macro oldDef = macroMap.put(name, macro);
                 if (oldDef != null) {
-                    System.err.println("WARNING: \"" + name + "\" redefined from \"" +
-                                       oldDef + "\" to \"" + macro + "\"");
+                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, macro});
                 }
                 emitDefine = false;
              
@@ -602,8 +603,7 @@ public class PCPP {
 
                     String oldDef = defineMap.put(name, value);
                     if (oldDef != null && !oldDef.equals(value)) {
-                        System.err.println("WARNING: \"" + name + "\" redefined from \"" +
-                                           oldDef + "\" to \"" + value + "\"");
+                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, value});
                     }
                     debugPrint(true, "#define " + name + " ["+oldDef+" ] -> "+value + " CONST");
 //                    System.out.println("#define " + name +" "+value + " CONST EXPRESSION");
@@ -919,12 +919,12 @@ public class PCPP {
         } else if (t == '<') {
             // Components of path name are coming in as separate tokens;
             // concatenate them
-            StringBuffer buf = new StringBuffer();
+            StringBuilder buf = new StringBuilder();
             while ((t = nextToken()) != '>' && (t != StreamTokenizer.TT_EOF)) {
                 buf.append(curTokenAsString());
             }
             if (t == StreamTokenizer.TT_EOF) {
-                System.err.println("WARNING: unexpected EOF while processing #include directive");
+                LOG.warning("unexpected EOF while processing #include directive");
             }
             filename = buf.toString();
         }
@@ -937,7 +937,7 @@ public class PCPP {
             String fullname = findFile(filename);
             //System.out.println("ACTIVE BLOCK, LOADING " + filename);
             if (fullname == null) {
-                System.err.println("WARNING: unable to find #include file \"" + filename + "\"");
+                LOG.log(WARNING, "unable to find #include file \"{0}\"", filename);
                 return;
             }
             // Process this file in-line
@@ -957,18 +957,18 @@ public class PCPP {
     private List<Boolean> enabledBits = new ArrayList<Boolean>();
 
     private static int debugPrintIndentLevel = 0;
-    private void debugPrint(boolean onlyPrintIfEnabled, String msg)   {
+
+    private void debugPrint(boolean onlyPrintIfEnabled, String msg) {
         if (disableDebugPrint) {
             return;
         }
 
-        if (!onlyPrintIfEnabled || (onlyPrintIfEnabled && enabled()))
-            {
-                for (int i = debugPrintIndentLevel; --i >0; ) {
-                    System.out.print("  ");
-                }
-                System.out.println(msg + "  (line " + lineNumber() + " file " + filename() + ")");
+        if (!onlyPrintIfEnabled || (onlyPrintIfEnabled && enabled())) {
+            for (int i = debugPrintIndentLevel; --i > 0;) {
+                System.out.print("  ");
             }
+            System.out.println(msg + "  (line " + lineNumber() + " file " + filename() + ")");
+        }
     }
 
     private void pushEnableBit(boolean enabled) {
@@ -978,8 +978,8 @@ public class PCPP {
     }
 
     private void popEnableBit() {
-        if (enabledBits.size() == 0) {
-            System.err.println("WARNING: mismatched #ifdef/endif pairs");
+        if (enabledBits.isEmpty()) {
+            LOG.warning("mismatched #ifdef/endif pairs");
             return;
         }
         enabledBits.remove(enabledBits.size() - 1);
@@ -988,7 +988,7 @@ public class PCPP {
     }
 
     private boolean enabled() {
-        return (enabledBits.size() == 0 || enabledBits.get(enabledBits.size() - 1));
+        return (enabledBits.isEmpty() || enabledBits.get(enabledBits.size() - 1));
     }
 
     private void print(String s) {
@@ -1036,46 +1036,42 @@ public class PCPP {
         System.exit(1);
     }
 
-    public static void main(String[] args) {
-        try {
-            Reader reader = null;
-            String filename = null;
+    public static void main(String[] args) throws IOException {
+        Reader reader = null;
+        String filename = null;
 
-            if (args.length == 0) {
-                usage();
-            }
+        if (args.length == 0) {
+            usage();
+        }
 
-            List<String> includePaths = new ArrayList<String>();
-            for (int i = 0; i < args.length; i++) {
-                if (i < args.length - 1) {
-                    String arg = args[i];
-                    if (arg.startsWith("-I")) {
-                        String[] paths = arg.substring(2).split(System.getProperty("path.separator"));
-                        for (int j = 0; j < paths.length; j++) {
-                            includePaths.add(paths[j]);
-                        }
-                    } else {
-                        usage();
+        List<String> includePaths = new ArrayList<String>();
+        for (int i = 0; i < args.length; i++) {
+            if (i < args.length - 1) {
+                String arg = args[i];
+                if (arg.startsWith("-I")) {
+                    String[] paths = arg.substring(2).split(System.getProperty("path.separator"));
+                    for (int j = 0; j < paths.length; j++) {
+                        includePaths.add(paths[j]);
                     }
                 } else {
-                    String arg = args[i];
-                    if (arg.equals("-")) {
-                        reader = new InputStreamReader(System.in);
-                        filename = "standard input";
-                    } else {
-                        if (arg.startsWith("-")) {
-                            usage();
-                        }
-                        filename = arg;
-                        reader = new BufferedReader(new FileReader(filename));
+                    usage();
+                }
+            } else {
+                String arg = args[i];
+                if (arg.equals("-")) {
+                    reader = new InputStreamReader(System.in);
+                    filename = "standard input";
+                } else {
+                    if (arg.startsWith("-")) {
+                        usage();
                     }
+                    filename = arg;
+                    reader = new BufferedReader(new FileReader(filename));
                 }
             }
-
-            new PCPP(includePaths).run(reader, filename);
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+
+        new PCPP(includePaths).run(reader, filename);
     }
 
 }

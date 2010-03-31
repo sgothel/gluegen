@@ -44,12 +44,15 @@ import java.io.*;
 import java.text.MessageFormat;
 
 import com.sun.gluegen.cgram.types.*;
+import java.util.logging.Logger;
+
+import static java.util.logging.Level.*;
 
 /** Emits the C-side component of the Java<->C JNI binding. */
-public class CMethodBindingEmitter extends FunctionEmitter
-{
-  protected static final CommentEmitter defaultCommentEmitter =
-    new DefaultCommentEmitter();
+public class CMethodBindingEmitter extends FunctionEmitter {
+
+  protected static final Logger LOG = Logger.getLogger(CMethodBindingEmitter.class.getPackage().getName());
+  protected static final CommentEmitter defaultCommentEmitter = new DefaultCommentEmitter();
 
   protected static final String arrayResLength = "_array_res_length";
   protected static final String arrayRes       = "_array_res";
@@ -1006,13 +1009,13 @@ public class CMethodBindingEmitter extends FunctionEmitter
             }
           }
           writer.print("sizeof(" + cReturnType.getName() + ")");
-          System.err.println(
-            "WARNING: No capacity specified for java.nio.Buffer return " +
+          LOG.warning(
+            "No capacity specified for java.nio.Buffer return " +
             "value for function \"" + binding + "\";" +
             " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding);
           /**
           throw new RuntimeException(
-            "WARNING: No capacity specified for java.nio.Buffer return " +
+            "No capacity specified for java.nio.Buffer return " +
             "value for function \"" + binding + "\";" +
             " C return type is " + cReturnType.getName() + ": " + binding);  */
         }
