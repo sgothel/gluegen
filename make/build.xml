@@ -481,13 +481,14 @@
       - original source. -->
 
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
+    <property name="jogamp.common.classes" value="com/jogamp/common/**"/>
 
     <!--compile gluegen-rt with source=1.4 first-->
     <javac destdir="${classes}"
            source="1.4"
            debug="true"
            debuglevel="source,lines,vars"
-           includes="${gluegen-rt.classes}"
+           includes="${gluegen-rt.classes},${jogamp.common.classes}"
            excludes="${gluegen.excludes}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
@@ -533,6 +534,7 @@
       <fileset dir="${classes}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/gluegen/runtime/opengl/*.class" />
+        <include name="com/jogamp/common/**" />
       </fileset>
     </jar>
 
@@ -549,6 +551,7 @@
       <fileset dir="${classes-cdc}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/gluegen/runtime/opengl/*.class" />
+        <include name="com/jogamp/common/*.class" />
       </fileset>
     </jar>
 
@@ -586,7 +589,7 @@
               <fileset dir="${build}/test/build/classes">
                   <include name="com/sun/gluegen/**Test*"/>
               </fileset>
-              <formatter usefile="false" type="brief"/>
+              <formatter usefile="false" type="plain"/>
               <formatter usefile="true" type="xml"/>
           </batchtest>
           <classpath>

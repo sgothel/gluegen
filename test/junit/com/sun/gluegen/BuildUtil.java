@@ -43,8 +43,8 @@ public final class BuildUtil {
             throw new RuntimeException("can not determine gluegen root", ex);
         }
 
-        path     = gluegenRoot + "/test/junit/com/sun/gluegen";
-        testOutput   = gluegenRoot + "/" + rootrel_build + "/test";
+        path       = gluegenRoot + "/test/junit/com/sun/gluegen";
+        testOutput = gluegenRoot + "/" + rootrel_build + "/test";
 
         out.println("path: "+path);
         out.println("testOutput: "+testOutput);
@@ -61,7 +61,7 @@ public final class BuildUtil {
         DefaultLogger logger = new DefaultLogger();
         logger.setErrorPrintStream(out);
         logger.setOutputPrintStream(out);
-        logger.setMessageOutputLevel(Project.MSG_INFO);
+        logger.setMessageOutputLevel(Project.MSG_WARN);
         project.addBuildListener(logger);
 
         project.init();

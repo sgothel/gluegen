@@ -29,7 +29,7 @@
 
         <mkdir dir="${build.dir.java}"/>
 
-        <javac destdir="${build.dir.java}" source="1.5" failonerror="true" debug="true" verbose="true" debuglevel="lines,vars,source">
+        <javac destdir="${build.dir.java}" source="1.5" failonerror="true" debug="true" debuglevel="lines,vars,source">
             <src path="${src.dir}"/>
             <classpath path="${gluegen.root}/${rootrel.build}/classes:${src.dir}:${gluegen.root}/${rootrel.build}/antlr-3.2.jar:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
         </javac>
