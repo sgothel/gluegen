@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.gluegen.test.junit;
+package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.File;
 import java.net.URISyntaxException;

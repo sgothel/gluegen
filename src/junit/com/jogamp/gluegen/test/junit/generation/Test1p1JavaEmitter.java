@@ -30,9 +30,9 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.gluegen.test.junit;
+package com.jogamp.gluegen.test.junit.generation;
 
-import com.jogamp.gluegen.test.junit.impl.BindingTest1p1Impl;
+import com.jogamp.gluegen.test.junit.generation.impl.BindingTest1p1Impl;
 
 import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
@@ -52,7 +52,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static java.lang.System.*;
-import static com.jogamp.gluegen.test.junit.BuildEnvironment.*;
+import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
 
 /**
  * @author Michael Bien

@@ -164,7 +164,7 @@
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
             <includepath path="${stub.includes.dir}/common"/>
-            <includepath path="${test.junit.dir}"/>
+            <includepath path="${test.junit.dir}/generation"/>
             <includepath path="${build_t.gen}/native"/>
           </compiler>
 
@@ -206,7 +206,7 @@
 
             <batchtest todir="${results}">
               <fileset dir="${build_t.java}">
-                  <include name="${test.junit.rel}/Test*"/>
+                  <include name="${test.junit.rel}/**/Test*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
@@ -235,32 +235,32 @@
         <echo message=" - - - junit.test1.java.generate" />
 
         <dirset id="stub.includes.fileset.test" dir=".">
-            <include name="${test.junit.dir}/**"/>
+            <include name="${test.junit.dir}/generation/**"/>
             <include name="${stub.includes.dir}/**" />
         </dirset>
 
-        <gluegen src="${test.junit.dir}/test1-gluegen.c"
+        <gluegen src="${test.junit.dir}/generation/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.dir}/test1-gluegen.cfg"
-                 literalInclude="${test.junit.dir}"
+                 config="${test.junit.dir}/generation/test1-gluegen.cfg"
+                 literalInclude="${test.junit.dir}/generation"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 
-        <gluegen src="${test.junit.dir}/test1-gluegen.c"
+        <gluegen src="${test.junit.dir}/generation/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.dir}/test1p1-gluegen.cfg"
-                 literalInclude="${test.junit.dir}"
+                 config="${test.junit.dir}/generation/test1p1-gluegen.cfg"
+                 literalInclude="${test.junit.dir}/generation"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 
-        <gluegen src="${test.junit.dir}/test1-gluegen.c"
+        <gluegen src="${test.junit.dir}/generation/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.dir}/test1p2-gluegen.cfg"
-                 literalInclude="${test.junit.dir}"
+                 config="${test.junit.dir}/generation/test1p2-gluegen.cfg"
+                 literalInclude="${test.junit.dir}/generation"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.procaddress.ProcAddressEmitter">
             <classpath refid="gluegen.classpath" />
@@ -271,7 +271,7 @@
 
     <target name="junit.test1p1.c.build">
         <patternset id="junit.test1p1.c.src.files">
-          <include name="${test.junit.rootrel}/test1.c"/>
+          <include name="${test.junit.rootrel}/generation/test1.c"/>
           <include name="${build_t.gen.rootrel}/native/BindingTest1p1Impl_JNI.c"/>
         </patternset>
 
@@ -283,7 +283,7 @@
 
     <target name="junit.test1p2.c.build">
         <patternset id="junit.test1p2.c.src.files">
-          <include name="${test.junit.rootrel}/test1.c"/>
+          <include name="${test.junit.rootrel}/generation/test1.c"/>
           <include name="${build_t.gen.rootrel}/native/BindingTest1p2Impl_JNI.c"/>
         </patternset>
 

@@ -37,15 +37,10 @@ import java.nio.ByteBuffer;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class Int64Buffer {
-
-    protected final ByteBuffer bb;
-    protected int capacity;
-    protected int position;
-    protected long[] backup;
+public abstract class Int64Buffer extends AbstractLongBuffer {
 
     protected Int64Buffer(ByteBuffer bb) {
-        this.bb = bb;
+        super(bb, elementSize());
     }
 
     public static Int64Buffer allocate(int size) {
@@ -76,94 +71,12 @@ public abstract class Int64Buffer {
 
     }
 
-    void updateBackup() {
-        for (int i = 0; i < capacity; i++) {
-            backup[i] = get(i);
-        }
-    }
-
-    int arrayOffset() {
-        return 0;
-    }
-
     public static int elementSize() {
         return Buffers.SIZEOF_LONG;
     }
 
-    public int limit() {
-        return capacity;
-    }
-
-    public int capacity() {
-        return capacity;
-    }
-
-    public int position() {
-        return position;
-    }
-
-    public Int64Buffer position(int newPos) {
-        if (0 > newPos || newPos >= capacity) {
-            throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
-                                                "My capacity is "+capacity()+".");
-        }
-        position = newPos;
-        return this;
-    }
-
-    public int remaining() {
-        return capacity - position;
-    }
-
-    public boolean hasRemaining() {
-        return position < capacity;
-    }
-
-    public Int64Buffer rewind() {
-        position = 0;
-        return this;
-    }
-
-    boolean hasArray() {
-        return true;
-    }
-
-    public long[] array() {
-        return backup;
-    }
-
-    public ByteBuffer getBuffer() {
-        return bb;
-    }
-
-    public boolean isDirect() {
-        return bb.isDirect();
-    }
-
-    public long get() {
-        long r = get(position);
-        position++;
-        return r;
-    }
-
-    public abstract long get(int idx);
-
-    public abstract Int64Buffer put(int index, long value);
-
-    public abstract Int64Buffer put(long value);
-
-    public Int64Buffer put(Int64Buffer src) {
-        if (remaining() < src.remaining()) {
-            throw new IndexOutOfBoundsException();
-        }
-        while (src.hasRemaining()) {
-                 put(src.get()); 
-        }
-        return this;
-    }
-
     public String toString() {
-        return "Int64Buffer[capacity "+capacity+", position "+position+", elementSize "+elementSize()+", ByteBuffer.capacity "+bb.capacity()+"]";
+        return "Int64Buffer:"+super.toString();
     }
 
 }

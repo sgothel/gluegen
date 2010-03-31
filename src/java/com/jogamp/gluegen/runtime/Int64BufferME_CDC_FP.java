@@ -55,7 +55,7 @@ final class Int64BufferME_CDC_FP extends Int64Buffer {
         backup = new long[capacity];
     }
 
-    public long get(int idx) {
+    public final long get(int idx) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -68,7 +68,7 @@ final class Int64BufferME_CDC_FP extends Int64Buffer {
         return lo << 32 | hi;
     }
 
-    public Int64Buffer put(int idx, long v) {
+    public final AbstractLongBuffer put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -83,12 +83,6 @@ final class Int64BufferME_CDC_FP extends Int64Buffer {
             pb.put(idx, hi);
             pb.put(idx + 1, lo);
         }
-        return this;
-    }
-
-    public Int64Buffer put(long v) {
-        put(position, v);
-        position++;
         return this;
     }
 }

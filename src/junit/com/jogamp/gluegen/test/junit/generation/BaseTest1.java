@@ -30,7 +30,7 @@
  * SVEN GOTHEL HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.gluegen.test.junit;
+package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.gluegen.runtime.Buffers;
 import com.jogamp.gluegen.runtime.PointerBuffer;
@@ -52,7 +52,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static java.lang.System.*;
-import static com.jogamp.gluegen.test.junit.BuildEnvironment.*;
+import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
 
 /**
  * @author Michael Bien
@@ -64,8 +64,8 @@ public class BaseTest1 {
      * Verifies the existence and creation of the generated class.
      */
     public void testClassExist(String name) throws Exception {
-        String ifName = "com.jogamp.gluegen.test.junit.Binding"+name;
-        String implName = "com.jogamp.gluegen.test.junit.impl.Binding"+name+"Impl";
+        String ifName = "com.jogamp.gluegen.test.junit.generation.Binding"+name;
+        String implName = "com.jogamp.gluegen.test.junit.generation.impl.Binding"+name+"Impl";
 
         Class<?> clazzIf   = Class.forName(ifName);
         Class<?> clazzImpl = Class.forName(implName);
@@ -77,7 +77,7 @@ public class BaseTest1 {
 
         Object obj = clazzImpl.newInstance();
         Assert.assertTrue("Not of type "+ifName, clazzIf.isAssignableFrom(obj.getClass()));
-        Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.BindingTest1", (obj instanceof com.jogamp.gluegen.test.junit.BindingTest1));
+        Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.generation.BindingTest1", (obj instanceof com.jogamp.gluegen.test.junit.generation.BindingTest1));
     }
 
     /**

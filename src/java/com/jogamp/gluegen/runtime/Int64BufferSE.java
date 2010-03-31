@@ -49,32 +49,21 @@ final class Int64BufferSE extends Int64Buffer {
         super(bb);
 
         this.pb = bb.asLongBuffer();
-
-        capacity = bb.capacity() / elementSize();
-
-        position = 0;
-        backup = new long[capacity];
     }
 
-    public long get(int idx) {
+    public final long get(int idx) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
         return pb.get(idx);
     }
 
-    public Int64Buffer put(int idx, long v) {
+    public final AbstractLongBuffer put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
         backup[idx] = v;
         pb.put(idx, v);
-        return this;
-    }
-
-    public Int64Buffer put(long v) {
-        put(position, v);
-        position++;
         return this;
     }
 }

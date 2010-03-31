@@ -43,12 +43,7 @@ import java.util.HashMap;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class PointerBuffer {
-
-    protected final ByteBuffer bb;
-    protected int capacity;
-    protected int position;
-    protected long[] backup;
+public abstract class PointerBuffer extends AbstractLongBuffer {
 
     protected HashMap/*<aptr, buffer>*/ dataMap = new HashMap();
 
@@ -57,7 +52,7 @@ public abstract class PointerBuffer {
     }
 
     protected PointerBuffer(ByteBuffer bb) {
-        this.bb = bb;
+        super(bb, elementSize());
     }
 
     public static PointerBuffer allocate(int size) {
@@ -88,88 +83,33 @@ public abstract class PointerBuffer {
 
     }
 
-    void updateBackup() {
-        for (int i = 0; i < capacity; i++) {
-            backup[i] = get(i);
-        }
-    }
-
-    int arrayOffset() {
-        return 0;
-    }
-
     public static int elementSize() {
         return Platform.is32Bit() ? Buffers.SIZEOF_INT : Buffers.SIZEOF_LONG;
     }
 
-    public int limit() {
-        return capacity;
-    }
-
-    public int capacity() {
-        return capacity;
-    }
-
-    public int position() {
-        return position;
-    }
-
-    public PointerBuffer position(int newPos) {
-        if (0 > newPos || newPos >= capacity) {
-            throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
-                                                "My capacity is "+capacity()+".");
+    public final PointerBuffer put(PointerBuffer src) {
+        if (remaining() < src.remaining()) {
+            throw new IndexOutOfBoundsException();
         }
-        position = newPos;
+        long addr;
+        while (src.hasRemaining()) {
+             addr = src.get();
+             put(addr);
+             Long addrL = new Long(addr);
+             Buffer bb = (Buffer) dataMap.get(addrL);
+             if(null!=bb) {
+                 dataMap.put(addrL, bb);
+             } else {
+                 dataMap.remove(addrL);
+             }
+        }
         return this;
     }
-
-    public int remaining() {
-        return capacity - position;
-    }
-
-    public boolean hasRemaining() {
-        return position < capacity;
-    }
-
-    public PointerBuffer rewind() {
-        position = 0;
-        return this;
-    }
-
-    boolean hasArray() {
-        return true;
-    }
-
-    public long[] array() {
-        return backup;
-    }
-
-    public ByteBuffer getBuffer() {
-        return bb;
-    }
-
-    public boolean isDirect() {
-        return bb.isDirect();
-    }
-
-    public long get() {
-        long r = get(position);
-        position++;
-        return r;
-    }
-
-    public abstract long get(int idx);
-
-    /** put the pointer value at position index */
-    public abstract PointerBuffer put(int index, long value);
-
-    /** put the pointer value at the end */
-    public abstract PointerBuffer put(long value);
 
     /** Put the address of the given direct Buffer at the given position
         of this pointer array.
         Adding a reference of the given direct Buffer to this object. */
-    public PointerBuffer referenceBuffer(int index, Buffer bb) {
+    public final PointerBuffer referenceBuffer(int index, Buffer bb) {
         if(null==bb) {
             throw new RuntimeException("Buffer is null");
         }
@@ -189,18 +129,18 @@ public abstract class PointerBuffer {
     /** Put the address of the given direct Buffer at the end
         of this pointer array.
         Adding a reference of the given direct Buffer to this object. */
-    public PointerBuffer referenceBuffer(Buffer bb) {
+    public final PointerBuffer referenceBuffer(Buffer bb) {
         referenceBuffer(position, bb);
         position++;
         return this;
     }
 
-    public Buffer getReferencedBuffer(int index) {
+    public final Buffer getReferencedBuffer(int index) {
         long addr = get(index);
         return (Buffer) dataMap.get(new Long(addr));
     }
 
-    public Buffer getReferencedBuffer() {
+    public final Buffer getReferencedBuffer() {
         Buffer bb = getReferencedBuffer(position);
         position++;
         return bb;
@@ -208,18 +148,8 @@ public abstract class PointerBuffer {
 
     private native long getDirectBufferAddressImpl(Object directBuffer);
 
-    public PointerBuffer put(PointerBuffer src) {
-        if (remaining() < src.remaining()) {
-            throw new IndexOutOfBoundsException();
-        }
-        while (src.hasRemaining()) {
-                 put(src.get()); 
-        }
-        return this;
-    }
-
     public String toString() {
-        return "PointerBuffer[capacity "+capacity+", position "+position+", elementSize "+elementSize()+", ByteBuffer.capacity "+bb.capacity()+"]";
+        return "PointerBuffer:"+super.toString();
     }
 
 }

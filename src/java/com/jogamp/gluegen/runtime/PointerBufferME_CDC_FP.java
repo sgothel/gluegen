@@ -48,14 +48,9 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
     PointerBufferME_CDC_FP(ByteBuffer bb) {
         super(bb);
         this.pb = bb.asIntBuffer();
-
-        capacity = bb.capacity() / elementSize();
-
-        position = 0;
-        backup = new long[capacity];
     }
 
-    public long get(int idx) {
+    public final long get(int idx) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -72,7 +67,7 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
         }
     }
 
-    public PointerBuffer put(int idx, long v) {
+    public final AbstractLongBuffer put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -91,12 +86,6 @@ final class PointerBufferME_CDC_FP extends PointerBuffer {
                 pb.put(idx + 1, lo);
             }
         }
-        return this;
-    }
-
-    public PointerBuffer put(long v) {
-        put(position, v);
-        position++;
         return this;
     }
 }

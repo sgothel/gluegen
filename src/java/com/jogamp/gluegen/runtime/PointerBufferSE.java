@@ -53,14 +53,9 @@ final class PointerBufferSE extends PointerBuffer {
         } else {
             this.pb = bb.asLongBuffer();
         }
-
-        capacity = bb.capacity() / elementSize();
-
-        position = 0;
-        backup = new long[capacity];
     }
 
-    public long get(int idx) {
+    public final long get(int idx) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -71,7 +66,7 @@ final class PointerBufferSE extends PointerBuffer {
         }
     }
 
-    public PointerBuffer put(int idx, long v) {
+    public final AbstractLongBuffer put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -84,9 +79,4 @@ final class PointerBufferSE extends PointerBuffer {
         return this;
     }
 
-    public PointerBuffer put(long v) {
-        put(position, v);
-        position++;
-        return this;
-    }
 }
