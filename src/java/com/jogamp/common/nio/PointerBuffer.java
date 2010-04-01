@@ -117,7 +117,8 @@ public abstract class PointerBuffer extends AbstractLongBuffer {
         if(!bb.isDirect()) {
             throw new RuntimeException("Buffer is not direct");
         }
-        long bbAddr = getDirectBufferAddressImpl(bb);
+        long mask = Platform.is32Bit() ?  0x00000000FFFFFFFFL : 0xFFFFFFFFFFFFFFFFL ;
+        long bbAddr = getDirectBufferAddressImpl(bb) & mask;
         if(0==bbAddr) {
             throw new RuntimeException("Couldn't determine native address of given Buffer: "+bb);
         }

@@ -61,7 +61,7 @@ final class PointerBufferSE extends PointerBuffer {
             throw new IndexOutOfBoundsException();
         }
         if (Platform.is32Bit()) {
-            return ((IntBuffer) pb).get(idx);
+            return (long) ((IntBuffer) pb).get(idx)  & 0x00000000FFFFFFFFL;
         } else {
             return ((LongBuffer) pb).get(idx);
         }

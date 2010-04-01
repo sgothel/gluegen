@@ -33,8 +33,7 @@ public class TestPointerBufferEndian {
 
         int i=0;
         while(ptr.hasRemaining()) {
-            long mask = Platform.is32Bit() ? 0x00000000FFFFFFFFL : 0xFFFFFFFFFFFFFFFFL ;
-            long v = ptr.get() & mask;
+            long v = ptr.get() ;
             long t = Platform.is32Bit() ? values32Bit[i] : valuesSource[i];
             Assert.assertTrue("Value["+i+"] shall be 0x"+Long.toHexString(t)+", is: 0x"+Long.toHexString(v), t == v);
             i++;
