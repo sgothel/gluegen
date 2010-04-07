@@ -1,73 +1,75 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project basedir=".." name="GlueGen-IDE">
-    
     <!-- edit the following targets according to your needs -->
     <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html-->
-    
     <target name="compile-test">
-
         <mkdir dir="build/test/build/classes"/>
-
-        <javac destdir="build/test/build/classes" failonerror="false" source="1.5" srcdir="test/junit" debug="true" debuglevel="lines,vars,source">
+        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" failonerror="false" source="1.5" srcdir="test/junit">
             <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
     </target>
-
     <target name="compile-selected-files-in-junit">
         <fail unless="files">Must set property 'files'</fail>
-
         <mkdir dir="build/test/build/classes"/>
-
-        <javac destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="test/junit" debug="true" debuglevel="lines,vars,source">
+        <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="test/junit">
             <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
     </target>
-
-    <target name="run-selected-file-in-junit" depends="compile-test">
+    <target depends="compile-test" name="run-selected-file-in-junit">
         <fail unless="run.class">Must set property 'run.class'</fail>
-
         <java classname="${run.class}" failonerror="true" fork="true">
             <classpath>
                 <path path="build/test/build/classes:build/classes:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
         </java>
     </target>
-
-    <target name="test-selected-file-in-junit" depends="compile-test">
+    <target depends="compile-test" name="test-selected-file-in-junit">
         <fail unless="run.class">Must set property 'run.class'</fail>
-        <junit forkmode="once" showoutput="true" fork="true" failureproperty="tests.failed" errorproperty="tests.failed">
-            <test name="${run.class}">
-            </test>
+        <junit errorproperty="tests.failed" failureproperty="tests.failed" fork="true" forkmode="once" showoutput="true">
+            <test name="${run.class}"/>
             <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives"/>
             <classpath>
                 <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
-            <formatter usefile="false" type="brief"/>
+            <formatter type="brief" usefile="false"/>
         </junit>
     </target>
-    
-    <target name="debug-selected-file-in-junit" depends="compile-test">
+    <target depends="compile-test" name="debug-selected-file-in-junit">
         <fail unless="run.class">Must set property 'debug.class'</fail>
-
         <path id="cp">
             <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </path>
-
         <nbjpdastart addressproperty="jpda.address" name="GlueGen" transport="dt_socket">
             <classpath refid="cp"/>
         </nbjpdastart>
-
-        <junit forkmode="once" showoutput="true" fork="true" failureproperty="tests.failed" errorproperty="tests.failed">
-            <test name="${run.class}">
-            </test>
+        <junit errorproperty="tests.failed" failureproperty="tests.failed" fork="true" forkmode="once" showoutput="true">
+            <test name="${run.class}"/>
             <classpath refid="cp"/>
             <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives"/>
             <jvmarg value="-Xdebug"/>
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
-            <formatter usefile="false" type="brief"/>
+            <formatter type="brief" usefile="false"/>
         </junit>
-        <java classname="${run.class}" fork="true">
+        <java classname="${run.class}" fork="true"/>
+    </target>
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#runsingle) -->
+    <target name="run-selected-file-in-java">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <java classname="${run.class}" failonerror="true" fork="true">
+            <classpath>
+                <pathelement path="build/classes:${jdk.home}/lib/tools.jar:/lib/antlr-3.2.jar"/>
+                <pathelement location="build/classes"/>
+            </classpath>
         </java>
     </target>
-    
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#compilesingle) -->
+    <target name="compile-selected-files-in-java">
+        <fail unless="files">Must set property 'files'</fail>
+        <mkdir dir="build/classes"/>
+        <javac destdir="build/classes" includes="${files}" source="1.5" srcdir="src/java">
+            <classpath path="build/classes:${jdk.home}/lib/tools.jar:${ant.core.lib}:lib/antlr-3.2.jar"/>
+        </javac>
+    </target>
 </project>
