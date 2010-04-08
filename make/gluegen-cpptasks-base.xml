@@ -24,7 +24,6 @@
    -   isLinuxX86
    -   isOSX
    -   isOSXPPC
-   -   isOSXUniversal (if macosxfat=true)
    -   isSolaris
    -   isSolaris32Bit
    -   isSolarisAMD64
@@ -116,20 +115,36 @@
   -->
 <project name="GlueGen-cpptasks-base" basedir=".">
 
+  <target name="gluegen.cpptasks.initialize" depends="gluegen.properties.load.user">
+    <!-- NOTE: the value of the debug attribute will not be overridden if already set externally -->
+    <property name="c.compiler.debug"     value="false" /> 
+
+    <condition property="c.strip.libraries"><isfalse value="${c.compiler.debug}"/></condition>
+
+    <!-- NOTE: the values of the macos<arch> attributes will not be overridden if already set externally -->
+    <property name="macosppc"     value="false" /> 
+    <property name="macosx32"     value="true" /> 
+    <property name="macosx64"     value="true" /> 
+
+    <!-- Need a way to be able to disable the macosx64 property specification in a build.xml -->
+    <condition property="use.macosppc">
+      <istrue value="${macosppc}" />
+    </condition>
+    <condition property="use.macosx32">
+      <istrue value="${macosx32}" />
+    </condition>
+    <condition property="use.macosx64">
+      <istrue value="${macosx64}" />
+    </condition>
+  </target>
+
   <!-- Detect OS and compiler configuration -->
-  <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.properties.load.user" unless="gluegen.cpptasks.detected.os">
+  <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.cpptasks.initialize" unless="gluegen.cpptasks.detected.os">
     <condition property="isOSX">
       <and>
         <os family="mac"/>
         <os family="unix"/>
       </and>
-    </condition>
-    <!-- Need a way to be able to disable the macosx64 property specification in a build.xml -->
-    <condition property="use.macosppc">
-      <istrue value="${macosppc}" />
-    </condition>
-    <condition property="use.macosx64">
-      <istrue value="${macosx64}" />
     </condition>
     <condition property="isUnix">
       <and>
@@ -265,6 +280,7 @@
     <echo message="LinuxX86=${isLinuxX86}" />
     <echo message="OS X=${isOSX}" />
     <echo message="OS X PPC=${use.macosppc}" />
+    <echo message="OS X x32=${use.macosx32}" />
     <echo message="OS X x64=${use.macosx64}" />
     <echo message="Solaris=${isSolaris}" />
     <echo message="Solaris32Bit=${isSolaris32Bit}" />
@@ -347,6 +363,26 @@
   <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
     <property name="gluegen.cpptasks.detected.os" value="true" />
     <property name="gluegen.cpptasks.detected.os.2" value="true" />
+
+    <!-- Set the OS search library environment variable -->
+    <condition property="system.env.library.path"
+               value="DYLD_LIBRARY_PATH">
+      <isset property="isOSX"/> 
+    </condition>
+    <condition property="system.env.library.path"
+               value="LD_LIBRARY_PATH">
+      <isset property="isUnix"/> 
+    </condition>
+    <condition property="system.env.library.path"
+               value="PATH">
+      <isset property="isWindows"/> 
+    </condition>
+
+    <!-- NOTE: the value of the c.strip.tool and c.strip.args attribute will not be overridden if already set externally -->
+    <property name="c.strip.tool"     value="strip" /> 
+    <condition property="c.strip.args" value="-S -x"><isset property="isOSX"/></condition>
+    <property name="c.strip.args"     value="" /> 
+
   </target>
 
   <!-- Detect compiler setup, in particular on Windows; separated
@@ -424,9 +460,6 @@
     <echo message="VC9=${isVC9}" />
     <echo message="MingW=${isMingW}" />
 
-    <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-    <property name="c.compiler.debug"     value="false" /> 
-
     <condition property="isVC7Debug">
       <and>
         <istrue value="${isVC7}" />
@@ -473,12 +506,14 @@
       <compilerarg value="-m64"/>
     </compiler>
 
-    <compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64CCompiler">
+    <!--compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64CCompiler"-->
+    <compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccCCompiler">
         <compilerarg value="-fPIC"/>
         <compilerarg value="-m64"/>
     </compiler>
 
-    <compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32CCompiler">
+    <!--compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32CCompiler"-->
+    <compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccCCompiler">
         <compilerarg value="-m32"/>
     </compiler>
 
@@ -561,8 +596,8 @@
       <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
       <compilerarg value="-arch" if="use.macosppc"/>
       <compilerarg value="ppc" if="use.macosppc"/>
-      <compilerarg value="-arch" />
-      <compilerarg value="i386" />
+      <compilerarg value="-arch" if="use.macosx32"/>
+      <compilerarg value="i386" if="use.macosx32"/>
       <compilerarg value="-arch" if="use.macosx64"/>
       <compilerarg value="x86_64" if="use.macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
@@ -611,13 +646,15 @@
         <linkerarg value="-m64"/>
     </linker>
 
-    <linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64Linker">
+    <!--linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64Linker"-->
+    <linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
         <linkerarg value="-m64"/>
     </linker>
     
-    <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker">
+    <!--linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker"-->
+    <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
         <linkerarg value="-m32"/>
-        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
     </linker>
 <!--
     <linker id="linker.cfg.solaris" name="suncc">
@@ -633,7 +670,7 @@
 -->
     <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
         <linkerarg value="-m32"/>
-        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names -->
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
     </linker>
 
     <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
@@ -647,10 +684,11 @@
     </linker>
 
     <linker id="linker.cfg.macosx" name="gcc">
+      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
       <linkerarg value="-arch" if="use.macosppc"/>
       <linkerarg value="ppc" if="use.macosppc"/>
-      <linkerarg value="-arch" />
-      <linkerarg value="i386" />
+      <linkerarg value="-arch" if="use.macosx32"/>
+      <linkerarg value="i386" if="use.macosx32"/>
       <linkerarg value="-arch" if="use.macosx64"/>
       <linkerarg value="x86_64" if="use.macosx64"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
@@ -780,6 +818,24 @@
     <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" />
 
     <target name="gluegen.cpptasks.setup.compiler" depends="gluegen.cpptasks.detect.compiler,gluegen.cpptasks.configure.compiler,gluegen.cpptasks.declare.compiler" />
+
+    <!-- ================================================================== -->
+    <!--
+       - Helper strip.libraries for stripping off debug information
+      -->
+    <target name="gluegen.cpptasks.striplibs" depends="gluegen.cpptasks.initialize" if="c.strip.libraries">
+      <echo message="Strip symbols from libs in ${libdir}" />
+      <apply dir="${libdir}" executable="${c.strip.tool}" parallel="false" 
+             failonerror="true">
+        <arg line="${c.strip.args}"/>
+        <fileset dir="${libdir}">
+          <include name="**/*.so"/>     <!-- unix    -->
+          <include name="**/*.dll"/>    <!-- windows -->
+          <include name="**/*.dylib"/>  <!-- macosx  -->
+          <include name="**/*.jnilib"/> <!-- macosx  -->
+        </fileset>
+      </apply>
+    </target>
 
     <!-- ================================================================== -->
     <!--

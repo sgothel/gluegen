@@ -44,8 +44,9 @@ public class BasicTest {
     @Test
     public void bindingTest() throws Exception {
 
-        String nativesPath = testOutput + "/build/natives";
-        System.load(nativesPath + "/librofl.so");
+        // String nativesPath = testOutput + "/build/natives";
+        // System.load(nativesPath + "/librofl.so");
+        System.loadLibrary("rofl");
 
         Class<?> clazz = Class.forName("test.BindingTest");
 

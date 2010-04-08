@@ -11,14 +11,22 @@
    -   c.compiler.debug:
    -       set to "true" if debug version of the compiled
    -       C code is desired.
+   -  
+   -   MacOsX libraries can be universal / fat binaries.
+   -   The following switches enables/disables a target platform.
+   -   If non of them is enabled, the default
+   -   compiler target platform is used for a thin binary.
+   -
    -   macosppc:
-   -       set to "true" if ppc universal / fat binaries are desired
-   -       on Mac OS X. Requires support for cross-compilation from the
-   -       underlying C compiler. Note: Unsupported on Snow Leopard!
+   -       set to "true" for ppc support,
+   -       default is 'false'
+   -       Note: Unsupported on Snow Leopard!
+   -   macosx32:
+   -       set to "false" to disable x86 32-bit support,
+   -       default is 'true'
    -   macosx64:
-   -       set to "true" if 64-bit universal / fat binaries are desired
-   -       on Mac OS X. Requires support for cross-compilation from the
-   -       underlying C compiler.
+   -       set to "false" to disable x86 64-bit support,
+   -       default is 'true'
    - 
   -->
 <project name="GlueGen-properties" basedir=".">

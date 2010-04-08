@@ -1,14 +1,16 @@
+#define __MYAPI_EXPORT_ 1
 #include "test1.h"
+
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-foo nopTest() {
+MYAPI foo MYAPIENTRY nopTest() {
     return 42;
 }
 
-int32_t arrayTestInt32(int64_t context, int32_t * array) {
+MYAPI int32_t MYAPIENTRY arrayTestInt32(int64_t context, int32_t * array) {
     int32_t r=0;
     int i;
     assert(NULL!=array);
@@ -20,7 +22,7 @@ int32_t arrayTestInt32(int64_t context, int32_t * array) {
     return r+context;
 }
 
-int64_t arrayTestInt64(int64_t context, int64_t * array) {
+MYAPI int64_t MYAPIENTRY arrayTestInt64(int64_t context, int64_t * array) {
     int64_t r=0;
     int i;
     assert(NULL!=array);
@@ -32,7 +34,7 @@ int64_t arrayTestInt64(int64_t context, int64_t * array) {
     return r+context;
 }
 
-foo * arrayTestFoo2( foo * array ) {
+MYAPI foo * MYAPIENTRY arrayTestFoo2( foo * array ) {
     int i;
     foo * result = calloc(ARRAY_SIZE, sizeof(foo));
     assert(NULL!=array);
@@ -43,7 +45,7 @@ foo * arrayTestFoo2( foo * array ) {
     return result;
 }
 
-foo * * arrayTestFoo3ArrayToPtrPtr(foo * array) {
+MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(foo * array) {
     int j;
     foo * * result = calloc(ARRAY_SIZE, sizeof(foo *));
     for(j=0; j<ARRAY_SIZE; j++) {
@@ -52,7 +54,7 @@ foo * * arrayTestFoo3ArrayToPtrPtr(foo * array) {
     return result;
 }
 
-foo * * arrayTestFoo3PtrPtr(foo * * array ) {
+MYAPI foo * * MYAPIENTRY arrayTestFoo3PtrPtr(foo * * array ) {
     int i,j;
     assert(NULL!=array);
     for(j=0; j<ARRAY_SIZE; j++) {
@@ -63,7 +65,7 @@ foo * * arrayTestFoo3PtrPtr(foo * * array ) {
     return array;
 }
 
-foo arrayTestFoo1(int64_t context, foo * array) {
+MYAPI foo MYAPIENTRY arrayTestFoo1(int64_t context, foo * array) {
     foo r=0;
     int i;
     assert(NULL!=array);
@@ -75,18 +77,18 @@ foo arrayTestFoo1(int64_t context, foo * array) {
     return r+context;
 }
 
-foo bufferTest(void * object) {
+MYAPI foo MYAPIENTRY bufferTest(void * object) {
     assert(NULL!=object);
     return *((foo *)object);
 }
 
-foo mixedTest(int64_t context, void * object, foo * array){
+MYAPI foo MYAPIENTRY mixedTest(int64_t context, void * object, foo * array){
     assert(NULL!=object);
     assert(NULL!=array);
     return arrayTestFoo1(context, array) + bufferTest(object);
 }
 
-foo doubleTest(int64_t context, void * object1, foo * array1, void * object2, foo * array2) {
+MYAPI foo MYAPIENTRY doubleTest(int64_t context, void * object1, foo * array1, void * object2, foo * array2) {
     assert(NULL!=object1);
     assert(NULL!=array1);
     assert(NULL!=object2);
@@ -97,33 +99,33 @@ foo doubleTest(int64_t context, void * object1, foo * array1, void * object2, fo
            bufferTest(object2);
 }
 
-foo arrayTestFooNioOnly(int64_t context, foo * array ) {
+MYAPI foo MYAPIENTRY arrayTestFooNioOnly(int64_t context, foo * array ) {
     return arrayTestFoo1(context, array);
 }
 
-foo bufferTestNioOnly(void * object) {
+MYAPI foo MYAPIENTRY bufferTestNioOnly(void * object) {
     return bufferTest(object);
 }
 
-foo mixedTestNioOnly(int64_t context, void * object, foo * array ) {
+MYAPI foo MYAPIENTRY mixedTestNioOnly(int64_t context, void * object, foo * array ) {
     return mixedTest(context, object, array);
 }
 
-foo doubleTestNioOnly(int64_t context, void * object1, foo * array1, void * object2, foo * array2 ) {
+MYAPI foo MYAPIENTRY doubleTestNioOnly(int64_t context, void * object1, foo * array1, void * object2, foo * array2 ) {
     return doubleTest(context, object1, array1, object2, array2);
 }
 
-int strToInt(const char * str) {
+MYAPI int MYAPIENTRY strToInt(const char * str) {
     return atoi(str);
 }
 
-const char * intToStr(int i) {
+MYAPI const char * MYAPIENTRY intToStr(int i) {
     static char singleton[200];
     snprintf(singleton, sizeof(singleton)-1, "%d", i);
     return singleton;
 }
 
-int stringArrayRead(const char *  *  strings, int num) {
+MYAPI int MYAPIENTRY stringArrayRead(const char *  *  strings, int num) {
     int i=0, l=0;
     if(NULL!=strings) {
         for(i=0; i<num; i++) {
@@ -135,7 +137,7 @@ int stringArrayRead(const char *  *  strings, int num) {
     return l;
 }
 
-int intArrayRead(const int *  ints, int num) {
+MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num) {
     int i=0, s=0;
     if(NULL!=ints) {
         for(i=0; i<num; i++) {
@@ -146,7 +148,7 @@ int intArrayRead(const int *  ints, int num) {
 }
 
 /**
-int intArrayWrite(int * *  ints, int num) {
+MYAPI int intArrayWrite(int * *  ints, int num) {
     int i=0, s=0;
     if(NULL!=ints) {
         for(i=0; i<num; i++) {
@@ -157,11 +159,11 @@ int intArrayWrite(int * *  ints, int num) {
     return s;
 } */
 
-MYAPIConfig  typeTestAnonSingle(const MYAPIConfig a) {
+MYAPI MYAPIConfig  MYAPIENTRY typeTestAnonSingle(const MYAPIConfig a) {
     return (MYAPIConfig) ( ((void *)a) + 1 );
 }
 
-MYAPIConfig *  MYAPIENTRY typeTestAnonPointer(const MYAPIConfig * a) {
+MYAPI MYAPIConfig *  MYAPIENTRY typeTestAnonPointer(const MYAPIConfig * a) {
     int j;
     MYAPIConfig * result = calloc(ARRAY_SIZE, sizeof(MYAPIConfig));
     for(j=0; j<ARRAY_SIZE; j++) {

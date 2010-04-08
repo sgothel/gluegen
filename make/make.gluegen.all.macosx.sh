@@ -8,4 +8,4 @@ fi
 
 ant -v \
     -Drootrel.build=build-macosx \
-    $* 2>&1 | tee make.gluegen.all.macosx-x86.log
+    $* 2>&1 | tee make.gluegen.all.macosx.log

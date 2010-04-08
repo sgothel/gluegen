@@ -65,8 +65,8 @@ public class Test1p1JavaEmitter extends BaseTest1 {
      */
     @Test
     public void chapter01TestLoadLibrary() throws Exception {
-        String nativesPath = testOutput + "/build/natives";
-        System.load(nativesPath + "/libtest1p1.so");
+        //System.loadLibrary("test1");
+        System.loadLibrary("BindingTest1p1");
     }
 
     /**

@@ -51,6 +51,9 @@
     <property name="src.java" value="../src/java" />
     <property name="build"    value="../${rootrel.build}" />
 
+    <property name="gluegen.lib.dir" value="${build}/obj"/>
+
+
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
     <property name="src.generated.java"     value="${src.generated}/java" />
@@ -341,10 +344,7 @@
 
       <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-      <!--namespace can be overwritten from outside-->
-      <property name="namespace" value=""/>
-
-      <mkdir dir="${build}/obj/${namespace}" />
+      <mkdir dir="${gluegen.lib.dir}"/>
 
       <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
 
@@ -352,8 +352,8 @@
       <echo message="user.dir=${user.dir}" />
 
       <cc outtype="shared" 
-          objdir="${build}/obj/${namespace}"
-          outfile="${build}/obj/${namespace}/${output.lib.name}"
+          objdir="${gluegen.lib.dir}"
+          outfile="${gluegen.lib.dir}/${output.lib.name}"
           optimize="${c.compiler.optimise}" 
           debug="${c.compiler.debug}"
           multithreaded="true" 
@@ -385,6 +385,11 @@
 
       <antcall target="c.rename.lib.mingw" inheritRefs="true" />
       <antcall target="c.rename.lib.macosx" inheritRefs="true" />
+
+      <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
+          <param name="libdir" value="${gluegen.lib.dir}"/>
+      </antcall>
+
       <antcall target="c.manifest" inheritRefs="true" />
       <!-- Create Java Web Start jar file from built file -->
       <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}.jar">
@@ -572,7 +577,7 @@
     </delete>
   </target>    
 
-  <target name="test" depends="init, junit.run">
+  <target name="test" depends="init, gluegen.cpptasks.detect.os, junit.run">
       <mkdir dir="${build}/test/build/classes"/>
       <mkdir dir="${build}/test/results"/>
 
@@ -583,7 +588,8 @@
       </javac>
 
       <junit forkmode="once" showoutput="true" fork="true">
-          <jvmarg value="-Djava.library.path=${build}/test/build/natives"/>
+          <env key="${system.env.library.path}" path="${gluegen.lib.dir}${path.separator}${build}/test/build/natives"/>
+          <jvmarg value="-Djava.library.path=${gluegen.lib.dir}${path.separator}${build}/test/build/natives"/>
           <jvmarg value="-Drootrel.build=${rootrel.build}"/>
           <jvmarg value="-Dos.arch=${os.arch}"/>
           <jvmarg value="-Dgluegen.user.compiler.file=${gluegen.user.compiler.file}"/>

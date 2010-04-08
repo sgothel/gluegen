@@ -1,0 +1,39 @@
+diff -Nur cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java cpptasks-1.0b5-patched-01/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java
+--- cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java	2008-04-02 19:26:44.000000000 +0200
++++ cpptasks-1.0b5-patched-01/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java	2010-04-07 22:16:03.330794801 +0200
+@@ -17,6 +17,8 @@
+ package net.sf.antcontrib.cpptasks.gcc;
+ import java.io.File;
+ import java.util.Vector;
++import java.util.HashSet;
++import java.util.Arrays;
+ 
+ import net.sf.antcontrib.cpptasks.CUtil;
+ import net.sf.antcontrib.cpptasks.compiler.LinkType;
+@@ -36,6 +38,7 @@
+             "-dynamiclib", "-nostartfiles", "-nostdlib", "-prebind", "-s",
+             "-static", "-shared", "-symbolic", "-Xlinker",
+             "--export-all-symbols", "-static-libgcc",};
++    private static String[] darwinLinkerOptions = new String[]{"-arch", };
+     private static final GccLinker dllLinker = new GccLinker("gcc", objFiles,
+             discardFiles, "lib", ".so", false, new GccLinker("gcc", objFiles,
+                     discardFiles, "lib", ".so", true, null));
+@@ -97,12 +100,13 @@
+                     break;
+                 default :
+                     boolean known = false;
+-                    for (int i = 0; i < linkerOptions.length; i++) {
+-                        if (linkerOptions[i].equals(arg)) {
+-                            known = true;
+-                            break;
+-                        }
++                    HashSet allLinkerOptions = new HashSet();
++                    allLinkerOptions.addAll(Arrays.asList(linkerOptions));
++                    if (isDarwin()) {
++                        allLinkerOptions.addAll(Arrays.asList(darwinLinkerOptions));
+                     }
++                    known = allLinkerOptions.contains(arg);
++
+                     if (!known) {
+                         buf.setLength(0);
+                         buf.append("-Wl,");

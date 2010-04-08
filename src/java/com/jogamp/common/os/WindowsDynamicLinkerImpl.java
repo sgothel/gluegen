@@ -2,9 +2,20 @@
 
 package com.jogamp.common.os;
 
+import java.security.*;
 
 public class WindowsDynamicLinkerImpl implements DynamicLinker {
 
+  private static boolean DEBUG;
+
+  static {
+    AccessController.doPrivileged(new PrivilegedAction() {
+        public Object run() {
+          DEBUG = (System.getProperty("gluegen.debug.NativeLibrary") != null);
+          return null;
+        }
+      });
+  }
 
   /** Interface to C language function: <br> <code> BOOL FreeLibrary(HANDLE hLibModule); </code>    */
   private static native int FreeLibrary(long hLibModule);
@@ -36,7 +47,22 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
   }
   
   public long lookupSymbol(long libraryHandle, String symbolName) {
-    return GetProcAddressA(libraryHandle, symbolName);
+    String _symbolName = symbolName;
+    long addr = GetProcAddressA(libraryHandle, _symbolName);
+    if(0==addr) {
+        // __stdcall hack: try some @nn decorations,
+        //                 the leading '_' must not be added (same with cdecl)
+        final int argAlignment=4;  // 4 byte alignment of each argument
+        final int maxArguments=12; // experience ..
+        for(int arg=0; 0==addr && arg<=maxArguments; arg++) {
+            _symbolName = symbolName+"@"+(arg*argAlignment);
+            addr = GetProcAddressA(libraryHandle, _symbolName);
+        }
+    }
+    if(DEBUG) {
+            System.err.println("WindowsDynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> "+_symbolName+", 0x"+Long.toHexString(addr));
+    }
+    return addr;
   }
   
   public void closeLibrary(long libraryHandle) {

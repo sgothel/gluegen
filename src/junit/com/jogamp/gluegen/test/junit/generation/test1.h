@@ -1,12 +1,24 @@
 
-#ifndef MYAPIENTRY
-#define MYAPIENTRY 
+#if defined(__WIN32__)
+#  if defined (__MYAPI_EXPORT_)
+#    define MYAPI    __declspec(dllexport)
+#  else
+#    define MYAPI    __declspec(dllimport)
+#  endif
+#  define MYAPIENTRY_NOPE __stdcall /* we don't use __stdcall convention, ie @nn */
+#  define MYAPIENTRY 
+#else
+#  if defined (__MYAPI_EXPORT_)
+#    define MYAPI extern
+#  else
+#    define MYAPI
+#  endif
+#  define MYAPIENTRY
 #endif
+
 #ifndef MYAPIENTRYP
 #define MYAPIENTRYP MYAPIENTRY *
 #endif
-
-#define MYAPI
 
 #define CONSTANT_ONE 1
 #define ARRAY_SIZE 8
