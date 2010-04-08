@@ -46,6 +46,7 @@ import java.util.*;
 import java.text.MessageFormat;
 
 import com.sun.gluegen.cgram.types.*;
+import java.nio.Buffer;
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.*;
@@ -1589,6 +1590,7 @@ public class JavaEmitter implements GlueEmitter {
         imports.add(cfg.gluegenRuntimePackage()+".*");
         imports.add(DynamicLookupHelper.class.getPackage().getName()+".*");
         imports.add(Buffers.class.getPackage().getName()+".*");
+        imports.add(Buffer.class.getPackage().getName()+".*");
 
       if (cfg.allStatic() || cfg.emitInterface()) {
 

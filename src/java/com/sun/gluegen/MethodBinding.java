@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,20 +28,24 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
 package com.sun.gluegen;
 
-import java.util.*;
+import com.sun.gluegen.cgram.types.FunctionSymbol;
+import com.sun.gluegen.cgram.types.Type;
 
-import com.sun.gluegen.cgram.types.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 /** Represents the binding of a C function to a Java method. Also used
     to represent calls through function pointers contained in
@@ -73,7 +77,7 @@ public class MethodBinding {
    * argument, including the java return type and java argument
    * types. It's safe to modify this binding after construction.
    */
-  public MethodBinding(MethodBinding bindingToCopy) {  
+  public MethodBinding(MethodBinding bindingToCopy) {
     this.sym = bindingToCopy.sym;
 
     this.renamedMethodName                = bindingToCopy.renamedMethodName;
@@ -94,7 +98,7 @@ public class MethodBinding {
     this.signatureUsesJavaPrimitiveArrays = bindingToCopy.signatureUsesJavaPrimitiveArrays;
     this.thisPointerIndex                 = bindingToCopy.thisPointerIndex;
   }
-  
+
   /** Constructor for calling a C function. */
   public MethodBinding(FunctionSymbol sym) {
     this.sym = sym;
@@ -312,7 +316,7 @@ public class MethodBinding {
   protected void computeSignatureProperties() {
     if (computedSignatureProperties)
       return;
-    
+
     argumentsUseNIO = false;
     signatureUsesNIO = false;
     signatureCanUseIndirectNIO = false;
@@ -439,7 +443,7 @@ public class MethodBinding {
         thisPointerIndex = i;
         break;
       }
-      
+
       if (!arg.isJNIEnv()) {
         break; // this pointer must be leftmost argument excluding JNIEnvs
       }
@@ -461,7 +465,7 @@ public class MethodBinding {
     if (obj == this) {
       return true;
     }
-    
+
     if (obj == null || ! (obj instanceof MethodBinding)) {
       return false;
     }
@@ -474,7 +478,7 @@ public class MethodBinding {
         other.getContainingCType() != null &&
         (!(containingCType.equals(other.getContainingCType())))) {
         return false;
-      }    
+      }
     if (javaArgumentTypes.size() != other.javaArgumentTypes.size()) {
       return false;
     }
@@ -486,13 +490,13 @@ public class MethodBinding {
         return false;
       }
     }
-    
+
     return true;
   }
 
   @Override
   public int hashCode() {
-    StringBuffer buf = new StringBuffer(200);
+    StringBuilder buf = new StringBuilder(200);
     buf.append(getName());
     buf.append(sym.getType().getName(true));
     buf.append(getJavaReturnType().getName());
@@ -507,8 +511,8 @@ public class MethodBinding {
         // there's something wrong with our parsing of the headers.
         assert(getNumArguments() == 1);
         continue;
-      } 
-      
+      }
+
       buf.append(type.getName());
     }
     return buf.toString().hashCode();
@@ -517,35 +521,35 @@ public class MethodBinding {
   /** Returns the signature of this binding. */
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer(200);
+    StringBuilder buf = new StringBuilder(200);
     buf.append(getJavaReturnType().getName());
-    buf.append(" ");
+    buf.append(' ');
     buf.append(getName());
-    buf.append("(");
+    buf.append('(');
     boolean needComma = false;
     for (int i = 0; i < getNumArguments(); i++) {
       JavaType type = getJavaArgumentType(i);
-      if (type.isVoid()) { 
+      if (type.isVoid()) {
         // Make sure this is the only param to the method; if it isn't,
         // there's something wrong with our parsing of the headers.
         assert(getNumArguments() == 1);
         continue;
-      } 
+      }
       if (type.isJNIEnv() || isArgumentThisPointer(i)) {
         // Don't need to expose these at the Java level
         continue;
       }
-      
+
       if (needComma) {
         buf.append(", ");
       }
 
       buf.append(type.getName());
-      buf.append(" ");
+      buf.append(' ');
       buf.append(getArgumentName(i));
       needComma = true;
     }
-    buf.append(")");
+    buf.append(')');
     return buf.toString();
   }
 
@@ -560,9 +564,9 @@ public class MethodBinding {
       manually specifying prologue and epilogue code, for example. */
   public String getDescriptor(boolean forImplementingMethodCall,
                               boolean eraseBufferAndArrayTypes) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
 
-    buf.append("(");
+    buf.append('(');
 
     if (forImplementingMethodCall && hasContainingType()) {
       // Always emit outgoing "this" argument
@@ -571,7 +575,7 @@ public class MethodBinding {
 
     for (int i = 0; i < getNumArguments(); i++) {
       JavaType type = getJavaArgumentType(i);
-      if (type.isVoid()) { 
+      if (type.isVoid()) {
         // Make sure this is the only param to the method; if it isn't,
         // there's something wrong with our parsing of the headers.
         if (getNumArguments() != 1) {
@@ -580,7 +584,7 @@ public class MethodBinding {
             "multi-argument function \"" + this + "\"");
         }
         continue;
-      } 
+      }
 
       if (type.isJNIEnv() || isArgumentThisPointer(i)) {
         // Don't need to expose these at the Java level
@@ -592,7 +596,7 @@ public class MethodBinding {
       // Add Buffer and array index offset arguments after each associated argument
       if (forImplementingMethodCall) {
         if (type.isNIOBuffer()) {
-          buf.append("I");
+          buf.append('I');
         } else if (type.isNIOBufferArray()) {
           buf.append("[I");
         }
@@ -600,11 +604,11 @@ public class MethodBinding {
 
       // Add offset argument after each primitive array
       if (type.isPrimitiveArray()) {
-        buf.append("I");
+        buf.append('I');
       }
     }
 
-    buf.append(")");
+    buf.append(')');
 
     // Emit return type for completeness even though we can't overload
     // based solely on return type
