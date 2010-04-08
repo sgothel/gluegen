@@ -31,32 +31,33 @@
 package com.jogamp.common.util;
 
 /**
- * Fast HashMap with int keys and int values.
+ * Fast HashMap for primitive data..
  * Original code is based on the <a href="http://code.google.com/p/skorpios/"> skorpios project</a>
  * released under new BSD license.
  * @author Michael Bien
  * @see IntObjectHashMap
+ * @see IntLongHashMap
  */
-public class IntIntHashMap {
+public class /*name*/IntIntHashMap/*name*/ {
 
     private final float loadFactor;
 
     private Entry[] table;
-    
+
     private int size;
     private int mask;
     private int capacity;
     private int threshold;
 
-    public IntIntHashMap() {
+    public /*name*/IntIntHashMap/*name*/() {
         this(16, 0.75f);
     }
 
-    public IntIntHashMap(int initialCapacity) {
+    public /*name*/IntIntHashMap/*name*/(int initialCapacity) {
         this(initialCapacity, 0.75f);
     }
 
-    public IntIntHashMap(int initialCapacity, float loadFactor) {
+    public /*name*/IntIntHashMap/*name*/(int initialCapacity, float loadFactor) {
         if (initialCapacity > 1 << 30) {
             throw new IllegalArgumentException("initialCapacity is too large.");
         }
@@ -76,7 +77,7 @@ public class IntIntHashMap {
         this.mask = capacity - 1;
     }
 
-    public boolean containsValue(int value) {
+    public boolean containsValue(/*value*/int/*value*/ value) {
         Entry[] table = this.table;
         for (int i = table.length; i-- > 0;) {
             for (Entry e = table[i]; e != null; e = e.next) {
@@ -88,8 +89,8 @@ public class IntIntHashMap {
         return false;
     }
 
-    public boolean containsKey(int key) {
-        int index = key & mask;
+    public boolean containsKey(/*key*/int/*key*/ key) {
+        /*key*/int/*key*/ index = key & mask;
         for (Entry e = table[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return true;
@@ -98,24 +99,24 @@ public class IntIntHashMap {
         return false;
     }
 
-    public int get(int key) {
+    public /*value*/int/*value*/ get(/*key*/int/*key*/ key) {
         int index = key & mask;
         for (Entry e = table[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return e.value;
             }
         }
-        return 0;
+        return /*null*/0/*null*/;
     }
 
-    public int put(int key, int value) {
+    public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
         int index = key & mask;
         // Check if key already exists.
         for (Entry e = table[index]; e != null; e = e.next) {
             if (e.key != key) {
                 continue;
             }
-            int oldValue = e.value;
+            /*value*/int/*value*/ oldValue = e.value;
             e.value = value;
             return oldValue;
         }
@@ -144,10 +145,10 @@ public class IntIntHashMap {
             threshold = (int) (newCapacity * loadFactor);
             mask = capacity - 1;
         }
-        return 0;
+        return /*null*/0/*null*/;
     }
 
-    public int remove(int key) {
+    public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
         int index = key & mask;
         Entry prev = table[index];
         Entry e = prev;
@@ -165,7 +166,7 @@ public class IntIntHashMap {
             prev = e;
             e = next;
         }
-        return 0;
+        return /*null*/0/*null*/;
     }
 
     public int size() {
@@ -182,11 +183,11 @@ public class IntIntHashMap {
 
     private final static class Entry {
 
-        private final int key;
-        private int value;
+        private final /*key*/int/*key*/ key;
+        private /*value*/int/*value*/ value;
         private Entry next;
 
-        private Entry(int k, int v, Entry n) {
+        private Entry(/*key*/int/*key*/ k, /*value*/int/*value*/ v, Entry n) {
             key = k;
             value = v;
             next = n;

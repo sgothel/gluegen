@@ -34,14 +34,6 @@
     <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/sun/gluegen/nativesig/**" />
   </target>
 
-  <target name="setup.javase">
-      <!-- not needed anymore -->
-  </target>
-
-  <target name="setup.javacdc">
-      <!-- not needed anymore -->
-  </target>
-
   <target name="init" depends="gluegen.properties.load.user,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
@@ -71,10 +63,6 @@
     <mkdir dir="${src.generated.java-cdc}" />
     <mkdir dir="${classes}" />
     <mkdir dir="${classes-cdc}" />
-
-    <!-- Set up Java SE and Java CDC files -->
-    <antcall target="setup.javase"  inheritRefs="true" />
-    <antcall target="setup.javacdc" inheritRefs="true" />
 
     <!-- Create the classpath for ANTLR.  This requires the user-defined
       - "antlr.jar" property. -->
@@ -434,7 +422,41 @@
   <!--
     - Build GlueGen.
     -->
-  <target name="gluegen.build" depends="init">
+  <target name="pre-build">
+
+    <antcall target="create-map" inheritrefs="true">
+        <param name="map.name" value="IntObjectHashMap"/>
+        <param name="map.value" value="Object"/>
+        <param name="map.null" value="null"/>
+    </antcall>
+
+    <antcall target="create-map" inheritrefs="true">
+        <param name="map.name" value="IntLongHashMap"/>
+        <param name="map.value" value="long"/>
+        <param name="map.null" value="0"/>
+    </antcall>
+
+  </target>
+
+  <target name="create-map">
+    <!-- substitutes certain token in IntIntHashmap to create new primitive HasmMap-->
+    <copy file="${src.java}/com/jogamp/common/util/IntIntHashMap.java"
+        tofile="${src.generated.java}/com/jogamp/common/util/${map.name}.java" overwrite="true">
+        <filterchain>
+            <replaceregex pattern="IntIntHashMap" replace="${map.name}"/>
+            <replaceregex pattern="@see ${map.name}" replace="@see IntIntHashMap"/>
+            <replaceregex pattern="/\*value\*/int/\*value\*/" replace="${map.value}"/>
+            <replaceregex pattern="/\*null\*/0/\*null\*/" replace="${map.null}"/>
+        </filterchain>
+        <!-- no clue why we have to do this twice... otherwise it will only replace one token per line -->
+        <filterchain>
+            <replaceregex pattern="/\*value\*/int/\*value\*/" replace="${map.value}"/>
+        </filterchain>
+    </copy>
+  </target>
+
+
+  <target name="gluegen.build" depends="init, pre-build">
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
          including supergrammars, in one place, so copy all of the
