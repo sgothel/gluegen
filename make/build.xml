@@ -422,6 +422,7 @@
            source="1.4"
            debug="true"
            debuglevel="source,lines,vars"
+           includeAntRuntime="false"
            excludes="${gluegen.excludes}"
            >
       <src path="${src.java}" />
@@ -493,6 +494,7 @@
            source="1.4"
            debug="true"
            debuglevel="source,lines,vars"
+           includeAntRuntime="false"
            includes="${gluegen-rt.classes},${jogamp.common.classes}"
            excludes="${gluegen.excludes}">
       <src path="${src.java}" />
@@ -505,6 +507,7 @@
            source="1.5"
            debug="true"
            debuglevel="source,lines,vars"
+           includeAntRuntime="true"
            excludes="${gluegen.excludes},${gluegen-rt.classes}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
@@ -583,7 +586,8 @@
 
       <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
-      <javac destdir="${build}/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source">
+      <javac destdir="${build}/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source"
+             includeAntRuntime="false">
           <classpath path="${gluegen.root}/make/lib/junit-4.5.jar:${build}/classes:${build}/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
       </javac>
 

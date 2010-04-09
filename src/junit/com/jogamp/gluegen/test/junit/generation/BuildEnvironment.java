@@ -35,8 +35,6 @@ package com.jogamp.gluegen.test.junit.generation;
 import java.io.File;
 import java.net.URISyntaxException;
 
-import org.apache.tools.ant.DefaultLogger;
-
 import static java.lang.System.*;
 
 /**
@@ -76,10 +74,6 @@ public final class BuildEnvironment {
 
         out.println("testOutput: "+testOutput);
         out.println(" - - - - - - - - - - - - ");
-
-        DefaultLogger logger = new DefaultLogger();
-        logger.setErrorPrintStream(out);
-        logger.setOutputPrintStream(out);
     }
 }
 

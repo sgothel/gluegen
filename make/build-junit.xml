@@ -103,6 +103,7 @@
         <javac destdir="${build_t.java}" 
                source="1.5" debug="true" 
                fork="yes"
+               includeAntRuntime="false"
                debuglevel="lines,vars,source">
             <classpath refid="junit.compile.classpath"/>
             <src path="${test.base.dir}"/>
@@ -176,13 +177,16 @@
     <target name="junit.compile" depends="init, java.generate, java.build, native.build"/>
 
     <target name="junit.run" depends="init,gluegen.cpptasks.detect.os">
+        <mkdir dir="${results}"/>
+        <delete quiet="true">
+            <fileset dir="${results}" includes="**"/>
+        </delete>
+
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
 
-
         <!-- Perform the junit tests-->
-        <mkdir dir="${results}"/>
         <junit forkmode="once" showoutput="true" fork="true">
             <env key="${system.env.library.path}" path="${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
             <jvmarg value="-Djava.library.path=${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
