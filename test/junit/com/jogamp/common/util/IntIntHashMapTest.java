@@ -99,7 +99,7 @@ public class IntIntHashMapTest {
         long mapTime = (currentTimeMillis() - time);
         out.println("   map:   " + mapTime+"ms");
 
-        assertTrue(intmapTime < mapTime);
+        assertTrue(intmapTime <= mapTime);
 
 
         System.out.println();
@@ -115,7 +115,7 @@ public class IntIntHashMapTest {
         for (int i = 0; i < iterations; i++) {
             map.get(rndValues[i]);
         }
-        assertTrue(intmapTime < mapTime);
+        assertTrue(intmapTime <= mapTime);
 
 
         out.println();
@@ -132,7 +132,7 @@ public class IntIntHashMapTest {
             map.remove(rndValues[i]);
         }
 
-        assertTrue(intmapTime < mapTime);
+        assertTrue(intmapTime <= mapTime);
     }
 
 
