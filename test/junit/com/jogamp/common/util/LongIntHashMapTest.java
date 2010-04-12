@@ -14,6 +14,7 @@ import static java.lang.System.*;
 /**
  *
  * @author Michael Bien
+ * @author Simon Goller
  */
 public class LongIntHashMapTest {
 

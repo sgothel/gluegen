@@ -35,8 +35,11 @@ package com.jogamp.common.util;
  * Original code is based on the <a href="http://code.google.com/p/skorpios/"> skorpios project</a>
  * released under new BSD license.
  * @author Michael Bien
+ * @author Simon Goller
  * @see IntObjectHashMap
  * @see IntLongHashMap
+ * @see LongObjectHashMap
+ * @see LongLongHashMap
  */
 public class /*name*/LongIntHashMap/*name*/ {
 
