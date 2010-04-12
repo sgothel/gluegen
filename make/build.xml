@@ -425,14 +425,32 @@
     -->
   <target name="pre-build">
 
+    <!-- Int*Maps -->
     <antcall target="create-map" inheritrefs="true">
+        <param name="map.src" value="IntIntHashMap"/>
         <param name="map.name" value="IntObjectHashMap"/>
         <param name="map.value" value="Object"/>
         <param name="map.null" value="null"/>
     </antcall>
 
     <antcall target="create-map" inheritrefs="true">
+        <param name="map.src" value="IntIntHashMap"/>
         <param name="map.name" value="IntLongHashMap"/>
+        <param name="map.value" value="long"/>
+        <param name="map.null" value="0"/>
+    </antcall>
+
+    <!-- Long*Maps -->
+    <antcall target="create-map" inheritrefs="true">
+        <param name="map.src" value="LongIntHashMap"/>
+        <param name="map.name" value="LongObjectHashMap"/>
+        <param name="map.value" value="Object"/>
+        <param name="map.null" value="null"/>
+    </antcall>
+
+    <antcall target="create-map" inheritrefs="true">
+        <param name="map.src" value="LongIntHashMap"/>
+        <param name="map.name" value="LongLongHashMap"/>
         <param name="map.value" value="long"/>
         <param name="map.null" value="0"/>
     </antcall>
@@ -441,11 +459,11 @@
 
   <target name="create-map">
     <!-- substitutes certain token in IntIntHashmap to create new primitive HasmMap-->
-    <copy file="${src.java}/com/jogamp/common/util/IntIntHashMap.java"
+    <copy file="${src.java}/com/jogamp/common/util/${map.src}.java"
         tofile="${src.generated.java}/com/jogamp/common/util/${map.name}.java" overwrite="true">
         <filterchain>
-            <replaceregex pattern="IntIntHashMap" replace="${map.name}"/>
-            <replaceregex pattern="@see ${map.name}" replace="@see IntIntHashMap"/>
+            <replaceregex pattern="${map.src}" replace="${map.name}"/>
+            <replaceregex pattern="@see ${map.name}" replace="@see ${map.src}"/>
             <replaceregex pattern="/\*value\*/int/\*value\*/" replace="${map.value}"/>
             <replaceregex pattern="/\*null\*/0/\*null\*/" replace="${map.null}"/>
         </filterchain>
