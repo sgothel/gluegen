@@ -48,13 +48,13 @@
         <mkdir dir="${build_t.obj}"/>
         <mkdir dir="${build_t.lib}"/>
 
-        <property name="gluegen.jar" value="${gluegen.root}/${rootrel.build}/gluegen.jar" />
-        <property name="gluegen-rt.jar" value="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
+        <property name="gluegen.jar" location="${gluegen.root}/${rootrel.build}/gluegen.jar" />
+        <property name="gluegen-rt.jar" location="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
         <property name="gluegen.lib" value="${gluegen.root}/${rootrel.build}/obj" />
 
         <property name="junit.jar" value="${gluegen.root}/make/lib/junit-4.5.jar" />
 
-        <property name="gluegen-test.jar" value="${build_t}/gluegen-test.jar" />
+        <property name="gluegen-test.jar" location="${build_t}/gluegen-test.jar" />
 
         <path id="gluegen.classpath">
           <pathelement location="${gluegen.jar}" />
@@ -174,7 +174,21 @@
       </sequential>
     </macrodef>  
 
-    <target name="junit.compile" depends="init, java.generate, java.build, native.build"/>
+    <target name="junit.compile" depends="init">
+      <uptodate property="junit.compile.skip">
+        <srcfiles dir= "."                 includes="*.xml"/>
+        <srcfiles dir= "${test.base.dir}"  includes="**"/>
+        <srcfiles                          file="${gluegen.jar}" />
+        <mapper type="merge" to="${gluegen-test.jar}"/>
+      </uptodate>
+      <antcall target="junit.compile.impl"  inheritRefs="true"/>
+    </target>
+
+    <target name="junit.compile.impl" unless="junit.compile.skip">
+      <antcall target="java.generate"  inheritRefs="true"/>
+      <antcall target="java.build"     inheritRefs="true"/>
+      <antcall target="native.build"   inheritRefs="true"/>
+    </target>
 
     <target name="junit.run" depends="init,gluegen.cpptasks.detect.os">
         <mkdir dir="${results}"/>

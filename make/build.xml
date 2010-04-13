@@ -41,7 +41,7 @@
 
     <!-- The source directories. -->
     <property name="src.java" value="../src/java" />
-    <property name="build"    value="../${rootrel.build}" />
+    <property name="build"    location="../${rootrel.build}" />
 
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
@@ -456,8 +456,20 @@
     </copy>
   </target>
 
+  <target name="gluegen.build" depends="init">
+      <uptodate property="gluegen.build.skip">
+        <srcfiles dir= "."            includes="*.xml"/>
+        <srcfiles dir= "${src.java}"  includes="**"/>
+        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <mapper type="merge" to="${build}/gluegen.jar"/>
+      </uptodate>
+      <antcall target="gluegen.build.impl"  inheritRefs="true"/>
+  </target>
 
-  <target name="gluegen.build" depends="init, pre-build">
+  <target name="gluegen.build.impl" unless="gluegen.build.skip">
+    <antcall target="pre-build"  inheritRefs="true"/>
+
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
          including supergrammars, in one place, so copy all of the
@@ -594,7 +606,7 @@
     <copy file="${antlr.jar}" todir="${build}" />
   </target>
 
-  <target name="all" depends="gluegen.build, junit.compile" />
+  <target name="all" depends="init, gluegen.build, junit.compile" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
