@@ -451,8 +451,8 @@
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="LongIntHashMap"/>
         <param name="map.key" value="long"/>
-        <param name="map.value" value="Object"/>
-        <param name="map.null" value="null"/>
+        <param name="map.value" value="int"/>
+        <param name="map.null" value="0"/>
     </antcall>
 
     <antcall target="create-map" inheritrefs="true">
