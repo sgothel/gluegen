@@ -30,13 +30,23 @@
  */
 package com.jogamp.common.util;
 
+/*
+ * Note: this map is used as template for other maps.
+ */
+
 /**
- * Fast HashMap for primitive data..
+ * Fast HashMap for primitive data. Optimized for being GC friendly.
  * Original code is based on the <a href="http://code.google.com/p/skorpios/"> skorpios project</a>
  * released under new BSD license.
+ *
  * @author Michael Bien
+ * @author Simon Goller
+ * 
  * @see IntObjectHashMap
  * @see IntLongHashMap
+ * @see LongObjectHashMap
+ * @see LongLongHashMap
+ * @see LongIntHashMap
  */
 public class /*name*/IntIntHashMap/*name*/ {
 
@@ -89,8 +99,9 @@ public class /*name*/IntIntHashMap/*name*/ {
         return false;
     }
 
+//    @SuppressWarnings(value="cast")
     public boolean containsKey(/*key*/int/*key*/ key) {
-        /*key*/int/*key*/ index = key & mask;
+        int index = (int) (key & mask);
         for (Entry e = table[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return true;
@@ -99,8 +110,9 @@ public class /*name*/IntIntHashMap/*name*/ {
         return false;
     }
 
+//    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ get(/*key*/int/*key*/ key) {
-        int index = key & mask;
+        int index = (int) (key & mask);
         for (Entry e = table[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return e.value;
@@ -109,8 +121,9 @@ public class /*name*/IntIntHashMap/*name*/ {
         return /*null*/0/*null*/;
     }
 
+//    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
-        int index = key & mask;
+        int index = (int) (key & mask);
         // Check if key already exists.
         for (Entry e = table[index]; e != null; e = e.next) {
             if (e.key != key) {
@@ -126,14 +139,14 @@ public class /*name*/IntIntHashMap/*name*/ {
             int newCapacity = 2 * capacity;
             Entry[] newTable = new Entry[newCapacity];
             Entry[] src = table;
-            int bucketmask = newCapacity - 1;
+            /*key*/int/*key*/ bucketmask = newCapacity - 1;
             for (int j = 0; j < src.length; j++) {
                 Entry e = src[j];
                 if (e != null) {
                     src[j] = null;
                     do {
                         Entry next = e.next;
-                        index = e.key & bucketmask;
+                        index = (int) (e.key & bucketmask);
                         e.next = newTable[index];
                         newTable[index] = e;
                         e = next;
@@ -148,8 +161,9 @@ public class /*name*/IntIntHashMap/*name*/ {
         return /*null*/0/*null*/;
     }
 
+//    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
-        int index = key & mask;
+        int index = (int) (key & mask);
         Entry prev = table[index];
         Entry e = prev;
         while (e != null) {
