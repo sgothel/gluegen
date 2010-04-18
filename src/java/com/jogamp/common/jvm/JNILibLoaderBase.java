@@ -37,18 +37,21 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.nativewindow.impl;
+package com.jogamp.common.jvm;
 
 // FIXME: refactor Java SE dependencies
 //import java.awt.Toolkit;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
+import java.security.AccessControlContext;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
+import com.jogamp.common.impl.Debug;
 
-public class NativeLibLoaderBase {
-  public static final boolean DEBUG = Debug.debug("NativeLibLoader");
+public class JNILibLoaderBase {
+  public static final boolean DEBUG = Debug.debug("JNILibLoader");
+  private static final AccessControlContext localACC = AccessController.getContext();
 
   public interface LoaderAction {
     /**
@@ -127,16 +130,6 @@ public class NativeLibLoaderBase {
     }
   }
   
-  public static void loadNativeWindow(final String ossuffix) {
-    AccessController.doPrivileged(new PrivilegedAction() {
-      public Object run() {
-        loadLibrary("nativewindow_"+ossuffix, null, false);
-        return null;
-      }
-    });
-  }
-
-
   private static final Class  customLauncherClass;
   private static final Method customLoadLibraryMethod;
 
@@ -145,7 +138,7 @@ public class NativeLibLoaderBase {
     Class launcherClass = null;
     Method loadLibraryMethod = null;
 
-    if ( Debug.getBooleanProperty("sun.jnlp.applet.launcher", false) ) {
+    if ( Debug.getBooleanProperty("sun.jnlp.applet.launcher", false, localACC) ) {
         try {
             launcherClass = Class.forName("org.jdesktop.applet.util.JNLPAppletLauncher");
             loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
@@ -162,7 +155,7 @@ public class NativeLibLoaderBase {
     }
 
     if(null==launcherClass) {
-        String launcherClassName = Debug.getProperty("jnlp.launcher.class", false);
+        String launcherClassName = Debug.getProperty("jnlp.launcher.class", false, localACC);
         if(null!=launcherClassName) {
             try {
                 launcherClass = Class.forName(launcherClassName);

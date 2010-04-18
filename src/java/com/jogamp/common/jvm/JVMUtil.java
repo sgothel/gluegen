@@ -30,10 +30,12 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.nativewindow.impl.jvm;
+package com.jogamp.common.jvm;
 
 import java.nio.ByteBuffer;
-import com.jogamp.nativewindow.impl.*;
+import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.impl.Debug;
+import com.jogamp.gluegen.runtime.NativeLibLoader;
 
 /**
  * Currently this tool works around the Hotspot race condition bugs:
@@ -50,9 +52,10 @@ public class JVMUtil {
     private static final boolean DEBUG = Debug.debug("JVMUtil");
 
     static {
-        NativeLibLoaderBase.loadNativeWindow("jvm");
+        // JNILibLoaderBase.loadLibrary("jvm", null, false);
+        NativeLibLoader.loadGlueGenRT();
 
-        ByteBuffer buffer = InternalBufferUtil.newByteBuffer(64);
+        ByteBuffer buffer = Buffers.newDirectByteBuffer(64);
         if( ! initialize(buffer) ) {
             throw new RuntimeException("Failed to initialize the JVMUtil "+Thread.currentThread().getName());
         }

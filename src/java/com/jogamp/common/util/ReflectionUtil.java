@@ -34,21 +34,22 @@
  * facility.
  */
 
-package com.jogamp.nativewindow.impl;
+package com.jogamp.common.util;
 
 import java.lang.reflect.*;
-import javax.media.nativewindow.*;
+import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.impl.Debug;
 
-public final class NWReflection {
+public final class ReflectionUtil {
     
-  public static final boolean DEBUG = Debug.debug("NWReflection");
+  public static final boolean DEBUG = Debug.debug("ReflectionUtil");
 
     /**
      * Returns true only if the class could be loaded.
      */
     public static final boolean isClassAvailable(String clazzName) {
         try {
-            return null != Class.forName(clazzName, false, NWReflection.class.getClassLoader());
+            return null != Class.forName(clazzName, false, ReflectionUtil.class.getClassLoader());
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -67,22 +68,22 @@ public final class NWReflection {
     }
 
     private static Class getClassImpl(String clazzName, boolean initialize) throws ClassNotFoundException {
-        return Class.forName(clazzName, initialize, NWReflection.class.getClassLoader());
+        return Class.forName(clazzName, initialize, ReflectionUtil.class.getClassLoader());
     }
 
     /**
-     * @throws NativeWindowException if the constructor can not be delivered.
+     * @throws JogampRuntimeException if the constructor can not be delivered.
      */
     public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes) {
         try {
             return getConstructor(getClassImpl(clazzName, true), cstrArgTypes);
         } catch (ClassNotFoundException ex) {
-            throw new NativeWindowException(clazzName + " not available", ex);
+            throw new JogampRuntimeException(clazzName + " not available", ex);
         }
     }
 
     /**
-     * @throws NativeWindowException if the constructor can not be delivered.
+     * @throws JogampRuntimeException if the constructor can not be delivered.
      */
     public static final Constructor getConstructor(Class clazz, Class[] cstrArgTypes) {
         try {
@@ -95,7 +96,7 @@ public final class NWReflection {
                      args+= ", ";
                 }
             }
-            throw new NativeWindowException("Constructor: '" + clazz + "(" + args + ")' not found", ex);
+            throw new JogampRuntimeException("Constructor: '" + clazz + "(" + args + ")' not found", ex);
         }
     }
 
@@ -104,17 +105,17 @@ public final class NWReflection {
   }
 
     /**
-     * @throws NativeWindowException if the instance can not be created.
+     * @throws JogampRuntimeException if the instance can not be created.
      */
     public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object[] cstrArgs) {
         try {
             return getConstructor(clazz, cstrArgTypes).newInstance(cstrArgs);
         } catch (InstantiationException ex) {
-            throw new NativeWindowException("can not create instance of class "+clazz, ex);
+            throw new JogampRuntimeException("can not create instance of class "+clazz, ex);
         } catch (InvocationTargetException ex) {
-            throw new NativeWindowException("can not create instance of class "+clazz, ex);
+            throw new JogampRuntimeException("can not create instance of class "+clazz, ex);
         } catch (IllegalAccessException ex) {
-            throw new NativeWindowException("can not create instance of class "+clazz, ex);
+            throw new JogampRuntimeException("can not create instance of class "+clazz, ex);
         }
     }
 
@@ -130,7 +131,7 @@ public final class NWReflection {
         try {
             return createInstance(getClassImpl(clazzName, true), cstrArgTypes, cstrArgs);
         } catch (ClassNotFoundException ex) {
-            throw new NativeWindowException(clazzName + " not available", ex);
+            throw new JogampRuntimeException(clazzName + " not available", ex);
         }
     }
 
