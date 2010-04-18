@@ -437,7 +437,7 @@
         <param name="map.name" value="IntLongHashMap"/>
         <param name="map.key" value="int"/>
         <param name="map.value" value="long"/>
-        <param name="map.null" value="0"/>
+        <param name="map.null" value="-1"/>
     </antcall>
 
     <!-- Long*Maps -->
@@ -452,14 +452,14 @@
         <param name="map.name" value="LongIntHashMap"/>
         <param name="map.key" value="long"/>
         <param name="map.value" value="int"/>
-        <param name="map.null" value="0"/>
+        <param name="map.null" value="-1"/>
     </antcall>
 
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="LongLongHashMap"/>
         <param name="map.key" value="long"/>
         <param name="map.value" value="long"/>
-        <param name="map.null" value="0"/>
+        <param name="map.null" value="-1"/>
     </antcall>
 
   </target>
@@ -473,7 +473,7 @@
             <replaceregex pattern="@see ${map.name}" replace="@see IntIntHashMap"/>
             <replaceregex pattern="/\*value\*/int/\*value\*/" replace="${map.value}"/>
             <replaceregex pattern="/\*key\*/int/\*key\*/" replace="${map.key}"/>
-            <replaceregex pattern="/\*null\*/0/\*null\*/" replace="${map.null}"/>
+            <replaceregex pattern="/\*null\*/-1/\*null\*/" replace="${map.null}"/>
         </filterchain>
         <!-- no clue why we have to do this twice... otherwise it will only replace one token per line -->
         <filterchain>
@@ -619,6 +619,9 @@
       <fileset dir="${classes-cdc}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/gluegen/runtime/opengl/*.class" />
+        <include name="com/jogamp/common/impl/*.class" />
+        <include name="com/jogamp/common/jvm/*.class" />
+        <include name="com/jogamp/common/util/*.class" />
         <include name="com/jogamp/common/nio/*.class" />
         <include name="com/jogamp/common/os/*.class" />
         <include name="com/jogamp/common/*.class" />

@@ -58,6 +58,7 @@ public class /*name*/IntIntHashMap/*name*/ {
     private int mask;
     private int capacity;
     private int threshold;
+    private /*value*/int/*value*/ keyNotFoundValue = /*null*/-1/*null*/;
 
     public /*name*/IntIntHashMap/*name*/() {
         this(16, 0.75f);
@@ -85,6 +86,19 @@ public class /*name*/IntIntHashMap/*name*/ {
         this.threshold = (int) (capacity * loadFactor);
         this.table = new Entry[capacity];
         this.mask = capacity - 1;
+    }
+
+    /** 
+     * Sets the new key not found value.
+     * For primitive types (int, long) the default is -1,
+     * for Object types, the default is null.
+     *
+     * @return the previous key not found value
+     */
+    public /*value*/int/*value*/ setKeyNotFoundValue(/*value*/int/*value*/ newKeyNotFoundValue) {
+        /*value*/int/*value*/ t = keyNotFoundValue;
+        keyNotFoundValue = newKeyNotFoundValue;
+        return t;
     }
 
     public boolean containsValue(/*value*/int/*value*/ value) {
@@ -118,7 +132,7 @@ public class /*name*/IntIntHashMap/*name*/ {
                 return e.value;
             }
         }
-        return /*null*/0/*null*/;
+        return keyNotFoundValue;
     }
 
 //    @SuppressWarnings(value="cast")
@@ -158,7 +172,7 @@ public class /*name*/IntIntHashMap/*name*/ {
             threshold = (int) (newCapacity * loadFactor);
             mask = capacity - 1;
         }
-        return /*null*/0/*null*/;
+        return keyNotFoundValue;
     }
 
 //    @SuppressWarnings(value="cast")
@@ -180,7 +194,7 @@ public class /*name*/IntIntHashMap/*name*/ {
             prev = e;
             e = next;
         }
-        return /*null*/0/*null*/;
+        return keyNotFoundValue;
     }
 
     public int size() {
