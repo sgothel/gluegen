@@ -187,13 +187,14 @@ public class JNILibLoaderBase {
           if (t instanceof InvocationTargetException) {
             t = ((InvocationTargetException) t).getTargetException();
           }
-          if (t instanceof Error)
+          if (t instanceof Error) {
             throw (Error) t;
+          }
           if (t instanceof RuntimeException) {
             throw (RuntimeException) t;
           }
           // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
-          throw (UnsatisfiedLinkError)new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
+          throw (UnsatisfiedLinkError) new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
         }
     } else {
       // System.out.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
