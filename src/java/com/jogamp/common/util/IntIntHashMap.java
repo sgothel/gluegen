@@ -88,19 +88,6 @@ public class /*name*/IntIntHashMap/*name*/ {
         this.mask = capacity - 1;
     }
 
-    /** 
-     * Sets the new key not found value.
-     * For primitive types (int, long) the default is -1,
-     * for Object types, the default is null.
-     *
-     * @return the previous key not found value
-     */
-    public /*value*/int/*value*/ setKeyNotFoundValue(/*value*/int/*value*/ newKeyNotFoundValue) {
-        /*value*/int/*value*/ t = keyNotFoundValue;
-        keyNotFoundValue = newKeyNotFoundValue;
-        return t;
-    }
-
     public boolean containsValue(/*value*/int/*value*/ value) {
         Entry[] table = this.table;
         for (int i = table.length; i-- > 0;) {
@@ -124,6 +111,10 @@ public class /*name*/IntIntHashMap/*name*/ {
         return false;
     }
 
+    /**
+     * Returns the value to which the specified key is mapped,
+     * or {@link #getKeyNotFoundValue} if this map contains no mapping for the key.
+     */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ get(/*key*/int/*key*/ key) {
         int index = (int) (key & mask);
@@ -135,6 +126,10 @@ public class /*name*/IntIntHashMap/*name*/ {
         return keyNotFoundValue;
     }
 
+    /**
+     * Maps the key to the specified value. If a mapping to this key already exists,
+     * the previous value will be returned (otherwise {@link #getKeyNotFoundValue}).
+     */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
         int index = (int) (key & mask);
@@ -175,6 +170,10 @@ public class /*name*/IntIntHashMap/*name*/ {
         return keyNotFoundValue;
     }
 
+    /**
+     * Removes the key-value mapping from this map.
+     * Returns the priviously mapped value or {@link #getKeyNotFoundValue} if no such mapping exists.
+     */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
         int index = (int) (key & mask);
@@ -207,6 +206,30 @@ public class /*name*/IntIntHashMap/*name*/ {
             table[index] = null;
         }
         size = 0;
+    }
+
+    /**
+     * Sets the new key not found value.
+     * For primitive types (int, long) the default is -1,
+     * for Object types, the default is null.
+     *
+     * @return the previous key not found value
+     * @see #get
+     * @see #put 
+     */
+    public /*value*/int/*value*/ setKeyNotFoundValue(/*value*/int/*value*/ newKeyNotFoundValue) {
+        /*value*/int/*value*/ t = keyNotFoundValue;
+        keyNotFoundValue = newKeyNotFoundValue;
+        return t;
+    }
+
+    /**
+     * Returns the value which is returned if no value has been found for the specified key.
+     * @see #get
+     * @see #put
+     */
+    public /*value*/int/*value*/ getKeyNotFoundValue() {
+        return keyNotFoundValue;
     }
 
     private final static class Entry {
