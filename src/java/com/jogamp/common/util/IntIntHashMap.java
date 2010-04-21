@@ -30,6 +30,8 @@
  */
 package com.jogamp.common.util;
 
+import java.util.Iterator;
+
 /*
  * Note: this map is used as template for other maps.
  */
@@ -48,7 +50,7 @@ package com.jogamp.common.util;
  * @see LongLongHashMap
  * @see LongIntHashMap
  */
-public class /*name*/IntIntHashMap/*name*/ {
+public class /*name*/IntIntHashMap/*name*/ implements Iterable {
 
     private final float loadFactor;
 
@@ -172,7 +174,7 @@ public class /*name*/IntIntHashMap/*name*/ {
 
     /**
      * Removes the key-value mapping from this map.
-     * Returns the priviously mapped value or {@link #getKeyNotFoundValue} if no such mapping exists.
+     * Returns the previously mapped value or {@link #getKeyNotFoundValue} if no such mapping exists.
      */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
@@ -208,6 +210,11 @@ public class /*name*/IntIntHashMap/*name*/ {
         size = 0;
     }
 
+//    @Override
+    public Iterator/*<Entry>*/ iterator() {
+        return new EntryIterator(this.table);
+    }
+
     /**
      * Sets the new key not found value.
      * For primitive types (int, long) the default is -1,
@@ -232,10 +239,74 @@ public class /*name*/IntIntHashMap/*name*/ {
         return keyNotFoundValue;
     }
 
-    private final static class Entry {
+//    @Override
+    public String toString() {
+        // TODO use StringBuilder as soon we are at language level 5
+        String str = "{";
+        Iterator itr = iterator();
+        while(itr.hasNext()) {
+            str += itr.next();
+            if(itr.hasNext()) {
+                str += ", ";
+            }
+        }
+        str += "}";
+        return str;
+    }
+    
+    private final static class EntryIterator implements Iterator/*<Entry>*/ {
 
-        private final /*key*/int/*key*/ key;
-        private /*value*/int/*value*/ value;
+        private final Entry[] entries;
+        
+        private int index;
+        private Entry next;
+            
+        private EntryIterator(Entry[] entries){
+            this.entries = entries;
+            // load next
+            next();
+        }
+
+//        @Override
+        public boolean hasNext() {
+            return next != null;
+        }
+
+//        @Override
+        public Object next() {
+            Entry current = next;
+
+            if(current != null && current.next != null) {
+                next = current.next;
+            }else{
+                while(index < entries.length) {
+                    Entry e = entries[index++];
+                    if(e != null) {
+                        next = e;
+                        return current;
+                    }
+                }
+                next = null;
+            }
+
+            return current;
+        }
+
+//        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("Not supported yet.");
+        }
+        
+    }
+    
+    /**
+     * An entry mapping a key to a value.
+     */
+    public final static class Entry {
+
+        public final /*key*/int/*key*/ key;
+        public /*value*/int/*value*/ value;
+        
         private Entry next;
 
         private Entry(/*key*/int/*key*/ k, /*value*/int/*value*/ v, Entry n) {
@@ -243,5 +314,19 @@ public class /*name*/IntIntHashMap/*name*/ {
             value = v;
             next = n;
         }
+
+        public /*key*/int/*key*/ getKey() {
+            return key;
+        }
+
+        public /*value*/int/*value*/ getValue() {
+            return value;
+        }
+
+//        @Override
+        public String toString() {
+            return "["+key+":"+value+"]";
+        }
+
     }
 }

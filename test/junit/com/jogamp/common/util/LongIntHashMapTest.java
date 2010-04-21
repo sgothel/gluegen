@@ -3,6 +3,7 @@
  */
 package com.jogamp.common.util;
 
+import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -78,11 +79,38 @@ public class LongIntHashMapTest {
     }
 
     @Test
+    public void iteratorTest() {
+
+        final LongIntHashMap map = new LongIntHashMap(iterations);
+
+        for (int i = 0; i < iterations; i++) {
+            map.put(rndKeys[i], rndValues[i]);
+        }
+
+        Iterator iterator = map.iterator();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+
+        int n = 0;
+        while (iterator.hasNext()) {
+            LongIntHashMap.Entry entry = (LongIntHashMap.Entry)iterator.next();
+            assertNotNull(entry);
+            n++;
+        }
+        assertEquals(map.size(), n);
+
+//        out.println(intmap);
+
+    }
+
+    @Test
     public void benchmark() {
 
         // simple benchmark
-        final LongIntHashMap intmap          = new LongIntHashMap(1024);
+        final LongIntHashMap intmap      = new LongIntHashMap(1024);
         final HashMap<Long, Integer> map = new HashMap<Long, Integer>(1024);
+
+        out.println(intmap.getClass().getName()+" vs "+map.getClass().getName());
 
         out.println("put");
         long time = currentTimeMillis();
@@ -90,7 +118,7 @@ public class LongIntHashMapTest {
             intmap.put(rndKeys[i], rndValues[i]);
         }
         long intmapTime = (currentTimeMillis() - time);
-        out.println("   iimap: " + intmapTime+"ms");
+        out.println("   limap: " + intmapTime+"ms");
 
 
         time = currentTimeMillis();
@@ -106,7 +134,7 @@ public class LongIntHashMapTest {
         System.out.println();
         System.out.println("get");
         intmapTime = (currentTimeMillis() - time);
-        out.println("   iimap: " + intmapTime+"ms");
+        out.println("   limap: " + intmapTime+"ms");
         for (int i = 0; i < iterations; i++) {
             intmap.get(rndValues[i]);
         }
@@ -122,7 +150,7 @@ public class LongIntHashMapTest {
         out.println();
         out.println("remove");
         intmapTime = (currentTimeMillis() - time);
-        out.println("   iimap: " + intmapTime+"ms");
+        out.println("   limap: " + intmapTime+"ms");
         for (int i = 0; i < iterations; i++) {
             intmap.remove(rndValues[i]);
         }
