@@ -11,6 +11,14 @@
   -->
 <project name="GlueGen" basedir="." default="all">
 
+  <fail message="Please build using Ant 1.8.0 or higher.">
+      <condition>
+          <not>
+              <antversion atleast="1.8.0"/>
+          </not>
+      </condition>
+  </fail>
+
   <!-- This is the version of GlueGen you are building -->
   <property name="gluegen_base_version" value="1.0-beta07"/>
 
@@ -482,7 +490,7 @@
     </copy>
   </target>
 
-  <target name="gluegen.build" depends="init">
+  <target name="gluegen.build.check" depends="init">
       <uptodate property="gluegen.build.skip">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
@@ -490,10 +498,9 @@
         <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
         <mapper type="merge" to="${build}/gluegen.jar"/>
       </uptodate>
-      <antcall target="gluegen.build.impl"  inheritRefs="true"/>
   </target>
 
-  <target name="gluegen.build.impl" unless="gluegen.build.skip">
+  <target name="gluegen.build" depends="gluegen.build.check" unless="gluegen.build.skip">
     <antcall target="pre-build"  inheritRefs="true"/>
 
     <!-- Because ANTLR looks for importVocab files in the current

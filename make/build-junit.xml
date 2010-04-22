@@ -174,17 +174,16 @@
       </sequential>
     </macrodef>  
 
-    <target name="junit.compile" depends="init">
+    <target name="junit.compile.check" depends="init">
       <uptodate property="junit.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
         <srcfiles dir= "${test.base.dir}"  includes="**"/>
         <srcfiles                          file="${gluegen.jar}" />
         <mapper type="merge" to="${gluegen-test.jar}"/>
       </uptodate>
-      <antcall target="junit.compile.impl"  inheritRefs="true"/>
     </target>
 
-    <target name="junit.compile.impl" unless="junit.compile.skip">
+    <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
       <antcall target="java.generate"  inheritRefs="true"/>
       <antcall target="java.build"     inheritRefs="true"/>
       <antcall target="native.build"   inheritRefs="true"/>
