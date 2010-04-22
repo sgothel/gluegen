@@ -4,6 +4,7 @@
 package com.jogamp.common.util;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.Random;
 import org.junit.BeforeClass;
@@ -39,6 +40,7 @@ public class IntIntHashMapTest {
         }
 
     }
+
     /**
      * Test of put method, of class IntIntHashMap.
      */
@@ -75,6 +77,31 @@ public class IntIntHashMapTest {
         }
 
     }
+    
+    @Test
+    public void iteratorTest() {
+
+        final IntIntHashMap intmap = new IntIntHashMap(iterations);
+
+        for (int i = 0; i < iterations; i++) {
+            intmap.put(rndKeys[i], rndValues[i]);
+        }
+        
+        Iterator iterator = intmap.iterator();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+
+        int n = 0;
+        while (iterator.hasNext()) {
+            IntIntHashMap.Entry entry = (IntIntHashMap.Entry)iterator.next();
+            assertNotNull(entry);
+            n++;
+        }
+        assertEquals(intmap.size(), n);
+
+//        out.println(intmap);
+
+    }
 
     @Test
     public void benchmark() {
@@ -82,6 +109,8 @@ public class IntIntHashMapTest {
         // simple benchmark
         final IntIntHashMap intmap          = new IntIntHashMap(1024);
         final HashMap<Integer, Integer> map = new HashMap<Integer, Integer>(1024);
+
+        out.println(intmap.getClass().getName()+" vs "+map.getClass().getName());
 
         out.println("put");
         long time = currentTimeMillis();
