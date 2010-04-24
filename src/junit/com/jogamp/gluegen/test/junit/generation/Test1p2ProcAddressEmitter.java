@@ -69,7 +69,7 @@ public class Test1p2ProcAddressEmitter extends BaseTest1 {
      */
     @Test
     public void chapter01TestLoadLibrary() throws Exception {
-        System.loadLibrary("BindingTest1p2");
+        BindingJNILibLoader.loadBindingTest1p2();
         dynamicLookupHelper = NativeLibrary.open("test1", getClass().getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test1) failed", dynamicLookupHelper);
 

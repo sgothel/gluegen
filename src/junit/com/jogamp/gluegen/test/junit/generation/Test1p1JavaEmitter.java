@@ -65,8 +65,7 @@ public class Test1p1JavaEmitter extends BaseTest1 {
      */
     @Test
     public void chapter01TestLoadLibrary() throws Exception {
-        //System.loadLibrary("test1");
-        System.loadLibrary("BindingTest1p1");
+        BindingJNILibLoader.loadBindingTest1p1();
     }
 
     /**
