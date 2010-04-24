@@ -39,8 +39,7 @@
 
 package com.jogamp.common.os;
 
-/** Interface callers may use to use the ProcAddressHelper's {@link
-    ProcAddressHelper#resetProcAddressTable resetProcAddressTable}
+/** Interface callers may use to use the ProcAddressHelper's {@link ProcAddressTable#reset reset}
     helper method to install function pointers into a
     ProcAddressTable. This must typically be written with native
     code. */

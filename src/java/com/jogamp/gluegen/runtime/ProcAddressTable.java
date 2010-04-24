@@ -89,14 +89,14 @@ public abstract class ProcAddressTable {
     public abstract long getAddressFor(String functionName);
 
 
-    public void resetProcAddressTable(DynamicLookupHelper lookup) throws RuntimeException {
+    public void reset(DynamicLookupHelper lookup) throws RuntimeException {
 
         Class tableClass = getClass();
         Field[] fields = tableClass.getFields();
         PrintStream dout = getDebugOutStream();
 
         if (DEBUG) {
-            dout.println("ProcAddressHelper.resetProcAddressTable(" + getClass().getName() + ")");
+            dout.println("ProcAddressTable.reset(" + getClass().getName() + ")");
         }
         for (int i = 0; i < fields.length; ++i) {
             String addressFieldName = fields[i].getName();
@@ -137,7 +137,7 @@ public abstract class ProcAddressTable {
             if (DEBUG_PREFIX != null) {
                 try {
                     out = new PrintStream(new BufferedOutputStream(new FileOutputStream(DEBUG_PREFIX + File.separatorChar
-                            + "procaddresshelper-" + (++debugNum) + ".txt")));
+                            + "procaddresstable-" + (++debugNum) + ".txt")));
                 } catch (IOException e) {
                     e.printStackTrace();
                     out = System.err;
