@@ -52,7 +52,7 @@ import com.jogamp.gluegen.runtime.*;
  */
 public class ProcAddressEmitter extends JavaEmitter {
 
-    public static final String PROCADDRESS_VAR_PREFIX = ProcAddressHelper.PROCADDRESS_VAR_PREFIX;
+    public static final String PROCADDRESS_VAR_PREFIX = ProcAddressTable.PROCADDRESS_VAR_PREFIX;
     protected static final String WRAP_PREFIX = "dispatch_";
     private TypeDictionary typedefDictionary;
     protected PrintWriter tableWriter;
@@ -320,12 +320,19 @@ public class ProcAddressEmitter extends JavaEmitter {
         tableWriter.println(" * pointer is 0, the function is considered to be unavailable and can");
         tableWriter.println(" * not be called.");
         tableWriter.println(" */");
-        tableWriter.println("public class " + tableClassName + " implements com.jogamp.gluegen.runtime.ProcAddressTable");
-        tableWriter.println("{");
+        tableWriter.println("public class " + tableClassName + " extends "+ ProcAddressTable.class.getName() + " {");
+        tableWriter.println();
 
         for (String string : getProcAddressConfig().getForceProcAddressGen()) {
             emitProcAddressTableEntryForString(string);
         }
+
+        tableWriter.println();
+        tableWriter.println("  public "+tableClassName+"(){ super(); }");
+        tableWriter.println();
+        tableWriter.println("  public "+tableClassName+"("+FunctionAddressResolver.class.getName()+" resolver){ super(resolver); }");
+        tableWriter.println();
+
     }
 
     protected void endProcAddressTable() throws Exception {
@@ -345,7 +352,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         w.println("   *   it was statically linked.");
         w.println("   */");
         w.println("  public long getAddressFor(String functionName) {");
-        w.println("    String addressFieldName = " + getProcAddressConfig().gluegenRuntimePackage() + ".ProcAddressHelper.PROCADDRESS_VAR_PREFIX + functionName;");
+        w.println("    String addressFieldName = PROCADDRESS_VAR_PREFIX + functionName;");
         w.println("    try { ");
         w.println("      java.lang.reflect.Field addressField = getClass().getField(addressFieldName);");
         w.println("      return addressField.getLong(this);");
