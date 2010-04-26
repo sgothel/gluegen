@@ -114,7 +114,7 @@ public abstract class PointerBuffer extends AbstractLongBuffer {
         if(null==bb) {
             throw new RuntimeException("Buffer is null");
         }
-        if(!bb.isDirect()) {
+        if(!Buffers.isDirect(bb)) {
             throw new RuntimeException("Buffer is not direct");
         }
         long mask = Platform.is32Bit() ?  0x00000000FFFFFFFFL : 0xFFFFFFFFFFFFFFFFL ;
