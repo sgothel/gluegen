@@ -47,10 +47,10 @@
 
     <property name="javac.bootclasspath-cdc.jar" value="lib/cdc_fp.jar" />
 
-    <!-- The source directories. -->
+    <!-- The source and build directories. -->
     <property name="src.java" value="../src/java" />
     <property name="build"    location="../${rootrel.build}" />
-
+    <property name="javadoc"  location="${build}/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
 
@@ -687,6 +687,19 @@
 
   <target name="junit.run">
     <ant antfile="build-junit.xml" target="junit.run"/>
+  </target>
+
+  <target name="javadoc" depends="init">
+    <!-- Build the general public Javadoc -->
+    <javadoc packagenames="com.jogamp.*"
+             sourcepath="${src.java};${src.generated.java}"
+             destdir="${javadoc}" windowtitle="GlueGen Runtime Documentation"
+             source="1.4"
+             maxmemory="256m" >
+        <classpath path="${classes}"/>
+        <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+        <excludepackage name="com.jogamp.common.impl"/>
+    </javadoc>
   </target>
 
 </project>
