@@ -30,6 +30,7 @@
  */
 package com.jogamp.common.util;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 /*
@@ -78,7 +79,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             throw new IllegalArgumentException("initialCapacity must be greater than zero.");
         }
         if (loadFactor <= 0) {
-            throw new IllegalArgumentException("initialCapacity must be greater than zero.");
+            throw new IllegalArgumentException("loadFactor must be greater than zero.");
         }
         capacity = 1;
         while (capacity < initialCapacity) {
@@ -91,9 +92,9 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
     }
 
     public boolean containsValue(/*value*/int/*value*/ value) {
-        Entry[] table = this.table;
-        for (int i = table.length; i-- > 0;) {
-            for (Entry e = table[i]; e != null; e = e.next) {
+        Entry[] t = this.table;
+        for (int i = t.length; i-- > 0;) {
+            for (Entry e = t[i]; e != null; e = e.next) {
                 if (e.value == value) {
                     return true;
                 }
@@ -104,8 +105,9 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
 
 //    @SuppressWarnings(value="cast")
     public boolean containsKey(/*key*/int/*key*/ key) {
+        Entry[] t = this.table;
         int index = (int) (key & mask);
-        for (Entry e = table[index]; e != null; e = e.next) {
+        for (Entry e = t[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return true;
             }
@@ -119,8 +121,9 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
      */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ get(/*key*/int/*key*/ key) {
+        Entry[] t = this.table;
         int index = (int) (key & mask);
-        for (Entry e = table[index]; e != null; e = e.next) {
+        for (Entry e = t[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return e.value;
             }
@@ -134,9 +137,10 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
      */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
+        Entry[] t = this.table;
         int index = (int) (key & mask);
         // Check if key already exists.
-        for (Entry e = table[index]; e != null; e = e.next) {
+        for (Entry e = t[index]; e != null; e = e.next) {
             if (e.key != key) {
                 continue;
             }
@@ -144,17 +148,17 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             e.value = value;
             return oldValue;
         }
-        table[index] = new Entry(key, value, table[index]);
+        t[index] = new Entry(key, value, t[index]);
+
         if (size++ >= threshold) {
             // Rehash.
             int newCapacity = 2 * capacity;
             Entry[] newTable = new Entry[newCapacity];
-            Entry[] src = table;
             /*key*/int/*key*/ bucketmask = newCapacity - 1;
-            for (int j = 0; j < src.length; j++) {
-                Entry e = src[j];
+            for (int j = 0; j < t.length; j++) {
+                Entry e = t[j];
                 if (e != null) {
-                    src[j] = null;
+                    t[j] = null;
                     do {
                         Entry next = e.next;
                         index = (int) (e.key & bucketmask);
@@ -178,15 +182,16 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
      */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
+        Entry[] t = this.table;
         int index = (int) (key & mask);
-        Entry prev = table[index];
+        Entry prev = t[index];
         Entry e = prev;
         while (e != null) {
             Entry next = e.next;
             if (e.key == key) {
                 size--;
                 if (prev == e) {
-                    table[index] = next;
+                    t[index] = next;
                 } else {
                     prev.next = next;
                 }
@@ -198,21 +203,28 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         return keyNotFoundValue;
     }
 
+    /**
+     * Returns the current number of key-value mappings in this map.
+     */
     public int size() {
         return size;
     }
 
+    /**
+     * Clears the entire map. The size is 0 after this operation.
+     */
     public void clear() {
-        Entry[] table = this.table;
-        for (int index = table.length; --index >= 0;) {
-            table[index] = null;
-        }
+        Arrays.fill(table, null);
         size = 0;
     }
 
+    /**
+     * Returns a new {@link Iterator}.
+     * Note: this Iterator does not yet support removal of elements.
+     */
 //    @Override
     public Iterator/*<Entry>*/ iterator() {
-        return new EntryIterator(this.table);
+        return new EntryIterator(table);
     }
 
     /**
@@ -315,12 +327,25 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             next = n;
         }
 
+        /**
+         * Returns the key of this entry.
+         */
         public /*key*/int/*key*/ getKey() {
             return key;
         }
 
+        /**
+         * Returns the value of this entry.
+         */
         public /*value*/int/*value*/ getValue() {
             return value;
+        }
+
+        /**
+         * Sets the value for this entry.
+         */
+        public void setValue(int value) {
+            this.value = value;
         }
 
 //        @Override
