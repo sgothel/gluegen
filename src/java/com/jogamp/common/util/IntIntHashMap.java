@@ -344,7 +344,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         /**
          * Sets the value for this entry.
          */
-        public void setValue(int value) {
+        public void setValue(/*value*/int/*value*/ value) {
             this.value = value;
         }
 
