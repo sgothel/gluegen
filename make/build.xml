@@ -387,22 +387,7 @@
       </antcall>
 
       <antcall target="c.manifest" inheritRefs="true" />
-      <!-- Create Java Web Start jar file from built file -->
-      <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}.jar">
-        <fileset dir="${build}/obj">
-          <include name="*gluegen-rt.${native.library.suffix}" />
-        </fileset>
-      </jar>
-      <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}-cdc.jar">
-        <fileset dir="${build}/obj">
-          <include name="*gluegen-rt.${native.library.suffix-cdc}" />
-        </fileset>
-      </jar>
     </target>  
-
-  <target name="build.nativelibrary" depends="init" unless="build.javaonly" >
-    <antcall target="c.build" inheritRefs="true" />
-  </target>
 
   <target name="gluegen.build.gluegen-rt-cdc" >
     <!-- Build just the gluegen-rt-cdc.jar classes using the Java CDC
@@ -500,7 +485,7 @@
       </uptodate>
   </target>
 
-  <target name="gluegen.build" depends="gluegen.build.check" unless="gluegen.build.skip">
+  <target name="gluegen.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check" unless="gluegen.build.skip">
     <antcall target="pre-build"  inheritRefs="true"/>
 
     <!-- Because ANTLR looks for importVocab files in the current
@@ -604,6 +589,10 @@
         </filterset>
     </copy>
 
+    <!-- Build the (native code) NativeLibrary support for
+         gluegen-rt[-cdc].jar using the just-built GlueGen. -->
+    <antcall target="c.build" inheritRefs="true" />
+
     <!-- Build gluegen-rt.jar. -->
     <jar destfile="${build}/gluegen-rt.jar" manifest="${build}/Manifest-rt.temp">
       <fileset dir="${classes}">
@@ -612,10 +601,11 @@
         <include name="com/jogamp/common/**" />
       </fileset>
     </jar>
-
-    <!-- Build the (native code) NativeLibrary support for
-         gluegen-rt[-cdc].jar using the just-built GlueGen. -->
-    <antcall target="build.nativelibrary" inheritRefs="true" />
+    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}.jar" manifest="${build}/Manifest-rt.temp">
+      <fileset dir="${build}/obj">
+        <include name="*gluegen-rt.${native.library.suffix}" />
+      </fileset>
+    </jar>
 
     <!-- Build just the gluegen-rt-cdc.jar classes using the Java CDC
          boot classes. -->
@@ -632,6 +622,11 @@
         <include name="com/jogamp/common/nio/*.class" />
         <include name="com/jogamp/common/os/*.class" />
         <include name="com/jogamp/common/*.class" />
+      </fileset>
+    </jar>
+    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}-cdc.jar" manifest="${build}/Manifest-rt-cdc.temp">
+      <fileset dir="${build}/obj">
+        <include name="*gluegen-rt.${native.library.suffix-cdc}" />
       </fileset>
     </jar>
 

@@ -9,6 +9,7 @@
     <description kind="short">Run-time support classes and native code for applications and libraries built using the GlueGen tool.</description>
     <offline-allowed/>
   </information>
+  <update check="background" policy="always"/>
   <security>
       <all-permissions/>
   </security>
