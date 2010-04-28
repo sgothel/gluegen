@@ -34,6 +34,7 @@ import com.jogamp.common.nio.Buffers;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.security.*;
 
 /**
  * Utility class for querying platform specific properties.
@@ -93,17 +94,23 @@ public class Platform {
             }
         }
 
-        // fast path
-        boolean se = System.getProperty("java.runtime.name").indexOf("Java SE") != -1;
+        boolean se;
+        try{
+            Class.forName("java.nio.LongBuffer");
+            Class.forName("java.nio.DoubleBuffer");
+            se = true;
+        }catch(ClassNotFoundException ex) {
+            se = false;
+        }
 
         if(!se) {
-            try{
-                Class.forName("java.nio.LongBuffer");
-                Class.forName("java.nio.DoubleBuffer");
-                se = true;
-            }catch(ClassNotFoundException ex) {
-                se = false;
-            }
+            // no more the fast path, due to access controller ..
+            String java_runtime_name = (String) AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                  return System.getProperty("java.runtime.name");
+                }
+              });
+            se = java_runtime_name.indexOf("Java SE") != -1;
         }
         JAVA_SE = se;
 
