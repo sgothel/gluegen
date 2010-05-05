@@ -84,6 +84,19 @@ public final class ReflectionUtil {
         }
     }
 
+    static final String asString(Class[] argTypes) {
+        StringBuffer args = new StringBuffer();
+        boolean coma = false;
+        for (int i = 0; i < argTypes.length; i++) {
+            if(coma) {
+                 args.append(", ");
+            }
+            args.append(argTypes[i].getName());
+            coma = true;
+        }
+        return args.toString();
+    }
+
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
@@ -92,14 +105,7 @@ public final class ReflectionUtil {
         try {
             return clazz.getDeclaredConstructor(cstrArgTypes);
         } catch (NoSuchMethodException ex) {
-            String args = "";
-            for (int i = 0; i < cstrArgTypes.length; i++) {
-                args += cstrArgTypes[i].getName();
-                if(i != cstrArgTypes.length-1) {
-                     args+= ", ";
-                }
-            }
-            throw new JogampRuntimeException("Constructor: '" + clazz + "(" + args + ")' not found", ex);
+            throw new JogampRuntimeException("Constructor: '" + clazz + "(" + asString(cstrArgTypes) + ")' not found", ex);
         }
     }
 
@@ -205,5 +211,39 @@ public final class ReflectionUtil {
       return instanceOf(clazz, "java.awt.Component");
   }
 
+  /**
+   * @throws JogampRuntimeException if the instance can not be created.
+   */
+  public static final Object callStaticMethod(String clazzName, String methodName, Class[] argTypes, Object[] args) 
+      throws JogampRuntimeException, RuntimeException
+  {
+    Class clazz;
+    try {
+        clazz = getClassImpl(clazzName, true);
+    } catch (ClassNotFoundException ex) {
+        throw new JogampRuntimeException(clazzName + " not available", ex);
+    }
+    Method method;
+    try {
+        method = clazz.getDeclaredMethod(methodName, argTypes);
+    } catch (NoSuchMethodException ex) {
+        throw new JogampRuntimeException("Method: '" + clazz + "." + methodName + "(" + asString(argTypes) + ")' not found", ex);
+    }
+    try {
+        return method.invoke(null, args);
+    } catch (Exception e) {
+      Throwable t = e;
+      if (t instanceof InvocationTargetException) {
+        t = ((InvocationTargetException) t).getTargetException();
+      }
+      if (t instanceof Error) {
+        throw (Error) t;
+      }
+      if (t instanceof RuntimeException) {
+        throw (RuntimeException) t;
+      }
+      throw new JogampRuntimeException("calling "+method+" of "+clazz+" failed", t);
+    }
+  }
 }
 
