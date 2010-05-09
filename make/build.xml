@@ -695,6 +695,9 @@
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
         <excludepackage name="com.jogamp.common.impl"/>
     </javadoc>
+    <zip destfile="${build}/javadoc.zip"
+         basedir="${build}"
+         includes="javadoc/**" />
   </target>
 
 </project>
