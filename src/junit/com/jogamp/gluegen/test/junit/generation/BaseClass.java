@@ -58,7 +58,7 @@ import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public class BaseTest1 {
+public class BaseClass {
 
     /**
      * Verifies the existence and creation of the generated class.
@@ -77,14 +77,14 @@ public class BaseTest1 {
 
         Object obj = clazzImpl.newInstance();
         Assert.assertTrue("Not of type "+ifName, clazzIf.isAssignableFrom(obj.getClass()));
-        Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.generation.BindingTest1", (obj instanceof com.jogamp.gluegen.test.junit.generation.BindingTest1));
+        Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.generation.Bindingtest1", (obj instanceof com.jogamp.gluegen.test.junit.generation.Bindingtest1));
     }
 
     /**
      * Verifies if all generated method signatures are completed,
      * ie a compilation only coverage test without functional tests.
      */
-    public void chapter__TestCoverageSignature(BindingTest1 binding) throws Exception {
+    public void chapter__TestCoverageSignature(Bindingtest1 binding) throws Exception {
           int i;
           long result;
           long context = 0;
@@ -147,7 +147,7 @@ public class BaseTest1 {
      * This is a compilation (coverage) and runtime time (semantic) test.
      * This covers indirect primitive arrays and direct NIO buffers.
      */
-    public void chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(BindingTest1 binding) throws Exception {
+    public void chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(Bindingtest1 binding) throws Exception {
           int i;
           long result;
 
@@ -159,35 +159,35 @@ public class BaseTest1 {
           Int64Buffer bb2L = Int64Buffer.wrap(bb2);
           bb2L.put(0, 100);
 
-          IntBuffer ib1 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * BindingTest1.ARRAY_SIZE).asIntBuffer();
-          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+          IntBuffer ib1 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * Bindingtest1.ARRAY_SIZE).asIntBuffer();
+          for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             ib1.put(i,  1000);
           }
 
-          Int64Buffer lb1 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
-          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+          Int64Buffer lb1 = Int64Buffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
+          for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             lb1.put(i,  1000);
           }
-          Int64Buffer lb2 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
-          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+          Int64Buffer lb2 = Int64Buffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
+          for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             lb2.put(i, 10000);
           }
 
-          int[] iarray1 = new int[BindingTest1.ARRAY_SIZE];
+          int[] iarray1 = new int[Bindingtest1.ARRAY_SIZE];
           int iarray1_offset = 0;
-          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+          for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             iarray1[i]=  1000;
           }
 
-          long[] larray1 = new long[BindingTest1.ARRAY_SIZE];
+          long[] larray1 = new long[Bindingtest1.ARRAY_SIZE];
           int larray1_offset = 0;
-          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+          for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             larray1[i]=  1000;
           }
 
-          long[] larray2 = new long[BindingTest1.ARRAY_SIZE];
+          long[] larray2 = new long[Bindingtest1.ARRAY_SIZE];
           int larray2_offset = 0;
-          for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+          for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             larray2[i]= 10000;
           }
 
@@ -215,43 +215,43 @@ public class BaseTest1 {
           // Int64Buffer arrayTestFoo2 ( Int64Buffer )
           {
               lb2.rewind();
-              Int64Buffer lb3 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+              Int64Buffer lb3 = Int64Buffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
               lb3.put(lb2);
               lb3.rewind();
               lb2.rewind();
 
               // System.out.println("lb3: "+lb3);
-              Assert.assertTrue("Wrong result: "+lb3.capacity(), BindingTest1.ARRAY_SIZE == lb3.capacity());
-              Assert.assertTrue("Wrong result: "+lb3.remaining(), BindingTest1.ARRAY_SIZE == lb3.remaining());
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), Bindingtest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), Bindingtest1.ARRAY_SIZE == lb3.remaining());
 
               Int64Buffer lbR = binding.arrayTestFoo2(lb3);
               // System.out.println("lbR: "+lbR);
 
               Assert.assertNotNull(lbR);
-              Assert.assertTrue("Wrong result: "+lb3.capacity(), BindingTest1.ARRAY_SIZE == lb3.capacity());
-              Assert.assertTrue("Wrong result: "+lb3.remaining(), BindingTest1.ARRAY_SIZE == lb3.remaining());
-              Assert.assertTrue("Wrong result: "+lbR.capacity(), BindingTest1.ARRAY_SIZE == lbR.capacity());
-              Assert.assertTrue("Wrong result: "+lbR.remaining(), BindingTest1.ARRAY_SIZE == lbR.remaining());
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), Bindingtest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), Bindingtest1.ARRAY_SIZE == lb3.remaining());
+              Assert.assertTrue("Wrong result: "+lbR.capacity(), Bindingtest1.ARRAY_SIZE == lbR.capacity());
+              Assert.assertTrue("Wrong result: "+lbR.remaining(), Bindingtest1.ARRAY_SIZE == lbR.remaining());
               int j=0;
-              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                 Assert.assertTrue("Wrong result: s:"+lb3.get(j)+" d: "+lbR.get(j), 1+lb3.get(j)==lbR.get(j));
               }
           }
 
           // Int64Buffer arrayTestFoo2 ( long[], int )
           {
-              long[] larray3 = new long[BindingTest1.ARRAY_SIZE];
-              for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+              long[] larray3 = new long[Bindingtest1.ARRAY_SIZE];
+              for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
                 larray3[i]=  larray2[i];
               }
 
               Int64Buffer lbR = binding.arrayTestFoo2(larray3, 0);
 
               Assert.assertNotNull(lbR);
-              Assert.assertTrue("Wrong result: "+lbR.capacity(), BindingTest1.ARRAY_SIZE == lbR.capacity());
-              Assert.assertTrue("Wrong result: "+lbR.remaining(), BindingTest1.ARRAY_SIZE == lbR.remaining());
+              Assert.assertTrue("Wrong result: "+lbR.capacity(), Bindingtest1.ARRAY_SIZE == lbR.capacity());
+              Assert.assertTrue("Wrong result: "+lbR.remaining(), Bindingtest1.ARRAY_SIZE == lbR.remaining());
               int j=0;
-              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                 Assert.assertTrue("Wrong result: s:"+larray3[j]+" d: "+lbR.get(j), 1+larray3[j]==lbR.get(j));
               }
           }
@@ -260,31 +260,31 @@ public class BaseTest1 {
           // PointerBuffer arrayTestFoo3PtrPtr(PointerBuffer)
           {
               lb2.rewind();
-              Int64Buffer lb3 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE);
+              Int64Buffer lb3 = Int64Buffer.allocateDirect(Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE);
               int j;
-              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                   lb3.put(lb2);
                   lb2.rewind();
               }
               lb3.rewind();
 
               // System.out.println("lb3: "+lb3);
-              Assert.assertTrue("Wrong result: "+lb3.capacity(), BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE == lb3.capacity());
-              Assert.assertTrue("Wrong result: "+lb3.remaining(), BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE == lb3.remaining());
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE == lb3.remaining());
 
               PointerBuffer pb = binding.arrayTestFoo3ArrayToPtrPtr(lb3);
               // System.out.println("pb: "+pb);
-              Assert.assertTrue("Wrong result: "+pb.capacity(), BindingTest1.ARRAY_SIZE == pb.capacity());
-              Assert.assertTrue("Wrong result: "+pb.remaining(), BindingTest1.ARRAY_SIZE == pb.remaining());
+              Assert.assertTrue("Wrong result: "+pb.capacity(), Bindingtest1.ARRAY_SIZE == pb.capacity());
+              Assert.assertTrue("Wrong result: "+pb.remaining(), Bindingtest1.ARRAY_SIZE == pb.remaining());
 
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);
 
               Assert.assertNotNull(pb2);
-              Assert.assertTrue("Wrong result: "+pb2.capacity(), BindingTest1.ARRAY_SIZE == pb2.capacity());
-              Assert.assertTrue("Wrong result: "+pb2.remaining(), BindingTest1.ARRAY_SIZE == pb2.remaining());
-              for(j=0; j<BindingTest1.ARRAY_SIZE*BindingTest1.ARRAY_SIZE; j++) {
-                Assert.assertTrue("Wrong result: s:"+lb2.get(j%BindingTest1.ARRAY_SIZE)+" d: "+lb3.get(j), 
-                                  1+lb2.get(j%BindingTest1.ARRAY_SIZE)==lb3.get(j));
+              Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
+              Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
+              for(j=0; j<Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+lb2.get(j%Bindingtest1.ARRAY_SIZE)+" d: "+lb3.get(j), 
+                                  1+lb2.get(j%Bindingtest1.ARRAY_SIZE)==lb3.get(j));
               }
           }
 
@@ -292,10 +292,10 @@ public class BaseTest1 {
           //  " "
           // PointerBuffer arrayTestFoo3PtrPtr(PointerBuffer)
           {
-              PointerBuffer pb = PointerBuffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+              PointerBuffer pb = PointerBuffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
               int j;
-              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
-                  Int64Buffer lb3 = Int64Buffer.allocateDirect(BindingTest1.ARRAY_SIZE);
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                  Int64Buffer lb3 = Int64Buffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
                   lb3.put(lb2);
                   lb2.rewind();
                   lb3.rewind();
@@ -305,20 +305,20 @@ public class BaseTest1 {
               pb.rewind();
 
               // System.out.println("lb3: "+lb3);
-              Assert.assertTrue("Wrong result: "+pb.capacity(), BindingTest1.ARRAY_SIZE == pb.capacity());
-              Assert.assertTrue("Wrong result: "+pb.remaining(), BindingTest1.ARRAY_SIZE == pb.remaining());
+              Assert.assertTrue("Wrong result: "+pb.capacity(), Bindingtest1.ARRAY_SIZE == pb.capacity());
+              Assert.assertTrue("Wrong result: "+pb.remaining(), Bindingtest1.ARRAY_SIZE == pb.remaining());
               Assert.assertNotNull(pb.getReferencedBuffer(0));
               Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2.getBuffer(), pb.getReferencedBuffer(0).equals(lb2.getBuffer()));
 
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);
 
               Assert.assertNotNull(pb2);
-              Assert.assertTrue("Wrong result: "+pb2.capacity(), BindingTest1.ARRAY_SIZE == pb2.capacity());
-              Assert.assertTrue("Wrong result: "+pb2.remaining(), BindingTest1.ARRAY_SIZE == pb2.remaining());
-              for(j=0; j<BindingTest1.ARRAY_SIZE; j++) {
+              Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
+              Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                   ByteBuffer bb = (ByteBuffer) pb.getReferencedBuffer(j);
                   Int64Buffer i64b = Int64Buffer.wrap(bb);
-                  for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+                  for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
                     Assert.assertTrue("Wrong result: ["+j+"]["+i+"] s:"+lb2.get(i)+" d: "+i64b.get(i), 1+lb2.get(i)==i64b.get(i));
                   }
               }
@@ -378,8 +378,8 @@ public class BaseTest1 {
           {
               long cfg_base = 0xAABBCCDD11223344L;
               
-              PointerBuffer pb = PointerBuffer.allocateDirect(BindingTest1.ARRAY_SIZE);
-              for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+              PointerBuffer pb = PointerBuffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
+              for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
                 long cfg_native;
                 if(Platform.is32Bit()) {
                     cfg_native = (cfg_base+i) & 0x00000000FFFFFFFFL; // umask 1st 32bit
@@ -395,9 +395,9 @@ public class BaseTest1 {
               }
               pb.rewind();
               PointerBuffer pb2 = binding.typeTestAnonPointer(pb);
-              Assert.assertTrue("Wrong result: "+pb2.capacity(), BindingTest1.ARRAY_SIZE == pb2.capacity());
-              Assert.assertTrue("Wrong result: "+pb2.remaining(), BindingTest1.ARRAY_SIZE == pb2.remaining());
-              for(i=0; i<BindingTest1.ARRAY_SIZE; i++) {
+              Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
+              Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
+              for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
                   Assert.assertTrue("Wrong result: 0x"+Long.toHexString(pb.get(i))+"+1 != 0x"+Long.toHexString(pb2.get(i)), (pb.get(i)+1)==pb2.get(i));
               }
           }
@@ -406,7 +406,7 @@ public class BaseTest1 {
     /**
      * This covers indirect primitive arrays and indirect NIO buffers.
      */
-    public void chapter04TestSomeFunctionsAllIndirect(BindingTest1 binding) throws Exception {
+    public void chapter04TestSomeFunctionsAllIndirect(Bindingtest1 binding) throws Exception {
           int i;
           long result;
 

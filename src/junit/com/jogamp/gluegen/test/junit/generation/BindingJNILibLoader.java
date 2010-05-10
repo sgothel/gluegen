@@ -37,19 +37,19 @@ import java.security.*;
 
 public class BindingJNILibLoader extends JNILibLoaderBase {
     
-  public static void loadBindingTest1p1() {
+  public static void loadBindingtest1p1() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("BindingTest1p1", null, true);
+        loadLibrary("Bindingtest1p1", null, true);
         return null;
       }
     });
   }
 
-  public static void loadBindingTest1p2() {
+  public static void loadBindingtest1p2() {
     AccessController.doPrivileged(new PrivilegedAction() {
       public Object run() {
-        loadLibrary("BindingTest1p2", null, true);
+        loadLibrary("Bindingtest1p2", null, true);
         return null;
       }
     });

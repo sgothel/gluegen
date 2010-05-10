@@ -32,7 +32,7 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import com.jogamp.gluegen.test.junit.generation.impl.BindingTest1p1Impl;
+import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
@@ -58,14 +58,14 @@ import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public class Test1p1JavaEmitter extends BaseTest1 {
+public class Test1p1JavaEmitter extends BaseClass {
 
     /**
      * Verifies loading of the new library.
      */
     @Test
     public void chapter01TestLoadLibrary() throws Exception {
-        BindingJNILibLoader.loadBindingTest1p1();
+        BindingJNILibLoader.loadBindingtest1p1();
     }
 
     /**
@@ -73,7 +73,7 @@ public class Test1p1JavaEmitter extends BaseTest1 {
      */
     @Test
     public void chapter02TestClassExist() throws Exception {
-        testClassExist("Test1p1");
+        testClassExist("test1p1");
     }
 
     /**
@@ -81,7 +81,7 @@ public class Test1p1JavaEmitter extends BaseTest1 {
      * ie a compilation only coverage test without functional tests.
      */
     public void chapter__TestCoverageSignature() throws Exception {
-        chapter__TestCoverageSignature(new BindingTest1p1Impl());
+        chapter__TestCoverageSignature(new Bindingtest1p1Impl());
     }
 
     /**
@@ -92,7 +92,7 @@ public class Test1p1JavaEmitter extends BaseTest1 {
      */
     @Test
     public void chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray() throws Exception {
-        chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(new BindingTest1p1Impl());
+        chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(new Bindingtest1p1Impl());
     }
 
     /**
@@ -100,7 +100,7 @@ public class Test1p1JavaEmitter extends BaseTest1 {
      */
     @Test
     public void chapter04TestSomeFunctionsAllIndirect() throws Exception {
-        chapter04TestSomeFunctionsAllIndirect(new BindingTest1p1Impl());
+        chapter04TestSomeFunctionsAllIndirect(new Bindingtest1p1Impl());
     }
 
 }

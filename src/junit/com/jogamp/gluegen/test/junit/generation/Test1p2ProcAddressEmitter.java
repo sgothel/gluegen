@@ -32,7 +32,7 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import com.jogamp.gluegen.test.junit.generation.impl.BindingTest1p2Impl;
+import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.DynamicLookupHelper;
@@ -46,7 +46,7 @@ import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public class Test1p2ProcAddressEmitter extends BaseTest1 {
+public class Test1p2ProcAddressEmitter extends BaseClass {
 
     DynamicLookupHelper dynamicLookupHelper;
 
@@ -55,11 +55,11 @@ public class Test1p2ProcAddressEmitter extends BaseTest1 {
      */
     @Test
     public void chapter01TestLoadLibrary() throws Exception {
-        BindingJNILibLoader.loadBindingTest1p2();
+        BindingJNILibLoader.loadBindingtest1p2();
         dynamicLookupHelper = NativeLibrary.open("test1", getClass().getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test1) failed", dynamicLookupHelper);
 
-        BindingTest1p2Impl.resetProcAddressTable(dynamicLookupHelper);
+        Bindingtest1p2Impl.resetProcAddressTable(dynamicLookupHelper);
     }
 
     /**
@@ -67,7 +67,7 @@ public class Test1p2ProcAddressEmitter extends BaseTest1 {
      */
     @Test
     public void chapter02TestClassExist() throws Exception {
-        testClassExist("Test1p2");
+        testClassExist("test1p2");
     }
 
     /**
@@ -75,7 +75,7 @@ public class Test1p2ProcAddressEmitter extends BaseTest1 {
      * ie a compilation only coverage test without functional tests.
      */
     public void chapter__TestCoverageSignature() throws Exception {
-        chapter__TestCoverageSignature(new BindingTest1p2Impl());
+        chapter__TestCoverageSignature(new Bindingtest1p2Impl());
     }
 
     /**
@@ -86,7 +86,7 @@ public class Test1p2ProcAddressEmitter extends BaseTest1 {
      */
     @Test
     public void chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray() throws Exception {
-        chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(new BindingTest1p2Impl());
+        chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(new Bindingtest1p2Impl());
     }
 
     /**
@@ -94,7 +94,7 @@ public class Test1p2ProcAddressEmitter extends BaseTest1 {
      */
     @Test
     public void chapter04TestSomeFunctionsAllIndirect() throws Exception {
-        chapter04TestSomeFunctionsAllIndirect(new BindingTest1p2Impl());
+        chapter04TestSomeFunctionsAllIndirect(new Bindingtest1p2Impl());
     }
 
     public static void main(String[] args) {

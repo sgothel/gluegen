@@ -26,8 +26,10 @@
         <property name="make" value="." />
 
         <property name="test.base.dir"  value="${gluegen.root}/src/junit" />
-        <property name="test.junit.rel" value="com/jogamp/gluegen/test/junit" />
+        <property name="test.junit.rel" value="com/jogamp" />
         <property name="test.junit.dir" value="${test.base.dir}/${test.junit.rel}" />
+        <property name="test.junit.generation.rel" value="${test.junit.rel}/gluegen/test/junit/generation" />
+        <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
         <property name="test.dir"     value="${gluegen.root}/${rootrel.build}/test"/>
         <property name="results"      value="${test.dir}/results" />
@@ -37,7 +39,6 @@
         <property name="build_t.obj"  value="${build_t}/obj"/>
         <property name="build_t.lib"  value="${build_t}/natives"/>
 
-        <property name="test.junit.rootrel" value="src/junit/${test.junit.rel}" />
         <property name="build_t.gen.rootrel" value="${rootrel.build}/test/build/gensrc"/>
 
         <mkdir dir="${test.dir}"/>
@@ -80,6 +81,7 @@
 
         <echo message="test.base.dir: ${test.base.dir} "/>
         <echo message="test.junit.dir: ${test.junit.dir} "/>
+        <echo message="test.junit.generation.dir: ${test.junit.generation.dir} "/>
         <echo message="test.dir: ${test.dir} "/>
         <echo message="results: ${results} "/>
         <echo message="build_t: ${build_t} "/>
@@ -162,7 +164,7 @@
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
             <includepath path="${stub.includes.dir}/common"/>
-            <includepath path="${test.junit.dir}/generation"/>
+            <includepath path="${test.junit.generation.dir}"/>
             <includepath path="${build_t.gen}/native"/>
           </compiler>
 
@@ -217,7 +219,7 @@
 
             <batchtest todir="${results}">
               <fileset dir="${build_t.java}">
-                  <include name="${test.junit.rel}/**/Test*"/>
+                  <include name="${test.junit.rel}/**/*Test*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
@@ -251,32 +253,32 @@
         <echo message=" - - - junit.test1.java.generate" />
 
         <dirset id="stub.includes.fileset.test" dir=".">
-            <include name="${test.junit.dir}/generation/**"/>
+            <include name="${test.junit.generation.dir}/**"/>
             <include name="${stub.includes.dir}/**" />
         </dirset>
 
-        <gluegen src="${test.junit.dir}/generation/test1-gluegen.c"
+        <gluegen src="${test.junit.generation.dir}/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.dir}/generation/test1-gluegen.cfg"
-                 literalInclude="${test.junit.dir}/generation"
+                 config="${test.junit.generation.dir}/test1-gluegen.cfg"
+                 literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 
-        <gluegen src="${test.junit.dir}/generation/test1-gluegen.c"
+        <gluegen src="${test.junit.generation.dir}/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.dir}/generation/test1p1-gluegen.cfg"
-                 literalInclude="${test.junit.dir}/generation"
+                 config="${test.junit.generation.dir}/test1p1-gluegen.cfg"
+                 literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 
-        <gluegen src="${test.junit.dir}/generation/test1-gluegen.c"
+        <gluegen src="${test.junit.generation.dir}/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.dir}/generation/test1p2-gluegen.cfg"
-                 literalInclude="${test.junit.dir}/generation"
+                 config="${test.junit.generation.dir}/test1p2-gluegen.cfg"
+                 literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.sun.gluegen.procaddress.ProcAddressEmitter">
             <classpath refid="gluegen.classpath" />
@@ -288,7 +290,7 @@
     <!-- this is the test1 implementation -->
     <target name="junit.test1i.c.build">
         <patternset id="junit.test1i.c.src.files">
-          <include name="${test.junit.rootrel}/generation/test1.c"/>
+          <include name="src/junit/${test.junit.generation.rel}/test1.c"/>
         </patternset>
 
         <!-- Windows hacks ro make a proper DLL -->
@@ -306,23 +308,23 @@
     <!-- this is a fixed binding to the test1 implementation -->
     <target name="junit.test1p1.c.build">
         <linker id="linker.test1.fixed.cfg.id" extends="${linker.cfg.id}">
-            <linkerarg value="-Wl,-soname=BindingTest1p1.dll" if="isMingW"/>
-            <linkerarg value="-Wl,--output=BindingTest1p1.dll" if="isMingW"/>
+            <linkerarg value="-Wl,-soname=Bindingtest1p1.dll" if="isMingW"/>
+            <linkerarg value="-Wl,--output=Bindingtest1p1.dll" if="isMingW"/>
             <syslibset dir="${build_t.lib}" libs="test1"/>
         </linker>
 
         <patternset id="junit.test1p1.c.src.files">
-          <include name="${build_t.gen.rootrel}/native/BindingTest1p1Impl_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/Bindingtest1p1Impl_JNI.c"/>
         </patternset>
 
         <c.build c.compiler.src.files="junit.test1p1.c.src.files"
-                 output.lib.name="BindingTest1p1"
+                 output.lib.name="Bindingtest1p1"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.fixed.cfg.id"/>
 
         <antcall target="rename.dylib" inheritRefs="true">
-            <param name="src"  value="${build_t.lib}/libBindingTest1p1.dylib" />
-            <param name="dest" value="${build_t.lib}/libBindingTest1p1.jnilib" />
+            <param name="src"  value="${build_t.lib}/libBindingtest1p1.dylib" />
+            <param name="dest" value="${build_t.lib}/libBindingtest1p1.jnilib" />
         </antcall>
 
     </target>
@@ -330,22 +332,22 @@
     <!-- this is a dynamic lookup binding to the test1 implementation -->
     <target name="junit.test1p2.c.build">
         <linker id="linker.test1.runtime.cfg.id" extends="${linker.cfg.id}">
-            <linkerarg value="-Wl,-soname=BindingTest1p2.dll" if="isMingW"/>
-            <linkerarg value="-Wl,--output=BindingTest1p2.dll" if="isMingW"/>
+            <linkerarg value="-Wl,-soname=Bindingtest1p2.dll" if="isMingW"/>
+            <linkerarg value="-Wl,--output=Bindingtest1p2.dll" if="isMingW"/>
         </linker>
 
         <patternset id="junit.test1p2.c.src.files">
-          <include name="${build_t.gen.rootrel}/native/BindingTest1p2Impl_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/Bindingtest1p2Impl_JNI.c"/>
         </patternset>
 
         <c.build c.compiler.src.files="junit.test1p2.c.src.files"
-                 output.lib.name="BindingTest1p2"
+                 output.lib.name="Bindingtest1p2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.runtime.cfg.id"/>
 
         <antcall target="rename.dylib" inheritRefs="true">
-            <param name="src"  value="${build_t.lib}/libBindingTest1p2.dylib" />
-            <param name="dest" value="${build_t.lib}/libBindingTest1p2.jnilib" />
+            <param name="src"  value="${build_t.lib}/libBindingtest1p2.dylib" />
+            <param name="dest" value="${build_t.lib}/libBindingtest1p2.jnilib" />
         </antcall>
 
     </target>
