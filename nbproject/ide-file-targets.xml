@@ -5,21 +5,21 @@
     <target name="compile-test">
         <mkdir dir="build/test/build/classes"/>
         <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" failonerror="false" source="1.5" srcdir="test/junit">
-            <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:make/lib/junit.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
     </target>
     <target name="compile-selected-files-in-junit">
         <fail unless="files">Must set property 'files'</fail>
         <mkdir dir="build/test/build/classes"/>
         <javac debug="true" debuglevel="lines,vars,source" destdir="build/test/build/classes" includes="${files}" source="1.5" srcdir="test/junit">
-            <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <classpath path="build/test/build/classes:build/classes:build/test/gensrc/java:lib/antlr-3.2.jar:make/lib/junit.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </javac>
     </target>
     <target depends="compile-test" name="run-selected-file-in-junit">
         <fail unless="run.class">Must set property 'run.class'</fail>
         <java classname="${run.class}" failonerror="true" fork="true">
             <classpath>
-                <path path="build/test/build/classes:build/classes:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+                <path path="build/test/build/classes:build/classes:lib/antlr-3.2.jar:make/lib/junit.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
         </java>
     </target>
@@ -29,7 +29,7 @@
             <test name="${run.class}"/>
             <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives"/>
             <classpath>
-                <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+                <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
             <formatter type="brief" usefile="false"/>
         </junit>
@@ -37,7 +37,7 @@
     <target depends="compile-test" name="debug-selected-file-in-junit">
         <fail unless="run.class">Must set property 'debug.class'</fail>
         <path id="cp">
-            <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit-4.5.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
+            <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
         </path>
         <nbjpdastart addressproperty="jpda.address" name="GlueGen" transport="dt_socket">
             <classpath refid="cp"/>

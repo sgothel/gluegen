@@ -5,25 +5,6 @@
   -->
 <project name="Configuration validator" default="validate">
 
-    <!-- ================================================================== -->
-    <!-- 
-       - Ensure that "antlr.jar" is set.
-      -->
-    <target name="antlr.jar.validate" unless="antlr.jar">
-        <fail>
-        
-    ********************************************************************
-    ** The property "antlr.jar" was not set in the GlueGen properties **
-    ** file                                                           **
-    ** "${user.properties.file}"                  **
-    ** (or this file was not found).                                  **
-    **                                                                **
-    ** Please set "antlr.jar" to to the full path of the ANTLR jar    **
-    ** including the jar itself.                                      **
-    ********************************************************************
-        </fail>
-    </target>
-
     <!-- 
        - Make sure that gluegen.jar is not on the CLASSPATH; this can cause
        - builds to fail since if this Java process has the jar file open
@@ -45,7 +26,7 @@
     <!-- 
        - Validate the required properties 
       -->
-    <target name="validate" depends="antlr.jar.validate, java.class.path.validate" 
+    <target name="validate" depends="java.class.path.validate" 
             description="Validate required properties" />
 
 </project>

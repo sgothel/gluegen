@@ -22,10 +22,6 @@
   <!-- This is the version of GlueGen you are building -->
   <property name="gluegen_base_version" value="1.0-beta07"/>
 
-   <!-- On jpackage.org-compatible systems, antlr.jar can be found in /usr/share/java -->
-   <available property="antlr.jar" file="/usr/share/java/antlr.jar"
-              value="/usr/share/java/antlr.jar"/>
-
   <import file="gluegen-cpptasks.xml" />
 
   <condition property="rootrel.build" value="build">
@@ -653,7 +649,7 @@
 
       <javac destdir="${build}/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source"
              includeAntRuntime="false">
-          <classpath path="${gluegen.root}/make/lib/junit-4.5.jar:${build}/classes:${build}/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
+          <classpath path="${junit.jar}:${build}/classes:${build}/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
       </javac>
 
       <junit forkmode="once" showoutput="true" fork="true">
@@ -671,7 +667,7 @@
               <formatter usefile="true" type="xml"/>
           </batchtest>
           <classpath>
-              <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/classes:${antlr.jar}:${gluegen.root}/make/lib/junit-4.5.jar:${tools.jar}:${ant.core.lib}"/>
+              <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/classes:${antlr.jar}:${junit.jar}:${tools.jar}:${ant.core.lib}"/>
           </classpath>
       </junit>
   </target>

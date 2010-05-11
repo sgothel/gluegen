@@ -35,17 +35,14 @@
     <!-- Load the user specified properties file that defines various host
       - specific paths.  The user will be notified if this is does not
       - exist. -->
-    <condition property="gluegen.user.properties.file"
-                 value="${user.home}/gluegen.properties">
-      <not>
-        <isset property="gluegen.user.properties.file" />
-      </not>
-    </condition>
+    <property name="gluegen.user.properties.file" value="${user.home}/gluegen.properties"/>
     <property name="gluegen.user.properties.file.set" value="${gluegen.user.properties.file}"/>
     <property file="${gluegen.user.properties.file.set}" />
     <echo message="Loaded ${gluegen.user.properties.file.set}." />
-    <fail message="antlr.jar was not specified in gluegen.properties. Please see README.txt for instructions" unless="antlr.jar"/>
+    <property name="antlr.jar" value="${gluegen.root}/make/lib/antlr.jar" />
+    <property name="junit.jar" value="${gluegen.root}/make/lib/junit.jar" />
     <echo message="antlr.jar=${antlr.jar}" />
+    <echo message="junit.jar=${junit.jar}" />
   </target>
 
 </project>

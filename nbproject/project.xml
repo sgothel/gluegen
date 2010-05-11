@@ -237,7 +237,7 @@
             <compilation-unit>
                 <package-root>test/junit</package-root>
                 <unit-tests/>
-                <classpath mode="compile">build/classes:build/test/build/classes:lib/antlr-3.2.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit-4.5.jar</classpath>
+                <classpath mode="compile">build/classes:build/test/build/classes:lib/antlr-3.2.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit.jar</classpath>
                 <built-to>build/classes</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
@@ -253,7 +253,7 @@
             <compilation-unit>
                 <package-root>src/junit</package-root>
                 <unit-tests/>
-                <classpath mode="compile">build/classes:build/test/build/classes:lib/antlr-3.2.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit-4.5.jar</classpath>
+                <classpath mode="compile">build/classes:build/test/build/classes:lib/antlr-3.2.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit.jar</classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>

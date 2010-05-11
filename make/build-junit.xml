@@ -4,10 +4,6 @@
 
     <description>JUNIT Tests GlueGen</description>
 
-    <!-- On jpackage.org-compatible systems, antlr.jar can be found in /usr/share/java -->
-    <available property="antlr.jar" file="/usr/share/java/antlr.jar"
-              value="/usr/share/java/antlr.jar"/>
-
     <property name="gluegen.root" value=".." />
 
     <import file="gluegen-cpptasks.xml" />
@@ -52,8 +48,6 @@
         <property name="gluegen.jar" location="${gluegen.root}/${rootrel.build}/gluegen.jar" />
         <property name="gluegen-rt.jar" location="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
         <property name="gluegen.lib" value="${gluegen.root}/${rootrel.build}/obj" />
-
-        <property name="junit.jar" value="${gluegen.root}/make/lib/junit-4.5.jar" />
 
         <property name="gluegen-test.jar" location="${build_t}/gluegen-test.jar" />
 
