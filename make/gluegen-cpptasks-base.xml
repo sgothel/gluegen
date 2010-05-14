@@ -452,7 +452,7 @@
         <isfalse value="${isMingW}" />
       </and>
     </condition>
-    <fail message="Must specify either win32.c.compiler in e.g. jogl.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
+    <fail message="Must specify either win32.c.compiler in e.g. gluegen.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
     <echo message="VC6=${isVC6}" />
     <echo message="VC7=${isVC7}" />
     <echo message="VC8=${isVC8}" />
