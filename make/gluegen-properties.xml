@@ -41,8 +41,10 @@
     <echo message="Loaded ${gluegen.user.properties.file.set}." />
     <property name="antlr.jar" value="${gluegen.root}/make/lib/antlr.jar" />
     <property name="junit.jar" value="${gluegen.root}/make/lib/junit.jar" />
+    <property name="win32.c.compiler" value="mingw" />
     <echo message="antlr.jar=${antlr.jar}" />
     <echo message="junit.jar=${junit.jar}" />
+    <echo message="win32.c.compiler=${win32.c.compiler}" />
   </target>
 
 </project>
