@@ -8,8 +8,8 @@
  #include <windows.h>
  /* This typedef is apparently needed for compilers before VC8,
     and for the embedded ARM compilers we're using */
- #if (_MSC_VER < 1400) || defined(UNDER_CE)
- typedef int intptr_t;
+ #if !defined(__MINGW64__) && ( (_MSC_VER < 1400) || defined(UNDER_CE) )
+     typedef int intptr_t;
  #endif
  /* GetProcAddress doesn't exist in A/W variants under desktop Windows */
  #ifndef UNDER_CE

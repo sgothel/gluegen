@@ -214,13 +214,19 @@
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
     
-    <target name="declare.win32.mingw" if="isMingW">
+    <target name="declare.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.mingw" />
     </target>
 
-    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.vc9,declare.win32.mingw" if="isWindows" >
+    <target name="declare.win64.mingw" if="isMingW64">
+      <echo message="Win64.MingW" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.win64.mingw" />
+      <property name="linker.cfg.id"                        value="linker.cfg.win64.mingw" />
+    </target>
+
+    <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.vc9,declare.win32.mingw,declare.win64.mingw" if="isWindows" >
       <property name="c.src.dir.os"                         value="windows" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/win32" />
     </target>

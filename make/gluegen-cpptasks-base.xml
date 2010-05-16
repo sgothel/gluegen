@@ -76,7 +76,8 @@
    -   isVC8_X64
    -   isVC8Family (= isVC8 || isVC8_X64 || isVC9) (requires manifest in DLL)
    -   isVC9
-   -   isMingW
+   -   isMingW32 (isMingW)
+   -   isMingW64 (isMingW)
    - 
    - The gluegen.cpptasks.configure.compiler target initializes several
    - cpptasks compiler and linker configurations designed to support
@@ -93,6 +94,7 @@
    -   compiler.cfg.solaris
    -   compiler.cfg.solaris.sparcv9
    -   compiler.cfg.solaris.amd64
+   -   compiler.cfg.win64.mingw
    -   compiler.cfg.win32.mingw
    -   compiler.cfg.win32.msvc
    -   compiler.cfg.macosx
@@ -103,6 +105,7 @@
    -   linker.cfg.solaris
    -   linker.cfg.solaris.sparcv9
    -   linker.cfg.solaris.amd64
+   -   linker.cfg.win64.mingw
    -   linker.cfg.win32.mingw
    -   linker.cfg.win32.msvc
    -   linker.cfg.macosx
@@ -394,7 +397,10 @@
       <and>
         <istrue value="${isWindows}" />
         <not>
-          <equals arg1="${win32.c.compiler}" arg2="mingw" />
+          <or>
+              <equals arg1="${win32.c.compiler}" arg2="mingw32" />
+              <equals arg1="${win32.c.compiler}" arg2="mingw64" />
+          </or>
         </not>
       </and>
     </condition>
@@ -435,11 +441,23 @@
         <istrue value="${isVC9}" />
       </or>
     </condition>
-    <condition property="isMingW">
+    <condition property="isMingW64">
       <and>
         <istrue value="${isWindows}" />
-        <equals arg1="${win32.c.compiler}" arg2="mingw" />
+        <equals arg1="${win32.c.compiler}" arg2="mingw64" />
       </and>
+    </condition>
+    <condition property="isMingW32">
+      <and>
+        <istrue value="${isWindows}" />
+        <equals arg1="${win32.c.compiler}" arg2="mingw32" />
+      </and>
+    </condition>
+    <condition property="isMingW">
+      <or>
+        <isset property="isMingW32" />
+        <isset property="isMingW64" />
+      </or>
     </condition>
     <condition property="WindowsFailure">
       <and>
@@ -449,7 +467,8 @@
         <isfalse value="${isVC8}" />
         <isfalse value="${isVC8_X64}" />
         <isfalse value="${isVC9}" />
-        <isfalse value="${isMingW}" />
+        <isfalse value="${isMingW32}" />
+        <isfalse value="${isMingW64}" />
       </and>
     </condition>
     <fail message="Must specify either win32.c.compiler in e.g. gluegen.properties or use e.g. win32.vc6 build target" if="WindowsFailure" />
@@ -459,6 +478,8 @@
     <echo message="VC8_X64=${isVC8_X64}" />
     <echo message="VC9=${isVC9}" />
     <echo message="MingW=${isMingW}" />
+    <echo message="MingW32=${isMingW32}" />
+    <echo message="MingW64=${isMingW64}" />
 
     <condition property="isVC7Debug">
       <and>
@@ -557,12 +578,27 @@
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
 
         <define name="DBUILD_DLL" />
-        <define name="_WINGDI_" /> 
         <define name="_STRICT_ANSI" /> 
         <define name="_JNI_IMPLEMENTATION_" />
-        <define name="MINGW" />
-        <define name="WINVER"         value="0x0500"/> <!-- set windows version to >= Windows 2000 -->
-        <define name="_WIN32_WINNT"   value="0x0500"/> <!-- set windows version to >= Windows 2000 -->
+        <define name="WINVER"         value="0x0501"/> <!-- set windows version to >= Windows XP -->
+        <define name="_WIN32_WINNT"   value="0x0501"/> <!-- set windows version to >= Windows XP -->
+      </defineset>
+    </compiler>
+
+    <compiler id="compiler.cfg.win64.mingw" name="gcc">
+      <compilerarg value="-g" if="c.compiler.use-debug"/> 
+      <compilerarg value="-O0" if="c.compiler.use-debug"/> 
+      <compilerarg value="-O2" unless="c.compiler.use-debug"/>
+      <defineset>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+        <define name="DEBUG"    if="c.compiler.use-debug"/>        
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+
+        <define name="DBUILD_DLL" />
+        <define name="_STRICT_ANSI" /> 
+        <define name="_JNI_IMPLEMENTATION_" />
+        <define name="WINVER"         value="0x0501"/> <!-- set windows version to >= Windows XP -->
+        <define name="_WIN32_WINNT"   value="0x0501"/> <!-- set windows version to >= Windows XP -->
       </defineset>
     </compiler>
 
@@ -673,6 +709,11 @@
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
     </linker>
 
+    <linker id="linker.cfg.win64.mingw" name="gcc" incremental="false">
+        <linkerarg value="-m64"/>
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
+    </linker>
+
     <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
       <linkerarg value="/OPT:REF,ICF" />        <!-- enable link-time optimisations -->
       <linkerarg value="/SUBSYSTEM:WINDOWS" />  <!-- output is not a console app as uses WinMain entry point -->
@@ -732,13 +773,19 @@
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.win32.mingw" if="isMingW">
+    <target name="gluegen.cpptasks.declare.compiler.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.mingw" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.win32" depends="gluegen.cpptasks.declare.compiler.win32.vc6,gluegen.cpptasks.declare.compiler.win32.vc7,gluegen.cpptasks.declare.compiler.win32.vc8,gluegen.cpptasks.declare.compiler.win32.vc8_x64,gluegen.cpptasks.declare.compiler.win32.vc9,gluegen.cpptasks.declare.compiler.win32.mingw" if="isWindows">
+    <target name="gluegen.cpptasks.declare.compiler.win64.mingw" if="isMingW64">
+      <echo message="Win64.MingW" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.win64.mingw" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.win64.mingw" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.win32" depends="gluegen.cpptasks.declare.compiler.win32.vc6,gluegen.cpptasks.declare.compiler.win32.vc7,gluegen.cpptasks.declare.compiler.win32.vc8,gluegen.cpptasks.declare.compiler.win32.vc8_x64,gluegen.cpptasks.declare.compiler.win32.vc9,gluegen.cpptasks.declare.compiler.win32.mingw,gluegen.cpptasks.declare.compiler.win64.mingw" if="isWindows">
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/win32" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib" />
     </target>

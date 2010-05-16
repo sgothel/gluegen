@@ -7,7 +7,7 @@
    - externally:
    - 
    -   win32.c.compiler (required to be set on Windows):
-   -       one of "vc6", "vc7", "vc8", or "mingw".
+   -       one of "vc6", "vc7", "vc8", "mingw32" (default) or "mingw64".
    -   c.compiler.debug:
    -       set to "true" if debug version of the compiled
    -       C code is desired.
@@ -41,7 +41,21 @@
     <echo message="Loaded ${gluegen.user.properties.file.set}." />
     <property name="antlr.jar" value="${gluegen.root}/make/lib/antlr.jar" />
     <property name="junit.jar" value="${gluegen.root}/make/lib/junit.jar" />
-    <property name="win32.c.compiler" value="mingw" />
+    <condition property="win32.c.compiler" value="mingw64">
+      <and>
+        <os family="windows" />
+        <os arch="amd64" />
+      </and>
+    </condition>
+    <condition property="win32.c.compiler" value="mingw32">
+      <and>
+        <os family="windows" />
+        <or>
+          <os arch="i386" />
+          <os arch="x86" />
+        </or>
+      </and>
+    </condition>
     <echo message="antlr.jar=${antlr.jar}" />
     <echo message="junit.jar=${junit.jar}" />
     <echo message="win32.c.compiler=${win32.c.compiler}" />
