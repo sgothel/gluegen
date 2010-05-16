@@ -706,13 +706,15 @@
 -->
     <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
         <linkerarg value="-m32"/>
-        <linkerarg value="--enable-auto-import"/>  <!-- link against dll directly (not lib)-->
+        <linkerarg value="-Wl,--enable-auto-import"/>    <!-- for linking against dll directly -->
+        <linkerarg value="-Wl,--enable-stdcall-fixup"/>  <!-- for linking against dll directly -->
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
     </linker>
 
     <linker id="linker.cfg.win64.mingw" name="gcc" incremental="false">
         <linkerarg value="-m64"/>
-        <linkerarg value="--enable-auto-import"/>  <!-- link against dll directly (not lib)-->
+        <linkerarg value="-Wl,--enable-auto-import"/>    <!-- for linking against dll directly -->
+        <linkerarg value="-Wl,--enable-stdcall-fixup"/>  <!-- for linking against dll directly -->
         <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
     </linker>
 
@@ -779,7 +781,6 @@
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.mingw" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.mingw" />
-      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/bin" /> <!-- link against dll directly (not lib)-->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.win64.mingw" if="isMingW64">
