@@ -1,4 +1,4 @@
-<!DOCTYPE html PUBliC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -8,7 +8,7 @@
     <body>
         <div id="container">
             <div id="header">
-                <div id="slogan">Gluegen</div>
+                <div id="slogan">JNI binding code generator</div>
                 <div id="logo"><a href="http://jogamp.org/">Gluegen</a></div>
             </div>
             <div id="menu">
@@ -20,55 +20,51 @@
                     <li><a href="../../demos/www/">Demos</a></li>
                     <li><a href="../../wiki/">Wiki</a></li>
                     <li><a href="../../deployment/gluegen-next/javadoc/">JavaDoc</a></li>
+                    <li><a href="../../blog/">Blogs</a></li>
+                    <li><a href="../../forum.html">Forums</a></li>
                 </ul>
             </div>
-            <div id="main" class="fill">
+            <div id="main">
+                <div id="sidebar">
+                    <h3>Useful Links</h3>
+                    <ul>
+                        <li><a href="../doc/manual/">GlueGen Manual</a></li>
+                        <li><a href="../../deployment/gluegen-next/javadoc/">GlueGen Runtime JavaDoc</a></li>
+                    </ul>
 
-<P>
+                </div>
+                <div id="text" class="fill">
+                    <p>
+                        GlueGen is a tool which automatically generates the Java and JNI code
+                        necessary to call C libraries.
+                    </p>
+                    <p>
+                        It reads as input ANSI C header files
+                        and separate configuration files which provide control over many
+                        aspects of the glue code generation. GlueGen uses a complete ANSI C
+                        parser and an internal representation (IR) capable of representing all
+                        C types to represent the APIs for which it generates interfaces. It
+                        has the ability to perform significant transformations on the IR
+                        before glue code emission. GlueGen is currently powerful enough to
+                        bind even low-level APIs such as the Java Native Interface (JNI) and
+                        the AWT Native Interface (JAWT) back up to the Java programming
+                        language.
+                    </p>
 
-GlueGen is a tool which automatically generates the Java and JNI code
-necessary to call C libraries. It reads as input ANSI C header files
-and separate configuration files which provide control over many
-aspects of the glue code generation. GlueGen uses a complete ANSI C
-parser and an internal representation (IR) capable of representing all
-C types to represent the APIs for which it generates interfaces. It
-has the ability to perform significant transformations on the IR
-before glue code emission. GlueGen is currently powerful enough to
-bind even low-level APIs such as the Java Native Interface (JNI) and
-the AWT Native Interface (JAWT) back up to the Java programming
-language. GlueGen is currently used to generate the <a
-href="../../jogl/www/">JOGL</a> interface to the OpenGL 3D
-graphics API and the <a href="../../joal/www/">JOAL</a>
-interface to the OpenAL audio library.
+                    <p>
+                        GlueGen is currently used for the projects
+                        <a href="../../jogl/www/">JOGL</a>, <a href="../../jogl/www/">JOCL</a> and
+                        <a href="../../joal/www/">JOAL</a>.
+                    </p>
 
-</P>
-
-<h4> Documentation </h4>
-
-<P>
-
-The preliminary <a
-href="../doc/manual/">GlueGen
-manual</a> is on-line, which describes how to acquire, build and use
-GlueGen.
-
-</P>
-
-<h4> Community </h4>
-
-<P>
-
-Please check the <a href="http://jogamp.org">JogAmp Community Page</a>.
-
-</P>
-
+                </div>
             </div>
             <div id="footer">
                 <div id="footer_left">
-                    <span xmlns:dc="http://purl.org/dc/elements/1.1/" property="dc:title">JogAmp.org</span>
-                    by <a xmlns:cc="http://creativecommons.org/ns#" href="http://jogamp.org" property="cc:attributionName" rel="cc:attributionURL">http://jogamp.org</a>
+                    <span>JogAmp.org</span>
+                    by <a href="http://jogamp.org">http://jogamp.org</a>
                     is licensed under a <br/>
-                    <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">Creative Commons Attribution 3.0 License</a>.
+                    <a href="http://creativecommons.org/licenses/by/3.0/us/">Creative Commons Attribution 3.0 License</a>.
                 </div>
             </div>
         </div>
