@@ -1011,7 +1011,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           writer.print("sizeof(" + cReturnType.getName() + ")");
           LOG.warning(
             "No capacity specified for java.nio.Buffer return " +
-            "value for function \"" + binding + "\";" +
+            "value for function \"" + binding.getName() + "\"" +
             " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding);
           /**
           throw new RuntimeException(
