@@ -3,8 +3,8 @@
       href="gluegen-rt.jnlp">
   <information>
     <title>GlueGen Runtime v2</title>
-    <vendor>Sun Microsystems, Inc.</vendor>
-    <homepage href="http://gluegen.dev.java.net/"/>
+    <vendor>JogAmp Community</vendor>
+    <homepage href="http://jogamp.org/"/>
     <description>GlueGen Runtime Library</description>
     <description kind="short">Run-time support classes and native code for applications and libraries built using the GlueGen tool.</description>
     <offline-allowed/>
