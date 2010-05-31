@@ -1279,6 +1279,10 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isVoid()) {
             return JavaType.createForVoidPointer();
           } else if (targetType.isInt()) {
+            // size_t is always a PointerBuffer since size is arch dependent
+            if ("size_t".equals(targetType.getName())) {
+              return JavaType.forNIOPointerBufferClass();
+            }
             switch ((int) targetType.getSize(curMachDesc)) {
               case 1:  return JavaType.createForCCharPointer();
               case 2:  return JavaType.createForCShortPointer();

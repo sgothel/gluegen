@@ -8,6 +8,9 @@ int bufferTest(void * object) {
     return 42;
 }
 
+void pbTest(size_t * object) {
+}
+
 int manyBuffersTest(void * object1, void * object2, void * object3, void * object4, void * object5) {
     return 42;
 }

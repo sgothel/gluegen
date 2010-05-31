@@ -2,10 +2,13 @@
 #define AL_FLANGER_DEFAULT_FEEDBACK (-0.5f)
 
 typedef unsigned long foo;
+typedef unsigned long size_t;
 
 int arrayTest(long context, foo * array );
 
 int bufferTest(void * object);
+
+void pbTest(size_t * object);
 
 int manyBuffersTest(void * object1, void * object2, void * object3, void * object4, void * object5);
 
