@@ -65,6 +65,10 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
     return addr;
   }
   
+  public long lookupSymbolGlobal(String symbolName) {
+    throw new RuntimeException("lookupSymbolGlobal: Not supported on Windows");
+  }
+
   public void closeLibrary(long libraryHandle) {
     FreeLibrary(libraryHandle);
   }

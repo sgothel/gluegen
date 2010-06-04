@@ -122,6 +122,10 @@ public class NativeLibrary implements DynamicLookupHelper {
     this.libraryPath   = libraryPath;
   }
 
+  public String toString() {
+    return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + "]";
+  }
+
   /** Opens the given native library, assuming it has the same base
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
@@ -207,6 +211,11 @@ public class NativeLibrary implements DynamicLookupHelper {
     if (libraryHandle == 0)
       throw new RuntimeException("Library is not open");
     return dynLink.lookupSymbol(libraryHandle, funcName);
+  }
+
+  /** Looks up the given function name in all loaded libraries. */
+  public static long dynamicLookupFunctionGlobal(String funcName) {
+    return dynLink.lookupSymbolGlobal(funcName);
   }
 
   /** Retrieves the low-level library handle from this NativeLibrary

@@ -46,5 +46,6 @@ interface DynamicLinker {
   public long openLibraryGlobal(String pathname, boolean debug);
   public long openLibraryLocal(String pathname, boolean debug);
   public long lookupSymbol(long libraryHandle, String symbolName);
+  public long lookupSymbolGlobal(String symbolName);
   public void closeLibrary(long libraryHandle);
 }

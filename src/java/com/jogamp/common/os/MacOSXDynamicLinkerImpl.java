@@ -5,6 +5,8 @@ package com.jogamp.common.os;
 
 public class MacOSXDynamicLinkerImpl implements DynamicLinker {
 
+  public static final long RTLD_DEFAULT = -2;
+
   public static final int RTLD_LAZY = 0x1;
   public static final int RTLD_NOW = 0x2;
   public static final int RTLD_LOCAL = 0x4;
@@ -48,6 +50,10 @@ public class MacOSXDynamicLinkerImpl implements DynamicLinker {
   
   public long lookupSymbol(long libraryHandle, String symbolName) {
     return dlsym(libraryHandle, symbolName);
+  }
+  
+  public long lookupSymbolGlobal(String symbolName) {
+    return dlsym(RTLD_DEFAULT, symbolName);
   }
   
   public void closeLibrary(long libraryHandle) {
