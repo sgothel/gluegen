@@ -593,17 +593,34 @@ public class JavaEmitter implements GlueEmitter {
     // variant taking only NIO Buffers.
     if (!cfg.isUnimplemented(binding.getName()) &&
         !binding.signatureUsesJavaPrimitiveArrays()) {
+      CMethodBindingEmitter cEmitter;
+      // Generate a binding without mixed access (NIO-direct, -indirect, array)
+      cEmitter =
+          new CMethodBindingEmitter(binding,
+                                    cWriter(),
+                                    cfg.implPackageName(),
+                                    cfg.implClassName(),
+                                    true, // NOTE: we always disambiguate with a suffix now, so this is optional
+                                    cfg.allStatic(),
+                                    (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
+                                    !cfg.nioDirectOnly(binding.getName()),
+                                    machDesc64);
+      prepCEmitter(binding, cEmitter);
+      allEmitters.add(cEmitter);
+    }
+  }
+
+  protected void prepCEmitter(MethodBinding binding, CMethodBindingEmitter cEmitter) 
+  {
       // See whether we need an expression to help calculate the
       // length of any return type
-      MessageFormat returnValueCapacityFormat = null;
-      MessageFormat returnValueLengthFormat = null;
       JavaType javaReturnType = binding.getJavaReturnType();
       if (javaReturnType.isNIOBuffer() ||
           javaReturnType.isCompoundTypeWrapper()) {
         // See whether capacity has been specified
         String capacity = cfg.returnValueCapacity(binding.getName());
         if (capacity != null) {
-          returnValueCapacityFormat = new MessageFormat(capacity);
+          cEmitter.setReturnValueCapacityExpression( new MessageFormat(capacity) );
         }
       } else if (javaReturnType.isArray() ||
                  javaReturnType.isArrayOfCompoundTypeWrappers()) {
@@ -618,32 +635,11 @@ public class JavaEmitter implements GlueEmitter {
         // See whether length has been specified
         String len = cfg.returnValueLength(binding.getName());
         if (len != null) {
-          returnValueLengthFormat = new MessageFormat(len);
+          cEmitter.setReturnValueLengthExpression( new MessageFormat(len) );
         }
-      }
-
-      CMethodBindingEmitter cEmitter;
-      // Generate a binding without mixed access (NIO-direct, -indirect, array)
-      cEmitter =
-          new CMethodBindingEmitter(binding,
-                                    cWriter(),
-                                    cfg.implPackageName(),
-                                    cfg.implClassName(),
-                                    true, // NOTE: we always disambiguate with a suffix now, so this is optional
-                                    cfg.allStatic(),
-                                    (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
-                                    !cfg.nioDirectOnly(binding.getName()),
-                                    machDesc64);
-      if (returnValueCapacityFormat != null) {
-          cEmitter.setReturnValueCapacityExpression(returnValueCapacityFormat);
-      }
-      if (returnValueLengthFormat != null) {
-          cEmitter.setReturnValueLengthExpression(returnValueLengthFormat);
       }
       cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
       cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
-      allEmitters.add(cEmitter);
-    }
   }
 
   /**
@@ -1018,6 +1014,7 @@ public class JavaEmitter implements GlueEmitter {
                                           true,
                                           false, // FIXME: should unify this with the general emission code
                                           machDesc64);
+              prepCEmitter(binding, cEmitter);
               cEmitter.emit();
             } catch (Exception e) {
               System.err.println("While processing field " + field + " of type " + name + ":");
@@ -1282,6 +1279,10 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isVoid()) {
             return JavaType.createForVoidPointer();
           } else if (targetType.isInt()) {
+            // size_t is always a PointerBuffer since size is arch dependent
+            if ("size_t".equals(targetType.getName())) {
+              return JavaType.forNIOPointerBufferClass();
+            }
             switch ((int) targetType.getSize(curMachDesc)) {
               case 1:  return JavaType.createForCCharPointer();
               case 2:  return JavaType.createForCShortPointer();

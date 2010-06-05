@@ -49,22 +49,20 @@ import com.sun.gluegen.cgram.types.*;
  * contains some utility methods for creating common types.
  */
 public class JavaType {
-  private static final int PTR_C_VOID   = 1;
-  private static final int PTR_C_CHAR   = 2;
-  private static final int PTR_C_SHORT  = 3;
-  private static final int PTR_C_INT32  = 4;
-  private static final int PTR_C_INT64  = 5;
-  private static final int PTR_C_FLOAT  = 6;
-  private static final int PTR_C_DOUBLE = 7;
+ 
+ /* 
+  * Represents C arrays that will / can be represented
+  * with NIO buffers (resolved down to another JavaType later in processing)
+  */
+  private enum C_PTR {
+      VOID, CHAR, SHORT, INT32, INT64, FLOAT, DOUBLE;
+  }
 
   private Class<?> clazz; // Primitive types and other types representable as Class objects
   private String name;  // Types we're generating glue code for (i.e., C structs)
   private Type   elementType; // Element type if this JavaType represents a C array
-  private int    primitivePointerType; // Represents C arrays that
-                                       // will / can be represented
-                                       // with NIO buffers (resolved
-                                       // down to another JavaType
-                                       // later in processing)
+  private C_PTR  primitivePointerType;
+
   private static JavaType nioBufferType;
   private static JavaType nioByteBufferType;
   private static JavaType nioShortBufferType;
@@ -129,31 +127,31 @@ public class JavaType {
   }
 
   public static JavaType createForVoidPointer() {
-    return new JavaType(PTR_C_VOID);
+    return new JavaType(C_PTR.VOID);
   }
 
   public static JavaType createForCCharPointer() {
-    return new JavaType(PTR_C_CHAR);
+    return new JavaType(C_PTR.CHAR);
   }
 
   public static JavaType createForCShortPointer() {
-    return new JavaType(PTR_C_SHORT);
+    return new JavaType(C_PTR.SHORT);
   }
 
   public static JavaType createForCInt32Pointer() {
-    return new JavaType(PTR_C_INT32);
+    return new JavaType(C_PTR.INT32);
   }
 
   public static JavaType createForCInt64Pointer() {
-    return new JavaType(PTR_C_INT64);
+    return new JavaType(C_PTR.INT64);
   }
 
   public static JavaType createForCFloatPointer() {
-    return new JavaType(PTR_C_FLOAT);
+    return new JavaType(C_PTR.FLOAT);
   }
 
   public static JavaType createForCDoublePointer() {
-    return new JavaType(PTR_C_DOUBLE);
+    return new JavaType(C_PTR.DOUBLE);
   }
 
   public static JavaType createForJNIEnv() {
@@ -353,8 +351,7 @@ public class JavaType {
   }
 
   public boolean isNIOBufferArray() {
-    return (isArray() &&
-            (java.nio.Buffer.class.isAssignableFrom(clazz.getComponentType())));
+    return (isArray() && (java.nio.Buffer.class.isAssignableFrom(clazz.getComponentType())));
   }
 
   public boolean isNIOLongBuffer() {
@@ -447,39 +444,39 @@ public class JavaType {
   }
   
   public boolean isArrayOfCompoundTypeWrappers() {
-    return (elementType != null);
+    return elementType != null;
   }
   
   public boolean isCPrimitivePointerType() {
-    return (primitivePointerType != 0);
+    return primitivePointerType != null;
   }
 
   public boolean isCVoidPointerType() {
-    return (primitivePointerType == PTR_C_VOID);
+    return C_PTR.VOID.equals(primitivePointerType);
   }
 
   public boolean isCCharPointerType() {
-    return (primitivePointerType == PTR_C_CHAR);
+    return C_PTR.CHAR.equals(primitivePointerType);
   }
 
   public boolean isCShortPointerType() {
-    return (primitivePointerType == PTR_C_SHORT);
+    return C_PTR.SHORT.equals(primitivePointerType);
   }
 
   public boolean isCInt32PointerType() {
-    return (primitivePointerType == PTR_C_INT32);
+    return C_PTR.INT32.equals(primitivePointerType);
   }
 
   public boolean isCInt64PointerType() {
-    return (primitivePointerType == PTR_C_INT64);
+    return C_PTR.INT64.equals(primitivePointerType);
   }
 
   public boolean isCFloatPointerType() {
-    return (primitivePointerType == PTR_C_FLOAT);
+    return C_PTR.FLOAT.equals(primitivePointerType);
   }
 
   public boolean isCDoublePointerType() {
-    return (primitivePointerType == PTR_C_DOUBLE);
+    return C_PTR.DOUBLE.equals(primitivePointerType);
   }
 
   public boolean isJNIEnv() {
@@ -534,12 +531,12 @@ public class JavaType {
 
   /** Constructs a type representing a pointer to a C primitive
       (integer, floating-point, or void pointer) type. */
-  private JavaType(int primitivePointerType) {
+  private JavaType(C_PTR primitivePointerType) {
     this.primitivePointerType = primitivePointerType;
   }
 
   private String arrayName(Class<?> clazz) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     int arrayCount = 0;
     while (clazz.isArray()) {
       ++arrayCount;
@@ -553,8 +550,7 @@ public class JavaType {
   }
 
   private String arrayDescriptor(Class<?> clazz) {
-    StringBuffer buf = new StringBuffer();
-    int arrayCount = 0;
+    StringBuilder buf = new StringBuilder();
     while (clazz.isArray()) {
       buf.append("[");
       clazz = clazz.getComponentType();
