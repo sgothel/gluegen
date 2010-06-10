@@ -505,6 +505,14 @@ public class Buffers {
     //----------------------------------------------------------------------
     // Conversion routines
     //
+
+    public static float[] getFloatArray(double[] source) {
+        int i=source.length;
+        float[] dest = new float[i--];
+        while(i>=0) { dest[i]=(float)source[i]; i--; }
+        return dest;
+    }
+
     public final static FloatBuffer getFloatBuffer(DoubleBuffer source) {
         source.rewind();
         FloatBuffer dest = newDirectFloatBuffer(source.limit());

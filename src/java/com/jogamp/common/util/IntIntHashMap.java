@@ -177,6 +177,18 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
     }
 
     /**
+     * Copies all of the mappings from the specified map to this map.
+     */
+//    @SuppressWarnings(value="cast")
+    public void putAll(/*name*/IntIntHashMap/*name*/ source) {
+        Iterator itr = source.iterator();
+        while(itr.hasNext()) {
+            Entry e = (Entry) itr.next();
+            put(e.key, e.value);
+        }
+    }
+
+    /**
      * Removes the key-value mapping from this map.
      * Returns the previously mapped value or {@link #getKeyNotFoundValue} if no such mapping exists.
      */

@@ -62,7 +62,8 @@ public class NativeLibrary implements DynamicLookupHelper {
   private static final int WINDOWS = 1;
   private static final int UNIX    = 2;
   private static final int MACOSX  = 3;
-  private static boolean DEBUG;
+  protected static boolean DEBUG;
+  protected static boolean DEBUG_LOOKUP;
   private static int platform;
   private static DynamicLinker dynLink;
   private static String[] prefixes;
@@ -81,7 +82,8 @@ public class NativeLibrary implements DynamicLookupHelper {
             platform = UNIX;
           }
 
-          DEBUG = (System.getProperty("gluegen.debug.NativeLibrary") != null);
+          DEBUG = (System.getProperty("jogamp.debug.NativeLibrary") != null);
+          DEBUG_LOOKUP = (System.getProperty("jogamp.debug.NativeLibrary.Lookup") != null);
 
           return null;
         }
@@ -120,6 +122,10 @@ public class NativeLibrary implements DynamicLookupHelper {
   private NativeLibrary(long libraryHandle, String libraryPath) {
     this.libraryHandle = libraryHandle;
     this.libraryPath   = libraryPath;
+  }
+
+  public String toString() {
+    return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + "]";
   }
 
   /** Opens the given native library, assuming it has the same base
@@ -207,6 +213,11 @@ public class NativeLibrary implements DynamicLookupHelper {
     if (libraryHandle == 0)
       throw new RuntimeException("Library is not open");
     return dynLink.lookupSymbol(libraryHandle, funcName);
+  }
+
+  /** Looks up the given function name in all loaded libraries. */
+  public static long dynamicLookupFunctionGlobal(String funcName) {
+    return dynLink.lookupSymbolGlobal(funcName);
   }
 
   /** Retrieves the low-level library handle from this NativeLibrary

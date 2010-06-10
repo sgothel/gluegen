@@ -5,6 +5,7 @@ package com.jogamp.common.os;
 
 public class UnixDynamicLinkerImpl implements DynamicLinker {
 
+  public static final long RTLD_DEFAULT = 0;
   public static final int RTLD_LAZY = 0x00001;
   public static final int RTLD_NOW = 0x00002;
   public static final int RTLD_NOLOAD = 0x00004;
@@ -54,6 +55,10 @@ public class UnixDynamicLinkerImpl implements DynamicLinker {
   
   public long lookupSymbol(long libraryHandle, String symbolName) {
     return dlsym(libraryHandle, symbolName);
+  }
+
+  public long lookupSymbolGlobal(String symbolName) {
+    return dlsym(RTLD_DEFAULT, symbolName);
   }
   
   public void closeLibrary(long libraryHandle) {

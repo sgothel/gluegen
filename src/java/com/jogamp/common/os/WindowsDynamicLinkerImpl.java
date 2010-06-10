@@ -11,7 +11,7 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          DEBUG = (System.getProperty("gluegen.debug.NativeLibrary") != null);
+          DEBUG = (System.getProperty("jogamp.debug.NativeLibrary") != null);
           return null;
         }
       });
@@ -65,6 +65,10 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
     return addr;
   }
   
+  public long lookupSymbolGlobal(String symbolName) {
+    throw new RuntimeException("lookupSymbolGlobal: Not supported on Windows");
+  }
+
   public void closeLibrary(long libraryHandle) {
     FreeLibrary(libraryHandle);
   }

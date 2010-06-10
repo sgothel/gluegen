@@ -45,7 +45,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.AccessControlContext;
-import java.security.PrivilegedAction;
 import java.util.HashSet;
 import com.jogamp.common.impl.Debug;
 
@@ -55,43 +54,56 @@ public class JNILibLoaderBase {
 
   public interface LoaderAction {
     /**
-     * Loads the library specified by libname. Optionally preloads the libraries specified by
-     * preload. The implementation should ignore, if the preload-libraries have already been
-     * loaded.
+     * Loads the library specified by libname.<br>
+     * The implementation should ignore, if the library has been loaded already.<br>
+     * @param libname the library to load
+     * @param ignoreError if true, errors during loading the library should be ignored 
+     * @return true if library loaded successful
+     */
+    boolean loadLibrary(String libname, boolean ignoreError);
+
+    /**
+     * Loads the library specified by libname.<br>
+     * Optionally preloads the libraries specified by preload.<br>
+     * The implementation should ignore, if any library has been loaded already.<br>
      * @param libname the library to load
      * @param preload the libraries to load before loading the main library if not null
-     * @param preloadIgnoreError true, if errors during loading the preload-libraries should be ignored 
+     * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored 
      */
-    void loadLibrary(String libname, String[] preload, 
-        boolean preloadIgnoreError);
+    void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError);
   }
   
   private static class DefaultAction implements LoaderAction {
-    public void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError) {
-      if (null!=preload) {
-        for (int i=0; i<preload.length; i++) {
-          if(!isLoaded(preload[i])) {
-              try {
-                loadLibraryInternal(preload[i]);
-                addLoaded(preload[i]);
-                if(DEBUG) {
-                    System.err.println("NativeLibLoaderBase preloaded "+preload[i]);
-                }
-              } catch (UnsatisfiedLinkError e) {
-                if(DEBUG) {
-                    e.printStackTrace();
-                }
-                if (!preloadIgnoreError && e.getMessage().indexOf("already loaded") < 0) {
-                  throw e;
-                }
-              }
+    public boolean loadLibrary(String libname, boolean ignoreError) {
+      boolean res = true;
+      if(!isLoaded(libname)) {
+          try {
+            loadLibraryInternal(libname);
+            addLoaded(libname);
+            if(DEBUG) {
+                System.err.println("JNILibLoaderBase loaded "+libname);
+            }
+          } catch (UnsatisfiedLinkError e) {
+            res = false;
+            if(DEBUG) {
+                e.printStackTrace();
+            }
+            if (!ignoreError && e.getMessage().indexOf("already loaded") < 0) {
+              throw e;
+            }
           }
-        }
       }
-      loadLibraryInternal(libname);
-      addLoaded(libname);
-      if(DEBUG) {
-          System.err.println("NativeLibLoaderBase    loaded "+libname);
+      return res;
+    }
+
+    public void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError) {
+      if(!isLoaded(libname)) {
+          if (null!=preload) {
+            for (int i=0; i<preload.length; i++) {
+              loadLibrary(preload[i], preloadIgnoreError);
+            }
+          }
+          loadLibrary(libname, false);
       }
     }
   }
@@ -106,7 +118,7 @@ public class JNILibLoaderBase {
   public static void addLoaded(String libName) {
     loaded.add(libName);
     if(DEBUG) {
-        System.err.println("NativeLibLoaderBase Loaded Native Library: "+libName);
+        System.err.println("JNILibLoaderBase Loaded Native Library: "+libName);
     }
   }
 
@@ -122,14 +134,19 @@ public class JNILibLoaderBase {
     loaderAction = action;
   }
 
-  protected static synchronized void loadLibrary(String libname, String[] preload, 
-      boolean preloadIgnoreError) {
-    if (loaderAction != null && !isLoaded(libname))
-    {
-      loaderAction.loadLibrary(libname, preload, preloadIgnoreError);    
+  protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {
+    if (loaderAction != null) {
+        return loaderAction.loadLibrary(libname, ignoreError);    
     }
+    return false;
   }
   
+  protected static synchronized void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError) {
+    if (loaderAction != null) {
+        loaderAction.loadLibrary(libname, preload, preloadIgnoreError);    
+    }
+  }
+
   private static final Class  customLauncherClass;
   private static final Method customLoadLibraryMethod;
 
