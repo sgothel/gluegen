@@ -34,20 +34,21 @@ import com.jogamp.common.nio.Buffers;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.security.*;
 
 /**
  * Utility class for querying platform specific properties.
- * @author Michael Bien, Sven Gothel
+ * @author Michael Bien
+ * @author Sven Gothel
  */
 public class Platform {
 
     public static final boolean JAVA_SE;
     public static final boolean LITTLE_ENDIAN;
+    public static final String OS;
+    public static final String ARCH;
 
-    private final static boolean is32Bit;
-    private final static int pointerSizeInBits;
-    private final static String os, arch;
+    private static final boolean is32Bit;
+    private static final int pointerSizeInBits;
 
     static {
         NativeLibrary.ensureNativeLibLoaded();
@@ -55,17 +56,24 @@ public class Platform {
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned
         // applets
-        os =  System.getProperty("os.name");
-        arch = System.getProperty("os.arch");
+        OS =  System.getProperty("os.name");
+        ARCH = System.getProperty("os.arch");
 
         pointerSizeInBits = getPointerSizeInBitsImpl();
+        is32Bit = initAch();
+        JAVA_SE = initIsJavaSE();
+        LITTLE_ENDIAN = initByteOrder();
+    }
 
-        // Try to use Sun's sun.arch.data.model first ..
+    private Platform() {}
+
+    private static boolean initAch() throws RuntimeException {
+        // Try to use Sun's sun.ARCH.data.model first ..
         if ( 32 == pointerSizeInBits || 64 == pointerSizeInBits ) {
-            is32Bit = ( 32 == pointerSizeInBits );
+            return 32 == pointerSizeInBits;
         }else {
-            String os_lc = os.toLowerCase();
-            String arch_lc = arch.toLowerCase();
+            String os_lc = OS.toLowerCase();
+            String arch_lc = ARCH.toLowerCase();
 
             if ((os_lc.startsWith("windows") && arch_lc.equals("x86")) ||
                 (os_lc.startsWith("windows") && arch_lc.equals("arm")) ||
@@ -79,7 +87,7 @@ public class Platform {
                 (os_lc.startsWith("sunos_lc") && arch_lc.equals("x86")) ||
                 (os_lc.startsWith("freebsd") && arch_lc.equals("i386")) ||
                 (os_lc.startsWith("hp-ux") && arch_lc.equals("pa_risc2.0"))) {
-              is32Bit = true;
+                return true;
             } else if ((os_lc.startsWith("windows") && arch_lc.equals("amd64")) ||
                       (os_lc.startsWith("linux") && arch_lc.equals("amd64")) ||
                       (os_lc.startsWith("linux") && arch_lc.equals("x86_64")) ||
@@ -88,44 +96,41 @@ public class Platform {
                       (os_lc.startsWith("darwin") && arch_lc.equals("x86_64")) ||
                       (os_lc.startsWith("sunos_lc") && arch_lc.equals("sparcv9")) ||
                       (os_lc.startsWith("sunos_lc") && arch_lc.equals("amd64"))) {
-              is32Bit = false;
+                return false;
             }else{
               throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + os_lc + "/" + arch_lc + ")");
             }
         }
+    }
 
-        boolean se;
+    private static boolean initIsJavaSE() {
+
+        // fast path for desktop
+        if(System.getSecurityManager() == null && System.getProperty("java.runtime.name").indexOf("Java SE") != -1) {
+            return true;
+        }
+
+        // probe for classes we need on a SE environment
         try{
             Class.forName("java.nio.LongBuffer");
             Class.forName("java.nio.DoubleBuffer");
-            se = true;
+            return true;
         }catch(ClassNotFoundException ex) {
-            se = false;
+            return false;
         }
+    }
 
-        if(!se) {
-            // no more the fast path, due to access controller ..
-            String java_runtime_name = (String) AccessController.doPrivileged(new PrivilegedAction() {
-                public Object run() {
-                  return System.getProperty("java.runtime.name");
-                }
-              });
-            se = java_runtime_name.indexOf("Java SE") != -1;
-        }
-        JAVA_SE = se;
-
-        // byte order
+    private static boolean initByteOrder() {
         ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
         IntBuffer tst_i = tst_b.asIntBuffer();
         ShortBuffer tst_s = tst_b.asShortBuffer();
         tst_i.put(0, 0x0A0B0C0D);
-        LITTLE_ENDIAN = 0x0C0D == tst_s.get(0);
+        return 0x0C0D == tst_s.get(0);
     }
-
-    private Platform() {}
 
     private static native int getPointerSizeInBitsImpl();
 
+    
     /**
      * Returns true only if this program is running on the Java Standard Edition.
      */
@@ -144,14 +149,14 @@ public class Platform {
      * Returns the OS name.
      */
     public static String getOS() {
-        return os;
+        return OS;
     }
 
     /**
      * Returns the CPU architecture String.
      */
     public static String getArch() {
-        return arch;
+        return ARCH;
     }
 
     /**
@@ -165,6 +170,9 @@ public class Platform {
         return pointerSizeInBits;
     }
 
-}
+    public static int getPointerSizeInBytes() {
+        return pointerSizeInBits/8;
+    }
 
+}
 
