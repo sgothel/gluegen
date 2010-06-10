@@ -11,7 +11,7 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
   static {
     AccessController.doPrivileged(new PrivilegedAction() {
         public Object run() {
-          DEBUG = (System.getProperty("gluegen.debug.NativeLibrary") != null);
+          DEBUG = (System.getProperty("jogamp.debug.NativeLibrary") != null);
           return null;
         }
       });

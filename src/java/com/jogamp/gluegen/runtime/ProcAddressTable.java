@@ -65,9 +65,9 @@ public abstract class ProcAddressTable {
         AccessController.doPrivileged(new PrivilegedAction() {
 
             public Object run() {
-                DEBUG = (System.getProperty("gluegen.debug.ProcAddressHelper") != null);
+                DEBUG = (System.getProperty("jogamp.debug.ProcAddressHelper") != null);
                 if (DEBUG) {
-                    DEBUG_PREFIX = System.getProperty("gluegen.debug.ProcAddressHelper.prefix");
+                    DEBUG_PREFIX = System.getProperty("jogamp.debug.ProcAddressHelper.prefix");
                 }
                 return null;
             }
@@ -90,6 +90,9 @@ public abstract class ProcAddressTable {
 
 
     public void reset(DynamicLookupHelper lookup) throws RuntimeException {
+        if(null==lookup) {
+            throw new RuntimeException("Passed null DynamicLookupHelper");
+        }
 
         Class tableClass = getClass();
         Field[] fields = tableClass.getFields();

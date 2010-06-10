@@ -62,7 +62,8 @@ public class NativeLibrary implements DynamicLookupHelper {
   private static final int WINDOWS = 1;
   private static final int UNIX    = 2;
   private static final int MACOSX  = 3;
-  private static boolean DEBUG;
+  protected static boolean DEBUG;
+  protected static boolean DEBUG_LOOKUP;
   private static int platform;
   private static DynamicLinker dynLink;
   private static String[] prefixes;
@@ -81,7 +82,8 @@ public class NativeLibrary implements DynamicLookupHelper {
             platform = UNIX;
           }
 
-          DEBUG = (System.getProperty("gluegen.debug.NativeLibrary") != null);
+          DEBUG = (System.getProperty("jogamp.debug.NativeLibrary") != null);
+          DEBUG_LOOKUP = (System.getProperty("jogamp.debug.NativeLibrary.Lookup") != null);
 
           return null;
         }
