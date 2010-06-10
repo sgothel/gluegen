@@ -50,7 +50,6 @@
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
             <formatter type="brief" usefile="false"/>
         </junit>
-        <java classname="${run.class}" fork="true"/>
     </target>
     <!-- TODO: edit the following target according to your needs -->
     <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#runsingle) -->
