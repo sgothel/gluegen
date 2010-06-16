@@ -47,9 +47,9 @@ public final class ReflectionUtil {
     /**
      * Returns true only if the class could be loaded.
      */
-    public static final boolean isClassAvailable(String clazzName) {
+    public static final boolean isClassAvailable(String clazzName, ClassLoader cl) {
         try {
-            return null != Class.forName(clazzName, false, ReflectionUtil.class.getClassLoader());
+            return null != Class.forName(clazzName, false, cl);
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -59,26 +59,26 @@ public final class ReflectionUtil {
      * Loads and returns the class or null.
      * @see Class#forName(java.lang.String, boolean, java.lang.ClassLoader)
      */
-    public static final Class getClass(String clazzName, boolean initialize)
+    public static final Class getClass(String clazzName, boolean initialize, ClassLoader cl)
         throws JogampRuntimeException {
         try {
-            return getClassImpl(clazzName, initialize);
+            return getClassImpl(clazzName, initialize, cl);
         } catch (ClassNotFoundException e) {
             throw new JogampRuntimeException(clazzName + " not available", e);
         }
     }
 
-    private static Class getClassImpl(String clazzName, boolean initialize) throws ClassNotFoundException {
-        return Class.forName(clazzName, initialize, ReflectionUtil.class.getClassLoader());
+    private static Class getClassImpl(String clazzName, boolean initialize, ClassLoader cl) throws ClassNotFoundException {
+        return Class.forName(clazzName, initialize, cl);
     }
 
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes)
+    public static final Constructor getConstructor(String clazzName, ClassLoader cl, Class[] cstrArgTypes)
         throws JogampRuntimeException {
         try {
-            return getConstructor(getClassImpl(clazzName, true), cstrArgTypes);
+            return getConstructor(getClassImpl(clazzName, true, cl), cstrArgTypes);
         } catch (ClassNotFoundException ex) {
             throw new JogampRuntimeException(clazzName + " not available", ex);
         }
@@ -109,9 +109,9 @@ public final class ReflectionUtil {
         }
     }
 
-  public static final Constructor getConstructor(String clazzName)
+  public static final Constructor getConstructor(String clazzName, ClassLoader cl)
         throws JogampRuntimeException {
-    return getConstructor(clazzName, new Class[0]);
+    return getConstructor(clazzName, cl, new Class[0]);
   }
 
   /**
@@ -147,30 +147,30 @@ public final class ReflectionUtil {
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName, Class[] cstrArgTypes, Object[] cstrArgs) 
+  public static final Object createInstance(String clazzName, ClassLoader cl, Class[] cstrArgTypes, Object[] cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
     try {
-        return createInstance(getClassImpl(clazzName, true), cstrArgTypes, cstrArgs);
+        return createInstance(getClassImpl(clazzName, true, cl), cstrArgTypes, cstrArgs);
     } catch (ClassNotFoundException ex) {
         throw new JogampRuntimeException(clazzName + " not available", ex);
     }
   }
 
-  public static final Object createInstance(String clazzName, Object[] cstrArgs) 
+  public static final Object createInstance(String clazzName, ClassLoader cl, Object[] cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
     Class[] cstrArgTypes = new Class[cstrArgs.length];
     for(int i=0; i<cstrArgs.length; i++) {
         cstrArgTypes[i] = cstrArgs[i].getClass();
     }
-    return createInstance(clazzName, cstrArgTypes, cstrArgs);
+    return createInstance(clazzName, cl, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName) 
+  public static final Object createInstance(String clazzName, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
-    return createInstance(clazzName, new Class[0], null);
+    return createInstance(clazzName, cl, new Class[0], null);
   }
 
   public static final boolean instanceOf(Object obj, String clazzName) {
@@ -214,12 +214,12 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object callStaticMethod(String clazzName, String methodName, Class[] argTypes, Object[] args) 
+  public static final Object callStaticMethod(String clazzName, ClassLoader cl, String methodName, Class[] argTypes, Object[] args)
       throws JogampRuntimeException, RuntimeException
   {
     Class clazz;
     try {
-        clazz = getClassImpl(clazzName, true);
+        clazz = getClassImpl(clazzName, true, cl);
     } catch (ClassNotFoundException ex) {
         throw new JogampRuntimeException(clazzName + " not available", ex);
     }
