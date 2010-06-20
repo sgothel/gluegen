@@ -109,14 +109,22 @@ public final class BuildUtil {
     }
 
     public static void generate(String bindingName) {
+        generate(bindingName, JavaEmitter.class.getName());
+//        generate(bindingName, DebugEmitter.class.getName());
+    }
 
-        out.println("generate binding: " + bindingName);
+    public static void generate(String bindingName, String emitter) {
+        generate(bindingName, bindingName, emitter);
+    }
+    public static void generate(String bindingName, String header, String emitter) {
+
+        out.println("generate binding to '" + bindingName+"' using '"+emitter+"'");
 
         GlueGen.main(  "-I"+path,
                        "-O"+testOutput+"/gensrc",
-                    // "-Ecom.sun.gluegen.DebugEmitter",
+                       "-E"+emitter,
                        "-C"+path+"/"+bindingName+".cfg",
-                       path+"/"+bindingName+".h"   );
+                       path+"/"+header+".h"   );
 
         out.println("done");
     }
