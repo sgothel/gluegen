@@ -28,10 +28,8 @@
 package com.jogamp.common.os;
 
 import java.util.*;
-import java.security.*;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
-import com.jogamp.common.util.MiscUtils;
 
 /**
  * Provides bundling of:<br>
@@ -87,10 +85,10 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
         if(DEBUG) {
             System.out.println("DynamicLibraryBundle.init Summary: "+info.getClass().getName());
-            System.out.println("     toolGetProcAddressFuncNameList: "+MiscUtils.toString(toolGetProcAddressFuncNameList));
-            System.out.println("     Tool Lib Names : "+MiscUtils.toString(toolLibNames));
+            System.out.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList);
+            System.out.println("     Tool Lib Names : "+toolLibNames);
             System.out.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+", complete "+isToolLibComplete());
-            System.out.println("     Glue Lib Names : "+MiscUtils.toString(glueLibNames));
+            System.out.println("     Glue Lib Names : "+glueLibNames);
             System.out.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+", complete "+isGlueLibComplete());
             System.out.println("     All Complete: "+isLibComplete());
         }
@@ -209,13 +207,13 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                 libNames = new ArrayList();
                 libNames.add((String)listObj);
             } else {
-                throw new RuntimeException("List element "+i+" must be either a List or String: "+MiscUtils.toString(toolLibNames));
+                throw new RuntimeException("List element "+i+" must be either a List or String: "+toolLibNames);
             }
             if( null != libNames && libNames.size() > 0 ) {
                 lib = loadFirstAvailable(libNames, loader, info.shallLinkGlobal());
                 if ( null == lib ) {
                     if(DEBUG) {
-                        System.out.println("Unable to load any Tool library of: "+MiscUtils.toString(libNames));
+                        System.out.println("Unable to load any Tool library of: "+libNames);
                     }
                 } else {
                     nativeLibraries.add(lib);
@@ -283,7 +281,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             if(0!=addr) {
                 System.err.println("Lookup-Native: <" + funcName + "> 0x" + Long.toHexString(addr) + " in lib " + libName );
             } else {
-                System.err.println("Lookup-Native: <" + funcName + "> ** FAILED ** in libs " + MiscUtils.toString(nativeLibraries));
+                System.err.println("Lookup-Native: <" + funcName + "> ** FAILED ** in libs " + nativeLibraries);
             }
         }
         return addr;
