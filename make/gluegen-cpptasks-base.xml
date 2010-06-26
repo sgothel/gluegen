@@ -16,6 +16,8 @@
    - configuration is exactly as specified.
    - 
    -   isFreeBSD
+   -   isFreeBSDAMD64
+   -   isFreeBSDX86
    -   isHPUX
    -   isIA64
    -   isLinux
@@ -102,6 +104,8 @@
    -   compiler.cfg.hpux
    -   linker.cfg.linux
    -   linker.cfg.linux.amd64
+   -   linker.cfg.freebsd.x86
+   -   linker.cfg.freebsd.amd64
    -   linker.cfg.solaris
    -   linker.cfg.solaris.sparcv9
    -   linker.cfg.solaris.amd64
@@ -157,6 +161,9 @@
         </not>
       </and>
     </condition>
+    <condition property="isFreeBSD">
+      <os name="FreeBSD" />
+    </condition>
     <condition property="isLinux">
       <os name="Linux" />
     </condition>
@@ -181,8 +188,23 @@
 	<os arch="amd64" />
       </and>
     </condition>
-    <condition property="isFreeBSD">
-      <os name="FreeBSD" />
+    <condition property="isFreeBSDX86">
+      <and>
+        <istrue value="${isFreeBSD}" />
+        <or>
+          <os arch="i386" />
+          <os arch="x86" />
+        </or>
+      </and>
+    </condition>
+    <condition property="isFreeBSDAMD64">
+      <and>
+        <istrue value="${isFreeBSD}" />
+        <or>
+          <os arch="AMD64" />
+          <os arch="x86_64" />
+        </or>
+      </and>
     </condition>
     <condition property="isHPUX">
       <os name="HP-UX" />
@@ -275,6 +297,8 @@
     </condition>
 
     <echo message="FreeBSD=${isFreeBSD}" />
+    <echo message="FreeBSDX86=${isFreeBSDX86}" />
+    <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
     <echo message="HPUX=${isHPUX}" />
     <echo message="IA64=${isIA64}" />
     <echo message="Linux=${isLinux}" />
