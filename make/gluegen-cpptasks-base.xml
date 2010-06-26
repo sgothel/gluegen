@@ -839,7 +839,7 @@
       <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
     </target>
-    
+
     <target name="gluegen.cpptasks.declare.compiler.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" /> 
@@ -889,12 +889,22 @@
       <property name="java.lib.dir.platform"         value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.freebsd" if="isFreeBSD">
+    <target name="gluegen.cpptasks.declare.compiler.freebsd.x86" if="isFreeBSDX86">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
-      <property name="java.includes.dir.platform"    value="${java.includes.dir}/freebsd" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.freebsd.x86" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.freebsd.amd64" if="isFreeBSDAMD64">
+      <echo message="FreeBSD" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.freebsd.amd64" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/amd64" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.freebsd" depends="gluegen.cpptasks.declare.compiler.freebsd.x86,gluegen.cpptasks.declare.compiler.freebsd.amd64" if="isFreeBSD">
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/freebsd" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.hpux" if="isHPUX">
