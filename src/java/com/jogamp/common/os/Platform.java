@@ -60,14 +60,14 @@ public class Platform {
         ARCH = System.getProperty("os.arch");
 
         pointerSizeInBits = getPointerSizeInBitsImpl();
-        is32Bit = initAch();
+        is32Bit = initArch();
         JAVA_SE = initIsJavaSE();
         LITTLE_ENDIAN = initByteOrder();
     }
 
     private Platform() {}
 
-    private static boolean initAch() throws RuntimeException {
+    private static boolean initArch() throws RuntimeException {
         // Try to use Sun's sun.ARCH.data.model first ..
         if ( 32 == pointerSizeInBits || 64 == pointerSizeInBits ) {
             return 32 == pointerSizeInBits;
@@ -104,10 +104,14 @@ public class Platform {
     }
 
     private static boolean initIsJavaSE() {
+        boolean javaSEChecked = false;
 
         // fast path for desktop
-        if(System.getSecurityManager() == null && System.getProperty("java.runtime.name").indexOf("Java SE") != -1) {
-            return true;
+        if(System.getSecurityManager() == null) {
+            javaSEChecked = true;
+            if(System.getProperty("java.runtime.name").indexOf("Java SE") != -1) {
+                return true;
+            }
         }
 
         // probe for classes we need on a SE environment
@@ -115,9 +119,23 @@ public class Platform {
             Class.forName("java.nio.LongBuffer");
             Class.forName("java.nio.DoubleBuffer");
             return true;
-        }catch(ClassNotFoundException ex) {
-            return false;
+        } catch(ClassNotFoundException ex) {
+            // continue with Java SE check
         }
+
+        if(!javaSEChecked) {
+            // no more the fast path, due to access controller ..
+            String java_runtime_name = (String) AccessController.doPrivileged(new PrivilegedAction() {
+                public Object run() {
+                  return System.getProperty("java.runtime.name");
+                }
+              });
+            if(java_runtime_name.indexOf("Java SE") != -1) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static boolean initByteOrder() {
