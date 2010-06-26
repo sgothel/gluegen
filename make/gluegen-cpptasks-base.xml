@@ -771,6 +771,14 @@
 
     <linker id="linker.cfg.hpux" name="aCC">
     </linker>
+
+    <linker id="linker.cfg.freebsd.x86" name="gcc">
+      <linkerarg value="-m32"/>
+    </linker>
+
+    <linker id="linker.cfg.freebsd.amd64" name="gcc">
+      <linkerarg value="-m64"/>
+    </linker>
   </target>
 
     <!-- ================================================================== -->
