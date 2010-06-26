@@ -320,9 +320,15 @@
     <echo message="X11=${isX11}" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.freebsd" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSD">
+  <target name="gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDX86">
     <property name="os.and.arch" value="freebsd-i586" />
   </target>
+
+  <target name="gluegen.cpptasks.detect.os.freebsd.amd64" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDAMD64">
+    <property name="os.and.arch" value="freebsd-amd64" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.freebsd" depends="gluegen.cpptasks.detect.os.freebsd.amd64,gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.hpux" unless="gluegen.cpptasks.detected.os.2" if="isHPUX">
     <property name="os.and.arch" value="hpux-hppa" />
