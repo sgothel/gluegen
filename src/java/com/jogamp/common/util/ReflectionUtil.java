@@ -75,7 +75,7 @@ public final class ReflectionUtil {
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor getConstructor(String clazzName, ClassLoader cl, Class[] cstrArgTypes)
+    public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes, ClassLoader cl)
         throws JogampRuntimeException {
         try {
             return getConstructor(getClassImpl(clazzName, true, cl), cstrArgTypes);
@@ -111,7 +111,7 @@ public final class ReflectionUtil {
 
   public static final Constructor getConstructor(String clazzName, ClassLoader cl)
         throws JogampRuntimeException {
-    return getConstructor(clazzName, cl, new Class[0]);
+    return getConstructor(clazzName, new Class[0], cl);
   }
 
   /**
@@ -147,7 +147,7 @@ public final class ReflectionUtil {
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName, ClassLoader cl, Class[] cstrArgTypes, Object[] cstrArgs) 
+  public static final Object createInstance(String clazzName, Class[] cstrArgTypes, Object[] cstrArgs, ClassLoader cl) 
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -157,20 +157,20 @@ public final class ReflectionUtil {
     }
   }
 
-  public static final Object createInstance(String clazzName, ClassLoader cl, Object[] cstrArgs) 
+  public static final Object createInstance(String clazzName, Object[] cstrArgs, ClassLoader cl) 
       throws JogampRuntimeException, RuntimeException
   {
     Class[] cstrArgTypes = new Class[cstrArgs.length];
     for(int i=0; i<cstrArgs.length; i++) {
         cstrArgTypes[i] = cstrArgs[i].getClass();
     }
-    return createInstance(clazzName, cl, cstrArgTypes, cstrArgs);
+    return createInstance(clazzName, cstrArgTypes, cstrArgs, cl);
   }
 
   public static final Object createInstance(String clazzName, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
-    return createInstance(clazzName, cl, new Class[0], null);
+    return createInstance(clazzName, new Class[0], null, cl);
   }
 
   public static final boolean instanceOf(Object obj, String clazzName) {
@@ -214,7 +214,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object callStaticMethod(String clazzName, ClassLoader cl, String methodName, Class[] argTypes, Object[] args)
+  public static final Object callStaticMethod(String clazzName, String methodName, Class[] argTypes, Object[] args, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     Class clazz;
