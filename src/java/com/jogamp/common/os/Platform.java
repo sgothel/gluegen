@@ -34,6 +34,8 @@ import com.jogamp.common.nio.Buffers;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * Utility class for querying platform specific properties.

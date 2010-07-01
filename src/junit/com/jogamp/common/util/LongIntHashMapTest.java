@@ -105,6 +105,11 @@ public class LongIntHashMapTest {
 
     @Test
     public void benchmark() {
+        benchmark(true);
+        benchmark(false);
+    }
+
+    void benchmark(boolean warmup) {
 
         // simple benchmark
         final LongIntHashMap intmap      = new LongIntHashMap(1024);
@@ -158,9 +163,11 @@ public class LongIntHashMapTest {
             map.remove(rndValues[i]);
         }
 
-        assertTrue("'put' to slow", intmapPutTime <= mapPutTime);
-        assertTrue("'get' to slow", intmapGetTime <= mapGetTime);
-        assertTrue("'remove' to slow", intmapRemoveTime <= mapRemoveTime);
+        if(!warmup) {
+            assertTrue("'put' too slow", intmapPutTime <= mapPutTime);
+            assertTrue("'get' too slow", intmapGetTime <= mapGetTime);
+            assertTrue("'remove' too slow", intmapRemoveTime <= mapRemoveTime);
+        }
     }
 
 
