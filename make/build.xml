@@ -647,18 +647,18 @@
     </delete>
   </target>    
 
-  <target name="test" depends="init, gluegen.cpptasks.detect.os, junit.run">
+  <target name="test" depends="init, gluegen.cpptasks.detect.os">
       <mkdir dir="${build}/test/build/classes"/>
       <mkdir dir="${build}/test/results"/>
 
       <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
-      <javac destdir="${build}/test/build/classes" failonerror="false" source="1.5" srcdir="${gluegen.root}/test/junit" debug="true" debuglevel="lines,vars,source"
-             includeAntRuntime="false">
+      <javac destdir="${build}/test/build/classes" srcdir="${gluegen.root}/test/junit" source="1.5" failonerror="false"
+            debug="true" debuglevel="lines,vars,source" includeAntRuntime="false">
           <classpath path="${junit.jar}:${build}/classes:${build}/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
       </javac>
 
-      <junit forkmode="once" showoutput="true" fork="true">
+      <junit forkmode="once" showoutput="true" fork="true" includeAntRuntime="true">
           <env key="${system.env.library.path}" path="${gluegen.lib.dir}${path.separator}${build}/test/build/natives"/>
           <jvmarg value="-Djava.library.path=${gluegen.lib.dir}${path.separator}${build}/test/build/natives"/>
           <jvmarg value="-Drootrel.build=${rootrel.build}"/>
@@ -667,6 +667,7 @@
           <batchtest todir="${build}/test/results">
               <fileset dir="${build}/test/build/classes">
                   <include name="com/sun/gluegen/**Test*"/>
+                  <include name="com/jogamp/common/nio/**Test*"/>
                   <include name="com/jogamp/common/util/**Test*"/>
               </fileset>
               <formatter usefile="false" type="plain"/>
