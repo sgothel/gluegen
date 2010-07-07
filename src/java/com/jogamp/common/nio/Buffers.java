@@ -206,6 +206,44 @@ public class Buffers {
     }
 
     /**
+     * Calls slice on the concrete buffer type.
+     */
+    public static Buffer slice(Buffer buffer) {
+        if (buffer instanceof ByteBuffer) {
+            return ((ByteBuffer) buffer).slice();
+        } else if (buffer instanceof IntBuffer) {
+            return ((IntBuffer) buffer).slice();
+        } else if (buffer instanceof ShortBuffer) {
+            return ((ShortBuffer) buffer).slice();
+        } else if (buffer instanceof FloatBuffer) {
+            return ((FloatBuffer) buffer).slice();
+        } else if (Platform.isJavaSE()) {
+            if (buffer instanceof DoubleBuffer) {
+                return ((DoubleBuffer) buffer).slice();
+            } else if (buffer instanceof LongBuffer) {
+                return ((LongBuffer) buffer).slice();
+            } else if (buffer instanceof CharBuffer) {
+                return ((CharBuffer) buffer).slice();
+            }
+        }
+        throw new IllegalArgumentException("unexpected buffer type: " + buffer.getClass());
+    }
+
+    /**
+     * Slices the specified buffer with offset as position and offset+size as limit.
+     */
+    public static Buffer slice(Buffer buffer, int offset, int size) {
+        int pos = buffer.position();
+        int limit = buffer.limit();
+
+        buffer.position(offset).limit(offset+size);
+        Buffer slice = slice(buffer);
+
+        buffer.position(pos).limit(limit);
+        return slice;
+    }
+
+    /**
      * Helper routine to set a ByteBuffer to the native byte order, if
      * that operation is supported by the underlying NIO
      * implementation.
@@ -277,7 +315,7 @@ public class Buffers {
                 return ((CharBuffer) buf).isDirect();
             }
         }
-        throw new RuntimeException("Unexpected buffer type " + buf.getClass().getName());
+        throw new IllegalArgumentException("Unexpected buffer type " + buf.getClass().getName());
     }
 
     /**
@@ -316,7 +354,7 @@ public class Buffers {
             return pointerBuffer.position() * PointerBuffer.elementSize();
         }
 
-        throw new RuntimeException("Disallowed array backing store type in buffer " + buf.getClass().getName());
+        throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
     }
 
     /**
@@ -349,7 +387,7 @@ public class Buffers {
             }
         }
 
-        throw new RuntimeException("Disallowed array backing store type in buffer " + buf.getClass().getName());
+        throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
     }
 
     /**
@@ -389,7 +427,7 @@ public class Buffers {
             return PointerBuffer.elementSize() * (pointerBuffer.arrayOffset() + pointerBuffer.position());
         }
 
-        throw new RuntimeException("Unknown buffer type " + buf.getClass().getName());
+        throw new IllegalArgumentException("Unknown buffer type " + buf.getClass().getName());
     }
 
 
@@ -543,7 +581,7 @@ public class Buffers {
                 return ((CharBuffer) dest).put((CharBuffer) src);
             }
         }
-        throw new RuntimeException("Incompatible Buffer classes: dest = " + dest.getClass().getName() + ", src = " + src.getClass().getName());
+        throw new IllegalArgumentException("Incompatible Buffer classes: dest = " + dest.getClass().getName() + ", src = " + src.getClass().getName());
     }
 
     public static Buffer putb(Buffer dest, byte v) {
@@ -554,7 +592,7 @@ public class Buffers {
         } else if (dest instanceof IntBuffer) {
             return ((IntBuffer) dest).put((int) v);
         } else {
-            throw new RuntimeException("Byte doesn't match Buffer Class: " + dest);
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
     }
 
@@ -564,7 +602,7 @@ public class Buffers {
         } else if (dest instanceof IntBuffer) {
             return ((IntBuffer) dest).put((int) v);
         } else {
-            throw new RuntimeException("Short doesn't match Buffer Class: " + dest);
+            throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
         }
     }
 
@@ -572,7 +610,7 @@ public class Buffers {
         if (dest instanceof IntBuffer) {
             ((IntBuffer) dest).put(v);
         } else {
-            throw new RuntimeException("Integer doesn't match Buffer Class: " + dest);
+            throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
         }
     }
 
@@ -584,14 +622,14 @@ public class Buffers {
             ((IntBuffer) dest).put(FixedPoint.toFixed(v));
 */
         } else {
-            throw new RuntimeException("Float doesn't match Buffer Class: " + dest);
+            throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
         }
     }
     public static void putd(Buffer dest, double v) {
         if (dest instanceof FloatBuffer) {
             ((FloatBuffer) dest).put((float) v);
         } else {
-            throw new RuntimeException("Double doesn't match Buffer Class: " + dest);
+            throw new IllegalArgumentException("Double doesn't match Buffer Class: " + dest);
         }
     }
 

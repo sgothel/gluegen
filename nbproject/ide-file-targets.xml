@@ -27,7 +27,7 @@
         <fail unless="run.class">Must set property 'run.class'</fail>
         <junit errorproperty="tests.failed" failureproperty="tests.failed" fork="true" forkmode="once" showoutput="true">
             <test name="${run.class}"/>
-            <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives"/>
+            <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives:${basedir}/build/obj"/>
             <classpath>
                 <path path="build/test/build/classes:build/test/gensrc/java:build/classes:lib/antlr-3.2.jar:make/lib/junit.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}"/>
             </classpath>
@@ -45,7 +45,7 @@
         <junit errorproperty="tests.failed" failureproperty="tests.failed" fork="true" forkmode="once" showoutput="true">
             <test name="${run.class}"/>
             <classpath refid="cp"/>
-            <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives"/>
+            <jvmarg value="-Djava.library.path=${basedir}/build/test/build/natives:${basedir}/build/obj"/>
             <jvmarg value="-Xdebug"/>
             <jvmarg value="-Xrunjdwp:transport=dt_socket,address=${jpda.address}"/>
             <formatter type="brief" usefile="false"/>
