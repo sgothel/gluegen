@@ -16,6 +16,8 @@
    - configuration is exactly as specified.
    - 
    -   isFreeBSD
+   -   isFreeBSDAMD64
+   -   isFreeBSDX86
    -   isHPUX
    -   isIA64
    -   isLinux
@@ -102,6 +104,8 @@
    -   compiler.cfg.hpux
    -   linker.cfg.linux
    -   linker.cfg.linux.amd64
+   -   linker.cfg.freebsd.x86
+   -   linker.cfg.freebsd.amd64
    -   linker.cfg.solaris
    -   linker.cfg.solaris.sparcv9
    -   linker.cfg.solaris.amd64
@@ -157,6 +161,9 @@
         </not>
       </and>
     </condition>
+    <condition property="isFreeBSD">
+      <os name="FreeBSD" />
+    </condition>
     <condition property="isLinux">
       <os name="Linux" />
     </condition>
@@ -181,8 +188,23 @@
 	<os arch="amd64" />
       </and>
     </condition>
-    <condition property="isFreeBSD">
-      <os name="FreeBSD" />
+    <condition property="isFreeBSDX86">
+      <and>
+        <istrue value="${isFreeBSD}" />
+        <or>
+          <os arch="i386" />
+          <os arch="x86" />
+        </or>
+      </and>
+    </condition>
+    <condition property="isFreeBSDAMD64">
+      <and>
+        <istrue value="${isFreeBSD}" />
+        <or>
+          <os arch="AMD64" />
+          <os arch="x86_64" />
+        </or>
+      </and>
     </condition>
     <condition property="isHPUX">
       <os name="HP-UX" />
@@ -275,6 +297,8 @@
     </condition>
 
     <echo message="FreeBSD=${isFreeBSD}" />
+    <echo message="FreeBSDX86=${isFreeBSDX86}" />
+    <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
     <echo message="HPUX=${isHPUX}" />
     <echo message="IA64=${isIA64}" />
     <echo message="Linux=${isLinux}" />
@@ -296,9 +320,15 @@
     <echo message="X11=${isX11}" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.freebsd" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSD">
+  <target name="gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDX86">
     <property name="os.and.arch" value="freebsd-i586" />
   </target>
+
+  <target name="gluegen.cpptasks.detect.os.freebsd.amd64" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDAMD64">
+    <property name="os.and.arch" value="freebsd-amd64" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.freebsd" depends="gluegen.cpptasks.detect.os.freebsd.amd64,gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.hpux" unless="gluegen.cpptasks.detected.os.2" if="isHPUX">
     <property name="os.and.arch" value="hpux-hppa" />
@@ -741,6 +771,14 @@
 
     <linker id="linker.cfg.hpux" name="aCC">
     </linker>
+
+    <linker id="linker.cfg.freebsd.x86" name="gcc">
+      <linkerarg value="-m32"/>
+    </linker>
+
+    <linker id="linker.cfg.freebsd.amd64" name="gcc">
+      <linkerarg value="-m64"/>
+    </linker>
   </target>
 
     <!-- ================================================================== -->
@@ -801,7 +839,7 @@
       <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
     </target>
-    
+
     <target name="gluegen.cpptasks.declare.compiler.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" /> 
@@ -851,12 +889,22 @@
       <property name="java.lib.dir.platform"         value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.freebsd" if="isFreeBSD">
+    <target name="gluegen.cpptasks.declare.compiler.freebsd.x86" if="isFreeBSDX86">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
-      <property name="java.includes.dir.platform"    value="${java.includes.dir}/freebsd" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.freebsd.x86" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.freebsd.amd64" if="isFreeBSDAMD64">
+      <echo message="FreeBSD" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.freebsd.amd64" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/amd64" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.freebsd" depends="gluegen.cpptasks.declare.compiler.freebsd.x86,gluegen.cpptasks.declare.compiler.freebsd.amd64" if="isFreeBSD">
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/freebsd" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.hpux" if="isHPUX">
