@@ -212,25 +212,41 @@ public final class ReflectionUtil {
   }
 
   /**
-   * @throws JogampRuntimeException if the instance can not be created.
+   * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Object callStaticMethod(String clazzName, String methodName, Class[] argTypes, Object[] args, ClassLoader cl)
+  public static final Method getMethod(Class clazz, String methodName, Class[] argTypes, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
-    Class clazz;
-    try {
-        clazz = getClassImpl(clazzName, true, cl);
-    } catch (ClassNotFoundException ex) {
-        throw new JogampRuntimeException(clazzName + " not available", ex);
-    }
     Method method;
     try {
-        method = clazz.getDeclaredMethod(methodName, argTypes);
+        return clazz.getDeclaredMethod(methodName, argTypes);
     } catch (NoSuchMethodException ex) {
         throw new JogampRuntimeException("Method: '" + clazz + "." + methodName + "(" + asString(argTypes) + ")' not found", ex);
     }
+  }
+
+  /**
+   * @throws JogampRuntimeException if the Method can not be found.
+   */
+  public static final Method getMethod(String clazzName, String methodName, Class[] argTypes, ClassLoader cl)
+      throws JogampRuntimeException, RuntimeException
+  {
     try {
-        return method.invoke(null, args);
+        return getMethod(getClassImpl(clazzName, true, cl), methodName, argTypes, cl);
+    } catch (ClassNotFoundException ex) {
+        throw new JogampRuntimeException(clazzName + " not available", ex);
+    }
+  }
+
+  /**
+   * @throws JogampRuntimeException if the call fails
+   * @throws RuntimeException if the call fails
+   */
+  public static final Object callMethod(Object instance, Method method, Object[] args)
+      throws JogampRuntimeException, RuntimeException
+  {
+    try {
+        return method.invoke(instance, args);
     } catch (Exception e) {
       Throwable t = e;
       if (t instanceof InvocationTargetException) {
@@ -242,8 +258,17 @@ public final class ReflectionUtil {
       if (t instanceof RuntimeException) {
         throw (RuntimeException) t;
       }
-      throw new JogampRuntimeException("calling "+method+" of "+clazz+" failed", t);
+      throw new JogampRuntimeException("calling "+method+" failed", t);
     }
+  }
+
+  /**
+   * @throws JogampRuntimeException if the instance can not be created.
+   */
+  public static final Object callStaticMethod(String clazzName, String methodName, Class[] argTypes, Object[] args, ClassLoader cl)
+      throws JogampRuntimeException, RuntimeException
+  {
+    return callMethod(null, getMethod(clazzName, methodName, argTypes, cl), args);
   }
 }
 
