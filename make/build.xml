@@ -650,7 +650,7 @@
     <copy file="${antlr.jar}" todir="${build}" />
   </target>
 
-  <target name="all" depends="init, gluegen.build, junit.compile" />
+  <target name="all" depends="init, gluegen.build, junit.compile, tag.build" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
@@ -688,6 +688,10 @@
               <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/classes:${antlr.jar}:${junit.jar}:${tools.jar}:${ant.core.lib}"/>
           </classpath>
       </junit>
+  </target>
+
+  <target name="tag.build">
+    <echo message="gluegen.build.number=\"${build.number}\"" file="${build}/artifact.properties"/>
   </target>
 
   <target name="junit.compile">
