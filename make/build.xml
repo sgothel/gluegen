@@ -691,7 +691,7 @@
   </target>
 
   <target name="tag.build">
-    <echo message='gluegen.build.number="${build.number}"' file="${build}/artifact.properties"/>
+    <echo message='gluegen.build.number="${build.number}"${line.separator}' file="${build}/artifact.properties"/>
   </target>
 
   <target name="junit.compile">
