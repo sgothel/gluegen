@@ -49,6 +49,7 @@
     <property name="javadoc"  location="${build}/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
+    <property file="${build}/artifact.properties"/>
 
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
@@ -691,7 +692,7 @@
   </target>
 
   <target name="tag.build">
-    <echo message='gluegen.build.number="${build.number}"${line.separator}' file="${build}/artifact.properties"/>
+    <echo message='gluegen.build.number=${gluegen.build.number}${line.separator}' file="${build}/artifact.properties"/>
   </target>
 
   <target name="junit.compile">
