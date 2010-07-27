@@ -49,12 +49,12 @@
     <property name="javadoc"  location="${build}/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
+    <property file="${build}/artifact.properties"/>
     <condition property="gluegen.build.number" value="manual-build">
       <not>
           <isset property="gluegen.build.number"/>
       </not>
     </condition>
-    <property file="${build}/artifact.properties"/>
 
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
@@ -696,7 +696,7 @@
       </junit>
   </target>
 
-  <target name="tag.build">
+  <target name="tag.build" depends="init">
     <echo message='gluegen.build.number=${gluegen.build.number}${line.separator}' file="${build}/artifact.properties"/>
   </target>
 
