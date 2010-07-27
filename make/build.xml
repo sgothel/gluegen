@@ -49,6 +49,11 @@
     <property name="javadoc"  location="${build}/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
+    <condition property="gluegen.build.number" value="manual-build">
+      <not>
+          <isset property="gluegen.build.number"/>
+      </not>
+    </condition>
     <property file="${build}/artifact.properties"/>
 
     <!-- The generated source directories. -->
