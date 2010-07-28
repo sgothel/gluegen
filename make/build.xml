@@ -50,11 +50,7 @@
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
     <property file="${build}/artifact.properties"/>
-    <condition property="gluegen.build.number" value="manual-build">
-      <not>
-          <isset property="gluegen.build.number"/>
-      </not>
-    </condition>
+    <property name="gluegen.build.number" value="manual-build"/>
 
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
