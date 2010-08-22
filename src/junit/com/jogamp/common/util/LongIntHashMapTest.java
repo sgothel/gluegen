@@ -22,6 +22,7 @@ public class LongIntHashMapTest {
     private static int iterations;
     private static long[] rndKeys;
     private static int[] rndValues;
+    private static float loadFactor;
 
     @BeforeClass
     public static void init() {
@@ -29,6 +30,7 @@ public class LongIntHashMapTest {
         iterations = 20000;
         final int keySeed = 42;
         final int valueSeed = 23;
+        loadFactor = 0.75f;
 
         Random keyRnd = new Random(/*keySeed*/);
         Random valueRnd = new Random(/*valueSeed*/);
@@ -105,6 +107,69 @@ public class LongIntHashMapTest {
 
     @Test
     public void benchmark() {
+        // TODO: determine if JIT can cause pauses that affect benchmark timing
+
+        // pre-allocate estimated memory required for benchmark tests to ensure
+        // that heap allocations do not affect benchmark timings. Memory will
+        // be freed at end of local try block when allocation values go out
+        // of scope...
+        try
+        {
+            // estimate array size of entries for LongIntHashMap to include
+            // memory needed for final + rehash growth based on loadsize and
+            // iterations...
+            int finalCount = iterations;
+            int lastRehash = (int)(iterations * loadFactor);
+            int allocationFinal = 1;
+            int allocationRehash = 1;
+            while (allocationFinal < finalCount)
+                allocationFinal <<= 1;
+            while (allocationRehash < lastRehash)
+                allocationRehash <<= 1;
+            int totalArrayAllocations = allocationFinal + allocationRehash;
+            // grab memory for entry storage
+            Object[] liAllocation = new Object[totalArrayAllocations];
+            Object[] hmAllocation = new Object[totalArrayAllocations];
+            // estimate reference storage size.
+            byte objRefBytes = 4;
+            if (System.getProperty("os.arch").indexOf("64")!=-1)
+            {
+                objRefBytes = 8;
+            }
+            // estimate LongIntEntrySize (implemenation dependendent)
+            int liEntrySize =   8           +   // key storage size     (long)
+                                4           +   // value storage size   (int)
+                                objRefBytes ;   // next entry reference size
+            // estimate HashMapEntrySize
+            // implementation dependent, based on SUN jdk 1.6.0_20 source for
+            // HashMap<Long,Integer>
+            int hmEntrySize = objRefBytes + // key reference size       (Long)
+                              8           + // key storage size         (long)
+                              objRefBytes + // value reference size     (Integer)
+                              4           + // value storage size       (int)
+                              objRefBytes + // next entry reference size
+                              4           ; // cached hash entry value  (int)
+            for (int i=0; i<totalArrayAllocations; ++i)
+            {
+                if (i<iterations)
+                {
+                    liAllocation[i] = new byte[liEntrySize];
+                    hmAllocation[i] = new byte[hmEntrySize];
+                }  else {
+                    liAllocation[i] = null;
+                    hmAllocation[i] = null;
+                }
+            }
+        } catch (OutOfMemoryError oome) {
+            out.println("May not have enough memory to run benchmark test");
+            out.println(oome.getMessage());
+            out.println("Total: " + Runtime.getRuntime().totalMemory() +
+                    " Max: " + Runtime.getRuntime().maxMemory() +
+                    " Free: " + Runtime.getRuntime().freeMemory());
+        }
+        // have the GarbageCollector release the memory arrays that are no
+        // longer in scope
+        gc();
         benchmark(true);
         benchmark(false);
     }
@@ -119,6 +184,9 @@ public class LongIntHashMapTest {
                 " warmup: " + warmup);
 
         out.println("put");
+        // to decrease chance of Garbage Collector needing to run durring test
+        // trigger the Garbage Collector prior to timing test.
+        gc();
         long time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             intmap.put(rndKeys[i], rndValues[i]);
@@ -126,7 +194,9 @@ public class LongIntHashMapTest {
         long intmapPutTime = (nanoTime() - time);
         out.println("   iimap: " + intmapPutTime/1000000.0f+"ms");
 
-
+        // to decrease chance of Garbage Collector needing to run durring test
+        // trigger the Garbage Collector prior to timing test.
+        gc();
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             map.put(rndKeys[i], rndValues[i]);
@@ -137,6 +207,9 @@ public class LongIntHashMapTest {
 
         System.out.println();
         System.out.println("get");
+        // to decrease chance of Garbage Collector needing to run durring test
+        // trigger the Garbage Collector prior to timing test.
+        gc();
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             intmap.get(rndValues[i]);
@@ -144,6 +217,9 @@ public class LongIntHashMapTest {
         long intmapGetTime = (nanoTime() - time);
         out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
+        // to decrease chance of Garbage Collector needing to run durring test
+        // trigger the Garbage Collector prior to timing test.
+        gc();
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             map.get(rndValues[i]);
@@ -154,6 +230,9 @@ public class LongIntHashMapTest {
 
         out.println();
         out.println("remove");
+        // to decrease chance of Garbage Collector needing to run durring test
+        // trigger the Garbage Collector prior to timing test.
+        gc();
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             intmap.remove(rndValues[i]);
@@ -161,6 +240,9 @@ public class LongIntHashMapTest {
         long intmapRemoveTime = (nanoTime() - time);
         out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
 
+        // to decrease chance of Garbage Collector needing to run durring test
+        // trigger the Garbage Collector prior to timing test.
+        gc();
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             map.remove(rndValues[i]);
