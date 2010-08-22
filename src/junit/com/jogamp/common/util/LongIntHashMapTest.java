@@ -143,7 +143,8 @@ public class LongIntHashMapTest {
         final LongIntHashMap intmap      = new LongIntHashMap(1024);
         final HashMap<Long, Integer> map = new HashMap<Long, Integer>(1024);
 
-        out.println(intmap.getClass().getName()+" vs "+map.getClass().getName());
+        out.println(intmap.getClass().getName()+" vs "+map.getClass().getName()+
+                " warmup: " + warmup);
 
         out.println("put");
         long time = nanoTime();
@@ -164,32 +165,36 @@ public class LongIntHashMapTest {
 
         System.out.println();
         System.out.println("get");
-        long intmapGetTime = (nanoTime() - time);
-        out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
+        time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             intmap.get(rndValues[i]);
         }
+        long intmapGetTime = (nanoTime() - time);
+        out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
-        long mapGetTime = (nanoTime() - time);
-        out.println("   map:   " + mapGetTime/1000000.0f+"ms");
+        time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             map.get(rndValues[i]);
         }
+        long mapGetTime = (nanoTime() - time);
+        out.println("   map:   " + mapGetTime/1000000.0f+"ms");
 
 
         out.println();
         out.println("remove");
-        long intmapRemoveTime = (nanoTime() - time);
-        out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
+        time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             intmap.remove(rndValues[i]);
         }
+        long intmapRemoveTime = (nanoTime() - time);
+        out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
 
-        long mapRemoveTime = (nanoTime() - time);
-        out.println("   map:   " + mapRemoveTime/1000000.0f+"ms");
+        time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             map.remove(rndValues[i]);
         }
+        long mapRemoveTime = (nanoTime() - time);
+        out.println("   map:   " + mapRemoveTime/1000000.0f+"ms");
 
         if(!warmup) {
             assertTrue("'put' too slow", intmapPutTime <= mapPutTime);
