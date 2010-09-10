@@ -725,7 +725,7 @@
         <exec executable="mvn">
             <arg  value="install:install-file"/>
             <arg value="-DartifactId=${artifactId}"/>
-            <arg value="-DgroupId=org.jogamp"/>
+            <arg value="-DgroupId=org.jogamp.gluegen"/>
             <arg value="-Dfile=../build/${artifactFileName}"/>
             <arg value="-Dversion=${gluegen_base_version}"/>
             <arg value="-Dpackaging=jar"/>
@@ -757,6 +757,51 @@
             <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
         </antcall>
         <antcall target="maven.install.artifact" inheritall="true">
+            <param name="artifactId" value="gluegen-rt-natives-cdc"/>
+            <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}-cdc.jar"/>
+            <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
+        </antcall>
+    </target>
+
+    <target name="maven.deploy.artifact">
+        <exec executable="mvn">
+            <arg value="deploy:deploy-file"/>
+            <arg value="-DrepositoryId=sonatype-nexus-snapshots"/>
+            <arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/"/>
+
+            <arg value="-DartifactId=${artifactId}"/>
+            <arg value="-DgroupId=org.jogamp.gluegen"/>
+            <arg value="-Dfile=../build/${artifactFileName}"/>
+            <arg value="-Dversion=${gluegen_base_version}-SNAPSHOT"/>
+            <arg value="-Dpackaging=jar"/>
+            <arg value="-DgeneratePom=true"/>
+            <arg value="-DcreateChecksum=true" />
+            <arg value="${platformSpecificClassifier}"/>
+        </exec>
+    </target>
+
+    <target name="maven.deploy" depends="init, gluegen.build">
+        <antcall target="maven.deploy.artifact" inheritall="true">
+            <param name="artifactId" value="gluegen"/>
+            <param name="artifactFileName" value="gluegen.jar"/>
+            <param name="platformSpecificClassifier" value=""/>
+        </antcall>
+        <antcall target="maven.deploy.artifact" inheritall="true">
+            <param name="artifactId" value="gluegen-rt"/>
+            <param name="artifactFileName" value="gluegen-rt.jar"/>
+            <param name="platformSpecificClassifier" value=""/>
+        </antcall>
+        <antcall target="maven.deploy.artifact" inheritall="true">
+            <param name="artifactId" value="gluegen-rt-cdc"/>
+            <param name="artifactFileName" value="gluegen-rt-cdc.jar"/>
+            <param name="platformSpecificClassifier" value=""/>
+        </antcall>
+        <antcall target="maven.deploy.artifact" inheritall="true">
+            <param name="artifactId" value="gluegen-rt-natives"/>
+            <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}.jar"/>
+            <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
+        </antcall>
+        <antcall target="maven.deploy.artifact" inheritall="true">
             <param name="artifactId" value="gluegen-rt-natives-cdc"/>
             <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}-cdc.jar"/>
             <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
