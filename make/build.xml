@@ -75,12 +75,12 @@
     <path id="antlr.classpath">
       <pathelement location="${antlr.jar}" />
     </path>
-    
+
     <!-- The location of the GlueGen source and the C grammar files. -->
     <property name="gluegen" value="${src.java}/com/sun/gluegen" />
     <property name="c.grammar" value="${gluegen}/cgram" />
     <property name="j.grammar" value="${gluegen}/jgram" />
-        
+
     <!-- The resulting location of the generated Java files from the
       - C grammar via ANTLR. -->
     <property name="gluegen.build" value="${src.generated.java}/com/sun/gluegen" />
@@ -101,7 +101,7 @@
       <classpath refid="antlr.classpath" />
     </antlr>
   </target>
-    
+
   <!--
     - Using ANTLR generate the specified Java files with an overridden
     - grammar file.
@@ -191,31 +191,31 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc8_x64" if="isVC8_X64">
       <echo message="Win32.VC8_X64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.vc9" if="isVC9">
       <echo message="Win32.VC9" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id"                        value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="declare.win32.mingw" if="isMingW32">
       <echo message="Win32.MingW" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.win32.mingw" />
@@ -235,20 +235,20 @@
 
     <target name="declare.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" />
     </target>
-    
+
     <target name="declare.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.amd64" />
       <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" />
     </target>
-    
+
     <target name="declare.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux" />
     </target>
 
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64" if="isLinux" >
@@ -258,22 +258,22 @@
 
     <target name="declare.solaris32" if="isSolaris32Bit">
       <echo message="Solaris" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris" />
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris" />
     </target>
- 
+
     <target name="declare.solarisSparcv9" if="isSolarisSparcv9">
       <echo message="SolarisSparcv9" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris.sparcv9" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.sparcv9" />
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris.sparcv9" />
     </target>
 
     <target name="declare.solarisAMD64" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.solaris.amd64" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.solaris.amd64" />
+      <property name="linker.cfg.id"                        value="linker.cfg.solaris.amd64" />
     </target>
-   
+
     <target name="declare.solaris" depends="declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64" if="isSolaris" >
       <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/solaris" />
@@ -281,12 +281,12 @@
 
     <target name="declare.macosx" if="isOSX">
       <echo message="MacOSX" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" />
+      <property name="linker.cfg.id"                        value="linker.cfg.macosx" />
       <property name="c.src.dir.os"                         value="macosx" />
       <property name="java.includes.dir.platform"           value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
     </target>
-    
+
     <target name="declare.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSDAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
@@ -349,9 +349,9 @@
       <echo message="Output lib name = ${output.lib.name}" />
 
       <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-      <property name="c.compiler.debug"     value="false" /> 
-      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-      <property name="c.compiler.optimise"  value="none" /> 
+      <property name="c.compiler.debug"     value="false" />
+      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } -->
+      <property name="c.compiler.optimise"  value="none" />
 
       <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
@@ -362,22 +362,22 @@
       <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
       <echo message="user.dir=${user.dir}" />
 
-      <cc outtype="shared" 
+      <cc outtype="shared"
           objdir="${gluegen.lib.dir}"
           outfile="${gluegen.lib.dir}/${output.lib.name}"
-          optimize="${c.compiler.optimise}" 
+          optimize="${c.compiler.optimise}"
           debug="${c.compiler.debug}"
-          multithreaded="true" 
-          exceptions="false" 
-          rtti="false">   
+          multithreaded="true"
+          exceptions="false"
+          rtti="false">
 
         <!-- TODO: versioninfo  companyname="java.net"
                       legalcopyright="Copyright"
-                      productname="GlueGen" 
+                      productname="GlueGen"
                       productversion="x.y.z"
                       description="Description"
-                      fileversion="x.y.z" 
-                      filecomments="File Comment" /-->      
+                      fileversion="x.y.z"
+                      filecomments="File Comment" /-->
 
         <fileset dir="..">
           <patternset>
@@ -402,14 +402,14 @@
       </antcall>
 
       <antcall target="c.manifest" inheritRefs="true" />
-    </target>  
+    </target>
 
   <target name="gluegen.build.gluegen-rt-cdc" >
     <!-- Build just the gluegen-rt-cdc.jar classes using the Java CDC
          boot classes -->
     <copy todir="${classes-cdc}">
         <fileset dir="${classes}"
-                 includes="com/** net/**" 
+                 includes="com/** net/**"
                  excludes="com/jogamp/gluegen/runtime/** com/sun/gluegen/test/**" />
     </copy>
 
@@ -658,7 +658,7 @@
     <delete includeEmptyDirs="true">
       <fileset dir="${build}" />
     </delete>
-  </target>    
+  </target>
 
   <target name="test" depends="init, gluegen.cpptasks.detect.os">
       <mkdir dir="${build}/test/build/classes"/>
@@ -721,90 +721,119 @@
   </target>
 
 
+        <!-- Put  the files created by target gluegen.build from
+         build directory to maven repository, local or remote
+         (targets maven.install and maven.deploy.snapshot respectively)-->
+
+    <target name="maven.prepare.pom">
+        <copy file="pom-template.xml" tofile="${build}/pom-${artifactId}.xml" overwrite="true">
+            <filterset>
+                <filter token="ARTIFACTID" value="${artifactId}"/>
+                <filter token="VERSION" value="${maven.artifacts.version}"/>
+                <filter token="DESCRIPTION" value="${description}"/>
+                <filter token="DEPENDENCIES" value=""/>
+            </filterset>
+        </copy>
+    </target>
+
+    <target name="maven.prepare.native.pom">
+        <loadfile srcfile="pom-rt-dependency.xml" property="maven.dependencies.section"/>
+        <copy file="pom-template.xml" tofile="${build}/pom-${artifactId}-${os.and.arch}.xml" overwrite="true">
+            <filterchain description="Put in the dependencies section, then replace tokens">
+                <replacetokens>
+                    <token key="DEPENDENCIES" value="${maven.dependencies.section}"/>
+                </replacetokens>
+                <replacetokens>
+                    <token key="ARTIFACTID" value="${artifactId}"/>
+                    <token key="VERSION" value="${maven.artifacts.version}"/>
+                    <token key="DESCRIPTION" value="${description}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+    </target>
+
     <target name="maven.install.artifact">
-        <exec executable="mvn">
-            <arg  value="install:install-file"/>
-            <arg value="-DartifactId=${artifactId}"/>
-            <arg value="-DgroupId=org.jogamp.gluegen"/>
-            <arg value="-Dfile=../build/${artifactFileName}"/>
-            <arg value="-Dversion=${gluegen_base_version}"/>
-            <arg value="-Dpackaging=jar"/>
-            <arg value="-DgeneratePom=true"/>
-            <arg value="-DcreateChecksum=true" />
-            <arg value="${platformSpecificClassifier}"/>
+        <antcall target="maven.prepare.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="install:install-file"/>
+            <arg value="-Dfile=${artifactId}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
         </exec>
     </target>
 
-    <target name="maven.install" depends="init, gluegen.build">
-        <antcall target="maven.install.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen"/>
-            <param name="artifactFileName" value="gluegen.jar"/>
-            <param name="platformSpecificClassifier" value=""/>
-        </antcall>
-        <antcall target="maven.install.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen-rt"/>
-            <param name="artifactFileName" value="gluegen-rt.jar"/>
-            <param name="platformSpecificClassifier" value=""/>
-        </antcall>
-        <antcall target="maven.install.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen-rt-cdc"/>
-            <param name="artifactFileName" value="gluegen-rt-cdc.jar"/>
-            <param name="platformSpecificClassifier" value=""/>
-        </antcall>
-        <antcall target="maven.install.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen-rt-natives"/>
-            <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}.jar"/>
-            <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
-        </antcall>
-        <antcall target="maven.install.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen-rt-natives-cdc"/>
-            <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}-cdc.jar"/>
-            <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
-        </antcall>
+    <target name="maven.install.native.artifact">
+        <antcall target="maven.prepare.native.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="install:install-file"/>
+            <arg value="-Dfile=${artifactId}-${os.and.arch}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}-${os.and.arch}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
+            <arg value="-Dclassifier=${os.and.arch}"/>
+        </exec>
     </target>
 
     <target name="maven.deploy.artifact">
-        <exec executable="mvn">
+        <antcall target="maven.prepare.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
             <arg value="deploy:deploy-file"/>
             <arg value="-DrepositoryId=sonatype-nexus-snapshots"/>
             <arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/"/>
 
-            <arg value="-DartifactId=${artifactId}"/>
-            <arg value="-DgroupId=org.jogamp.gluegen"/>
-            <arg value="-Dfile=../build/${artifactFileName}"/>
-            <arg value="-Dversion=${gluegen_base_version}-SNAPSHOT"/>
-            <arg value="-Dpackaging=jar"/>
-            <arg value="-DgeneratePom=true"/>
-            <arg value="-DcreateChecksum=true" />
-            <arg value="${platformSpecificClassifier}"/>
+            <arg value="-Dfile=${artifactId}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
         </exec>
     </target>
 
-    <target name="maven.deploy" depends="init, gluegen.build">
-        <antcall target="maven.deploy.artifact" inheritall="true">
+    <target name="maven.deploy.native.artifact">
+        <antcall target="maven.prepare.native.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="deploy:deploy-file"/>
+            <arg value="-DrepositoryId=sonatype-nexus-snapshots"/>
+            <arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/"/>
+
+            <arg value="-Dfile=${artifactId}-${os.and.arch}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}-${os.and.arch}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
+            <arg value="-Dclassifier=${os.and.arch}"/>
+        </exec>
+    </target>
+
+    <target  name="maven.antcalls">
+        <antcall target="maven.${mvn.task}.artifact" inheritall="true">
             <param name="artifactId" value="gluegen"/>
-            <param name="artifactFileName" value="gluegen.jar"/>
-            <param name="platformSpecificClassifier" value=""/>
+            <param name="description" value="GlueGen - JNI Glue Code Generator"/>
         </antcall>
-        <antcall target="maven.deploy.artifact" inheritall="true">
+        <antcall target="maven.${mvn.task}.artifact" inheritall="true">
             <param name="artifactId" value="gluegen-rt"/>
-            <param name="artifactFileName" value="gluegen-rt.jar"/>
-            <param name="platformSpecificClassifier" value=""/>
+            <param name="description" value="GlueGen runtime"/>
         </antcall>
-        <antcall target="maven.deploy.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen-rt-cdc"/>
-            <param name="artifactFileName" value="gluegen-rt-cdc.jar"/>
-            <param name="platformSpecificClassifier" value=""/>
-        </antcall>
-        <antcall target="maven.deploy.artifact" inheritall="true">
+        <antcall target="maven.${mvn.task}.native.artifact" inheritall="true">
             <param name="artifactId" value="gluegen-rt-natives"/>
-            <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}.jar"/>
-            <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
+            <param name="description" value="Gluegen runtime native libraries for ${os.and.arch}"/>
         </antcall>
-        <antcall target="maven.deploy.artifact" inheritall="true">
-            <param name="artifactId" value="gluegen-rt-natives-cdc"/>
-            <param name="artifactFileName" value="gluegen-rt-natives-${os.and.arch}-cdc.jar"/>
-            <param name="platformSpecificClassifier" value="-Dclassifier=${os.and.arch}"/>
+        <!--<antcall target="maven.${mvn.task}.artifact" inheritall="true">-->
+        <!--<param name="artifactId" value="gluegen-rt-cdc"/>-->
+        <!--<param name="description" value="Gluegen CDC Runtime"/>-->
+        <!--</antcall>-->
+        <!--<antcall target="maven.${mvn.task}.artifact" inheritall="true">-->
+        <!--<param name="artifactId" value="gluegen-rt-natives-cdc"/>-->
+        <!--<param name="description" value="Gluegen CDC runtime native libraries for ${os.and.arch}"/>-->
+        <!--</antcall>-->
+    </target>
+
+    <target name="maven.install" depends="init, gluegen.build">
+        <property name="maven.artifacts.version" value="${gluegen_base_version}"/>
+        <antcall target="maven.antcalls" inheritall="true">
+            <param name="mvn.task" value="install"/>
+        </antcall>
+    </target>
+
+    <target name="maven.deploy.snapshot" depends="init, gluegen.build">
+        <property name="maven.artifacts.version" value="${gluegen_base_version}-SNAPSHOT"/>
+        <antcall target="maven.antcalls" inheritall="true">
+            <param name="mvn.task" value="deploy"/>
         </antcall>
     </target>
 
