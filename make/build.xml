@@ -808,6 +808,8 @@
         <!-- Put  the files created by target gluegen.build from
          build directory to maven repository, local or remote
          (targets maven.install and maven.deploy.snapshot respectively)-->
+    
+    <import file="maven-common.xml" />
 
     <target name="maven.prepare.pom">
         <copy file="pom-template.xml" tofile="${build}/pom-${artifactId}.xml" overwrite="true">
@@ -885,7 +887,7 @@
         </exec>
     </target>
 
-    <target  name="maven.antcalls">
+    <target name="maven.antcalls">
         <antcall target="maven.${mvn.task}.artifact" inheritall="true">
             <param name="artifactId" value="gluegen"/>
             <param name="description" value="GlueGen - JNI Glue Code Generator"/>
@@ -896,7 +898,7 @@
         </antcall>
         <antcall target="maven.${mvn.task}.native.artifact" inheritall="true">
             <param name="artifactId" value="gluegen-rt-natives"/>
-            <param name="description" value="Gluegen runtime native libraries for ${os.and.arch}"/>
+            <param name="description" value="GlueGen runtime native libraries for ${os.and.arch}"/>
         </antcall>
         <!--<antcall target="maven.${mvn.task}.artifact" inheritall="true">-->
         <!--<param name="artifactId" value="gluegen-rt-cdc"/>-->

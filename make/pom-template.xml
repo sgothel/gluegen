@@ -28,7 +28,7 @@
             <email>sgothel@jausoft.com</email>
             <url>http://github.com/sgothel</url>
             <organization>Jausoft</organization>
-            <organizationUrl>http://http://jausoft.com/blog</organizationUrl>
+            <organizationUrl>http://jausoft.com/blog</organizationUrl>
             <roles>
                 <role>developer</role>
             </roles>
@@ -39,6 +39,8 @@
             <name>Michael Bien</name>
             <email>mbien@fh-landshut.de</email>
             <url>http://github.com/mbien</url>
+            <organization>michael-bien.com</organization>
+            <organizationUrl>http://michael-bien.com</organizationUrl>
             <roles>
                 <role>developer</role>
             </roles>
