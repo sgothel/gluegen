@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- reuseable maven related targets -->
+<project name="maven-common" basedir=".">
+
+    <target name="maven.prepare.pom">
+        <copy file="pom-template.xml" tofile="${build}/pom-${artifactId}.xml" overwrite="true">
+            <filterset>
+                <filter token="ARTIFACTID" value="${artifactId}"/>
+                <filter token="VERSION" value="${maven.artifacts.version}"/>
+                <filter token="DESCRIPTION" value="${description}"/>
+                <filter token="DEPENDENCIES" value=""/>
+            </filterset>
+        </copy>
+    </target>
+
+    <target name="maven.prepare.native.pom">
+        <loadfile srcfile="pom-rt-dependency.xml" property="maven.dependencies.section"/>
+        <copy file="pom-template.xml" tofile="${build}/pom-${artifactId}-${os.and.arch}.xml" overwrite="true">
+            <filterchain description="Put in the dependencies section, then replace tokens">
+                <replacetokens>
+                    <token key="DEPENDENCIES" value="${maven.dependencies.section}"/>
+                </replacetokens>
+                <replacetokens>
+                    <token key="ARTIFACTID" value="${artifactId}"/>
+                    <token key="VERSION" value="${maven.artifacts.version}"/>
+                    <token key="DESCRIPTION" value="${description}"/>
+                </replacetokens>
+            </filterchain>
+        </copy>
+    </target>
+    
+    <target name="maven.install.artifact">
+        <antcall target="maven.prepare.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="install:install-file"/>
+            <arg value="-Dfile=${artifactId}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
+        </exec>
+    </target>
+
+    <target name="maven.install.native.artifact">
+        <antcall target="maven.prepare.native.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="install:install-file"/>
+            <arg value="-Dfile=${artifactId}-${os.and.arch}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}-${os.and.arch}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
+            <arg value="-Dclassifier=${os.and.arch}"/>
+        </exec>
+    </target>
+
+    <target name="maven.deploy.artifact">
+        <antcall target="maven.prepare.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="deploy:deploy-file"/>
+            <arg value="-DrepositoryId=sonatype-nexus-snapshots"/>
+            <arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/"/>
+
+            <arg value="-Dfile=${artifactId}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
+        </exec>
+    </target>
+
+    <target name="maven.deploy.native.artifact">
+        <antcall target="maven.prepare.native.pom" inheritall="true"/>
+        <exec executable="mvn" dir="${build}">
+            <arg value="deploy:deploy-file"/>
+            <arg value="-DrepositoryId=sonatype-nexus-snapshots"/>
+            <arg value="-Durl=https://oss.sonatype.org/content/repositories/snapshots/"/>
+
+            <arg value="-Dfile=${artifactId}-${os.and.arch}.jar"/>
+            <arg value="-DpomFile=pom-${artifactId}-${os.and.arch}.xml"/>
+            <arg value="-DcreateChecksum=true"/>
+            <arg value="-Dclassifier=${os.and.arch}"/>
+        </exec>
+    </target>
+
+</project>
