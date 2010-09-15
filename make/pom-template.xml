@@ -1,0 +1,53 @@
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.jogamp.gluegen</groupId>
+    <artifactId>@ARTIFACTID@</artifactId>
+    <packaging>jar</packaging>
+    <name>GlueGen</name>
+    <version>@VERSION@</version>
+    <description>@DESCRIPTION@</description>
+    <url>http://jogamp.org/gluegen/www</url>
+
+    <licenses>
+        <license>
+            <name>BSD</name>
+            <url>http://jogamp.org/gluegen/LICENSE.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <url>http://github.com/sgothel/gluegen</url>
+        <connection>http://github.com/sgothel/gluegen.git</connection>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>sgothel</id>
+            <name>Sven Gothel</name>
+            <email>sgothel@jausoft.com</email>
+            <url>http://github.com/sgothel</url>
+            <organization>Jausoft</organization>
+            <organizationUrl>http://jausoft.com/blog</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+
+        <developer>
+            <id>mbien</id>
+            <name>Michael Bien</name>
+            <email>mbien@fh-landshut.de</email>
+            <url>http://github.com/mbien</url>
+            <organization>michael-bien.com</organization>
+            <organizationUrl>http://michael-bien.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+    
+@DEPENDENCIES@
+
+</project>
+        
