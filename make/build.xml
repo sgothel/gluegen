@@ -644,6 +644,9 @@
         <include name="*gluegen-rt.${native.library.suffix-cdc}" />
       </fileset>
     </jar>
+      <jar  destfile="${build}/gluegen-cpptasks.jar"
+            basedir="."
+            includes="gluegen-cpptasks*.xml, gluegen-properties.xml"/>
 
     <!-- Copy antlr.jar into build directory for convenience so
          gluegen.jar can be run via "java -jar". antlr.jar is
@@ -748,6 +751,10 @@
         <!--<param name="artifactId" value="gluegen-rt-natives-cdc"/>-->
         <!--<param name="description" value="Gluegen CDC runtime native libraries for ${os.and.arch}"/>-->
         <!--</antcall>-->
+        <antcall target="maven.${mvn.task}.artifact" inheritall="true">
+            <param name="artifactId" value="gluegen-cpptasks"/>
+            <param name="description" value="GlueGen cpp tasks definitions"/>
+        </antcall>
     </target>
 
     <target name="maven.install" depends="init, gluegen.build">
