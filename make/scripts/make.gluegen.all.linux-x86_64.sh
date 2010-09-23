@@ -1,6 +1,8 @@
 #! /bin/sh
 
-. ../../setenv-build-jogl-x86_64.sh
+if [ -e ../../setenv-build-jogl-x86_64.sh ] ; then
+    . ../../setenv-build-jogl-x86_64.sh
+fi
 
 #    -Dc.compiler.debug=true 
 #    -Dgluegen.cpptasks.detected.os=true \
