@@ -59,25 +59,48 @@ public class RunnableTask implements Runnable {
 
     public void run() {
         ts1 = System.currentTimeMillis();
-        try {
-            runnable.run();
-        } catch (Throwable t) {
-            runnableException = t;
-            if(!catchExceptions) {
-                throw new RuntimeException(runnableException);
+        if(null == notifyObject) {
+            try {
+                runnable.run();
+            } catch (Throwable t) {
+                runnableException = t;
+                if(catchExceptions) {
+                    runnableException.printStackTrace();
+                } else {
+                    throw new RuntimeException(runnableException);
+                }
+            } finally {
+                ts2 = System.currentTimeMillis();
             }
-        } finally {
-            ts2 = System.currentTimeMillis();
-        }
-        if(null != notifyObject) {
+        } else {
             synchronized (notifyObject) {
-                notifyObject.notifyAll();
+                try {
+                    runnable.run();
+                } catch (Throwable t) {
+                    runnableException = t;
+                    if(catchExceptions) {
+                        runnableException.printStackTrace();
+                    } else {
+                        throw new RuntimeException(runnableException);
+                    }
+                } finally {
+                    ts2 = System.currentTimeMillis();
+                    notifyObject.notifyAll();
+                }
             }
         }
     }
 
+    /**
+     * @return True if executed, otherwise false;
+     */
     public boolean isExecuted() { return 0 != ts2 ; }
+
+    /**
+     * @return A Throwable thrown while execution if any
+     */
     public Throwable getThrowable() { return runnableException; }
+
     public long getTimestampCreate() { return ts0; }
     public long getTimestampBeforeExec() { return ts1; }
     public long getTimestampAfterExec() { return ts2; }
