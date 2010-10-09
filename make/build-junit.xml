@@ -35,6 +35,8 @@
         <property name="build_t.obj"  value="${build_t}/obj"/>
         <property name="build_t.lib"  value="${build_t}/natives"/>
 
+        <property name="batchtest.timeout"    value="1800000"/> <!-- 30 min -->
+
         <property name="build_t.gen.rootrel" value="${rootrel.build}/test/build/gensrc"/>
 
         <mkdir dir="${test.dir}"/>
@@ -196,7 +198,7 @@
         <property name="build_t.lib.abs" location="${build_t.lib}" />
 
         <!-- Perform the junit tests-->
-        <junit forkmode="once" showoutput="true" fork="true">
+        <junit forkmode="once" showoutput="true" fork="true" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
             <jvmarg value="-Djava.library.path=${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
@@ -214,6 +216,7 @@
             <batchtest todir="${results}">
               <fileset dir="${build_t.java}">
                   <include name="${test.junit.rel}/**/*Test*"/>
+                  <exclude name="**/*$$*"/>
               </fileset>
               <formatter usefile="false" type="brief"/>
               <formatter usefile="true" type="xml"/>
