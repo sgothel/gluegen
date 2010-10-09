@@ -26,9 +26,10 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.nativewindow.impl;
+package com.jogamp.common.util;
 
-import javax.media.nativewindow.*;
+import com.jogamp.common.impl.Debug;
+
 import java.util.LinkedList;
 
 /**
