@@ -48,7 +48,12 @@ public class Platform {
     public static final boolean JAVA_SE;
     public static final boolean LITTLE_ENDIAN;
     public static final String OS;
+    public static final String OS_VERSION;
     public static final String ARCH;
+    public static final String JAVA_VENDOR;
+    public static final String JAVA_VENDOR_URL;
+    public static final String JAVA_VERSION;
+    public static final String NEWLINE;
 
     private static final boolean is32Bit;
     private static final int pointerSizeInBits;
@@ -60,7 +65,12 @@ public class Platform {
         // here as these system properties are visible even to unsigned
         // applets
         OS =  System.getProperty("os.name");
+        OS_VERSION =  System.getProperty("os.version");
         ARCH = System.getProperty("os.arch");
+        JAVA_VENDOR = System.getProperty("java.vendor");
+        JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
+        JAVA_VERSION = System.getProperty("java.version");
+        NEWLINE = System.getProperty("line.separator");
 
         pointerSizeInBits = getPointerSizeInBitsImpl();
         is32Bit = initArch();
@@ -119,7 +129,7 @@ public class Platform {
         }
 
         // probe for classes we need on a SE environment
-        try{
+        try {
             Class.forName("java.nio.LongBuffer");
             Class.forName("java.nio.DoubleBuffer");
             return true;
@@ -163,10 +173,46 @@ public class Platform {
     }
 
     /**
+     * Returns the OS version.
+     */
+    public static String getOSVersion() {
+        return OS_VERSION;
+    }
+
+
+    /**
      * Returns the CPU architecture String.
      */
     public static String getArch() {
         return ARCH;
+    }
+
+    /**
+     * Returns the JAVA vendor
+     */
+    public static String getJavaVendor() {
+        return JAVA_VENDOR;
+    }
+
+    /**
+     * Returns the JAVA vendor url
+     */
+    public static String getJavaVendorURL() {
+        return JAVA_VENDOR_URL;
+    }
+
+    /**
+     * Returns the JAVA vendor
+     */
+    public static String getJavaVersion() {
+        return JAVA_VERSION;
+    }
+
+    /**
+     * Returns the JAVA vendor
+     */
+    public static String getNewline() {
+        return NEWLINE;
     }
 
     /**

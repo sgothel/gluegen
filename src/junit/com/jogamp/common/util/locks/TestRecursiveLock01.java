@@ -26,8 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.common.util;
+package com.jogamp.common.util.locks;
 
+import com.jogamp.common.util.locks.RecursiveLock;
 import java.lang.reflect.*;
 import java.io.IOException;
 
@@ -38,7 +39,7 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-public class TestRecursiveToolkitLock {
+public class TestRecursiveLock01 {
 
     static final int YIELD_NONE = 0;
     static final int YIELD_YIELD = 1;
@@ -66,7 +67,7 @@ public class TestRecursiveToolkitLock {
         static final boolean DEBUG = false;
 
         public LockedObject() {
-            locker = new RecursiveToolkitLock();
+            locker = new RecursiveLock();
             actionCounter = 0;
         }
 
@@ -140,7 +141,7 @@ public class TestRecursiveToolkitLock {
             return locker.isLocked();
         }
 
-        RecursiveToolkitLock locker;
+        RecursiveLock locker;
         int actionCounter;
     }
 
@@ -218,30 +219,30 @@ public class TestRecursiveToolkitLock {
 
     // @Test
     public void testLockedObjectThreading2x10000() throws InterruptedException {
-        System.err.println("++++ TestRecursiveToolkitLock.testLockedObjectThreading2x10000");
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading2x10000");
         testLockedObjectImpl(2, 10000, 10000, YIELD_NONE);
-        System.err.println("---- TestRecursiveToolkitLock.testLockedObjectThreading2x10000");
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading2x10000");
     }
 
     @Test
     public void testLockedObjectThreading200x200Yield() throws InterruptedException {
-        System.err.println("++++ TestRecursiveToolkitLock.testLockedObjectThreading200x200-Yield");
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading200x200-Yield");
         testLockedObjectImpl(200, 200, 100, YIELD_YIELD);
-        System.err.println("---- TestRecursiveToolkitLock.testLockedObjectThreading200x200-Yield");
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading200x200-Yield");
     }
 
     // @Test
     public void testLockedObjectThreading200x200Sleep() throws InterruptedException {
-        System.err.println("++++ TestRecursiveToolkitLock.testLockedObjectThreading200x200-Sleep");
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading200x200-Sleep");
         testLockedObjectImpl(200, 200, 100, YIELD_SLEEP);
-        System.err.println("---- TestRecursiveToolkitLock.testLockedObjectThreading200x200-Sleep");
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading200x200-Sleep");
     }
 
     @Test
     public void testLockedObjectThreading200x200None() throws InterruptedException {
-        System.err.println("++++ TestRecursiveToolkitLock.testLockedObjectThreading200x200-None");
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading200x200-None");
         testLockedObjectImpl(200, 200, 100, YIELD_NONE);
-        System.err.println("---- TestRecursiveToolkitLock.testLockedObjectThreading200x200-None");
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading200x200-None");
     }
 
     static int atoi(String a) {
@@ -260,7 +261,7 @@ public class TestRecursiveToolkitLock {
         }
         System.out.println("durationPerTest: "+durationPerTest);
         */
-        String tstname = TestRecursiveToolkitLock.class.getName();
+        String tstname = TestRecursiveLock01.class.getName();
         /*
         org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner.main(new String[] {
             tstname,

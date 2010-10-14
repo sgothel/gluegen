@@ -26,23 +26,25 @@
  * or implied, of JogAmp Community.
  */
 
-package com.jogamp.common.util;
+package com.jogamp.common.util.locks;
 
 import com.jogamp.common.impl.Debug;
+import java.security.AccessController;
 
 import java.util.LinkedList;
 
 /**
  * Reentrance locking toolkit, impl a complete fair FIFO scheduler
  */
-public class RecursiveToolkitLock {
+public class RecursiveLock implements LockExt {
+
     static class SyncData {
         // owner of the lock
         Thread owner = null; 
         // lock recursion
         int recursionCount = 0; 
-        // stack trace of the lock
-        Exception lockedStack = null; 
+        // stack trace of the lock, only used if DEBUG
+        Throwable lockedStack = null;
         // waiting thread queue
         LinkedList threadQueue = new LinkedList(); 
         // flag signaling unlock has woken up a waiting thread
@@ -50,20 +52,17 @@ public class RecursiveToolkitLock {
     }
     private SyncData sdata = new SyncData(); // synchronized (flow/mem)  mutable access
 
-    private long timeout;
-    private static final long defaultTimeout = 5000;  // default maximum wait 5s
-    // private static final long defaultTimeout = 300000;  // default maximum wait 300s / 5min
-    private static final boolean TRACE_LOCK = Debug.debug("TraceLock");
+    private static final boolean TRACE_LOCK = Debug.isPropertyDefined("jogamp.debug.Lock.TraceLock", true, AccessController.getContext());
 
-    public RecursiveToolkitLock() {
-        this.timeout = defaultTimeout;
+    public RecursiveLock() {
     }
 
-    public RecursiveToolkitLock(long timeout) {
-        this.timeout = timeout;
-    }
-
-    public final Exception getLockedStack() {
+    /**
+     * Returns the Throwable instance generated when this lock was taken the 1st time
+     * and if {@link com.jogamp.common.util.locks.Lock#DEBUG} is turned on, otherwise it returns always <code>null</code>.
+     * @see com.jogamp.common.util.locks.Lock#DEBUG
+     */
+    public final Throwable getLockedStack() {
         synchronized(sdata) {
             return sdata.lockedStack;
         }
@@ -109,32 +108,55 @@ public class RecursiveToolkitLock {
                 throw new RuntimeException(Thread.currentThread()+": Not locked");
             }
             if ( Thread.currentThread() != sdata.owner ) {
-                getLockedStack().printStackTrace();
+                if(null!=sdata.lockedStack) {
+                    sdata.lockedStack.printStackTrace();
+                }
                 throw new RuntimeException(Thread.currentThread()+": Not owner, owner is "+sdata.owner);
             }
         }
     }
 
-    /** Recursive and blocking lockSurface() implementation */
     public final void lock() {
         synchronized(sdata) {
+            if(!tryLock(TIMEOUT)) {
+                if(null!=sdata.lockedStack) {
+                    sdata.lockedStack.printStackTrace();
+                }
+                throw new RuntimeException("Waited "+TIMEOUT+"ms for: "+sdata.owner+" - "+Thread.currentThread()+", with recursionCount "+sdata.recursionCount+", lock: "+this+", qsz "+sdata.threadQueue.size());
+            }
+        }
+    }
+
+    public boolean tryLock(long maxwait) {
+        synchronized(sdata) {
             Thread cur = Thread.currentThread();
+            if(TRACE_LOCK) {
+                Throwable tt = new Throwable("LOCK 0 ["+this+"], recursions "+sdata.recursionCount+", cur "+cur+", owner "+sdata.owner);
+                tt.printStackTrace();
+            }
             if (sdata.owner == cur) {
                 ++sdata.recursionCount;
                 if(TRACE_LOCK) {
                     System.err.println("+++ LOCK 2 ["+this+"], recursions "+sdata.recursionCount+", "+cur);
                 }
-                return;
+                return true;
             }
 
-            if (sdata.owner != null || sdata.signaled || sdata.threadQueue.size() > 0) {
-                // enqueue due to locked resource or already waiting or signaled threads (be fair)
+            if ( sdata.owner != null || 
+                 0 < maxwait && ( sdata.signaled || sdata.threadQueue.size() > 0 ) ) {
+
+                if ( 0 >= maxwait ) {
+                    // implies 'sdata.owner != null': locked by other thread
+                    // no waiting requested, bail out right away
+                    return false;
+                }
+
                 boolean timedOut = false;
                 do {
                     sdata.threadQueue.addFirst(cur); // should only happen once 
                     try {
-                        sdata.wait(timeout);
-                        timedOut = sdata.threadQueue.remove(cur); // timeout if not already removed by unlock
+                        sdata.wait(maxwait);
+                        timedOut = sdata.threadQueue.remove(cur); // TIMEOUT if not already removed by unlock
                     } catch (InterruptedException e) {
                         if(!sdata.signaled) {
                             // theoretically we could stay in the loop,
@@ -151,8 +173,7 @@ public class RecursiveToolkitLock {
                 sdata.signaled = false;
 
                 if(timedOut || null != sdata.owner) {
-                    sdata.lockedStack.printStackTrace();
-                    throw new RuntimeException("Waited "+timeout+"ms for: "+sdata.owner+" - "+cur+", with recursionCount "+sdata.recursionCount+", lock: "+this+", qsz "+sdata.threadQueue.size());
+                    return false;
                 }
 
                 if(TRACE_LOCK) {
@@ -163,17 +184,18 @@ public class RecursiveToolkitLock {
             }
 
             sdata.owner = cur;
-            sdata.lockedStack = new Exception("Previously locked by "+sdata.owner+", lock: "+this);
+            if(DEBUG) {
+                sdata.lockedStack = new Throwable("Previously locked by "+sdata.owner+", lock: "+this);
+            }
+            return true;
         }
     }
     
 
-    /** Recursive and unblocking unlockSurface() implementation */
     public final void unlock() {
         unlock(null);
     }
 
-    /** Recursive and unblocking unlockSurface() implementation */
     public final void unlock(Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sdata) {
             validateLocked();

@@ -634,6 +634,7 @@
         <include name="com/jogamp/common/impl/*.class" />
         <include name="com/jogamp/common/jvm/*.class" />
         <include name="com/jogamp/common/util/*.class" />
+        <include name="com/jogamp/common/util/locks/*.class" />
         <include name="com/jogamp/common/nio/*.class" />
         <include name="com/jogamp/common/os/*.class" />
         <include name="com/jogamp/common/*.class" />
@@ -682,6 +683,7 @@
                   <include name="com/sun/gluegen/**Test*"/>
                   <include name="com/jogamp/common/nio/**Test*"/>
                   <include name="com/jogamp/common/util/**Test*"/>
+                  <include name="com/jogamp/common/util/locks/**Test*"/>
               </fileset>
               <formatter usefile="false" type="plain"/>
               <formatter usefile="true" type="xml"/>

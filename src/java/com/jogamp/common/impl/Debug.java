@@ -56,16 +56,31 @@ public class Debug {
   }
 
   static int getIntProperty(final String property, final boolean jnlpAlias) {
-      return getIntProperty(property, jnlpAlias, localACC);
+      return getIntProperty(property, jnlpAlias, localACC, 0);
   }
 
-  public static int getIntProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    int i=0;
+  public static int getIntProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc, int defaultValue) {
+    int i=defaultValue;
     try {
-        Integer iv = Integer.valueOf(Debug.getProperty(property, jnlpAlias, acc));
-        i = iv.intValue();
+        String sv = Debug.getProperty(property, jnlpAlias, acc);
+        if(null!=sv) {
+            Integer iv = Integer.valueOf(sv);
+            i = iv.intValue();
+        }
     } catch (NumberFormatException nfe) {}
     return i;
+  }
+
+  public static long getLongProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc, long defaultValue) {
+    long l=defaultValue;
+    try {
+        String sv = Debug.getProperty(property, jnlpAlias, acc);
+        if(null!=sv) {
+            Long lv = Long.valueOf(sv);
+            l = lv.longValue();
+        }
+    } catch (NumberFormatException nfe) {}
+    return l;
   }
 
   static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {

@@ -42,7 +42,9 @@ import com.jogamp.common.impl.Debug;
 
 public final class ReflectionUtil {
     
-  public static final boolean DEBUG = Debug.debug("ReflectionUtil");
+    public static final boolean DEBUG = Debug.debug("ReflectionUtil");
+
+    private static final Class[] zeroTypes = new Class[0];
 
     /**
      * Returns true only if the class could be loaded.
@@ -87,12 +89,14 @@ public final class ReflectionUtil {
     static final String asString(Class[] argTypes) {
         StringBuffer args = new StringBuffer();
         boolean coma = false;
-        for (int i = 0; i < argTypes.length; i++) {
-            if(coma) {
-                 args.append(", ");
+        if(null != argTypes) {
+            for (int i = 0; i < argTypes.length; i++) {
+                if(coma) {
+                     args.append(", ");
+                }
+                args.append(argTypes[i].getName());
+                coma = true;
             }
-            args.append(argTypes[i].getName());
-            coma = true;
         }
         return args.toString();
     }
@@ -103,6 +107,9 @@ public final class ReflectionUtil {
     public static final Constructor getConstructor(Class clazz, Class[] cstrArgTypes) 
         throws JogampRuntimeException {
         try {
+            if(null == cstrArgTypes) {
+                cstrArgTypes = zeroTypes;
+            }
             return clazz.getDeclaredConstructor(cstrArgTypes);
         } catch (NoSuchMethodException ex) {
             throw new JogampRuntimeException("Constructor: '" + clazz + "(" + asString(cstrArgTypes) + ")' not found", ex);
@@ -111,7 +118,7 @@ public final class ReflectionUtil {
 
   public static final Constructor getConstructor(String clazzName, ClassLoader cl)
         throws JogampRuntimeException {
-    return getConstructor(clazzName, new Class[0], cl);
+    return getConstructor(clazzName, null, cl);
   }
 
   /**
@@ -140,9 +147,12 @@ public final class ReflectionUtil {
   public static final Object createInstance(Class clazz, Object[] cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
-    Class[] cstrArgTypes = new Class[cstrArgs.length];
-    for(int i=0; i<cstrArgs.length; i++) {
-        cstrArgTypes[i] = cstrArgs[i].getClass();
+    Class[] cstrArgTypes = null;
+    if(null!=cstrArgs) {
+        cstrArgTypes = new Class[cstrArgs.length];
+        for(int i=0; i<cstrArgs.length; i++) {
+            cstrArgTypes[i] = cstrArgs[i].getClass();
+        }
     }
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
@@ -160,9 +170,12 @@ public final class ReflectionUtil {
   public static final Object createInstance(String clazzName, Object[] cstrArgs, ClassLoader cl) 
       throws JogampRuntimeException, RuntimeException
   {
-    Class[] cstrArgTypes = new Class[cstrArgs.length];
-    for(int i=0; i<cstrArgs.length; i++) {
-        cstrArgTypes[i] = cstrArgs[i].getClass();
+    Class[] cstrArgTypes = null;
+    if(null!=cstrArgs) {
+        cstrArgTypes = new Class[cstrArgs.length];
+        for(int i=0; i<cstrArgs.length; i++) {
+            cstrArgTypes[i] = cstrArgs[i].getClass();
+        }
     }
     return createInstance(clazzName, cstrArgTypes, cstrArgs, cl);
   }
@@ -170,7 +183,7 @@ public final class ReflectionUtil {
   public static final Object createInstance(String clazzName, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
-    return createInstance(clazzName, new Class[0], null, cl);
+    return createInstance(clazzName, null, null, cl);
   }
 
   public static final boolean instanceOf(Object obj, String clazzName) {
@@ -239,8 +252,12 @@ public final class ReflectionUtil {
   }
 
   /**
-   * @throws JogampRuntimeException if the call fails
-   * @throws RuntimeException if the call fails
+   * @param instance may be null in case of a static method
+   * @param method the method to be called
+   * @param args the method arguments
+   * @return the methods result, maybe null if void
+   * @throws JogampRuntimeException if call fails
+   * @throws RuntimeException if call fails
    */
   public static final Object callMethod(Object instance, Method method, Object[] args)
       throws JogampRuntimeException, RuntimeException
