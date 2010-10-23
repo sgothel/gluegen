@@ -22,6 +22,8 @@ function onetest() {
     echo
 }
 
-onetest com.jogamp.common.util.TestRecursiveToolkitLock 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestArrayHashSet01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.TestStructAccessorEndian 2>&1 | tee -a $LOG
