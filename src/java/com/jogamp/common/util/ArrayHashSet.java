@@ -358,15 +358,38 @@ public class ArrayHashSet
     //
 
     /**
-     * Identity method allowing to fetch an equivalent object, using the internal hash map.
+     * Identity method allowing to get the identical object, using the internal hash map.
      * <br>
      * This is an O(1) operation.
      * 
-     * @param ident argument to find an equivalent Object within this list
-     * @return the Object contained in this list equivalent to the given <code>ident</code> Object
+     * @param key hash source to find the identical Object within this list
+     * @return object from this list, identical to the given <code>key</code> hash code,
+     * or null if not contained
      */
-    public final Object get(Object ident) {
-        return map.get(ident);
+    public final Object get(Object key) {
+        return map.get(key);
+    }
+
+    /**
+     * Identity method allowing to get the identical object, using the internal hash map.<br>
+     * If the <code>key</code> is not yet contained, add it.
+     * <br>
+     * This is an O(1) operation.
+     *
+     * @param key hash source to find the identical Object within this list
+     * @return object from this list, identical to the given <code>key</code> hash code,
+     * or add the given <code>key</code> and return it.
+     */
+    public final Object getOrAdd(Object key) {
+        Object identity = get(key);
+        if(null == identity) {
+            // object not contained yet, add it
+            if(!this.add(key)) {
+                throw new InternalError("Key not mapped, but contained in list: "+key);
+            }
+            identity = key;
+        }
+        return identity;
     }
 
 }

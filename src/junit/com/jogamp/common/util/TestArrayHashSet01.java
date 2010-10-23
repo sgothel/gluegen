@@ -107,6 +107,19 @@ public class TestArrayHashSet01 {
 
         Assert.assertTrue(!l.add(q)); // add same
         Assert.assertTrue(!l.add(p6_22_34)); // add equivalent
+
+        q = (Dummy) l.getOrAdd(p6_22_34); // not added test
+        Assert.assertNotNull(q);
+        Assert.assertEquals(p6_22_34, q);
+        Assert.assertTrue(p6_22_34.hashCode() == q.hashCode());
+        Assert.assertTrue(p6_22_34 != q); // diff reference
+
+        Dummy p1_2_3 = new Dummy(1, 2, 3); // a new one ..
+        q = (Dummy) l.getOrAdd(p1_2_3); // added test
+        Assert.assertNotNull(q);
+        Assert.assertEquals(p1_2_3, q);
+        Assert.assertTrue(p1_2_3.hashCode() == q.hashCode());
+        Assert.assertTrue(p1_2_3 == q); // _same_ reference, since getOrAdd added it
     }
 
     public static void main(String args[]) throws IOException {
