@@ -80,9 +80,10 @@ public class ArrayHashSet
     // Cloneable
     //
 
-    public final Object clone()
-                    throws CloneNotSupportedException
-    {
+    /**
+     * @return a shallow copy of this ArrayHashSet, elements are not copied.
+     */
+    public final Object clone() {
         ArrayList clonedList = (ArrayList)data.clone();
 
         ArrayHashSet newObj = new ArrayHashSet();
@@ -276,10 +277,6 @@ public class ArrayHashSet
         return data.indexOf(element);
     }
 
-    public final List toList() {
-        return data;
-    }
-
     /**
      * Add element at the given index in this list, if it is not contained yet.
      * <br>
@@ -356,6 +353,13 @@ public class ArrayHashSet
     //
     // ArrayHashSet
     //
+
+    /**
+     * @return a shallow copy of this ArrayHashSet's ArrayList, elements are not copied.
+     */
+    public final ArrayList toArrayList() {
+        return (ArrayList) data.clone();
+    }
 
     /**
      * Identity method allowing to get the identical object, using the internal hash map.
