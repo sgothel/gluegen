@@ -131,8 +131,10 @@ public class RecursiveLock implements LockExt {
         synchronized(sdata) {
             Thread cur = Thread.currentThread();
             if(TRACE_LOCK) {
-                Throwable tt = new Throwable("LOCK 0 ["+this+"], recursions "+sdata.recursionCount+", cur "+cur+", owner "+sdata.owner);
-                tt.printStackTrace();
+                String msg = "LOCK 0 ["+this+"], recursions "+sdata.recursionCount+", cur "+cur+", owner "+sdata.owner;
+                System.err.println(msg);
+                //Throwable tt = new Throwable(msg);
+                //tt.printStackTrace();
             }
             if (sdata.owner == cur) {
                 ++sdata.recursionCount;
