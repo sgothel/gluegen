@@ -225,24 +225,24 @@ public class TestRecursiveLock01 {
     }
 
     @Test
-    public void testLockedObjectThreading200x200Yield() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading200x200-Yield");
-        testLockedObjectImpl(200, 200, 100, YIELD_YIELD);
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading200x200-Yield");
+    public void testLockedObjectThreading25x25Yield() throws InterruptedException {
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
+        testLockedObjectImpl(25, 25, 100, YIELD_YIELD);
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
     }
 
     // @Test
-    public void testLockedObjectThreading200x200Sleep() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading200x200-Sleep");
-        testLockedObjectImpl(200, 200, 100, YIELD_SLEEP);
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading200x200-Sleep");
+    public void testLockedObjectThreading25x25Sleep() throws InterruptedException {
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
+        testLockedObjectImpl(25, 25, 100, YIELD_SLEEP);
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
     }
 
     @Test
-    public void testLockedObjectThreading200x200None() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading200x200-None");
-        testLockedObjectImpl(200, 200, 100, YIELD_NONE);
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading200x200-None");
+    public void testLockedObjectThreading25x25None() throws InterruptedException {
+        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-None");
+        testLockedObjectImpl(25, 25, 100, YIELD_NONE);
+        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-None");
     }
 
     static int atoi(String a) {
