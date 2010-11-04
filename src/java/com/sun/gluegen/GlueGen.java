@@ -84,13 +84,13 @@ public class GlueGen implements GlueEmitterControls {
 
   
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, Class<?> emitterClass, List<String> includePaths, List<String> cfgFiles, String outputRootDir) {
+    public void run(final Reader reader, final String filename, Class<?> emitterClass, List<String> includePaths, List<String> cfgFiles, String outputRootDir, boolean debug) {
 
         try {
             final PipedInputStream ppIn = new PipedInputStream();
             final PipedOutputStream ppOut = new PipedOutputStream(ppIn);
 
-            preprocessor = new PCPP(includePaths);
+            preprocessor = new PCPP(includePaths, debug);
             preprocessor.setOut(ppOut);
 
             new Thread("PCPP") {
@@ -136,9 +136,12 @@ public class GlueGen implements GlueEmitterControls {
             // walk that tree
             headerParser.translationUnit(parser.getAST());
 
+            /**
             // For debugging: Dump type dictionary and struct dictionary to System.err
-            //td.dumpDictionary(err, "All Types");
-            //sd.dumpDictionary(err, "All Structs");
+            if(debug) {
+                td.dumpDictionary(err, "All Types");
+                sd.dumpDictionary(err, "All Structs");
+            } */
 
             // At this point we have all of the pieces we need in order to
             // generate glue code: the #defines to constants, the set of
@@ -306,6 +309,7 @@ public class GlueGen implements GlueEmitterControls {
         String emitterFQN = null;
         String outputRootDir = null;
         List<String> cfgFiles = new ArrayList<String>();
+        boolean debug = false;
 
         List<String> includePaths = new ArrayList<String>();
         for (int i = 0; i < args.length; i++) {
@@ -320,6 +324,8 @@ public class GlueGen implements GlueEmitterControls {
                     emitterFQN = arg.substring(2);
                 } else if (arg.startsWith("-C")) {
                     cfgFiles.add(arg.substring(2));
+                } else if (arg.equals("--debug")) {
+                    debug=true;
                 } else {
                     usage();
                 }
@@ -344,7 +350,7 @@ public class GlueGen implements GlueEmitterControls {
 
         try {
             Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
-            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir);
+            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, debug);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException("specified emitter class was not in the classpath", ex);
         }
@@ -367,6 +373,7 @@ public class GlueGen implements GlueEmitterControls {
         out.println("declarations) to standard output. Emitter-specific configuration");
         out.println("file or files can be specified with -C option; e.g,");
         out.println("-Cjava-emitter.cfg.");
+        out.println("  --debug enables debug mode");
         exit(1);
     }
 }

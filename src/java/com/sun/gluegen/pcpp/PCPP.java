@@ -67,8 +67,6 @@ public class PCPP {
 
     private static final Logger LOG = Logger.getLogger(PCPP.class.getPackage().getName());
 
-    private static final boolean disableDebugPrint = true;
-
     /** Map containing the results of #define statements. We must
         evaluate certain very simple definitions (to properly handle
         OpenGL's gl.h) but preserve the text of definitions evaluating
@@ -84,9 +82,12 @@ public class PCPP {
 
     private ParseState  state;
 
-    public PCPP(List<String> includePaths) {
+    private boolean enableDebugPrint;
+
+    public PCPP(List<String> includePaths, boolean debug) {
         this.includePaths = includePaths;
         setOut(System.out);
+        enableDebugPrint = debug;
     }
 
     public void run(Reader reader, String filename) throws IOException {
@@ -297,6 +298,11 @@ public class PCPP {
         return new String(new char[] { c });
     }
 
+    private String nextWordOrString() throws IOException {
+        nextToken();
+        return curTokenAsString();
+    }
+
     private String nextWord() throws IOException {
         int val = nextToken();
         if (val != StreamTokenizer.TT_WORD) {
@@ -386,7 +392,13 @@ public class PCPP {
     private void preprocessorDirective() throws IOException {
         String w = nextWord();
         boolean shouldPrint = true;
-        if (w.equals("define")) {
+        if (w.equals("warning")) {
+            handleWarning();
+            shouldPrint = false;
+        } else if (w.equals("error")) {
+            handleError();
+            shouldPrint = false;
+        } else if (w.equals("define")) {
             handleDefine();
             shouldPrint = false;
         } else if (w.equals("undef")) {
@@ -443,6 +455,20 @@ public class PCPP {
             nonConstantDefines.remove(name);
         } else {
             LOG.log(WARNING, "FAILED TO UNDEFINE: ''{0}''  (line {1} file {2})", new Object[]{name, lineNumber(), filename()});
+        }
+    }
+
+    private void handleWarning() throws IOException {
+        String msg = nextWordOrString();
+        if (enabled()) {
+            LOG.log(WARNING, "#warning {0} at \"{1}\" line \"{2}\"", new Object[]{msg, filename(), lineNumber()});
+        }
+    }
+
+    private void handleError() throws IOException {
+        String msg = nextWordOrString();
+        if (enabled()) {
+            LOG.log(WARNING, "#error {0} at \"{1}\" line \"{2}\"", new Object[]{msg, filename(), lineNumber()});
         }
     }
 
@@ -752,7 +778,7 @@ public class PCPP {
         if (!isIf) {
             popEnableBit();
         }
-        pushEnableBit(enabled() && defineEvaluatedToTrue == isIf);
+        pushEnableBit(enabled() && defineEvaluatedToTrue);
         //System.out.println("OUT HANDLE_" + (isIf ? "IF" : "ELIF") +" (evaluated to " + defineEvaluatedToTrue + ")");
     }
 
@@ -959,7 +985,7 @@ public class PCPP {
     private static int debugPrintIndentLevel = 0;
 
     private void debugPrint(boolean onlyPrintIfEnabled, String msg) {
-        if (disableDebugPrint) {
+        if (!enableDebugPrint) {
             return;
         }
 
@@ -1033,12 +1059,14 @@ public class PCPP {
         System.out.println("Minimal pseudo-C-preprocessor.");
         System.out.println("Output goes to standard output. Standard input can be used as input");
         System.out.println("by passing '-' as the argument.");
+        System.out.println("  --debug enables debug mode");
         System.exit(1);
     }
 
     public static void main(String[] args) throws IOException {
         Reader reader = null;
         String filename = null;
+        boolean debug = false;
 
         if (args.length == 0) {
             usage();
@@ -1053,6 +1081,8 @@ public class PCPP {
                     for (int j = 0; j < paths.length; j++) {
                         includePaths.add(paths[j]);
                     }
+                } else if (arg.equals("--debug")) {
+                    debug = true;
                 } else {
                     usage();
                 }
@@ -1071,7 +1101,7 @@ public class PCPP {
             }
         }
 
-        new PCPP(includePaths).run(reader, filename);
+        new PCPP(includePaths, debug).run(reader, filename);
     }
 
 }

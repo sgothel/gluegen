@@ -71,7 +71,8 @@ import org.apache.tools.ant.util.JavaEnvUtils;
                 includeRefid="[optional FileSet or DirSet for include files]"
                 literalInclude="[optional hack to get around FileSet / DirSet issues with different drives]"
                 emitter="[emitter class name]"
-                config="[configuration file]" /&gt;
+                config="[configuration file]" 
+                debug="[optional boolean]" /&gt;
  * </pre> 
  *
  * @author Rob Grzywinski <a href="mailto:rgrzywinski@realityinteractive.com">rgrzywinski@yahoo.com</a>
@@ -93,6 +94,11 @@ public class GlueGenTask extends Task
     private CommandlineJava gluegenCommandline;
 
     // =========================================================================
+    /**
+     * <p>The optional debug flag.</p>
+     */
+    private boolean debug=false;
+
     /**
      * <p>The optional output root dir.</p>
      */
@@ -158,6 +164,17 @@ public class GlueGenTask extends Task
 
     // =========================================================================
     // ANT getters and setters
+
+    /**
+     * <p>Set the debug flag (optional).  This is called by ANT.</p>
+     * 
+     * @param  outputRootDir the optional output root dir
+     */
+    public void setDebug(boolean debug)
+    {
+        log( ("Setting debug flag: " + debug), Project.MSG_VERBOSE);
+        this.debug=debug;
+    }
 
     /**
      * <p>Set the output root dir (optional).  This is called by ANT.</p>
@@ -418,6 +435,11 @@ public class GlueGenTask extends Task
         // NOTE:  GlueGen uses concatenated flag / value rather than two 
         //        separate arguments
         
+        // add the debug flag if enabled
+        if(debug) {
+            gluegenCommandline.createArgument().setValue("--debug");
+        }
+
         // add the output root dir
         if(null!=outputRootDir && outputRootDir.trim().length()>0) {
             gluegenCommandline.createArgument().setValue("-O" + outputRootDir);
