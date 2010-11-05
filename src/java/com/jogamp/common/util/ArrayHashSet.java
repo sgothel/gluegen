@@ -162,7 +162,7 @@ public class ArrayHashSet
      * <br>
      * This is an O(1) operation.
      *
-     * @return true if the given element is contained by this list,
+     * @return true if the given element is contained by this list using fast hash map,
      *         otherwise false.
      */
     public final boolean contains(Object element) {
@@ -174,7 +174,7 @@ public class ArrayHashSet
      * <br>
      * This is an O(n) operation, over the given Collection size.
      *
-     * @return true if the given Collection is completly contained by this list,
+     * @return true if the given Collection is completly contained by this list using hash map,
      *         otherwise false.
      */
     public final boolean containsAll(Collection c) {
@@ -394,6 +394,22 @@ public class ArrayHashSet
             identity = key;
         }
         return identity;
+    }
+
+    /**
+     * Test for containment
+     * <br>
+     * This is an O(n) operation, using equals operation over the list.
+     * <br>
+     * You may utilize this method to verify your hash values,<br>
+     * ie {@link #contains(java.lang.Object)} and {@link #containsSafe(java.lang.Object)}
+     * shall have the same result.<br>
+     *
+     * @return true if the given element is contained by this list using slow equals operation,
+     *         otherwise false.
+     */
+    public final boolean containsSafe(Object element) {
+        return data.contains(element);
     }
 
 }
