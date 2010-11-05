@@ -547,28 +547,69 @@
     </target>
 
   <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
-    <!-- compiler configuration -->
+
+    <!-- UNIX compiler configuration -->
+
     <compiler id="compiler.cfg.linux" name="gcc">
       <compilerarg value="-m32"/>
+      <defineset>
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+        <define name="DEBUG"    if="c.compiler.use-debug"/>        
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+      </defineset>
     </compiler>
 
     <compiler id="compiler.cfg.linux.amd64" name="gcc">
       <compilerarg value="-fPIC"/>
       <compilerarg value="-m64"/>
+      <defineset>
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+        <define name="DEBUG"    if="c.compiler.use-debug"/>        
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+      </defineset>
     </compiler>
 
-    <!--compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64CCompiler"-->
-    <compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccCCompiler">
-        <compilerarg value="-fPIC"/>
-        <compilerarg value="-m64"/>
+    <compiler id="compiler.cfg.freebsd" name="gcc">
+      <defineset>
+        <define name="__unix__"/>
+        <define name="FREEBSD" />
+        <define name="BSD" />
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+      </defineset>
     </compiler>
 
-    <!--compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32CCompiler"-->
-    <compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccCCompiler">
-        <compilerarg value="-m32"/>
+    <compiler id="compiler.cfg.hpux" name="aCC">
+      <!-- Interpret source as ANSI C89 (not C++) -->
+      <compilerarg value="-Ae"/> 
+      <!-- Dereferences are performed with four-byte loads and stores. -->
+      <compilerarg value="+u4"/>
+      <!-- Suppress warnings: 
+               942: signed/unsigned assignment compatibility
+               129: redeclarations in stub_includes -->
+      <compilerarg value="+W942,129"/>
+      <defineset>
+        <define name="__unix__"/>
+        <!-- aCC doesn't seem to define a generic system macro, a la 
+             "__sun". The documentation claims it defines the following,
+             but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
+             HP-UX docs on JNI say to use the defs below 
+             (http://www.hp.com/products1/unix/java/infolibrary/prog_guide/JNI_java2.html) -->
+        <!-- Single underscore prefix, as recommended by aCC docs... -->
+        <define name="_HPUX"/> 
+        <define name="_POSIX_C_SOURCE" value="199506L"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+      </defineset>
     </compiler>
-
+ 
 <!--
+    SOLARIS is currently disabled ..
+
     <compiler id="compiler.cfg.solaris" name="suncc">
       <defineset>
         <define name="SOLARIS" />
@@ -583,8 +624,7 @@
         <define name="SOLARIS" />
       </defineset>
     </compiler>
--->
-<!--
+
     <compiler id="compiler.cfg.solaris.amd64" name="suncc">
       <compilerarg value="-fast" />
       <compilerarg value="-xchip=opteron" />
@@ -597,6 +637,40 @@
       </defineset>
     </compiler>
       -->
+
+    <!-- MacOSX compiler configuration -->
+
+    <compiler id="compiler.cfg.macosx" name="gcc">
+      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
+      <compilerarg value="-arch" if="use.macosppc"/>
+      <compilerarg value="ppc" if="use.macosppc"/>
+      <compilerarg value="-arch" if="use.macosx32"/>
+      <compilerarg value="i386" if="use.macosx32"/>
+      <compilerarg value="-arch" if="use.macosx64"/>
+      <compilerarg value="x86_64" if="use.macosx64"/>
+      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
+      <compilerarg value="-Wmost" />
+      <compilerarg value="-ObjC" />
+      <defineset>
+        <define name="macosx" />
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+      </defineset>
+    </compiler>
+
+    <!-- Windows compiler configuration -->
+
+    <!--compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64CCompiler"-->
+    <compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccCCompiler">
+        <compilerarg value="-fPIC"/>
+        <compilerarg value="-m64"/>
+    </compiler>
+
+    <!--compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32CCompiler"-->
+    <compiler id="compiler.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccCCompiler">
+        <compilerarg value="-m32"/>
+    </compiler>
 
     <compiler id="compiler.cfg.win32.mingw" name="gcc">
       <compilerarg value="-g" if="c.compiler.use-debug"/> 
@@ -658,52 +732,10 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.macosx" name="gcc">
-      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
-      <compilerarg value="-arch" if="use.macosppc"/>
-      <compilerarg value="ppc" if="use.macosppc"/>
-      <compilerarg value="-arch" if="use.macosx32"/>
-      <compilerarg value="i386" if="use.macosx32"/>
-      <compilerarg value="-arch" if="use.macosx64"/>
-      <compilerarg value="x86_64" if="use.macosx64"/>
-      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
-      <compilerarg value="-Wmost" />
-      <compilerarg value="-ObjC" />
-      <defineset>
-        <define name="macosx" />
-      </defineset>
-    </compiler>
-
-    <compiler id="compiler.cfg.freebsd" name="gcc">
-      <defineset>
-        <define name="FREEBSD" />
-        <define name="BSD" />
-      </defineset>
-    </compiler>
-
-    <compiler id="compiler.cfg.hpux" name="aCC">
-      <!-- Interpret source as ANSI C89 (not C++) -->
-      <compilerarg value="-Ae"/> 
-      <!-- Dereferences are performed with four-byte loads and stores. -->
-      <compilerarg value="+u4"/>
-      <!-- Suppress warnings: 
-               942: signed/unsigned assignment compatibility
-               129: redeclarations in stub_includes -->
-      <compilerarg value="+W942,129"/>
-      <defineset>
-         <!-- aCC doesn't seem to define a generic system macro, a la 
-             "__sun". The documentation claims it defines the following,
-             but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
-             HP-UX docs on JNI say to use the defs below 
-             (http://www.hp.com/products1/unix/java/infolibrary/prog_guide/JNI_java2.html) -->
-         <!-- Single underscore prefix, as recommended by aCC docs... -->
-         <define name="_HPUX"/> 
-         <define name="_POSIX_C_SOURCE" value="199506L"/>
-      </defineset>
-    </compiler>
- 
     <!-- linker configuration -->
  
+    <!-- Unix linker configuration -->
+
     <linker id="linker.cfg.linux" name="gcc">
         <linkerarg value="-m32"/>
     </linker>
@@ -712,17 +744,20 @@
         <linkerarg value="-m64"/>
     </linker>
 
-    <!--linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64Linker"-->
-    <linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
-        <linkerarg value="-m64"/>
+    <linker id="linker.cfg.hpux" name="aCC">
     </linker>
-    
-    <!--linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker"-->
-    <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
-        <linkerarg value="-m32"/>
-        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
+
+    <linker id="linker.cfg.freebsd.x86" name="gcc">
+      <linkerarg value="-m32"/>
     </linker>
-<!--
+
+    <linker id="linker.cfg.freebsd.amd64" name="gcc">
+      <linkerarg value="-m64"/>
+    </linker>
+
+<!-- 
+    SOLARIS is currently unsupported
+
     <linker id="linker.cfg.solaris" name="suncc">
     </linker>
 
@@ -734,6 +769,33 @@
       <linkerarg value="-xarch=amd64" />
     </linker>
 -->
+
+    <!-- MacOSX linker configuration -->
+
+    <linker id="linker.cfg.macosx" name="gcc">
+      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
+      <linkerarg value="-arch" if="use.macosppc"/>
+      <linkerarg value="ppc" if="use.macosppc"/>
+      <linkerarg value="-arch" if="use.macosx32"/>
+      <linkerarg value="i386" if="use.macosx32"/>
+      <linkerarg value="-arch" if="use.macosx64"/>
+      <linkerarg value="x86_64" if="use.macosx64"/>
+      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
+    </linker>
+
+    <!-- Windows linker configuration -->
+
+    <!--linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64Linker"-->
+    <linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
+        <linkerarg value="-m64"/>
+    </linker>
+    
+    <!--linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker"-->
+    <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
+        <linkerarg value="-m32"/>
+        <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
+    </linker>
+
     <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
         <linkerarg value="-m32"/>
         <linkerarg value="-Wl,--enable-auto-import"/>    <!-- for linking against dll directly -->
@@ -758,27 +820,6 @@
       <linkerarg value="/MACHINE:X86" if="isVC9" />       <!-- explicity set target platform -->
     </linker>
 
-    <linker id="linker.cfg.macosx" name="gcc">
-      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
-      <linkerarg value="-arch" if="use.macosppc"/>
-      <linkerarg value="ppc" if="use.macosppc"/>
-      <linkerarg value="-arch" if="use.macosx32"/>
-      <linkerarg value="i386" if="use.macosx32"/>
-      <linkerarg value="-arch" if="use.macosx64"/>
-      <linkerarg value="x86_64" if="use.macosx64"/>
-      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
-    </linker>
-
-    <linker id="linker.cfg.hpux" name="aCC">
-    </linker>
-
-    <linker id="linker.cfg.freebsd.x86" name="gcc">
-      <linkerarg value="-m32"/>
-    </linker>
-
-    <linker id="linker.cfg.freebsd.amd64" name="gcc">
-      <linkerarg value="-m64"/>
-    </linker>
   </target>
 
     <!-- ================================================================== -->
