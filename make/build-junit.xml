@@ -86,10 +86,8 @@
         <echo message="build_t.obj: ${build_t.obj} "/>
         <echo message="build_t.lib: ${build_t.lib} "/>
 
-        <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
+        <!-- Add the GlueGen tasks to ANT -->
         <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-                 classpathref="gluegen.classpath" />
-        <taskdef name="staticglgen" classname="com.jogamp.gluegen.ant.StaticGLGenTask"
                  classpathref="gluegen.classpath" />
     </target>
 
