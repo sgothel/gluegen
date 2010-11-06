@@ -35,7 +35,7 @@
   </target>
 
   <target name="setup-excludes-2" unless="gluegen.nsig">
-    <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/sun/gluegen/nativesig/**" />
+    <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/jogamp/gluegen/nativesig/**" />
   </target>
 
   <target name="init" depends="gluegen.properties.load.user,setup-excludes-1,setup-excludes-2">
@@ -77,13 +77,13 @@
     </path>
     
     <!-- The location of the GlueGen source and the C grammar files. -->
-    <property name="gluegen" value="${src.java}/com/sun/gluegen" />
+    <property name="gluegen" value="${src.java}/com/jogamp/gluegen" />
     <property name="c.grammar" value="${gluegen}/cgram" />
     <property name="j.grammar" value="${gluegen}/jgram" />
         
     <!-- The resulting location of the generated Java files from the
       - C grammar via ANTLR. -->
-    <property name="gluegen.build" value="${src.generated.java}/com/sun/gluegen" />
+    <property name="gluegen.build" value="${src.generated.java}/com/jogamp/gluegen" />
     <property name="generated.java.from.c.grammar" value="${gluegen.build}/cgram" />
     <property name="generated.java.from.j.grammar" value="${gluegen.build}/jgram" />
   </target>
@@ -142,26 +142,26 @@
       <pathelement location="${antlr.jar}" />
     </path>
     <!-- Define the GlueGen task we just built -->
-    <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
+    <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
              classpathref="gluegen.classpath" />
 
     <!-- Execute it against all of the OSs' header files -->
     <gluegen src="stub_includes/windows/dynamic-linker.h"
              config="dynlink-windows.cfg"
              includeRefId="stub.includes.fileset.windows"
-             emitter="com.sun.gluegen.JavaEmitter">
+             emitter="com.jogamp.gluegen.JavaEmitter">
       <classpath refid="gluegen.classpath" />
     </gluegen>
     <gluegen src="stub_includes/unix/dynamic-linker.h"
              config="dynlink-unix.cfg"
              includeRefId="stub.includes.fileset.unix"
-             emitter="com.sun.gluegen.JavaEmitter">
+             emitter="com.jogamp.gluegen.JavaEmitter">
       <classpath refid="gluegen.classpath" />
     </gluegen>
     <gluegen src="stub_includes/macosx/dynamic-linker.h"
              config="dynlink-macosx.cfg"
              includeRefId="stub.includes.fileset.macosx"
-             emitter="com.sun.gluegen.JavaEmitter">
+             emitter="com.jogamp.gluegen.JavaEmitter">
       <classpath refid="gluegen.classpath" />
     </gluegen>
   </target>
@@ -410,7 +410,7 @@
     <copy todir="${classes-cdc}">
         <fileset dir="${classes}"
                  includes="com/** net/**" 
-                 excludes="com/jogamp/gluegen/runtime/** com/sun/gluegen/test/**" />
+                 excludes="com/jogamp/gluegen/runtime/** com/jogamp/gluegen/test/**" />
     </copy>
 
           <!-- bootclasspath="${javac.bootclasspath-cdc.jar}"-->
@@ -612,7 +612,6 @@
     <jar destfile="${build}/gluegen-rt.jar" manifest="${build}/Manifest-rt.temp">
       <fileset dir="${classes}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
-        <include name="com/jogamp/gluegen/runtime/opengl/*.class" />
         <include name="com/jogamp/common/**" />
       </fileset>
     </jar>
@@ -630,7 +629,6 @@
     <jar destfile="${build}/gluegen-rt-cdc.jar" manifest="${build}/Manifest-rt-cdc.temp">
       <fileset dir="${classes-cdc}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
-        <include name="com/jogamp/gluegen/runtime/opengl/*.class" />
         <include name="com/jogamp/common/impl/*.class" />
         <include name="com/jogamp/common/jvm/*.class" />
         <include name="com/jogamp/common/util/*.class" />
@@ -682,7 +680,7 @@
           <jvmarg value="-Dgluegen.user.compiler.file=${gluegen.user.compiler.file}"/>
           <batchtest todir="${build}/test/results">
               <fileset dir="${build}/test/build/classes">
-                  <include name="com/sun/gluegen/**Test*"/>
+                  <include name="com/jogamp/gluegen/**Test*"/>
                   <include name="com/jogamp/common/nio/**Test*"/>
                   <include name="com/jogamp/common/util/**Test*"/>
                   <include name="com/jogamp/common/util/locks/**Test*"/>

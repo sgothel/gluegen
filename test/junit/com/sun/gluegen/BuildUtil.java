@@ -26,8 +26,10 @@
  * or implied, of JogAmp Community.
  */
  
-package com.sun.gluegen;
+package com.jogamp.gluegen;
 
+import com.jogamp.gluegen.JavaEmitter;
+import com.jogamp.gluegen.GlueGen;
 import java.io.File;
 import java.net.URISyntaxException;
 import org.apache.tools.ant.DefaultLogger;
@@ -71,7 +73,7 @@ public final class BuildUtil {
             throw new RuntimeException("can not determine gluegen root", ex);
         }
 
-        path       = gluegenRoot + "/test/junit/com/sun/gluegen";
+        path       = gluegenRoot + "/test/junit/com/jogamp/gluegen";
         testOutput = gluegenRoot + "/" + rootrel_build + "/test";
 
         out.println("path: "+path);

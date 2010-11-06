@@ -87,9 +87,9 @@
         <echo message="build_t.lib: ${build_t.lib} "/>
 
         <!-- Add the GlueGen and BuildStaticGLInfo tasks to ANT -->
-        <taskdef name="gluegen" classname="com.sun.gluegen.ant.GlueGenTask"
+        <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
-        <taskdef name="staticglgen" classname="com.sun.gluegen.ant.StaticGLGenTask"
+        <taskdef name="staticglgen" classname="com.jogamp.gluegen.ant.StaticGLGenTask"
                  classpathref="gluegen.classpath" />
     </target>
 
@@ -259,7 +259,7 @@
                  config="${test.junit.generation.dir}/test1-gluegen.cfg"
                  literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
-                 emitter="com.sun.gluegen.JavaEmitter">
+                 emitter="com.jogamp.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 
@@ -268,7 +268,7 @@
                  config="${test.junit.generation.dir}/test1p1-gluegen.cfg"
                  literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
-                 emitter="com.sun.gluegen.JavaEmitter">
+                 emitter="com.jogamp.gluegen.JavaEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 
@@ -277,7 +277,7 @@
                  config="${test.junit.generation.dir}/test1p2-gluegen.cfg"
                  literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
-                 emitter="com.sun.gluegen.procaddress.ProcAddressEmitter">
+                 emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>

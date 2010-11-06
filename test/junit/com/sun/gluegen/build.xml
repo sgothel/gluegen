@@ -64,12 +64,12 @@
             rtti="false"
             failonerror="true">
 
-            <fileset dir="${gluegen.root}/test/junit/com/sun/gluegen" includes="*.c"/>
+            <fileset dir="${gluegen.root}/test/junit/com/jogamp/gluegen" includes="*.c"/>
 
             <compiler extends="${compiler.cfg.id}" >
                 <includepath path="${java.includes.dir}"/>
                 <includepath path="${java.includes.dir.platform}"/>
-                <includepath path="${gluegen.root}/test/junit/com/sun/gluegen"/>
+                <includepath path="${gluegen.root}/test/junit/com/jogamp/gluegen"/>
             </compiler>
 
             <linker extends="${linker.cfg.id}">

@@ -11,7 +11,7 @@
        - we can not overwrite it.
       -->
     <target name="java.class.path.validate">
-        <available property="gluegen.jar.on.class.path" classname="com.sun.gluegen.GlueGen" />
+        <available property="gluegen.jar.on.class.path" classname="com.jogamp.gluegen.GlueGen" />
         <fail if="gluegen.jar.on.class.path">
     *******************************************************************
     ** Your CLASSPATH environment variable appears to be set (some   **

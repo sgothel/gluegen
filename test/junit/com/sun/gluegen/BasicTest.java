@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.sun.gluegen;
+package com.jogamp.gluegen;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
@@ -38,7 +38,7 @@ import org.junit.AfterClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static java.lang.System.*;
-import static com.sun.gluegen.BuildUtil.*;
+import static com.jogamp.gluegen.BuildUtil.*;
 
 /**
  *

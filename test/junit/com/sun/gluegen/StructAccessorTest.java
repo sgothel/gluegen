@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.sun.gluegen;
+package com.jogamp.gluegen;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,7 +45,7 @@ import junit.framework.Assert;
 import org.junit.AfterClass;
 import org.junit.Test;
 import static java.lang.System.*;
-import static com.sun.gluegen.BuildUtil.*;
+import static com.jogamp.gluegen.BuildUtil.*;
 
 /**
  *
@@ -73,11 +73,11 @@ public class StructAccessorTest {
     public void validateGeneratedStructs() throws IOException, NoSuchMethodException, ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 
         // compile testcase
-        String source = gluegenRoot + "/test/junit/com/sun/gluegen/StructValidator.java";
+        String source = gluegenRoot + "/test/junit/com/jogamp/gluegen/StructValidator.java";
         compile(new File(source), testOutput + "/build/classes");
 
         // invoke test
-        Class<?> test = Class.forName("com.sun.gluegen.StructValidator");
+        Class<?> test = Class.forName("com.jogamp.gluegen.StructValidator");
         test.getDeclaredMethod("validate").invoke(null);
     }
 

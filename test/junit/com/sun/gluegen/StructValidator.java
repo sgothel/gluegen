@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.sun.gluegen;
+package com.jogamp.gluegen;
 
 import java.lang.reflect.InvocationTargetException;
 import org.junit.Ignore;
@@ -34,7 +34,7 @@ import org.junit.Ignore;
 import static org.junit.Assert.*;
 
 /**
- * this file will not compile unless {@link com.sun.gluegen.StructAccessorTest} has been run.
+ * this file will not compile unless {@link com.jogamp.gluegen.StructAccessorTest} has been run.
  * @author Michael Bien
  */
 @Ignore

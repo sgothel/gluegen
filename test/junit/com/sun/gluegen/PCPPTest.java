@@ -26,9 +26,9 @@
  * or implied, of JogAmp Community.
  */
  
-package com.sun.gluegen;
+package com.jogamp.gluegen;
 
-import com.sun.gluegen.pcpp.PCPP;
+import com.jogamp.gluegen.pcpp.PCPP;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;

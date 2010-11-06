@@ -26,71 +26,61 @@
  * or implied, of JogAmp Community.
  */
  
+/*
+ * Created on Wednesday, March 31 2010 13:30
+ */
 package com.jogamp.gluegen;
 
-import com.jogamp.gluegen.procaddress.ProcAddressEmitter;
-import java.lang.reflect.Field;
-import java.util.HashSet;
-import java.util.Set;
-import org.junit.AfterClass;
-import org.junit.Test;
-import static java.util.Arrays.*;
-import static com.jogamp.gluegen.BuildUtil.*;
-import static org.junit.Assert.*;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Formatter;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 /**
- * Basic test using ProcAddressEmitter.
+ *
  * @author Michael Bien
  */
-public class BasicProcAddressEmitterTest {
+public class Logging {
 
-    @Test
-    public void generateBindingTest() {
-        generate("dyntest", "test", ProcAddressEmitter.class.getName());
+    static void init() {
+
+        String pakage = Logging.class.getPackage().getName();
+        String property = System.getProperty(pakage+".level");
+        Level level;
+        if(property != null) {
+            level = Level.parse(property);
+        }else{
+            level = Level.WARNING;
+        }
+
+        ConsoleHandler handler = new ConsoleHandler() {
+            @Override
+            public java.util.logging.Formatter getFormatter() {
+                return new PlainLogFormatter();
+            }
+        };
+        handler.setFormatter(new PlainLogFormatter());
+        handler.setLevel(level);
+
+        Logger rootPackageLogger = Logger.getLogger(pakage);
+        rootPackageLogger.setUseParentHandlers(false);
+        rootPackageLogger.setLevel(level);
+        rootPackageLogger.addHandler(handler);
     }
 
     /**
-     * fails if ant script fails (which is a good thing).
-     * executeTarget throws RuntimeException on failure
+     * This log formatter needs usually one line per log record.
+     * @author Michael Bien
      */
-    @Test
-    public void compileJavaTest() {
-        compileJava();
-    }
+    private static class PlainLogFormatter extends Formatter {
 
-    /*
-     * fails if ant script fails (which is a good thing)
-     * executeTarget throws RuntimeException on failure
-     */
-    @Test
-    public void compileNativesTest() {
-        compileNatives();
-    }
-
-    @Test
-    public void renameTest() throws Exception {
-
-        Class<?> binding = Class.forName("test.DynBindingTest");
-        Class<?> table = Class.forName("test.Table");
-        
-        Field[] fields = table.getDeclaredFields();
-
-
-        Set<String> expected = new HashSet<String>(
-                asList("arrayTest", "bufferTest", "pbTest", "manyBuffersTest", "mixedTest", "doubleTest"));
-
-        for (Field field : fields) {
-            System.out.println("address field: "+field);
-
-            String function = field.getName().substring("_addressoff_".length()-1);
-            assertTrue("unexpected field: '"+function+"'",expected.contains(function));
+        //@Override
+        public String format(LogRecord record) {
+            StringBuilder sb = new StringBuilder(128);
+            sb.append("[").append(record.getLevel()).append(' ').append(record.getSourceClassName()).append("]: ");
+            sb.append(formatMessage(record)).append("\n");
+            return sb.toString();
         }
-
     }
-
-    @AfterClass
-    public static void tearDown() {
-//        cleanGeneratedFiles();
-    }
-
 }
