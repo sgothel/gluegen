@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,9 +46,17 @@ package com.sun.gluegen.cgram.types;
     32-bit and 64-bit) from the same internal representation of the
     various types involved. */
 
-public abstract class SizeThunk {
+public abstract class SizeThunk implements Cloneable {
   // Private constructor because there are only a few of these
   private SizeThunk() {}
+
+  public Object clone() {
+    try {
+        return super.clone();
+    } catch (CloneNotSupportedException ex) {
+        throw new InternalError();
+    }
+  }
 
   public abstract long compute(MachineDescription machDesc);
 

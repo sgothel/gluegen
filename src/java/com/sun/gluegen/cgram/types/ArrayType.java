@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -44,7 +45,7 @@ package com.sun.gluegen.cgram.types;
     not be known; if the length is unknown then a negative number
     should be passed in to the constructor. */
 
-public class ArrayType extends Type {
+public class ArrayType extends Type implements Cloneable {
   private Type elementType;
   private int length;
   private String computedName;

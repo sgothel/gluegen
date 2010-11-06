@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,7 +49,23 @@ import com.sun.gluegen.pcpp.*;
 
 import static java.lang.System.*;
 
-/** Glue code generator for C functions and data structures. */
+/** 
+ * Glue code generator for C functions and data structures.<br>
+ * <br>
+ * Gluegen has build-in types (terminal symbols) for:<br>
+ * <br>
+ * <table border="1">
+ *   <tr><th>type</th>      <th>java</th> <th>native-x32</th><th>native-x64</th><th>type</th>   <th>signed</th></tr>
+ *   <tr><th>__int32</th>   <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>signed or unsigned</th></tr>
+ *   <tr><th>int32_t</th>   <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>signed</th></tr>
+ *   <tr><th>uint32_t</th>  <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>unsigned</th></tr>
+ *   <tr><th>__int64</th>   <th>64bit</th><th>64bit</th>     <th>64bit</th>     <th>integer</th><th>signed or unsigned</th></tr>
+ *   <tr><th>int64_t</th>   <th>64bit</th><th>64bit</th>     <th>64bit</th>     <th>integer</th><th>signed</th></tr>
+ *   <tr><th>uint64_t</th>  <th>64bit</th><th>64bit</th>     <th>64bit</th>     <th>integer</th><th>unsigned</th></tr>
+ *   <tr><th>ptrdiff_t</th> <th>64bit</th><th>32bit</th>     <th>64bit</th>     <th>integer</th><th>signed</th></tr>
+ *   <tr><th>size_t</th>    <th>64bit</th><th>32bit</th>     <th>64bit</th>     <th>integer</th><th>unsigned</th></tr>
+ * </table>
+ */
 public class GlueGen implements GlueEmitterControls {
 
     static{
@@ -127,6 +144,7 @@ public class GlueGen implements GlueEmitterControls {
             }
 
             HeaderParser headerParser = new HeaderParser();
+            headerParser.setDebug(debug);
             TypeDictionary td = new TypeDictionary();
             headerParser.setTypedefDictionary(td);
             TypeDictionary sd = new TypeDictionary();

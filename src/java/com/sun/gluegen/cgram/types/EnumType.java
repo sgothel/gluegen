@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,11 +39,13 @@
  */
 package com.sun.gluegen.cgram.types;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.NoSuchElementException;
+
 
 /** Describes enumerated types. Enumerations are like ints except that
 they have a set of named values. */
-public class EnumType extends IntType {
+public class EnumType extends IntType implements Cloneable {
 
     private IntType underlyingType;
 
@@ -65,7 +68,7 @@ public class EnumType extends IntType {
         }
     }
 
-    private List<Enum> enums;
+    private ArrayList<Enum> enums;
 
     public EnumType(String name) {
         super(name, SizeThunk.LONG, false, CVAttributes.CONST);
@@ -80,6 +83,13 @@ public class EnumType extends IntType {
     protected EnumType(String name, IntType underlyingType, int cvAttributes) {
         super(name, underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
         this.underlyingType = underlyingType;
+    }
+
+    public Object clone() {
+        EnumType n = (EnumType) super.clone();
+        n.underlyingType = (IntType) this.underlyingType.clone();
+        n.enums = (ArrayList) this.enums.clone();
+        return n;
     }
 
     @Override

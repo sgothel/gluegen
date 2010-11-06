@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,7 +39,7 @@
  */
 package com.sun.gluegen.cgram.types;
 
-public abstract class PrimitiveType extends Type {
+public abstract class PrimitiveType extends Type implements Cloneable {
 
     protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
         super(name, size, cvAttributes);

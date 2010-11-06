@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -41,11 +42,10 @@ package com.sun.gluegen.cgram.types;
 
 /** Represents a single-word floating-point type (C type "float".) */
 
-public class FloatType extends PrimitiveType {
+public class FloatType extends PrimitiveType implements Cloneable {
   public FloatType(String name, SizeThunk size, int cvAttributes) {
     super(name, size, cvAttributes);
   }
-
 
   @Override
   public boolean equals(Object arg) {

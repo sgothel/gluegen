@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,7 +43,7 @@ import java.util.*;
 
 /** Describes a function type, used to model both function
 declarations and (via PointerType) function pointers. */
-public class FunctionType extends Type {
+public class FunctionType extends Type implements Cloneable {
 
     private Type returnType;
     private ArrayList<Type> argumentTypes;
@@ -51,6 +52,13 @@ public class FunctionType extends Type {
     public FunctionType(String name, SizeThunk size, Type returnType, int cvAttributes) {
         super(name, size, cvAttributes);
         this.returnType = returnType;
+    }
+
+    public Object clone() {
+        FunctionType n = (FunctionType) super.clone();
+        n.argumentTypes = (ArrayList) this.argumentTypes.clone();
+        n.argumentNames = (ArrayList) this.argumentNames.clone();
+        return n;
     }
 
     @Override

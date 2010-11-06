@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,7 +46,7 @@ import java.util.*;
     and unions. The boolean type accessors indicate how the type is
     really defined. */
 
-public class CompoundType extends Type {
+public class CompoundType extends Type implements Cloneable {
   private CompoundTypeKind kind;
   // The name "foo" in the construct "struct foo { ... }";
   private String structName;
@@ -64,6 +65,12 @@ public class CompoundType extends Type {
     assert kind != null;
     this.kind = kind;
     this.structName = structName;
+  }
+
+  public Object clone() {
+    CompoundType n = (CompoundType) super.clone();
+    n.fields = (ArrayList) this.fields.clone();
+    return n;
   }
 
   @Override

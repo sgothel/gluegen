@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,7 +40,7 @@
 package com.sun.gluegen.cgram.types;
 
 /** Represents a double-word floating-point type (C type "double".) */
-public class DoubleType extends PrimitiveType {
+public class DoubleType extends PrimitiveType implements Cloneable {
 
     public DoubleType(String name, SizeThunk size, int cvAttributes) {
         super(name, size, cvAttributes);

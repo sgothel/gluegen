@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -56,6 +57,16 @@ options {
     /** Name assigned to a anonymous EnumType (e.g., "enum { ... }"). */
     public static final String ANONYMOUS_ENUM_NAME = "<anonymous>";
 
+    boolean debug = false;
+
+    public boolean getDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
+    }
+
     /** Set the dictionary mapping typedef names to types for this
         HeaderParser. Must be done before parsing. */
     public void setTypedefDictionary(TypeDictionary dict) {
@@ -88,13 +99,13 @@ options {
     }
 
     /** Pre-define the list of EnumTypes for this HeaderParser. Must be
-		done before parsing. */
+                done before parsing. */
     public void setEnums(List/*<EnumType>*/ enumTypes) {
         // FIXME: Need to take the input set of EnumTypes, extract all
         // the enumerates from each EnumType, and fill in the enumHash
         // so that each enumerate maps to the enumType to which it
         // belongs.
-		throw new RuntimeException("setEnums is Unimplemented!");
+                throw new RuntimeException("setEnums is Unimplemented!");
     }
 
     /** Returns the EnumTypes this HeaderParser processed. */
@@ -176,24 +187,53 @@ options {
 
         boolean isTypedef()     { return isTypedef; }
 
-	    // for easier debugging
-	    public String toString() { 
-	       String tStr = "Type=NULL_REF";
-	       if (type == origType) {
-			 tStr = "Type=ORIG_TYPE";
-	  	   } else if (type != null) {
-		     tStr = "Type: name=\"" + type.getCVAttributesString() + " " + 
+            // for easier debugging
+            public String toString() { 
+               String tStr = "Type=NULL_REF";
+               if (type == origType) {
+                         tStr = "Type=ORIG_TYPE";
+                     } else if (type != null) {
+                     tStr = "Type: name=\"" + type.getCVAttributesString() + " " + 
                     type.getName() + "\"; signature=\"" + type + "\"; class " + 
-					type.getClass().getName();
-	       }
-	       String oStr = "OrigType=NULL_REF";
-	       if (origType != null) {
-		     oStr = "OrigType: name=\"" + origType.getCVAttributesString() + " " + 
+                                        type.getClass().getName();
+               }
+               String oStr = "OrigType=NULL_REF";
+               if (origType != null) {
+                     oStr = "OrigType: name=\"" + origType.getCVAttributesString() + " " + 
              origType.getName() + "\"; signature=\"" + origType + "\"; class " + 
-			origType.getClass().getName();
-	       }
-	       return "<["+tStr + "] [" + oStr + "] " + " isTypedef=" + isTypedef+">"; 
-	    }
+                        origType.getClass().getName();
+               }
+               return "<["+tStr + "] [" + oStr + "] " + " isTypedef=" + isTypedef+">"; 
+            }
+    }
+
+    private String getTypeString(Type t) {
+      StringBuffer sb = new StringBuffer();
+      sb.append("[");
+      sb.append(t);
+      sb.append(", size: ");
+      if(null!=t) {
+        SizeThunk st = t.getSize();
+        if(null!=st) {
+          sb.append(st.getClass().getName());
+        } else {
+          sb.append("undef");
+        }
+      }
+      sb.append("]");
+      return sb.toString();
+    }
+
+    private void debugPrintln(String msg) {
+        if(debug) {
+            System.err.println(msg);
+        }
+    }
+
+    private void debugPrint(String msg) {
+        if(debug) {
+            System.err.print(msg);
+        }
     }
 
     private boolean doDeclaration;   // Used to only process function typedefs
@@ -231,12 +271,12 @@ options {
     private void processDeclaration(Type returnType) {
         if (doDeclaration) {
             FunctionSymbol sym = new FunctionSymbol(declId, new FunctionType(null, null, returnType, 0));
-	        if (parameters != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
+                if (parameters != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
                 for (Iterator iter = parameters.iterator(); iter.hasNext(); ) {
                     ParameterDeclaration pd = (ParameterDeclaration) iter.next();
                     sym.addArgument(pd.type(), pd.id());
                 }
-	        }
+                }
             functions.add(sym);
         }
     }
@@ -276,29 +316,29 @@ options {
     }
 
   /** Utility function: creates a new EnumType with the given name, or
-	  returns an existing one if it has already been created. */
+          returns an existing one if it has already been created. */
   private EnumType getEnumType(String enumTypeName) {
-	EnumType enumType = null;
-	Iterator it = enumHash.values().iterator(); 
-	while (it.hasNext()) {
-	  EnumType potentialMatch = (EnumType)it.next();
-	  if (potentialMatch.getName().equals(enumTypeName)) {
-		enumType = potentialMatch;
-		break;	
-	  }
-	}
-	
-	if (enumType == null) {
+        EnumType enumType = null;
+        Iterator it = enumHash.values().iterator(); 
+        while (it.hasNext()) {
+          EnumType potentialMatch = (EnumType)it.next();
+          if (potentialMatch.getName().equals(enumTypeName)) {
+                enumType = potentialMatch;
+                break;        
+          }
+        }
+        
+        if (enumType == null) {
       // This isn't quite correct. In theory the enum should expand to
       // the size of the largest element, so if there were a long long
       // entry the enum should expand to e.g. int64. However, using
       // "long" here (which is what used to be the case) was 
       // definitely incorrect and caused problems.
-	  enumType = new EnumType(enumTypeName, SizeThunk.INT);
-	}  
-	
-	return enumType;
-  }	
+          enumType = new EnumType(enumTypeName, SizeThunk.INT);
+        }  
+        
+        return enumType;
+  }        
   
   // Map used to canonicalize types. For example, we may typedef
   // struct foo { ... } *pfoo; subsequent references to struct foo* should
@@ -343,17 +383,17 @@ declarator[TypeBox tb] returns [String s] {
                                /* TypeBox becomes function pointer in this case */
                                FunctionType ft = new FunctionType(null, null, tb.type(), 0);
                                if (params == null) {
-			  	                   // If the function pointer has no declared parameters, it's a 
-			                       // void function. I'm not sure if the parameter name is 
-			                       // ever referenced anywhere when the type is VoidType, so
+                                                     // If the function pointer has no declared parameters, it's a 
+                                               // void function. I'm not sure if the parameter name is 
+                                               // ever referenced anywhere when the type is VoidType, so
                                    // just in case I'll set it to a comment string so it will
-			                       // still compile if written out to code anywhere.
-			  	                   ft.addArgument(new VoidType(0), "/*unnamed-void*/");
-			                   } else {
-			  	                   for (Iterator iter = params.iterator(); iter.hasNext(); ) {
+                                               // still compile if written out to code anywhere.
+                                                     ft.addArgument(new VoidType(0), "/*unnamed-void*/");
+                                           } else {
+                                                     for (Iterator iter = params.iterator(); iter.hasNext(); ) {
                                      ParameterDeclaration pd = (ParameterDeclaration) iter.next();
                                      ft.addArgument(pd.type(), pd.id());
-				                   }
+                                                   }
                                }
                                tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                                        ft,
@@ -457,15 +497,21 @@ typeSpecifier[int attributes] returns [Type t] {
     int cvAttrs = attrs2CVAttrs(attributes);
     boolean unsigned = ((attributes & UNSIGNED) != 0);
 }
-        :       "void"     { t = new VoidType(cvAttrs); }
-        |       "char"     { t = new IntType("char" , SizeThunk.CHAR,  unsigned, cvAttrs); }
-        |       "short"    { t = new IntType("short", SizeThunk.SHORT, unsigned, cvAttrs); }
-        |       "int"      { t = new IntType("int"  , SizeThunk.INT,   unsigned, cvAttrs); }
-        |       "long"     { t = new IntType("long" , SizeThunk.LONG,  unsigned, cvAttrs); }
-        |       "__int32"  { t = new IntType("__int32", SizeThunk.INT, unsigned, cvAttrs); }
-        |       "__int64"  { t = new IntType("__int64", SizeThunk.INT64, unsigned, cvAttrs); }
-        |       "float"    { t = new FloatType("float", SizeThunk.FLOAT, cvAttrs); }
-        |       "double"   { t = new DoubleType("double", SizeThunk.DOUBLE, cvAttrs); }
+        :       "void"      { t = new VoidType(cvAttrs); }
+        |       "char"      { t = new IntType("char" , SizeThunk.CHAR,  unsigned, cvAttrs); }
+        |       "short"     { t = new IntType("short", SizeThunk.SHORT, unsigned, cvAttrs); }
+        |       "int"       { t = new IntType("int"  , SizeThunk.INT,   unsigned, cvAttrs); }
+        |       "long"      { t = new IntType("long" , SizeThunk.LONG,  unsigned, cvAttrs); }
+        |       "float"     { t = new FloatType("float", SizeThunk.FLOAT, cvAttrs); }
+        |       "double"    { t = new DoubleType("double", SizeThunk.DOUBLE, cvAttrs); }
+        |       "__int32"   { t = new IntType("__int32", SizeThunk.INT, unsigned, cvAttrs); }
+        |       "int32_t"   { t = new IntType("int32_t", SizeThunk.INT, false, cvAttrs); /* TS: always signed */ }
+        |       "uint32_t"  { t = new IntType("uint32_t", SizeThunk.INT, true, cvAttrs); /* TS: always unsigned */ }
+        |       "__int64"   { t = new IntType("__int64", SizeThunk.INT64, unsigned, cvAttrs); }
+        |       "int64_t"   { t = new IntType("int64_t", SizeThunk.INT64, false, cvAttrs); /* TS: always signed */ }
+        |       "uint64_t"  { t = new IntType("uint64_t", SizeThunk.INT64, true, cvAttrs); /* TS: always unsigned */ }
+        |       "ptrdiff_t" { t = new IntType("ptrdiff_t", SizeThunk.POINTER, false, cvAttrs); /* TS: always signed */ }
+        |       "size_t"    { t = new IntType("size_t", SizeThunk.POINTER, true, cvAttrs); /* TS: always unsigned */ }
         |       t = structSpecifier[cvAttrs] ( attributeDecl )*
         |       t = unionSpecifier [cvAttrs] ( attributeDecl )*
         |       t = enumSpecifier  [cvAttrs] 
@@ -481,8 +527,10 @@ typeSpecifier[int attributes] returns [Type t] {
 
 typedefName[int cvAttrs] returns [Type t] { t = null; }
         :       #(NTypedefName id : ID)
-            { 
-              t = canonicalize(lookupInTypedefDictionary(id.getText()).getCVVariant(cvAttrs));
+            {
+              Type tdict = lookupInTypedefDictionary(id.getText());
+              t = canonicalize(tdict.getCVVariant(cvAttrs));
+              debugPrintln("Adding typedef canon : [" + id.getText() + "] -> [" + tdict + "] -> "+getTypeString(t));
             }
         ;
 
@@ -575,7 +623,7 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
 // I haven't implemented it yet because I'm not sure how to get the
 // "enumName" *before* executing the enumList rule.
 enumSpecifier [int cvAttrs] returns [Type t] { 
-	t = null; 
+        t = null; 
 }
         :       #( "enum"
                    ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(t = getEnumType(i.getText()))] RCURLY 
@@ -586,18 +634,18 @@ enumSpecifier [int cvAttrs] returns [Type t] {
         ;
 
 enumList[EnumType enumeration] {
-	long defaultEnumerantValue = 0;
+        long defaultEnumerantValue = 0;
 }
       :       ( defaultEnumerantValue = enumerator[enumeration, defaultEnumerantValue] )+
       ;
 
 enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValue] {
-	newDefaultValue = defaultValue;
+        newDefaultValue = defaultValue;
 }
         :       eName:ID ( ASSIGN eVal:expr )? {
                     long value = 0;
                     if (eVal != null) {
-		      String vTxt = eVal.getAllChildrenText();
+                      String vTxt = eVal.getAllChildrenText();
                       if (enumHash.containsKey(vTxt)) {
                         EnumType oldEnumType = (EnumType) enumHash.get(vTxt);
                         value = oldEnumType.getEnumValue(vTxt);
@@ -605,7 +653,7 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                         try {
                           value = Long.decode(vTxt).longValue();
                         } catch (NumberFormatException e) {
-			  System.err.println("NumberFormatException: ID[" + eName.getText() + "], VALUE=[" + vTxt + "]");
+                          System.err.println("NumberFormatException: ID[" + eName.getText() + "], VALUE=[" + vTxt + "]");
                           throw e;
                         }
                       }
@@ -613,25 +661,25 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                       value = defaultValue;
                     }
 
-					newDefaultValue = value+1;
-	  				String eTxt = eName.getText();
-	  				if (enumHash.containsKey(eTxt)) {
-						EnumType oldEnumType = (EnumType) enumHash.get(eTxt);
-						long oldValue = oldEnumType.getEnumValue(eTxt);
-	  					System.err.println("WARNING: redefinition of enumerated value '" + eTxt + "';" +
-		  				   " existing definition is in enumeration '" + oldEnumType.getName() +
-		  				   "' with value " + oldValue + " and new definition is in enumeration '" +
-		  				   enumeration.getName() + "' with value " + value);
-						// remove old definition
-						oldEnumType.removeEnumerate(eTxt);
-	  				}
-	  				// insert new definition
-	  				enumeration.addEnum(eTxt, value);
-	  				enumHash.put(eTxt, enumeration);
-					//System.err.println("ENUM [" + enumeration.getName() + "]: " + eTxt + " = " + enumeration.getEnumValue(eTxt) + 
-				    //                   " (new default = " + newDefaultValue + ")");
-				}
-	    ;
+                                        newDefaultValue = value+1;
+                                          String eTxt = eName.getText();
+                                          if (enumHash.containsKey(eTxt)) {
+                                                EnumType oldEnumType = (EnumType) enumHash.get(eTxt);
+                                                long oldValue = oldEnumType.getEnumValue(eTxt);
+                                                  System.err.println("WARNING: redefinition of enumerated value '" + eTxt + "';" +
+                                                     " existing definition is in enumeration '" + oldEnumType.getName() +
+                                                     "' with value " + oldValue + " and new definition is in enumeration '" +
+                                                     enumeration.getName() + "' with value " + value);
+                                                // remove old definition
+                                                oldEnumType.removeEnumerate(eTxt);
+                                          }
+                                          // insert new definition
+                                          enumeration.addEnum(eTxt, value);
+                                          enumHash.put(eTxt, enumeration);
+                                        debugPrintln("ENUM [" + enumeration.getName() + "]: " + eTxt + " = " + enumeration.getEnumValue(eTxt) +
+                                                     " (new default = " + newDefaultValue + ")");
+                                }
+            ;
 
 initDeclList[TypeBox tb]
         :       ( initDecl[tb] )+
@@ -642,8 +690,8 @@ initDecl[TypeBox tb] {
 }
         :       #( NInitDecl
                 declName = declarator[tb] { 
-					//System.err.println("GOT declName: " + declName + " TB=" + tb);
-	  			}
+                    debugPrintln("GOT declName: " + declName + " TB=" + tb);
+                  }
                 ( attributeDecl )*
                 ( ASSIGN initializer
                 | COLON expr
@@ -652,11 +700,18 @@ initDecl[TypeBox tb] {
 {
     if ((declName != null) && (tb != null) && tb.isTypedef()) {
         Type t = tb.type();
-		    //System.err.println("Adding typedef mapping: [" + declName + "] -> [" + t + "]");
+        debugPrint("Adding typedef mapping: [" + declName + "] -> "+getTypeString(t));
         if (!t.hasTypedefName()) {
             t.setName(declName);
+            debugPrint(" - declName -> "+getTypeString(t));
+        } else {
+            // copy type to preserve declName !
+            t = (Type) t.clone();
+            t.setName(declName);
+            debugPrint(" - copy -> "+getTypeString(t));
         }
         t = canonicalize(t);
+        debugPrintln(" - canon -> "+getTypeString(t));
         typedefDictionary.put(declName, t);
         // Clear out PointerGroup effects in case another typedef variant follows
         tb.reset();
@@ -667,7 +722,7 @@ initDecl[TypeBox tb] {
 pointerGroup[TypeBox tb] { int x = 0; int y = 0; }
         :       #( NPointerGroup ( STAR { x = 0; y = 0; } ( y = typeQualifier { x |= y; } )*
                                     {
-		  																	//System.err.println("IN PTR GROUP: TB=" + tb);
+                                        debugPrintln("IN PTR GROUP: TB=" + tb);
                                         if (tb != null) {
                                             tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                                                     tb.type(),

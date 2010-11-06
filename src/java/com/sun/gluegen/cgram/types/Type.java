@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -45,7 +46,7 @@ import java.util.List;
     double. All types have an associated name. Structs and unions are
     modeled as "compound" types -- composed of fields of primitive or
     other types. */
-public abstract class Type {
+public abstract class Type implements Cloneable {
 
   private String name;
   private SizeThunk size;
@@ -58,6 +59,14 @@ public abstract class Type {
     this.size = size;
     this.cvAttributes = cvAttributes;
     hasTypedefName = false;
+  }
+
+  public Object clone() {
+    try {
+        return super.clone();
+    } catch (CloneNotSupportedException ex) {
+        throw new InternalError();
+    }
   }
 
   /** Returns the name of this type. The returned string is suitable

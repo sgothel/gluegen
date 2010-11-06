@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -38,7 +39,7 @@
  */
 package com.sun.gluegen.cgram.types;
 
-public class VoidType extends Type {
+public class VoidType extends Type implements Cloneable {
 
     public VoidType(int cvAttributes) {
         this("void", cvAttributes);
