@@ -69,7 +69,9 @@ public class CompoundType extends Type implements Cloneable {
 
   public Object clone() {
     CompoundType n = (CompoundType) super.clone();
-    n.fields = (ArrayList) this.fields.clone();
+    if(null!=this.fields) {
+        n.fields = (ArrayList) this.fields.clone();
+    }
     return n;
   }
 
