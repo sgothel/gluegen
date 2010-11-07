@@ -224,7 +224,7 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>
                 <package-root>src/java</package-root>
-                <classpath mode="compile">build/classes:${jdk.home}/lib/tools.jar:/home/mbien/netbeans68/java3/ant/lib/ant.jar:lib/antlr-3.2.jar</classpath>
+                <classpath mode="compile">build/classes:${jdk.home}/lib/tools.jar:/usr/share/ant/lib/ant.jar:/home/mbien/netbeans68/java3/ant/lib/ant.jar:lib/antlr.jar</classpath>
                 <built-to>build/classes</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>

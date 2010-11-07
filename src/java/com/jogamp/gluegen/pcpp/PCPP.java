@@ -422,7 +422,17 @@ public class PCPP {
             handleInclude();
             shouldPrint = false;
         } else {
-            // Unknown preprocessor directive (#pragma?) -- ignore
+            int line = -1;
+            try {
+                // try '# <line> "<filename>"' case
+                line = Integer.parseInt(w);
+                String filename = nextWordOrString();
+                print("# " + line + " " + filename);
+                println();
+                shouldPrint = false;
+            } catch (NumberFormatException nfe) {
+                // Unknown preprocessor directive (#pragma?) -- ignore
+            }
         }
         if (shouldPrint) {
             print("# ");
