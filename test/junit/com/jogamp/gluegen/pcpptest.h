@@ -37,3 +37,23 @@ cl_char  TEST_A(2);
 int TEST_B;
 int TEST_C;
 
+#ifndef __NO__
+    #ifdef __YES__
+        #ifdef CGDLL_EXPORTS
+            #define ERR_D_1
+        #elif defined (CG_LIB)
+            #define ERR_D_2
+        #else
+            #define GOOD_D
+        #endif
+    #else
+        #define ERR_D_3
+    #endif
+#endif
+
+#ifdef GOOD_D
+    int TEST_D_GOOD;
+#elif
+    int TEST_D_ERROR;
+#endif
+

@@ -65,7 +65,10 @@ public class PCPPTest {
                             " cl_char  GOOD_A;"+
                             " int GOOD_B;"+
                             " int GOOD_C;"+
-                            "# 40 \"pcpptest.h\"";
+                            "# 40 \"pcpptest.h\""+
+                            "#54\"pcpptest.h\""+
+                            " int TEST_D_GOOD;"+
+                            "#60\"pcpptest.h\"";
 
         output.flush();
         String result = output.toString();
