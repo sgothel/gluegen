@@ -22,9 +22,9 @@
         <property name="make" value="." />
 
         <property name="test.base.dir"  value="${gluegen.root}/src/junit" />
-        <property name="test.junit.rel" value="com/jogamp" />
+        <property name="test.junit.rel" value="com/jogamp/gluegen/test/junit" />
         <property name="test.junit.dir" value="${test.base.dir}/${test.junit.rel}" />
-        <property name="test.junit.generation.rel" value="${test.junit.rel}/gluegen/test/junit/generation" />
+        <property name="test.junit.generation.rel" value="${test.junit.rel}/generation" />
         <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
         <property name="test.dir"     value="${gluegen.root}/${rootrel.build}/test"/>
@@ -186,11 +186,6 @@
     </target>
 
     <target name="junit.run" depends="init,gluegen.cpptasks.detect.os">
-        <mkdir dir="${results}"/>
-        <delete quiet="true">
-            <fileset dir="${results}" includes="**"/>
-        </delete>
-
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
