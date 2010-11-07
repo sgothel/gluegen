@@ -107,23 +107,24 @@ public class GlueGen implements GlueEmitterControls {
             final PipedInputStream ppIn = new PipedInputStream();
             final PipedOutputStream ppOut = new PipedOutputStream(ppIn);
 
+            File out = File.createTempFile("PCPPTemp", ".pcpp");
+            FileOutputStream outStream = new FileOutputStream(out);
+
+            if(debug) {
+                System.err.println("PCPP output at (persistent): " + out.getAbsolutePath());
+            } else {
+                out.deleteOnExit();
+            }
+
             preprocessor = new PCPP(includePaths, debug, copyPCPPOutput2Stderr);
-            preprocessor.setOut(ppOut);
+            preprocessor.setOut(outStream);
 
-            new Thread("PCPP") {
+            preprocessor.run(reader, filename);
+            outStream.flush();
 
-                @Override
-                public void run() {
-                    try {
-                        preprocessor.run(reader, filename);
-                        ppOut.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }.start();
+            FileInputStream inStream = new FileInputStream(out);
+            DataInputStream dis = new DataInputStream(inStream);
 
-            DataInputStream dis = new DataInputStream(ppIn);
             GnuCLexer lexer = new GnuCLexer(dis);
             lexer.setTokenObjectClass(CToken.class.getName());
             lexer.initialize();

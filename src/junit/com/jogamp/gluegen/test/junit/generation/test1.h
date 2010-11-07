@@ -92,3 +92,10 @@ MYAPI MYAPIConfig  MYAPIENTRY typeTestAnonSingle(const MYAPIConfig a);
 /** Return a copy of the passed MYAPIConfig*, incremented by 1 */
 MYAPI MYAPIConfig *  MYAPIENTRY typeTestAnonPointer(const MYAPIConfig * a);
 
+#define DOUBLE_DEFINE_BRACKETS_1 ( ( int ) 1e51 )
+#define DOUBLE_DEFINE_BRACKETS_2 ((int) 1e52)
+
+#define HUGE_VALF_3        ((int) 1e53)
+#define DOUBLE_DEFINE_BRACKETS_3 HUGE_VALF_3
+
+

@@ -551,17 +551,23 @@ public class PCPP {
                     debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
                     //System.err.println("//---DEFINED: " + name + " to \"" + value + "\"");
                 } else {
-                    debugPrint(true, "DEFINE " + name + " -> "+value + " SYMB");
                     // Value is a symbolic constant like "#define FOO BAR".
                     // Try to look up the symbol's value
                     String newValue = resolveDefine(value, true);
+                    debugPrint(true, "DEFINE " + name + " -> "+value + " -> <" + newValue + "> SYMB");
                     if (newValue != null) {
                         // Set the value to the value of the symbol.
                         //
                         // TO DO: Is this correct? Why not output the symbol unchanged?
                         // I think that it's a good thing to see that some symbols are
                         // defined in terms of others. -chris
-                        values.set(0, newValue);
+                        macroDefinition = newValue.contains("(");
+                        if(macroDefinition) {
+                            // parser can't dig this currently
+                            emitDefine = false;
+                        } else {
+                            values.set(0, newValue);
+                        }
                     } else {
                         // Still perform textual replacement
                         defineMap.put(name, value);

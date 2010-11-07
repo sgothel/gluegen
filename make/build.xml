@@ -152,19 +152,25 @@
     <gluegen src="stub_includes/windows/dynamic-linker.h"
              config="dynlink-windows.cfg"
              includeRefId="stub.includes.fileset.windows"
-             emitter="com.jogamp.gluegen.JavaEmitter">
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             dumpCPP="false"
+             debug="false">
       <classpath refid="gluegen.classpath" />
     </gluegen>
     <gluegen src="stub_includes/unix/dynamic-linker.h"
              config="dynlink-unix.cfg"
              includeRefId="stub.includes.fileset.unix"
-             emitter="com.jogamp.gluegen.JavaEmitter">
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             dumpCPP="false"
+             debug="false">
       <classpath refid="gluegen.classpath" />
     </gluegen>
     <gluegen src="stub_includes/macosx/dynamic-linker.h"
              config="dynlink-macosx.cfg"
              includeRefId="stub.includes.fileset.macosx"
-             emitter="com.jogamp.gluegen.JavaEmitter">
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             dumpCPP="false"
+             debug="false">
       <classpath refid="gluegen.classpath" />
     </gluegen>
   </target>
