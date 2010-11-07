@@ -285,7 +285,7 @@ public class PCPP {
             return state.curWord();
         }
         if (t == StreamTokenizer.TT_EOL) {
-            throw new RuntimeException("Should not be converting EOL characters to strings");
+            throw new RuntimeException("Should not be converting EOL characters to strings at file " + filename() + ", line " + lineNumber());
         }
         char c = (char) t;
         if (c == '"' || c == '\'') {
@@ -614,7 +614,8 @@ public class PCPP {
                         // This is probably something the user should investigate.
                         throw new RuntimeException("Cannot redefine symbol \"" + name +
                                                    " from \"" + defineMap.get(name) + "\" to non-constant " +
-                                                   " definition \"" + val.toString() + "\"");
+                                                   " definition \"" + val.toString() + "\"" + 
+                                                   " at file \"" + filename() + ", line " + lineNumber() );
                     }
                     defineMap.put(name, val.toString());
                     nonConstantDefines.add(name);
@@ -1025,7 +1026,7 @@ public class PCPP {
 
     private void popEnableBit() {
         if (enabledBits.isEmpty()) {
-            throw new RuntimeException("mismatched #ifdef/endif pairs (line " + lineNumber() + " file " + filename() + ")");
+            throw new RuntimeException("mismatched #ifdef/endif pairs at file " + filename() + ", line " + lineNumber());
         }
         enabledBits.remove(enabledBits.size() - 1);
         --debugPrintIndentLevel;
