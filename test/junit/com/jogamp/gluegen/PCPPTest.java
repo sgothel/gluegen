@@ -68,7 +68,18 @@ public class PCPPTest {
                             "# 40 \"pcpptest.h\""+
                             "#54\"pcpptest.h\""+
                             " int TEST_D_GOOD;"+
-                            "#60\"pcpptest.h\"";
+                            "#60\"pcpptest.h\""+
+                            "#70\"pcpptest.h\""+
+                            "#77\"pcpptest.h\""+
+                            "#105\"pcpptest.h\""+
+                            "#123\"pcpptest.h\""+
+                            " int GOOD_F_1;"+
+                            " int GOOD_F_2;"+
+                            "#126\"pcpptest.h\""+
+                            " int GOOD_G;"+
+                            "#128\"pcpptest.h\""+
+                            "#132\"pcpptest.h\""+
+                            "#134\"pcpptest.h\"";
 
         output.flush();
         String result = output.toString();

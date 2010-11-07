@@ -746,10 +746,10 @@ public class PCPP {
         // Next token is the name of the #ifdef
         String symbolName = nextWord();
 
-        boolean enabledStatusBefore = enabled(); // condition or true
+        boolean enabledStatusWhole = enabled(); // whole block
         boolean symbolIsDefined = defineMap.get(symbolName) != null;
 
-        debugPrint(false, "#" + (isIfdef ? "ifdef " : "ifndef ") + symbolName + ", enabledBefore " + enabledStatusBefore + ", isDefined " + symbolIsDefined + ", file \"" + filename() + " line " + lineNumber());
+        debugPrint(false, "#" + (isIfdef ? "ifdef " : "ifndef ") + symbolName + ", enabledWhole " + enabledStatusWhole + ", isDefined " + symbolIsDefined + ", file \"" + filename() + " line " + lineNumber());
 
         boolean enabledNow = enabled() && symbolIsDefined == isIfdef ;
         pushEnableBit( enabledNow ) ; // condition
@@ -759,21 +759,23 @@ public class PCPP {
     /** Handles #else directives */
     private void handleElse() throws IOException {
         popEnableBit(); // block
-        boolean enabledStatusBefore = enabled(); // condition or true
-        debugPrint(false, "#else, enabledBefore " + enabledStatusBefore + ", file \"" + filename() + " line " + lineNumber());
+        boolean enabledStatusCondition = enabled(); // condition
         popEnableBit(); // condition
-        pushEnableBit(!enabledStatusBefore); // don't care
-        pushEnableBit(!enabledStatusBefore); // block
+        boolean enabledStatusWhole = enabled();     // whole block
+
+        debugPrint(false, "#else, enabledWhole " + enabledStatusWhole + ", file \"" + filename() + " line " + lineNumber());
+        pushEnableBit(enabledStatusWhole && !enabledStatusCondition); // don't care
+        pushEnableBit(enabledStatusWhole && !enabledStatusCondition); // block
     }
 
     private void handleEndif() {
         popEnableBit(); // block
-        boolean enabledStatusBefore = enabled();
         popEnableBit(); // condition
+        boolean enabledStatusWhole = enabled();
 
         // print the endif if we were enabled prior to popEnableBit() (sending
         // false to debugPrint means "print regardless of current enabled() state).
-        debugPrint(false, "#endif, enabledBefore " + enabledStatusBefore);
+        debugPrint(false, "#endif, enabledWhole " + enabledStatusWhole);
     }
 
     /**
@@ -781,25 +783,30 @@ public class PCPP {
      * processing #elif.
      */
     private void handleIf(boolean isIf) throws IOException {
+        boolean enabledStatusCondition = false;
+        boolean enabledStatusWhole;
+
         if (!isIf) {
             popEnableBit(); // block
+            enabledStatusCondition = enabled(); // condition
+            popEnableBit(); // condition
         }
-        boolean enabledStatusBefore = enabled(); // condition or true
+        enabledStatusWhole = enabled();         // whole block
+
         boolean defineEvaluatedToTrue = handleIfRecursive(true);
 
-        debugPrint(false, "#" + (isIf ? "if" : "elif") + ", enabledBefore " + enabledStatusBefore + ", eval " + defineEvaluatedToTrue + ", file \"" + filename() + " line " + lineNumber());
+        debugPrint(false, "#" + (isIf ? "if" : "elif") + ", enabledWhole " + enabledStatusWhole + ", eval " + defineEvaluatedToTrue + ", file \"" + filename() + " line " + lineNumber());
 
         boolean enabledNow;
 
         if(isIf) {
-            enabledNow = enabledStatusBefore && defineEvaluatedToTrue ;
+            enabledNow = enabledStatusWhole && defineEvaluatedToTrue ;
             pushEnableBit( enabledNow ) ; // condition
             pushEnableBit( enabledNow ) ; // block
         } else {
-            popEnableBit(); // condition
-            enabledNow = !enabledStatusBefore && defineEvaluatedToTrue ;
-            pushEnableBit( enabledStatusBefore || enabledNow ) ; // condition: pass prev true condition
-            pushEnableBit( enabledNow ) ;                        // block
+            enabledNow = enabledStatusWhole && !enabledStatusCondition && defineEvaluatedToTrue ;
+            pushEnableBit( enabledStatusCondition || enabledNow ) ; // condition: pass prev true condition
+            pushEnableBit( enabledNow ) ;                           // block
         }
     }
 
@@ -984,8 +991,7 @@ public class PCPP {
             String fullname = findFile(filename);
             //System.out.println("ACTIVE BLOCK, LOADING " + filename);
             if (fullname == null) {
-                LOG.log(WARNING, "unable to find #include file \"{0}\"", filename);
-                return;
+                throw new RuntimeException("Can't find #include file \"" + filename + "\" at file " + filename() + ", line " + lineNumber());
             }
             // Process this file in-line
             Reader reader = new BufferedReader(new FileReader(fullname));
