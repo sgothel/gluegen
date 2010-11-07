@@ -125,6 +125,8 @@ int TEST_F_VAL2;
 
 int TEST_G_VAL;
 
+#warning "Test warning with quotes - they must have quotes"
+
 #ifdef __cplusplus
 }
 #endif

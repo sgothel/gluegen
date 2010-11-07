@@ -78,8 +78,10 @@ public class PCPPTest {
                             "#126\"pcpptest.h\""+
                             " int GOOD_G;"+
                             "#128\"pcpptest.h\""+
-                            "#132\"pcpptest.h\""+
-                            "#134\"pcpptest.h\"";
+                            "#130\"pcpptest.h\""+
+                            "#134\"pcpptest.h\""+
+                            "#136\"pcpptest.h\"";
+
 
         output.flush();
         String result = output.toString();

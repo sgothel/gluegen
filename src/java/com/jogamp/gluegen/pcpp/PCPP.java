@@ -480,7 +480,7 @@ public class PCPP {
     private void handleError() throws IOException {
         String msg = nextWordOrString();
         if (enabled()) {
-            LOG.log(WARNING, "#error {0} at \"{1}\" line \"{2}\"", new Object[]{msg, filename(), lineNumber()});
+            throw new RuntimeException("#error "+msg+" at \""+filename()+"\" line "+lineNumber());
         }
     }
 
