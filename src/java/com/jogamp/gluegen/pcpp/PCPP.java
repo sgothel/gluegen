@@ -744,27 +744,35 @@ public class PCPP {
     private void handleIfdef(boolean isIfdef) throws IOException {
         // Next token is the name of the #ifdef
         String symbolName = nextWord();
-        debugPrint(true, (isIfdef ? "#ifdef " : "#ifndef ") + symbolName);
+
+        boolean enabledStatusBefore = enabled(); // condition or true
         boolean symbolIsDefined = defineMap.get(symbolName) != null;
-        debugPrint(true, (isIfdef ? "#ifdef " : "#ifndef ") + symbolName + "(defined: "+symbolIsDefined+")");
-        pushEnableBit(enabled() && symbolIsDefined == isIfdef);
+
+        debugPrint(false, "#" + (isIfdef ? "ifdef " : "ifndef ") + symbolName + ", enabledBefore " + enabledStatusBefore + ", isDefined " + symbolIsDefined + ", file \"" + filename() + " line " + lineNumber());
+
+        boolean enabledNow = enabled() && symbolIsDefined == isIfdef ;
+        pushEnableBit( enabledNow ) ; // condition
+        pushEnableBit( enabledNow ) ; // block
     }
 
     /** Handles #else directives */
     private void handleElse() throws IOException {
-        boolean enabledStatusBeforeElse = enabled();
-        popEnableBit();
-        pushEnableBit(enabled() && !enabledStatusBeforeElse);
-        debugPrint(true, "#else ");
+        popEnableBit(); // block
+        boolean enabledStatusBefore = enabled(); // condition or true
+        debugPrint(false, "#else, enabledBefore " + enabledStatusBefore + ", file \"" + filename() + " line " + lineNumber());
+        popEnableBit(); // condition
+        pushEnableBit(!enabledStatusBefore); // don't care
+        pushEnableBit(!enabledStatusBefore); // block
     }
 
     private void handleEndif() {
-        boolean enabledBeforePopping = enabled();
-        popEnableBit();
+        popEnableBit(); // block
+        boolean enabledStatusBefore = enabled();
+        popEnableBit(); // condition
 
         // print the endif if we were enabled prior to popEnableBit() (sending
         // false to debugPrint means "print regardless of current enabled() state).
-        debugPrint(!enabledBeforePopping, "#endif/end-else");
+        debugPrint(false, "#endif, enabledBefore " + enabledStatusBefore);
     }
 
     /**
@@ -772,14 +780,26 @@ public class PCPP {
      * processing #elif.
      */
     private void handleIf(boolean isIf) throws IOException {
-        //System.out.println("IN HANDLE_" + (isIf ? "IF" : "ELIF") + " file \"" + filename() + " line " + lineNumber());
-        debugPrint(true, (isIf ? "#if" : "#elif"));
-        boolean defineEvaluatedToTrue = handleIfRecursive(true);
         if (!isIf) {
-            popEnableBit();
+            popEnableBit(); // block
         }
-        pushEnableBit(enabled() && defineEvaluatedToTrue);
-        //System.out.println("OUT HANDLE_" + (isIf ? "IF" : "ELIF") +" (evaluated to " + defineEvaluatedToTrue + ")");
+        boolean enabledStatusBefore = enabled(); // condition or true
+        boolean defineEvaluatedToTrue = handleIfRecursive(true);
+
+        debugPrint(false, "#" + (isIf ? "if" : "elif") + ", enabledBefore " + enabledStatusBefore + ", eval " + defineEvaluatedToTrue + ", file \"" + filename() + " line " + lineNumber());
+
+        boolean enabledNow;
+
+        if(isIf) {
+            enabledNow = enabledStatusBefore && defineEvaluatedToTrue ;
+            pushEnableBit( enabledNow ) ; // condition
+            pushEnableBit( enabledNow ) ; // block
+        } else {
+            popEnableBit(); // condition
+            enabledNow = !enabledStatusBefore && defineEvaluatedToTrue ;
+            pushEnableBit( enabledStatusBefore || enabledNow ) ; // condition: pass prev true condition
+            pushEnableBit( enabledNow ) ;                        // block
+        }
     }
 
     //static int tmp = -1;
@@ -1005,8 +1025,7 @@ public class PCPP {
 
     private void popEnableBit() {
         if (enabledBits.isEmpty()) {
-            LOG.warning("mismatched #ifdef/endif pairs");
-            return;
+            throw new RuntimeException("mismatched #ifdef/endif pairs (line " + lineNumber() + " file " + filename() + ")");
         }
         enabledBits.remove(enabledBits.size() - 1);
         --debugPrintIndentLevel;

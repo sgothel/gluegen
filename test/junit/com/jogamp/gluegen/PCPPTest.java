@@ -47,7 +47,7 @@ public class PCPPTest {
     @Test
     public void pcppMacroDefinitionTest() throws FileNotFoundException, IOException {
         
-        PCPP pp = new PCPP(Collections.<String>emptyList());
+        PCPP pp = new PCPP(Collections.<String>emptyList(), false);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
 
@@ -58,11 +58,29 @@ public class PCPPTest {
 
         String expected =   "# 1 \"pcpptest.h\""+
                             "# define CL_SCHAR_MIN (-127-1)"+
-                            " cl_char  __attribute__(( aligned(2))) s[ 2];"+
-                            "# 7 \"pcpptest.h\"";
+                            "# define __YES__ 1"+
+                            "# 16 \"pcpptest.h\""+
+                            "# 26 \"pcpptest.h\""+
+                            "# 36 \"pcpptest.h\""+
+                            " cl_char  GOOD_A;"+
+                            " int GOOD_B;"+
+                            " int GOOD_C;"+
+                            "# 40 \"pcpptest.h\"";
+
         output.flush();
         String result = output.toString();
         output.close();
+
+        System.err.println("Expected: ");
+        System.err.println("-------------------------------");
+        System.err.println(killWhitespace(expected));
+        System.err.println("-------------------------------");
+        System.err.println();
+        System.err.println("Result: ");
+        System.err.println("-------------------------------");
+        System.err.println(killWhitespace(result));
+        System.err.println("-------------------------------");
+        System.err.println();
 
         assertEquals(killWhitespace(expected), killWhitespace(result));
 
@@ -72,5 +90,8 @@ public class PCPPTest {
         return a.replaceAll("\\p{javaWhitespace}+", "");
     }
 
-
+    public static void main(String args[]) throws IOException {
+        String tstname = PCPPTest.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+    }
 }
