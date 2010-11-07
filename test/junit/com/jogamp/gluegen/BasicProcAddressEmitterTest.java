@@ -77,12 +77,13 @@ public class BasicProcAddressEmitterTest {
 
 
         Set<String> expected = new HashSet<String>(
-                asList("arrayTest", "bufferTest", "pbTest", "manyBuffersTest", "mixedTest", "doubleTest"));
+                asList("arrayTest", "bufferTest", "pbTest", "manyBuffersTest", "mixedTest", "doubleTest", 
+                       "fancyArrayTest"));
 
         for (Field field : fields) {
             System.out.println("address field: "+field);
 
-            String function = field.getName().substring("_addressoff_".length()-1);
+            String function = field.getName().substring("_addressof_".length());
             assertTrue("unexpected field: '"+function+"'",expected.contains(function));
         }
 
