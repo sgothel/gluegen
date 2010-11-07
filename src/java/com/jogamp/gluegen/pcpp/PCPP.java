@@ -83,11 +83,13 @@ public class PCPP {
     private ParseState  state;
 
     private boolean enableDebugPrint;
+    private boolean enableCopyOutput2Stderr;
 
-    public PCPP(List<String> includePaths, boolean debug) {
+    public PCPP(List<String> includePaths, boolean debug, boolean copyOutput2Stderr) {
         this.includePaths = includePaths;
         setOut(System.out);
         enableDebugPrint = debug;
+        enableCopyOutput2Stderr = copyOutput2Stderr;
     }
 
     public void run(Reader reader, String filename) throws IOException {
@@ -436,7 +438,7 @@ public class PCPP {
         // Next token is the name of the #undef
         String name = nextWord();
 
-        debugPrint(true, "#undef " + name);
+        debugPrint(true, "UNDEF " + name);
 
         // there shouldn't be any extra symbols after the name, but just in case...
         List<String> values = new ArrayList<String>();
@@ -508,7 +510,7 @@ public class PCPP {
         // if we're not within an active block of code (like inside an "#ifdef
         // FOO" where FOO isn't defined), then don't actually alter the definition
         // map.
-        debugPrint(true, "#define " + name);
+        debugPrint(true, "DEFINE " + name);
         if (enabled()) {
             boolean emitDefine = true;
 
@@ -524,7 +526,7 @@ public class PCPP {
                 // We don't want to emit the define, because it would serve no purpose
                 // and cause GlueGen errors (confuse the GnuCParser)
                 emitDefine = false;
-                //System.out.println("//---DEFINED: " + name + "to \"\"");
+                //System.err.println("//---DEFINED: " + name + "to \"\"");
             } else if (sz == 1) {
                 // See whether the value is a constant
                 String value = values.get(0);
@@ -536,10 +538,10 @@ public class PCPP {
                     if (oldDef != null && !oldDef.equals(value)) {
                         LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, value});
                     }
-                    debugPrint(true, "#define " + name + " ["+oldDef+" ] -> "+value + " CONST");
-                    //System.out.println("//---DEFINED: " + name + " to \"" + value + "\"");
+                    debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
+                    //System.err.println("//---DEFINED: " + name + " to \"" + value + "\"");
                 } else {
-                    debugPrint(true, "#define " + name + " -> "+value + " SYMB");
+                    debugPrint(true, "DEFINE " + name + " -> "+value + " SYMB");
                     // Value is a symbolic constant like "#define FOO BAR".
                     // Try to look up the symbol's value
                     String newValue = resolveDefine(value, true);
@@ -632,8 +634,8 @@ public class PCPP {
                     if (oldDef != null && !oldDef.equals(value)) {
                         LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, value});
                     }
-                    debugPrint(true, "#define " + name + " ["+oldDef+" ] -> "+value + " CONST");
-//                    System.out.println("#define " + name +" "+value + " CONST EXPRESSION");
+                    debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
+//                    System.err.println("#define " + name +" "+value + " CONST EXPRESSION");
                 }
 
             }
@@ -734,9 +736,17 @@ public class PCPP {
         return lastWord;
     }
 
-    ////////////////////////////////////////////////
-    // Handling of #if/#ifdef/ifndef/endif directives //
-    ////////////////////////////////////////////////
+    /**
+     * Handling of #if/#ifdef/ifndef/endif directives
+     *
+     * condition      - the actual if-elif condition
+     * whole-block    - the whole if-else-endif block
+     * inside-block   - the inner block between if-elif-else-endif
+     *
+     * Outside        - reflects the state at entering the whole-block
+     * Condition      - reflects the state of the condition
+     * Inside         - reflects the state within the inside-block
+     */
 
     /**
      * @param isIfdef if true, we're processing #ifdef; if false, we're
@@ -746,36 +756,36 @@ public class PCPP {
         // Next token is the name of the #ifdef
         String symbolName = nextWord();
 
-        boolean enabledStatusWhole = enabled(); // whole block
+        boolean enabledOutside = enabled();
         boolean symbolIsDefined = defineMap.get(symbolName) != null;
 
-        debugPrint(false, "#" + (isIfdef ? "ifdef " : "ifndef ") + symbolName + ", enabledWhole " + enabledStatusWhole + ", isDefined " + symbolIsDefined + ", file \"" + filename() + " line " + lineNumber());
+        debugPrint(false, (isIfdef ? "IFDEF " : "IFNDEF ") + symbolName + ", enabledOutside " + enabledOutside + ", isDefined " + symbolIsDefined + ", file \"" + filename() + " line " + lineNumber());
 
         boolean enabledNow = enabled() && symbolIsDefined == isIfdef ;
-        pushEnableBit( enabledNow ) ; // condition
-        pushEnableBit( enabledNow ) ; // block
+        pushEnableBit( enabledNow ) ; // StateCondition
+        pushEnableBit( enabledNow ) ; // StateInside
     }
 
     /** Handles #else directives */
     private void handleElse() throws IOException {
-        popEnableBit(); // block
-        boolean enabledStatusCondition = enabled(); // condition
-        popEnableBit(); // condition
-        boolean enabledStatusWhole = enabled();     // whole block
+        popEnableBit(); // Inside
+        boolean enabledCondition = enabled();
+        popEnableBit(); // Condition
+        boolean enabledOutside = enabled();
 
-        debugPrint(false, "#else, enabledWhole " + enabledStatusWhole + ", file \"" + filename() + " line " + lineNumber());
-        pushEnableBit(enabledStatusWhole && !enabledStatusCondition); // don't care
-        pushEnableBit(enabledStatusWhole && !enabledStatusCondition); // block
+        debugPrint(false, "ELSE, enabledOutside " + enabledOutside + ", file \"" + filename() + " line " + lineNumber());
+        pushEnableBit(enabledOutside && !enabledCondition); // Condition - don't care
+        pushEnableBit(enabledOutside && !enabledCondition); // Inside
     }
 
     private void handleEndif() {
-        popEnableBit(); // block
-        popEnableBit(); // condition
-        boolean enabledStatusWhole = enabled();
+        popEnableBit(); // Inside
+        popEnableBit(); // Condition
+        boolean enabledOutside = enabled();
 
         // print the endif if we were enabled prior to popEnableBit() (sending
         // false to debugPrint means "print regardless of current enabled() state).
-        debugPrint(false, "#endif, enabledWhole " + enabledStatusWhole);
+        debugPrint(false, "ENDIF, enabledOutside " + enabledOutside);
     }
 
     /**
@@ -783,30 +793,30 @@ public class PCPP {
      * processing #elif.
      */
     private void handleIf(boolean isIf) throws IOException {
-        boolean enabledStatusCondition = false;
-        boolean enabledStatusWhole;
+        boolean enabledCondition = false;
+        boolean enabledOutside;
 
         if (!isIf) {
-            popEnableBit(); // block
-            enabledStatusCondition = enabled(); // condition
-            popEnableBit(); // condition
+            popEnableBit(); // Inside
+            enabledCondition = enabled();
+            popEnableBit(); // Condition
         }
-        enabledStatusWhole = enabled();         // whole block
+        enabledOutside = enabled();
 
         boolean defineEvaluatedToTrue = handleIfRecursive(true);
 
-        debugPrint(false, "#" + (isIf ? "if" : "elif") + ", enabledWhole " + enabledStatusWhole + ", eval " + defineEvaluatedToTrue + ", file \"" + filename() + " line " + lineNumber());
+        debugPrint(false, (isIf ? "IF" : "ELIF") + ", enabledOutside " + enabledOutside + ", eval " + defineEvaluatedToTrue + ", file \"" + filename() + " line " + lineNumber());
 
         boolean enabledNow;
 
         if(isIf) {
-            enabledNow = enabledStatusWhole && defineEvaluatedToTrue ;
-            pushEnableBit( enabledNow ) ; // condition
-            pushEnableBit( enabledNow ) ; // block
+            enabledNow = enabledOutside && defineEvaluatedToTrue ;
+            pushEnableBit( enabledNow ) ; // Condition
+            pushEnableBit( enabledNow ) ; // Inside
         } else {
-            enabledNow = enabledStatusWhole && !enabledStatusCondition && defineEvaluatedToTrue ;
-            pushEnableBit( enabledStatusCondition || enabledNow ) ; // condition: pass prev true condition
-            pushEnableBit( enabledNow ) ;                           // block
+            enabledNow = enabledOutside && !enabledCondition && defineEvaluatedToTrue ;
+            pushEnableBit( enabledCondition || enabledNow ) ; // Condition
+            pushEnableBit( enabledNow ) ;                     // Inside
         }
     }
 
@@ -825,7 +835,7 @@ public class PCPP {
      * series of sub-expressions.
      */
     private boolean handleIfRecursive(boolean greedy) throws IOException {
-        //System.out.println("IN HANDLE_IF_RECURSIVE (" + ++tmp + ", greedy = " + greedy + ")"); System.out.flush();
+        //System.err.println("IN HANDLE_IF_RECURSIVE (" + ++tmp + ", greedy = " + greedy + ")"); System.err.flush();
 
         // ifValue keeps track of the current value of the potentially nested
         // "defined()" expressions as we process them.
@@ -834,40 +844,40 @@ public class PCPP {
         int tok;
         do {
             tok = nextToken(true);
-            //System.out.println("-- READ: [" + (tok == StreamTokenizer.TT_EOL ? "<EOL>" :curTokenAsString()) + "]");
+            //System.err.println("-- READ: [" + (tok == StreamTokenizer.TT_EOL ? "<EOL>" :curTokenAsString()) + "]");
             switch (tok) {
                 case '(':
                     ++openParens;
-                    //System.out.println("OPEN PARENS = " + openParens);
+                    //System.err.println("OPEN PARENS = " + openParens);
                     ifValue = ifValue && handleIfRecursive(true);
                     break;
                 case ')':
                     --openParens;
-                    //System.out.println("OPEN PARENS = " + openParens);
+                    //System.err.println("OPEN PARENS = " + openParens);
                     break;
                 case '!':
                     {
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING !");
+                        //System.err.println("HANDLE_IF_RECURSIVE HANDLING !");
                         boolean rhs = handleIfRecursive(false);
                         ifValue = !rhs;
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLED OUT !, RHS = " + rhs);
+                        //System.err.println("HANDLE_IF_RECURSIVE HANDLED OUT !, RHS = " + rhs);
                     }
                     break;
                 case '&':
                     {
                         nextRequiredToken('&');
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING &&, LHS = " + ifValue);
+                        //System.err.println("HANDLE_IF_RECURSIVE HANDLING &&, LHS = " + ifValue);
                         boolean rhs = handleIfRecursive(true);
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLED &&, RHS = " + rhs);
+                        //System.err.println("HANDLE_IF_RECURSIVE HANDLED &&, RHS = " + rhs);
                         ifValue = ifValue && rhs;
                     }
                     break;
                 case '|':
                     {
                         nextRequiredToken('|');
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLING ||, LHS = " + ifValue);
+                        //System.err.println("HANDLE_IF_RECURSIVE HANDLING ||, LHS = " + ifValue);
                         boolean rhs = handleIfRecursive(true);
-                        //System.out.println("HANDLE_IF_RECURSIVE HANDLED ||, RHS = " + rhs);
+                        //System.err.println("HANDLE_IF_RECURSIVE HANDLED ||, RHS = " + rhs);
                         ifValue = ifValue || rhs;
                     }
                     break;
@@ -900,7 +910,7 @@ public class PCPP {
                             nextRequiredToken('(');
                             String symbol = nextWord();
                             boolean isDefined = defineMap.get(symbol) != null;
-                            //System.out.println("HANDLE_IF_RECURSIVE HANDLING defined(" + symbol + ") = " + isDefined);
+                            //System.err.println("HANDLE_IF_RECURSIVE HANDLING defined(" + symbol + ") = " + isDefined);
                             ifValue = ifValue && isDefined;
                             nextRequiredToken(')');
                         } else {
@@ -940,7 +950,7 @@ public class PCPP {
                     } // end case TT_WORD
                     break;
                 case StreamTokenizer.TT_EOL:
-                    //System.out.println("HANDLE_IF_RECURSIVE HIT <EOL>!");
+                    //System.err.println("HANDLE_IF_RECURSIVE HIT <EOL>!");
                     state.pushBackToken(); // so caller hits EOL as well if we're recursing
                     break;
                 case StreamTokenizer.TT_EOF:
@@ -952,10 +962,10 @@ public class PCPP {
                                                ") while parsing " + "#if statement at file " + filename() +
                                                ", line " + lineNumber());
             }
-            //System.out.println("END OF WHILE: greedy = " + greedy + " parens = " +openParens + " not EOL = " + (tok != StreamTokenizer.TT_EOL) + " --> " + ((greedy && openParens >= 0) && tok != StreamTokenizer.TT_EOL));
+            //System.err.println("END OF WHILE: greedy = " + greedy + " parens = " +openParens + " not EOL = " + (tok != StreamTokenizer.TT_EOL) + " --> " + ((greedy && openParens >= 0) && tok != StreamTokenizer.TT_EOL));
         } while ((greedy && openParens >= 0) && tok != StreamTokenizer.TT_EOL);
-        //System.out.println("OUT HANDLE_IF_RECURSIVE (" + tmp-- + ", returning " + ifValue + ")");
-        //System.out.flush();
+        //System.err.println("OUT HANDLE_IF_RECURSIVE (" + tmp-- + ", returning " + ifValue + ")");
+        //System.err.flush();
         return ifValue;
     }
 
@@ -985,11 +995,11 @@ public class PCPP {
         // if we're not within an active block of code (like inside an "#ifdef
         // FOO" where FOO isn't defined), then don't actually process the
         // #included file.
-        debugPrint(true, "#include [" + filename + "]");
+        debugPrint(true, "INCLUDE [" + filename + "]");
         if (enabled()) {
             // Look up file in known #include path
             String fullname = findFile(filename);
-            //System.out.println("ACTIVE BLOCK, LOADING " + filename);
+            //System.err.println("ACTIVE BLOCK, LOADING " + filename);
             if (fullname == null) {
                 throw new RuntimeException("Can't find #include file \"" + filename + "\" at file " + filename() + ", line " + lineNumber());
             }
@@ -997,7 +1007,7 @@ public class PCPP {
             Reader reader = new BufferedReader(new FileReader(fullname));
             run(reader, fullname);
         } else {
-            //System.out.println("INACTIVE BLOCK, SKIPPING " + filename);
+            //System.err.println("INACTIVE BLOCK, SKIPPING " + filename);
         }
     }
 
@@ -1018,9 +1028,10 @@ public class PCPP {
 
         if (!onlyPrintIfEnabled || (onlyPrintIfEnabled && enabled())) {
             for (int i = debugPrintIndentLevel; --i > 0;) {
-                System.out.print("  ");
+                System.err.print("  ");
             }
-            System.out.println(msg + "  (line " + lineNumber() + " file " + filename() + ")");
+            System.err.println("STATE: " + msg + "  (line " + lineNumber() + " file " + filename() + ")");
+            System.err.flush();
         }
     }
 
@@ -1046,21 +1057,33 @@ public class PCPP {
     private void print(String s) {
         if (enabled()) {
             writer.print(s);
-            //System.out.print(s);//debug
+            if (enableCopyOutput2Stderr) {
+                System.err.print(s);
+                System.err.flush();
+                return;
+            }
         }
     }
 
     private void print(char c) {
         if (enabled()) {
             writer.print(c);
-            //System.err.print(c); //debug
+            if (enableCopyOutput2Stderr) {
+                System.err.print(c);
+                System.err.flush();
+                return;
+            }
         }
     }
 
     private void println() {
         if (enabled()) {
             writer.println();
-            //System.err.println();//debug
+            if (enableCopyOutput2Stderr) {
+                System.err.println();
+                System.err.flush();
+                return;
+            }
         }
     }
 
@@ -1071,7 +1094,10 @@ public class PCPP {
     private void flush() {
         if (enabled()) {
             writer.flush();
-            //System.err.flush(); //debug
+            if (enableCopyOutput2Stderr) {
+                System.err.flush();
+                return;
+            }
         }
     }
 
@@ -1081,11 +1107,11 @@ public class PCPP {
     }
     
     private static void usage() {
-        System.out.println("Usage: java PCPP [filename | -]");
-        System.out.println("Minimal pseudo-C-preprocessor.");
-        System.out.println("Output goes to standard output. Standard input can be used as input");
-        System.out.println("by passing '-' as the argument.");
-        System.out.println("  --debug enables debug mode");
+        System.err.println("Usage: java PCPP [filename | -]");
+        System.err.println("Minimal pseudo-C-preprocessor.");
+        System.err.println("Output goes to standard output. Standard input can be used as input");
+        System.err.println("by passing '-' as the argument.");
+        System.err.println("  --debug enables debug mode");
         System.exit(1);
     }
 
@@ -1127,7 +1153,7 @@ public class PCPP {
             }
         }
 
-        new PCPP(includePaths, debug).run(reader, filename);
+        new PCPP(includePaths, debug, debug).run(reader, filename);
     }
 
 }

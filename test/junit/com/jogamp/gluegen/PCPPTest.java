@@ -47,7 +47,7 @@ public class PCPPTest {
     @Test
     public void pcppMacroDefinitionTest() throws FileNotFoundException, IOException {
         
-        PCPP pp = new PCPP(Collections.<String>emptyList(), false);
+        PCPP pp = new PCPP(Collections.<String>emptyList(), false, false);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
 

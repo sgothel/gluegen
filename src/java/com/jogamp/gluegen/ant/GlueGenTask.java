@@ -71,7 +71,8 @@ import org.apache.tools.ant.util.JavaEnvUtils;
                 includeRefid="[optional FileSet or DirSet for include files]"
                 literalInclude="[optional hack to get around FileSet / DirSet issues with different drives]"
                 emitter="[emitter class name]"
-                config="[configuration file]" 
+                config="[configuration file]"
+                dumpCPP="[optional boolean]"
                 debug="[optional boolean]" /&gt;
  * </pre> 
  *
@@ -98,6 +99,11 @@ public class GlueGenTask extends Task
      * <p>The optional debug flag.</p>
      */
     private boolean debug=false;
+
+    /**
+     * <p>The optional dumpCPP flag.</p>
+     */
+    private boolean dumpCPP=false;
 
     /**
      * <p>The optional output root dir.</p>
@@ -167,13 +173,20 @@ public class GlueGenTask extends Task
 
     /**
      * <p>Set the debug flag (optional).  This is called by ANT.</p>
-     * 
-     * @param  outputRootDir the optional output root dir
      */
     public void setDebug(boolean debug)
     {
         log( ("Setting debug flag: " + debug), Project.MSG_VERBOSE);
         this.debug=debug;
+    }
+
+    /**
+     * <p>Set the dumpCPP flag (optional).  This is called by ANT.</p>
+     */
+    public void setDumpCPP(boolean dumpCPP)
+    {
+        log( ("Setting dumpCPP flag: " + dumpCPP), Project.MSG_VERBOSE);
+        this.dumpCPP=dumpCPP;
     }
 
     /**
@@ -438,6 +451,11 @@ public class GlueGenTask extends Task
         // add the debug flag if enabled
         if(debug) {
             gluegenCommandline.createArgument().setValue("--debug");
+        }
+
+        // add the debug flag if enabled
+        if(dumpCPP) {
+            gluegenCommandline.createArgument().setValue("--dumpCPP");
         }
 
         // add the output root dir
