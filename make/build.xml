@@ -404,8 +404,8 @@
       <antcall target="c.manifest" inheritRefs="true" />
     </target>  
 
-  <target name="gluegen.build.gluegen-rt-cdc" >
-    <!-- Build just the gluegen-rt-cdc.jar classes using the Java CDC
+  <target name="gluegen.build.gluegen-rt.cdc" >
+    <!-- Build just the gluegen-rt.cdc.jar classes using the Java CDC
          boot classes -->
     <copy todir="${classes-cdc}">
         <fileset dir="${classes}"
@@ -596,8 +596,8 @@
         </filterset>
     </copy>
 
-    <copy file="Manifest-rt-cdc"
-          tofile="${build}/Manifest-rt-cdc.temp"
+    <copy file="Manifest-rt.cdc"
+          tofile="${build}/Manifest-rt.cdc.temp"
           overwrite="true">
         <filterset>
             <filter token="BASEVERSION" value="${gluegen_base_version}"/>
@@ -621,12 +621,12 @@
       </fileset>
     </jar>
 
-    <!-- Build just the gluegen-rt-cdc.jar classes using the Java CDC
+    <!-- Build just the gluegen-rt.cdc.jar classes using the Java CDC
          boot classes. -->
-    <antcall target="gluegen.build.gluegen-rt-cdc" inheritRefs="true" />
+    <antcall target="gluegen.build.gluegen-rt.cdc" inheritRefs="true" />
 
-    <!-- Build gluegen-rt-cdc.jar. -->
-    <jar destfile="${build}/gluegen-rt-cdc.jar" manifest="${build}/Manifest-rt-cdc.temp">
+    <!-- Build gluegen-rt.cdc.jar. -->
+    <jar destfile="${build}/gluegen-rt.cdc.jar" manifest="${build}/Manifest-rt.cdc.temp">
       <fileset dir="${classes-cdc}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/impl/*.class" />
@@ -638,7 +638,7 @@
         <include name="com/jogamp/common/*.class" />
       </fileset>
     </jar>
-    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}-cdc.jar" manifest="${build}/Manifest-rt-cdc.temp">
+    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}-cdc.jar" manifest="${build}/Manifest-rt.cdc.temp">
       <fileset dir="${build}/obj">
         <include name="*gluegen-rt.${native.library.suffix-cdc}" />
       </fileset>
