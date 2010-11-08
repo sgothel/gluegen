@@ -422,7 +422,7 @@
                  excludes="com/jogamp/gluegen/runtime/** com/jogamp/gluegen/test/**" />
     </copy>
 
-          <!-- bootclasspath="${javac.bootclasspath-cdc.jar}"-->
+    <!-- bootclasspath="${javac.bootclasspath-cdc.jar}"-->
     <javac destdir="${classes-cdc}"
            source="1.4"
            debug="true"
