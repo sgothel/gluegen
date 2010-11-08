@@ -6,16 +6,10 @@ package com.jogamp.common.os;
 public class UnixDynamicLinkerImpl implements DynamicLinker {
 
   public static final long RTLD_DEFAULT = 0;
-  public static final int RTLD_LAZY = 0x00001;
-  public static final int RTLD_NOW = 0x00002;
-  public static final int RTLD_NOLOAD = 0x00004;
-  public static final int RTLD_GLOBAL = 0x00100;
-  public static final int RTLD_LOCAL = 0x00000;
-  public static final int RTLD_PARENT = 0x00200;
-  public static final int RTLD_GROUP = 0x00400;
-  public static final int RTLD_WORLD = 0x00800;
-  public static final int RTLD_NODELETE = 0x01000;
-  public static final int RTLD_FIRST = 0x02000;
+  public static final int RTLD_LAZY     = 0x00001;
+  public static final int RTLD_NOW      = 0x00002;
+  public static final int RTLD_GLOBAL   = 0x00100;
+  public static final int RTLD_LOCAL    = 0x00000;
 
   /** Interface to C language function: <br> <code> int dlclose(void * ); </code>    */
   private static native int dlclose(long arg0);

@@ -1,47 +1,55 @@
-/* Portions extracted from Solaris dlfcn.h */
-
 /*
- * Copyright 2005 Sun Microsystems, Inc.  All rights reserved.
- * Use is subject to license terms.
+ * Copyright (c) 1994
+ *    The Regents of the University of California.  All rights reserved.
  *
- *	Copyright (c) 1989 AT&T
- *	  All Rights Reserved
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the University nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ * SUCH DAMAGE.
+ *
+ * $FreeBSD: src/include/dlfcn.h,v 1.2.2.3 2000/01/21 02:31:40 jdp Exp $
+ *
+ * See: ftp://ftp.cs.berkeley.edu/pub/4bsd/README.Impt.License.Change
  */
+
 
 /*
- * Valid values for handle argument to dlsym(3x).
+ * Special handle arguments for dlsym()/dlinfo().
  */
-#define	RTLD_NEXT		-1LL	/* look in `next' dependency */
-#define	RTLD_DEFAULT		-2LL	/* look up symbol from scope */
-						/*	of current object */
-#define	RTLD_SELF		-3LL	/* look in `ourself' */
-#define	RTLD_PROBE		-4LL	/* look up symbol from scope */
-						/*	of current object, */
-						/*	using currently */
-						/*	loaded objects only. */
+#define    RTLD_DEFAULT        0L  /* Use default search algorithm. */
+#define    RTLD_NEXT         -1LL  /* Search subsequent objects. */
+#define    RTLD_SELF         -3LL  /* Search the caller itself. */
 
 /*
- * Valid values for mode argument to dlopen.
+ * Modes and flags for dlopen().
  */
-#define	RTLD_LAZY		0x00001		/* deferred function binding */
-#define	RTLD_NOW		0x00002		/* immediate function binding */
-#define	RTLD_NOLOAD		0x00004		/* don't load object */
+#define    RTLD_LAZY        0x1    /* Bind function calls lazily. */
+#define    RTLD_NOW         0x2    /* Bind function calls immediately. */
+#define    RTLD_MODEMASK    0x3
+#define    RTLD_GLOBAL    0x100    /* Make symbols globally available. */
+#define    RTLD_LOCAL       0x0    /* Opposite of RTLD_GLOBAL, and the default. */
 
-#define	RTLD_GLOBAL		0x00100		/* export symbols to others */
-#define	RTLD_LOCAL		0x00000		/* symbols are only available */
-						/*	to group members */
-#define	RTLD_PARENT		0x00200		/* add parent (caller) to */
-						/*	a group dependencies */
-#define	RTLD_GROUP		0x00400		/* resolve symbols within */
-						/*	members of the group */
-#define	RTLD_WORLD		0x00800		/* resolve symbols within */
-						/*	global objects */
-#define	RTLD_NODELETE		0x01000		/* do not remove members */
-#define	RTLD_FIRST		0x02000		/* only first object is */
-						/*	available for dlsym */
+extern void    *dlopen(const char *, int);
+extern void    *dlsym(void *, const char *);
+extern int      dlclose(void *);
+extern char    *dlerror(void);
 
-extern void	*dlopen(const char *, int);
-extern void   	*dlsym(void *, const char *);
-extern int	dlclose(void *);
-extern char	*dlerror(void);
