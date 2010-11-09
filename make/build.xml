@@ -21,6 +21,10 @@
 
   <!-- This is the version of GlueGen you are building -->
   <property name="gluegen_base_version" value="2.0"/>
+   <tstamp>
+       <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
+   </tstamp>
+  <property name="gluegen.version" value="${gluegen_base_version}-${version.timestamp}" />
 
   <import file="gluegen-cpptasks.xml" />
 
@@ -90,7 +94,7 @@
 
     <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
-    <property name="archive.name"     value="gluegen-${gluegen_base_version}-${os.and.arch}" />
+    <property name="archive.name"     value="gluegen-${gluegen.version}-${os.and.arch}" />
     <property name="archive"          value="${build}/${archive.name}" />
 
   </target>
@@ -727,7 +731,7 @@
     <javadoc packagenames="com.jogamp.*"
              sourcepath="${src.java};${src.generated.java}"
              destdir="${javadoc}" windowtitle="GlueGen Runtime Documentation"
-             source="1.4"
+             source="1.5"
              maxmemory="256m" >
         <classpath path="${classes}"/>
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
