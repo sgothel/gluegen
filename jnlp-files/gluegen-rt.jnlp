@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<jnlp codebase="CODEBASE_TAG"
+<jnlp codebase="GLUEGEN_CODEBASE_TAG"
       href="gluegen-rt.jnlp">
   <information>
     <title>GlueGen Runtime v2</title>
