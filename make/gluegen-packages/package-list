@@ -1,0 +1,14 @@
+com.jogamp.common
+com.jogamp.common.jvm
+com.jogamp.common.nio
+com.jogamp.common.os
+com.jogamp.common.util
+com.jogamp.common.util.locks
+com.jogamp.gluegen
+com.jogamp.gluegen.ant
+com.jogamp.gluegen.cgram
+com.jogamp.gluegen.cgram.types
+com.jogamp.gluegen.jgram
+com.jogamp.gluegen.pcpp
+com.jogamp.gluegen.procaddress
+com.jogamp.gluegen.runtime
