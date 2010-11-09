@@ -731,6 +731,7 @@
     <javadoc packagenames="com.jogamp.*"
              sourcepath="${src.java};${src.generated.java}"
              destdir="${javadoc}" windowtitle="GlueGen Runtime Documentation"
+             overview="../src/java/com/jogamp/gluegen/package.html"
              source="1.5"
              maxmemory="256m" >
         <classpath path="${classes}"/>

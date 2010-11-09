@@ -51,57 +51,7 @@ import static java.lang.System.*;
 
 /** 
  * Glue code generator for C functions and data structures.<br>
- * <p>
- * <h4>GlueGen Data Type Mapping</h4>
- * Gluegen has build-in types (terminal symbols) for:<br>
- * <br>
- * <table border="1">
- *   <tr><th>type</th>      <th>java</th> <th>native-x32</th><th>native-x64</th><th>type</th>   <th>signed</th>            <th>origin</th</tr>
- *   <tr><th>__int32</th>   <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>signed or unsigned</th><th>windows</th></tr>
- *   <tr><th>int32_t</th>   <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>signed</th>            <th>stdint.h</th></tr>
- *   <tr><th>wchar_t</th>   <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>signed</th>            <th>stddef.h</th></tr>
- *   <tr><th>uint32_t</th>  <th>32bit</th><th>32bit</th>     <th>32bit</th>     <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
- *   <tr><th>__int64</th>   <th>64bit</th><th>64bit</th>     <th>64bit</th>     <th>integer</th><th>signed or unsigned</th><th>windows</th></tr>
- *   <tr><th>int64_t</th>   <th>64bit</th><th>64bit</th>     <th>64bit</th>     <th>integer</th><th>signed</th>            <th>stdint.h</th></tr>
- *   <tr><th>uint64_t</th>  <th>64bit</th><th>64bit</th>     <th>64bit</th>     <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
- *   <tr><th>ptrdiff_t</th> <th>64bit</th><th>32bit</th>     <th>64bit</th>     <th>integer</th><th>signed</th>            <th>stddef.h</th></tr>
- *   <tr><th>intptr_t</th>  <th>64bit</th><th>32bit</th>     <th>64bit</th>     <th>integer</th><th>signed</th>            <th>stdint.h</th></tr>
- *   <tr><th>size_t</th>    <th>64bit</th><th>32bit</th>     <th>64bit</th>     <th>integer</th><th>unsigned</th>          <th>stddef.h</th></tr>
- *   <tr><th>uintptr_t</th> <th>64bit</th><th>32bit</th>     <th>64bit</th>     <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
- * </table></p>
- * <p>
- * <h4>GlueGen Platform Header Files</h4>
- * GlueGen provides convenient platform headers,<br>
- * which can be included in your C header files for native compilation and GlueGen code generation.<br>
- * <br>
- * Example:<br>
- * <pre>
-   #include &lt;gluegen_stdint.h&gt;
-   #include &lt;gluegen_stddef.h&gt;
- 
-   uint64_t test64;
-   size_t size1;
-   ptrdiff_t ptr1;
- * </pre>
- * <br>
- * To compile this file you have to include the following folder to your compilers system includes, ie <code>-I</code>:<br>
- * <pre>
- *   gluegen/make/stub_includes/platform
- * </pre>
- * <br>
- * To generate code for this file you have to include the following folder to your GlueGen <code>includeRefid</code> element:<br>
- * <pre>
- *   gluegen/make/stub_includes/gluegen
- * </pre></p>
- * <p>
- * <h4>GlueGen Pre-Defined Macros</h4>
- * To identity a GlueGen code generation run, GlueGen defines the following macros:<br>
- * <pre>
-     #define __GLUEGEN__ 2
- * </pre>
- * </p>
  */
-
 public class GlueGen implements GlueEmitterControls {
 
     static{
