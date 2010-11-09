@@ -20,7 +20,7 @@
   </fail>
 
   <!-- This is the version of GlueGen you are building -->
-  <property name="gluegen_base_version" value="1.0-beta07"/>
+  <property name="gluegen_base_version" value="2.0"/>
 
   <import file="gluegen-cpptasks.xml" />
 
@@ -38,14 +38,15 @@
     <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/jogamp/gluegen/nativesig/**" />
   </target>
 
-  <target name="init" depends="gluegen.properties.load.user,setup-excludes-1,setup-excludes-2">
+  <target name="init" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
     <property name="javac.bootclasspath-cdc.jar" value="lib/cdc_fp.jar" />
 
     <!-- The source and build directories. -->
-    <property name="src.java" value="../src/java" />
-    <property name="build"    location="../${rootrel.build}" />
+    <property name="project.root"  value=".." />
+    <property name="src.java" value="${project.root}/src/java" />
+    <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="javadoc"  location="${build}/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
@@ -88,6 +89,9 @@
     <property name="generated.java.from.j.grammar" value="${gluegen.build}/jgram" />
 
     <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
+
+    <property name="archive.name"     value="gluegen-${gluegen_base_version}-${os.and.arch}" />
+    <property name="archive"          value="${build}/${archive.name}" />
 
   </target>
 
@@ -398,6 +402,7 @@
         <compiler extends="${compiler.cfg.id}" >
           <sysincludepath path="${java.includes.dir}"/>
           <sysincludepath path="${java.includes.dir.platform}"/>
+          <sysincludepath path="${stub.includes.dir}/platform"/>
         </compiler>
 
         <linker extends="${linker.cfg.id}" />
@@ -662,7 +667,7 @@
 
   <target name="base.compile" depends="init, gluegen.build" />
 
-  <target name="all" depends="base.compile, junit.compile, tag.build" />
+  <target name="all" depends="base.compile, junit.compile, tag.build, developer-zip-archive" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
@@ -732,5 +737,36 @@
          basedir="${build}"
          includes="javadoc/**" />
   </target>
+
+    <!-- ================================================================== -->
+    <!--
+       - Build the per-platform binary zip archive for developers.
+       - This must be called after all of the build targets complete.
+      -->
+
+    <target name="developer-zip-archive" depends="init" unless="build.noarchives">
+        <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
+        <mkdir dir="${archive}" />
+        <copy file="${build}/artifact.properties" todir="${archive}"/>
+        <copy file="../LICENSE.txt"    todir="${archive}" />
+        <mkdir dir="${archive}/jar" />
+        <copy todir="${archive}/jar">
+            <fileset dir="${build}" includes="gluegen*.jar"/>
+        </copy>
+        <mkdir dir="${archive}/lib" />
+        <copy todir="${archive}/lib">
+            <fileset dir="${build}/obj" includes="*${native.library.suffix}"/>
+        </copy>
+        <mkdir dir="${archive}/jnlp-files" />
+        <copy todir="${archive}/jnlp-files">
+            <fileset dir="${project.root}/jnlp-files" includes="*" />
+        </copy>
+        <delete quiet="true" file="${build}/${archive.name}.zip"/>
+        <zip destfile="${build}/${archive.name}.zip"
+             basedir="${build}"
+             includes="${archive.name}/**" />
+        <!-- Clean up after ourselves -->
+        <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
+    </target>
 
 </project>

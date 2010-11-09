@@ -157,7 +157,7 @@
           <compiler extends="@{compiler.cfg.id}" >
             <sysincludepath path="${java.includes.dir}"/>
             <sysincludepath path="${java.includes.dir.platform}"/>
-            <includepath path="${stub.includes.dir}/common"/>
+            <sysincludepath path="${stub.includes.dir}/platform"/>
             <includepath path="${test.junit.generation.dir}"/>
             <includepath path="${build_t.gen}/native"/>
           </compiler>
@@ -244,7 +244,10 @@
 
         <dirset id="stub.includes.fileset.test" dir=".">
             <include name="${test.junit.generation.dir}/**"/>
-            <include name="${stub.includes.dir}/**" />
+            <include name="${stub.includes.dir}/gluegen" />
+            <include name="${stub.includes.dir}/macosx" />
+            <include name="${stub.includes.dir}/unix" />
+            <include name="${stub.includes.dir}/windows" />
         </dirset>
 
         <gluegen src="${test.junit.generation.dir}/test1-gluegen.c"
