@@ -1,2 +1,10 @@
+Manifest-Version: 1.0
+Specification-Title: GlueGen Java Bindings Generator
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp community
+Implementation-Title: GlueGen Compile-Time
+Implementation-Version: @VERSION@
+Implementation-Vendor: JogAmp community
+Implementation-Vendor-Id: com.jogamp
 Main-Class: com.jogamp.gluegen.GlueGen
 Class-Path: antlr.jar

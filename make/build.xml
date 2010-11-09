@@ -19,13 +19,6 @@
       </condition>
   </fail>
 
-  <!-- This is the version of GlueGen you are building -->
-  <property name="gluegen_base_version" value="2.0"/>
-   <tstamp>
-       <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
-   </tstamp>
-  <property name="gluegen.version" value="${gluegen_base_version}-${version.timestamp}" />
-
   <import file="gluegen-cpptasks.xml" />
 
   <condition property="rootrel.build" value="build">
@@ -55,7 +48,14 @@
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
     <property file="${build}/artifact.properties"/>
-    <property name="gluegen.build.number" value="manual-build"/>
+    <property name="gluegen.build.number" value="manual"/>
+
+    <!-- This is the version of GlueGen you are building -->
+    <property name="gluegen_base_version" value="2.0"/>
+    <tstamp>
+        <format property="version.timestamp" pattern="yyyyMMdd"/>
+    </tstamp>
+    <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
 
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
@@ -599,8 +599,17 @@
       <classpath refid="antlr.classpath" />
     </javac>
 
+    <copy file="Manifest"
+          tofile="${build}/Manifest.temp"
+          overwrite="true">
+        <filterset>
+            <filter token="VERSION" value="${gluegen.version}"/>
+            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+        </filterset>
+    </copy>
+
     <!-- Build gluegen.jar. -->
-    <jar destfile="${build}/gluegen.jar" manifest="Manifest">
+    <jar destfile="${build}/gluegen.jar" manifest="${build}/Manifest.temp">
       <fileset dir="${classes}">
         <include name="**/*.class" />
       </fileset>
@@ -610,6 +619,7 @@
           tofile="${build}/Manifest-rt.temp"
           overwrite="true">
         <filterset>
+            <filter token="VERSION" value="${gluegen.version}"/>
             <filter token="BASEVERSION" value="${gluegen_base_version}"/>
         </filterset>
     </copy>
@@ -618,6 +628,7 @@
           tofile="${build}/Manifest-rt.cdc.temp"
           overwrite="true">
         <filterset>
+            <filter token="VERSION" value="${gluegen.version}"/>
             <filter token="BASEVERSION" value="${gluegen_base_version}"/>
         </filterset>
     </copy>
