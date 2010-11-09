@@ -23,7 +23,8 @@
 #define CONSTANT_ONE 1
 #define ARRAY_SIZE 8
 
-#include "gluegenint.h"
+#include <gluegen_stdint.h>
+#include <gluegen_stddef.h>
 
 typedef uint64_t foo;
 
@@ -98,4 +99,12 @@ MYAPI MYAPIConfig *  MYAPIENTRY typeTestAnonPointer(const MYAPIConfig * a);
 #define HUGE_VALF_3        ((int) 1e53)
 #define DOUBLE_DEFINE_BRACKETS_3 HUGE_VALF_3
 
+size_t unsigned_size_t_1;
+ptrdiff_t a_signed_pointer_t_1;
+
+#ifdef __GLUEGEN__
+    #warning "Hello GlueGen"
+#else
+    #warning "Hello Native Compiler"
+#endif
 

@@ -517,6 +517,16 @@ public class PCPP {
         while (nextToken(true) != StreamTokenizer.TT_EOL) {
             values.add(curTokenAsString());
         }
+        addDefine(name, macroDefinition, values);
+    }
+
+    public void addDefine(String name, String value) {
+        List<String> values = new ArrayList<String>();
+        values.add(value);
+        addDefine(name, false, values);
+    }
+
+    private void addDefine(String name, boolean nameIsMacro, List<String> values) {
         // if we're not within an active block of code (like inside an "#ifdef
         // FOO" where FOO isn't defined), then don't actually alter the definition
         // map.
@@ -561,8 +571,8 @@ public class PCPP {
                         // TO DO: Is this correct? Why not output the symbol unchanged?
                         // I think that it's a good thing to see that some symbols are
                         // defined in terms of others. -chris
-                        macroDefinition = newValue.contains("(");
-                        if(macroDefinition) {
+                        boolean valueIsMacro  = newValue.contains("(");
+                        if(valueIsMacro) {
                             // parser can't dig this currently
                             emitDefine = false;
                         } else {
@@ -576,8 +586,7 @@ public class PCPP {
                     }
                 }
             
-            } else if (macroDefinition) {
-
+            } else if (nameIsMacro) {
                 // list parameters
                 List<String> params = new ArrayList<String>();
                 for (int i = 1; i < values.size(); i++) {

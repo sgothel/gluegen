@@ -315,12 +315,15 @@ typeSpecifier [int specCount] returns [int retSpecCount]
         |       "unsigned"
         |       "__int32"
         |       "int32_t"
+        |       "wchar_t"
         |       "uint32_t"
         |       "__int64"
         |       "int64_t"
         |       "uint64_t"
         |       "ptrdiff_t"
+        |       "intptr_t"
         |       "size_t"
+        |       "uintptr_t"
         |       structOrUnionSpecifier  ( options{warnWhenFollowAmbig=false;}: attributeDecl )*
         |       enumSpecifier
         |       { specCount==0 }? typedefName

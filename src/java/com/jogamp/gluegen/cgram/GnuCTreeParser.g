@@ -183,6 +183,17 @@ typeSpecifier
         |       "double"
         |       "signed"
         |       "unsigned"
+        |       "__int32"
+        |       "int32_t"
+        |       "wchar_t"
+        |       "uint32_t"
+        |       "__int64"
+        |       "int64_t"
+        |       "uint64_t"
+        |       "ptrdiff_t"
+        |       "intptr_t"
+        |       "size_t"
+        |       "uintptr_t"
         |       structSpecifier ( attributeDecl )*
         |       unionSpecifier  ( attributeDecl )*
         |       enumSpecifier
