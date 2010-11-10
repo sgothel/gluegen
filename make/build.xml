@@ -47,14 +47,17 @@
     <property name="javadoc"  location="${build}/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
-    <property file="${build}/artifact.properties"/>
-    <property name="gluegen.build.number" value="manual"/>
-
-    <!-- This is the version of GlueGen you are building -->
-    <property name="gluegen_base_version" value="2.0"/>
     <tstamp>
         <format property="version.timestamp" pattern="yyyyMMdd"/>
     </tstamp>
+
+    <property file="${build}/artifact.properties"/>
+    <property name="gluegen.build.number" value="manual"/>
+    <property name="gluegen.build.id"     value="${version.timestamp}"/>
+    <property name="gluegen.build.commit" value="manual"/>
+
+    <!-- This is the version of GlueGen you are building -->
+    <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
 
     <!-- The generated source directories. -->
@@ -604,6 +607,7 @@
           overwrite="true">
         <filterset>
             <filter token="VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
             <filter token="BASEVERSION" value="${gluegen_base_version}"/>
         </filterset>
     </copy>
@@ -620,6 +624,7 @@
           overwrite="true">
         <filterset>
             <filter token="VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
             <filter token="BASEVERSION" value="${gluegen_base_version}"/>
         </filterset>
     </copy>
@@ -629,6 +634,7 @@
           overwrite="true">
         <filterset>
             <filter token="VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
             <filter token="BASEVERSION" value="${gluegen_base_version}"/>
         </filterset>
     </copy>
@@ -692,6 +698,8 @@
 
   <target name="tag.build" depends="init">
     <echo message='gluegen.build.number=${gluegen.build.number}${line.separator}' file="${build}/artifact.properties"/>
+    <echo message='gluegen.build.id=${gluegen.build.id}${line.separator}'         file="${build}/artifact.properties" append="true"/>
+    <echo message='gluegen.build.commit=${gluegen.build.commit}${line.separator}' file="${build}/artifact.properties" append="true"/>
   </target>
 
   <target name="junit.compile" depends="init, gluegen.cpptasks.detect.os">
