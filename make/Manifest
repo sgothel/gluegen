@@ -4,6 +4,7 @@ Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp community
 Implementation-Title: GlueGen Compile-Time
 Implementation-Version: @VERSION@
+Implementation-Branch: @SCM_BRANCH@
 Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp community
 Implementation-Vendor-Id: com.jogamp
