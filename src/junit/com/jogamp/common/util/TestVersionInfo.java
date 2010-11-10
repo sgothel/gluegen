@@ -36,8 +36,7 @@ public class TestVersionInfo {
 
     @Test
     public void testInfo01() {
-        StringBuffer sb = VersionInfo.getInfo(null, "GlueGen");
-        System.err.println(sb);
+        System.err.println(VersionInfo.getInfo(null, "GlueGen"));
     }
 
 

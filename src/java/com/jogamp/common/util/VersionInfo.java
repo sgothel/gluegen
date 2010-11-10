@@ -34,4 +34,7 @@ public class VersionInfo {
         return VersionUtil.getInfo(VersionInfo.class.getClassLoader(), prefix, "com.jogamp.common.util", "VersionInfo", sb);
     }
 
+    public static void main(String args[]) {
+        System.err.println(VersionInfo.getInfo(null, "GlueGen"));
+    }
 }
