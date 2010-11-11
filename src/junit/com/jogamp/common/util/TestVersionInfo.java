@@ -28,6 +28,7 @@
  
 package com.jogamp.common.util;
 
+import com.jogamp.common.GlueGenVersion;
 import java.io.IOException;
 
 import org.junit.Test;

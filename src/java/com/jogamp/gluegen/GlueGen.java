@@ -39,7 +39,7 @@
  */
 package com.jogamp.gluegen;
 
-import com.jogamp.common.util.GlueGenVersion;
+import com.jogamp.common.GlueGenVersion;
 import java.io.*;
 import java.util.*;
 
