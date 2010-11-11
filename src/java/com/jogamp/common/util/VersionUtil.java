@@ -41,35 +41,16 @@ import java.util.jar.Manifest;
 
 public class VersionUtil {
 
-    public static StringBuffer getInfo(ClassLoader cl, String prefix, String pkgName, String clazzName, StringBuffer sb) {
-
+    public static StringBuffer getPlatformInfo(StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
         }
 
+        sb.append("Platform: ").append(Platform.getOS()).append(" ").append(Platform.getOSVersion()).append(" (os), ").append(Platform.getArch()).append(" (arch)");
         sb.append(Platform.getNewline());
-        sb.append("-----------------------------------------------------------------------------------------------------");
+        sb.append("Platform: littleEndian ").append(Platform.isLittleEndian()).append(", 32Bit ").append(Platform.is32Bit()).append(", a-ptr bit-size ").append(Platform.getPointerSizeInBits());
         sb.append(Platform.getNewline());
-        getPlatformInfo(sb, prefix);
-        sb.append(Platform.getNewline());
-        getManifestInfo(cl, prefix, pkgName, clazzName, sb);
-        sb.append("-----------------------------------------------------------------------------------------------------");
-        sb.append(Platform.getNewline());
-
-        return sb;
-    }
-
-    public static StringBuffer getPlatformInfo(StringBuffer sb, String prefix) {
-        if(null==sb) {
-            sb = new StringBuffer();
-        }
-
-        sb.append(prefix+" Platform: " + Platform.getOS() + " " + Platform.getOSVersion() + " (os), " + Platform.getArch() + " (arch)");
-        sb.append(Platform.getNewline());
-        sb.append(prefix+" Platform: littleEndian " + Platform.isLittleEndian() + ", 32Bit "+Platform.is32Bit() + ", a-ptr bit-size "+Platform.getPointerSizeInBits());
-        sb.append(Platform.getNewline());
-        sb.append(prefix+" Platform: Java " + Platform.getJavaVersion()+", "
-            +Platform.getJavaVendor()+", "+Platform.getJavaVendorURL()+", is JavaSE: "+Platform.isJavaSE());
+        sb.append("Platform: Java ").append(Platform.getJavaVersion()).append(", ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());
         sb.append(Platform.getNewline());
 
         return sb;
@@ -88,33 +69,20 @@ public class VersionUtil {
         return mf;
     }
 
-    public static StringBuffer getManifestInfo(ClassLoader cl, String prefix,
-                                               String pkgName, String className, StringBuffer sb) {
-        if(null==sb) {
-            sb = new StringBuffer();
-        }
-
-        Manifest mf = getManifest(cl, pkgName + "." + className);
-        
-        if(null==mf) { 
-            sb.append("Manifest for <");
-            sb.append(pkgName);
-            sb.append("> not available");
-            sb.append(Platform.getNewline());
+    public static StringBuffer getFullManifestInfo(Manifest mf, StringBuffer sb) {
+        if(null==mf) {
             return sb;
         }
 
-        sb.append(prefix);
-        sb.append(" package ");
-        sb.append(pkgName);
-        sb.append(Platform.getNewline());
+        if(null==sb) {
+            sb = new StringBuffer();
+        }
 
         Attributes attr = mf.getMainAttributes();
         Set keys = attr.keySet();
         for(Iterator iter=keys.iterator(); iter.hasNext(); ) {
             Attributes.Name key = (Attributes.Name) iter.next();
             String val = attr.getValue(key);
-            sb.append(prefix);
             sb.append(" ");
             sb.append(key);
             sb.append(" = ");

@@ -28,13 +28,31 @@
  
 package com.jogamp.common.util;
 
-public class VersionInfo {
+import java.util.jar.Manifest;
 
-    public static StringBuffer getInfo(StringBuffer sb, String prefix) {
-        return VersionUtil.getInfo(VersionInfo.class.getClassLoader(), prefix, "com.jogamp.common.util", "VersionInfo", sb);
+public class GlueGenVersion extends JogampVersion {
+
+    protected static GlueGenVersion jogampCommonVersionInfo;
+
+    protected GlueGenVersion(String packageName, Manifest mf) {
+        super(packageName, mf);
+    }
+
+    public static GlueGenVersion getInstance() {
+        if(null == jogampCommonVersionInfo) {
+            synchronized(GlueGenVersion.class) {
+                if( null == jogampCommonVersionInfo ) {
+                    final String packageName = "com.jogamp.common";
+                    final String fullClazzName = GlueGenVersion.class.getName();
+                    final Manifest mf = VersionUtil.getManifest(GlueGenVersion.class.getClassLoader(), fullClazzName);
+                    jogampCommonVersionInfo = new GlueGenVersion(packageName, mf);
+                }
+            }
+        }
+        return jogampCommonVersionInfo;
     }
 
     public static void main(String args[]) {
-        System.err.println(VersionInfo.getInfo(null, "GlueGen"));
+        System.err.println(GlueGenVersion.getInstance().getInfo(null));
     }
 }

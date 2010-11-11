@@ -39,6 +39,7 @@
  */
 package com.jogamp.gluegen;
 
+import com.jogamp.common.util.GlueGenVersion;
 import java.io.*;
 import java.util.*;
 
@@ -307,6 +308,7 @@ public class GlueGen implements GlueEmitterControls {
     public static void main(String... args) {
 
         if (args.length == 0) {
+            System.err.println(GlueGenVersion.getInstance().getInfo(null));
             usage();
         }
 
