@@ -146,6 +146,9 @@ public class JogampVersion {
         sb.append("Package: ");
         sb.append(getPackageName());
         sb.append(Platform.getNewline());
+        sb.append("Extension Name: ");
+        sb.append(getExtensionName());
+        sb.append(Platform.getNewline());
         sb.append("Specification Title: ");
         sb.append(getSpecificationTitle());
         sb.append(Platform.getNewline());
