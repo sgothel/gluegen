@@ -179,7 +179,7 @@ public class JogampVersion {
         return sb;
     }
 
-    public StringBuffer getInfo(StringBuffer sb) {
+    public StringBuffer toStringBuffer(StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
         }
@@ -194,5 +194,8 @@ public class JogampVersion {
         sb.append(Platform.getNewline());
 
         return sb;
+    }
+    public String toString() {
+        return toStringBuffer(null).toString();
     }
 }

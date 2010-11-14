@@ -38,7 +38,7 @@ public class TestVersionInfo {
     @Test
     public void testInfo01() {
         System.err.println("Version Info:");
-        System.err.println(GlueGenVersion.getInstance().getInfo(null));
+        System.err.println(GlueGenVersion.getInstance());
         System.err.println("");
         System.err.println("Full Manifest:");
         System.err.println(GlueGenVersion.getInstance().getFullManifestInfo(null));

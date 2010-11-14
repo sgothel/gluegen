@@ -55,6 +55,6 @@ public class GlueGenVersion extends JogampVersion {
     }
 
     public static void main(String args[]) {
-        System.err.println(GlueGenVersion.getInstance().getInfo(null));
+        System.err.println(GlueGenVersion.getInstance());
     }
 }

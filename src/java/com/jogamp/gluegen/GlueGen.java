@@ -308,7 +308,7 @@ public class GlueGen implements GlueEmitterControls {
     public static void main(String... args) {
 
         if (args.length == 0) {
-            System.err.println(GlueGenVersion.getInstance().getInfo(null));
+            System.err.println(GlueGenVersion.getInstance());
             usage();
         }
 
