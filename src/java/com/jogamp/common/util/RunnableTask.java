@@ -81,9 +81,7 @@ public class RunnableTask implements Runnable {
                 runnable.run();
             } catch (Throwable t) {
                 runnableException = t;
-                if(catchExceptions) {
-                    runnableException.printStackTrace();
-                } else {
+                if(!catchExceptions) {
                     throw new RuntimeException(runnableException);
                 }
             } finally {
@@ -95,9 +93,7 @@ public class RunnableTask implements Runnable {
                     runnable.run();
                 } catch (Throwable t) {
                     runnableException = t;
-                    if(catchExceptions) {
-                        runnableException.printStackTrace();
-                    } else {
+                    if(!catchExceptions) {
                         throw new RuntimeException(runnableException);
                     }
                 } finally {
