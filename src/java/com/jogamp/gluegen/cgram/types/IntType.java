@@ -48,7 +48,7 @@ public class IntType extends PrimitiveType implements Cloneable {
         this(name, size, unsigned, cvAttributes, false);
     }
 
-    private IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
+    public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
         super(name, size, cvAttributes);
         this.unsigned = unsigned;
         this.typedefedUnsigned = typedefedUnsigned;

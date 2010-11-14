@@ -94,6 +94,7 @@ public class BaseClass {
           String[] strings = null;
           int[] iarray = null;
           int iarray_offset = 0;
+          long l = 0;
 
           result = binding.arrayTestInt32(context, ib);
           result = binding.arrayTestInt32(context, iarray, iarray_offset);
@@ -135,6 +136,17 @@ public class BaseClass {
           long cfg=0;
           cfg = binding.typeTestAnonSingle(cfg);
           pb = binding.typeTestAnonPointer(pb);
+
+          i = binding.typeTestInt32T(i, i);
+          i = binding.typeTestUInt32T(i, i);
+          l = binding.typeTestInt64T(l, l);
+          l = binding.typeTestUInt64T(l, l);
+
+          i = binding.typeTestWCharT(i, i);
+          l = binding.typeTestSizeT(l, l);
+          l = binding.typeTestPtrDiffT(l, l);
+          l = binding.typeTestIntPtrT(l, l);
+          l = binding.typeTestUIntPtrT(l, l);
     }
 
     /**
