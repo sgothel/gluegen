@@ -40,6 +40,9 @@
 
     <property name="javac.bootclasspath-cdc.jar" value="lib/cdc_fp.jar" />
 
+    <!--property name="javadoc.link" value="http://download.oracle.com/javase/1.4.2/docs/api/"/-->
+    <property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" />
+
     <!-- The source and build directories. -->
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
