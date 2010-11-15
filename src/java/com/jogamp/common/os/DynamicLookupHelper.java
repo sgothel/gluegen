@@ -39,11 +39,11 @@
 
 package com.jogamp.common.os;
 
-/** Interface callers may use to use the ProcAddressHelper's {@link ProcAddressTable#reset reset}
-    helper method to install function pointers into a
-    ProcAddressTable. This must typically be written with native
-    code. */
-
+/** Interface callers may use ProcAddressHelper's 
+ * {@link com.jogamp.gluegen.runtime.ProcAddressTable#reset(com.jogamp.common.os.DynamicLookupHelper) reset}
+ *  helper method to install function pointers into a
+ *  ProcAddressTable. This must typically be written with native
+ *  code. */
 public interface DynamicLookupHelper {
   /**
    * Try to fetch the function pointer for function 'funcName'.

@@ -39,11 +39,15 @@ import com.jogamp.common.jvm.JNILibLoaderBase;
  * <li>The JNI glue-code native library, eg jogl_desktop.dll. From heron this is referred as the Glue</li>
  * </ul><br>
  * An instance provides a complete {@link com.jogamp.common.os.DynamicLookupHelper}
- * to {@link com.jogamp.gluegen.runtime.ProcAddressTable#reset(com.jogamp.common.os.DynamicLookupHelper lookup)}
+ * to {@link com.jogamp.gluegen.runtime.ProcAddressTable#reset(com.jogamp.common.os.DynamicLookupHelper) reset}
  * the {@link com.jogamp.gluegen.runtime.ProcAddressTable}.<br>
- * At construction, it loads the Tool native library, loads Glue native library via
- * {@link com.jogamp.common.os.DynamicLibraryBundleInfo#loadJNILibrary()}
- * and resolves the optional Tool's <pre>GetProcAddress</pre> using {@link com.jogamp.common.os.DynamicLibraryBundleInfo#getToolGetProcAddressFuncNameList()}.
+ * At construction, it:
+ * <ul>
+ *  <li> loads the Tool native library via
+ *       {@link com.jogamp.common.os.NativeLibrary#open(java.lang.String, java.lang.ClassLoader, boolean) NativeLibrary's open method}</li>
+ *  <li> loads the {@link com.jogamp.common.jvm.JNILibLoaderBase#loadLibrary(java.lang.String, java.lang.String[], boolean)  Glue native library}</li>
+ *  <li> resolves the Tool's {@link com.jogamp.common.os.DynamicLibraryBundleInfo#getToolGetProcAddressFuncNameList() GetProcAddress}. (optional)</li>
+ * </ul>
  */
 public class DynamicLibraryBundle implements DynamicLookupHelper {
     protected static final boolean DEBUG = NativeLibrary.DEBUG;
