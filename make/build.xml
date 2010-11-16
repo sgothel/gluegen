@@ -47,7 +47,8 @@
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
     <property name="build"    location="${project.root}/${rootrel.build}" />
-    <property name="javadoc"  location="${build}/javadoc" />
+    <property name="javadoc.root.path"    location="${build}/javadoc" />
+    <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
     <property name="gluegen.lib.dir" value="${build}/obj"/>
 
     <tstamp>
@@ -754,10 +755,12 @@
   </target>
 
   <target name="javadoc" depends="init">
-    <!-- Build the general public Javadoc -->
+    <!-- Build the general public Javadoc in the target folder hierarchy javadoc/gluegen/javadoc -->
+    <delete dir="${javadoc.gluegen.path}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+    <mkdir dir="${javadoc.gluegen.path}" />
     <javadoc packagenames="com.jogamp.*"
              sourcepath="${src.java};${src.generated.java}"
-             destdir="${javadoc}" windowtitle="GlueGen Runtime Documentation"
+             destdir="${javadoc.gluegen.path}" windowtitle="GlueGen Runtime Documentation"
              overview="../src/java/com/jogamp/gluegen/package.html"
              source="1.5"
              maxmemory="256m" >
@@ -766,8 +769,8 @@
         <excludepackage name="com.jogamp.common.impl"/>
     </javadoc>
     <zip destfile="${build}/javadoc.zip"
-         basedir="${build}"
-         includes="javadoc/**" />
+         basedir="${javadoc.root.path}"
+         includes="gluegen/**" />
   </target>
 
     <!-- ================================================================== -->
