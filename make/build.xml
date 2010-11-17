@@ -674,6 +674,7 @@
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/impl/*.class" />
         <include name="com/jogamp/common/jvm/*.class" />
+        <include name="com/jogamp/common/type/*.class" />
         <include name="com/jogamp/common/util/*.class" />
         <include name="com/jogamp/common/util/locks/*.class" />
         <include name="com/jogamp/common/nio/*.class" />
