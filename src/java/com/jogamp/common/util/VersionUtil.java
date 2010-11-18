@@ -67,6 +67,14 @@ public class VersionUtil {
     }
 
     /**
+     * Prints platfomr info.
+     * @see #getPlatformInfo(java.lang.StringBuffer) 
+     */
+    public static String getPlatformInfo() {
+        return getPlatformInfo(null).toString();
+    }
+
+    /**
      * Returns the manifest of the jar which contains the specified extension.
      * The provided ClassLoader is used for resource loading.
      * @param cl A ClassLoader which should find the manifest.
