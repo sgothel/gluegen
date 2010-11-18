@@ -803,7 +803,7 @@
              includes="${archive.name}/**" />
         <!-- Clean up after ourselves -->
         <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
-
+    </target>
 
         <!-- Put  the files created by target gluegen.build from
          build directory to maven repository, local or remote
