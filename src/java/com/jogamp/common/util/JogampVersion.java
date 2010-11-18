@@ -39,6 +39,8 @@ public class JogampVersion {
 
     public static Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
     public static Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
+    
+    protected static final String SEPERATOR = "-----------------------------------------------------------------------------------------------------";
 
     private String packageName;
     private Manifest mf;
@@ -59,8 +61,8 @@ public class JogampVersion {
     }
 
     public final boolean equals(Object o) {
-        if (o instanceof GlueGenVersion) {
-            return mf.equals(((GlueGenVersion) o).getManifest());
+        if (o instanceof JogampVersion) {
+            return mf.equals(((JogampVersion) o).getManifest());
         }
         return false;
     }
@@ -119,6 +121,10 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.IMPLEMENTATION_VENDOR_ID);
     }
 
+    public final String getImplementationURL() {
+        return this.getAttribute(Attributes.Name.IMPLEMENTATION_URL);
+    }
+
     public final String getImplementationVersion() {
         return this.getAttribute(Attributes.Name.IMPLEMENTATION_VERSION);
     }
@@ -139,63 +145,44 @@ public class JogampVersion {
         return VersionUtil.getFullManifestInfo(getManifest(), sb);
     }
 
+    public StringBuffer getPlatformInfo(StringBuffer sb) {
+        return VersionUtil.getPlatformInfo(sb);
+    }
+
     public StringBuffer getManifestInfo(StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
         }
-        sb.append("Package: ");
-        sb.append(getPackageName());
-        sb.append(Platform.getNewline());
-        sb.append("Extension Name: ");
-        sb.append(getExtensionName());
-        sb.append(Platform.getNewline());
-        sb.append("Specification Title: ");
-        sb.append(getSpecificationTitle());
-        sb.append(Platform.getNewline());
-        sb.append("Specification Vendor: ");
-        sb.append(getSpecificationVendor());
-        sb.append(Platform.getNewline());
-        sb.append("Specification Version: ");
-        sb.append(getSpecificationVersion());
-        sb.append(Platform.getNewline());
-        sb.append("Implementation Title: ");
-        sb.append(getImplementationTitle());
-        sb.append(Platform.getNewline());
-        sb.append("Implementation Vendor: ");
-        sb.append(getImplementationVendor());
-        sb.append(Platform.getNewline());
-        sb.append("Implementation Vendor ID: ");
-        sb.append(getImplementationVendorID());
-        sb.append(Platform.getNewline());
-        sb.append("Implementation Version: ");
-        sb.append(getImplementationVersion());
-        sb.append(Platform.getNewline());
-        sb.append("Implementation Branch: ");
-        sb.append(getImplementationBranch());
-        sb.append(Platform.getNewline());
-        sb.append("Implementation Commit: ");
-        sb.append(getImplementationCommit());
-        sb.append(Platform.getNewline());
+        String nl = Platform.getNewline();
+        sb.append("Package: ").append(getPackageName()).append(nl);
+        sb.append("Extension Name: ").append(getExtensionName()).append(nl);
+        sb.append("Specification Title: ").append(getSpecificationTitle()).append(nl);
+        sb.append("Specification Vendor: ").append(getSpecificationVendor()).append(nl);
+        sb.append("Specification Version: ").append(getSpecificationVersion()).append(nl);
+        sb.append("Implementation Title: ").append(getImplementationTitle()).append(nl);
+        sb.append("Implementation Vendor: ").append(getImplementationVendor()).append(nl);
+        sb.append("Implementation Vendor ID: ").append(getImplementationVendorID()).append(nl);
+        sb.append("Implementation URL: ").append(getImplementationURL()).append(nl);
+        sb.append("Implementation Version: ").append(getImplementationVersion()).append(nl);
+        sb.append("Implementation Branch: ").append(getImplementationBranch()).append(nl);
+        sb.append("Implementation Commit: ").append(getImplementationCommit()).append(nl);
         return sb;
     }
 
-    public StringBuffer toStringBuffer(StringBuffer sb) {
+    public StringBuffer toString(StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
         }
 
-        sb.append(Platform.getNewline());
-        sb.append("-----------------------------------------------------------------------------------------------------");
-        sb.append(Platform.getNewline());
-        VersionUtil.getPlatformInfo(sb);
-        sb.append(Platform.getNewline());
+        String nl = Platform.getNewline();
+        sb.append(SEPERATOR).append(nl);
         getManifestInfo(sb);
-        sb.append("-----------------------------------------------------------------------------------------------------");
-        sb.append(Platform.getNewline());
+        sb.append(SEPERATOR).append(nl);
 
         return sb;
     }
+    
     public String toString() {
-        return toStringBuffer(null).toString();
+        return toString(null).toString();
     }
 }

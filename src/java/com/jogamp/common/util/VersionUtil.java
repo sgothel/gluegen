@@ -31,9 +31,8 @@ package com.jogamp.common.util;
 import com.jogamp.common.os.Platform;
 
 import java.io.IOException;
-import java.net.JarURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -41,32 +40,53 @@ import java.util.jar.Manifest;
 
 public class VersionUtil {
 
+    /**
+     * Appends environment information like OS, JVM and CPU architecture properties to the StringBuffer.
+     */
     public static StringBuffer getPlatformInfo(StringBuffer sb) {
-        if(null==sb) {
+        if(null == sb) {
             sb = new StringBuffer();
         }
 
-        sb.append("Platform: ").append(Platform.getOS()).append(" ").append(Platform.getOSVersion()).append(" (os), ").append(Platform.getArch()).append(" (arch)");
+        // environment
+        sb.append("Platform: ").append(Platform.getOS()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
+        sb.append(Platform.getArch()).append(" (arch) ").append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
-        sb.append("Platform: littleEndian ").append(Platform.isLittleEndian()).append(", 32Bit ").append(Platform.is32Bit()).append(", a-ptr bit-size ").append(Platform.getPointerSizeInBits());
+
+        // arch
+        sb.append("Platform: littleEndian ").append(Platform.isLittleEndian()).append(", 32Bit ");
+        sb.append(Platform.is32Bit()).append(", a-ptr bit-size ").append(Platform.getPointerSizeInBits());
         sb.append(Platform.getNewline());
-        sb.append("Platform: Java ").append(Platform.getJavaVersion()).append(", ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());
+
+        // JVM/JRE
+        sb.append("Platform: Java ").append(Platform.getJavaVersion()).append(", ").append(System.getProperty("java.vm.name")).append(", ");
+        sb.append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());
         sb.append(Platform.getNewline());
 
         return sb;
     }
 
-    public static Manifest getManifest(ClassLoader cl, String fullClazzName) {
-        String fullClazzFileName = "/" + fullClazzName.replace('.', '/') + ".class" ;
-        URL url = cl.getClass().getResource(fullClazzFileName);
-        Manifest mf = null;
+    /**
+     * Returns the manifest of the jar which contains the specified extension.
+     * The provided ClassLoader is used for resource loading.
+     * @param cl A ClassLoader which should find the manifest.
+     * @param extension The value of the 'Extension-Name' jar-manifest attribute; used to identify the manifest.
+     * @return the requested manifest or null when not found.
+     */
+    public static Manifest getManifest(ClassLoader cl, String extension) {
         try {
-            URLConnection urlConn = url.openConnection();
-            if(urlConn instanceof JarURLConnection) {
-                mf = ((JarURLConnection)urlConn).getManifest();
+            Enumeration resources = cl.getResources("META-INF/MANIFEST.MF");
+            while (resources.hasMoreElements()) {
+                Manifest manifest = new Manifest(((URL)resources.nextElement()).openStream());
+                Attributes attributes = manifest.getMainAttributes();
+                if(attributes != null && extension.equals(attributes.getValue(Attributes.Name.EXTENSION_NAME))) {
+                    return manifest;
+                }
             }
-        } catch (IOException ex) { }
-        return mf;
+        } catch (IOException ex) {
+            throw new RuntimeException("Unable to read manifest.", ex);
+        }
+        return null;
     }
 
     public static StringBuffer getFullManifestInfo(Manifest mf, StringBuffer sb) {

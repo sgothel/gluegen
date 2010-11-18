@@ -34,7 +34,7 @@ import java.util.jar.Manifest;
 
 public class GlueGenVersion extends JogampVersion {
 
-    protected static GlueGenVersion jogampCommonVersionInfo;
+    protected static volatile GlueGenVersion jogampCommonVersionInfo;
 
     protected GlueGenVersion(String packageName, Manifest mf) {
         super(packageName, mf);
@@ -45,8 +45,7 @@ public class GlueGenVersion extends JogampVersion {
             synchronized(GlueGenVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "com.jogamp.common";
-                    final String fullClazzName = GlueGenVersion.class.getName();
-                    final Manifest mf = VersionUtil.getManifest(GlueGenVersion.class.getClassLoader(), fullClazzName);
+                    final Manifest mf = VersionUtil.getManifest(GlueGenVersion.class.getClassLoader(), "com.jogamp.common");
                     jogampCommonVersionInfo = new GlueGenVersion(packageName, mf);
                 }
             }

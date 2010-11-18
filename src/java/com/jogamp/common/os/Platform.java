@@ -59,8 +59,7 @@ public class Platform {
     private static final int pointerSizeInBits;
 
     static {
-        NativeLibrary.ensureNativeLibLoaded();
-
+        
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned
         // applets
@@ -72,16 +71,29 @@ public class Platform {
         JAVA_VERSION = System.getProperty("java.version");
         NEWLINE = System.getProperty("line.separator");
 
-        pointerSizeInBits = getPointerSizeInBitsImpl();
-        is32Bit = initArch();
         JAVA_SE = initIsJavaSE();
         LITTLE_ENDIAN = initByteOrder();
+
+        boolean libsLoaded = true;
+        try{
+            NativeLibrary.ensureNativeLibLoaded();
+        }catch (UnsatisfiedLinkError err){
+            libsLoaded = false;
+        }
+        
+        if(libsLoaded) {
+            pointerSizeInBits = getPointerSizeInBitsImpl();
+        }else{
+            pointerSizeInBits = -1;
+        }
+
+        is32Bit = initArch();
+
     }
 
     private Platform() {}
 
     private static boolean initArch() throws RuntimeException {
-        // Try to use Sun's sun.ARCH.data.model first ..
         if ( 32 == pointerSizeInBits || 64 == pointerSizeInBits ) {
             return 32 == pointerSizeInBits;
         }else {
@@ -188,28 +200,28 @@ public class Platform {
     }
 
     /**
-     * Returns the JAVA vendor
+     * Returns the JAVA.
      */
     public static String getJavaVendor() {
         return JAVA_VENDOR;
     }
 
     /**
-     * Returns the JAVA vendor url
+     * Returns the JAVA vendor url.
      */
     public static String getJavaVendorURL() {
         return JAVA_VENDOR_URL;
     }
 
     /**
-     * Returns the JAVA vendor
+     * Returns the JAVA vendor.
      */
     public static String getJavaVersion() {
         return JAVA_VERSION;
     }
 
     /**
-     * Returns the JAVA vendor
+     * Returns the JAVA vendor.
      */
     public static String getNewline() {
         return NEWLINE;
@@ -220,6 +232,13 @@ public class Platform {
      */
     public static boolean is32Bit() {
         return is32Bit;
+    }
+
+    /**
+     * Returns true if this JVM is a 64bit JVM.
+     */
+    public static boolean is64Bit() {
+        return !is32Bit;
     }
 
     public static int getPointerSizeInBits() {
