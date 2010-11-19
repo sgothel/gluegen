@@ -544,21 +544,100 @@ public class Buffers {
     // Conversion routines
     //
 
-    public static float[] getFloatArray(double[] source) {
-        int i=source.length;
-        float[] dest = new float[i--];
-        while(i>=0) { dest[i]=(float)source[i]; i--; }
+    /**
+     * @param source the source array
+     * @param soffset the offset
+     * @param dest the target array, if null, a new array is being created with size len.
+     * @param doffset the offset in the dest array
+     * @param len the payload of elements to be copied, if <code>len < 0</code> then <code>len = source.length - soffset</code>
+     * @return the passed or newly created target array
+     */
+    public static float[] getFloatArray(double[] source, int soffset, float[] dest, int doffset, int len) {
+        if(0>len) {
+            len = source.length - soffset;
+        }
+        if(len > source.length - soffset) {
+            throw new IllegalArgumentException("payload ("+len+") greater than remaining source bytes [len "+source.length+", offset "+soffset+"]");
+        }
+        if(null==dest) {
+            dest = new float[len];
+            doffset = 0;
+        }
+        if(len > dest.length - doffset) {
+            throw new IllegalArgumentException("payload ("+len+") greater than remaining dest bytes [len "+dest.length+", offset "+doffset+"]");
+        }
+        for(int i=0; i<len; i++) {
+            dest[doffset+i] = (float) source[soffset+i];
+        }
         return dest;
     }
 
-    public final static FloatBuffer getFloatBuffer(DoubleBuffer source) {
-        source.rewind();
-        FloatBuffer dest = newDirectFloatBuffer(source.limit());
+    /**
+     * No rewind or repositioning is performed.
+     * @param source the source buffer, which elements from it's current position and it's limit are being copied
+     * @param dest the target buffer, if null, a new buffer is being created with size </code>source.remaining()</code>
+     * @return the passed or newly created target buffer
+     */
+    public static FloatBuffer getFloatBuffer(DoubleBuffer source, FloatBuffer dest) {
+        if(null == dest) {
+            dest = newDirectFloatBuffer(source.remaining());
+        }
+        if( dest.remaining() < source.remaining() ) {
+            throw new IllegalArgumentException("payload ("+source.remaining()+") is greater than remaining dest bytes: "+dest.remaining());
+        }
         while (source.hasRemaining()) {
             dest.put((float) source.get());
         }
         return dest;
     }
+
+    /**
+     * @param source the source array
+     * @param soffset the offset
+     * @param dest the target array, if null, a new array is being created with size len.
+     * @param doffset the offset in the dest array
+     * @param len the payload of elements to be copied, if <code>len < 0</code> then <code>len = source.length - soffset</code>
+     * @return the passed or newly created target array
+     */
+    public static double[] getDoubleArray(float[] source, int soffset, double[] dest, int doffset, int len) {
+        if(0>len) {
+            len = source.length - soffset;
+        }
+        if(len > source.length - soffset) {
+            throw new IllegalArgumentException("payload ("+len+") greater than remaining source bytes [len "+source.length+", offset "+soffset+"]");
+        }
+        if(null==dest) {
+            dest = new double[len];
+            doffset = 0;
+        }
+        if(len > dest.length - doffset) {
+            throw new IllegalArgumentException("payload ("+len+") greater than remaining dest bytes [len "+dest.length+", offset "+doffset+"]");
+        }
+        for(int i=0; i<len; i++) {
+            dest[doffset+i] = (double) source[soffset+i];
+        }
+        return dest;
+    }
+
+    /**
+     * No rewind or repositioning is performed.
+     * @param source the source buffer, which elements from it's current position and it's limit are being copied
+     * @param dest the target buffer, if null, a new buffer is being created with size </code>source.remaining()</code>
+     * @return the passed or newly created target buffer
+     */
+    public static DoubleBuffer getDoubleBuffer(FloatBuffer source, DoubleBuffer dest) {
+        if(null == dest) {
+            dest = newDirectDoubleBuffer(source.remaining());
+        }
+        if( dest.remaining() < source.remaining() ) {
+            throw new IllegalArgumentException("payload ("+source.remaining()+") is greater than remaining dest bytes: "+dest.remaining());
+        }
+        while (source.hasRemaining()) {
+            dest.put((double) source.get());
+        }
+        return dest;
+    }
+
 
     //----------------------------------------------------------------------
     // Convenient put methods with generic target Buffer
