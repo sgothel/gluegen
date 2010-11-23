@@ -9,5 +9,6 @@ Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community
 Implementation-Vendor-Id: com.jogamp
 Implementation-URL: http://jogamp.org/
+Extension-Name: com.jogamp.common
 Main-Class: com.jogamp.gluegen.GlueGen
 Class-Path: antlr.jar

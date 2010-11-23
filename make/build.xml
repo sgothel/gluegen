@@ -748,7 +748,7 @@
           <formatter usefile="true" type="xml"/>
       </batchtest>
       <classpath>
-          <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/classes:${antlr.jar}:${junit.jar}:${tools.jar}:${ant.core.lib}"/>
+          <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/gluegen-rt.jar:${build}/gluegen.jar:${antlr.jar}:${junit.jar}:${tools.jar}:${ant.core.lib}"/>
       </classpath>
     </junit>
 
