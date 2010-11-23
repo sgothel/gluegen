@@ -7,6 +7,7 @@ Implementation-Version: @VERSION@
 Implementation-Branch: @SCM_BRANCH@
 Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community
+Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.common
 Implementation-Vendor-Id: com.jogamp
 Trusted-Library: true
