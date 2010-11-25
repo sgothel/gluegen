@@ -32,23 +32,11 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.nio.Int64Buffer;
 import com.jogamp.common.os.Platform;
-import java.nio.*;
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.nio.IntBuffer;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
-import static java.lang.System.*;
-import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
 
 /**
  * @author Michael Bien

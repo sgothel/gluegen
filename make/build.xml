@@ -712,46 +712,11 @@
     <echo message='gluegen.build.commit=${gluegen.build.commit}${line.separator}' file="${build}/artifact.properties" append="true"/>
   </target>
 
-  <target name="junit.compile" depends="init, gluegen.cpptasks.detect.os">
-    <mkdir dir="${build}/test/build/classes"/>
-
-    <javac destdir="${build}/test/build/classes" srcdir="${gluegen.root}/test/junit" source="1.5" failonerror="false"
-        debug="true" debuglevel="lines,vars,source" includeAntRuntime="false"
-        excludes="com/jogamp/gluegen/StructValidator.java">
-      <classpath path="${junit.jar}:${build}/classes:${build}/test/gensrc/java:${tools.jar}:${ant.core.lib}"/>
-    </javac>
-
+  <target name="junit.compile" depends="init">
     <ant antfile="build-junit.xml" target="junit.compile"/>
   </target>
 
   <target name="junit.run" depends="junit.compile">
-    <mkdir dir="${build}/test/results"/>
-    <delete quiet="true">
-        <fileset dir="${build}/test/results" includes="**"/>
-    </delete>
-
-    <junit forkmode="once" showoutput="true" fork="true" includeAntRuntime="true">
-      <env key="${system.env.library.path}" path="${gluegen.lib.dir}${path.separator}${build}/test/build/natives"/>
-      <jvmarg value="-Djava.library.path=${gluegen.lib.dir}${path.separator}${build}/test/build/natives"/>
-      <jvmarg value="-Drootrel.build=${rootrel.build}"/>
-      <jvmarg value="-Dos.arch=${os.arch}"/>
-      <jvmarg value="-Dgluegen.user.compiler.file=${gluegen.user.compiler.file}"/>
-      <batchtest todir="${build}/test/results">
-          <fileset dir="${build}/test/build/classes">
-              <include name="com/jogamp/gluegen/**Test*"/>
-              <include name="com/jogamp/common/nio/**Test*"/>
-              <include name="com/jogamp/common/util/**Test*"/>
-              <include name="com/jogamp/common/util/locks/**Test*"/>
-              <exclude name="**/*$$*"/>
-          </fileset>
-          <formatter usefile="false" type="plain"/>
-          <formatter usefile="true" type="xml"/>
-      </batchtest>
-      <classpath>
-          <path path="${build}/test/build/classes:${build}/test/gensrc/java:${build}/gluegen-rt.jar:${build}/gluegen.jar:${antlr.jar}:${junit.jar}:${tools.jar}:${ant.core.lib}"/>
-      </classpath>
-    </junit>
-
     <ant antfile="build-junit.xml" target="junit.run"/>
   </target>
 

@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.gluegen;
+package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.gluegen.pcpp.PCPP;
 import java.io.BufferedReader;
@@ -40,7 +40,7 @@ import static org.junit.Assert.*;
 
 /**
  * serves mainly as entry point for debugging purposes.
- * @author Michael Bien
+ * @author Sven Gothel, Michael Bien
  */
 public class PCPPTest {
 
@@ -52,8 +52,7 @@ public class PCPPTest {
         pp.setOut(output);
 
         String filename = "pcpptest.h";
-        String filepath = BuildUtil.path + "/" + filename;
-
+        String filepath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation/" + filename ;
         pp.run(new BufferedReader(new FileReader(filepath)), filename);
 
         String expected =   "# 1 \"pcpptest.h\""+

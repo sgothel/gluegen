@@ -22,9 +22,8 @@
         <property name="make" value="." />
 
         <property name="test.base.dir"  value="${gluegen.root}/src/junit" />
-        <property name="test.junit.rel" value="com/jogamp/gluegen/test/junit" />
-        <property name="test.junit.dir" value="${test.base.dir}/${test.junit.rel}" />
-        <property name="test.junit.generation.rel" value="${test.junit.rel}/generation" />
+        <property name="test.junit.rel" value="com/jogamp" />
+        <property name="test.junit.generation.rel" value="${test.junit.rel}/gluegen/test/junit/generation" />
         <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
         <property name="test.dir"     value="${gluegen.root}/${rootrel.build}/test"/>
@@ -64,19 +63,18 @@
 
         <path id="junit.compile.classpath">
             <pathelement location="${junit.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen.jar}" />
         </path>
 
         <path id="junit.run.classpath">
             <pathelement location="${junit.jar}" />
-            <pathelement location="${gluegen-rt.jar}" />
+            <pathelement location="${gluegen.jar}" />
             <pathelement location="${gluegen-test.jar}" />
         </path>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
         <echo message="test.base.dir: ${test.base.dir} "/>
-        <echo message="test.junit.dir: ${test.junit.dir} "/>
         <echo message="test.junit.generation.dir: ${test.junit.generation.dir} "/>
         <echo message="test.dir: ${test.dir} "/>
         <echo message="results: ${results} "/>
@@ -180,12 +178,18 @@
     </target>
 
     <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
+      <mkdir dir="${build}/test/build/classes"/>
       <antcall target="java.generate"  inheritRefs="true"/>
       <antcall target="java.build"     inheritRefs="true"/>
       <antcall target="native.build"   inheritRefs="true"/>
     </target>
 
     <target name="junit.run" depends="init,gluegen.cpptasks.detect.os">
+        <delete quiet="true">
+            <fileset dir="${build}/test/results" includes="**"/>
+        </delete>
+        <mkdir dir="${build}/test/results"/>
+
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
@@ -325,7 +329,6 @@
             <param name="src"  value="${build_t.lib}/libBindingtest1p1.dylib" />
             <param name="dest" value="${build_t.lib}/libBindingtest1p1.jnilib" />
         </antcall>
-
     </target>
 
     <!-- this is a dynamic lookup binding to the test1 implementation -->
