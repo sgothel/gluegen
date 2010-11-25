@@ -31,6 +31,7 @@
  */
 package com.jogamp.common.util;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -167,14 +168,14 @@ public class LongIntHashMapTest {
         System.out.println("get");
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.get(rndValues[i]);
+            intmap.get(rndKeys[i]);
         }
         long intmapGetTime = (nanoTime() - time);
         out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.get(rndValues[i]);
+            map.get(rndKeys[i]);
         }
         long mapGetTime = (nanoTime() - time);
         out.println("   map:   " + mapGetTime/1000000.0f+"ms");
@@ -184,26 +185,32 @@ public class LongIntHashMapTest {
         out.println("remove");
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.remove(rndValues[i]);
+            intmap.remove(rndKeys[i]);
         }
+        assertEquals(0, intmap.size());
         long intmapRemoveTime = (nanoTime() - time);
         out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.remove(rndValues[i]);
+            map.remove(rndKeys[i]);
         }
+        assertEquals(0, map.size());
         long mapRemoveTime = (nanoTime() - time);
         out.println("   map:   " + mapRemoveTime/1000000.0f+"ms");
 
         if(!warmup) {
-            // sometimes the primitive map is slower than the 1st class one,
-            // hence adding 50% tolerance. at least this map is memory efficient.
-            assertTrue("'put' too slow", intmapPutTime <= mapPutTime + mapPutTime/2 );
-            assertTrue("'get' too slow", intmapGetTime <= mapGetTime + mapGetTime/2);
-            assertTrue("'remove' too slow", intmapRemoveTime <= mapRemoveTime + mapRemoveTime/2 );
+            // In case the 1st class map magically improves
+            // we add a tolerance around 25% since this would be hardly a bug.
+            // The main goal of this primitve map is memory efficiency.
+            assertTrue("'put' too slow", intmapPutTime <= mapPutTime + mapPutTime/4 );
+            assertTrue("'get' too slow", intmapGetTime <= mapGetTime + mapGetTime/4 );
+            assertTrue("'remove' too slow", intmapRemoveTime <= mapRemoveTime + mapRemoveTime/4 );
         }
     }
 
+    public static void main(String args[]) throws IOException {
+        org.junit.runner.JUnitCore.main(LongIntHashMapTest.class.getName());
+    }
 
 }
