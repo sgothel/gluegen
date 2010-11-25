@@ -40,8 +40,6 @@ public class JogampVersion {
     public static Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
     public static Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
     
-    protected static final String SEPERATOR = "-----------------------------------------------------------------------------------------------------";
-
     private String packageName;
     private Manifest mf;
     private int hash;
@@ -145,10 +143,6 @@ public class JogampVersion {
         return VersionUtil.getFullManifestInfo(getManifest(), sb);
     }
 
-    public StringBuffer getPlatformInfo(StringBuffer sb) {
-        return VersionUtil.getPlatformInfo(sb);
-    }
-
     public StringBuffer getManifestInfo(StringBuffer sb) {
         if(null==sb) {
             sb = new StringBuffer();
@@ -174,10 +168,9 @@ public class JogampVersion {
             sb = new StringBuffer();
         }
 
-        String nl = Platform.getNewline();
-        sb.append(SEPERATOR).append(nl);
+        sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
         getManifestInfo(sb);
-        sb.append(SEPERATOR).append(nl);
+        sb.append(VersionUtil.SEPERATOR);
 
         return sb;
     }

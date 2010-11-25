@@ -33,18 +33,17 @@ D_ARGS="-Djogamp.debug.TraceLock"
 function onetest() {
     clazz=$1
     shift
-    echo $clazz
     java $D_ARGS -Djava.library.path=$builddir/obj:$builddir/test/build/natives -classpath lib/junit.jar:$ANT_JARS:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/classes $clazz
     echo
 }
 
-#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestArrayHashSet01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.TestPointerBufferEndian 2>&1 | tee -a $LOG

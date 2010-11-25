@@ -40,6 +40,8 @@ import java.util.jar.Manifest;
 
 public class VersionUtil {
 
+    public static final String SEPERATOR = "-----------------------------------------------------------------------------------------------------";
+
     /**
      * Appends environment information like OS, JVM and CPU architecture properties to the StringBuffer.
      */
@@ -47,6 +49,8 @@ public class VersionUtil {
         if(null == sb) {
             sb = new StringBuffer();
         }
+
+        sb.append(SEPERATOR).append(Platform.getNewline());
 
         // environment
         sb.append("Platform: ").append(Platform.getOS()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
@@ -61,14 +65,15 @@ public class VersionUtil {
         // JVM/JRE
         sb.append("Platform: Java ").append(Platform.getJavaVersion()).append(", ").append(System.getProperty("java.vm.name")).append(", ");
         sb.append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());
-        sb.append(Platform.getNewline());
+        
+        sb.append(Platform.getNewline()).append(SEPERATOR);
 
         return sb;
     }
 
     /**
-     * Prints platfomr info.
-     * @see #getPlatformInfo(java.lang.StringBuffer) 
+     * Prints platform info.
+     * @see #getPlatformInfo(java.lang.StringBuffer)
      */
     public static String getPlatformInfo() {
         return getPlatformInfo(null).toString();
