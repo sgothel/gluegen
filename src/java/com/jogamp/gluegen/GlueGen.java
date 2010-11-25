@@ -109,6 +109,7 @@ public class GlueGen implements GlueEmitterControls {
 
             preprocessor.run(reader, filename);
             outStream.flush();
+            outStream.close();
 
             FileInputStream inStream = new FileInputStream(out);
             DataInputStream dis = new DataInputStream(inStream);
@@ -142,6 +143,8 @@ public class GlueGen implements GlueEmitterControls {
             headerParser.setASTNodeClass(TNode.class.getName());
             // walk that tree
             headerParser.translationUnit(parser.getAST());
+            dis.close();
+            inStream.close();
 
             /**
             // For debugging: Dump type dictionary and struct dictionary to System.err
