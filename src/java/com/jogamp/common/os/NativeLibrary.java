@@ -181,7 +181,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     for (Iterator iter = possiblePaths.iterator(); iter.hasNext(); ) {
       String path = (String) iter.next();
       if (DEBUG) {
-        System.out.println("Trying to load " + path);
+        System.err.println("Trying to load " + path);
       }
       ensureNativeLibLoaded();
       long res;
@@ -192,14 +192,14 @@ public class NativeLibrary implements DynamicLookupHelper {
       }
       if (res != 0) {
         if (DEBUG) {
-          System.out.println("Successfully loaded " + path + ": res = 0x" + Long.toHexString(res));
+          System.err.println("Successfully loaded " + path + ": res = 0x" + Long.toHexString(res));
         }
         return new NativeLibrary(res, path);
       }
     }
 
     if (DEBUG) {
-      System.out.println("Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
+      System.err.println("Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
     }
 
     // For now, just return null to indicate the open operation didn't
@@ -275,7 +275,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     // from the LWJGL library
     String clPath = getPathFromClassLoader(libName, loader);
     if (DEBUG) {
-      System.out.println("Class loader path to " + libName + ": " + clPath);
+      System.err.println("Class loader path to " + libName + ": " + clPath);
     }
     if (clPath != null) {
       paths.add(clPath);

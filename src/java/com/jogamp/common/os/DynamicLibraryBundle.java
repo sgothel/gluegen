@@ -74,7 +74,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
         this.info = info;
         if(DEBUG) {
-            System.out.println("DynamicLibraryBundle.init start with: "+info.getClass().getName());
+            System.err.println("DynamicLibraryBundle.init start with: "+info.getClass().getName());
         }
         nativeLibraries = new ArrayList();
         toolLibNames = info.getToolLibNames();
@@ -89,13 +89,13 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             toolGetProcAddressHandle = 0;
         }
         if(DEBUG) {
-            System.out.println("DynamicLibraryBundle.init Summary: "+info.getClass().getName());
-            System.out.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList);
-            System.out.println("     Tool Lib Names : "+toolLibNames);
-            System.out.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+", complete "+isToolLibComplete());
-            System.out.println("     Glue Lib Names : "+glueLibNames);
-            System.out.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+", complete "+isGlueLibComplete());
-            System.out.println("     All Complete: "+isLibComplete());
+            System.err.println("DynamicLibraryBundle.init Summary: "+info.getClass().getName());
+            System.err.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList);
+            System.err.println("     Tool Lib Names : "+toolLibNames);
+            System.err.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+", complete "+isToolLibComplete());
+            System.err.println("     Glue Lib Names : "+glueLibNames);
+            System.err.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+", complete "+isGlueLibComplete());
+            System.err.println("     All Complete: "+isLibComplete());
         }
     }
 
@@ -156,7 +156,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             String name = (String) iter.next();
             aptr = dynamicLookupFunctionOnLibs(name);
             if(DEBUG) {
-                System.out.println("getToolGetProcAddressHandle: "+name+" -> 0x"+Long.toHexString(aptr));
+                System.err.println("getToolGetProcAddressHandle: "+name+" -> 0x"+Long.toHexString(aptr));
             }
         }
         return aptr;
@@ -175,14 +175,14 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     private void loadLibraries() {
         if( null == toolLibNames || toolLibNames.size() == 0) {
             if(DEBUG) {
-                System.out.println("No Tool native library names given");
+                System.err.println("No Tool native library names given");
             }
             return;
         }
 
         if( null == glueLibNames || glueLibNames.size() == 0 ) {
             if(DEBUG) {
-                System.out.println("No Glue native library names given");
+                System.err.println("No Glue native library names given");
             }
             return;
         }
@@ -218,21 +218,21 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                 lib = loadFirstAvailable(libNames, loader, info.shallLinkGlobal());
                 if ( null == lib ) {
                     if(DEBUG) {
-                        System.out.println("Unable to load any Tool library of: "+libNames);
+                        System.err.println("Unable to load any Tool library of: "+libNames);
                     }
                 } else {
                     nativeLibraries.add(lib);
                     toolLibLoaded[i]=true;
                     toolLibLoadedNumber++;
                     if(DEBUG) {
-                        System.out.println("Loaded Tool library: "+lib);
+                        System.err.println("Loaded Tool library: "+lib);
                     }
                 }
             }
         }
         if( !isToolLibLoaded() ) {
             if(DEBUG) {
-                System.out.println("No Tool libraries loaded");
+                System.err.println("No Tool libraries loaded");
             }
             return;
         }
@@ -246,12 +246,12 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             try {
                 res = GlueJNILibLoaderBase.loadLibrary(libName, ignoreError);
                 if(DEBUG && !res) {
-                    System.out.println("Info: Could not load JNI/Glue library: "+libName);
+                    System.err.println("Info: Could not load JNI/Glue library: "+libName);
                 }
             } catch (UnsatisfiedLinkError e) {
                 res = false;
                 if(DEBUG) {
-                    System.out.println("Unable to load JNI/Glue library: "+libName);
+                    System.err.println("Unable to load JNI/Glue library: "+libName);
                     e.printStackTrace();
                 }
             }

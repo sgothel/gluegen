@@ -214,7 +214,7 @@ public class JNILibLoaderBase {
           throw (UnsatisfiedLinkError) new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
         }
     } else {
-      // System.out.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
+      // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
       System.loadLibrary(libraryName);
     }
   }
