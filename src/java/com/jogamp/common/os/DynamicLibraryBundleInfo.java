@@ -29,7 +29,6 @@
 package com.jogamp.common.os;
 
 import java.util.*;
-import java.security.*;
 
 public interface DynamicLibraryBundleInfo {
     public static final boolean DEBUG = DynamicLibraryBundle.DEBUG;
