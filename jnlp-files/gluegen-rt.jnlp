@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <jnlp codebase="GLUEGEN_CODEBASE_TAG"
-      href="gluegen-rt.jnlp">
+      href="gluegen-rt.jnlp" version="JOGAMP_VERSION">
   <information>
     <title>GlueGen Runtime v2</title>
     <vendor>JogAmp Community</vendor>
