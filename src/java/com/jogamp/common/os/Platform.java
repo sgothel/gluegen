@@ -104,12 +104,12 @@ public class Platform {
                 (os_lc.startsWith("windows") && arch_lc.equals("arm")) ||
                 (os_lc.startsWith("linux") && arch_lc.equals("i386")) ||
                 (os_lc.startsWith("linux") && arch_lc.equals("x86")) ||
-                (os_lc.startsWith("mac os_lc") && arch_lc.equals("ppc")) ||
-                (os_lc.startsWith("mac os_lc") && arch_lc.equals("i386")) ||
+                (os_lc.startsWith("mac os") && arch_lc.equals("ppc")) ||
+                (os_lc.startsWith("mac os") && arch_lc.equals("i386")) ||
                 (os_lc.startsWith("darwin") && arch_lc.equals("ppc")) ||
                 (os_lc.startsWith("darwin") && arch_lc.equals("i386")) ||
-                (os_lc.startsWith("sunos_lc") && arch_lc.equals("sparc")) ||
-                (os_lc.startsWith("sunos_lc") && arch_lc.equals("x86")) ||
+                (os_lc.startsWith("sunos") && arch_lc.equals("sparc")) ||
+                (os_lc.startsWith("sunos") && arch_lc.equals("x86")) ||
                 (os_lc.startsWith("freebsd") && arch_lc.equals("i386")) ||
                 (os_lc.startsWith("hp-ux") && arch_lc.equals("pa_risc2.0"))) {
                 return true;
@@ -117,10 +117,10 @@ public class Platform {
                       (os_lc.startsWith("linux") && arch_lc.equals("amd64")) ||
                       (os_lc.startsWith("linux") && arch_lc.equals("x86_64")) ||
                       (os_lc.startsWith("linux") && arch_lc.equals("ia64")) ||
-                      (os_lc.startsWith("mac os_lc") && arch_lc.equals("x86_64")) ||
+                      (os_lc.startsWith("mac os") && arch_lc.equals("x86_64")) ||
                       (os_lc.startsWith("darwin") && arch_lc.equals("x86_64")) ||
-                      (os_lc.startsWith("sunos_lc") && arch_lc.equals("sparcv9")) ||
-                      (os_lc.startsWith("sunos_lc") && arch_lc.equals("amd64"))) {
+                      (os_lc.startsWith("sunos") && arch_lc.equals("sparcv9")) ||
+                      (os_lc.startsWith("sunos") && arch_lc.equals("amd64"))) {
                 return false;
             }else{
               throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + os_lc + "/" + arch_lc + ")");
