@@ -87,6 +87,8 @@
         <!-- Add the GlueGen tasks to ANT -->
         <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
+
+        <property name="test.archive.name" value="${archive.name}-test-results"/>
     </target>
 
     <target name="java.build" depends="java.generate">
@@ -169,6 +171,12 @@
     </macrodef>  
 
     <target name="junit.compile.check" depends="init">
+      <delete quiet="true">
+        <fileset dir="${build}/test/results" includes="**"/>
+        <fileset file="${build}/${test.archive.name}.zip"/>
+      </delete>
+      <mkdir dir="${build}/test/results"/>
+
       <uptodate property="junit.compile.skip">
         <srcfiles dir= "."                 includes="*.xml"/>
         <srcfiles dir= "${test.base.dir}"  includes="**"/>
@@ -185,11 +193,6 @@
     </target>
 
     <target name="junit.run" depends="init,gluegen.cpptasks.detect.os">
-        <delete quiet="true">
-            <fileset dir="${build}/test/results" includes="**"/>
-        </delete>
-        <mkdir dir="${build}/test/results"/>
-
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
@@ -219,6 +222,7 @@
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
+        <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 
     <!-- 
@@ -359,5 +363,12 @@
         junit.test2
 
       -->
+
+    <!-- updates / create the test results zip file -->
+    <target name="test-zip-archive" depends="init">
+        <zip destfile="${build}/${test.archive.name}.zip" update="true">
+            <zipfileset dir="${build}/test/results" prefix="${archive.name}/test-results"/>
+        </zip>
+    </target>
 
 </project>

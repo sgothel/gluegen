@@ -713,11 +713,11 @@
   </target>
 
   <target name="junit.compile" depends="init">
-    <ant antfile="build-junit.xml" target="junit.compile"/>
+    <ant antfile="build-test.xml" target="junit.compile"/>
   </target>
 
   <target name="junit.run" depends="junit.compile">
-    <ant antfile="build-junit.xml" target="junit.run"/>
+    <ant antfile="build-test.xml" target="junit.run"/>
   </target>
 
   <target name="javadoc" depends="init">
