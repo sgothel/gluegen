@@ -74,7 +74,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
         this.info = info;
         if(DEBUG) {
-            System.err.println("DynamicLibraryBundle.init start with: "+info.getClass().getName());
+            System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.init start with: "+info.getClass().getName());
+            Thread.dumpStack();
         }
         nativeLibraries = new ArrayList();
         toolLibNames = info.getToolLibNames();
