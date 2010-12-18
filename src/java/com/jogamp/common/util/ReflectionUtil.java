@@ -288,5 +288,10 @@ public final class ReflectionUtil {
   {
     return callMethod(null, getMethod(clazzName, methodName, argTypes, cl), args);
   }
+
+  public static String getBaseName(Class clazz) {
+    String s = clazz.toString();
+    return s.substring(s.lastIndexOf(".")+1);
+  }
 }
 
