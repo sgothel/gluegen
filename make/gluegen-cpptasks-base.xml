@@ -607,36 +607,32 @@
       </defineset>
     </compiler>
  
-<!--
-    SOLARIS is currently disabled ..
+    <!-- SOLARIS compiler configuration --> 
 
-    <compiler id="compiler.cfg.solaris" name="suncc">
-      <defineset>
-        <define name="SOLARIS" />
-      </defineset>
-    </compiler>
+    <compiler id="compiler.cfg.solaris" name="gcc"> 
+      <defineset> 
+        <define name="SOLARIS" /> 
+      </defineset> 
+    </compiler> 
 
-    <compiler id="compiler.cfg.solaris.sparcv9" name="suncc">
-      <compilerarg value="-fast" />
-      <compilerarg value="-xchip=ultra" />
-      <compilerarg value="-xarch=v9a" />
-      <defineset>
-        <define name="SOLARIS" />
-      </defineset>
-    </compiler>
+    <compiler id="compiler.cfg.solaris.sparcv9" name="gcc"> 
+      <compilerarg value="-fast" /> 
+      <compilerarg value="-xchip=ultra" /> 
+      <compilerarg value="-xarch=v9a" /> 
+      <defineset> 
+        <define name="SOLARIS" /> 
+      </defineset> 
+    </compiler> 
 
-    <compiler id="compiler.cfg.solaris.amd64" name="suncc">
-      <compilerarg value="-fast" />
-      <compilerarg value="-xchip=opteron" />
-      <compilerarg value="-xarch=amd64" />
-      -->
-  <!--      <compilerarg value="-xcache=64/64/2:1024/64/16" />   -->
-<!--
-      <defineset>
-        <define name="SOLARIS" />
-      </defineset>
+    <compiler id="compiler.cfg.solaris.amd64" name="gcc"> 
+      <compilerarg value="-fast" /> 
+      <compilerarg value="-xchip=opteron" /> 
+      <compilerarg value="-xarch=amd64" /> 
+      <compilerarg value="-xcache=64/64/2:1024/64/16" /> 
+      <defineset> 
+        <define name="SOLARIS" /> 
+      </defineset> 
     </compiler>
-      -->
 
     <!-- MacOSX compiler configuration -->
 
@@ -755,20 +751,18 @@
       <linkerarg value="-m64"/>
     </linker>
 
-<!-- 
-    SOLARIS is currently unsupported
+    <!-- SOLARIS linker configuration --> 
 
-    <linker id="linker.cfg.solaris" name="suncc">
-    </linker>
+    <linker id="linker.cfg.solaris" name="gcc"> 
+    </linker> 
 
-    <linker id="linker.cfg.solaris.sparcv9" name="suncc">
-      <linkerarg value="-xarch=v9a" />
-    </linker>
+    <linker id="linker.cfg.solaris.sparcv9" name="gcc"> 
+      <linkerarg value="-xarch=v9a" /> 
+    </linker> 
 
-    <linker id="linker.cfg.solaris.amd64" name="suncc">
-      <linkerarg value="-xarch=amd64" />
+    <linker id="linker.cfg.solaris.amd64" name="gcc"> 
+      <linkerarg value="-xarch=amd64" /> 
     </linker>
--->
 
     <!-- MacOSX linker configuration -->
 
