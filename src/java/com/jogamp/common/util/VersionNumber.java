@@ -54,9 +54,11 @@ public class VersionNumber implements Comparable {
     }
     
     public final int compareTo(Object o) {
-        if( ! ( o instanceof VersionNumber ) ) {
-            return -1;
+        if ( ! ( o instanceof VersionNumber ) ) {
+            Class c = (null != o) ? o.getClass() : null ;
+            throw new ClassCastException("Not a Capabilities object: " + c);
         }
+
         VersionNumber vo = (VersionNumber) o;
         if (major > vo.major) {
             return 1;
