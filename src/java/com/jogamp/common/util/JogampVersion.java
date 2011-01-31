@@ -48,9 +48,9 @@ public class JogampVersion {
 
     protected JogampVersion(String packageName, Manifest mf) {
         this.packageName = packageName;
-        this.mf = mf;
-        this.hash = mf.hashCode();
-        mainAttributes = mf.getMainAttributes();
+        this.mf = ( null != mf ) ? mf : new Manifest();
+        this.hash = this.mf.hashCode();
+        mainAttributes = this.mf.getMainAttributes();
         mainAttributeNames = mainAttributes.keySet();
     }
 
