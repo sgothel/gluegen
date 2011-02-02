@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" output="build/test/build/classes" path="src/junit">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="gluegen/build/obj"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/classes" path="build/gensrc/java">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="gluegen/build/obj"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="src" output="build/test/build/classes" path="build/test/build/gensrc/classes">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="gluegen/build/obj"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry excluding="com/jogamp/gluegen/runtime/BufferFactoryInternal.java" kind="src" output="build/classes" path="src/java">
+		<attributes>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="gluegen/build/obj"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="build/antlr.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
+	<classpathentry kind="output" path="build/eclipse-classes"/>
+</classpath>
