@@ -693,6 +693,17 @@
          referenced via a Class-Path entry in the Manifest of
          gluegen.jar. -->
     <copy file="${antlr.jar}" todir="${build}" />
+    
+    <!-- copy a jnlp with empty codebase into build folder for local testing 
+         overwrite property in gluegen.proerpties if desired             -->
+    <property name="gluegen.jnlp.codebase" value=""/>
+    
+    <copy file="${gluegen.root}/jnlp-files/gluegen-rt.jnlp" todir="${build}">
+        <filterchain>
+            <replacestring from="GLUEGEN_CODEBASE_TAG" to="${gluegen.jnlp.codebase}"/>
+        </filterchain>
+    </copy>
+    
   </target>
 
   <target name="base.compile" depends="init, gluegen.build, tag.build" />
