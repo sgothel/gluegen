@@ -656,6 +656,7 @@
       <fileset dir="${classes}">
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
+        <include name="jogamp/common/**" />
       </fileset>
     </jar>
     <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}.jar" manifest="${build}/Manifest-rt.temp">
@@ -743,7 +744,6 @@
              maxmemory="256m" >
         <classpath path="${classes}"/>
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
-        <excludepackage name="com.jogamp.common.impl"/>
     </javadoc>
     <zip destfile="${build}/javadoc.zip"
          basedir="${javadoc.root.path}"

@@ -39,7 +39,7 @@ package com.jogamp.common.util;
 
 import java.lang.reflect.*;
 import com.jogamp.common.JogampRuntimeException;
-import com.jogamp.common.impl.Debug;
+import jogamp.common.Debug;
 
 public final class ReflectionUtil {
     

@@ -28,7 +28,7 @@
 
 package com.jogamp.common.util.locks;
 
-import com.jogamp.common.impl.Debug;
+import jogamp.common.Debug;
 import java.security.AccessController;
 
 import java.util.LinkedList;

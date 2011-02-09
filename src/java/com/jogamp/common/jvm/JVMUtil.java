@@ -34,7 +34,7 @@ package com.jogamp.common.jvm;
 
 import java.nio.ByteBuffer;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.impl.Debug;
+import jogamp.common.Debug;
 import com.jogamp.gluegen.runtime.NativeLibLoader;
 
 /**

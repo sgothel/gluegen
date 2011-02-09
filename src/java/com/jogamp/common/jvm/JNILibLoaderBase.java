@@ -46,7 +46,7 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.util.HashSet;
-import com.jogamp.common.impl.Debug;
+import jogamp.common.Debug;
 
 public class JNILibLoaderBase {
   public static final boolean DEBUG = Debug.debug("JNILibLoader");
