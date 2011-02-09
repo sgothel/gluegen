@@ -38,8 +38,6 @@
   <target name="init" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
-    <!-- property name="javac.bootclasspath-cdc.jar" value="lib/cdc_fp.jar" /-->
-
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
     <property name="javadoc.link" value="http://download.oracle.com/javase/1.5.0/docs/api/" />
 
@@ -68,20 +66,16 @@
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
     <property name="src.generated.java"     value="${src.generated}/java" />
-    <property name="src.generated.java-cdc" value="${src.generated}/java-cdc" />
 
     <!-- The compiler output directories. -->
     <property name="classes" value="${build}/classes" />
-    <property name="classes-cdc" value="${build}/classes-cdc" />
 
     <!-- Call the external config validator script to make sure the config is ok and consistent -->
     <ant antfile="validate-properties.xml" inheritall="true"/>
 
     <!-- Create the required output directories. -->
     <mkdir dir="${src.generated.java}" />
-    <mkdir dir="${src.generated.java-cdc}" />
     <mkdir dir="${classes}" />
-    <mkdir dir="${classes-cdc}" />
 
     <!-- Create the classpath for ANTLR.  This requires the user-defined
       - "antlr.jar" property. -->
@@ -430,29 +424,6 @@
       <antcall target="c.manifest" inheritRefs="true" />
     </target>  
 
-  <target name="gluegen.build.gluegen-rt.cdc" >
-    <!-- Build just the gluegen-rt.cdc.jar classes using the Java CDC
-         boot classes -->
-    <copy todir="${classes-cdc}">
-        <fileset dir="${classes}"
-                 includes="com/** net/**" 
-                 excludes="com/jogamp/gluegen/runtime/** com/jogamp/gluegen/test/**" />
-    </copy>
-
-    <!-- bootclasspath="${javac.bootclasspath-cdc.jar}"-->
-    <javac destdir="${classes-cdc}"
-           source="1.5"
-           debug="true"
-           debuglevel="source,lines,vars"
-           includeAntRuntime="false"
-           excludes="${gluegen.excludes}"
-           >
-      <src path="${src.java}" />
-      <src path="${src.generated.java-cdc}" />
-      <classpath refid="antlr.classpath" />
-    </javac>
-  </target>
-
   <!-- ================================================================== -->
   <!--
     - Build GlueGen.
@@ -637,7 +608,7 @@
     </copy>
 
     <!-- Build the (native code) NativeLibrary support for
-         gluegen-rt[-cdc].jar using the just-built GlueGen. -->
+         gluegen-rt.jar using the just-built GlueGen. -->
     <antcall target="c.build" inheritRefs="true" />
 
     <!-- Build gluegen-rt.jar. -->
@@ -653,44 +624,6 @@
         <include name="*gluegen-rt.${native.library.suffix}" />
       </fileset>
     </jar>
-
-    <!-- Build just the gluegen-rt.cdc.jar classes using the Java CDC
-         boot classes.
-
-         CDC DISABLED - left as template for other configurations
-
-    <antcall target="gluegen.build.gluegen-rt.cdc" inheritRefs="true" />
-
-    <copy file="Manifest-rt.cdc"
-          tofile="${build}/Manifest-rt.cdc.temp"
-          overwrite="true">
-        <filterset>
-            <filter token="VERSION" value="${gluegen.version}"/>
-            <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
-            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
-        </filterset>
-    </copy>
-
-    <jar destfile="${build}/gluegen-rt.cdc.jar" manifest="${build}/Manifest-rt.cdc.temp">
-      <fileset dir="${classes-cdc}">
-        <include name="com/jogamp/gluegen/runtime/*.class" />
-        <include name="com/jogamp/common/impl/*.class" />
-        <include name="com/jogamp/common/jvm/*.class" />
-        <include name="com/jogamp/common/type/*.class" />
-        <include name="com/jogamp/common/util/*.class" />
-        <include name="com/jogamp/common/util/locks/*.class" />
-        <include name="com/jogamp/common/nio/*.class" />
-        <include name="com/jogamp/common/os/*.class" />
-        <include name="com/jogamp/common/*.class" />
-      </fileset>
-    </jar>
-    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}-cdc.jar" manifest="${build}/Manifest-rt.cdc.temp">
-      <fileset dir="${build}/obj">
-        <include name="*gluegen-rt.${native.library.suffix-cdc}" />
-      </fileset>
-    </jar> 
-      -->
 
     <!-- Copy antlr.jar into build directory for convenience so
          gluegen.jar can be run via "java -jar". antlr.jar is
@@ -879,14 +812,6 @@
             <param name="artifactId" value="gluegen-rt-natives"/>
             <param name="description" value="GlueGen runtime native libraries for ${os.and.arch}"/>
         </antcall>
-        <!--<antcall target="maven.${mvn.task}.artifact" inheritall="true">-->
-        <!--<param name="artifactId" value="gluegen-rt-cdc"/>-->
-        <!--<param name="description" value="Gluegen CDC Runtime"/>-->
-        <!--</antcall>-->
-        <!--<antcall target="maven.${mvn.task}.artifact" inheritall="true">-->
-        <!--<param name="artifactId" value="gluegen-rt-natives-cdc"/>-->
-        <!--<param name="description" value="Gluegen CDC runtime native libraries for ${os.and.arch}"/>-->
-        <!--</antcall>-->
     </target>
 
     <target name="maven.install" depends="init, gluegen.build">
