@@ -38,7 +38,6 @@
  */
 package com.jogamp.common.nio;
 
-import com.jogamp.common.os.Platform;
 import java.nio.*;
 
 /**
@@ -51,8 +50,6 @@ public class StructAccessor {
     private FloatBuffer fb;
     private IntBuffer ib;
     private ShortBuffer sb;
-    
-    //Java SE only
     private CharBuffer cb;
     private DoubleBuffer db;
     private LongBuffer lb;
@@ -60,13 +57,7 @@ public class StructAccessor {
     public StructAccessor(ByteBuffer bb) {
         // Setting of byte order is concession to native code which needs
         // to instantiate these
-        if(Platform.isJavaSE()) {
-            this.bb = bb.order(ByteOrder.nativeOrder());
-        }else{
-            // JSR 239 does not support the ByteOrder class or the order methods.
-            // The initial order of a byte buffer is the platform byte order.
-            this.bb = bb;
-        }
+        this.bb = bb.order(ByteOrder.nativeOrder());
     }
 
     public ByteBuffer getBuffer() {
@@ -225,52 +216,19 @@ public class StructAccessor {
      * Retrieves the long at the specified slot (8-byte offset).
      */
     public long getLongAt(int slot) {
-        if(Platform.isJavaSE()){
-            return longBuffer().get(slot);
-        }else{
-            return getLongCDCAt(slot);
-        }
+        return longBuffer().get(slot);
     }
 
     /**
      * Puts a long at the specified slot (8-byte offset).
      */
     public void setLongAt(int slot, long v) {
-        if(Platform.isJavaSE()){
-            longBuffer().put(slot, v);
-        }else{
-            setLongCDCAt(slot, v);
-        }
+        longBuffer().put(slot, v);
     }
 
     //----------------------------------------------------------------------
     // Internals only below this point
     //
-
-    private final long getLongCDCAt(int slot) {
-        slot = slot << 1; // 8-byte to 4-byte offset
-        IntBuffer intBuffer = intBuffer();
-        long lo = 0x00000000FFFFFFFFL & ((long) intBuffer.get(slot));
-        long hi = 0x00000000FFFFFFFFL & ((long) intBuffer.get(slot + 1));
-        if (Platform.isLittleEndian()) {
-            return hi << 32 | lo;
-        }
-        return lo << 32 | hi;
-    }
-
-    private final void setLongCDCAt(int slot, long v) {
-        slot = slot << 1; // 8-byte to 4-byte offset
-        IntBuffer intBuffer = intBuffer();
-        int lo = (int) ((v) & 0x00000000FFFFFFFFL);
-        int hi = (int) ((v >> 32) & 0x00000000FFFFFFFFL);
-        if (Platform.isLittleEndian()) {
-            intBuffer.put(slot, lo);
-            intBuffer.put(slot + 1, hi);
-        } else {
-            intBuffer.put(slot, hi);
-            intBuffer.put(slot + 1, lo);
-        }
-    }
 
     private final FloatBuffer floatBuffer() {
         if (fb == null) {
@@ -293,10 +251,7 @@ public class StructAccessor {
         return sb;
     }
 
-    // - - Java SE only - -
-
     private final LongBuffer longBuffer() {
-        checkSE();
         if (lb == null) {
             lb = bb.asLongBuffer();
         }
@@ -304,7 +259,6 @@ public class StructAccessor {
     }
 
     private final DoubleBuffer doubleBuffer() {
-        checkSE();
         if (db == null) {
             db = bb.asDoubleBuffer();
         }
@@ -312,16 +266,9 @@ public class StructAccessor {
     }
 
     private final CharBuffer charBuffer() {
-        checkSE();
         if (cb == null) {
             cb = bb.asCharBuffer();
         }
         return cb;
-    }
-
-    private static void checkSE() {
-        if (!Platform.isJavaSE()) {
-            throw new UnsupportedOperationException("I am affraid, this Operation is not supportet on this platform.");
-        }
     }
 }

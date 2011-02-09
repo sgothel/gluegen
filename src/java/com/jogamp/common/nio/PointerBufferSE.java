@@ -67,7 +67,7 @@ final class PointerBufferSE extends PointerBuffer {
         }
     }
 
-    public final AbstractLongBuffer put(int idx, long v) {
+    public final PointerBufferSE put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }

@@ -34,14 +34,12 @@ package com.jogamp.common.nio;
 import com.jogamp.common.os.*;
 
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
-import java.util.HashMap;
 
 /**
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class AbstractBuffer implements NativeBuffer {
+public abstract class AbstractBuffer<B extends AbstractBuffer> implements NativeBuffer<B> {
 
     protected final ByteBuffer bb;
     protected int capacity;
@@ -70,13 +68,13 @@ public abstract class AbstractBuffer implements NativeBuffer {
         return position;
     }
 
-    public final NativeBuffer position(int newPos) {
+    public final B position(int newPos) {
         if (0 > newPos || newPos >= capacity) {
             throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
                                                 "My capacity is "+capacity()+".");
         }
         position = newPos;
-        return this;
+        return (B)this;
     }
 
     public final int remaining() {
@@ -87,9 +85,9 @@ public abstract class AbstractBuffer implements NativeBuffer {
         return position < capacity;
     }
 
-    public final NativeBuffer rewind() {
+    public final B rewind() {
         position = 0;
-        return this;
+        return (B) this;
     }
 
     public boolean hasArray() {
@@ -108,6 +106,7 @@ public abstract class AbstractBuffer implements NativeBuffer {
         return bb.isDirect();
     }
 
+    @Override
     public String toString() {
         return "AbstractBuffer[capacity "+capacity+", position "+position+", elementSize "+(bb.capacity()/capacity)+", ByteBuffer.capacity "+bb.capacity()+"]";
     }

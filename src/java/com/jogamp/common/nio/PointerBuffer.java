@@ -45,9 +45,9 @@ import java.util.HashMap;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class PointerBuffer extends AbstractLongBuffer {
+public abstract class PointerBuffer extends AbstractLongBuffer<PointerBuffer> {
 
-    protected HashMap/*<aptr, buffer>*/ dataMap = new HashMap();
+    protected HashMap<Long, Buffer> dataMap = new HashMap<Long, Buffer>();
 
     static {
         NativeLibrary.ensureNativeLibLoaded();
@@ -58,28 +58,15 @@ public abstract class PointerBuffer extends AbstractLongBuffer {
     }
 
     public static PointerBuffer allocate(int size) {
-        if (Platform.isJavaSE()) {
-            return new PointerBufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
-        } else {
-            return new PointerBufferME_CDC_FP(ByteBuffer.wrap(new byte[elementSize() * size]));
-        }
+        return new PointerBufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
     }
 
     public static PointerBuffer allocateDirect(int size) {
-        if (Platform.isJavaSE()) {
-            return new PointerBufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
-        } else {
-            return new PointerBufferME_CDC_FP(Buffers.newDirectByteBuffer(elementSize() * size));
-        }
+        return new PointerBufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
     }
 
     public static PointerBuffer wrap(ByteBuffer src) {
-        PointerBuffer res;
-        if (Platform.isJavaSE()) {
-            res = new PointerBufferSE(src);
-        } else {
-            res = new PointerBufferME_CDC_FP(src);
-        }
+        PointerBuffer res = new PointerBufferSE(src);
         res.updateBackup();
         return res;
 
@@ -89,6 +76,7 @@ public abstract class PointerBuffer extends AbstractLongBuffer {
         return Platform.is32Bit() ? Buffers.SIZEOF_INT : Buffers.SIZEOF_LONG;
     }
 
+    @Override
     public final PointerBuffer put(PointerBuffer src) {
         if (remaining() < src.remaining()) {
             throw new IndexOutOfBoundsException();
@@ -140,7 +128,7 @@ public abstract class PointerBuffer extends AbstractLongBuffer {
 
     public final Buffer getReferencedBuffer(int index) {
         long addr = get(index);
-        return (Buffer) dataMap.get(new Long(addr));
+        return dataMap.get(new Long(addr));
     }
 
     public final Buffer getReferencedBuffer() {
@@ -151,6 +139,7 @@ public abstract class PointerBuffer extends AbstractLongBuffer {
 
     private native long getDirectBufferAddressImpl(Object directBuffer);
 
+    @Override
     public String toString() {
         return "PointerBuffer:"+super.toString();
     }

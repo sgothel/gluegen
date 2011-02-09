@@ -58,7 +58,7 @@ final class Int64BufferSE extends Int64Buffer {
         return pb.get(idx);
     }
 
-    public final AbstractLongBuffer put(int idx, long v) {
+    public final Int64BufferSE put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
