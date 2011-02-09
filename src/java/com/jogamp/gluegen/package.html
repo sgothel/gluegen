@@ -5,10 +5,9 @@
 </head>
   <body>
 <h2><i>JogAmp GlueGen</i> Code Generator</h2>
-  <p>
   <h4>GlueGen Data Type Mapping</h4>
-  Gluegen has build-in types (terminal symbols) for:<br>
-  <br>
+  Gluegen has build-in types (terminal symbols) for:<br/>
+  <br/>
   <table border="1">
     <tr><th>type</th>      <th>java bits</th> <th>native-x32 bits</th><th>native-x64 bits</th><th>type</th>   <th>signed</th>            <th>origin</th</tr>
     <tr><th>void</th>      <th> 0</th>        <th> 0</th>             <th> 0</th>             <th>void</th>   <th>void</th>              <th>ANSI-C</th></tr>
@@ -31,17 +30,16 @@
     <tr><th>size_t</th>    <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>unsigned</th>          <th>stddef.h</th></tr>
     <tr><th>uintptr_t</th> <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
   </table>
-  </p>
   <p>
-  <b>Warning:</b> Try to avoid unspecified bit sized types, especially <b>long</b>, since it differs on Unix and Windows!<br>
+  <b>Warning:</b> Try to avoid unspecified bit sized types, especially <b>long</b>, since it differs on Unix and Windows!<br/>
   <b>Note 1:</b>  Type <b>long</b> will result in broken code on Windows, since we don't differentiate the OS and it's bit size is ambiguous.
   </p>
   <p>
   <h4>GlueGen Platform Header Files</h4>
-  GlueGen provides convenient platform headers,<br>
-  which can be included in your C header files for native compilation and GlueGen code generation.<br>
-  <br>
-  Example:<br>
+  GlueGen provides convenient platform headers,<br/>
+  which can be included in your C header files for native compilation and GlueGen code generation.<br/>
+  <br/>
+  Example:<br/>
   <pre>
    #include &lt;gluegen_stdint.h&gt;
    #include &lt;gluegen_stddef.h&gt;
@@ -50,8 +48,8 @@
    size_t size1;
    ptrdiff_t ptr1;
   </pre>
-  <br>
-  To compile this file you have to include the following folder to your compilers system includes, ie <code>-I</code>:<br>
+  <br/>
+  To compile this file you have to include the following folder to your compilers system includes, ie <code>-I</code>:<br/>
   <pre>
     gluegen/make/stub_includes/platform
   </pre>
@@ -60,14 +58,11 @@
   <pre>
     gluegen/make/stub_includes/gluegen
   </pre>
-  </p>
-  <p>
   <h4>GlueGen Pre-Defined Macros</h4>
-  To identity a GlueGen code generation run, GlueGen defines the following macros:<br>
+  To identity a GlueGen code generation run, GlueGen defines the following macros:<br/>
   <pre>
      #define __GLUEGEN__ 2
   </pre>
-  </p>
   <br>
  <br>
 </body>
