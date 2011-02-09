@@ -25,8 +25,8 @@
 
 /*
   Based on the dlcompat work done by:
-		Jorge Acereda  <jacereda@users.sourceforge.net> &
-		Peter O'Gorman <ogorman@users.sourceforge.net>
+    Jorge Acereda  <jacereda@users.sourceforge.net> &
+    Peter O'Gorman <ogorman@users.sourceforge.net>
 */
 
 extern int dlclose(void * __handle);
@@ -34,13 +34,13 @@ extern char * dlerror(void);
 extern void * dlopen(const char * __path, int __mode);
 extern void * dlsym(void * __handle, const char * __symbol);
 
-#define RTLD_LAZY	0x1
-#define RTLD_NOW	0x2
-#define RTLD_LOCAL	0x4
-#define RTLD_GLOBAL	0x8
+#define RTLD_LAZY   0x1
+#define RTLD_NOW    0x2
+#define RTLD_LOCAL  0x4
+#define RTLD_GLOBAL 0x8
 
 /*
  * Special handle arguments for dlsym().
  */
-#define	RTLD_NEXT	-1LL	/* Search subsequent objects. */
-#define	RTLD_DEFAULT	-2LL	/* Use default search algorithm. */
+#define RTLD_NEXT       -1LL    /* Search subsequent objects. */
+#define RTLD_DEFAULT    -2LL    /* Use default search algorithm. */

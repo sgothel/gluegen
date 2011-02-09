@@ -185,7 +185,7 @@
     <condition property="isWindowsAMD64">
       <and>
         <istrue value="${isWindows}" />
-	<os arch="amd64" />
+        <os arch="amd64" />
       </and>
     </condition>
     <condition property="isFreeBSDX86">
