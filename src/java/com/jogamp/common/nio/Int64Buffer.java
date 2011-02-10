@@ -28,7 +28,6 @@
  
 package com.jogamp.common.nio;
 
-import com.jogamp.common.os.*;
 import java.nio.ByteBuffer;
 
 /**
@@ -39,35 +38,22 @@ import java.nio.ByteBuffer;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class Int64Buffer extends AbstractLongBuffer {
+public abstract class Int64Buffer extends AbstractLongBuffer<Int64Buffer> {
 
     protected Int64Buffer(ByteBuffer bb) {
         super(bb, elementSize());
     }
 
     public static Int64Buffer allocate(int size) {
-        if (Platform.isJavaSE()) {
-            return new Int64BufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
-        } else {
-            return new Int64BufferME_CDC_FP(ByteBuffer.wrap(new byte[elementSize() * size]));
-        }
+        return new Int64BufferSE(ByteBuffer.wrap(new byte[elementSize() * size]));
     }
 
     public static Int64Buffer allocateDirect(int size) {
-        if (Platform.isJavaSE()) {
-            return new Int64BufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
-        } else {
-            return new Int64BufferME_CDC_FP(Buffers.newDirectByteBuffer(elementSize() * size));
-        }
+        return new Int64BufferSE(Buffers.newDirectByteBuffer(elementSize() * size));
     }
 
     public static Int64Buffer wrap(ByteBuffer src) {
-        Int64Buffer res;
-        if (Platform.isJavaSE()) {
-            res = new Int64BufferSE(src);
-        } else {
-            res = new Int64BufferME_CDC_FP(src);
-        }
+        Int64Buffer res = new Int64BufferSE(src);
         res.updateBackup();
         return res;
 
@@ -77,6 +63,7 @@ public abstract class Int64Buffer extends AbstractLongBuffer {
         return Buffers.SIZEOF_LONG;
     }
 
+    @Override
     public String toString() {
         return "Int64Buffer:"+super.toString();
     }

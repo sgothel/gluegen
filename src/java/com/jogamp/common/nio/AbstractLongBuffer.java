@@ -33,8 +33,6 @@ package com.jogamp.common.nio;
 
 import com.jogamp.common.os.*;
 import java.nio.ByteBuffer;
-import java.nio.Buffer;
-import java.util.HashMap;
 
 /**
  * Hardware independent container for native pointer arrays.
@@ -45,11 +43,9 @@ import java.util.HashMap;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public abstract class AbstractLongBuffer extends AbstractBuffer {
+public abstract class AbstractLongBuffer<B extends AbstractLongBuffer> extends AbstractBuffer<B> {
 
     protected long[] backup;
-
-    protected HashMap/*<aptr, buffer>*/ dataMap = new HashMap();
 
     static {
         NativeLibrary.ensureNativeLibLoaded();
@@ -67,6 +63,7 @@ public abstract class AbstractLongBuffer extends AbstractBuffer {
         }
     }
 
+    @Override
     public final boolean hasArray() {
         return true;
     }
@@ -104,13 +101,13 @@ public abstract class AbstractLongBuffer extends AbstractBuffer {
     }
 
     /** Absolute put method. Put the pointer value at the given index */
-    public abstract AbstractLongBuffer put(int index, long value);
+    public abstract B put(int index, long value);
 
     /** Relative put method. Put the pointer value at the current position and increment the position by one. */
-    public final AbstractLongBuffer put(long value) {
+    public final B put(long value) {
         put(position, value);
         position++;
-        return this;
+        return (B) this;
     }
 
     /** 
@@ -133,13 +130,13 @@ public abstract class AbstractLongBuffer extends AbstractBuffer {
     /** 
      * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code> 
      * to this buffer and increment the position by <code>capacity-position</code>. */
-    public AbstractLongBuffer put(AbstractLongBuffer src) {
+    public B put(B src) {
         if (remaining() < src.remaining()) {
             throw new IndexOutOfBoundsException();
         }
         while (src.hasRemaining()) {
                  put(src.get()); 
         }
-        return this;
+        return (B) this;
     }
 }

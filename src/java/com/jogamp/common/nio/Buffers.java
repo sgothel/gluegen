@@ -38,7 +38,6 @@
  */
 package com.jogamp.common.nio;
 
-import com.jogamp.common.os.Platform;
 import java.nio.*;
 
 /**
@@ -217,14 +216,12 @@ public class Buffers {
             return ((ShortBuffer) buffer).slice();
         } else if (buffer instanceof FloatBuffer) {
             return ((FloatBuffer) buffer).slice();
-        } else if (Platform.isJavaSE()) {
-            if (buffer instanceof DoubleBuffer) {
-                return ((DoubleBuffer) buffer).slice();
-            } else if (buffer instanceof LongBuffer) {
-                return ((LongBuffer) buffer).slice();
-            } else if (buffer instanceof CharBuffer) {
-                return ((CharBuffer) buffer).slice();
-            }
+        } else if (buffer instanceof DoubleBuffer) {
+            return ((DoubleBuffer) buffer).slice();
+        } else if (buffer instanceof LongBuffer) {
+            return ((LongBuffer) buffer).slice();
+        } else if (buffer instanceof CharBuffer) {
+            return ((CharBuffer) buffer).slice();
         }
         throw new IllegalArgumentException("unexpected buffer type: " + buffer.getClass());
     }
@@ -249,19 +246,13 @@ public class Buffers {
      * implementation.
      */
     public static ByteBuffer nativeOrder(ByteBuffer buf) {
-        if (Platform.isJavaSE()) {
-            return buf.order(ByteOrder.nativeOrder());
-        } else {
-            // JSR 239 does not support the ByteOrder class or the order methods.
-            // The initial order of a byte buffer is the platform byte order.
-            return buf;
-        }
+        return buf.order(ByteOrder.nativeOrder());
     }
 
     /**
      * Returns the size of a single element of this buffer in bytes.
      */
-    public static final int sizeOfBufferElem(Buffer buffer) {
+    public static int sizeOfBufferElem(Buffer buffer) {
         if (buffer == null) {
             return 0;
         }
@@ -273,14 +264,12 @@ public class Buffers {
             return SIZEOF_SHORT;
         } else if (buffer instanceof FloatBuffer) {
             return SIZEOF_FLOAT;
-        } else if (Platform.isJavaSE()) {
-            if (buffer instanceof DoubleBuffer) {
-                return SIZEOF_DOUBLE;
-            } else if (buffer instanceof LongBuffer) {
-                return SIZEOF_LONG;
-            } else if (buffer instanceof CharBuffer) {
-                return SIZEOF_CHAR;
-            }
+        } else if (buffer instanceof DoubleBuffer) {
+            return SIZEOF_DOUBLE;
+        } else if (buffer instanceof LongBuffer) {
+            return SIZEOF_LONG;
+        } else if (buffer instanceof CharBuffer) {
+            return SIZEOF_CHAR;
         }
         throw new RuntimeException("Unexpected buffer type " + buffer.getClass().getName());
     }
@@ -306,14 +295,12 @@ public class Buffers {
             return ((Int64Buffer) buf).isDirect();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).isDirect();
-        } else if (Platform.isJavaSE()) {
-            if (buf instanceof DoubleBuffer) {
-                return ((DoubleBuffer) buf).isDirect();
-            } else if (buf instanceof LongBuffer) {
-                return ((LongBuffer) buf).isDirect();
-            }else if (buf instanceof CharBuffer) {
-                return ((CharBuffer) buf).isDirect();
-            }
+        } else if (buf instanceof DoubleBuffer) {
+            return ((DoubleBuffer) buf).isDirect();
+        } else if (buf instanceof LongBuffer) {
+            return ((LongBuffer) buf).isDirect();
+        }else if (buf instanceof CharBuffer) {
+            return ((CharBuffer) buf).isDirect();
         }
         throw new IllegalArgumentException("Unexpected buffer type " + buf.getClass().getName());
     }
@@ -337,14 +324,12 @@ public class Buffers {
                 return pos * SIZEOF_INT;
             } else if (buf instanceof ShortBuffer) {
                 return pos * SIZEOF_SHORT;
-            }else if(Platform.isJavaSE()) {
-                if (buf instanceof DoubleBuffer) {
-                    return pos * SIZEOF_DOUBLE;
-                } else if (buf instanceof LongBuffer) {
-                    return pos * SIZEOF_LONG;
-                } else if (buf instanceof CharBuffer) {
-                    return pos * SIZEOF_CHAR;
-                }
+            }else if (buf instanceof DoubleBuffer) {
+                return pos * SIZEOF_DOUBLE;
+            } else if (buf instanceof LongBuffer) {
+                return pos * SIZEOF_LONG;
+            } else if (buf instanceof CharBuffer) {
+                return pos * SIZEOF_CHAR;
             }
         } else if (buf instanceof Int64Buffer) {
             Int64Buffer int64Buffer = (Int64Buffer) buf;
@@ -377,14 +362,12 @@ public class Buffers {
             return ((Int64Buffer) buf).array();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).array();
-        }else if(Platform.isJavaSE()) {
-            if (buf instanceof DoubleBuffer) {
-                return ((DoubleBuffer) buf).array();
-            } else if (buf instanceof LongBuffer) {
-                return ((LongBuffer) buf).array();
-            } else if (buf instanceof CharBuffer) {
-                return ((CharBuffer) buf).array();
-            }
+        }else if (buf instanceof DoubleBuffer) {
+            return ((DoubleBuffer) buf).array();
+        } else if (buf instanceof LongBuffer) {
+            return ((LongBuffer) buf).array();
+        } else if (buf instanceof CharBuffer) {
+            return ((CharBuffer) buf).array();
         }
 
         throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
@@ -410,14 +393,12 @@ public class Buffers {
                 return (SIZEOF_INT * (((IntBuffer) buf).arrayOffset() + pos));
             } else if (buf instanceof ShortBuffer) {
                 return (SIZEOF_SHORT * (((ShortBuffer) buf).arrayOffset() + pos));
-            }else if(Platform.isJavaSE()) {
-                if (buf instanceof DoubleBuffer) {
-                    return (SIZEOF_DOUBLE * (((DoubleBuffer) buf).arrayOffset() + pos));
-                } else if (buf instanceof LongBuffer) {
-                    return (SIZEOF_LONG * (((LongBuffer) buf).arrayOffset() + pos));
-                } else if (buf instanceof CharBuffer) {
-                    return (SIZEOF_CHAR * (((CharBuffer) buf).arrayOffset() + pos));
-                }
+            }else if (buf instanceof DoubleBuffer) {
+                return (SIZEOF_DOUBLE * (((DoubleBuffer) buf).arrayOffset() + pos));
+            } else if (buf instanceof LongBuffer) {
+                return (SIZEOF_LONG * (((LongBuffer) buf).arrayOffset() + pos));
+            } else if (buf instanceof CharBuffer) {
+                return (SIZEOF_CHAR * (((CharBuffer) buf).arrayOffset() + pos));
             }
         } else if (buf instanceof Int64Buffer) {
             Int64Buffer int64Buffer = (Int64Buffer) buf;
@@ -651,14 +632,12 @@ public class Buffers {
             return ((IntBuffer) dest).put((IntBuffer) src);
         } else if ((dest instanceof FloatBuffer) && (src instanceof FloatBuffer)) {
             return ((FloatBuffer) dest).put((FloatBuffer) src);
-        } else if (Platform.isJavaSE()) {
-            if ((dest instanceof LongBuffer) && (src instanceof LongBuffer)) {
-                return ((LongBuffer) dest).put((LongBuffer) src);
-            } else if ((dest instanceof DoubleBuffer) && (src instanceof DoubleBuffer)) {
-                return ((DoubleBuffer) dest).put((DoubleBuffer) src);
-            } else if ((dest instanceof CharBuffer) && (src instanceof CharBuffer)) {
-                return ((CharBuffer) dest).put((CharBuffer) src);
-            }
+        } else if ((dest instanceof LongBuffer) && (src instanceof LongBuffer)) {
+            return ((LongBuffer) dest).put((LongBuffer) src);
+        } else if ((dest instanceof DoubleBuffer) && (src instanceof DoubleBuffer)) {
+            return ((DoubleBuffer) dest).put((DoubleBuffer) src);
+        } else if ((dest instanceof CharBuffer) && (src instanceof CharBuffer)) {
+            return ((CharBuffer) dest).put((CharBuffer) src);
         }
         throw new IllegalArgumentException("Incompatible Buffer classes: dest = " + dest.getClass().getName() + ", src = " + src.getClass().getName());
     }
@@ -808,14 +787,12 @@ public class Buffers {
                 bytesRemaining = elementsRemaining * SIZEOF_INT;
             } else if (buffer instanceof ShortBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_SHORT;
-            }else if(Platform.isJavaSE()) {
-                if (buffer instanceof DoubleBuffer) {
-                    bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
-                } else if (buffer instanceof LongBuffer) {
-                    bytesRemaining = elementsRemaining * SIZEOF_LONG;
-                } else if (buffer instanceof CharBuffer) {
-                    bytesRemaining = elementsRemaining * SIZEOF_CHAR;
-                }
+            }else if (buffer instanceof DoubleBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
+            } else if (buffer instanceof LongBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_LONG;
+            } else if (buffer instanceof CharBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_CHAR;
             }
         } else if (buffer instanceof Int64Buffer) {
             Int64Buffer int64Buffer = (Int64Buffer) buffer;

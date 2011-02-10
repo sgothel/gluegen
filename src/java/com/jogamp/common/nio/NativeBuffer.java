@@ -39,7 +39,7 @@ import java.nio.ByteBuffer;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public interface NativeBuffer/*<B extends NativeBuffer>*/ {
+public interface NativeBuffer<B extends NativeBuffer> {
 
     public int limit();
 
@@ -47,13 +47,11 @@ public interface NativeBuffer/*<B extends NativeBuffer>*/ {
 
     public int position();
 
-    public NativeBuffer position(int newPos);
+    public B position(int newPos);
 
     public int remaining();
 
     public boolean hasRemaining();
-
-    public NativeBuffer rewind();
 
     public boolean hasArray();
 
@@ -63,7 +61,6 @@ public interface NativeBuffer/*<B extends NativeBuffer>*/ {
 
     public boolean isDirect();
 
-/*
     public long[] array();
 
     public B rewind();
@@ -77,6 +74,5 @@ public interface NativeBuffer/*<B extends NativeBuffer>*/ {
     public long get();
 
     public long get(int idx);
-*/
 
 }
