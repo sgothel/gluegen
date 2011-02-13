@@ -228,10 +228,9 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Method getMethod(Class clazz, String methodName, Class[] argTypes, ClassLoader cl)
+  public static final Method getMethod(Class clazz, String methodName, Class[] argTypes)
       throws JogampRuntimeException, RuntimeException
   {
-    Method method;
     try {
         return clazz.getDeclaredMethod(methodName, argTypes);
     } catch (NoSuchMethodException ex) {
@@ -246,7 +245,7 @@ public final class ReflectionUtil {
       throws JogampRuntimeException, RuntimeException
   {
     try {
-        return getMethod(getClassImpl(clazzName, true, cl), methodName, argTypes, cl);
+        return getMethod(getClassImpl(clazzName, true, cl), methodName, argTypes);
     } catch (ClassNotFoundException ex) {
         throw new JogampRuntimeException(clazzName + " not available", ex);
     }
