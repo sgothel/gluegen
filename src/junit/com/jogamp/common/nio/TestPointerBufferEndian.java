@@ -1,14 +1,9 @@
 
-package com.jogamp.gluegen.test.junit.runtime;
+package com.jogamp.common.nio;
 
-import com.jogamp.common.nio.*;
 import com.jogamp.common.os.*;
 
-import java.nio.*;
-
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static java.lang.System.*;
@@ -20,9 +15,9 @@ public class TestPointerBufferEndian {
         String bitsProp = System.getProperty("sun.arch.data.model");
         String os = System.getProperty("os.name");
         String cpu = System.getProperty("os.arch");
-        System.out.println("OS: <"+os+"> CPU: <"+cpu+"> Bits: <"+bitsPtr+"/"+bitsProp+">");
-        System.out.println("CPU is: "+ (Platform.is32Bit()?"32":"64") + " bit");
-        System.out.println("Buffer is in: "+ (Platform.isLittleEndian()?"little":"big") + " endian");
+        out.println("OS: <"+os+"> CPU: <"+cpu+"> Bits: <"+bitsPtr+"/"+bitsProp+">");
+        out.println("CPU is: "+ (Platform.is32Bit()?"32":"64") + " bit");
+        out.println("Buffer is in: "+ (Platform.isLittleEndian()?"little":"big") + " endian");
 
         long[] valuesSource = { 0x0123456789ABCDEFL, 0x8877665544332211L, 0xAFFEDEADBEEFAFFEL };
         long[] values32Bit  = { 0x0000000089ABCDEFL, 0x0000000044332211L, 0x00000000BEEFAFFEL };

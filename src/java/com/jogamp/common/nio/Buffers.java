@@ -41,11 +41,13 @@ package com.jogamp.common.nio;
 import java.nio.*;
 
 /**
+ * Utility methods allowing easy {@link java.nio.Buffer} manipulations.
+ * 
  * @author Kenneth Russel
  * @author Sven Gothel
  * @author Michael Bien
  */
-public class Buffers {
+public final class Buffers {
 
     public static final int SIZEOF_BYTE     = 1;
     public static final int SIZEOF_SHORT    = 2;
@@ -55,7 +57,7 @@ public class Buffers {
     public static final int SIZEOF_LONG     = 8;
     public static final int SIZEOF_DOUBLE   = 8;
 
-    protected Buffers() {}
+    private Buffers() {}
 
     /**
      * Allocates a new direct ByteBuffer with the specified number of
@@ -205,38 +207,45 @@ public class Buffers {
     }
 
     /**
-     * Calls slice on the concrete buffer type.
+     * Calls slice on the specified buffer.
+     * @see #slice(java.nio.Buffer, int, int) 
      */
-    public static Buffer slice(Buffer buffer) {
+    public static <B extends Buffer> B slice(B buffer) {
         if (buffer instanceof ByteBuffer) {
-            return ((ByteBuffer) buffer).slice();
+            return (B) ((ByteBuffer) buffer).slice();
         } else if (buffer instanceof IntBuffer) {
-            return ((IntBuffer) buffer).slice();
+            return (B) ((IntBuffer) buffer).slice();
         } else if (buffer instanceof ShortBuffer) {
-            return ((ShortBuffer) buffer).slice();
+            return (B) ((ShortBuffer) buffer).slice();
         } else if (buffer instanceof FloatBuffer) {
-            return ((FloatBuffer) buffer).slice();
+            return (B) ((FloatBuffer) buffer).slice();
         } else if (buffer instanceof DoubleBuffer) {
-            return ((DoubleBuffer) buffer).slice();
+            return (B) ((DoubleBuffer) buffer).slice();
         } else if (buffer instanceof LongBuffer) {
-            return ((LongBuffer) buffer).slice();
+            return (B) ((LongBuffer) buffer).slice();
         } else if (buffer instanceof CharBuffer) {
-            return ((CharBuffer) buffer).slice();
+            return (B) ((CharBuffer) buffer).slice();
         }
         throw new IllegalArgumentException("unexpected buffer type: " + buffer.getClass());
     }
 
     /**
      * Slices the specified buffer with offset as position and offset+size as limit.
+     * Concurrency warning: this method changes the buffers position and limit but
+     * will restore it before return.
      */
-    public static Buffer slice(Buffer buffer, int offset, int size) {
+    public static <B extends Buffer> B slice(B buffer, int offset, int size) {
         int pos = buffer.position();
         int limit = buffer.limit();
 
-        buffer.position(offset).limit(offset+size);
-        Buffer slice = slice(buffer);
+        B slice = null;
+        try{
+            buffer.position(offset).limit(offset+size);
+            slice = slice(buffer);
+        }finally{
+            buffer.position(pos).limit(limit);
+        }
 
-        buffer.position(pos).limit(limit);
         return slice;
     }
 
@@ -623,69 +632,69 @@ public class Buffers {
     //----------------------------------------------------------------------
     // Convenient put methods with generic target Buffer
     //
-    public static Buffer put(Buffer dest, Buffer src) {
+    public static <B extends Buffer> B put(B dest, Buffer src) {
         if ((dest instanceof ByteBuffer) && (src instanceof ByteBuffer)) {
-            return ((ByteBuffer) dest).put((ByteBuffer) src);
+            return (B) ((ByteBuffer) dest).put((ByteBuffer) src);
         } else if ((dest instanceof ShortBuffer) && (src instanceof ShortBuffer)) {
-            return ((ShortBuffer) dest).put((ShortBuffer) src);
+            return (B) ((ShortBuffer) dest).put((ShortBuffer) src);
         } else if ((dest instanceof IntBuffer) && (src instanceof IntBuffer)) {
-            return ((IntBuffer) dest).put((IntBuffer) src);
+            return (B) ((IntBuffer) dest).put((IntBuffer) src);
         } else if ((dest instanceof FloatBuffer) && (src instanceof FloatBuffer)) {
-            return ((FloatBuffer) dest).put((FloatBuffer) src);
+            return (B) ((FloatBuffer) dest).put((FloatBuffer) src);
         } else if ((dest instanceof LongBuffer) && (src instanceof LongBuffer)) {
-            return ((LongBuffer) dest).put((LongBuffer) src);
+            return (B) ((LongBuffer) dest).put((LongBuffer) src);
         } else if ((dest instanceof DoubleBuffer) && (src instanceof DoubleBuffer)) {
-            return ((DoubleBuffer) dest).put((DoubleBuffer) src);
+            return (B) ((DoubleBuffer) dest).put((DoubleBuffer) src);
         } else if ((dest instanceof CharBuffer) && (src instanceof CharBuffer)) {
-            return ((CharBuffer) dest).put((CharBuffer) src);
+            return (B) ((CharBuffer) dest).put((CharBuffer) src);
         }
         throw new IllegalArgumentException("Incompatible Buffer classes: dest = " + dest.getClass().getName() + ", src = " + src.getClass().getName());
     }
 
-    public static Buffer putb(Buffer dest, byte v) {
+    public static <B extends Buffer> B putb(B dest, byte v) {
         if (dest instanceof ByteBuffer) {
-            return ((ByteBuffer) dest).put(v);
+            return (B) ((ByteBuffer) dest).put(v);
         } else if (dest instanceof ShortBuffer) {
-            return ((ShortBuffer) dest).put((short) v);
+            return (B) ((ShortBuffer) dest).put((short) v);
         } else if (dest instanceof IntBuffer) {
-            return ((IntBuffer) dest).put((int) v);
+            return (B) ((IntBuffer) dest).put((int) v);
         } else {
             throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
     }
 
-    public static Buffer puts(Buffer dest, short v) {
+    public static <B extends Buffer> B puts(B dest, short v) {
         if (dest instanceof ShortBuffer) {
-            return ((ShortBuffer) dest).put(v);
+            return (B) ((ShortBuffer) dest).put(v);
         } else if (dest instanceof IntBuffer) {
-            return ((IntBuffer) dest).put((int) v);
+            return (B) ((IntBuffer) dest).put((int) v);
         } else {
             throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
         }
     }
 
-    public static void puti(Buffer dest, int v) {
+    public static <B extends Buffer> B puti(B dest, int v) {
         if (dest instanceof IntBuffer) {
-            ((IntBuffer) dest).put(v);
+            return (B) ((IntBuffer) dest).put(v);
         } else {
             throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
         }
     }
 
-    public static void putf(Buffer dest, float v) {
+    public static <B extends Buffer> B putf(B dest, float v) {
         if (dest instanceof FloatBuffer) {
-            ((FloatBuffer) dest).put(v);
+            return (B) ((FloatBuffer) dest).put(v);
 /* TODO FixedPoint required
         } else if (dest instanceof IntBuffer) {
-            ((IntBuffer) dest).put(FixedPoint.toFixed(v));
+            return (B) ((IntBuffer) dest).put(FixedPoint.toFixed(v));
 */
         } else {
             throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
         }
     }
-    public static void putd(Buffer dest, double v) {
+    public static <B extends Buffer> B putd(B dest, double v) {
         if (dest instanceof FloatBuffer) {
-            ((FloatBuffer) dest).put((float) v);
+            return (B) ((FloatBuffer) dest).put((float) v);
         } else {
             throw new IllegalArgumentException("Double doesn't match Buffer Class: " + dest);
         }
