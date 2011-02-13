@@ -58,7 +58,7 @@ public class Buffers {
     public static final int SIZEOF_LONG     = 8;
     public static final int SIZEOF_DOUBLE   = 8;
 
-    private Buffers() {}
+    protected Buffers() {}
 
     /**
      * Allocates a new direct ByteBuffer with the specified number of
