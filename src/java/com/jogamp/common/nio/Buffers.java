@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -47,7 +48,7 @@ import java.nio.*;
  * @author Sven Gothel
  * @author Michael Bien
  */
-public final class Buffers {
+public class Buffers {
 
     public static final int SIZEOF_BYTE     = 1;
     public static final int SIZEOF_SHORT    = 2;
