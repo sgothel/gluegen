@@ -213,8 +213,8 @@ public class Buffers {
      */
     public static <B extends Buffer> B slice(B buffer) {
         if (buffer instanceof ByteBuffer) {
-            ByteBuffer bb = (ByteBuffer) buffer;
-            return (B) bb.slice().order(bb.order()); // bb can change byte order on slice and duplicate
+            final ByteBuffer bb = (ByteBuffer) buffer;
+            return (B) bb.slice().order(bb.order()); // slice and duplicate may change byte order
         } else if (buffer instanceof IntBuffer) {
             return (B) ((IntBuffer) buffer).slice();
         } else if (buffer instanceof ShortBuffer) {
