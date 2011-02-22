@@ -168,7 +168,7 @@ public class CachedBufferFactory {
     public ByteBuffer newDirectByteBuffer(int size) {
         
         // if large enough... just create it
-        if (size >= currentBuffer.capacity()) {
+        if (size > currentBuffer.capacity()) {
             checkIfFixed();
             return Buffers.newDirectByteBuffer(size);
         }
@@ -180,7 +180,7 @@ public class CachedBufferFactory {
         }
 
         currentBuffer.limit(currentBuffer.position() + size);
-        ByteBuffer result = currentBuffer.slice();
+        ByteBuffer result = currentBuffer.slice().order(currentBuffer.order());
         currentBuffer.position(currentBuffer.limit());
         currentBuffer.limit(currentBuffer.capacity());
         return result;
