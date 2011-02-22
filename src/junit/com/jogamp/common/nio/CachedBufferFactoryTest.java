@@ -28,6 +28,7 @@
 package com.jogamp.common.nio;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -88,6 +89,7 @@ public class CachedBufferFactoryTest {
         // create
         for (int i = 0; i < sizes.length; i++) {
             buffers[i] = factory.newDirectIntBuffer(sizes[i]);
+            assertEquals(ByteOrder.nativeOrder(), buffers[i].order());
             fill(buffers[i], values[i]);
         }
         

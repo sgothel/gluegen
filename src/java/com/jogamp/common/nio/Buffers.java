@@ -208,12 +208,13 @@ public class Buffers {
     }
 
     /**
-     * Calls slice on the specified buffer.
+     * Calls slice on the specified buffer while maintaining the byteorder.
      * @see #slice(java.nio.Buffer, int, int) 
      */
     public static <B extends Buffer> B slice(B buffer) {
         if (buffer instanceof ByteBuffer) {
-            return (B) ((ByteBuffer) buffer).slice();
+            ByteBuffer bb = (ByteBuffer) buffer;
+            return (B) bb.slice().order(bb.order()); // bb can change byte order on slice and duplicate
         } else if (buffer instanceof IntBuffer) {
             return (B) ((IntBuffer) buffer).slice();
         } else if (buffer instanceof ShortBuffer) {
@@ -231,7 +232,8 @@ public class Buffers {
     }
 
     /**
-     * Slices the specified buffer with offset as position and offset+size as limit.
+     * Slices the specified buffer with offset as position and offset+size as limit
+     * while maintaining the byteorder.
      * Concurrency warning: this method changes the buffers position and limit but
      * will restore it before return.
      */
@@ -293,24 +295,12 @@ public class Buffers {
         if (buf == null) {
             return true;
         }
-        if (buf instanceof ByteBuffer) {
-            return ((ByteBuffer) buf).isDirect();
-        } else if (buf instanceof FloatBuffer) {
-            return ((FloatBuffer) buf).isDirect();
-        } else if (buf instanceof IntBuffer) {
-            return ((IntBuffer) buf).isDirect();
-        } else if (buf instanceof ShortBuffer) {
-            return ((ShortBuffer) buf).isDirect();
+        if (buf instanceof Buffer) {
+            return ((Buffer) buf).isDirect();
         } else if (buf instanceof Int64Buffer) {
             return ((Int64Buffer) buf).isDirect();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).isDirect();
-        } else if (buf instanceof DoubleBuffer) {
-            return ((DoubleBuffer) buf).isDirect();
-        } else if (buf instanceof LongBuffer) {
-            return ((LongBuffer) buf).isDirect();
-        }else if (buf instanceof CharBuffer) {
-            return ((CharBuffer) buf).isDirect();
         }
         throw new IllegalArgumentException("Unexpected buffer type " + buf.getClass().getName());
     }
@@ -360,24 +350,12 @@ public class Buffers {
         if (buf == null) {
             return null;
         }
-        if (buf instanceof ByteBuffer) {
-            return ((ByteBuffer) buf).array();
-        } else if (buf instanceof FloatBuffer) {
-            return ((FloatBuffer) buf).array();
-        } else if (buf instanceof IntBuffer) {
-            return ((IntBuffer) buf).array();
-        } else if (buf instanceof ShortBuffer) {
-            return ((ShortBuffer) buf).array();
+        if (buf instanceof Buffer) {
+            return ((Buffer) buf).array();
         } else if (buf instanceof Int64Buffer) {
             return ((Int64Buffer) buf).array();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).array();
-        }else if (buf instanceof DoubleBuffer) {
-            return ((DoubleBuffer) buf).array();
-        } else if (buf instanceof LongBuffer) {
-            return ((LongBuffer) buf).array();
-        } else if (buf instanceof CharBuffer) {
-            return ((CharBuffer) buf).array();
         }
 
         throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
