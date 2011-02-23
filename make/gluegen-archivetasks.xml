@@ -7,6 +7,7 @@
       <sequential>
        <delete file="@{destfile}" quiet="true" failonerror="false" />
        <exec executable="7z"
+             searchpath="true"
              dir="@{basedir}"
              spawn="false"
              failifexecutionfails="true"
