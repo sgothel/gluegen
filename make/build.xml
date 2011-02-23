@@ -20,6 +20,7 @@
   </fail>
 
   <import file="gluegen-cpptasks.xml" />
+  <import file="gluegen-archivetasks.xml" />
 
   <condition property="rootrel.build" value="build">
     <not>
@@ -681,9 +682,9 @@
         <classpath path="${classes}"/>
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
     </javadoc>
-    <zip destfile="${build}/javadoc.zip"
-         basedir="${javadoc.root.path}"
-         includes="gluegen/**" />
+    <archive.7z destfile="${build}/javadoc.7z"
+                basedir="${javadoc.root.path}"
+                includes="gluegen/**" />
   </target>
 
     <!-- ================================================================== -->
@@ -709,8 +710,7 @@
         <copy todir="${archive}/jnlp-files">
             <fileset dir="${project.root}/jnlp-files" includes="*" />
         </copy>
-        <delete quiet="true" file="${build}/${archive.name}.zip"/>
-        <zip destfile="${build}/${archive.name}.zip"
+        <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
         <!-- Clean up after ourselves -->
