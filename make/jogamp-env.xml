@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jogamp-env" basedir=".">
+
+  <target name="jogamp.env.init">
+    <property environment="env" />
+
+    <!-- only set 'build.archiveon' if set in environment to trigger archive creation -->
+    <condition property="build.archiveon" value="${env.build.archiveon}">
+        <isset property="${env.build.archiveon}"/>
+    </condition>
+
+    <condition property="build.node.name" value="${env.NODE_NAME}">
+        <isset property="${env.NODE_NAME}"/>
+    </condition>
+    <property name="build.node.name" value="local"/>
+
+  </target>
+
+</project>
