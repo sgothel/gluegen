@@ -7,7 +7,7 @@
     <property name="gluegen.root" value=".." />
 
     <import file="gluegen-cpptasks.xml" />
-    <import file="gluegen-archivetasks.xml" />
+    <import file="jogamp-archivetasks.xml" />
     <import file="jogamp-env.xml" />
 
     <condition property="rootrel.build" value="build">
