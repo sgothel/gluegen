@@ -32,6 +32,7 @@
 <project name="GlueGen-properties" basedir=".">
 
   <target name="gluegen.properties.load.user" unless="gluegen.user.properties.file.set">
+    <property environment="env" />
     <!-- Load the user specified properties file that defines various host
       - specific paths.  The user will be notified if this is does not
       - exist. -->
