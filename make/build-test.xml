@@ -8,6 +8,7 @@
 
     <import file="gluegen-cpptasks.xml" />
     <import file="gluegen-archivetasks.xml" />
+    <import file="jogamp-env.xml" />
 
     <condition property="rootrel.build" value="build">
         <not>
@@ -15,7 +16,7 @@
         </not>
     </condition>
 
-    <target name="init" depends="gluegen.properties.load.user">
+    <target name="init" depends="jogamp.env.init,gluegen.properties.load.user">
 
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="validate-properties.xml" inheritall="true"/>

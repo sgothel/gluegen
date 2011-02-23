@@ -31,9 +31,7 @@
   -->
 <project name="GlueGen-properties" basedir=".">
 
-  <import file="jogamp-env.xml" />
-
-  <target name="gluegen.properties.load.user" depends="jogamp.env.init" unless="gluegen.user.properties.file.set">
+  <target name="gluegen.properties.load.user" unless="gluegen.user.properties.file.set">
     <!-- Load the user specified properties file that defines various host
       - specific paths.  The user will be notified if this is does not
       - exist. -->

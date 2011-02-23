@@ -21,6 +21,7 @@
 
   <import file="gluegen-cpptasks.xml" />
   <import file="gluegen-archivetasks.xml" />
+  <import file="jogamp-env.xml" />
 
   <condition property="rootrel.build" value="build">
     <not>
@@ -36,7 +37,7 @@
     <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/jogamp/gluegen/nativesig/**" />
   </target>
 
-  <target name="init" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
+  <target name="init" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->

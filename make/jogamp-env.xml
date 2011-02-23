@@ -5,14 +5,14 @@
     <property environment="env" />
 
     <!-- only set 'build.archiveon' if set in environment to trigger archive creation -->
-    <condition property="build.archiveon" value="${env.build.archiveon}">
-        <isset property="${env.build.archiveon}"/>
+    <condition property="build.archiveon" value="${env.BUILD_ARCHIVE}">
+        <istrue value="${env.BUILD_ARCHIVE}"/>
+        <!--isset property="${env.BUILD_ARCHIVE}"/-->
     </condition>
 
-    <condition property="build.node.name" value="${env.NODE_NAME}">
-        <isset property="${env.NODE_NAME}"/>
+    <condition property="build.node.name" value="${env.NODE_NAME}" else="local">
+        <length string="${env.NODE_NAME}" when="greater" length="0" />
     </condition>
-    <property name="build.node.name" value="local"/>
 
   </target>
 
