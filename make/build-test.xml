@@ -7,6 +7,8 @@
     <property name="gluegen.root" value=".." />
 
     <import file="gluegen-cpptasks.xml" />
+    <import file="jogamp-archivetasks.xml" />
+    <import file="jogamp-env.xml" />
 
     <condition property="rootrel.build" value="build">
         <not>
@@ -14,7 +16,7 @@
         </not>
     </condition>
 
-    <target name="init" depends="gluegen.properties.load.user">
+    <target name="init" depends="jogamp.env.init,gluegen.properties.load.user">
 
         <!-- Call the external config validator script to make sure the config is ok and consistent -->
         <ant antfile="validate-properties.xml" inheritall="true"/>
@@ -88,7 +90,7 @@
         <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
                  classpathref="gluegen.classpath" />
 
-        <property name="test.archive.name" value="${archive.name}-test-results"/>
+        <property name="test.archive.name" value="${archive.name}-test-results-${build.node.name}"/>
     </target>
 
     <target name="java.build" depends="java.generate">
@@ -173,7 +175,7 @@
     <target name="junit.compile.check" depends="init">
       <delete quiet="true">
         <fileset dir="${build}/test/results" includes="**"/>
-        <fileset file="${build}/${test.archive.name}.zip"/>
+        <fileset file="${build}/${test.archive.name}.7z"/>
       </delete>
       <mkdir dir="${build}/test/results"/>
 
@@ -366,9 +368,9 @@
 
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="init">
-        <zip destfile="${build}/${test.archive.name}.zip" update="true">
-            <zipfileset dir="${build}/test/results" prefix="${archive.name}/test-results"/>
-        </zip>
+        <archive.7z destfile="${build}/${test.archive.name}.7z"
+                    basedir="${build}/test/results" 
+                    includes="**" />
     </target>
 
 </project>

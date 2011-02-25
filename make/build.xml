@@ -20,6 +20,8 @@
   </fail>
 
   <import file="gluegen-cpptasks.xml" />
+  <import file="jogamp-archivetasks.xml" />
+  <import file="jogamp-env.xml" />
 
   <condition property="rootrel.build" value="build">
     <not>
@@ -35,7 +37,7 @@
     <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/jogamp/gluegen/nativesig/**" />
   </target>
 
-  <target name="init" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
+  <target name="init" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
@@ -681,9 +683,9 @@
         <classpath path="${classes}"/>
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
     </javadoc>
-    <zip destfile="${build}/javadoc.zip"
-         basedir="${javadoc.root.path}"
-         includes="gluegen/**" />
+    <archive.7z destfile="${build}/javadoc.7z"
+                basedir="${javadoc.root.path}"
+                includes="gluegen/**" />
   </target>
 
     <!-- ================================================================== -->
@@ -692,7 +694,7 @@
        - This must be called after all of the build targets complete.
       -->
 
-    <target name="developer-zip-archive" depends="init" unless="build.noarchives">
+    <target name="developer-zip-archive" depends="init" if="build.archiveon">
         <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
         <mkdir dir="${archive}" />
         <copy file="${build}/artifact.properties" todir="${archive}"/>
@@ -709,8 +711,7 @@
         <copy todir="${archive}/jnlp-files">
             <fileset dir="${project.root}/jnlp-files" includes="*" />
         </copy>
-        <delete quiet="true" file="${build}/${archive.name}.zip"/>
-        <zip destfile="${build}/${archive.name}.zip"
+        <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
         <!-- Clean up after ourselves -->
