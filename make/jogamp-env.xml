@@ -7,11 +7,12 @@
     <!-- only set 'build.archiveon' if set in environment to trigger archive creation -->
     <condition property="build.archiveon" value="${env.BUILD_ARCHIVE}">
         <istrue value="${env.BUILD_ARCHIVE}"/>
-        <!--isset property="${env.BUILD_ARCHIVE}"/-->
     </condition>
 
     <condition property="build.node.name" value="${env.NODE_NAME}" else="local">
-        <length string="${env.NODE_NAME}" when="greater" length="0" />
+        <not>
+         <equals arg1="${env.NODE_NAME}" arg2="$${env.NODE_NAME}" casesensitive="true" />
+        </not>
     </condition>
 
   </target>
