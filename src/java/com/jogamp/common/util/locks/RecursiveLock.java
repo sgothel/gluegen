@@ -50,7 +50,7 @@ public class RecursiveLock implements LockExt {
         // flag signaling unlock has woken up a waiting thread
         boolean signaled = false; 
     }
-    private SyncData sdata = new SyncData(); // synchronized (flow/mem)  mutable access
+    private final SyncData sdata = new SyncData(); // synchronized (flow/mem)  mutable access
 
     private static final boolean TRACE_LOCK = Debug.isPropertyDefined("jogamp.debug.Lock.TraceLock", true, AccessController.getContext());
 

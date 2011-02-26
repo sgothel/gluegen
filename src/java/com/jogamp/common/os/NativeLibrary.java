@@ -252,14 +252,15 @@ public class NativeLibrary implements DynamicLookupHelper {
                                             ClassLoader loader) {
     List paths = new ArrayList();
     String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
-    if (libName == null)
+    if (libName == null) {
       return paths;
+    }
 
     // Allow user's full path specification to override our building of paths
     File file = new File(libName);
     if (file.isAbsolute()) {
-	paths.add(libName);
-	return paths;
+        paths.add(libName);
+        return paths;
     }
 
     String[] baseNames = buildNames(libName);
@@ -314,9 +315,7 @@ public class NativeLibrary implements DynamicLookupHelper {
 
     if (!searchSystemPathFirst) {
       // Add just the library names to use the OS's search algorithm
-      for (int i = 0; i < baseNames.length; i++) {
-        paths.add(baseNames[i]);
-      }
+      paths.addAll(Arrays.asList(baseNames));
     }
 
     return paths;
