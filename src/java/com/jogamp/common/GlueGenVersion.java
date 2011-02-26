@@ -41,7 +41,7 @@ public class GlueGenVersion extends JogampVersion {
     }
 
     public static GlueGenVersion getInstance() {
-        if(null == jogampCommonVersionInfo) {
+        if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(GlueGenVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
                     final String packageName = "com.jogamp.common";

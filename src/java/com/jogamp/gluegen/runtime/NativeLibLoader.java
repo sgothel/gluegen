@@ -61,7 +61,7 @@ public class NativeLibLoader {
   }
   
   public static void loadGlueGenRT() {
-    if (!didLoading && loadingEnabled) {
+    if (!didLoading && loadingEnabled) { // volatile: ok
       synchronized (NativeLibLoader.class) {
         if (!didLoading && loadingEnabled) {
           didLoading = true;

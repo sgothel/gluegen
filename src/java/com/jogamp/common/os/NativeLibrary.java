@@ -424,7 +424,7 @@ public class NativeLibrary implements DynamicLookupHelper {
 
   private static volatile boolean loadedDynLinkNativeLib;
   public static void ensureNativeLibLoaded() {
-    if (!loadedDynLinkNativeLib) {
+    if (!loadedDynLinkNativeLib) { // volatile: ok
       synchronized (NativeLibrary.class) {
         if (!loadedDynLinkNativeLib) {
           loadedDynLinkNativeLib = true;
