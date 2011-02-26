@@ -235,8 +235,8 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
      * Returns a new {@link Iterator}.
      * Note: this Iterator does not yet support removal of elements.
      */
-//    @Override
-    public Iterator/*<Entry>*/ iterator() {
+    @Override
+    public Iterator<Entry> iterator() {
         return new EntryIterator(table);
     }
 
@@ -264,7 +264,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         return keyNotFoundValue;
     }
 
-//    @Override
+    @Override
     public String toString() {
         // TODO use StringBuilder as soon we are at language level 5
         String str = "{";
@@ -279,7 +279,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         return str;
     }
     
-    private final static class EntryIterator implements Iterator/*<Entry>*/ {
+    private final static class EntryIterator implements Iterator<Entry> {
 
         private final Entry[] entries;
         
@@ -292,13 +292,13 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             next();
         }
 
-//        @Override
+        @Override
         public boolean hasNext() {
             return next != null;
         }
 
-//        @Override
-        public Object next() {
+        @Override
+        public Entry next() {
             Entry current = next;
 
             if(current != null && current.next != null) {
@@ -317,7 +317,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             return current;
         }
 
-//        @Override
+        @Override
         public void remove() {
             throw new UnsupportedOperationException("Not supported yet.");
         }
@@ -361,7 +361,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             this.value = value;
         }
 
-//        @Override
+        @Override
         public String toString() {
             return "["+key+":"+value+"]";
         }

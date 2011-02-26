@@ -34,7 +34,7 @@ package com.jogamp.common.util;
  */
 public class RunnableTask implements Runnable {
     Runnable runnable;
-    Object notifyObject;
+    final Object notifyObject;
     boolean catchExceptions;
     Object attachment;
 
@@ -121,6 +121,7 @@ public class RunnableTask implements Runnable {
     public long getDurationInExec() { return ts2 - ts1; }
     public long getDurationTotal() { return ts2 - ts0; }
 
+    @Override
     public String toString() {
         return "RunnableTask[executed "+isExecuted()+", t2-t0 "+getDurationTotal()+", t2-t1 "+getDurationInExec()+", t1-t0 "+getDurationInQueue()+", throwable "+getThrowable()+", Runnable "+runnable+", Attachment "+attachment+"]";
     }

@@ -37,8 +37,8 @@ import java.util.jar.Manifest;
 
 public class JogampVersion {
 
-    public static Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
-    public static Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
+    public static final Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
+    public static final Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
     
     private String packageName;
     private Manifest mf;
@@ -54,10 +54,12 @@ public class JogampVersion {
         mainAttributeNames = mainAttributes.keySet();
     }
 
+    @Override
     public final int hashCode() {
         return hash;
     }
 
+    @Override
     public final boolean equals(Object o) {
         if (o instanceof JogampVersion) {
             return mf.equals(((JogampVersion) o).getManifest());
@@ -139,13 +141,13 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.SPECIFICATION_VERSION);
     }
 
-    public final StringBuffer getFullManifestInfo(StringBuffer sb) {
+    public final StringBuilder getFullManifestInfo(StringBuilder sb) {
         return VersionUtil.getFullManifestInfo(getManifest(), sb);
     }
 
-    public StringBuffer getManifestInfo(StringBuffer sb) {
+    public StringBuilder getManifestInfo(StringBuilder sb) {
         if(null==sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
         String nl = Platform.getNewline();
         sb.append("Package: ").append(getPackageName()).append(nl);
@@ -163,9 +165,9 @@ public class JogampVersion {
         return sb;
     }
 
-    public StringBuffer toString(StringBuffer sb) {
+    public StringBuilder toString(StringBuilder sb) {
         if(null==sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
 
         sb.append(VersionUtil.SEPERATOR).append(Platform.getNewline());
@@ -175,6 +177,7 @@ public class JogampVersion {
         return sb;
     }
     
+    @Override
     public String toString() {
         return toString(null).toString();
     }
