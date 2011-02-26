@@ -145,8 +145,8 @@ public class TestRecursiveLock01 {
     }
 
     class LockedObjectAction1 implements LockedObjectIf {
-        boolean shouldStop;
-        boolean stopped;
+        volatile boolean shouldStop;
+        volatile boolean stopped;
         LockedObject lo;
         volatile int loops;
         int iloops;
@@ -161,11 +161,11 @@ public class TestRecursiveLock01 {
             this.yieldMode = yieldMode;
         }
 
-        public final synchronized void stop() {
+        public final void stop() {
             shouldStop = true;
         }
 
-        public final synchronized boolean isStopped() {
+        public final boolean isStopped() {
             return stopped;
         }
 
@@ -179,10 +179,7 @@ public class TestRecursiveLock01 {
                 lo.action2Deferred(iloops, yieldMode);
                 loops--;
             }
-            synchronized(this) {
-                stopped = true;
-                notifyAll();
-            }
+            stopped = true;
         }
     }
 
