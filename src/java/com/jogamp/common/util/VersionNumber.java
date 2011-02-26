@@ -42,6 +42,7 @@ public class VersionNumber implements Comparable {
 
     protected VersionNumber() { }
 
+    @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
         int hash = 31 + major;
@@ -49,6 +50,7 @@ public class VersionNumber implements Comparable {
         return ((hash << 5) - hash) + sub;
     }
 
+    @Override
     public final boolean equals(Object o) {
         return 0 == compareTo(o);
     }
@@ -88,6 +90,7 @@ public class VersionNumber implements Comparable {
         return sub;
     }
 
+    @Override
     public String toString() {
         return major + "." + minor + "." + sub ;
     }

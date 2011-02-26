@@ -43,11 +43,11 @@ public class VersionUtil {
     public static final String SEPERATOR = "-----------------------------------------------------------------------------------------------------";
 
     /**
-     * Appends environment information like OS, JVM and CPU architecture properties to the StringBuffer.
+     * Appends environment information like OS, JVM and CPU architecture properties to the StringBuilder.
      */
-    public static StringBuffer getPlatformInfo(StringBuffer sb) {
+    public static StringBuilder getPlatformInfo(StringBuilder sb) {
         if(null == sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
 
         sb.append(SEPERATOR).append(Platform.getNewline());
@@ -73,7 +73,7 @@ public class VersionUtil {
 
     /**
      * Prints platform info.
-     * @see #getPlatformInfo(java.lang.StringBuffer)
+     * @see #getPlatformInfo(java.lang.StringBuilder)
      */
     public static String getPlatformInfo() {
         return getPlatformInfo(null).toString();
@@ -102,13 +102,13 @@ public class VersionUtil {
         return null;
     }
 
-    public static StringBuffer getFullManifestInfo(Manifest mf, StringBuffer sb) {
+    public static StringBuilder getFullManifestInfo(Manifest mf, StringBuilder sb) {
         if(null==mf) {
             return sb;
         }
 
         if(null==sb) {
-            sb = new StringBuffer();
+            sb = new StringBuilder();
         }
 
         Attributes attr = mf.getMainAttributes();
