@@ -138,10 +138,16 @@
       <istrue value="${macosppc}" />
     </condition>
     <condition property="use.macosx32">
+     <and>
       <istrue value="${macosx32}" />
+      <os family="mac"/>
+     </and>
     </condition>
     <condition property="use.macosx64">
+     <and>
       <istrue value="${macosx64}" />
+      <os family="mac"/>
+     </and>
     </condition>
   </target>
 
