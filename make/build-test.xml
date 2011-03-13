@@ -367,10 +367,22 @@
       -->
 
     <!-- updates / create the test results zip file -->
+
     <target name="test-zip-archive" depends="init">
+        <antcall target="test-7zip-archive" inheritRefs="true"/>
+        <antcall target="test-gzip-archive" inheritRefs="true"/>
+    </target>
+    <target name="test-7zip-archive" depends="init" if="isWindows">
         <archive.7z destfile="${build}/${test.archive.name}.7z"
                     basedir="${build}/test/results" 
                     includes="**" />
+    </target>
+    <target name="test-gzip-archive" depends="init" unless="isWindows">
+        <tar destfile="${build}/${test.archive.name}.tar.gz"
+             basedir="${build}/test/results"
+             includes="**"
+             compression="gzip">
+        </tar>
     </target>
 
 </project>
