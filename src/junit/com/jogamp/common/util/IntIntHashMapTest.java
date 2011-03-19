@@ -44,6 +44,7 @@ import static java.lang.System.*;
 /**
  *
  * @author Michael Bien
+ * @author Sven Gothel 
  */
 public class IntIntHashMapTest {
 
@@ -67,7 +68,6 @@ public class IntIntHashMapTest {
             rndValues[i] = valueRnd.nextInt();
             rndKeys[i] = keyRnd.nextInt();
         }
-
     }
 
     /**
@@ -116,18 +116,129 @@ public class IntIntHashMapTest {
             intmap.put(rndKeys[i], rndValues[i]);
         }
         
-        Iterator iterator = intmap.iterator();
+        Iterator<IntIntHashMap.Entry> iterator = intmap.iterator();
         assertNotNull(iterator);
         assertTrue(iterator.hasNext());
 
         int n = 0;
         while (iterator.hasNext()) {
-            IntIntHashMap.Entry entry = (IntIntHashMap.Entry)iterator.next();
+            IntIntHashMap.Entry entry = iterator.next();
             assertNotNull(entry);
             n++;
         }
         assertEquals(intmap.size(), n);
 
+//        out.println(intmap);
+
+    }
+
+    @Test
+    public void cloneTest() {
+
+        final int smallSize = iterations / 4 ;
+        
+        final IntIntHashMap intmap = new IntIntHashMap( smallSize + smallSize / 4,  0.75f);
+        intmap.setKeyNotFoundValue(-1);
+        
+        for (int i = 0; i < smallSize; i++) {
+            intmap.put(rndKeys[i], rndValues[i]);
+        }
+        assertEquals(intmap.size(), smallSize);
+        
+        final IntIntHashMap intmapCopy = (IntIntHashMap) intmap.clone();
+        
+        assertEquals(intmap.size(), intmapCopy.size());
+        assertEquals(intmap.getKeyNotFoundValue(), intmapCopy.getKeyNotFoundValue());
+        
+        Iterator<IntIntHashMap.Entry> iterator = intmap.iterator();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+
+        Iterator<IntIntHashMap.Entry> iteratorCopy = intmapCopy.iterator();
+        assertNotNull(iteratorCopy);
+        assertTrue(iteratorCopy.hasNext());
+        
+        int n = 0;
+        while (iterator.hasNext()) {
+            assertTrue(iteratorCopy.hasNext());
+            IntIntHashMap.Entry entry = iterator.next();
+            IntIntHashMap.Entry entryCopy = iteratorCopy.next();
+            assertNotNull(entry);
+            assertNotNull(entryCopy);
+            assertEquals(entry.key, entryCopy.key);
+            assertEquals(entry.value, entryCopy.value);
+            n++;
+        }
+        assertTrue(!iteratorCopy.hasNext());
+
+        assertEquals(intmap.size(), n);
+        assertEquals(intmapCopy.size(), n);
+
+        for (int i = 0; i < smallSize; i++) {
+            assertTrue(intmap.containsValue(rndValues[i]));
+            assertTrue(intmap.containsKey(rndKeys[i]));
+            assertTrue(intmapCopy.containsValue(rndValues[i]));
+            assertTrue(intmapCopy.containsKey(rndKeys[i]));
+        }
+        
+//        out.println(intmap);
+
+    }
+
+    @Test
+    public void capacityTest() {
+        final int fixedSize = 16; 
+        final int capacity = 32; 
+        
+        final IntIntHashMap intmap = new IntIntHashMap( capacity,  0.75f);
+        intmap.setKeyNotFoundValue(-1);
+        
+        assertEquals(intmap.capacity(), capacity);        
+        for (int i = 0; i < fixedSize; i++) {
+            intmap.put(rndKeys[i], rndValues[i]);
+        }
+        assertEquals(intmap.size(), fixedSize);
+        assertEquals(intmap.capacity(), capacity);
+        
+        final IntIntHashMap intmapCopy = (IntIntHashMap) intmap.clone();
+        
+        assertEquals(intmap.size(), intmapCopy.size());
+        assertEquals(intmap.capacity(), intmapCopy.capacity());
+        assertEquals(intmap.getKeyNotFoundValue(), intmapCopy.getKeyNotFoundValue());
+        
+        Iterator<IntIntHashMap.Entry> iterator = intmap.iterator();
+        assertNotNull(iterator);
+        assertTrue(iterator.hasNext());
+
+        Iterator<IntIntHashMap.Entry> iteratorCopy = intmapCopy.iterator();
+        assertNotNull(iteratorCopy);
+        assertTrue(iteratorCopy.hasNext());
+        
+        int n = 0;
+        while (iterator.hasNext()) {
+            assertTrue(iteratorCopy.hasNext());
+            IntIntHashMap.Entry entry = iterator.next();
+            IntIntHashMap.Entry entryCopy = iteratorCopy.next();
+            assertNotNull(entry);
+            assertNotNull(entryCopy);
+            assertEquals(entry.key, entryCopy.key);
+            assertEquals(entry.value, entryCopy.value);
+            n++;
+        }
+        assertTrue(!iteratorCopy.hasNext());
+
+        assertEquals(intmap.size(), n);
+        assertEquals(intmap.capacity(), capacity);
+        assertEquals(intmapCopy.size(), n);
+        assertEquals(intmapCopy.capacity(), capacity);
+
+        for (int i = 0; i < fixedSize; i++) {
+            assertTrue(intmap.containsValue(rndValues[i]));
+            assertTrue(intmap.containsKey(rndKeys[i]));
+            assertTrue(intmapCopy.containsValue(rndValues[i]));
+            assertTrue(intmapCopy.containsKey(rndKeys[i]));
+        }
+        
 //        out.println(intmap);
 
     }

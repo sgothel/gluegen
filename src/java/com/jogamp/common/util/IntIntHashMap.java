@@ -31,6 +31,10 @@
  */
 package com.jogamp.common.util;
 
+import com.jogamp.common.JogampRuntimeException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
@@ -45,6 +49,7 @@ import java.util.Iterator;
  *
  * @author Michael Bien
  * @author Simon Goller
+ * @author Sven Gothel
  * 
  * @see IntObjectHashMap
  * @see IntLongHashMap
@@ -52,7 +57,7 @@ import java.util.Iterator;
  * @see LongLongHashMap
  * @see LongIntHashMap
  */
-public class /*name*/IntIntHashMap/*name*/ implements Iterable {
+public class /*name*/IntIntHashMap/*name*/ implements Cloneable, Iterable {
 
     private final float loadFactor;
 
@@ -63,7 +68,33 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
     private int capacity;
     private int threshold;
     private /*value*/int/*value*/ keyNotFoundValue = /*null*/-1/*null*/;
-
+    
+    private static final boolean isPrimitive;
+    private static final Constructor entryConstructor;
+    private static final Method equalsMethod;
+    
+    static {
+        final Class valueClazz = /*value*/int/*value*/.class;
+        final Class keyClazz = /*key*/int/*key*/.class;
+        
+        isPrimitive = valueClazz.isPrimitive();
+        
+        Constructor c = null;
+        Method m = null;
+        if(!isPrimitive) {
+            c = ReflectionUtil.getConstructor(Entry.class, 
+                    new Class[] { keyClazz, valueClazz, Entry.class } );
+            
+            try {
+                m = valueClazz.getDeclaredMethod("equals", Object.class);
+            } catch (NoSuchMethodException ex) { 
+                throw new JogampRuntimeException("Class "+valueClazz+" doesn't support equals(Object)");
+            }
+        }
+        entryConstructor = c;
+        equalsMethod = m;
+    }
+    
     public /*name*/IntIntHashMap/*name*/() {
         this(16, 0.75f);
     }
@@ -92,12 +123,71 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         this.mask = capacity - 1;
     }
 
+    private /*name*/IntIntHashMap/*name*/(float loadFactor, int table_size, int size,
+                                          int mask, int capacity, int threshold, 
+                                          /*value*/int/*value*/ keyNotFoundValue) {
+        this.loadFactor = loadFactor;
+        this.table = new Entry[table_size];
+        this.size = size;
+        
+        this.mask = mask;
+        this.capacity = capacity;
+        this.threshold = threshold;
+        
+        this.keyNotFoundValue = keyNotFoundValue;        
+    }
+    
+    /**
+     * Disclaimer: If the value type doesn't implement {@link Object#clone() clone()}, only the reference is copied.
+     * Note: Due to private fields we cannot implement a copy constructor, sorry.
+     * 
+     * @param source the primitive hash map to copy
+     */
+    @Override
+    public Object clone() {
+        /*name*/IntIntHashMap/*name*/ n = 
+                new /*name*/IntIntHashMap/*name*/(loadFactor, table.length, size, 
+                                                  mask, capacity, threshold, 
+                                                  keyNotFoundValue);
+        
+        for(int i=table.length-1; i>=0; i--) {
+            // single linked list -> ArrayList
+            final ArrayList<Entry> entries = new ArrayList();
+            Entry se = table[i];
+            while(null != se) {
+                entries.add(se);
+                se = se.next;
+            }
+            // clone ArrayList -> single linked list (bwd)
+            Entry de_next = null;
+            for(int j=entries.size()-1; j>=0; j--) {
+                se = entries.get(j);
+                if( isPrimitive ) {
+                    de_next = new Entry(se.key, se.value, de_next);
+                } else {
+                    final Object v = ReflectionUtil.callMethod(se.value, getCloneMethod(se.value));
+                    de_next = (Entry) ReflectionUtil.createInstance(entryConstructor, se.key, v, de_next);
+                }
+            }
+            // 1st elem of linked list is table entry
+            n.table[i] = de_next;
+        }          
+        return n;
+    }
+    
     public boolean containsValue(/*value*/int/*value*/ value) {
         Entry[] t = this.table;
         for (int i = t.length; i-- > 0;) {
             for (Entry e = t[i]; e != null; e = e.next) {
-                if (e.value == value) {
-                    return true;
+                if( isPrimitive ) {
+                    if (e.value == value) {
+                        return true;
+                    }
+                } else {
+                    final Boolean b = (Boolean) ReflectionUtil.callMethod(value, equalsMethod, e.value);
+                    if(b.booleanValue()) { 
+                        return true;
+                    }                    
                 }
             }
         }
@@ -138,7 +228,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
      */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
-        Entry[] t = this.table;
+        final Entry[] t = this.table;
         int index = (int) (key & mask);
         // Check if key already exists.
         for (Entry e = t[index]; e != null; e = e.next) {
@@ -154,7 +244,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         if (size++ >= threshold) {
             // Rehash.
             int newCapacity = 2 * capacity;
-            Entry[] newTable = new Entry[newCapacity];
+            final Entry[] newTable = new Entry[newCapacity];
             /*key*/int/*key*/ bucketmask = newCapacity - 1;
             for (int j = 0; j < t.length; j++) {
                 Entry e = t[j];
@@ -221,6 +311,13 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
      */
     public int size() {
         return size;
+    }
+
+    /**
+     * Returns the current capacity (buckets) in this map.
+     */
+    public int capacity() {
+        return capacity;
     }
 
     /**
@@ -334,12 +431,12 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
         
         private Entry next;
 
-        private Entry(/*key*/int/*key*/ k, /*value*/int/*value*/ v, Entry n) {
+        Entry(/*key*/int/*key*/ k, /*value*/int/*value*/ v, Entry n) {
             key = k;
             value = v;
             next = n;
         }
-
+        
         /**
          * Returns the key of this entry.
          */
@@ -366,5 +463,16 @@ public class /*name*/IntIntHashMap/*name*/ implements Iterable {
             return "["+key+":"+value+"]";
         }
 
+    }
+    
+    private static Method getCloneMethod(Object obj) {
+        final Class clazz = obj.getClass();
+        Method m = null;        
+        try {
+            m = clazz.getDeclaredMethod("clone");
+        } catch (NoSuchMethodException ex) { 
+            throw new JogampRuntimeException("Class "+clazz+" doesn't support clone()", ex);
+        }
+        return m;        
     }
 }
