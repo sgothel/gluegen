@@ -105,7 +105,7 @@ public final class ReflectionUtil {
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor getConstructor(Class clazz, Class[] cstrArgTypes) 
+    public static final Constructor getConstructor(Class clazz, Class ... cstrArgTypes) 
         throws JogampRuntimeException {
         try {
             if(null == cstrArgTypes) {
@@ -125,11 +125,11 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object[] cstrArgs) 
+  public static final Object createInstance(Constructor cstr, Object ... cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
     try {
-        return getConstructor(clazz, cstrArgTypes).newInstance(cstrArgs);
+        return cstr.newInstance(cstrArgs);
     } catch (Exception e) {
       Throwable t = e;
       if (t instanceof InvocationTargetException) {
@@ -141,11 +141,20 @@ public final class ReflectionUtil {
       if (t instanceof RuntimeException) {
         throw (RuntimeException) t;
       }
-      throw new JogampRuntimeException("can not create instance of "+clazz, t);
+      throw new JogampRuntimeException("can not create instance of "+cstr.getName(), t);
     }
   }
+  
+  /**
+   * @throws JogampRuntimeException if the instance can not be created.
+   */
+  public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object ... cstrArgs) 
+      throws JogampRuntimeException, RuntimeException
+  {
+    return createInstance(getConstructor(clazz, cstrArgTypes), cstrArgs);
+  }
 
-  public static final Object createInstance(Class clazz, Object[] cstrArgs) 
+  public static final Object createInstance(Class clazz, Object ... cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
     Class[] cstrArgTypes = null;
@@ -228,7 +237,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Method getMethod(Class clazz, String methodName, Class[] argTypes)
+  public static final Method getMethod(Class clazz, String methodName, Class ... argTypes)
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -259,7 +268,7 @@ public final class ReflectionUtil {
    * @throws JogampRuntimeException if call fails
    * @throws RuntimeException if call fails
    */
-  public static final Object callMethod(Object instance, Method method, Object[] args)
+  public static final Object callMethod(Object instance, Method method, Object ... args)
       throws JogampRuntimeException, RuntimeException
   {
     try {
