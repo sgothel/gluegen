@@ -28,6 +28,8 @@
 
 package com.jogamp.common.util;
 
+import java.util.StringTokenizer;
+
 public class VersionNumber implements Comparable {
 
     protected int major;
@@ -40,6 +42,33 @@ public class VersionNumber implements Comparable {
         sub = subMinorRev;
     }
 
+    /**
+     * @param versionString should be given as [MAJOR[.MINOR[.SUB]]]
+     * @param delim the delimiter, e.g. "."
+     */
+    public VersionNumber(String versionString, String delim) {
+        try {
+            StringTokenizer tok = new StringTokenizer(versionString, delim);
+            if (!tok.hasMoreTokens()) {
+                major = 0;
+                return;
+            }
+            major = Integer.valueOf(tok.nextToken()).intValue();
+            if (!tok.hasMoreTokens()) {
+                minor = 0;
+                return;
+            }
+            minor = Integer.valueOf(tok.nextToken()).intValue();
+            if (!tok.hasMoreTokens()) {
+                sub = 0;
+                return;
+            }
+            sub = Integer.valueOf(tok.nextToken()).intValue();
+        } catch (Exception e) {
+        	throw new IllegalArgumentException("version <"+versionString+">, delim <"+delim+">", e);
+        }
+    }
+    
     protected VersionNumber() { }
 
     @Override
