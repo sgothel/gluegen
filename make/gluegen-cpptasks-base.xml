@@ -628,12 +628,10 @@
     </compiler> 
 
     <compiler id="compiler.cfg.solaris.amd64" name="gcc"> 
-      <compilerarg value="-fast" /> 
-      <compilerarg value="-xchip=opteron" /> 
-      <compilerarg value="-xarch=amd64" /> 
-      <compilerarg value="-xcache=64/64/2:1024/64/16" /> 
+	  <compilerarg value="-m64" /> 
       <defineset> 
         <define name="SOLARIS" /> 
+        <define name="__arch64__" /> 
       </defineset> 
     </compiler>
 
@@ -756,15 +754,15 @@
 
     <!-- SOLARIS linker configuration --> 
 
-    <linker id="linker.cfg.solaris" name="gcc"> 
+    <linker id="linker.cfg.solaris" name="CC"> 
     </linker> 
 
-    <linker id="linker.cfg.solaris.sparcv9" name="gcc"> 
+    <linker id="linker.cfg.solaris.sparcv9" name="CC"> 
       <linkerarg value="-xarch=v9a" /> 
     </linker> 
 
-    <linker id="linker.cfg.solaris.amd64" name="gcc"> 
-      <linkerarg value="-xarch=amd64" /> 
+    <linker id="linker.cfg.solaris.amd64" name="CC"> 
+      <linkerarg value="-m64" /> 
     </linker>
 
     <!-- MacOSX linker configuration -->
