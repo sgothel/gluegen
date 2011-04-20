@@ -91,6 +91,15 @@
                  classpathref="gluegen.classpath" />
 
         <property name="test.archive.name" value="${archive.name}-test-results-${build.node.name}"/>
+
+        <property name="target.sourcelevel" value="1.5" />
+        <property name="host.sourcelevel"   value="1.5" />
+        <property name="javacdebug"       value="true" /> 
+        <property name="javacdebuglevel"  value="source,lines" /> 
+        <!--property name="javacdebuglevel"  value="source,lines,vars" /--> 
+        <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
+        <property name="javac.memorymax"  value="512m" /> 
+
     </target>
 
     <target name="java.build" depends="java.generate">
@@ -99,10 +108,10 @@
         <echo message=" build_t.gen     ${build_t.gen}"/>
 
         <javac destdir="${build_t.java}" 
-               source="1.5" debug="true" 
                fork="yes"
                includeAntRuntime="false"
-               debuglevel="lines,vars,source">
+               memoryMaximumSize="${javac.memorymax}"
+               source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit.compile.classpath"/>
             <src path="${test.base.dir}"/>
             <src path="${build_t.gen}" />
