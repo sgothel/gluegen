@@ -923,7 +923,12 @@
       <echo message="MacOSX" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.macosx" /> 
-      <property name="java.includes.dir.platform"    value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
+      <!-- Need to select either Java 10.6 Update 4's location or the old one -->
+      <condition property="java.includes.dir.platform"
+                 value="/System/Library/Frameworks/JavaVM.framework/Headers" 
+                 else="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers">
+                 <available file="/System/Library/Frameworks/JavaVM.framework/Headers/jni.h"/>
+      </condition>
       <property name="java.lib.dir.platform"         value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
     </target>
 
