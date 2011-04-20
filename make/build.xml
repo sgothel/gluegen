@@ -37,6 +37,13 @@
     <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/jogamp/gluegen/nativesig/**" />
   </target>
 
+  <target name="set.debug">
+    <property name="c.compiler.debug" value="true" /> 
+    <property name="javacdebug"       value="true" /> 
+    <property name="javacdebuglevel"  value="source,lines,vars" /> 
+  </target>
+  <target name="init.debug" depends="set.debug, init"/>
+
   <target name="init" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
     <!-- Declare all paths and user defined variables. -->
 
@@ -100,6 +107,14 @@
 
     <property name="archive.name"     value="gluegen-${gluegen.version}-${os.and.arch}" />
     <property name="archive"          value="${build}/${archive.name}" />
+
+    <property name="target.sourcelevel" value="1.5" />
+    <property name="host.sourcelevel"   value="1.5" />
+    <property name="javacdebug"       value="true" /> 
+    <property name="javacdebuglevel"  value="source,lines" /> 
+    <!--property name="javacdebuglevel"  value="source,lines,vars" /--> 
+    <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
+    <property name="javac.memorymax"  value="512m" /> 
 
   </target>
 
@@ -305,7 +320,6 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id"                        value="linker.cfg.macosx" /> 
       <property name="c.src.dir.os"                         value="macosx" />
-      <property name="java.includes.dir.platform"           value="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers" />
     </target>
     
     <target name="declare.freebsd.amd64" if="isFreeBSDAMD64">
@@ -557,12 +571,11 @@
 
     <!--compile gluegen-rt with source=1.5 first-->
     <javac destdir="${classes}"
-           source="1.5"
-           debug="true"
-           debuglevel="source,lines,vars"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes},${jogamp.common.classes}"
-           excludes="${gluegen.excludes}">
+           excludes="${gluegen.excludes}"
+           memoryMaximumSize="${javac.memorymax}"
+           source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="antlr.classpath" />
@@ -570,11 +583,10 @@
 
     <!--compile gluegen with source=1.5-->
     <javac destdir="${classes}"
-           source="1.5"
-           debug="true"
-           debuglevel="source,lines,vars"
            includeAntRuntime="true"
-           excludes="${gluegen.excludes},${gluegen-rt.classes}">
+           excludes="${gluegen.excludes},${gluegen-rt.classes}"
+           memoryMaximumSize="${javac.memorymax}"
+           source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="antlr.classpath" />
@@ -648,6 +660,8 @@
   <target name="base.compile" depends="init, gluegen.build, tag.build" />
 
   <target name="all" depends="base.compile, junit.compile, developer-zip-archive" />
+
+  <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, junit.compile" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
