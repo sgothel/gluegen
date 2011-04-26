@@ -297,8 +297,6 @@ public class Buffers {
         }
         if (buf instanceof Buffer) {
             return ((Buffer) buf).isDirect();
-        } else if (buf instanceof Int64Buffer) {
-            return ((Int64Buffer) buf).isDirect();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).isDirect();
         }
@@ -324,16 +322,13 @@ public class Buffers {
                 return pos * SIZEOF_INT;
             } else if (buf instanceof ShortBuffer) {
                 return pos * SIZEOF_SHORT;
-            }else if (buf instanceof DoubleBuffer) {
+            } else if (buf instanceof DoubleBuffer) {
                 return pos * SIZEOF_DOUBLE;
             } else if (buf instanceof LongBuffer) {
                 return pos * SIZEOF_LONG;
             } else if (buf instanceof CharBuffer) {
                 return pos * SIZEOF_CHAR;
             }
-        } else if (buf instanceof Int64Buffer) {
-            Int64Buffer int64Buffer = (Int64Buffer) buf;
-            return int64Buffer.position() * Int64Buffer.elementSize();
         } else if (buf instanceof PointerBuffer) {
             PointerBuffer pointerBuffer = (PointerBuffer) buf;
             return pointerBuffer.position() * PointerBuffer.elementSize();
@@ -352,8 +347,6 @@ public class Buffers {
         }
         if (buf instanceof Buffer) {
             return ((Buffer) buf).array();
-        } else if (buf instanceof Int64Buffer) {
-            return ((Int64Buffer) buf).array();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).array();
         }
@@ -381,16 +374,13 @@ public class Buffers {
                 return (SIZEOF_INT * (((IntBuffer) buf).arrayOffset() + pos));
             } else if (buf instanceof ShortBuffer) {
                 return (SIZEOF_SHORT * (((ShortBuffer) buf).arrayOffset() + pos));
-            }else if (buf instanceof DoubleBuffer) {
+            } else if (buf instanceof DoubleBuffer) {
                 return (SIZEOF_DOUBLE * (((DoubleBuffer) buf).arrayOffset() + pos));
             } else if (buf instanceof LongBuffer) {
                 return (SIZEOF_LONG * (((LongBuffer) buf).arrayOffset() + pos));
             } else if (buf instanceof CharBuffer) {
                 return (SIZEOF_CHAR * (((CharBuffer) buf).arrayOffset() + pos));
             }
-        } else if (buf instanceof Int64Buffer) {
-            Int64Buffer int64Buffer = (Int64Buffer) buf;
-            return Int64Buffer.elementSize() * (int64Buffer.arrayOffset() + int64Buffer.position());
         } else if (buf instanceof PointerBuffer) {
             PointerBuffer pointerBuffer = (PointerBuffer) buf;
             return PointerBuffer.elementSize() * (pointerBuffer.arrayOffset() + pointerBuffer.position());
@@ -782,9 +772,6 @@ public class Buffers {
             } else if (buffer instanceof CharBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_CHAR;
             }
-        } else if (buffer instanceof Int64Buffer) {
-            Int64Buffer int64Buffer = (Int64Buffer) buffer;
-            bytesRemaining = int64Buffer.remaining() * Int64Buffer.elementSize();
         } else if (buffer instanceof PointerBuffer) {
             PointerBuffer pointerBuffer = (PointerBuffer) buffer;
             bytesRemaining = pointerBuffer.remaining() * PointerBuffer.elementSize();

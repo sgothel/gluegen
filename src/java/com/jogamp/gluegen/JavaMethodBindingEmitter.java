@@ -39,12 +39,15 @@
 
 package com.jogamp.gluegen;
 
-import java.io.*;
-import java.util.*;
+import com.jogamp.gluegen.cgram.HeaderParser;
+import com.jogamp.gluegen.cgram.types.ArrayType;
+import com.jogamp.gluegen.cgram.types.CompoundType;
+import com.jogamp.gluegen.cgram.types.EnumType;
+import com.jogamp.gluegen.cgram.types.PointerType;
+import com.jogamp.gluegen.cgram.types.Type;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
-
-import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.cgram.*;
+import java.util.List;
 
 /**
  * An emitter that emits only the interface for a Java<->C JNI binding.
@@ -592,7 +595,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
 
       if (type.isNIOBuffer()) {
-          if(type.isNIOInt64Buffer() || type.isNIOPointerBuffer()) {
+          if(type.isNIOPointerBuffer()) {
               if (directNIOOnly) {
                   writer.print( getArgumentName(i)+ " != null ? " + getArgumentName(i) + ".getBuffer() : null");
               } else {
@@ -735,15 +738,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         if (getBinding().getCReturnType().pointerDepth() >= 2) {
           if (returnType.isNIOPointerBuffer()) {
               writer.println("    return PointerBuffer.wrap(_res);");
-          } else if (returnType.isNIOInt64Buffer()) {
-              writer.println("    return Int64Buffer.wrap(_res);");
+          } else if (returnType.isNIOLongBuffer()) {
+              writer.println("    return _res.asLongBuffer();");
           } else {
             throw new RuntimeException("While emitting glue code for " + getName() +
-                                       ": can not legally make pointers opaque to anything but PointerBuffer or Int64Buffer/long");
+                                       ": can not legally make pointers opaque to anything but PointerBuffer or LongBuffer/long");
           }
-        } else if (getBinding().getCReturnType().pointerDepth() == 1 &&
-          returnType.isNIOInt64Buffer()) {
-          writer.println("    return Int64Buffer.wrap(_res);");
+        } else if (getBinding().getCReturnType().pointerDepth() == 1 && returnType.isNIOLongBuffer()) {
+          writer.println("    return _res.asLongBuffer();");
         } else {
           String returnTypeName = returnType.getName().substring("java.nio.".length());
           writer.println("    return _res.as" + returnTypeName + "();");
