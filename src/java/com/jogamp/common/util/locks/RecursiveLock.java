@@ -235,5 +235,11 @@ public class RecursiveLock implements LockExt {
             }
         }
     }
+    
+    public int getWaitingThreadQueueSize() {
+        synchronized(sdata) {
+            return sdata.threadQueue.size();
+        }
+    }
 }
 
