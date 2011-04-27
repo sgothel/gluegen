@@ -12,7 +12,7 @@
 	</classpathentry>
 	<classpathentry kind="src" output="build/test/build/classes" path="build/test/build/gensrc/classes">
 		<attributes>
-			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="gluegen/build/obj"/>
+			<attribute name="org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY" value="gluegen/build/test/build/natives"/>
 		</attributes>
 	</classpathentry>
 	<classpathentry excluding="com/jogamp/gluegen/runtime/BufferFactoryInternal.java" kind="src" output="build/classes" path="src/java">
