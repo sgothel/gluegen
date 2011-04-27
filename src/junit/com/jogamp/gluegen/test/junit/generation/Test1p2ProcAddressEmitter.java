@@ -28,6 +28,9 @@
  
 package com.jogamp.gluegen.test.junit.generation;
 
+import java.io.IOException;
+
+import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 
 import com.jogamp.common.os.NativeLibrary;
@@ -81,28 +84,39 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      * This covers indirect primitive arrays and direct NIO buffers.
      */
     @Test
-    public void chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray() throws Exception {
-        chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(new Bindingtest1p2Impl());
+    public void chapter03aTestCoverageFunctionalityDirectNIOAndPrimitiveArray() throws Exception {
+        chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(new Bindingtest1p1Impl(), true);
+    }
+
+    /**
+     * Verifies if all methods / signatures are properly generated,
+     * can be invoked and functions.
+     * This is a compilation (coverage) and runtime time (semantic) test.
+     * This covers indirect primitive arrays and indirect NIO buffers (nio using arrays).
+     */
+    @Test
+    public void chapter03bTestCoverageFunctionalityIndirectNIOAndPrimitiveArray() throws Exception {
+        chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(new Bindingtest1p1Impl(), false);
+    }
+
+    /**
+     * This covers direct / indirect pointer buffers
+     */
+    @Test
+    public void chapter04TestPointerBuffer() throws Exception {
+        this.chapter04TestPointerBuffer(new Bindingtest1p2Impl());
     }
 
     /**
      * This covers indirect primitive arrays and indirect NIO buffers.
      */
     @Test
-    public void chapter04TestSomeFunctionsAllIndirect() throws Exception {
-        chapter04TestSomeFunctionsAllIndirect(new Bindingtest1p2Impl());
+    public void chapter05TestSomeFunctionsAllIndirect() throws Exception {
+        chapter05TestSomeFunctionsAllIndirect(new Bindingtest1p2Impl());
     }
 
-    public static void main(String[] args) {
-        Test1p2ProcAddressEmitter test = new Test1p2ProcAddressEmitter();
-        try {
-            test.chapter01TestLoadLibrary();
-            test.chapter02TestClassExist();
-            test.chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray();
-            test.chapter04TestSomeFunctionsAllIndirect();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    public static void main(String args[]) throws IOException {
+        String tstname = Test1p2ProcAddressEmitter.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+    }    
 }

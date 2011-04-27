@@ -32,6 +32,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.Platform;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
@@ -70,7 +71,6 @@ public class BaseClass {
      */
     public void chapter__TestCoverageSignature(Bindingtest1 binding) throws Exception {
           int i;
-          long result;
           long context = 0;
           ByteBuffer bb=null;
           LongBuffer lb=null;
@@ -82,7 +82,8 @@ public class BaseClass {
           String[] strings = null;
           int[] iarray = null;
           int iarray_offset = 0;
-          long l = 0;
+          long result = 0;
+          long l = result;
 
           result = binding.arrayTestInt32(context, ib);
           result = binding.arrayTestInt32(context, iarray, iarray_offset);
@@ -137,34 +138,90 @@ public class BaseClass {
           l = binding.typeTestUIntPtrT(l, l);
     }
 
+    ByteBuffer newByteBuffer(int size, boolean direct) {
+        if(direct) {
+            final ByteBuffer bb = Buffers.newDirectByteBuffer(size);
+            Assert.assertTrue(bb.isDirect());
+            return bb;
+        } else {
+            final ByteBuffer bb = ByteBuffer.wrap(new byte[size]);
+            Assert.assertTrue(bb.hasArray());
+            Assert.assertTrue(!bb.isDirect());
+            bb.order(ByteOrder.nativeOrder());
+            Assert.assertTrue(bb.hasArray());
+            Assert.assertTrue(!bb.isDirect());
+            return bb;
+        }
+    }
+    
+    IntBuffer newIntBuffer(int size, boolean direct) {
+        if(direct) {
+            final IntBuffer ib = Buffers.newDirectIntBuffer(size);
+            Assert.assertTrue(ib.isDirect());
+            return ib;
+        } else {
+            final IntBuffer ib = IntBuffer.wrap(new int[size]);
+            Assert.assertTrue(ib.hasArray());
+            Assert.assertTrue(!ib.isDirect());
+            return ib;
+        }
+    }
+
+    LongBuffer newLongBuffer(int size, boolean direct) {
+        if(direct) {
+            final LongBuffer lb = Buffers.newDirectLongBuffer(size);
+            Assert.assertTrue(lb.isDirect());
+            return lb;            
+        } else {
+            final LongBuffer lb = LongBuffer.wrap(new long[size]);
+            Assert.assertTrue(!lb.isDirect());
+            Assert.assertTrue(lb.hasArray());
+            return lb;
+        }        
+    }
+
+    PointerBuffer newPointerBuffer(int size, boolean direct) {
+        if(direct) {
+          final PointerBuffer pb = PointerBuffer.allocateDirect(size);
+          Assert.assertTrue(pb.isDirect());
+          Assert.assertTrue(pb.getBuffer().isDirect());
+          return pb;
+        } else {
+          final PointerBuffer pb = PointerBuffer.allocate(size);
+          Assert.assertTrue(pb.hasArray());
+          Assert.assertTrue(!pb.isDirect());
+          return pb;
+        }
+    }
+    
     /**
      * Verifies if all methods / signatures are properly generated,
      * can be invoked and functions.
      * This is a compilation (coverage) and runtime time (semantic) test.
      * This covers indirect primitive arrays and direct NIO buffers.
      */
-    public void chapter03TestCoverageFunctionalityDirectNIOAndPrimitiveArray(Bindingtest1 binding) throws Exception {
+    public void chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(Bindingtest1 binding, boolean direct) throws Exception {
           int i;
           long result;
 
-          long context = 1;
-          LongBuffer lb = Buffers.newDirectLongBuffer(1);
+          final long context = 1;
+          LongBuffer lb = newLongBuffer(1, direct);
           lb.put(0,  10);
 
-          ByteBuffer bb2 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_LONG);
+          ByteBuffer bb2 = newByteBuffer(Buffers.SIZEOF_LONG, direct);
           LongBuffer bb2L = bb2.asLongBuffer();
           bb2L.put(0, 100);
 
-          IntBuffer ib1 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * Bindingtest1.ARRAY_SIZE).asIntBuffer();
+          IntBuffer ib1 = newIntBuffer(Bindingtest1.ARRAY_SIZE, direct);
           for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             ib1.put(i,  1000);
           }
 
-          LongBuffer lb1 = Buffers.newDirectLongBuffer(Bindingtest1.ARRAY_SIZE);
+          LongBuffer lb1 = newLongBuffer(Bindingtest1.ARRAY_SIZE, direct);
           for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             lb1.put(i,  1000);
           }
-          LongBuffer lb2 = Buffers.newDirectLongBuffer(Bindingtest1.ARRAY_SIZE);
+          LongBuffer lb2 = newLongBuffer(Bindingtest1.ARRAY_SIZE, direct);
           for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
             lb2.put(i, 10000);
           }
@@ -211,7 +268,7 @@ public class BaseClass {
           // LongBuffer arrayTestFoo2 ( LongBuffer )
           {
               lb2.rewind();
-              LongBuffer lb3 = Buffers.newDirectLongBuffer(Bindingtest1.ARRAY_SIZE);
+              LongBuffer lb3 = newLongBuffer(Bindingtest1.ARRAY_SIZE, direct);
               lb3.put(lb2);
               lb3.rewind();
               lb2.rewind();
@@ -256,7 +313,7 @@ public class BaseClass {
           // PointerBuffer arrayTestFoo3PtrPtr(PointerBuffer)
           {
               lb2.rewind();
-              LongBuffer lb3 = Buffers.newDirectLongBuffer(Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE);
+              LongBuffer lb3 = newLongBuffer(Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE, direct);
               int j;
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                   lb3.put(lb2);
@@ -279,18 +336,21 @@ public class BaseClass {
               Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
               Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
               for(j=0; j<Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE; j++) {
-                Assert.assertTrue("Wrong result: s:"+lb2.get(j%Bindingtest1.ARRAY_SIZE)+" d: "+lb3.get(j), 
-                                  1+lb2.get(j%Bindingtest1.ARRAY_SIZE)==lb3.get(j));
+                Assert.assertEquals("Wrong result: s:"+lb2.get(j%Bindingtest1.ARRAY_SIZE)+" d: "+lb3.get(j), 
+                                  1+lb2.get(j%Bindingtest1.ARRAY_SIZE), lb3.get(j));
               }
+              Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pb2, 10000));
           }
 
+          // PointerBuffer.alloc*(ARRAY_SIZE)
           // PointerBuffer.referenceBuffer(LongBuffer.getBuffer)
           //  " "
           // PointerBuffer arrayTestFoo3PtrPtr(PointerBuffer)
           {
-              PointerBuffer pb = PointerBuffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
+              PointerBuffer pb = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
               int j;
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                  // the referenced buffer must be direct, non direct is not supported
                   LongBuffer lb3 = Buffers.newDirectLongBuffer(Bindingtest1.ARRAY_SIZE);
                   lb3.put(lb2);
                   lb2.rewind();
@@ -304,27 +364,76 @@ public class BaseClass {
               Assert.assertTrue("Wrong result: "+pb.capacity(), Bindingtest1.ARRAY_SIZE == pb.capacity());
               Assert.assertTrue("Wrong result: "+pb.remaining(), Bindingtest1.ARRAY_SIZE == pb.remaining());
               Assert.assertNotNull(pb.getReferencedBuffer(0));
-              Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2, pb.getReferencedBuffer(0).equals(lb2));
+              Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2, pb.getReferencedBuffer(0).equals(lb2));              
 
-              PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);
+              PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb); // pb2 is shallow
 
               Assert.assertNotNull(pb2);
               Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
               Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
-                  ByteBuffer bb = (ByteBuffer) pb.getReferencedBuffer(j);
-                  LongBuffer i64b = bb.asLongBuffer();
+                  LongBuffer i64b = (LongBuffer) pb.getReferencedBuffer(j);
                   for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
-                    Assert.assertTrue("Wrong result: ["+j+"]["+i+"] s:"+lb2.get(i)+" d: "+i64b.get(i), 1+lb2.get(i)==i64b.get(i));
+                    Assert.assertEquals("Wrong result: ["+j+"]["+i+"] s:"+lb2.get(i)+" d: "+i64b.get(i), 
+                                        1+lb2.get(i), i64b.get(i));
                   }
               }
+              Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pb, 10000));
+          }
+
+          // pb = PointerBuffer.alloc*(ARRAY_SIZE)
+          // arrayTestFoo3CopyPtrPtrA(PointerBuffer dst, PointerBuffer src) (Native deep copy w/ alloc)  
+          //  " "
+          // PointerBuffer arrayTestFoo3PtrPtr(PointerBuffer)
+          {
+              PointerBuffer pbS = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
+              int j;
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                  // the referenced buffer must be direct, non direct is not supported
+                  LongBuffer lb3 = Buffers.newDirectLongBuffer(Bindingtest1.ARRAY_SIZE);
+                  lb3.put(lb2);
+                  lb2.rewind();
+                  lb3.rewind();
+
+                  pbS.referenceBuffer(lb3);
+              }
+              pbS.rewind();
+              Assert.assertTrue("Wrong result: "+pbS.capacity(), Bindingtest1.ARRAY_SIZE == pbS.capacity());
+              Assert.assertTrue("Wrong result: "+pbS.remaining(), Bindingtest1.ARRAY_SIZE == pbS.remaining());
+              Assert.assertNotNull(pbS.getReferencedBuffer(0));
+              Assert.assertTrue("Wrong result: "+pbS.getReferencedBuffer(0)+" != "+lb2, pbS.getReferencedBuffer(0).equals(lb2));
+              
+              PointerBuffer pbD = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
+              
+              // System.err.println("\n***pbS "+pbS); System.err.println("***pbD "+pbD);
+              binding.arrayTestFoo3CopyPtrPtrA(pbD, pbS); // pbD is shallow              
+              Assert.assertTrue("Wrong result: "+pbD.capacity(), Bindingtest1.ARRAY_SIZE == pbD.capacity());
+              Assert.assertTrue("Wrong result: "+pbD.remaining(), Bindingtest1.ARRAY_SIZE == pbD.remaining());
+              
+              
+              PointerBuffer pbD2 = binding.arrayTestFoo3PtrPtr(pbD); // pbD2 is shallow
+              Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pbD, 10000));
+              Assert.assertNotNull(pbD2);
+              Assert.assertTrue("Wrong result: "+pbD2.capacity(), Bindingtest1.ARRAY_SIZE == pbD2.capacity());
+              Assert.assertTrue("Wrong result: "+pbD2.remaining(), Bindingtest1.ARRAY_SIZE == pbD2.remaining());
+              Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pbD2, 10000));
           }
 
           result = binding.bufferTest(lb);
           Assert.assertTrue("Wrong result: "+result, 10==result);
 
-          result = binding.bufferTestNioOnly(lb);
-          Assert.assertTrue("Wrong result: "+result, 10==result);
+          if(direct) {
+              result = binding.bufferTestNioOnly(lb);
+              Assert.assertTrue("Wrong result: "+result, 10==result);
+          } else {
+              Exception e = null;
+              try {
+                  binding.bufferTestNioOnly(lb);
+              } catch (RuntimeException re) {
+                  e = re;
+              }
+              Assert.assertNotNull(e);
+          }
 
           result = binding.doubleTest(context, lb, lb1, bb2, lb2);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
@@ -332,8 +441,10 @@ public class BaseClass {
           result = binding.doubleTest(context, lb, larray1, larray1_offset, bb2, larray2, larray2_offset);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
-          result = binding.doubleTestNioOnly(context, lb, lb1, bb2, lb2);
-          Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
+          if(direct) {
+              result = binding.doubleTestNioOnly(context, lb, lb1, bb2, lb2);
+              Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
+          }
 
           result = binding.mixedTest(context, lb, lb1);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
@@ -341,8 +452,10 @@ public class BaseClass {
           result = binding.mixedTest(context, lb, larray1, larray1_offset);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
 
-          result = binding.mixedTestNioOnly(context, lb, lb1);
-          Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
+          if(direct) {
+              result = binding.mixedTestNioOnly(context, lb, lb1);
+              Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
+          }
 
           result = binding.nopTest();
           Assert.assertTrue("Wrong result: "+result, 42==result);
@@ -356,14 +469,12 @@ public class BaseClass {
           i = binding.stringArrayRead(new String[] { "1234", "5678", "9a" }, 3);
           Assert.assertTrue("Wrong result: "+i, 10==i);
 
-          ByteBuffer bb3 = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT * 3);
-          IntBuffer ib = bb3.asIntBuffer();
+          IntBuffer ib = newIntBuffer(3, direct);
           ib.put(0, 1);
           ib.put(1, 2);
           ib.put(2, 3);
 
           int[] iarray = new int[] { 1, 2, 3 };
-          int iarray_offset = 0;
 
           i = binding.intArrayRead(ib, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
@@ -374,7 +485,7 @@ public class BaseClass {
           {
               long cfg_base = 0xAABBCCDD11223344L;
               
-              PointerBuffer pb = PointerBuffer.allocateDirect(Bindingtest1.ARRAY_SIZE);
+              PointerBuffer pb = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
               for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
                 long cfg_native;
                 if(Platform.is32Bit()) {
@@ -399,12 +510,14 @@ public class BaseClass {
           }
     }
 
+    public void chapter04TestPointerBuffer(Bindingtest1 binding) throws Exception {
+    }
+
     /**
      * This covers indirect primitive arrays and indirect NIO buffers.
      */
-    public void chapter04TestSomeFunctionsAllIndirect(Bindingtest1 binding) throws Exception {
+    public void chapter05TestSomeFunctionsAllIndirect(Bindingtest1 binding) throws Exception {
           int i;
-          long result;
 
           IntBuffer ib = IntBuffer.allocate(3);
           ib.put(0, 1);
@@ -412,7 +525,6 @@ public class BaseClass {
           ib.put(2, 3);
 
           int[] iarray = new int[] { 1, 2, 3 };
-          int iarray_offset = 0;
 
           i = binding.intArrayRead(ib, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);

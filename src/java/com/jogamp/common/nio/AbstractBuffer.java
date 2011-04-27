@@ -33,15 +33,17 @@ package com.jogamp.common.nio;
 
 import com.jogamp.common.os.*;
 
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 
 /**
- * @author Michael Bien
  * @author Sven Gothel
+ * @author Michael Bien
  */
 public abstract class AbstractBuffer<B extends AbstractBuffer> implements NativeBuffer<B> {
 
-    protected final ByteBuffer bb;
+    protected final int elementSize;
+    protected final Buffer buffer;
     protected int capacity;
     protected int position;
 
@@ -49,13 +51,22 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         NativeLibrary.ensureNativeLibLoaded();
     }
 
-    protected AbstractBuffer(ByteBuffer bb, int elementSize) {
-        this.bb = bb;
+    /** 
+     * @param buffer expected in target format
+     * @param elementSize the target element size in bytes
+     */
+    protected AbstractBuffer(Buffer buffer, int elementSize) {
+        this.elementSize = elementSize;
+        this.buffer = buffer;
 
-        capacity = bb.capacity() / elementSize;
+        capacity = buffer.capacity() /* / elementSize */;
         position = 0;
     }
 
+    public final int elementSize() {
+        return elementSize;
+    }
+    
     public final int limit() {
         return capacity;
     }
@@ -90,25 +101,33 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         return (B) this;
     }
 
-    public boolean hasArray() {
-        return false;
-    }
-
-    public int arrayOffset() {
-        return 0;
-    }
-
-    public final ByteBuffer getBuffer() {
-        return bb;
+    public final Buffer getBuffer() {
+        return buffer;
     }
 
     public final boolean isDirect() {
-        return bb.isDirect();
+        return buffer.isDirect();
+    }
+    
+    public final boolean hasArray() {
+        return buffer.hasArray();
     }
 
+    public final int arrayOffset() {
+        if(hasArray()) {
+            return buffer.arrayOffset();
+        } else {
+            return 0;
+        }
+    }
+
+    public Object array() throws UnsupportedOperationException {
+        return buffer.array();
+    }
+    
     @Override
     public String toString() {
-        return "AbstractBuffer[capacity "+capacity+", position "+position+", elementSize "+(bb.capacity()/capacity)+", ByteBuffer.capacity "+bb.capacity()+"]";
+        return "AbstractBuffer[direct "+isDirect()+", hasArray "+hasArray()+", capacity "+capacity+", position "+position+", elementSize "+elementSize+", buffer[capacity "+buffer.capacity()+", lim "+buffer.limit()+", pos "+buffer.position()+"]]";
     }
 
 }

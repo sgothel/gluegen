@@ -329,9 +329,9 @@ public class Buffers {
             } else if (buf instanceof CharBuffer) {
                 return pos * SIZEOF_CHAR;
             }
-        } else if (buf instanceof PointerBuffer) {
-            PointerBuffer pointerBuffer = (PointerBuffer) buf;
-            return pointerBuffer.position() * PointerBuffer.elementSize();
+        } else if (buf instanceof NativeBuffer) {
+            final NativeBuffer nb = (NativeBuffer) buf;
+            return nb.position() * nb.elementSize() ;
         }
 
         throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
@@ -340,15 +340,17 @@ public class Buffers {
     /**
      * Helper routine to return the array backing store reference from
      * a Buffer object.
+     * @throws UnsupportedOperationException if the passed Object does not have an array backing store
+     * @throws IllegalArgumentException if the passed Object is neither of type {@link java.nio.Buffer} or {@link NativeBuffer}.  
      */
-    public static Object getArray(Object buf) {
+    public static Object getArray(Object buf) throws UnsupportedOperationException, IllegalArgumentException {
         if (buf == null) {
             return null;
         }
         if (buf instanceof Buffer) {
             return ((Buffer) buf).array();
-        } else if (buf instanceof PointerBuffer) {
-            return ((PointerBuffer) buf).array();
+        } else if (buf instanceof NativeBuffer) {
+            return ((NativeBuffer) buf).array();
         }
 
         throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
@@ -381,9 +383,9 @@ public class Buffers {
             } else if (buf instanceof CharBuffer) {
                 return (SIZEOF_CHAR * (((CharBuffer) buf).arrayOffset() + pos));
             }
-        } else if (buf instanceof PointerBuffer) {
-            PointerBuffer pointerBuffer = (PointerBuffer) buf;
-            return PointerBuffer.elementSize() * (pointerBuffer.arrayOffset() + pointerBuffer.position());
+        } else if (buf instanceof NativeBuffer) {
+            final NativeBuffer nb = (NativeBuffer) buf;
+            return nb.elementSize() * ( nb.arrayOffset() + nb.position() );
         }
 
         throw new IllegalArgumentException("Unknown buffer type " + buf.getClass().getName());
@@ -772,9 +774,9 @@ public class Buffers {
             } else if (buffer instanceof CharBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_CHAR;
             }
-        } else if (buffer instanceof PointerBuffer) {
-            PointerBuffer pointerBuffer = (PointerBuffer) buffer;
-            bytesRemaining = pointerBuffer.remaining() * PointerBuffer.elementSize();
+        } else if (buffer instanceof NativeBuffer) {
+            final NativeBuffer nb = (NativeBuffer) buffer;
+            bytesRemaining = nb.remaining() * nb.elementSize();
         }
         if (bytesRemaining < minBytesRemaining) {
             throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);

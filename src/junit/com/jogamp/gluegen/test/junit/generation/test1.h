@@ -46,8 +46,14 @@ MYAPI foo * MYAPIENTRY arrayTestFoo2(foo * array );
 /** Returns a array-array of the passed array, split at ARRAY size - IDENTITY! */
 MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(foo * array);
 
+/** Fills dest array ptr of ARRAY size with arrays (allocs) and copies content of src to it - COPY! */
+MYAPI void MYAPIENTRY arrayTestFoo3CopyPtrPtrA(foo * * dest, const foo * * src);
+
 /** Returns a the passed array-array, each element incr by 1 - IDENTITY !*/
 MYAPI foo * * MYAPIENTRY arrayTestFoo3PtrPtr(foo * * array );
+
+/** Returns 0 if ok, otherwise the linear position */
+MYAPI int MYAPIENTRY arrayTestFoo3PtrPtrValidation(foo * * array, int startval);
 
 /** Returns *((foo *)object) */
 MYAPI foo MYAPIENTRY bufferTest(void * object);

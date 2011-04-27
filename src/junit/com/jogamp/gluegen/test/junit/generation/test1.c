@@ -54,6 +54,18 @@ MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(foo * array) {
     return result;
 }
 
+MYAPI void MYAPIENTRY arrayTestFoo3CopyPtrPtrA(foo * * dest, const foo * * src) {
+    int i, j;
+    assert(NULL!=dest);
+    assert(NULL!=src);
+    for(j=0; j<ARRAY_SIZE; j++) {
+        dest[j] = calloc(ARRAY_SIZE, sizeof(foo));
+        for(i=0; i<ARRAY_SIZE; i++) {
+            dest[j][i] = src[j][i];
+        }
+    }
+}
+
 MYAPI foo * * MYAPIENTRY arrayTestFoo3PtrPtr(foo * * array ) {
     int i,j;
     assert(NULL!=array);
@@ -63,6 +75,19 @@ MYAPI foo * * MYAPIENTRY arrayTestFoo3PtrPtr(foo * * array ) {
         }
     }
     return array;
+}
+
+MYAPI int MYAPIENTRY arrayTestFoo3PtrPtrValidation(foo * * array, int startval) {
+    int i,j,v,p=0;
+    assert(NULL!=array);
+    for(j=0; j<ARRAY_SIZE; j++) {
+        for(i=0, v=startval; i<ARRAY_SIZE; i++, p++, v++) {
+            if(array[j][i] != v) {
+                return p;
+            }
+        }
+    }
+    return 0;
 }
 
 MYAPI foo MYAPIENTRY arrayTestFoo1(int64_t context, foo * array) {
