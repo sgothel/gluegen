@@ -12,5 +12,6 @@ fi
 #    -DisX11=true \
 
 ant \
+    -Djavacdebuglevel="source,lines,vars" \
     -Drootrel.build=build-x86_64 \
     $* 2>&1 | tee make.gluegen.all.linux-x86_64.log
