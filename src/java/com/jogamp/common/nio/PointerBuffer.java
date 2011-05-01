@@ -97,6 +97,25 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         return new PointerBuffer(src);
     }
 
+    /**
+     * @return new PointerBuffer sharing the same buffer data of this instance (identity),
+     *         but having independent position, limit and capacity.
+     */
+    public final PointerBuffer duplicate() {
+        PointerBuffer npb;
+        if (Platform.is32Bit()) {
+            npb = new PointerBuffer((IntBuffer)buffer);
+        } else {
+            npb = new PointerBuffer((LongBuffer)buffer);
+        }
+        if(null != dataMap) {
+            npb.dataMap = (LongObjectHashMap) dataMap.clone();
+        }
+        npb.capacity = capacity;
+        npb.position = position;
+        return npb;
+    }
+    
     /** 
      * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code> 
      * to this buffer and increment the position by <code>capacity-position</code>. */
