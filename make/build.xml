@@ -62,11 +62,23 @@
         <format property="version.timestamp" pattern="yyyyMMdd"/>
     </tstamp>
 
-    <property file="${build}/artifact.properties"/>
     <property name="gluegen.build.number" value="manual"/>
     <property name="gluegen.build.id"     value="${version.timestamp}"/>
-    <property name="gluegen.build.branch" value="master"/>
-    <property name="gluegen.build.commit" value="manual"/>
+    <mkdir dir="${build}" />
+    <exec dir="." executable="git" logError="true" failonerror="false" failifexecutionfails="false"
+              output="${build}/localbranch.raw">
+        <arg line="branch --no-color"/>
+    </exec>
+    <exec dir="." executable="sed" logError="true" failonerror="false" failifexecutionfails="false"
+              outputproperty="gluegen.build.branch">
+        <arg line="-e '/^[^*]/d' -e 's/* \(.*\)/\1/' ${build}/localbranch.raw"/>
+    </exec>
+    <property name="gluegen.build.branch" value="manual"/> <!-- fallback -->
+    <exec dir="${project.root}" executable="git" logError="true" failonerror="false" failifexecutionfails="false"
+              outputproperty="gluegen.build.commit">
+        <arg line="rev-parse HEAD"/>
+    </exec>
+    <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
     <!-- This is the version of GlueGen you are building -->
     <property name="gluegen_base_version" value="2.0"/>
@@ -710,6 +722,10 @@
         <copy todir="${archive}/jnlp-files">
             <fileset dir="${project.root}/jnlp-files" includes="*" />
         </copy>
+        <zip destfile="${archive}/gluegen-java-src.zip">
+            <fileset dir="${src.java}"/>
+            <fileset dir="${build}/gensrc/java"/>
+        </zip>
         <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
