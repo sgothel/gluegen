@@ -656,7 +656,9 @@
 
   <target name="base.compile" depends="init, gluegen.build, tag.build" />
 
-  <target name="all" depends="base.compile, junit.compile, developer-zip-archive" />
+  <target name="all" description="Release build" depends="init, base.compile, junit.compile, developer-zip-archive" />
+
+  <target name="all.debug" description="Debug build" depends="init.debug, base.compile, junit.compile, developer-zip-archive" />
 
   <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, junit.compile" />
 
