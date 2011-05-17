@@ -722,10 +722,11 @@
         <copy todir="${archive}/jnlp-files">
             <fileset dir="${project.root}/jnlp-files" includes="*" />
         </copy>
-        <zip destfile="${archive}/gluegen-java-src.zip">
+        <zip destfile="${build}/gluegen-java-src.zip">
             <fileset dir="${src.java}"/>
             <fileset dir="${build}/gensrc/java"/>
         </zip>
+        <copy todir="${archive}" file="${build}/gluegen-java-src.zip"/>
         <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
