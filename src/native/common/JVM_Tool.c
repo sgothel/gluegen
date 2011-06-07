@@ -39,6 +39,8 @@
 
 #include <jni.h>
 
+#include "com_jogamp_common_jvm_JVMUtil.h"
+
 JNIEXPORT jboolean JNICALL
 Java_com_jogamp_common_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
   int res;

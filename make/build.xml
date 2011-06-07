@@ -84,9 +84,12 @@
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
 
+    <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
+
     <!-- The generated source directories. -->
     <property name="src.generated"          value="${build}/gensrc" />
     <property name="src.generated.java"     value="${src.generated}/java" />
+    <property name="src.generated.c"        value="${src.generated}/native" />
 
     <!-- The compiler output directories. -->
     <property name="classes" value="${build}/classes" />
@@ -96,6 +99,10 @@
 
     <!-- Create the required output directories. -->
     <mkdir dir="${src.generated.java}" />
+    <mkdir dir="${src.generated.c}" />
+    <mkdir dir="${src.generated.c}/Unix" />
+    <mkdir dir="${src.generated.c}/MacOSX" />
+    <mkdir dir="${src.generated.c}/Windows" />
     <mkdir dir="${classes}" />
 
     <!-- Create the classpath for ANTLR.  This requires the user-defined
@@ -346,14 +353,7 @@
       <property name="java.includes.dir.hpux"               value="${java.includes.dir}/hp-ux" />
     </target>
 
-    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" unless="build.javaonly" >
-      <!-- Common properties -->
-      <property name="java.includes.dir" value="${java.home.dir}/include" /> <!-- NOTE:  this MUST be relative for FileSet -->
-
-      <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
-
-      <property name="output.lib.name" value="gluegen-rt" />
-    </target>
+    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.solaris,declare.macosx,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" unless="build.javaonly" />
 
     <target name="c.rename.lib.mingw" if="isMingW">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
@@ -371,14 +371,36 @@
       <msvc.manifest objdir="${build}/obj" dllname="gluegen-rt" />
     </target>
 
-    <target name="c.build" depends="init, c.configure" unless="build.javaonly" >
+    <target name="gluegen.build.c" depends="init, c.configure" unless="build.javaonly" >
+      <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
+      <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
 
-      <fail message="Requires '${c.compiler.src.files.os}'" unless="c.compiler.src.files.os"/>
+      <property name="output.lib.name" value="gluegen-rt" />
+      <condition property="output.lib.name.os" value="lib${output.lib.name}.so"><isset property="isUnix"/></condition>
+      <condition property="output.lib.name.os" value="${output.lib.name}.dll"><isset property="isWindows"/></condition>
+      <condition property="output.lib.name.os" value="lib${output.lib.name}.jnilib"><isset property="isOSX"/></condition>
+
+      <uptodate property="gluegen.build.skip.c">
+        <srcfiles dir= "${project.root}"  includes="${c.compiler.src.files.os}"/>
+        <srcfiles dir= "${project.root}"  includes="${c.compiler.src.files.common}"/>
+        <mapper type="merge" to="${gluegen.lib.dir}/${output.lib.name.os}"/>
+      </uptodate>
+
+      <antcall target="gluegen.build.c.impl" inheritAll="true" inheritRefs="true" />
+    </target>
+
+    <target name="gluegen.build.c.impl" depends="init, c.configure" unless="gluegen.build.skip.c">
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
-      <fail message="Requires '${output.lib.name}'"      unless="output.lib.name"/>
 
-      <echo message="Output lib name = ${output.lib.name}" />
+      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.os.Platform" />
+      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.jvm.JVMUtil" />
+      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.nio.PointerBuffer" />
+      <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="com.jogamp.common.os.UnixDynamicLinkerImpl" />
+      <javah destdir="${src.generated.c}/MacOSX"  classpath="${classes}" class="com.jogamp.common.os.MacOSXDynamicLinkerImpl" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.common.os.WindowsDynamicLinkerImpl"/>
+
+      <echo message="Output lib name = ${output.lib.name} -> ${output.lib.name.os}" />
 
       <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
       <property name="c.compiler.debug"     value="false" /> 
@@ -388,8 +410,6 @@
       <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
       <mkdir dir="${gluegen.lib.dir}"/>
-
-      <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
 
       <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
       <echo message="user.dir=${user.dir}" />
@@ -422,6 +442,11 @@
           <sysincludepath path="${java.includes.dir}"/>
           <sysincludepath path="${java.includes.dir.platform}"/>
           <sysincludepath path="${stub.includes.dir}/platform"/>
+
+          <includepath path="${src.generated.c}" />
+          <includepath path="${src.generated.c}/Unix" if="isUnix"/>
+          <includepath path="${src.generated.c}/MacOSX" if="isOSX"/>
+          <includepath path="${src.generated.c}/Windows" if="isWindows"/>
         </compiler>
 
         <linker extends="${linker.cfg.id}" />
@@ -500,8 +525,8 @@
     </copy>
   </target>
 
-  <target name="gluegen.build.check" depends="init">
-      <uptodate property="gluegen.build.skip">
+  <target name="gluegen.build.check.java" depends="init">
+      <uptodate property="gluegen.build.skip.java">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
         <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
@@ -510,7 +535,7 @@
       </uptodate>
   </target>
 
-  <target name="gluegen.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check" unless="gluegen.build.skip">
+  <target name="gluegen.build.java" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
     <antcall target="pre-build"  inheritRefs="true"/>
 
     <!-- Because ANTLR looks for importVocab files in the current
@@ -618,10 +643,6 @@
         </filterset>
     </copy>
 
-    <!-- Build the (native code) NativeLibrary support for
-         gluegen-rt.jar using the just-built GlueGen. -->
-    <antcall target="c.build" inheritRefs="true" />
-
     <!-- Build gluegen-rt.jar. -->
     <jar destfile="${build}/gluegen-rt.jar" manifest="${build}/Manifest-rt.temp">
       <fileset dir="${classes}">
@@ -654,7 +675,7 @@
     
   </target>
 
-  <target name="base.compile" depends="init, gluegen.build, tag.build" />
+  <target name="base.compile" depends="init, gluegen.build.java, gluegen.build.c, tag.build" />
 
   <target name="all" description="Release build" depends="init, base.compile, junit.compile, developer-zip-archive" />
 
@@ -839,14 +860,14 @@
         </antcall>
     </target>
 
-    <target name="maven.install" depends="init, gluegen.build">
+    <target name="maven.install" depends="init, base.compile">
         <property name="maven.artifacts.version" value="${gluegen_base_version}"/>
         <antcall target="maven.antcalls" inheritall="true">
             <param name="mvn.task" value="install"/>
         </antcall>
     </target>
 
-    <target name="maven.deploy.snapshot" depends="init, gluegen.build">
+    <target name="maven.deploy.snapshot" depends="init, base.compile">
         <property name="maven.artifacts.version" value="${gluegen_base_version}-SNAPSHOT"/>
         <antcall target="maven.antcalls" inheritall="true">
             <param name="mvn.task" value="deploy"/>

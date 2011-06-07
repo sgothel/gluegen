@@ -4,6 +4,8 @@
 
 #include <assert.h>
 
+#include "com_jogamp_common_os_UnixDynamicLinkerImpl.h"
+
  #include <dlfcn.h>
  #include <inttypes.h>
 

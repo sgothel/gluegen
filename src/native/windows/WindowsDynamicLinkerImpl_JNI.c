@@ -5,6 +5,8 @@
 
 #include <assert.h>
 
+#include "com_jogamp_common_os_WindowsDynamicLinkerImpl.h"
+
  #include <windows.h>
  /* This typedef is apparently needed for compilers before VC8,
     and for the embedded ARM compilers we're using */

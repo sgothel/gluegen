@@ -4,6 +4,8 @@
 
 #include <assert.h>
 
+#include "com_jogamp_common_os_MacOSXDynamicLinkerImpl.h"
+
  #include <dlfcn.h>
  #include </usr/include/machine/types.h>
 
