@@ -37,11 +37,59 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
+
+import com.jogamp.common.nio.Buffers;
 
 public class IOUtil {
+    private IOUtil() {}
     
-    // Copy the specified URL to the specified File
-    public static int copyURLToFile(URL url, File outFile) throws IOException {
+    /**
+     * Returns the lowercase suffix of the given file name (the text
+     * after the last '.' in the file name). Returns null if the file
+     * name has no suffix. Only operates on the given file name;
+     * performs no I/O operations.
+     *
+     * @param file name of the file
+     * @return lowercase suffix of the file name
+     * @throws NullPointerException if file is null
+     */
+
+    public static String getFileSuffix(File file) {
+        return getFileSuffix(file.getName());
+    }
+
+    /**
+     * Returns the lowercase suffix of the given file name (the text
+     * after the last '.' in the file name). Returns null if the file
+     * name has no suffix. Only operates on the given file name;
+     * performs no I/O operations.
+     *
+     * @param filename name of the file
+     * @return lowercase suffix of the file name
+     * @throws NullPointerException if filename is null
+     */
+    public static String getFileSuffix(String filename) {
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot < 0) {
+            return null;
+        }
+        return toLowerCase(filename.substring(lastDot + 1));
+    }
+
+    private static String toLowerCase(String arg) {
+        if (arg == null) {
+            return null;
+        }
+
+        return arg.toLowerCase();
+    }
+    
+    /**
+     * Copy the specified input stream to the specified output file. The total
+     * number of bytes written is returned. Both streams are closed upon completion.
+     */
+    public static int copyURL2File(URL url, File outFile) throws IOException {
         URLConnection conn = url.openConnection();
         conn.connect();        
 
@@ -50,7 +98,7 @@ public class IOUtil {
         try {
             OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
             try {
-                totalNumBytes = copyStream(in, out, conn.getContentLength());
+                totalNumBytes = copyStream2Stream(in, out, conn.getContentLength());
             } finally {
                 out.close();
             }
@@ -62,10 +110,9 @@ public class IOUtil {
 
     /**
      * Copy the specified input stream to the specified output stream. The total
-     * number of bytes written is returned. If the close flag is set, both
-     * streams are closed upon completion.
+     * number of bytes written is returned.
      */
-    public static int copyStream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
+    public static int copyStream2Stream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
         int numBytes = 0;
         final int BUFFER_SIZE = 1000;
         byte[] buf = new byte[BUFFER_SIZE];
@@ -80,5 +127,47 @@ public class IOUtil {
         return numBytes;
     }
 
+    /**
+     * Copy the specified input stream to a byte array, which is being returned.
+     */
+    public static byte[] copyStream2ByteArray(InputStream stream) throws IOException {
+        // FIXME: Shall enforce a BufferedInputStream ?
+        if( !(stream instanceof BufferedInputStream) ) {
+            stream = new BufferedInputStream(stream);
+        }
+        int totalRead = 0;
+        int avail = stream.available();
+        byte[] data = new byte[avail];
+        int numRead = 0;
+        do {
+            if (totalRead + avail > data.length) {
+                final byte[] newData = new byte[totalRead + avail];
+                System.arraycopy(data, 0, newData, 0, totalRead);
+                data = newData;
+            }
+            numRead = stream.read(data, totalRead, avail);
+            if (numRead >= 0) {
+                totalRead += numRead;
+            }
+            avail = stream.available();
+        } while (avail > 0 && numRead >= 0);
+
+        // just in case the announced avail > totalRead
+        if (totalRead != data.length) {
+            final byte[] newData = new byte[totalRead];
+            System.arraycopy(data, 0, newData, 0, totalRead);
+            data = newData;
+        }
+        return data;
+    }
+
+    /**
+     * Copy the specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
+     * <p>The implementation creates the ByteBuffer w/ {@link #copyStream2ByteArray(InputStream)}'s returned byte array.</p>
+     */
+    public static ByteBuffer copyStream2ByteBuffer(InputStream stream) throws IOException {
+        final byte[] data = copyStream2ByteArray(stream);
+        return Buffers.newDirectByteBuffer(data, 0, data.length);
+    }
 
 }
