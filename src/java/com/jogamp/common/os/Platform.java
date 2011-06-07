@@ -57,6 +57,7 @@ public class Platform {
 
     private static final boolean is32Bit;
     private static final int pointerSizeInBits;
+    private static final long pageSize;
 
     static {
         
@@ -83,8 +84,10 @@ public class Platform {
         
         if(libsLoaded) {
             pointerSizeInBits = getPointerSizeInBitsImpl();
+            pageSize = getPageSizeImpl();
         }else{
             pointerSizeInBits = -1;
+            pageSize = -1;
         }
 
         is32Bit = initArch();
@@ -161,6 +164,7 @@ public class Platform {
     }
 
     private static native int getPointerSizeInBitsImpl();
+    private static native long getPageSizeImpl();
 
     
     /**
@@ -249,5 +253,8 @@ public class Platform {
         return pointerSizeInBits/8;
     }
 
+    public static long getPageSize() {
+        return pageSize;
+    }
 }
 
