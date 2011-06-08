@@ -35,55 +35,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.JarURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.Platform;
 
 public class IOUtil {
     private IOUtil() {}
     
-    /**
-     * Returns the lowercase suffix of the given file name (the text
-     * after the last '.' in the file name). Returns null if the file
-     * name has no suffix. Only operates on the given file name;
-     * performs no I/O operations.
-     *
-     * @param file name of the file
-     * @return lowercase suffix of the file name
-     * @throws NullPointerException if file is null
+    /***
+     * 
+     * STREAM COPY STUFF
+     *  
      */
-
-    public static String getFileSuffix(File file) {
-        return getFileSuffix(file.getName());
-    }
-
-    /**
-     * Returns the lowercase suffix of the given file name (the text
-     * after the last '.' in the file name). Returns null if the file
-     * name has no suffix. Only operates on the given file name;
-     * performs no I/O operations.
-     *
-     * @param filename name of the file
-     * @return lowercase suffix of the file name
-     * @throws NullPointerException if filename is null
-     */
-    public static String getFileSuffix(String filename) {
-        int lastDot = filename.lastIndexOf('.');
-        if (lastDot < 0) {
-            return null;
-        }
-        return toLowerCase(filename.substring(lastDot + 1));
-    }
-
-    private static String toLowerCase(String arg) {
-        if (arg == null) {
-            return null;
-        }
-
-        return arg.toLowerCase();
-    }
     
     /**
      * Copy the specified input stream to the specified output file. The total
@@ -113,9 +81,8 @@ public class IOUtil {
      * number of bytes written is returned.
      */
     public static int copyStream2Stream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
+        final byte[] buf = new byte[Platform.getPageSize()];
         int numBytes = 0;
-        final int BUFFER_SIZE = 1000;
-        byte[] buf = new byte[BUFFER_SIZE];
         while (true) {
             int count;
             if ((count = in.read(buf)) == -1) {
@@ -166,8 +133,219 @@ public class IOUtil {
      * <p>The implementation creates the ByteBuffer w/ {@link #copyStream2ByteArray(InputStream)}'s returned byte array.</p>
      */
     public static ByteBuffer copyStream2ByteBuffer(InputStream stream) throws IOException {
-        final byte[] data = copyStream2ByteArray(stream);
-        return Buffers.newDirectByteBuffer(data, 0, data.length);
+        // FIXME: Shall enforce a BufferedInputStream ?
+        if( !(stream instanceof BufferedInputStream) ) {
+            stream = new BufferedInputStream(stream);
+        }
+        int totalRead = 0;
+        int avail = stream.available();
+        ByteBuffer data = Buffers.newDirectByteBuffer( Platform.getPageAlignedSize(avail) );
+        byte[] chunk = new byte[Platform.getPageSize()];
+        int chunk2Read = Math.min(Platform.getPageSize(), avail);
+        int numRead = 0;
+        do {
+            if (avail > data.remaining()) {
+                final ByteBuffer newData = Buffers.newDirectByteBuffer( 
+                                               Platform.getPageAlignedSize(data.position() + avail) );
+                newData.put(data);
+                data = newData;
+            }
+            
+            numRead = stream.read(chunk, 0, chunk2Read);
+            if (numRead >= 0) {
+                data.put(chunk, 0, numRead);
+                totalRead += numRead;
+            }
+            avail = stream.available();
+            chunk2Read = Math.min(Platform.getPageSize(), avail);
+        } while (avail > 0 && numRead >= 0);
+
+        data.flip();
+        return data;
     }
 
+    /***
+     * 
+     * RESOURCE / FILE NAME STUFF
+     *  
+     */
+    
+    /**
+     * Returns the lowercase suffix of the given file name (the text
+     * after the last '.' in the file name). Returns null if the file
+     * name has no suffix. Only operates on the given file name;
+     * performs no I/O operations.
+     *
+     * @param file name of the file
+     * @return lowercase suffix of the file name
+     * @throws NullPointerException if file is null
+     */
+
+    public static String getFileSuffix(File file) {
+        return getFileSuffix(file.getName());
+    }
+
+    /**
+     * Returns the lowercase suffix of the given file name (the text
+     * after the last '.' in the file name). Returns null if the file
+     * name has no suffix. Only operates on the given file name;
+     * performs no I/O operations.
+     *
+     * @param filename name of the file
+     * @return lowercase suffix of the file name
+     * @throws NullPointerException if filename is null
+     */
+    public static String getFileSuffix(String filename) {
+        int lastDot = filename.lastIndexOf('.');
+        if (lastDot < 0) {
+            return null;
+        }
+        return toLowerCase(filename.substring(lastDot + 1));
+    }
+
+    private static String toLowerCase(String arg) {
+        if (arg == null) {
+            return null;
+        }
+
+        return arg.toLowerCase();
+    }
+    
+    /***
+     * 
+     * RESOURCE LOCATION STUFF
+     *  
+     */
+    
+    /**
+     * Locating a resource using 'getResource(String path, ClassLoader cl)',
+     * with the given context's ClassLoader and the resourcePath as is,
+     * as well with the context's package name-path plus the resourcePath.
+     *
+     * @see #getResource(String, ClassLoader)
+     */
+    public static URL getResource(Class context, String resourcePath) {
+        if(null == resourcePath) {
+            return null;
+        }
+        ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
+        URL url = getResource(resourcePath, contextCL);
+        if (url == null && null!=context) {
+            // Try again by scoping the path within the class's package
+            String className = context.getName().replace('.', '/');
+            int lastSlash = className.lastIndexOf('/');
+            if (lastSlash >= 0) {
+                String tmpPath = className.substring(0, lastSlash + 1) + resourcePath;
+                url = getResource(tmpPath, contextCL);
+            }
+        }
+        return url;
+    }
+
+    /**
+     * Locating a resource using the ClassLoader's facility if not null,
+     * the absolute URL and absolute file.
+     *
+     * @see ClassLoader#getResource(String)
+     * @see ClassLoader#getSystemResource(String)
+     * @see URL#URL(String)
+     * @see File#File(String)
+     */
+    public static URL getResource(String resourcePath, ClassLoader cl) {
+        if(null == resourcePath) {
+            return null;
+        }
+        URL url = null;
+        if (cl != null) {
+            url = cl.getResource(resourcePath);
+            if(!urlExists(url)) {
+                url = null;
+            }            
+        } 
+        if(null == url) {
+            url = ClassLoader.getSystemResource(resourcePath);
+            if(!urlExists(url)) {
+                url = null;
+            }            
+        }
+        if(null == url) {
+            try {
+                url = new URL(resourcePath);
+                if(!urlExists(url)) {
+                    url = null;
+                }
+            } catch (MalformedURLException e) { }
+        }
+        if(null == url) {
+            try {
+                File file = new File(resourcePath);
+                if(file.exists()) {
+                    url = file.toURL();
+                } else {
+                }
+            } catch (MalformedURLException e) {}
+        }
+        return url;
+    }
+
+    /**
+     * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
+     * 
+     * @param baseLocation denotes a directory
+     * @param relativeFile denotes a relative file to the baseLocation
+     */
+    public static String getRelativeOf(File baseLocation, String relativeFile) {
+        if(null == relativeFile) {
+            return null;
+        }
+        
+        while (baseLocation != null && relativeFile.startsWith("../")) {
+            baseLocation = baseLocation.getParentFile();
+            relativeFile = relativeFile.substring(3);
+        }
+        if (baseLocation != null) {
+            final File file = new File(baseLocation, relativeFile);
+            // Handle things on Windows
+            return file.getPath().replace('\\', '/');
+        }
+        return null;
+    }
+
+    /**
+     * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
+     * 
+     * @param baseLocation denotes a URL to a file
+     * @param relativeFile denotes a relative file to the baseLocation's parent directory
+     */
+    public static String getRelativeOf(URL baseLocation, String relativeFile) {    
+        String urlPath = baseLocation.getPath();
+        
+        if ( baseLocation.toString().startsWith("jar") ) {
+            JarURLConnection jarConnection;
+            try {
+                jarConnection = (JarURLConnection) baseLocation.openConnection();
+                urlPath = jarConnection.getEntryName();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+        
+        // Try relative path first
+        return getRelativeOf(new File(urlPath).getParentFile(), relativeFile);       
+    }
+    
+    /**
+     * Returns true, if the URL exists and a connection could be opened.
+     */
+    public static boolean urlExists(URL url) {
+        boolean v = false;
+        if(null!=url) {
+            try {
+                URLConnection uc = url.openConnection();
+                v = true;
+            } catch (IOException ioe) { }
+        }
+        return v;
+    }    
 }

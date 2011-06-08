@@ -50,4 +50,6 @@ function onetest() {
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.TestStructAccessorEndian 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG

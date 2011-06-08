@@ -57,7 +57,7 @@ public class Platform {
 
     private static final boolean is32Bit;
     private static final int pointerSizeInBits;
-    private static final long pageSize;
+    private static final int pageSize;
 
     static {
         
@@ -84,7 +84,11 @@ public class Platform {
         
         if(libsLoaded) {
             pointerSizeInBits = getPointerSizeInBitsImpl();
-            pageSize = getPageSizeImpl();
+            final long pageSizeL =  getPageSizeImpl();
+            if(Integer.MAX_VALUE < pageSizeL) {
+                throw new InternalError("PageSize exceeds integer value: " + pageSizeL);
+            }
+            pageSize = (int) pageSizeL ;
         }else{
             pointerSizeInBits = -1;
             pageSize = -1;
@@ -253,8 +257,16 @@ public class Platform {
         return pointerSizeInBits/8;
     }
 
-    public static long getPageSize() {
+    public static int getPageSize() {
         return pageSize;
     }
+
+    public static int getPageNumber(int size) {
+        return ( size + ( pageSize - 1) ) / pageSize ; // integer arithmetic
+    }
+    
+    public static int getPageAlignedSize(int size) {
+        return getPageNumber(size) * pageSize;
+    }    
 }
 
