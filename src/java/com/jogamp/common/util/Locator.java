@@ -31,7 +31,7 @@
  * 
  */
 
-package com.jogamp.opengl.util;
+package com.jogamp.common.util;
 
 import java.io.*;
 import java.net.*;
