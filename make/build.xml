@@ -460,6 +460,13 @@
       </antcall>
 
       <antcall target="c.manifest" inheritRefs="true" />
+
+    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}.jar" manifest="${build}/Manifest-rt.temp">
+      <fileset dir="${build}/obj">
+        <include name="*gluegen-rt.${native.library.suffix}" />
+      </fileset>
+    </jar>
+
     </target>  
 
   <!-- ================================================================== -->
@@ -649,11 +656,6 @@
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
-      </fileset>
-    </jar>
-    <jar destfile="${build}/gluegen-rt-natives-${os.and.arch}.jar" manifest="${build}/Manifest-rt.temp">
-      <fileset dir="${build}/obj">
-        <include name="*gluegen-rt.${native.library.suffix}" />
       </fileset>
     </jar>
 
