@@ -43,7 +43,6 @@
 
 JNIEXPORT jboolean JNICALL
 Java_com_jogamp_common_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
-  int res;
   void * ptr = NULL;
   if (nioBuffer != NULL) {
         ptr = (void *) (*env)->GetDirectBufferAddress(env, nioBuffer);
