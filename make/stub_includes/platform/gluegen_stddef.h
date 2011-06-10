@@ -10,12 +10,17 @@
 #elif defined(WIN32) && defined(__GNUC__)
     #include <stddef.h>
 #elif defined(_WIN64)
-    typedef __int64 ptrdiff_t;
-    typedef unsigned long int size_t;
+    typedef          __int64 ptrdiff_t;
+    typedef unsigned __int64 size_t;
+#elif defined(_WIN32)
+    typedef          __int32 ptrdiff_t;
+    typedef unsigned __int32 size_t;
 #elif defined(__ia64__) || defined(__x86_64__)
-    typedef long int ptrdiff_t;
+    typedef             long ptrdiff_t;
+    typedef unsigned    long size_t;
 #else
-    typedef int ptrdiff_t;
+    typedef              int ptrdiff_t;
+    typedef unsigned     int size_t;
 #endif
 
 #ifndef NULL
