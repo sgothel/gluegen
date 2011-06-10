@@ -26,7 +26,7 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.opengl.test.junit.util;
+package com.jogamp.common.util.locks;
 
 import java.io.File;
 import java.io.IOException;
