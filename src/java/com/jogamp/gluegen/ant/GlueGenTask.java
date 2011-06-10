@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -68,7 +69,7 @@ import org.apache.tools.ant.util.JavaEnvUtils;
                 includes="[optional directory pattern of include files to include]"
                 excludes="[optional directory pattern of include files to exclude]"
                 includeRefid="[optional FileSet or DirSet for include files]"
-                literalInclude="[optional hack to get around FileSet / DirSet issues with different drives]"
+                literalInclude="[optional comma separated list of literal include directories, avoiding limitations of FileSet / DirSet issues]"
                 emitter="[emitter class name]"
                 config="[configuration file]"
                 dumpCPP="[optional boolean]"
@@ -145,12 +146,13 @@ public class GlueGenTask extends Task
     private List setOfIncludeSets = new LinkedList();
 
     /**
-     * <p>A single literal directory to include.  This is to get around the
+     * <p>Comma separated list of literal directories to include.  This is to get around the
      * fact that neither {@link org.apache.tools.ant.types.FileSet} nor
      * {@link org.apache.tools.ant.types.DirSet} can handle multiple drives in
-     * a sane manner.  If <code>null</code> then it has not been specified.</p>
+     * a sane manner or deal with relative path outside of the base-dir.  
+     * If <code>null</code> then it has not been specified.</p>
      */
-    private String literalInclude;
+    private String literalIncludes;
     
     // =========================================================================
     /**
@@ -234,14 +236,14 @@ public class GlueGenTask extends Task
     }
 
     /**
-     * <p>Set a single literal include directory.  See the <code>literalInclude</code>
+     * <p>Set a literal include directories, separated with a comma.  See the <code>literalInclude</code>
      * javadoc for more information.</p>
      * 
-     * @param  directory the directory to include
+     * @param  commaSeparatedIncludes the comma separated directories to include
      */
-    public void setLiteralInclude(String directory)
+    public void setLiteralInclude(String commaSeparatedIncludes)
     {
-        this.literalInclude = directory;
+        this.literalIncludes = commaSeparatedIncludes.trim();
     }
 
     /**
@@ -515,8 +517,15 @@ public class GlueGenTask extends Task
         
         // if literalInclude is valid then add it to the list of included
         // directories
-        if(isValid(literalInclude))
-            includedDirectories.add(literalInclude); 
+        if( isValid( literalIncludes ) ) {
+            final String[] includes = literalIncludes.split(",");
+            for(int i=0; i<includes.length; i++) {
+                final String include = includes[i].trim();
+                if( include.length()>0 ) {
+                    includedDirectories.add(include);
+                }
+            }
+        }
         
         // add the included directories to the command
         for(Iterator includes=includedDirectories.iterator(); includes.hasNext(); )
