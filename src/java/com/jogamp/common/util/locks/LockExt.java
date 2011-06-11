@@ -38,8 +38,6 @@ public interface LockExt extends Lock {
      */
     Thread getOwner();
 
-    boolean isLocked();
-
     boolean isLockedByOtherThread();
 
     boolean isOwner();

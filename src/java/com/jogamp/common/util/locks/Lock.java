@@ -74,4 +74,6 @@ public interface Lock {
      * @throws RuntimeException in case the lock is not acquired by this thread.
      */
     void unlock() throws RuntimeException;
+    
+    boolean isLocked();
 }
