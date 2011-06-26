@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Random;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -49,25 +48,12 @@ import static java.lang.System.*;
 public class IntIntHashMapTest {
 
     private static int iterations;
-    private static int[] rndKeys;
-    private static int[] rndValues;
+    private static IntIntUniqueRndValues pairs;
 
     @BeforeClass
     public static void init() {
-
-        iterations = 20000;
-        final int keySeed = 42;
-        final int valueSeed = 23;
-
-        Random keyRnd = new Random(/*keySeed*/);
-        Random valueRnd = new Random(/*valueSeed*/);
-
-        rndKeys = new int[iterations];
-        rndValues = new int[iterations];
-        for (int i = 0; i < iterations; i++) {
-            rndValues[i] = valueRnd.nextInt();
-            rndKeys[i] = keyRnd.nextInt();
-        }
+        iterations = 10000;
+        pairs = new IntIntUniqueRndValues(iterations);
     }
 
     /**
@@ -81,14 +67,14 @@ public class IntIntHashMapTest {
 
         // put
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
 
-            assertTrue(intmap.containsValue(rndValues[i]));
-            assertTrue(intmap.containsKey(rndKeys[i]));
+            assertTrue(intmap.containsValue(pairs.values[i]));
+            assertTrue(intmap.containsKey(pairs.keys[i]));
         }
 
         for (int i = 0; i < iterations; i++) {
-            map.put(rndKeys[i], rndValues[i]);
+            map.put(pairs.keys[i], pairs.values[i]);
         }
 
         assertEquals(map.size(), intmap.size());
@@ -113,7 +99,7 @@ public class IntIntHashMapTest {
         final IntIntHashMap intmap = new IntIntHashMap(iterations);
 
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         
         Iterator<IntIntHashMap.Entry> iterator = intmap.iterator();
@@ -141,7 +127,7 @@ public class IntIntHashMapTest {
         intmap.setKeyNotFoundValue(-1);
         
         for (int i = 0; i < smallSize; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         assertEquals(intmap.size(), smallSize);
         
@@ -175,10 +161,10 @@ public class IntIntHashMapTest {
         assertEquals(intmapCopy.size(), n);
 
         for (int i = 0; i < smallSize; i++) {
-            assertTrue(intmap.containsValue(rndValues[i]));
-            assertTrue(intmap.containsKey(rndKeys[i]));
-            assertTrue(intmapCopy.containsValue(rndValues[i]));
-            assertTrue(intmapCopy.containsKey(rndKeys[i]));
+            assertTrue(intmap.containsValue(pairs.values[i]));
+            assertTrue(intmap.containsKey(pairs.keys[i]));
+            assertTrue(intmapCopy.containsValue(pairs.values[i]));
+            assertTrue(intmapCopy.containsKey(pairs.keys[i]));
         }
         
 //        out.println(intmap);
@@ -195,7 +181,7 @@ public class IntIntHashMapTest {
         
         assertEquals(intmap.capacity(), capacity);        
         for (int i = 0; i < fixedSize; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         assertEquals(intmap.size(), fixedSize);
         assertEquals(intmap.capacity(), capacity);
@@ -233,10 +219,10 @@ public class IntIntHashMapTest {
         assertEquals(intmapCopy.capacity(), capacity);
 
         for (int i = 0; i < fixedSize; i++) {
-            assertTrue(intmap.containsValue(rndValues[i]));
-            assertTrue(intmap.containsKey(rndKeys[i]));
-            assertTrue(intmapCopy.containsValue(rndValues[i]));
-            assertTrue(intmapCopy.containsKey(rndKeys[i]));
+            assertTrue(intmap.containsValue(pairs.values[i]));
+            assertTrue(intmap.containsKey(pairs.keys[i]));
+            assertTrue(intmapCopy.containsValue(pairs.values[i]));
+            assertTrue(intmapCopy.containsKey(pairs.keys[i]));
         }
         
 //        out.println(intmap);
@@ -261,14 +247,14 @@ public class IntIntHashMapTest {
         out.println("put");
         long time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         long intmapPutTime = (nanoTime() - time);
         out.println("   iimap: " + intmapPutTime/1000000.0f+"ms");
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.put(rndKeys[i], rndValues[i]);
+            map.put(pairs.keys[i], pairs.values[i]);
         }
         long mapPutTime = (nanoTime() - time);
         out.println("   map:   " + mapPutTime/1000000.0f+"ms");
@@ -278,14 +264,14 @@ public class IntIntHashMapTest {
         System.out.println("get");
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.get(rndKeys[i]);
+            intmap.get(pairs.keys[i]);
         }
         long intmapGetTime = (nanoTime() - time);
         out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.get(rndKeys[i]);
+            map.get(pairs.keys[i]);
         }
         long mapGetTime = (nanoTime() - time);
         out.println("   map:   " + mapGetTime/1000000.0f+"ms");
@@ -295,7 +281,7 @@ public class IntIntHashMapTest {
         out.println("remove");
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.remove(rndKeys[i]);
+            intmap.remove(pairs.keys[i]);
         }
         assertEquals(0, intmap.size());
         long intmapRemoveTime = (nanoTime() - time);
@@ -303,7 +289,7 @@ public class IntIntHashMapTest {
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.remove(rndKeys[i]);
+            map.remove(pairs.keys[i]);
         }
         assertEquals(0, map.size());
         long mapRemoveTime = (nanoTime() - time);

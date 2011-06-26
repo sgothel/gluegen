@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
-import java.util.Random;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -47,49 +46,13 @@ import static org.junit.Assert.*;
  */
 public class IntObjectHashMapTest {
 
-    public static class IntCloneable implements Cloneable {
-        private int i;         
-        
-        public IntCloneable(int i) { this.i = i; }    
-        
-        public int intValue() { return i; }
-        
-        @Override
-        public Object clone() {
-            return new IntCloneable(i);
-        }        
-        
-        @Override
-        public boolean equals(Object obj) {
-            if(this == obj)  { return true; }
-            if (obj instanceof IntCloneable) {
-                IntCloneable v = (IntCloneable)obj;
-                return i == v.i ;
-            }
-            return false;            
-        }
-    }
-    
     private static int iterations;
-    private static int[] rndKeys;
-    private static IntCloneable[] rndValues;
+    private static IntIntObjUniqueRndValues pairs;
 
     @BeforeClass
     public static void init() {
-
-        iterations = 20000;
-        final int keySeed = 42;
-        final int valueSeed = 23;
-
-        Random keyRnd = new Random(/*keySeed*/);
-        Random valueRnd = new Random(/*valueSeed*/);
-
-        rndKeys = new int[iterations];
-        rndValues = new IntCloneable[iterations];
-        for (int i = 0; i < iterations; i++) {
-            rndValues[i] = new IntCloneable(valueRnd.nextInt());
-            rndKeys[i] = keyRnd.nextInt();
-        }
+        iterations = 10000;
+        pairs = new IntIntObjUniqueRndValues(iterations);
     }
 
     /**
@@ -103,14 +66,14 @@ public class IntObjectHashMapTest {
 
         // put
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
 
-            assertTrue(intmap.containsValue(rndValues[i]));
-            assertTrue(intmap.containsKey(rndKeys[i]));
+            assertTrue(intmap.containsValue(pairs.values[i]));
+            assertTrue(intmap.containsKey(pairs.keys[i]));
         }
 
         for (int i = 0; i < iterations; i++) {
-            map.put(rndKeys[i], rndValues[i]);
+            map.put(pairs.keys[i], pairs.values[i]);
         }
 
         assertEquals(map.size(), intmap.size());
@@ -135,7 +98,7 @@ public class IntObjectHashMapTest {
         final IntObjectHashMap intmap = new IntObjectHashMap(iterations);
 
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         
         Iterator<IntObjectHashMap.Entry> iterator = intmap.iterator();
@@ -160,7 +123,7 @@ public class IntObjectHashMapTest {
         final IntObjectHashMap intmap = new IntObjectHashMap(iterations);
 
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         
         final IntObjectHashMap intmapCopy = (IntObjectHashMap) intmap.clone();
@@ -193,10 +156,10 @@ public class IntObjectHashMapTest {
         assertEquals(intmapCopy.size(), n);
 
         for (int i = 0; i < iterations; i++) {
-            assertTrue(intmap.containsValue(rndValues[i]));
-            assertTrue(intmap.containsKey(rndKeys[i]));
-            assertTrue(intmapCopy.containsValue(rndValues[i]));
-            assertTrue(intmapCopy.containsKey(rndKeys[i]));
+            assertTrue(intmap.containsValue(pairs.values[i]));
+            assertTrue(intmap.containsKey(pairs.keys[i]));
+            assertTrue(intmapCopy.containsValue(pairs.values[i]));
+            assertTrue(intmapCopy.containsKey(pairs.keys[i]));
         }
         
 //        out.println(intmap);

@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.Map.Entry;
-import java.util.Random;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -49,27 +48,14 @@ import static java.lang.System.*;
 public class LongIntHashMapTest {
 
     private static int iterations;
-    private static long[] rndKeys;
-    private static int[] rndValues;
+    private static LongIntUniqueRndValues pairs;
 
     @BeforeClass
     public static void init() {
-
-        iterations = 20000;
-        final int keySeed = 42;
-        final int valueSeed = 23;
-
-        Random keyRnd = new Random(/*keySeed*/);
-        Random valueRnd = new Random(/*valueSeed*/);
-
-        rndKeys = new long[iterations];
-        rndValues = new int[iterations];
-        for (int i = 0; i < iterations; i++) {
-            rndValues[i] = valueRnd.nextInt();
-            rndKeys[i] = keyRnd.nextLong();
-        }
-
+        iterations = 10000;
+        pairs = new LongIntUniqueRndValues(iterations);
     }
+    
     /**
      * Test of put method, of class LongIntHashMap.
      */
@@ -81,14 +67,14 @@ public class LongIntHashMapTest {
 
         // put
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
 
-            assertTrue(intmap.containsValue(rndValues[i]));
-            assertTrue(intmap.containsKey(rndKeys[i]));
+            assertTrue(intmap.containsValue(pairs.values[i]));
+            assertTrue(intmap.containsKey(pairs.keys[i]));
         }
 
         for (int i = 0; i < iterations; i++) {
-            map.put(rndKeys[i], rndValues[i]);
+            map.put(pairs.keys[i], pairs.values[i]);
         }
 
         assertEquals(map.size(), intmap.size());
@@ -113,10 +99,10 @@ public class LongIntHashMapTest {
         final LongIntHashMap map = new LongIntHashMap(iterations);
 
         for (int i = 0; i < iterations; i++) {
-            map.put(rndKeys[i], rndValues[i]);
+            map.put(pairs.keys[i], pairs.values[i]);
         }
 
-        Iterator iterator = map.iterator();
+        Iterator<LongIntHashMap.Entry> iterator = map.iterator();
         assertNotNull(iterator);
         assertTrue(iterator.hasNext());
 
@@ -150,7 +136,7 @@ public class LongIntHashMapTest {
         out.println("put");
         long time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.put(rndKeys[i], rndValues[i]);
+            intmap.put(pairs.keys[i], pairs.values[i]);
         }
         long intmapPutTime = (nanoTime() - time);
         out.println("   iimap: " + intmapPutTime/1000000.0f+"ms");
@@ -158,7 +144,7 @@ public class LongIntHashMapTest {
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.put(rndKeys[i], rndValues[i]);
+            map.put(pairs.keys[i], pairs.values[i]);
         }
         long mapPutTime = (nanoTime() - time);
         out.println("   map:   " + mapPutTime/1000000.0f+"ms");
@@ -168,14 +154,14 @@ public class LongIntHashMapTest {
         System.out.println("get");
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.get(rndKeys[i]);
+            intmap.get(pairs.keys[i]);
         }
         long intmapGetTime = (nanoTime() - time);
         out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.get(rndKeys[i]);
+            map.get(pairs.keys[i]);
         }
         long mapGetTime = (nanoTime() - time);
         out.println("   map:   " + mapGetTime/1000000.0f+"ms");
@@ -185,7 +171,7 @@ public class LongIntHashMapTest {
         out.println("remove");
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            intmap.remove(rndKeys[i]);
+            intmap.remove(pairs.keys[i]);
         }
         assertEquals(0, intmap.size());
         long intmapRemoveTime = (nanoTime() - time);
@@ -193,7 +179,7 @@ public class LongIntHashMapTest {
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
-            map.remove(rndKeys[i]);
+            map.remove(pairs.keys[i]);
         }
         assertEquals(0, map.size());
         long mapRemoveTime = (nanoTime() - time);
