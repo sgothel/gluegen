@@ -37,6 +37,9 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.jogamp.common.os.Platform;
+
 import static org.junit.Assert.*;
 import static java.lang.System.*;
 
@@ -52,7 +55,7 @@ public class IntIntHashMapTest {
 
     @BeforeClass
     public static void init() {
-        iterations = 10000;
+        iterations = ( Platform.CPUType.ARM == Platform.CPU_TYPE ) ? 100 : 10000;
         pairs = new IntIntUniqueRndValues(iterations);
     }
 

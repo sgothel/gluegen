@@ -37,6 +37,9 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import com.jogamp.common.os.Platform;
+
 import static org.junit.Assert.*;
 import static java.lang.System.*;
 
@@ -52,7 +55,7 @@ public class LongIntHashMapTest {
 
     @BeforeClass
     public static void init() {
-        iterations = 10000;
+        iterations = ( Platform.getCPUType() == Platform.CPUType.ARM ) ? 100 : 10000;
         pairs = new LongIntUniqueRndValues(iterations);
     }
     

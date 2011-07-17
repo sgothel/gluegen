@@ -32,6 +32,8 @@ import java.io.IOException;
 
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
+
 public class TestRecursiveLock01 {
 
     static final int YIELD_NONE = 0;
@@ -210,28 +212,45 @@ public class TestRecursiveLock01 {
     // @Test
     public void testLockedObjectThreading2x10000() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading2x10000");
-        testLockedObjectImpl(2, 10000, 10000, YIELD_NONE);
+        if( Platform.getCPUType() == Platform.CPUType.ARM ) {
+            testLockedObjectImpl(2, 10, 10, YIELD_NONE);
+        } else {
+            testLockedObjectImpl(2, 10000, 10000, YIELD_NONE);
+        }
         System.err.println("---- TestRecursiveLock01.testLockedObjectThreading2x10000");
     }
 
     @Test
     public void testLockedObjectThreading25x25Yield() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
-        testLockedObjectImpl(25, 25, 100, YIELD_YIELD);
+        if( Platform.getCPUType() == Platform.CPUType.ARM ) {
+            testLockedObjectImpl(5, 25, 10, YIELD_YIELD);
+        } else {
+            testLockedObjectImpl(25, 25, 100, YIELD_YIELD);
+        }
         System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
     }
 
     // @Test
     public void testLockedObjectThreading25x25Sleep() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
-        testLockedObjectImpl(25, 25, 100, YIELD_SLEEP);
+        if( Platform.getCPUType() == Platform.CPUType.ARM ) {
+            testLockedObjectImpl(5, 25, 10, YIELD_SLEEP);
+        } else {
+            testLockedObjectImpl(25, 25, 100, YIELD_SLEEP);
+        }
         System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
     }
 
     @Test
     public void testLockedObjectThreading25x25None() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-None");
-        testLockedObjectImpl(25, 25, 100, YIELD_NONE);
+        if( Platform.getCPUType() == Platform.CPUType.ARM ) {
+            testLockedObjectImpl(5, 25, 10, YIELD_NONE);
+        } else {
+            testLockedObjectImpl(25, 25, 100, YIELD_NONE);
+        }
+        
         System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-None");
     }
 

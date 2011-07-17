@@ -37,10 +37,12 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
+
 public class TestIteratorIndexCORE {
 
     static int elems = 10;
-    static int loop = 9999999;
+    static int loop = ( Platform.getCPUType() == Platform.CPUType.ARM ) ? 100 : 9999999;
 
     public void populate(List l, int len) {
         while(len>0) {
