@@ -42,8 +42,9 @@
   
   <h4>GlueGen Internal Alignment for Compound Data</h4>
   In general, depending on CPU and it's configuration (OS), alignment is set up 
-  for each type (char, short, int, long, ..),<br>
-  where structures are aligned naturally, i.e. their inner components are aligned.<br>
+  for each type (char, short, int, long, ..).
+  <p>Compounds (structures) are aligned naturally, i.e. their inner components are aligned<br>
+  and are itself aligned to it's largest element.</p>
   See:<br>
   <ul>
    <li><a href="http://en.wikipedia.org/wiki/Data_structure_alignment">Wikipedia Data Structure Alignment</a></li>
@@ -52,18 +53,28 @@
    <li><a href="http://developer.apple.com/library/mac/#documentation/Darwin/Conceptual/64bitPorting/transition/transition.html#//apple_ref/doc/uid/TP40001064-CH207-SW1">Apple: Darwin 64bit Porting - Data Type Size &amp; Alignment</a></li>
   </ul>
   
+  <h5>Simple alignment arithmetic</h5>
+  <blockquote>remainder = net_size % alignment</blockquote>
+  since alignment is a multiple of 2 <code>-> x % 2n == x & (2n - 1)</code><br>   
+  <blockquote>remainder = net_size & ( alignment - 1 )</blockquote>
+  <blockquote>
+   padding = alignment - remainder ;<br>
+   aligned_size = net_size + padding ;   
+  </blockquote>
+  
   <h5>Type Size &amp; Alignment for x86, x86_64, armv7l-32bit-eabi and Window(mingw/mingw64)</h5>
   Runtime query is implemented as follows: 
   <pre>
    typedef struct {
      char   fill;  // nibble one byte
-                   // padding to align s1 
-     _TYPE_ s1;    // 
-   } type_t;
+                   // padding to align s1: padding_0 
+     type_t s1;    // 
+   } test_struct_type_t;
   
-     padding = sizeof(type_t) - sizeof(_TYPE_) - sizeof(char);
-   alignment = sizeof(type_t) - sizeof(_TYPE_) ;
+             padding_0 = sizeof(test_struct_type_t) - sizeof(type_t) - sizeof(char) ;
+   alignmentOf(type_t) = sizeof(test_struct_type_t) - sizeof(type_t) ;
   </pre>
+   
   <table border="1">
     <tr><th>type</th>      <th colspan="2">32 bits</th><th colspan="2">64 bits</th></tr>
     <tr><th></th>          <th>size</th><th>alignment</th><th>size</th><th>alignment</th></tr>
