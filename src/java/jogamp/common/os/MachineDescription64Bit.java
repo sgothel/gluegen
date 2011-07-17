@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,10 +38,24 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.cgram.types;
+package jogamp.common.os;
 
+import com.jogamp.common.os.MachineDescription;
+
+/**
+ * Compile time machine description.
+ * <p>littleEndian is guessed, true</p>
+ * <p>sizeof(long) is wrong for Windows (64bit only)</p>
+ * <p>pageSize is guessed, 4096</p>
+ * <p>alignments are wrong, just set to sizeof</p>
+ * For alignment and size see {@link com.jogamp.gluegen}
+ */
 public class MachineDescription64Bit extends MachineDescription {
   public MachineDescription64Bit() {
-    super(1, 2, 4, 8, 8, 4, 8, 8, 16);
+    // size:      char, short, int, long, float, double, pointer, pageSize
+    // alignment: int8, int16, int32, int64, char, short, int, long, float, double, pointer
+    super( false /* runtime validated */, true /* little endian */, 
+           /* size */ 1, 2, 4, 8 /* on win, long is 4 !!! */, 4, 8, 8, 4096,
+           /*align */ 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 8);
   }
 }

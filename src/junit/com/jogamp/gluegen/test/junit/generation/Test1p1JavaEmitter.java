@@ -105,6 +105,14 @@ public class Test1p1JavaEmitter extends BaseClass {
         chapter05TestSomeFunctionsAllIndirect(new Bindingtest1p1Impl());
     }
 
+    /**
+     * This covers compounds (structs) and data alignment
+     */
+    @Test
+    public void chapter09TestCompoundAndAlignment() throws Exception {
+        chapter09TestCompoundAndAlignment(new Bindingtest1p1Impl());
+    }
+
     public static void main(String args[]) throws IOException {
         String tstname = Test1p1JavaEmitter.class.getName();
         org.junit.runner.JUnitCore.main(tstname);

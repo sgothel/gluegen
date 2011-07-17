@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +40,7 @@
 
 package com.jogamp.gluegen;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.gluegen.cgram.types.*;
 
 /** Encapsulates algorithm for laying out data structures. Note that
@@ -119,36 +121,39 @@ public class StructLayout {
 
   
 
+  /**
+   * <P>See alignment in {@link com.jogamp.common.os.MachineDescription}.</p>
+   * 
+   * <P>The code is currently used at compile time {@link JavaEmitter#layoutStruct(CompoundType t)} once,
+   * and code for structs is emitted for generic 32bit and 64bit only {@link JavaEmitter#emitStruct(CompoundType structType, String alternateName)}.</p>
+   */
   public static StructLayout createForCurrentPlatform() {
-    // Note: this code is replicated in (from?) Platform.java
-    String os = System.getProperty("os.name").toLowerCase();
-    String cpu = System.getProperty("os.arch").toLowerCase();
-    if ((os.startsWith("windows") && cpu.equals("x86"))) {
-      // It appears that Windows uses a packing alignment of 4 bytes in 32-bit mode
+    final Platform.OSType osType = Platform.getOSType();
+    final Platform.CPUArch cpuArch = Platform.getCPUArch();
+    
+    if( ( Platform.OSType.WINDOWS == osType && Platform.CPUArch.X86_32 == cpuArch ) || // It appears that Windows uses a packing alignment of 4 bytes in 32-bit mode
+        ( Platform.CPUArch.ARM_32 == cpuArch ) 
+      ) {
       return new StructLayout(0, 4);
-    } else if ((os.startsWith("windows") && cpu.equals("amd64")) ||
-               (os.startsWith("linux") && cpu.equals("i386")) ||
-               (os.startsWith("linux") && cpu.equals("x86")) ||
-               (os.startsWith("linux") && cpu.equals("amd64")) ||
-               (os.startsWith("linux") && cpu.equals("x86_64")) ||
-               (os.startsWith("linux") && cpu.equals("ia64")) ||
-               (os.startsWith("sunos") && cpu.equals("sparc")) ||
-               (os.startsWith("sunos") && cpu.equals("sparcv9")) ||
-               (os.startsWith("sunos") && cpu.equals("x86")) ||
-               (os.startsWith("sunos") && cpu.equals("amd64")) ||
-               (os.startsWith("mac os") && cpu.equals("ppc")) ||
-               (os.startsWith("mac os") && cpu.equals("i386")) ||
-               (os.startsWith("mac os") && cpu.equals("x86_64")) ||
-               (os.startsWith("freebsd") && cpu.equals("i386")) ||
-               (os.startsWith("freebsd") && cpu.equals("amd64")) ||
-               (os.startsWith("hp-ux") && cpu.equals("pa_risc2.0"))
+    } else if ((Platform.OSType.WINDOWS == osType && Platform.CPUArch.X86_64 == cpuArch) ||
+               (Platform.OSType.LINUX == osType   && Platform.CPUArch.X86_32 == cpuArch) ||
+               (Platform.OSType.LINUX == osType   && Platform.CPUArch.X86_64 == cpuArch) ||
+               (Platform.OSType.LINUX == osType   && Platform.CPUArch.IA64 == cpuArch) ||
+               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.SPARC_32 == cpuArch) ||
+               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.SPARCV9_64 == cpuArch) ||
+               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.X86_32 == cpuArch) ||
+               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.X86_64 == cpuArch) ||
+               (Platform.OSType.MACOS == osType   && Platform.CPUArch.PPC == cpuArch) ||
+               (Platform.OSType.MACOS == osType   && Platform.CPUArch.X86_32 == cpuArch) ||
+               (Platform.OSType.MACOS == osType   && Platform.CPUArch.X86_64 == cpuArch) ||
+               (Platform.OSType.FREEBSD == osType && Platform.CPUArch.X86_32 == cpuArch) ||
+               (Platform.OSType.FREEBSD == osType && Platform.CPUArch.X86_64 == cpuArch) ||
+               (Platform.OSType.HPUX == osType    && Platform.CPUArch.PA_RISC2_0 == cpuArch)
                ) {
-      // FIXME: make struct alignment configurable? May need to change
-      // packing rules on a per-type basis?
       return new StructLayout(0, 8);
     } else {
       // FIXME: add more ports
-      throw new RuntimeException("Please port StructLayout to your OS (" + os + ") and CPU (" + cpu + ")");
+      throw new RuntimeException("Please port StructLayout to your OS (" + osType + ") and CPU (" + cpuArch + ")");
     }
   }
 }

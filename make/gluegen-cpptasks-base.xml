@@ -24,6 +24,7 @@
    -   isLinuxAMD64
    -   isLinuxIA64
    -   isLinuxX86
+   -   isLinuxARM
    -   isOSX
    -   isOSXPPC
    -   isSolaris
@@ -93,6 +94,7 @@
    - 
    -   compiler.cfg.linux
    -   compiler.cfg.linux.amd64
+   -   compiler.cfg.linux.arm7
    -   compiler.cfg.solaris
    -   compiler.cfg.solaris.sparcv9
    -   compiler.cfg.solaris.amd64
@@ -104,6 +106,7 @@
    -   compiler.cfg.hpux
    -   linker.cfg.linux
    -   linker.cfg.linux.amd64
+   -   linker.cfg.linux.arm7
    -   linker.cfg.freebsd.x86
    -   linker.cfg.freebsd.amd64
    -   linker.cfg.solaris
@@ -123,6 +126,10 @@
 <project name="GlueGen-cpptasks-base" basedir=".">
 
   <target name="gluegen.cpptasks.initialize" depends="gluegen.properties.load.user">
+    <echo message="os.name=${os.name}" />
+    <echo message="os.version=${os.version}" />
+    <echo message="os.arch=${os.arch}" />
+
     <!-- NOTE: the value of the debug attribute will not be overridden if already set externally -->
     <property name="c.compiler.debug"     value="false" /> 
 
@@ -214,6 +221,12 @@
     </condition>
     <condition property="isHPUX">
       <os name="HP-UX" />
+    </condition>
+    <condition property="isLinuxARM7">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="arm" />
+      </and>
     </condition>
     <condition property="isLinuxX86">
       <and>
@@ -311,6 +324,7 @@
     <echo message="LinuxAMD64=${isLinuxAMD64}" />
     <echo message="LinuxIA64=${isLinuxIA64}" />
     <echo message="LinuxX86=${isLinuxX86}" />
+    <echo message="LinuxARM=${isLinuxARM}" />
     <echo message="OS X=${isOSX}" />
     <echo message="OS X PPC=${use.macosppc}" />
     <echo message="OS X x32=${use.macosx32}" />
@@ -352,7 +366,11 @@
     <property name="os.and.arch" value="linux-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86" unless="gluegen.cpptasks.detected.os.2" />
+  <target name="gluegen.cpptasks.detect.os.linux.arm7" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARM7">
+    <property name="os.and.arch" value="linux-arm7" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.arm7" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.suffix"     value="*lib" />
@@ -574,6 +592,15 @@
       </defineset>
     </compiler>
 
+    <compiler id="compiler.cfg.linux.arm7" name="gcc">
+      <defineset>
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+        <define name="DEBUG"    if="c.compiler.use-debug"/>        
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+      </defineset>
+    </compiler>
+
     <compiler id="compiler.cfg.freebsd" name="gcc">
       <defineset>
         <define name="__unix__"/>
@@ -743,6 +770,9 @@
         <linkerarg value="-m64"/>
     </linker>
 
+    <linker id="linker.cfg.linux.arm7" name="gcc">
+    </linker>
+
     <linker id="linker.cfg.hpux" name="aCC">
     </linker>
 
@@ -878,6 +908,13 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
     </target>
 
+    <target name="gluegen.cpptasks.declare.compiler.linux.arm7" if="isLinuxARM7">
+      <echo message="Linux.arm7" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.arm7" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.arm7" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
+    </target>
+
     <target name="gluegen.cpptasks.declare.compiler.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" /> 
@@ -892,7 +929,7 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/ia64" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinux">
+    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.arm7" if="isLinux">
         <property name="java.includes.dir.platform" value="${java.includes.dir}/linux" />
     </target>
 

@@ -40,6 +40,8 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.common.os.MachineDescription;
+
 /** Provides a level of indirection between the definition of a type's
     size and the absolute value of this size. Necessary when
     generating glue code for two different CPU architectures (e.g.,
@@ -81,6 +83,24 @@ public abstract class SizeThunk implements Cloneable {
   public static final SizeThunk LONG = new SizeThunk() {
       public long compute(MachineDescription machDesc) {
         return machDesc.longSizeInBytes();
+      }
+    };
+
+  public static final SizeThunk INT8 = new SizeThunk() {
+      public long compute(MachineDescription machDesc) {
+        return machDesc.int8SizeInBytes();
+      }
+    };
+
+  public static final SizeThunk INT16 = new SizeThunk() {
+      public long compute(MachineDescription machDesc) {
+        return machDesc.int16SizeInBytes();
+      }
+    };
+
+  public static final SizeThunk INT32 = new SizeThunk() {
+      public long compute(MachineDescription machDesc) {
+        return machDesc.int32SizeInBytes();
       }
     };
 

@@ -39,6 +39,8 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.common.os.MachineDescription;
+
 /** Represents a field in a struct or union. */
 
 public class Field {

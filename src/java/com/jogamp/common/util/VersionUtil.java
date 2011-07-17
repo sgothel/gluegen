@@ -57,10 +57,7 @@ public class VersionUtil {
         sb.append(Platform.getArch()).append(" (arch) ").append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
 
-        // arch
-        sb.append("Platform: littleEndian ").append(Platform.isLittleEndian()).append(", 32Bit ");
-        sb.append(Platform.is32Bit()).append(", a-ptr bit-size ").append(Platform.getPointerSizeInBits());
-        sb.append(Platform.getNewline());
+        Platform.getMachineDescription().toString(sb).append(Platform.getNewline());
 
         // JVM/JRE
         sb.append("Platform: Java ").append(Platform.getJavaVersion()).append(", ").append(System.getProperty("java.vm.name")).append(", ");

@@ -31,34 +31,36 @@ package com.jogamp.common.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class TestPlatform01 {
 
     @Test
     public void testPageSize01()  {
-        final int ps = Platform.getPageSize();
+        final MachineDescription machine = Platform.getMachineDescription(); 
+        final int ps = machine.pageSizeInBytes();
         System.err.println("PageSize: "+ps);
         Assert.assertTrue("PageSize is 0", 0 < ps );
         
-        final int ps_pages = Platform.getPageNumber(ps);
+        final int ps_pages = machine.pageCount(ps);
         Assert.assertTrue("PageNumber of PageSize is not 1, but "+ps_pages, 1 == ps_pages);
         
         final int sz0 = ps - 10;
-        final int sz0_pages = Platform.getPageNumber(sz0);
+        final int sz0_pages = machine.pageCount(sz0);
         Assert.assertTrue("PageNumber of PageSize-10 is not 1, but "+sz0_pages, 1 == sz0_pages);
         
         final int sz1 = ps + 10;
-        final int sz1_pages = Platform.getPageNumber(sz1);
+        final int sz1_pages = machine.pageCount(sz1);
         Assert.assertTrue("PageNumber of PageSize+10 is not 2, but "+sz1_pages, 2 == sz1_pages);
         
-        final int ps_psa = Platform.getPageAlignedSize(ps);
+        final int ps_psa = machine.pageAlignedSize(ps);
         Assert.assertTrue("PageAlignedSize of PageSize is not PageSize, but "+ps_psa, ps == ps_psa);
         
-        final int sz0_psa = Platform.getPageAlignedSize(sz0);
+        final int sz0_psa = machine.pageAlignedSize(sz0);
         Assert.assertTrue("PageAlignedSize of PageSize-10 is not PageSize, but "+sz0_psa, ps == sz0_psa);
         
-        final int sz1_psa = Platform.getPageAlignedSize(sz1);
+        final int sz1_psa = machine.pageAlignedSize(sz1);
         Assert.assertTrue("PageAlignedSize of PageSize+10 is not 2*PageSize, but "+sz1_psa, ps*2 == sz1_psa);
     }
 

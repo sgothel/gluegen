@@ -59,54 +59,39 @@ import java.util.*;
     supporting code needed in the generated library. */
 
 public class NativeLibrary implements DynamicLookupHelper {
-  private static final int WINDOWS = 1;
-  private static final int UNIX    = 2;
-  private static final int MACOSX  = 3;
   protected static boolean DEBUG;
   protected static boolean DEBUG_LOOKUP;
-  private static int platform;
   private static DynamicLinker dynLink;
   private static String[] prefixes;
   private static String[] suffixes;
 
   static {
-    // Determine platform we're running on
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          String osName = System.getProperty("os.name").toLowerCase();
-          if (osName.startsWith("wind")) {
-            platform = WINDOWS;
-          } else if (osName.startsWith("mac os x")) {
-            platform = MACOSX;
-          } else {
-            platform = UNIX;
-          }
-
-          DEBUG = (System.getProperty("jogamp.debug.NativeLibrary") != null);
-          DEBUG_LOOKUP = (System.getProperty("jogamp.debug.NativeLibrary.Lookup") != null);
-
-          return null;
-        }
-      });
     // Instantiate dynamic linker implementation
-    switch (platform) {
+    switch (Platform.OS_TYPE) {
       case WINDOWS:
         dynLink = new WindowsDynamicLinkerImpl();
         prefixes = new String[] { "" };
         suffixes = new String[] { ".dll" };
         break;
-      case UNIX:
-        dynLink = new UnixDynamicLinkerImpl();
-        prefixes = new String[] { "lib" };
-        suffixes = new String[] { ".so" };
-        break;
-      case MACOSX:
+        
+      case MACOS:
         dynLink = new MacOSXDynamicLinkerImpl();
         prefixes = new String[] { "lib", "" };
         suffixes = new String[] { ".dylib", ".jnilib", "" };
         break;
+
+      /*
+      case FREEBSD:
+      case DALVIK:
+      case SUNOS:
+      case HPUX: 
+      case OPENKODE:         
+      case LINUX: */
       default:
-        throw new InternalError("Platform not initialized properly");
+        dynLink = new UnixDynamicLinkerImpl();
+        prefixes = new String[] { "lib" };
+        suffixes = new String[] { ".so" };
+        break;
     }
   }
 
@@ -306,7 +291,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     addPaths(userDir, baseNames, paths);
 
     // Add probable Mac OS X-specific paths
-    if (platform == MACOSX) {
+    if (Platform.OS_TYPE == Platform.OSType.MACOS) {
       // Add historical location
       addPaths("/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
       // Add current location
@@ -325,15 +310,22 @@ public class NativeLibrary implements DynamicLookupHelper {
   private static String selectName(String windowsLibName,
                                    String unixLibName,
                                    String macOSXLibName) {
-    switch (platform) {
+    switch (Platform.OS_TYPE) {
       case WINDOWS:
         return windowsLibName;
-      case UNIX:
-        return unixLibName;
-      case MACOSX:
+        
+      case MACOS:
         return macOSXLibName;
+
+      /*
+      case FREEBSD:
+      case DALVIK:
+      case SUNOS:
+      case HPUX: 
+      case OPENKODE:         
+      case LINUX: */
       default:
-        throw new InternalError();
+        return unixLibName;
     }
   }
 

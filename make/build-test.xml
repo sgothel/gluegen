@@ -333,6 +333,8 @@
 
         <patternset id="junit.test1p1.c.src.files">
           <include name="${build_t.gen.rootrel}/native/Bindingtest1p1Impl_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/TK_Engine_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/TK_Surface_JNI.c"/>
         </patternset>
 
         <c.build c.compiler.src.files="junit.test1p1.c.src.files"
@@ -355,6 +357,8 @@
 
         <patternset id="junit.test1p2.c.src.files">
           <include name="${build_t.gen.rootrel}/native/Bindingtest1p2Impl_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/TK_Engine_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/TK_Surface_JNI.c"/>
         </patternset>
 
         <c.build c.compiler.src.files="junit.test1p2.c.src.files"

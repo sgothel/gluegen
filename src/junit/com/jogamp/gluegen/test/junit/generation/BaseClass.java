@@ -532,5 +532,80 @@ public class BaseClass {
           i = binding.intArrayRead(iarray, 0, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
     }
+    
+    void assertAPTR(final long expected, final long actual) {
+        System.err.println("0x"+Long.toHexString(expected)+" == 0x"+Long.toHexString(actual));
+        if (Platform.is32Bit()) {
+            int exp32;
+            int act32;
+            // if(Platform.isLittleEndian()) {
+                exp32 = (int) ( expected ) ;
+                act32 = (int) ( actual ) ;                
+            /* } else {
+                exp32 = (int) ( expected >> 32 ) ;
+                act32 = (int) ( actual >> 32 ) ;
+            } */
+            System.err.println("0x"+Integer.toHexString(exp32)+" == 0x"+Integer.toHexString(act32));
+            Assert.assertEquals(exp32, act32);
+        } else {
+            Assert.assertEquals(expected, actual);
+        }        
+    }
+    
+    public void chapter09TestCompoundAndAlignment(Bindingtest1 binding) throws Exception {
+        TK_ComplicatedSuperSet cs =  binding.createComplicatedSuperSet();
+        Assert.assertEquals((byte)0xA0, cs.getBits1());
+        
+        TK_ComplicatedSubSet sub1 =  cs.getSub1();
+        Assert.assertEquals((byte)0xA1, sub1.getBits1());
+        Assert.assertEquals(0x12345678, sub1.getId());
+        Assert.assertEquals((byte)0xA2, sub1.getBits2());
+        Assert.assertEquals(0x123456789abcdef0L, sub1.getLong0());
+        Assert.assertEquals((byte)0xA3, sub1.getBits3());
+        Assert.assertEquals(3.1415926535897932384626433832795, sub1.getReal0(), 0.0);
+        Assert.assertEquals((byte)0xA4, sub1.getBits4());
+
+        Assert.assertEquals((byte)0xB0, cs.getBits2());
+        
+        TK_ComplicatedSubSet sub2 =  cs.getSub2();
+        Assert.assertEquals((byte)0xB1, sub2.getBits1());
+        Assert.assertEquals(0x12345678, sub2.getId());
+        Assert.assertEquals((byte)0xB2, sub2.getBits2());
+        Assert.assertEquals(0x123456789abcdef0L, sub2.getLong0());
+        Assert.assertEquals((byte)0xB3, sub2.getBits3());
+        Assert.assertEquals(3.1415926535897932384626433832795, sub2.getReal0(), 0.0);
+        Assert.assertEquals((byte)0xB4, sub2.getBits4());
+        
+        Assert.assertEquals((byte)0xC0, cs.getBits3());
+        
+        binding.destroyComplicatedSuperSet(cs);
+        
+        /********************************************************************************/
+        
+        TK_Surface surface = binding.createSurface();
+        
+        assertAPTR(0x123456789abcdef0L, surface.getCtx());
+        
+        TK_Engine engine = surface.getEngine();
+        assertAPTR(0x123456789abcdef0L, engine.getCtx());
+        Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
+        
+        TK_Dimension dimension = surface.getBounds();
+        Assert.assertEquals(0x11111111, dimension.getX());
+        Assert.assertEquals(0x22222222, dimension.getY());
+        Assert.assertEquals(0x33333333, dimension.getWidth());
+        Assert.assertEquals(0x44444444, dimension.getHeight());
+
+        Assert.assertEquals(2, surface.getClipSize());
+        
+        for(int i=0; i<surface.getClipSize(); i++) {
+            TK_Dimension clip = surface.getClip(i);
+            Assert.assertEquals(0x44444444 * (i+1) + 0x11111111, clip.getX());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x22222222, clip.getY());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x33333333, clip.getWidth());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x44444444, clip.getHeight());
+        }
+        binding.destroySurface(surface);
+    }
 
 }

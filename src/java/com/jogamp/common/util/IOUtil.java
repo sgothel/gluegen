@@ -42,6 +42,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
@@ -81,7 +82,7 @@ public class IOUtil {
      * number of bytes written is returned.
      */
     public static int copyStream2Stream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
-        final byte[] buf = new byte[Platform.getPageSize()];
+        final byte[] buf = new byte[Platform.getMachineDescription().pageSizeInBytes()];
         int numBytes = 0;
         while (true) {
             int count;
@@ -137,16 +138,16 @@ public class IOUtil {
         if( !(stream instanceof BufferedInputStream) ) {
             stream = new BufferedInputStream(stream);
         }
-        int totalRead = 0;
         int avail = stream.available();
-        ByteBuffer data = Buffers.newDirectByteBuffer( Platform.getPageAlignedSize(avail) );
-        byte[] chunk = new byte[Platform.getPageSize()];
-        int chunk2Read = Math.min(Platform.getPageSize(), avail);
+        final MachineDescription machine = Platform.getMachineDescription(); 
+        ByteBuffer data = Buffers.newDirectByteBuffer( machine.pageAlignedSize(avail) );
+        byte[] chunk = new byte[machine.pageSizeInBytes()];
+        int chunk2Read = Math.min(machine.pageSizeInBytes(), avail);
         int numRead = 0;
         do {
             if (avail > data.remaining()) {
-                final ByteBuffer newData = Buffers.newDirectByteBuffer( 
-                                               Platform.getPageAlignedSize(data.position() + avail) );
+                final ByteBuffer newData = Buffers.newDirectByteBuffer(
+                                               machine.pageAlignedSize(data.position() + avail) );
                 newData.put(data);
                 data = newData;
             }
@@ -154,10 +155,9 @@ public class IOUtil {
             numRead = stream.read(chunk, 0, chunk2Read);
             if (numRead >= 0) {
                 data.put(chunk, 0, numRead);
-                totalRead += numRead;
             }
             avail = stream.available();
-            chunk2Read = Math.min(Platform.getPageSize(), avail);
+            chunk2Read = Math.min(machine.pageSizeInBytes(), avail);
         } while (avail > 0 && numRead >= 0);
 
         data.flip();

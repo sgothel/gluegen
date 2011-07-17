@@ -31,6 +31,8 @@ package com.jogamp.gluegen.test.junit.generation;
 import java.io.File;
 import java.net.URISyntaxException;
 
+import com.jogamp.common.util.VersionUtil;
+
 import static java.lang.System.*;
 
 /**
@@ -46,7 +48,7 @@ public final class BuildEnvironment {
     static {
 
         out.println(" - - - System info - - - ");
-        out.println("OS: " + System.getProperty("os.name"));
+        out.println(VersionUtil.getPlatformInfo());
         out.println("VM: " + System.getProperty("java.vm.name"));
 
         String rootrel_build_tmp = System.getProperty("rootrel.build");

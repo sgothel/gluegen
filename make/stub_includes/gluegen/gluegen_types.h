@@ -24,6 +24,10 @@
  * 
  * The following types are build-in:
  *
+ * int8_t        - stdint.h
+ * uint8_t       - stdint.h
+ * int16_t       - stdint.h
+ * uint16_t      - stdint.h
  * __int32       - windows
  * int32_t       - stdint.h
  * wchar_t       - stddef.h

@@ -40,8 +40,13 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.MachineDescription;
+
 import java.io.*;
 import java.util.*;
+
+import jogamp.common.os.MachineDescription32Bit;
+import jogamp.common.os.MachineDescription64Bit;
 
 import antlr.*;
 import com.jogamp.gluegen.cgram.*;

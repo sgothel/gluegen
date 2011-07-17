@@ -44,11 +44,13 @@ import org.junit.BeforeClass;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class TestIOUtil01 {
 
-    static final int tsz = Platform.getPageSize() + Platform.getPageSize() / 2 ;
+    static final MachineDescription machine = Platform.getMachineDescription(); 
+    static final int tsz = machine.pageSizeInBytes() + machine.pageSizeInBytes() / 2 ;
     static final byte[] orig = new byte[tsz];
     static final String tfilename = "./test.bin" ;
     

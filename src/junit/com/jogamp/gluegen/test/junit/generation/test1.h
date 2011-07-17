@@ -125,3 +125,65 @@ MYAPI uintptr_t MYAPIENTRY typeTestUIntPtrT(const uintptr_t ptr1, uintptr_t ptr2
     #warning "Hello Native Compiler"
 #endif
 
+typedef struct {
+    int32_t x;
+    int32_t y;
+    int32_t width;
+    int32_t height;
+} TK_Dimension;
+
+typedef struct _TK_Context * TK_Context; // anonymous
+
+typedef struct {
+    TK_Context ctx;
+    int32_t (MYAPIENTRY *render) (int x, int y, int ps);
+} TK_Engine;
+
+typedef struct tk_Surface {
+    TK_Context ctx;
+    // const TK_Engine * engine;
+    TK_Engine engine;
+    TK_Dimension bounds;
+    int32_t clipSize;
+    TK_Dimension * clips;
+    TK_Dimension * (MYAPIENTRY *getClip) (struct tk_Surface * ds, int idx);
+} TK_Surface;
+
+typedef struct {
+    int8_t bits1;  // +1
+                   // +3 (p64)
+    int32_t id;    // +4
+    int8_t bits2;  // +1
+                   // +7 (p64)
+    int64_t long0; // +8
+    int8_t bits3;  // +1
+                   // +7 (p64)
+    double real0;  // +8
+    int8_t bits4;  // +1
+                   // +7 (p64) (for next struct ..)
+
+                   // 24 net 
+
+                   // 48 gross 64bit/linux 
+} TK_ComplicatedSubSet;
+
+typedef struct {
+    int8_t bits1;              // + 1
+                               // + 7 (p64)
+    TK_ComplicatedSubSet sub1; // +48 (64bit)
+    int8_t bits2;              // + 1
+                               // + 7 (p64)
+    TK_ComplicatedSubSet sub2; // +48 (64bit)
+    int8_t bits3;              // + 1
+                               // + 7 (p64)
+
+                               //  51 net
+
+                               // 120 gross 64bit/linux 
+} TK_ComplicatedSuperSet;
+
+MYAPI TK_Surface * MYAPIENTRY createSurface();
+MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface);
+
+MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet();
+MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s);

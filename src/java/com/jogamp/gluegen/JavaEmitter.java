@@ -42,6 +42,8 @@ package com.jogamp.gluegen;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.DynamicLookupHelper;
+import com.jogamp.common.os.MachineDescription;
+
 import java.io.*;
 import java.util.*;
 import java.text.MessageFormat;

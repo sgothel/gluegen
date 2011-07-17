@@ -14,13 +14,12 @@ public class TestStructAccessorEndian {
 
     @Test
     public void testStructAccessorEndian1 () {
-        int bitsPtr = Platform.getPointerSizeInBits();
+        final MachineDescription machine = Platform.getMachineDescription();        
+        int bitsPtr = machine.pointerSizeInBytes() * 8;
         String bitsProp = System.getProperty("sun.arch.data.model");
-        String os = System.getProperty("os.name");
-        String cpu = System.getProperty("os.arch");
-        out.println("OS: <"+os+"> CPU: <"+cpu+"> Bits: <"+bitsPtr+"/"+bitsProp+">");
+        out.println("OS: <"+Platform.OS+"> CPU: <"+Platform.ARCH+"> Bits: <"+bitsPtr+"/"+bitsProp+">");
         out.println("CPU is: "+ (Platform.is32Bit()?"32":"64") + " bit");
-        out.println("Buffer is in: "+ (Platform.isLittleEndian()?"little":"big") + " endian");
+        out.println(machine.toString());
 
         long[] valuesSource = { 0x0123456789ABCDEFL, 0x8877665544332211L, 0xAFFEDEADBEEFAFFEL };
         ByteBuffer tst = Buffers.newDirectByteBuffer(Buffers.SIZEOF_LONG * valuesSource.length);

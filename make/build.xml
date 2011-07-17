@@ -291,7 +291,13 @@
       <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
 
-    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64" if="isLinux" >
+    <target name="declare.linux.arm7" if="isLinuxARM7">
+      <echo message="Linux.arm7" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.arm7" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.arm7" /> 
+    </target>
+    
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.arm7" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>
@@ -393,7 +399,7 @@
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
 
-      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.os.Platform" />
+      <javah destdir="${src.generated.c}"         classpath="${classes}" class="jogamp.common.os.MachineDescriptionRuntime" />
       <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.jvm.JVMUtil" />
       <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.nio.PointerBuffer" />
       <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="com.jogamp.common.os.UnixDynamicLinkerImpl" />

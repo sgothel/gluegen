@@ -40,6 +40,8 @@
 package com.jogamp.gluegen;
 
 import java.util.*;
+
+import com.jogamp.common.os.MachineDescription;
 import com.jogamp.gluegen.cgram.types.*;
 
 /** Specifies the interface by which GlueGen requests glue code to be

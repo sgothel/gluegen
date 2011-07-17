@@ -115,6 +115,14 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
         chapter05TestSomeFunctionsAllIndirect(new Bindingtest1p2Impl());
     }
 
+    /**
+     * This covers compounds (structs) and data alignment
+     */
+    @Test
+    public void chapter09TestCompoundAndAlignment() throws Exception {
+        chapter09TestCompoundAndAlignment(new Bindingtest1p1Impl());
+    }
+    
     public static void main(String args[]) throws IOException {
         String tstname = Test1p2ProcAddressEmitter.class.getName();
         org.junit.runner.JUnitCore.main(tstname);

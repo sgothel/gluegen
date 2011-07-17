@@ -234,4 +234,85 @@ MYAPI uintptr_t MYAPIENTRY typeTestUIntPtrT(const uintptr_t ptr1, uintptr_t ptr2
     return ptr1 + ptr2;
 }
 
+static TK_Dimension * _TK_getClip(TK_Surface * surface, int idx) {
+    return & ( surface->clips[idx] ) ;
+}
+
+static int32_t _TK_render (int x, int y, int ps) {
+    return x + y + ps ;
+}
+
+MYAPI TK_Surface * MYAPIENTRY createSurface() {
+    TK_Surface * s = calloc(1, sizeof(TK_Surface));
+
+    s->getClip = _TK_getClip;
+
+    s->ctx = (void *) 0x123456789abcdef0UL;
+    //s->engine = (TK_Engine *) calloc(1, sizeof(TK_Engine));
+    //s->engine->ctx    = (void *) 0x123456789abcdef0UL;
+    //s->engine->render = _TK_render;
+    s->engine.ctx    = (void *) 0x123456789abcdef0UL;
+    s->engine.render = _TK_render;
+
+    s->bounds.x      = 0x11111111U;
+    s->bounds.y      = 0x22222222U;
+    s->bounds.width  = 0x33333333U;
+    s->bounds.height = 0x44444444U;
+
+    s->clipSize = 2;
+    s->clips = (TK_Dimension *) calloc(2, sizeof(TK_Dimension));
+    s->clips[0].x      = 0x55555555U;
+    s->clips[0].y      = 0x66666666U;
+    s->clips[0].width  = 0x77777777U;
+    s->clips[0].height = 0x88888888U;
+    s->clips[1].x      = 0x99999999U;
+    s->clips[1].y      = 0xaaaaaaaaU;
+    s->clips[1].width  = 0xbbbbbbbbU;
+    s->clips[1].height = 0xccccccccU;
+
+    return s;
+}
+
+MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface) {
+    free(surface->clips);
+    // free(surface->engine);
+    free(surface);
+}
+
+MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
+    TK_ComplicatedSuperSet * s = calloc(1, sizeof(TK_ComplicatedSuperSet));
+
+    s->bits1 = 0xA0U;
+    s->sub1.bits1 = 0xA1U;
+    s->sub1.id = 0x12345678U;
+    s->sub1.bits2 = 0xA2U;
+    s->sub1.long0 = 0x123456789abcdef0UL;
+    s->sub1.bits3 = 0xA3U;
+    s->sub1.real0 = 3.1415926535897932384626433832795L;
+    s->sub1.bits4 = 0xA4U;
+    s->bits2 = 0xB0U;
+    s->sub2.bits1 = 0xB1U;
+    s->sub2.id = 0x12345678U;
+    s->sub2.bits2 = 0xB2U;
+    s->sub2.long0 = 0x123456789abcdef0UL;
+    s->sub2.bits3 = 0xB3U;
+    s->sub2.real0 = 3.1415926535897932384626433832795L;
+    s->sub2.bits4 = 0xB4U;
+    s->bits3 = 0xC0U;
+
+    fprintf(stderr, "TK_ComplicatedSubSet: sizeof(): %ld\n", (long) sizeof(TK_ComplicatedSubSet));
+    fprintf(stderr, "TK_ComplicatedSubSet: bits2-s offset: %ld\n", (long) ((void *)(&s->sub1.bits2) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: bits3-s offset: %ld\n", (long) ((void *)(&s->sub1.bits3) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: bits4-s offset: %ld\n", (long) ((void *)(&s->sub1.bits4) - (void *)(&s->sub1)) );
+
+    fprintf(stderr, "TK_ComplicatedSuperSet: sizeof(): %ld\n", (long) sizeof(TK_ComplicatedSuperSet));
+    fprintf(stderr, "TK_ComplicatedSuperSet: bits2-s offset: %ld\n", (long) ((void *)(&s->bits2) - (void *)(s)) );
+    fprintf(stderr, "TK_ComplicatedSuperSet: bits3-s offset: %ld\n", (long) ((void *)(&s->bits3) - (void *)(s)) );
+
+    return s;
+}
+
+MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s) {
+    free(s);
+}
 

@@ -9,32 +9,80 @@
   Gluegen has build-in types (terminal symbols) for:<br/>
   <br/>
   <table border="1">
-    <tr><th>type</th>      <th>java bits</th> <th>native-x32 bits</th><th>native-x64 bits</th><th>type</th>   <th>signed</th>            <th>origin</th</tr>
-    <tr><th>void</th>      <th> 0</th>        <th> 0</th>             <th> 0</th>             <th>void</th>   <th>void</th>              <th>ANSI-C</th></tr>
-    <tr><th>char</th>      <th> 8</th>        <th> 8</th>             <th> 8</th>             <th>integer</th><th>signed or unsigned</th><th>ANSI-C</th></tr>
-    <tr><th>short</th>     <th>16</th>        <th>16</th>             <th>16</th>             <th>integer</th><th>signed or unsigned</th><th>ANSI-C</th></tr>
-    <tr><th>int</th>       <th>32</th>        <th>32</th>             <th>32</th>             <th>integer</th><th>signed or unsigned</th><th>ANSI-C</th></tr>
-    <tr><th>long</th>      <th>64</th>        <th>32</th>             <th>32<sup>1</sup></th> <th>integer</th><th>signed or unsigned</th><th>Windows</th></tr>
-    <tr><th>long</th>      <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>signed or unsigned</th><th>Unix</th></tr>
-    <tr><th>float</th>     <th>32</th>        <th>32</th>             <th>32</th>             <th>float</th>  <th>signed</th>            <th>ANSI-C</th></tr>
-    <tr><th>double</th>    <th>64</th>        <th>64</th>             <th>64</th>             <th>double</th> <th>signed</th>            <th>ANSI-C</th></tr>
-    <tr><th>__int32</th>   <th>32</th>        <th>32</th>             <th>32</th>             <th>integer</th><th>signed or unsigned</th><th>windows</th></tr>
-    <tr><th>int32_t</th>   <th>32</th>        <th>32</th>             <th>32</th>             <th>integer</th><th>signed</th>            <th>stdint.h</th></tr>
-    <tr><th>wchar_t</th>   <th>32</th>        <th>32</th>             <th>32</th>             <th>integer</th><th>signed</th>            <th>stddef.h</th></tr>
-    <tr><th>uint32_t</th>  <th>32</th>        <th>32</th>             <th>32</th>             <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
-    <tr><th>__int64</th>   <th>64</th>        <th>64</th>             <th>64</th>             <th>integer</th><th>signed or unsigned</th><th>windows</th></tr>
-    <tr><th>int64_t</th>   <th>64</th>        <th>64</th>             <th>64</th>             <th>integer</th><th>signed</th>            <th>stdint.h</th></tr>
-    <tr><th>uint64_t</th>  <th>64</th>        <th>64</th>             <th>64</th>             <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
-    <tr><th>ptrdiff_t</th> <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>signed</th>            <th>stddef.h</th></tr>
-    <tr><th>intptr_t</th>  <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>signed</th>            <th>stdint.h</th></tr>
-    <tr><th>size_t</th>    <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>unsigned</th>          <th>stddef.h</th></tr>
-    <tr><th>uintptr_t</th> <th>64</th>        <th>32</th>             <th>64</th>             <th>integer</th><th>unsigned</th>          <th>stdint.h</th></tr>
+    <tr><th>type</th>      <th>java bits</th> <th colspan="2">native bits</th>                <th>type</th>   <th>signed</th>            <th>origin</th></tr>
+    <tr><th></th>          <th></th>          <th>x32</th>            <th>x64</th>            <th></th>       <th></th>                  <th></th></tr>
+    <tr><td>void</td>      <td> 0</td>        <td> 0</td>             <td> 0</td>             <td>void</td>   <td>void</td>              <td>ANSI-C</td></tr>
+    <tr><td>char</td>      <td> 8</td>        <td> 8</td>             <td> 8</td>             <td>integer</td><td>any</td>               <td>ANSI-C</td></tr>
+    <tr><td>short</td>     <td>16</td>        <td>16</td>             <td>16</td>             <td>integer</td><td>any</td>               <td>ANSI-C</td></tr>
+    <tr><td>int</td>       <td>32</td>        <td>32</td>             <td>32</td>             <td>integer</td><td>any</td>               <td>ANSI-C</td></tr>
+    <tr><td>long</td>      <td>64</td>        <td>32</td>             <td><b>32<sup>1</sup></b></td> <td>integer</td><td>any</td>               <td>ANSI-C - Windows</td></tr>
+    <tr><td>long</td>      <td>64</td>        <td>32</td>             <td><b>64</b></td>      <td>integer</td><td>any</td>               <td>ANSI-C - Unix</td></tr>
+    <tr><td>float</td>     <td>32</td>        <td>32</td>             <td>32</td>             <td>float</td>  <td>signed</td>            <td>ANSI-C</td></tr>
+    <tr><td>double</td>    <td>64</td>        <td>64</td>             <td>64</td>             <td>double</td> <td>signed</td>            <td>ANSI-C</td></tr>
+    <tr><td>__int32</td>   <td>32</td>        <td>32</td>             <td>32</td>             <td>integer</td><td>any</td>               <td>windows</td></tr>
+    <tr><td>__int64</td>   <td>64</td>        <td>64</td>             <td>64</td>             <td>integer</td><td>any</td>               <td>windows</td></tr>
+    <tr><td>int8_t</td>    <td> 8</td>        <td> 8</td>             <td> 8</td>             <td>integer</td><td>signed</td>            <td>stdint.h</td></tr>
+    <tr><td>uint8_t</td>   <td> 8</td>        <td> 8</td>             <td> 8</td>             <td>integer</td><td>unsigned</td>          <td>stdint.h</td></tr>
+    <tr><td>int16_t</td>   <td>16</td>        <td>16</td>             <td>16</td>             <td>integer</td><td>signed</td>            <td>stdint.h</td></tr>
+    <tr><td>uint16_t</td>  <td>16</td>        <td>16</td>             <td>16</td>             <td>integer</td><td>unsigned</td>          <td>stdint.h</td></tr>
+    <tr><td>int32_t</td>   <td>32</td>        <td>32</td>             <td>32</td>             <td>integer</td><td>signed</td>            <td>stdint.h</td></tr>
+    <tr><td>uint32_t</td>  <td>32</td>        <td>32</td>             <td>32</td>             <td>integer</td><td>unsigned</td>          <td>stdint.h</td></tr>
+    <tr><td>int64_t</td>   <td>64</td>        <td>64</td>             <td>64</td>             <td>integer</td><td>signed</td>            <td>stdint.h</td></tr>
+    <tr><td>uint64_t</td>  <td>64</td>        <td>64</td>             <td>64</td>             <td>integer</td><td>unsigned</td>          <td>stdint.h</td></tr>
+    <tr><td>intptr_t</td>  <td>64</td>        <td>32</td>             <td>64</td>             <td>integer</td><td>signed</td>            <td>stdint.h</td></tr>
+    <tr><td>uintptr_t</td> <td>64</td>        <td>32</td>             <td>64</td>             <td>integer</td><td>unsigned</td>          <td>stdint.h</td></tr>
+    <tr><td>ptrdiff_t</td> <td>64</td>        <td>32</td>             <td>64</td>             <td>integer</td><td>signed</td>            <td>stddef.h</td></tr>
+    <tr><td>size_t</td>    <td>64</td>        <td>32</td>             <td>64</td>             <td>integer</td><td>unsigned</td>          <td>stddef.h</td></tr>
+    <tr><td>wchar_t</td>   <td>32</td>        <td>32</td>             <td>32</td>             <td>integer</td><td>signed</td>            <td>stddef.h</td></tr>
   </table>
   <p>
   <b>Warning:</b> Try to avoid unspecified bit sized types, especially <b>long</b>, since it differs on Unix and Windows!<br/>
   <b>Note 1:</b>  Type <b>long</b> will result in broken code on Windows, since we don't differentiate the OS and it's bit size is ambiguous.
   </p>
-  <p>
+  
+  <h4>GlueGen Internal Alignment for Compound Data</h4>
+  In general, depending on CPU and it's configuration (OS), alignment is set up 
+  for each type (char, short, int, long, ..),<br>
+  where structures are aligned naturally, i.e. their inner components are aligned.<br>
+  See:<br>
+  <ul>
+   <li><a href="http://en.wikipedia.org/wiki/Data_structure_alignment">Wikipedia Data Structure Alignment</a></li>
+   <li><a href="http://en.wikipedia.org/wiki/Data_structure_alignment#Data_structure_padding">Wikipedia Data Structure Alignment - Padding</a></li>
+   <li><a href="http://www.viva64.com/en/l/0021/">Viva64 Data Alignment</a></li>
+   <li><a href="http://developer.apple.com/library/mac/#documentation/Darwin/Conceptual/64bitPorting/transition/transition.html#//apple_ref/doc/uid/TP40001064-CH207-SW1">Apple: Darwin 64bit Porting - Data Type Size &amp; Alignment</a></li>
+  </ul>
+  
+  <h5>Type Size &amp; Alignment for x86, x86_64, armv7l-32bit-eabi and Window(mingw/mingw64)</h5>
+  Runtime query is implemented as follows: 
+  <pre>
+   typedef struct {
+     _TYPE_ s0;    // ensures start address alignment
+     char   fill;  // nibble one byte
+                   // padding to align s1 
+     _TYPE_ s1;    // 
+   } type_t;
+  
+     padding = sizeof(type_t) - 2 * sizeof(_TYPE_) - sizeof(char);
+   alignment = sizeof(type_t) - 2 * sizeof(_TYPE_) ;
+  </pre>
+  <table border="1">
+    <tr><th>type</th>      <th colspan="2">32 bits</th><th colspan="2">64 bits</th></tr>
+    <tr><th></th>          <th>size</th><th>alignment</th><th>size</th><th>alignment</th></tr>
+    <tr><td>char</td>      <td> 1</td>        <td>  1</td>    <td> 1</td> <td> 1</td></tr>
+    <tr><td>short</td>     <td> 2</td>        <td>  2</td>    <td> 2</td> <td> 2</td></tr>
+    <tr><td>int</td>       <td> 4</td>        <td>  4</td>    <td> 4</td> <td> 4</td></tr>
+    <tr><td>float</td>     <td> 4</td>        <td>  4</td>    <td> 4</td> <td> 4</td></tr>
+    <tr><td>long</td>      <td> 4</td>        <td>  4</td>    <td> 8<sup>&dagger;</sup>,4<sup>&lowast;</sup></td> <td> 8<sup>&dagger;</sup>,4<sup>&lowast;</sup></td></tr>
+    <tr><td>pointer</td>   <td> 4</td>        <td>  4</td>    <td> 8</td> <td> 8</td></tr>
+    <tr><td>long long</td> <td> 8</td> <td>4<sup>&dagger;</sup>,8<sup>&lowast;</sup><sup>+</sup></td>    <td> 8</td> <td> 8</td></tr>
+    <tr><td>double</td>    <td> 8</td> <td>4<sup>&dagger;</sup>,8<sup>&lowast;</sup><sup>+</sup></td>    <td> 8</td> <td> 8</td></tr>
+    <tr><td>long double</td><td>12<sup>&dagger;</sup><sup>&lowast;</sup>,8<sup>+</sup></td> <td>4<sup>&dagger;</sup><sup>&lowast;</sup>,8<sup>+</sup></td>    <td> 16</td> <td>16</td></tr>
+  </table><br>
+  <sup>&dagger;</sup> Linux, Darwin<br>
+  <sup>+</sup>armv7l-32bit-eabi (linux)<br>
+  <sup>&lowast;</sup> Windows<br>
+  </P>
+ 
   <h4>GlueGen Platform Header Files</h4>
   GlueGen provides convenient platform headers,<br/>
   which can be included in your C header files for native compilation and GlueGen code generation.<br/>

@@ -42,6 +42,8 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.List;
 
+import com.jogamp.common.os.MachineDescription;
+
 /** Models a C type. Primitive types include int, float, and
     double. All types have an associated name. Structs and unions are
     modeled as "compound" types -- composed of fields of primitive or

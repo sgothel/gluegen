@@ -43,6 +43,7 @@ import java.util.*;
 import java.io.*;
 import java.text.MessageFormat;
 
+import com.jogamp.common.os.MachineDescription;
 import com.jogamp.gluegen.cgram.types.*;
 import java.util.logging.Logger;
 
