@@ -55,8 +55,6 @@ public class MachineDescription {
   final private int int32SizeInBytes = 4;
   final private int int64SizeInBytes = 8;
   
-  final private int charSizeInBytes;
-  final private int shortSizeInBytes;
   final private int intSizeInBytes;
   final private int longSizeInBytes;
   final private int floatSizeInBytes;
@@ -69,8 +67,6 @@ public class MachineDescription {
   final private int int16AlignmentInBytes;
   final private int int32AlignmentInBytes;
   final private int int64AlignmentInBytes;
-  final private int charAlignmentInBytes;
-  final private int shortAlignmentInBytes;
   final private int intAlignmentInBytes;
   final private int longAlignmentInBytes;
   final private int floatAlignmentInBytes;
@@ -81,8 +77,6 @@ public class MachineDescription {
           
                             boolean littleEndian,
           
-                            int charSizeInBytes,
-                            int shortSizeInBytes,
                             int intSizeInBytes,
                             int longSizeInBytes,
                             int floatSizeInBytes,
@@ -94,8 +88,6 @@ public class MachineDescription {
                             int int16AlignmentInBytes,
                             int int32AlignmentInBytes,
                             int int64AlignmentInBytes,
-                            int charAlignmentInBytes,
-                            int shortAlignmentInBytes,
                             int intAlignmentInBytes,
                             int longAlignmentInBytes,
                             int floatAlignmentInBytes,
@@ -105,8 +97,6 @@ public class MachineDescription {
     
     this.littleEndian = littleEndian;
     
-    this.charSizeInBytes    = charSizeInBytes;
-    this.shortSizeInBytes   = shortSizeInBytes;
     this.intSizeInBytes     = intSizeInBytes;
     this.longSizeInBytes    = longSizeInBytes;
     this.floatSizeInBytes   = floatSizeInBytes;
@@ -119,8 +109,6 @@ public class MachineDescription {
     this.int16AlignmentInBytes = int16AlignmentInBytes;
     this.int32AlignmentInBytes = int32AlignmentInBytes;
     this.int64AlignmentInBytes = int64AlignmentInBytes;
-    this.charAlignmentInBytes    = charAlignmentInBytes;
-    this.shortAlignmentInBytes   = shortAlignmentInBytes;
     this.intAlignmentInBytes     = intAlignmentInBytes;
     this.longAlignmentInBytes    = longAlignmentInBytes;
     this.floatAlignmentInBytes   = floatAlignmentInBytes;
@@ -156,8 +144,6 @@ public class MachineDescription {
     return !is32Bit;
   }
   
-  public final int charSizeInBytes()    { return charSizeInBytes;   }
-  public final int shortSizeInBytes()   { return shortSizeInBytes;  }
   public final int intSizeInBytes()     { return intSizeInBytes;    }
   public final int longSizeInBytes()    { return longSizeInBytes;   }
   public final int int8SizeInBytes()    { return int8SizeInBytes;  }
@@ -169,8 +155,6 @@ public class MachineDescription {
   public final int pointerSizeInBytes() { return pointerSizeInBytes; }
   public final int pageSizeInBytes()    { return pageSizeInBytes; }
   
-  public final int charAlignmentInBytes()    { return charAlignmentInBytes;   }
-  public final int shortAlignmentInBytes()   { return shortAlignmentInBytes;  }
   public final int intAlignmentInBytes()     { return intAlignmentInBytes;    }
   public final int longAlignmentInBytes()    { return longAlignmentInBytes;   }
   public final int int8AlignmentInBytes()    { return int8AlignmentInBytes;  }
@@ -200,17 +184,15 @@ public class MachineDescription {
             sb = new StringBuilder();
         }
         sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(is32Bit()).append(", primitive size / alignment:").append(Platform.getNewline());
-        sb.append("  char    ").append(charSizeInBytes)   .append(" / ").append(charAlignmentInBytes);
-        sb.append(", short   ").append(shortSizeInBytes)  .append(" / ").append(shortAlignmentInBytes);
-        sb.append(", int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);
-        sb.append(", long    ").append(longSizeInBytes)   .append(" / ").append(longAlignmentInBytes).append(Platform.getNewline());
         sb.append("  int8    ").append(int8SizeInBytes)   .append(" / ").append(int8AlignmentInBytes);
-        sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes);
-        sb.append(", int32   ").append(int32SizeInBytes)  .append(" / ").append(int32AlignmentInBytes);
+        sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes).append(Platform.getNewline());
+        sb.append("  int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);
+        sb.append(", long    ").append(longSizeInBytes)   .append(" / ").append(longAlignmentInBytes).append(Platform.getNewline());
+        sb.append("  int32   ").append(int32SizeInBytes)  .append(" / ").append(int32AlignmentInBytes);
         sb.append(", int64   ").append(int64SizeInBytes)  .append(" / ").append(int64AlignmentInBytes).append(Platform.getNewline());
         sb.append("  float   ").append(floatSizeInBytes)  .append(" / ").append(floatAlignmentInBytes);
-        sb.append(", double  ").append(doubleSizeInBytes) .append(" / ").append(doubleAlignmentInBytes);
-        sb.append(", pointer ").append(pointerSizeInBytes).append(" / ").append(pointerAlignmentInBytes);
+        sb.append(", double  ").append(doubleSizeInBytes) .append(" / ").append(doubleAlignmentInBytes).append(Platform.getNewline());
+        sb.append("  pointer ").append(pointerSizeInBytes).append(" / ").append(pointerAlignmentInBytes);
         sb.append(", page    ").append(pageSizeInBytes);                
         return sb;
     }

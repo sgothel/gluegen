@@ -75,16 +75,16 @@ public class MachineDescriptionRuntime {
     }
 
     private static MachineDescription getMachineDescriptionImpl(int pointerSize, int pageSize) {
-        // size:      char, short, int, long, float, double, pointer
-        // alignment: int8, int16, int32, int64, char, short, int, long, float, double, pointer
+        // size:      int, long, float, double, pointer, pageSize
+        // alignment: int8, int16, int32, int64, int, long, float, double, pointer
         return new MachineDescription( 
             true /* runtime validated */,
             isLittleEndianImpl(),
-            getSizeOfCharImpl(), getSizeOfShortImpl(), getSizeOfIntImpl(), getSizeOfLongImpl(),
+            getSizeOfIntImpl(), getSizeOfLongImpl(),
             getSizeOfFloatImpl(), getSizeOfDoubleImpl(), pointerSize, pageSize,
             
             getAlignmentInt8Impl(), getAlignmentInt16Impl(), getAlignmentInt32Impl(), getAlignmentInt64Impl(),
-            getAlignmentCharImpl(), getAlignmentShortImpl(), getAlignmentIntImpl(), getAlignmentLongImpl(), 
+            getAlignmentIntImpl(), getAlignmentLongImpl(), 
             getAlignmentFloatImpl(), getAlignmentDoubleImpl(), getAlignmentPointerImpl());        
     }
     private static boolean isLittleEndianImpl() {
@@ -102,15 +102,11 @@ public class MachineDescriptionRuntime {
     private static native int getAlignmentInt16Impl();
     private static native int getAlignmentInt32Impl();
     private static native int getAlignmentInt64Impl();
-    private static native int getAlignmentCharImpl();
-    private static native int getAlignmentShortImpl();
     private static native int getAlignmentIntImpl();
     private static native int getAlignmentLongImpl();
     private static native int getAlignmentPointerImpl();
     private static native int getAlignmentFloatImpl();
     private static native int getAlignmentDoubleImpl();
-    private static native int getSizeOfCharImpl();
-    private static native int getSizeOfShortImpl();
     private static native int getSizeOfIntImpl();
     private static native int getSizeOfLongImpl();
     private static native int getSizeOfPointerImpl();

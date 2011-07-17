@@ -334,7 +334,7 @@ options {
       // entry the enum should expand to e.g. int64. However, using
       // "long" here (which is what used to be the case) was 
       // definitely incorrect and caused problems.
-          enumType = new EnumType(enumTypeName, SizeThunk.INT);
+          enumType = new EnumType(enumTypeName, SizeThunk.INT32);
         }  
         
         return enumType;
@@ -464,7 +464,7 @@ declSpecifiers returns [TypeBox tb] {
 {
             if (t == null &&
                 (x & (SIGNED | UNSIGNED)) != 0) {
-                t = new IntType("int", SizeThunk.INT, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
+                t = new IntType("int", SizeThunk.INTxx, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
             }
             tb = new TypeBox(t, ((x & TYPEDEF) != 0));
 }
@@ -498,9 +498,9 @@ typeSpecifier[int attributes] returns [Type t] {
     boolean unsigned = ((attributes & UNSIGNED) != 0);
 }
         :       "void"      { t = new VoidType(cvAttrs); }
-        |       "char"      { t = new IntType("char" , SizeThunk.CHAR,  unsigned, cvAttrs); }
-        |       "short"     { t = new IntType("short", SizeThunk.SHORT, unsigned, cvAttrs); }
-        |       "int"       { t = new IntType("int"  , SizeThunk.INT,   unsigned, cvAttrs); }
+        |       "char"      { t = new IntType("char" , SizeThunk.INT8,  unsigned, cvAttrs); }
+        |       "short"     { t = new IntType("short", SizeThunk.INT16, unsigned, cvAttrs); }
+        |       "int"       { t = new IntType("int"  , SizeThunk.INTxx, unsigned, cvAttrs); }
         |       "long"      { t = new IntType("long" , SizeThunk.LONG,  unsigned, cvAttrs); }
         |       "float"     { t = new FloatType("float", SizeThunk.FLOAT, cvAttrs); }
         |       "double"    { t = new DoubleType("double", SizeThunk.DOUBLE, cvAttrs); }
@@ -593,7 +593,7 @@ specifierQualifierList returns [Type t] {
                 )+ {
             if (t == null &&
                 (x & (SIGNED | UNSIGNED)) != 0) {
-                t = new IntType("int", SizeThunk.INT, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
+                t = new IntType("int", SizeThunk.INTxx, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
             }
 }
         ;

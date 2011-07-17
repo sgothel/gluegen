@@ -51,16 +51,6 @@ typedef struct {
 
 typedef struct { 
     int8_t      c1;
-    char        v;
-} struct_alignment_char;
-
-typedef struct { 
-    int8_t      c1;
-    short        v;
-} struct_alignment_short;
-
-typedef struct { 
-    int8_t      c1;
     int         v;
 } struct_alignment_int;
 
@@ -85,71 +75,52 @@ typedef struct {
 } struct_alignment_double;
 
 // size_t padding(size_t totalsize, size_t typesize)   { return totalsize - typesize - sizeof(char); }
-static size_t alignment(size_t totalsize, size_t typesize) { return totalsize - typesize; }
+// static size_t alignment(size_t totalsize, size_t typesize) { return totalsize - typesize; }
+#define ALIGNMENT(a, b) ( (a) - (b) )
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt8Impl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_int8 ), sizeof(int8_t));
+    return ALIGNMENT(sizeof( struct_alignment_int8 ), sizeof(int8_t));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt16Impl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_int16 ), sizeof(int16_t));
+    return ALIGNMENT(sizeof( struct_alignment_int16 ), sizeof(int16_t));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt32Impl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_int32 ), sizeof(int32_t));
+    return ALIGNMENT(sizeof( struct_alignment_int32 ), sizeof(int32_t));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt64Impl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_int64 ), sizeof(int64_t));
-}
-
-JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentCharImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_char ), sizeof(char));
-}
-
-JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentShortImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_short ), sizeof(short));
+    return ALIGNMENT(sizeof( struct_alignment_int64 ), sizeof(int64_t));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentIntImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_int ), sizeof(int));
+    return ALIGNMENT(sizeof( struct_alignment_int ), sizeof(int));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentLongImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_long ), sizeof(long));
+    return ALIGNMENT(sizeof( struct_alignment_long ), sizeof(long));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentPointerImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_pointer ), sizeof(void *));
+    return ALIGNMENT(sizeof( struct_alignment_pointer ), sizeof(void *));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentFloatImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_float ), sizeof(float));
+    return ALIGNMENT(sizeof( struct_alignment_float ), sizeof(float));
 }
 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentDoubleImpl(JNIEnv *env, jclass _unused) {
-    return alignment(sizeof( struct_alignment_double ), sizeof(double));
-}
-
-JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfCharImpl(JNIEnv *env, jclass _unused) {
-    return sizeof(char);
-}
-
-JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfShortImpl(JNIEnv *env, jclass _unused) {
-    return sizeof(short);
+    return ALIGNMENT(sizeof( struct_alignment_double ), sizeof(double));
 }
 
 JNIEXPORT jint JNICALL 

@@ -107,7 +107,7 @@ public abstract class Type implements Cloneable {
     if (thunk == null) {
       throw new RuntimeException("No size set for type \"" + getName() + "\"");
     }
-    return thunk.compute(machDesc);
+    return thunk.computeSize(machDesc);
   }
   /** Set the size of this type; only available for CompoundTypes. */
   void                setSize(SizeThunk size) { this.size = size; }

@@ -52,10 +52,10 @@ import com.jogamp.common.os.MachineDescription;
  */
 public class MachineDescription64Bit extends MachineDescription {
   public MachineDescription64Bit() {
-    // size:      char, short, int, long, float, double, pointer, pageSize
-    // alignment: int8, int16, int32, int64, char, short, int, long, float, double, pointer
+    // size:      int, long, float, double, pointer, pageSize
+    // alignment: int8, int16, int32, int64, int, long, float, double, pointer
     super( false /* runtime validated */, true /* little endian */, 
-           /* size */ 1, 2, 4, 8 /* on win, long is 4 !!! */, 4, 8, 8, 4096,
-           /*align */ 1, 2, 4, 8, 1, 2, 4, 8, 4, 8, 8);
+           /* size */ 4, 8 /* on win, long is 4 !!! */, 4, 8, 8, 4096,
+           /*align */ 1, 2, 4, 8, 4, 8, 4, 8, 8);
   }
 }

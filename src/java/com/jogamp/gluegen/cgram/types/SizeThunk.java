@@ -60,71 +60,87 @@ public abstract class SizeThunk implements Cloneable {
     }
   }
 
-  public abstract long compute(MachineDescription machDesc);
-
-  public static final SizeThunk CHAR = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
-        return machDesc.charSizeInBytes();
-      }
-    };
-
-  public static final SizeThunk SHORT = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
-        return machDesc.shortSizeInBytes();
-      }
-    };
-
-  public static final SizeThunk INT = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
-        return machDesc.intSizeInBytes();
-      }
-    };
-
-  public static final SizeThunk LONG = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
-        return machDesc.longSizeInBytes();
-      }
-    };
+  public abstract long computeSize(MachineDescription machDesc);
+  public abstract long computeAlignment(MachineDescription machDesc);
 
   public static final SizeThunk INT8 = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.int8SizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.int8AlignmentInBytes();
       }
     };
 
   public static final SizeThunk INT16 = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.int16SizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.int16AlignmentInBytes();
       }
     };
 
   public static final SizeThunk INT32 = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.int32SizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.int32AlignmentInBytes();
+      }
+    };
+
+  public static final SizeThunk INTxx = new SizeThunk() {
+      public long computeSize(MachineDescription machDesc) {
+        return machDesc.intSizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.intAlignmentInBytes();
+      }
+    };
+
+  public static final SizeThunk LONG = new SizeThunk() {
+      public long computeSize(MachineDescription machDesc) {
+        return machDesc.longSizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.longAlignmentInBytes();
       }
     };
 
   public static final SizeThunk INT64 = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.int64SizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.int64AlignmentInBytes();
       }
     };
 
   public static final SizeThunk FLOAT = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.floatSizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.floatAlignmentInBytes();
       }
     };
 
   public static final SizeThunk DOUBLE = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.doubleSizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.doubleAlignmentInBytes();
       }
     };
 
   public static final SizeThunk POINTER = new SizeThunk() {
-      public long compute(MachineDescription machDesc) {
+      public long computeSize(MachineDescription machDesc) {
         return machDesc.pointerSizeInBytes();
+      }
+      public long computeAlignment(MachineDescription machDesc) {
+        return machDesc.pointerAlignmentInBytes();
       }
     };
 
@@ -133,8 +149,13 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk add(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
-          return thunk1.compute(machDesc) + thunk2.compute(machDesc);
+        public long computeSize(MachineDescription machDesc) {
+          return thunk1.computeSize(machDesc) + thunk2.computeSize(machDesc);
+        }
+        public long computeAlignment(MachineDescription machDesc) {
+          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk2A = thunk2.computeAlignment(machDesc);
+          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
   }
@@ -142,8 +163,14 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk sub(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
-          return thunk1.compute(machDesc) - thunk2.compute(machDesc);
+        public long computeSize(MachineDescription machDesc) {
+          return thunk1.computeSize(machDesc) - thunk2.computeSize(machDesc);
+        }
+        public long computeAlignment(MachineDescription machDesc) {
+          // FIXME
+          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk2A = thunk2.computeAlignment(machDesc);
+          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
   }
@@ -151,8 +178,13 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk mul(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
-          return thunk1.compute(machDesc) * thunk2.compute(machDesc);
+        public long computeSize(MachineDescription machDesc) {
+          return thunk1.computeSize(machDesc) * thunk2.computeSize(machDesc);
+        }
+        public long computeAlignment(MachineDescription machDesc) {
+          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk2A = thunk2.computeAlignment(machDesc);
+          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
   }
@@ -160,8 +192,14 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk mod(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
-          return thunk1.compute(machDesc) % thunk2.compute(machDesc);
+        public long computeSize(MachineDescription machDesc) {
+          return thunk1.computeSize(machDesc) % thunk2.computeSize(machDesc);
+        }
+        public long computeAlignment(MachineDescription machDesc) {
+          // FIXME
+          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk2A = thunk2.computeAlignment(machDesc);
+          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
   }
@@ -169,14 +207,19 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk roundUp(final SizeThunk thunk1,
                                   final SizeThunk thunk2) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
-          long sz1 = thunk1.compute(machDesc);
-          long sz2 = thunk2.compute(machDesc);
-          long rem = (sz1 % sz2);
+        public long computeSize(MachineDescription machDesc) {
+          final long sz1 = thunk1.computeSize(machDesc);
+          final long sz2 = thunk2.computeSize(machDesc);
+          final long rem = (sz1 % sz2);
           if (rem == 0) {
             return sz1;
           }
           return sz1 + (sz2 - rem);
+        }
+        public long computeAlignment(MachineDescription machDesc) {
+          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk2A = thunk2.computeAlignment(machDesc);
+          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
   }
@@ -184,17 +227,25 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk max(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
-          return Math.max(thunk1.compute(machDesc), thunk2.compute(machDesc));
+        public long computeSize(MachineDescription machDesc) {
+          return Math.max(thunk1.computeSize(machDesc), thunk2.computeSize(machDesc));
+        }
+        public long computeAlignment(MachineDescription machDesc) {
+          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk2A = thunk2.computeAlignment(machDesc);
+          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
   }
 
   public static SizeThunk constant(final int constant) {
     return new SizeThunk() {
-        public long compute(MachineDescription machDesc) {
+        public long computeSize(MachineDescription machDesc) {
           return constant;
         }
+        public long computeAlignment(MachineDescription machDesc) {
+          return 1; // no real alignment for constants 
+        }        
       };
   }
 }

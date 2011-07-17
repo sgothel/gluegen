@@ -84,7 +84,7 @@ public class Field {
 
   /** Offset, in bytes, of this field in the containing data structure
       given the specified MachineDescription. */
-  public long    getOffset(MachineDescription machDesc) { return offset.compute(machDesc); }
+  public long    getOffset(MachineDescription machDesc) { return offset.computeSize(machDesc); }
 
   /** Sets the offset of this field in the containing data structure. */
   public void    setOffset(SizeThunk offset) { this.offset = offset; }
