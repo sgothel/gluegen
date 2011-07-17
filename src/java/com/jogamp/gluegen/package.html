@@ -56,14 +56,13 @@
   Runtime query is implemented as follows: 
   <pre>
    typedef struct {
-     _TYPE_ s0;    // ensures start address alignment
      char   fill;  // nibble one byte
                    // padding to align s1 
      _TYPE_ s1;    // 
    } type_t;
   
-     padding = sizeof(type_t) - 2 * sizeof(_TYPE_) - sizeof(char);
-   alignment = sizeof(type_t) - 2 * sizeof(_TYPE_) ;
+     padding = sizeof(type_t) - sizeof(_TYPE_) - sizeof(char);
+   alignment = sizeof(type_t) - sizeof(_TYPE_) ;
   </pre>
   <table border="1">
     <tr><th>type</th>      <th colspan="2">32 bits</th><th colspan="2">64 bits</th></tr>
