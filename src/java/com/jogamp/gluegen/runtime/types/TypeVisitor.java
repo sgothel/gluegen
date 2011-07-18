@@ -1,6 +1,5 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,32 +36,9 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.cgram.types;
 
-/** Represents a double-word floating-point type (C type "double".) */
-public class DoubleType extends PrimitiveType implements Cloneable {
+package com.jogamp.gluegen.runtime.types;
 
-    public DoubleType(String name, SizeThunk size, int cvAttributes) {
-        super(name, size, cvAttributes);
-    }
-
-    @Override
-    public boolean equals(Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof DoubleType))) {
-            return false;
-        }
-        return super.equals(arg);
-    }
-
-    @Override
-    public DoubleType asDouble() {
-        return this;
-    }
-
-    Type newCVVariant(int cvAttributes) {
-        return new DoubleType(getName(), getSize(), cvAttributes);
-    }
+public interface TypeVisitor {
+  public void visitType(Type t);
 }

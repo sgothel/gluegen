@@ -38,14 +38,14 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.cgram.types;
+package com.jogamp.gluegen.runtime.types;
 
 /** Represents an array type. This differs from a pointer type in C
     syntax by the use of "[]" rather than "*". The length may or may
     not be known; if the length is unknown then a negative number
     should be passed in to the constructor. */
 
-public class ArrayType extends Type implements Cloneable {
+public class ArrayType extends MemoryLayoutType implements Cloneable {
   private Type elementType;
   private int length;
   private String computedName;
@@ -96,14 +96,12 @@ public class ArrayType extends Type implements Cloneable {
   }
 
   /** Recompute the size of this array if necessary. This needs to be
-      done when the base element type is a compound type. */
-  public void    recomputeSize() {
+      done when the base element type is a compound type after layouting. */
+  void recomputeSize() {
     ArrayType arrayElementType = getElementType().asArray();
     if (arrayElementType != null) {
       arrayElementType.recomputeSize();
     }
-    // FIXME: this doesn't take into account struct alignment, which may be necessary
-    // See also FIXME below and in HeaderParser.g
     super.setSize(SizeThunk.mul(SizeThunk.constant(getLength()), elementType.getSize()));
   }
 

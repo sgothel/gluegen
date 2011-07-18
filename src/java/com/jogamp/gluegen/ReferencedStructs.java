@@ -41,6 +41,10 @@ package com.jogamp.gluegen;
 
 import java.util.*;
 import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.runtime.types.CompoundType;
+import com.jogamp.gluegen.runtime.types.PointerType;
+import com.jogamp.gluegen.runtime.types.Type;
+import com.jogamp.gluegen.runtime.types.TypeVisitor;
 
 public class ReferencedStructs implements TypeVisitor {
 

@@ -54,12 +54,12 @@
   </ul>
   
   <h5>Simple alignment arithmetic</h5>
-  <blockquote>remainder = net_size % alignment</blockquote>
+  <blockquote>remainder = offset % alignment</blockquote>
   since alignment is a multiple of 2 <code>-> x % 2n == x & (2n - 1)</code><br>   
-  <blockquote>remainder = net_size & ( alignment - 1 )</blockquote>
+  <blockquote>remainder = offset & ( alignment - 1 )</blockquote>
   <blockquote>
-   padding = alignment - remainder ;<br>
-   aligned_size = net_size + padding ;   
+   padding = (remainder > 0) ? alignment - remainder : 0 ;<br>
+   aligned_offset = offset + padding ;   
   </blockquote>
   
   <h5>Type Size &amp; Alignment for x86, x86_64, armv7l-32bit-eabi and Window(mingw/mingw64)</h5>

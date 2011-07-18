@@ -40,11 +40,12 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.cgram.HeaderParser;
-import com.jogamp.gluegen.cgram.types.ArrayType;
-import com.jogamp.gluegen.cgram.types.CompoundType;
-import com.jogamp.gluegen.cgram.types.EnumType;
-import com.jogamp.gluegen.cgram.types.PointerType;
-import com.jogamp.gluegen.cgram.types.Type;
+import com.jogamp.gluegen.runtime.types.ArrayType;
+import com.jogamp.gluegen.runtime.types.CompoundType;
+import com.jogamp.gluegen.runtime.types.EnumType;
+import com.jogamp.gluegen.runtime.types.PointerType;
+import com.jogamp.gluegen.runtime.types.Type;
+
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.List;

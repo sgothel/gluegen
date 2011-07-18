@@ -43,6 +43,8 @@ import java.util.*;
 
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.runtime.types.CompoundType;
+import com.jogamp.gluegen.runtime.types.Type;
 
 /** Specifies the interface by which GlueGen requests glue code to be
     generated. Can be replaced to generate glue code for other

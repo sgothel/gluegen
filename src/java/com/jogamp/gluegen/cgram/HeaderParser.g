@@ -46,6 +46,7 @@ header {
 
         import antlr.CommonAST;
         import com.jogamp.gluegen.cgram.types.*;
+        import com.jogamp.gluegen.runtime.types.*;
 }
 
 class HeaderParser extends GnuCTreeParser;
@@ -130,7 +131,7 @@ options {
                                                   int cvAttrs) {
         CompoundType t = (CompoundType) structDictionary.get(typeName);
         if (t == null) {
-            t = new CompoundType(null, null, kind, cvAttrs);
+            t = CompoundType.create(null, null, kind, cvAttrs);
             t.setStructName(typeName);
             structDictionary.put(typeName, t);
         }
@@ -297,8 +298,6 @@ options {
     private void handleArrayExpr(TypeBox tb, AST t) {
         if (t != null) {
             try {
-                // FIXME: this doesn't take into account struct alignment, which may be necessary
-                // See also FIXMEs in ArrayType.java
                 int len = parseIntConstExpr(t);
                 tb.setType(canonicalize(new ArrayType(tb.type(), SizeThunk.mul(SizeThunk.constant(len), tb.type().getSize()), len, 0)));
                 return;
@@ -556,7 +555,7 @@ structOrUnionBody[CompoundTypeKind kind, int cvAttrs] returns [CompoundType t] {
                     t = (CompoundType) canonicalize(lookupInStructDictionary(id.getText(), kind, cvAttrs));
                   } ( structDeclarationList[t] )?
                     RCURLY { t.setBodyParsed(); }
-                |   LCURLY { t = new CompoundType(null, null, kind, cvAttrs); }
+                |   LCURLY { t = CompoundType.create(null, null, kind, cvAttrs); }
                     ( structDeclarationList[t] )?
                     RCURLY { t.setBodyParsed(); }
                 | id2:ID { t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs)); }

@@ -49,7 +49,9 @@ import java.util.Map.Entry;
 import java.util.regex.*;
 
 import com.jogamp.gluegen.jgram.*;
+import com.jogamp.gluegen.runtime.types.Type;
 import com.jogamp.gluegen.cgram.types.*;
+
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.*;

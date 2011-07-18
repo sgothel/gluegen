@@ -51,6 +51,8 @@ import java.util.*;
 import com.jogamp.gluegen.*;
 import com.jogamp.gluegen.cgram.types.*;
 import com.jogamp.gluegen.runtime.*;
+import com.jogamp.gluegen.runtime.types.FunctionType;
+import com.jogamp.gluegen.runtime.types.Type;
 
 /**
  * A subclass of JavaEmitter that modifies the normal emission of C

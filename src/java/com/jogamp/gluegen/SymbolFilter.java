@@ -34,6 +34,7 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+
 import java.util.List;
 
 /** Provides a mechanism by which the GlueEmitter can look at all of

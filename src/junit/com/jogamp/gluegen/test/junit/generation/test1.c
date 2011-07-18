@@ -301,12 +301,19 @@ MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
     s->bits3 = 0xC0U;
 
     fprintf(stderr, "TK_ComplicatedSubSet: sizeof(): %ld\n", (long) sizeof(TK_ComplicatedSubSet));
+    fprintf(stderr, "TK_ComplicatedSubSet: bits1-s offset: %ld\n", (long) ((void *)(&s->sub1.bits1) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet:    id-s offset: %ld\n", (long) ((void *)(&s->sub1.id)    - (void *)(&s->sub1)) );
     fprintf(stderr, "TK_ComplicatedSubSet: bits2-s offset: %ld\n", (long) ((void *)(&s->sub1.bits2) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: long0-s offset: %ld\n", (long) ((void *)(&s->sub1.long0) - (void *)(&s->sub1)) );
     fprintf(stderr, "TK_ComplicatedSubSet: bits3-s offset: %ld\n", (long) ((void *)(&s->sub1.bits3) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: real0-s offset: %ld\n", (long) ((void *)(&s->sub1.real0) - (void *)(&s->sub1)) );
     fprintf(stderr, "TK_ComplicatedSubSet: bits4-s offset: %ld\n", (long) ((void *)(&s->sub1.bits4) - (void *)(&s->sub1)) );
 
     fprintf(stderr, "TK_ComplicatedSuperSet: sizeof(): %ld\n", (long) sizeof(TK_ComplicatedSuperSet));
+    fprintf(stderr, "TK_ComplicatedSuperSet: bits1-s offset: %ld\n", (long) ((void *)(&s->bits1) - (void *)(s)) );
+    fprintf(stderr, "TK_ComplicatedSuperSet:  sub1-s offset: %ld\n", (long) ((void *)(&s->sub1)  - (void *)(s)) );
     fprintf(stderr, "TK_ComplicatedSuperSet: bits2-s offset: %ld\n", (long) ((void *)(&s->bits2) - (void *)(s)) );
+    fprintf(stderr, "TK_ComplicatedSuperSet:  sub2-s offset: %ld\n", (long) ((void *)(&s->sub2)  - (void *)(s)) );
     fprintf(stderr, "TK_ComplicatedSuperSet: bits3-s offset: %ld\n", (long) ((void *)(&s->bits3) - (void *)(s)) );
 
     return s;

@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.cgram.types;
+package com.jogamp.gluegen.runtime.types;
 
 import com.jogamp.common.os.MachineDescription;
 
@@ -160,21 +160,6 @@ public abstract class SizeThunk implements Cloneable {
       };
   }
 
-  public static SizeThunk sub(final SizeThunk thunk1,
-                              final SizeThunk thunk2) {
-    return new SizeThunk() {
-        public long computeSize(MachineDescription machDesc) {
-          return thunk1.computeSize(machDesc) - thunk2.computeSize(machDesc);
-        }
-        public long computeAlignment(MachineDescription machDesc) {
-          // FIXME
-          final long thunk1A = thunk1.computeAlignment(machDesc); 
-          final long thunk2A = thunk2.computeAlignment(machDesc);
-          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
-        }
-      };
-  }
-
   public static SizeThunk mul(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
     return new SizeThunk() {
@@ -189,36 +174,26 @@ public abstract class SizeThunk implements Cloneable {
       };
   }
 
-  public static SizeThunk mod(final SizeThunk thunk1,
-                              final SizeThunk thunk2) {
+  public static SizeThunk align(final SizeThunk offsetThunk,
+                                final SizeThunk alignmentThunk) {
     return new SizeThunk() {
         public long computeSize(MachineDescription machDesc) {
-          return thunk1.computeSize(machDesc) % thunk2.computeSize(machDesc);
+          // x % 2n == x & (2n - 1)
+          // remainder = net_size & ( alignment - 1 )
+          // padding = alignment - remainder ;
+          // aligned_size = net_size + padding ;
+            
+          final long size = offsetThunk.computeSize(machDesc);
+          final long alignment = alignmentThunk.computeAlignment(machDesc);
+          
+          final long remainder = size & ( alignment - 1 ) ;
+          final long padding = (remainder > 0) ? alignment - remainder : 0;
+          return size + padding;
         }
+        
         public long computeAlignment(MachineDescription machDesc) {
-          // FIXME
-          final long thunk1A = thunk1.computeAlignment(machDesc); 
-          final long thunk2A = thunk2.computeAlignment(machDesc);
-          return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
-        }
-      };
-  }
-
-  public static SizeThunk roundUp(final SizeThunk thunk1,
-                                  final SizeThunk thunk2) {
-    return new SizeThunk() {
-        public long computeSize(MachineDescription machDesc) {
-          final long sz1 = thunk1.computeSize(machDesc);
-          final long sz2 = thunk2.computeSize(machDesc);
-          final long rem = (sz1 % sz2);
-          if (rem == 0) {
-            return sz1;
-          }
-          return sz1 + (sz2 - rem);
-        }
-        public long computeAlignment(MachineDescription machDesc) {
-          final long thunk1A = thunk1.computeAlignment(machDesc); 
-          final long thunk2A = thunk2.computeAlignment(machDesc);
+          final long thunk1A = offsetThunk.computeAlignment(machDesc); 
+          final long thunk2A = alignmentThunk.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
       };
@@ -244,7 +219,7 @@ public abstract class SizeThunk implements Cloneable {
           return constant;
         }
         public long computeAlignment(MachineDescription machDesc) {
-          return 1; // no real alignment for constants 
+          return 1; // no alignment for constants 
         }        
       };
   }

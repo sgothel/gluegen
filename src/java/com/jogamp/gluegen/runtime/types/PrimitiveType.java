@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,15 +37,16 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
+package com.jogamp.gluegen.runtime.types;
 
-package com.jogamp.gluegen.cgram.types;
+public abstract class PrimitiveType extends Type implements Cloneable {
 
-/** Type-safe enum for discriminating between structs and unions,
-    which are both represented as compound types. */
+    protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
+        super(name, size, cvAttributes);
+    }
 
-public class CompoundTypeKind {
-  public static final CompoundTypeKind STRUCT = new CompoundTypeKind();
-  public static final CompoundTypeKind UNION  = new CompoundTypeKind();
-
-  private CompoundTypeKind() {}
+    @Override
+    public boolean isPrimitive() {
+        return true;
+    }
 }

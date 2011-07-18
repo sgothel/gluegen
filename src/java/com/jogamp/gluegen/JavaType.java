@@ -43,6 +43,7 @@ package com.jogamp.gluegen;
 import java.nio.*;
 
 import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.runtime.types.Type;
 
 /**
  * Describes a java-side representation of a type that is used to represent

@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.cgram.types;
+package com.jogamp.gluegen.runtime.types;
 
 import java.util.List;
 
@@ -269,5 +269,5 @@ public abstract class Type implements Cloneable {
   /** Helper routine for list equality comparison */
   static boolean listsEqual(List a, List b) {
     return ((a == null && b == null) || (a != null && b != null && a.equals(b)));
-  }
+  }  
 }

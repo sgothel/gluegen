@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -37,12 +38,30 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.cgram.types;
+package com.jogamp.gluegen.runtime.types;
 
-/** Enumeration for const/volatile attributes. These are passed in to
-    the constructor of the type. */
+/** Represents a single-word floating-point type (C type "float".) */
 
-public interface CVAttributes {
-  public static final int CONST    = 0x01;
-  public static final int VOLATILE = 0x02;
+public class FloatType extends PrimitiveType implements Cloneable {
+  public FloatType(String name, SizeThunk size, int cvAttributes) {
+    super(name, size, cvAttributes);
+  }
+
+  @Override
+  public boolean equals(Object arg) {
+    if (arg == this) {
+      return true;
+    }
+    if (arg == null || (!(arg instanceof FloatType))) {
+      return false;
+    }
+    return super.equals(arg);
+  }
+
+  @Override
+  public FloatType asFloat() { return this; }
+
+  Type newCVVariant(int cvAttributes) {
+    return new FloatType(getName(), getSize(), cvAttributes);
+  }
 }

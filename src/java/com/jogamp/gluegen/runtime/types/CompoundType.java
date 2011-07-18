@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.cgram.types;
+package com.jogamp.gluegen.runtime.types;
 
 import java.util.*;
 
@@ -46,8 +46,7 @@ import java.util.*;
     and unions. The boolean type accessors indicate how the type is
     really defined. */
 
-public class CompoundType extends Type implements Cloneable {
-  private CompoundTypeKind kind;
+public abstract class CompoundType extends MemoryLayoutType implements Cloneable {
   // The name "foo" in the construct "struct foo { ... }";
   private String structName;
   private ArrayList<Field> fields;
@@ -56,17 +55,22 @@ public class CompoundType extends Type implements Cloneable {
   private boolean computedHashcode;
   private int     hashcode;
 
-  public CompoundType(String name, SizeThunk size, CompoundTypeKind kind, int cvAttributes) {
-    this(name, size, kind, cvAttributes, null);
-  }
-
-  private CompoundType(String name, SizeThunk size, CompoundTypeKind kind, int cvAttributes, String structName) {
+  CompoundType(String name, SizeThunk size, int cvAttributes, String structName) {
     super(name, size, cvAttributes);
-    assert kind != null;
-    this.kind = kind;
     this.structName = structName;
   }
 
+  public static CompoundType create(String name, SizeThunk size, CompoundTypeKind kind, int cvAttributes) {
+    switch (kind) {
+      case STRUCT:
+          return new StructType(name, size, cvAttributes);
+      case UNION:
+          return new UnionType(name, size, cvAttributes);
+      default:
+          throw new RuntimeException("OO relation "+kind+" / Compount not yet supported");
+    }
+  }
+  
   public Object clone() {
     CompoundType n = (CompoundType) super.clone();
     if(null!=this.fields) {
@@ -103,7 +107,7 @@ public class CompoundType extends Type implements Cloneable {
     return super.equals(arg) &&
         ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
          (structName != null && structName.equals(t.structName))) &&
-        kind == t.kind && listsEqual(fields, t.fields);
+        listsEqual(fields, t.fields);
   }
 
   /** Returns the struct name of this CompoundType, i.e. the "foo" in
@@ -126,6 +130,9 @@ public class CompoundType extends Type implements Cloneable {
   @Override
   public CompoundType asCompound() { return this; }
 
+  ArrayList<Field> getFields() { return fields; }
+  void setFields(ArrayList<Field> fields) { this.fields = fields; }
+  
   /** Returns the number of fields in this type. */
   public int   getNumFields() {
     return ((fields == null) ? 0 : fields.size());
@@ -154,9 +161,9 @@ public class CompoundType extends Type implements Cloneable {
   }
 
   /** Indicates whether this type was declared as a struct. */
-  public boolean isStruct() { return (kind == CompoundTypeKind.STRUCT); }
+  public abstract boolean isStruct();
   /** Indicates whether this type was declared as a union. */
-  public boolean isUnion()  { return (kind == CompoundTypeKind.UNION); }
+  public abstract boolean isUnion();
 
   @Override
   public String toString() {
@@ -211,11 +218,5 @@ public class CompoundType extends Type implements Cloneable {
     } finally {
       visiting = false;
     }
-  }
-
-  Type newCVVariant(int cvAttributes) {
-    CompoundType t = new CompoundType(getName(), getSize(), kind, cvAttributes, structName);
-    t.fields = fields;
-    return t;
   }
 }

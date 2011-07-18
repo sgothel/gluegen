@@ -38,10 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen;
-
-import com.jogamp.common.os.Platform;
-import com.jogamp.gluegen.cgram.types.*;
+package com.jogamp.gluegen.runtime.types;
 
 /** Encapsulates algorithm for laying out data structures. Note that
     this ends up embedding code in various places via SizeThunks. If
@@ -52,15 +49,19 @@ import com.jogamp.gluegen.cgram.types.*;
 
 public class StructLayout {
   private int baseOffset;
-  private int structAlignment;
 
-  protected StructLayout(int baseOffset,
-                         int structAlignment) {
+  protected StructLayout(int baseOffset) {
     this.baseOffset = baseOffset;
-    this.structAlignment = structAlignment;
   }
 
   public void layout(CompoundType t) {
+    /**
+     * - 1) align offset for the new data type, 
+     *      using the new data type alignment.
+     *      Offsets are always upfront.
+     * - 2) add the aligned size of the new data type
+     * - 3) add trailing padding (largest element size)
+     */
     int n = t.getNumFields();
     SizeThunk curOffset = SizeThunk.constant(baseOffset);
     SizeThunk maxSize   = SizeThunk.constant(0);
@@ -68,8 +69,8 @@ public class StructLayout {
       Field f = t.getField(i);
       Type ft = f.getType();
       if (ft.isInt() || ft.isFloat() || ft.isDouble() || ft.isPointer()) {
-        SizeThunk sz = ft.getSize();
-        curOffset = SizeThunk.roundUp(curOffset, sz);
+        final SizeThunk sz = ft.getSize();
+        curOffset = SizeThunk.align(curOffset, sz);
         f.setOffset(curOffset);
         if (t.isUnion()) {
           maxSize = SizeThunk.max(maxSize, sz);
@@ -77,25 +78,34 @@ public class StructLayout {
           curOffset = SizeThunk.add(curOffset, sz);
         }
       } else if (ft.isCompound()) {
-        new StructLayout(0, structAlignment).layout(ft.asCompound());
-        curOffset = SizeThunk.roundUp(curOffset, SizeThunk.constant(structAlignment));
+        final CompoundType ct = ft.asCompound();
+        if(!ct.isLayouted()) {
+            StructLayout.layout(0, ct);
+        }
+        final SizeThunk sz = ct.getSize();
+        curOffset = SizeThunk.align(curOffset, sz);
         f.setOffset(curOffset);
         if (t.isUnion()) {
-          maxSize = SizeThunk.max(maxSize, ft.getSize());
+          maxSize = SizeThunk.max(maxSize, sz);
         } else {
-          curOffset = SizeThunk.add(curOffset, ft.getSize());
+          curOffset = SizeThunk.add(curOffset, sz);
         }
       } else if (ft.isArray()) {
         ArrayType arrayType = ft.asArray();
-        CompoundType compoundElementType = arrayType.getBaseElementType().asCompound();
-        if (compoundElementType != null) {
-          new StructLayout(0, structAlignment).layout(compoundElementType);
-          arrayType.recomputeSize();
+        if(!arrayType.isLayouted()) {
+            CompoundType compoundElementType = arrayType.getBaseElementType().asCompound();
+            if (compoundElementType != null) {
+              if(!compoundElementType.isLayouted()) {
+                  StructLayout.layout(0, compoundElementType);
+              }
+              arrayType.recomputeSize();
+            }
+            arrayType.setLayouted();
         }
-        // Note: not sure how this rounding is done
-        curOffset = SizeThunk.roundUp(curOffset, SizeThunk.constant(structAlignment));
+        final SizeThunk sz = ft.getSize();
+        curOffset = SizeThunk.align(curOffset, sz);
         f.setOffset(curOffset);
-        curOffset = SizeThunk.add(curOffset, ft.getSize());
+        curOffset = SizeThunk.add(curOffset, sz);
       } else {
         // FIXME
         String name = t.getName();
@@ -108,52 +118,21 @@ public class StructLayout {
                                    ") not implemented yet");
       }
     }
-    // FIXME: I think the below is wrong; better check with some examples
-    //    if ((curOffset % structAlignment) != 0) {
-    //      curOffset += structAlignment - (curOffset % structAlignment);
-    //    }
     if (t.isUnion()) {
       t.setSize(maxSize);
     } else {
+      // trailing struct padding ..
+      curOffset = SizeThunk.align(curOffset, curOffset);
       t.setSize(curOffset);
     }
+    t.setLayouted();    
   }
 
-  
-
-  /**
-   * <P>See alignment in {@link com.jogamp.common.os.MachineDescription}.</p>
-   * 
-   * <P>The code is currently used at compile time {@link JavaEmitter#layoutStruct(CompoundType t)} once,
-   * and code for structs is emitted for generic 32bit and 64bit only {@link JavaEmitter#emitStruct(CompoundType structType, String alternateName)}.</p>
-   */
-  public static StructLayout createForCurrentPlatform() {
-    final Platform.OSType osType = Platform.getOSType();
-    final Platform.CPUArch cpuArch = Platform.getCPUArch();
-    
-    if( ( Platform.OSType.WINDOWS == osType && Platform.CPUArch.X86_32 == cpuArch ) || // It appears that Windows uses a packing alignment of 4 bytes in 32-bit mode
-        ( Platform.CPUArch.ARM_32 == cpuArch ) 
-      ) {
-      return new StructLayout(0, 4);
-    } else if ((Platform.OSType.WINDOWS == osType && Platform.CPUArch.X86_64 == cpuArch) ||
-               (Platform.OSType.LINUX == osType   && Platform.CPUArch.X86_32 == cpuArch) ||
-               (Platform.OSType.LINUX == osType   && Platform.CPUArch.X86_64 == cpuArch) ||
-               (Platform.OSType.LINUX == osType   && Platform.CPUArch.IA64 == cpuArch) ||
-               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.SPARC_32 == cpuArch) ||
-               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.SPARCV9_64 == cpuArch) ||
-               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.X86_32 == cpuArch) ||
-               (Platform.OSType.SUNOS == osType   && Platform.CPUArch.X86_64 == cpuArch) ||
-               (Platform.OSType.MACOS == osType   && Platform.CPUArch.PPC == cpuArch) ||
-               (Platform.OSType.MACOS == osType   && Platform.CPUArch.X86_32 == cpuArch) ||
-               (Platform.OSType.MACOS == osType   && Platform.CPUArch.X86_64 == cpuArch) ||
-               (Platform.OSType.FREEBSD == osType && Platform.CPUArch.X86_32 == cpuArch) ||
-               (Platform.OSType.FREEBSD == osType && Platform.CPUArch.X86_64 == cpuArch) ||
-               (Platform.OSType.HPUX == osType    && Platform.CPUArch.PA_RISC2_0 == cpuArch)
-               ) {
-      return new StructLayout(0, 8);
-    } else {
-      // FIXME: add more ports
-      throw new RuntimeException("Please port StructLayout to your OS (" + osType + ") and CPU (" + cpuArch + ")");
-    }
+  public static StructLayout create(int baseOffset) {
+      return new StructLayout(baseOffset);
   }
+
+  public static void layout(int baseOffset, CompoundType t) {
+      create(baseOffset).layout(t);
+  }  
 }

@@ -45,6 +45,10 @@ import java.text.MessageFormat;
 
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.runtime.types.ArrayType;
+import com.jogamp.gluegen.runtime.types.PointerType;
+import com.jogamp.gluegen.runtime.types.Type;
+
 import java.util.logging.Logger;
 
 import static java.util.logging.Level.*;
