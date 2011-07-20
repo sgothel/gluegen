@@ -57,8 +57,6 @@ public class StructLayout {
   public void layout(CompoundType t) {
     /**
      * - 1) align offset for the new data type, 
-     *      using the new data type alignment.
-     *      Offsets are always upfront.
      * - 2) add the aligned size of the new data type
      * - 3) add trailing padding (largest element size)
      */

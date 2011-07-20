@@ -42,11 +42,11 @@ package com.jogamp.common.nio;
 import java.nio.*;
 
 /**
- * @author Kenneth Russel
+ * @author Kenneth Russel, et al.
  */
 public class StructAccessor {
 
-    private ByteBuffer bb;
+    private final ByteBuffer bb;
 
     public StructAccessor(ByteBuffer bb) {
         // Setting of byte order is concession to native code which needs
@@ -54,7 +54,7 @@ public class StructAccessor {
         this.bb = bb.order(ByteOrder.nativeOrder());
     }
 
-    public ByteBuffer getBuffer() {
+    public final ByteBuffer getBuffer() {
         return bb;
     }
 
@@ -64,7 +64,7 @@ public class StructAccessor {
      * bytes. Note that this method is not thread-safe with respect to
      * the other methods in this class.
      */
-    public ByteBuffer slice(int byteOffset, int byteLength) {
+    public final ByteBuffer slice(int byteOffset, int byteLength) {
         bb.position(byteOffset);
         bb.limit(byteOffset + byteLength);
         final ByteBuffer newBuf = bb.slice().order(bb.order()); // slice and duplicate may change byte order
@@ -74,151 +74,151 @@ public class StructAccessor {
     }
 
     /** Retrieves the byte at the specified byteOffset. */
-    public byte getByteAt(int byteOffset) {
+    public final byte getByteAt(int byteOffset) {
         return bb.get(byteOffset);
     }
 
     /** Puts a byte at the specified byteOffset. */
-    public void setByteAt(int byteOffset, byte v) {
+    public final void setByteAt(int byteOffset, byte v) {
         bb.put(byteOffset, v);
     }
 
     /** Retrieves the char at the specified byteOffset. */
-    public char getCharAt(int byteOffset) {
+    public final char getCharAt(int byteOffset) {
         return bb.getChar(byteOffset);
     }
 
     /** Puts a char at the specified byteOffset. */
-    public void setCharAt(int byteOffset, char v) {
+    public final void setCharAt(int byteOffset, char v) {
         bb.putChar(byteOffset, v);
     }
 
     /** Retrieves the short at the specified byteOffset. */
-    public short getShortAt(int byteOffset) {
+    public final short getShortAt(int byteOffset) {
         return bb.getShort(byteOffset);
     }
 
     /** Puts a short at the specified byteOffset. */
-    public void setShortAt(int byteOffset, short v) {
+    public final void setShortAt(int byteOffset, short v) {
         bb.putShort(byteOffset, v);
     }
 
     /** Retrieves the int at the specified byteOffset. */
-    public int getIntAt(int byteOffset) {
+    public final int getIntAt(int byteOffset) {
         return bb.getInt(byteOffset);
     }
 
     /** Puts a int at the specified byteOffset. */
-    public void setIntAt(int byteOffset, int v) {
+    public final void setIntAt(int byteOffset, int v) {
         bb.putInt(byteOffset, v);
     }
 
     /** Retrieves the float at the specified byteOffset. */
-    public float getFloatAt(int byteOffset) {
+    public final float getFloatAt(int byteOffset) {
         return bb.getFloat(byteOffset);
     }
 
     /** Puts a float at the specified byteOffset. */
-    public void setFloatAt(int byteOffset, float v) {
+    public final void setFloatAt(int byteOffset, float v) {
         bb.putFloat(byteOffset, v);
     }
 
     /** Retrieves the double at the specified byteOffset. */
-    public double getDoubleAt(int byteOffset) {
+    public final double getDoubleAt(int byteOffset) {
         return bb.getDouble(byteOffset);
     }
 
     /** Puts a double at the specified byteOffset. */
-    public void setDoubleAt(int byteOffset, double v) {
+    public final void setDoubleAt(int byteOffset, double v) {
         bb.putDouble(byteOffset, v);
     }
 
     /**
      * Retrieves the long at the specified byteOffset.
      */
-    public long getLongAt(int byteOffset) {
+    public final long getLongAt(int byteOffset) {
         return bb.getLong(byteOffset);
     }
 
     /**
      * Puts a long at the specified byteOffset.
      */
-    public void setLongAt(int byteOffset, long v) {
+    public final void setLongAt(int byteOffset, long v) {
         bb.putLong(byteOffset, v);
     }
     
-    public void setBytesAt(int byteOffset, byte[] v) {
+    public final void setBytesAt(int byteOffset, byte[] v) {
         for (int i = 0; i < v.length; i++) {
             bb.put(byteOffset++, v[i]);
         }
     }
 
-    public byte[] getBytesAt(int byteOffset, byte[] v) {
+    public final byte[] getBytesAt(int byteOffset, byte[] v) {
         for (int i = 0; i < v.length; i++) {
             v[i] = bb.get(byteOffset++);
         }
         return v;
     }
 
-    public void setCharsAt(int byteOffset, char[] v) {
+    public final void setCharsAt(int byteOffset, char[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=2) {
             bb.putChar(byteOffset, v[i]);
         }
     }
 
-    public char[] getCharsAt(int byteOffset, char[] v) {
+    public final char[] getCharsAt(int byteOffset, char[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=2) {
             v[i] = bb.getChar(byteOffset);
         }
         return v;
     }
 
-    public void setIntsAt(int byteOffset, int[] v) {
+    public final void setIntsAt(int byteOffset, int[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=4) {
             bb.putInt(byteOffset, v[i]);
         }
     }
 
-    public int[] getIntsAt(int byteOffset, int[] v) {
+    public final int[] getIntsAt(int byteOffset, int[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=4) {
             v[i] = bb.getInt(byteOffset);
         }
         return v;
     }
 
-    public void setFloatsAt(int byteOffset, float[] v) {
+    public final void setFloatsAt(int byteOffset, float[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=4) {
             bb.putFloat(byteOffset, v[i]);
         }
     }
 
-    public float[] getFloatsAt(int byteOffset, float[] v) {
+    public final float[] getFloatsAt(int byteOffset, float[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=4) {
             v[i] = bb.getFloat(byteOffset);
         }
         return v;
     }
 
-    public void setDoublesAt(int byteOffset, double[] v) {
+    public final void setDoublesAt(int byteOffset, double[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=8) {
             bb.putDouble(byteOffset, v[i]);
         }
     }
 
-    public double[] getDoublesAt(int byteOffset, double[] v) {
+    public final double[] getDoublesAt(int byteOffset, double[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=8) {
             v[i] = bb.getDouble(byteOffset);
         }
         return v;
     }
 
-    public void setLongsAt(int byteOffset, long[] v) {
+    public final void setLongsAt(int byteOffset, long[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=8) {
             bb.putLong(byteOffset, v[i]);
         }
     }
 
-    public long[] getLongsAt(int byteOffset, long[] v) {
+    public final long[] getLongsAt(int byteOffset, long[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=8) {
             v[i] = bb.getLong(byteOffset);
         }
