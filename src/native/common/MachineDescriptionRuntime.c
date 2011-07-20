@@ -74,6 +74,11 @@ typedef struct {
     double     v;
 } struct_alignment_double;
 
+typedef struct { 
+    int8_t      c1;
+    long double     v;
+} struct_alignment_ldouble;
+
 // size_t padding(size_t totalsize, size_t typesize)   { return totalsize - typesize - sizeof(char); }
 // static size_t alignment(size_t totalsize, size_t typesize) { return totalsize - typesize; }
 #define ALIGNMENT(a, b) ( (a) - (b) )
@@ -124,6 +129,11 @@ Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentDoubleImpl(JNIEnv *e
 }
 
 JNIEXPORT jint JNICALL 
+Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentLongDoubleImpl(JNIEnv *env, jclass _unused) {
+    return ALIGNMENT(sizeof( struct_alignment_ldouble ), sizeof(long double));
+}
+
+JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfIntImpl(JNIEnv *env, jclass _unused) {
     return sizeof(int);
 }
@@ -141,5 +151,10 @@ Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfFloatImpl(JNIEnv *env, 
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfDoubleImpl(JNIEnv *env, jclass _unused) {
     return sizeof(double);
+}
+
+JNIEXPORT jint JNICALL 
+Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfLongDoubleImpl(JNIEnv *env, jclass _unused) {
+    return sizeof(long double);
 }
 

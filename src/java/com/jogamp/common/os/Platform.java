@@ -52,7 +52,7 @@ public class Platform {
     public static final String NEWLINE;
 
     public enum OSType {
-        LINUX(0), FREEBSD(1), DALVIK(2), MACOS(3), SUNOS(4), HPUX(5), WINDOWS(6), OPENKODE(7); 
+        LINUX(0), FREEBSD(1), ANDROID(2), MACOS(3), SUNOS(4), HPUX(5), WINDOWS(6), OPENKODE(7); 
         
         public final int id;
 
@@ -62,27 +62,61 @@ public class Platform {
     }    
     public static final OSType OS_TYPE;
     
-    public enum CPUType {
-        X86(0), IA(1), ARM(2), SPARC(3), PA_RISC(4), PPC(5);
+    public enum CPUFamily {
+        /** AMD/Intel */
+        X86(    0x00000000), 
+        /** ARM */
+        ARM(    0x00010000),
+        /** Power PC */
+        PPC(    0x00020000),
+        /** SPARC */
+        SPARC(  0x00030000),
+        /** PA RISC */
+        PA_RISC(0xFFFF0000),
+        /** Itanium */
+        IA64(   0xFFFF1000); 
         
         public final int id;
 
-        CPUType(int id){
+        CPUFamily(int id){
             this.id = id;
         }
     }    
-    public static final CPUType CPU_TYPE;
-
-    public enum CPUArch {
-        X86_32(0), X86_64(1), IA64(2), ARM_32(3), SPARC_32(4), SPARCV9_64(5), PA_RISC2_0(6), PPC(7);
+    public enum CPUType {
+        /** X86 32bit */       
+        X86_32(    CPUFamily.X86,     0x0001),
+        /** X86 64bit */
+        X86_64(    CPUFamily.X86,     0x0002),
+        /** ARM default */
+        ARM(       CPUFamily.ARM,     0x0000),
+        /** ARM7EJ, ARM9E, ARM10E, XScale */
+        ARMv5(     CPUFamily.ARM,     0x0001),
+        /** ARM11 */
+        ARMv6(     CPUFamily.ARM,     0x0002),
+        /** ARM Cortex */
+        ARMv7(     CPUFamily.ARM,     0x0004),
+        /** PPC default */
+        PPC(       CPUFamily.PPC,     0x0000),
+        /** SPARC 32bit */
+        SPARC_32(  CPUFamily.SPARC,   0x0001),
+        /** SPARC 64bit */
+        SPARCV9_64(CPUFamily.SPARC,   0x0002),
+        /** Itanium default */
+        IA64(      CPUFamily.IA64,    0x0000),
+        /** PA_RISC2_0 */
+        PA_RISC2_0(CPUFamily.PA_RISC, 0x0001);
         
         public final int id;
-
-        CPUArch(int id){
+        public final CPUFamily family;
+        
+        CPUType(CPUFamily type, int id){
+            this.family = type;
             this.id = id;
         }
+        
+        public CPUFamily getFamily() { return family; }
     }      
-    public static final CPUArch CPU_ARCH;
+    public static final CPUType CPU_ARCH;
     
     private static final boolean is32Bit;
 
@@ -110,30 +144,28 @@ public class Platform {
                    ARCH_lower.equals("i486") ||
                    ARCH_lower.equals("i586") ||
                    ARCH_lower.equals("i686") ) {
-            CPU_ARCH = CPUArch.X86_32;
-            CPU_TYPE = CPUType.X86;
+            CPU_ARCH = CPUType.X86_32;
         } else if( ARCH_lower.equals("x86_64") ||
                    ARCH_lower.equals("amd64")  ) {
-            CPU_ARCH = CPUArch.X86_64;
-            CPU_TYPE = CPUType.X86;
+            CPU_ARCH = CPUType.X86_64;
         } else if( ARCH_lower.equals("ia64") ) {
-            CPU_ARCH = CPUArch.IA64;
-            CPU_TYPE = CPUType.IA;
+            CPU_ARCH = CPUType.IA64;
         } else if( ARCH_lower.equals("arm") ) {
-            CPU_ARCH = CPUArch.ARM_32;
-            CPU_TYPE = CPUType.ARM;
+            CPU_ARCH = CPUType.ARM;
+        } else if( ARCH_lower.equals("armv5l") ) {
+            CPU_ARCH = CPUType.ARMv5;
+        } else if( ARCH_lower.equals("armv6l") ) {
+            CPU_ARCH = CPUType.ARMv6;
+        } else if( ARCH_lower.equals("armv7l") ) {
+            CPU_ARCH = CPUType.ARMv7;
         } else if( ARCH_lower.equals("sparc") ) {
-            CPU_ARCH = CPUArch.SPARC_32;
-            CPU_TYPE = CPUType.SPARC;
+            CPU_ARCH = CPUType.SPARC_32;
         } else if( ARCH_lower.equals("sparcv9") ) {
-            CPU_ARCH = CPUArch.SPARCV9_64;
-            CPU_TYPE = CPUType.SPARC;
+            CPU_ARCH = CPUType.SPARCV9_64;
         } else if( ARCH_lower.equals("pa_risc2.0") ) {
-            CPU_ARCH = CPUArch.PA_RISC2_0;
-            CPU_TYPE = CPUType.PA_RISC;
+            CPU_ARCH = CPUType.PA_RISC2_0;
         } else if( ARCH_lower.equals("ppc") ) {
-            CPU_ARCH = CPUArch.PPC;
-            CPU_TYPE = CPUType.PPC;
+            CPU_ARCH = CPUType.PPC;
         } else {
             throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");
         }               
@@ -148,7 +180,10 @@ public class Platform {
     private static boolean getIs32BitByCPUArchImpl() throws RuntimeException {
         switch( CPU_ARCH ) {
             case X86_32:
-            case ARM_32:
+            case ARM:
+            case ARMv5:
+            case ARMv6:
+            case ARMv7:
             case SPARC_32:
             case PPC:
                 return true;
@@ -169,8 +204,8 @@ public class Platform {
         if ( OS_lower.startsWith("freebsd") ) {
             return OSType.FREEBSD;            
         }
-        if ( OS_lower.startsWith("dalvik") ) {
-            return OSType.DALVIK;            
+        if ( OS_lower.startsWith("android") ) {
+            return OSType.ANDROID;            
         }
         if ( OS_lower.startsWith("mac os x") ||
              OS_lower.startsWith("darwin") ) {
@@ -253,14 +288,14 @@ public class Platform {
     /**
      * Returns the CPU type.
      */
-    public static CPUType getCPUType() {
-        return CPU_TYPE;
+    public static CPUFamily getCPUFamily() {
+        return CPU_ARCH.getFamily();
     }
     
     /**
      * Returns the CPU architecture.
      */
-    public static CPUArch getCPUArch() {
+    public static CPUType getCPUType() {
         return CPU_ARCH;
     }
     

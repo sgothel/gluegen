@@ -1410,11 +1410,12 @@ public class JavaEmitter implements GlueEmitter {
 
   private int slot(Type t, int byteOffset, MachineDescription curMachDesc) {
     if (t.isInt()) {
-      switch ((int) t.getSize(curMachDesc)) {
+      final int tsz = (int) t.getSize(curMachDesc);
+      switch (tsz) {
        case 1:
        case 2:
        case 4:
-       case 8:  return byteOffset / (int) t.getSize(curMachDesc);
+       case 8:  return byteOffset / tsz;
        default: throw new RuntimeException("Illegal type");
       }
     } else if (t.isFloat()) {

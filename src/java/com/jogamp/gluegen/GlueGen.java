@@ -45,9 +45,6 @@ import com.jogamp.common.os.MachineDescription;
 import java.io.*;
 import java.util.*;
 
-import jogamp.common.os.MachineDescription32Bit;
-import jogamp.common.os.MachineDescription64Bit;
-
 import antlr.*;
 import com.jogamp.gluegen.cgram.*;
 import com.jogamp.gluegen.cgram.types.*;
@@ -192,8 +189,8 @@ public class GlueGen implements GlueEmitterControls {
             }
 
             // Provide MachineDescriptions to emitter
-            MachineDescription md32 = new MachineDescription32Bit();
-            MachineDescription md64 = new MachineDescription64Bit();
+            final MachineDescription md32 = MachineDescription.createStaticUnix32();
+            final MachineDescription md64 = MachineDescription.createStaticUnix64();
             emit.setMachineDescription(md32, md64);
 
             // Repackage the enum and #define statements from the parser into a common format

@@ -31,6 +31,7 @@ package jogamp.common.os;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -66,11 +67,7 @@ public class MachineDescriptionRuntime {
             
             return getMachineDescriptionImpl(pointerSizeInBytes, (int) pageSizeL);
         } else {
-            if(is32BitByCPUArch) {
-                return new MachineDescription32Bit();            
-            } else {
-                return new MachineDescription64Bit();            
-            }
+            return MachineDescription.createStatic(is32BitByCPUArch);
         }
     }
 
@@ -78,21 +75,15 @@ public class MachineDescriptionRuntime {
         // size:      int, long, float, double, pointer, pageSize
         // alignment: int8, int16, int32, int64, int, long, float, double, pointer
         return new MachineDescription( 
-            true /* runtime validated */,
-            isLittleEndianImpl(),
+            true /* runtime validated */, MachineDescription.queryIsLittleEndian(),
+            
             getSizeOfIntImpl(), getSizeOfLongImpl(),
-            getSizeOfFloatImpl(), getSizeOfDoubleImpl(), pointerSize, pageSize,
+            getSizeOfFloatImpl(), getSizeOfDoubleImpl(), getSizeOfLongDoubleImpl(), pointerSize, pageSize,
             
             getAlignmentInt8Impl(), getAlignmentInt16Impl(), getAlignmentInt32Impl(), getAlignmentInt64Impl(),
             getAlignmentIntImpl(), getAlignmentLongImpl(), 
-            getAlignmentFloatImpl(), getAlignmentDoubleImpl(), getAlignmentPointerImpl());        
-    }
-    private static boolean isLittleEndianImpl() {
-        ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
-        IntBuffer tst_i = tst_b.asIntBuffer();
-        ShortBuffer tst_s = tst_b.asShortBuffer();
-        tst_i.put(0, 0x0A0B0C0D);
-        return 0x0C0D == tst_s.get(0);
+            getAlignmentFloatImpl(), getAlignmentDoubleImpl(), getAlignmentLongDoubleImpl(), 
+            getAlignmentPointerImpl());        
     }
     
     private static native int getPointerSizeInBytesImpl();
@@ -107,10 +98,12 @@ public class MachineDescriptionRuntime {
     private static native int getAlignmentPointerImpl();
     private static native int getAlignmentFloatImpl();
     private static native int getAlignmentDoubleImpl();
+    private static native int getAlignmentLongDoubleImpl();
     private static native int getSizeOfIntImpl();
     private static native int getSizeOfLongImpl();
     private static native int getSizeOfPointerImpl();
     private static native int getSizeOfFloatImpl();
     private static native int getSizeOfDoubleImpl();    
+    private static native int getSizeOfLongDoubleImpl();    
 }
 

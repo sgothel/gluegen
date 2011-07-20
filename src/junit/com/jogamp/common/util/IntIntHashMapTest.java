@@ -55,7 +55,7 @@ public class IntIntHashMapTest {
 
     @BeforeClass
     public static void init() {
-        iterations = ( Platform.CPUType.ARM == Platform.CPU_TYPE ) ? 100 : 10000;
+        iterations = ( Platform.getCPUType().getFamily() == Platform.CPUFamily.ARM ) ? 100 : 10000;
         pairs = new IntIntUniqueRndValues(iterations);
     }
 
