@@ -1062,10 +1062,7 @@ public class JavaEmitter implements GlueEmitter {
             String paramType = typeToJavaType(baseElementType, false, extMachDesc).getName();
             String capitalized = capitalizeString(fieldName);
 
-            int slot = -1;
-            if(!doBaseClass) {
-              slot = slot(fieldType, (int) field.getOffset(intMachDesc), intMachDesc);
-            }
+            final int byteOffset = doBaseClass ? -1 : (int) field.getOffset(intMachDesc);
 
             // Setter
             writer.println();
@@ -1074,7 +1071,7 @@ public class JavaEmitter implements GlueEmitter {
               writer.println(";");
             } else {
               writer.println(" {");
-              writer.print  ("    accessor.set" + capitalizeString(paramType) + "sAt(" + slot + ", ");
+              writer.print  ("    accessor.set" + capitalizeString(paramType) + "sAt(" + byteOffset + ", ");
               writer.println("val);");
               writer.println("    return this;");
               writer.println("  }");
@@ -1087,7 +1084,7 @@ public class JavaEmitter implements GlueEmitter {
             } else {
               writer.println(" {");
               writer.print  ("    return ");
-              writer.println("accessor.get" + capitalizeString(paramType) + "sAt(" + slot + ", new " +paramType+"["+fieldType.asArray().getLength()+"]);");
+              writer.println("accessor.get" + capitalizeString(paramType) + "sAt(" + byteOffset + ", new " +paramType+"["+fieldType.asArray().getLength()+"]);");
               writer.println("  }");
             }
 
@@ -1123,10 +1120,7 @@ public class JavaEmitter implements GlueEmitter {
             if (!doBaseClass) {
               capitalized = capitalizeString(internalJavaTypeName);
             }
-            int slot = -1;
-            if (!doBaseClass) {
-              slot = slot(fieldType, (int) field.getOffset(intMachDesc), intMachDesc);
-            }
+            final int byteOffset = doBaseClass ? -1 : (int) field.getOffset(intMachDesc);
             writer.println();
             String capitalizedFieldName = capitalizeString(fieldName);
             // Setter
@@ -1135,7 +1129,7 @@ public class JavaEmitter implements GlueEmitter {
               writer.println(";");
             } else {
               writer.println(" {");
-              writer.print  ("    accessor.set" + capitalized + "At(" + slot + ", ");
+              writer.print  ("    accessor.set" + capitalized + "At(" + byteOffset + ", ");
               if (!externalJavaTypeName.equals(internalJavaTypeName)) {
                 writer.print("(" + internalJavaTypeName + ") ");
               }
@@ -1154,7 +1148,7 @@ public class JavaEmitter implements GlueEmitter {
               if (!externalJavaTypeName.equals(internalJavaTypeName)) {
                 writer.print("(" + externalJavaTypeName + ") ");
               }
-              writer.println("accessor.get" + capitalized + "At(" + slot + ");");
+              writer.println("accessor.get" + capitalized + "At(" + byteOffset + ");");
               writer.println("  }");
             }
           } else {
@@ -1406,29 +1400,6 @@ public class JavaEmitter implements GlueEmitter {
             (c == Character.TYPE) ||
             (c == Integer.TYPE) ||
             (c == Long.TYPE));
-  }
-
-  private int slot(Type t, int byteOffset, MachineDescription curMachDesc) {
-    if (t.isInt()) {
-      final int tsz = (int) t.getSize(curMachDesc);
-      switch (tsz) {
-       case 1:
-       case 2:
-       case 4:
-       case 8:  return byteOffset / tsz;
-       default: throw new RuntimeException("Illegal type");
-      }
-    } else if (t.isFloat()) {
-      return byteOffset / 4;
-    } else if (t.isDouble()) {
-      return byteOffset / 8;
-    } else if (t.isPointer()) {
-      return byteOffset / curMachDesc.pointerSizeInBytes();
-    } else if (t.isArray()) {
-      return slot(t.asArray().getBaseElementType(), byteOffset, curMachDesc);
-    } else {
-      throw new RuntimeException("Illegal type " + t);
-    }
   }
 
   private StructLayout getLayout() {

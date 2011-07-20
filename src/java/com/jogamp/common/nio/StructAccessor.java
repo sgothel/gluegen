@@ -43,17 +43,10 @@ import java.nio.*;
 
 /**
  * @author Kenneth Russel
- * @author Michael Bien
  */
 public class StructAccessor {
 
     private ByteBuffer bb;
-    private FloatBuffer fb;
-    private IntBuffer ib;
-    private ShortBuffer sb;
-    private CharBuffer cb;
-    private DoubleBuffer db;
-    private LongBuffer lb;
 
     public StructAccessor(ByteBuffer bb) {
         // Setting of byte order is concession to native code which needs
@@ -74,202 +67,161 @@ public class StructAccessor {
     public ByteBuffer slice(int byteOffset, int byteLength) {
         bb.position(byteOffset);
         bb.limit(byteOffset + byteLength);
-        ByteBuffer newBuf = bb.slice();
+        final ByteBuffer newBuf = bb.slice().order(bb.order()); // slice and duplicate may change byte order
         bb.position(0);
         bb.limit(bb.capacity());
         return newBuf;
     }
 
-    /** Retrieves the byte at the specified slot (byte offset). */
-    public byte getByteAt(int slot) {
-        return bb.get(slot);
+    /** Retrieves the byte at the specified byteOffset. */
+    public byte getByteAt(int byteOffset) {
+        return bb.get(byteOffset);
     }
 
-    /** Puts a byte at the specified slot (byte offset). */
-    public void setByteAt(int slot, byte v) {
-        bb.put(slot, v);
+    /** Puts a byte at the specified byteOffset. */
+    public void setByteAt(int byteOffset, byte v) {
+        bb.put(byteOffset, v);
     }
 
-    /** Retrieves the char at the specified slot (2-byte offset). */
-    public char getCharAt(int slot) {
-        return charBuffer().get(slot);
+    /** Retrieves the char at the specified byteOffset. */
+    public char getCharAt(int byteOffset) {
+        return bb.getChar(byteOffset);
     }
 
-    /** Puts a char at the specified slot (2-byte offset). */
-    public void setCharAt(int slot, char v) {
-        charBuffer().put(slot, v);
+    /** Puts a char at the specified byteOffset. */
+    public void setCharAt(int byteOffset, char v) {
+        bb.putChar(byteOffset, v);
     }
 
-    /** Retrieves the double at the specified slot (8-byte offset). */
-    public double getDoubleAt(int slot) {
-        return doubleBuffer().get(slot);
+    /** Retrieves the short at the specified byteOffset. */
+    public short getShortAt(int byteOffset) {
+        return bb.getShort(byteOffset);
     }
 
-    /** Puts a double at the specified slot (8-byte offset). */
-    public void setDoubleAt(int slot, double v) {
-        doubleBuffer().put(slot, v);
+    /** Puts a short at the specified byteOffset. */
+    public void setShortAt(int byteOffset, short v) {
+        bb.putShort(byteOffset, v);
     }
 
-    /** Retrieves the float at the specified slot (4-byte offset). */
-    public float getFloatAt(int slot) {
-        return floatBuffer().get(slot);
+    /** Retrieves the int at the specified byteOffset. */
+    public int getIntAt(int byteOffset) {
+        return bb.getInt(byteOffset);
     }
 
-    /** Puts a float at the specified slot (4-byte offset). */
-    public void setFloatAt(int slot, float v) {
-        floatBuffer().put(slot, v);
+    /** Puts a int at the specified byteOffset. */
+    public void setIntAt(int byteOffset, int v) {
+        bb.putInt(byteOffset, v);
     }
 
-    /** Retrieves the int at the specified slot (4-byte offset). */
-    public int getIntAt(int slot) {
-        return intBuffer().get(slot);
+    /** Retrieves the float at the specified byteOffset. */
+    public float getFloatAt(int byteOffset) {
+        return bb.getFloat(byteOffset);
     }
 
-    /** Puts a int at the specified slot (4-byte offset). */
-    public void setIntAt(int slot, int v) {
-        intBuffer().put(slot, v);
+    /** Puts a float at the specified byteOffset. */
+    public void setFloatAt(int byteOffset, float v) {
+        bb.putFloat(byteOffset, v);
     }
 
-    /** Retrieves the short at the specified slot (2-byte offset). */
-    public short getShortAt(int slot) {
-        return shortBuffer().get(slot);
+    /** Retrieves the double at the specified byteOffset. */
+    public double getDoubleAt(int byteOffset) {
+        return bb.getDouble(byteOffset);
     }
 
-    /** Puts a short at the specified slot (2-byte offset). */
-    public void setShortAt(int slot, short v) {
-        shortBuffer().put(slot, v);
-    }
-
-    public void setBytesAt(int slot, byte[] v) {
-        for (int i = 0; i < v.length; i++) {
-            bb.put(slot++, v[i]);
-        }
-    }
-
-    public byte[] getBytesAt(int slot, byte[] v) {
-        for (int i = 0; i < v.length; i++) {
-            v[i] = bb.get(slot++);
-        }
-        return v;
-    }
-
-    public void setCharsAt(int slot, char[] v) {
-        for (int i = 0; i < v.length; i++) {
-            charBuffer().put(slot++, v[i]);
-        }
-    }
-
-    public char[] getCharsAt(int slot, char[] v) {
-        for (int i = 0; i < v.length; i++) {
-            v[i] = charBuffer().get(slot++);
-        }
-        return v;
-    }
-
-    public void setIntsAt(int slot, int[] v) {
-        for (int i = 0; i < v.length; i++) {
-            intBuffer().put(slot++, v[i]);
-        }
-    }
-
-    public int[] getIntsAt(int slot, int[] v) {
-        for (int i = 0; i < v.length; i++) {
-            v[i] = intBuffer().get(slot++);
-        }
-        return v;
-    }
-
-    public void setFloatsAt(int slot, float[] v) {
-        for (int i = 0; i < v.length; i++) {
-            floatBuffer().put(slot++, v[i]);
-        }
-    }
-
-    public float[] getFloatsAt(int slot, float[] v) {
-        for (int i = 0; i < v.length; i++) {
-            v[i] = floatBuffer().get(slot++);
-        }
-        return v;
+    /** Puts a double at the specified byteOffset. */
+    public void setDoubleAt(int byteOffset, double v) {
+        bb.putDouble(byteOffset, v);
     }
 
     /**
-     * Puts a double at the specified slot (8-byte offset).
-     * May throw an {@link UnsupportedOperationException}
+     * Retrieves the long at the specified byteOffset.
      */
-    public void setDoublesAt(int slot, double[] v) {
-        for (int i = 0; i < v.length; i++) {
-            doubleBuffer().put(slot++, v[i]);
-        }
+    public long getLongAt(int byteOffset) {
+        return bb.getLong(byteOffset);
     }
 
     /**
-     * Retrieves the long at the specified slot (8-byte offset).
-     * May throw an {@link UnsupportedOperationException}
+     * Puts a long at the specified byteOffset.
      */
-    public double[] getDoublesAt(int slot, double[] v) {
+    public void setLongAt(int byteOffset, long v) {
+        bb.putLong(byteOffset, v);
+    }
+    
+    public void setBytesAt(int byteOffset, byte[] v) {
         for (int i = 0; i < v.length; i++) {
-            v[i] = doubleBuffer().get(slot++);
+            bb.put(byteOffset++, v[i]);
+        }
+    }
+
+    public byte[] getBytesAt(int byteOffset, byte[] v) {
+        for (int i = 0; i < v.length; i++) {
+            v[i] = bb.get(byteOffset++);
         }
         return v;
     }
 
-    /**
-     * Retrieves the long at the specified slot (8-byte offset).
-     */
-    public long getLongAt(int slot) {
-        return longBuffer().get(slot);
-    }
-
-    /**
-     * Puts a long at the specified slot (8-byte offset).
-     */
-    public void setLongAt(int slot, long v) {
-        longBuffer().put(slot, v);
-    }
-
-    //----------------------------------------------------------------------
-    // Internals only below this point
-    //
-
-    private final FloatBuffer floatBuffer() {
-        if (fb == null) {
-            fb = bb.asFloatBuffer();
+    public void setCharsAt(int byteOffset, char[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=2) {
+            bb.putChar(byteOffset, v[i]);
         }
-        return fb;
     }
 
-    private final IntBuffer intBuffer() {
-        if (ib == null) {
-            ib = bb.asIntBuffer();
+    public char[] getCharsAt(int byteOffset, char[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=2) {
+            v[i] = bb.getChar(byteOffset);
         }
-        return ib;
+        return v;
     }
 
-    private final ShortBuffer shortBuffer() {
-        if (sb == null) {
-            sb = bb.asShortBuffer();
+    public void setIntsAt(int byteOffset, int[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=4) {
+            bb.putInt(byteOffset, v[i]);
         }
-        return sb;
     }
 
-    private final LongBuffer longBuffer() {
-        if (lb == null) {
-            lb = bb.asLongBuffer();
+    public int[] getIntsAt(int byteOffset, int[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=4) {
+            v[i] = bb.getInt(byteOffset);
         }
-        return lb;
+        return v;
     }
 
-    private final DoubleBuffer doubleBuffer() {
-        if (db == null) {
-            db = bb.asDoubleBuffer();
+    public void setFloatsAt(int byteOffset, float[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=4) {
+            bb.putFloat(byteOffset, v[i]);
         }
-        return db;
     }
 
-    private final CharBuffer charBuffer() {
-        if (cb == null) {
-            cb = bb.asCharBuffer();
+    public float[] getFloatsAt(int byteOffset, float[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=4) {
+            v[i] = bb.getFloat(byteOffset);
         }
-        return cb;
+        return v;
+    }
+
+    public void setDoublesAt(int byteOffset, double[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=8) {
+            bb.putDouble(byteOffset, v[i]);
+        }
+    }
+
+    public double[] getDoublesAt(int byteOffset, double[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=8) {
+            v[i] = bb.getDouble(byteOffset);
+        }
+        return v;
+    }
+
+    public void setLongsAt(int byteOffset, long[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=8) {
+            bb.putLong(byteOffset, v[i]);
+        }
+    }
+
+    public long[] getLongsAt(int byteOffset, long[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=8) {
+            v[i] = bb.getLong(byteOffset);
+        }
+        return v;
     }
 }
