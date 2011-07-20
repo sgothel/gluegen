@@ -20,11 +20,13 @@
    -   isFreeBSDX86
    -   isHPUX
    -   isIA64
+   -   isAndroid
+   -   isAndroidARMv7
    -   isLinux
    -   isLinuxAMD64
    -   isLinuxIA64
    -   isLinuxX86
-   -   isLinuxARMv7l
+   -   isLinuxARMv7
    -   isOSX
    -   isOSXPPC
    -   isSolaris
@@ -94,7 +96,7 @@
    - 
    -   compiler.cfg.linux
    -   compiler.cfg.linux.amd64
-   -   compiler.cfg.linux.armv7l
+   -   compiler.cfg.linux.armv7
    -   compiler.cfg.solaris
    -   compiler.cfg.solaris.sparcv9
    -   compiler.cfg.solaris.amd64
@@ -106,7 +108,7 @@
    -   compiler.cfg.hpux
    -   linker.cfg.linux
    -   linker.cfg.linux.amd64
-   -   linker.cfg.linux.armv7l
+   -   linker.cfg.linux.armv7
    -   linker.cfg.freebsd.x86
    -   linker.cfg.freebsd.amd64
    -   linker.cfg.solaris
@@ -177,6 +179,9 @@
     <condition property="isFreeBSD">
       <os name="FreeBSD" />
     </condition>
+    <condition property="isAndroid">
+      <os name="Android" />
+    </condition>
     <condition property="isLinux">
       <os name="Linux" />
     </condition>
@@ -222,12 +227,21 @@
     <condition property="isHPUX">
       <os name="HP-UX" />
     </condition>
-    <condition property="isLinuxARMv7l">
+    <condition property="isAndroidARMv7">
+      <and>
+        <istrue value="${isAndroid}" />
+        <or>
+            <os arch="arm" />
+            <os arch="armv7" />
+        </or>
+      </and>
+    </condition>
+    <condition property="isLinuxARMv7">
       <and>
         <istrue value="${isLinux}" />
         <or>
             <os arch="arm" />
-            <os arch="armv7l" />
+            <os arch="armv7" />
         </or>
       </and>
     </condition>
@@ -323,11 +337,13 @@
     <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
     <echo message="HPUX=${isHPUX}" />
     <echo message="IA64=${isIA64}" />
+    <echo message="Android=${isAndroid}" />
+    <echo message="AndroidARMv7=${isAndroidARMv7}" />
     <echo message="Linux=${isLinux}" />
     <echo message="LinuxAMD64=${isLinuxAMD64}" />
     <echo message="LinuxIA64=${isLinuxIA64}" />
     <echo message="LinuxX86=${isLinuxX86}" />
-    <echo message="LinuxARMv7l=${isLinuxARMv7l}" />
+    <echo message="LinuxARMv7=${isLinuxARMv7}" />
     <echo message="OS X=${isOSX}" />
     <echo message="OS X PPC=${use.macosppc}" />
     <echo message="OS X x32=${use.macosx32}" />
@@ -357,6 +373,10 @@
     <property name="os.and.arch" value="hpux-hppa" />
   </target>
 
+  <target name="gluegen.cpptasks.detect.os.android.armv7" unless="gluegen.cpptasks.detected.os.2" if="isAndroidARMv7">
+    <property name="os.and.arch" value="android-armv7" />
+  </target>
+
   <target name="gluegen.cpptasks.detect.os.linux.amd64" unless="gluegen.cpptasks.detected.os.2" if="isLinuxAMD64">
     <property name="os.and.arch" value="linux-amd64" />
   </target>
@@ -369,11 +389,11 @@
     <property name="os.and.arch" value="linux-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux.armv7l" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARMv7l">
-    <property name="os.and.arch" value="linux-armv7l" />
+  <target name="gluegen.cpptasks.detect.os.linux.armv7" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARMv7">
+    <property name="os.and.arch" value="linux-armv7" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv7l" unless="gluegen.cpptasks.detected.os.2" />
+  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv7" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.suffix"     value="*lib" />
@@ -574,7 +594,27 @@
 
     <!-- UNIX compiler configuration -->
 
-    <compiler id="compiler.cfg.linux" name="gcc">
+    <compiler id="compiler.cfg.android.armv7" name="gcc">
+      <defineset>
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+        <define name="DEBUG"    if="c.compiler.use-debug"/>        
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+      </defineset>
+    </compiler>
+
+    <compiler id="compiler.cfg.freebsd" name="gcc">
+      <defineset>
+        <define name="__unix__"/>
+        <define name="FREEBSD" />
+        <define name="BSD" />
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+      </defineset>
+    </compiler>
+
+    <compiler id="compiler.cfg.android" name="gcc">
       <compilerarg value="-m32"/>
       <defineset>
         <define name="__unix__"/>
@@ -595,7 +635,7 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.linux.armv7l" name="gcc">
+    <compiler id="compiler.cfg.linux.armv7" name="gcc">
       <defineset>
         <define name="__unix__"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
@@ -765,6 +805,9 @@
  
     <!-- Unix linker configuration -->
 
+    <linker id="linker.cfg.android.armv7" name="gcc">
+    </linker>
+
     <linker id="linker.cfg.linux" name="gcc">
         <linkerarg value="-m32"/>
     </linker>
@@ -773,7 +816,7 @@
         <linkerarg value="-m64"/>
     </linker>
 
-    <linker id="linker.cfg.linux.armv7l" name="gcc">
+    <linker id="linker.cfg.linux.armv7" name="gcc">
     </linker>
 
     <linker id="linker.cfg.hpux" name="aCC">
@@ -904,6 +947,17 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib" />
     </target>
 
+    <target name="gluegen.cpptasks.declare.compiler.android.armv7" if="isAndroidARMv7">
+      <echo message="Android.armv7" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.android.armv7" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.android.armv7" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.android" depends="gluegen.cpptasks.declare.compiler.android.armv7" if="isAndroid">
+        <property name="java.includes.dir.platform" value="${java.includes.dir}/android" />
+    </target>
+
     <target name="gluegen.cpptasks.declare.compiler.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
@@ -911,10 +965,10 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.linux.armv7l" if="isLinuxARMv7l">
-      <echo message="Linux.armv7l" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv7l" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv7l" /> 
+    <target name="gluegen.cpptasks.declare.compiler.linux.armv7" if="isLinuxARMv7">
+      <echo message="Linux.armv7" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv7" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv7" /> 
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
     </target>
 
@@ -932,7 +986,7 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/ia64" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv7l" if="isLinux">
+    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv7" if="isLinux">
         <property name="java.includes.dir.platform" value="${java.includes.dir}/linux" />
     </target>
 
@@ -998,7 +1052,7 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/PA_RISC2.0" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" />
+    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.android,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" />
 
     <target name="gluegen.cpptasks.setup.compiler" depends="gluegen.cpptasks.detect.compiler,gluegen.cpptasks.configure.compiler,gluegen.cpptasks.declare.compiler" />
 
