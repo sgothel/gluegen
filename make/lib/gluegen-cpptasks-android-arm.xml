@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This is an example of how to add custom compiler/linker 
+    arguments for a crosscompiler.
+
+    You can use such files with setting the property 'gluegen-cpptasks.file', ie:
+
+        -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml
+
+    In case you want to compile for 32bit on a 64bit machine,
+    you might also need to set the 'os.arch' to 'x86'.
+    Example: gluegen/make/make.gluegen.all.linux-x86.sh
+  -->
+
+<project name="GlueGen-cpptasks" basedir="." >
+
+<import file="../gluegen-cpptasks-base.xml" optional="false" />
+<property name="isAndroid"    value="true"/>
+
+<target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
+    <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
+    <!--<compiler id="compiler.cfg.android" name="arm-linux-androideabi-gcc"> -->
+    <compiler id="compiler.cfg.android" name="gcc">
+<!--      <compilerarg value="-v" /> -->
+      <compilerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
+      <compilerarg value="-B" /> <!--add additional directory for search  --> 
+      <compilerarg value="${env.TARGET_TOOL_PATH}/libexec/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}" /> 
+      <compilerarg value="-march=armv7-a" /> 
+      <compilerarg value="-fpic" /> 
+      <compilerarg value="-DANDROID" /> 
+      <compilerarg value="${env.NDK_INCLUDE}" /> 
+      <compilerarg value="-I${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/include" /> <!--inclides stdarg.h -->
+      <compilerarg value="-Wl,--demangle" /> 
+      <compilerarg value="-nostdlib" /> 
+      <compilerarg value="-Bdynamic" /> 
+      <compilerarg value="-Wl,-dynamic-linker,/system/bin/linker" /> 
+      <compilerarg value="-Wl,--gc-sections" /> 
+      <compilerarg value="-Wl,-z,nocopyreloc" /> 
+      <compilerarg value="${env.TARGET_OS_PATH}/lib/libc.so" /> 
+      <compilerarg value="${env.TARGET_OS_PATH}/lib/libdl.so" /> 
+<!--      <compilerarg value="${env.TARGET_OS_PATH}/lib/libstdc++.so" /> -->
+      <compilerarg value="${env.TARGET_OS_PATH}/lib/libm.so" /> 
+<!--      <compilerarg value="${env.TARGET_OS_PATH}/lib/crtbegin_dynamic.o" /> -->
+      <compilerarg value="-Wl,--no-undefined" /> 
+      <compilerarg value="-Wl,-rpath-link=${env.TARGET_OS_PATH}/lib" /> 
+      <compilerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/${env.TARGET_CPU_NAME}/libgcc.a" />
+      <compilerarg value="${env.TARGET_OS_PATH}/lib/crtend_android.o" /> 
+      <defineset>
+        <define name="ANDROID" />
+      </defineset>
+    </compiler>
+
+    <!--<linker id="linker.cfg.android" name="arm-linux-androideabi-gcc">-->
+    <linker id="linker.cfg.android" name="gcc">
+         <linkerarg value="-Wl,--demangle" /> 
+      	 <linkerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
+         <linkerarg value="-nostdlib" /> 
+         <linkerarg value="-Bdynamic" /> 
+         <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" /> 
+         <linkerarg value="-Wl,--gc-sections" /> 
+         <linkerarg value="-Wl,-z,nocopyreloc" /> 
+         <linkerarg value="${env.TARGET_OS_PATH}/lib/libc.so" /> 
+         <linkerarg value="${env.TARGET_OS_PATH}/lib/libdl.so" /> 
+<!--         <linkerarg value="${env.TARGET_OS_PATH}/lib/libstdc++.so" /> -->
+         <linkerarg value="${env.TARGET_OS_PATH}/lib/libm.so" /> 
+<!--         <linkerarg value="${env.TARGET_OS_PATH}/lib/crtbegin_dynamic.o" /> -->
+         <linkerarg value="-Wl,--no-undefined" /> 
+         <linkerarg value="-Wl,-rpath-link=${env.TARGET_OS_PATH}/lib" /> 
+         <linkerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/${env.TARGET_CPU_NAME}/libgcc.a" />
+    <!--     <linkerarg value="${env.TARGET_OS_PATH}/lib/crtend_android.o" /> -->
+    </linker>
+
+</target>
+
+<target name="gluegen.cpptasks.declare.compiler" depends="setup.java.home.dir">
+  <echo message="Custom forced Linux.x86 cross compile android" />
+  <property name="isLinuxArmv7"    value="true"/>
+  <property name="compiler.cfg.id.base"          value="compiler.cfg.android" /> 
+  <property name="linker.cfg.id.base"            value="linker.cfg.android" /> 
+  <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+  <property name="java.includes.dir.platform"    value="${java.includes.dir}/linux" />
+</target>
+
+<target name="declare.linux.android">
+      <echo message="android.arm" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
+      <property name="linker.cfg.id"                        value="linker.cfg.android" />
+</target>
+
+</project>
+
+
