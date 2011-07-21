@@ -6,6 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#define DEBUG 1
+
 MYAPI foo MYAPIENTRY nopTest() {
     return 42;
 }
@@ -279,6 +281,40 @@ MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface) {
     free(surface);
 }
 
+static void dumpTK_ComplicatedSuperSet(TK_ComplicatedSuperSet * s) {
+    fprintf(stderr, "TK_ComplicatedSuperSet [\n");
+    fprintf(stderr, "  cs.b1         0x%X\n", s->bits1);
+
+    fprintf(stderr, "  cs.sub1.b1    0x%X\n", s->sub1.bits1);
+    fprintf(stderr, "  cs.sub1.id    0x%X\n", s->sub1.id);
+    fprintf(stderr, "  cs.sub1.b2    0x%X\n", s->sub1.bits2);
+    fprintf(stderr, "  cs.sub1.long0 0x%lX\n", s->sub1.long0);
+    fprintf(stderr, "  cs.sub1.b3    0x%X\n", s->sub1.bits3);
+    fprintf(stderr, "  cs.sub1.real0 %G %A\n", s->sub1.real0, s->sub1.real0);
+    fprintf(stderr, "  cs.sub1.b4    0x%X\n", s->sub1.bits4);
+    fprintf(stderr, "  cs.sub1.real1 %G %A\n", (double)s->sub1.real1, (double)s->sub1.real1);
+    fprintf(stderr, "  cs.sub1.b5    0x%X\n", s->sub1.bits5);
+    fprintf(stderr, "  cs.sub1.longX 0x%lX\n", (int64_t)s->sub1.longX);
+    fprintf(stderr, "  cs.sub1.b6    0x%X\n", s->sub1.bits6);
+
+    fprintf(stderr, "  cs.b2         0x%X\n", s->bits2);
+
+    fprintf(stderr, "  cs.sub2.b1    0x%X\n", s->sub2.bits1);
+    fprintf(stderr, "  cs.sub2.id    0x%X\n", s->sub2.id);
+    fprintf(stderr, "  cs.sub2.b2    0x%X\n", s->sub2.bits2);
+    fprintf(stderr, "  cs.sub2.long0 0x%lX\n", s->sub2.long0);
+    fprintf(stderr, "  cs.sub2.b3    0x%X\n", s->sub2.bits3);
+    fprintf(stderr, "  cs.sub2.real0 %G %A\n", s->sub2.real0, s->sub2.real0);
+    fprintf(stderr, "  cs.sub2.b4    0x%X\n", s->sub2.bits4);
+    fprintf(stderr, "  cs.sub2.real1 %G %A\n", (double)s->sub2.real1, (double)s->sub2.real1);
+    fprintf(stderr, "  cs.sub2.b5    0x%X\n", s->sub2.bits5);
+    fprintf(stderr, "  cs.sub2.longX 0x%lX\n", (int64_t)s->sub2.longX);
+    fprintf(stderr, "  cs.sub2.b6    0x%X\n", s->sub2.bits6);
+
+    fprintf(stderr, "  cs.b3         0x%X\n", s->bits3);
+    fprintf(stderr, "]\n\n");
+}
+
 MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
     TK_ComplicatedSuperSet * s = calloc(1, sizeof(TK_ComplicatedSuperSet));
 
@@ -288,16 +324,24 @@ MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
     s->sub1.bits2 = 0xA2U;
     s->sub1.long0 = 0x123456789abcdef0UL;
     s->sub1.bits3 = 0xA3U;
-    s->sub1.real0 = 3.1415926535897932384626433832795L;
+    s->sub1.real0 = 3.1415926535897932384626433832795;
     s->sub1.bits4 = 0xA4U;
+    s->sub1.real1 = 256.12345f;
+    s->sub1.bits5 = 0xA5U;
+    s->sub1.longX = (long) 0xdeadbeefU;
+    s->sub1.bits6 = 0xA6U;
     s->bits2 = 0xB0U;
     s->sub2.bits1 = 0xB1U;
     s->sub2.id = 0x12345678U;
     s->sub2.bits2 = 0xB2U;
     s->sub2.long0 = 0x123456789abcdef0UL;
     s->sub2.bits3 = 0xB3U;
-    s->sub2.real0 = 3.1415926535897932384626433832795L;
+    s->sub2.real0 = 3.1415926535897932384626433832795;
     s->sub2.bits4 = 0xB4U;
+    s->sub2.real1 = 256.12345f;
+    s->sub2.bits5 = 0xB5U;
+    s->sub2.longX = (long) 0xdeadbeefU;
+    s->sub2.bits6 = 0xB6U;
     s->bits3 = 0xC0U;
 
     fprintf(stderr, "TK_ComplicatedSubSet: sizeof(): %ld\n", (long) sizeof(TK_ComplicatedSubSet));
@@ -308,6 +352,10 @@ MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
     fprintf(stderr, "TK_ComplicatedSubSet: bits3-s offset: %ld\n", (long) ((void *)(&s->sub1.bits3) - (void *)(&s->sub1)) );
     fprintf(stderr, "TK_ComplicatedSubSet: real0-s offset: %ld\n", (long) ((void *)(&s->sub1.real0) - (void *)(&s->sub1)) );
     fprintf(stderr, "TK_ComplicatedSubSet: bits4-s offset: %ld\n", (long) ((void *)(&s->sub1.bits4) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: real1-s offset: %ld\n", (long) ((void *)(&s->sub1.real1) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: bits5-s offset: %ld\n", (long) ((void *)(&s->sub1.bits5) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: longX-s offset: %ld\n", (long) ((void *)(&s->sub1.longX) - (void *)(&s->sub1)) );
+    fprintf(stderr, "TK_ComplicatedSubSet: bits6-s offset: %ld\n", (long) ((void *)(&s->sub1.bits6) - (void *)(&s->sub1)) );
 
     fprintf(stderr, "TK_ComplicatedSuperSet: sizeof(): %ld\n", (long) sizeof(TK_ComplicatedSuperSet));
     fprintf(stderr, "TK_ComplicatedSuperSet: bits1-s offset: %ld\n", (long) ((void *)(&s->bits1) - (void *)(s)) );
@@ -316,7 +364,44 @@ MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
     fprintf(stderr, "TK_ComplicatedSuperSet:  sub2-s offset: %ld\n", (long) ((void *)(&s->sub2)  - (void *)(s)) );
     fprintf(stderr, "TK_ComplicatedSuperSet: bits3-s offset: %ld\n", (long) ((void *)(&s->bits3) - (void *)(s)) );
 
+    #ifdef DEBUG
+        fprintf(stderr, "createComplicatedSuperSet:\n");
+        dumpTK_ComplicatedSuperSet(s);
+    #endif
     return s;
+}
+
+MYAPI Bool MYAPIENTRY hasInitValues(TK_ComplicatedSuperSet * s) {
+    Bool b =  s->bits1 == 0xA0U &&
+            s->sub1.bits1 == 0xA1U &&
+            s->sub1.id == 0x12345678U &&
+            s->sub1.bits2 == 0xA2U &&
+            s->sub1.long0 == 0x123456789abcdef0UL &&
+            s->sub1.bits3 == 0xA3U &&
+            s->sub1.real0 == 3.1415926535897932384626433832795 &&
+            s->sub1.bits4 == 0xA4U &&
+            s->sub1.real1 == 256.12345f &&
+            s->sub1.bits5 == 0xA5U &&
+            s->sub1.longX == (long) 0xdeadbeefU &&
+            s->sub1.bits6 == 0xA6U &&
+            s->bits2 == 0xB0U &&
+            s->sub2.bits1 == 0xB1U &&
+            s->sub2.id == 0x12345678U &&
+            s->sub2.bits2 == 0xB2U &&
+            s->sub2.long0 == 0x123456789abcdef0UL &&
+            s->sub2.bits3 == 0xB3U &&
+            s->sub2.real0 == 3.1415926535897932384626433832795 &&
+            s->sub2.bits4 == 0xB4U &&
+            s->sub2.real1 == 256.12345f &&
+            s->sub2.bits5 == 0xB5U &&
+            s->sub2.longX == (long) 0xdeadbeefU &&
+            s->sub2.bits6 == 0xB6U &&
+            s->bits3 == 0xC0U ;
+    #ifdef DEBUG
+        fprintf(stderr, "hasInitValues res %d:\n", b);
+        dumpTK_ComplicatedSuperSet(s);
+    #endif
+    return b;
 }
 
 MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s) {

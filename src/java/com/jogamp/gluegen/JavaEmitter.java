@@ -60,6 +60,8 @@ import com.jogamp.gluegen.runtime.types.Type;
 import java.nio.Buffer;
 import java.util.logging.Logger;
 
+import jogamp.common.os.MachineDescriptionRuntime;
+
 import static java.util.logging.Level.*;
 import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 
@@ -97,24 +99,14 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
   private PrintWriter cWriter;
-  private MachineDescription machDesc32;
-  private MachineDescription machDesc64;
-
+  private final MachineDescription machDescJava = MachineDescription.StaticConfig.X86_64_UNIX.md;
+  private final MachineDescription.StaticConfig[] machDescTargetConfigs = MachineDescription.StaticConfig.values();
+      
   protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
 
   public void readConfigurationFile(String filename) throws Exception {
     cfg = createConfig();
     cfg.read(filename);
-  }
-
-  public void setMachineDescription(MachineDescription md32, MachineDescription md64) {
-
-    if ((md32 == null) && (md64 == null)) {
-      throw new RuntimeException("Must specify at least one MachineDescription");
-    }
-
-    machDesc32 = md32;
-    machDesc64 = md64;
   }
 
   class ConstantRenamer implements SymbolFilter {
@@ -615,7 +607,7 @@ public class JavaEmitter implements GlueEmitter {
                                     cfg.allStatic(),
                                     (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
                                     !cfg.nioDirectOnly(binding.getName()),
-                                    machDesc64);
+                                    machDescJava);
       prepCEmitter(binding, cEmitter);
       allEmitters.add(cEmitter);
     }
@@ -663,7 +655,7 @@ public class JavaEmitter implements GlueEmitter {
 
     try {
       // Get Java binding for the function
-      MethodBinding mb = bindFunction(sym, null, null, machDesc64);
+      MethodBinding mb = bindFunction(sym, null, null, machDescJava);
 
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
@@ -771,19 +763,6 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   public void emitStruct(CompoundType structType, String alternateName) throws Exception {
-    // Emit abstract base class delegating to 32-bit or 64-bit implementations
-    emitStructImpl(structType, alternateName, machDesc32, machDesc64, true, false);
-    // Emit concrete implementing class for each variant
-    emitStructImpl(structType, alternateName, machDesc32, machDesc64, false, true);
-    emitStructImpl(structType, alternateName, machDesc32, machDesc64, false, false);
-  }
-
-  public void emitStructImpl(CompoundType structType,
-                             String alternateName,
-                             MachineDescription md32,
-                             MachineDescription md64,
-                             boolean doBaseClass,
-                             boolean do32Bit) throws Exception {
     String name = structType.getName();
     if (name == null && alternateName != null) {
       name = alternateName;
@@ -805,50 +784,31 @@ public class JavaEmitter implements GlueEmitter {
     }
     String containingTypeName = containingType.getName();
 
-    if ((md32 == null) || (md64 == null)) {
-      throw new RuntimeException("Must supply both 32- and 64-bit MachineDescriptions to emitStructImpl");
-    }
-    String suffix = "";
-
-    // The "external" MachineDescription is the one used to determine
-    // the sizes of the primitive types seen in the public API. For
-    // example, if a C long is an element of a struct, it is the size
+    // machDescJava global MachineDescription is the one used to determine
+    // the sizes of the primitive types seen in the public API in Java. 
+    // For example, if a C long is an element of a struct, it is the size
     // of a Java int on a 32-bit machine but the size of a Java long
     // on a 64-bit machine. To support both of these sizes with the
     // same API, the abstract base class must take and return a Java
     // long from the setter and getter for this field. However the
     // implementation on a 32-bit platform must downcast this to an
-    // int and set only an int's worth of data in the struct. The
-    // "internal" MachineDescription is the one used to determine how
+    // int and set only an int's worth of data in the struct. 
+    //
+    // The machDescTarget MachineDescription is the one used to determine how
     // much data to set in or get from the struct and exactly from
     // where it comes.
     //
-    // Note that the 64-bit MachineDescription is always used as the
-    // external MachineDescription.
-
-    MachineDescription extMachDesc = md64;
-    MachineDescription intMachDesc = null;
-
-    if (!doBaseClass) {
-      if (do32Bit) {
-        intMachDesc = md32;
-        suffix = "32";
-      } else {
-        intMachDesc = md64;
-        suffix = "64";
-      }
-    }
+    // Note that machDescJava MachineDescription is always 64bit unix,
+    // which complies w/ Java types.
 
     boolean needsNativeCode = false;
     // Native code for calls through function pointers gets emitted
     // into the abstract base class; Java code which accesses fields
     // gets emitted into the concrete classes
-    if (doBaseClass) {
-      for (int i = 0; i < structType.getNumFields(); i++) {
-        if (structType.getField(i).getType().isFunctionPointer()) {
-          needsNativeCode = true;
-          break;
-        }
+    for (int i = 0; i < structType.getNumFields(); i++) {
+      if (structType.getField(i).getType().isFunctionPointer()) {
+        needsNativeCode = true;
+        break;
       }
     }
 
@@ -859,7 +819,7 @@ public class JavaEmitter implements GlueEmitter {
       writer = openFile(
         cfg.javaOutputDir() + File.separator +
         CodeGenUtils.packageAsPath(structClassPkg) +
-        File.separator + containingTypeName + suffix + ".java");
+        File.separator + containingTypeName + ".java");
       CodeGenUtils.emitAutogeneratedWarning(writer, this);
       if (needsNativeCode) {
         String nRoot = cfg.nativeOutputDir();
@@ -883,6 +843,7 @@ public class JavaEmitter implements GlueEmitter {
     writer.println("import " + cfg.gluegenRuntimePackage() + ".*;");
     writer.println("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
     writer.println("import " + Buffers.class.getPackage().getName() + ".*;");
+    writer.println("import " + MachineDescriptionRuntime.class.getName() + ";");
     writer.println();
     List<String> imports = cfg.imports();
     for (String str : imports) {
@@ -895,10 +856,7 @@ public class JavaEmitter implements GlueEmitter {
     for (String doc : javadoc) {
       writer.println(doc);
     }
-    writer.print((doBaseClass ? "public " : "") + (doBaseClass ? "abstract " : "") + "class " + containingTypeName + suffix + " ");
-    if (!doBaseClass) {
-      writer.print("extends " + containingTypeName + " ");
-    }
+    writer.print("public class " + containingTypeName + " ");
     boolean firstIteration = true;
     List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingTypeName);
     for (String userInterface : userSpecifiedInterfaces) {
@@ -911,67 +869,95 @@ public class JavaEmitter implements GlueEmitter {
     }
     writer.println("{");
     writer.println();
-    if (doBaseClass) {
-      writer.println("  StructAccessor accessor;");
-      writer.println();
-    }
-
-    writer.println("  public static int size() {");
-    if (doBaseClass) {
-      writer.println("    if (Platform.is32Bit()) {");
-      writer.println("      return " + containingTypeName + "32" + ".size();");
-      writer.println("    } else {");
-      writer.println("      return " + containingTypeName + "64" + ".size();");
-      writer.println("    }");
-    } else {
-      writer.println("    return " + structType.getSize(intMachDesc) + ";");
-    }
-    writer.println("  }");
+    writer.println("  StructAccessor accessor;");
     writer.println();
-    if (doBaseClass) {
-      writer.println("  public static " + containingTypeName + " create() {");
-      writer.println("    return create(Buffers.newDirectByteBuffer(size()));");
-      writer.println("  }");
-      writer.println();
-      writer.println("  public static " + containingTypeName + " create(java.nio.ByteBuffer buf) {");
-      writer.println("    if (Platform.is32Bit()) {");
-      writer.println("      return new " + containingTypeName + "32(buf);");
-      writer.println("    } else {");
-      writer.println("      return new " + containingTypeName + "64(buf);");
-      writer.println("    }");
-      writer.println("  }");
-      writer.println();
-      writer.println("  " + containingTypeName + "(java.nio.ByteBuffer buf) {");
-      writer.println("    accessor = new StructAccessor(buf);");
-      writer.println("  }");
-      writer.println();
-      writer.println("  public java.nio.ByteBuffer getBuffer() {");
-      writer.println("    return accessor.getBuffer();");
-      writer.println("  }");
-    } else {
-      writer.println("  " + containingTypeName + suffix + "(java.nio.ByteBuffer buf) {");
-      writer.println("    super(buf);");
-      writer.println("  }");
-      writer.println();
-    }
+    writer.println("  private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();");    
+    writer.println();
+    // generate all offset and size arrays
+    generateOffsetAndSizeArrays(writer, containingTypeName, structType, null); /* w/o offset */    
     for (int i = 0; i < structType.getNumFields(); i++) {
-
-      Field field = structType.getField(i);
-      Type fieldType = field.getType();
+      final Field field = structType.getField(i);
+      final Type fieldType = field.getType();
 
       if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
+        final String renamed = cfg.getJavaSymbolRename(field.getName());
+        final String fieldName = renamed==null ? field.getName() : renamed;
+        if (fieldType.isFunctionPointer()) {
+           // no offset/size for function pointer ..
+        } else if (fieldType.isCompound()) {
+          // FIXME: will need to support this at least in order to
+          // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate
+          // a name?)
+          if (fieldType.getName() == null) {
+            throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
+                                       field + "\" in type \"" + name + "\")");
+          }
 
-        String renamed = cfg.getJavaSymbolRename(field.getName());
-        String fieldName = renamed==null ? field.getName() : renamed;
+          generateOffsetAndSizeArrays(writer, fieldName, fieldType, field);
+        } else if (fieldType.isArray()) {
+            Type baseElementType = field.getType().asArray().getBaseElementType();
+
+            if(!baseElementType.isPrimitive())
+                break;
+
+            generateOffsetAndSizeArrays(writer, fieldName, null, field); /* w/o size */
+        } else {
+          JavaType externalJavaType = null;
+          try {
+            externalJavaType = typeToJavaType(fieldType, false, machDescJava);
+          } catch (Exception e) {
+            System.err.println("Error occurred while creating accessor for field \"" +
+                               field.getName() + "\" in type \"" + name + "\"");
+            throw(e);
+          }
+          if (externalJavaType.isPrimitive()) {
+            // Primitive type
+            generateOffsetAndSizeArrays(writer, fieldName, null, field); /* w/o size */
+          } else {
+            // FIXME
+            LOG.log(WARNING, "Complicated fields (field \"{0}\" of type \"{1}\") not implemented yet", new Object[]{field, name});
+            //          throw new RuntimeException("Complicated fields (field \"" + field + "\" of type \"" + t +
+            //                                     "\") not implemented yet");
+          }
+        }
+      }
+    }    
+    writer.println();
+
+    writer.println("  public static int size() {");
+    writer.println("    return "+containingTypeName+"_size[mdIdx];");
+    writer.println("  }");
+    writer.println();
+    writer.println("  public static " + containingTypeName + " create() {");
+    writer.println("    return create(Buffers.newDirectByteBuffer(size()));");
+    writer.println("  }");
+    writer.println();
+    writer.println("  public static " + containingTypeName + " create(java.nio.ByteBuffer buf) {");
+    writer.println("      return new " + containingTypeName + "(buf);");
+    writer.println("  }");
+    writer.println();
+    writer.println("  " + containingTypeName + "(java.nio.ByteBuffer buf) {");
+    writer.println("    accessor = new StructAccessor(buf);");
+    writer.println("  }");
+    writer.println();
+    writer.println("  public java.nio.ByteBuffer getBuffer() {");
+    writer.println("    return accessor.getBuffer();");
+    writer.println("  }");
+
+    for (int i = 0; i < structType.getNumFields(); i++) {
+      final Field field = structType.getField(i);
+      final Type fieldType = field.getType();
+
+      if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
+        final String renamed = cfg.getJavaSymbolRename(field.getName());
+        final String fieldName = renamed==null ? field.getName() : renamed;
 
         if (fieldType.isFunctionPointer()) {
-
-          if (doBaseClass) {
             try {
               // Emit method call and associated native code
               FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
               FunctionSymbol funcSym      = new FunctionSymbol(fieldName, funcType);
-              MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDesc64);
+              MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDescJava);
               binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
               writer.println();
 
@@ -1024,14 +1010,13 @@ public class JavaEmitter implements GlueEmitter {
                                           false,
                                           true,
                                           false, // FIXME: should unify this with the general emission code
-                                          machDesc64);
+                                          machDescJava);
               prepCEmitter(binding, cEmitter);
               cEmitter.emit();
             } catch (Exception e) {
               System.err.println("While processing field " + field + " of type " + name + ":");
               throw(e);
             }
-          }
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate
@@ -1042,15 +1027,11 @@ public class JavaEmitter implements GlueEmitter {
           }
 
           writer.println();
-          generateGetterSignature(writer, doBaseClass, fieldType.getName(), capitalizeString(fieldName));
-          if (doBaseClass) {
-            writer.println(";");
-          } else {
-            writer.println(" {");
-            writer.println("    return " + fieldType.getName() + ".create(accessor.slice(" +
-                           field.getOffset(intMachDesc) + ", " + fieldType.getSize(intMachDesc) + "));");
-            writer.println("  }");
-          }
+          generateGetterSignature(writer, false, fieldType.getName(), capitalizeString(fieldName));
+          writer.println(" {");
+          writer.println("    return " + fieldType.getName() + ".create( accessor.slice( " +
+                           fieldName+"_offset[mdIdx], "+fieldName+"_size[mdIdx] ) );");
+          writer.println(" }");
 
         } else if (fieldType.isArray()) {
 
@@ -1059,110 +1040,70 @@ public class JavaEmitter implements GlueEmitter {
             if(!baseElementType.isPrimitive())
                 break;
 
-            String paramType = typeToJavaType(baseElementType, false, extMachDesc).getName();
+            String paramType = typeToJavaType(baseElementType, false, machDescJava).getName();
             String capitalized = capitalizeString(fieldName);
-
-            final int byteOffset = doBaseClass ? -1 : (int) field.getOffset(intMachDesc);
 
             // Setter
             writer.println();
-            generateSetterSignature(writer, doBaseClass, containingTypeName, capitalized, paramType+"[]");
-            if (doBaseClass) {
-              writer.println(";");
-            } else {
-              writer.println(" {");
-              writer.print  ("    accessor.set" + capitalizeString(paramType) + "sAt(" + byteOffset + ", ");
-              writer.println("val);");
-              writer.println("    return this;");
-              writer.println("  }");
-            }
+            generateSetterSignature(writer, false, containingTypeName, capitalized, paramType+"[]");
+            writer.println(" {");
+            writer.print  ("    accessor.set" + capitalizeString(paramType) + "sAt(" + fieldName+"_offset[mdIdx], val);");
+            writer.println("    return this;");
+            writer.println("  }");
             writer.println();
             // Getter
-            generateGetterSignature(writer, doBaseClass, paramType+"[]", capitalized);
-            if (doBaseClass) {
-              writer.println(";");
-            } else {
-              writer.println(" {");
-              writer.print  ("    return ");
-              writer.println("accessor.get" + capitalizeString(paramType) + "sAt(" + byteOffset + ", new " +paramType+"["+fieldType.asArray().getLength()+"]);");
-              writer.println("  }");
-            }
-
+            generateGetterSignature(writer, false, paramType+"[]", capitalized);
+            writer.println(" {");
+            writer.print  ("    return accessor.get" + capitalizeString(paramType) + "sAt(" + fieldName+"_offset[mdIdx], new " +paramType+"["+fieldType.asArray().getLength()+"]);");
+            writer.println(" }");
         } else {
-          JavaType internalJavaType = null;
-          JavaType externalJavaType = null;
-
+          JavaType javaType = null;
+          
           try {
-            externalJavaType = typeToJavaType(fieldType, false, extMachDesc);
-            if (!doBaseClass) {
-              internalJavaType = typeToJavaType(fieldType, false, intMachDesc);
-            }
+            javaType = typeToJavaType(fieldType, false, machDescJava);
           } catch (Exception e) {
             System.err.println("Error occurred while creating accessor for field \"" +
                                field.getName() + "\" in type \"" + name + "\"");
             throw(e);
           }
-          if (externalJavaType.isPrimitive()) {
+          if (javaType.isPrimitive()) {
             // Primitive type
-            String externalJavaTypeName = null;
-            String internalJavaTypeName = null;
-            externalJavaTypeName = externalJavaType.getName();
-            if (!doBaseClass) {
-              internalJavaTypeName = internalJavaType.getName();
-            }
+            final boolean fieldTypeNativeSizeFixed = fieldType.getSize().hasFixedNativeSize() || isOpaque(fieldType) ; 
+            String javaTypeName = javaType.getName();
             if (isOpaque(fieldType)) {
-              externalJavaTypeName = compatiblePrimitiveJavaTypeName(fieldType, externalJavaType, extMachDesc);
-              if (!doBaseClass) {
-                internalJavaTypeName = compatiblePrimitiveJavaTypeName(fieldType, internalJavaType, intMachDesc);
-              }
+              javaTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
             }
-            String capitalized = null;
-            if (!doBaseClass) {
-              capitalized = capitalizeString(internalJavaTypeName);
-            }
-            final int byteOffset = doBaseClass ? -1 : (int) field.getOffset(intMachDesc);
+            String capJavaTypeName = capitalizeString(javaTypeName);
+            
             writer.println();
-            String capitalizedFieldName = capitalizeString(fieldName);
+            String capFieldName = capitalizeString(fieldName);
             // Setter
-            generateSetterSignature(writer, doBaseClass, containingTypeName, capitalizedFieldName, externalJavaTypeName);
-            if (doBaseClass) {
-              writer.println(";");
+            generateSetterSignature(writer, false, containingTypeName, capFieldName, javaTypeName);
+            writer.println(" {");
+            if( fieldTypeNativeSizeFixed ) {
+                writer.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val);");
             } else {
-              writer.println(" {");
-              writer.print  ("    accessor.set" + capitalized + "At(" + byteOffset + ", ");
-              if (!externalJavaTypeName.equals(internalJavaTypeName)) {
-                writer.print("(" + internalJavaTypeName + ") ");
-              }
-              writer.println("val);");
-              writer.println("    return this;");
-              writer.println("  }");
+                writer.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+javaTypeName+"SizeInBytes());");
             }
+            writer.println("    return this;");
+            writer.println("  }");
             writer.println();
+            
             // Getter
-            generateGetterSignature(writer, doBaseClass, externalJavaTypeName, capitalizedFieldName);
-            if (doBaseClass) {
-              writer.println(";");
+            generateGetterSignature(writer, false, javaTypeName, capFieldName);
+            writer.println(" {");
+            writer.print  ("    return ");            
+            if( fieldTypeNativeSizeFixed ) {
+                writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx]);");
             } else {
-              writer.println(" {");
-              writer.print  ("    return ");
-              if (!externalJavaTypeName.equals(internalJavaTypeName)) {
-                writer.print("(" + externalJavaTypeName + ") ");
-              }
-              writer.println("accessor.get" + capitalized + "At(" + byteOffset + ");");
-              writer.println("  }");
-            }
-          } else {
-            // FIXME
-            LOG.log(WARNING, "Complicated fields (field \"{0}\" of type \"{1}\") not implemented yet", new Object[]{field, name});
-            //          throw new RuntimeException("Complicated fields (field \"" + field + "\" of type \"" + t +
-            //                                     "\") not implemented yet");
+                writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+javaTypeName+"SizeInBytes());");
+            }            
+            writer.println("  }");
           }
         }
       }
     }
-    if (doBaseClass) {
-      emitCustomJavaCode(writer, containingTypeName);
-    }
+    emitCustomJavaCode(writer, containingTypeName);
     writer.println("}");
     writer.flush();
     writer.close();
@@ -1201,14 +1142,39 @@ public class JavaEmitter implements GlueEmitter {
   // Internals only below this point
   //
 
-    private void generateGetterSignature(PrintWriter writer, boolean baseClass, String returnTypeName, String capitalizedFieldName) {
-        writer.print("  public " + (baseClass ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "()");
-    }
+  private void generateGetterSignature(PrintWriter writer, boolean abstractMethod, String returnTypeName, String capitalizedFieldName) {
+      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "()");
+  }
 
-    private void generateSetterSignature(PrintWriter writer, boolean baseClass, String returnTypeName, String capitalizedFieldName, String paramTypeName) {
-        writer.print("  public " + (baseClass ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(" + paramTypeName + " val)");
-    }
+  private void generateSetterSignature(PrintWriter writer, boolean abstractMethod, String returnTypeName, String capitalizedFieldName, String paramTypeName) {
+      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(" + paramTypeName + " val)");
+  }
 
+  private void generateOffsetAndSizeArrays(PrintWriter writer, String fieldName, Type fieldType, Field field) {      
+      if(null != field) {
+          writer.print("  private static final int[] "+fieldName+"_offset = new int[] { ");    
+          for( int i=0; i < machDescTargetConfigs.length; i++ ) {
+              if(0<i) {
+                  writer.print(", ");
+              }
+              writer.print(field.getOffset(machDescTargetConfigs[i].md) +
+                           " /* " + machDescTargetConfigs[i].name() + " */");
+          }
+          writer.println(" };");
+      }
+      if(null!=fieldType) {
+          writer.print("  private static final int[] "+fieldName+"_size = new int[] { ");    
+          for( int i=0; i < machDescTargetConfigs.length; i++ ) {
+              if(0<i) {
+                  writer.print(", ");
+              }
+              writer.print(fieldType.getSize(machDescTargetConfigs[i].md) +
+                           " /* " + machDescTargetConfigs[i].name() + " */");
+          }
+          writer.println("  };");
+      }
+  }
+  
   private JavaType typeToJavaType(Type cType, boolean outgoingArgument, MachineDescription curMachDesc) {
     // Recognize JNIEnv* case up front
     PointerType opt = cType.asPointer();

@@ -52,9 +52,6 @@ public class DebugEmitter implements GlueEmitter {
 
   public void readConfigurationFile(String filename) {}
 
-  public void setMachineDescription(MachineDescription md32,
-                                    MachineDescription md64) {}
-
   public void beginEmission(GlueEmitterControls controls) {
     System.out.println("----- BEGIN EMISSION OF GLUE CODE -----");
   }

@@ -113,6 +113,37 @@ public class StructAccessor {
         bb.putInt(byteOffset, v);
     }
 
+    /** Retrieves the int at the specified byteOffset. */
+    public final int getIntAt(int byteOffset, int nativeSizeInBytes) {
+        switch(nativeSizeInBytes) {
+            case 2: 
+                return (int) bb.getShort(byteOffset) & 0x0000FFFF ;
+            case 4: 
+                return bb.getInt(byteOffset);
+            case 8: 
+                return (int) ( bb.getLong(byteOffset) & 0x00000000FFFFFFFFL ) ;
+            default:
+                throw new InternalError("invalid nativeSizeInBytes "+nativeSizeInBytes);
+        }
+    }
+
+    /** Puts a int at the specified byteOffset. */
+    public final void setIntAt(int byteOffset, int v, int nativeSizeInBytes) {
+        switch(nativeSizeInBytes) {
+            case 2: 
+                bb.putShort(byteOffset, (short) ( v & 0x0000FFFF ) );
+                break;
+            case 4: 
+                bb.putInt(byteOffset, v);
+                break;
+            case 8: 
+                bb.putLong(byteOffset, (long)v & 0x00000000FFFFFFFFL );
+                break;
+            default:
+                throw new InternalError("invalid nativeSizeInBytes "+nativeSizeInBytes);
+        }
+    }
+    
     /** Retrieves the float at the specified byteOffset. */
     public final float getFloatAt(int byteOffset) {
         return bb.getFloat(byteOffset);
@@ -133,18 +164,40 @@ public class StructAccessor {
         bb.putDouble(byteOffset, v);
     }
 
-    /**
-     * Retrieves the long at the specified byteOffset.
-     */
+    /** Retrieves the long at the specified byteOffset. */
     public final long getLongAt(int byteOffset) {
         return bb.getLong(byteOffset);
     }
 
-    /**
-     * Puts a long at the specified byteOffset.
-     */
+    /** Puts a long at the specified byteOffset. */
     public final void setLongAt(int byteOffset, long v) {
         bb.putLong(byteOffset, v);
+    }
+    
+    /** Retrieves the long at the specified byteOffset. */
+    public final long getLongAt(int byteOffset, int nativeSizeInBytes) {
+        switch(nativeSizeInBytes) {
+            case 4: 
+                return (long) bb.getInt(byteOffset) & 0x00000000FFFFFFFFL;
+            case 8: 
+                return bb.getLong(byteOffset);
+            default:
+                throw new InternalError("invalid nativeSizeInBytes "+nativeSizeInBytes);
+        }
+    }
+
+    /** Puts a long at the specified byteOffset. */
+    public final void setLongAt(int byteOffset, long v, int nativeSizeInBytes) {
+        switch(nativeSizeInBytes) {
+            case 4: 
+                bb.putInt(byteOffset, (int) ( v & 0x00000000FFFFFFFFL ) );
+                break;
+            case 8: 
+                bb.putLong(byteOffset, v);
+                break;
+            default:
+                throw new InternalError("invalid nativeSizeInBytes "+nativeSizeInBytes);
+        }
     }
     
     public final void setBytesAt(int byteOffset, byte[] v) {

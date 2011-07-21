@@ -26,6 +26,7 @@
 #include <gluegen_stdint.h>
 #include <gluegen_stddef.h>
 
+typedef int Bool;
 typedef uint64_t foo;
 
 /** Returns 42 */
@@ -150,16 +151,23 @@ typedef struct tk_Surface {
 } TK_Surface;
 
 typedef struct {
-    int8_t bits1;  // +1
+    uint8_t bits1; // +1
                    // +3 (p64)
     int32_t id;    // +4
-    int8_t bits2;  // +1
+    uint8_t bits2; // +1
                    // +7 (p64)
     int64_t long0; // +8
-    int8_t bits3;  // +1
+    uint8_t bits3; // +1
                    // +7 (p64)
     double real0;  // +8
-    int8_t bits4;  // +1
+    uint8_t bits4; // +1
+                   // +3 (p64)
+    float  real1;  // +4
+    uint8_t bits5; // +1
+                   // +7 (p64) / +3 (windows andx 32bit)
+    long   longX;  // +8 / +4 (windows andx 32bit)
+    uint8_t bits6; // +1
+
                    // +7 (p64) (for next struct ..)
 
                    // 24 net 
@@ -168,13 +176,13 @@ typedef struct {
 } TK_ComplicatedSubSet;
 
 typedef struct {
-    int8_t bits1;              // + 1
+    uint8_t bits1;             // + 1
                                // + 7 (p64)
     TK_ComplicatedSubSet sub1; // +48 (64bit)
-    int8_t bits2;              // + 1
+    uint8_t bits2;             // + 1
                                // + 7 (p64)
     TK_ComplicatedSubSet sub2; // +48 (64bit)
-    int8_t bits3;              // + 1
+    uint8_t bits3;             // + 1
                                // + 7 (p64)
 
                                //  51 net
@@ -186,4 +194,5 @@ MYAPI TK_Surface * MYAPIENTRY createSurface();
 MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface);
 
 MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet();
+MYAPI Bool MYAPIENTRY hasInitValues(TK_ComplicatedSuperSet * s);
 MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s);

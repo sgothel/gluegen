@@ -28,8 +28,13 @@
  
 package com.jogamp.common.os;
 
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import com.jogamp.common.nio.Buffers;
 
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -41,6 +46,7 @@ import jogamp.common.os.MachineDescriptionRuntime;
 public class Platform {
 
     public static final boolean JAVA_SE;
+    public static final boolean LITTLE_ENDIAN;
     public static final String OS;
     public static final String OS_lower;
     public static final String OS_VERSION;
@@ -139,6 +145,8 @@ public class Platform {
 
         JAVA_SE = initIsJavaSE();
 
+        LITTLE_ENDIAN = queryIsLittleEndianImpl();
+        
         if(        ARCH_lower.equals("x86")  ||
                    ARCH_lower.equals("i386") ||
                    ARCH_lower.equals("i486") ||
@@ -171,13 +179,34 @@ public class Platform {
         }               
         OS_TYPE = getOSTypeImpl();
         
-        machineDescription = MachineDescriptionRuntime.getMachineDescription(getIs32BitByCPUArchImpl());
+        MachineDescription md = MachineDescriptionRuntime.getRuntime();
+        if(null == md) {
+            MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
+            md = smd.md;
+            System.err.println("Warning: Using static MachineDescription: "+smd);
+        } else {
+            MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
+            if(!md.compatible(smd.md)) {
+                throw new RuntimeException("Incompatible MachineDescriptions:"+Platform.NEWLINE+
+                                           " Static "+smd+Platform.NEWLINE+
+                                           " Runtime "+md);
+            }
+        }
+        machineDescription = md;
         is32Bit = machineDescription.is32Bit();
     }
 
     private Platform() {}
 
-    private static boolean getIs32BitByCPUArchImpl() throws RuntimeException {
+    private static boolean queryIsLittleEndianImpl() {
+        ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
+        IntBuffer tst_i = tst_b.asIntBuffer();
+        ShortBuffer tst_s = tst_b.asShortBuffer();
+        tst_i.put(0, 0x0A0B0C0D);
+        return 0x0C0D == tst_s.get(0);
+    }
+  
+    public static boolean isCPUArch32Bit() throws RuntimeException {
         switch( CPU_ARCH ) {
             case X86_32:
             case ARM:
@@ -254,6 +283,13 @@ public class Platform {
      */
     public static boolean isJavaSE() {
         return JAVA_SE;
+    }
+
+    /**
+     * Returns true if this machine is little endian, otherwise false.
+     */
+    public static boolean isLittleEndian() {
+        return LITTLE_ENDIAN;
     }
 
     /**

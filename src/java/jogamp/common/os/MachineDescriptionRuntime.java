@@ -28,64 +28,96 @@
  
 package jogamp.common.os;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
-
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
+import com.jogamp.common.os.MachineDescription.StaticConfig;
 
 /**
  * Runtime MachineDescription
  */
 public class MachineDescriptionRuntime {
 
-  public static MachineDescription getMachineDescription(boolean is32BitByCPUArch) {
-        boolean libsLoaded = true;
+  static volatile boolean smdQueried = false;
+  static MachineDescription.StaticConfig smd = null;
+  
+  public static MachineDescription.StaticConfig getStatic() {
+        if(!smdQueried) {
+            synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
+                if(!smdQueried) {
+                    smd = getStaticImpl();
+                    smdQueried=true;
+                }
+            }
+        }
+        return smd;
+  }  
+  private static MachineDescription.StaticConfig getStaticImpl() {
+      if(Platform.isCPUArch32Bit()) {
+        if(Platform.getCPUFamily() == Platform.CPUFamily.ARM && Platform.isLittleEndian()) {
+            return StaticConfig.ARMle_EABI;
+        } else if(Platform.getOSType() == Platform.OSType.WINDOWS) {
+            return StaticConfig.X86_32_WINDOWS;            
+        }
+        return StaticConfig.X86_32_UNIX;            
+      } else {
+        if(Platform.getOSType() == Platform.OSType.WINDOWS) {
+            return StaticConfig.X86_64_WINDOWS;                        
+        }
+        return StaticConfig.X86_64_UNIX;
+      }
+  }
+      
+  static volatile boolean rmdQueried = false;
+  static MachineDescription rmd = null;
+
+  public static MachineDescription getRuntime() {
+        if(!rmdQueried) {
+            synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
+                if(!rmdQueried) {
+                    rmd = getRuntimeImpl();
+                    rmdQueried=true;
+                }
+            }
+        }
+        return rmd;
+  }  
+  private static MachineDescription getRuntimeImpl() {
         try {
             NativeLibrary.ensureNativeLibLoaded();
         } catch (UnsatisfiedLinkError err) {
-            libsLoaded = false;
+            return null;
         }
         
-        if(libsLoaded) {
-            int pointerSizeInBytes = getPointerSizeInBytesImpl();
-            switch(pointerSizeInBytes) {
-                case 4:
-                case 8:
-                    break;
-                default:
-                    throw new RuntimeException("Unsupported pointer size "+pointerSizeInBytes+"bytes, please implement.");
-            }
-
-            final long pageSizeL =  getPageSizeInBytesImpl();
-            if(Integer.MAX_VALUE < pageSizeL) {
-                throw new InternalError("PageSize exceeds integer value: " + pageSizeL);
-            }
-            
-            return getMachineDescriptionImpl(pointerSizeInBytes, (int) pageSizeL);
-        } else {
-            return MachineDescription.createStatic(is32BitByCPUArch);
+        int pointerSizeInBytes = getPointerSizeInBytesImpl();
+        switch(pointerSizeInBytes) {
+            case 4:
+            case 8:
+                break;
+            default:
+                throw new RuntimeException("Unsupported pointer size "+pointerSizeInBytes+"bytes, please implement.");
         }
-    }
 
-    private static MachineDescription getMachineDescriptionImpl(int pointerSize, int pageSize) {
+        final long pageSizeL =  getPageSizeInBytesImpl();
+        if(Integer.MAX_VALUE < pageSizeL) {
+            throw new InternalError("PageSize exceeds integer value: " + pageSizeL);
+        }
+        
         // size:      int, long, float, double, pointer, pageSize
         // alignment: int8, int16, int32, int64, int, long, float, double, pointer
         return new MachineDescription( 
-            true /* runtime validated */, MachineDescription.queryIsLittleEndian(),
+            true /* runtime validated */, Platform.isLittleEndian(),
             
             getSizeOfIntImpl(), getSizeOfLongImpl(),
-            getSizeOfFloatImpl(), getSizeOfDoubleImpl(), getSizeOfLongDoubleImpl(), pointerSize, pageSize,
+            getSizeOfFloatImpl(), getSizeOfDoubleImpl(), getSizeOfLongDoubleImpl(), 
+            pointerSizeInBytes, (int)pageSizeL,
             
             getAlignmentInt8Impl(), getAlignmentInt16Impl(), getAlignmentInt32Impl(), getAlignmentInt64Impl(),
             getAlignmentIntImpl(), getAlignmentLongImpl(), 
             getAlignmentFloatImpl(), getAlignmentDoubleImpl(), getAlignmentLongDoubleImpl(), 
             getAlignmentPointerImpl());        
     }
-    
+
     private static native int getPointerSizeInBytesImpl();
     private static native long getPageSizeInBytesImpl();
     

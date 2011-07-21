@@ -188,11 +188,6 @@ public class GlueGen implements GlueEmitterControls {
                 }
             }
 
-            // Provide MachineDescriptions to emitter
-            final MachineDescription md32 = MachineDescription.createStaticUnix32();
-            final MachineDescription md64 = MachineDescription.createStaticUnix64();
-            emit.setMachineDescription(md32, md64);
-
             // Repackage the enum and #define statements from the parser into a common format
             // so that SymbolFilters can operate upon both identically
             constants = new ArrayList<ConstantDefinition>();

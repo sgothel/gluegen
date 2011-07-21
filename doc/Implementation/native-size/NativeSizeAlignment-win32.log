@@ -1,0 +1,99 @@
+JUnit version 4.8.2
+.......static  md: MachineDescriptionStatic: X86_32_WINDOWS(3): MachineDescription: runtimeValidated false, littleEndian true, 32Bit true, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    4 / 4
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 12 / 4
+  pointer 4 / 4, page    4096
+runtime md: MachineDescription: runtimeValidated true, littleEndian true, 32Bit true, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    4 / 4
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 12 / 4
+  pointer 4 / 4, page    4096
+compatible static/runtime: true
+0x123456789abcdef0 == 0x9abcdef09abcdef0
+0x9abcdef0 == 0x9abcdef0
+0x123456789abcdef0 == 0x708c12949abcdef0
+0x9abcdef0 == 0x9abcdef0
+
+Time: 0.044
+
+OK (7 tests)
+
+TK_ComplicatedSubSet: sizeof(): 64
+TK_ComplicatedSubSet: bits1-s offset: 0
+TK_ComplicatedSubSet:    id-s offset: 4
+TK_ComplicatedSubSet: bits2-s offset: 8
+TK_ComplicatedSubSet: long0-s offset: 16
+TK_ComplicatedSubSet: bits3-s offset: 24
+TK_ComplicatedSubSet: real0-s offset: 32
+TK_ComplicatedSubSet: bits4-s offset: 40
+TK_ComplicatedSubSet: real1-s offset: 44
+TK_ComplicatedSubSet: bits5-s offset: 48
+TK_ComplicatedSubSet: longX-s offset: 52
+TK_ComplicatedSubSet: bits6-s offset: 56
+TK_ComplicatedSuperSet: sizeof(): 152
+TK_ComplicatedSuperSet: bits1-s offset: 0
+TK_ComplicatedSuperSet:  sub1-s offset: 8
+TK_ComplicatedSuperSet: bits2-s offset: 72
+TK_ComplicatedSuperSet:  sub2-s offset: 80
+TK_ComplicatedSuperSet: bits3-s offset: 144
+createComplicatedSuperSet:
+TK_ComplicatedSuperSet [
+  cs.b1         0xA0
+  cs.sub1.b1    0xA1
+  cs.sub1.id    0x12345678
+  cs.sub1.b2    0xA2
+  cs.sub1.long0 0x9ABCDEF0
+  cs.sub1.b3    0xA3
+  cs.sub1.real0 3.14159 0X1.921FB5P+1
+  cs.sub1.b4    0xA4
+  cs.sub1.real1 256.123 0X1.001F9AP+8
+  cs.sub1.b5    0xA5
+  cs.sub1.longX 0xDEADBEEF
+  cs.sub1.b6    0xA6
+  cs.b2         0xB0
+  cs.sub2.b1    0xB1
+  cs.sub2.id    0x12345678
+  cs.sub2.b2    0xB2
+  cs.sub2.long0 0x9ABCDEF0
+  cs.sub2.b3    0xB3
+  cs.sub2.real0 3.14159 0X1.921FB5P+1
+  cs.sub2.b4    0xB4
+  cs.sub2.real1 256.123 0X1.001F9AP+8
+  cs.sub2.b5    0xB5
+  cs.sub2.longX 0xDEADBEEF
+  cs.sub2.b6    0xB6
+  cs.b3         0xC0
+]
+
+hasInitValues res 1:
+TK_ComplicatedSuperSet [
+  cs.b1         0xA0
+  cs.sub1.b1    0xA1
+  cs.sub1.id    0x12345678
+  cs.sub1.b2    0xA2
+  cs.sub1.long0 0x9ABCDEF0
+  cs.sub1.b3    0xA3
+  cs.sub1.real0 3.14159 0X1.921FB5P+1
+  cs.sub1.b4    0xA4
+  cs.sub1.real1 256.123 0X1.001F9AP+8
+  cs.sub1.b5    0xA5
+  cs.sub1.longX 0xDEADBEEF
+  cs.sub1.b6    0xA6
+  cs.b2         0xB0
+  cs.sub2.b1    0xB1
+  cs.sub2.id    0x12345678
+  cs.sub2.b2    0xB2
+  cs.sub2.long0 0x9ABCDEF0
+  cs.sub2.b3    0xB3
+  cs.sub2.real0 3.14159 0X1.921FB5P+1
+  cs.sub2.b4    0xB4
+  cs.sub2.real1 256.123 0X1.001F9AP+8
+  cs.sub2.b5    0xB5
+  cs.sub2.longX 0xDEADBEEF
+  cs.sub2.b6    0xB6
+  cs.b3         0xC0
+]
+

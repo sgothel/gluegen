@@ -40,77 +40,93 @@
 
 package com.jogamp.common.os;
 
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
-
-import com.jogamp.common.nio.Buffers;
-
 /**
  * For alignment and size see {@link com.jogamp.gluegen}
  */
 public class MachineDescription {
-  /*                      arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
-  final static int[] size_armeabi         =  { 4,    4,     4,     8,      8,    4,   4096 };
-  final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
-  final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
-  final static int[] size_x86_64_unix     =  { 4,    8,     4,     8,     16,    8,   4096 };
-  final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
+  public enum ID {
+      /** {@link Platform.CPUType#ARM} EABI Little Endian */
+      ARMle_EABI(Platform.CPUType.ARM),
+      /** {@link Platform.CPUType#X86_32} Little Endian Unix */
+      X86_32_UNIX(Platform.CPUType.X86_32),
+      /** {@link Platform.CPUType#X86_64} Little Endian Unix */
+      X86_64_UNIX(Platform.CPUType.X86_64),
+      /** {@link Platform.CPUType#X86_32} Little Endian Windows */
+      X86_32_WINDOWS(Platform.CPUType.X86_32),
+      /** {@link Platform.CPUType#X86_64} Little Endian Windows */
+      X86_64_WINDOWS(Platform.CPUType.X86_64);
+      
+      public final Platform.CPUType cpu;
 
-  /*                       arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */                            
-  final static int[] align_armeabi        =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
-  final static int[] align_x86_32_unix    =  { 1,   2,   4,   4,   4,    4,     4,     4,      4,   4 };
-  final static int[] align_x86_32_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,      4,   4 };
-  final static int[] align_x86_64_unix    =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
-  final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
+      ID(Platform.CPUType cpu){
+          this.cpu = cpu;
+      }
+  }    
   
-  public enum Config {
-      ARM_EABI(size_armeabi, align_armeabi),
-      X86_32_UNIX(size_x86_32_unix, align_x86_32_unix),
-      X86_64_UNIX(size_x86_64_unix, align_x86_64_unix),
-      X86_32_WINDOWS(size_x86_32_windows, align_x86_32_windows),
-      X86_64_WINDOWS(size_x86_64_windows, align_x86_64_windows);
+  /*                              arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
+  private final static int[] size_armeabi         =  { 4,    4,     4,     8,      8,    4,   4096 };
+  private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
+  private final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
+  private final static int[] size_x86_64_unix     =  { 4,    8,     4,     8,     16,    8,   4096 };
+  private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
+
+  /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */                            
+  private final static int[] align_armeabi        =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
+  private final static int[] align_x86_32_unix    =  { 1,   2,   4,   4,   4,    4,     4,     4,      4,   4 };
+  private final static int[] align_x86_32_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,      4,   4 };
+  private final static int[] align_x86_64_unix    =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
+  private final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
+  
+  public enum StaticConfig {
+      /** {@link MachineDescription.ID#ARMle_EABI } */
+      ARMle_EABI(ID.ARMle_EABI,         true, size_armeabi,        align_armeabi),
+      /** {@link MachineDescription.ID#X86_32_UNIX } */
+      X86_32_UNIX(ID.X86_32_UNIX,       true, size_x86_32_unix,    align_x86_32_unix),
+      /** {@link MachineDescription.ID#X86_64_UNIX } */
+      X86_64_UNIX(ID.X86_64_UNIX,       true, size_x86_64_unix,    align_x86_64_unix),
+      /** {@link MachineDescription.ID#X86_32_WINDOWS } */
+      X86_32_WINDOWS(ID.X86_32_WINDOWS, true, size_x86_32_windows, align_x86_32_windows),
+      /** {@link MachineDescription.ID#X86_64_WINDOWS } */
+      X86_64_WINDOWS(ID.X86_64_WINDOWS, true, size_x86_64_windows, align_x86_64_windows);
       
-      public final int intSizeInBytes;
-      public final int longSizeInBytes;
-      public final int floatSizeInBytes;
-      public final int doubleSizeInBytes;
-      public final int ldoubleSizeInBytes;
-      public final int pointerSizeInBytes;
-      public final int pageSizeInBytes;
+      public final ID id;      
+      public final MachineDescription md;
       
-      public final int int8AlignmentInBytes;
-      public final int int16AlignmentInBytes;
-      public final int int32AlignmentInBytes;
-      public final int int64AlignmentInBytes;
-      public final int intAlignmentInBytes;
-      public final int longAlignmentInBytes;
-      public final int floatAlignmentInBytes;
-      public final int doubleAlignmentInBytes;
-      public final int ldoubleAlignmentInBytes;
-      public final int pointerAlignmentInBytes;
+      StaticConfig(ID id, boolean littleEndian, int[] sizes, int[] alignments) {
+          this.id = id;
+          int i=0, j=0;
+          this.md = new MachineDescription(false, littleEndian,
+                                           sizes[i++],
+                                           sizes[i++],
+                                           sizes[i++],
+                                           sizes[i++],
+                                           sizes[i++],
+                                           sizes[i++],
+                                           sizes[i++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++],
+                                           alignments[j++]);
+      }
       
-      Config(int[] sizes, int[] alignments) {
-          int i=0;
-          intSizeInBytes = sizes[i++];
-          longSizeInBytes = sizes[i++];;
-          floatSizeInBytes = sizes[i++];;
-          doubleSizeInBytes = sizes[i++];;
-          ldoubleSizeInBytes = sizes[i++];;
-          pointerSizeInBytes = sizes[i++];;
-          pageSizeInBytes = sizes[i++];;
-          
-          i=0;
-          int8AlignmentInBytes = alignments[i++];
-          int16AlignmentInBytes = alignments[i++];
-          int32AlignmentInBytes = alignments[i++];
-          int64AlignmentInBytes = alignments[i++];
-          intAlignmentInBytes = alignments[i++];
-          longAlignmentInBytes = alignments[i++];
-          floatAlignmentInBytes = alignments[i++];
-          doubleAlignmentInBytes = alignments[i++];
-          ldoubleAlignmentInBytes = alignments[i++];
-          pointerAlignmentInBytes = alignments[i++];          
+      public StringBuilder toString(StringBuilder sb) {
+        if(null==sb) {
+            sb = new StringBuilder();
+        }
+        sb.append("MachineDescriptionStatic: ").append(this.name()).append("(").append(this.ordinal()).append("): ");
+        md.toString(sb);
+        return sb;
+      }
+        
+      @Override
+      public String toString() {
+        return toString(null).toString();
       }
   }
 
@@ -144,72 +160,6 @@ public class MachineDescription {
   final private int ldoubleAlignmentInBytes;
   final private int pointerAlignmentInBytes;
 
-  public static boolean queryIsLittleEndian() {
-    ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
-    IntBuffer tst_i = tst_b.asIntBuffer();
-    ShortBuffer tst_s = tst_b.asShortBuffer();
-    tst_i.put(0, 0x0A0B0C0D);
-    return 0x0C0D == tst_s.get(0);
-  }
-  
-  public static MachineDescription createStaticArmEABI() {
-      return new MachineDescription(false, queryIsLittleEndian(), Config.ARM_EABI);
-  }
-  public static MachineDescription createStaticUnix32() {
-      return new MachineDescription(false, queryIsLittleEndian(), Config.X86_32_UNIX);
-  }
-  public static MachineDescription createStaticUnix64() {
-      return new MachineDescription(false, queryIsLittleEndian(), Config.X86_64_UNIX);
-  }
-  public static MachineDescription createStaticWindows32() {
-      return new MachineDescription(false, queryIsLittleEndian(), Config.X86_32_WINDOWS);
-  }
-  public static MachineDescription createStaticWindows64() {
-      return new MachineDescription(false, queryIsLittleEndian(), Config.X86_64_WINDOWS);
-  }
-  public static MachineDescription createStatic(boolean is32BitByCPUArch) {
-      if(is32BitByCPUArch) {
-        if(Platform.getCPUFamily() == Platform.CPUFamily.ARM) {
-            return createStaticArmEABI();
-        } else if(Platform.getOSType() == Platform.OSType.WINDOWS) {
-            return createStaticWindows32();            
-        }
-        return createStaticUnix32();            
-      } else {
-        if(Platform.getOSType() == Platform.OSType.WINDOWS) {
-            return createStaticWindows64();                        
-        }
-        return createStaticUnix64();            
-      }      
-  }
-  
-  public MachineDescription(boolean runtimeValidated,
-                            boolean littleEndian,
-                            Config config) {
-    this.runtimeValidated = runtimeValidated;    
-    this.littleEndian = littleEndian;
-    
-    this.intSizeInBytes     = config.intSizeInBytes;
-    this.longSizeInBytes    = config.longSizeInBytes;
-    this.floatSizeInBytes   = config.floatSizeInBytes;
-    this.doubleSizeInBytes  = config.doubleSizeInBytes;
-    this.ldoubleSizeInBytes = config.ldoubleSizeInBytes;
-    this.pointerSizeInBytes = config.pointerSizeInBytes;
-    this.pageSizeInBytes    = config.pageSizeInBytes; 
-    this.is32Bit            = 4 == config.pointerSizeInBytes;
-
-    this.int8AlignmentInBytes    = config.int8AlignmentInBytes;
-    this.int16AlignmentInBytes   = config.int16AlignmentInBytes;
-    this.int32AlignmentInBytes   = config.int32AlignmentInBytes;
-    this.int64AlignmentInBytes   = config.int64AlignmentInBytes;
-    this.intAlignmentInBytes     = config.intAlignmentInBytes;
-    this.longAlignmentInBytes    = config.longAlignmentInBytes;
-    this.floatAlignmentInBytes   = config.floatAlignmentInBytes;
-    this.doubleAlignmentInBytes  = config.doubleAlignmentInBytes;
-    this.ldoubleAlignmentInBytes = config.ldoubleAlignmentInBytes;
-    this.pointerAlignmentInBytes = config.pointerAlignmentInBytes;      
-  }
-  
   public MachineDescription(boolean runtimeValidated,
                             boolean littleEndian,
           
@@ -319,29 +269,75 @@ public class MachineDescription {
   public int pageAlignedSize(int size) {
     return pageCount(size) * pageSizeInBytes;
   }    
+
+  /**
+   * Checks whether two size objects are equal. Two instances
+   * of <code>MachineDescription</code> are considered equal if all components
+   * match but {@link #runtimeValidated},  {@link #isRuntimeValidated()}.
+   * @return  <code>true</code> if the two MachineDescription are equal;
+   *          otherwise <code>false</code>.
+   */
+  public final boolean equals(Object obj) {
+      if (this == obj) { return true; }
+      if ( !(obj instanceof MachineDescription) ) { return false; }
+      final MachineDescription md = (MachineDescription) obj; 
+
+      return pageSizeInBytes == md.pageSizeInBytes &&
+             compatible(md);
+  }
+
+  /**
+   * Checks whether two size objects are equal. Two instances
+   * of <code>MachineDescription</code> are considered equal if all components
+   * match but {@link #isRuntimeValidated()} and {@link #pageSizeInBytes()}.
+   * @return  <code>true</code> if the two MachineDescription are equal;
+   *          otherwise <code>false</code>.
+   */
+  public final boolean compatible(MachineDescription md) {
+      return littleEndian == md.littleEndian &&
+              
+             intSizeInBytes == md.intSizeInBytes &&
+             longSizeInBytes == md.longSizeInBytes &&
+             floatSizeInBytes == md.floatSizeInBytes &&
+             doubleSizeInBytes == md.doubleSizeInBytes &&
+             ldoubleSizeInBytes == md.ldoubleSizeInBytes &&
+             pointerSizeInBytes == md.pointerSizeInBytes &&
+             is32Bit == md.is32Bit &&
+                
+             int8AlignmentInBytes == md.int8AlignmentInBytes &&
+             int16AlignmentInBytes == md.int16AlignmentInBytes &&
+             int32AlignmentInBytes == md.int32AlignmentInBytes &&
+             int64AlignmentInBytes == md.int64AlignmentInBytes &&
+             intAlignmentInBytes == md.intAlignmentInBytes &&
+             longAlignmentInBytes == md.longAlignmentInBytes &&
+             floatAlignmentInBytes == md.floatAlignmentInBytes &&
+             doubleAlignmentInBytes == md.doubleAlignmentInBytes &&
+             ldoubleAlignmentInBytes == md.ldoubleAlignmentInBytes &&
+             pointerAlignmentInBytes == md.pointerAlignmentInBytes ;
+  }
   
-    public StringBuilder toString(StringBuilder sb) {
-        if(null==sb) {
-            sb = new StringBuilder();
-        }
-        sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(is32Bit()).append(", primitive size / alignment:").append(Platform.getNewline());
-        sb.append("  int8    ").append(int8SizeInBytes)   .append(" / ").append(int8AlignmentInBytes);
-        sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes).append(Platform.getNewline());
-        sb.append("  int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);
-        sb.append(", long    ").append(longSizeInBytes)   .append(" / ").append(longAlignmentInBytes).append(Platform.getNewline());
-        sb.append("  int32   ").append(int32SizeInBytes)  .append(" / ").append(int32AlignmentInBytes);
-        sb.append(", int64   ").append(int64SizeInBytes)  .append(" / ").append(int64AlignmentInBytes).append(Platform.getNewline());
-        sb.append("  float   ").append(floatSizeInBytes)  .append(" / ").append(floatAlignmentInBytes);
-        sb.append(", double  ").append(doubleSizeInBytes) .append(" / ").append(doubleAlignmentInBytes);
-        sb.append(", ldouble ").append(ldoubleSizeInBytes).append(" / ").append(ldoubleAlignmentInBytes).append(Platform.getNewline());
-        sb.append("  pointer ").append(pointerSizeInBytes).append(" / ").append(pointerAlignmentInBytes);
-        sb.append(", page    ").append(pageSizeInBytes);                
-        return sb;
+  public StringBuilder toString(StringBuilder sb) {
+    if(null==sb) {
+        sb = new StringBuilder();
     }
+    sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(is32Bit()).append(", primitive size / alignment:").append(Platform.getNewline());
+    sb.append("  int8    ").append(int8SizeInBytes)   .append(" / ").append(int8AlignmentInBytes);
+    sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes).append(Platform.getNewline());
+    sb.append("  int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);
+    sb.append(", long    ").append(longSizeInBytes)   .append(" / ").append(longAlignmentInBytes).append(Platform.getNewline());
+    sb.append("  int32   ").append(int32SizeInBytes)  .append(" / ").append(int32AlignmentInBytes);
+    sb.append(", int64   ").append(int64SizeInBytes)  .append(" / ").append(int64AlignmentInBytes).append(Platform.getNewline());
+    sb.append("  float   ").append(floatSizeInBytes)  .append(" / ").append(floatAlignmentInBytes);
+    sb.append(", double  ").append(doubleSizeInBytes) .append(" / ").append(doubleAlignmentInBytes);
+    sb.append(", ldouble ").append(ldoubleSizeInBytes).append(" / ").append(ldoubleAlignmentInBytes).append(Platform.getNewline());
+    sb.append("  pointer ").append(pointerSizeInBytes).append(" / ").append(pointerAlignmentInBytes);
+    sb.append(", page    ").append(pageSizeInBytes);                
+    return sb;
+  }
     
-    @Override
-    public String toString() {
-        return toString(null).toString();
-    }
+  @Override
+  public String toString() {
+    return toString(null).toString();
+  }
   
 }

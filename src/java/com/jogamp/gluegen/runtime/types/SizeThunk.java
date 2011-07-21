@@ -47,10 +47,11 @@ import com.jogamp.common.os.MachineDescription;
     generating glue code for two different CPU architectures (e.g.,
     32-bit and 64-bit) from the same internal representation of the
     various types involved. */
-
 public abstract class SizeThunk implements Cloneable {
+  private boolean fixedNativeSize; 
+  
   // Private constructor because there are only a few of these
-  private SizeThunk() {}
+  private SizeThunk(boolean fixedNativeSize) { this.fixedNativeSize = fixedNativeSize; }
 
   public Object clone() {
     try {
@@ -59,11 +60,13 @@ public abstract class SizeThunk implements Cloneable {
         throw new InternalError();
     }
   }
+  
+  public final boolean hasFixedNativeSize() { return fixedNativeSize; }
 
   public abstract long computeSize(MachineDescription machDesc);
   public abstract long computeAlignment(MachineDescription machDesc);
 
-  public static final SizeThunk INT8 = new SizeThunk() {
+  public static final SizeThunk INT8 = new SizeThunk(true) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.int8SizeInBytes();
       }
@@ -72,7 +75,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk INT16 = new SizeThunk() {
+  public static final SizeThunk INT16 = new SizeThunk(true) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.int16SizeInBytes();
       }
@@ -81,7 +84,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk INT32 = new SizeThunk() {
+  public static final SizeThunk INT32 = new SizeThunk(true) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.int32SizeInBytes();
       }
@@ -90,7 +93,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk INTxx = new SizeThunk() {
+  public static final SizeThunk INTxx = new SizeThunk(false) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.intSizeInBytes();
       }
@@ -99,7 +102,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk LONG = new SizeThunk() {
+  public static final SizeThunk LONG = new SizeThunk(false) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.longSizeInBytes();
       }
@@ -108,7 +111,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk INT64 = new SizeThunk() {
+  public static final SizeThunk INT64 = new SizeThunk(true) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.int64SizeInBytes();
       }
@@ -117,7 +120,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk FLOAT = new SizeThunk() {
+  public static final SizeThunk FLOAT = new SizeThunk(true) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.floatSizeInBytes();
       }
@@ -126,7 +129,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk DOUBLE = new SizeThunk() {
+  public static final SizeThunk DOUBLE = new SizeThunk(true) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.doubleSizeInBytes();
       }
@@ -135,7 +138,7 @@ public abstract class SizeThunk implements Cloneable {
       }
     };
 
-  public static final SizeThunk POINTER = new SizeThunk() {
+  public static final SizeThunk POINTER = new SizeThunk(false) {
       public long computeSize(MachineDescription machDesc) {
         return machDesc.pointerSizeInBytes();
       }
@@ -148,7 +151,7 @@ public abstract class SizeThunk implements Cloneable {
   // arithmetic on these values
   public static SizeThunk add(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
-    return new SizeThunk() {
+    return new SizeThunk(false) {
         public long computeSize(MachineDescription machDesc) {
           return thunk1.computeSize(machDesc) + thunk2.computeSize(machDesc);
         }
@@ -162,7 +165,7 @@ public abstract class SizeThunk implements Cloneable {
 
   public static SizeThunk mul(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
-    return new SizeThunk() {
+    return new SizeThunk(false) {
         public long computeSize(MachineDescription machDesc) {
           return thunk1.computeSize(machDesc) * thunk2.computeSize(machDesc);
         }
@@ -176,7 +179,7 @@ public abstract class SizeThunk implements Cloneable {
 
   public static SizeThunk align(final SizeThunk offsetThunk,
                                 final SizeThunk alignmentThunk) {
-    return new SizeThunk() {
+    return new SizeThunk(false) {
         public long computeSize(MachineDescription machDesc) {
           // x % 2n == x & (2n - 1)
           // remainder = net_size & ( alignment - 1 )
@@ -201,7 +204,7 @@ public abstract class SizeThunk implements Cloneable {
 
   public static SizeThunk max(final SizeThunk thunk1,
                               final SizeThunk thunk2) {
-    return new SizeThunk() {
+    return new SizeThunk(false) {
         public long computeSize(MachineDescription machDesc) {
           return Math.max(thunk1.computeSize(machDesc), thunk2.computeSize(machDesc));
         }
@@ -214,7 +217,7 @@ public abstract class SizeThunk implements Cloneable {
   }
 
   public static SizeThunk constant(final int constant) {
-    return new SizeThunk() {
+    return new SizeThunk(false) {
         public long computeSize(MachineDescription machDesc) {
           return constant;
         }

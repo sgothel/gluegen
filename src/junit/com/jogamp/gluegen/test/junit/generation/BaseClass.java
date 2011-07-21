@@ -30,11 +30,14 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
+import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
+
+import jogamp.common.os.MachineDescriptionRuntime;
 
 import org.junit.Assert;
 
@@ -553,33 +556,90 @@ public class BaseClass {
     }
     
     public void chapter09TestCompoundAndAlignment(Bindingtest1 binding) throws Exception {
-        TK_ComplicatedSuperSet cs =  binding.createComplicatedSuperSet();
-        Assert.assertEquals((byte)0xA0, cs.getBits1());
         
-        TK_ComplicatedSubSet sub1 =  cs.getSub1();
-        Assert.assertEquals((byte)0xA1, sub1.getBits1());
-        Assert.assertEquals(0x12345678, sub1.getId());
-        Assert.assertEquals((byte)0xA2, sub1.getBits2());
-        Assert.assertEquals(0x123456789abcdef0L, sub1.getLong0());
-        Assert.assertEquals((byte)0xA3, sub1.getBits3());
-        Assert.assertEquals(3.1415926535897932384626433832795, sub1.getReal0(), 0.0);
-        Assert.assertEquals((byte)0xA4, sub1.getBits4());
+        MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
+        MachineDescription md = MachineDescriptionRuntime.getRuntime();
+        
+        System.err.println("static  md: "+smd);
+        System.err.println("runtime md: "+md);
+        System.err.println("compatible static/runtime: "+md.compatible(smd.md));
+        
+        {
+            TK_ComplicatedSuperSet cs =  binding.createComplicatedSuperSet();
+            Assert.assertEquals((byte)0xA0, cs.getBits1());
+            
+            TK_ComplicatedSubSet sub1 =  cs.getSub1();
+            Assert.assertEquals((byte)0xA1, sub1.getBits1());
+            Assert.assertEquals(0x12345678, sub1.getId());
+            Assert.assertEquals((byte)0xA2, sub1.getBits2());
+            Assert.assertEquals(0x123456789abcdef0L, sub1.getLong0());
+            Assert.assertEquals((byte)0xA3, sub1.getBits3());
+            Assert.assertEquals(3.1415926535897932384626433832795, sub1.getReal0(), 0.0);
+            Assert.assertEquals((byte)0xA4, sub1.getBits4());
+            Assert.assertEquals(256.12345f, sub1.getReal1(), 0.0);
+            Assert.assertEquals((byte)0xA5, sub1.getBits5());
+            Assert.assertEquals((long)0xdeadbeefL, sub1.getLongX());
+            Assert.assertEquals((byte)0xA6, sub1.getBits6());
+    
+            Assert.assertEquals((byte)0xB0, cs.getBits2());
+            
+            TK_ComplicatedSubSet sub2 =  cs.getSub2();
+            Assert.assertEquals((byte)0xB1, sub2.getBits1());
+            Assert.assertEquals(0x12345678, sub2.getId());
+            Assert.assertEquals((byte)0xB2, sub2.getBits2());
+            Assert.assertEquals(0x123456789abcdef0L, sub2.getLong0());
+            Assert.assertEquals((byte)0xB3, sub2.getBits3());
+            Assert.assertEquals(3.1415926535897932384626433832795, sub2.getReal0(), 0.0);
+            Assert.assertEquals((byte)0xB4, sub2.getBits4());
+            Assert.assertEquals(256.12345f, sub2.getReal1(), 0.0);
+            Assert.assertEquals((byte)0xB5, sub2.getBits5());
+            Assert.assertEquals((long)0xdeadbeefL, sub2.getLongX());
+            Assert.assertEquals((byte)0xB6, sub2.getBits6());
+            
+            Assert.assertEquals((byte)0xC0, cs.getBits3());
+            
+            binding.destroyComplicatedSuperSet(cs);
+        }
 
-        Assert.assertEquals((byte)0xB0, cs.getBits2());
-        
-        TK_ComplicatedSubSet sub2 =  cs.getSub2();
-        Assert.assertEquals((byte)0xB1, sub2.getBits1());
-        Assert.assertEquals(0x12345678, sub2.getId());
-        Assert.assertEquals((byte)0xB2, sub2.getBits2());
-        Assert.assertEquals(0x123456789abcdef0L, sub2.getLong0());
-        Assert.assertEquals((byte)0xB3, sub2.getBits3());
-        Assert.assertEquals(3.1415926535897932384626433832795, sub2.getReal0(), 0.0);
-        Assert.assertEquals((byte)0xB4, sub2.getBits4());
-        
-        Assert.assertEquals((byte)0xC0, cs.getBits3());
-        
-        binding.destroyComplicatedSuperSet(cs);
-        
+        /********************************************************************************/
+
+        {
+            TK_ComplicatedSuperSet cs =  TK_ComplicatedSuperSet.create();
+            cs.setBits1((byte)0xA0);
+            
+            TK_ComplicatedSubSet sub1 =  cs.getSub1();
+            sub1.setBits1((byte)0xA1);
+            sub1.setId(0x12345678);
+            sub1.setBits2((byte)0xA2);
+            sub1.setLong0(0x123456789abcdef0L);
+            sub1.setBits3((byte)0xA3);
+            sub1.setReal0(3.1415926535897932384626433832795);
+            sub1.setBits4((byte)0xA4);
+            sub1.setReal1(256.12345f);
+            sub1.setBits5((byte)0xA5);            
+            sub1.setLongX((long)0xdeadbeefL);
+            sub1.setBits6((byte)0xA6);
+    
+            cs.setBits2((byte)0xB0);
+            
+            TK_ComplicatedSubSet sub2 =  cs.getSub2();
+            sub2.setBits1((byte)0xB1);
+            sub2.setId(0x12345678);
+            sub2.setBits2((byte)0xB2);
+            sub2.setLong0(0x123456789abcdef0L);
+            sub2.setBits3((byte)0xB3);
+            sub2.setReal0(3.1415926535897932384626433832795);
+            sub2.setBits4((byte)0xB4);
+            sub2.setReal1(256.12345f);
+            sub2.setBits5((byte)0xB5);            
+            sub2.setLongX((long)0xdeadbeefL);
+            sub2.setBits6((byte)0xB6);
+            
+            cs.setBits3((byte)0xC0);
+            
+            Assert.assertTrue(binding.hasInitValues(cs));
+        }
+
         /********************************************************************************/
         
         TK_Surface surface = binding.createSurface();

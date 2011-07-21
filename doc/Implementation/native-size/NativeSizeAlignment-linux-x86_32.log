@@ -1,0 +1,101 @@
+LD_LIBRARY_PATH=../build-x86/obj:../build-x86/test/build/natives:: java -Djogamp.debug.TraceLock -Djava.library.path=../build-x86/obj:../build-x86/test/build/natives: -classpath lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:/opt-share/apache-ant/lib/ant-launcher.jar:../build-x86/gluegen-rt.jar:../build-x86/gluegen.jar:../build-x86/test/build/classes com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter
+JUnit version 4.8.2
+.......static  md: MachineDescriptionStatic: X86_32_UNIX(1): MachineDescription: runtimeValidated false, littleEndian true, 32Bit true, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    4 / 4
+  int32   4 / 4, int64   8 / 4
+  float   4 / 4, double  8 / 4, ldouble 12 / 4
+  pointer 4 / 4, page    4096
+runtime md: MachineDescription: runtimeValidated true, littleEndian true, 32Bit true, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    4 / 4
+  int32   4 / 4, int64   8 / 4
+  float   4 / 4, double  8 / 4, ldouble 12 / 4
+  pointer 4 / 4, page    4096
+compatible static/runtime: true
+TK_ComplicatedSubSet: sizeof(): 52
+TK_ComplicatedSubSet: bits1-s offset: 0
+TK_ComplicatedSubSet:    id-s offset: 4
+TK_ComplicatedSubSet: bits2-s offset: 8
+TK_ComplicatedSubSet: long0-s offset: 12
+TK_ComplicatedSubSet: bits3-s offset: 20
+TK_ComplicatedSubSet: real0-s offset: 24
+TK_ComplicatedSubSet: bits4-s offset: 32
+TK_ComplicatedSubSet: real1-s offset: 36
+TK_ComplicatedSubSet: bits5-s offset: 40
+TK_ComplicatedSubSet: longX-s offset: 44
+TK_ComplicatedSubSet: bits6-s offset: 48
+TK_ComplicatedSuperSet: sizeof(): 116
+TK_ComplicatedSuperSet: bits1-s offset: 0
+TK_ComplicatedSuperSet:  sub1-s offset: 4
+TK_ComplicatedSuperSet: bits2-s offset: 56
+TK_ComplicatedSuperSet:  sub2-s offset: 60
+TK_ComplicatedSuperSet: bits3-s offset: 112
+createComplicatedSuperSet:
+TK_ComplicatedSuperSet [
+  cs.b1         0xA0
+  cs.sub1.b1    0xA1
+  cs.sub1.id    0x12345678
+  cs.sub1.b2    0xA2
+  cs.sub1.long0 0x9ABCDEF0
+  cs.sub1.b3    0xA3
+  cs.sub1.real0 3.14159 0X1.921FB54442D18P+1
+  cs.sub1.b4    0xA4
+  cs.sub1.real1 256.123 0X1.001F9AP+8
+  cs.sub1.b5    0xA5
+  cs.sub1.longX 0xDEADBEEF
+  cs.sub1.b6    0xA6
+  cs.b2         0xB0
+  cs.sub2.b1    0xB1
+  cs.sub2.id    0x12345678
+  cs.sub2.b2    0xB2
+  cs.sub2.long0 0x9ABCDEF0
+  cs.sub2.b3    0xB3
+  cs.sub2.real0 3.14159 0X1.921FB54442D18P+1
+  cs.sub2.b4    0xB4
+  cs.sub2.real1 256.123 0X1.001F9AP+8
+  cs.sub2.b5    0xB5
+  cs.sub2.longX 0xDEADBEEF
+  cs.sub2.b6    0xB6
+  cs.b3         0xC0
+]
+
+hasInitValues res 1:
+TK_ComplicatedSuperSet [
+  cs.b1         0xA0
+  cs.sub1.b1    0xA1
+  cs.sub1.id    0x12345678
+  cs.sub1.b2    0xA2
+  cs.sub1.long0 0x9ABCDEF0
+  cs.sub1.b3    0xA3
+  cs.sub1.real0 3.14159 0X1.921FB54442D18P+1
+  cs.sub1.b4    0xA4
+  cs.sub1.real1 256.123 0X1.001F9AP+8
+  cs.sub1.b5    0xA5
+  cs.sub1.longX 0xDEADBEEF
+  cs.sub1.b6    0xA6
+  cs.b2         0xB0
+  cs.sub2.b1    0xB1
+  cs.sub2.id    0x12345678
+  cs.sub2.b2    0xB2
+  cs.sub2.long0 0x9ABCDEF0
+  cs.sub2.b3    0xB3
+  cs.sub2.real0 3.14159 0X1.921FB54442D18P+1
+  cs.sub2.b4    0xB4
+  cs.sub2.real1 256.123 0X1.001F9AP+8
+  cs.sub2.b5    0xB5
+  cs.sub2.longX 0xDEADBEEF
+  cs.sub2.b6    0xB6
+  cs.b3         0xC0
+]
+
+0x123456789abcdef0 == 0x9abcdef09abcdef0
+0x9abcdef0 == 0x9abcdef0
+0x123456789abcdef0 == 0xaf10570e9abcdef0
+0x9abcdef0 == 0x9abcdef0
+
+Time: 0.037
+
+OK (7 tests)
+
+
