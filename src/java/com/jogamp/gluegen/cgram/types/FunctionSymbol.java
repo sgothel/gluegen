@@ -38,8 +38,6 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
-import com.jogamp.gluegen.runtime.types.FunctionType;
-import com.jogamp.gluegen.runtime.types.Type;
 
 /** Describes a function symbol, which includes the name and
 type. Since we are currently only concerned with processing

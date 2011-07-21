@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.runtime.types;
+package com.jogamp.gluegen.cgram.types;
 
 import java.util.List;
 

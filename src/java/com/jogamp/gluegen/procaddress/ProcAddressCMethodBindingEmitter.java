@@ -45,8 +45,6 @@ import com.jogamp.gluegen.JavaType;
 import java.io.*;
 import com.jogamp.gluegen.*;
 import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.runtime.types.PointerType;
-import com.jogamp.gluegen.runtime.types.Type;
 
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 

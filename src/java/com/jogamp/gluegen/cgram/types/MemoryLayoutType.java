@@ -25,17 +25,17 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
+package com.jogamp.gluegen.cgram.types;
 
-package com.jogamp.gluegen.runtime.types;
+public abstract class MemoryLayoutType extends Type {
+  private boolean isLayouted;
 
-/** Type-safe enum for discriminating between structs and unions
-    represented as compound types. Used while syntax parsing. */
-public enum CompoundTypeKind {
-  STRUCT(0), UNION(1);
-  
-  public final int id;
-  
-  CompoundTypeKind(int id){
-        this.id = id;
+  protected MemoryLayoutType(String name, SizeThunk size, int cvAttributes) {
+      super(name, size, cvAttributes);
+      isLayouted = false;        
   }
+
+  public boolean isLayouted() { return isLayouted; }
+  public void setLayouted() { isLayouted = true; }
+    
 }

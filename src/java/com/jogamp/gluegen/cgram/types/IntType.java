@@ -37,16 +37,57 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.runtime.types;
+package com.jogamp.gluegen.cgram.types;
 
-public abstract class PrimitiveType extends Type implements Cloneable {
+public class IntType extends PrimitiveType implements Cloneable {
 
-    protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
+    private boolean unsigned;
+    private boolean typedefedUnsigned;
+
+    public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes) {
+        this(name, size, unsigned, cvAttributes, false);
+    }
+
+    public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
         super(name, size, cvAttributes);
+        this.unsigned = unsigned;
+        this.typedefedUnsigned = typedefedUnsigned;
     }
 
     @Override
-    public boolean isPrimitive() {
-        return true;
+    public boolean equals(Object arg) {
+        if (arg == this) {
+            return true;
+        }
+        if (arg == null || (!(arg instanceof IntType))) {
+            return false;
+        }
+        IntType t = (IntType) arg;
+        return (super.equals(arg) && (unsigned == t.unsigned));
+    }
+
+    @Override
+    public void setName(String name) {
+        super.setName(name);
+        typedefedUnsigned = unsigned;
+    }
+
+    @Override
+    public IntType asInt() {
+        return this;
+    }
+
+    /** Indicates whether this type is unsigned */
+    public boolean isUnsigned() {
+        return unsigned;
+    }
+
+    @Override
+    public String toString() {
+        return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getName();
+    }
+
+    Type newCVVariant(int cvAttributes) {
+        return new IntType(getName(), getSize(), isUnsigned(), cvAttributes, typedefedUnsigned);
     }
 }

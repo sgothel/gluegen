@@ -37,24 +37,16 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.runtime.types;
+package com.jogamp.gluegen.cgram.types;
 
-public class VoidType extends Type implements Cloneable {
+public abstract class PrimitiveType extends Type implements Cloneable {
 
-    public VoidType(int cvAttributes) {
-        this("void", cvAttributes);
-    }
-
-    private VoidType(String name, int cvAttributes) {
-        super(name, null, cvAttributes);
+    protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
+        super(name, size, cvAttributes);
     }
 
     @Override
-    public VoidType asVoid() {
-        return this;
-    }
-
-    Type newCVVariant(int cvAttributes) {
-        return new VoidType(getName(), cvAttributes);
+    public boolean isPrimitive() {
+        return true;
     }
 }

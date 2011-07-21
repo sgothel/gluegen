@@ -25,31 +25,31 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.gluegen.runtime.types;
+package com.jogamp.gluegen.cgram.types;
 
-public class UnionType extends CompoundType {
+public class StructType extends CompoundType {
 
-  public UnionType(String name, SizeThunk size, int cvAttributes) {
+  public StructType(String name, SizeThunk size, int cvAttributes) {
       this(name, size, cvAttributes, null);
   }
   
-  UnionType(String name, SizeThunk size, int cvAttributes, String structName) {
+  StructType(String name, SizeThunk size, int cvAttributes, String structName) {
     super (name, size, cvAttributes, structName);
   }
-    
+
   @Override
   public boolean equals(Object arg) {
-    if (arg == null || !(arg instanceof UnionType)) {
+    if (arg == null || !(arg instanceof StructType)) {
       return false;
     }
     return super.equals(arg);
   }
-  
-  public final boolean isStruct() { return false; }
-  public final boolean isUnion()  { return true; }
 
+  public final boolean isStruct() { return true; }
+  public final boolean isUnion()  { return false; }
+  
   Type newCVVariant(int cvAttributes) {
-    UnionType t = new UnionType(getName(), getSize(), cvAttributes, getStructName());
+    StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName());
     t.setFields(getFields());
     return t;
   }

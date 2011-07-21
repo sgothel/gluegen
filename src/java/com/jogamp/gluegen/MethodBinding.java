@@ -40,7 +40,7 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
-import com.jogamp.gluegen.runtime.types.Type;
+import com.jogamp.gluegen.cgram.types.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;

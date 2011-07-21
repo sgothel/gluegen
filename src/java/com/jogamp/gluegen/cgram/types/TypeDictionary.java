@@ -41,7 +41,6 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.*;
 
-import com.jogamp.gluegen.runtime.types.Type;
 
 /** Utility class for recording names of typedefs and structs. */
 

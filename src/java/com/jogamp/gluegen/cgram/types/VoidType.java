@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -36,13 +37,24 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
+package com.jogamp.gluegen.cgram.types;
 
-package com.jogamp.gluegen.runtime.types;
+public class VoidType extends Type implements Cloneable {
 
-/** Enumeration for const/volatile attributes. These are passed in to
-    the constructor of the type. */
+    public VoidType(int cvAttributes) {
+        this("void", cvAttributes);
+    }
 
-public interface CVAttributes {
-  public static final int CONST    = 0x01;
-  public static final int VOLATILE = 0x02;
+    private VoidType(String name, int cvAttributes) {
+        super(name, null, cvAttributes);
+    }
+
+    @Override
+    public VoidType asVoid() {
+        return this;
+    }
+
+    Type newCVVariant(int cvAttributes) {
+        return new VoidType(getName(), cvAttributes);
+    }
 }

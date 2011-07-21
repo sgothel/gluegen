@@ -37,32 +37,56 @@
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
-package com.jogamp.gluegen.runtime.types;
 
-/** Represents a double-word floating-point type (C type "double".) */
-public class DoubleType extends PrimitiveType implements Cloneable {
+package com.jogamp.gluegen.cgram.types;
 
-    public DoubleType(String name, SizeThunk size, int cvAttributes) {
-        super(name, size, cvAttributes);
+/** Represents a bitfield in a struct. */
+
+public class BitType extends IntType implements Cloneable {
+  private IntType underlyingType;
+  private int sizeInBits;
+  private int offset;
+
+  public BitType(IntType underlyingType, int sizeInBits, int lsbOffset, int cvAttributes) {
+    super(underlyingType.getName(), underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
+    this.underlyingType = underlyingType;
+    this.sizeInBits = sizeInBits;
+    this.offset = lsbOffset;
+  }
+
+  @Override
+  public boolean equals(Object arg) {
+    if (arg == this) return true;
+    if (arg == null || (!(arg instanceof BitType))) {
+      return false;
     }
+    BitType t = (BitType) arg;
+    return (super.equals(arg) && underlyingType.equals(t.underlyingType) &&
+            (sizeInBits == t.sizeInBits) && (offset == t.offset));
+  }
 
-    @Override
-    public boolean equals(Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof DoubleType))) {
-            return false;
-        }
-        return super.equals(arg);
-    }
+  @Override
+  public BitType asBit() { return this; }
 
-    @Override
-    public DoubleType asDouble() {
-        return this;
-    }
+  /** Size in bits of this type. */
+  public int getSizeInBits() {
+    return sizeInBits;
+  }
 
-    Type newCVVariant(int cvAttributes) {
-        return new DoubleType(getName(), getSize(), cvAttributes);
-    }
+  /** Offset from the least-significant bit (LSB) of the LSB of this
+      type */
+  public int getOffset() {
+    return offset;
+  }
+
+  @Override
+  public void visit(TypeVisitor arg) {
+    super.visit(arg);
+    underlyingType.visit(arg);
+  }
+
+  @Override
+  Type newCVVariant(int cvAttributes) {
+    return new BitType(underlyingType, sizeInBits, offset, cvAttributes);
+  }  
 }

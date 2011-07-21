@@ -25,17 +25,33 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.gluegen.runtime.types;
+package com.jogamp.gluegen.cgram.types;
 
-public abstract class MemoryLayoutType extends Type {
-  private boolean isLayouted;
+public class UnionType extends CompoundType {
 
-  protected MemoryLayoutType(String name, SizeThunk size, int cvAttributes) {
-      super(name, size, cvAttributes);
-      isLayouted = false;        
+  public UnionType(String name, SizeThunk size, int cvAttributes) {
+      this(name, size, cvAttributes, null);
   }
-
-  public boolean isLayouted() { return isLayouted; }
-  public void setLayouted() { /* FIXME JAU isLayouted = true; */ }
+  
+  UnionType(String name, SizeThunk size, int cvAttributes, String structName) {
+    super (name, size, cvAttributes, structName);
+  }
     
+  @Override
+  public boolean equals(Object arg) {
+    if (arg == null || !(arg instanceof UnionType)) {
+      return false;
+    }
+    return super.equals(arg);
+  }
+  
+  public final boolean isStruct() { return false; }
+  public final boolean isUnion()  { return true; }
+
+  Type newCVVariant(int cvAttributes) {
+    UnionType t = new UnionType(getName(), getSize(), cvAttributes, getStructName());
+    t.setFields(getFields());
+    return t;
+  }
+  
 }

@@ -46,7 +46,6 @@ header {
 
         import antlr.CommonAST;
         import com.jogamp.gluegen.cgram.types.*;
-        import com.jogamp.gluegen.runtime.types.*;
 }
 
 class HeaderParser extends GnuCTreeParser;

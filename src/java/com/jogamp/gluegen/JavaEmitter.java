@@ -49,13 +49,6 @@ import java.util.*;
 import java.text.MessageFormat;
 
 import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.runtime.types.CompoundType;
-import com.jogamp.gluegen.runtime.types.Field;
-import com.jogamp.gluegen.runtime.types.FunctionType;
-import com.jogamp.gluegen.runtime.types.PointerType;
-import com.jogamp.gluegen.runtime.types.SizeThunk;
-import com.jogamp.gluegen.runtime.types.StructLayout;
-import com.jogamp.gluegen.runtime.types.Type;
 
 import java.nio.Buffer;
 import java.util.logging.Logger;

@@ -38,7 +38,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.gluegen.runtime.types;
+package com.jogamp.gluegen.cgram.types;
 
 /** Represents an array type. This differs from a pointer type in C
     syntax by the use of "[]" rather than "*". The length may or may

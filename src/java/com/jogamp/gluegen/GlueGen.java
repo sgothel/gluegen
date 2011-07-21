@@ -49,10 +49,6 @@ import antlr.*;
 import com.jogamp.gluegen.cgram.*;
 import com.jogamp.gluegen.cgram.types.*;
 import com.jogamp.gluegen.pcpp.*;
-import com.jogamp.gluegen.runtime.types.CompoundType;
-import com.jogamp.gluegen.runtime.types.EnumType;
-import com.jogamp.gluegen.runtime.types.PointerType;
-import com.jogamp.gluegen.runtime.types.Type;
 
 import static java.lang.System.*;
 
