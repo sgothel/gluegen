@@ -37,6 +37,7 @@
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
+#include <stdio.h> //required by android to identify NULL
 #include <jni.h>
 
 #include "com_jogamp_common_jvm_JVMUtil.h"
