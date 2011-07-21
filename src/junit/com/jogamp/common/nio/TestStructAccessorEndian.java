@@ -1,8 +1,9 @@
 package com.jogamp.common.nio;
 
-import com.jogamp.common.nio.*;
 import com.jogamp.common.os.*;
+import com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter;
 
+import java.io.IOException;
 import java.nio.*;
 
 import org.junit.Assert;
@@ -28,13 +29,19 @@ public class TestStructAccessorEndian {
         int i;
 
         for(i=0; i<valuesSource.length; i++) {
-            acc.setLongAt(i, valuesSource[i]);
+            acc.setLongAt(i*8, valuesSource[i]);
         }
 
         for(i=0; i<valuesSource.length; i++) {
-            long v = acc.getLongAt(i);
+            long v = acc.getLongAt(i*8);
             long t = valuesSource[i];
             Assert.assertTrue("Value["+i+"] shall be 0x"+Long.toHexString(t)+", is: 0x"+Long.toHexString(v), t == v);
         }
     }
+    
+    public static void main(String args[]) throws IOException {
+        String tstname = TestStructAccessorEndian.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+    }
+    
 }

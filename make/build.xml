@@ -291,13 +291,13 @@
       <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
 
-    <target name="declare.linux.arm7" if="isLinuxARM7">
-      <echo message="Linux.arm7" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.arm7" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.arm7" /> 
+    <target name="declare.linux.armv7" if="isLinuxARMv7">
+      <echo message="Linux.armv7" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.armv7" /> 
     </target>
     
-    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.arm7" if="isLinux" >
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.armv7" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>
