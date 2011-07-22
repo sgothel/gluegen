@@ -275,8 +275,8 @@
 
     <target name="declare.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.x86" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.x86" /> 
     </target>
     
     <target name="declare.linux.amd64" if="isLinuxAMD64">
