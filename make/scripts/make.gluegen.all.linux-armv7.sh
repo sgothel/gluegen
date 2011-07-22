@@ -8,5 +8,8 @@
 #    -DisX11=true \
 
 ant \
-    -Drootrel.build=build-armv7l_eabi \
-    $* 2>&1 | tee make.gluegen.all.linux-armv7l_eabi.log
+    -Drootrel.build=build-linux-armv7 \
+    -DuseKD=true \
+    -DuseOpenMAX=true \
+    -DuseBroadcomEGL=true \
+    $* 2>&1 | tee make.gluegen.all.linux-armv7.log

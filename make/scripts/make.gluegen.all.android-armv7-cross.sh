@@ -1,19 +1,18 @@
 #! /bin/sh
 
-
-export NDK_ROOT=/usr/local/android-ndk-r6
+if [ -z "$NDK_ROOT" ] ; then
+    NDK_ROOT=/usr/local/android-ndk-r6
+fi
+export NDK_ROOT
 NDK_TOOLCHAIN=$NDK_ROOT/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/arm-linux-androideabi
 
 export PATH="$NDK_TOOLCHAIN/bin:$PATH"
-
-#ANDROID_VERSION=8
 
 ANDROID_VERSION=9
 export GCC_VERSION=4.4.3
 HOST_ARCH=linux-x86
 export TARGET_ARCH=arm-linux-androideabi
 # mcpu: cortex-a8', `cortex-a9', `cortex-r4', `cortex-r4f', `cortex-m3', `cortex-m1', `xscale', `iwmmxt', `iwmmxt2', `ep9312'. 
-TARGET_CPU_ARCH=
 export TARGET_CPU_NAME=armv7-a
 TARGET_CPU_TUNE=armv7-a
 # mfpu: `vfp', `vfpv3', `vfpv3-d16' and `neon'
@@ -43,7 +42,6 @@ export NDK_CFLAGS="\
 -fpic \
 -DANDROID \
 "
-#/usr/local/android-ndk-r6/toolchains/x86-4.4.3/prebuilt/linux-x86/lib/gcc/i686-android-linux/4.4.3
 
 export NDK_LDFLAGS="\
 -Wl,--demangle \
@@ -64,13 +62,18 @@ ${TARGET_OS_PATH}/lib/crtend_android.o \
 #-L/Users/nirnimesh/NIR/android/mydroid/cupcake/out/target/product/generic/obj/lib 
 #-nostdlib /Users/nirnimesh/NIR/android/mydroid/cupcake/out/target/product/generic/obj/lib/crtbegin_dynamic.o -lc
 
-ant \
-    -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-android-arm.xml \
-    -Drootrel.build=build-android-arm \
-    -Dos.arch=armv7  -Dos.name=Android\
-    $* 2>&1 | tee make.gluegen.all.android-arm.log
+which gcc 2>&1 | tee make.gluegen.all.android-armv7-cross.log
 
-which gcc
+ant \
+    -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-android-armv7.xml \
+    -Drootrel.build=build-android-armv7 \
+    -Dgluegen.cpptasks.detected.os=true \
+    -DisUnix=true \
+    -DisAndroid=true \
+    -DisAndroidARMv7=true \
+    \
+    $* 2>&1 | tee -a make.gluegen.all.android-armv7-cross.log
+
 #$NDK_GCC -march=armv7-a -fpic -DANDROID -I/usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/include -Wl,--demangle -nostdlib -Bdynamic -Wl,-dynamic-linker,/system/bin/linker -Wl,--gc-sections -Wl,-z,nocopyreloc /usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/lib/libc.so /usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/lib/libstdc++.so /usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/lib/libm.so /usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/lib/crtbegin_dynamic.o -Wl,--no-undefined -Wl,-rpath-link=/usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/lib /usr/local/android-ndk-r6/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/lib/gcc/arm-linux-androideabi/4.4.3/armv7-a/libgcc.a /usr/local/android-ndk-r6/platforms/android-9/arch-arm/usr/lib/crtend_android.o -c -fno-rtti -fPIC -DANDROID -I/home/rsantina/projects/jogamp/gluegen/build-android-arm/gensrc/native -I/home/rsantina/projects/jogamp/gluegen/build-android-arm/gensrc/native/Unix -I/opt/x86_64/jdk1.6.0_25/include -I/opt/x86_64/jdk1.6.0_25/include/linux -I/home/rsantina/projects/jogamp/gluegen/make/stub_includes/platform /home/rsantina/projects/jogamp/gluegen/src/native/unix/UnixDynamicLinkerImpl_JNI.c /home/rsantina/projects/jogamp/gluegen/src/native/common/PointerBuffer.c /home/rsantina/projects/jogamp/gluegen/src/native/common/MachineDescriptionRuntime.c /home/rsantina/projects/jogamp/gluegen/src/native/common/JVM_Tool.c
 
 #which gcc

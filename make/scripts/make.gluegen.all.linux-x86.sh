@@ -16,5 +16,4 @@ fi
 
 ant \
     -Drootrel.build=build-x86 \
-    -Dos.arch=x86 \
     $* 2>&1 | tee make.gluegen.all.linux-x86.log

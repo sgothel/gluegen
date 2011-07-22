@@ -16,13 +16,11 @@
 <project name="GlueGen-cpptasks" basedir="." >
 
 <import file="../gluegen-cpptasks-base.xml" optional="false" />
-<property name="isAndroid"    value="true"/>
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
     <!--<compiler id="compiler.cfg.android" name="arm-linux-androideabi-gcc"> -->
     <compiler id="compiler.cfg.android" name="gcc">
-<!--      <compilerarg value="-v" /> -->
       <compilerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
       <compilerarg value="-B" /> <!--add additional directory for search  --> 
       <compilerarg value="${env.TARGET_TOOL_PATH}/libexec/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}" /> 
@@ -75,7 +73,6 @@
 
 <target name="gluegen.cpptasks.declare.compiler" depends="setup.java.home.dir">
   <echo message="Custom forced Linux.x86 cross compile android" />
-  <property name="isLinuxArmv7"    value="true"/>
   <property name="compiler.cfg.id.base"          value="compiler.cfg.android" /> 
   <property name="linker.cfg.id.base"            value="linker.cfg.android" /> 
   <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />

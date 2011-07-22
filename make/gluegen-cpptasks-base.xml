@@ -15,6 +15,8 @@
    - properties appropriately. They are only set to "true" if the OS/CPU
    - configuration is exactly as specified.
    - 
+   -   isUnix
+   -   isX11
    -   isFreeBSD
    -   isFreeBSDAMD64
    -   isFreeBSDX86
@@ -35,11 +37,9 @@
    -   isSolarisSparc
    -   isSolarisSparcv9
    -   isSolarisX86
-   -   isUnix
    -   isWindows
    -   isWindowsX86
    -   isWindowsAMD64
-   -   isX11
    -
    - isX11 is set if: !isWindows && !isOSX && !noX11
    - 
