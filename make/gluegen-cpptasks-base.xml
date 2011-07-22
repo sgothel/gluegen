@@ -682,6 +682,10 @@
 
     <compiler id="compiler.cfg.solaris" name="gcc"> 
       <defineset> 
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
         <define name="SOLARIS" /> 
       </defineset> 
     </compiler> 
@@ -691,6 +695,10 @@
       <compilerarg value="-xchip=ultra" /> 
       <compilerarg value="-xarch=v9a" /> 
       <defineset> 
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
         <define name="SOLARIS" /> 
       </defineset> 
     </compiler> 
@@ -701,6 +709,10 @@
       <compilerarg value="-xarch=amd64" /> 
       <compilerarg value="-xcache=64/64/2:1024/64/16" /> 
       <defineset> 
+        <define name="__unix__"/>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
         <define name="SOLARIS" /> 
       </defineset> 
     </compiler>
