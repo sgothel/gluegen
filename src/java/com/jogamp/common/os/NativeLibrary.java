@@ -40,6 +40,7 @@
 package com.jogamp.common.os;
 
 import com.jogamp.gluegen.runtime.NativeLibLoader;
+import jogamp.common.Debug;
 import java.io.*;
 import java.lang.reflect.*;
 import java.security.*;
@@ -59,8 +60,8 @@ import java.util.*;
     supporting code needed in the generated library. */
 
 public class NativeLibrary implements DynamicLookupHelper {
-  protected static boolean DEBUG;
-  protected static boolean DEBUG_LOOKUP;
+  protected static final boolean DEBUG = Debug.debug("NativeLibrary");
+  protected static final boolean DEBUG_LOOKUP = Debug.debug("NativeLibrary.Lookup");
   private static DynamicLinker dynLink;
   private static String[] prefixes;
   private static String[] suffixes;
