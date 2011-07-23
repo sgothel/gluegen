@@ -54,7 +54,7 @@ public class IntObjectHashMapTest {
 
     @BeforeClass
     public static void init() {
-        iterations = ( Platform.getCPUType().getFamily() == Platform.CPUFamily.ARM ) ? 100 : 10000;
+        iterations = ( Platform.getCPUType().getFamily() == Platform.CPUFamily.ARM ) ? 20 : 10000;
         pairs = new IntIntObjUniqueRndValues(iterations);
     }
 

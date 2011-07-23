@@ -42,7 +42,7 @@ import com.jogamp.common.os.Platform;
 public class TestIteratorIndexCORE {
 
     static int elems = 10;
-    static int loop = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 100 : 9999999;
+    static int loop = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 20 : 9999999;
 
     public void populate(List l, int len) {
         while(len>0) {

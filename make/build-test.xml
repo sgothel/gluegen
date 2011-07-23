@@ -235,7 +235,7 @@
         <for param="test.class.path.m" keepgoing="true">
             <!-- results in absolute path -->
             <fileset dir="${build_t.java}">
-                <include name="${test.junit.rel}/**/Test*"/>
+                <include name="${test.junit.rel}/**/*Test*"/>
                 <exclude name="**/*$$*"/>
             </fileset>
           <sequential>

@@ -55,7 +55,7 @@ public class LongIntHashMapTest {
 
     @BeforeClass
     public static void init() {
-        iterations = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 100 : 10000;
+        iterations = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 20 : 10000;
         pairs = new LongIntUniqueRndValues(iterations);
     }
     

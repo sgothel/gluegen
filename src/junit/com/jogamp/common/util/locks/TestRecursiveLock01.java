@@ -213,7 +213,7 @@ public class TestRecursiveLock01 {
     public void testLockedObjectThreading2x10000() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading2x10000");
         if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(2, 10, 10, YIELD_NONE);
+            testLockedObjectImpl(2, 5, 10, YIELD_NONE);
         } else {
             testLockedObjectImpl(2, 10000, 10000, YIELD_NONE);
         }
@@ -224,7 +224,7 @@ public class TestRecursiveLock01 {
     public void testLockedObjectThreading25x25Yield() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
         if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(5, 25, 10, YIELD_YIELD);
+            testLockedObjectImpl(2, 5, 10, YIELD_YIELD);
         } else {
             testLockedObjectImpl(25, 25, 100, YIELD_YIELD);
         }
@@ -235,7 +235,7 @@ public class TestRecursiveLock01 {
     public void testLockedObjectThreading25x25Sleep() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
         if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(5, 25, 10, YIELD_SLEEP);
+            testLockedObjectImpl(2, 5, 10, YIELD_SLEEP);
         } else {
             testLockedObjectImpl(25, 25, 100, YIELD_SLEEP);
         }
@@ -246,7 +246,7 @@ public class TestRecursiveLock01 {
     public void testLockedObjectThreading25x25None() throws InterruptedException {
         System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-None");
         if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(5, 25, 10, YIELD_NONE);
+            testLockedObjectImpl(2, 5, 10, YIELD_NONE);
         } else {
             testLockedObjectImpl(25, 25, 100, YIELD_NONE);
         }
