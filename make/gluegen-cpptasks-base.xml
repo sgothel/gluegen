@@ -433,6 +433,7 @@
   </target>
 
   <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
+    <echo message="os and arch: ${os.and.arch}" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
