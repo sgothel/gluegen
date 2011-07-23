@@ -33,6 +33,7 @@
         <property name="build_t"      value="${test.dir}/build" />
         <property name="build_t.gen"  value="${build_t}/gensrc"/>
         <property name="build_t.java" value="${build_t}/classes"/>
+        <property name="build_t.java.path" location="${build_t.java}"/> <!-- absolute path -->
         <property name="build_t.obj"  value="${build_t}/obj"/>
         <property name="build_t.lib"  value="${build_t}/natives"/>
 
@@ -73,6 +74,8 @@
             <pathelement location="${gluegen.jar}" />
             <pathelement location="${gluegen-test.jar}" />
         </path>
+        <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
+        <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
@@ -203,11 +206,87 @@
       <antcall target="native.build"   inheritRefs="true"/>
     </target>
 
-    <target name="junit.run" depends="init,gluegen.cpptasks.detect.os">
-        <!-- Use absolute path -->
-        <property name="gluegen.lib.abs" location="${gluegen.lib}" />
-        <property name="build_t.lib.abs" location="${build_t.lib}" />
+    <!--
+    <target name="junit.run.remote.ssh.tarscpssh" if="isCrosscompilation" unless="isAndroid">
+        <mkdir dir="${gluegen.root}/../temp"/>
+        <delete quiet="true">
+            <fileset file="${gluegen.root}/../temp/gluegen-${rootrel.build}.tar"/>
+        </delete>
 
+        <exec dir="${gluegen.root}/.." executable="tar" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="cf temp/gluegen-${rootrel.build}.tar gluegen"/>
+        </exec>
+
+        <exec dir="${gluegen.root}/.." executable="scp" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="temp/gluegen-${rootrel.build}.tar ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}"/>
+        </exec>
+
+        <exec dir="${gluegen.root}/.." executable="ssh" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="${env.TARGET_UID}@${env.TARGET_IP} cd ${env.TARGET_ROOT} ; tar xf gluegen-${rootrel.build}.tar"/>
+        </exec>
+    </target> -->
+
+    <target name="junit.run.remote.ssh" if="isCrosscompilation" unless="isAndroid">
+        <exec dir="." executable="ssh" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="${env.TARGET_UID}@${env.TARGET_IP}"/>
+            <arg line="rsync -aAv --delete --delete-after --exclude 'build-x86*/'"/>
+            <arg line="${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT}"/>
+        </exec>
+        <for param="test.class.path.m" keepgoing="true">
+            <!-- results in absolute path -->
+            <fileset dir="${build_t.java}">
+                <include name="${test.junit.rel}/**/Test*"/>
+                <exclude name="**/*$$*"/>
+            </fileset>
+          <sequential>
+            <var name="test.class.path" unset="true"/>
+            <property name="test.class.path" basedir="${build_t.java}" relative="true" location="@{test.class.path.m}"/>
+            <var name="test.class.fqn" unset="true"/>
+            <pathconvert property="test.class.fqn">
+              <fileset file="${build_t.java}${file.separator}${test.class.path}"/>
+              <chainedmapper>
+                  <globmapper    from="${build_t.java.path}${file.separator}*" to="*"/> <!-- rel. -->
+                  <packagemapper from="*.class"           to="*"/> <!-- FQCN -->
+              </chainedmapper>
+            </pathconvert>
+            <var name="test.class.result.file" value="${results}/TEST-${test.class.fqn}.xml"/>
+            <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
+            <apply dir="." executable="/usr/bin/ssh"
+                 parallel="false" 
+                 timeout="${batchtest.timeout}"
+                 vmlauncher="false"
+                 relative="true"
+                 failonerror="false">
+                <arg line="${env.TARGET_UID}@${env.TARGET_IP}"/>
+                <arg value="cd ${env.TARGET_ROOT}/gluegen/make ; "/>
+                <arg value="${system.env.library.path}=${gluegen.lib}${path.separator}${build_t.lib} java"/>
+                <arg value="-Djava.library.path=${gluegen.lib}${path.separator}${build_t.lib}"/>
+                <arg value="-cp ${junit.run.remote.jars}"/>
+                <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
+                <srcfile/>
+                <arg line="filtertrace=true"/>
+                <arg line="haltOnError=false"/>
+                <arg line="haltOnFailure=false"/>
+                <arg line="showoutput=true"/>
+                <arg line="outputtoformatters=true"/>
+                <arg line="logfailedtests=true"/>
+                <arg line="logtestlistenerevents=true"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter"/>
+                <arg line="formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,${test.class.result.file}"/>
+                <mappedresources>
+                    <fileset dir="${build_t.java}" includes="${test.class.path}"/>
+                    <packagemapper from="*.class" to="*"/>
+                </mappedresources>
+            </apply>
+          </sequential>
+        </for>
+        <exec dir="." executable="scp" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="-pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/gluegen/make/${results}/* ${results}/"/>
+        </exec>
+
+    </target>
+
+    <target name="junit.run.local" unless="isCrosscompilation">
         <!-- Perform the junit tests-->
         <junit forkmode="once" showoutput="true" fork="true" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
@@ -233,6 +312,15 @@
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
+    </target>
+
+    <target name="junit.run.settings">
+        <!-- Use absolute path -->
+        <property name="gluegen.lib.abs" location="${gluegen.lib}" />
+        <property name="build_t.lib.abs" location="${build_t.lib}" />
+    </target>
+
+    <target name="junit.run" depends="init,gluegen.cpptasks.detect.os,junit.run.settings,junit.run.local,junit.run.remote.ssh">
         <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 

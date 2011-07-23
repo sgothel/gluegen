@@ -71,6 +71,7 @@ ant \
     -DisUnix=true \
     -DisAndroid=true \
     -DisAndroidARMv7=true \
+    -DisCrosscompilation=true \
     \
     $* 2>&1 | tee -a make.gluegen.all.android-armv7-cross.log
 

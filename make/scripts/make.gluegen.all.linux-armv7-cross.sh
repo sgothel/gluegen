@@ -10,6 +10,15 @@ export PATH
 #    -DisLinuxARMv7=true \
 #    -DisX11=false \
 
+export HOST_UID=sven
+export HOST_IP=192.168.0.52
+export HOST_RSYNC_ROOT=PROJECTS/JOGL
+
+export TARGET_UID=jogamp
+export TARGET_IP=beagle01
+export TARGET_ROOT=projects-cross
+export TARGET_ANT_HOME=/usr/share/ant
+
 ant \
     -Drootrel.build=build-linux-armv7 \
     -Dgluegen.cpptasks.detected.os=true \
@@ -17,6 +26,7 @@ ant \
     -DisLinux=true \
     -DisLinuxARMv7=true \
     -DisX11=true \
+    -DisCrosscompilation=true \
     \
     -DuseKD=true \
     -DuseOpenMAX=true \

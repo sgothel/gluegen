@@ -41,6 +41,8 @@
     <echo message="Loaded ${gluegen.user.properties.file.set}." />
     <property name="antlr.jar" value="${gluegen.root}/make/lib/antlr.jar" />
     <property name="junit.jar" value="${gluegen.root}/make/lib/junit.jar" />
+    <property name="ant.jar"       value="${ant.home}/lib/ant.jar" />
+    <property name="ant-junit.jar" value="${ant.home}/lib/ant-junit.jar" />
     <condition property="win32.c.compiler" value="mingw64">
       <and>
         <os family="windows" />
