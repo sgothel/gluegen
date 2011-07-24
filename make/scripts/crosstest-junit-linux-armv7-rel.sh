@@ -13,7 +13,7 @@ TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
 LOGFILE=`basename $0 .sh`.log
 
 ssh $TARGET_UID@$TARGET_IP "\
-rsync -aAv --delete --delete-after --exclude 'build*/' $HOST_UID@$HOST_IP::$HOST_RSYNC_ROOT/gluegen $TARGET_ROOT ; \
+rsync -aAv --delete --delete-after --exclude 'build-x86*/' $HOST_UID@$HOST_IP::$HOST_RSYNC_ROOT/gluegen $TARGET_ROOT ; \
 cd $TARGET_ROOT/gluegen/make ;
 LD_LIBRARY_PATH=$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
 java \

@@ -28,6 +28,7 @@
  
 package jogamp.common.os;
 
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
@@ -118,6 +119,17 @@ public class MachineDescriptionRuntime {
             getAlignmentPointerImpl());        
     }
 
+    public static boolean isAndroid() {
+        try {
+            NativeLibrary.ensureNativeLibLoaded();
+            return isAndroidImpl();
+        } catch (UnsatisfiedLinkError err) {
+            return AndroidVersion.isAvailable;
+        }        
+    }
+    
+    private static native boolean isAndroidImpl();
+    
     private static native int getPointerSizeInBytesImpl();
     private static native long getPageSizeInBytesImpl();
     

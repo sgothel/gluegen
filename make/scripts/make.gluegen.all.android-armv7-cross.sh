@@ -1,12 +1,26 @@
 #! /bin/sh
 
+export HOST_UID=sven
+export HOST_IP=192.168.0.52
+export HOST_RSYNC_ROOT=PROJECTS/JOGL
+
+export TARGET_UID=jogamp
+export TARGET_IP=beagle01
+export TARGET_ROOT=projects-cross
+export TARGET_ANT_HOME=/usr/share/ant
+
 if [ -z "$NDK_ROOT" ] ; then
-    NDK_ROOT=/usr/local/android-ndk-r6
+    NDK_ROOT=/opt-linux-x86/android-ndk-r6
 fi
 export NDK_ROOT
 NDK_TOOLCHAIN=$NDK_ROOT/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/arm-linux-androideabi
 
-export PATH="$NDK_TOOLCHAIN/bin:$PATH"
+if [ -z "$ANDROID_SDK_HOME" ] ; then
+    ANDROID_SDK_HOME=/opt-linux-x86/android-sdk-linux_x86
+fi 
+export ANDROID_SDK_HOME
+
+export PATH="$NDK_TOOLCHAIN/bin:$ANDROID_SDK_HOME/platform-tools:$PATH"
 
 ANDROID_VERSION=9
 export GCC_VERSION=4.4.3

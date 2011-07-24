@@ -28,6 +28,7 @@
  
 package com.jogamp.common.util;
 
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 
 import java.io.IOException;
@@ -53,16 +54,21 @@ public class VersionUtil {
         sb.append(SEPERATOR).append(Platform.getNewline());
 
         // environment
-        sb.append("Platform: ").append(Platform.getOS()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
+        sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
         sb.append(Platform.getArch()).append(" (arch) ").append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
+        if( Platform.OSType.ANDROID == Platform.getOSType() && AndroidVersion.isAvailable) {
+            sb.append("Platform: Android Version: ").append(AndroidVersion.CODENAME).append(", ");
+            sb.append(AndroidVersion.RELEASE).append(" [").append(AndroidVersion.RELEASE).append("], SDK: ").append(AndroidVersion.SDK_INT).append(", ").append(AndroidVersion.SDK_NAME);
+            sb.append(Platform.getNewline());
+        }
 
         Platform.getMachineDescription().toString(sb).append(Platform.getNewline());
 
         // JVM/JRE
-        sb.append("Platform: Java ").append(Platform.getJavaVersion()).append(", ").append(System.getProperty("java.vm.name")).append(", ");
-        sb.append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());
-        
+        sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(", VM: ").append(Platform.getJavaVMName());
+        sb.append(", Runtime: ").append(Platform.getJavaRuntimeName()).append(Platform.getNewline());
+        sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());        
         sb.append(Platform.getNewline()).append(SEPERATOR);
 
         return sb;

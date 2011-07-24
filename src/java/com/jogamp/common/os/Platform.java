@@ -54,6 +54,8 @@ public class Platform {
     public static final String ARCH_lower;
     public static final String JAVA_VENDOR;
     public static final String JAVA_VENDOR_URL;
+    public static final String JAVA_VM_NAME;
+    public static final String JAVA_RUNTIME_NAME;
     public static final String JAVA_VERSION;
     public static final String NEWLINE;
 
@@ -142,7 +144,8 @@ public class Platform {
         JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
         JAVA_VERSION = System.getProperty("java.version");
         NEWLINE = System.getProperty("line.separator");
-
+        JAVA_VM_NAME = System.getProperty("java.vm.name");
+        JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();
 
         LITTLE_ENDIAN = queryIsLittleEndianImpl();
@@ -227,6 +230,9 @@ public class Platform {
     }
         
     private static OSType getOSTypeImpl() throws RuntimeException {
+        if ( AndroidVersion.isAvailable ) {
+            return OSType.ANDROID;
+        }
         if ( OS_lower.startsWith("linux") ) {
             return OSType.LINUX;            
         }
@@ -254,15 +260,18 @@ public class Platform {
         }
         throw new RuntimeException("Please port OS detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");        
     }
-    
-    private static boolean initIsJavaSE() {
+
+    private static String getJavaRuntimeNameImpl() {
         // the fast path, check property Java SE instead of traversing through the ClassLoader
-        String java_runtime_name = (String) AccessController.doPrivileged(new PrivilegedAction() {
+        return (String) AccessController.doPrivileged(new PrivilegedAction() {
             public Object run() {
               return System.getProperty("java.runtime.name");
             }
           });
-        if(java_runtime_name.indexOf("Java SE") != -1) {
+    }
+    
+    private static boolean initIsJavaSE() {
+        if(JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
             return true;
         }
 
@@ -294,8 +303,9 @@ public class Platform {
 
     /**
      * Returns the OS name.
+     * <p>In case of {@link OSType#ANDROID}, see {@link #getOSType()}, the OS name is Linux</p>
      */
-    public static String getOS() {
+    public static String getOSName() {
         return OS;
     }
 
@@ -316,6 +326,7 @@ public class Platform {
 
     /**
      * Returns the OS type.
+     * <p>In case of {@link OSType#ANDROID} the OS name, see {@link #getOSName()}, is Linux</p>
      */
     public static OSType getOSType() {
         return OS_TYPE;
@@ -342,6 +353,20 @@ public class Platform {
         return JAVA_VENDOR;
     }
 
+    /**
+     * Returns the JAVA VM name.
+     */
+    public static String getJavaVMName() {
+        return JAVA_VM_NAME;
+    }
+    
+    /**
+     * Returns the JAVA runtime name.
+     */
+    public static String getJavaRuntimeName() {
+        return JAVA_RUNTIME_NAME;
+    }
+    
     /**
      * Returns the JAVA vendor url.
      */

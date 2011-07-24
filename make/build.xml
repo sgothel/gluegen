@@ -680,12 +680,35 @@
             <replacestring from="GLUEGEN_CODEBASE_TAG" to="${gluegen.jnlp.codebase}"/>
         </filterchain>
     </copy>
-    
+  </target>
+
+  <target name="android.package.p1" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid">
+        <delete dir="${build}/gluegen-rt.d" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <delete file="${build}/gluegen-rt.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <mkdir dir="${build}/gluegen-rt.d" />
+        <exec dir="${build}/gluegen-rt.d" executable="unzip" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="../gluegen-rt.jar"/>
+        </exec>
+        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="--dex"/>
+            <arg line="--output=${build}/gluegen-rt.apk"/>
+            <arg line="${build}/gluegen-rt.d/"/>
+        </exec>
+  </target>
+
+  <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid">
+        <delete file="${build}/gluegen-rt.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="--dex"/>
+            <arg line="--output=${build}/gluegen-rt.apk"/>
+            <arg line="${build}/gluegen-rt.jar"/>
+        </exec>
   </target>
 
   <target name="base.compile" depends="init, gluegen.build.java, gluegen.build.c, tag.build" />
 
-  <target name="all" description="Release build" depends="init, base.compile, junit.compile, developer-zip-archive" />
+  <target name="all.no_junit" description="Release build" depends="init, base.compile, android.package, developer-zip-archive" />
+  <target name="all" description="Release build" depends="init, base.compile, junit.compile, android.package, developer-zip-archive" />
 
   <target name="all.debug" description="Debug build" depends="init.debug, base.compile, junit.compile, developer-zip-archive" />
 
