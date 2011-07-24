@@ -13,15 +13,6 @@
 
 #include <gluegen_stdint.h>
 
-JNIEXPORT jboolean JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_isAndroidImpl(JNIEnv *env, jclass _unused) {
-#if defined(ANDROID)
-    return JNI_TRUE;
-#else
-    return JNI_FALSE;
-#endif
-}
-
 JNIEXPORT jint JNICALL 
 Java_jogamp_common_os_MachineDescriptionRuntime_getPointerSizeInBytesImpl(JNIEnv *env, jclass _unused) {
     return sizeof(void *);

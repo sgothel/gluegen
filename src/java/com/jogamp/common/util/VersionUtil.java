@@ -57,7 +57,7 @@ public class VersionUtil {
         sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
         sb.append(Platform.getArch()).append(" (arch) ").append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
-        if( Platform.OSType.ANDROID == Platform.getOSType() && AndroidVersion.isAvailable) {
+        if( AndroidVersion.isAvailable) {
             sb.append("Platform: Android Version: ").append(AndroidVersion.CODENAME).append(", ");
             sb.append(AndroidVersion.RELEASE).append(" [").append(AndroidVersion.RELEASE).append("], SDK: ").append(AndroidVersion.SDK_INT).append(", ").append(AndroidVersion.SDK_NAME);
             sb.append(Platform.getNewline());
