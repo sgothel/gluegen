@@ -43,6 +43,7 @@
     <property name="junit.jar" value="${gluegen.root}/make/lib/junit.jar" />
     <property name="ant.jar"       value="${ant.home}/lib/ant.jar" />
     <property name="ant-junit.jar" value="${ant.home}/lib/ant-junit.jar" />
+    <property name="ant-junit-all.apk" value="${gluegen.root}/make/lib/ant-junit-all.apk" />
     <condition property="win32.c.compiler" value="mingw64">
       <and>
         <os family="windows" />

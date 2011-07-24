@@ -14,9 +14,9 @@ if [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
 fi 
 
 #
-# orig android 
-# LD_LIBRARY_PATH /system/lib
-# export BOOTCLASSPATH /system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/core-junit.jar
+# orig android:
+#   export LD_LIBRARY_PATH /system/lib
+#   export BOOTCLASSPATH /system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/core-junit.jar
 #
 
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
@@ -34,7 +34,7 @@ export LD_LIBRARY_PATH=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$TAR
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ; \
 dalvikvm \
   -Xjnigreflimit:2000 \
-  -Djava.class.path=$BUILD_DIR/gluegen-rt.apk \
+  -Djava.class.path=lib/ant-junit-all.apk:$BUILD_DIR/gluegen-rt.apk \
   -Djogamp.debug.JNILibLoader=true \
   -Djogamp.debug.NativeLibrary=true \
   -Djogamp.debug.NativeLibrary.Lookup=true \

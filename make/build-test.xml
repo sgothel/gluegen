@@ -54,6 +54,7 @@
         <property name="gluegen.lib" value="${gluegen.root}/${rootrel.build}/obj" />
 
         <property name="gluegen-test.jar" location="${build_t}/gluegen-test.jar" />
+        <property name="gluegen-test.apk" location="${build_t}/gluegen-test.apk" />
 
         <path id="gluegen.classpath">
           <pathelement location="${gluegen.jar}" />
@@ -76,6 +77,7 @@
         </path>
         <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
+        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk"/>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
@@ -125,6 +127,15 @@
             <include name="${test.junit.rel}/**/*.class"/>
           </fileset>
         </jar>
+    </target>
+
+    <target name="android.package" depends="java.build,native.build" if="isAndroid">
+        <delete file="${gluegen-test.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="--dex"/>
+            <arg line="--output=${gluegen-test.apk}"/>
+            <arg line="${gluegen-test.jar}"/>
+        </exec>
     </target>
 
     <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
@@ -201,30 +212,8 @@
 
     <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
       <mkdir dir="${build}/test/build/classes"/>
-      <antcall target="java.generate"  inheritRefs="true"/>
-      <antcall target="java.build"     inheritRefs="true"/>
-      <antcall target="native.build"   inheritRefs="true"/>
+      <antcall target="android.package" inheritRefs="true"/>
     </target>
-
-    <!--
-    <target name="junit.run.remote.ssh.tarscpssh" if="isCrosscompilation" unless="isAndroid">
-        <mkdir dir="${gluegen.root}/../temp"/>
-        <delete quiet="true">
-            <fileset file="${gluegen.root}/../temp/gluegen-${rootrel.build}.tar"/>
-        </delete>
-
-        <exec dir="${gluegen.root}/.." executable="tar" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="cf temp/gluegen-${rootrel.build}.tar gluegen"/>
-        </exec>
-
-        <exec dir="${gluegen.root}/.." executable="scp" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="temp/gluegen-${rootrel.build}.tar ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}"/>
-        </exec>
-
-        <exec dir="${gluegen.root}/.." executable="ssh" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="${env.TARGET_UID}@${env.TARGET_IP} cd ${env.TARGET_ROOT} ; tar xf gluegen-${rootrel.build}.tar"/>
-        </exec>
-    </target> -->
 
     <target name="junit.run.remote.ssh" if="isCrosscompilation" unless="isAndroid">
         <exec dir="." executable="ssh" logError="true" failonerror="true" failifexecutionfails="true">
@@ -286,9 +275,9 @@
     </target>
 
     <target name="junit.run.remote.adb" if="isAndroidARMv7">
-        <exec dir="." executable="ssh" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="${env.TARGET_UID}@${env.TARGET_IP}"/>
-            <arg line="rsync -aAv --delete --delete-after --exclude 'build-x86*/'"/>
+        <exec dir="." executable="adb" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="shell"/>
+            <arg line="rsync -av --delete --delete-after --exclude 'build-x86*/'"/>
             <arg line="${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT}"/>
         </exec>
         <for param="test.class.path.m" keepgoing="true">
@@ -310,17 +299,20 @@
             </pathconvert>
             <var name="test.class.result.file" value="${results}/TEST-${test.class.fqn}.xml"/>
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
-            <apply dir="." executable="/usr/bin/ssh"
+            <apply dir="." executable="adb"
                  parallel="false" 
                  timeout="${batchtest.timeout}"
                  vmlauncher="false"
                  relative="true"
                  failonerror="false">
-                <arg line="${env.TARGET_UID}@${env.TARGET_IP}"/>
+                <arg line="shell"/>
                 <arg value="cd ${env.TARGET_ROOT}/gluegen/make ; "/>
-                <arg value="${system.env.library.path}=${gluegen.lib}${path.separator}${build_t.lib} java"/>
-                <arg value="-Djava.library.path=${gluegen.lib}${path.separator}${build_t.lib}"/>
-                <arg value="-cp ${junit.run.remote.jars}"/>
+                <arg value="export ${system.env.library.path}=/system/lib${path.separator}${env.TARGET_ROOT}/gluegen/make/${gluegen.lib}${path.separator}${env.TARGET_ROOT}/gluegen/make/${build_t.lib} ; "/>
+                <arg value="export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ; "/>
+                <arg value="dalvikvm"/>
+                <arg value="-Xjnigreflimit:2000"/>
+                <arg value="-cp ${junit.run.remote.apks}"/>
+                <arg value="com.android.internal.util.WithFramework"/>
                 <arg line="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner"/>
                 <srcfile/>
                 <arg line="filtertrace=true"/>
@@ -379,7 +371,7 @@
         <property name="build_t.lib.abs" location="${build_t.lib}" />
     </target>
 
-    <target name="junit.run" depends="init,gluegen.cpptasks.detect.os,junit.run.settings,junit.run.local,junit.run.remote.ssh">
+    <target name="junit.run" depends="init,gluegen.cpptasks.detect.os,junit.run.settings,junit.run.local,junit.run.remote.ssh,junit.run.remote.adb">
         <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 

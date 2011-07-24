@@ -682,26 +682,20 @@
     </copy>
   </target>
 
-  <target name="android.package.p1" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid">
-        <delete dir="${build}/gluegen-rt.d" includeEmptyDirs="true" quiet="true" failonerror="false" />
-        <delete file="${build}/gluegen-rt.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
-        <mkdir dir="${build}/gluegen-rt.d" />
-        <exec dir="${build}/gluegen-rt.d" executable="unzip" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="../gluegen-rt.jar"/>
-        </exec>
-        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="--dex"/>
-            <arg line="--output=${build}/gluegen-rt.apk"/>
-            <arg line="${build}/gluegen-rt.d/"/>
-        </exec>
-  </target>
-
   <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid">
         <delete file="${build}/gluegen-rt.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="--dex"/>
             <arg line="--output=${build}/gluegen-rt.apk"/>
             <arg line="${build}/gluegen-rt.jar"/>
+            <!-- CHECK HOW TO LOAD NATIVE LIBS FROM APK.. arg line="${build}/gluegen-rt-natives-${os.and.arch}.jar"/-->
+        </exec>
+        <delete file="${build}/gluegen.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="--dex"/>
+            <arg line="--output=${build}/gluegen.apk"/>
+            <arg line="${build}/gluegen.jar"/>
+            <!-- CHECK HOW TO LOAD NATIVE LIBS FROM APK.. arg line="${build}/gluegen-rt-natives-${os.and.arch}.jar"/ -->
         </exec>
   </target>
 
