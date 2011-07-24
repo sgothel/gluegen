@@ -85,7 +85,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      */
     @Test
     public void chapter03aTestCoverageFunctionalityDirectNIOAndPrimitiveArray() throws Exception {
-        chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(new Bindingtest1p1Impl(), true);
+        chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(new Bindingtest1p2Impl(), true);
     }
 
     /**
@@ -96,7 +96,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      */
     @Test
     public void chapter03bTestCoverageFunctionalityIndirectNIOAndPrimitiveArray() throws Exception {
-        chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(new Bindingtest1p1Impl(), false);
+        chapter03TestCoverageFunctionalityNIOAndPrimitiveArray(new Bindingtest1p2Impl(), false);
     }
 
     /**
@@ -120,7 +120,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      */
     @Test
     public void chapter09TestCompoundAndAlignment() throws Exception {
-        chapter09TestCompoundAndAlignment(new Bindingtest1p1Impl());
+        chapter09TestCompoundAndAlignment(new Bindingtest1p2Impl());
     }
     
     public static void main(String args[]) throws IOException {

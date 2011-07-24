@@ -22,8 +22,7 @@ fi
 #
 
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter
-#TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
-TSTCLASS=com.jogamp.common.GlueGenVersion
+TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
 
 LOGFILE=`basename $0 .sh`.log
 
@@ -46,10 +45,21 @@ dalvikvm \
   -Djogamp.debug.NativeLibrary.Lookup=true \
   -Djogamp.debug.ProcAddressHelper=true \
   com.android.internal.util.WithFramework \
+  org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner \
   $TSTCLASS \
+  filtertrace=true \
+  haltOnError=false \
+  haltOnFailure=false \
+  showoutput=true \
+  outputtoformatters=true \
+  logfailedtests=true \
+  logtestlistenerevents=true \
+  formatter=org.apache.tools.ant.taskdefs.optional.junit.PlainJUnitResultFormatter \
+  formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,./TEST-result.xml \
 " >> $BUILD_DIR/targetcommand.sh
 
 chmod ugo+x $BUILD_DIR/targetcommand.sh
 adb push $BUILD_DIR/targetcommand.sh $TARGET_ROOT/targetcommand.sh
 adb shell $TARGET_ROOT/targetcommand.sh 2>&1 | tee $LOGFILE
+adb pull $TARGET_ROOT/gluegen/make/TEST-result.xml TEST-result.xml
 

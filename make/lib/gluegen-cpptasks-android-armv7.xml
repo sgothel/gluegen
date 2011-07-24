@@ -28,20 +28,6 @@
       <compilerarg value="-fpic" /> 
       <compilerarg value="${env.NDK_INCLUDE}" /> 
       <compilerarg value="-I${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/include" /> <!--inclides stdarg.h -->
-      <compilerarg value="-Wl,--demangle" /> 
-      <compilerarg value="-nostdlib" /> 
-      <compilerarg value="-Bdynamic" /> 
-      <compilerarg value="-Wl,-dynamic-linker,/system/bin/linker" /> 
-      <compilerarg value="-Wl,--gc-sections" /> 
-      <compilerarg value="-Wl,-z,nocopyreloc" /> 
-      <compilerarg value="${env.TARGET_OS_PATH}/lib/libc.so" /> 
-      <compilerarg value="${env.TARGET_OS_PATH}/lib/libdl.so" /> 
-      <compilerarg value="${env.TARGET_OS_PATH}/lib/libm.so" /> 
-<!--      <compilerarg value="${env.TARGET_OS_PATH}/lib/crtbegin_dynamic.o" /> -->
-      <compilerarg value="-Wl,--no-undefined" /> 
-      <compilerarg value="-Wl,-rpath-link=${env.TARGET_OS_PATH}/lib" /> 
-      <compilerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/${env.TARGET_CPU_NAME}/libgcc.a" />
-      <compilerarg value="${env.TARGET_OS_PATH}/lib/crtend_android.o" /> 
       <defineset>
         <define name="__unix__"/>
         <define name="ANDROID" />
@@ -53,6 +39,8 @@
 
     <!--<linker id="linker.cfg.android" name="arm-linux-androideabi-gcc">-->
     <linker id="linker.cfg.android" name="gcc">
+         <linkerarg value="-march=armv7-a" /> 
+         <linkerarg value="-fpic" /> 
          <linkerarg value="-Wl,--demangle" /> 
       	 <linkerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
          <linkerarg value="-nostdlib" /> 
@@ -62,7 +50,6 @@
          <linkerarg value="-Wl,-z,nocopyreloc" /> 
          <linkerarg value="${env.TARGET_OS_PATH}/lib/libc.so" /> 
          <linkerarg value="${env.TARGET_OS_PATH}/lib/libdl.so" /> 
-<!--         <linkerarg value="${env.TARGET_OS_PATH}/lib/libstdc++.so" /> -->
          <linkerarg value="${env.TARGET_OS_PATH}/lib/libm.so" /> 
 <!--         <linkerarg value="${env.TARGET_OS_PATH}/lib/crtbegin_dynamic.o" /> -->
          <linkerarg value="-Wl,--no-undefined" /> 
