@@ -51,23 +51,21 @@ public final class BuildEnvironment {
         out.println(VersionUtil.getPlatformInfo());
         out.println("VM: " + System.getProperty("java.vm.name"));
 
+        // setup paths
         String rootrel_build_tmp = System.getProperty("rootrel.build");
         if(null==rootrel_build_tmp || rootrel_build_tmp.length()==0) {
-            rootrel_build_tmp = "build" ;
+            throw new RuntimeException("Pls specify property rootrel.build");
         }
         rootrel_build = rootrel_build_tmp;
         out.println("rootrel.build: " + rootrel_build);
 
-        // setup paths
-        try {
-            File executionRoot = new File(BuildEnvironment.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-            out.println("execution root: " + executionRoot);
-            gluegenRoot = executionRoot.getParentFile().getParentFile().getParentFile().getParentFile().toString();
-            out.println("gluegen project root: " + gluegenRoot);
-        } catch (URISyntaxException ex) {
-            throw new RuntimeException("can not determine gluegen root", ex);
+        String gluegen_root_tmp = System.getProperty("gluegen.root");
+        if(null==gluegen_root_tmp || gluegen_root_tmp.length()==0) {
+            throw new RuntimeException("Pls specify property gluegen.root");
         }
-
+        gluegenRoot = gluegen_root_tmp;
+        out.println("gluegen.root: " + gluegenRoot);
+        
         testOutput   = gluegenRoot + "/" + rootrel_build + "/test";
 
         out.println("testOutput: "+testOutput);
