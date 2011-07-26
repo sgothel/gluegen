@@ -43,7 +43,7 @@ public class AndroidVersion {
             abvObject = abvClass.newInstance();
             abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
             abvcObject = abvcClass.newInstance();
-        } catch (Exception e) { e.printStackTrace(); /* n/a */ } 
+        } catch (Exception e) { /* n/a */ } 
         isAvailable = null != abvObject ;
         if(isAvailable) {
             CODENAME = getString(abvClass, abvObject, "CODENAME");

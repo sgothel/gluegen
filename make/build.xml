@@ -812,7 +812,7 @@
     <ant antfile="build-test.xml" target="junit.compile"/>
   </target>
 
-  <target name="junit.run" depends="junit.compile">
+  <target name="junit.run" depends="init,junit.compile">
     <ant antfile="build-test.xml" target="junit.run"/>
   </target>
 
