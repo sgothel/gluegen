@@ -9,14 +9,32 @@ export TARGET_IP=beagle01
 export TARGET_ROOT=projects-cross
 export TARGET_ANT_HOME=/usr/share/ant
 
+export ANDROID_SDK_VERSION=9
+
+if [ $# -eq "0" ] ; then
+	echo "Usage: `basename $0` <ANDROID_SDK_HOME> <NDK_ROOT>"
+	echo "Default: ANDROID_SDK_HOME=/usr/local/android-sdk-linux_x86"
+	echo "Default: NDK_ROOT=/usr/local/android-ndk-r6"
+fi
+
+if [ $# -ge "2" ] ; then
+ANDROID_SDK_HOME=$1
+shift
+NDK_ROOT=$1
+shift
+fi
+
+echo $ANDROID_SDK_HOME
+echo $NDK_ROOT
+
 if [ -z "$NDK_ROOT" ] ; then
-    NDK_ROOT=/opt-linux-x86/android-ndk-r6
+    NDK_ROOT=/usr/local/android-ndk-r6
 fi
 export NDK_ROOT
 NDK_TOOLCHAIN=$NDK_ROOT/toolchains/arm-linux-androideabi-4.4.3/prebuilt/linux-x86/arm-linux-androideabi
 
 if [ -z "$ANDROID_SDK_HOME" ] ; then
-    ANDROID_SDK_HOME=/opt-linux-x86/android-sdk-linux_x86
+    ANDROID_SDK_HOME=/usr/local/android-sdk-linux_x86
 fi 
 export ANDROID_SDK_HOME
 
