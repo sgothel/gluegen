@@ -980,7 +980,7 @@
       <echo message="Linux.armv7" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv7" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv7" /> 
-      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
+      <property name="java.lib.dir.platform"         value="${gluegen.root}/make/lib/arm-linux-gnueabi/ubuntu-11.04/jre/lib/arm" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinuxIA64">
