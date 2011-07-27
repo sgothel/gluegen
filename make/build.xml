@@ -685,30 +685,105 @@
         </filterchain>
     </copy>
   </target>
-
+  
   <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid">
+	<property name="dex.file.name" value="classes.dex" />
+    	<property name="intermediate.dex.file" location="${build}/apk-temp/${dex.file.name}" />
+	<property name="resource.package.file.name" value="${build}/gluegen-rt.ap_" />
+	<property name="signed.file.name" value="${build}/gluegen-rt-sign.ap_" />
+	<property name="release.file.name" value="${build}/gluegen-rt.apk" />
         <mkdir dir="${build}/apk-temp/bin/lib/armeabi" />
+	<mkdir dir="${build}/apk-temp/bin/lib/src" />
+	<mkdir dir="${build}/apk-temp/bin/lib/assets" />
         <copy todir="${build}/apk-temp/bin/lib/armeabi">
           <fileset dir="${build}/obj">
             <include name="*gluegen-rt.${native.library.suffix}" />
           </fileset>
         </copy>
-
-        <delete file="${build}/gluegen-rt.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
-        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+        <delete file="${intermediate.dex.file}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+	<delete file="${release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        
+	<exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="--dex"/>
-            <arg line="--output=${build}/gluegen-rt.apk"/>
+            <arg line="--output=${intermediate.dex.file}"/>
             <arg line="${build}/gluegen-rt.jar"/>
             <arg line="${build}/apk-temp/"/> <!-- need to be installed .. etc -->
         </exec>
-        <delete file="${build}/gluegen.apk" includeEmptyDirs="true" quiet="true" failonerror="false" />
-        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="--dex"/>
-            <arg line="--output=${build}/gluegen.apk"/>
-            <arg line="${build}/gluegen.jar"/>
-            <arg line="${build}/apk-temp/"/> <!-- need to be installed .. etc -->
-        </exec>
+	
+	<property name="version.code" value="" />
+        <property name="build.packaging.debug" value="false" />
+	<property name="build.signing.debug" value="false" />
+	<property name="resource.dir" value="lib/android/res" />
+	<property name="resource.absolute.dir" location="${resource.dir}" />
+        <property name="filter.abi" value="" />
+	
+	<path id="android.antlibs">
+	  <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/anttasks.jar" />
+	  <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/sdklib.jar" />
+	  <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/androidprefs.jar" />
+	  <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/apkbuilder.jar" />
+	  <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/jarutils.jar" />
+	</path>
+	
+	<echo>Packaging resources</echo>
+	<exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
+	    <arg line="package"/>
+	    <arg line="-v"/>
+	    <arg line="--debug-mode"/>
+	    <arg line="-f"/>
+	    <arg line="-j"/>
+	    <arg line="${build}/gluegen-rt.jar"/>
+	    <arg line="-M"/>
+	    <arg line="lib/android/AndroidManifest.xml"/>
+	    <arg line="-S"/>
+	    <arg line="lib/android/res"/>
+	    <arg line="-A"/>
+	    <arg line="${build}/apk-temp/bin/lib/assets"/>
+	    <arg line="-I"/>
+	    <arg line="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar"/>
+	    <arg line="-F"/>
+	    <arg line="${resource.package.file.name}"/>
+	    <arg line="${build}/apk-temp/"/>
+	</exec>
+	
+	<!-- TODO: Remove temp key and use jogamp signer -->
+	<echo>Generating temp debug key...</echo>
+	<exec dir="." executable="keytool" failonerror="true">
+             <arg value="-genkey "/>
+             <arg value="-alias" />
+	     <arg value="debug" />
+             <arg value="-keystore" />
+	     <arg value="${build}/apk-temp/debug.keystore" />
+             <arg value="-keypass" />
+	     <arg value="jogamp" />
+             <arg value="-dname" />
+	     <arg value="CN=GLUEGEN Debug,O=JOGAMP,C=US" />
+             <arg value="-storepass" />
+	     <arg value="jogamp" />
+	</exec>
+
+	<echo>Signing apk...</echo> <!-- needed for install on device -->
+	<signjar
+	      jar="${resource.package.file.name}"
+	      signedjar="${signed.file.name}"
+	      keystore="${build}/apk-temp/debug.keystore"
+	      storepass="jogamp"
+	      alias="debug"
+	      keypass="jogamp"
+	      verbose="true" />
+	  
+	<echo>Running zip align on final apk...</echo>
+	<exec dir="." executable="${env.ANDROID_SDK_HOME}/tools/zipalign" failonerror="true">
+	    <arg line="-v" />
+	    <arg value="-f" />
+	    <arg value="4" />
+	    <arg path="${signed.file.name}" />
+	    <arg path="${release.file.name}" />
+	</exec>
+
         <delete dir="${build}/apk-temp" includeEmptyDirs="true" quiet="true" failonerror="false" />
+	<delete file="${resource.package.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+	<delete file="${signed.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
   </target>
 
   <target name="base.compile" depends="init, gluegen.build.java, gluegen.build.c, tag.build" />
