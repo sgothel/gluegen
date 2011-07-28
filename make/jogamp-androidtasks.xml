@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jogamp-androidtasks" basedir=".">
+    <dirname property="jogamp-androidtasks.basedir" file="${ant.file.jogamp-androidtasks}"/>
+    <taskdef resource="net/sf/antcontrib/antlib.xml">
+      <classpath> 
+        <pathelement location="${jogamp-androidtasks.basedir}/lib/ant-contrib-1.0b3.jar"/> 
+      </classpath>
+    </taskdef>
+
+    <!---
+        <aapt.signed 
+            jarbuilddir="${build}"   // jar build location
+            jarbasename="gluegen-rt" // jar base file name
+            nativebuilddir="${gluegen.lib.dir}" // native library build location
+            nativebasename="gluegen-rt"         // native library base file name "*${nativebasename}*.${native.library.suffix}"
+            androidmanifest.path="lib/android/AndroidManifest.xml"
+            version.code="${gluegen_int_version}"
+            version.name="${gluegen.version.plus}" 
+
+            // optional values, for having a valid keystore:
+            keystore.file="./my-kstore.jks"  // user supplied keystore
+            keystore.alias="mykey01"         // key alias
+            keystore.storepass="spwd"        // store pwd
+            keystore.keypass="kpwd"          // key pwd
+        />
+
+        Even though we have impl. signing w/ an own keystore,
+        we strongly discourage users to actually use it in an automated environment!
+        Pls sign your apps manually. 
+      -->
+    <macrodef name="aapt.signed">
+      <attribute name="jarbuilddir" />
+      <attribute name="jarbasename" />
+      <attribute name="nativebuilddir" />
+      <attribute name="nativebasename" />
+      <attribute name="androidmanifest.path" />
+      <attribute name="version.code" />
+      <attribute name="version.name" />
+      <attribute name="keystore.file" default="/non.existing.user.keystore.file" />
+      <attribute name="keystore.alias" default="debug" />
+      <attribute name="keystore.storepass" default="jogamp" />
+      <attribute name="keystore.keypass" default="jogamp" />
+      <sequential>
+        <var name="m.aapt.build.apk" unset="true"/>
+        <var name="m.aapt.dex.file" unset="true"/>
+        <var name="m.aapt.resource.package.file.name" unset="true"/>
+        <var name="m.aapt.signed.file.name" unset="true"/>
+        <var name="m.aapt.release.file.name" unset="true"/>
+        <var name="m.aapt.keystore.file" unset="true"/>
+
+        <property name="m.aapt.build.apk" value="@{jarbuilddir}/@{jarbasename}.apk.d" />
+        <property name="m.aapt.dex.file" location="${m.aapt.build.apk}/image/classes.dex" />
+        <property name="m.aapt.resource.package.file.name" value="${m.aapt.build.apk}/@{jarbasename}.ap_" />
+        <property name="m.aapt.signed.file.name" value="${m.aapt.build.apk}/@{jarbasename}-sign.ap_" />
+        <property name="m.aapt.release.file.name" value="@{jarbuilddir}/@{jarbasename}.apk" />
+
+        <condition property="m.aapt.keystore.file" value="@{keystore.file}" else="${m.aapt.build.apk}/debug.keystore">
+            <available file="@{keystore.file}"/>
+        </condition>
+
+        <delete file="${m.aapt.release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+
+        <mkdir dir="${m.aapt.build.apk}/image/bin/lib/armeabi" />
+        <mkdir dir="${m.aapt.build.apk}/image/bin/lib/src" />
+        <mkdir dir="${m.aapt.build.apk}/image/bin/lib/assets" />
+        <copy todir="${m.aapt.build.apk}/image/bin/lib/armeabi">
+            <fileset dir="@{nativebuilddir}">
+                <include name="*@{nativebasename}*.${native.library.suffix}" />
+            </fileset>
+        </copy>
+            
+        <echo>aapt.signed @{jarbasename}: dex'ing</echo>
+        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="--dex"/>
+            <arg line="--output=${m.aapt.dex.file}"/>
+            <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
+        </exec>
+        
+        <path id="android.antlibs">
+            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/anttasks.jar" />
+            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/sdklib.jar" />
+            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/androidprefs.jar" />
+            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/apkbuilder.jar" />
+            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/jarutils.jar" />
+        </path>
+
+        <echo>aapt.signed @{jarbasename}: packaging</echo>
+        <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="package"/>
+            <!--arg line="-v"/-->
+            <arg line="--debug-mode"/>
+            <arg line="-f"/>
+            <!-- arg line="-j" />
+            <arg value="@{jarbuilddir}/@{jarbasename}.jar"/-->
+
+            <arg line="-M" />
+            <arg value="@{androidmanifest.path}"/>
+
+            <arg line="-S" />
+            <arg value="lib/android/res"/>
+
+            <arg line="-A" />
+            <arg value="${m.aapt.build.apk}/image/bin/lib/assets"/> <!-- FIXME: Should assets be in out lib/android/assets ?? -->
+
+            <arg line="-I" />
+            <arg value="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar"/>
+
+            <arg line="--version-code" />
+            <arg value="@{version.code}"/>
+
+            <arg line="--version-name" />
+            <arg value="@{version.name}"/>
+
+            <arg line="-F" />
+            <arg value="${m.aapt.resource.package.file.name}"/>
+
+            <arg line="${m.aapt.build.apk}/image/"/>
+        </exec>
+        
+        <echo>aapt.signed @{jarbasename}: gen temp keystore @{keystore.alias} @ ${m.aapt.build.apk}/debug.keystore</echo>
+        <exec dir="." executable="keytool" failonerror="true">
+            <arg value="-genkey"/>
+
+            <arg value="-keystore" />
+            <arg value="${m.aapt.build.apk}/debug.keystore" />
+
+            <arg value="-alias" />
+            <arg value="@{keystore.alias}" />
+
+            <arg value="-dname" />
+            <arg value="CN=JogAmp Debug,O=JogAmp,C=DE" />
+
+            <arg value="-keypass" />
+            <arg value="@{keystore.keypass}" />
+
+            <arg value="-storepass" />
+            <arg value="@{keystore.storepass}" />
+        </exec>
+
+        <echo>aapt.signed @{jarbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
+        <signjar
+              jar="${m.aapt.resource.package.file.name}"
+              signedjar="${m.aapt.signed.file.name}"
+              keystore="${m.aapt.keystore.file}"
+              alias="@{keystore.alias}"
+              keypass="@{keystore.keypass}"
+              storepass="@{keystore.storepass}"
+              verbose="false" />
+
+        <echo>aapt.signed @{jarbasename}: zip aligning</echo>
+        <exec dir="." executable="${env.ANDROID_SDK_HOME}/tools/zipalign" failonerror="true">
+            <arg line="-v" />
+            <arg value="-f" />
+            <arg value="4" />
+            <arg path="${m.aapt.signed.file.name}" />
+            <arg path="${m.aapt.release.file.name}" />
+        </exec>
+
+        <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+    </sequential>
+  </macrodef>  
+</project>

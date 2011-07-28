@@ -8,6 +8,7 @@
 
     <import file="gluegen-cpptasks.xml" />
     <import file="jogamp-archivetasks.xml" />
+    <import file="jogamp-androidtasks.xml" />
     <import file="jogamp-env.xml" />
 
     <condition property="rootrel.build" value="build">
@@ -130,12 +131,14 @@
     </target>
 
     <target name="android.package" depends="java.build,native.build" if="isAndroid">
-        <delete file="${gluegen-test.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
-        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="--dex"/>
-            <arg line="--output=${gluegen-test.apk}"/>
-            <arg line="${gluegen-test.jar}"/>
-        </exec>
+        <aapt.signed 
+            jarbuilddir="${build_t}"
+            jarbasename="gluegen-test"
+            nativebuilddir="${build_t.lib}"
+            nativebasename="test"
+            androidmanifest.path="lib/android/AndroidManifest.xml"
+            version.code="${gluegen_int_version}"
+            version.name="${gluegen.version.plus}" />
     </target>
 
     <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
