@@ -320,7 +320,7 @@ public class Platform {
     /**
      * Returns the CPU architecture String.
      */
-    public static String getArch() {
+    public static String getArchName() {
         return ARCH;
     }
 
