@@ -24,6 +24,7 @@ fi
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
 TSTCLASS=com.jogamp.common.GlueGenVersion
+# am start -a android.intent.action.MAIN -n com.jogamp.common/jogamp.common.os.android.GluegenVersionActivity
 
 LOGFILE=`basename $0 .sh`.log
 

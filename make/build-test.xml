@@ -136,7 +136,7 @@
             jarbasename="gluegen-test"
             nativebuilddir="${build_t.lib}"
             nativebasename="test"
-            androidmanifest.path="lib/android/AndroidManifest.xml"
+            androidmanifest.path="lib/android/AndroidManifest-Test.xml"
             version.code="${gluegen_int_version}"
             version.name="${gluegen.version.plus}" />
     </target>

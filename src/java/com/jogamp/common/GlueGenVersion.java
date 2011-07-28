@@ -44,9 +44,15 @@ public class GlueGenVersion extends JogampVersion {
         if(null == jogampCommonVersionInfo) { // volatile: ok
             synchronized(GlueGenVersion.class) {
                 if( null == jogampCommonVersionInfo ) {
-                    final String packageName = "com.jogamp.common";
-                    final Manifest mf = VersionUtil.getManifest(GlueGenVersion.class.getClassLoader(), "com.jogamp.common");
-                    jogampCommonVersionInfo = new GlueGenVersion(packageName, mf);
+                    final String packageNameCompileTime = "com.jogamp.gluegen";
+                    final String packageNameRuntime = "com.jogamp.common";
+                    Manifest mf = VersionUtil.getManifest(GlueGenVersion.class.getClassLoader(), packageNameRuntime);
+                    if(null != mf) {
+                        jogampCommonVersionInfo = new GlueGenVersion(packageNameRuntime, mf);
+                    } else {
+                        mf = VersionUtil.getManifest(GlueGenVersion.class.getClassLoader(), packageNameCompileTime);
+                        jogampCommonVersionInfo = new GlueGenVersion(packageNameCompileTime, mf);
+                    }
                 }
             }
         }

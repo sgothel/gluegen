@@ -30,6 +30,7 @@ package com.jogamp.common.util;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
+
 import java.util.Iterator;
 import java.util.Set;
 import java.util.jar.Attributes;
@@ -45,13 +46,16 @@ public class JogampVersion {
     private int hash;
     private Attributes mainAttributes;
     private Set/*<Attributes.Name>*/ mainAttributeNames;
-
-    protected JogampVersion(String packageName, Manifest mf) {
+    
+    private final String androidPackageVersionName;
+    
+    protected JogampVersion(String packageName, Manifest mf) {        
         this.packageName = packageName;
         this.mf = ( null != mf ) ? mf : new Manifest();
         this.hash = this.mf.hashCode();
         mainAttributes = this.mf.getMainAttributes();
         mainAttributeNames = mainAttributes.keySet();
+        androidPackageVersionName = AndroidPackageUtil.getAndroidPackageInfoVersionName(packageName);
     }
 
     @Override
@@ -98,6 +102,9 @@ public class JogampVersion {
     }
 
     public final String getExtensionName() {
+        if(null != androidPackageVersionName) {
+            return packageName;
+        }
         return this.getAttribute(Attributes.Name.EXTENSION_NAME);
     }
 
@@ -129,6 +136,10 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.IMPLEMENTATION_VERSION);
     }
 
+    public final String getAndroidPackageVersionName() {
+        return androidPackageVersionName;
+    }
+    
     public final String getSpecificationTitle() {
         return this.getAttribute(Attributes.Name.SPECIFICATION_TITLE);
     }
@@ -162,6 +173,9 @@ public class JogampVersion {
         sb.append("Implementation Version: ").append(getImplementationVersion()).append(nl);
         sb.append("Implementation Branch: ").append(getImplementationBranch()).append(nl);
         sb.append("Implementation Commit: ").append(getImplementationCommit()).append(nl);
+        if(null != getAndroidPackageVersionName()) {
+            sb.append("Android Package Version: ").append(getAndroidPackageVersionName()).append(nl);
+        }
         return sb;
     }
 

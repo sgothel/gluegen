@@ -8,7 +8,8 @@ export TARGET_ROOT=projects-cross
 
 export BUILD_DIR=../build-linux-armv7
 
-TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
+#TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
+TSTCLASS=com.jogamp.common.GlueGenVersion
 
 LOGFILE=`basename $0 .sh`.log
 

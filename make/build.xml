@@ -30,12 +30,12 @@
     </not>
   </condition>
 
-  <target name="setup-excludes-1" if="gluegen.nsig">
-    <property name="gluegen.excludes" value="" />
+  <target name="setup.excludes.nsig" unless="gluegen.nsig">
+    <property name="gluegen.excludes.nsig" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java com/jogamp/gluegen/nativesig/**" />
   </target>
 
-  <target name="setup-excludes-2" unless="gluegen.nsig">
-    <property name="gluegen.excludes" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java,com/jogamp/gluegen/nativesig/**" />
+  <target name="setup.excludes.android" unless="isAndroid">
+    <property name="gluegen.excludes.android" value="jogamp/**/android/** com/jogamp/**/android/**" />
   </target>
 
   <target name="set.debug">
@@ -45,7 +45,7 @@
   </target>
   <target name="init.debug" depends="set.debug, init"/>
 
-  <target name="init" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup-excludes-1,setup-excludes-2">
+  <target name="init" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig,setup.excludes.android">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
@@ -85,7 +85,7 @@
     <property name="gluegen_int_version" value="2"/>
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
-    <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.branch}-b${gluegen.build.number}-${gluegen.build.commit}-${version.timestamp}" />
+    <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${gluegen.build.commit}-${version.timestamp}" />
 
     <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
@@ -108,12 +108,29 @@
     <mkdir dir="${src.generated.c}/Windows" />
     <mkdir dir="${classes}" />
 
-    <!-- Create the classpath for ANTLR.  This requires the user-defined
-      - "antlr.jar" property. -->
+    <condition property="android.jar" value="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar">
+        <isset property="isAndroid"/>
+    </condition>
+
+    <!-- Create the classpath for ANTLR.  
+         This requires the user-defined "antlr.jar" property. -->
     <path id="antlr.classpath">
       <pathelement location="${antlr.jar}" />
     </path>
     
+    <!-- Create the classpath for compiling GlueGen. 
+         This requires the user-defined "antlr.jar" property. -->
+    <path id="gluegencompile.classpath">
+      <pathelement location="${antlr.jar}" />
+      <pathelement location="${android.jar}"/>
+    </path>
+    
+    <!-- Create the classpath for using GlueGen. -->
+    <path id="gluegen.classpath" >
+      <pathelement location="${classes}" />
+      <pathelement location="${antlr.jar}" />
+    </path>
+
     <!-- The location of the GlueGen source and the C grammar files. -->
     <property name="gluegen" value="${src.java}/com/jogamp/gluegen" />
     <property name="c.grammar" value="${gluegen}/cgram" />
@@ -138,6 +155,9 @@
     <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
     <property name="javac.memorymax"  value="512m" /> 
 
+    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${gluegen.excludes.android}" />
+    <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
+    <property name="jogamp.common.classes" value="com/jogamp/common/**"/>
   </target>
 
   <!--
@@ -188,11 +208,6 @@
     <dirset id="stub.includes.fileset.macosx" dir=".">
       <include name="stub_includes/macosx/**" />
     </dirset>
-    <!-- Define the classpath we should use -->
-    <path id="gluegen.classpath" >
-      <pathelement location="${classes}" />
-      <pathelement location="${antlr.jar}" />
-    </path>
     <!-- Define the GlueGen task we just built -->
     <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
              classpathref="gluegen.classpath" />
@@ -608,30 +623,27 @@
     <!-- Build GlueGen using the generated Java files along with the
       - original source. -->
 
-    <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
-    <property name="jogamp.common.classes" value="com/jogamp/common/**"/>
-
     <!--compile gluegen-rt with source=1.5 first-->
     <javac destdir="${classes}"
            includeAntRuntime="false"
-           includes="${gluegen-rt.classes},${jogamp.common.classes}"
-           excludes="${gluegen.excludes}"
+           includes="${gluegen-rt.classes} ${jogamp.common.classes}"
+           excludes="${gluegen.excludes.all}"
            memoryMaximumSize="${javac.memorymax}"
            source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
-      <classpath refid="antlr.classpath" />
+      <classpath refid="gluegencompile.classpath" />
     </javac>
 
     <!--compile gluegen with source=1.5-->
     <javac destdir="${classes}"
            includeAntRuntime="true"
-           excludes="${gluegen.excludes},${gluegen-rt.classes}"
+           excludes="${gluegen.excludes.all} ${gluegen-rt.classes}"
            memoryMaximumSize="${javac.memorymax}"
            source="${target.sourcelevel}" debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
-      <classpath refid="antlr.classpath" />
+      <classpath refid="gluegencompile.classpath" />
     </javac>
 
     <copy file="Manifest"
@@ -696,7 +708,8 @@
         jarbasename="gluegen-rt"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
-        androidmanifest.path="lib/android/AndroidManifest.xml"
+        androidmanifest.path="lib/android/AndroidManifest-Runtime.xml"
+        jarmanifest.path="${build}/Manifest-rt.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}" />
 
@@ -705,7 +718,8 @@
         jarbasename="gluegen"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
-        androidmanifest.path="lib/android/AndroidManifest.xml"
+        androidmanifest.path="lib/android/AndroidManifest-CompileTime.xml"
+        jarmanifest.path="${build}/Manifest.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}" />
 

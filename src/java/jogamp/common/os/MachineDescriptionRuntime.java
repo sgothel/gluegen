@@ -28,7 +28,6 @@
  
 package jogamp.common.os;
 
-import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
