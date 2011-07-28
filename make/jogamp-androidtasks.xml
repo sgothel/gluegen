@@ -61,10 +61,10 @@
         <delete file="${m.aapt.release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
 
-        <mkdir dir="${m.aapt.build.apk}/image/bin/lib/armeabi" />
-        <mkdir dir="${m.aapt.build.apk}/image/bin/lib/src" />
-        <mkdir dir="${m.aapt.build.apk}/image/bin/lib/assets" />
-        <copy todir="${m.aapt.build.apk}/image/bin/lib/armeabi">
+        <mkdir dir="${m.aapt.build.apk}/image/lib/armeabi" />
+        <mkdir dir="${m.aapt.build.apk}/image/lib/src" />
+        <mkdir dir="${m.aapt.build.apk}/image/lib/assets" />
+        <copy todir="${m.aapt.build.apk}/image/lib/armeabi">
             <fileset dir="@{nativebuilddir}">
                 <include name="*@{nativebasename}*.${native.library.suffix}" />
             </fileset>
@@ -101,7 +101,7 @@
             <arg value="lib/android/res"/>
 
             <arg line="-A" />
-            <arg value="${m.aapt.build.apk}/image/bin/lib/assets"/> <!-- FIXME: Should assets be in out lib/android/assets ?? -->
+            <arg value="${m.aapt.build.apk}/image/lib/assets"/> <!-- FIXME: Should assets be in out lib/android/assets ?? -->
 
             <arg line="-I" />
             <arg value="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar"/>
