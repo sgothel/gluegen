@@ -56,6 +56,13 @@
         <property name="m.aapt.signed.file.name" value="${m.aapt.build.apk}/@{jarbasename}-sign.ap_" />
         <property name="m.aapt.release.file.name" value="@{jarbuilddir}/@{jarbasename}.apk" />
 
+
+        <path id="android.classpath">
+            <pathelement location="${antlr.jar}" />
+            <pathelement location="@{jarbuilddir}/@{jarbasename}.jar" />
+            <pathelement location="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar" />
+        </path>
+
         <condition property="m.aapt.keystore.file" value="@{keystore.file}" else="${m.aapt.build.apk}/debug.keystore">
             <available file="@{keystore.file}"/>
         </condition>
@@ -65,6 +72,7 @@
 
         <mkdir dir="${m.aapt.build.apk}/image/lib/armeabi" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/src" />
+        <mkdir dir="${m.aapt.build.apk}/image/lib/classes" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/assets" />
         <copy todir="${m.aapt.build.apk}/image/lib/armeabi">
             <fileset dir="@{nativebuilddir}">
@@ -73,12 +81,44 @@
         </copy>
         <copy file="@{androidmanifest.path}" tofile="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
         <copy file="@{jarmanifest.path}" failonerror="false" tofile="${m.aapt.build.apk}/image/META-INF/MANIFEST.MF"/>
-            
+
+
+        <property name="djava.encoding" value="UTF-8" />
+        <property name="djava.target" value="1.5" />
+        <property name="djava.source" value="1.5" /> 
+
+        <echo>Generating R.java / Manifest.java from the resources...</echo>
+        <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="package"/>
+            <arg line="-v"/>
+            <arg line="--debug-mode"/>
+            <arg line="-f"/>
+            <arg line="-S"/>
+            <arg line="lib/android/res"/>
+            <arg line="-M"/>
+            <arg line="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
+            <arg line="-I"/>
+            <arg line="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar"/>
+            <arg line="-J"/>
+            <arg line="${m.aapt.build.apk}/image/lib/src"/>
+        </exec>
+
+        <echo>aapt.signed @{jarbasename}: compiling R.java...</echo>
+        <javac encoding="${djava.encoding}"
+            source="${djava.source}" target="${djava.target}"
+            debug="true" extdirs=""
+            destdir="${m.aapt.build.apk}/image/lib/classes"
+            verbose="true">
+            <src path="${m.aapt.build.apk}/image/lib/src" />
+            <classpath refid="android.classpath" />
+        </javac>
+
         <echo>aapt.signed @{jarbasename}: dex'ing</echo>
         <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="--dex"/>
             <arg line="--output=${m.aapt.dex.file}"/>
             <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
+            <arg line="${m.aapt.build.apk}/image/lib/classes"/>
         </exec>
         
         <path id="android.antlibs">
