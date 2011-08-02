@@ -1,6 +1,6 @@
 #! /bin/sh
 
-PATH=`pwd`/lib/linux-x86_64/arm-linux-gnueabi/bin:$PATH
+PATH=`pwd`/lib/linux/arm-linux-gnueabi/bin:$PATH
 export PATH
 
 #    -Dc.compiler.debug=true 
@@ -19,7 +19,7 @@ export TARGET_IP=beagle01
 export TARGET_ROOT=/home/jogamp/projects-cross
 export TARGET_ANT_HOME=/usr/share/ant
 
-export TARGET_PLATFORM_LIBS=/opt-linux-armv7-eabi
+export TARGET_PLATFORM_LIBS=/opt-linux-armv7-eabi/lib
 export TARGET_JAVA_LIBS=/opt-linux-armv7-eabi/jre/lib/arm
 
 ant \
