@@ -108,10 +108,6 @@
     <mkdir dir="${src.generated.c}/Windows" />
     <mkdir dir="${classes}" />
 
-    <condition property="android.jar" value="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar">
-        <isset property="isAndroid"/>
-    </condition>
-
     <!-- Create the classpath for ANTLR.  
          This requires the user-defined "antlr.jar" property. -->
     <path id="antlr.classpath">
@@ -708,7 +704,7 @@
         jarbasename="gluegen-rt"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
-        androidmanifest.path="lib/android/AndroidManifest-Runtime.xml"
+        androidmanifest.path="resources/android/AndroidManifest-Runtime.xml"
         jarmanifest.path="${build}/Manifest-rt.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}" />
@@ -718,7 +714,7 @@
         jarbasename="gluegen"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
-        androidmanifest.path="lib/android/AndroidManifest-CompileTime.xml"
+        androidmanifest.path="resources/android/AndroidManifest-CompileTime.xml"
         jarmanifest.path="${build}/Manifest.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}" />

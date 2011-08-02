@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="hello">GlueGen Activity is Greeting You.</string>
-    <string name="app_name">JogAmp\'s GlueGen Library</string>
-    <string name="app_descr">Contains Dalvik and native code, supporting native bindings.</string>
-    <string name="activity_v_name">GlueGen\'s Version</string>
-    <string name="activity_v_descr">Shows the version of the GlueGen Library.</string>
-</resources>

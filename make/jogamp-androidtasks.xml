@@ -13,7 +13,7 @@
             jarbasename="gluegen-rt" // jar base file name
             nativebuilddir="${gluegen.lib.dir}" // native library build location
             nativebasename="gluegen-rt"         // native library base file name "*${nativebasename}*.${native.library.suffix}"
-            androidmanifest.path="lib/android/AndroidManifest.xml"
+            androidmanifest.path="resources/android/AndroidManifest.xml"
             jarmanifest.path="${build}/Manifest-rt.temp" // optional
             version.code="${gluegen_int_version}"
             version.name="${gluegen.version.plus}" 
@@ -37,7 +37,7 @@
       <attribute name="nativebasename" />
       <attribute name="androidmanifest.path" />
       <attribute name="jarmanifest.path" default="/non.existing.manifest.file"/>
-      <attribute name="jarclasspathrefid" default="android.classpath"/>
+      <!-- attribute name="jarclasspathrefid" default="/non.existing.jarclasspathrefid"/-->
       <attribute name="version.code" />
       <attribute name="version.name" />
       <attribute name="keystore.file" default="/non.existing.user.keystore.file" />
@@ -66,12 +66,6 @@
         <property name="m.aapt.java.target" value="1.5" />
         <property name="m.aapt.java.source" value="1.5" />
 
-        <path id="android.classpath">
-            <pathelement location="${antlr.jar}" />
-            <pathelement location="@{jarbuilddir}/@{jarbasename}.jar" />
-            <pathelement location="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar" />
-        </path>
-
         <condition property="m.aapt.keystore.file" value="@{keystore.file}" else="${m.aapt.build.apk}/debug.keystore">
             <available file="@{keystore.file}"/>
         </condition>
@@ -99,11 +93,11 @@
             <arg line="--debug-mode"/>
             <arg line="-f"/>
             <arg line="-S"/>
-            <arg line="lib/android/res"/>
+            <arg line="resources/android/res"/>
             <arg line="-M"/>
             <arg line="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
             <arg line="-I"/>
-            <arg line="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar"/>
+            <arg line="${android.jar}"/>
             <arg line="-J"/>
             <arg line="${m.aapt.build.apk}/image/lib/src"/>
         </exec>
@@ -115,7 +109,11 @@
             destdir="${m.aapt.build.apk}/image/lib/classes"
             verbose="true">
             <src path="${m.aapt.build.apk}/image/lib/src" />
-            <classpath refid="@{jarclasspathrefid}" />
+            <classpath>
+                 <!-- path refid="@{jarclasspathrefid}"/-->
+                 <pathelement location="@{jarbuilddir}/@{jarbasename}.jar" />
+                 <pathelement path="${android.jar}"/>
+            </classpath>
         </javac>
 
         <echo>aapt.signed @{jarbasename}: dex'ing</echo>
@@ -142,13 +140,13 @@
             <arg line="-f"/>
 
             <arg line="-S" />
-            <arg value="lib/android/res"/>
+            <arg value="resources/android/res"/>
 
             <arg line="-A" />
             <arg value="${m.aapt.build.apk}/image/lib/assets"/>
 
             <arg line="-I" />
-            <arg value="${env.ANDROID_SDK_HOME}/platforms/android-${env.ANDROID_SDK_VERSION}/android.jar"/>
+            <arg line="${android.jar}"/>
 
             <arg line="--version-code" />
             <arg value="@{version.code}"/>

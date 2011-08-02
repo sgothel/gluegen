@@ -15,6 +15,12 @@
         </not>
     </condition>
 
+    <condition property="android.version" value="${env.ANDROID_VERSION}" else="9">
+        <not>
+         <equals arg1="${env.ANDROID_VERSION}" arg2="$${env.ANDROID_VERSION}" casesensitive="true" />
+        </not>
+    </condition>
+
   </target>
 
 </project>

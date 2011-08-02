@@ -9,7 +9,7 @@ export TARGET_IP=beagle01
 export TARGET_ROOT=/projects
 export TARGET_ANT_HOME=/usr/share/ant
 
-export ANDROID_SDK_VERSION=9
+export ANDROID_VERSION=9
 
 echo ANDROID_SDK_HOME $ANDROID_SDK_HOME
 echo NDK_ROOT $NDK_ROOT
@@ -51,7 +51,6 @@ export ANDROID_SDK_HOME
 
 export PATH="$NDK_TOOLCHAIN/bin:$ANDROID_SDK_HOME/platform-tools:$PATH"
 
-ANDROID_VERSION=9
 export GCC_VERSION=4.4.3
 HOST_ARCH=linux-x86
 export TARGET_ARCH=arm-linux-androideabi
