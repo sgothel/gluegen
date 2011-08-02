@@ -6,6 +6,7 @@ export TARGET_UID=jogamp
 export TARGET_IP=beagle01
 export TARGET_ROOT=projects-cross
 
+export ANT_PATH=/usr/share/ant
 export BUILD_DIR=../build-linux-armv7
 
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
@@ -19,7 +20,7 @@ cd $TARGET_ROOT/gluegen/make ;
 LD_LIBRARY_PATH=$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
 java \
   -Djava.library.path=$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
-  -Djava.class.path=lib/junit.jar:/usr/share/ant/lib/ant.jar:/usr/share/ant/lib/ant-junit.jar:$BUILD_DIR/gluegen.jar:$BUILD_DIR/test/build/gluegen-test.jar \
+  -Djava.class.path=lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:$BUILD_DIR/gluegen.jar:$BUILD_DIR/test/build/gluegen-test.jar \
   -Djogamp.debug.JNILibLoader=true \
   -Djogamp.debug.NativeLibrary=true \
   -Djogamp.debug.NativeLibrary.Lookup=true \
