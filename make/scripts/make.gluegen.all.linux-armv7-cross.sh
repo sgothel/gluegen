@@ -19,6 +19,9 @@ export TARGET_IP=beagle01
 export TARGET_ROOT=/home/jogamp/projects-cross
 export TARGET_ANT_HOME=/usr/share/ant
 
+export TARGET_PLATFORM_LIBS=/opt-linux-armv7-eabi
+export TARGET_JAVA_LIBS=/opt-linux-armv7-eabi/jre/lib/arm
+
 ant \
     -Drootrel.build=build-linux-armv7 \
     -Dgluegen.cpptasks.detected.os=true \
