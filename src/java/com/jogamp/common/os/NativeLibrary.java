@@ -41,6 +41,10 @@ package com.jogamp.common.os;
 
 import com.jogamp.gluegen.runtime.NativeLibLoader;
 import jogamp.common.Debug;
+import jogamp.common.os.MacOSXDynamicLinkerImpl;
+import jogamp.common.os.UnixDynamicLinkerImpl;
+import jogamp.common.os.WindowsDynamicLinkerImpl;
+
 import java.io.*;
 import java.lang.reflect.*;
 import java.security.*;

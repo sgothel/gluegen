@@ -42,7 +42,7 @@ package com.jogamp.common.os;
 /** Provides an abstract interface to the OS's low-level dynamic
     linking functionality. */
 
-interface DynamicLinker {
+public interface DynamicLinker {
   public long openLibraryGlobal(String pathname, boolean debug);
   public long openLibraryLocal(String pathname, boolean debug);
   public long lookupSymbol(long libraryHandle, String symbolName);

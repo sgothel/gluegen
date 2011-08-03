@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-#include "com_jogamp_common_os_WindowsDynamicLinkerImpl.h"
+#include "jogamp_common_os_WindowsDynamicLinkerImpl.h"
 
  #include <windows.h>
  /* This typedef is apparently needed for compilers before VC8,
@@ -19,12 +19,12 @@
  #endif
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.WindowsDynamicLinkerImpl
+ *   Java package: jogamp.common.os.WindowsDynamicLinkerImpl
  *    Java method: int FreeLibrary(long hLibModule)
  *     C function: BOOL FreeLibrary(HANDLE hLibModule);
  */
 JNIEXPORT jint JNICALL 
-Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_FreeLibrary__J(JNIEnv *env, jclass _unused, jlong hLibModule) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_FreeLibrary__J(JNIEnv *env, jclass _unused, jlong hLibModule) {
   BOOL _res;
   _res = FreeLibrary((HANDLE) (intptr_t) hLibModule);
   return _res;
@@ -32,12 +32,12 @@ Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_FreeLibrary__J(JNIEnv *env, j
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.WindowsDynamicLinkerImpl
+ *   Java package: jogamp.common.os.WindowsDynamicLinkerImpl
  *    Java method: int GetLastError()
  *     C function: DWORD GetLastError(void);
  */
 JNIEXPORT jint JNICALL 
-Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_GetLastError__(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetLastError__(JNIEnv *env, jclass _unused) {
   DWORD _res;
   _res = GetLastError();
   return _res;
@@ -45,12 +45,12 @@ Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_GetLastError__(JNIEnv *env, j
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.WindowsDynamicLinkerImpl
+ *   Java package: jogamp.common.os.WindowsDynamicLinkerImpl
  *    Java method: long GetProcAddressA(long hModule, java.lang.String lpProcName)
  *     C function: PROC GetProcAddressA(HANDLE hModule, LPCSTR lpProcName);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_GetProcAddressA__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong hModule, jstring lpProcName) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetProcAddressA__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong hModule, jstring lpProcName) {
   const char* _strchars_lpProcName = NULL;
   PROC _res;
   if (lpProcName != NULL) {
@@ -70,12 +70,12 @@ Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_GetProcAddressA__JLjava_lang_
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.WindowsDynamicLinkerImpl
+ *   Java package: jogamp.common.os.WindowsDynamicLinkerImpl
  *    Java method: long LoadLibraryW(java.lang.String lpLibFileName)
  *     C function: HANDLE LoadLibraryW(LPCWSTR lpLibFileName);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryW__Ljava_lang_String_2(JNIEnv *env, jclass _unused, jstring lpLibFileName) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryW__Ljava_lang_String_2(JNIEnv *env, jclass _unused, jstring lpLibFileName) {
   jchar* _strchars_lpLibFileName = NULL;
   HANDLE _res;
   if (lpLibFileName != NULL) {

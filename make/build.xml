@@ -416,9 +416,9 @@
       <javah destdir="${src.generated.c}"         classpath="${classes}" class="jogamp.common.os.MachineDescriptionRuntime" />
       <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.jvm.JVMUtil" />
       <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.nio.PointerBuffer" />
-      <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="com.jogamp.common.os.UnixDynamicLinkerImpl" />
-      <javah destdir="${src.generated.c}/MacOSX"  classpath="${classes}" class="com.jogamp.common.os.MacOSXDynamicLinkerImpl" />
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="com.jogamp.common.os.WindowsDynamicLinkerImpl"/>
+      <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="jogamp.common.os.UnixDynamicLinkerImpl" />
+      <javah destdir="${src.generated.c}/MacOSX"  classpath="${classes}" class="jogamp.common.os.MacOSXDynamicLinkerImpl" />
+      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.common.os.WindowsDynamicLinkerImpl"/>
 
       <echo message="Output lib name = ${output.lib.name} -> ${output.lib.name.os}" />
 

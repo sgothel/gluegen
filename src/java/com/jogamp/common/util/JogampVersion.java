@@ -29,12 +29,15 @@
 package com.jogamp.common.util;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 
 import java.util.Iterator;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
+
+import jogamp.common.os.android.PackageInfoUtil;
 
 public class JogampVersion {
 
@@ -55,7 +58,11 @@ public class JogampVersion {
         this.hash = this.mf.hashCode();
         mainAttributes = this.mf.getMainAttributes();
         mainAttributeNames = mainAttributes.keySet();
-        androidPackageVersionName = AndroidPackageUtil.getAndroidPackageInfoVersionName(packageName);
+        if(AndroidVersion.isAvailable) {
+            androidPackageVersionName = PackageInfoUtil.getPackageInfoVersionName(packageName);
+        } else {
+            androidPackageVersionName = null;
+        }
     }
 
     @Override

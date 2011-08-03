@@ -4,18 +4,18 @@
 
 #include <assert.h>
 
-#include "com_jogamp_common_os_MacOSXDynamicLinkerImpl.h"
+#include "jogamp_common_os_MacOSXDynamicLinkerImpl.h"
 
  #include <dlfcn.h>
  #include </usr/include/machine/types.h>
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.MacOSXDynamicLinkerImpl
+ *   Java package: jogamp.common.os.MacOSXDynamicLinkerImpl
  *    Java method: int dlclose(long __handle)
  *     C function: int dlclose(void *  __handle);
  */
 JNIEXPORT jint JNICALL 
-Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong __handle) {
+Java_jogamp_common_os_MacOSXDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong __handle) {
   int _res;
   _res = dlclose((void *) (intptr_t) __handle);
   return _res;
@@ -23,12 +23,12 @@ Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.MacOSXDynamicLinkerImpl
+ *   Java package: jogamp.common.os.MacOSXDynamicLinkerImpl
  *    Java method: java.lang.String dlerror()
  *     C function: char *  dlerror(void);
  */
 JNIEXPORT jstring JNICALL 
-Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MacOSXDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
   char *  _res;
   _res = dlerror();
   if (_res == NULL) return NULL;  return (*env)->NewStringUTF(env, _res);
@@ -36,12 +36,12 @@ Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass 
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.MacOSXDynamicLinkerImpl
+ *   Java package: jogamp.common.os.MacOSXDynamicLinkerImpl
  *    Java method: long dlopen(java.lang.String __path, int __mode)
  *     C function: void *  dlopen(const char *  __path, int __mode);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring __path, jint __mode) {
+Java_jogamp_common_os_MacOSXDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring __path, jint __mode) {
   const char* _UTF8__path = NULL;
   void *  _res;
   if (__path != NULL) {
@@ -63,12 +63,12 @@ Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(J
 
 
 /*   Java->C glue code:
- *   Java package: com.jogamp.common.os.MacOSXDynamicLinkerImpl
+ *   Java package: jogamp.common.os.MacOSXDynamicLinkerImpl
  *    Java method: long dlsym(long __handle, java.lang.String __symbol)
  *     C function: void *  dlsym(void *  __handle, const char *  __symbol);
  */
 JNIEXPORT jlong JNICALL 
-Java_com_jogamp_common_os_MacOSXDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong __handle, jstring __symbol) {
+Java_jogamp_common_os_MacOSXDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong __handle, jstring __symbol) {
   const char* _UTF8__symbol = NULL;
   void *  _res;
   if (__symbol != NULL) {
