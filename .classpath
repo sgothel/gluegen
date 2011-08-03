@@ -24,6 +24,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="lib" path="make/lib/antlr.jar"/>
-	<classpathentry kind="lib" path="make/lib/android-sdk/9/android.jar"/>
+	<classpathentry kind="lib" path="make/lib/android-sdk/9/android.jar" sourcepath="make/lib/android-sdk/9/android-java-src.zip"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>

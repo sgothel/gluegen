@@ -1,0 +1,22 @@
+Retrieved from public sources as described in script below.
+
+++++
+
+#! bin/sh
+
+git clone git://git.source.android.com/platform/frameworks/base android-api
+cd android-api/
+git checkout gingerbread-release
+
+zipfile=./android-java-src.zip
+
+rm -f $zipfile
+
+jar cvf $zipfile -C core/java .
+
+for i in `find . -maxdepth 2 -name java` ; do
+    if [ "$i" != "core/java" ] ; then
+        jar uvf $zipfile -C $i .
+    fi
+done
+
