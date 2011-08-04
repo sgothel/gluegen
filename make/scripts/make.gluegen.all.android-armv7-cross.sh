@@ -76,8 +76,6 @@ export NDK_READELF=${NDK_XBIN_PATH}/${TARGET_ARCH}-readelf
 
 export PATH=${NDK_XBIN_PATH}:$PATH
 
-export NDK_INCLUDE="-I${TARGET_OS_PATH}/include"
-
 
 export NDK_CFLAGS="\
 -march=${TARGET_CPU_NAME} \

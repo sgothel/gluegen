@@ -26,8 +26,10 @@
       <compilerarg value="${env.TARGET_TOOL_PATH}/libexec/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}" /> 
       <compilerarg value="-march=armv7-a" /> 
       <compilerarg value="-fpic" /> 
-      <compilerarg value="${env.NDK_INCLUDE}" /> 
-      <compilerarg value="-I${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/include" /> <!--inclides stdarg.h -->
+      <compilerarg value="-isystem" /> 
+      <compilerarg value="${env.TARGET_OS_PATH}/include"/>
+      <compilerarg value="-isystem" /> 
+      <compilerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/include" /> <!--includes stdarg.h -->
       <defineset>
         <define name="__unix__"/>
         <define name="ANDROID" />

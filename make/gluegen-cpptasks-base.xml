@@ -317,6 +317,7 @@
       <and>
         <isfalse value="${isWindows}" />
         <isfalse value="${isOSX}" />
+        <isfalse value="${isAndroid}" />
         <isfalse value="${noX11}" />
       </and>
     </condition>
@@ -600,6 +601,7 @@
     <compiler id="compiler.cfg.freebsd" name="gcc">
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="FREEBSD" />
         <define name="BSD" />
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -611,6 +613,7 @@
     <compiler id="compiler.cfg.linux" name="gcc">
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
@@ -621,6 +624,7 @@
       <compilerarg value="-m32"/>
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
@@ -632,6 +636,7 @@
       <compilerarg value="-m64"/>
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
@@ -641,15 +646,21 @@
     <compiler id="compiler.cfg.linux.armv7" name="gcc">
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
     </compiler>
 
+    <compiler id="compiler.cfg.android" name="gcc">
+        <!-- shall be defined in custom ${gluegen-cpptasks.file} ! -->
+    </compiler>
+
     <compiler id="compiler.cfg.freebsd" name="gcc">
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="FREEBSD" />
         <define name="BSD" />
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -669,6 +680,7 @@
       <compilerarg value="+W942,129"/>
       <defineset>
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <!-- aCC doesn't seem to define a generic system macro, a la 
              "__sun". The documentation claims it defines the following,
              but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
@@ -688,6 +700,7 @@
     <compiler id="compiler.cfg.solaris" name="gcc"> 
       <defineset> 
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
@@ -701,6 +714,7 @@
       <compilerarg value="-xarch=v9a" /> 
       <defineset> 
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
@@ -715,6 +729,7 @@
       <compilerarg value="-xcache=64/64/2:1024/64/16" /> 
       <defineset> 
         <define name="__unix__"/>
+        <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
@@ -833,6 +848,10 @@
 
     <linker id="linker.cfg.linux.armv7" name="gcc">
     </linker>
+
+    <compiler id="linker.cfg.android" name="gcc">
+        <!-- shall be defined in custom ${gluegen-cpptasks.file} ! -->
+    </compiler>
 
     <linker id="linker.cfg.hpux" name="aCC">
     </linker>
