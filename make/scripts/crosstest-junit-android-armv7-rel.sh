@@ -30,10 +30,14 @@ LOGFILE=`basename $0 .sh`.log
 #  -Djava.class.path=lib/ant-junit-all.apk:$BUILD_DIR/gluegen-rt.apk \
 #  -Djava.library.path=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
 
+RSYNC_EXCLUDES="--exclude 'build-x86*/' --exclude 'build-linux*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
+                --exclude 'classes/' --exclude 'src/' \
+                --delete-excluded"
+
 echo "#! /system/bin/sh" > $BUILD_DIR/targetcommand.sh
 
 echo "\
-rsync -av --delete --delete-after --exclude 'build-x86*/' $HOST_UID@$HOST_IP::$HOST_RSYNC_ROOT/gluegen $TARGET_ROOT ; \
+rsync -av --delete --delete-after $RSYNC_EXCLUDES $HOST_UID@$HOST_IP::$HOST_RSYNC_ROOT/gluegen $TARGET_ROOT ; \
 cd $TARGET_ROOT/gluegen/make ; \
 export LD_LIBRARY_PATH=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$TARGET_ROOT/gluegen/make/$BUILD_DIR/test/build/natives ; \
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ; \
