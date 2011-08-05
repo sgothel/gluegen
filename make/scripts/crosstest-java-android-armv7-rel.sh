@@ -33,7 +33,7 @@ LOGFILE=`basename $0 .sh`.log
 #  -Djava.library.path=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
 
 RSYNC_EXCLUDES="--exclude 'build-x86*/' --exclude 'build-linux*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
-                --exclude 'classes/' --exclude 'src/' --exclude '.git/' \
+                --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \
                 --delete-excluded"
 
 echo "#! /system/bin/sh" > $BUILD_DIR/targetcommand.sh
@@ -45,7 +45,7 @@ export LD_LIBRARY_PATH=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$TAR
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ; \
 dalvikvm \
   -Xjnigreflimit:2000 \
-  -cp ../make/lib/ant-junit-all.apk:../build-android-armv7/gluegen.apk:../build-android-armv7/test/build/gluegen-test.apk \
+  -cp ../make/lib/ant-junit-all.apk:$BUILD_DIR/gluegen.apk:$BUILD_DIR/test/build/gluegen-test.apk \
   -Djogamp.debug.JNILibLoader=true \
   -Djogamp.debug.NativeLibrary=true \
   -Djogamp.debug.NativeLibrary.Lookup=true \

@@ -218,7 +218,7 @@
         <echo message="${line.separator}
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
-      --exclude 'classes/' --exclude 'src/' --exclude '.git/' \${line.separator}
+      --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \${line.separator}
       ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT} ${line.separator}
 cd ${env.TARGET_ROOT}/gluegen/make ${line.separator}
 export ${system.env.library.path}=${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj:${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives ${line.separator}
@@ -278,7 +278,7 @@ ${line.separator}
         <echo message="${line.separator}
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
-      --exclude 'classes/' --exclude 'src/' --exclude '.git/' \${line.separator}
+      --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \${line.separator}
       ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT} ${line.separator}
 cd ${env.TARGET_ROOT}/gluegen/make ${line.separator}
 export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj:${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives ${line.separator}

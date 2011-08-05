@@ -15,7 +15,7 @@ TSTCLASS=com.jogamp.common.GlueGenVersion
 LOGFILE=`basename $0 .sh`.log
 
 RSYNC_EXCLUDES="--exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
-                --exclude 'classes/' --exclude 'src/' --exclude '.git/' \
+                --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \
                 --delete-excluded"
 
 ssh $TARGET_UID@$TARGET_IP "\

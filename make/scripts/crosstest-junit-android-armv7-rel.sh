@@ -31,7 +31,7 @@ LOGFILE=`basename $0 .sh`.log
 #  -Djava.library.path=/system/lib:$TARGET_ROOT/gluegen/make/$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
 
 RSYNC_EXCLUDES="--exclude 'build-x86*/' --exclude 'build-linux*/' --exclude 'build-win*/' --exclude 'build-mac*/' \
-                --exclude 'classes/' --exclude 'src/' --exclude '.git/' \
+                --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \
                 --delete-excluded"
 
 echo "#! /system/bin/sh" > $BUILD_DIR/targetcommand.sh
