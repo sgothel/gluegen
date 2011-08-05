@@ -693,7 +693,17 @@
     </copy>
   </target>
   
-  <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid" unless="gluegen.build.skip.java" >
+  <target name="gluegen.build.check.aapt" depends="init">
+      <uptodate property="gluegen.build.skip.aapt">
+        <srcfiles dir= "."            includes="*.xml"/>
+        <srcfiles dir= "${src.java}"  includes="**"/>
+        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <mapper type="merge" to="${build}/gluegen.apk"/>
+      </uptodate>
+  </target>
+
+  <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.aapt" if="isAndroid" unless="gluegen.build.skip.aapt" >
 
     <aapt.signed 
         jarbuilddir="${build}"

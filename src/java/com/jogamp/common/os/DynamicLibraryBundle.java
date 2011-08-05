@@ -93,9 +93,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             System.err.println("DynamicLibraryBundle.init Summary: "+info.getClass().getName());
             System.err.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList);
             System.err.println("     Tool Lib Names : "+toolLibNames);
-            System.err.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+", complete "+isToolLibComplete());
+            System.err.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+" "+Arrays.toString(toolLibLoaded)+", complete "+isToolLibComplete());
             System.err.println("     Glue Lib Names : "+glueLibNames);
-            System.err.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+", complete "+isGlueLibComplete());
+            System.err.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+" "+Arrays.toString(glueLibLoaded)+", complete "+isGlueLibComplete());
             System.err.println("     All Complete: "+isLibComplete());
         }
     }
@@ -112,6 +112,12 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return toolLibLoadedNumber;
     }
 
+    /**
+     * @return true if all tool libraries are loaded,
+     *         otherwise false.
+     *         
+     * @see DynamicLibraryBundleInfo#getToolLibNames()
+     */
     public final boolean isToolLibComplete() {
         return getToolLibNumber() == getToolLibLoadedNumber();
     }
@@ -135,8 +141,15 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return glueLibLoadedNumber;
     }
 
+    /**
+     * @return true if the last entry has been loaded,
+     *         while ignoring the preload dependencies. 
+     *         Otherwise false.
+     *         
+     * @see DynamicLibraryBundleInfo#getGlueLibNames()
+     */
     public final boolean isGlueLibComplete() {
-        return getGlueLibNumber() == getGlueLibLoadedNumber();
+        return isGlueLibLoaded(getGlueLibNumber() - 1);
     }
 
     public final boolean isGlueLibLoaded(int i) {
