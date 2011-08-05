@@ -3,7 +3,8 @@
       sharedUserId="com.jogamp.Community" 
       package="com.jogamp.gluegen.test">
 
-    <uses-sdk android:minSdkVersion="8" />
+    <uses-sdk android:minSdkVersion="9" />
+    <uses-library android:name="com.jogamp.common" android:required="true" />
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_name"

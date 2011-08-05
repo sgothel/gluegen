@@ -693,7 +693,7 @@
     </copy>
   </target>
   
-  <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid">
+  <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" if="isAndroid" unless="gluegen.build.skip.java" >
 
     <aapt.signed 
         jarbuilddir="${build}"
@@ -701,6 +701,7 @@
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
         androidmanifest.path="resources/android/AndroidManifest-Runtime.xml"
+        androidresources.path="resources/android/res"
         jarmanifest.path="${build}/Manifest-rt.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}" />
@@ -711,6 +712,7 @@
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
         androidmanifest.path="resources/android/AndroidManifest-CompileTime.xml"
+        androidresources.path="resources/android/res"
         jarmanifest.path="${build}/Manifest.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}" />

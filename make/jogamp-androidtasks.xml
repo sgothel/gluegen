@@ -14,6 +14,7 @@
             nativebuilddir="${gluegen.lib.dir}" // native library build location
             nativebasename="gluegen-rt"         // native library base file name "*${nativebasename}*.${native.library.suffix}"
             androidmanifest.path="resources/android/AndroidManifest.xml"
+            androidresources.path="resources/android/res"
             jarmanifest.path="${build}/Manifest-rt.temp" // optional
             version.code="${gluegen_int_version}"
             version.name="${gluegen.version.plus}" 
@@ -36,6 +37,7 @@
       <attribute name="nativebuilddir" />
       <attribute name="nativebasename" />
       <attribute name="androidmanifest.path" />
+      <attribute name="androidresources.path" />
       <attribute name="jarmanifest.path" default="/non.existing.manifest.file"/>
       <!-- attribute name="jarclasspathrefid" default="/non.existing.jarclasspathrefid"/-->
       <attribute name="version.code" />
@@ -47,7 +49,7 @@
       <sequential>
         <var name="m.aapt.build.apk" unset="true"/>
         <var name="m.aapt.dex.file" unset="true"/>
-        <var name="m.aapt.resource.package.file.name" unset="true"/>
+        <var name="m.aapt.unsigned.package.file.name" unset="true"/>
         <var name="m.aapt.signed.file.name" unset="true"/>
         <var name="m.aapt.release.file.name" unset="true"/>
         <var name="m.aapt.keystore.file" unset="true"/>
@@ -58,8 +60,8 @@
 
         <property name="m.aapt.build.apk" value="@{jarbuilddir}/@{jarbasename}.apk.d" />
         <property name="m.aapt.dex.file" location="${m.aapt.build.apk}/image/classes.dex" />
-        <property name="m.aapt.resource.package.file.name" value="${m.aapt.build.apk}/@{jarbasename}.ap_" />
-        <property name="m.aapt.signed.file.name" value="${m.aapt.build.apk}/@{jarbasename}-sign.ap_" />
+        <property name="m.aapt.unsigned.package.file.name" value="@{jarbuilddir}/@{jarbasename}-unsigned.apk" />
+        <property name="m.aapt.signed.file.name" value="${m.aapt.build.apk}/@{jarbasename}-signed-raw.apk" />
         <property name="m.aapt.release.file.name" value="@{jarbuilddir}/@{jarbasename}.apk" />
 
         <property name="m.aapt.java.encoding" value="UTF-8" />
@@ -93,7 +95,7 @@
             <arg line="--debug-mode"/>
             <arg line="-f"/>
             <arg line="-S"/>
-            <arg line="resources/android/res"/>
+            <arg line="@{androidresources.path}"/>
             <arg line="-M"/>
             <arg line="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
             <arg line="-I"/>
@@ -140,7 +142,7 @@
             <arg line="-f"/>
 
             <arg line="-S" />
-            <arg value="resources/android/res"/>
+            <arg value="@{androidresources.path}"/>
 
             <arg line="-A" />
             <arg value="${m.aapt.build.apk}/image/lib/assets"/>
@@ -155,7 +157,7 @@
             <arg value="@{version.name}"/>
 
             <arg line="-F" />
-            <arg value="${m.aapt.resource.package.file.name}"/>
+            <arg value="${m.aapt.unsigned.package.file.name}"/>
 
             <arg line="${m.aapt.build.apk}/image/"/>
         </exec>
@@ -182,7 +184,7 @@
 
         <echo>aapt.signed @{jarbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
         <signjar
-              jar="${m.aapt.resource.package.file.name}"
+              jar="${m.aapt.unsigned.package.file.name}"
               signedjar="${m.aapt.signed.file.name}"
               keystore="${m.aapt.keystore.file}"
               alias="@{keystore.alias}"
