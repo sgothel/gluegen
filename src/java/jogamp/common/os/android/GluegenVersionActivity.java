@@ -43,7 +43,7 @@ public class GluegenVersionActivity extends Activity {
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
-       PackageInfoUtil.setContext(this.getApplicationContext());
+       StaticContext.setContext(this.getApplicationContext());
        tv = new TextView(this);
        tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+Platform.NEWLINE);               
        setContentView(tv);
@@ -109,7 +109,7 @@ public class GluegenVersionActivity extends Activity {
          tv.append("> destroyed"+Platform.NEWLINE);
      }
      Log.d(MD.TAG, "onDestroy - x");
-     PackageInfoUtil.setContext(null);
+     StaticContext.setContext(null);
      super.onDestroy();  
      Log.d(MD.TAG, "onDestroy - X");
    }   

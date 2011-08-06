@@ -28,36 +28,17 @@
 package jogamp.common.os.android;
 
 import android.content.*;
-import android.content.pm.*;
 import android.util.Log;
 
-public class PackageInfoUtil {
+public class StaticContext {
+   private static Context context = null;
    private static boolean DEBUG = false;
    
-   public static final PackageInfo getPackageInfo(String packageName) {
-       return getPackageInfo(StaticContext.getContext(), packageName);
+   public static final synchronized void setContext(Context ctx) {
+       if(DEBUG) Log.d(MD.TAG, "setContext("+ctx+")");
+       context = ctx;
    }
-   
-   public static final PackageInfo getPackageInfo(Context ctx, String packageName) {
-       if(null != ctx) {
-           try {
-               final PackageInfo pi = ctx.getPackageManager().getPackageInfo(packageName, PackageManager.GET_META_DATA);
-               if(DEBUG) Log.d(MD.TAG, "getPackageInfo("+packageName+"): "+pi);
-               return pi;
-           } catch (Exception e) { if(DEBUG) { Log.d(MD.TAG, "getPackageInfo("+packageName+")", e); } }
-       }
-       if(DEBUG) Log.d(MD.TAG, "getPackageInfo("+packageName+"): NULL");
-       return null;
+   public static final synchronized Context getContext() {
+       return context;
    }
-   
-   public static final int getPackageInfoVersionCode(String packageName) {
-       final PackageInfo pInfo = getPackageInfo(packageName);
-       return ( null != pInfo ) ? pInfo.versionCode : -1 ;
-   }   
-   public static final String getPackageInfoVersionName(String packageName) {
-       final PackageInfo pInfo = getPackageInfo(packageName);
-       final String s = ( null != pInfo ) ? pInfo.versionName : null ;
-       if(DEBUG) Log.d(MD.TAG, "getPackageInfoVersionName("+packageName+"): "+s);
-       return s;
-   }   
 }
