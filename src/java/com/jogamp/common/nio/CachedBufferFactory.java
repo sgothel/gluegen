@@ -153,18 +153,27 @@ public class CachedBufferFactory {
     
     /**
      * Returns the allocation size used to create new internal buffers.
-     * This represents the initial size if {@link #isFixed()} == true.
+     * 0 means that the buffer will not grows, see {@link #isFixed()}.
      */
     public int getAllocationSize() {
         return ALLOCATION_SIZE;
     }
     
+    /**
+     * @return true if buffer cannot grow, otherwise false
+     */
     private void checkIfFixed() {
-        if(ALLOCATION_SIZE == -1) {
+        if(ALLOCATION_SIZE == 0) {
             throw new RuntimeException("fixed size buffer factory ran out ouf bounds.");
         }
     }
 
+    public void destroy() {
+        if(null != currentBuffer) {
+            currentBuffer.clear();
+            currentBuffer = null;
+        }
+    }
     public ByteBuffer newDirectByteBuffer(int size) {
         
         // if large enough... just create it
