@@ -56,13 +56,27 @@ public interface DynamicLibraryBundleInfo {
     /** May return the native libraries <pre>GetProcAddressFunc</pre> names, the first found function is being used.<br>
      * This could be eg: <pre> glXGetProcAddressARB, glXGetProcAddressARB </pre>.<br>
      * If your Tool does not has this facility, just return null.
+     * @see #toolGetProcAddress(long, String)
      */
     public List getToolGetProcAddressFuncNameList() ; 
 
     /** May implement the lookup function using the Tools facility.<br>
+     * The actual function pointer is provided to allow proper bootstrapping of the ProcAddressTable,
+     * using one of the provided function names by {@link #getToolGetProcAddressFuncNameList()}.<br>
+     */
+    public long toolGetProcAddress(long toolGetProcAddressHandle, String funcName);
+
+    /** May implement the lookup function using the Tools facility.<br>
      * The actual function pointer is provided to allow proper bootstrapping of the ProcAddressTable.<br>
      */
-    public long toolDynamicLookupFunction(long toolGetProcAddressHandle, String funcName);
+    
+    /**
+     * @param funcName
+     * @return true if {@link #toolGetProcAddress(long, String)} shall be tried before 
+     *         the system loader for the given function lookup. Otherwise false.
+     *         Default is <b>true</b>.
+     */
+    public boolean useToolGetProcAdressFirst(String funcName);
 
     /** @return true if the native library symbols shall be made available for symbol resolution of subsequently loaded libraries. */
     public boolean shallLinkGlobal();

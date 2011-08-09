@@ -306,6 +306,19 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return addr;
     }
 
+    private long toolDynamicLookupFunction(String funcName) {
+        if(0 != toolGetProcAddressHandle) {
+            long addr = info.toolGetProcAddress(toolGetProcAddressHandle, funcName);
+            if(DEBUG_LOOKUP) {
+                if(0!=addr) {
+                    System.err.println("Lookup-Tool: <"+funcName+"> 0x"+Long.toHexString(addr));
+                }
+            }
+            return addr;
+        }
+        return 0;
+    }
+    
     public long dynamicLookupFunction(String funcName) {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {
@@ -319,17 +332,16 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
 
         long addr = 0;
+        final boolean useToolGetProcAdressFirst = info.useToolGetProcAdressFirst(funcName);
 
-        if(0 != toolGetProcAddressHandle) {
-            addr = info.toolDynamicLookupFunction(toolGetProcAddressHandle, funcName);
-            if(DEBUG_LOOKUP) {
-                if(0!=addr) {
-                    System.err.println("Lookup-Tool: <"+funcName+"> 0x"+Long.toHexString(addr));
-                }
-            }
+        if(useToolGetProcAdressFirst) {
+            addr = toolDynamicLookupFunction(funcName);
         }
         if(0==addr) {
             addr = dynamicLookupFunctionOnLibs(funcName);
+        }
+        if(0==addr && !useToolGetProcAdressFirst) {
+            addr = toolDynamicLookupFunction(funcName);            
         }
         return addr;
     }
