@@ -62,13 +62,17 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
         }
     }
     if(DEBUG) {
-            System.err.println("WindowsDynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> "+_symbolName+", 0x"+Long.toHexString(addr));
+        System.err.println("WindowsDynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> "+_symbolName+", 0x"+Long.toHexString(addr));
     }
     return addr;
   }
   
   public long lookupSymbolGlobal(String symbolName) {
-    throw new RuntimeException("lookupSymbolGlobal: Not supported on Windows");
+    if(DEBUG) {
+        System.err.println("lookupSymbolGlobal: Not supported on Windows");
+    }
+    // allow DynamicLibraryBundle to continue w/ local libs
+    return 0;
   }
 
   public void closeLibrary(long libraryHandle) {
