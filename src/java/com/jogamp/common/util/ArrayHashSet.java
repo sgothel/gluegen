@@ -34,8 +34,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /** 
  * Hashed ArrayList implementation of the List and Collection interface.
@@ -47,7 +45,7 @@ import java.util.logging.Logger;
  *       ie {@link java.util.List#indexOf(java.lang.Object)}
  *       and {@link java.util.List#get(int)}, hence object identity can be implemented.</li>
  *  <li> Object identity via {@link #get(java.lang.Object)}</li>
- *  <li> Java 1.3 compatible</li>
+ *  <li> Java 1.5 compatible</li>
  *  </ul>
  *
  * O(1) operations:
@@ -67,12 +65,11 @@ import java.util.logging.Logger;
  * {@link com.jogamp.common.util.locks.RecursiveLock}.
  *
 */
-
-public class ArrayHashSet
-    implements Cloneable, Collection, List
+public class ArrayHashSet<E>
+    implements Cloneable, Collection<E>, List<E>
 {
-    HashMap   map  = new HashMap();   // object -> object
-    ArrayList data = new ArrayList(); // list of objects
+    HashMap<E,E>   map  = new HashMap<E,E>();   // object -> object
+    ArrayList<E> data = new ArrayList<E>(); // list of objects
 
     public ArrayHashSet() {
         clear();
@@ -86,9 +83,9 @@ public class ArrayHashSet
      * @return a shallow copy of this ArrayHashSet, elements are not copied.
      */
     public final Object clone() {
-        ArrayList clonedList = (ArrayList)data.clone();
+        ArrayList<E> clonedList = (ArrayList<E>)data.clone();
 
-        ArrayHashSet newObj = new ArrayHashSet();
+        ArrayHashSet<E> newObj = new ArrayHashSet<E>();
         newObj.addAll(clonedList);
 
         return newObj;
@@ -111,7 +108,7 @@ public class ArrayHashSet
      * @return true if the element was added to this list,
      *         otherwise false (already contained).
      */
-    public final boolean add(Object element) {
+    public final boolean add(E element) {
         boolean exists = map.containsKey(element);
         if(!exists) {
             if(null != map.put(element, element)) {
@@ -151,9 +148,9 @@ public class ArrayHashSet
      * @return true if at least one element was added to this list,
      *         otherwise false (completely container).
      */
-    public final boolean addAll(Collection c) {
+    public final boolean addAll(Collection<? extends E> c) {
         boolean mod = false;
-        for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+        for (Iterator<? extends E> iter = c.iterator(); iter.hasNext(); ) {
             mod = mod || add(iter.next()) ;
         }
         return mod;
@@ -179,8 +176,8 @@ public class ArrayHashSet
      * @return true if the given Collection is completly contained by this list using hash map,
      *         otherwise false.
      */
-    public final boolean containsAll(Collection c) {
-        for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+    public final boolean containsAll(Collection<?> c) {
+        for (Iterator<?> iter = c.iterator(); iter.hasNext(); ) {
             if (! this.contains(iter.next()) ) {
                 return false;
             }
@@ -196,9 +193,9 @@ public class ArrayHashSet
      * @return true if at least one element of this list was removed,
      *         otherwise false.
      */
-    public final boolean removeAll(Collection c) {
+    public final boolean removeAll(Collection<?> c) {
         boolean mod = false;
-        for (Iterator iter = c.iterator(); iter.hasNext(); ) {
+        for (Iterator<?> iter = c.iterator(); iter.hasNext(); ) {
             mod = this.remove(iter.next()) || mod;
         }
         return mod;
@@ -213,9 +210,9 @@ public class ArrayHashSet
      * @return true if at least one element of this list was removed,
      *         otherwise false.
      */
-    public final boolean retainAll(Collection c) {
+    public final boolean retainAll(Collection<?> c) {
         boolean mod = false;
-        for (Iterator iter = this.iterator(); iter.hasNext(); ) {
+        for (Iterator<?> iter = this.iterator(); iter.hasNext(); ) {
             Object o = iter.next();
             if (! c.contains(o) ) {
                 mod = this.remove(o) || mod;
@@ -234,7 +231,7 @@ public class ArrayHashSet
         if ( !(arrayHashSet instanceof ArrayHashSet) ) {
             return false;
         }
-        return data.equals(((ArrayHashSet)arrayHashSet).data);
+        return data.equals(((ArrayHashSet<?>)arrayHashSet).data);
     }
 
     /**
@@ -251,7 +248,7 @@ public class ArrayHashSet
         return data.isEmpty();
     }
 
-    public final Iterator iterator() {
+    public final Iterator<E> iterator() {
         return data.iterator();
     }
 
@@ -263,7 +260,7 @@ public class ArrayHashSet
         return data.toArray();
     }
 
-    public final Object[] toArray(Object[] a) {
+    public final <T> T[] toArray(T[] a) {
         return data.toArray(a);
     }
 
@@ -271,7 +268,7 @@ public class ArrayHashSet
     // List
     //
 
-    public final Object get(int index) {
+    public final E get(int index) {
         return data.get(index);
     }
 
@@ -286,7 +283,7 @@ public class ArrayHashSet
      *
      * @throws IllegalArgumentException if the given element was already contained
      */
-    public final void add(int index, Object element) {
+    public final void add(int index, E element) {
         if ( map.containsKey(element) ) {
             throw new IllegalArgumentException("Element "+element+" is already contained");
         }
@@ -299,15 +296,15 @@ public class ArrayHashSet
     /**
      * @throws UnsupportedOperationException
      */
-    public final boolean addAll(int index, Collection c) {
+    public final boolean addAll(int index, Collection<? extends E> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**
      * @throws UnsupportedOperationException
      */
-    public final Object set(int index, Object element) {
-        Object old = remove(index);
+    public final E set(int index, E element) {
+        E old = remove(index);
         if(null!=old) {
             add(index, element);
         }
@@ -321,8 +318,8 @@ public class ArrayHashSet
      *
      * @return the removed object
      */
-    public final Object remove(int index) {
-        Object o = get(index);
+    public final E remove(int index) {
+        E o = get(index);
         if( null!=o && remove(o) ) {
             return o;
         }
@@ -340,15 +337,15 @@ public class ArrayHashSet
         return indexOf(o);
     }
 
-    public final ListIterator listIterator() {
+    public final ListIterator<E> listIterator() {
         return data.listIterator();
     }
 
-    public final ListIterator listIterator(int index) {
+    public final ListIterator<E> listIterator(int index) {
         return data.listIterator(index);
     }
 
-    public final List subList(int fromIndex, int toIndex) {
+    public final List<E> subList(int fromIndex, int toIndex) {
         return data.subList(fromIndex, toIndex);
     }
 
@@ -359,8 +356,8 @@ public class ArrayHashSet
     /**
      * @return a shallow copy of this ArrayHashSet's ArrayList, elements are not copied.
      */
-    public final ArrayList toArrayList() {
-        return (ArrayList) data.clone();
+    public final ArrayList<E> toArrayList() {
+        return (ArrayList<E>) data.clone();
     }
 
     /**
@@ -372,7 +369,7 @@ public class ArrayHashSet
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or null if not contained
      */
-    public final Object get(Object key) {
+    public final E get(Object key) {
         return map.get(key);
     }
 
@@ -386,8 +383,8 @@ public class ArrayHashSet
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or add the given <code>key</code> and return it.
      */
-    public final Object getOrAdd(Object key) {
-        Object identity = get(key);
+    public final E getOrAdd(E key) {
+        E identity = get(key);
         if(null == identity) {
             // object not contained yet, add it
             if(!this.add(key)) {

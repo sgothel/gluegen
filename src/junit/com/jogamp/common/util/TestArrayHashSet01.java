@@ -32,9 +32,6 @@ import java.util.*;
 import java.io.IOException;
 
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 public class TestArrayHashSet01 {
@@ -71,7 +68,7 @@ public class TestArrayHashSet01 {
         }
     }
 
-    public void populate(List l, int start, int len, int i2, int i3, int expectedPlusSize) {
+    public void populate(List<Dummy> l, int start, int len, int i2, int i3, int expectedPlusSize) {
         int oldSize = l.size();
         int pos = start+len-1;
         while(pos>=start) {
@@ -82,8 +79,7 @@ public class TestArrayHashSet01 {
 
     @Test
     public void test01ArrayHashSet() {
-        int sum=0;
-        ArrayHashSet l = new ArrayHashSet();
+        ArrayHashSet<Dummy> l = new ArrayHashSet<Dummy>();
         populate(l, 10, 100, 22, 34, 100); // [10 .. 109]
         populate(l, 10, 100, 22, 34,   0); // [10 .. 109]
         populate(l,  6,   5, 22, 34,   4); // [ 6 .. 9], 10 already exists
@@ -92,14 +88,14 @@ public class TestArrayHashSet01 {
 
         // slow get on position ..
         int i = l.indexOf(p6_22_34);
-        Dummy q = (Dummy) l.get(i);
+        Dummy q = l.get(i);
         Assert.assertNotNull(q);
         Assert.assertEquals(p6_22_34, q);
         Assert.assertTrue(p6_22_34.hashCode() == q.hashCode());
         Assert.assertTrue(p6_22_34 != q); // diff reference
 
         // fast identity ..
-        q = (Dummy) l.get(p6_22_34);
+        q = l.get(p6_22_34);
         Assert.assertNotNull(q);
         Assert.assertEquals(p6_22_34, q);
         Assert.assertTrue(p6_22_34.hashCode() == q.hashCode());
@@ -108,14 +104,14 @@ public class TestArrayHashSet01 {
         Assert.assertTrue(!l.add(q)); // add same
         Assert.assertTrue(!l.add(p6_22_34)); // add equivalent
 
-        q = (Dummy) l.getOrAdd(p6_22_34); // not added test
+        q = l.getOrAdd(p6_22_34); // not added test
         Assert.assertNotNull(q);
         Assert.assertEquals(p6_22_34, q);
         Assert.assertTrue(p6_22_34.hashCode() == q.hashCode());
         Assert.assertTrue(p6_22_34 != q); // diff reference
 
         Dummy p1_2_3 = new Dummy(1, 2, 3); // a new one ..
-        q = (Dummy) l.getOrAdd(p1_2_3); // added test
+        q = l.getOrAdd(p1_2_3); // added test
         Assert.assertNotNull(q);
         Assert.assertEquals(p1_2_3, q);
         Assert.assertTrue(p1_2_3.hashCode() == q.hashCode());
