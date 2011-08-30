@@ -1,9 +1,10 @@
 #! /bin/sh
 
-if [ -e ../../setenv-build-jogl-x86.sh ] ; then
-  . ../../setenv-build-jogl-x86.sh
-fi
+SDIR=`dirname $0` 
 
+if [ -e $SDIR/setenv-build-jogl-x86.sh ] ; then
+    . $SDIR/setenv-build-jogl-x86.sh
+fi
 
 #    -Dc.compiler.debug=true 
 #    -Dgluegen.cpptasks.detected.os=true \

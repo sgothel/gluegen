@@ -1,7 +1,9 @@
 #! /bin/sh
 
-if [ -e ../../setenv-build-jogl-x86_64.sh ] ; then
-    . ../../setenv-build-jogl-x86_64.sh
+SDIR=`dirname $0` 
+
+if [ -e $SDIR/setenv-build-jogl-x86_64.sh ] ; then
+    . $SDIR/setenv-build-jogl-x86_64.sh
 fi
 
 #    -Dc.compiler.debug=true 
