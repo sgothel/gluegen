@@ -28,7 +28,10 @@
  
 package com.jogamp.common.os;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
 
@@ -55,18 +58,18 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     private DynamicLibraryBundleInfo info;
 
-    private List/*<List<String>>*/ toolLibNames;
+    private List<List<String>> toolLibNames;
     private boolean[] toolLibLoaded;
     private int toolLibLoadedNumber;
-    protected List/*<NativeLibrary>*/ nativeLibraries;
+    protected List<NativeLibrary> nativeLibraries;
 
-    private List/*<String>*/ glueLibNames;
+    private List<String> glueLibNames;
     private boolean[] glueLibLoaded;
     private int glueLibLoadedNumber;
 
     private long toolGetProcAddressHandle;
-    private HashSet toolGetProcAddressFuncNameSet;
-    private List toolGetProcAddressFuncNameList;
+    private HashSet<String> toolGetProcAddressFuncNameSet;
+    private List<String> toolGetProcAddressFuncNameList;
 
     public DynamicLibraryBundle(DynamicLibraryBundleInfo info) {
         if(null==info) {
@@ -77,16 +80,16 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.init start with: "+info.getClass().getName());
             Thread.dumpStack();
         }
-        nativeLibraries = new ArrayList();
+        nativeLibraries = new ArrayList<NativeLibrary>();
         toolLibNames = info.getToolLibNames();
         glueLibNames = info.getGlueLibNames();
         loadLibraries();
         toolGetProcAddressFuncNameList = info.getToolGetProcAddressFuncNameList();
         if(null!=toolGetProcAddressFuncNameList) {
-            toolGetProcAddressFuncNameSet = new HashSet(toolGetProcAddressFuncNameList);
+            toolGetProcAddressFuncNameSet = new HashSet<String>(toolGetProcAddressFuncNameList);
             toolGetProcAddressHandle = getToolGetProcAddressHandle();
         } else {
-            toolGetProcAddressFuncNameSet = new HashSet();
+            toolGetProcAddressFuncNameSet = new HashSet<String>();
             toolGetProcAddressHandle = 0;
         }
         if(DEBUG) {
@@ -166,8 +169,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             return 0;
         }
         long aptr = 0;
-        for(Iterator iter=toolGetProcAddressFuncNameList.iterator(); 0==aptr && iter.hasNext(); ) {
-            String name = (String) iter.next();
+        for (int i=0; i < toolGetProcAddressFuncNameList.size(); i++) {
+            final String name = toolGetProcAddressFuncNameList.get(i);
             aptr = dynamicLookupFunctionOnLibs(name);
             if(DEBUG) {
                 System.err.println("getToolGetProcAddressHandle: "+name+" -> 0x"+Long.toHexString(aptr));
@@ -176,9 +179,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return aptr;
     }
 
-    protected NativeLibrary loadFirstAvailable(List/*<String>*/ libNames, ClassLoader loader, boolean global) {
-        for (Iterator iter = libNames.iterator(); iter.hasNext(); ) {
-            NativeLibrary lib = NativeLibrary.open((String) iter.next(), loader, global);
+    protected NativeLibrary loadFirstAvailable(List<String> libNames, ClassLoader loader, boolean global) {
+        for (int i=0; i < libNames.size(); i++) {            
+            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), loader, global);
             if (lib != null) {
                 return lib;
             }
@@ -216,18 +219,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         ClassLoader loader = getClass().getClassLoader();
         NativeLibrary lib = null;
 
-        i=0;
-        for(Iterator iter = toolLibNames.iterator(); iter.hasNext(); i++) {
-            Object listObj = iter.next();
-            List/*<String>*/ libNames = null;
-            if(listObj instanceof List) {
-                libNames = (List) listObj;
-            } else if(listObj instanceof String) {
-                libNames = new ArrayList();
-                libNames.add((String)listObj);
-            } else {
-                throw new RuntimeException("List element "+i+" must be either a List or String: "+toolLibNames);
-            }
+        for (i=0; i < toolLibNames.size(); i++) {    
+            final List<String> libNames = toolLibNames.get(i);
             if( null != libNames && libNames.size() > 0 ) {
                 lib = loadFirstAvailable(libNames, loader, info.shallLinkGlobal());
                 if ( null == lib ) {
@@ -252,9 +245,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
 
         glueLibLoadedNumber = 0;
-        i=0;
-        for(Iterator iter = glueLibNames.iterator(); iter.hasNext(); i++) {
-            String libName = (String) iter.next();
+        for (i=0; i < glueLibNames.size(); i++) {    
+            final String libName = glueLibNames.get(i);
             boolean ignoreError = true;
             boolean res;
             try {
@@ -291,8 +283,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             addr = NativeLibrary.dynamicLookupFunctionGlobal(funcName);
         }
         // Look up this function name in all known libraries
-        for (Iterator iter = nativeLibraries.iterator(); 0==addr && iter.hasNext(); ) {
-            lib = (NativeLibrary) iter.next();
+        for (int i=0; 0==addr && i < nativeLibraries.size(); i++) {
+            lib = nativeLibraries.get(i);
             addr = lib.dynamicLookupFunction(funcName);
         }
         if(DEBUG_LOOKUP) {

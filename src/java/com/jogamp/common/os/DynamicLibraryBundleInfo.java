@@ -40,7 +40,7 @@ public interface DynamicLibraryBundleInfo {
      * <li>Cg/CgGL example: [ [ "libCg.so", "Cg" ], [ "libCgGL.so", "CgGL" ] ] </li>
      * </pre>
      */
-    public List getToolLibNames();
+    public List<List<String>> getToolLibNames();
 
     /** @return a list of Glue library names.<br>
      * <ul>
@@ -51,14 +51,14 @@ public interface DynamicLibraryBundleInfo {
      * Only the last entry is crucial, ie all other are optional preload dependencies and may generate errors,
      * which are ignored.
      */
-    public List/*<String>*/ getGlueLibNames();
+    public List<String> getGlueLibNames();
 
     /** May return the native libraries <pre>GetProcAddressFunc</pre> names, the first found function is being used.<br>
      * This could be eg: <pre> glXGetProcAddressARB, glXGetProcAddressARB </pre>.<br>
      * If your Tool does not has this facility, just return null.
      * @see #toolGetProcAddress(long, String)
      */
-    public List getToolGetProcAddressFuncNameList() ; 
+    public List<String> getToolGetProcAddressFuncNameList() ; 
 
     /** May implement the lookup function using the Tools facility.<br>
      * The actual function pointer is provided to allow proper bootstrapping of the ProcAddressTable,
