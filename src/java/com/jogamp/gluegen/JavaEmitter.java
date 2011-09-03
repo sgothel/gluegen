@@ -1390,7 +1390,7 @@ public class JavaEmitter implements GlueEmitter {
     Class<?> c = javaType.getJavaClass();
     if (!isIntegerType(c)) {
       // FIXME
-      throw new RuntimeException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.)");
+      throw new RuntimeException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.): type: "+fieldType+", javaType "+javaType+", javaClass "+c);
     }
     switch ((int) fieldType.getSize(curMachDesc)) {
       case 1:  return "byte";

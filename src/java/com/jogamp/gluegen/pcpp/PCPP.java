@@ -319,11 +319,11 @@ public class PCPP {
     }
 
     private String filename() {
-        return state.filename();
+        return (null != state) ? state.filename() : null;
     }
 
     private int lineNumber() {
-        return state.lineNumber();
+        return (null != state) ? state.lineNumber() : -1;
     }
 
     /////////////
