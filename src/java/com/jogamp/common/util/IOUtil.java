@@ -35,17 +35,21 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.AccessController;
 import java.net.JarURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+
+import jogamp.common.Debug;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
+    private static final boolean DEBUG = Debug.isPropertyDefined("jogamp.debug.IOUtil", true, AccessController.getContext());
+    
     private IOUtil() {}
     
     /***
@@ -219,24 +223,38 @@ public class IOUtil {
     
     /**
      * Locating a resource using 'getResource(String path, ClassLoader cl)',
-     * with the given context's ClassLoader and the resourcePath as is,
-     * as well with the context's package name-path plus the resourcePath.
+     * with the 
+     * <ul>
+     *   <li>context's package name-path plus the resourcePath (incl. JAR/Applets)</li>
+     *   <li>context's ClassLoader and the resourcePath as is (filesystem)</li>
+     * </ul>
      *
      * @see #getResource(String, ClassLoader)
      */
-    public static URL getResource(Class context, String resourcePath) {
+    public static URL getResource(Class<?> context, String resourcePath) {
         if(null == resourcePath) {
             return null;
         }
         ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
-        URL url = getResource(resourcePath, contextCL);
-        if (url == null && null!=context) {
-            // Try again by scoping the path within the class's package
+        URL url = null;
+        if(null != context) {
+            // scoping the path within the class's package
             String className = context.getName().replace('.', '/');
             int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
                 String tmpPath = className.substring(0, lastSlash + 1) + resourcePath;
                 url = getResource(tmpPath, contextCL);
+            }
+            if(DEBUG) {
+                System.err.println("IOUtil: found <"+resourcePath+"> within class package: "+(null!=url));
+            }
+        } else if(DEBUG) {
+            System.err.println("IOUtil: null context");
+        }
+        if(null == url) {        
+            url = getResource(resourcePath, contextCL);
+            if(DEBUG) {
+                System.err.println("IOUtil: found <"+resourcePath+"> by classloader: "+(null!=url));
             }
         }
         return url;
@@ -251,39 +269,55 @@ public class IOUtil {
      * @see URL#URL(String)
      * @see File#File(String)
      */
+    @SuppressWarnings("deprecation")
     public static URL getResource(String resourcePath, ClassLoader cl) {
         if(null == resourcePath) {
             return null;
         }
+        if(DEBUG) {
+            System.err.println("IOUtil: locating <"+resourcePath+">, has cl: "+(null!=cl));
+        }
         URL url = null;
         if (cl != null) {
             url = cl.getResource(resourcePath);
-            if(!urlExists(url)) {
+            if(!urlExists(url, "cl.getResource()")) {
                 url = null;
-            }            
-        } 
+            }
+        }
         if(null == url) {
             url = ClassLoader.getSystemResource(resourcePath);
-            if(!urlExists(url)) {
+            if(!urlExists(url, "cl.getSystemResource()")) {
                 url = null;
-            }            
+            }
         }
         if(null == url) {
             try {
                 url = new URL(resourcePath);
-                if(!urlExists(url)) {
+                if(!urlExists(url, "new URL()")) {
                     url = null;
                 }
-            } catch (MalformedURLException e) { }
+            } catch (Throwable e) { 
+                if(DEBUG) {
+                    System.err.println("IOUtil: Catched Exception:");
+                    e.printStackTrace();
+                }                
+            }
         }
         if(null == url) {
             try {
                 File file = new File(resourcePath);
                 if(file.exists()) {
                     url = file.toURL();
-                } else {
                 }
-            } catch (MalformedURLException e) {}
+            } catch (Throwable e) {
+                if(DEBUG) {
+                    System.err.println("IOUtil: Catched Exception:");
+                    e.printStackTrace();
+                }
+            }
+            if(DEBUG) {
+                System.err.println("IOUtil: file.exists("+resourcePath+") - "+(null!=url));
+            }
         }
         return url;
     }
@@ -339,13 +373,27 @@ public class IOUtil {
      * Returns true, if the URL exists and a connection could be opened.
      */
     public static boolean urlExists(URL url) {
+        return urlExists(url, ".");
+    }
+    
+    public static boolean urlExists(URL url, String dbgmsg) {
         boolean v = false;
         if(null!=url) {
             try {
-                URLConnection uc = url.openConnection();
+                url.openConnection();
                 v = true;
-            } catch (IOException ioe) { }
-        }
+                if(DEBUG) {
+                    System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - true");
+                }
+            } catch (IOException ioe) { 
+                if(DEBUG) {
+                    System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - false: "+ioe.getMessage());
+                }                
+            }
+        } else if(DEBUG) {
+            System.err.println("IOUtil: no url - urlExists(null) ["+dbgmsg+"]");
+        }                
+        
         return v;
     }    
 }
