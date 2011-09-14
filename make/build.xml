@@ -729,14 +729,15 @@
 
   </target>
 
-  <target name="base.compile" depends="init, gluegen.build.java, gluegen.build.c, tag.build" />
+  <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
+                              depends="init, gluegen.build.java, gluegen.build.c" />
 
-  <target name="all.no_junit" description="Release build" depends="init, base.compile, android.package, developer-zip-archive" />
-  <target name="all" description="Release build" depends="init, base.compile, junit.compile, android.package, developer-zip-archive" />
+  <target name="all.no_junit" description="Release build" depends="init, base.compile, tag.build, android.package, developer-zip-archive" />
+  <target name="all" description="Release build" depends="init, base.compile, tag.build, junit.compile, android.package, developer-zip-archive" />
 
-  <target name="all.debug" description="Debug build" depends="init.debug, base.compile, junit.compile, developer-zip-archive" />
+  <target name="all.debug" description="Debug build" depends="init.debug, base.compile, tag.build, junit.compile, developer-zip-archive" />
 
-  <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, junit.compile" />
+  <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, tag.build, junit.compile" />
 
   <target name="clean" depends="init">
     <delete includeEmptyDirs="true">
@@ -915,14 +916,14 @@
         </antcall>
     </target>
 
-    <target name="maven.install" depends="init, base.compile">
+    <target name="maven.install" depends="init, base.compile, tag.build">
         <property name="maven.artifacts.version" value="${gluegen_base_version}"/>
         <antcall target="maven.antcalls" inheritall="true">
             <param name="mvn.task" value="install"/>
         </antcall>
     </target>
 
-    <target name="maven.deploy.snapshot" depends="init, base.compile">
+    <target name="maven.deploy.snapshot" depends="init, base.compile, tag.build">
         <property name="maven.artifacts.version" value="${gluegen_base_version}-SNAPSHOT"/>
         <antcall target="maven.antcalls" inheritall="true">
             <param name="mvn.task" value="deploy"/>
