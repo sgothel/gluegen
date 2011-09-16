@@ -65,7 +65,7 @@ public class NativeLibLoader {
       synchronized (NativeLibLoader.class) {
         if (!didLoading && loadingEnabled) {
           didLoading = true;
-          AccessController.doPrivileged(new PrivilegedAction() {
+          AccessController.doPrivileged(new PrivilegedAction<Object>() {
               public Object run() {
                 loadLibraryInternal("gluegen-rt");
                 return null;
@@ -77,29 +77,43 @@ public class NativeLibLoader {
   }
 
   private static void loadLibraryInternal(String libraryName) {
-    String sunAppletLauncher = System.getProperty("sun.jnlp.applet.launcher");
-    boolean usingJNLPAppletLauncher = Boolean.valueOf(sunAppletLauncher).booleanValue();
+    final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
+    final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
+    final boolean usingJNLPAppletLauncher = Boolean.valueOf(System.getProperty(sunAppletLauncherProperty)).booleanValue();
 
     if (usingJNLPAppletLauncher) {
+        Class<?> jnlpAppletLauncherClass = null;
         try {
-          Class jnlpAppletLauncherClass = Class.forName("org.jdesktop.applet.util.JNLPAppletLauncher");
-          Method jnlpLoadLibraryMethod = jnlpAppletLauncherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-          jnlpLoadLibraryMethod.invoke(null, new Object[] { libraryName });
-        } catch (Exception e) {
-          Throwable t = e;
-          if (t instanceof InvocationTargetException) {
-            t = ((InvocationTargetException) t).getTargetException();
-          }
-          if (t instanceof Error)
-            throw (Error) t;
-          if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
-          }
-          // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
-          throw (UnsatisfiedLinkError) new UnsatisfiedLinkError().initCause(e);
+          jnlpAppletLauncherClass = Class.forName(sunAppletLauncherClassName);
+        } catch (ClassNotFoundException cnfe) {
+          // oops .. look like JNLPAppletLauncher doesn't exist, despite property 
+          // this may happen if a previous applet was using JNLPAppletLauncher in the same JVM
+          System.err.println("NativeLibLoader: <"+sunAppletLauncherClassName+"> not found, despite enabled property <"+sunAppletLauncherProperty+">, JNLPAppletLauncher was probably used before");
+          System.setProperty(sunAppletLauncherProperty, Boolean.FALSE.toString());
+        } catch (LinkageError le) {
+            throw le;
         }
-    } else {
-      System.loadLibrary(libraryName);
+        if(null != jnlpAppletLauncherClass) {         
+           try {
+              Method jnlpLoadLibraryMethod = jnlpAppletLauncherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+              jnlpLoadLibraryMethod.invoke(null, new Object[] { libraryName });
+              return; // done
+           } catch (Exception e) {
+              Throwable t = e;
+              if (t instanceof InvocationTargetException) {
+                t = ((InvocationTargetException) t).getTargetException();
+              }
+              if (t instanceof Error) {
+                throw (Error) t;
+              }
+              if (t instanceof RuntimeException) {
+                throw (RuntimeException) t;
+              }
+              // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
+              throw (UnsatisfiedLinkError) new UnsatisfiedLinkError().initCause(e);
+           }
+        }
     }
+    System.loadLibrary(libraryName);
   }
 }
