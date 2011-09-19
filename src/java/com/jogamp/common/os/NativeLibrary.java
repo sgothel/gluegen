@@ -39,6 +39,7 @@
 
 package com.jogamp.common.os;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.gluegen.runtime.NativeLibLoader;
 import jogamp.common.Debug;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
@@ -162,14 +163,14 @@ public class NativeLibrary implements DynamicLookupHelper {
                                    String macOSXLibName,
                                    boolean searchSystemPathFirst,
                                    ClassLoader loader, boolean global) {
-    List possiblePaths = enumerateLibraryPaths(windowsLibName,
-                                               unixLibName,
-                                               macOSXLibName,
-                                               searchSystemPathFirst,
-                                               loader);
+    List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
+                                                       unixLibName,
+                                                       macOSXLibName,
+                                                       searchSystemPathFirst,
+                                                       loader);
     // Iterate down these and see which one if any we can actually find.
-    for (Iterator iter = possiblePaths.iterator(); iter.hasNext(); ) {
-      String path = (String) iter.next();
+    for (Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
+      String path = iter.next();
       if (DEBUG) {
         System.err.println("Trying to load " + path);
       }
@@ -232,15 +233,41 @@ public class NativeLibrary implements DynamicLookupHelper {
     dynLink.closeLibrary(handle);
   }
 
+  /**
+   * Comparison of prefix and suffix of the given libName's basename
+   * is performed case insensitive <br>
+   *  
+   * @param libName the full path library name with prefix and suffix 
+   * @param isLowerCaseAlready indicates if libName is already lower-case
+   * 
+   * @return basename of libName w/o path, ie. /usr/lib/libDrinkBeer.so -> DrinkBeer on Unix systems, but null on Windows.
+   */
+  public static String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
+    libName = IOUtil.getBasename(libName);
+    final String libNameLC = isLowerCaseAlready ? libName : libName.toLowerCase();
+    for(int i=0; i<prefixes.length; i++) {
+        if (libNameLC.startsWith(prefixes[i])) {
+            for(int j=0; j<suffixes.length; j++) {
+                if (libNameLC.endsWith(suffixes[j])) {
+                    final int s = prefixes[i].length();
+                    final int e = suffixes[j].length();
+                    return libName.substring(s, libName.length()-e);
+                }
+            }
+        }    
+    }
+    return null;  
+  }
+  
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
       the indicated native library on the system. */
-  private static List enumerateLibraryPaths(String windowsLibName,
-                                            String unixLibName,
-                                            String macOSXLibName,
-                                            boolean searchSystemPathFirst,
-                                            ClassLoader loader) {
-    List paths = new ArrayList();
+  private static List<String> enumerateLibraryPaths(String windowsLibName,
+                                                    String unixLibName,
+                                                    String macOSXLibName,
+                                                    boolean searchSystemPathFirst,
+                                                    ClassLoader loader) {
+    List<String> paths = new ArrayList<String>();
     String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
     if (libName == null) {
       return paths;
@@ -274,8 +301,8 @@ public class NativeLibrary implements DynamicLookupHelper {
 
     // Add entries from java.library.path
     String javaLibraryPath =
-      (String) AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
+      AccessController.doPrivileged(new PrivilegedAction<String>() {
+          public String run() {
             return System.getProperty("java.library.path");
           }
         });
@@ -288,8 +315,8 @@ public class NativeLibrary implements DynamicLookupHelper {
 
     // Add current working directory
     String userDir =
-      (String) AccessController.doPrivileged(new PrivilegedAction() {
-          public Object run() {
+      AccessController.doPrivileged(new PrivilegedAction<String>() {
+          public String run() {
             return System.getProperty("user.dir");
           }
         });
@@ -372,7 +399,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     return res;
   }
 
-  private static void addPaths(String path, String[] baseNames, List paths) {
+  private static void addPaths(String path, String[] baseNames, List<String> paths) {
     for (int j = 0; j < baseNames.length; j++) {
       paths.add(path + File.separator + baseNames[j]);
     }
@@ -384,7 +411,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     if (loader == null)
       return null;
     if (!initializedFindLibraryMethod) {
-      AccessController.doPrivileged(new PrivilegedAction() {
+      AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
             try {
               findLibraryMethod = ClassLoader.class.getDeclaredMethod("findLibrary",
@@ -400,10 +427,10 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
     if (findLibraryMethod != null) {
       try {
-        return (String) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            public String run() {
               try {
-                return findLibraryMethod.invoke(loader, new Object[] { libName });
+                return (String) findLibraryMethod.invoke(loader, new Object[] { libName });
               } catch (Exception e) {
                 throw new RuntimeException(e);
               }

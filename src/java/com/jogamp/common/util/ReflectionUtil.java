@@ -45,7 +45,7 @@ public final class ReflectionUtil {
     
     public static final boolean DEBUG = Debug.debug("ReflectionUtil");
 
-    private static final Class[] zeroTypes = new Class[0];
+    private static final Class<?>[] zeroTypes = new Class[0];
 
     /**
      * Returns true only if the class could be loaded.
@@ -62,7 +62,7 @@ public final class ReflectionUtil {
      * Loads and returns the class or null.
      * @see Class#forName(java.lang.String, boolean, java.lang.ClassLoader)
      */
-    public static final Class getClass(String clazzName, boolean initialize, ClassLoader cl)
+    public static final Class<?> getClass(String clazzName, boolean initialize, ClassLoader cl)
         throws JogampRuntimeException {
         try {
             return getClassImpl(clazzName, initialize, cl);
@@ -71,14 +71,14 @@ public final class ReflectionUtil {
         }
     }
 
-    private static Class getClassImpl(String clazzName, boolean initialize, ClassLoader cl) throws ClassNotFoundException {
+    private static Class<?> getClassImpl(String clazzName, boolean initialize, ClassLoader cl) throws ClassNotFoundException {
         return Class.forName(clazzName, initialize, cl);
     }
 
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor getConstructor(String clazzName, Class[] cstrArgTypes, ClassLoader cl)
+    public static final Constructor<?> getConstructor(String clazzName, Class<?>[] cstrArgTypes, ClassLoader cl)
         throws JogampRuntimeException {
         try {
             return getConstructor(getClassImpl(clazzName, true, cl), cstrArgTypes);
@@ -87,7 +87,7 @@ public final class ReflectionUtil {
         }
     }
 
-    static final String asString(Class[] argTypes) {
+    static final String asString(Class<?>[] argTypes) {
         StringBuffer args = new StringBuffer();
         boolean coma = false;
         if(null != argTypes) {
@@ -105,7 +105,7 @@ public final class ReflectionUtil {
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor getConstructor(Class clazz, Class ... cstrArgTypes) 
+    public static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes) 
         throws JogampRuntimeException {
         try {
             if(null == cstrArgTypes) {
@@ -117,7 +117,7 @@ public final class ReflectionUtil {
         }
     }
 
-  public static final Constructor getConstructor(String clazzName, ClassLoader cl)
+  public static final Constructor<?> getConstructor(String clazzName, ClassLoader cl)
         throws JogampRuntimeException {
     return getConstructor(clazzName, null, cl);
   }
@@ -125,7 +125,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Constructor cstr, Object ... cstrArgs) 
+  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -148,16 +148,16 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Class clazz, Class[] cstrArgTypes, Object ... cstrArgs) 
+  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
     return createInstance(getConstructor(clazz, cstrArgTypes), cstrArgs);
   }
 
-  public static final Object createInstance(Class clazz, Object ... cstrArgs) 
+  public static final Object createInstance(Class<?> clazz, Object ... cstrArgs) 
       throws JogampRuntimeException, RuntimeException
   {
-    Class[] cstrArgTypes = null;
+    Class<?>[] cstrArgTypes = null;
     if(null!=cstrArgs) {
         cstrArgTypes = new Class[cstrArgs.length];
         for(int i=0; i<cstrArgs.length; i++) {
@@ -167,7 +167,7 @@ public final class ReflectionUtil {
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName, Class[] cstrArgTypes, Object[] cstrArgs, ClassLoader cl) 
+  public static final Object createInstance(String clazzName, Class<?>[] cstrArgTypes, Object[] cstrArgs, ClassLoader cl) 
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -180,7 +180,7 @@ public final class ReflectionUtil {
   public static final Object createInstance(String clazzName, Object[] cstrArgs, ClassLoader cl) 
       throws JogampRuntimeException, RuntimeException
   {
-    Class[] cstrArgTypes = null;
+    Class<?>[] cstrArgTypes = null;
     if(null!=cstrArgs) {
         cstrArgTypes = new Class[cstrArgs.length];
         for(int i=0; i<cstrArgs.length; i++) {
@@ -199,7 +199,7 @@ public final class ReflectionUtil {
   public static final boolean instanceOf(Object obj, String clazzName) {
     return instanceOf(obj.getClass(), clazzName);
   }
-  public static final boolean instanceOf(Class clazz, String clazzName) {
+  public static final boolean instanceOf(Class<?> clazz, String clazzName) {
     do {
         if(clazz.getName().equals(clazzName)) {
             return true;
@@ -212,11 +212,11 @@ public final class ReflectionUtil {
   public static final boolean implementationOf(Object obj, String faceName) {
     return implementationOf(obj.getClass(), faceName);
   }
-  public static final boolean implementationOf(Class clazz, String faceName) {
+  public static final boolean implementationOf(Class<?> clazz, String faceName) {
     do {
-        Class[] clazzes = clazz.getInterfaces();
+        Class<?>[] clazzes = clazz.getInterfaces();
         for(int i=clazzes.length-1; i>=0; i--) {
-            Class face = clazzes[i];
+            Class<?> face = clazzes[i];
             if(face.getName().equals(faceName)) {
                 return true;
             }
@@ -230,14 +230,14 @@ public final class ReflectionUtil {
       return instanceOf(target, "java.awt.Component");
   }
 
-  public static boolean isAWTComponent(Class clazz) {
+  public static boolean isAWTComponent(Class<?> clazz) {
       return instanceOf(clazz, "java.awt.Component");
   }
 
   /**
    * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Method getMethod(Class clazz, String methodName, Class ... argTypes)
+  public static final Method getMethod(Class<?> clazz, String methodName, Class<?> ... argTypes)
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -250,7 +250,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Method getMethod(String clazzName, String methodName, Class[] argTypes, ClassLoader cl)
+  public static final Method getMethod(String clazzName, String methodName, Class<?>[] argTypes, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -291,7 +291,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object callStaticMethod(String clazzName, String methodName, Class[] argTypes, Object[] args, ClassLoader cl)
+  public static final Object callStaticMethod(String clazzName, String methodName, Class<?>[] argTypes, Object[] args, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     return callMethod(null, getMethod(clazzName, methodName, argTypes, cl), args);

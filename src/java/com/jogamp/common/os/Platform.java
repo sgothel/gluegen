@@ -40,8 +40,7 @@ import jogamp.common.os.MachineDescriptionRuntime;
 
 /**
  * Utility class for querying platform specific properties.
- * @author Michael Bien
- * @author Sven Gothel
+ * @author Michael Bien, Sven Gothel, et. al.
  */
 public class Platform {
 
@@ -130,8 +129,9 @@ public class Platform {
 
     private static final MachineDescription machineDescription;
     
+    private static final String os_and_arch;
+    
     static {
-        
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned
         // applets
@@ -181,6 +181,8 @@ public class Platform {
             throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");
         }               
         OS_TYPE = getOSTypeImpl();
+        
+        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {
@@ -263,8 +265,8 @@ public class Platform {
 
     private static String getJavaRuntimeNameImpl() {
         // the fast path, check property Java SE instead of traversing through the ClassLoader
-        return (String) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            public String run() {
               return System.getProperty("java.runtime.name");
             }
           });
@@ -347,6 +349,111 @@ public class Platform {
     }
     
     /**
+     * Returns the GlueGen common name for the currently running OSType and CPUType
+     * as implemented in the build system in 'gluegen-cpptasks-base.xml'.<br>
+     * 
+     * @see #getOSAndArch(OSType, CPUType)
+     */
+    public static String getOSAndArch() {
+        return os_and_arch;
+    }
+    
+    /**
+     * Returns the GlueGen common name for the given OSType and CPUType
+     * as implemented in the build system in 'gluegen-cpptasks-base.xml'.<br>
+     * 
+     * A list of currently supported <code>os.and.arch</code> strings:
+     * <ul>
+     *   <li>freebsd-i586</li>
+     *   <li>freebsd-amd64</li>
+     *   <li>hpux-hppa</li>
+     *   <li>linux-amd64</li>
+     *   <li>linux-ia64</li>
+     *   <li>linux-i586</li>
+     *   <li>linux-armv7</li>
+     *   <li>android-armv7</li>
+     *   <li>macosx-universal</li>
+     *   <li>solaris-sparc</li>
+     *   <li>solaris-sparcv9</li>
+     *   <li>solaris-amd64</li>
+     *   <li>solaris-i586</li>
+     *   <li>windows-amd64</li>
+     *   <li>windows-i586</li>
+     * </ul>
+     * @return
+     */
+    public static String getOSAndArch(OSType osType, CPUType cpuType) {
+        String _os_and_arch;
+        
+        switch( CPU_ARCH ) {
+            case X86_32:
+                _os_and_arch = "i586";
+                break;
+            case ARM:
+                _os_and_arch = "amdv7"; // TODO: sync with gluegen-cpptasks-base.xml
+                break;
+            case ARMv5:
+                _os_and_arch = "amdv5";
+                break;
+            case ARMv6:
+                _os_and_arch = "amdv5";
+                break;
+            case ARMv7:
+                _os_and_arch = "amdv7";
+                break;
+            case SPARC_32:
+                _os_and_arch = "sparc"; 
+                break;
+            case PPC:
+                _os_and_arch = "ppc"; // TODO: sync with gluegen-cpptasks-base.xml
+                break;
+            case X86_64:
+                _os_and_arch = "amd64";
+                break;
+            case IA64:
+                _os_and_arch = "ia64";
+                break;
+            case SPARCV9_64:
+                _os_and_arch = "sparcv9"; 
+                break;
+            case PA_RISC2_0:
+                _os_and_arch = "risc2.0"; // TODO: sync with gluegen-cpptasks-base.xml 
+                break;
+            default:
+                throw new InternalError("Complete case block");
+        }
+        switch(OS_TYPE) {
+            case ANDROID:
+              _os_and_arch = "android-" + _os_and_arch;  
+              break;
+            case MACOS:
+              _os_and_arch = "macosx-universal";  
+              break;
+            case WINDOWS:
+              _os_and_arch = "windows-" + _os_and_arch;  
+              break;
+            case OPENKODE:
+              _os_and_arch = "openkode-" + _os_and_arch; // TODO: think about that   
+              break;                
+            case LINUX:
+              _os_and_arch = "linux-" + _os_and_arch;  
+              break;
+            case FREEBSD:
+              _os_and_arch = "freebsd-" + _os_and_arch;  
+              break;
+            case SUNOS:
+              _os_and_arch = "solaris-" + _os_and_arch;  
+              break;
+            case HPUX:
+              _os_and_arch = "hpux-hppa";  // TODO: really only hppa ?
+              break;              
+            default:
+              throw new InternalError("Complete case block");
+        }
+        return _os_and_arch;        
+    }
+    
+    /**
      * Returns the JAVA.
      */
     public static String getJavaVendor() {
@@ -411,6 +518,6 @@ public class Platform {
      */
     public static MachineDescription getMachineDescription() {
         return machineDescription;
-    }
+    }    
 }
 

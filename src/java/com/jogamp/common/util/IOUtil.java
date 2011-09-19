@@ -84,6 +84,12 @@ public class IOUtil {
     /**
      * Copy the specified input stream to the specified output stream. The total
      * number of bytes written is returned.
+     * 
+     * @param in the source 
+     * @param out the destination
+     * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown 
+     * @return
+     * @throws IOException
      */
     public static int copyStream2Stream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
         final byte[] buf = new byte[Platform.getMachineDescription().pageSizeInBytes()];
@@ -207,6 +213,45 @@ public class IOUtil {
         return toLowerCase(filename.substring(lastDot + 1));
     }
 
+    public static String getClassFileName(String clazzBinName) throws IOException {
+        // or return clazzBinName.replace('.', File.pathSeparatorChar) + ".class"; ?            
+        return clazzBinName.replace('.', '/') + ".class";            
+    }
+    
+    /**
+     * @param clazzBinName com.jogamp.common.util.cache.TempJarCache 
+     * @param cl
+     * @return jar:file:/usr/local/projects/JOGL/gluegen/build-x86_64/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
+     * @throws IOException
+     */
+    public static URL getClassURL(String clazzBinName, ClassLoader cl) throws IOException {
+        return cl.getResource(getClassFileName(clazzBinName));
+    }
+        
+    /**
+     * Returns the basename of the given fname w/o directory part
+     */
+    public static String getBasename(String fname) {
+        fname = fname.replace('\\', '/'); // unify file seperator
+        int lios = fname.lastIndexOf('/');  // strip off dirname
+        if(lios>=0) {
+            fname = fname.substring(lios+1);
+        }
+        return fname;
+    }
+    
+    /**
+     * Returns unified '/' dirname including the last '/'
+     */
+    public static String getDirname(String fname) {
+        fname = fname.replace('\\', '/'); // unify file seperator
+        int lios = fname.lastIndexOf('/');  // strip off dirname
+        if(lios>=0) {
+            fname = fname.substring(0, lios+1);
+        }
+        return fname;
+    }
+    
     private static String toLowerCase(String arg) {
         if (arg == null) {
             return null;
