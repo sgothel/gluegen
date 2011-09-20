@@ -34,6 +34,8 @@ package com.jogamp.common.jvm;
 
 import java.nio.ByteBuffer;
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.NativeLibrary;
+
 import jogamp.common.Debug;
 import com.jogamp.gluegen.runtime.NativeLibLoader;
 
@@ -52,7 +54,6 @@ public class JVMUtil {
     private static final boolean DEBUG = Debug.debug("JVMUtil");
 
     static {
-        // JNILibLoaderBase.loadLibrary("jvm", null, false);
         NativeLibLoader.loadGlueGenRT();
 
         ByteBuffer buffer = Buffers.newDirectByteBuffer(64);

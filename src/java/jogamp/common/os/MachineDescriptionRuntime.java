@@ -32,6 +32,7 @@ import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.os.MachineDescription.StaticConfig;
+import com.jogamp.gluegen.runtime.NativeLibLoader;
 
 /**
  * Runtime MachineDescription
@@ -84,7 +85,7 @@ public class MachineDescriptionRuntime {
   }  
   private static MachineDescription getRuntimeImpl() {
         try {
-            NativeLibrary.ensureNativeLibLoaded();
+            NativeLibLoader.loadGlueGenRT();
         } catch (UnsatisfiedLinkError err) {
             return null;
         }
