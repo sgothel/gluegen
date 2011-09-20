@@ -43,6 +43,7 @@ import org.junit.Test;
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
 
@@ -108,10 +109,14 @@ public class TestTempJarCache {
     
     @BeforeClass
     public static void init() {
+        // may already been initialized by other test
+        // Assert.assertFalse(TempCacheReg.isTempFileCacheUsed());
+        Assert.assertTrue(TempFileCache.initSingleton());
+        Assert.assertTrue(TempCacheReg.isTempFileCacheUsed());
+        
         fileCache = new TempFileCache();
         Assert.assertTrue(fileCache.isValid());
         System.err.println("tmp dir: "+fileCache.getTempDir());
-        
     }
     
     @Test
@@ -149,7 +154,13 @@ public class TestTempJarCache {
     
     @Test
     public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException {
-        Assert.assertTrue(TempJarCache.isValid());
+        // may already been initialized by other test
+        // Assert.assertFalse(TempCacheReg.isTempJarCacheUsed());
+        // Assert.assertFalse(TempJarCache.isInitialized());                
+        Assert.assertTrue(TempJarCache.initSingleton());
+        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
+        Assert.assertTrue(TempJarCache.isInitialized());                
+        
         TempJarCache.addAll(JarUtil.getJarFile(GlueGenVersion.class.getName(), getClass().getClassLoader()));
         
         File f0 = new File(TempJarCache.getTempFileCache().getTempDir(), "META-INF/MANIFEST.MF");
@@ -203,6 +214,19 @@ public class TestTempJarCache {
         System.err.println("url: "+urls[0]);
         ClassLoader cl2 = new TestClassLoader(urls, null);  
         ClassLoader cl3 = new TestClassLoader(urls, null);
+        
+        Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl2)
+                           ).booleanValue());
+        Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl3)
+                           ).booleanValue());
+        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "initSingleton", null, null, cl2)
+                           ).booleanValue());
+        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "initSingleton", null, null, cl3)
+                           ).booleanValue());
+        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl2)
+                           ).booleanValue());
+        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl3)
+                           ).booleanValue());
         
         Object fileCache2 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl2);
         Object fileCache3 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl3);

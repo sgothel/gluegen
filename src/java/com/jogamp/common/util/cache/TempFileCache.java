@@ -45,7 +45,7 @@ public class TempFileCache {
     
     // Get the value of the tmproot system property
     // Lifecycle: For all JVMs and ClassLoader
-    private static final String tmpRootPropName = "jnlp.jogamp.tmp.cache.root";
+    /* package */ static final String tmpRootPropName = "jnlp.jogamp.tmp.cache.root";
 
     // Flag indicating that we got a fatal error in the static initializer.
     private static boolean staticInitError = false;
@@ -224,7 +224,7 @@ public class TempFileCache {
                         deleteOldTempDirs();
                     }
                 };
-                reaperThread.setName("AppletLauncher-Reaper");
+                reaperThread.setName("TempFileCache-Reaper");
                 reaperThread.start();
             } else {
                 // Make sure that the property is not set to an illegal value

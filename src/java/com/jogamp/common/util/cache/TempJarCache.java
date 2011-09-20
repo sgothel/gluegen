@@ -35,7 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarFile;
 
-
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.JarUtil;
 
@@ -55,44 +54,59 @@ public class TempJarCache {
     private static TempFileCache tmpFileCache;
     
     private static boolean staticInitError = false;
-    
-    static {
-        staticInitError = !TempFileCache.initSingleton();
-
-        if(!staticInitError) {
-            tmpFileCache = new TempFileCache();
-            staticInitError = !tmpFileCache.isValid(); 
-        }
-        
-        if(!staticInitError) {
-            // Initialize the collections of resources
-            nativeLibMap = new HashMap<String, String>();
-            nativeLibJars = new HashSet<JarFile>();
-            classFileJars = new HashSet<JarFile>();
-            resourceFileJars = new HashSet<JarFile>();
-        }
-    }
+    private static volatile boolean isInit = false;
     
     /**
-     * Documented way to kick off static initialization
+     * Documented way to kick off static initialization.
+     * 
      * @return true is static initialization was successful
      */
     public static boolean initSingleton() {
-        return isValid();        
-    }
-    
-    /**
-     * @return true is static initialization was successful
-     */
-    public static boolean isValid() {
+        if (!isInit) { // volatile: ok
+            synchronized (TempJarCache.class) {
+                if (!isInit) {
+                    isInit = true;
+                    staticInitError = !TempFileCache.initSingleton();
+            
+                    if(!staticInitError) {
+                        tmpFileCache = new TempFileCache();
+                        staticInitError = !tmpFileCache.isValid(); 
+                    }
+                    
+                    if(!staticInitError) {
+                        // Initialize the collections of resources
+                        nativeLibMap = new HashMap<String, String>();
+                        nativeLibJars = new HashSet<JarFile>();
+                        classFileJars = new HashSet<JarFile>();
+                        resourceFileJars = new HashSet<JarFile>();
+                    }
+                }
+            }
+        }
         return !staticInitError;
     }
     
+    /**
+     * 
+     * @return true if this class has been initialized, ie. used, otherwise not.
+     */
+    public static boolean isInitialized() {
+        return isInit;
+    }
+    
+    /* package */ static void checkInitialized() {
+        if(!isInit) {
+            throw new RuntimeException("initSingleton() has to be called first.");
+        }
+    }
+    
     public static TempFileCache getTempFileCache() {
+        checkInitialized();
         return tmpFileCache;
     }
     
     public static boolean contains(JarFile jarFile) throws IOException {
+        checkInitialized();
         return nativeLibJars.contains(jarFile);
     }    
 
@@ -104,6 +118,7 @@ public class TempJarCache {
      * @throws IOException
      */
     public static boolean addNativeLibs(JarFile jarFile) throws IOException {        
+        checkInitialized();
         if(!nativeLibJars.contains(jarFile)) {
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
                             true, false, false); 
@@ -123,7 +138,8 @@ public class TempJarCache {
      * @return
      * @throws IOException
      */
-    public static boolean addClasses(JarFile jarFile) throws IOException {        
+    public static boolean addClasses(JarFile jarFile) throws IOException {
+        checkInitialized();
         if(!classFileJars.contains(jarFile)) {
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, true, false); 
@@ -141,6 +157,7 @@ public class TempJarCache {
      * @throws IOException
      */
     public static boolean addResources(JarFile jarFile) throws IOException {        
+        checkInitialized();
         if(!resourceFileJars.contains(jarFile)) {
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, false, true); 
@@ -161,7 +178,8 @@ public class TempJarCache {
      * @return
      * @throws IOException
      */
-    public static boolean addAll(JarFile jarFile) throws IOException {        
+    public static boolean addAll(JarFile jarFile) throws IOException {
+        checkInitialized();
         if(!nativeLibJars.contains(jarFile) || 
            !classFileJars.contains(jarFile) || 
            !resourceFileJars.contains(jarFile)) {
@@ -185,6 +203,7 @@ public class TempJarCache {
     }
     
     public static String findLibrary(String libName) {
+        checkInitialized();
         // try with mapped library basename first
         String path = nativeLibMap.get(libName);
         if(null == path) {
@@ -202,6 +221,7 @@ public class TempJarCache {
     /** TODO class access pending
      * needs Classloader.defineClass(..) access, ie. own derivation - will do when needed .. 
     public static Class<?> findClass(String name, ClassLoader cl) throws IOException, ClassFormatError {
+        checkInitialized();
         final File f = new File(nativeTmpFileCache.getTempDir(), IOUtil.getClassFileName(name));
         if(f.exists()) {
             Class.forName(fname, initialize, loader)
@@ -214,6 +234,7 @@ public class TempJarCache {
     } */
     
     public static String findResource(String name) {
+        checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
             return f.getAbsolutePath();
