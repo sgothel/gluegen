@@ -30,12 +30,13 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true"
 #D_ARGS="-Djogamp.debug.TraceLock"
 #D_ARGS="-Djogamp.debug.JARUtil"
-D_ARGS="-Djogamp.debug.TempFileCache"
+#D_ARGS="-Djogamp.debug.TempFileCache"
+#D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JARUtil"
 
 function onetest() {
     clazz=$1
     shift
-    libspath=$builddir/obj:$builddir/test/build/natives:
+    libspath=$builddir/test/build/natives:
     echo LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH java $D_ARGS -Djava.library.path=$libspath -classpath lib/junit.jar:$ANT_JARS:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/classes $clazz
     LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH java $D_ARGS -Djava.library.path=$libspath -classpath lib/junit.jar:$ANT_JARS:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/classes $clazz
     echo
@@ -54,6 +55,6 @@ function onetest() {
 #onetest com.jogamp.gluegen.test.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
