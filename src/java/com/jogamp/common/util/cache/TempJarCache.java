@@ -27,12 +27,19 @@
  */
 package com.jogamp.common.util.cache;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.jogamp.common.os.NativeLibrary;
@@ -168,7 +175,7 @@ public class TempJarCache {
     }
     
     /**
-     * Adds all types, native libraries, class files and other files (resources),
+     * Adds all types, native libraries, class files and other files (resources)
      * if not yet added.
      *  
      * TODO class access pending
@@ -242,4 +249,44 @@ public class TempJarCache {
         return null;
     }
     
+    /**
+     * Bootstrapping version extracting the JAR files root entry containing libBaseName,
+     * assuming it's a native library. This is used to get the 'gluegen-rt'
+     * native library, hence bootstrapping. 
+     */
+    public static boolean bootstrapNativeLib(String libBaseName, JarFile jarFile) throws IOException {
+        checkInitialized();
+        if(!nativeLibJars.contains(jarFile) && !nativeLibMap.containsKey(libBaseName) ) {                    
+            final Enumeration<JarEntry> entries = jarFile.entries();
+            while (entries.hasMoreElements()) {
+                final JarEntry entry = (JarEntry) entries.nextElement();
+                final String entryName = entry.getName();
+    
+                if( entryName.indexOf('/') == -1 &&
+                    entryName.indexOf(File.separatorChar) == -1 &&
+                    entryName.indexOf(libBaseName) >= 0 ) 
+                {
+                    final File destFile = new File(tmpFileCache.getTempDir(), entryName);
+                    final InputStream in = new BufferedInputStream(jarFile.getInputStream(entry));
+                    final OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
+                    int numBytes = 0; 
+                    try {
+                        final byte[] buf = new byte[ 2048 ];
+                        while (true) {
+                            int count;
+                            if ((count = in.read(buf)) == -1) { break; }
+                            out.write(buf, 0, count);
+                            numBytes += count;
+                        }
+                    } finally { in.close(); out.close(); }
+                    if (numBytes>0) {
+                        nativeLibMap.put(libBaseName, destFile.getAbsolutePath());
+                        nativeLibJars.add(jarFile);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 }

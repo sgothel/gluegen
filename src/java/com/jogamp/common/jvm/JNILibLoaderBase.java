@@ -44,6 +44,9 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.util.HashSet;
+
+import com.jogamp.common.util.cache.TempJarCache;
+
 import jogamp.common.Debug;
 
 public class JNILibLoaderBase {
@@ -148,7 +151,6 @@ public class JNILibLoaderBase {
   // private static final Class<?> customLauncherClass;
   private static final Method customLoadLibraryMethod;
 
-  // FIXME centralize logging
   static {
     final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
     final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
@@ -222,7 +224,22 @@ public class JNILibLoaderBase {
           throw (UnsatisfiedLinkError) new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
         }
     } else {
+      if(TempJarCache.isInitialized()) {
+          final String fullLibraryName = TempJarCache.findLibrary(libraryName);
+          if(null != fullLibraryName) {
+            if(DEBUG) {
+              System.err.println("JNILibLoaderBase.loadLibraryInternal("+libraryName+") -> System.load("+fullLibraryName+") (TempJarCache)");
+            }
+            System.load(fullLibraryName);
+            return; // done
+          } else if(DEBUG) {
+            System.err.println("JNILibLoaderBase.loadLibraryInternal("+libraryName+") -> TempJarCache not mapped");
+          }
+      }
       // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
+      if(DEBUG) {
+          System.err.println("JNILibLoaderBase.loadLibraryInternal("+libraryName+") -> System.loadLibrary("+libraryName+")");
+      }
       System.loadLibrary(libraryName);
     }
   }

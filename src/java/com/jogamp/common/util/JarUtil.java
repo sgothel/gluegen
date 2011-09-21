@@ -202,7 +202,7 @@ public class JarUtil {
                               boolean extractOtherFiles) throws IOException {
 
         if (VERBOSE) {
-            System.err.println("extractNativeLibs: "+jarFile.getName()+" -> "+dest+
+            System.err.println("extract: "+jarFile.getName()+" -> "+dest+
                                ", extractNativeLibraries "+extractNativeLibraries+
                                ", extractClassFiles"+extractClassFiles+
                                ", extractOtherFiles "+extractOtherFiles);
@@ -239,12 +239,11 @@ public class JarUtil {
                 continue;
             }
 
-            boolean isDir = entryName.endsWith("/");
+            final boolean isDir = entryName.endsWith("/");
             
-            boolean isRootEntry = entryName.indexOf('/') == -1 && 
-                                  entryName.indexOf(File.separatorChar) == -1;
+            final boolean isRootEntry = entryName.indexOf('/') == -1 && 
+                                        entryName.indexOf(File.separatorChar) == -1;
             
-            // strip prefix & suffix
             final File destFile = new File(dest, entryName);
             if(isDir) {
                 destFile.mkdir();
@@ -276,7 +275,7 @@ public class JarUtil {
         }
         return num;
     }
-    
+
     /**
      * Validate the certificates for each native Lib in the jar file.
      * Throws an IOException if any certificate is not valid.
@@ -306,7 +305,6 @@ public class JarUtil {
                 throw new IOException("Cannot validate certificate for " + entryName);
             }
         }
-
     }
 
     /**
