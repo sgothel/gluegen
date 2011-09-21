@@ -1,20 +1,13 @@
-GlueGen as a whole, especially the compile time subset,
-may be used under the terms of the Original BSD 4-clause license, 
-which is the common denominator of the following used 3 BSD licenses, L.1 - L.3.
 
-Due to L.3 we could not make the compile time subset 
-and the whole under the New BSD 3-clause license.
+The GlueGen source code is mostly licensed under the New BSD 2-clause license,
+however it contains other licensed material as well.
 
-+++
-
-The GlueGen runtime package (gluegen-rt.jar) 
-may be used under the terms of the New BSD 3-clause license, 
-which is the common denominator of the following used 2 BSD licenses L.1 - L.2.
+Below you find a detailed list of licenses used in this project.
 
 +++
 
-Exception is the content of folder 'make/lib'.
-This folder contains build time only Java binaries (JAR) to ease the build setup.
+The content of folder 'make/lib' contains build-time only 
+Java binaries (JAR) to ease the build setup.
 Each JAR file has it's corresponding LICENSE file containing the 
 source location and license text. None of these binaries are contained in any way 
 by the generated and deployed GlueGen binaries.
