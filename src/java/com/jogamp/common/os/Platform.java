@@ -28,13 +28,18 @@
  
 package com.jogamp.common.os;
 
+import java.io.IOException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.jar.JarFile;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -184,6 +189,8 @@ public class Platform {
         
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
+        loadGlueGenRTImpl();
+        
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {
             MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
@@ -211,26 +218,6 @@ public class Platform {
         return 0x0C0D == tst_s.get(0);
     }
   
-    public static boolean isCPUArch32Bit() throws RuntimeException {
-        switch( CPU_ARCH ) {
-            case X86_32:
-            case ARM:
-            case ARMv5:
-            case ARMv6:
-            case ARMv7:
-            case SPARC_32:
-            case PPC:
-                return true;
-            case X86_64:
-            case IA64:
-            case SPARCV9_64:
-            case PA_RISC2_0:
-                return false;
-            default:
-                throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + Platform.OS_lower + "/" + Platform.ARCH_lower + "("+Platform.CPU_ARCH+"))");
-        }
-    }
-        
     private static OSType getOSTypeImpl() throws RuntimeException {
         if ( AndroidVersion.isAvailable ) {
             return OSType.ANDROID;
@@ -289,6 +276,38 @@ public class Platform {
         return false;
     }
 
+    private static void loadGlueGenRTImpl() {
+        final String nativeJarName = "gluegen-rt-natives-"+os_and_arch+".jar";
+        final String libBaseName = "gluegen-rt";    
+        final ClassLoader cl = Platform.class.getClassLoader();
+        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                if(TempJarCache.initSingleton()) {
+                  try {
+                    URL jarUrlRoot = JarUtil.getJarURLDirname(
+                                        JarUtil.getJarURL(Platform.class.getName(), cl) );
+                    System.err.println("gluegen-rt: url-root "+jarUrlRoot);
+                    URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);
+                    System.err.println("gluegen-rt: nativeJarURL "+nativeJarURL);
+                    JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
+                    System.err.println("gluegen-rt: nativeJar "+nativeJar.getName());
+                        TempJarCache.bootstrapNativeLib(libBaseName, nativeJar);
+                      } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                      }
+                    }
+                    DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);
+                    return null;
+                  }
+            });
+    }
+    
+    /**
+     * kick off static initialization incl native gluegen-rt lib loading
+     */
+    public static void initSingleton() { } 
+    
     /**
      * Returns true only if this program is running on the Java Standard Edition.
      */

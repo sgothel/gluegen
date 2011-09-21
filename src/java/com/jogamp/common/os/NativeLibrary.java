@@ -41,7 +41,6 @@
 package com.jogamp.common.os;
 
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.gluegen.runtime.GlueGenJNILibLoader;
 import jogamp.common.Debug;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
 import jogamp.common.os.UnixDynamicLinkerImpl;
@@ -175,7 +174,7 @@ public class NativeLibrary implements DynamicLookupHelper {
       if (DEBUG) {
         System.err.println("Trying to load " + path);
       }
-      GlueGenJNILibLoader.loadGlueGenRT();
+      Platform.initSingleton(); // loads native gluegen-rt library
       long res;
       if(global) {
           res = dynLink.openLibraryGlobal(path, DEBUG);

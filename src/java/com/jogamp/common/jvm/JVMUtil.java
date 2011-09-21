@@ -34,10 +34,9 @@ package com.jogamp.common.jvm;
 
 import java.nio.ByteBuffer;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
 
 import jogamp.common.Debug;
-import com.jogamp.gluegen.runtime.GlueGenJNILibLoader;
 
 /**
  * Currently this tool works around the Hotspot race condition bugs:
@@ -54,7 +53,7 @@ public class JVMUtil {
     private static final boolean DEBUG = Debug.debug("JVMUtil");
 
     static {
-        GlueGenJNILibLoader.loadGlueGenRT();
+        Platform.initSingleton(); // loads native gluegen-rt library
 
         ByteBuffer buffer = Buffers.newDirectByteBuffer(64);
         if( ! initialize(buffer) ) {

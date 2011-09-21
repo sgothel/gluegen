@@ -29,10 +29,8 @@
 package jogamp.common.os;
 
 import com.jogamp.common.os.MachineDescription;
-import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.os.MachineDescription.StaticConfig;
-import com.jogamp.gluegen.runtime.GlueGenJNILibLoader;
 
 /**
  * Runtime MachineDescription
@@ -53,8 +51,29 @@ public class MachineDescriptionRuntime {
         }
         return smd;
   }  
+  
+  private static boolean isCPUArch32Bit() throws RuntimeException {
+    switch( Platform.CPU_ARCH ) {
+        case X86_32:
+        case ARM:
+        case ARMv5:
+        case ARMv6:
+        case ARMv7:
+        case SPARC_32:
+        case PPC:
+            return true;
+        case X86_64:
+        case IA64:
+        case SPARCV9_64:
+        case PA_RISC2_0:
+            return false;
+        default:
+            throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + Platform.OS_lower + "/" + Platform.ARCH_lower + "("+Platform.CPU_ARCH+"))");
+    }
+  }
+          
   private static MachineDescription.StaticConfig getStaticImpl() {
-      if(Platform.isCPUArch32Bit()) {
+      if(isCPUArch32Bit()) {
         if(Platform.getCPUFamily() == Platform.CPUFamily.ARM && Platform.isLittleEndian()) {
             return StaticConfig.ARMle_EABI;
         } else if(Platform.getOSType() == Platform.OSType.WINDOWS) {
@@ -85,7 +104,7 @@ public class MachineDescriptionRuntime {
   }  
   private static MachineDescription getRuntimeImpl() {
         try {
-            GlueGenJNILibLoader.loadGlueGenRT();
+            Platform.initSingleton(); // loads native gluegen-rt library
         } catch (UnsatisfiedLinkError err) {
             return null;
         }

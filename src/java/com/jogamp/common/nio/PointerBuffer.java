@@ -36,10 +36,8 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
-import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.LongObjectHashMap;
-import com.jogamp.gluegen.runtime.GlueGenJNILibLoader;
 
 /**
  * Hardware independent container for native pointer arrays.
@@ -55,7 +53,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     protected LongObjectHashMap dataMap = null;
 
     static {
-        GlueGenJNILibLoader.loadGlueGenRT();
+        Platform.initSingleton(); // loads native gluegen-rt library
     }
 
     /** no backup array, use for direct usage only */
