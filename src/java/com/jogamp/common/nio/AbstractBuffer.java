@@ -32,7 +32,7 @@
 package com.jogamp.common.nio;
 
 import com.jogamp.common.os.*;
-import com.jogamp.gluegen.runtime.NativeLibLoader;
+import com.jogamp.gluegen.runtime.GlueGenJNILibLoader;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -49,7 +49,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     protected int position;
 
     static {
-        NativeLibLoader.loadGlueGenRT();
+        GlueGenJNILibLoader.loadGlueGenRT();
     }
 
     /** 

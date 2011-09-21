@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2008 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2011 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -28,49 +29,34 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
+ * 
+ * You acknowledge that this software is not designed or intended for use
+ * in the design, construction, operation or maintenance of any nuclear
+ * facility.
+ * 
+ * Sun gratefully acknowledges that this software was originally authored
+ * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
 
-package com.jogamp.common.jvm;
+package com.jogamp.gluegen.runtime;
 
-import java.nio.ByteBuffer;
-import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.NativeLibrary;
+import java.security.*;
 
-import jogamp.common.Debug;
-import com.jogamp.gluegen.runtime.GlueGenJNILibLoader;
+import com.jogamp.common.jvm.JNILibLoaderBase;
 
-/**
- * Currently this tool works around the Hotspot race condition bugs:
- <PRE>
-     4395095 JNI access to java.nio DirectBuffer constructor/accessor
-     6852404 Race condition in JNI Direct Buffer access and creation routines
- </PRE>
- *
- * Make sure to initialize this class as soon as possible,
- * before doing any multithreading work.
- *
- */
-public class JVMUtil {
-    private static final boolean DEBUG = Debug.debug("JVMUtil");
+/** Class providing control over whether GlueGen loads the native code
+    associated with the NativeLibrary implementation. Alternative app
+    launchers such as those running within applets may want to disable
+    this default loading behavior and load the native code via another
+    (manual) mechanism. */
+public class GlueGenJNILibLoader extends JNILibLoaderBase {
 
-    static {
-        GlueGenJNILibLoader.loadGlueGenRT();
-
-        ByteBuffer buffer = Buffers.newDirectByteBuffer(64);
-        if( ! initialize(buffer) ) {
-            throw new RuntimeException("Failed to initialize the JVMUtil "+Thread.currentThread().getName());
-        }
-        if(DEBUG) {
-            Exception e = new Exception("JVMUtil.initSingleton() .. initialized "+Thread.currentThread().getName());
-            e.printStackTrace();
-        }
-    }
-
-    public static void initSingleton() {
-    }
-
-    private JVMUtil() {}
-
-    private static native boolean initialize(java.nio.ByteBuffer buffer);
+  public static void loadGlueGenRT() {
+      AccessController.doPrivileged(new PrivilegedAction<Object>() {
+          public Object run() {
+            loadLibrary("gluegen-rt", false);
+            return null;
+          }
+        });
+  }
 }
-

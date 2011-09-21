@@ -250,7 +250,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             boolean ignoreError = true;
             boolean res;
             try {
-                res = GlueJNILibLoaderBase.loadLibrary(libName, ignoreError);
+                res = GlueJNILibLoader.loadLibrary(libName, ignoreError);
                 if(DEBUG && !res) {
                     System.err.println("Info: Could not load JNI/Glue library: "+libName);
                 }
@@ -339,7 +339,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
 
     /** Inherit access */
-    static class GlueJNILibLoaderBase extends JNILibLoaderBase {
+    static class GlueJNILibLoader extends JNILibLoaderBase {
       protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {
         return JNILibLoaderBase.loadLibrary(libname, ignoreError);
       }
