@@ -34,6 +34,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -120,13 +121,17 @@ public class TempJarCache {
     /**
      * Adds native libraries, if not yet added.
      * 
+     * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
+     * 
      * @return
      * @throws IOException
+     * @throws SecurityException
      */
-    public static boolean addNativeLibs(JarFile jarFile) throws IOException {        
+    public static final boolean addNativeLibs(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
         checkInitialized();
         if(!nativeLibJars.contains(jarFile)) {
+            validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
                             true, false, false); 
             nativeLibJars.add(jarFile);
@@ -140,14 +145,18 @@ public class TempJarCache {
      * 
      * TODO class access pending
      * needs Classloader.defineClass(..) access, ie. own derivation - will do when needed ..
-     *  
+     * 
+     * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
+     *  
      * @return
      * @throws IOException
+     * @throws SecurityException
      */
-    public static boolean addClasses(JarFile jarFile) throws IOException {
+    public static final boolean addClasses(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
         checkInitialized();
         if(!classFileJars.contains(jarFile)) {
+            validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, true, false); 
             classFileJars.add(jarFile);
@@ -159,13 +168,17 @@ public class TempJarCache {
     /**
      * Adds native resources, if not yet added.
      * 
+     * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
+     * 
      * @return
      * @throws IOException
+     * @throws SecurityException
      */
-    public static boolean addResources(JarFile jarFile) throws IOException {        
+    public static final boolean addResources(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
         checkInitialized();
         if(!resourceFileJars.contains(jarFile)) {
+            validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, false, true); 
             resourceFileJars.add(jarFile);
@@ -180,12 +193,15 @@ public class TempJarCache {
      *  
      * TODO class access pending
      * needs Classloader.defineClass(..) access, ie. own derivation - will do when needed ..
-     *  
+     * 
+     * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
+     *  
      * @return
      * @throws IOException
+     * @throws SecurityException
      */
-    public static boolean addAll(JarFile jarFile) throws IOException {
+    public static final boolean addAll(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
         checkInitialized();
         if(!nativeLibJars.contains(jarFile) || 
            !classFileJars.contains(jarFile) || 
@@ -193,6 +209,7 @@ public class TempJarCache {
             final boolean extractNativeLibraries = !nativeLibJars.contains(jarFile);
             final boolean extractClassFiles = !classFileJars.contains(jarFile);
             final boolean extractOtherFiles = !resourceFileJars.contains(jarFile);
+            validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
                             extractNativeLibraries, extractClassFiles, extractOtherFiles);
             if(extractNativeLibraries) {
@@ -209,7 +226,7 @@ public class TempJarCache {
         return false;
     }
     
-    public static String findLibrary(String libName) {
+    public static final String findLibrary(String libName) {
         checkInitialized();
         // try with mapped library basename first
         String path = nativeLibMap.get(libName);
@@ -240,7 +257,7 @@ public class TempJarCache {
         return null;
     } */
     
-    public static String findResource(String name) {
+    public static final String findResource(String name) {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
@@ -252,12 +269,19 @@ public class TempJarCache {
     /**
      * Bootstrapping version extracting the JAR files root entry containing libBaseName,
      * assuming it's a native library. This is used to get the 'gluegen-rt'
-     * native library, hence bootstrapping. 
+     * native library, hence bootstrapping.
+     *  
+     * @param certClass if class is certified, the JarFile entries needs to have the same certificate
+     *  
+     * @throws IOException
+     * @throws SecurityException
      */
-    public static boolean bootstrapNativeLib(String libBaseName, JarFile jarFile) throws IOException {
+    public static final boolean bootstrapNativeLib(Class<?> certClass, String libBaseName, JarFile jarFile) 
+            throws IOException, SecurityException {
         checkInitialized();
         if(!nativeLibJars.contains(jarFile) && !nativeLibMap.containsKey(libBaseName) ) {                    
-            final Enumeration<JarEntry> entries = jarFile.entries();
+           validateCertificates(certClass, jarFile);
+           final Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
                 final JarEntry entry = (JarEntry) entries.nextElement();
                 final String entryName = entry.getName();
@@ -289,4 +313,19 @@ public class TempJarCache {
         }
         return false;
     }
+    
+    private static void validateCertificates(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
+        if(null == certClass) {
+            throw new IllegalArgumentException("certClass is null");
+        }
+        final Certificate[] rootCerts = 
+                certClass.getProtectionDomain().getCodeSource().getCertificates();
+        if( null != rootCerts && rootCerts.length>0 ) {
+            // Only validate the jarFile's certs with ours, if we have any.
+            // Otherwise we may run uncertified JARs (application).
+            // In case one tries to run uncertified JARs, the wrapping applet/JNLP
+            // SecurityManager will kick in and throw a SecurityException.
+            JarUtil.validateCertificates(rootCerts, jarFile);
+        }                        
+    }    
 }

@@ -39,12 +39,17 @@
 
 package com.jogamp.common.jvm;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.util.HashSet;
+import java.util.jar.JarFile;
 
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
@@ -135,6 +140,31 @@ public class JNILibLoaderBase {
     loaderAction = action;
   }
 
+  public static final boolean addNativeJarLibs(Class<?> classFromJavaJar, String nativeJarBaseName) {
+    if(TempJarCache.isInitialized()) {
+        final String nativeJarName = nativeJarBaseName+"-natives-"+Platform.getOSAndArch()+".jar";
+        final ClassLoader cl = classFromJavaJar.getClassLoader();
+        try {
+            URL jarUrlRoot = JarUtil.getJarURLDirname( JarUtil.getJarURL( classFromJavaJar.getName(), cl ) );
+            if(DEBUG) {
+                System.err.println("addNativeJarLibs: "+nativeJarBaseName+": url-root "+jarUrlRoot);
+            }
+            URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);
+            if(DEBUG) {
+                System.err.println("addNativeJarLibs: "+nativeJarBaseName+": nativeJarURL "+nativeJarURL);
+            }
+            JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
+            if(DEBUG) {
+                System.err.println("addNativeJarLibs: "+nativeJarBaseName+": nativeJar "+nativeJar.getName());
+            }
+            return TempJarCache.addNativeLibs(classFromJavaJar, nativeJar);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+    return false;
+  }
+    
   protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {
     if (loaderAction != null) {
         return loaderAction.loadLibrary(libname, ignoreError);    

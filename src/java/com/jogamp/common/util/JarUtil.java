@@ -55,6 +55,27 @@ public class JarUtil {
     /**
      * @param clazzBinName com.jogamp.common.util.cache.TempJarCache 
      * @param cl
+     * @return gluegen-rt.jar
+     * @throws IOException
+     * @see {@link IOUtil#getClassURL(String, ClassLoader)}
+     */
+    public static String getJarName(String clazzBinName, ClassLoader cl) throws IOException {
+        URL url = IOUtil.getClassURL(clazzBinName, cl);
+        if(null != url) {
+            String urlS = url.toExternalForm();
+            // from 
+            //   jar:file:/usr/local/projects/JOGL/gluegen/build-x86_64/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
+            // to
+            //   gluegen-rt.jar
+            urlS = urlS.substring(0, urlS.lastIndexOf('!')); // exclude !/
+            return urlS.substring(urlS.lastIndexOf('/')+1); // just the jar name
+        }
+        return null;
+    }
+
+    /**
+     * @param clazzBinName com.jogamp.common.util.cache.TempJarCache 
+     * @param cl
      * @return jar:file:/usr/local/projects/JOGL/gluegen/build-x86_64/gluegen-rt.jar!/
      * @throws IOException
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
@@ -195,11 +216,11 @@ public class JarUtil {
      * @return
      * @throws IOException
      */
-    public static int extract(File dest, Map<String, String> nativeLibMap, 
-                              JarFile jarFile,
-                              boolean extractNativeLibraries,
-                              boolean extractClassFiles,
-                              boolean extractOtherFiles) throws IOException {
+    public static final int extract(File dest, Map<String, String> nativeLibMap, 
+                                    JarFile jarFile,
+                                    boolean extractNativeLibraries,
+                                    boolean extractClassFiles,
+                                    boolean extractOtherFiles) throws IOException {
 
         if (VERBOSE) {
             System.err.println("extract: "+jarFile.getName()+" -> "+dest+
@@ -280,30 +301,25 @@ public class JarUtil {
      * Validate the certificates for each native Lib in the jar file.
      * Throws an IOException if any certificate is not valid.
      * <pre>
-        Certificate[] appletLauncherCerts = Something.class.getProtectionDomain().
-                                               getCodeSource().getCertificates();
+        Certificate[] rootCerts = Something.class.getProtectionDomain().
+                                        getCodeSource().getCertificates();
        </pre>
      */
-    public static void validateCertificates(Certificate[] appletLauncherCerts, JarFile jarFile) 
-            throws IOException {
+    public static final void validateCertificates(Certificate[] rootCerts, JarFile jarFile) 
+            throws IOException, SecurityException {
 
         if (VERBOSE) {
-            System.err.println("validateCertificates:");
+            System.err.println("validateCertificates: "+jarFile.getName());
         }
 
-        byte[] buf = new byte[1000];
+        if (rootCerts == null || rootCerts.length == 0) {
+            throw new IllegalArgumentException("Null certificates passed");
+        }
+
+        byte[] buf = new byte[1024];
         Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()) {
-            JarEntry entry = (JarEntry) entries.nextElement();
-            String entryName = entry.getName();
-
-            if (VERBOSE) {
-                System.err.println("Validate JarEntry : " + entryName);
-            }
-
-            if (!checkNativeCertificates(appletLauncherCerts, jarFile, entry, buf)) {
-                throw new IOException("Cannot validate certificate for " + entryName);
-            }
+            validateCertificate(rootCerts, jarFile, entries.nextElement(), buf);
         }
     }
 
@@ -311,8 +327,12 @@ public class JarUtil {
      * Check the certificates with the ones in the jar file
      * (all must match).
      */
-    private static boolean checkNativeCertificates(Certificate[] launchedCerts, 
-            JarFile jar, JarEntry entry, byte[] buf) throws IOException {
+    private static final void validateCertificate(Certificate[] rootCerts, 
+            JarFile jar, JarEntry entry, byte[] buf) throws IOException, SecurityException {
+
+        if (VERBOSE) {
+            System.err.println("Validate JarEntry : " + entry.getName());
+        }
 
         // API states that we must read all of the data from the entry's
         // InputStream in order to be able to get its certificates
@@ -321,25 +341,23 @@ public class JarUtil {
         while (is.read(buf) > 0) { }
         is.close();
 
-        if (launchedCerts == null || launchedCerts.length == 0) {
-            throw new RuntimeException("Null certificates passed");
-        }
-
         // Get the certificates for the JAR entry
         Certificate[] nativeCerts = entry.getCertificates();
         if (nativeCerts == null || nativeCerts.length == 0) {
-            return false;
+            throw new SecurityException("no certificate for " + entry.getName() + " in " + jar.getName());
         }
 
         int checked = 0;
-        for (int i = 0; i < launchedCerts.length; i++) {
+        for (int i = 0; i < rootCerts.length; i++) {
             for (int j = 0; j < nativeCerts.length; j++) {
-                if (nativeCerts[j].equals(launchedCerts[i])){
+                if (nativeCerts[j].equals(rootCerts[i])){
                     checked++;
                     break;
                 }
             }
         }
-        return  (checked == launchedCerts.length);
+        if( checked != rootCerts.length ) {
+            throw new SecurityException("not all certificates match, only "+checked+" out of "+rootCerts.length+" for " + entry.getName() + " in " + jar.getName());
+        }
     }
 }

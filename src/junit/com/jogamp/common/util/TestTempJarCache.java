@@ -41,6 +41,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempCacheReg;
@@ -161,7 +162,7 @@ public class TestTempJarCache {
         Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
         Assert.assertTrue(TempJarCache.isInitialized());                
         
-        TempJarCache.addAll(JarUtil.getJarFile(GlueGenVersion.class.getName(), getClass().getClassLoader()));
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFile(GlueGenVersion.class.getName(), getClass().getClassLoader()));
         
         File f0 = new File(TempJarCache.getTempFileCache().getTempDir(), "META-INF/MANIFEST.MF");
         Assert.assertTrue(f0.exists());
@@ -179,7 +180,7 @@ public class TestTempJarCache {
     }
     
     @Test
-    public void testTempJarCache02LoadNativeLibrary() throws IOException {
+    public void testTempJarCache02AddNativeLibs() throws IOException {
         final String nativeJarName = "gluegen-rt-natives-"+Platform.getOSAndArch()+".jar";
         final String libBaseName = "gluegen-rt";        
         final ClassLoader cl = getClass().getClassLoader();
@@ -190,7 +191,21 @@ public class TestTempJarCache {
         URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);        
         JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
         
-        TempJarCache.addNativeLibs(nativeJar);
+        TempJarCache.addNativeLibs(TempJarCache.class, nativeJar);
+        String libFullPath = TempJarCache.findLibrary(libBaseName);
+        Assert.assertNotNull(libFullPath);
+        Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));
+        File f = new File(libFullPath);
+        Assert.assertTrue(f.exists());
+    }
+
+    @Test
+    public void testTempJarCache03AddNativeJarLibs() throws IOException {
+        final String libBaseName = "gluegen-rt";        
+        
+        JNILibLoaderBase.addNativeJarLibs(TempJarCache.class, libBaseName);
+        Assert.assertTrue(JNILibLoaderBase.isLoaded(libBaseName));
+        
         String libFullPath = TempJarCache.findLibrary(libBaseName);
         Assert.assertNotNull(libFullPath);
         Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));

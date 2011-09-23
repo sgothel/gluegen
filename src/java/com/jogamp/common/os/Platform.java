@@ -285,22 +285,19 @@ public class Platform {
             public Object run() {
                 if(TempJarCache.initSingleton()) {
                   try {
-                    URL jarUrlRoot = JarUtil.getJarURLDirname(
+                    final URL jarUrlRoot = JarUtil.getJarURLDirname(
                                         JarUtil.getJarURL(Platform.class.getName(), cl) );
-                    System.err.println("gluegen-rt: url-root "+jarUrlRoot);
-                    URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);
-                    System.err.println("gluegen-rt: nativeJarURL "+nativeJarURL);
-                    JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
-                    System.err.println("gluegen-rt: nativeJar "+nativeJar.getName());
-                        TempJarCache.bootstrapNativeLib(libBaseName, nativeJar);
-                      } catch (IOException ioe) {
-                        ioe.printStackTrace();
-                      }
-                    }
-                    DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);
-                    return null;
+                    final URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);
+                    final JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
+                    TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJar);
+                  } catch (IOException ioe) {
+                    ioe.printStackTrace();
                   }
-            });
+                }
+                DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);
+                return null;
+            }
+        });
     }
     
     /**
