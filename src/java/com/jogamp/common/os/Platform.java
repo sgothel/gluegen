@@ -41,6 +41,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
+import jogamp.common.Debug;
 import jogamp.common.jvm.JVMUtil;
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -50,6 +51,12 @@ import jogamp.common.os.MachineDescriptionRuntime;
  */
 public class Platform {
 
+    /**
+     * System property: 'jogamp.gluegen.UseTempJarCache', defaults to true
+     */
+    public static final boolean USE_TEMP_JAR_CACHE;
+    private static final String useTempJarCachePropName = "jogamp.gluegen.UseTempJarCache";
+    
     public static final boolean JAVA_SE;
     public static final boolean LITTLE_ENDIAN;
     public static final String OS;
@@ -190,6 +197,13 @@ public class Platform {
         
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
+        USE_TEMP_JAR_CACHE =
+            AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+                public Boolean run() {
+                    return Boolean.valueOf(Debug.getBooleanProperty(true, useTempJarCachePropName, true, AccessController.getContext()));
+                }
+            }).booleanValue();
+        
         loadGlueGenRTImpl();
         JVMUtil.initSingleton();
         
@@ -279,13 +293,13 @@ public class Platform {
     }
 
     private static void loadGlueGenRTImpl() {
-        final String nativeJarName = "gluegen-rt-natives-"+os_and_arch+".jar";
-        final String libBaseName = "gluegen-rt";    
-        final ClassLoader cl = Platform.class.getClassLoader();
+        final String libBaseName = "gluegen-rt";
         
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
-                if(TempJarCache.initSingleton()) {
+                if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
+                  final String nativeJarName = "gluegen-rt-natives-"+os_and_arch+".jar";
+                  final ClassLoader cl = Platform.class.getClassLoader();                
                   try {
                     final URL jarUrlRoot = JarUtil.getJarURLDirname(
                                         JarUtil.getJarURL(Platform.class.getName(), cl) );

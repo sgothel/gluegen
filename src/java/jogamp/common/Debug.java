@@ -88,8 +88,15 @@ public class Debug {
   }
 
   public static boolean getBooleanProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    Boolean b = Boolean.valueOf(Debug.getProperty(property, jnlpAlias, acc));
-    return b.booleanValue();
+    return Boolean.valueOf(Debug.getProperty(property, jnlpAlias, acc)).booleanValue();
+  }
+
+  public static boolean getBooleanProperty(boolean defaultValue, final String property, final boolean jnlpAlias, final AccessControlContext acc) {
+    final String valueS = Debug.getProperty(property, jnlpAlias, acc);
+    if(null != valueS) {
+        return Boolean.valueOf(Debug.getProperty(property, jnlpAlias, acc)).booleanValue();
+    }
+    return defaultValue;
   }
 
   static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
@@ -107,8 +114,8 @@ public class Debug {
   public static String getProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
     String s=null;
     if(null!=acc && acc.equals(localACC)) {
-        s = (String) AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
+        s = AccessController.doPrivileged(new PrivilegedAction<String>() {
+            public String run() {
               String val=null;
               try {
                   val = System.getProperty(property);
