@@ -40,10 +40,10 @@
 #include <stdio.h> //required by android to identify NULL
 #include <jni.h>
 
-#include "com_jogamp_common_jvm_JVMUtil.h"
+#include "jogamp_common_jvm_JVMUtil.h"
 
 JNIEXPORT jboolean JNICALL
-Java_com_jogamp_common_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
+Java_jogamp_common_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
   void * ptr = NULL;
   if (nioBuffer != NULL) {
         ptr = (void *) (*env)->GetDirectBufferAddress(env, nioBuffer);

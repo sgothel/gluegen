@@ -41,6 +41,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
+import jogamp.common.jvm.JVMUtil;
 import jogamp.common.os.MachineDescriptionRuntime;
 
 /**
@@ -190,6 +191,7 @@ public class Platform {
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
         loadGlueGenRTImpl();
+        JVMUtil.initSingleton();
         
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {

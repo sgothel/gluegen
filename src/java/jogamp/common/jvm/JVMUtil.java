@@ -30,13 +30,15 @@
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
  */
 
-package com.jogamp.common.jvm;
+package jogamp.common.jvm;
 
 import java.nio.ByteBuffer;
+
+import jogamp.common.Debug;
+
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 
-import jogamp.common.Debug;
 
 /**
  * Currently this tool works around the Hotspot race condition bugs:
