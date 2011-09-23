@@ -224,7 +224,7 @@ public class JarUtil {
         if (DEBUG) {
             System.err.println("JarUtil: extract: "+jarFile.getName()+" -> "+dest+
                                ", extractNativeLibraries "+extractNativeLibraries+
-                               ", extractClassFiles"+extractClassFiles+
+                               ", extractClassFiles "+extractClassFiles+
                                ", extractOtherFiles "+extractOtherFiles);
         }
         int num = 0;
@@ -264,13 +264,26 @@ public class JarUtil {
             final boolean isRootEntry = entryName.indexOf('/') == -1 && 
                                         entryName.indexOf(File.separatorChar) == -1;
             
+            if (DEBUG) {
+                System.err.println("JarUtil: JarEntry : isNativeLib " + isNativeLib + 
+                                   ", isClassFile " + isClassFile + ", isDir " + isDir +
+                                   ", isRootEntry " + isRootEntry );
+            }
+            
             final File destFile = new File(dest, entryName);
             if(isDir) {
-                destFile.mkdir();
                 if (DEBUG) {
                     System.err.println("JarUtil: MKDIR: " + entryName + " -> " + destFile );
                 }
+                destFile.mkdir();
             } else {
+                final File destFolder = new File(destFile.getParent());
+                if(!destFolder.exists()) {
+                    if (DEBUG) {
+                        System.err.println("JarUtil: MKDIR (parent): " + entryName + " -> " + destFolder );
+                    }                    
+                    destFolder.mkdir();
+                }
                 final InputStream in = new BufferedInputStream(jarFile.getInputStream(entry));
                 final OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
                 int numBytes = -1; 

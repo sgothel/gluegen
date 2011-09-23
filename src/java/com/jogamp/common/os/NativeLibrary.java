@@ -82,8 +82,8 @@ public class NativeLibrary implements DynamicLookupHelper {
         
       case MACOS:
         dynLink = new MacOSXDynamicLinkerImpl();
-        prefixes = new String[] { "lib", "" };
-        suffixes = new String[] { ".dylib", ".jnilib", "" };
+        prefixes = new String[] { "lib" };
+        suffixes = new String[] { ".dylib", ".jnilib" };
         break;
 
       /*
