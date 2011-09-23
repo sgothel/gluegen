@@ -33,12 +33,11 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.security.AccessController;
 
 import jogamp.common.Debug;
 
 public class TempFileCache {
-    private static final boolean VERBOSE = Debug.isPropertyDefined("jogamp.debug.TempFileCache", true, AccessController.getContext());
+    private static final boolean DEBUG = Debug.debug("TempFileCache");
 
     // Lifecycle: For all JVMs, ClassLoader and times.
     private static final String tmpDirPrefix = "jogamp.tmp.cache";
@@ -136,9 +135,9 @@ public class TempFileCache {
      *     6. Start the Reaper thread to cleanup old installations.
      */
     private static void initTmpRoot() throws IOException {
-        if (VERBOSE) {
-            System.err.println("TempFileCache Static Initialization ----------------------------------------------");
-            System.err.println("Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode()));
+        if (DEBUG) {
+            System.err.println("TempFileCache: Static Initialization ----------------------------------------------");
+            System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode()));
         }
 
         synchronized (System.out) {
@@ -158,8 +157,8 @@ public class TempFileCache {
 
                 // Create ${tmpbase}/jlnNNNN.tmp then lock the file
                 File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
-                if (VERBOSE) {
-                    System.err.println("tmpFile = " + tmpFile.getAbsolutePath());
+                if (DEBUG) {
+                    System.err.println("TempFileCache: tmpFile = " + tmpFile.getAbsolutePath());
                 }
                 final FileOutputStream tmpOut = new FileOutputStream(tmpFile);
                 final FileChannel tmpChannel = tmpOut.getChannel();
@@ -172,8 +171,8 @@ public class TempFileCache {
                 // create ${tmpbase}/jlnNNNN.lck then lock the file
                 String lckFileName = tmpRootName + ".lck";
                 File lckFile = new File(lckFileName);
-                if (VERBOSE) {
-                    System.err.println("lckFile = " + lckFile.getAbsolutePath());
+                if (DEBUG) {
+                    System.err.println("TempFileCache: lckFile = " + lckFile.getAbsolutePath());
                 }
                 lckFile.createNewFile();
                 final FileOutputStream lckOut = new FileOutputStream(lckFile);
@@ -182,8 +181,8 @@ public class TempFileCache {
 
                 // Create tmprootdir
                 tmpRootDir = new File(tmpRootName);
-                if (VERBOSE) {
-                    System.err.println("tmpRootDir = " + tmpRootDir.getAbsolutePath());
+                if (DEBUG) {
+                    System.err.println("TempFileCache: tmpRootDir = " + tmpRootDir.getAbsolutePath());
                 }
                 if (!tmpRootDir.mkdir()) {
                     throw new IOException("Cannot create " + tmpRootDir);
@@ -213,8 +212,8 @@ public class TempFileCache {
                 // Set the system property...
                 tmpRootPropValue = tmpRootName.substring(tmpRootName.lastIndexOf(File.separator) + 1);
                 System.setProperty(tmpRootPropName, tmpRootPropValue);
-                if (VERBOSE) {
-                    System.err.println("Setting " + tmpRootPropName + "=" + tmpRootPropValue);
+                if (DEBUG) {
+                    System.err.println("TempFileCache: Setting " + tmpRootPropName + "=" + tmpRootPropValue);
                 }
 
                 // Start a new Reaper thread to do stuff...
@@ -234,20 +233,20 @@ public class TempFileCache {
                 }
 
                 // Set tmpRootDir = ${tmpbase}/${jnlp.applet.launcher.tmproot}
-                if (VERBOSE) {
-                    System.err.println("Using existing value of: " +
+                if (DEBUG) {
+                    System.err.println("TempFileCache: Using existing value of: " +
                             tmpRootPropName + "=" + tmpRootPropValue);
                 }
                 tmpRootDir = new File(tmpBaseDir, tmpRootPropValue);
-                if (VERBOSE) {
-                    System.err.println("tmpRootDir = " + tmpRootDir.getAbsolutePath());
+                if (DEBUG) {
+                    System.err.println("TempFileCache: tmpRootDir = " + tmpRootDir.getAbsolutePath());
                 }
                 if (!tmpRootDir.isDirectory()) {
                     throw new IOException("Cannot access " + tmpRootDir);
                 }
             }
         }
-        if (VERBOSE) {
+        if (DEBUG) {
             System.err.println("------------------------------------------------------------------ (static ok: "+(!staticInitError)+")");
         }
     }
@@ -257,8 +256,8 @@ public class TempFileCache {
      * Only one of these threads will run per JVM invocation.
      */
     private static void deleteOldTempDirs() {
-        if (VERBOSE) {
-            System.err.println("*** Reaper: deleteOldTempDirs in " +
+        if (DEBUG) {
+            System.err.println("TempFileCache: *** Reaper: deleteOldTempDirs in " +
                     tmpBaseDir.getAbsolutePath());
         }
 
@@ -298,7 +297,7 @@ public class TempFileCache {
                         tmpLock = tmpChannel.tryLock();
                     } catch (Exception ex) {
                         // Ignore exceptions
-                        if (VERBOSE) {
+                        if (DEBUG) {
                             ex.printStackTrace();
                         }
                     }
@@ -313,7 +312,7 @@ public class TempFileCache {
                             lckChannel = lckOut.getChannel();
                             lckLock = lckChannel.tryLock();
                         } catch (Exception ex) {
-                            if (VERBOSE) {
+                            if (DEBUG) {
                                 ex.printStackTrace();
                             }
                         }
@@ -351,15 +350,15 @@ public class TempFileCache {
                                 tmpOut.close();
                                 tmpLock.release();
                             } catch (IOException ex) {
-                                if (VERBOSE) {
+                                if (DEBUG) {
                                     ex.printStackTrace();
                                 }
                             }
                         }
                     }
                 } else {
-                    if (VERBOSE) {
-                        System.err.println("    Skipping: " + tmpDir.getAbsolutePath());
+                    if (DEBUG) {
+                        System.err.println("TempFileCache: Skipping: " + tmpDir.getAbsolutePath());
                     }
                 }
             }
@@ -371,8 +370,8 @@ public class TempFileCache {
      * recursively remove all entries, then remove the directory itself.
      */
     private static void removeAll(File path) {
-        if (VERBOSE) {
-            System.err.println("removeAll(" + path + ")");
+        if (DEBUG) {
+            System.err.println("TempFileCache: removeAll(" + path + ")");
         }
 
         if (path.isDirectory()) {
@@ -389,9 +388,9 @@ public class TempFileCache {
     }
 
     public TempFileCache () {
-        if (VERBOSE) {
-            System.err.println("new TempFileCache() --------------------- (static ok: "+(!staticInitError)+")");
-            System.err.println("Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", this 0x"+Integer.toHexString(hashCode()));
+        if (DEBUG) {
+            System.err.println("TempFileCache: new TempFileCache() --------------------- (static ok: "+(!staticInitError)+")");
+            System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", this 0x"+Integer.toHexString(hashCode()));
         }
         if(!staticInitError) { 
             try {
@@ -401,7 +400,7 @@ public class TempFileCache {
                 initError = true;
             }
         }
-        if (VERBOSE) {
+        if (DEBUG) {
             System.err.println("tempDir: "+individualTmpDir+" (ok: "+(!initError)+")");
             System.err.println("----------------------------------------------------------");
         }        

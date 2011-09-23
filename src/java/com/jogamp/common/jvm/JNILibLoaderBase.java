@@ -87,7 +87,7 @@ public class JNILibLoaderBase {
             loadLibraryInternal(libname);
             addLoaded(libname);
             if(DEBUG) {
-                System.err.println("JNILibLoaderBase loaded "+libname);
+                System.err.println("JNILibLoaderBase: loaded "+libname);
             }
           } catch (UnsatisfiedLinkError e) {
             res = false;
@@ -124,7 +124,7 @@ public class JNILibLoaderBase {
   public static void addLoaded(String libName) {
     loaded.add(libName);
     if(DEBUG) {
-        System.err.println("JNILibLoaderBase Loaded Native Library: "+libName);
+        System.err.println("JNILibLoaderBase: Loaded Native Library: "+libName);
     }
   }
 
@@ -147,15 +147,15 @@ public class JNILibLoaderBase {
         try {
             URL jarUrlRoot = JarUtil.getJarURLDirname( JarUtil.getJarURL( classFromJavaJar.getName(), cl ) );
             if(DEBUG) {
-                System.err.println("addNativeJarLibs: "+nativeJarBaseName+": url-root "+jarUrlRoot);
+                System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": url-root "+jarUrlRoot);
             }
             URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);
             if(DEBUG) {
-                System.err.println("addNativeJarLibs: "+nativeJarBaseName+": nativeJarURL "+nativeJarURL);
+                System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": nativeJarURL "+nativeJarURL);
             }
             JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
             if(DEBUG) {
-                System.err.println("addNativeJarLibs: "+nativeJarBaseName+": nativeJar "+nativeJar.getName());
+                System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": nativeJar "+nativeJar.getName());
             }
             return TempJarCache.addNativeLibs(classFromJavaJar, nativeJar);
         } catch (IOException ioe) {
@@ -258,17 +258,17 @@ public class JNILibLoaderBase {
           final String fullLibraryName = TempJarCache.findLibrary(libraryName);
           if(null != fullLibraryName) {
             if(DEBUG) {
-              System.err.println("JNILibLoaderBase.loadLibraryInternal("+libraryName+") -> System.load("+fullLibraryName+") (TempJarCache)");
+              System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> System.load("+fullLibraryName+") (TempJarCache)");
             }
             System.load(fullLibraryName);
             return; // done
           } else if(DEBUG) {
-            System.err.println("JNILibLoaderBase.loadLibraryInternal("+libraryName+") -> TempJarCache not mapped");
+            System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> TempJarCache not mapped");
           }
       }
       // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
       if(DEBUG) {
-          System.err.println("JNILibLoaderBase.loadLibraryInternal("+libraryName+") -> System.loadLibrary("+libraryName+")");
+          System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> System.loadLibrary("+libraryName+")");
       }
       System.loadLibrary(libraryName);
     }

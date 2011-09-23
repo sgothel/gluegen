@@ -37,7 +37,6 @@ import java.io.OutputStream;
 import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
-import java.security.AccessController;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -50,7 +49,7 @@ import com.jogamp.common.os.NativeLibrary;
 import jogamp.common.Debug;
 
 public class JarUtil {
-    private static final boolean VERBOSE = Debug.isPropertyDefined("jogamp.debug.JARUtil", true, AccessController.getContext());
+    private static final boolean DEBUG = Debug.debug("JarUtil");
 
     /**
      * @param clazzBinName com.jogamp.common.util.cache.TempJarCache 
@@ -162,8 +161,8 @@ public class JarUtil {
      * Return a map from native-lib-base-name to entry-name.
      */
     public static Map<String, String> getNativeLibNames(JarFile jarFile) {
-        if (VERBOSE) {
-            System.err.println("getNativeLibNames: "+jarFile);
+        if (DEBUG) {
+            System.err.println("JarUtil: getNativeLibNames: "+jarFile);
         }
 
         Map<String,String> nameMap = new HashMap<String, String>();
@@ -222,8 +221,8 @@ public class JarUtil {
                                     boolean extractClassFiles,
                                     boolean extractOtherFiles) throws IOException {
 
-        if (VERBOSE) {
-            System.err.println("extract: "+jarFile.getName()+" -> "+dest+
+        if (DEBUG) {
+            System.err.println("JarUtil: extract: "+jarFile.getName()+" -> "+dest+
                                ", extractNativeLibraries "+extractNativeLibraries+
                                ", extractClassFiles"+extractClassFiles+
                                ", extractOtherFiles "+extractOtherFiles);
@@ -239,23 +238,23 @@ public class JarUtil {
             final String libBaseName = NativeLibrary.isValidNativeLibraryName(entryName, false);
             final boolean isNativeLib = null != libBaseName;
             if(isNativeLib && !extractNativeLibraries) {
-                if (VERBOSE) {
-                    System.err.println("JarEntry : " + entryName + " native-lib skipped");
+                if (DEBUG) {
+                    System.err.println("JarUtil: JarEntry : " + entryName + " native-lib skipped");
                 }
                 continue;
             }
             
             final boolean isClassFile = entryName.endsWith(".class");
             if(isClassFile && !extractClassFiles) {
-                if (VERBOSE) {
-                    System.err.println("JarEntry : " + entryName + " class-file skipped");
+                if (DEBUG) {
+                    System.err.println("JarUtil: JarEntry : " + entryName + " class-file skipped");
                 }
                 continue;
             }
             
             if(!isNativeLib && !isClassFile && !extractOtherFiles) {
-                if (VERBOSE) {
-                    System.err.println("JarEntry : " + entryName + " other-file skipped");
+                if (DEBUG) {
+                    System.err.println("JarUtil: JarEntry : " + entryName + " other-file skipped");
                 }
                 continue;
             }
@@ -268,8 +267,8 @@ public class JarUtil {
             final File destFile = new File(dest, entryName);
             if(isDir) {
                 destFile.mkdir();
-                if (VERBOSE) {
-                    System.err.println("MKDIR: " + entryName + " -> " + destFile );
+                if (DEBUG) {
+                    System.err.println("JarUtil: MKDIR: " + entryName + " -> " + destFile );
                 }
             } else {
                 final InputStream in = new BufferedInputStream(jarFile.getInputStream(entry));
@@ -289,8 +288,8 @@ public class JarUtil {
                         addedAsNativeLib = true;
                     }
                 }
-                if (VERBOSE) {
-                    System.err.println("EXTRACT["+num+"]: [" + libBaseName + " -> ] " + entryName + " -> " + destFile + ": "+numBytes+" bytes, addedAsNativeLib: "+addedAsNativeLib);
+                if (DEBUG) {
+                    System.err.println("JarUtil: EXTRACT["+num+"]: [" + libBaseName + " -> ] " + entryName + " -> " + destFile + ": "+numBytes+" bytes, addedAsNativeLib: "+addedAsNativeLib);
                 }
             }
         }
@@ -308,8 +307,8 @@ public class JarUtil {
     public static final void validateCertificates(Certificate[] rootCerts, JarFile jarFile) 
             throws IOException, SecurityException {
 
-        if (VERBOSE) {
-            System.err.println("validateCertificates: "+jarFile.getName());
+        if (DEBUG) {
+            System.err.println("JarUtil: validateCertificates: "+jarFile.getName());
         }
 
         if (rootCerts == null || rootCerts.length == 0) {
@@ -319,7 +318,11 @@ public class JarUtil {
         byte[] buf = new byte[1024];
         Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()) {
-            validateCertificate(rootCerts, jarFile, entries.nextElement(), buf);
+            final JarEntry entry = entries.nextElement();
+            if( ! entry.isDirectory() && ! entry.getName().startsWith("META-INF/") ) {
+                // only validate non META-INF and non directories
+                validateCertificate(rootCerts, jarFile, entry, buf);
+            }
         }
     }
 
@@ -330,8 +333,8 @@ public class JarUtil {
     private static final void validateCertificate(Certificate[] rootCerts, 
             JarFile jar, JarEntry entry, byte[] buf) throws IOException, SecurityException {
 
-        if (VERBOSE) {
-            System.err.println("Validate JarEntry : " + entry.getName());
+        if (DEBUG) {
+            System.err.println("JarUtil: validate JarEntry : " + entry.getName());
         }
 
         // API states that we must read all of the data from the entry's
