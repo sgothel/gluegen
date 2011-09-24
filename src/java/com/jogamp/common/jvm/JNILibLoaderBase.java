@@ -140,6 +140,12 @@ public class JNILibLoaderBase {
     loaderAction = action;
   }
 
+  /**
+   * 
+   * @param classFromJavaJar GLProfile
+   * @param nativeJarBaseName jogl-all
+   * @return
+   */
   public static final boolean addNativeJarLibs(Class<?> classFromJavaJar, String nativeJarBaseName) {
     if(TempJarCache.isInitialized()) {
         final String nativeJarName = nativeJarBaseName+"-natives-"+Platform.getOSAndArch()+".jar";
@@ -164,7 +170,38 @@ public class JNILibLoaderBase {
     }
     return false;
   }
-    
+   
+  /**
+   * @param classFromJavaJar GLProfile
+   * @param allJavaJarPrefix "jogl.all"
+   * @param allNativeJarBaseName "jogl-all"
+   * @param atomicNativeJarBaseNames [ "nativewindow", "jogl", "newt" ]
+   */
+  public static void addNativeJarLibs(Class<?> classFromJavaJar, String allJavaJarPrefix, String allNativeJarBaseName, String[] atomicNativeJarBaseNames) {
+    if(TempJarCache.isInitialized()) {
+        final ClassLoader cl = classFromJavaJar.getClassLoader();
+        try {
+            final String jarName = JarUtil.getJarName(classFromJavaJar.getName(), cl);
+            if(jarName!=null) {
+                if( null != allJavaJarPrefix && jarName.startsWith(allJavaJarPrefix) ) {
+                    // all-in-one variant
+                    JNILibLoaderBase.addNativeJarLibs(classFromJavaJar, allNativeJarBaseName);
+                } else if(null != atomicNativeJarBaseNames) {
+                    // atomic variant
+                    for(int i=0; i<atomicNativeJarBaseNames.length; i++) {
+                        final String atomicNativeJarBaseName = atomicNativeJarBaseNames[i];
+                        if(null != atomicNativeJarBaseName && atomicNativeJarBaseName.length()>0) {
+                            JNILibLoaderBase.addNativeJarLibs(classFromJavaJar, atomicNativeJarBaseName);
+                        }
+                    }
+                }
+            }
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+    }
+  }
+  
   protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {
     if (loaderAction != null) {
         return loaderAction.loadLibrary(libname, ignoreError);    
