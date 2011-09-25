@@ -131,7 +131,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        public boolean start() {
            if(alive) return true;
            
-           Thread t = new Thread(this, "SingletonInstanceServerSocket: "+getName());
+           Thread t = new Thread(this);
            t.setDaemon(true);  // be a daemon, don't keep the JVM running
            
            synchronized (syncOnStartStop) {
@@ -181,6 +181,13 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        }
        
        public void run() {
+           {
+               final Thread currentThread = Thread.currentThread();
+               currentThread.setName(currentThread.getName() + " - SingletonInstanceServerSocket: "+getName());
+               if(DEBUG) {
+                   System.err.println(currentThread.getName()+" - started");               
+               }
+           }
            alive = false;
            synchronized (syncOnStartStop) {
                try {
