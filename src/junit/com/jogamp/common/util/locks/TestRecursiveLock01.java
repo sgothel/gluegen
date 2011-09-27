@@ -28,26 +28,39 @@
  
 package com.jogamp.common.util.locks;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
 
 public class TestRecursiveLock01 {
 
-    static final int YIELD_NONE = 0;
-    static final int YIELD_YIELD = 1;
-    static final int YIELD_SLEEP = 2;
+    public enum YieldMode {
+        NONE(0), YIELD(1), SLEEP(2); 
+        
+        public final int id;
 
-    static void yield(int mode) {
+        YieldMode(int id){
+            this.id = id;
+        }
+    }    
+    
+    static void yield(YieldMode mode) {
         switch(mode) {
-            case YIELD_YIELD:
+            case YIELD:
                 Thread.yield();
                 break;
-            case YIELD_SLEEP:
+            case SLEEP:
                 try {
-                    Thread.sleep(20);
+                    Thread.sleep(10);
                 } catch (InterruptedException ie) {
                     ie.printStackTrace();
                 }
@@ -60,13 +73,39 @@ public class TestRecursiveLock01 {
 
     static class LockedObject {
         static final boolean DEBUG = false;
+        
+        static class ThreadStat {
+            ThreadStat() {
+                total = 0;
+                counter = 0;
+            }
+            long total; // ns
+            int counter;
+        }
+        
+        private RecursiveLock locker; // post
+        private int deferredThreadCount = 0; // synced
+        private Map<String, ThreadStat> threadWaitMap = Collections.synchronizedMap(new HashMap<String, ThreadStat>()); // locked
+        
+        long avrg; // ns, post 
+        long max_deviation; // ns, post
+        long min_deviation; // ns, post
 
-        public LockedObject() {
-            locker = new RecursiveLock();
-            actionCounter = 0;
+        public LockedObject(LockFactory.ImplType implType, boolean fair) {
+            locker = LockFactory.createRecursiveLock(implType, fair);
         }
 
-        public final void action1Direct(int l, int yieldMode) {
+        private synchronized void incrDeferredThreadCount() {
+            deferredThreadCount++;
+        }
+        private synchronized void decrDeferredThreadCount() {
+            deferredThreadCount--;
+        }
+        public synchronized int getDeferredThreadCount() {
+            return deferredThreadCount;
+        }
+        
+        public final void action1Direct(int l, YieldMode yieldMode) {
             if(DEBUG) {
                 System.err.print("<a1");
             }
@@ -76,7 +115,6 @@ public class TestRecursiveLock01 {
                     System.err.print("+");
                 }
                 while(l>0) l--;
-                actionCounter++;
                 yield(yieldMode);
             } finally {
                 if(DEBUG) {
@@ -90,11 +128,15 @@ public class TestRecursiveLock01 {
         }
 
         class Action2 implements Runnable {
-            int l, yieldMode;
-            Action2(int l, int yieldMode) {
+            int l;
+            YieldMode yieldMode;
+            
+            Action2(int l, YieldMode yieldMode) {
                 this.l=l;
                 this.yieldMode=yieldMode;
+                incrDeferredThreadCount();
             }
+            
             public void run() {
                 if(DEBUG) {
                     System.err.print("[a2");
@@ -105,8 +147,7 @@ public class TestRecursiveLock01 {
                         System.err.print("+");
                     }
                     while(l>0) l--;
-                    actionCounter++;
-                    yield(yieldMode);
+                     yield(yieldMode);
                 } finally {
                     if(DEBUG) {
                         System.err.print("-");
@@ -116,16 +157,32 @@ public class TestRecursiveLock01 {
                         System.err.println("]");
                     }
                 }
-            }
+                decrDeferredThreadCount();
+                final int dc = getDeferredThreadCount();
+                if(0>dc) {
+                    throw new InternalError("deferredThreads: "+dc);
+                }
+            }            
         }
 
-        public final void action2Deferred(int l, int yieldMode) {
-            Thread thread = new Thread(new Action2(l, yieldMode), Thread.currentThread()+"-action2Deferred");
-            thread.start();
+        public final void action2Deferred(int l, YieldMode yieldMode) {
+            Action2 action2 = new Action2(l, yieldMode); 
+            new Thread(action2, Thread.currentThread().getName()+"-deferred").start();
         }
 
         public final void lock() {
+            long td = System.nanoTime();
             locker.lock();
+            td = System.nanoTime() - td;
+            
+            final String cur = Thread.currentThread().getName();
+            ThreadStat ts = threadWaitMap.get(cur);
+            if(null == ts) {
+                ts = new ThreadStat();
+            }
+            ts.total += td;
+            ts.counter++;
+            threadWaitMap.put(cur, ts);
         }
 
         public final void unlock() {
@@ -135,26 +192,60 @@ public class TestRecursiveLock01 {
         public final boolean isLocked() {
             return locker.isLocked();
         }
+        
+        public void stats(boolean dump) {
+            long timeAllLocks=0;
+            int numAllLocks=0;
+            for(Iterator<String> i = threadWaitMap.keySet().iterator(); i.hasNext(); ) {
+                String name = i.next();
+                ThreadStat ts = threadWaitMap.get(name);
+                timeAllLocks += ts.total;
+                numAllLocks += ts.counter;
+            }            
+            max_deviation = Long.MIN_VALUE;
+            min_deviation = Long.MAX_VALUE;
+            avrg = timeAllLocks/numAllLocks;
+            if(dump) {
+                System.err.printf("Average: %6d ms / %6d times = %8d ns", 
+                        timeAllLocks/1000000, numAllLocks, avrg);
+                System.err.println();
+            }
+            for(Iterator<String> i = threadWaitMap.keySet().iterator(); i.hasNext(); numAllLocks++) {
+                String name = i.next();
+                final ThreadStat ts = threadWaitMap.get(name);
+                final long a = ts.total/ts.counter;
+                final long d = a - avrg;
+                max_deviation = Math.max(max_deviation, d);
+                min_deviation = Math.min(min_deviation, d);
+                if(dump) {
+                    System.err.printf("%-35s %12d ns / %6d times, a %8d ns, d %8d ns", 
+                            name, ts.total, ts.counter, a, d);
+                    System.err.println();
+                }
+            }   
+            if(dump) {
+                System.err.printf("Deviation (min/max): [%8d ns - %8d ns]", min_deviation, max_deviation);
+                System.err.println();
+            }
+        }
 
-        RecursiveLock locker;
-        int actionCounter;
     }
 
-    interface LockedObjectIf extends Runnable {
+    interface LockedObjectRunner extends Runnable {
         void stop();
         boolean isStopped();
-        int remaining();
+        void waitUntilStopped();
     }
 
-    class LockedObjectAction1 implements LockedObjectIf {
+    class LockedObjectRunner1 implements LockedObjectRunner {
         volatile boolean shouldStop;
         volatile boolean stopped;
         LockedObject lo;
-        volatile int loops;
+        int loops;
         int iloops;
-        int yieldMode;
+        YieldMode yieldMode;
 
-        public LockedObjectAction1(LockedObject lo, int loops, int iloops, int yieldMode) {
+        public LockedObjectRunner1(LockedObject lo, int loops, int iloops, YieldMode yieldMode) {
             this.lo = lo;
             this.loops = loops;
             this.iloops = iloops;
@@ -170,88 +261,292 @@ public class TestRecursiveLock01 {
         public final boolean isStopped() {
             return stopped;
         }
-
-        public final int remaining() {
-            return loops;
+        
+        public void waitUntilStopped() {
+            synchronized(this) {
+                while(!stopped) {
+                    try {
+                        this.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+            
         }
 
         public void run() {
-            while(!shouldStop && loops>0) {
-                lo.action1Direct(iloops, yieldMode);
-                lo.action2Deferred(iloops, yieldMode);
-                loops--;
+            synchronized(this) {
+                while(!shouldStop && loops>0) {
+                    lo.action1Direct(iloops, yieldMode);
+                    lo.action2Deferred(iloops, yieldMode);
+                    loops--;
+                }
+                stopped = true;
+                this.notifyAll();
             }
-            stopped = true;
         }
     }
 
-    protected void testLockedObjectImpl(int threadNum, int loops, int iloops, int yieldMode) throws InterruptedException {
-        LockedObject lo = new LockedObject();
-        LockedObjectIf[] runners = new LockedObjectIf[threadNum];
+    protected long testLockedObjectImpl(LockFactory.ImplType implType, boolean fair, 
+                                        int threadNum, int loops, int iloops, YieldMode yieldMode) throws InterruptedException {
+        final long t0 = System.currentTimeMillis();
+        LockedObject lo = new LockedObject(implType, fair);
+        LockedObjectRunner[] runners = new LockedObjectRunner[threadNum];
         Thread[] threads = new Thread[threadNum];
         int i;
 
         for(i=0; i<threadNum; i++) {
-            runners[i] = new LockedObjectAction1(lo, loops, iloops, yieldMode);
-            threads[i] = new Thread( runners[i], Thread.currentThread()+"-ActionThread-"+i+"/"+threadNum);
+            runners[i] = new LockedObjectRunner1(lo, loops, iloops, yieldMode);
+            // String name = Thread.currentThread().getName()+"-ActionThread-"+i+"_of_"+threadNum;
+            String name = "ActionThread-"+i+"_of_"+threadNum;            
+            threads[i] = new Thread( runners[i], name );
             threads[i].start();
         }
 
-        int active;
-        do {
-            active = threadNum;
-            for(i=0; i<threadNum; i++) {
-                if(runners[i].isStopped()) {
-                    active--;
-                }
-            }
-            yield(yieldMode);
-        } while(0<active);
-    }
-
-    // @Test
-    public void testLockedObjectThreading2x10000() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading2x10000");
-        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(2, 5, 10, YIELD_NONE);
-        } else {
-            testLockedObjectImpl(2, 10000, 10000, YIELD_NONE);
+        for( i=0; i<threadNum; i++ ) {
+            runners[i].waitUntilStopped();
         }
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading2x10000");
+        while( 0 < lo.getDeferredThreadCount() ) {
+            Thread.sleep(100);
+        }        
+        Assert.assertEquals(0, lo.locker.getHoldCount());
+        Assert.assertEquals(false, lo.locker.isLocked());
+        Assert.assertEquals(0, lo.getDeferredThreadCount());
+        
+        final long dt = System.currentTimeMillis()-t0;
+        lo.stats(false);
+        
+        System.err.println();
+        final String fair_S = fair ? "fair  " : "unfair" ;
+        System.err.printf("---- TestRecursiveLock01.testLockedObjectThreading: i %5s, %s, threads %2d, loops-outter %6d, loops-inner %6d, yield %5s - dt %6d ms, avrg %8d ns, deviation [ %8d .. %8d ] ns", 
+                implType, fair_S, threadNum, loops, iloops, yieldMode, dt, lo.avrg, lo.min_deviation, lo.max_deviation);
+        System.err.println();
+        return dt;
     }
 
     @Test
-    public void testLockedObjectThreading25x25Yield() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
+    public void testLockedObjectThreading5x1000x10000N_Int01_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=true;
+        int threadNum=5; 
+        int loops=1000; 
+        int iloops=10000; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
         if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(2, 5, 10, YIELD_YIELD);
-        } else {
-            testLockedObjectImpl(25, 25, 100, YIELD_YIELD);
-        }
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-Yield");
-    }
-
-    // @Test
-    public void testLockedObjectThreading25x25Sleep() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
-        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(2, 5, 10, YIELD_SLEEP);
-        } else {
-            testLockedObjectImpl(25, 25, 100, YIELD_SLEEP);
-        }
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-Sleep");
-    }
-
-    @Test
-    public void testLockedObjectThreading25x25None() throws InterruptedException {
-        System.err.println("++++ TestRecursiveLock01.testLockedObjectThreading25x25-None");
-        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
-            testLockedObjectImpl(2, 5, 10, YIELD_NONE);
-        } else {
-            testLockedObjectImpl(25, 25, 100, YIELD_NONE);
+            threadNum=5; loops=5; iloops=10;
         }
         
-        System.err.println("---- TestRecursiveLock01.testLockedObjectThreading25x25-None");
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    @Test
+    public void testLockedObjectThreading5x1000x10000N_Java5_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5; 
+        boolean fair=true;
+        int threadNum=5; 
+        int loops=1000; 
+        int iloops=10000; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+    
+    @Test
+    public void testLockedObjectThreading5x1000x10000N_Int01_Unfair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=false;
+        int threadNum=5; 
+        int loops=1000; 
+        int iloops=10000; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    @Test
+    public void testLockedObjectThreading5x1000x10000N_Java5_Unfair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5; 
+        boolean fair=false;
+        int threadNum=5; 
+        int loops=1000; 
+        int iloops=10000; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+    
+    @Test
+    public void testLockedObjectThreading25x100x100Y_Int01_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=true;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.YIELD;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);        
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100Y_Java5_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5; 
+        boolean fair=true;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.YIELD;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);        
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100Y_Int01_Unair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=false;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.YIELD;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);        
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100Y_Java5_Unfair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5; 
+        boolean fair=false;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.YIELD;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);        
+    }
+
+    // @Test
+    public void testLockedObjectThreading25x100x100S_Int01_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=true;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.SLEEP;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    // @Test
+    public void testLockedObjectThreading25x100x100S_Java5() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5; 
+        boolean fair=true;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.SLEEP;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100N_Int01_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=true;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100N_Java5_Fair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5;
+        boolean fair=true;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100N_Int01_Unfair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Int01; 
+        boolean fair=false;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
+    }
+
+    @Test
+    public void testLockedObjectThreading25x100x100N_Java5_Unfair() throws InterruptedException {
+        LockFactory.ImplType t = LockFactory.ImplType.Java5;
+        boolean fair=false;
+        int threadNum=25; 
+        int loops=100; 
+        int iloops=100; 
+        YieldMode yieldMode=YieldMode.NONE;
+        
+        if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
+            threadNum=5; loops=5; iloops=10;
+        }
+        
+        testLockedObjectImpl(t, fair, threadNum, loops, iloops, yieldMode);
     }
 
     static int atoi(String a) {
@@ -262,9 +557,22 @@ public class TestRecursiveLock01 {
         return i;
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(String args[]) throws IOException, InterruptedException {
         String tstname = TestRecursiveLock01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
+        
+        /**
+        BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.err.println("Press enter to continue");
+        System.err.println(stdin.readLine()); 
+        TestRecursiveLock01 t = new TestRecursiveLock01();
+        t.testLockedObjectThreading5x1000x10000N_Int01_Unfair();
+        
+        t.testLockedObjectThreading5x1000x10000N_Int01_Fair();
+        t.testLockedObjectThreading5x1000x10000N_Java5_Fair();
+        t.testLockedObjectThreading5x1000x10000N_Int01_Unfair();
+        t.testLockedObjectThreading5x1000x10000N_Java5_Unfair();
+        */
     }
 
 }

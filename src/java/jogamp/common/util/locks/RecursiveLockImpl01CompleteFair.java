@@ -28,23 +28,29 @@
 
 package jogamp.common.util.locks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.AbstractOwnableSynchronizer;
 
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
- * Reentrance locking toolkit, impl a non-complete fair FIFO scheduler.
- * <p>
- * Fair scheduling is not guaranteed due to the usage of {@link Object#notify()},
- * however new lock-applicants will wait if queue is not empty for {@link #lock()} 
- * and {@link #tryLock(long) tryLock}(timeout>0).</p>
+ * Reentrance locking toolkit, impl a complete fair FIFO scheduler
  * 
  * <p>
  * Sync object extends {@link AbstractOwnableSynchronizer}, hence monitoring is possible.</p>
  */
-public class RecursiveLockImpl01Unfairish implements RecursiveLock {
+public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
 
+    private static class WaitingThread {
+        WaitingThread(Thread t) {
+            thread = t;
+            signaledByUnlock = false;
+        }
+        final Thread thread;
+        boolean signaledByUnlock; // if true, it's also removed from queue
+    }
+    
     @SuppressWarnings("serial")
     private static class Sync extends AbstractOwnableSynchronizer {
         private Sync() {
@@ -69,11 +75,12 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         private int holdCount = 0;
         // stack trace of the lock, only used if DEBUG
         private Throwable lockedStack = null;
-        private int qsz = 0;
+        // waiting thread queue
+        final ArrayList<WaitingThread> queue = new ArrayList<WaitingThread>();
     }
     private Sync sync = new Sync();
-        
-    public RecursiveLockImpl01Unfairish() {
+    
+    public RecursiveLockImpl01CompleteFair() {
     }
 
     /**
@@ -166,23 +173,51 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
                 return true;
             }
     
-            if ( sync.getOwner() != null || ( 0<timeout && 0<sync.qsz ) ) {
-    
+            if ( sync.getOwner() != null || ( 0<timeout && 0<sync.queue.size() ) ) {
+                
                 if ( 0 >= timeout ) {
                     // locked by other thread and no waiting requested
                     return false;
                 }
     
-                ++sync.qsz;
+                // enqueue at the start
+                WaitingThread wCur = new WaitingThread(cur);
+                sync.queue.add(0, wCur);
                 do {
                     final long t0 = System.currentTimeMillis();
-                    sync.wait(timeout);
-                    timeout -= System.currentTimeMillis() - t0;
-                } while (null != sync.getOwner() && 0 < timeout) ;
-                --sync.qsz;
+                    try {
+                        sync.wait(timeout);
+                        timeout -= System.currentTimeMillis() - t0;
+                    } catch (InterruptedException e) {
+                        if( !wCur.signaledByUnlock ) {
+                            sync.queue.remove(wCur); // O(n)
+                            throw e; // propagate interruption not send by unlock
+                        } else if( cur != sync.getOwner() ) {                        
+                            // Issued by unlock, but still locked by other thread
+                            //
+                            timeout -= System.currentTimeMillis() - t0;
+                            
+                            if(TRACE_LOCK) {
+                                System.err.println("+++ LOCK 1 "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms, signaled: "+wCur.signaledByUnlock);
+                            }
+                            
+                            if(0 < timeout) {
+                                // not timed out, re-enque - lock was 'stolen'
+                                wCur.signaledByUnlock = false;
+                                sync.queue.add(sync.queue.size(), wCur);
+                            }
+                        } // else: Issued by unlock, owning lock .. expected! 
+                    }
+                } while ( cur != sync.getOwner() && 0 < timeout ) ;
     
                 if( 0 >= timeout ) {
                     // timed out
+                    if(!wCur.signaledByUnlock) {
+                        sync.queue.remove(wCur); // O(n)
+                    }
+                    if(cur == sync.getOwner()) {
+                        sync.setOwner(null);
+                    }
                     if(TRACE_LOCK || DEBUG) {
                         System.err.println("+++ LOCK XX "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms");
                     }
@@ -219,7 +254,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         synchronized(sync) {
             validateLocked();
             final Thread cur = Thread.currentThread();
-            
+    
             --sync.holdCount;
             
             if (sync.holdCount > 0) {
@@ -229,7 +264,6 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
                 return;
             }
             
-            sync.setOwner(null);
             if(DEBUG) {
                 sync.setLockedStack(null);
             }
@@ -237,22 +271,37 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
                 taskAfterUnlockBeforeNotify.run();
             }
     
-            if(TRACE_LOCK) {
-                System.err.println("--- LOCK X0 "+toString()+", cur "+threadName(cur)+", signal any");
+            if(sync.queue.size() > 0) {
+                // fair, wakeup the oldest one ..
+                // final WaitingThread oldest = queue.removeLast();
+                final WaitingThread oldest = sync.queue.remove(sync.queue.size()-1);
+                sync.setOwner(oldest.thread);            
+    
+                if(TRACE_LOCK) {
+                    System.err.println("--- LOCK X1 "+toString()+", cur "+threadName(cur)+", signal: "+threadName(oldest.thread));
+                }
+                
+                oldest.signaledByUnlock = true;
+                oldest.thread.interrupt(); // Propagate SecurityException if it happens
+            } else {
+                sync.setOwner(null);
+                if(TRACE_LOCK) {
+                    System.err.println("--- LOCK X0 "+toString()+", cur "+threadName(cur)+", signal any");
+                }
+                sync.notify();                    
             }
-            sync.notify();
         }
     }
     
     public final int getQueueLength() {
         synchronized(sync) {
-            return sync.qsz;
+            return sync.queue.size();
         }
     }
     
     public String toString() {
         return syncName()+"[count "+sync.holdCount+
-                           ", qsz "+sync.qsz+", owner "+threadName(sync.getOwner())+"]";
+                           ", qsz "+sync.queue.size()+", owner "+threadName(sync.getOwner())+"]";
     }
     
     private final String syncName() {
