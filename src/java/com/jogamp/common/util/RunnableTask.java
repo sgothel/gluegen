@@ -110,6 +110,12 @@ public class RunnableTask implements Runnable {
     public boolean isExecuted() { return 0 != ts2 ; }
 
     /**
+     * @return True if invoking thread waits until done, 
+     *         ie a <code>notifyObject</code> was passed, otherwise false;
+     */
+    public boolean hasWaiter() { return null != notifyObject; }
+
+    /**
      * @return A Throwable thrown while execution if any
      */
     public Throwable getThrowable() { return runnableException; }
