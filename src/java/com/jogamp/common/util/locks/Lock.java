@@ -59,14 +59,14 @@ public interface Lock {
     /**
      * Blocking until the lock is acquired by this Thread or <code>maxwait</code> in ms is reached.
      *
-     * @param maxwait Maximum time in ms to wait to acquire the lock. If this value is zero,
+     * @param timeout Maximum time in ms to wait to acquire the lock. If this value is zero,
      *                the call returns immediately either without being able
      *                to acquire the lock, or with acquiring the lock directly while ignoring any scheduling order.
      * @return true if the lock has been acquired within <code>maxwait</code>, otherwise false
      *
-     * @throws RuntimeException in case of {@link #TIMEOUT}
+     * @throws InterruptedException
      */
-    boolean tryLock(long maxwait) throws RuntimeException;
+    boolean tryLock(long timeout) throws InterruptedException;
 
     /**
      * Unblocking.
