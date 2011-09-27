@@ -6,6 +6,6 @@ fi
 
 #    -Dc.compiler.debug=true 
 
-ant -v \
+ant \
     -Drootrel.build=build-macosx \
     $* 2>&1 | tee make.gluegen.all.macosx.log
