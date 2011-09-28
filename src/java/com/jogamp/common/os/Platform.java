@@ -52,7 +52,8 @@ import jogamp.common.os.MachineDescriptionRuntime;
 public class Platform {
 
     /**
-     * System property: 'jogamp.gluegen.UseTempJarCache', defaults to true
+     * System property: 'jogamp.gluegen.UseTempJarCache', 
+     * defaults to true if {@link #OS_TYPE} is not {@link OSType#ANDROID}.
      */
     public static final boolean USE_TEMP_JAR_CACHE;
     private static final String useTempJarCachePropName = "jogamp.gluegen.UseTempJarCache";
@@ -197,7 +198,7 @@ public class Platform {
         
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
-        USE_TEMP_JAR_CACHE =
+        USE_TEMP_JAR_CACHE = OS_TYPE != OSType.ANDROID &&
             AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 public Boolean run() {
                     return Boolean.valueOf(Debug.getBooleanProperty(true, useTempJarCachePropName, true, AccessController.getContext()));
