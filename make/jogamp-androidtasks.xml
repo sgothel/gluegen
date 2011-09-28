@@ -89,7 +89,7 @@
         <copy todir="${m.aapt.build.apk}/image" failonerror="false" includeEmptyDirs="false">
             <fileset dir="@{jarsrcdir}"
                      includes="**"
-                     excludes="**/*.java"/>
+                     excludes="**/*.java **/*.class **/*.h **/*.c **/*.m"/>
         </copy>
 
         <copy file="@{androidmanifest.path}" tofile="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
