@@ -32,6 +32,7 @@
       -->
 
     <macrodef name="aapt.signed">
+      <attribute name="jarsrcdir" default="/non.existing.src.path"/>
       <attribute name="jarbuilddir" />
       <attribute name="jarbasename" />
       <attribute name="nativebuilddir" />
@@ -83,6 +84,12 @@
             <fileset dir="@{nativebuilddir}">
                 <include name="*@{nativebasename}*.${native.library.suffix}" />
             </fileset>
+        </copy>
+
+        <copy todir="${m.aapt.build.apk}/image" failonerror="false" includeEmptyDirs="false">
+            <fileset dir="@{jarsrcdir}"
+                     includes="**"
+                     excludes="**/*.java"/>
         </copy>
 
         <copy file="@{androidmanifest.path}" tofile="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
