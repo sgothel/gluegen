@@ -42,6 +42,9 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import jogamp.common.Debug;
+import jogamp.common.os.android.StaticContext;
+
+import android.content.Context;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.MachineDescription;
@@ -440,5 +443,36 @@ public class IOUtil {
         }                
         
         return v;
-    }    
+    }
+    
+    /**
+     * @see File#createTempFile(String, String)
+     * @see File#createTempFile(String, String, File)
+     * 
+     * @param prefix
+     * @param suffix
+     * @return
+     * @throws IllegalArgumentException
+     * @throws IOException
+     * @throws SecurityException
+     */
+    public static File createTempFile(String prefix, String suffix) 
+        throws IllegalArgumentException, IOException, SecurityException 
+    {
+        if(Platform.OS_TYPE == Platform.OSType.ANDROID) {
+            Context ctx = StaticContext.getContext();
+            if(null != ctx) {
+                final File td = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
+                if(DEBUG) {
+                    System.err.println("IOUtil.createTempFile(Android): ctx temp dir: "+td.getAbsolutePath());
+                }
+                final File f = File.createTempFile( prefix, suffix, td );                
+                if(DEBUG) {
+                    System.err.println("IOUtil.createTempFile(Android): temp file: "+f.getAbsolutePath());
+                }
+                return f;
+            }
+        }
+        return File.createTempFile( prefix, suffix );
+    }
 }
