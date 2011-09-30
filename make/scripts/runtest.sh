@@ -30,7 +30,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true"
 #D_ARGS="-Djogamp.debug.TraceLock"
 #D_ARGS="-Djogamp.debug.JARUtil"
-#D_ARGS="-Djogamp.debug.TempFileCache"
+D_ARGS="-Djogamp.debug.TempFileCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JARUtil"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
 #D_ARGS="-Djogamp.debug.JNILibLoader"
@@ -51,7 +51,7 @@ function onetest() {
 #onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestArrayHashSet01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
@@ -63,4 +63,4 @@ onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG

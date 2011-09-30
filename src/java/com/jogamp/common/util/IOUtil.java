@@ -47,6 +47,7 @@ import jogamp.common.os.android.StaticContext;
 import android.content.Context;
 
 import com.jogamp.common.nio.Buffers;
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
@@ -446,6 +447,10 @@ public class IOUtil {
     }
     
     /**
+     * Utilizing {@link File#createTempFile(String, String, File)} using
+     * {@link #getTempRoot()} as the directory parameter, ie. location 
+     * of the root temp folder.
+     * 
      * @see File#createTempFile(String, String)
      * @see File#createTempFile(String, String, File)
      * @see #getTempRoot()
@@ -463,10 +468,29 @@ public class IOUtil {
         return File.createTempFile( prefix, suffix, getTempRoot() );
     }
     
+    /**
+     * On standard Java, the folder specified by <code>java.io.tempdir</code>
+     * is returned.
+     * <p>
+     * On Android a <code>temp</code> folder relative to the applications local folder 
+     * (see {@link Context#getDir(String, int)}) is returned, if
+     * the Android application/activity has registered it's Application Context
+     * via {@link StaticContext#setContext(Context)}.
+     * This allows using the temp folder w/o the need for <code>sdcard</code>
+     * access, which would be the <code>java.io.tempdir</code> location on Android!
+     * </p>
+     * <p>
+     * The purpose of this <code>wrapper</code> is to allow unique code to be used
+     * for both platforms w/o the need to handle extra permissions.
+     * </p>
+     * 
+     * @see StaticContext#setContext(Context)
+     * @see Context#getDir(String, int)
+     */
     public static File getTempRoot()
         throws SecurityException
     {
-        if(Platform.OS_TYPE == Platform.OSType.ANDROID) {
+        if(AndroidVersion.isAvailable) {
             final Context ctx = StaticContext.getContext();
             if(null != ctx) {
                 final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
@@ -479,7 +503,7 @@ public class IOUtil {
         final String tmpRootName = System.getProperty("java.io.tmpdir");
         final File tmpRoot = new File(tmpRootName);
         if(DEBUG) {
-            System.err.println("IOUtil.getTempRoot("+Platform.OS_TYPE+"): temp dir: "+tmpRoot.getAbsolutePath());
+            System.err.println("IOUtil.getTempRoot(isAndroid: "+AndroidVersion.isAvailable+"): temp dir: "+tmpRoot.getAbsolutePath());
         }
         return tmpRoot;
     }
