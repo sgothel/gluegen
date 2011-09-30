@@ -38,6 +38,7 @@
 package com.jogamp.common.util;
 
 import java.lang.reflect.*;
+
 import com.jogamp.common.JogampRuntimeException;
 import jogamp.common.Debug;
 
@@ -103,18 +104,51 @@ public final class ReflectionUtil {
     }
 
     /**
+     * Returns a compatible constructor
+     * if available, otherwise throws an exception.
+     * <p>
+     * It first attempts to get the specific Constructor 
+     * using the given <code>cstrArgTypes</code>. 
+     * If this fails w/ <code>NoSuchMethodException</code>, a compatible
+     * Constructor is being looked-up w/ with parameter types assignable
+     * from the given <code>cstrArgs</code>.
+     * </p> 
+     * 
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
     public static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes) 
         throws JogampRuntimeException {
-        try {
-            if(null == cstrArgTypes) {
-                cstrArgTypes = zeroTypes;
-            }
-            return clazz.getDeclaredConstructor(cstrArgTypes);
-        } catch (NoSuchMethodException ex) {
-            throw new JogampRuntimeException("Constructor: '" + clazz + "(" + asString(cstrArgTypes) + ")' not found", ex);
+        if(null == cstrArgTypes) {
+            cstrArgTypes = zeroTypes;
         }
+        Constructor<?> cstr = null;
+        try {
+            cstr = clazz.getDeclaredConstructor(cstrArgTypes);
+        } catch (NoSuchMethodException ex) {
+            // ok, cont. w/ 'isAssignableFrom()' validation
+        }
+        if(null == cstr) {
+            final Constructor<?>[] cstrs = clazz.getConstructors();
+            for(int i=0; null==cstr && i<cstrs.length; i++) {
+                final Constructor<?> c = cstrs[i];
+                final Class<?>[] types = c.getParameterTypes();
+                if(types.length == cstrArgTypes.length) {
+                    int j;
+                    for(j=0; j<types.length; j++) {
+                        if(!types[j].isAssignableFrom(cstrArgTypes[j])) {
+                            break; // cont w/ next cstr
+                        }
+                    }
+                    if(types.length == j) {
+                        cstr = c; // gotcha
+                    }
+                }                
+            }
+        }
+        if(null == cstr) {
+            throw new JogampRuntimeException("Constructor: '" + clazz.getName() + "(" + asString(cstrArgTypes) + ")' not found");
+        }
+        return cstr;        
     }
 
   public static final Constructor<?> getConstructor(String clazzName, ClassLoader cl)
