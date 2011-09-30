@@ -448,6 +448,7 @@ public class IOUtil {
     /**
      * @see File#createTempFile(String, String)
      * @see File#createTempFile(String, String, File)
+     * @see #getTempRoot()
      * 
      * @param prefix
      * @param suffix
@@ -459,20 +460,27 @@ public class IOUtil {
     public static File createTempFile(String prefix, String suffix) 
         throws IllegalArgumentException, IOException, SecurityException 
     {
+        return File.createTempFile( prefix, suffix, getTempRoot() );
+    }
+    
+    public static File getTempRoot()
+        throws SecurityException
+    {
         if(Platform.OS_TYPE == Platform.OSType.ANDROID) {
-            Context ctx = StaticContext.getContext();
+            final Context ctx = StaticContext.getContext();
             if(null != ctx) {
-                final File td = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
+                final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
                 if(DEBUG) {
-                    System.err.println("IOUtil.createTempFile(Android): ctx temp dir: "+td.getAbsolutePath());
+                    System.err.println("IOUtil.getTempRoot(Android): temp dir: "+tmpRoot.getAbsolutePath());
                 }
-                final File f = File.createTempFile( prefix, suffix, td );                
-                if(DEBUG) {
-                    System.err.println("IOUtil.createTempFile(Android): temp file: "+f.getAbsolutePath());
-                }
-                return f;
+                return tmpRoot;
             }
         }
-        return File.createTempFile( prefix, suffix );
+        final String tmpRootName = System.getProperty("java.io.tmpdir");
+        final File tmpRoot = new File(tmpRootName);
+        if(DEBUG) {
+            System.err.println("IOUtil.getTempRoot("+Platform.OS_TYPE+"): temp dir: "+tmpRoot.getAbsolutePath());
+        }
+        return tmpRoot;
     }
 }

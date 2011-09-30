@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
+import com.jogamp.common.util.IOUtil;
+
 import jogamp.common.Debug;
 
 public class TempFileCache {
@@ -141,10 +143,8 @@ public class TempFileCache {
         }
 
         synchronized (System.out) {
-
             // Get the name of the tmpbase directory.
-            String tmpBaseName = System.getProperty("java.io.tmpdir") + File.separator + tmpDirPrefix ;
-            tmpBaseDir = new File(tmpBaseName);
+            tmpBaseDir = new File(IOUtil.getTempRoot(), tmpDirPrefix);
 
             tmpRootPropValue = System.getProperty(tmpRootPropName);
 
