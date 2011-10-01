@@ -98,7 +98,7 @@
         <echo>aapt.signed @{jarbasename}: generating Android R.java from the resources...</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
-            <arg line="-v"/>
+            <!-- arg line="-v"/ -->
             <arg line="--debug-mode"/>
             <arg line="-f"/>
             <arg line="-S"/>
@@ -144,7 +144,7 @@
         <echo>aapt.signed @{jarbasename}: packaging</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
-            <!--arg line="-v"/-->
+            <!-- arg line="-v"/ -->
             <arg line="--debug-mode"/>
             <arg line="-f"/>
 
