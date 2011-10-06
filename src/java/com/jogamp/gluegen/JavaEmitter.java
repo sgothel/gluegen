@@ -1241,7 +1241,7 @@ public class JavaEmitter implements GlueEmitter {
         // arrays, NIO buffers, or both in expandMethodBinding
         if (t.pointerDepth() == 1 || t.arrayDimension() == 1) {
           if (targetType.isVoid()) {
-            return JavaType.createForVoidPointer();
+            return JavaType.createForCVoidPointer();
           } else if (targetType.isInt()) {
             // size_t and intptr_t is always a PointerBuffer since size is arch dependent
             if ("size_t".equals(targetType.getName()) || "intptr_t".equals(targetType.getName())) {

@@ -42,10 +42,13 @@ MYAPI int64_t MYAPIENTRY arrayTestInt64(int64_t context, int64_t * array );
 MYAPI foo MYAPIENTRY arrayTestFoo1(int64_t context, foo * array );
 
 /** Returns a copy of the passed array, each element incr by 1 */
-MYAPI foo * MYAPIENTRY arrayTestFoo2(foo * array );
+MYAPI foo * MYAPIENTRY arrayTestFoo2(const foo * array );
+
+/** Increments each element of the passed array by 1 - IDENTITY */
+MYAPI void MYAPIENTRY arrayTestFoo3(foo * array );
 
 /** Returns a array-array of the passed array, split at ARRAY size - IDENTITY! */
-MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(foo * array);
+MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(const foo * array);
 
 /** Fills dest array ptr of ARRAY size with arrays (allocs) and copies content of src to it - COPY! */
 MYAPI void MYAPIENTRY arrayTestFoo3CopyPtrPtrA(foo * * dest, const foo * * src);

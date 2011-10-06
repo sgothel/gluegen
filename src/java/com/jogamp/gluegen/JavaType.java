@@ -59,10 +59,10 @@ public class JavaType {
       VOID, CHAR, SHORT, INT32, INT64, FLOAT, DOUBLE;
   }
 
-  private Class<?> clazz; // Primitive types and other types representable as Class objects
-  private String name;  // Types we're generating glue code for (i.e., C structs)
-  private Type   elementType; // Element type if this JavaType represents a C array
-  private C_PTR  primitivePointerType;
+  private final Class<?> clazz; // Primitive types and other types representable as Class objects
+  private final String name;  // Types we're generating glue code for (i.e., C structs)
+  private final Type   elementType; // Element type if this JavaType represents a C array
+  private final C_PTR  primitivePointerType;
 
   private static JavaType nioBufferType;
   private static JavaType nioByteBufferType;
@@ -126,7 +126,7 @@ public class JavaType {
     return new JavaType(elementType);
   }
 
-  public static JavaType createForVoidPointer() {
+  public static JavaType createForCVoidPointer() {
     return new JavaType(C_PTR.VOID);
   }
 
@@ -436,6 +436,7 @@ public class JavaType {
     return elementType != null;
   }
   
+  
   public boolean isCPrimitivePointerType() {
     return primitivePointerType != null;
   }
@@ -474,13 +475,7 @@ public class JavaType {
 
   @Override
   public Object clone() {
-    JavaType clone = new JavaType(primitivePointerType);
-
-    clone.clazz = this.clazz;
-    clone.name = this.name;
-    clone.elementType = this.elementType;
-
-    return clone;
+    return new JavaType(primitivePointerType, clazz, name, elementType);
   }
 
   @Override
@@ -505,16 +500,25 @@ public class JavaType {
    * argument.
    */
   private JavaType(Class<?> clazz) {
+    this.primitivePointerType = null;
     this.clazz = clazz;
+    this.name = null;
+    this.elementType = null;
   }
 
   /** Constructs a type representing a named C struct. */
   private JavaType(String name) {
+    this.primitivePointerType = null;
+    this.clazz = null;
     this.name = name;
+    this.elementType = null;
   }
 
   /** Constructs a type representing an array of C pointers. */
   private JavaType(Type elementType) {
+    this.primitivePointerType = null;
+    this.clazz = null;
+    this.name = null;
     this.elementType = elementType;
   }
 
@@ -522,8 +526,18 @@ public class JavaType {
       (integer, floating-point, or void pointer) type. */
   private JavaType(C_PTR primitivePointerType) {
     this.primitivePointerType = primitivePointerType;
+    this.clazz = null;
+    this.name = null;
+    this.elementType = null;
   }
 
+  private JavaType(C_PTR primitivePointerType, Class<?> clazz, String name, Type elementType) {
+    this.primitivePointerType = primitivePointerType;
+    this.clazz = clazz;
+    this.name = name;
+    this.elementType = elementType;
+  }
+  
   private String arrayName(Class<?> clazz) {
     StringBuilder buf = new StringBuilder();
     int arrayCount = 0;

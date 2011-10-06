@@ -268,7 +268,7 @@ public class BaseClass {
           result = binding.arrayTestFooNioOnly(context, lb1);
           Assert.assertTrue("Wrong result: "+result, 1+8000==result);
 
-          // LongBuffer arrayTestFoo2 ( LongBuffer )
+          // LongBuffer arrayTestFoo2 ( LongBuffer ) - don't write-back array-arg
           {
               lb2.rewind();
               LongBuffer lb3 = newLongBuffer(Bindingtest1.ARRAY_SIZE, direct);
@@ -290,11 +290,12 @@ public class BaseClass {
               Assert.assertTrue("Wrong result: "+lbR.remaining(), Bindingtest1.ARRAY_SIZE == lbR.remaining());
               int j=0;
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+lb2.get(j)+" c: "+lb3.get(j), lb2.get(j)==lb3.get(j));
                 Assert.assertTrue("Wrong result: s:"+lb3.get(j)+" d: "+lbR.get(j), 1+lb3.get(j)==lbR.get(j));
               }
           }
 
-          // LongBuffer arrayTestFoo2 ( long[], int )
+          // LongBuffer arrayTestFoo2 ( long[], int ) - don't write-back array-arg
           {
               long[] larray3 = new long[Bindingtest1.ARRAY_SIZE];
               for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
@@ -308,7 +309,45 @@ public class BaseClass {
               Assert.assertTrue("Wrong result: "+lbR.remaining(), Bindingtest1.ARRAY_SIZE == lbR.remaining());
               int j=0;
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+larray2[j]+" c: "+larray3[j], larray2[j]==larray3[j]);
                 Assert.assertTrue("Wrong result: s:"+larray3[j]+" d: "+lbR.get(j), 1+larray3[j]==lbR.get(j));
+              }
+          }
+
+          // void arrayTestFoo3 ( LongBuffer ) - write-back array-arg
+          {
+              lb2.rewind();
+              LongBuffer lb3 = newLongBuffer(Bindingtest1.ARRAY_SIZE, direct);
+              lb3.put(lb2);
+              lb3.rewind();
+              lb2.rewind();
+
+              // System.out.println("lb3: "+lb3);
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), Bindingtest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), Bindingtest1.ARRAY_SIZE == lb3.remaining());
+
+              binding.arrayTestFoo3(lb3);
+
+              Assert.assertTrue("Wrong result: "+lb3.capacity(), Bindingtest1.ARRAY_SIZE == lb3.capacity());
+              Assert.assertTrue("Wrong result: "+lb3.remaining(), Bindingtest1.ARRAY_SIZE == lb3.remaining());
+              int j=0;
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+lb2.get(j)+" d: "+lb3.get(j), 1+lb2.get(j)==lb3.get(j));
+              }
+          }
+
+          // void arrayTestFoo3 ( long[], int ) - write-back array-arg
+          {
+              long[] larray3 = new long[Bindingtest1.ARRAY_SIZE];
+              for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
+                larray3[i]=  larray2[i];
+              }
+
+              binding.arrayTestFoo3(larray3, 0);
+
+              int j=0;
+              for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
+                Assert.assertTrue("Wrong result: s:"+larray2[j]+" d: "+larray3[j], 1+larray2[j]==larray3[j]);
               }
           }
 

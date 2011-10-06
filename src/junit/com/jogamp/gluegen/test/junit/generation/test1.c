@@ -36,7 +36,7 @@ MYAPI int64_t MYAPIENTRY arrayTestInt64(int64_t context, int64_t * array) {
     return r+context;
 }
 
-MYAPI foo * MYAPIENTRY arrayTestFoo2( foo * array ) {
+MYAPI foo * MYAPIENTRY arrayTestFoo2( const foo * array ) {
     int i;
     foo * result = calloc(ARRAY_SIZE, sizeof(foo));
     assert(NULL!=array);
@@ -47,11 +47,20 @@ MYAPI foo * MYAPIENTRY arrayTestFoo2( foo * array ) {
     return result;
 }
 
-MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(foo * array) {
+MYAPI void MYAPIENTRY arrayTestFoo3( foo * array ) {
+    int i;
+    assert(NULL!=array);
+    for(i=0; i<ARRAY_SIZE; i++) {
+        array[i] += 1;
+        // printf("array[%d]: %d -> %d\n", i, (int)array[i], (int)result[i]);
+    }
+}
+
+MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(const foo * array) {
     int j;
     foo * * result = calloc(ARRAY_SIZE, sizeof(foo *));
     for(j=0; j<ARRAY_SIZE; j++) {
-        result[j] = array + ARRAY_SIZE * j ;
+        result[j] = (foo *) ( array + ARRAY_SIZE * j ) ;
     }
     return result;
 }

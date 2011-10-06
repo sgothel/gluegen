@@ -48,8 +48,6 @@ import com.jogamp.gluegen.cgram.types.*;
 
 import java.util.logging.Logger;
 
-import static java.util.logging.Level.*;
-
 /** Emits the C-side component of the Java<->C JNI binding. */
 public class CMethodBindingEmitter extends FunctionEmitter {
 
@@ -528,6 +526,17 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     return (type.getSize(machDesc) == 1);
   }
 
+  /** Checks a type (expected to be pointer) for const-ness */
+  protected boolean isConstPtr(Type type) {
+    if (type.pointerDepth() != 1) {
+      return false;
+    }
+    if (type.asPointer().getTargetType().isConst()) {
+      return true;
+    }
+    return false;
+  }
+
   /** Checks a type (expected to be pointer-to-pointer) for const-ness */
   protected boolean isConstPtrPtr(Type type) {
     if (type.pointerDepth() != 2) {
@@ -779,8 +788,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         if (!needsDataCopy) {
           writer.println("  if ( NULL != " + javaArgName + " && JNI_FALSE == " + isNIOArgName(i) + " ) {");
 
-          // Release array 
-          writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, " + javaArgName + ", " + convName + ", 0);");
+          // Release array
+          final String modeFlag = isConstPtr(cArgType) || isConstPtrPtr(cArgType) ? "JNI_ABORT" : "0" ; 
+          writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, " + javaArgName + ", " + convName + ", "+modeFlag+");");
         } else {
           writer.println("  if ( NULL != " + javaArgName + " ) {");
 
@@ -1373,9 +1383,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       ptrTypeString = cType.getName();
     }
 
+    writer.print("  ");
     if (!needsDataCopy) {
       // declare the pointer variable
-      writer.print("  ");
       writer.print(ptrTypeString);
       writer.print(" ");
       writer.print(cVariableName);
@@ -1391,16 +1401,14 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             cElementTypeName = cPtrType.getTargetType().asPointer().getName();
         }
         if (isConstPtrPtr(cType)) {
-            writer.print("  const "+cElementTypeName+" *");
-        } else {
-            writer.print("  "+cElementTypeName+" *");
+            writer.print("const ");
         }
+        writer.print(cElementTypeName+" *");
       } else {
         if (isConstPtrPtr(cType)) {
-            writer.print("  const " + ptrTypeString);
-        } else {
-            writer.print("  " + ptrTypeString);
+            writer.print("const ");
         }
+        writer.print(ptrTypeString);
       }
       writer.print(" ");
       writer.print(cVariableName);
