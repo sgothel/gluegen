@@ -211,6 +211,7 @@ public class Buffers {
      * Calls slice on the specified buffer while maintaining the byteorder.
      * @see #slice(java.nio.Buffer, int, int) 
      */
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B slice(B buffer) {
         if (buffer instanceof ByteBuffer) {
             final ByteBuffer bb = (ByteBuffer) buffer;
@@ -603,6 +604,7 @@ public class Buffers {
     //----------------------------------------------------------------------
     // Convenient put methods with generic target Buffer
     //
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B put(B dest, Buffer src) {
         if ((dest instanceof ByteBuffer) && (src instanceof ByteBuffer)) {
             return (B) ((ByteBuffer) dest).put((ByteBuffer) src);
@@ -622,6 +624,7 @@ public class Buffers {
         throw new IllegalArgumentException("Incompatible Buffer classes: dest = " + dest.getClass().getName() + ", src = " + src.getClass().getName());
     }
 
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putb(B dest, byte v) {
         if (dest instanceof ByteBuffer) {
             return (B) ((ByteBuffer) dest).put(v);
@@ -634,6 +637,7 @@ public class Buffers {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B puts(B dest, short v) {
         if (dest instanceof ShortBuffer) {
             return (B) ((ShortBuffer) dest).put(v);
@@ -644,6 +648,7 @@ public class Buffers {
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B puti(B dest, int v) {
         if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put(v);
