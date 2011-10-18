@@ -40,6 +40,7 @@
    -   isWindows
    -   isWindowsX86
    -   isWindowsAMD64
+   -   is64Bit
    -
    - isX11 is set if: !isWindows && !isOSX && !noX11
    - 
@@ -335,6 +336,19 @@
         <os name="SunOS" arch="amd64" />
     </condition>
 
+    <condition property="is64Bit">
+      <or>
+        <os arch="amd64" />
+        <os arch="AMD64" />
+        <os arch="sparcv9" />
+        <os arch="IA64" />
+        <os arch="AMD64" />
+        <os arch="x86_64" />
+        <os arch="AMD64" />
+        <os arch="x86_64" />
+      </or>
+    </condition>
+
     <echo message="FreeBSD=${isFreeBSD}" />
     <echo message="FreeBSDX86=${isFreeBSDX86}" />
     <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
@@ -360,6 +374,7 @@
     <echo message="Unix=${isUnix}" />
     <echo message="Windows=${isWindows}" />
     <echo message="X11=${isX11}" />
+    <echo message="is64Bit=${is64Bit}" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDX86">
@@ -698,6 +713,7 @@
     <!-- SOLARIS compiler configuration --> 
 
     <compiler id="compiler.cfg.solaris" name="gcc"> 
+      <compilerarg value="-m32"/>
       <defineset> 
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -723,10 +739,12 @@
     </compiler> 
 
     <compiler id="compiler.cfg.solaris.amd64" name="gcc"> 
-      <compilerarg value="-fast" /> 
-      <compilerarg value="-xchip=opteron" /> 
-      <compilerarg value="-xarch=amd64" /> 
-      <compilerarg value="-xcache=64/64/2:1024/64/16" /> 
+      <compilerarg value="-fPIC"/>
+      <compilerarg value="-m64"/>
+      <!-- compilerarg value="-fast" /--> 
+      <!-- compilerarg value="-xchip=opteron" / --> 
+      <!-- compilerarg value="-xarch=amd64" / --> 
+      <!-- compilerarg value="-xcache=64/64/2:1024/64/16" / --> 
       <defineset> 
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -867,6 +885,7 @@
     <!-- SOLARIS linker configuration --> 
 
     <linker id="linker.cfg.solaris" name="gcc"> 
+      <linkerarg value="-m32"/>
     </linker> 
 
     <linker id="linker.cfg.solaris.sparcv9" name="gcc"> 
@@ -874,7 +893,8 @@
     </linker> 
 
     <linker id="linker.cfg.solaris.amd64" name="gcc"> 
-      <linkerarg value="-xarch=amd64" /> 
+      <linkerarg value="-m64"/>
+      <!-- linkerarg value="-xarch=amd64" / --> 
     </linker>
 
     <!-- MacOSX linker configuration -->

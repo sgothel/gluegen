@@ -26,5 +26,12 @@ if [ -e /opt-linux-x86/jre6 -a -e /opt-linux-x86/j2se6 ] ; then
     export J2RE_HOME JAVA_HOME
 fi 
 
+if [ -e /opt-solaris-x86/jre6 -a -e /opt-solaris-x86/j2se6 ] ; then
+    J2RE_HOME=/opt-solaris-x86/jre6
+    JAVA_HOME=/opt-solaris-x86/j2se6
+    PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
+    export J2RE_HOME JAVA_HOME
+fi
+
 export PATH
 
