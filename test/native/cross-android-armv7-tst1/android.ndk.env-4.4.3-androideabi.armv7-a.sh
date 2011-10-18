@@ -63,6 +63,7 @@ export NDK_INCLUDE="-I${TARGET_OS_PATH}/include"
 
 export NDK_CFLAGS="\
 -march=${TARGET_CPU_NAME} \
+-mfloat-abi=${TARGET_FPU_ABI} -mfpu=${TARGET_FPU_NAME} \
 -fpic \
 -DANDROID \
 "

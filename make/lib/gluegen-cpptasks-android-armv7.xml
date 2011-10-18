@@ -24,14 +24,31 @@
       <compilerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
       <compilerarg value="-B" /> <!--add additional directory for search  --> 
       <compilerarg value="${env.TARGET_TOOL_PATH}/libexec/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}" /> 
-      <compilerarg value="-march=armv7-a" /> 
-      <compilerarg value="-fpic" /> 
+      <!--compilerarg value="-march=armv7-a" /-->
+      <compilerarg value="-fpic" />
+      <compilerarg value="-ffunction-sections" />
+      <compilerarg value="-funwind-tables" />
+      <compilerarg value="-fstack-protector" />
+      <compilerarg value="-march=armv5te" />
+      <compilerarg value="-mtune=xscale" />
+      <compilerarg value="-msoft-float" /> 
+      <compilerarg value="-mthumb" /> 
+      <compilerarg value="-Os" /> 
+      <compilerarg value="-fomit-frame-pointer" /> 
+      <compilerarg value="-fno-strict-aliasing" /> 
+      <compilerarg value="-finline-limit=64" /> 
+      <compilerarg value="-Wa,--noexecstack" /> 
+      <compilerarg value="-O2" /> 
       <compilerarg value="-isystem" /> 
       <compilerarg value="${env.TARGET_OS_PATH}/include"/>
       <compilerarg value="-isystem" /> 
       <compilerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/include" /> <!--includes stdarg.h -->
       <defineset>
         <define name="__unix__"/>
+        <define name="__ARM_ARCH_5__" />
+        <define name="__ARM_ARCH_5T__" />
+        <define name="__ARM_ARCH_5E__" />
+        <define name="__ARM_ARCH_5TE__" />
         <define name="ANDROID" />
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
