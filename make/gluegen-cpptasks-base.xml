@@ -15,6 +15,7 @@
    - properties appropriately. They are only set to "true" if the OS/CPU
    - configuration is exactly as specified.
    - 
+   -   is64Bit
    -   isUnix
    -   isX11
    -   isFreeBSD
@@ -33,6 +34,7 @@
    -   isOSXPPC
    -   isSolaris
    -   isSolaris32Bit
+   -   isSolaris64Bit
    -   isSolarisAMD64
    -   isSolarisSparc
    -   isSolarisSparcv9
@@ -40,7 +42,10 @@
    -   isWindows
    -   isWindowsX86
    -   isWindowsAMD64
-   -   is64Bit
+   -   jvmDataModel64Bit
+   -   jvmDataModel32Bit
+
+   -   jvmDataModel.arg  either one of [ "-d64", "-d32" or "-Djnlp.no.jvm.data.model.set=true" ]
    -
    - isX11 is set if: !isWindows && !isOSX && !noX11
    - 
@@ -165,6 +170,15 @@
 
   <!-- Detect OS and compiler configuration -->
   <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.cpptasks.initialize" unless="gluegen.cpptasks.detected.os">
+    <condition property="is64Bit">
+      <or>
+        <os arch="amd64" />
+        <os arch="AMD64" />
+        <os arch="x86_64" />
+        <os arch="IA64" />
+        <os arch="sparcv9" />
+      </or>
+    </condition>
     <condition property="isOSX">
       <and>
         <os family="mac"/>
@@ -278,11 +292,15 @@
     <condition property="isSolaris32Bit">
       <and>
          <istrue value="${isSolaris}" />
-         <or>
-          <os arch="i386" />
-          <os arch="x86" />
-          <os arch="sparc" />
-         </or>
+         <not>
+           <istrue value="${is64Bit}" />
+         </not>
+      </and>
+    </condition>
+    <condition property="isSolaris64Bit">
+      <and>
+         <istrue value="${isSolaris}" />
+         <istrue value="${is64Bit}" />
       </and>
     </condition>
     <condition property="isSolarisSparc">
@@ -336,19 +354,24 @@
         <os name="SunOS" arch="amd64" />
     </condition>
 
-    <condition property="is64Bit">
+    <condition property="jvmDataModel32Bit">
       <or>
-        <os arch="amd64" />
-        <os arch="AMD64" />
-        <os arch="sparcv9" />
-        <os arch="IA64" />
-        <os arch="AMD64" />
-        <os arch="x86_64" />
-        <os arch="AMD64" />
-        <os arch="x86_64" />
+         <istrue value="${isSolaris32Bit}" />
       </or>
     </condition>
+    <condition property="jvmDataModel64Bit">
+      <or>
+         <istrue value="${isSolaris64Bit}" />
+      </or>
+    </condition>
+    <condition property="jvmDataModel.arg" value="-d64"><isset property="jvmDataModel64Bit"/></condition>
+    <condition property="jvmDataModel.arg" value="-d32"><isset property="jvmDataModel32Bit"/></condition>
+    <property name="jvmDataModel.arg" value="-Djnlp.no.jvm.data.model.set=true" /> <!-- dummy placeholder, valid jvm arg, won't override above spec -->
 
+    <echo message="is64Bit=${is64Bit}" />
+    <echo message="jvmDataModel32Bit=${jvmDataModel32Bit}" />
+    <echo message="jvmDataModel64Bit=${jvmDataModel64Bit}" />
+    <echo message="jvmDataModel.arg=${jvmDataModel.arg}" />
     <echo message="FreeBSD=${isFreeBSD}" />
     <echo message="FreeBSDX86=${isFreeBSDX86}" />
     <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
@@ -367,6 +390,7 @@
     <echo message="OS X x64=${use.macosx64}" />
     <echo message="Solaris=${isSolaris}" />
     <echo message="Solaris32Bit=${isSolaris32Bit}" />
+    <echo message="Solaris64Bit=${isSolaris64Bit}" />
     <echo message="SolarisSparc=${isSolarisSparc}" />
     <echo message="SolarisSparcv9=${isSolarisSparcv9}" />
     <echo message="SolarisAMD64=${isSolarisAMD64}" />
@@ -374,7 +398,6 @@
     <echo message="Unix=${isUnix}" />
     <echo message="Windows=${isWindows}" />
     <echo message="X11=${isX11}" />
-    <echo message="is64Bit=${is64Bit}" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDX86">

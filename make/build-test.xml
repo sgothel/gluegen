@@ -245,7 +245,7 @@ export ${system.env.library.path}=${env.TARGET_ROOT}/gluegen/${rootrel.build}/ob
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
 java \${line.separator}
-${jvmarg.arch}
+${jvmDataModel.arg}\${line.separator}
 -Djava.library.path=${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj${path.separator}${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives\${line.separator}
 -cp ${junit.run.remote.jars}\${line.separator}
 -Dgluegen.root=${gluegen.root} \${line.separator}
@@ -340,7 +340,7 @@ ${line.separator}
         <!-- Perform the junit tests-->
         <junit forkmode="once" showoutput="true" fork="true" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
-            <jvmarg value="${jvmarg.arch}"/>
+            <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
             <jvmarg value="-Dgluegen.root=${gluegen.root}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
@@ -349,7 +349,6 @@ ${line.separator}
             <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
             <jvmarg value="-verbose:jni"/> 
             <jvmarg value="-client"/>
-            <jvmarg value="-d32"/>
             -->
             <formatter usefile="false" type="plain"/>
             <formatter usefile="true" type="xml"/>
@@ -370,9 +369,6 @@ ${line.separator}
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
-
-        <condition property="jvmarg.arch" value="-d64"><isset property="is64Bit"/></condition>
-        <condition property="jvmarg.arch" value="-d32"><not><isset property="is64Bit"/></not></condition>
 
         <delete quiet="true">
             <fileset dir="${build}/test/results" includes="**"/>
