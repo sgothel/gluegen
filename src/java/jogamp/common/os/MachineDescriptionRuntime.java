@@ -78,6 +78,8 @@ public class MachineDescriptionRuntime {
             return StaticConfig.ARMle_EABI;
         } else if(Platform.getOSType() == Platform.OSType.WINDOWS) {
             return StaticConfig.X86_32_WINDOWS;            
+        } else if(Platform.getOSType() == Platform.OSType.MACOS) {
+            return StaticConfig.X86_32_MACOS;
         }
         return StaticConfig.X86_32_UNIX;            
       } else {

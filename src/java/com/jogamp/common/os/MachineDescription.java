@@ -51,7 +51,9 @@ public class MachineDescription {
       X86_32_UNIX(Platform.CPUType.X86_32),
       /** {@link Platform.CPUType#X86_64} Little Endian Unix */
       X86_64_UNIX(Platform.CPUType.X86_64),
-      /** {@link Platform.CPUType#X86_32} Little Endian Windows */
+      /** {@link Platform.CPUType#X86_32} Little Endian MacOS (Special case gcc4/OSX) */
+      X86_32_MACOS(Platform.CPUType.X86_32),
+      /** {@link Platform.CPUType#X86_64} Little Endian MacOS */
       X86_32_WINDOWS(Platform.CPUType.X86_32),
       /** {@link Platform.CPUType#X86_64} Little Endian Windows */
       X86_64_WINDOWS(Platform.CPUType.X86_64);
@@ -66,6 +68,7 @@ public class MachineDescription {
   /*                              arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
   private final static int[] size_armeabi         =  { 4,    4,     4,     8,      8,    4,   4096 };
   private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
+  private final static int[] size_x86_32_macos    =  { 4,    4,     4,     8,     16,    4,   4096 };
   private final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
   private final static int[] size_x86_64_unix     =  { 4,    8,     4,     8,     16,    8,   4096 };
   private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
@@ -73,6 +76,7 @@ public class MachineDescription {
   /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */                            
   private final static int[] align_armeabi        =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
   private final static int[] align_x86_32_unix    =  { 1,   2,   4,   4,   4,    4,     4,     4,      4,   4 };
+  private final static int[] align_x86_32_macos   =  { 1,   2,   4,   4,   4,    4,     4,     4,     16,   4 };
   private final static int[] align_x86_32_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,      4,   4 };
   private final static int[] align_x86_64_unix    =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
   private final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
@@ -84,6 +88,8 @@ public class MachineDescription {
       X86_32_UNIX(ID.X86_32_UNIX,       true, size_x86_32_unix,    align_x86_32_unix),
       /** {@link MachineDescription.ID#X86_64_UNIX } */
       X86_64_UNIX(ID.X86_64_UNIX,       true, size_x86_64_unix,    align_x86_64_unix),
+      /** {@link MachineDescription.ID#X86_32_MACOS } */
+      X86_32_MACOS(ID.X86_32_MACOS,     true, size_x86_32_macos,   align_x86_32_macos),
       /** {@link MachineDescription.ID#X86_32_WINDOWS } */
       X86_32_WINDOWS(ID.X86_32_WINDOWS, true, size_x86_32_windows, align_x86_32_windows),
       /** {@link MachineDescription.ID#X86_64_WINDOWS } */
