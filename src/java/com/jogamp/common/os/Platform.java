@@ -39,6 +39,7 @@ import java.util.jar.JarFile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
@@ -63,6 +64,7 @@ public class Platform {
     public static final String OS;
     public static final String OS_lower;
     public static final String OS_VERSION;
+    public static final VersionNumber OS_VERSION_NUMBER;
     public static final String ARCH;
     public static final String ARCH_lower;
     public static final String JAVA_VENDOR;
@@ -152,6 +154,7 @@ public class Platform {
         OS =  System.getProperty("os.name");
         OS_lower = OS.toLowerCase();
         OS_VERSION =  System.getProperty("os.version");
+        OS_VERSION_NUMBER = new VersionNumber(OS_VERSION, ".");
         ARCH = System.getProperty("os.arch");
         ARCH_lower = ARCH.toLowerCase();
         JAVA_VENDOR = System.getProperty("java.vendor");
@@ -343,7 +346,7 @@ public class Platform {
     public static String getOSName() {
         return OS;
     }
-
+    
     /**
      * Returns the OS version.
      */
@@ -351,6 +354,12 @@ public class Platform {
         return OS_VERSION;
     }
 
+    /**
+     * Returns the OS version number.
+     */
+    public static VersionNumber getOSVersionNumber() {
+        return OS_VERSION_NUMBER;
+    }
 
     /**
      * Returns the CPU architecture String.
