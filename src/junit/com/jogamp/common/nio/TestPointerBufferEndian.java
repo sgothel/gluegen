@@ -1,6 +1,8 @@
 
 package com.jogamp.common.nio;
 
+import java.io.IOException;
+
 import com.jogamp.common.os.*;
 
 import org.junit.Assert;
@@ -43,4 +45,9 @@ public class TestPointerBufferEndian {
     public void testIndirect () {
         testImpl (false);
     }
+    
+    public static void main(String args[]) throws IOException {
+        String tstname = TestPointerBufferEndian.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+    }    
 }

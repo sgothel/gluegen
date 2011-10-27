@@ -37,6 +37,25 @@ import com.jogamp.common.os.Platform;
 public class TestPlatform01 {
 
     @Test
+    public void testInfo00()  {
+        System.err.println();
+        System.err.println();
+        System.err.println("OS name/type: "+Platform.getOSName()+", "+Platform.getOSType());
+        System.err.println("OS version: "+Platform.getOSVersion()+", "+Platform.getOSVersionNumber());
+        System.err.println();
+        System.err.println("Arch, CPU: "+Platform.getArchName()+", "+Platform.getCPUType()+"/"+Platform.getCPUFamily());
+        System.err.println("OS/Arch: "+Platform.getOSAndArch());
+        System.err.println();
+        System.err.println("Java runtime: "+Platform.getJavaRuntimeName());
+        System.err.println("Java vendor[name/url]: "+Platform.getJavaVendor()+"/"+Platform.getJavaVendorURL());
+        System.err.println("Java version, vm: "+Platform.getJavaVersion()+", "+Platform.getJavaVMName());
+        System.err.println();
+        System.err.println("MD: "+Platform.getMachineDescription());
+        System.err.println();
+        System.err.println();
+    }
+    
+    @Test
     public void testPageSize01()  {
         final MachineDescription machine = Platform.getMachineDescription(); 
         final int ps = machine.pageSizeInBytes();

@@ -47,26 +47,27 @@ public class VersionNumber implements Comparable {
      * @param delim the delimiter, e.g. "."
      */
     public VersionNumber(String versionString, String delim) {
-        try {
-            StringTokenizer tok = new StringTokenizer(versionString, delim);
-            if (!tok.hasMoreTokens()) {
-                major = 0;
-                return;
-            }
-            major = Integer.valueOf(tok.nextToken()).intValue();
-            if (!tok.hasMoreTokens()) {
-                minor = 0;
-                return;
-            }
-            minor = Integer.valueOf(tok.nextToken()).intValue();
-            if (!tok.hasMoreTokens()) {
-                sub = 0;
-                return;
-            }
-            sub = Integer.valueOf(tok.nextToken()).intValue();
-        } catch (Exception e) {
-        	throw new IllegalArgumentException("version <"+versionString+">, delim <"+delim+">", e);
+        final java.util.regex.Pattern nonDigitsCutOff = java.util.regex.Pattern.compile("\\D.*");
+        major = 0;
+        minor = 0;
+        sub = 0;
+        
+        StringTokenizer tok = new StringTokenizer(versionString, delim);
+        if (tok.hasMoreTokens()) {
+            try {
+                major = Integer.parseInt(nonDigitsCutOff.matcher(tok.nextToken()).replaceAll(""));
+            } catch (NumberFormatException e) { }
         }
+        if (tok.hasMoreTokens()) {
+            try {
+                minor = Integer.parseInt(nonDigitsCutOff.matcher(tok.nextToken()).replaceAll(""));
+            } catch (NumberFormatException e) { }
+        }
+        if (tok.hasMoreTokens()) {
+            try {
+                sub = Integer.parseInt(nonDigitsCutOff.matcher(tok.nextToken()).replaceAll(""));
+            } catch (NumberFormatException e) { }
+        }        
     }
     
     protected VersionNumber() { }
@@ -86,7 +87,7 @@ public class VersionNumber implements Comparable {
     
     public final int compareTo(Object o) {
         if ( ! ( o instanceof VersionNumber ) ) {
-            Class c = (null != o) ? o.getClass() : null ;
+            Class<?> c = (null != o) ? o.getClass() : null ;
             throw new ClassCastException("Not a Capabilities object: " + c);
         }
 
