@@ -1089,6 +1089,11 @@
                  else="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers">
                  <available file="/System/Library/Frameworks/JavaVM.framework/Headers/jni.h"/>
       </condition>
+      <condition property="java.osx.frameworks.dir"
+                 value="/System/Library/Frameworks/JavaVM.framework/Frameworks"
+                 else="/OSX/JavaVM.framework/Frameworks/does/not/exist">
+                 <available file="/System/Library/Frameworks/JavaVM.framework/Frameworks/JavaNativeFoundation.framework/Headers/JavaNativeFoundation.h"/>
+      </condition>
       <property name="java.lib.dir.platform"         value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
     </target>
 
