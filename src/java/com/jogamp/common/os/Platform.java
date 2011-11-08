@@ -35,6 +35,7 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.JarFile;
 
 import com.jogamp.common.nio.Buffers;
@@ -560,6 +561,30 @@ public class Platform {
      */
     public static MachineDescription getMachineDescription() {
         return machineDescription;
-    }    
+    }
+    
+    //
+    // time / jitter
+    //
+
+    /**
+     * Returns the estimated sleep jitter value in nanoseconds.
+     * <p>
+     * Includes a warm-up path, allowing hotspot to optimize the code.
+     * </p>
+     */
+    public static synchronized long getCurrentSleepJitter() {
+        getCurrentSleepJitterImpl(TimeUnit.MILLISECONDS.toNanos(10), 10); // warm-up
+        return getCurrentSleepJitterImpl(TimeUnit.MILLISECONDS.toNanos(10), 10);
+    }  
+    private static long getCurrentSleepJitterImpl(final long nsDuration, final int splitInLoops) {
+        final long nsPeriod = nsDuration / splitInLoops;
+        final long t0_ns = System.nanoTime();
+        for(int i=splitInLoops; i>0; i--) {
+            try { TimeUnit.NANOSECONDS.sleep(nsPeriod); } catch (InterruptedException e) { }
+        }
+        return  ( ( System.nanoTime() - t0_ns ) - nsDuration ) / splitInLoops;
+    }
+
 }
 
