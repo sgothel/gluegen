@@ -31,6 +31,7 @@ package com.jogamp.common.util;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class TestRunnableTask01 {
@@ -61,7 +62,8 @@ public class TestRunnableTask01 {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }                    
-            System.err.println("BB.X");
+            Assert.assertTrue(done[0]);
+            System.err.println("BB.X");            
         }
     }
     
@@ -88,6 +90,7 @@ public class TestRunnableTask01 {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }                    
+            Assert.assertTrue(done[0]);
             System.err.println("BB.X");
         }        
     }
