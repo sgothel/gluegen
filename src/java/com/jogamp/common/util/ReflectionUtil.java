@@ -331,5 +331,33 @@ public final class ReflectionUtil {
     return callMethod(null, getMethod(clazzName, methodName, argTypes, cl), args);
   }
 
+  /** Convenient Method access class */
+  public static class MethodAccessor {        
+    Method m = null;
+    
+    /** Check {@link #available()} before using instance. */
+    public MethodAccessor(Class<?> clazz, String methodName, Class<?> ... argTypes) {
+        try {
+            m = ReflectionUtil.getMethod(clazz, methodName, argTypes);
+        } catch (JogampRuntimeException jre) { /* method n/a */ }
+    }
+    
+    /** Returns true if method is available, otherwise false. */
+    public boolean available() {
+        return null != m;
+    }
+    
+    /** 
+     * Check {@link #available()} before calling to avoid throwing a JogampRuntimeException.
+     * @throws JogampRuntimeException if method is not available 
+     */
+    public Object callMethod(Object instance, Object ... args) {
+        if(null == m) {
+            throw new JogampRuntimeException("Method not available. Instance: "+instance);
+        }
+        return ReflectionUtil.callMethod(instance, m, args);
+    }
+  }
+  
 }
 

@@ -34,34 +34,65 @@ package com.jogamp.common.util;
  */
 public class RunnableTask implements Runnable {
     Runnable runnable;
-    final Object notifyObject;
+    final Object syncObject;
     boolean catchExceptions;
     Object attachment;
 
     Throwable runnableException;
     long ts0, ts1, ts2;
 
+    /**
+     * Create a RunnableTask object w/o synchronization,
+     * ie. not suitable for <code>invokeAndWait()</code>. 
+     * 
+     * @param runnable the user action
+     */
     public RunnableTask(Runnable runnable) {
         this(runnable, null, false);
     }
 
-    public RunnableTask(Runnable runnable, Object notifyObject) {
-        this(runnable, notifyObject, false);
+    /**
+     * Create a RunnableTask object w/ synchronization,
+     * ie. suitable for <code>invokeAndWait()</code>. 
+     * 
+     * @param runnable the user action
+     * @param syncObject the synchronization object the caller shall wait for in case of <code>invokeAndWait()</code> 
+     */
+    public RunnableTask(Runnable runnable, Object syncObject) {
+        this(runnable, syncObject, false);
     }
 
-    public RunnableTask(Runnable runnable, Object notifyObject, boolean catchExceptions) {
+    /**
+     * Create a RunnableTask object w/ synchronization,
+     * ie. suitable for <code>invokeAndWait()</code>. 
+     * 
+     * @param runnable the user action
+     * @param syncObject the synchronization object the caller shall wait for in case of <code>invokeAndWai()t</code> 
+     * @param catchExceptions if true, exception during <code>runnable</code> execution are catched, otherwise not.
+     *                        Use {@link #getThrowable()} to determine whether an exception has been catched. 
+     */
+    public RunnableTask(Runnable runnable, Object syncObject, boolean catchExceptions) {
         this.runnable = runnable ;
-        this.notifyObject = notifyObject ;
+        this.syncObject = syncObject ;
         this.catchExceptions = catchExceptions ;
         ts0 = System.currentTimeMillis();
         ts1 = 0;
         ts2 = 0;
     }
 
+    /** Return the user action */
     public Runnable getRunnable() {
         return runnable;
     }
 
+    /** 
+     * Return the synchronization object if any.
+     * @see #RunnableTask(Runnable, Object, boolean) 
+     */
+    public Object getSyncObject() {
+        return syncObject;
+    }
+    
     /** 
      * Attach a custom object to this task. 
      * Useful to piggybag further information, ie tag a task final. 
@@ -70,13 +101,17 @@ public class RunnableTask implements Runnable {
         attachment = o;
     }
 
+    /** 
+     * Return the attachment object if any.
+     * @see #setAttachment(Object) 
+     */
     public Object getAttachment() {
         return attachment;
     }
 
     public void run() {
         ts1 = System.currentTimeMillis();
-        if(null == notifyObject) {
+        if(null == syncObject) {
             try {
                 runnable.run();
             } catch (Throwable t) {
@@ -88,7 +123,7 @@ public class RunnableTask implements Runnable {
                 ts2 = System.currentTimeMillis();
             }
         } else {
-            synchronized (notifyObject) {
+            synchronized (syncObject) {
                 try {
                     runnable.run();
                 } catch (Throwable t) {
@@ -98,7 +133,7 @@ public class RunnableTask implements Runnable {
                     }
                 } finally {
                     ts2 = System.currentTimeMillis();
-                    notifyObject.notifyAll();
+                    syncObject.notifyAll();
                 }
             }
         }
@@ -113,10 +148,11 @@ public class RunnableTask implements Runnable {
      * @return True if invoking thread waits until done, 
      *         ie a <code>notifyObject</code> was passed, otherwise false;
      */
-    public boolean hasWaiter() { return null != notifyObject; }
+    public boolean hasWaiter() { return null != syncObject; }
 
     /**
-     * @return A Throwable thrown while execution if any
+     * @return A thrown exception while execution of the user action, if any and if catched
+     * @see #RunnableTask(Runnable, Object, boolean)
      */
     public Throwable getThrowable() { return runnableException; }
 
