@@ -274,11 +274,19 @@ public final class ReflectionUtil {
   public static final Method getMethod(Class<?> clazz, String methodName, Class<?> ... argTypes)
       throws JogampRuntimeException, RuntimeException
   {
+    Throwable t = null;
+    Method m = null;
     try {
-        return clazz.getDeclaredMethod(methodName, argTypes);
-    } catch (NoSuchMethodException ex) {
-        throw new JogampRuntimeException("Method: '" + clazz + "." + methodName + "(" + asString(argTypes) + ")' not found", ex);
+        m = clazz.getDeclaredMethod(methodName, argTypes);
+    } catch (NoClassDefFoundError ex0) {
+        t = ex0;
+    } catch (NoSuchMethodException ex1) {
+        t = ex1;
     }
+    if(null != t) {
+        throw new JogampRuntimeException("Method: '" + clazz + "." + methodName + "(" + asString(argTypes) + ")' not found", t);
+    }
+    return m;
   }
 
   /**
