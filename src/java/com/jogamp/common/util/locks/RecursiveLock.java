@@ -28,18 +28,10 @@
 
 package com.jogamp.common.util.locks;
 
-import jogamp.common.Debug;
-import java.security.AccessController;
-
-import java.util.LinkedList;
-
 /**
  * Reentrance locking toolkit, impl a complete fair FIFO scheduler
  */
 public interface RecursiveLock extends LockExt {
-
-    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("jogamp.debug.Lock.TraceLock", true, AccessController.getContext());
-
     /** Return the number of locks issued to this lock by the same thread.
      * A hold count of 0 identifies this lock as unlocked.<br>
      * A hold count of 1 identifies this lock as locked.<br>
