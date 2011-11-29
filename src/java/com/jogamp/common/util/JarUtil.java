@@ -208,13 +208,19 @@ public class JarUtil {
             System.out.println("getURLDirname "+aURL+", extForm: "+urlS);
         }
         // from 
-        //   file:/some/path/gluegen-rt.jar
+        //   file:/some/path/gluegen-rt.jar  _or_ rsrc:gluegen-rt.jar
         // to
-        //   file:/some/path/
+        //   file:/some/path/                _or_ rsrc:
         int idx = urlS.lastIndexOf('/');
-        if (0 <= idx) {
-        	urlS = urlS.substring(0, idx+1); // exclude jar name, include terminal '/'
-        }        
+        if(0 > idx) {
+            // no abs-path, check for protocol terminator ':'
+            idx = urlS.lastIndexOf(':');
+            if(0 > idx) {
+                throw new IllegalArgumentException("URL does not contain protocol terminator ':', in <"+aURL.toExternalForm()+">, got <"+urlS+">");
+            }
+        }
+        urlS = urlS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'        
+        
         if(DEBUG) {
             System.out.println("getJarURLDirname res: "+urlS);
         }        
