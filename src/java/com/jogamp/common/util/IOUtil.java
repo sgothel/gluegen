@@ -414,7 +414,7 @@ public class IOUtil {
         if (baseLocation != null) {
             final File file = new File(baseLocation, relativeFile);
             // Handle things on Windows
-            return slashify(file.getPath(), false, file.isDirectory());
+            return slashify(file.getPath(), false, false);
         }
         return null;
     }
