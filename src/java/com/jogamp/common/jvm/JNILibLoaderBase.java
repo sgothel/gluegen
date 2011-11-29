@@ -151,11 +151,11 @@ public class JNILibLoaderBase {
         final String nativeJarName = nativeJarBaseName+"-natives-"+Platform.getOSAndArch()+".jar";
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         try {
-            URL jarUrlRoot = JarUtil.getJarURLDirname( JarUtil.getJarURL( classFromJavaJar.getName(), cl ) );
+            URL jarUrlRoot = JarUtil.getURLDirname( JarUtil.getJarSubURL( classFromJavaJar.getName(), cl ) );
             if(DEBUG) {
                 System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": url-root "+jarUrlRoot);
             }
-            URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);
+            URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
             if(DEBUG) {
                 System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": nativeJarURL "+nativeJarURL);
             }
@@ -181,7 +181,7 @@ public class JNILibLoaderBase {
     if(TempJarCache.isInitialized()) {
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         try {
-            final String jarName = JarUtil.getJarName(classFromJavaJar.getName(), cl);
+            final String jarName = JarUtil.getJarBasename(classFromJavaJar.getName(), cl);
             if(jarName!=null) {
                 if( null != allJavaJarPrefix && jarName.startsWith(allJavaJarPrefix) ) {
                     // all-in-one variant

@@ -137,7 +137,7 @@ public class TestTempJarCache {
     @Test
     public void testJarUtil01a() throws IOException {
         JarFile jarFile = JarUtil.getJarFile(GlueGenVersion.class.getName(), this.getClass().getClassLoader());
-        Assert.assertNotNull("jarFile: "+jarFile);
+        Assert.assertNotNull(jarFile);
         JarUtil.extract(fileCache.getTempDir(), null, jarFile, false, true, true);
         File f = new File(fileCache.getTempDir(), "META-INF/MANIFEST.MF");
         Assert.assertTrue(f.exists());
@@ -185,10 +185,10 @@ public class TestTempJarCache {
         final String libBaseName = "gluegen-rt";        
         final ClassLoader cl = getClass().getClassLoader();
         
-        URL jarUrlRoot = JarUtil.getJarURL(TempJarCache.class.getName(), cl);
-        jarUrlRoot = JarUtil.getJarURLDirname(jarUrlRoot);
+        URL jarUrlRoot = JarUtil.getJarSubURL(TempJarCache.class.getName(), cl);
+        jarUrlRoot = JarUtil.getURLDirname(jarUrlRoot);
         
-        URL nativeJarURL = JarUtil.getJarURL(jarUrlRoot, nativeJarName);        
+        URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);        
         JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
         
         TempJarCache.addNativeLibs(TempJarCache.class, nativeJar);
@@ -225,7 +225,7 @@ public class TestTempJarCache {
     
     @Test
     public void testTempJarCache04bDiffClassLoader() throws IOException {
-        URL[] urls = new URL[] { JarUtil.getJarURL(TempJarCache.class.getName(), getClass().getClassLoader()) };                
+        URL[] urls = new URL[] { JarUtil.getJarFileURL(TempJarCache.class.getName(), getClass().getClassLoader()) };                
         System.err.println("url: "+urls[0]);
         ClassLoader cl2 = new TestClassLoader(urls, null);  
         ClassLoader cl3 = new TestClassLoader(urls, null);

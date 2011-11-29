@@ -37,6 +37,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.AccessController;
 import java.net.JarURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -184,6 +185,31 @@ public class IOUtil {
      *  
      */
     
+    public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) {
+        String p = path.replace('\\', '/'); // unify file seperator        
+        if (startWithSlash && !p.startsWith("/")) {
+            p = "/" + p;
+        }
+        if (endWithSlash && !p.endsWith("/")) {
+            p = p + "/";
+        }
+        return p;
+    }
+    
+    /** Using the proper advertised conversion via File -> URI -> URL */
+    public static URL toURL(File file) throws MalformedURLException {
+        return file.toURI().toURL();
+    }
+    
+    /** Using the simple conversion via File -> URL, assuming proper characters. */
+    public static URL toURLSimple(File file) throws MalformedURLException {
+        return new URL("file", "", slashify(file.getAbsolutePath(), true, file.isDirectory()));        
+    }
+    
+    public static URL toURLSimple(String protocol, String file, boolean isDirectory) throws MalformedURLException {
+        return new URL(protocol, "", slashify(file, true, isDirectory));        
+    }
+    
     /**
      * Returns the lowercase suffix of the given file name (the text
      * after the last '.' in the file name). Returns null if the file
@@ -236,7 +262,7 @@ public class IOUtil {
      * Returns the basename of the given fname w/o directory part
      */
     public static String getBasename(String fname) {
-        fname = fname.replace('\\', '/'); // unify file seperator
+        fname = slashify(fname, false, false);
         int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
             fname = fname.substring(lios+1);
@@ -248,7 +274,7 @@ public class IOUtil {
      * Returns unified '/' dirname including the last '/'
      */
     public static String getDirname(String fname) {
-        fname = fname.replace('\\', '/'); // unify file seperator
+        fname = slashify(fname, false, false);
         int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
             fname = fname.substring(0, lios+1);
@@ -318,7 +344,6 @@ public class IOUtil {
      * @see URL#URL(String)
      * @see File#File(String)
      */
-    @SuppressWarnings("deprecation")
     public static URL getResource(String resourcePath, ClassLoader cl) {
         if(null == resourcePath) {
             return null;
@@ -356,7 +381,7 @@ public class IOUtil {
             try {
                 File file = new File(resourcePath);
                 if(file.exists()) {
-                    url = file.toURL();
+                    url = toURLSimple(file);
                 }
             } catch (Throwable e) {
                 if(DEBUG) {
@@ -389,7 +414,7 @@ public class IOUtil {
         if (baseLocation != null) {
             final File file = new File(baseLocation, relativeFile);
             // Handle things on Windows
-            return file.getPath().replace('\\', '/');
+            return slashify(file.getPath(), false, true);
         }
         return null;
     }

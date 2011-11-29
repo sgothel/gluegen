@@ -34,6 +34,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -44,6 +46,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 
 public class TempJarCache {
@@ -265,6 +268,16 @@ public class TempJarCache {
         }
         return null;
     }
+    
+    public static final URL getResource(String name) throws MalformedURLException {
+        checkInitialized();
+        final File f = new File(tmpFileCache.getTempDir(), name);
+        if(f.exists()) {
+            return IOUtil.toURLSimple(f);
+        }
+        return null;
+    }
+    
     
     /**
      * Bootstrapping version extracting the JAR files root entry containing libBaseName,
