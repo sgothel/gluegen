@@ -99,10 +99,10 @@ public class TempJarCache {
     
     /**
      * 
-     * @return true if this class has been initialized, ie. used, otherwise not.
+     * @return true if this class has been properly initialized, ie. is in use, otherwise false.
      */
     public static boolean isInitialized() {
-        return isInit;
+        return isInit && !staticInitError;
     }
     
     /* package */ static void checkInitialized() {

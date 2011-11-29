@@ -532,4 +532,57 @@ public class IOUtil {
         }
         return tmpRoot;
     }
+    
+    /**
+     * This methods finds [and creates] a temporary directory:
+     * <pre>
+     *    for(tempBaseDir = tempRootDir + tmpDirPrefix + _ + [000000-999999]) {
+     *      if(tempBaseDir.isDirectory()) {
+     *          if(tempBaseDir.canWrite()) {
+     *              return tempBaseDir;
+     *          }
+     *      } else {
+     *          tempBaseDir.mkdir();
+     *          return tempBaseDir;
+     *      }
+     *    }
+     * </pre>
+     * The <code>tempRootDir</code> is retrieved by {@link #getTempRoot()}.
+     * <p>
+     * The iteration through [000000-999999] ensures that the code is multi-user save.
+     * </p>
+     * @param tmpDirPrefix
+     * @return a temporary directory, writable by this user
+     * @throws IOException
+     * @throws SecurityException
+     */
+    public static File getTempDir(String tmpDirPrefix)
+        throws IOException, SecurityException
+    {
+       final File tempRoot = IOUtil.getTempRoot();
+       
+       for(int i = 0; i<=999999; i++) {
+           final String tmpDirSuffix = String.format("_%06d", i); // 6 digits for iteration
+           final File tmpBaseDir = new File(tempRoot, tmpDirPrefix+tmpDirSuffix);
+           if (tmpBaseDir.isDirectory()) {
+               // existing directory
+               if(tmpBaseDir.canWrite()) {
+                   // can write - OK
+                   return tmpBaseDir; 
+               }
+               // not writable, hence used by another user - continue
+           } else {
+               // non existing directory, create and validate it
+               tmpBaseDir.mkdir();
+               if (!tmpBaseDir.isDirectory()) {
+                   throw new IOException("Cannot create temp base directory " + tmpBaseDir);
+               }
+               if(!tmpBaseDir.canWrite()) {
+                   throw new IOException("Cannot write to created temp base directory " + tmpBaseDir);
+               }
+               return tmpBaseDir; // created and writable - OK
+           }
+       }
+       throw new IOException("Could not create temp directory @ "+tempRoot.getAbsolutePath()+tmpDirPrefix+"_*");        
+    }
 }
