@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Rsrc-Class-Path: ClassInJar1.jar sub/ClassInJar2.jar
+Main-Class: ClassInJar0
+

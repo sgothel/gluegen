@@ -29,7 +29,7 @@ rm -f $LOG
 
 #D_ARGS="-Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true"
 #D_ARGS="-Djogamp.debug.TraceLock"
-#D_ARGS="-Djogamp.debug.JARUtil"
+#D_ARGS="-Djogamp.debug.JarUtil"
 #D_ARGS="-Djogamp.debug.TempFileCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JARUtil"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
@@ -43,8 +43,11 @@ function onetest() {
     shift
     #libspath=$builddir/obj:$builddir/test/build/natives:
     libspath=$builddir/test/build/natives:
-    echo LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH java $D_ARGS -Djava.library.path=$libspath -classpath lib/junit.jar:$ANT_JARS:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/classes $clazz
-    LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH java $D_ARGS -Djava.library.path=$libspath -classpath lib/junit.jar:$ANT_JARS:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/classes $clazz
+    LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
+    CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/gluegen-test.jar
+    echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
+    echo CLASSPATH $CLASSPATH
+    java $D_ARGS -Djava.library.path=$libspath $clazz
     echo
 }
 
@@ -63,6 +66,7 @@ function onetest() {
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
