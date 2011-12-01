@@ -30,16 +30,12 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.IOException;
 
-import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 
 import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.os.DynamicLookupHelper;
 
 import org.junit.Assert;
 import org.junit.Test;
-
-import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
 
 /**
  * @author Michael Bien
@@ -47,7 +43,7 @@ import static com.jogamp.gluegen.test.junit.generation.BuildEnvironment.*;
  */
 public class Test1p2ProcAddressEmitter extends BaseClass {
 
-    DynamicLookupHelper dynamicLookupHelper;
+    NativeLibrary dynamicLookupHelper;
 
     /**
      * Verifies loading of the new library.
@@ -121,6 +117,16 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     @Test
     public void chapter09TestCompoundAndAlignment() throws Exception {
         chapter09TestCompoundAndAlignment(new Bindingtest1p2Impl());
+    }
+    
+    /**
+     * Verifies unloading of the new library.
+     */
+    @Test
+    public void chapter0XTestUnloadLibrary() throws Exception {
+        Assert.assertNotNull(dynamicLookupHelper);
+        dynamicLookupHelper.close();
+        dynamicLookupHelper = null;
     }
     
     public static void main(String args[]) throws IOException {
