@@ -393,10 +393,10 @@ public class TempFileCache {
                 }
             }
         }
-
         path.delete();
     }
 
+    /** Create the <code>individualTmpDir</code>. */
     public TempFileCache () {
         if (DEBUG) {
             System.err.println("TempFileCache: new TempFileCache() --------------------- (static ok: "+(!staticInitError)+")");
@@ -413,6 +413,25 @@ public class TempFileCache {
         if (DEBUG) {
             System.err.println("tempDir: "+individualTmpDir+" (ok: "+(!initError)+")");
             System.err.println("----------------------------------------------------------");
+        }        
+    }
+    
+    /** Delete the <code>individualTmpDir</code> recursively and remove it's reference. */
+    public void destroy() {
+        if (DEBUG) {
+            System.err.println("TempFileCache: destroy() --------------------- (static ok: "+(!staticInitError)+")");
+            System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", this 0x"+Integer.toHexString(hashCode()));
+        }
+        if(!staticInitError) { 
+            try {
+                removeAll(individualTmpDir);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+        individualTmpDir = null;
+        if (DEBUG) {
+            System.err.println("TempFileCache: destroy() END");
         }        
     }
     

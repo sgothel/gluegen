@@ -144,7 +144,7 @@ public class JNILibLoaderBase {
    * 
    * @param classFromJavaJar GLProfile
    * @param nativeJarBaseName jogl-all
-   * @return
+   * @return true if the native JAR file loaded successful or were loaded already, false in case of an error
    */
   public static final boolean addNativeJarLibs(Class<?> classFromJavaJar, String nativeJarBaseName) {
     if(TempJarCache.isInitialized()) {
@@ -163,35 +163,42 @@ public class JNILibLoaderBase {
             if(DEBUG) {
                 System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": nativeJar "+nativeJar.getName());
             }
-            return TempJarCache.addNativeLibs(classFromJavaJar, nativeJar);
+            TempJarCache.addNativeLibs(classFromJavaJar, nativeJar);
+            return true;
         } catch (IOException ioe) {
             ioe.printStackTrace();
+        } catch (Exception e0) {
+            e0.printStackTrace();
         }
     }
     return false;
   }
    
   /**
-   * @param classFromJavaJar GLProfile
-   * @param allJavaJarPrefix "jogl.all"
-   * @param allNativeJarBaseName "jogl-all"
-   * @param atomicNativeJarBaseNames [ "nativewindow", "jogl", "newt" ]
+   * @param classFromJavaJar A class file to determine the base URL of the native JAR files, eg.: GLProfile.class
+   * @param allNativeJarBaseName Attempt to use the 'all' native JAR variant first, if exists. Eg. "jogl-all"
+   * @param atomicNativeJarBaseNames Fallback to use all the atomic native JAR files, eg. [ "nativewindow", "jogl", "newt" ]
+   * @return true if either the 'all' native JAR or all of the atomic native JARs loaded successful or were loaded already,
+   *         false in case of an error
    */
-  public static void addNativeJarLibs(Class<?> classFromJavaJar, String allJavaJarPrefix, String allNativeJarBaseName, String[] atomicNativeJarBaseNames) {
+  public static boolean addNativeJarLibs(Class<?> classFromJavaJar, String allNativeJarBaseName, String[] atomicNativeJarBaseNames) {
+    boolean res = false;
     if(TempJarCache.isInitialized()) {
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         try {
             final String jarName = JarUtil.getJarBasename(classFromJavaJar.getName(), cl);
             if(jarName!=null) {
-                if( null != allJavaJarPrefix && jarName.startsWith(allJavaJarPrefix) ) {
-                    // all-in-one variant
-                    JNILibLoaderBase.addNativeJarLibs(classFromJavaJar, allNativeJarBaseName);
-                } else if(null != atomicNativeJarBaseNames) {
+                if(!res && null != allNativeJarBaseName) {
+                    // all-in-one variant 1st
+                    res = JNILibLoaderBase.addNativeJarLibs(classFromJavaJar, allNativeJarBaseName);
+                }
+                if(!res && null != atomicNativeJarBaseNames) {
                     // atomic variant
-                    for(int i=0; i<atomicNativeJarBaseNames.length; i++) {
+                    res = true;
+                    for(int i=0; res && i<atomicNativeJarBaseNames.length; i++) {
                         final String atomicNativeJarBaseName = atomicNativeJarBaseNames[i];
                         if(null != atomicNativeJarBaseName && atomicNativeJarBaseName.length()>0) {
-                            JNILibLoaderBase.addNativeJarLibs(classFromJavaJar, atomicNativeJarBaseName);
+                            res = JNILibLoaderBase.addNativeJarLibs(classFromJavaJar, atomicNativeJarBaseName);
                         }
                     }
                 }
@@ -200,6 +207,7 @@ public class JNILibLoaderBase {
             ioe.printStackTrace();
         }
     }
+    return res;
   }
   
   protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {

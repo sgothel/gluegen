@@ -98,6 +98,37 @@ public class TempJarCache {
     }
     
     /**
+     * This is <b>not recommended</b> since the JNI libraries may still be
+     * in use by the ClassLoader they are loaded via {@link System#load(String)}.
+     * </p>
+     * <p>
+     * In JogAmp, JNI native libraries loaded and registered by {@link JNILibLoaderBase} 
+     * derivations, where the native JARs might be loaded via {@link JNILibLoaderBase#addNativeJarLibs(Class, String) }. 
+     * </p> 
+    public static void shutdown() {
+        if (isInit) { // volatile: ok
+            synchronized (TempJarCache.class) {
+                if (isInit) {
+                    isInit = false;
+                    if(!staticInitError) {
+                        nativeLibMap.clear();
+                        nativeLibMap = null;
+                        nativeLibJars.clear();
+                        nativeLibJars = null;
+                        classFileJars.clear();
+                        classFileJars = null;
+                        resourceFileJars.clear();
+                        resourceFileJars = null;
+                        
+                        tmpFileCache.destroy();
+                        tmpFileCache = null;
+                    }
+                }
+            }
+        }
+    } */
+    
+    /**
      * 
      * @return true if this class has been properly initialized, ie. is in use, otherwise false.
      */
@@ -116,31 +147,38 @@ public class TempJarCache {
         return tmpFileCache;
     }
     
-    public static boolean contains(JarFile jarFile) throws IOException {
+    public static boolean containsNativeLibs(JarFile jarFile) throws IOException {
         checkInitialized();
         return nativeLibJars.contains(jarFile);
     }    
 
+    public static boolean containsClasses(JarFile jarFile) throws IOException {
+        checkInitialized();
+        return classFileJars.contains(jarFile);
+    }    
+
+    public static boolean containsResources(JarFile jarFile) throws IOException {
+        checkInitialized();
+        return resourceFileJars.contains(jarFile);
+    }
+    
     /**
      * Adds native libraries, if not yet added.
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
      * 
-     * @return
      * @throws IOException
      * @throws SecurityException
      */
-    public static final boolean addNativeLibs(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
+    public static final void addNativeLibs(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
         checkInitialized();
         if(!nativeLibJars.contains(jarFile)) {
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
                             true, false, false); 
             nativeLibJars.add(jarFile);
-            return true;
         }
-        return false;
     }
     
     /**
@@ -152,20 +190,17 @@ public class TempJarCache {
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
      *  
-     * @return
      * @throws IOException
      * @throws SecurityException
      */
-    public static final boolean addClasses(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
+    public static final void addClasses(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
         checkInitialized();
         if(!classFileJars.contains(jarFile)) {
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, true, false); 
             classFileJars.add(jarFile);
-            return true;
         }
-        return false;
     }
     
     /**
@@ -178,16 +213,14 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public static final boolean addResources(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
+    public static final void addResources(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
         checkInitialized();
         if(!resourceFileJars.contains(jarFile)) {
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, false, true); 
             resourceFileJars.add(jarFile);
-            return true;
         }
-        return false;
     }
     
     /**
@@ -200,11 +233,10 @@ public class TempJarCache {
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarFile
      *  
-     * @return
      * @throws IOException
      * @throws SecurityException
      */
-    public static final boolean addAll(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
+    public static final void addAll(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
         checkInitialized();
         if(!nativeLibJars.contains(jarFile) || 
            !classFileJars.contains(jarFile) || 
@@ -224,9 +256,7 @@ public class TempJarCache {
             if(extractOtherFiles) {
                 resourceFileJars.add(jarFile);
             }
-            return true;
         }
-        return false;
     }
     
     public static final String findLibrary(String libName) {
@@ -289,7 +319,7 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public static final boolean bootstrapNativeLib(Class<?> certClass, String libBaseName, JarFile jarFile) 
+    public static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, JarFile jarFile) 
             throws IOException, SecurityException {
         checkInitialized();
         if(!nativeLibJars.contains(jarFile) && !nativeLibMap.containsKey(libBaseName) ) {                    
@@ -319,12 +349,10 @@ public class TempJarCache {
                     if (numBytes>0) {
                         nativeLibMap.put(libBaseName, destFile.getAbsolutePath());
                         nativeLibJars.add(jarFile);
-                        return true;
                     }
                 }
             }
         }
-        return false;
     }
     
     private static void validateCertificates(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
