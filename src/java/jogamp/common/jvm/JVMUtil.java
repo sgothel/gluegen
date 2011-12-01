@@ -37,7 +37,6 @@ import java.nio.ByteBuffer;
 import jogamp.common.Debug;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.Platform;
 
 
 /**
@@ -55,8 +54,6 @@ public class JVMUtil {
     private static final boolean DEBUG = Debug.debug("JVMUtil");
 
     static {
-        Platform.initSingleton(); // loads native gluegen-rt library
-
         ByteBuffer buffer = Buffers.newDirectByteBuffer(64);
         if( ! initialize(buffer) ) {
             throw new RuntimeException("Failed to initialize the JVMUtil "+Thread.currentThread().getName());
@@ -67,9 +64,9 @@ public class JVMUtil {
         }
     }
 
-    public static void initSingleton() {
-    }
-
+    /** Kicks of one-time static initialization of this class. See {@link JVMUtil}. */ 
+    public static void initSingleton() { }
+    
     private JVMUtil() {}
 
     private static native boolean initialize(java.nio.ByteBuffer buffer);
