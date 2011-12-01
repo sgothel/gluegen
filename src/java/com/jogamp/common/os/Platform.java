@@ -53,6 +53,9 @@ import jogamp.common.os.MachineDescriptionRuntime;
  */
 public class Platform {
 
+    /** fixed basename of JAR file and native library */
+    private static final String libBaseName = "gluegen-rt";
+    
     /**
      * System property: 'jogamp.gluegen.UseTempJarCache', 
      * defaults to true if {@link #OS_TYPE} is not {@link OSType#ANDROID}.
@@ -150,8 +153,7 @@ public class Platform {
     
     static {
         // We don't seem to need an AccessController.doPrivileged() block
-        // here as these system properties are visible even to unsigned
-        // applets
+        // here as these system properties are visible even to unsigned Applets.
         OS =  System.getProperty("os.name");
         OS_lower = OS.toLowerCase();
         OS_VERSION =  System.getProperty("os.version");
@@ -210,7 +212,7 @@ public class Platform {
             }).booleanValue();
         
         loadGlueGenRTImpl();
-        JVMUtil.initSingleton();
+        JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
         
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {
@@ -298,12 +300,10 @@ public class Platform {
     }
 
     private static void loadGlueGenRTImpl() {
-        final String libBaseName = "gluegen-rt";
-        
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
-                if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
-                  final String nativeJarName = "gluegen-rt-natives-"+os_and_arch+".jar";
+              if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
+                  final String nativeJarName = libBaseName+"-natives-"+os_and_arch+".jar";
                   final ClassLoader cl = Platform.class.getClassLoader();                
                   try {
                     final URL jarUrlRoot = JarUtil.getURLDirname(
@@ -314,9 +314,9 @@ public class Platform {
                   } catch (IOException ioe) {
                     ioe.printStackTrace();
                   }
-                }
-                DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);
-                return null;
+              }
+              DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);
+              return null;
             }
         });
     }
