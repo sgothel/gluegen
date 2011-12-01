@@ -161,8 +161,9 @@ public class TestTempJarCache {
         Assert.assertTrue(TempJarCache.initSingleton());
         Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
         Assert.assertTrue(TempJarCache.isInitialized());                
-        
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFile(GlueGenVersion.class.getName(), getClass().getClassLoader()));
+
+        final ClassLoader cl = getClass().getClassLoader();
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL(GlueGenVersion.class.getName(), cl), cl);
         
         File f0 = new File(TempJarCache.getTempFileCache().getTempDir(), "META-INF/MANIFEST.MF");
         Assert.assertTrue(f0.exists());
@@ -189,9 +190,8 @@ public class TestTempJarCache {
         jarUrlRoot = JarUtil.getURLDirname(jarUrlRoot);
         
         URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);        
-        JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
         
-        TempJarCache.addNativeLibs(TempJarCache.class, nativeJar);
+        TempJarCache.addNativeLibs(TempJarCache.class, nativeJarURL, cl);
         String libFullPath = TempJarCache.findLibrary(libBaseName);
         Assert.assertNotNull(libFullPath);
         Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));

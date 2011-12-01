@@ -309,8 +309,7 @@ public class Platform {
                     final URL jarUrlRoot = JarUtil.getURLDirname(
                                         JarUtil.getJarSubURL(Platform.class.getName(), cl) );
                     final URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
-                    final JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
-                    TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJar);
+                    TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURL, cl);
                   } catch (IOException ioe) {
                     ioe.printStackTrace();
                   }

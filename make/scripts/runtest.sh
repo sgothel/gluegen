@@ -68,5 +68,5 @@ function onetest() {
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG

@@ -159,11 +159,7 @@ public class JNILibLoaderBase {
             if(DEBUG) {
                 System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": nativeJarURL "+nativeJarURL);
             }
-            JarFile nativeJar = JarUtil.getJarFile(nativeJarURL, cl);
-            if(DEBUG) {
-                System.err.println("JNILibLoaderBase: addNativeJarLibs: "+nativeJarBaseName+": nativeJar "+nativeJar.getName());
-            }
-            TempJarCache.addNativeLibs(classFromJavaJar, nativeJar);
+            TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURL, cl);
             return true;
         } catch (IOException ioe) {
             ioe.printStackTrace();

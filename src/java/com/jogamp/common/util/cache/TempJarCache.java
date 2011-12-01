@@ -45,11 +45,15 @@ import java.util.Set;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import jogamp.common.Debug;
+
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 
 public class TempJarCache {
+    private static final boolean DEBUG = Debug.debug("TempJarCache");
+    
     // A HashMap of native libraries that can be loaded with System.load()
     // The key is the string name of the library as passed into the loadLibrary
     // call; it is the file name without the directory or the platform-dependent
@@ -58,9 +62,9 @@ public class TempJarCache {
     private static Map<String, String> nativeLibMap;
 
     // Set of native jar files added
-    private static Set<JarFile> nativeLibJars;
-    private static Set<JarFile> classFileJars;
-    private static Set<JarFile> resourceFileJars;
+    private static Set<URL> nativeLibJars;
+    private static Set<URL> classFileJars;
+    private static Set<URL> resourceFileJars;
 
     private static TempFileCache tmpFileCache;
     
@@ -87,9 +91,9 @@ public class TempJarCache {
                     if(!staticInitError) {
                         // Initialize the collections of resources
                         nativeLibMap = new HashMap<String, String>();
-                        nativeLibJars = new HashSet<JarFile>();
-                        classFileJars = new HashSet<JarFile>();
-                        resourceFileJars = new HashSet<JarFile>();
+                        nativeLibJars = new HashSet<URL>();
+                        classFileJars = new HashSet<URL>();
+                        resourceFileJars = new HashSet<URL>();
                     }
                 }
             }
@@ -147,37 +151,41 @@ public class TempJarCache {
         return tmpFileCache;
     }
     
-    public static boolean containsNativeLibs(JarFile jarFile) throws IOException {
+    public static boolean containsNativeLibs(URL jarURL) throws IOException {
         checkInitialized();
-        return nativeLibJars.contains(jarFile);
+        return nativeLibJars.contains(jarURL);
     }    
 
-    public static boolean containsClasses(JarFile jarFile) throws IOException {
+    public static boolean containsClasses(URL jarURL) throws IOException {
         checkInitialized();
-        return classFileJars.contains(jarFile);
+        return classFileJars.contains(jarURL);
     }    
 
-    public static boolean containsResources(JarFile jarFile) throws IOException {
+    public static boolean containsResources(URL jarURL) throws IOException {
         checkInitialized();
-        return resourceFileJars.contains(jarFile);
+        return resourceFileJars.contains(jarURL);
     }
     
     /**
      * Adds native libraries, if not yet added.
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
-     * @param jarFile
+     * @param jarURL
      * 
      * @throws IOException
      * @throws SecurityException
      */
-    public static final void addNativeLibs(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
+    public static final void addNativeLibs(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {        
         checkInitialized();
-        if(!nativeLibJars.contains(jarFile)) {
+        if(!nativeLibJars.contains(jarURL)) {
+            final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
+            if(DEBUG) {
+                System.err.println("TempJarCache: addNativeLibs: "+jarURL+": nativeJar "+jarFile.getName());
+            }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
                             true, false, false); 
-            nativeLibJars.add(jarFile);
+            nativeLibJars.add(jarURL);
         }
     }
     
@@ -193,13 +201,17 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public static final void addClasses(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
+    public static final void addClasses(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {
         checkInitialized();
-        if(!classFileJars.contains(jarFile)) {
+        if(!classFileJars.contains(jarURL)) {
+            final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
+            if(DEBUG) {
+                System.err.println("TempJarCache: addClasses: "+jarURL+": nativeJar "+jarFile.getName());
+            }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, true, false); 
-            classFileJars.add(jarFile);
+            classFileJars.add(jarURL);
         }
     }
     
@@ -213,13 +225,17 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public static final void addResources(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {        
+    public static final void addResources(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {        
         checkInitialized();
-        if(!resourceFileJars.contains(jarFile)) {
+        if(!resourceFileJars.contains(jarURL)) {
+            final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
+            if(DEBUG) {
+                System.err.println("TempJarCache: addResources: "+jarURL+": nativeJar "+jarFile.getName());
+            }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, false, true); 
-            resourceFileJars.add(jarFile);
+            resourceFileJars.add(jarURL);
         }
     }
     
@@ -236,25 +252,29 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public static final void addAll(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
+    public static final void addAll(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {
         checkInitialized();
-        if(!nativeLibJars.contains(jarFile) || 
-           !classFileJars.contains(jarFile) || 
-           !resourceFileJars.contains(jarFile)) {
-            final boolean extractNativeLibraries = !nativeLibJars.contains(jarFile);
-            final boolean extractClassFiles = !classFileJars.contains(jarFile);
-            final boolean extractOtherFiles = !resourceFileJars.contains(jarFile);
+        if(!nativeLibJars.contains(jarURL) || 
+           !classFileJars.contains(jarURL) || 
+           !resourceFileJars.contains(jarURL)) {
+            final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
+            if(DEBUG) {
+                System.err.println("TempJarCache: addAll: "+jarURL+": nativeJar "+jarFile.getName());
+            }
+            final boolean extractNativeLibraries = !nativeLibJars.contains(jarURL);
+            final boolean extractClassFiles = !classFileJars.contains(jarURL);
+            final boolean extractOtherFiles = !resourceFileJars.contains(jarURL);
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
                             extractNativeLibraries, extractClassFiles, extractOtherFiles);
             if(extractNativeLibraries) {
-                nativeLibJars.add(jarFile);
+                nativeLibJars.add(jarURL);
             }
             if(extractClassFiles) {
-                classFileJars.add(jarFile);
+                classFileJars.add(jarURL);
             }
             if(extractOtherFiles) {
-                resourceFileJars.add(jarFile);
+                resourceFileJars.add(jarURL);
             }
         }
     }
@@ -319,12 +339,16 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, JarFile jarFile) 
+    public static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, URL jarURL, ClassLoader cl) 
             throws IOException, SecurityException {
         checkInitialized();
-        if(!nativeLibJars.contains(jarFile) && !nativeLibMap.containsKey(libBaseName) ) {                    
-           validateCertificates(certClass, jarFile);
-           final Enumeration<JarEntry> entries = jarFile.entries();
+        if(!nativeLibJars.contains(jarURL) && !nativeLibMap.containsKey(libBaseName) ) {                    
+            final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
+            if(DEBUG) {
+                System.err.println("TempJarCache: bootstrapNativeLib: "+jarURL+": nativeJar "+jarFile.getName()+" - libBaseName: "+libBaseName);
+            }
+            validateCertificates(certClass, jarFile);
+            final Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
                 final JarEntry entry = (JarEntry) entries.nextElement();
                 final String entryName = entry.getName();
@@ -348,7 +372,7 @@ public class TempJarCache {
                     } finally { in.close(); out.close(); }
                     if (numBytes>0) {
                         nativeLibMap.put(libBaseName, destFile.getAbsolutePath());
-                        nativeLibJars.add(jarFile);
+                        nativeLibJars.add(jarURL);
                     }
                 }
             }
