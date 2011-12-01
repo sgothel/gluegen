@@ -240,6 +240,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     dynLink.closeLibrary(handle);
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): Successfully closed " + this);
+      Thread.dumpStack();
     }
   }
 
