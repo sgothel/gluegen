@@ -71,6 +71,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     private HashSet<String> toolGetProcAddressFuncNameSet;
     private List<String> toolGetProcAddressFuncNameList;
 
+    /** Instantiates and loads all {@link NativeLibrary}s incl. JNI libraries. */
     public DynamicLibraryBundle(DynamicLibraryBundleInfo info) {
         if(null==info) {
             throw new RuntimeException("Null DynamicLibraryBundleInfo");
@@ -101,6 +102,26 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             System.err.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+" "+Arrays.toString(glueLibLoaded)+", complete "+isGlueLibComplete());
             System.err.println("     All Complete: "+isLibComplete());
         }
+    }
+    
+    /** Unload all {@link NativeLibrary}s, and remove all references. */
+    public void destroy() {
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.destroy() START: "+info.getClass().getName());
+        }
+        toolGetProcAddressFuncNameSet = null;
+        toolGetProcAddressHandle = 0;
+        for(int i = 0; i<nativeLibraries.size(); i++) {
+            nativeLibraries.get(i).close();
+        }
+        nativeLibraries.clear();
+        nativeLibraries = null;
+        toolLibNames = null;
+        glueLibNames = null;
+        if(DEBUG) {
+            System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.destroy() END: "+info.getClass().getName());
+        }
+        info = null;
     }
 
     public final boolean isLibComplete() {
@@ -267,7 +288,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             }
         }
     }
-
+    
     private long dynamicLookupFunctionOnLibs(String funcName) {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {

@@ -108,15 +108,21 @@ public class NativeLibrary implements DynamicLookupHelper {
 
   // May as well keep around the path to the library we opened
   private String libraryPath;
+  
+  private boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
-  private NativeLibrary(long libraryHandle, String libraryPath) {
+  private NativeLibrary(long libraryHandle, String libraryPath, boolean global) {
     this.libraryHandle = libraryHandle;
     this.libraryPath   = libraryPath;
+    this.global        = global;
+    if (DEBUG) {
+      System.err.println("NativeLibrary.open(): Successfully loaded: " + this);
+    }
   }
 
   public String toString() {
-    return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + "]";
+    return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
   }
 
   /** Opens the given native library, assuming it has the same base
@@ -172,7 +178,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     for (Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
       String path = iter.next();
       if (DEBUG) {
-        System.err.println("Trying to load " + path);
+        System.err.println("NativeLibrary.open(): Trying to load " + path);
       }
       Platform.initSingleton(); // loads native gluegen-rt library
       long res;
@@ -182,15 +188,12 @@ public class NativeLibrary implements DynamicLookupHelper {
           res = dynLink.openLibraryLocal(path, DEBUG);
       }
       if (res != 0) {
-        if (DEBUG) {
-          System.err.println("Successfully loaded " + path + ": res = 0x" + Long.toHexString(res));
-        }
-        return new NativeLibrary(res, path);
+        return new NativeLibrary(res, path, global);
       }
     }
 
     if (DEBUG) {
-      System.err.println("Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
+      System.err.println("NativeLibrary.open(): Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
     }
 
     // For now, just return null to indicate the open operation didn't
@@ -226,11 +229,18 @@ public class NativeLibrary implements DynamicLookupHelper {
   /** Closes this native library. Further lookup operations are not
       allowed after calling this method. */
   public void close() {
-    if (libraryHandle == 0)
+    if (DEBUG) {
+      System.err.println("NativeLibrary.close(): closing " + this);
+    }
+    if (libraryHandle == 0) {
       throw new RuntimeException("Library already closed");
+    }
     long handle = libraryHandle;
     libraryHandle = 0;
     dynLink.closeLibrary(handle);
+    if (DEBUG) {
+      System.err.println("NativeLibrary.close(): Successfully closed " + this);
+    }
   }
 
   /**
@@ -293,7 +303,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     // from the LWJGL library
     String clPath = getPathFromClassLoader(libName, loader);
     if (DEBUG) {
-      System.err.println("Class loader path to " + libName + ": " + clPath);
+      System.err.println("NativeLibrary Class loader path to " + libName + ": " + clPath);
     }
     if (clPath != null) {
       paths.add(clPath);
