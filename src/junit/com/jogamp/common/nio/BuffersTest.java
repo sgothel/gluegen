@@ -34,12 +34,14 @@ package com.jogamp.common.nio;
 import java.nio.IntBuffer;
 import org.junit.Test;
 
+import com.jogamp.junit.util.TestTracer;
+
 import static org.junit.Assert.*;
 
 /**
  * @author Michael Bien
  */
-public class BuffersTest {
+public class BuffersTest extends TestTracer {
 
     @Test
     public void slice() {

@@ -33,7 +33,9 @@ import org.junit.Assert;
 
 import org.junit.Test;
 
-public class TestBuffersFloatDoubleConversion {
+import com.jogamp.junit.util.TestTracer;
+
+public class TestBuffersFloatDoubleConversion extends TestTracer {
 
     public static boolean cmpFloatArray(float[] d1, int d1_offset, float[] d2, int d2_offset, int len) {
         if( d1.length - d1_offset < len) {

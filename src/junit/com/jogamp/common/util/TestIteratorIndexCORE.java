@@ -38,8 +38,9 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.TestTracer;
 
-public class TestIteratorIndexCORE {
+public class TestIteratorIndexCORE extends TestTracer {
 
     static int elems = 10;
     static int loop = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 20 : 9999999;

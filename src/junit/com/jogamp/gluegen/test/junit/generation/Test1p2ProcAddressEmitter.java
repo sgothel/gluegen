@@ -43,7 +43,7 @@ import org.junit.Test;
  */
 public class Test1p2ProcAddressEmitter extends BaseClass {
 
-    NativeLibrary dynamicLookupHelper;
+    static NativeLibrary dynamicLookupHelper;
 
     /**
      * Verifies loading of the new library.

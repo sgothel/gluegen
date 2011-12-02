@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2011 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -26,30 +26,51 @@
  * or implied, of JogAmp Community.
  */
  
-package com.jogamp.common.util;
+package com.jogamp.junit.util;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.junit.util.TestTracer;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.After;
+import org.junit.AfterClass;
+import org.junit.Rule;
+import org.junit.rules.TestName;
 
-import java.io.IOException;
 
-import org.junit.Test;
+public abstract class TestTracer {
+    @Rule public TestName _unitTestName = new TestName();
 
-public class TestVersionInfo extends TestTracer {
-
-    @Test
-    public void testInfo01() {
-        System.err.println("Version Info:");
-        System.err.println(GlueGenVersion.getInstance());
-        System.err.println("");
-        System.err.println("Full Manifest:");
-        System.err.println(GlueGenVersion.getInstance().getFullManifestInfo(null));
+    public final String getTestMethodName() {
+        return _unitTestName.getMethodName();
+    }
+    
+    public final String getSimpleTestName() {
+        return getClass().getSimpleName()+" - "+getTestMethodName();
     }
 
+    public final String getFullTestName() {
+        return getClass().getName()+" - "+getTestMethodName();
+    }
+    
+    @BeforeClass
+    public static void oneTimeSetUp() {
+        // one-time initialization code                
+    }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestVersionInfo.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
+    @AfterClass
+    public static void oneTimeTearDown() {
+        // one-time cleanup code
+        System.gc(); // force cleanup
+    }
+
+    @Before
+    public void setUp() {
+        System.err.println("++++ TestCase.setUp: "+getFullTestName());
+    }
+
+    @After
+    public void tearDown() {
+        System.err.println("++++ TestCase.tearDown: "+getFullTestName());
     }
 
 }
+

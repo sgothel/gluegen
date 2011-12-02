@@ -46,8 +46,9 @@ import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
+import com.jogamp.junit.util.TestTracer;
 
-public class TestJarUtil {
+public class TestJarUtil extends TestTracer {
     static TempFileCache fileCache;
     
     @BeforeClass

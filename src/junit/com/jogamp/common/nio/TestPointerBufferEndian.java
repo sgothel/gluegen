@@ -4,13 +4,14 @@ package com.jogamp.common.nio;
 import java.io.IOException;
 
 import com.jogamp.common.os.*;
+import com.jogamp.junit.util.TestTracer;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import static java.lang.System.*;
 
-public class TestPointerBufferEndian {
+public class TestPointerBufferEndian extends TestTracer {
 
     protected void testImpl (boolean direct) {
         final MachineDescription machine = Platform.getMachineDescription();
