@@ -34,9 +34,9 @@ import java.lang.reflect.InvocationTargetException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
-public class TestRunnableTask01 extends TestTracer {
+public class TestRunnableTask01 extends JunitTracer {
 
     @Test
     public void testInvokeAndWait00() throws IOException, InterruptedException, InvocationTargetException {

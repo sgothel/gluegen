@@ -46,9 +46,9 @@ import org.junit.Test;
 
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
-public class TestIOUtil01 extends TestTracer {
+public class TestIOUtil01 extends JunitTracer {
 
     static final MachineDescription machine = Platform.getMachineDescription(); 
     static final int tsz = machine.pageSizeInBytes() + machine.pageSizeInBytes() / 2 ;

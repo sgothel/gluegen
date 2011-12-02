@@ -29,13 +29,13 @@
 package com.jogamp.common.util;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
 import java.io.IOException;
 
 import org.junit.Test;
 
-public class TestVersionInfo extends TestTracer {
+public class TestVersionInfo extends JunitTracer {
 
     @Test
     public void testInfo01() {

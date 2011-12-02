@@ -33,9 +33,9 @@ import org.junit.Test;
 
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
-public class TestPlatform01 extends TestTracer {
+public class TestPlatform01 extends JunitTracer {
 
     @Test
     public void testInfo00()  {

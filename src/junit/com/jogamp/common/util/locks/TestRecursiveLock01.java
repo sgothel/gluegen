@@ -40,9 +40,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
-public class TestRecursiveLock01 extends TestTracer {
+public class TestRecursiveLock01 extends JunitTracer {
 
     public enum YieldMode {
         NONE(0), YIELD(1), SLEEP(2); 

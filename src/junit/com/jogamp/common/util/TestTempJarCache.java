@@ -47,9 +47,9 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
-public class TestTempJarCache extends TestTracer {
+public class TestTempJarCache extends JunitTracer {
     static TempFileCache fileCache;
     
     static class TestClassLoader extends URLClassLoader {

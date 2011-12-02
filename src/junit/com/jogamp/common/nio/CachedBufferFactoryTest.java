@@ -42,7 +42,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
 import static java.lang.System.*;
 import static org.junit.Assert.*;
@@ -51,7 +51,7 @@ import static org.junit.Assert.*;
  *
  * @author Michael Bien
  */
-public class CachedBufferFactoryTest extends TestTracer {
+public class CachedBufferFactoryTest extends JunitTracer {
     
     private final int BUFFERCOUNT = 120;
     

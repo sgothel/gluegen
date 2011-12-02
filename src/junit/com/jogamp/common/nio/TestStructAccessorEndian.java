@@ -2,7 +2,7 @@ package com.jogamp.common.nio;
 
 import com.jogamp.common.os.*;
 import com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter;
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
 import java.io.IOException;
 import java.nio.*;
@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import static java.lang.System.*;
 
-public class TestStructAccessorEndian extends TestTracer {
+public class TestStructAccessorEndian extends JunitTracer {
 
     @Test
     public void testStructAccessorEndian1 () {

@@ -36,7 +36,7 @@ import org.junit.Rule;
 import org.junit.rules.TestName;
 
 
-public abstract class TestTracer {
+public abstract class JunitTracer {
     @Rule public TestName _unitTestName = new TestName();
 
     public final String getTestMethodName() {

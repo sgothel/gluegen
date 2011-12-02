@@ -34,9 +34,9 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.TestTracer;
+import com.jogamp.junit.util.JunitTracer;
 
-public class TestArrayHashSet01 extends TestTracer {
+public class TestArrayHashSet01 extends JunitTracer {
 
     public static class Dummy {
         int i1, i2, i3;
