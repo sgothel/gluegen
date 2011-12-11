@@ -34,11 +34,18 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
     }
 
     public void unlock() throws RuntimeException {
-        validateLocked();
-        owner = null;
-        lock.unlock();
+        unlock(null);
     }
 
+    public void unlock(Runnable taskAfterUnlockBeforeNotify) {
+        validateLocked();
+        owner = null;
+        if(null!=taskAfterUnlockBeforeNotify) {
+            taskAfterUnlockBeforeNotify.run();
+        }
+        lock.unlock();
+    }
+    
     public boolean isLocked() {
         return lock.isLocked();
     }
@@ -59,7 +66,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         return lock.isLocked() && owner == thread;
     }
 
-    public void validateLocked() {
+    public void validateLocked() throws RuntimeException {
         if ( !lock.isHeldByCurrentThread() ) {
             if ( !lock.isLocked() ) {
                 throw new RuntimeException(Thread.currentThread()+": Not locked");

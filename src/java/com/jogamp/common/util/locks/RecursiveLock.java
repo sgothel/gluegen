@@ -29,7 +29,7 @@
 package com.jogamp.common.util.locks;
 
 /**
- * Reentrance locking toolkit, impl a complete fair FIFO scheduler
+ * Reentrance capable locking toolkit.
  */
 public interface RecursiveLock extends LockExt {
     /** Return the number of locks issued to this lock by the same thread.

@@ -72,7 +72,7 @@ public interface Lock {
     boolean tryLock(long timeout) throws InterruptedException;
 
     /**
-     * Unblocking.
+     * Release the lock.
      *
      * @throws RuntimeException in case the lock is not acquired by this thread.
      */

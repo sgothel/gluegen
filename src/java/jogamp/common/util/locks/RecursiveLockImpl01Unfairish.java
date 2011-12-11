@@ -45,18 +45,41 @@ import com.jogamp.common.util.locks.RecursiveLock;
  */
 public class RecursiveLockImpl01Unfairish implements RecursiveLock {
 
+    /* package */ static interface Sync {
+        Thread getOwner();
+        boolean isOwner(Thread t);
+        void setOwner(Thread t);
+        
+        Throwable getLockedStack();
+        void setLockedStack(Throwable s);
+        
+        int getHoldCount();
+        void incrHoldCount(Thread t);
+        void decrHoldCount(Thread t);
+        
+        int getQSz();
+        void incrQSz();
+        void decrQSz();
+    }
+    
     @SuppressWarnings("serial")
-    private static class Sync extends AbstractOwnableSynchronizer {
-        private Sync() {
+    /* package */ static class SingleThreadSync extends AbstractOwnableSynchronizer implements Sync {
+        /* package */ SingleThreadSync() {
             super();
         }
-        private final Thread getOwner() {
+        public final Thread getOwner() {
             return getExclusiveOwnerThread();
         }
-        private final void setOwner(Thread t) {
+        public boolean isOwner(Thread t) {
+            return getExclusiveOwnerThread()==t;
+        }
+        public final void setOwner(Thread t) {
             setExclusiveOwnerThread(t);
         }
-        private final void setLockedStack(Throwable s) {
+        public final Throwable getLockedStack() {
+            return lockedStack;
+        }
+        public final void setLockedStack(Throwable s) {
             List<Throwable> ls = LockDebugUtil.getRecursiveLockTrace();
             if(s==null) {
                 ls.remove(lockedStack);
@@ -65,15 +88,29 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
             }            
             lockedStack = s;
         }
+        public final int getHoldCount() { return holdCount; }
+        public void incrHoldCount(Thread t) { holdCount++; }
+        public void decrHoldCount(Thread t) { holdCount--; }
+        
+        public final int getQSz() { return qsz; }
+        public final void incrQSz() { qsz++; }
+        public final void decrQSz() { qsz--; }
+        
         // lock count by same thread
-        private int holdCount = 0;
+        private int holdCount = 0;        
         // stack trace of the lock, only used if DEBUG
-        private Throwable lockedStack = null;
+        private Throwable lockedStack = null;        
         private int qsz = 0;
     }
-    private Sync sync = new Sync();
+    
+    protected final Sync sync;
         
+    public RecursiveLockImpl01Unfairish(Sync sync) {
+        this.sync = sync;
+    }
+    
     public RecursiveLockImpl01Unfairish() {
+        this(new SingleThreadSync());
     }
 
     /**
@@ -83,7 +120,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
      */
     public final Throwable getLockedStack() {
         synchronized(sync) {
-            return sync.lockedStack;
+            return sync.getLockedStack();
         }
     }
 
@@ -94,14 +131,12 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     }
 
     public final boolean isOwner() {
-        synchronized(sync) {
-            return isOwner(Thread.currentThread());
-        }
+        return isOwner(Thread.currentThread());
     }
 
     public final boolean isOwner(Thread thread) {
         synchronized(sync) {
-            return sync.getOwner() == thread ;
+            return sync.isOwner(thread) ;
         }
     }
 
@@ -113,24 +148,24 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
 
     public final boolean isLockedByOtherThread() {
         synchronized(sync) {
-            return null != sync.getOwner() && Thread.currentThread() != sync.getOwner() ;
+            return null != sync.getOwner() && !sync.isOwner(Thread.currentThread()) ;
         }
     }
 
     public final int getHoldCount() {
         synchronized(sync) {
-            return sync.holdCount;
+            return sync.getHoldCount();
         }
     }
 
-    public final void validateLocked() {
+    public final void validateLocked() throws RuntimeException {
         synchronized(sync) {
-            if ( Thread.currentThread() != sync.getOwner() ) {
+            if ( !sync.isOwner(Thread.currentThread()) ) {
                 if ( null == sync.getOwner() ) {
                     throw new RuntimeException(threadName(Thread.currentThread())+": Not locked: "+toString());
                 }
-                if(null!=sync.lockedStack) {
-                    sync.lockedStack.printStackTrace();
+                if(null!=sync.getLockedStack()) {
+                    sync.getLockedStack().printStackTrace();
                 }
                 throw new RuntimeException(Thread.currentThread()+": Not owner: "+toString());
             }
@@ -141,8 +176,8 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         synchronized(sync) {
             try {
                 if(!tryLock(TIMEOUT)) {
-                    if(null!=sync.lockedStack) {
-                        sync.lockedStack.printStackTrace();
+                    if(null!=sync.getLockedStack()) {
+                        sync.getLockedStack().printStackTrace();
                     }
                     throw new RuntimeException("Waited "+TIMEOUT+"ms for: "+toString()+" - "+threadName(Thread.currentThread()));
                 }
@@ -158,28 +193,28 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
             if(TRACE_LOCK) {
                 System.err.println("+++ LOCK 0 "+toString()+", cur "+threadName(cur));
             }
-            if (sync.getOwner() == cur) {
-                ++sync.holdCount;
+            if (sync.isOwner(cur)) {
+                sync.incrHoldCount(cur);
                 if(TRACE_LOCK) {
                     System.err.println("+++ LOCK XR "+toString()+", cur "+threadName(cur));
                 }
                 return true;
             }
     
-            if ( sync.getOwner() != null || ( 0<timeout && 0<sync.qsz ) ) {
+            if ( sync.getOwner() != null || ( 0<timeout && 0<sync.getQSz() ) ) {
     
                 if ( 0 >= timeout ) {
                     // locked by other thread and no waiting requested
                     return false;
                 }
     
-                ++sync.qsz;
+                sync.incrQSz();
                 do {
                     final long t0 = System.currentTimeMillis();
                     sync.wait(timeout);
                     timeout -= System.currentTimeMillis() - t0;
                 } while (null != sync.getOwner() && 0 < timeout) ;
-                --sync.qsz;
+                sync.decrQSz();
     
                 if( 0 >= timeout ) {
                     // timed out
@@ -189,18 +224,16 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
                     return false;
                 }
     
-                ++sync.holdCount;
                 if(TRACE_LOCK) {
                     System.err.println("+++ LOCK X1 "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms");
                 }
-            } else {
-                ++sync.holdCount;
-                if(TRACE_LOCK) {
-                    System.err.println("+++ LOCK X0 "+toString()+", cur "+threadName(cur));
-                }
+            } else if(TRACE_LOCK) {
+                System.err.println("+++ LOCK X0 "+toString()+", cur "+threadName(cur));
             }
     
             sync.setOwner(cur);
+            sync.incrHoldCount(cur);
+            
             if(DEBUG) {
                 sync.setLockedStack(new Throwable("Previously locked by "+toString()));
             }
@@ -215,14 +248,14 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         }
     }
 
-    public final void unlock(Runnable taskAfterUnlockBeforeNotify) {
+    public void unlock(Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             validateLocked();
             final Thread cur = Thread.currentThread();
             
-            --sync.holdCount;
+            sync.decrHoldCount(cur);
             
-            if (sync.holdCount > 0) {
+            if (sync.getHoldCount() > 0) {
                 if(TRACE_LOCK) {
                     System.err.println("--- LOCK XR "+toString()+", cur "+threadName(cur));
                 }
@@ -246,18 +279,18 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     
     public final int getQueueLength() {
         synchronized(sync) {
-            return sync.qsz;
+            return sync.getQSz();
         }
     }
     
     public String toString() {
-        return syncName()+"[count "+sync.holdCount+
-                           ", qsz "+sync.qsz+", owner "+threadName(sync.getOwner())+"]";
+        return syncName()+"[count "+sync.getHoldCount()+
+                           ", qsz "+sync.getQSz()+", owner "+threadName(sync.getOwner())+"]";
     }
     
-    private final String syncName() {
+    /* package */ final String syncName() {
         return "<"+Integer.toHexString(this.hashCode())+", "+Integer.toHexString(sync.hashCode())+">";
     }
-    private final String threadName(Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
+    /* package */ final String threadName(Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
 }
 

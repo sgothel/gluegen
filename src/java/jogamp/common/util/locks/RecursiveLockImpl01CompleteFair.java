@@ -130,7 +130,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         }
     }
 
-    public final void validateLocked() {
+    public final void validateLocked() throws RuntimeException {
         synchronized(sync) {
             if ( Thread.currentThread() != sync.getOwner() ) {
                 if ( null == sync.getOwner() ) {

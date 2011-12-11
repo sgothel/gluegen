@@ -44,5 +44,16 @@ public interface LockExt extends Lock {
 
     boolean isOwner(Thread thread);
 
-    void validateLocked();
+    /**
+     * @throws RuntimeException if current thread does not hold the lock 
+     */
+    void validateLocked() throws RuntimeException;
+    
+    /**
+     * Execute the {@link Runnable Runnable taskAfterUnlockBeforeNotify} while holding the exclusive lock.
+     * <p>
+     * Then release the lock.
+     * </p> 
+     */
+    void unlock(Runnable taskAfterUnlockBeforeNotify);    
 }
