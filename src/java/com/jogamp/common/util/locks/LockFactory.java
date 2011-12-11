@@ -30,11 +30,12 @@ package com.jogamp.common.util.locks;
 import jogamp.common.util.locks.RecursiveLockImpl01CompleteFair;
 import jogamp.common.util.locks.RecursiveLockImpl01Unfairish;
 import jogamp.common.util.locks.RecursiveLockImplJava5;
+import jogamp.common.util.locks.RecursiveThreadGroupLockImpl01Unfairish;
 
 public class LockFactory {
 
     public enum ImplType {
-        Int01(0), Java5(1); 
+        Int01(0), Java5(1), Int02ThreadGroup(2); 
         
         public final int id;
 
@@ -48,12 +49,19 @@ public class LockFactory {
         return new RecursiveLockImpl01Unfairish();
     }
     
+    /** default is ImplType.Int02ThreadGroup, unfair'ish (fastest w/ least deviation) */
+    public static RecursiveThreadGroupLock createRecursiveThreadGroupLock() {
+        return new RecursiveThreadGroupLockImpl01Unfairish();
+    }
+    
     public static RecursiveLock createRecursiveLock(ImplType t, boolean fair) {
         switch(t) {
             case Int01:
                 return fair ? new RecursiveLockImpl01CompleteFair() : new RecursiveLockImpl01Unfairish();
             case Java5:
                 return new RecursiveLockImplJava5(fair);
+            case Int02ThreadGroup:
+                return new RecursiveThreadGroupLockImpl01Unfairish();
         }
         throw new InternalError("XXX");
     }
