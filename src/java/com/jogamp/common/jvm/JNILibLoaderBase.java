@@ -39,14 +39,12 @@
 
 package com.jogamp.common.jvm;
 
-import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.AccessController;
 import java.security.AccessControlContext;
 import java.util.HashSet;
-import java.util.jar.JarFile;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.JarUtil;
@@ -161,10 +159,12 @@ public class JNILibLoaderBase {
             }
             TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURL, cl);
             return true;
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
         } catch (Exception e0) {
-            e0.printStackTrace();
+            // IllegalArgumentException, IOException
+            System.err.println("Catched: "+e0.getMessage());
+            if(DEBUG) {
+                e0.printStackTrace();
+            }
         }
     }
     return false;
@@ -199,8 +199,12 @@ public class JNILibLoaderBase {
                     }
                 }
             }
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        } catch (Exception e0) {
+            // IllegalArgumentException, IOException
+            System.err.println("Catched: "+e0.getMessage());
+            if(DEBUG) {
+                e0.printStackTrace();
+            }
         }
     }
     return res;
