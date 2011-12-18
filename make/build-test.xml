@@ -367,19 +367,38 @@ ${line.separator}
         </junit>
     </target>
 
-    <target name="junit.run.settings" depends="init">
+    <target name="junit.run.settings">
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
 
         <delete quiet="true">
             <fileset dir="${build}/test/results" includes="**"/>
+            <fileset dir="${build}/test/results-x32" includes="**"/>
             <fileset file="${build}/${test.archive.name}.7z"/>
         </delete>
         <mkdir dir="${build}/test/results"/>
     </target>
 
-    <target name="junit.run" depends="init,gluegen.cpptasks.detect.os,junit.run.settings,junit.run.local,junit.run.remote.ssh,junit.run.remote.adb">
+    <target name="junit.run.d32" if="isOSX">
+        <var name="jvmDataModel.arg" unset="true"/>
+        <var name="jvmDataModel.arg" value="-d32"/>
+
+        <antcall target="junit.run.local" inheritRefs="true" inheritAll="true"/>
+
+        <mkdir dir="${build}/test/results-x32"/>
+        <move todir="${build}/test/results-x32">
+            <fileset dir="${build}/test/results" includes="**" />
+        </move>
+        <mkdir dir="${build}/test/results"/>
+
+        <var name="jvmDataModel.arg" unset="true"/>
+        <var name="jvmDataModel.arg" value="-d64"/>
+    </target>
+
+    <target name="junit.run.tests" depends="junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/>
+
+    <target name="junit.run" depends="init, gluegen.cpptasks.detect.os, junit.run.settings, junit.run.d32, junit.run.tests">
         <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 
@@ -529,8 +548,9 @@ ${line.separator}
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="init">
         <archive.7z destfile="${build}/${test.archive.name}.7z"
-                    basedir="${build}/test/results" 
-                    includes="**" />
+                    basedir="${project.root}" 
+                    includes="${rootrel.build}/test/results ${rootrel.build}/test/results-x64 ${rootrel.build}/test/results-x32" />
     </target>
+
 
 </project>
