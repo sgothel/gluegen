@@ -333,6 +333,13 @@ public class NativeLibrary implements DynamicLookupHelper {
         });
     addPaths(userDir, baseNames, paths);
 
+    if (!searchSystemPathFirst) {
+      // Add just the library names to use the OS's search algorithm
+      for (int i = 0; i < baseNames.length; i++) {
+        paths.add(baseNames[i]);
+      }
+    }
+
     // Add probable Mac OS X-specific paths
     if (Platform.OS_TYPE == Platform.OSType.MACOS) {
       // Add historical location
@@ -340,12 +347,7 @@ public class NativeLibrary implements DynamicLookupHelper {
       // Add current location
       addPaths("/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
     }
-
-    if (!searchSystemPathFirst) {
-      // Add just the library names to use the OS's search algorithm
-      paths.addAll(Arrays.asList(baseNames));
-    }
-
+    
     return paths;
   }
 
@@ -400,12 +402,17 @@ public class NativeLibrary implements DynamicLookupHelper {
       }
     }
 
-    String[] res = new String[prefixes.length * suffixes.length];
+    String[] res = new String[prefixes.length * suffixes.length + 
+                              ( Platform.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
     int idx = 0;
     for (int i = 0; i < prefixes.length; i++) {
       for (int j = 0; j < suffixes.length; j++) {
         res[idx++] = prefixes[i] + libName + suffixes[j];
       }
+    }
+    if (Platform.OS_TYPE == Platform.OSType.MACOS) {
+        // Plain library-base-name in Framework folder
+        res[idx++] = libName;
     }
     return res;
   }
