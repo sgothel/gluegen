@@ -685,10 +685,34 @@ public class BaseClass extends JunitTracer {
         
         TK_Surface surface = binding.createSurface();
         
-        assertAPTR(0x123456789abcdef0L, surface.getCtx());
+        final long surfaceContext = surface.getCtx(); 
+        assertAPTR(0x123456789abcdef0L, surfaceContext);
+        
+        TK_ContextWrapper ctxWrapper = surface.getCtxWrapper();
+        final long wrapperContext = ctxWrapper.getCtx();
+        assertAPTR(0xA23456781abcdef0L, wrapperContext);
         
         TK_Engine engine = surface.getEngine();
-        assertAPTR(0x123456789abcdef0L, engine.getCtx());
+        final long engineContext = engine.getCtx();
+        assertAPTR(0xB23456782abcdef0L, engineContext);
+        Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
+        
+        surface.setCtx(surfaceContext);
+        assertAPTR(surfaceContext, surface.getCtx());
+        assertAPTR(wrapperContext, ctxWrapper.getCtx());
+        assertAPTR(engineContext, engine.getCtx());
+        Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
+        
+        ctxWrapper.setCtx(wrapperContext);
+        assertAPTR(surfaceContext, surface.getCtx());
+        assertAPTR(wrapperContext, ctxWrapper.getCtx());
+        assertAPTR(engineContext, engine.getCtx());
+        Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
+        
+        engine.setCtx(engineContext);
+        assertAPTR(surfaceContext, surface.getCtx());
+        assertAPTR(wrapperContext, ctxWrapper.getCtx());
+        assertAPTR(engineContext, engine.getCtx());
         Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
         
         TK_Dimension dimension = surface.getBounds();

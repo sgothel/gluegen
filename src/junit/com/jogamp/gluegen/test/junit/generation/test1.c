@@ -259,10 +259,11 @@ MYAPI TK_Surface * MYAPIENTRY createSurface() {
     s->getClip = _TK_getClip;
 
     s->ctx = (void *) 0x123456789abcdef0UL;
+    s->ctxWrapper.ctx = (void *) 0xA23456781abcdef0UL;
     //s->engine = (TK_Engine *) calloc(1, sizeof(TK_Engine));
     //s->engine->ctx    = (void *) 0x123456789abcdef0UL;
     //s->engine->render = _TK_render;
-    s->engine.ctx    = (void *) 0x123456789abcdef0UL;
+    s->engine.ctx    = (void *) 0xB23456782abcdef0UL;
     s->engine.render = _TK_render;
 
     s->bounds.x      = 0x11111111U;

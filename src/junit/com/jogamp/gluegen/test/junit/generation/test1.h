@@ -143,8 +143,13 @@ typedef struct {
     int32_t (MYAPIENTRY *render) (int x, int y, int ps);
 } TK_Engine;
 
+typedef struct {
+    TK_Context ctx;
+} TK_ContextWrapper;
+
 typedef struct tk_Surface {
     TK_Context ctx;
+    TK_ContextWrapper ctxWrapper;
     // const TK_Engine * engine;
     TK_Engine engine;
     TK_Dimension bounds;

@@ -1061,22 +1061,31 @@ public class JavaEmitter implements GlueEmitter {
           }
           if (javaType.isPrimitive()) {
             // Primitive type
-            final boolean fieldTypeNativeSizeFixed = fieldType.getSize().hasFixedNativeSize() || isOpaque(fieldType) ; 
-            String javaTypeName = javaType.getName();
-            if (isOpaque(fieldType)) {
+            final boolean fieldTypeNativeSizeFixed = fieldType.getSize().hasFixedNativeSize(); 
+            final String javaTypeName;
+            if ( isOpaque(fieldType) ) {
               javaTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
+            } else {
+              javaTypeName = javaType.getName();
             }
-            String capJavaTypeName = capitalizeString(javaTypeName);
+            final String capJavaTypeName = capitalizeString(javaTypeName);
+            final String capFieldName = capitalizeString(fieldName);            
+            final String sizeDenominator = fieldType.isPointer() ? "pointer" : javaTypeName ;
+            
+            if(GlueGen.debug()) {
+                System.err.println("Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getName(true)+", "+javaTypeName+", "+
+                                   ", fixedSize "+fieldTypeNativeSizeFixed+", opaque "+isOpaque(fieldType)+", isPointer "+fieldType.isPointer()+", isCompound "+fieldType.isCompound()+
+                                   ", sizeDenominator "+sizeDenominator);
+            }
             
             writer.println();
-            String capFieldName = capitalizeString(fieldName);
             // Setter
             generateSetterSignature(writer, false, containingTypeName, capFieldName, javaTypeName);
             writer.println(" {");
             if( fieldTypeNativeSizeFixed ) {
                 writer.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val);");
             } else {
-                writer.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+javaTypeName+"SizeInBytes());");
+                writer.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
             }
             writer.println("    return this;");
             writer.println("  }");
@@ -1089,7 +1098,7 @@ public class JavaEmitter implements GlueEmitter {
             if( fieldTypeNativeSizeFixed ) {
                 writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx]);");
             } else {
-                writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+javaTypeName+"SizeInBytes());");
+                writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
             }            
             writer.println("  }");
           }
