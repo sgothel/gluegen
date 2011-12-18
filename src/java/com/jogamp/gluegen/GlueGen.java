@@ -40,7 +40,6 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.os.MachineDescription;
 
 import java.io.*;
 import java.util.*;
@@ -67,7 +66,11 @@ public class GlueGen implements GlueEmitterControls {
     // State for SymbolFilters
     private List<ConstantDefinition> constants;
     private List<FunctionSymbol> functions;
+    
+    private static boolean debug = false;
 
+    public static boolean debug() { return debug; }
+    
     public void forceStructEmission(String typedefName) {
         forcedStructNames.add(typedefName);
     }
@@ -90,12 +93,9 @@ public class GlueGen implements GlueEmitterControls {
 
   
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, Class<?> emitterClass, List<String> includePaths, List<String> cfgFiles, String outputRootDir, boolean debug, boolean copyPCPPOutput2Stderr) {
+    public void run(final Reader reader, final String filename, Class<?> emitterClass, List<String> includePaths, List<String> cfgFiles, String outputRootDir, boolean copyPCPPOutput2Stderr) {
 
         try {
-            final PipedInputStream ppIn = new PipedInputStream();
-            final PipedOutputStream ppOut = new PipedOutputStream(ppIn);
-
             File out = File.createTempFile("PCPPTemp", ".pcpp");
             FileOutputStream outStream = new FileOutputStream(out);
 
@@ -317,7 +317,6 @@ public class GlueGen implements GlueEmitterControls {
         String emitterFQN = null;
         String outputRootDir = null;
         List<String> cfgFiles = new ArrayList<String>();
-        boolean debug = false;
         boolean copyCPPOutput2Stderr = false;
 
         List<String> includePaths = new ArrayList<String>();
@@ -361,7 +360,7 @@ public class GlueGen implements GlueEmitterControls {
 
         try {
             Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
-            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, debug, copyCPPOutput2Stderr);
+            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, copyCPPOutput2Stderr);
         } catch (ClassNotFoundException ex) {
             throw new RuntimeException("specified emitter class was not in the classpath", ex);
         }
