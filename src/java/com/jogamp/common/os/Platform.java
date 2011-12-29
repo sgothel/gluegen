@@ -204,7 +204,7 @@ public class Platform {
         
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
-        USE_TEMP_JAR_CACHE = OS_TYPE != OSType.ANDROID &&
+        USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && !isRunningFromClassFile() &&
             AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 public Boolean run() {
                     return Boolean.valueOf(Debug.getBooleanProperty(true, useTempJarCachePropName, true, AccessController.getContext()));
@@ -233,6 +233,22 @@ public class Platform {
 
     private Platform() {}
 
+    /* Used to disable JAR caching if we're not running from a JAR.
+     *
+     * If you build JOGL in an IDE like Eclipse, it's possible for other projects in your
+     * workspace to depend directly on the JOGL class files rather than on the built JAR files.
+     * This allows you to turn off JAR file creation in your JOGL Ant build to speed up the
+     * build, and allows Eclipse to resolve dependencies to auto-built class files before
+     * the Ant build even runs (which is not until after file save).
+     *
+     * @return true if we're running from a class file, false if we're running some other
+     * way (like from a JAR file).
+     */
+    private static boolean isRunningFromClassFile() {
+        URL url = Platform.class.getResource( "Platform.class" );
+        return( url.getProtocol().equalsIgnoreCase( "file" ) );
+    }
+    
     private static boolean queryIsLittleEndianImpl() {
         ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
         IntBuffer tst_i = tst_b.asIntBuffer();
