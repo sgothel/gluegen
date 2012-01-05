@@ -41,10 +41,11 @@ rm -f $LOG
 function onetest() {
     clazz=$1
     shift
-    #libspath=$builddir/obj:$builddir/test/build/natives:
-    libspath=$builddir/test/build/natives:
-    LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
     CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/gluegen-test.jar
+    libspath=$builddir/test/build/natives:
+    #CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/classes:$builddir/test/build/classes
+    #libspath=$builddir/obj:$builddir/test/build/natives:
+    LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo CLASSPATH $CLASSPATH
     echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz

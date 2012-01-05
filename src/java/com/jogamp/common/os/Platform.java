@@ -28,7 +28,6 @@
  
 package com.jogamp.common.os;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -36,7 +35,6 @@ import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
-import java.util.jar.JarFile;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.JarUtil;
@@ -204,7 +202,7 @@ public class Platform {
         
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
-        USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && !isRunningFromClassFile() &&
+        USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
             AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 public Boolean run() {
                     return Boolean.valueOf(Debug.getBooleanProperty(true, useTempJarCachePropName, true, AccessController.getContext()));
@@ -233,20 +231,17 @@ public class Platform {
 
     private Platform() {}
 
-    /* Used to disable JAR caching if we're not running from a JAR.
+    /**
+     * Preemptively avoids initializing and using {@link TempJarCache} in case we are <b>not</b> running 
+     * from a Jar URL, ie. plain class files. Used to set {@link USE_TEMP_JAR_CACHE}.
+     * <p> 
+     * Impact: Less overhead and more robustness.
+     * </p> 
      *
-     * If you build JOGL in an IDE like Eclipse, it's possible for other projects in your
-     * workspace to depend directly on the JOGL class files rather than on the built JAR files.
-     * This allows you to turn off JAR file creation in your JOGL Ant build to speed up the
-     * build, and allows Eclipse to resolve dependencies to auto-built class files before
-     * the Ant build even runs (which is not until after file save).
-     *
-     * @return true if we're running from a class file, false if we're running some other
-     * way (like from a JAR file).
+     * @return true if we're running from a Jar URL, otherwise false
      */
-    private static boolean isRunningFromClassFile() {
-        URL url = Platform.class.getResource( "Platform.class" );
-        return( url.getProtocol().equalsIgnoreCase( "file" ) );
+    private static boolean isRunningFromJarURL() {        
+        return JarUtil.hasJarURL(Platform.class.getName(), Platform.class.getClassLoader());
     }
     
     private static boolean queryIsLittleEndianImpl() {
@@ -326,8 +321,9 @@ public class Platform {
                                         JarUtil.getJarSubURL(Platform.class.getName(), cl) );
                     final URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
                     TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURL, cl);
-                  } catch (IOException ioe) {
-                    ioe.printStackTrace();
+                  } catch (Exception e0) {
+                    // IllegalArgumentException, IOException
+                    System.err.println("Catched: "+e0.getMessage());
                   }
               }
               DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);

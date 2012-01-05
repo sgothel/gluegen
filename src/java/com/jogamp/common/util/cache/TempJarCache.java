@@ -133,7 +133,6 @@ public class TempJarCache {
     } */
     
     /**
-     * 
      * @return true if this class has been properly initialized, ie. is in use, otherwise false.
      */
     public static boolean isInitialized() {
