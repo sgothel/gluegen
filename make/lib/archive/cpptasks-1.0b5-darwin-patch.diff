@@ -1,6 +1,18 @@
-diff -Nur cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java cpptasks-1.0b5-patched-01/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java
+diff -Nur cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/AbstractLdLinker.java cpptasks-1.0b5-osx-patched/src/main/java/net/sf/antcontrib/cpptasks/gcc/AbstractLdLinker.java
+--- cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/AbstractLdLinker.java	2008-04-02 19:26:44.000000000 +0200
++++ cpptasks-1.0b5-osx-patched/src/main/java/net/sf/antcontrib/cpptasks/gcc/AbstractLdLinker.java	2012-01-09 14:40:36.277639850 +0100
+@@ -59,7 +59,7 @@
+                 args.addElement("-bundle");
+             } else {
+                 if (linkType.isSharedLibrary()) {
+-                    args.addElement("-prebind");
++                    // args.addElement("-prebind"); // Only required for OSX 10.3 and earlier, no auto-add (can add manually though)
+                     args.addElement("-dynamiclib");
+                 }
+             }
+diff -Nur cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java cpptasks-1.0b5-osx-patched/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java
 --- cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java	2008-04-02 19:26:44.000000000 +0200
-+++ cpptasks-1.0b5-patched-01/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java	2010-04-07 22:16:03.330794801 +0200
++++ cpptasks-1.0b5-osx-patched/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.java	2012-01-09 15:25:12.994904288 +0100
 @@ -17,6 +17,8 @@
  package net.sf.antcontrib.cpptasks.gcc;
  import java.io.File;
@@ -10,11 +22,15 @@ diff -Nur cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.
  
  import net.sf.antcontrib.cpptasks.CUtil;
  import net.sf.antcontrib.cpptasks.compiler.LinkType;
-@@ -36,6 +38,7 @@
-             "-dynamiclib", "-nostartfiles", "-nostdlib", "-prebind", "-s",
+@@ -33,9 +35,10 @@
+     private static final String[] libtoolObjFiles = new String[]{".fo", ".a",
+             ".lib", ".dll", ".so", ".sl"};
+     private static String[] linkerOptions = new String[]{"-bundle",
+-            "-dynamiclib", "-nostartfiles", "-nostdlib", "-prebind", "-s",
++            "-dynamiclib", "-nostartfiles", "-nostdlib", "-prebind", "-noprebind", "-s",
              "-static", "-shared", "-symbolic", "-Xlinker",
              "--export-all-symbols", "-static-libgcc",};
-+    private static String[] darwinLinkerOptions = new String[]{"-arch", };
++    private static String[] darwinLinkerOptions = new String[]{"-arch", "-weak_framework", "-lazy_framework", "-weak_library" };
      private static final GccLinker dllLinker = new GccLinker("gcc", objFiles,
              discardFiles, "lib", ".so", false, new GccLinker("gcc", objFiles,
                      discardFiles, "lib", ".so", true, null));
@@ -37,3 +53,18 @@ diff -Nur cpptasks-1.0b5/src/main/java/net/sf/antcontrib/cpptasks/gcc/GccLinker.
                      if (!known) {
                          buf.setLength(0);
                          buf.append("-Wl,");
+diff -Nur cpptasks-1.0b5/src/test/java/net/sf/antcontrib/cpptasks/gcc/TestAbstractLdLinker.java cpptasks-1.0b5-osx-patched/src/test/java/net/sf/antcontrib/cpptasks/gcc/TestAbstractLdLinker.java
+--- cpptasks-1.0b5/src/test/java/net/sf/antcontrib/cpptasks/gcc/TestAbstractLdLinker.java	2008-04-02 19:26:44.000000000 +0200
++++ cpptasks-1.0b5-osx-patched/src/test/java/net/sf/antcontrib/cpptasks/gcc/TestAbstractLdLinker.java	2012-01-09 15:29:42.379687367 +0100
+@@ -73,9 +73,8 @@
+         pluginOutType.setValue("shared");
+         pluginType.setOutputType(pluginOutType);
+         linker.addImpliedArgs(false, pluginType, args);
+-        assertEquals(2, args.size());
+-        assertEquals("-prebind", args.elementAt(0));
+-        assertEquals("-dynamiclib", args.elementAt(1));
++        assertEquals(1, args.size());
++        assertEquals("-dynamiclib", args.elementAt(0));
+     }
+     /**
+      * Checks for proper arguments for plugin generation on Darwin
