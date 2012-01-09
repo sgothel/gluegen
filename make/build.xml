@@ -306,8 +306,56 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7" /> 
       <property name="linker.cfg.id"                        value="linker.cfg.linux.armv7" /> 
     </target>
+
+    <target name="declare.linux.alpha" if="isLinuxAlpha">
+      <echo message="Linux.alpha" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.alpha" /> 
+    </target>
+
+    <target name="declare.linux.hppa" if="isLinuxHppa">
+      <echo message="Linux.hppa" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.hppa" /> 
+    </target>
+
+    <target name="declare.linux.mips" if="isLinuxMips">
+      <echo message="Linux.mips" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.mips" /> 
+    </target>
+
+    <target name="declare.linux.mipsel" if="isLinuxMipsel">
+      <echo message="Linux.mipsel" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.mipsel" /> 
+    </target>
+
+    <target name="declare.linux.ppc" if="isLinuxPpc">
+      <echo message="Linux.ppc" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.ppc" /> 
+    </target>
+
+    <target name="declare.linux.s390" if="isLinuxs390">
+      <echo message="Linux.s390" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.s390" /> 
+    </target>
+
+    <target name="declare.linux.s390x" if="isLinuxs390x">
+      <echo message="Linux.s390x" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.s390x" /> 
+    </target>
+
+    <target name="declare.linux.sparc" if="isLinuxSparc">
+      <echo message="Linux.sparc" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.sparc" /> 
+    </target>
     
-    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.armv7" if="isLinux" >
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv7" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>

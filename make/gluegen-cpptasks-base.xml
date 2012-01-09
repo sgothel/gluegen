@@ -30,6 +30,14 @@
    -   isLinuxIA64
    -   isLinuxX86
    -   isLinuxARMv7
+   -   isLinuxAlpha
+   -   isLinuxHppa
+   -   isLinuxMips
+   -   isLinuxMipsel
+   -   isLinuxPpc
+   -   isLinuxs390
+   -   isLinuxs390x
+   -   isLinuxSparc
    -   isOSX
    -   isOSXPPC
    -   isSolaris
@@ -104,6 +112,14 @@
    -   compiler.cfg.linux.x86
    -   compiler.cfg.linux.amd64
    -   compiler.cfg.linux.armv7
+   -   compiler.cfg.linux.alpha
+   -   compiler.cfg.linux.hppa
+   -   compiler.cfg.linux.mips
+   -   compiler.cfg.linux.mipsel
+   -   compiler.cfg.linux.ppc
+   -   compiler.cfg.linux.s390
+   -   compiler.cfg.linux.s390x
+   -   compiler.cfg.linux.sparc
    -   compiler.cfg.solaris
    -   compiler.cfg.solaris.sparcv9
    -   compiler.cfg.solaris.amd64
@@ -117,6 +133,14 @@
    -   linker.cfg.linux.x86
    -   linker.cfg.linux.amd64
    -   linker.cfg.linux.armv7
+   -   linker.cfg.linux.alpha
+   -   linker.cfg.linux.hppa
+   -   linker.cfg.linux.mips
+   -   linker.cfg.linux.mipsel
+   -   linker.cfg.linux.ppc
+   -   linker.cfg.linux.s390
+   -   linker.cfg.linux.s390x
+   -   linker.cfg.linux.sparc
    -   linker.cfg.freebsd.x86
    -   linker.cfg.freebsd.amd64
    -   linker.cfg.solaris
@@ -262,6 +286,82 @@
         </or>
       </and>
     </condition>
+    <condition property="isLinuxAlpha">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="alpha" />
+      </and>
+    </condition>
+    <condition property="alpha">
+      <os arch="alpha" />
+    </condition>
+    <condition property="arm">
+      <os arch="arm" />
+    </condition>
+    <condition property="isLinuxHppa">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="hppa" />
+      </and>
+    </condition>
+    <condition property="hppa">
+      <os arch="hppa" />
+    </condition>
+    <condition property="isLinuxMips">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="mips" />
+      </and>
+    </condition>
+    <condition property="mips">
+      <os arch="mips" />
+    </condition>
+    <condition property="isLinuxMipsel">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="mipsel" />
+      </and>
+    </condition>
+    <condition property="mipsel">
+      <os arch="mipsel" />
+    </condition>
+    <condition property="isLinuxPpc">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="ppc" />
+      </and>
+    </condition>
+    <condition property="ppc">
+      <os arch="ppc" />
+    </condition>
+    <condition property="isLinuxs390">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="s390" />
+      </and>
+    </condition>
+    <condition property="s390">
+      <os arch="s390" />
+    </condition>
+    <condition property="isLinuxs390x">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="s390x" />
+      </and>
+    </condition>
+    <condition property="s390x">
+      <os arch="s390x" />
+    </condition>
+    <condition property="isLinuxSparc">
+      <and>
+        <istrue value="${isLinux}" />
+        <os arch="sparc" />
+      </and>
+    </condition>
+    <condition property="sparc">
+      <os arch="sparc" />
+    </condition>
+
     <condition property="isLinuxX86">
       <and>
         <istrue value="${isLinux}" />
@@ -384,6 +484,14 @@
     <echo message="LinuxIA64=${isLinuxIA64}" />
     <echo message="LinuxX86=${isLinuxX86}" />
     <echo message="LinuxARMv7=${isLinuxARMv7}" />
+    <echo message="LinuxAlpha=${isLinuxAlpha}" />
+    <echo message="LinuxHppa=${isLinuxHppa}" />
+    <echo message="LinuxMips=${isLinuxMips}" />
+    <echo message="LinuxMipsel=${isLinuxMipsel}" />
+    <echo message="LinuxPpc=${isLinuxPpc}" />
+    <echo message="Linuxs390=${isLinuxs390}" />
+    <echo message="Linuxs390x=${isLinuxs390x}" />
+    <echo message="LinuxSparc=${isLinuxSparc}" />
     <echo message="OS X=${isOSX}" />
     <echo message="OS X PPC=${use.macosppc}" />
     <echo message="OS X x32=${use.macosx32}" />
@@ -430,11 +538,44 @@
     <property name="os.and.arch" value="linux-armv7" />
   </target>
 
+  <target name="gluegen.cpptasks.detect.os.linux.alpha" unless="gluegen.cpptasks.detected.os.2" if="isLinuxAlpha">
+    <property name="os.and.arch" value="linux-alpha" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.hppa" unless="gluegen.cpptasks.detected.os.2" if="isLinuxHppa">
+    <property name="os.and.arch" value="linux-hppa" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.mips" unless="gluegen.cpptasks.detected.os.2" if="isLinuxMips">
+    <property name="os.and.arch" value="linux-mips" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.mipsel" unless="gluegen.cpptasks.detected.os.2" if="isLinuxMipsel">
+    <property name="os.and.arch" value="linux-mipsel" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.ppc" unless="gluegen.cpptasks.detected.os.2" if="isLinuxPpc">
+    <property name="os.and.arch" value="linux-ppc" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.s390" unless="gluegen.cpptasks.detected.os.2" if="isLinuxs390">
+    <property name="os.and.arch" value="linux-s390" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.s390x" unless="gluegen.cpptasks.detected.os.2" if="isLinuxs390x">
+    <property name="os.and.arch" value="linux-s390x" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" if="isLinuxSparc">
+    <property name="os.and.arch" value="linux-sparc" />
+  </target>
+
+
   <target name="gluegen.cpptasks.detect.os.android.armv7" unless="gluegen.cpptasks.detected.os.2" if="isAndroidARMv7">
     <property name="os.and.arch" value="android-armv7" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv7,gluegen.cpptasks.detect.os.android.armv7" unless="gluegen.cpptasks.detected.os.2" />
+  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv7,gluegen.cpptasks.detect.os.android.armv7,gluegen.cpptasks.detect.os.linux.alpha,gluegen.cpptasks.detect.os.linux.hppa,gluegen.cpptasks.detect.os.linux.mips,gluegen.cpptasks.detect.os.linux.mipsel,gluegen.cpptasks.detect.os.linux.ppc,gluegen.cpptasks.detect.os.linux.s390,gluegen.cpptasks.detect.os.linux.s390x,gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.suffix"     value="*lib" />
@@ -891,6 +1032,30 @@
     <linker id="linker.cfg.linux.armv7" name="gcc">
     </linker>
 
+    <linker id="linker.cfg.linux.alpha" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.hppa" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.mips" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.mipsel" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.ppc" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.s390" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.s390x" name="gcc">
+    </linker>
+
+    <linker id="linker.cfg.linux.sparc" name="gcc">
+    </linker>
+
     <compiler id="linker.cfg.android" name="gcc">
         <!-- shall be defined in custom ${gluegen-cpptasks.file} ! -->
     </compiler>
@@ -1040,11 +1205,18 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/amd64" />
     </target>
 
+    <target name="gluegen.cpptasks.declare.compiler.linux.alpha" if="isLinuxAlpha">
+      <echo message="Linux.alpha" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.alpha" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.alpha" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/alpha" />
+    </target>
+
     <target name="gluegen.cpptasks.declare.compiler.linux.armv7" if="isLinuxARMv7">
       <echo message="Linux.armv7" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv7" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv7" /> 
-      <property name="java.lib.dir.platform"         value="${env.TARGET_JAVA_LIBS}" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinuxIA64">
@@ -1054,7 +1226,56 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/ia64" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv7" if="isLinux">
+    <target name="gluegen.cpptasks.declare.compiler.linux.hppa" if="isLinuxHppa">
+      <echo message="Linux.hppa" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/hppa" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.mips" if="isLinuxMips">
+      <echo message="Linux.Mips" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/mips" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.mipsel" if="isLinuxMipsel">
+      <echo message="Linux.Mipsel" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/mipsel" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.ppc" if="isLinuxPpc">
+      <echo message="Linux.Ppc" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/ppc" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.s390" if="isLinuxs390">
+      <echo message="Linux.s390" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/s390" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.s390x" if="isLinuxs390x">
+      <echo message="Linux.s390x" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/s390x" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux.sparc" if="isLinuxSparc">
+      <echo message="Linux.Sparc" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/sparc" />
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv7,gluegen.cpptasks.declare.compiler.linux.alpha,gluegen.cpptasks.declare.compiler.linux.hppa,gluegen.cpptasks.declare.compiler.linux.mips,gluegen.cpptasks.declare.compiler.linux.mipsel,gluegen.cpptasks.declare.compiler.linux.ppc,gluegen.cpptasks.declare.compiler.linux.s390,gluegen.cpptasks.declare.compiler.linux.s390x,gluegen.cpptasks.declare.compiler.linux.sparc" if="isLinux">
         <property name="java.includes.dir.platform" value="${java.includes.dir}/linux" />
     </target>
 
