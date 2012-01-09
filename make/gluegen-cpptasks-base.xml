@@ -506,7 +506,10 @@
     <echo message="Unix=${isUnix}" />
     <echo message="Windows=${isWindows}" />
     <echo message="X11=${isX11}" />
-  </target>
+    <echo message="os=${os.name}" />
+    <echo message="os=${os.version}" />
+    <echo message="arch=${os.arch}" /> 
+ </target>
 
   <target name="gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDX86">
     <property name="os.and.arch" value="freebsd-i586" />
