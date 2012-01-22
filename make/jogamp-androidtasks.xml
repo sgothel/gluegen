@@ -56,8 +56,6 @@
         <var name="m.aapt.keystore.file" unset="true"/>
 
         <var name="m.aapt.java.encoding" unset="true"/>
-        <var name="m.aapt.java.target" unset="true"/>
-        <var name="m.aapt.java.source" unset="true"/>
 
         <property name="m.aapt.build.apk" value="@{jarbuilddir}/@{jarbasename}.apk.d" />
         <property name="m.aapt.dex.file" location="${m.aapt.build.apk}/image/classes.dex" />
@@ -66,8 +64,6 @@
         <property name="m.aapt.release.file.name" value="@{jarbuilddir}/@{jarbasename}.apk" />
 
         <property name="m.aapt.java.encoding" value="UTF-8" />
-        <property name="m.aapt.java.target" value="1.5" />
-        <property name="m.aapt.java.source" value="1.5" />
 
         <condition property="m.aapt.keystore.file" value="@{keystore.file}" else="${m.aapt.build.apk}/debug.keystore">
             <available file="@{keystore.file}"/>
@@ -113,7 +109,9 @@
 
         <echo>aapt.signed @{jarbasename}: compiling R.java...</echo>
         <javac encoding="${m.aapt.java.encoding}"
-            source="${m.aapt.java.source}" target="${m.aapt.java.target}"
+            source="${target.sourcelevel}" 
+            target="${target.targetlevel}" 
+            bootclasspath="${target.rt.jar}"
             debug="true" extdirs=""
             destdir="${m.aapt.build.apk}/image/lib/classes"
             verbose="true">

@@ -1,7 +1,55 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Current minimum requirements are:
+        - Java 1.6 (Level 6.0)
+        - Android SDK API Level 9 (Version 2.3 Gingerbread)
+
+     Official production builds are performed w/ Java 1.6.
+        - Java 1.6 (Level 6.0)
+        - Android SDK API Level 9 (Version 2.3 Gingerbread)
+
+     Android supports Java language level 6.0.
+     Nevertheless, it cannot be guaranteed whether the Android API
+     supports all classes and methods of Java 1.6.
+     It is required for JogAmp developers to validate Android compatibility
+     by an Android crosscompilation build.
+
+     Current GlueGen code utilizes some minor Java 1.6 features
+     which could be replaced, however it's not desired at this point
+     since we have no mode hard Java 1.5 constraints.
+  -->
+
 <project name="jogamp-env" basedir=".">
 
-  <target name="jogamp.env.init">
+  <target name="jogamp.env.validation">
+    <echo message="ant.version                ${ant.version}"/>
+    <echo message="ant.java.version           ${ant.java.version}"/>
+    <echo message="java.version               ${java.version}"/>
+    <echo message="java.home                  ${java.home}"/>
+
+    <fail message="Please build using Ant 1.8.0 or higher.">
+      <condition>
+          <not>
+              <antversion atleast="1.8.0"/>
+          </not>
+      </condition>
+    </fail>
+
+    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
+        <condition>
+            <not>
+                <or>
+                    <contains string="${ant.java.version}" substring="1.6" casesensitive="false" />
+                    <contains string="${ant.java.version}" substring="1.7" casesensitive="false" />
+                    <contains string="${ant.java.version}" substring="1.8" casesensitive="false" />
+                </or>
+            </not>
+        </condition>
+    </fail>
+
+  </target>
+
+  <target name="jogamp.env.init" depends="jogamp.env.validation">
     <property environment="env" />
 
     <!-- only set 'build.archiveon' if set in environment to trigger archive creation -->
@@ -20,6 +68,104 @@
          <equals arg1="${env.ANDROID_VERSION}" arg2="$${env.ANDROID_VERSION}" casesensitive="true" />
         </not>
     </condition>
+
+    <condition property="target.sourcelevel" value="${env.SOURCE_LEVEL}">
+        <not>
+         <equals arg1="${env.SOURCE_LEVEL}" arg2="$${env.SOURCE_LEVEL}" casesensitive="true" />
+        </not>
+    </condition>
+
+    <condition property="target.targetlevel" value="${env.TARGET_LEVEL}">
+        <not>
+         <equals arg1="${env.TARGET_LEVEL}" arg2="$${env.TARGET_LEVEL}" casesensitive="true" />
+        </not>
+    </condition>
+
+    <condition property="target.rt.jar" value="${env.TARGET_RT_JAR}">
+        <not>
+         <equals arg1="${env.TARGET_RT_JAR}" arg2="$${env.TARGET_RT_JAR}" casesensitive="true" />
+        </not>
+    </condition>
+
+    <fail message="You need to specify all properties 'target.sourcelevel', 'target.targetlevel' and 'target.rt.jar' or none at all.">
+      <condition>
+        <and>
+            <or>
+              <isset property="target.sourcelevel"/>
+              <isset property="target.targetlevel"/>
+              <isset property="target.rt.jar"/>
+            </or>
+            <not>
+              <and>
+                  <isset property="target.sourcelevel"/>
+                  <isset property="target.targetlevel"/>
+                  <isset property="target.rt.jar"/>
+              </and>
+            </not>
+        </and>
+      </condition>
+    </fail>
+
+    <condition property="target.user.set" value="true">
+          <and>
+              <isset property="target.sourcelevel"/>
+              <isset property="target.targetlevel"/>
+              <isset property="target.rt.jar"/>
+          </and>
+    </condition>
+
+    <property name="target.sourcelevel" value="${ant.java.version}" />      <!-- default fallback values -->
+    <property name="target.targetlevel" value="${ant.java.version}" />      <!-- default fallback values -->
+    <property name="target.rt.jar"      value="${java.home}/lib/rt.jar" />  <!-- default fallback values -->
+    <echo message="target.user.set            ${target.user.set}"/>
+    <echo message="target.sourcelevel         ${target.sourcelevel}"/>
+    <echo message="target.targetlevel         ${target.targetlevel}"/>
+    <echo message="target.rt.jar              ${target.rt.jar}"/>
+
+    <property name="host.sourcelevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
+    <property name="host.targetlevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
+    <property name="host.rt.jar"              value="${java.home}/lib/rt.jar" />  <!-- default values for compile time components -->
+    <echo message="host.sourcelevel           ${host.sourcelevel}"/>
+    <echo message="host.targetlevel           ${host.targetlevel}"/>
+    <echo message="host.rt.jar                ${host.rt.jar}"/>
+
+    <fail message="Unsupported Target Java version (sourcelevel): ${target.sourcelevel}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
+        <condition>
+            <not>
+                <or>
+                    <contains string="${target.sourcelevel}" substring="1.6" casesensitive="false" />
+                    <contains string="${target.sourcelevel}" substring="1.7" casesensitive="false" />
+                    <contains string="${target.sourcelevel}" substring="1.8" casesensitive="false" />
+                </or>
+            </not>
+        </condition>
+    </fail>
+    <fail message="Unsupported Target Java version (targetlevel): ${target.targetlevel}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
+        <condition>
+            <not>
+                <or>
+                    <contains string="${target.targetlevel}" substring="1.6" casesensitive="false" />
+                    <contains string="${target.targetlevel}" substring="1.7" casesensitive="false" />
+                    <contains string="${target.targetlevel}" substring="1.8" casesensitive="false" />
+                </or>
+            </not>
+        </condition>
+    </fail>
+
+    <property name="javacdebug"       value="true" /> 
+    <property name="javacdebuglevel"  value="source,lines" /> 
+    <!--property name="javacdebuglevel"  value="source,lines,vars" /--> 
+    <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
+    <property name="javac.memorymax"  value="1024m" /> 
+
+    <echo message="javacdebug                 ${javacdebug}"/>
+    <echo message="javacdebuglevel            ${javacdebuglevel}"/>
+    <echo message="javac.memorymax            ${javac.memorymax}"/>
+
+    <echo message="build.archiveon            ${build.archiveon}"/>
+    <echo message="build.node.name            ${build.node.name}"/>
+
+    <echo message="android.version            ${android.version}"/>
 
   </target>
 

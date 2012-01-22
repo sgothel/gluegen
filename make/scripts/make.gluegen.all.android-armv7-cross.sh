@@ -105,6 +105,9 @@ ${TARGET_OS_PATH}/lib/crtend_android.o \
 which gcc 2>&1 | tee make.gluegen.all.android-armv7-cross.log
 
 ant \
+    -Dtarget.sourcelevel=1.6 \
+    -Dtarget.targetlevel=1.6 \
+    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
     -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-android-armv7.xml \
     -Drootrel.build=build-android-armv7 \
     -Dgluegen.cpptasks.detected.os=true \

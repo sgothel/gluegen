@@ -5,7 +5,15 @@ if [ -e /opt-share/etc/profile.ant ] ; then
 fi
 
 #    -Dc.compiler.debug=true 
+#
+#    -Dtarget.sourcelevel=1.6 \
+#    -Dtarget.targetlevel=1.6 \
+#    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
+
 
 ant \
+    -Dtarget.sourcelevel=1.6 \
+    -Dtarget.targetlevel=1.6 \
+    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
     -Drootrel.build=build-macosx \
     $* 2>&1 | tee make.gluegen.all.macosx.log
