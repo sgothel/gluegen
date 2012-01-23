@@ -114,9 +114,15 @@
           </and>
     </condition>
 
-    <property name="target.sourcelevel" value="${ant.java.version}" />      <!-- default fallback values -->
-    <property name="target.targetlevel" value="${ant.java.version}" />      <!-- default fallback values -->
-    <property name="target.rt.jar"      value="${java.home}/lib/rt.jar" />  <!-- default fallback values -->
+    <property name="target.sourcelevel"       value="${ant.java.version}" />      <!-- default fallback values -->
+    <property name="target.targetlevel"       value="${ant.java.version}" />      <!-- default fallback values -->
+    <!-- default fallback value on OS X -->
+    <available property="target.rt.jar"
+               type="file"
+               file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"
+               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+    <!-- default fallback value on std Java -->
+    <property name="target.rt.jar"            value="${java.home}/lib/rt.jar" />
     <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
@@ -124,7 +130,13 @@
 
     <property name="host.sourcelevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
     <property name="host.targetlevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
-    <property name="host.rt.jar"              value="${java.home}/lib/rt.jar" />  <!-- default values for compile time components -->
+    <!-- default fallback value for compile time components on OS X -->
+    <available property="host.rt.jar"
+               type="file"
+               file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"
+               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+    <!-- default fallback value for compile time components on std Java -->
+    <property name="host.rt.jar"              value="${java.home}/lib/rt.jar" />
     <echo message="host.sourcelevel           ${host.sourcelevel}"/>
     <echo message="host.targetlevel           ${host.targetlevel}"/>
     <echo message="host.rt.jar                ${host.rt.jar}"/>
