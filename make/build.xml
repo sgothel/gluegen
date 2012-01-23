@@ -654,6 +654,7 @@
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
            excludes="${gluegen.excludes.all}"
            memoryMaximumSize="${javac.memorymax}"
+           encoding="UTF-8"
            source="${target.sourcelevel}" 
            target="${target.targetlevel}" 
            bootclasspath="${target.rt.jar}"
@@ -668,6 +669,7 @@
            includeAntRuntime="true"
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes}"
            memoryMaximumSize="${javac.memorymax}"
+           encoding="UTF-8"
            source="${host.sourcelevel}" 
            target="${host.targetlevel}" 
            bootclasspath="${host.rt.jar}"
@@ -807,6 +809,7 @@
              sourcepath="${src.java};${src.generated.java}"
              destdir="${javadoc.gluegen.path}" windowtitle="GlueGen Runtime Documentation"
              overview="../src/java/com/jogamp/gluegen/package.html"
+             encoding="UTF-8"
              source="${target.sourcelevel}"
              maxmemory="${javac.memorymax}" >
         <classpath path="${classes}"/>
