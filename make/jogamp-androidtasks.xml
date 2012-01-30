@@ -43,6 +43,7 @@
       <!-- attribute name="jarclasspathrefid" default="/non.existing.jarclasspathrefid"/-->
       <attribute name="version.code" />
       <attribute name="version.name" />
+      <attribute name="android.abi" />
       <attribute name="keystore.file" default="/non.existing.user.keystore.file" />
       <attribute name="keystore.alias" default="debug" />
       <attribute name="keystore.storepass" default="jogamp" />
@@ -72,11 +73,11 @@
         <delete file="${m.aapt.release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
 
-        <mkdir dir="${m.aapt.build.apk}/image/lib/armeabi" />
+        <mkdir dir="${m.aapt.build.apk}/image/lib/@{android.abi}" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/src" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/classes" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/assets" />
-        <copy todir="${m.aapt.build.apk}/image/lib/armeabi">
+        <copy todir="${m.aapt.build.apk}/image/lib/@{android.abi}">
             <fileset dir="@{nativebuilddir}">
                 <include name="*@{nativebasename}*.${native.library.suffix}" />
             </fileset>
