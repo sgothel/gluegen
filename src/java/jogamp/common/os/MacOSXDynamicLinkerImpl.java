@@ -51,11 +51,19 @@ public class MacOSXDynamicLinkerImpl implements DynamicLinker {
   }
   
   public long lookupSymbol(long libraryHandle, String symbolName) {
-    return dlsym(libraryHandle, symbolName);
+    final long addr = dlsym(libraryHandle, symbolName);
+    if(DEBUG_LOOKUP) {
+        System.err.println("MaxOSXDynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> 0x"+Long.toHexString(addr));
+    }
+    return addr;    
   }
   
   public long lookupSymbolGlobal(String symbolName) {
-    return dlsym(RTLD_DEFAULT, symbolName);
+    final long addr = dlsym(RTLD_DEFAULT, symbolName);
+    if(DEBUG_LOOKUP) {
+        System.err.println("MacOSXDynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
+    }
+    return addr;    
   }
   
   public void closeLibrary(long libraryHandle) {

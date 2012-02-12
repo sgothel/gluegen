@@ -43,6 +43,9 @@ package com.jogamp.common.os;
     linking functionality. */
 
 public interface DynamicLinker {
+  public static final boolean DEBUG = NativeLibrary.DEBUG;
+  public static final boolean DEBUG_LOOKUP = NativeLibrary.DEBUG_LOOKUP;
+        
   public long openLibraryGlobal(String pathname, boolean debug);
   public long openLibraryLocal(String pathname, boolean debug);
   public long lookupSymbol(long libraryHandle, String symbolName);

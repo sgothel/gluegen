@@ -53,9 +53,6 @@ import com.jogamp.common.jvm.JNILibLoaderBase;
  * </ul>
  */
 public class DynamicLibraryBundle implements DynamicLookupHelper {
-    protected static final boolean DEBUG = NativeLibrary.DEBUG;
-    protected static final boolean DEBUG_LOOKUP = NativeLibrary.DEBUG_LOOKUP;
-
     private DynamicLibraryBundleInfo info;
 
     private List<List<String>> toolLibNames;
@@ -68,6 +65,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     private int glueLibLoadedNumber;
 
     private long toolGetProcAddressHandle;
+    private boolean toolGetProcAddressComplete;
     private HashSet<String> toolGetProcAddressFuncNameSet;
     private List<String> toolGetProcAddressFuncNameList;
 
@@ -86,16 +84,18 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         glueLibNames = info.getGlueLibNames();
         loadLibraries();
         toolGetProcAddressFuncNameList = info.getToolGetProcAddressFuncNameList();
-        if(null!=toolGetProcAddressFuncNameList) {
+        if( null != toolGetProcAddressFuncNameList ) {
             toolGetProcAddressFuncNameSet = new HashSet<String>(toolGetProcAddressFuncNameList);
             toolGetProcAddressHandle = getToolGetProcAddressHandle();
+            toolGetProcAddressComplete = 0 != toolGetProcAddressHandle; 
         } else {
             toolGetProcAddressFuncNameSet = new HashSet<String>();
             toolGetProcAddressHandle = 0;
+            toolGetProcAddressComplete = true;
         }
         if(DEBUG) {
             System.err.println("DynamicLibraryBundle.init Summary: "+info.getClass().getName());
-            System.err.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList);
+            System.err.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList+", complete: "+toolGetProcAddressComplete+", 0x"+Long.toHexString(toolGetProcAddressHandle));
             System.err.println("     Tool Lib Names : "+toolLibNames);
             System.err.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+" "+Arrays.toString(toolLibLoaded)+", complete "+isToolLibComplete());
             System.err.println("     Glue Lib Names : "+glueLibNames);
@@ -111,6 +111,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
         toolGetProcAddressFuncNameSet = null;
         toolGetProcAddressHandle = 0;
+        toolGetProcAddressComplete = false;
         for(int i = 0; i<nativeLibraries.size(); i++) {
             nativeLibraries.get(i).close();
         }
@@ -143,7 +144,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
      * @see DynamicLibraryBundleInfo#getToolLibNames()
      */
     public final boolean isToolLibComplete() {
-        return getToolLibNumber() == getToolLibLoadedNumber();
+        return toolGetProcAddressComplete && getToolLibNumber() == getToolLibLoadedNumber();
     }
 
     public final boolean isToolLibLoaded() {
@@ -173,7 +174,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
      * @see DynamicLibraryBundleInfo#getGlueLibNames()
      */
     public final boolean isGlueLibComplete() {
-        return isGlueLibLoaded(getGlueLibNumber() - 1);
+        return 0 == getGlueLibNumber() || isGlueLibLoaded(getGlueLibNumber() - 1);
     }
 
     public final boolean isGlueLibLoaded(int i) {
@@ -211,32 +212,27 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
 
     private void loadLibraries() {
-        if( null == toolLibNames || toolLibNames.size() == 0) {
-            if(DEBUG) {
+        int i;
+        toolLibLoaded = new boolean[toolLibNames.size()];
+        for(i=toolLibNames.size()-1; i>=0; i--) {
+            toolLibLoaded[i] = false;
+        }
+        glueLibLoaded = new boolean[glueLibNames.size()];
+        for(i=glueLibNames.size()-1; i>=0; i--) {
+            glueLibLoaded[i] = false;
+        }
+        
+        if(DEBUG) {
+            if( toolLibNames.size() == 0 ) {
                 System.err.println("No Tool native library names given");
             }
-            return;
-        }
-
-        if( null == glueLibNames || glueLibNames.size() == 0 ) {
-            if(DEBUG) {
+    
+            if( glueLibNames.size() == 0 ) {
                 System.err.println("No Glue native library names given");
             }
-            return;
         }
 
         toolLibLoadedNumber = 0;
-        int i;
-        toolLibLoaded = new boolean[toolLibNames.size()];
-        for(i=0; i<toolLibNames.size(); i++) {
-            toolLibLoaded[i] = false;
-        }
-
-        glueLibLoaded = new boolean[glueLibNames.size()];
-        for(i=0; i<glueLibNames.size(); i++) {
-            glueLibLoaded[i] = false;
-        }
-
         ClassLoader loader = getClass().getClassLoader();
         NativeLibrary lib = null;
 
@@ -258,7 +254,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                 }
             }
         }
-        if( !isToolLibLoaded() ) {
+        if( toolLibNames.size() > 0 && !isToolLibLoaded() ) {
             if(DEBUG) {
                 System.err.println("No Tool libraries loaded");
             }

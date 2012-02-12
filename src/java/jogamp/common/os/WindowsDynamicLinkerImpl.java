@@ -2,22 +2,9 @@
 
 package jogamp.common.os;
 
-import java.security.*;
-
 import com.jogamp.common.os.DynamicLinker;
 
 public class WindowsDynamicLinkerImpl implements DynamicLinker {
-
-  private static boolean DEBUG;
-
-  static {
-    AccessController.doPrivileged(new PrivilegedAction() {
-        public Object run() {
-          DEBUG = (System.getProperty("jogamp.debug.NativeLibrary") != null);
-          return null;
-        }
-      });
-  }
 
   /** Interface to C language function: <br> <code> BOOL FreeLibrary(HANDLE hLibModule); </code>    */
   private static native int FreeLibrary(long hLibModule);
@@ -61,14 +48,14 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
             addr = GetProcAddressA(libraryHandle, _symbolName);
         }
     }
-    if(DEBUG) {
+    if(DEBUG_LOOKUP) {
         System.err.println("WindowsDynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> "+_symbolName+", 0x"+Long.toHexString(addr));
     }
     return addr;
   }
   
   public long lookupSymbolGlobal(String symbolName) {
-    if(DEBUG) {
+    if(DEBUG_LOOKUP) {
         System.err.println("lookupSymbolGlobal: Not supported on Windows");
     }
     // allow DynamicLibraryBundle to continue w/ local libs

@@ -41,7 +41,6 @@
 package com.jogamp.common.os;
 
 import com.jogamp.common.util.IOUtil;
-import jogamp.common.Debug;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
 import jogamp.common.os.UnixDynamicLinkerImpl;
 import jogamp.common.os.WindowsDynamicLinkerImpl;
@@ -64,9 +63,7 @@ import java.util.*;
     ProcAddressTable glue code generation style without additional
     supporting code needed in the generated library. */
 
-public class NativeLibrary implements DynamicLookupHelper {
-  protected static final boolean DEBUG = Debug.debug("NativeLibrary");
-  protected static final boolean DEBUG_LOOKUP = Debug.debug("NativeLibrary.Lookup");
+public class NativeLibrary implements DynamicLookupHelper {  
   private static DynamicLinker dynLink;
   private static String[] prefixes;
   private static String[] suffixes;
