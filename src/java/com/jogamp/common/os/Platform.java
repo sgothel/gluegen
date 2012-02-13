@@ -74,6 +74,7 @@ public class Platform {
     public static final String JAVA_VM_NAME;
     public static final String JAVA_RUNTIME_NAME;
     public static final String JAVA_VERSION;
+    public static final VersionNumber JAVA_VERSION_NUMBER;
     public static final String NEWLINE;
 
     public enum OSType {
@@ -161,6 +162,7 @@ public class Platform {
         JAVA_VENDOR = System.getProperty("java.vendor");
         JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
         JAVA_VERSION = System.getProperty("java.version");
+        JAVA_VERSION_NUMBER = new VersionNumber(JAVA_VERSION, ".");
         NEWLINE = System.getProperty("line.separator");
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
@@ -508,7 +510,7 @@ public class Platform {
     }
     
     /**
-     * Returns the JAVA.
+     * Returns the JAVA vendor.
      */
     public static String getJavaVendor() {
         return JAVA_VENDOR;
@@ -536,10 +538,17 @@ public class Platform {
     }
 
     /**
-     * Returns the JAVA vendor.
+     * Returns the JAVA version.
      */
     public static String getJavaVersion() {
         return JAVA_VERSION;
+    }
+
+    /**
+     * Returns the JAVA version number.
+     */
+    public static VersionNumber getJavaVersionNumber() {
+        return JAVA_VERSION_NUMBER;
     }
 
     /**
