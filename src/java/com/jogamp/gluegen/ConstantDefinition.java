@@ -89,7 +89,7 @@ public class ConstantDefinition {
       }
     }
 
-    public void           addAliasedName(String name) {
+    public void addAliasedName(String name) {
         aliasedNames.add(name);
     }
     public Collection<String> getAliasedNames() {

@@ -166,6 +166,7 @@ public class JavaConfiguration {
     private Map<String, String> parentClass = new HashMap<String, String>();
     private Map<String, String> javaTypeRenames = new HashMap<String, String>();
     private Map<String, String> javaSymbolRenames = new HashMap<String, String>();
+    private Map<String, Set<String>> javaRenamedSymbols = new HashMap<String, Set<String>>();
     private Map<String, List<String>> javaPrologues = new HashMap<String, List<String>>();
     private Map<String, List<String>> javaEpilogues = new HashMap<String, List<String>>();
 
@@ -667,6 +668,14 @@ public class JavaConfiguration {
     for (String key : javaSymbolRenames.keySet()) {
         System.err.println("\t"+key+" -> "+javaSymbolRenames.get(key));
     }
+    
+    System.err.println("Symbol Aliasing (through renaming): ");
+    for(String newName : javaSymbolRenames.values()) {
+        Set<String> origNames = javaRenamedSymbols.get(newName);
+        if(null!=origNames) {
+            System.err.println("\t"+newName+" <- "+origNames);
+        }
+    }       
   }
 
   /** Returns true if this #define, function, struct, or field within
@@ -802,19 +811,38 @@ public class JavaConfiguration {
       constant. If a function, it still calls the originally-named C
       function under the hood. Returns null if this symbol has not
       been explicitly renamed. */
-  public String getJavaSymbolRename(String symbolName) {
+  public String getJavaSymbolRename(String origName) {
     if(DEBUG_RENAMES) {
         dumpRenamesOnce();
     }
-    return javaSymbolRenames.get(symbolName);
+    return javaSymbolRenames.get(origName);
   }
 
+  /** Returns a set of replaced names to the given <code>aliasedName</code>. */
+  public Set<String> getRenamedJavaSymbols(String aliasedName) {
+    return javaRenamedSymbols.get(aliasedName);
+  }
+  
   /** Programmatically adds a rename directive for the given symbol. */
   public void addJavaSymbolRename(String origName, String newName) {
     if(DEBUG_RENAMES) {
-        System.err.println("\tRename "+origName+" -> "+newName);
+        System.err.print("\tRename "+origName+" -> "+newName);
     }
-    javaSymbolRenames.put(origName, newName);
+    String prevValue = javaSymbolRenames.put(origName, newName);
+    if(null != prevValue && !prevValue.equals(newName)) {
+        throw new RuntimeException("Rename-Override Attampt: "+origName+" -> "+newName+
+                                   ", but "+origName+" -> "+prevValue+" already exist. Run in 'debug' mode to analyze!");
+    }
+    if(DEBUG_RENAMES) {
+        System.err.println();
+    }
+    
+    Set<String> origNames = javaRenamedSymbols.get(newName);
+    if(null == origNames) {
+        origNames = new HashSet<String>();
+        javaRenamedSymbols.put(newName, origNames);
+    }
+    origNames.add(origName);    
   }
 
   /** Returns true if the emission style is AllStatic. */
@@ -1451,7 +1479,7 @@ public class JavaConfiguration {
     try {
       String fromName = tok.nextToken();
       String toName   = tok.nextToken();
-      javaSymbolRenames.put(fromName, toName);
+      addJavaSymbolRename(fromName, toName);
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"RenameJavaSymbol\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
