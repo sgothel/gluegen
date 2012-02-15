@@ -62,6 +62,9 @@ import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
 
 public class JavaConfiguration {
 
+    public static final boolean DEBUG_IGNORES = GlueGen.debug() || false;
+    public static final boolean DEBUG_RENAMES = GlueGen.debug() || false;
+    
     private int nestedReads;
     private String packageName;
     private String implPackageName;
@@ -632,15 +635,13 @@ public class JavaConfiguration {
     return parentClass.get(className);
   }
 
-  public static final boolean DEBUG_IGNORES = false;
-  public static boolean dumpedIgnores = false;
-
   public void dumpIgnoresOnce() {
     if(!dumpedIgnores) {
         dumpedIgnores = true;
         dumpIgnores();
     }
   }
+  private static boolean dumpedIgnores = false;
 
   public void dumpIgnores() {
     System.err.println("Extended Intf: ");
@@ -653,6 +654,14 @@ public class JavaConfiguration {
     }
   }
 
+  public void dumpRenamesOnce() {
+    if(!dumpedRenames) {
+        dumpedRenames = true;
+        dumpRenames();
+    }
+  }
+  private static boolean dumpedRenames = false;
+  
   public void dumpRenames() {
     System.err.println("Symbol Renames: ");
     for (String key : javaSymbolRenames.keySet()) {
@@ -794,11 +803,17 @@ public class JavaConfiguration {
       function under the hood. Returns null if this symbol has not
       been explicitly renamed. */
   public String getJavaSymbolRename(String symbolName) {
+    if(DEBUG_RENAMES) {
+        dumpRenamesOnce();
+    }
     return javaSymbolRenames.get(symbolName);
   }
 
   /** Programmatically adds a rename directive for the given symbol. */
   public void addJavaSymbolRename(String origName, String newName) {
+    if(DEBUG_RENAMES) {
+        System.err.println("\tRename "+origName+" -> "+newName);
+    }
     javaSymbolRenames.put(origName, newName);
   }
 
