@@ -446,16 +446,16 @@ public class Platform {
                 _os_and_arch = "i586";
                 break;
             case ARM:
-                _os_and_arch = "amdv7"; // TODO: sync with gluegen-cpptasks-base.xml
+                _os_and_arch = "armv7"; // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             case ARMv5:
-                _os_and_arch = "amdv5";
+                _os_and_arch = "armv5";
                 break;
             case ARMv6:
-                _os_and_arch = "amdv5";
+                _os_and_arch = "armv5";
                 break;
             case ARMv7:
-                _os_and_arch = "amdv7";
+                _os_and_arch = "armv7";
                 break;
             case SPARC_32:
                 _os_and_arch = "sparc"; 
