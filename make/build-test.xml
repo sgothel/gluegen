@@ -243,7 +243,6 @@ export ${system.env.library.path}=${env.TARGET_ROOT}/gluegen/${rootrel.build}/ob
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
 java \${line.separator}
-${jvmDataModel.arg}\${line.separator}
 -Djava.library.path=${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj${path.separator}${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives\${line.separator}
 -cp ${junit.run.remote.jars}\${line.separator}
 -Dgluegen.root=${gluegen.root} \${line.separator}
