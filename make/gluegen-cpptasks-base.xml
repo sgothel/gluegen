@@ -1146,6 +1146,13 @@
     <!--
        - Platform specific declares.
       -->
+    <target name="gluegen.cpptasks.declare.compiler.environment" >
+      <condition property="java.lib.dir.platform"
+                 value="${env.TARGET_JAVA_LIBS}" >
+                 <available file="${env.TARGET_JAVA_LIBS}" type="dir" />
+      </condition>
+    </target>
+
     <target name="gluegen.cpptasks.declare.compiler.win32.vc6" if="isVC6">
       <echo message="Win32.VC6" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
@@ -1349,7 +1356,9 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/PA_RISC2.0" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" />
+    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.environment,gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" >
+      <echo message="java.lib.dir.platform: ${java.lib.dir.platform}" />
+    </target>
 
     <target name="gluegen.cpptasks.setup.compiler" depends="gluegen.cpptasks.detect.compiler,gluegen.cpptasks.configure.compiler,gluegen.cpptasks.declare.compiler" />
 
