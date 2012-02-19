@@ -79,7 +79,7 @@
             <pathelement location="${gluegen-test.jar}" />
         </path>
         <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
-        <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
+        <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen.root}/make/lib/TestJarsInJar.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk"/>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
@@ -216,7 +216,7 @@
         <echo message="${line.separator}
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
-      --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \${line.separator}
+      --exclude 'classes/' --exclude 'src/java/' --exclude 'src/native/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \${line.separator}
       ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT} ${line.separator}
 cd ${env.TARGET_ROOT}/gluegen/make ${line.separator}
 export ${system.env.library.path}=${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj:${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives ${line.separator}
