@@ -243,6 +243,9 @@ export ${system.env.library.path}=${env.TARGET_ROOT}/gluegen/${rootrel.build}/ob
             <echo message="Testing ${test.class.fqn} -- ${test.class.result.file}"/>
             <echo message="${line.separator}
 java \${line.separator}
+${junit.run.arg0}\${line.separator}
+${junit.run.arg1}\${line.separator}
+${jvmDataModel.arg}\${line.separator}
 -Djava.library.path=${env.TARGET_ROOT}/gluegen/${rootrel.build}/obj${path.separator}${env.TARGET_ROOT}/gluegen/${rootrel.build}/test/build/natives\${line.separator}
 -cp ${junit.run.remote.jars}\${line.separator}
 -Dgluegen.root=${gluegen.root} \${line.separator}
@@ -266,7 +269,7 @@ ${line.separator}
             <arg line='-x -c "
             chmod 0755 ${build_t}/targetcommand.sh ;
             scp ${build_t}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/targetcommand.sh ;
-            ssh ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/targetcommand.sh ;
+            ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/targetcommand.sh ;
             scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/gluegen/make/${results}/* ${results}/ "'/>
         </exec>
     </target>
@@ -337,6 +340,8 @@ ${line.separator}
         <!-- Perform the junit tests-->
         <junit forkmode="once" showoutput="true" fork="true" timeout="${batchtest.timeout}">
             <env key="${system.env.library.path}" path="${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
+            <jvmarg value="${junit.run.arg0}"/>
+            <jvmarg value="${junit.run.arg1}"/>
             <jvmarg value="${jvmDataModel.arg}"/>
             <jvmarg value="-Djava.library.path=${gluegen.lib.abs}${path.separator}${build_t.lib.abs}"/>
             <jvmarg value="-Dgluegen.root=${gluegen.root}"/>

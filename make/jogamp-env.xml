@@ -52,6 +52,19 @@
   <target name="jogamp.env.init" depends="jogamp.env.validation">
     <property environment="env" />
 
+    <condition property="junit.run.arg0" value="${env.JUNIT_RUN_ARG0}">
+        <not>
+         <equals arg1="${env.JUNIT_RUN_ARG0}" arg2="$${env.JUNIT_RUN_ARG0}" casesensitive="true" />
+        </not>
+    </condition>
+    <property name="junit.run.arg0"       value="-Djunit.run.arg0=dummy" />      <!-- default dummy values -->
+    <condition property="junit.run.arg1" value="${env.JUNIT_RUN_ARG1}">
+        <not>
+         <equals arg1="${env.JUNIT_RUN_ARG1}" arg2="$${env.JUNIT_RUN_ARG1}" casesensitive="true" />
+        </not>
+    </condition>
+    <property name="junit.run.arg1"       value="-Djunit.run.arg1=dummy" />      <!-- default dummy values -->
+
     <!-- only set 'build.archiveon' if set in environment to trigger archive creation -->
     <condition property="build.archiveon" value="${env.BUILD_ARCHIVE}">
         <istrue value="${env.BUILD_ARCHIVE}"/>
@@ -179,6 +192,8 @@
 
     <echo message="android.version            ${android.version}"/>
 
+    <echo message="junit.run.arg0             ${junit.run.arg0}"/>
+    <echo message="junit.run.arg1             ${junit.run.arg1}"/>
   </target>
 
 </project>
