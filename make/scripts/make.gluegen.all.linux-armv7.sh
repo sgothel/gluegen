@@ -12,7 +12,4 @@ export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
 ant \
     -Drootrel.build=build-linux-armv7 \
-    -DuseKD=true \
-    -DuseOpenMAX=true \
-    -DuseBroadcomEGL=true \
     $* 2>&1 | tee make.gluegen.all.linux-armv7.log

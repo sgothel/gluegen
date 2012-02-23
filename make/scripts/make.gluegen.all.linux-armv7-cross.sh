@@ -35,11 +35,8 @@ ant \
     -DisLinux=true \
     -DisLinuxARMv7=true \
     -DisX11=true \
+    -DjvmDataModel.arg="-Djnlp.no.jvm.data.model.set=true" \
     -DisCrosscompilation=true \
-    \
-    -DuseKD=true \
-    -DuseOpenMAX=true \
-    -DuseBroadcomEGL=true \
     $* 2>&1 | tee make.gluegen.all.linux-armv7-cross.log
 
 
