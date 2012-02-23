@@ -38,19 +38,28 @@
  */
 package com.jogamp.gluegen.procaddress;
 
-import com.jogamp.gluegen.CMethodBindingEmitter;
-import com.jogamp.gluegen.JavaConfiguration;
-import com.jogamp.gluegen.MethodBinding;
-import com.jogamp.gluegen.FunctionEmitter;
-import com.jogamp.gluegen.CodeGenUtils;
-import com.jogamp.gluegen.JavaMethodBindingEmitter;
-import com.jogamp.gluegen.JavaEmitter;
-import java.io.*;
+import java.io.File;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
-import java.util.*;
-import com.jogamp.gluegen.*;
-import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.runtime.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import com.jogamp.gluegen.CMethodBindingEmitter;
+import com.jogamp.gluegen.CodeGenUtils;
+import com.jogamp.gluegen.FunctionEmitter;
+import com.jogamp.gluegen.JavaConfiguration;
+import com.jogamp.gluegen.JavaEmitter;
+import com.jogamp.gluegen.JavaMethodBindingEmitter;
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.FunctionType;
+import com.jogamp.gluegen.cgram.types.Type;
+import com.jogamp.gluegen.cgram.types.TypeDictionary;
+import com.jogamp.gluegen.runtime.FunctionAddressResolver;
+import com.jogamp.gluegen.runtime.ProcAddressTable;
 
 /**
  * A subclass of JavaEmitter that modifies the normal emission of C
@@ -171,14 +180,6 @@ public class ProcAddressEmitter extends JavaEmitter {
     //
 
   protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List<FunctionEmitter> emitters) {
-        if (getConfig().manuallyImplement(baseJavaEmitter.getName())) {
-            // User will provide Java-side implementation of this routine;
-            // pass through any emitters which will produce signatures for
-            // it unmodified
-            emitters.add(baseJavaEmitter);
-            return;
-        }
-
         // See whether we need a proc address entry for this one
         boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
 
