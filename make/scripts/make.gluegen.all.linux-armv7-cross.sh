@@ -32,6 +32,7 @@ export TARGET_JAVA_LIBS=/opt-linux-armv7-eabi/jre/lib/arm
 
 export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv7.xml"
 
+#export JUNIT_DISABLED="true"
 export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
 ant \

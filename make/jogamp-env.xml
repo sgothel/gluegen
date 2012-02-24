@@ -52,6 +52,13 @@
   <target name="jogamp.env.init" depends="jogamp.env.validation">
     <property environment="env" />
 
+    <condition property="junit.is.disabled" value="${env.JUNIT_DISABLED}">
+        <not>
+         <equals arg1="${env.JUNIT_DISABLED}" arg2="$${env.JUNIT_DISABLED}" casesensitive="true" />
+        </not>
+    </condition>
+    <echo message="junit.is.disabled         ${junit.is.disabled}"/>
+
     <condition property="junit.run.arg0" value="${env.JUNIT_RUN_ARG0}">
         <not>
          <equals arg1="${env.JUNIT_RUN_ARG0}" arg2="$${env.JUNIT_RUN_ARG0}" casesensitive="true" />

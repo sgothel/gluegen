@@ -35,10 +35,6 @@
   <property name="gluegen-cpptasks.file"             value="${gluegen.root}/make/gluegen-cpptasks-base.xml" />   <!-- default value -->
   <property name="gluegen-cpptasks.file.abs-path" location="${gluegen-cpptasks.file}" />
 
-  <!--echo message="GLUEGEN_CPPTASKS_FILE        ${env.GLUEGEN_CPPTASKS_FILE}"/>
-  <echo message="gluegen-cpptasks.file           ${gluegen-cpptasks.file}"/-->
-  <echo message="gluegen-cpptasks.file.abs-path  ${gluegen-cpptasks.file.abs-path}"/>
-
   <import file="${gluegen-cpptasks.file.abs-path}" optional="false" />
 
 </project>

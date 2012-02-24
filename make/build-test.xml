@@ -373,7 +373,7 @@ ${line.separator}
         </junit>
     </target>
 
-    <target name="junit.run.settings">
+    <target name="junit.run.settings" depends="init, gluegen.cpptasks.detect.os">
         <!-- Use absolute path -->
         <property name="gluegen.lib.abs" location="${gluegen.lib}" />
         <property name="build_t.lib.abs" location="${build_t.lib}" />
@@ -386,7 +386,7 @@ ${line.separator}
         <mkdir dir="${build}/test/results"/>
     </target>
 
-    <target name="junit.run.d32" if="isOSX">
+    <target name="junit.run.local.d32" if="isOSX">
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d32"/>
 
@@ -402,9 +402,10 @@ ${line.separator}
         <var name="jvmDataModel.arg" value="-d64"/>
     </target>
 
-    <target name="junit.run.tests" depends="junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/>
+    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/>
 
-    <target name="junit.run" depends="init, gluegen.cpptasks.detect.os, junit.run.settings, junit.run.d32, junit.run.tests">
+    <target name="junit.run" depends="junit.run.settings" unless="junit.is.disabled">
+        <antcall target="junit.run.tests"      inheritRefs="true" inheritAll="true"/>
         <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 
