@@ -6,6 +6,12 @@
 
     <property name="gluegen.root" value=".." />
 
+    <property name="gluegen.basename" value="gluegen" /> <!-- if differs, ie jenkins jobname, must be set properly first -->
+    <!---
+    <property name="gluegen.abspath" location="${gluegen.root}" />
+    <basename file="${gluegen.abspath}" property="gluegen.basename" />
+    <echo message="gluegen.basename: ${gluegen.basename}"/> -->
+
     <import file="gluegen-cpptasks.xml" />
     <import file="jogamp-archivetasks.xml" />
     <import file="jogamp-androidtasks.xml" />
@@ -217,9 +223,9 @@
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux-x*/' --exclude 'build-android*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
       --exclude 'classes/' --exclude 'src/java/' --exclude 'src/native/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \${line.separator}
-      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT} ${line.separator}
-cd ${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/make ${line.separator}
-export ${system.env.library.path}=${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/${rootrel.build}/test/build/natives ${line.separator}
+      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${gluegen.basename} ${env.TARGET_ROOT} ${line.separator}
+cd ${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make ${line.separator}
+export ${system.env.library.path}=${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/test/build/natives ${line.separator}
 " append="true" file="${build_t}/targetcommand.sh" />
 
         <for param="test.class.path.m" keepgoing="true">
@@ -246,7 +252,7 @@ java \${line.separator}
 ${junit.run.arg0}\${line.separator}
 ${junit.run.arg1}\${line.separator}
 ${jvmDataModel.arg}\${line.separator}
--Djava.library.path=${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/${rootrel.build}/obj${path.separator}${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/${rootrel.build}/test/build/natives\${line.separator}
+-Djava.library.path=${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/obj${path.separator}${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/test/build/natives\${line.separator}
 -cp ${junit.run.remote.jars}\${line.separator}
 -Dgluegen.root=${gluegen.root} \${line.separator}
 -Drootrel.build=${rootrel.build} \${line.separator}
@@ -270,7 +276,7 @@ ${line.separator}
             chmod 0755 ${build_t}/targetcommand.sh ;
             scp ${build_t}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/gluegen-targetcommand.sh ;
             ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/gluegen-targetcommand.sh ;
-            scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/make/${results}/* ${results}/ "'/>
+            scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make/${results}/* ${results}/ "'/>
         </exec>
     </target>
 
@@ -280,9 +286,9 @@ ${line.separator}
 rsync -av --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'build-x86*/' --exclude 'build-linux*/' --exclude 'build-win*/' --exclude 'build-mac*/' \${line.separator}
       --exclude 'classes/' --exclude 'src/' --exclude '.git/' --exclude 'gluegen-java-src.zip' \${line.separator}
-      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/gluegen ${env.TARGET_ROOT} ${line.separator}
-cd ${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/make ${line.separator}
-export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/${rootrel.build}/test/build/natives ${line.separator}
+      ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${gluegen.basename} ${env.TARGET_ROOT} ${line.separator}
+cd ${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make ${line.separator}
+export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/test/build/natives ${line.separator}
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
 " append="true" file="${build_t}/targetcommand.sh" />
 
@@ -332,7 +338,7 @@ ${line.separator}
             chmod 0755 ${build_t}/targetcommand.sh ;
             adb push ${build_t}/targetcommand.sh ${env.TARGET_ROOT}/gluegen-targetcommand.sh ;
             adb shell ${env.TARGET_ROOT}/gluegen-targetcommand.sh ;
-            adb pull ${env.TARGET_ROOT}/gluegen/${env.NODE_LABEL}/make/${results}/ ${results}/ "'/>
+            adb pull ${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make/${results}/ ${results}/ "'/>
         </exec>
     </target>
 
