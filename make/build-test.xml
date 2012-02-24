@@ -268,8 +268,8 @@ ${line.separator}
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
             chmod 0755 ${build_t}/targetcommand.sh ;
-            scp ${build_t}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/targetcommand.sh ;
-            ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/targetcommand.sh ;
+            scp ${build_t}/targetcommand.sh ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/gluegen/make/targetcommand.sh ;
+            ssh -x ${env.TARGET_UID}@${env.TARGET_IP} ${env.TARGET_ROOT}/gluegen/make/targetcommand.sh ;
             scp -pr ${env.TARGET_UID}@${env.TARGET_IP}:${env.TARGET_ROOT}/gluegen/make/${results}/* ${results}/ "'/>
         </exec>
     </target>
@@ -330,8 +330,8 @@ ${line.separator}
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
             chmod 0755 ${build_t}/targetcommand.sh ;
-            adb push ${build_t}/targetcommand.sh ${env.TARGET_ROOT}/targetcommand.sh ;
-            adb shell ${env.TARGET_ROOT}/targetcommand.sh ;
+            adb push ${build_t}/targetcommand.sh ${env.TARGET_ROOT}/gluegen/make/targetcommand.sh ;
+            adb shell ${env.TARGET_ROOT}/gluegen/make/targetcommand.sh ;
             adb pull ${env.TARGET_ROOT}/gluegen/make/${results}/ ${results}/ "'/>
         </exec>
     </target>

@@ -26,14 +26,18 @@
   <!--typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar;${gluegen.root}/make/lib/CppTasksGCCNamespaceHack.jar"/-->
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
 
-  <condition property="gluegen-cpptasks.file"
-             value="${gluegen.root}/make/gluegen-cpptasks-base.xml">
+  <property environment="env" />
+  <condition property="gluegen-cpptasks.file" value="${env.GLUEGEN_CPPTASKS_FILE}">
     <not>
-        <isset property="gluegen-cpptask.file" />
+     <equals arg1="${env.GLUEGEN_CPPTASKS_FILE}" arg2="$${env.GLUEGEN_CPPTASKS_FILE}" casesensitive="true" />
     </not>
   </condition>
-
+  <property name="gluegen-cpptasks.file"             value="${gluegen.root}/make/gluegen-cpptasks-base.xml" />   <!-- default value -->
   <property name="gluegen-cpptasks.file.abs-path" location="${gluegen-cpptasks.file}" />
+
+  <echo message="GLUEGEN_CPPTASKS_FILE           ${env.GLUEGEN_CPPTASKS_FILE}"/>
+  <echo message="gluegen-cpptasks.file           ${gluegen-cpptasks.file}"/>
+  <echo message="gluegen-cpptasks.file.abs-path  ${gluegen-cpptasks.file.abs-path}"/>
 
   <!--
   <echo message="gluegen-cpptasks.xml: gluegen.root          ${gluegen.root}"/>

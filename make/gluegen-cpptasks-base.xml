@@ -192,6 +192,17 @@
     </condition>
   </target>
 
+  <!-- Custom target which can be overwritten 
+       by a custom file set in property 'gluegen-cpptasks.file' 
+       or environment var 'GLUEGEN_CPPTASKS_FILE' 
+
+       See 'lib/gluegen-cpptasks-linux-armv7.xml' which sets OS and ARCH
+       for crosscompilation.
+    -->
+  <target name="gluegen.cpptasks.detect.os.custom">
+    <echo message="gluegen.cpptasks.detect.os.custom: NOP done"/>
+  </target>
+
   <!-- Detect OS and compiler configuration -->
   <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.cpptasks.initialize" unless="gluegen.cpptasks.detected.os">
     <condition property="is64Bit">
@@ -623,7 +634,7 @@
     <echo message="os and arch: ${os.and.arch}" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
+  <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.custom,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
     <property name="gluegen.cpptasks.detected.os" value="true" />
     <property name="gluegen.cpptasks.detected.os.2" value="true" />
 

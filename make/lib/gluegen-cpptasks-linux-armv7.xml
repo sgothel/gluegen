@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This is an example of how to add custom compiler/linker 
+    arguments for a crosscompiler.
+
+    You can use such files with setting the property 'gluegen-cpptasks.file', ie:
+
+        -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml
+
+    In case you want to compile for 32bit on a 64bit machine,
+    you might also need to set the 'os.arch' to 'x86'.
+    Example: gluegen/make/make.gluegen.all.linux-x86.sh
+  -->
+
+<project name="GlueGen-cpptasks-linux-armv7" basedir="." >
+
+<!-- Set OS and ARCH for crosscompilation compiler configuration -->
+<target name="gluegen.cpptasks.detect.os.custom">
+    <property name="gluegen.cpptasks.detected.os"     value="true" /> 
+    <property name="isUnix"                           value="true" /> 
+    <property name="isLinux"                          value="true" /> 
+    <property name="isLinuxARMv7"                     value="true" /> 
+    <property name="isX11"                            value="true" /> 
+    <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
+    <property name="isCrosscompilation"               value="true" />
+
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-linux-armv7' done"/>
+</target>
+
+<import file="../gluegen-cpptasks-base.xml" optional="false" />
+
+</project>
+
+
