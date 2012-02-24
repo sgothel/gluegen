@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuite errors="0" failures="0" hostname="dummy" name="com.jogamp.junit.DisabledTest" tests="0" time="0.0" timestamp="2012-02-24T17:08:59">
+  <properties>
+    <property name="java.vm.name" value="A Virtual Machine Not Yet Determined" />
+    <property name="user.country" value="DE" />
+  </properties>
+  <testcase classname="com.jogamp.junit.DisabledTest" name="slice" time="0.011" />
+  <system-out><![CDATA[Unit Tests On This Node Are Disabled!]]></system-out>
+  <system-err><![CDATA[Unit Tests On This Node Are Disabled!]]></system-err>
+</testsuite>
