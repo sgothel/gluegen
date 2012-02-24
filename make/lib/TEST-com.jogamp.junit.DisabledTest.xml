@@ -4,7 +4,7 @@
     <property name="java.vm.name" value="A Virtual Machine Not Yet Determined" />
     <property name="user.country" value="DE" />
   </properties>
-  <testcase classname="com.jogamp.junit.DisabledTest" name="slice" time="0.011" />
+  <testcase classname="com.jogamp.junit.DisabledTest" name="status" time="0.011" />
   <system-out><![CDATA[Unit Tests On This Node Are Disabled!]]></system-out>
   <system-err><![CDATA[Unit Tests On This Node Are Disabled!]]></system-err>
 </testsuite>
