@@ -404,8 +404,11 @@ ${line.separator}
 
     <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/>
 
-    <target name="junit.run" depends="junit.run.settings" unless="junit.is.disabled">
+    <target name="junit.run.if.enabled" unless="junit.is.disabled">
         <antcall target="junit.run.tests"      inheritRefs="true" inheritAll="true"/>
+    </target>
+
+    <target name="junit.run" depends="junit.run.settings, junit.run.if.enabled">
         <antcall target="test-zip-archive" inheritRefs="true" />
     </target>
 
