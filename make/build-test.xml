@@ -7,10 +7,10 @@
     <property name="gluegen.root" value=".." />
 
     <property name="gluegen.basename" value="gluegen" /> <!-- if differs, ie jenkins jobname, must be set properly first -->
+    <echo message="gluegen.basename: ${gluegen.basename}"/>
     <!---
     <property name="gluegen.abspath" location="${gluegen.root}" />
-    <basename file="${gluegen.abspath}" property="gluegen.basename" />
-    <echo message="gluegen.basename: ${gluegen.basename}"/> -->
+    <basename file="${gluegen.abspath}" property="gluegen.basename" /> -->
 
     <import file="gluegen-cpptasks.xml" />
     <import file="jogamp-archivetasks.xml" />
