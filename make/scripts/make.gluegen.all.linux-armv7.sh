@@ -7,6 +7,7 @@
 #    -DisLinuxX86=true \
 #    -DisX11=true \
 
+# arm-linux-gnueabi == armel triplet
 export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabi
 export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
