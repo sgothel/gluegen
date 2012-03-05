@@ -632,6 +632,14 @@ public class Buffers {
             return (B) ((ShortBuffer) dest).put((short) v);
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put((int) v);
+        } else if (dest instanceof FloatBuffer) {
+            return (B) ((FloatBuffer) dest).put((float) v);
+        } else if (dest instanceof LongBuffer) {
+            return (B) ((LongBuffer) dest).put((long) v);
+        } else if (dest instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) dest).put((double) v);
+        } else if (dest instanceof CharBuffer) {
+            return (B) ((CharBuffer) dest).put((char) v);
         } else {
             throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
@@ -643,6 +651,12 @@ public class Buffers {
             return (B) ((ShortBuffer) dest).put(v);
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put((int) v);
+        } else if (dest instanceof FloatBuffer) {
+            return (B) ((FloatBuffer) dest).put((float) v);
+        } else if (dest instanceof LongBuffer) {
+            return (B) ((LongBuffer) dest).put((long) v);
+        } else if (dest instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) dest).put((double) v);
         } else {
             throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
         }
@@ -652,14 +666,23 @@ public class Buffers {
     public static <B extends Buffer> B puti(B dest, int v) {
         if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put(v);
+        } else if (dest instanceof FloatBuffer) {
+            return (B) ((FloatBuffer) dest).put((float) v);
+        } else if (dest instanceof LongBuffer) {
+            return (B) ((LongBuffer) dest).put((long) v);
+        } else if (dest instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) dest).put((double) v);
         } else {
             throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
         }
     }
 
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putf(B dest, float v) {
         if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put(v);
+        } else if (dest instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) dest).put((double) v);
 /* TODO FixedPoint required
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put(FixedPoint.toFixed(v));
@@ -668,6 +691,8 @@ public class Buffers {
             throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
         }
     }
+    
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putd(B dest, double v) {
         if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put((float) v);
