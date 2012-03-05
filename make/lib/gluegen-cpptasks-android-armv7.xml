@@ -11,7 +11,7 @@
     In case you want to compile for 32bit on a 64bit machine,
     you might also need to set the 'os.arch' to 'x86'.
     Example: gluegen/make/make.gluegen.all.linux-x86.sh
-  -->
+      -->
 
 <project name="GlueGen-cpptasks" basedir="." >
 
@@ -19,32 +19,35 @@
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
-    <!--<compiler id="compiler.cfg.android" name="arm-linux-androideabi-gcc"> -->
     <compiler id="compiler.cfg.android" name="gcc">
-      <compilerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
-      <compilerarg value="-B" /> <!--add additional directory for search  --> 
-      <compilerarg value="${env.TARGET_TOOL_PATH}/libexec/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}" /> 
-      <!--compilerarg value="-march=armv7-a" /-->
-      <compilerarg value="-fpic" />
+      <compilerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+      <!-- The default search dirs for 'gcc from $NDK_TOOLCHAIN/$TARGET_TRIPLE/bin will not find
+        subprograms properly (see gcc -print-search-dirs). Not sure if this is a bug in the NDK
+        or not. Need to explicitly indicate where subprograms are with -B.
+        NOTE: This is not necessary if using '$TARGET_TRIPLE-gcc' from $NDK_TOOLCHAIN/bin. -->
+      <compilerarg value="-B${env.NDK_TOOLCHAIN_ROOT}/libexec/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" />
+
       <compilerarg value="-ffunction-sections" />
       <compilerarg value="-funwind-tables" />
       <compilerarg value="-fstack-protector" />
-      <compilerarg value="-march=armv5te" />
+
+      <compilerarg value="-march=armv7-a" />
+
       <compilerarg value="-mtune=xscale" />
       <compilerarg value="-msoft-float" /> 
       <compilerarg value="-mthumb" /> 
-      <compilerarg value="-Os" /> 
+
+      <compilerarg value="-g" if="c.compiler.use-debug" />
+      <compilerarg value="-O0" if="c.compiler.use-debug" />
+      <compilerarg value="-Os" unless="c.compiler.use-debug" /> 
+      <!--<compilerarg value="-O2" /> -->
+
       <compilerarg value="-fomit-frame-pointer" /> 
       <compilerarg value="-fno-strict-aliasing" /> 
       <compilerarg value="-finline-limit=64" /> 
       <compilerarg value="-Wa,--noexecstack" /> 
-      <compilerarg value="-O2" /> 
-      <compilerarg value="-isystem" /> 
-      <compilerarg value="${env.TARGET_OS_PATH}/include"/>
-      <compilerarg value="-isystem" /> 
-      <compilerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/include" /> <!--includes stdarg.h -->
+      <includepath path="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/include" /> <!-- for stdarg.h -->
       <defineset>
-        <define name="__unix__"/>
         <define name="__ARM_ARCH_5__" />
         <define name="__ARM_ARCH_5T__" />
         <define name="__ARM_ARCH_5E__" />
@@ -56,25 +59,18 @@
       </defineset>
     </compiler>
 
-    <!--<linker id="linker.cfg.android" name="arm-linux-androideabi-gcc">-->
     <linker id="linker.cfg.android" name="gcc">
-         <linkerarg value="-march=armv7-a" /> 
-         <linkerarg value="-fpic" /> 
-         <linkerarg value="-Wl,--demangle" /> 
-      	 <linkerarg value="--sysroot=${env.TARGET_OS_PATH}" />  <!-- set root dir for lib and include -->
-         <linkerarg value="-nostdlib" /> 
-         <linkerarg value="-Bdynamic" /> 
-         <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" /> 
-         <linkerarg value="-Wl,--gc-sections" /> 
-         <linkerarg value="-Wl,-z,nocopyreloc" /> 
-         <linkerarg value="${env.TARGET_OS_PATH}/lib/libc.so" /> 
-         <linkerarg value="${env.TARGET_OS_PATH}/lib/libdl.so" /> 
-         <linkerarg value="${env.TARGET_OS_PATH}/lib/libm.so" /> 
-<!--         <linkerarg value="${env.TARGET_OS_PATH}/lib/crtbegin_dynamic.o" /> -->
-         <linkerarg value="-Wl,--no-undefined" /> 
-         <linkerarg value="-Wl,-rpath-link=${env.TARGET_OS_PATH}/lib" /> 
-         <linkerarg value="${env.TARGET_TOOL_PATH}/lib/gcc/${env.TARGET_ARCH}/${env.GCC_VERSION}/${env.TARGET_CPU_NAME}/libgcc.a" />
-    <!--     <linkerarg value="${env.TARGET_OS_PATH}/lib/crtend_android.o" /> -->
+         <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+         <linkerarg value="--demangle" /> 
+         <linkerarg value="--gc-sections" /> 
+         <linkerarg value="--no-undefined" /> 
+         <!-- The gcc from $NDK_TOOLCHAIN/$TARGET_TRIPLE/bin needs to be told
+           where to find libgcc as the default location (gcc -print-search-dirs)
+           is not correct. Not sure if this is a bug in the NDK or not. We also
+           enforce that libgcc is linked after source files but before other shared
+           libraries. -->
+         <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/armv7-a" libs="gcc" />
+         <libset libs="c,m" />
     </linker>
 
 </target>

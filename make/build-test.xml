@@ -143,7 +143,9 @@
             androidmanifest.path="resources/android/AndroidManifest-Test.xml"
             androidresources.path="resources/android/res"
             version.code="${gluegen_int_version}"
-            version.name="${gluegen.version.plus}" />
+            version.name="${gluegen.version.plus}" 
+            android.abi="${android.abi}"
+          />
     </target>
 
     <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler">
