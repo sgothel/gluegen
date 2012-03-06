@@ -15,12 +15,24 @@ echo ANDROID_SDK_HOME $ANDROID_SDK_HOME
 echo NDK_ROOT $NDK_ROOT
 
 if [ -z "$NDK_ROOT" ] ; then
-    if [ -e /usr/local/android-ndk-r7 ] ; then
-        NDK_ROOT=/usr/local/android-ndk-r7
-    elif [ -e /opt-linux-x86/android-ndk-r7 ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk-r7
-    elif [ -e /opt/android-ndk-r7 ] ; then
-        NDK_ROOT=/opt/android-ndk-r7
+    #
+    # Generic android-ndk
+    #
+    if [ -e /usr/local/android-ndk ] ; then
+        NDK_ROOT=/usr/local/android-ndk
+    elif [ -e /opt-linux-x86/android-ndk ] ; then
+        NDK_ROOT=/opt-linux-x86/android-ndk
+    elif [ -e /opt/android-ndk ] ; then
+        NDK_ROOT=/opt/android-ndk
+    #
+    # Specific android-ndk-r7b
+    #
+    elif [ -e /usr/local/android-ndk-r7b ] ; then
+        NDK_ROOT=/usr/local/android-ndk-r7b
+    elif [ -e /opt-linux-x86/android-ndk-r7b ] ; then
+        NDK_ROOT=/opt-linux-x86/android-ndk-r7b
+    elif [ -e /opt/android-ndk-r7b ] ; then
+        NDK_ROOT=/opt/android-ndk-r7b
     else 
         echo NDK_ROOT is not specified and does not exist in default locations
         exit 1
