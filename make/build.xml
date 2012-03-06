@@ -751,22 +751,26 @@
         jarbasename="gluegen-rt"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
+        android.abi="${android.abi}"
         androidmanifest.path="resources/android/AndroidManifest-Runtime.xml"
         androidresources.path="resources/android/res"
         jarmanifest.path="${build}/Manifest-rt.temp"
         version.code="${gluegen_int_version}"
-        version.name="${gluegen.version.plus}" />
+        version.name="${gluegen.version.plus}"
+      />
 
     <aapt.signed 
         jarbuilddir="${build}"
         jarbasename="gluegen"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
+        android.abi="${android.abi}"
         androidmanifest.path="resources/android/AndroidManifest-CompileTime.xml"
         androidresources.path="resources/android/res"
         jarmanifest.path="${build}/Manifest.temp"
         version.code="${gluegen_int_version}"
-        version.name="${gluegen.version.plus}" />
+        version.name="${gluegen.version.plus}"
+      />
 
   </target>
 
