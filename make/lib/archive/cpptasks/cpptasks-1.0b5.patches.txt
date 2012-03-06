@@ -1,0 +1,6 @@
+cpptasks-1.0b5-accumulated.patch - The accumulated patch, you only need to apply this one!
+
+The single original patches:
+
+cpptasks-1.0b5-darwin.patch      - Make OSX/Darwin work (linker options etc)
+cpptasks-1.0b5-gcclinker.patch   - Make crosscompilation work (--sysroot .. etc)

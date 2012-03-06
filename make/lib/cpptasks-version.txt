@@ -1,4 +1,13 @@
-Current cpptasks is from CVS repository at
-:pserver:anonymous@cvs.sourceforge.net:/cvsroot/ant-contrib
-as of 10/5/2005 with patches applied for Forte C compiler (Bug
-1314266) and fat binary generation on Mac OS X (Bug 1313421).
+Current cpptasks is from 
+   <http://ant-contrib.sourceforge.net/cpptasks/index.html>
+
+Version '1.0 beta 5' / r175:
+   <http://ant-contrib.svn.sourceforge.net/viewvc/ant-contrib/cpptasks/trunk/>
+   <http://sourceforge.net/projects/ant-contrib/files/ant-contrib/cpptasks-1.0-beta5/>
+
+Plus the accumulated patches:
+  - cpptasks-1.0b5-darwin.patch      - Make OSX/Darwin work (linker options etc)
+  - cpptasks-1.0b5-gcclinker.patch   - Make crosscompilation work (--sysroot .. etc)
+
+See archive/cpptasks/
+and archive/cpptasks/cpptasks-1.0b5.patches.txt
