@@ -152,16 +152,25 @@ public class TempJarCache {
     
     public static boolean containsNativeLibs(URL jarURL) throws IOException {
         checkInitialized();
+        if(null == jarURL) {
+            throw new IllegalArgumentException("jarURL is null");
+        }
         return nativeLibJars.contains(jarURL);
     }    
 
     public static boolean containsClasses(URL jarURL) throws IOException {
         checkInitialized();
+        if(null == jarURL) {
+            throw new IllegalArgumentException("jarURL is null");
+        }
         return classFileJars.contains(jarURL);
     }    
 
     public static boolean containsResources(URL jarURL) throws IOException {
         checkInitialized();
+        if(null == jarURL) {
+            throw new IllegalArgumentException("jarURL is null");
+        }
         return resourceFileJars.contains(jarURL);
     }
     
@@ -175,8 +184,7 @@ public class TempJarCache {
      * @throws SecurityException
      */
     public static final void addNativeLibs(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {        
-        checkInitialized();
-        if(!nativeLibJars.contains(jarURL)) {
+        if(!containsNativeLibs(jarURL)) {
             final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
             if(DEBUG) {
                 System.err.println("TempJarCache: addNativeLibs: "+jarURL+": nativeJar "+jarFile.getName());
@@ -201,8 +209,7 @@ public class TempJarCache {
      * @throws SecurityException
      */
     public static final void addClasses(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {
-        checkInitialized();
-        if(!classFileJars.contains(jarURL)) {
+        if(!containsClasses(jarURL)) {
             final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
             if(DEBUG) {
                 System.err.println("TempJarCache: addClasses: "+jarURL+": nativeJar "+jarFile.getName());
@@ -225,8 +232,7 @@ public class TempJarCache {
      * @throws SecurityException
      */
     public static final void addResources(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {        
-        checkInitialized();
-        if(!resourceFileJars.contains(jarURL)) {
+        if(!containsResources(jarURL)) {
             final JarFile jarFile = JarUtil.getJarFile(jarURL, cl);
             if(DEBUG) {
                 System.err.println("TempJarCache: addResources: "+jarURL+": nativeJar "+jarFile.getName());
@@ -253,6 +259,9 @@ public class TempJarCache {
      */
     public static final void addAll(Class<?> certClass, URL jarURL, ClassLoader cl) throws IOException, SecurityException {
         checkInitialized();
+        if(null == jarURL) {
+            throw new IllegalArgumentException("jarURL is null");
+        }
         if(!nativeLibJars.contains(jarURL) || 
            !classFileJars.contains(jarURL) || 
            !resourceFileJars.contains(jarURL)) {
