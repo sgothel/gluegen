@@ -15,6 +15,19 @@
 
 <project name="GlueGen-cpptasks-android-armv7" basedir="." >
 
+<!-- Set OS and ARCH for crosscompilation compiler configuration -->
+<target name="gluegen.cpptasks.detect.os.custom">
+    <property name="gluegen.cpptasks.detected.os"     value="true" /> 
+    <property name="isUnix"                           value="true" /> 
+    <property name="isAndroid"                        value="true" /> 
+    <property name="isAndroidARMv7"                   value="true" /> 
+    <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
+    <property name="isCrosscompilation"               value="true" />
+    <property name="android.abi"                      value="armeabi-v7a" />
+
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-armv7' done"/>
+</target>
+
 <import file="../gluegen-cpptasks-base.xml" optional="false" />
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
