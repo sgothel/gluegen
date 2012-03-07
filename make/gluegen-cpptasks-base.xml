@@ -166,6 +166,13 @@
 
     <!-- NOTE: the value of the debug attribute will not be overridden if already set externally -->
     <property name="c.compiler.debug"     value="false" /> 
+    <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
+    <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
+    <property name="c.compiler.optimise"  value="none" /> 
+
+    <echo message="c.compiler.debug=${c.compiler.debug}" />
+    <echo message="c.compiler.use-debug=${c.compiler.use-debug}" />
+    <echo message="c.compiler.optimise=${c.compiler.optimise}" />
 
     <condition property="c.strip.libraries"><isfalse value="${c.compiler.debug}"/></condition>
 

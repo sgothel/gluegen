@@ -455,13 +455,6 @@
 
       <echo message="Output lib name = ${output.lib.name} -> ${output.lib.name.os}" />
 
-      <!-- NOTE: the value of the debug and optimise attributes will not be overridden if already set externally -->
-      <property name="c.compiler.debug"     value="false" /> 
-      <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-      <property name="c.compiler.optimise"  value="none" /> 
-
-      <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
-
       <mkdir dir="${gluegen.lib.dir}"/>
 
       <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
