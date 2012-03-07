@@ -13,7 +13,7 @@
     Example: gluegen/make/make.gluegen.all.linux-x86.sh
       -->
 
-<project name="GlueGen-cpptasks" basedir="." >
+<project name="GlueGen-cpptasks-android-armv7" basedir="." >
 
 <import file="../gluegen-cpptasks-base.xml" optional="false" />
 
@@ -30,8 +30,10 @@
       <compilerarg value="-ffunction-sections" />
       <compilerarg value="-funwind-tables" />
       <compilerarg value="-fstack-protector" />
+      <compilerarg value="-fpic" /> 
 
       <compilerarg value="-march=armv7-a" />
+      <!--compilerarg value="-march=armv5te" /-->
 
       <compilerarg value="-mtune=xscale" />
       <compilerarg value="-msoft-float" /> 
@@ -48,6 +50,7 @@
       <compilerarg value="-Wa,--noexecstack" /> 
       <includepath path="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/include" /> <!-- for stdarg.h -->
       <defineset>
+        <define name="__unix__" />
         <define name="__ARM_ARCH_5__" />
         <define name="__ARM_ARCH_5T__" />
         <define name="__ARM_ARCH_5E__" />
@@ -61,6 +64,16 @@
 
     <linker id="linker.cfg.android" name="gcc">
          <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+         <linkerarg value="-fpic" /> 
+
+         <linkerarg value="-march=armv7-a" />
+         <!--linkerarg value="-march=armv5te" /-->
+
+         <linkerarg value="-nostdlib" />
+         <linkerarg value="-Bdynamic" />
+         <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" />
+         <linkerarg value="-Wl,-z,nocopyreloc" />
+
          <linkerarg value="--demangle" /> 
          <linkerarg value="--gc-sections" /> 
          <linkerarg value="--no-undefined" /> 
@@ -70,7 +83,7 @@
            enforce that libgcc is linked after source files but before other shared
            libraries. -->
          <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/armv7-a" libs="gcc" />
-         <libset libs="c,m" />
+         <libset libs="c,m,dl" />
     </linker>
 
 </target>

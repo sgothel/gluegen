@@ -1,12 +1,18 @@
 #! /bin/sh
 
-export HOST_UID=sven
-export HOST_IP=192.168.0.52
+export NODE_LABEL=.
+
+export HOST_UID=jogamp
+# jogamp02 - 10.1.0.122
+export HOST_IP=10.1.0.122
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
-export TARGET_IP=beagle01
-export TARGET_ROOT=/projects
+#export TARGET_IP=jautab03
+export TARGET_IP=jauphone04
+export TARGET_ADB_PORT=5555
+# needs executable bit (probably su)
+export TARGET_ROOT=/data/projects
 export TARGET_ANT_HOME=/usr/share/ant
 
 export ANDROID_VERSION=9
