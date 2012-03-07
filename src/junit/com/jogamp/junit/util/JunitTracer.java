@@ -28,6 +28,7 @@
  
 package com.jogamp.junit.util;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.After;
@@ -39,16 +40,23 @@ import org.junit.rules.TestName;
 public abstract class JunitTracer {
     @Rule public TestName _unitTestName = new TestName();
 
+    static volatile boolean testSupported = true;
+    
+    public static void setTestSupported(boolean v) {
+        System.err.println("setTestSupported: "+v);
+        testSupported = v;
+    }
+    
     public final String getTestMethodName() {
         return _unitTestName.getMethodName();
     }
     
-    public final String getSimpleTestName() {
-        return getClass().getSimpleName()+" - "+getTestMethodName();
+    public final String getSimpleTestName(String separator) {
+        return getClass().getSimpleName()+separator+getTestMethodName();
     }
 
-    public final String getFullTestName() {
-        return getClass().getName()+" - "+getTestMethodName();
+    public final String getFullTestName(String separator) {
+        return getClass().getName()+separator+getTestMethodName();
     }
     
     @BeforeClass
@@ -64,13 +72,19 @@ public abstract class JunitTracer {
 
     @Before
     public void setUp() {
-        System.err.println("++++ TestCase.setUp: "+getFullTestName());
+        System.err.print("++++ TestCase.setUp: "+getFullTestName(" - "));
+        if(!testSupported) {
+            System.err.println(" - "+unsupportedTestMsg);
+            Assume.assumeTrue(testSupported);
+        }
+        System.err.println();      
     }
 
     @After
     public void tearDown() {
-        System.err.println("++++ TestCase.tearDown: "+getFullTestName());
+        System.err.println("++++ TestCase.tearDown: "+getFullTestName(" - "));
     }
 
+    static final String unsupportedTestMsg = "Test not supported on this platform.";
 }
 

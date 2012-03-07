@@ -43,6 +43,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -53,6 +54,11 @@ public class TestJarUtil extends JunitTracer {
     
     @BeforeClass
     public static void init() {
+        if(AndroidVersion.isAvailable) {
+            // ClassLoader -> JarURL doesn't work w/ Dalvik
+            setTestSupported(false);
+            // we allow basic TempFileCache initialization (test) ..
+        }
         // may already been initialized by other test
         // Assert.assertFalse(TempCacheReg.isTempFileCacheUsed());
         Assert.assertTrue(TempFileCache.initSingleton());

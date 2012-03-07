@@ -86,7 +86,7 @@
         </path>
         <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen.root}/make/lib/TestJarsInJar.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
-        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk"/>
+        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk${path.separator}${gluegen.root}/make/lib/TestJarsInJar.apk"/>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
@@ -298,6 +298,7 @@ rsync -rtv --delete --delete-after --delete-excluded \${line.separator}
       --exclude 'android-sdk/' --exclude 'resources/' --exclude 'scripts/' \${line.separator}
       --exclude 'stub_includes/' --exclude 'nbproject/' --exclude '*.log' --exclude '*.zip' --exclude '*.7z' \${line.separator}
       ${env.HOST_UID}@${env.HOST_IP}::${env.HOST_RSYNC_ROOT}/${gluegen.basename} ${env.TARGET_ROOT} ${line.separator}
+mkdir ${env.TARGET_ROOT}/tmp ${line.separator}
 cd ${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make ${line.separator}
 export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/test/build/natives ${line.separator}
 export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
@@ -326,6 +327,7 @@ export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.j
 dalvikvm \${line.separator}
 -Xjnigreflimit:2000 \${line.separator}
 -cp ${junit.run.remote.apks} \${line.separator}
+-Djava.io.tmpdir=${env.TARGET_ROOT}/tmp \${line.separator}
 -Dgluegen.root=${gluegen.root} \${line.separator}
 -Drootrel.build=${rootrel.build} \${line.separator}
 com.android.internal.util.WithFramework \${line.separator}
