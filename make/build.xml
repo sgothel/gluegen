@@ -729,11 +729,10 @@
   
   <target name="gluegen.build.check.aapt" depends="init">
       <uptodate property="gluegen.build.skip.aapt">
-        <srcfiles dir= "."            includes="*.xml"/>
-        <srcfiles dir= "${src.java}"  includes="**"/>
-        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
-        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
-        <mapper type="merge" to="${build}/gluegen.apk"/>
+        <srcfiles dir= "."                includes="*.xml"/>
+        <srcfiles dir= "${src.java}"      includes="**"/>
+        <srcfiles dir= "${src.generated}" includes="**"/>
+        <mapper type="merge" to="${build}/gluegen-rt.apk"/>
       </uptodate>
   </target>
 
@@ -752,7 +751,8 @@
         version.name="${gluegen.version.plus}"
       />
 
-    <aapt.signed 
+    <!-- No need for a GlueGen Compile Time library on Android -->
+    <!-- aapt.signed 
         jarbuilddir="${build}"
         jarbasename="gluegen"
         nativebuilddir="${gluegen.lib.dir}"
@@ -763,7 +763,7 @@
         jarmanifest.path="${build}/Manifest.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}"
-      />
+      /-->
 
   </target>
 

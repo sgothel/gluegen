@@ -86,7 +86,7 @@
         </path>
         <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${gluegen.root}/make/lib/TestJarsInJar.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
-        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen.apk${path.separator}${build_t}/gluegen-test.apk${path.separator}${gluegen.root}/make/lib/TestJarsInJar.apk"/>
+        <property name="junit.run.remote.apks" value="${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.apk${path.separator}${build_t}/gluegen-test.apk${path.separator}${gluegen.root}/make/lib/TestJarsInJar.apk"/>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 

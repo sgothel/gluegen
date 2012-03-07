@@ -42,6 +42,7 @@ import org.junit.Test;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempCacheReg;
@@ -137,6 +138,7 @@ public class TestTempJarCache extends JunitTracer {
     
     @Test
     public void testJarUtil01a() throws IOException {
+        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         JarFile jarFile = JarUtil.getJarFile(GlueGenVersion.class.getName(), this.getClass().getClassLoader());
         Assert.assertNotNull(jarFile);
         JarUtil.extract(fileCache.getTempDir(), null, jarFile, false, true, true);
@@ -147,7 +149,8 @@ public class TestTempJarCache extends JunitTracer {
     }
 
     @Test
-    public void testJarUtil01b() throws IOException {        
+    public void testJarUtil01b() throws IOException {
+        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         File f = new File(fileCache.getTempDir(), "META-INF/MANIFEST.MF");
         Assert.assertTrue(f.exists());
         f = new File(fileCache.getTempDir(), IOUtil.getClassFileName(GlueGenVersion.class.getName()));
@@ -155,13 +158,18 @@ public class TestTempJarCache extends JunitTracer {
     }
     
     @Test
-    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException {
+    public void testTempJarCache00Init() throws IOException {
         // may already been initialized by other test
         // Assert.assertFalse(TempCacheReg.isTempJarCacheUsed());
         // Assert.assertFalse(TempJarCache.isInitialized());                
         Assert.assertTrue(TempJarCache.initSingleton());
         Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
-        Assert.assertTrue(TempJarCache.isInitialized());                
+        Assert.assertTrue(TempJarCache.isInitialized());                        
+    }
+    
+    @Test
+    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException {
+        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
 
         final ClassLoader cl = getClass().getClassLoader();
         TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL(GlueGenVersion.class.getName(), cl), cl);
@@ -183,6 +191,7 @@ public class TestTempJarCache extends JunitTracer {
     
     @Test
     public void testTempJarCache02AddNativeLibs() throws IOException {
+        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         final String nativeJarName = "gluegen-rt-natives-"+Platform.getOSAndArch()+".jar";
         final String libBaseName = "gluegen-rt";        
         final ClassLoader cl = getClass().getClassLoader();
@@ -202,6 +211,7 @@ public class TestTempJarCache extends JunitTracer {
 
     @Test
     public void testTempJarCache03AddNativeJarLibs() throws IOException {
+        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         final String libBaseName = "gluegen-rt";        
         
         JNILibLoaderBase.addNativeJarLibs(TempJarCache.class, libBaseName);
@@ -215,7 +225,7 @@ public class TestTempJarCache extends JunitTracer {
     }
     
     @Test
-    public void testTempJarCache04aSameClassLoader() throws IOException {        
+    public void testTempJarCache04aSameClassLoader() throws IOException {
         assertTempFileCachesIndividualInstances(true, TempJarCache.getTempFileCache(), TempJarCache.getTempFileCache());
         
         ClassLoader cl = getClass().getClassLoader();          
@@ -226,9 +236,10 @@ public class TestTempJarCache extends JunitTracer {
     
     @Test
     public void testTempJarCache04bDiffClassLoader() throws IOException {
+        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         URL[] urls = new URL[] { JarUtil.getJarFileURL(TempJarCache.class.getName(), getClass().getClassLoader()) };                
         System.err.println("url: "+urls[0]);
-        ClassLoader cl2 = new TestClassLoader(urls, null);  
+        ClassLoader cl2 = new TestClassLoader(urls, null);
         ClassLoader cl3 = new TestClassLoader(urls, null);
         
         Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl2)

@@ -28,13 +28,18 @@
  
 package com.jogamp.gluegen.test.junit.generation;
 
+import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.gluegen.pcpp.PCPP;
+import com.jogamp.junit.util.JunitTracer;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collections;
+
+import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
@@ -42,11 +47,18 @@ import static org.junit.Assert.*;
  * serves mainly as entry point for debugging purposes.
  * @author Sven Gothel, Michael Bien
  */
-public class PCPPTest {
+public class PCPPTest extends JunitTracer {
 
+    @BeforeClass
+    public static void init() {
+        if(AndroidVersion.isAvailable) {
+            // PCPP is n/a on Android - GlueGen Runtime only
+            setTestSupported(false);
+        }
+    }
+    
     @Test
     public void pcppMacroDefinitionTest() throws FileNotFoundException, IOException {
-        
         PCPP pp = new PCPP(Collections.<String>emptyList(), false, false);
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
