@@ -12,12 +12,8 @@
   -->
 <project name="GlueGen-cpptasks" basedir=".">
 
-  <condition property="gluegen.root" value="..">
-      <not>
-          <isset property="gluegen.root"/>
-      </not>
-  </condition>
-
+  <property name="gluegen.root"          value=".."                 /> <!-- default value -->
+  <property name="gluegen.root.abs-path" location="${gluegen.root}" />
 
   <!-- import properties -->
   <import file="gluegen-properties.xml" />
@@ -27,13 +23,25 @@
   <typedef resource="net/sf/antcontrib/cpptasks/antlib.xml" classpath="${gluegen.root}/make/lib/cpptasks.jar"/>
 
   <property environment="env" />
-  <condition property="gluegen-cpptasks.file" value="${env.GLUEGEN_CPPTASKS_FILE}">
+  <condition property="gluegen-cpptasks.file.1" value="${env.GLUEGEN_CPPTASKS_FILE}">
     <not>
      <equals arg1="${env.GLUEGEN_CPPTASKS_FILE}" arg2="$${env.GLUEGEN_CPPTASKS_FILE}" casesensitive="true" />
     </not>
   </condition>
-  <property name="gluegen-cpptasks.file"             value="${gluegen.root}/make/gluegen-cpptasks-base.xml" />   <!-- default value -->
-  <property name="gluegen-cpptasks.file.abs-path" location="${gluegen-cpptasks.file}" />
+  <!-- 1st check for relative location to gluegen.root -->
+  <condition property="gluegen-cpptasks.file.2"
+             value="${gluegen.root}/${gluegen-cpptasks.file}">
+             <available file="${gluegen.root}/${gluegen-cpptasks.file}"/>
+  </condition>
+  <!-- 2nd check for absolute location -->
+  <condition property="gluegen-cpptasks.file.2"
+             value="${gluegen-cpptasks.file}">
+             <available file="${gluegen-cpptasks.file}"/>
+  </condition>
+  <!-- 3rd use default value if the above is not successful -->
+  <property name="gluegen-cpptasks.file.2"       value="${gluegen.root}/make/gluegen-cpptasks-base.xml" />
+
+  <property name="gluegen-cpptasks.file.abs-path" location="${gluegen-cpptasks.file.2}" />
 
   <import file="${gluegen-cpptasks.file.abs-path}" optional="false" />
 

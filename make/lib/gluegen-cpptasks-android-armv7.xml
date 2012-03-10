@@ -28,7 +28,7 @@
     <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-armv7' done"/>
 </target>
 
-<import file="../gluegen-cpptasks-base.xml" optional="false" />
+<import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />

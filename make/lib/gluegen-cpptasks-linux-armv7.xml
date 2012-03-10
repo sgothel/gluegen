@@ -28,7 +28,7 @@
     <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-linux-armv7' done"/>
 </target>
 
-<import file="../gluegen-cpptasks-base.xml" optional="false" />
+<import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
 
 </project>
 
