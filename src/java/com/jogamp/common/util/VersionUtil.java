@@ -32,6 +32,7 @@ import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -90,10 +91,17 @@ public class VersionUtil {
      * @return the requested manifest or null when not found.
      */
     public static Manifest getManifest(ClassLoader cl, String extension) {
+         
         try {
-            Enumeration resources = cl.getResources("META-INF/MANIFEST.MF");
+            Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");
             while (resources.hasMoreElements()) {
-                Manifest manifest = new Manifest(((URL)resources.nextElement()).openStream());
+                final InputStream is = resources.nextElement().openStream();
+                final Manifest manifest;
+                try {
+                    manifest = new Manifest(is);
+                } finally {
+                    IOUtil.close(is, false);
+                }
                 Attributes attributes = manifest.getMainAttributes();
                 if(attributes != null && extension.equals(attributes.getValue(Attributes.Name.EXTENSION_NAME))) {
                     return manifest;

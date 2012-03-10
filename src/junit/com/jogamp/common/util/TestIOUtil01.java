@@ -71,7 +71,13 @@ public class TestIOUtil01 extends JunitTracer {
     public void testCopyStream01Array() throws IOException {
         URL url = IOUtil.getResource(this.getClass(), tfilename);
         Assert.assertNotNull(url);
-        final byte[] bb = IOUtil.copyStream2ByteArray( new BufferedInputStream( url.openStream() ) );        
+        final BufferedInputStream bis = new BufferedInputStream( url.openStream() );
+        final byte[] bb;
+        try {
+            bb = IOUtil.copyStream2ByteArray( bis );
+        } finally {
+            IOUtil.close(bis, false);
+        }
         Assert.assertEquals("Byte number not equal orig vs array", orig.length, bb.length);
         Assert.assertTrue("Bytes not equal orig vs array", Arrays.equals(orig, bb));
         
@@ -81,7 +87,13 @@ public class TestIOUtil01 extends JunitTracer {
     public void testCopyStream02Buffer() throws IOException {
         URL url = IOUtil.getResource(this.getClass(), tfilename);
         Assert.assertNotNull(url);
-        final ByteBuffer bb = IOUtil.copyStream2ByteBuffer( new BufferedInputStream( url.openStream() ) );        
+        final BufferedInputStream bis = new BufferedInputStream( url.openStream() );
+        final ByteBuffer bb;
+        try {
+            bb = IOUtil.copyStream2ByteBuffer( bis ); 
+        } finally {
+            IOUtil.close(bis, false);
+        }
         Assert.assertEquals("Byte number not equal orig vs buffer", orig.length, bb.limit());
         int i;
         for(i=tsz-1; i>=0 && orig[i]==bb.get(i); i--) ;        
@@ -98,8 +110,14 @@ public class TestIOUtil01 extends JunitTracer {
         IOUtil.copyURL2File(url1, file2);
         URL url2 = IOUtil.getResource(this.getClass(), tfilename2);
         Assert.assertNotNull(url2);
-        
-        final ByteBuffer bb = IOUtil.copyStream2ByteBuffer( new BufferedInputStream( url2.openStream() ) );        
+
+        final BufferedInputStream bis = new BufferedInputStream( url2.openStream() );
+        final ByteBuffer bb;
+        try {
+            bb = IOUtil.copyStream2ByteBuffer( bis ); 
+        } finally {
+            IOUtil.close(bis, false);
+        }
         Assert.assertEquals("Byte number not equal orig vs buffer", orig.length, bb.limit());
         int i;
         for(i=tsz-1; i>=0 && orig[i]==bb.get(i); i--) ;        

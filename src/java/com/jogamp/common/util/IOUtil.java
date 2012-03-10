@@ -30,6 +30,7 @@ package com.jogamp.common.util;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -584,5 +585,20 @@ public class IOUtil {
            }
        }
        throw new IOException("Could not create temp directory @ "+tempRoot.getAbsolutePath()+tmpDirPrefix+"_*");        
+    }
+    
+    public static void close(Closeable stream, boolean throwRuntimeException) throws RuntimeException {
+        if(null != stream) {
+            try {
+                stream.close();
+            } catch (IOException e) {
+                if(throwRuntimeException) {
+                    throw new RuntimeException(e);
+                } else if(DEBUG) {
+                    System.err.println("Catched Exception: ");
+                    e.printStackTrace();
+                }
+            }
+        }        
     }
 }
