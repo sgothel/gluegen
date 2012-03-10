@@ -301,7 +301,8 @@ rsync -rtv --delete --delete-after --delete-excluded \${line.separator}
 mkdir ${env.TARGET_ROOT}/tmp ${line.separator}
 cd ${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make ${line.separator}
 export ${system.env.library.path}=/system/lib:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/obj:${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/${rootrel.build}/test/build/natives ${line.separator}
-export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
+# export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar ${line.separator}
+# export BOOTCLASSPATH=/system/framework/core.jar:/system/framework/core-junit.jar:/system/framework/bouncycastle.jar:/system/framework/ext.jar:/system/framework/framework.jar:/system/framework/android.policy.jar:/system/framework/services.jar:/system/framework/apache-xml.jar:/system/framework/filterfw.jar ${line.separator}
 " append="true" file="${build_t}/targetcommand.sh" />
 
         <for param="test.class.path.m" keepgoing="true">
@@ -354,6 +355,7 @@ chmod 644 ${results}/* \${line.separator}
         <exec dir="." executable="sh" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line='-x -c "
             chmod 0755 ${build_t}/targetcommand.sh ;
+            adb connect ${env.TARGET_IP}:${env.TARGET_ADB_PORT} ;
             adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} push ${build_t}/targetcommand.sh ${env.TARGET_ROOT}/gluegen-targetcommand.sh ;
             adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} shell su -c ${env.TARGET_ROOT}/gluegen-targetcommand.sh ;
             adb -s ${env.TARGET_IP}:${env.TARGET_ADB_PORT} pull ${env.TARGET_ROOT}/${gluegen.basename}/${env.NODE_LABEL}/make/${results}/ ${results}/ "'/>
