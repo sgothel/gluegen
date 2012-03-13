@@ -107,11 +107,6 @@ public class PropertyAccess {
     return (PropertyAccess.getProperty(property, jnlpAlias, acc) != null) ? true : false;
   }
 
-  /** @see #getProperty(String, boolean, AccessControlContext) */
-  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
-    return (PropertyAccess.getProperty(property, jnlpAlias, null) != null) ? true : false;
-  }
-
   /**
    * Query the property with the name <code>propertyKey</code>.
    * <p>

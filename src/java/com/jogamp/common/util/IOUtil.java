@@ -43,6 +43,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
+import jogamp.common.Debug;
 import jogamp.common.os.android.StaticContext;
 
 import android.content.Context;
@@ -53,7 +54,7 @@ import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
-    private static final boolean DEBUG = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil", true);
+    private static final boolean DEBUG = Debug.isPropertyDefined("jogamp.debug.IOUtil", true);
     
     /** Std. temporary directory property key <code>java.io.tmpdir</code> */
     public static final String java_io_tmpdir_propkey = "java.io.tmpdir";

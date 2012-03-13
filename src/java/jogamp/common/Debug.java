@@ -55,6 +55,10 @@ public class Debug extends PropertyAccess {
     debugAll = isPropertyDefined("jogamp.debug", true);
   }
 
+  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
+    return PropertyAccess.isPropertyDefined(property, jnlpAlias, null);
+  }
+  
   public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
       return PropertyAccess.getBooleanProperty(property, jnlpAlias, null);
   }
