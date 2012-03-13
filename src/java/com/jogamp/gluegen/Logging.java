@@ -31,11 +31,14 @@
  */
 package com.jogamp.gluegen;
 
+import java.security.AccessController;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
+
+import jogamp.common.PropertyAccess;
 
 /**
  *
@@ -44,9 +47,8 @@ import java.util.logging.Logger;
 public class Logging {
 
     static void init() {
-
-        String pakage = Logging.class.getPackage().getName();
-        String property = System.getProperty(pakage+".level");
+        final String packageName = Logging.class.getPackage().getName();        
+        final String property = PropertyAccess.getProperty(packageName+".level", true, AccessController.getContext()); 
         Level level;
         if(property != null) {
             level = Level.parse(property);
@@ -63,7 +65,7 @@ public class Logging {
         handler.setFormatter(new PlainLogFormatter());
         handler.setLevel(level);
 
-        Logger rootPackageLogger = Logger.getLogger(pakage);
+        Logger rootPackageLogger = Logger.getLogger(packageName);
         rootPackageLogger.setUseParentHandlers(false);
         rootPackageLogger.setLevel(level);
         rootPackageLogger.addHandler(handler);
@@ -75,7 +77,7 @@ public class Logging {
      */
     private static class PlainLogFormatter extends Formatter {
 
-        //@Override
+        @Override
         public String format(LogRecord record) {
             StringBuilder sb = new StringBuilder(128);
             sb.append("[").append(record.getLevel()).append(' ').append(record.getSourceClassName()).append("]: ");

@@ -44,6 +44,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import jogamp.common.Debug;
+import jogamp.common.PropertyAccess;
 import jogamp.common.os.android.StaticContext;
 
 import android.content.Context;
@@ -510,11 +511,14 @@ public class IOUtil {
      * for both platforms w/o the need to handle extra permissions.
      * </p>
      * 
+     * @throws SecurityException 
+     * @throws RuntimeException
+     * 
      * @see StaticContext#setContext(Context)
      * @see Context#getDir(String, int)
      */
     public static File getTempRoot()
-        throws SecurityException
+        throws SecurityException, RuntimeException
     {
         if(AndroidVersion.isAvailable) {
             final Context ctx = StaticContext.getContext();
@@ -526,7 +530,7 @@ public class IOUtil {
                 return tmpRoot;
             }
         }
-        final String tmpRootName = System.getProperty("java.io.tmpdir");
+        final String tmpRootName = PropertyAccess.getProperty("java.io.tmpdir", false, AccessController.getContext());
         final File tmpRoot = new File(tmpRootName);
         if(DEBUG) {
             System.err.println("IOUtil.getTempRoot(isAndroid: "+AndroidVersion.isAvailable+"): temp dir: "+tmpRoot.getAbsolutePath());

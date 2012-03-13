@@ -51,6 +51,7 @@ import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
+import jogamp.common.PropertyAccess;
 
 public class JNILibLoaderBase {
   public static final boolean DEBUG = Debug.debug("JNILibLoader");
@@ -229,8 +230,8 @@ public class JNILibLoaderBase {
   static {
     final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
     final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
-    final boolean usingJNLPAppletLauncher = Boolean.valueOf(System.getProperty(sunAppletLauncherProperty)).booleanValue();
-
+    final boolean usingJNLPAppletLauncher = PropertyAccess.getBooleanProperty(sunAppletLauncherProperty, true, AccessController.getContext());    
+    
     Class<?> launcherClass = null;
     Method loadLibraryMethod = null;
 
