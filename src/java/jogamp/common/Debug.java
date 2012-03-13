@@ -39,38 +39,34 @@
 
 package jogamp.common;
 
-import java.security.*;
+import com.jogamp.common.util.PropertyAccess;
 
 /** Helper routines for logging and debugging. */
 
 public class Debug extends PropertyAccess {
   // Some common properties
-  private static boolean verbose;
-  private static boolean debugAll;
-  private static AccessControlContext localACC;
+  private static final boolean verbose;
+  private static final boolean debugAll;
   
   static {
-    localACC=AccessController.getContext();
+    PropertyAccess.addTrustedPrefix("jogamp.", Debug.class);
+
     verbose = isPropertyDefined("jogamp.verbose", true);
     debugAll = isPropertyDefined("jogamp.debug", true);
   }
 
-  static int getIntProperty(final String property, final boolean jnlpAlias) {
-      return getIntProperty(property, jnlpAlias, localACC, 0);
+  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
+      return PropertyAccess.getBooleanProperty(property, jnlpAlias, null);
   }
-
-  static boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
-    return getBooleanProperty(property, jnlpAlias, localACC);
+  
+  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, boolean defaultValue) {
+      return PropertyAccess.getBooleanProperty(property, jnlpAlias, null, defaultValue);      
   }
-
-  static boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
-    return isPropertyDefined(property, jnlpAlias, localACC);
+  
+  public static final long getLongProperty(final String property, final boolean jnlpAlias, long defaultValue) {
+      return PropertyAccess.getLongProperty(property, jnlpAlias, null, defaultValue);
   }
-
-  static String getProperty(final String property, final boolean jnlpAlias) {
-    return getProperty(property, jnlpAlias, localACC);
-  }
-
+  
   public static boolean verbose() {
     return verbose;
   }

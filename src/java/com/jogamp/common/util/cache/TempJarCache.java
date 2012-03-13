@@ -50,6 +50,7 @@ import jogamp.common.Debug;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.SecurityUtil;
 
 public class TempJarCache {
     private static final boolean DEBUG = Debug.debug("TempJarCache");
@@ -391,9 +392,8 @@ public class TempJarCache {
         if(null == certClass) {
             throw new IllegalArgumentException("certClass is null");
         }
-        final Certificate[] rootCerts = 
-                certClass.getProtectionDomain().getCodeSource().getCertificates();
-        if( null != rootCerts && rootCerts.length>0 ) {
+        final Certificate[] rootCerts = SecurityUtil.getCerts(certClass);
+        if( null != rootCerts ) {
             // Only validate the jarFile's certs with ours, if we have any.
             // Otherwise we may run uncertified JARs (application).
             // In case one tries to run uncertified JARs, the wrapping applet/JNLP

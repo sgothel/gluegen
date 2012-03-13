@@ -539,26 +539,20 @@ public class JarUtil {
         // InputStream in order to be able to get its certificates
 
         InputStream is = jar.getInputStream(entry);
-        while (is.read(buf) > 0) { }
-        is.close();
+        try {
+            while (is.read(buf) > 0) { }
+        } finally {
+            is.close();
+        }
 
         // Get the certificates for the JAR entry
-        Certificate[] nativeCerts = entry.getCertificates();
+        final Certificate[] nativeCerts = entry.getCertificates();
         if (nativeCerts == null || nativeCerts.length == 0) {
             throw new SecurityException("no certificate for " + entry.getName() + " in " + jar.getName());
         }
 
-        int checked = 0;
-        for (int i = 0; i < rootCerts.length; i++) {
-            for (int j = 0; j < nativeCerts.length; j++) {
-                if (nativeCerts[j].equals(rootCerts[i])){
-                    checked++;
-                    break;
-                }
-            }
-        }
-        if( checked != rootCerts.length ) {
-            throw new SecurityException("not all certificates match, only "+checked+" out of "+rootCerts.length+" for " + entry.getName() + " in " + jar.getName());
+        if( !SecurityUtil.equals(rootCerts, nativeCerts) ) {
+            throw new SecurityException("certificates not equal for " + entry.getName() + " in " + jar.getName());
         }
     }
 }

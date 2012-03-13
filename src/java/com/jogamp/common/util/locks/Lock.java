@@ -29,9 +29,6 @@
 package com.jogamp.common.util.locks;
 
 import jogamp.common.Debug;
-import jogamp.common.PropertyAccess;
-
-import java.security.AccessController;
 
 /**
  * Specifying a thread blocking lock implementation
@@ -39,7 +36,7 @@ import java.security.AccessController;
 public interface Lock {
 
     /** Enable via the property <code>jogamp.debug.Lock.TraceLock</code> */
-    public static final boolean TRACE_LOCK = PropertyAccess.isPropertyDefined("jogamp.debug.Lock.TraceLock", true, AccessController.getContext());
+    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("jogamp.debug.Lock.TraceLock", true);
 
     /** Enable via the property <code>jogamp.debug.Lock</code> */
     public static final boolean DEBUG = Debug.debug("Lock");
@@ -52,7 +49,7 @@ public interface Lock {
      * and defaults to {@link #DEFAULT_TIMEOUT}.<br>
      * It can be overridden via the system property <code>jogamp.common.utils.locks.Lock.timeout</code>.
      */
-    public static final long TIMEOUT = PropertyAccess.getLongProperty("jogamp.common.utils.locks.Lock.timeout", true, AccessController.getContext(), DEFAULT_TIMEOUT);
+    public static final long TIMEOUT = Debug.getLongProperty("jogamp.common.utils.locks.Lock.timeout", true, DEFAULT_TIMEOUT);
 
     /**
      * Blocking until the lock is acquired by this Thread or {@link #TIMEOUT} is reached.

@@ -36,15 +36,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.AccessController;
+import java.security.AccessControlContext;
 import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
-import jogamp.common.Debug;
-import jogamp.common.PropertyAccess;
 import jogamp.common.os.android.StaticContext;
 
 import android.content.Context;
@@ -55,7 +53,10 @@ import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
-    private static final boolean DEBUG = Debug.isPropertyDefined("jogamp.debug.IOUtil", true, AccessController.getContext());
+    private static final boolean DEBUG = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil", true);
+    
+    /** Std. temporary directory property key <code>java.io.tmpdir</code> */
+    public static final String java_io_tmpdir_propkey = "java.io.tmpdir";
     
     private IOUtil() {}
     
@@ -475,12 +476,12 @@ public class IOUtil {
     
     /**
      * Utilizing {@link File#createTempFile(String, String, File)} using
-     * {@link #getTempRoot()} as the directory parameter, ie. location 
+     * {@link #getTempRoot(AccessControlContext)} as the directory parameter, ie. location 
      * of the root temp folder.
      * 
      * @see File#createTempFile(String, String)
      * @see File#createTempFile(String, String, File)
-     * @see #getTempRoot()
+     * @see #getTempRoot(AccessControlContext)
      * 
      * @param prefix
      * @param suffix
@@ -489,15 +490,18 @@ public class IOUtil {
      * @throws IOException
      * @throws SecurityException
      */
-    public static File createTempFile(String prefix, String suffix) 
+    public static File createTempFile(String prefix, String suffix, AccessControlContext acc) 
         throws IllegalArgumentException, IOException, SecurityException 
-    {
-        return File.createTempFile( prefix, suffix, getTempRoot() );
+    {        
+        return File.createTempFile( prefix, suffix, getTempRoot(acc) );
     }
     
     /**
+     * Returns a platform independent writable directory for temporary files. 
+     * <p>
      * On standard Java, the folder specified by <code>java.io.tempdir</code>
      * is returned.
+     * </p> 
      * <p>
      * On Android a <code>temp</code> folder relative to the applications local folder 
      * (see {@link Context#getDir(String, int)}) is returned, if
@@ -506,32 +510,39 @@ public class IOUtil {
      * This allows using the temp folder w/o the need for <code>sdcard</code>
      * access, which would be the <code>java.io.tempdir</code> location on Android!
      * </p>
-     * <p>
-     * The purpose of this <code>wrapper</code> is to allow unique code to be used
-     * for both platforms w/o the need to handle extra permissions.
-     * </p>
+     * @param acc The security {@link AccessControlContext} to access <code>java.io.tmpdir</code> 
      * 
-     * @throws SecurityException 
-     * @throws RuntimeException
-     * 
+     * @throws SecurityException if access to <code>java.io.tmpdir</code> is not allowed within the current security context
+     * @throws RuntimeException is the property <code>java.io.tmpdir</code> or the resulting temp directory is invalid
+     *  
+     * @see PropertyAccess#getProperty(String, boolean, java.security.AccessControlContext)
      * @see StaticContext#setContext(Context)
      * @see Context#getDir(String, int)
      */
-    public static File getTempRoot()
+    public static File getTempRoot(AccessControlContext acc)
         throws SecurityException, RuntimeException
     {
         if(AndroidVersion.isAvailable) {
             final Context ctx = StaticContext.getContext();
             if(null != ctx) {
                 final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
+                if(null==tmpRoot|| !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
+                    throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved Android static context");
+                }
                 if(DEBUG) {
                     System.err.println("IOUtil.getTempRoot(Android): temp dir: "+tmpRoot.getAbsolutePath());
                 }
                 return tmpRoot;
             }
         }
-        final String tmpRootName = PropertyAccess.getProperty("java.io.tmpdir", false, AccessController.getContext());
+        final String tmpRootName = PropertyAccess.getProperty(java_io_tmpdir_propkey, false, acc);
+        if(null == tmpRootName || 0 == tmpRootName.length()) {
+            throw new RuntimeException("Property '"+java_io_tmpdir_propkey+"' value is empty: <"+tmpRootName+">");
+        }
         final File tmpRoot = new File(tmpRootName);
+        if(null==tmpRoot || !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
+            throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved by propery '"+java_io_tmpdir_propkey+"'");
+        }
         if(DEBUG) {
             System.err.println("IOUtil.getTempRoot(isAndroid: "+AndroidVersion.isAvailable+"): temp dir: "+tmpRoot.getAbsolutePath());
         }
@@ -552,7 +563,7 @@ public class IOUtil {
      *      }
      *    }
      * </pre>
-     * The <code>tempRootDir</code> is retrieved by {@link #getTempRoot()}.
+     * The <code>tempRootDir</code> is retrieved by {@link #getTempRoot(AccessControlContext)}.
      * <p>
      * The iteration through [000000-999999] ensures that the code is multi-user save.
      * </p>
@@ -561,10 +572,10 @@ public class IOUtil {
      * @throws IOException
      * @throws SecurityException
      */
-    public static File getTempDir(String tmpDirPrefix)
+    public static File getTempDir(String tmpDirPrefix, AccessControlContext acc)
         throws IOException, SecurityException
     {
-       final File tempRoot = IOUtil.getTempRoot();
+       final File tempRoot = IOUtil.getTempRoot(acc);
        
        for(int i = 0; i<=999999; i++) {
            final String tmpDirSuffix = String.format("_%06d", i); // 6 digits for iteration

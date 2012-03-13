@@ -33,8 +33,10 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.security.AccessControlContext;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.SecurityUtil;
 
 import jogamp.common.Debug;
 
@@ -70,14 +72,16 @@ public class TempFileCache {
     private File individualTmpDir;
 
     static {
+        final AccessControlContext acc = SecurityUtil.getCommonAccessControlContext(TempFileCache.class);
+        
         // Global Lock !
-        synchronized (System.out) {
+        synchronized (System.out) {           
             // Create / initialize the temp root directory, starting the Reaper
             // thread to reclaim old installations if necessary. If we get an
             // exception, set an error code.
             File _tmpBaseDir = null;
-            try {            
-                _tmpBaseDir = IOUtil.getTempDir(tmpDirPrefix); // Retrieve the tmpbase directory.            
+            try {           
+                _tmpBaseDir = IOUtil.getTempDir(tmpDirPrefix, acc); // Retrieve the tmpbase directory.            
             } catch (Exception ex) {
                 System.err.println("Warning: Catched Exception while retrieving temp base directory:");
                 ex.printStackTrace();

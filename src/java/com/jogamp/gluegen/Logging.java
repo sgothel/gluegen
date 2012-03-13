@@ -31,14 +31,14 @@
  */
 package com.jogamp.gluegen;
 
-import java.security.AccessController;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import jogamp.common.PropertyAccess;
+import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 
 /**
  *
@@ -48,7 +48,7 @@ public class Logging {
 
     static void init() {
         final String packageName = Logging.class.getPackage().getName();        
-        final String property = PropertyAccess.getProperty(packageName+".level", true, AccessController.getContext()); 
+        final String property = PropertyAccess.getProperty(packageName+".level", true, SecurityUtil.getCommonAccessControlContext(Logging.class)); 
         Level level;
         if(property != null) {
             level = Level.parse(property);

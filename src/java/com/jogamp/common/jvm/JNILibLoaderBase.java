@@ -43,19 +43,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.security.AccessController;
-import java.security.AccessControlContext;
+import java.security.PrivilegedAction;
 import java.util.HashSet;
 
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
-import jogamp.common.PropertyAccess;
 
 public class JNILibLoaderBase {
-  public static final boolean DEBUG = Debug.debug("JNILibLoader");
-  private static final AccessControlContext localACC = AccessController.getContext();
+  public static final boolean DEBUG = Debug.debug("JNILibLoader");  
 
   public interface LoaderAction {
     /**
@@ -230,53 +230,57 @@ public class JNILibLoaderBase {
   static {
     final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
     final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
-    final boolean usingJNLPAppletLauncher = PropertyAccess.getBooleanProperty(sunAppletLauncherProperty, true, AccessController.getContext());    
     
-    Class<?> launcherClass = null;
-    Method loadLibraryMethod = null;
-
-    if (usingJNLPAppletLauncher) {
-        try {
-          launcherClass = Class.forName(sunAppletLauncherClassName);
-        } catch (ClassNotFoundException cnfe) {
-          // oops .. look like JNLPAppletLauncher doesn't exist, despite property 
-          // this may happen if a previous applet was using JNLPAppletLauncher in the same JVM
-          System.err.println("JNILibLoaderBase: <"+sunAppletLauncherClassName+"> not found, despite enabled property <"+sunAppletLauncherProperty+">, JNLPAppletLauncher was probably used before");
-          System.setProperty(sunAppletLauncherProperty, Boolean.FALSE.toString());
-        } catch (LinkageError le) {
-            throw le;
-        }
-        if(null != launcherClass) {
-           try {
-              loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-           } catch (NoSuchMethodException ex) {
-                if(DEBUG) {
-                    ex.printStackTrace();
-                }
-                launcherClass = null;
-           }
-        }
-    }
+    final Method loadLibraryMethod = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+        public Method run() {
+            final boolean usingJNLPAppletLauncher = Debug.getBooleanProperty(sunAppletLauncherProperty, true); 
     
-    if(null==launcherClass) {
-        String launcherClassName = Debug.getProperty("jnlp.launcher.class", false, localACC);
-        if(null!=launcherClassName) {
-            try {
-                launcherClass = Class.forName(launcherClassName);
-                loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-            } catch (ClassNotFoundException ex) {
-                if(DEBUG) {
-                    ex.printStackTrace();
+            Class<?> launcherClass = null;
+            Method loadLibraryMethod = null;
+        
+            if (usingJNLPAppletLauncher) {
+                try {
+                  launcherClass = Class.forName(sunAppletLauncherClassName);
+                } catch (ClassNotFoundException cnfe) {
+                  // oops .. look like JNLPAppletLauncher doesn't exist, despite property 
+                  // this may happen if a previous applet was using JNLPAppletLauncher in the same JVM
+                  System.err.println("JNILibLoaderBase: <"+sunAppletLauncherClassName+"> not found, despite enabled property <"+sunAppletLauncherProperty+">, JNLPAppletLauncher was probably used before");
+                  System.setProperty(sunAppletLauncherProperty, Boolean.FALSE.toString());
+                } catch (LinkageError le) {
+                    throw le;
                 }
-            } catch (NoSuchMethodException ex) {
-                if(DEBUG) {
-                    ex.printStackTrace();
+                if(null != launcherClass) {
+                   try {
+                      loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+                   } catch (NoSuchMethodException ex) {
+                        if(DEBUG) {
+                            ex.printStackTrace();
+                        }
+                        launcherClass = null;
+                   }
                 }
-                launcherClass = null;
             }
-        }
-    }
-    // customLauncherClass = launcherClass;
+            
+            if(null==launcherClass) {
+                String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false, null);
+                if(null!=launcherClassName) {
+                    try {
+                        launcherClass = Class.forName(launcherClassName);
+                        loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
+                    } catch (ClassNotFoundException ex) {
+                        if(DEBUG) {
+                            ex.printStackTrace();
+                        }
+                    } catch (NoSuchMethodException ex) {
+                        if(DEBUG) {
+                            ex.printStackTrace();
+                        }
+                        launcherClass = null;
+                    }
+                }
+            }
+            return loadLibraryMethod;
+        } } );
     customLoadLibraryMethod = loadLibraryMethod;
   }
 

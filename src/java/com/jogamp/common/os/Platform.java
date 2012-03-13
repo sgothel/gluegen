@@ -41,7 +41,7 @@ import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
-import jogamp.common.PropertyAccess;
+import jogamp.common.Debug;
 import jogamp.common.jvm.JVMUtil;
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -205,7 +205,7 @@ public class Platform {
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
         
         USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
-                             PropertyAccess.getBooleanProperty(useTempJarCachePropName, true, AccessController.getContext(), true);
+                             Debug.getBooleanProperty(useTempJarCachePropName, true, true);
         
         loadGlueGenRTImpl();
         JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
