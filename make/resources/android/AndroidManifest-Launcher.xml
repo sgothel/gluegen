@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+      sharedUserId="com.jogamp.Community" 
+      package="jogamp.android.launcher">
+
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- required for NV's perfhud -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- required for Android trace -->
+
+    <uses-sdk android:minSdkVersion="9" />
+
+    <application android:icon="@drawable/icon" 
+                 android:label="@string/app_launcher_name"
+                 android:description="@string/app_launcher_descr"
+                 android:persistent="false"
+                 >
+        <activity android:name="jogamp.android.launcher.ActivityLauncher"
+                  android:finishOnTaskLaunch="false"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation|screenLayout"
+                  android:label="@string/activity_l_name"
+                  android:description="@string/activity_l_descr"
+                  android:exported="true"
+                  >
+                  <!-- android:configChanges="keyboardHidden|orientation|screenLayout|screenSize" -->
+            <intent-filter>
+                <action android:name="org.jogamp.launcher.action.LAUNCH_ACTIVITY_NORMAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="launch" android:host="jogamp.org"/>
+            </intent-filter>
+        </activity>
+        <activity android:name="jogamp.android.launcher.ActivityLauncher"
+                  android:finishOnTaskLaunch="false"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation|screenLayout"
+                  android:label="@string/activity_l_name"
+                  android:description="@string/activity_l_descr"
+                  android:exported="true"
+                  android:theme="@style/Theme.Transparent"
+                  >
+                  <!--
+                  android:configChanges="keyboardHidden|orientation|screenLayout|screenSize" 
+                  android:theme="@style/Theme.Transparent"
+                  android:theme="@android:style/Theme_NoDisplay"
+                  android:theme="@android:style/Theme.Translucent"
+                  -->
+            <intent-filter>
+                <action android:name="org.jogamp.launcher.action.LAUNCH_ACTIVITY_TRANSPARENT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="launch" android:host="jogamp.org"/>
+            </intent-filter>
+        </activity>
+    </application>
+
+</manifest>

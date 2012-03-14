@@ -103,6 +103,11 @@
       <pathelement location="${antlr.jar}" />
     </path>
     
+    <!-- Create the classpath for compiling Android only stuff. -->
+    <path id="android.classpath">
+      <pathelement location="${android.jar}"/>
+    </path>
+    
     <!-- Create the classpath for compiling GlueGen. 
          This requires the user-defined "antlr.jar" property. -->
     <path id="gluegencompile.classpath">
@@ -132,7 +137,8 @@
     <property name="archive.name"     value="gluegen-${gluegen.version}-${os.and.arch}" />
     <property name="archive"          value="${build}/${archive.name}" />
 
-    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig}" />
+    <property name="jogamp.android-launcher.classes" value="jogamp/android/launcher/**"/>
+    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes}" />
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
   </target>
@@ -519,7 +525,7 @@
   <!--
     - Build GlueGen.
     -->
-  <target name="pre-build">
+  <target name="generate-hash-maps">
 
     <!-- Int*Maps -->
     <antcall target="create-map" inheritrefs="true">
@@ -589,7 +595,7 @@
   </target>
 
   <target name="gluegen.build.java" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
-    <antcall target="pre-build"  inheritRefs="true"/>
+    <antcall target="generate-hash-maps"  inheritRefs="true"/>
 
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
@@ -687,6 +693,8 @@
     <jar destfile="${build}/gluegen.jar" manifest="${build}/Manifest.temp">
       <fileset dir="${classes}">
         <include name="**/*.class" />
+        <exclude name="jogamp/common/os/android/**" />
+        <exclude name="${jogamp.android-launcher.classes}" />
       </fileset>
     </jar>
 
@@ -707,6 +715,7 @@
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
+        <exclude name="${jogamp.android-launcher.classes}" />
       </fileset>
     </jar>
 
@@ -727,6 +736,60 @@
     </copy>
   </target>
   
+  <target name="gluegen.build.check.android-launcher" depends="init">
+      <uptodate property="gluegen.build.skip.android-launcher">
+        <srcfiles dir= "."            includes="*.xml"/>
+        <srcfiles dir= "resources/android" includes="**/*.xml"/>
+        <srcfiles dir= "${src.java}/jogamp/android/launcher"  includes="**"/>
+        <mapper type="merge" to="${build}/jogamp.android-launcher.jar"/>
+      </uptodate>
+  </target>
+
+  <target name="android-launcher.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check.android-launcher" if="isAndroid" unless="gluegen.build.skip.android-launcher">
+    <javac destdir="${classes}"
+           includeAntRuntime="false"
+           includes="${jogamp.android-launcher.classes}"
+           memoryMaximumSize="${javac.memorymax}"
+           encoding="UTF-8"
+           source="${target.sourcelevel}" 
+           target="${target.targetlevel}" 
+           bootclasspath="${target.rt.jar}"
+           debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+      <src path="${src.java}" />
+      <classpath refid="android.classpath" />
+    </javac>
+
+    <copy file="Manifest-android-launcher"
+          tofile="${build}/Manifest-android-launcher.temp"
+          overwrite="true">
+        <filterset>
+            <filter token="VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
+            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+        </filterset>
+    </copy>
+
+    <jar destfile="${build}/jogamp.android-launcher.jar" manifest="${build}/Manifest-android-launcher.temp">
+      <fileset dir="${classes}">
+        <include name="${jogamp.android-launcher.classes}" />
+      </fileset>
+    </jar>
+
+    <aapt.signed 
+        jarbuilddir="${build}"
+        jarbasename="jogamp.android-launcher"
+        nativebuilddir="${build}"
+        nativebasename="non-existing"
+        android.abi="${android.abi}"
+        androidmanifest.path="resources/android/AndroidManifest-Launcher.xml"
+        androidresources.path="resources/android/res"
+        jarmanifest.path="${build}/Manifest-rt.temp"
+        version.code="${gluegen_int_version}"
+        version.name="${gluegen.version.plus}"
+      />
+  </target>
+
   <target name="gluegen.build.check.aapt" depends="init">
       <uptodate property="gluegen.build.skip.aapt">
         <srcfiles dir= "."                includes="*.xml"/>
@@ -751,24 +814,10 @@
         version.name="${gluegen.version.plus}"
       />
 
-    <!-- No need for a GlueGen Compile Time library on Android -->
-    <!-- aapt.signed 
-        jarbuilddir="${build}"
-        jarbasename="gluegen"
-        nativebuilddir="${gluegen.lib.dir}"
-        nativebasename="gluegen-rt"
-        android.abi="${android.abi}"
-        androidmanifest.path="resources/android/AndroidManifest-CompileTime.xml"
-        androidresources.path="resources/android/res"
-        jarmanifest.path="${build}/Manifest.temp"
-        version.code="${gluegen_int_version}"
-        version.name="${gluegen.version.plus}"
-      /-->
-
   </target>
 
   <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
-                              depends="init, gluegen.build.java, gluegen.build.c" />
+                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.c" />
 
   <target name="all.no_junit" description="Release build" depends="init, base.compile, tag.build, android.package, developer-zip-archive" />
   <target name="all" description="Release build" depends="init, base.compile, tag.build, junit.compile, android.package, developer-zip-archive" />

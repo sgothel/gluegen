@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">GlueGen Activity is Greeting You.</string>
-    <string name="app_name">JogAmp\'s GlueGen Library</string>
-    <string name="app_descr">Contains Dalvik and native code, supporting native bindings.</string>
+    <string name="app_launcher_name">JogAmp\'s Launcher</string>
+    <string name="app_launcher_descr">Provides daisy chained classloader and Activity delegation.</string>
+    <string name="app_runtime_name">JogAmp\'s GlueGen Library</string>
+    <string name="app_runtime_descr">Contains Dalvik and native code, supporting native bindings.</string>
+    <string name="app_test_name">JogAmp\'s GlueGen Tests</string>
+    <string name="app_test_descr">GlueGen tests.</string>
     <string name="activity_v_name">GlueGen\'s Version</string>
     <string name="activity_v_descr">Shows the version of the GlueGen Library.</string>
+    <string name="activity_l_name">JogAmp Launcher</string>
+    <string name="activity_l_descr">Launches an arbitrary user Activity class file, utilizing daisy chaining.</string>
 </resources>

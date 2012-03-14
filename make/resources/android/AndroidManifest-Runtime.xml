@@ -6,8 +6,8 @@
     <uses-sdk android:minSdkVersion="9" />
 
     <application android:icon="@drawable/icon" 
-                 android:label="@string/app_name"
-                 android:description="@string/app_descr"
+                 android:label="@string/app_runtime_name"
+                 android:description="@string/app_runtime_descr"
                  android:persistent="false"
                  >
         <activity android:name="jogamp.common.os.android.GluegenVersionActivity"
