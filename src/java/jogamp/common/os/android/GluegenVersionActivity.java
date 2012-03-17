@@ -27,6 +27,7 @@
  */
 package jogamp.common.os.android;
 
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
@@ -43,7 +44,7 @@ public class GluegenVersionActivity extends Activity {
    public void onCreate(Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
-       StaticContext.setContext(this.getApplicationContext());
+       StaticContext.init(this.getApplicationContext());
        tv = new TextView(this);
        tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+Platform.NEWLINE);               
        setContentView(tv);
@@ -109,7 +110,7 @@ public class GluegenVersionActivity extends Activity {
          tv.append("> destroyed"+Platform.NEWLINE);
      }
      Log.d(MD.TAG, "onDestroy - x");
-     StaticContext.setContext(null);
+     StaticContext.clear();
      super.onDestroy();  
      Log.d(MD.TAG, "onDestroy - X");
    }   

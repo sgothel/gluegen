@@ -1,0 +1,3 @@
+Relative Data To com/jogamp/common/net/data/AssetURLConnectionTest 
+
+This file exists for test purposes.

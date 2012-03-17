@@ -32,9 +32,9 @@ public class AndroidVersion {
     
     static {
         final ClassLoader cl = AndroidVersion.class.getClassLoader();
-        Class abvClass = null;
+        Class<?> abvClass = null;
         Object abvObject= null;
-        Class abvcClass = null;
+        Class<?> abvcClass = null;
         Object abvcObject= null;
         try {
             abvClass = ReflectionUtil.getClass(androidBuildVersion, true, cl);
@@ -50,7 +50,7 @@ public class AndroidVersion {
             SDK_INT = getInt(abvClass, abvObject, "SDK_INT");
             VERSION_CODES = getVersionCodes(abvcClass, abvcObject);
             String sdk_name = VERSION_CODES.get(new Integer(SDK_INT));
-            SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ; 
+            SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ;
         } else {
             CODENAME = null;
             INCREMENTAL = null;
@@ -61,7 +61,7 @@ public class AndroidVersion {
         }
     }
     
-    private static final Map<Integer, String> getVersionCodes(Class cls, Object obj) {
+    private static final Map<Integer, String> getVersionCodes(Class<?> cls, Object obj) {
         HashMap<Integer, String> map = new HashMap<Integer, String>();
         Field[] fields = cls.getFields();
         for(int i=0; i<fields.length; i++) {
@@ -75,7 +75,7 @@ public class AndroidVersion {
         return map;
     }
     
-    private static final String getString(Class cls, Object obj, String name) {
+    private static final String getString(Class<?> cls, Object obj, String name) {
         try {
             Field f = cls.getField(name);
             return (String) f.get(obj);
@@ -83,7 +83,7 @@ public class AndroidVersion {
         return null;
     }
 
-    private static final int getInt(Class cls, Object obj, String name) {
+    private static final int getInt(Class<?> cls, Object obj, String name) {
         try {
             Field f = cls.getField(name);
             return f.getInt(obj);

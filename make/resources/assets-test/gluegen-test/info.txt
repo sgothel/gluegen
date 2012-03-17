@@ -1,0 +1,3 @@
+Gluegen Test Asset.
+
+This file exists for test purposes.

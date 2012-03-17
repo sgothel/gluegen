@@ -37,7 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.AccessControlContext;
-import java.net.JarURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -48,6 +47,7 @@ import jogamp.common.os.android.StaticContext;
 
 import android.content.Context;
 
+import com.jogamp.common.net.AssetURLContext;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.MachineDescription;
@@ -68,24 +68,43 @@ public class IOUtil {
      */
     
     /**
-     * Copy the specified input stream to the specified output file. The total
+     * Copy the specified URL resource to the specified output file. The total
      * number of bytes written is returned. Both streams are closed upon completion.
+     * 
+     * @param conn the open URLConnection 
+     * @param outFile the destination
+     * @return
+     * @throws IOException
      */
-    public static int copyURL2File(URL url, File outFile) throws IOException {
-        URLConnection conn = url.openConnection();
-        conn.connect();        
+    public static int copyURLConn2File(URLConnection conn, File outFile) throws IOException {
+        conn.connect();  // redundant     
 
         int totalNumBytes = 0;
         InputStream in = new BufferedInputStream(conn.getInputStream());
         try {
-            OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
-            try {
-                totalNumBytes = copyStream2Stream(in, out, conn.getContentLength());
-            } finally {
-                out.close();
-            }
+            totalNumBytes = copyStream2File(in, outFile, conn.getContentLength());
         } finally {
             in.close();
+        }
+        return totalNumBytes;
+    }
+
+    /**
+     * Copy the specified input stream to the specified output file. The total
+     * number of bytes written is returned. Both streams are closed upon completion.
+     * 
+     * @param in the source 
+     * @param outFile the destination
+     * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown 
+     * @return
+     * @throws IOException
+     */
+    public static int copyStream2File(InputStream in, File outFile, int totalNumBytes) throws IOException {
+        OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
+        try {
+            totalNumBytes = copyStream2Stream(in, out, totalNumBytes);
+        } finally {
+            out.close();
         }
         return totalNumBytes;
     }
@@ -301,103 +320,88 @@ public class IOUtil {
      */
     
     /**
-     * Locating a resource using 'getResource(String path, ClassLoader cl)',
-     * with the 
+     * Locating a resource using {@link #getResource(String, ClassLoader)}:
      * <ul>
-     *   <li>context's package name-path plus the resourcePath (incl. JAR/Applets)</li>
-     *   <li>context's ClassLoader and the resourcePath as is (filesystem)</li>
+     *   <li><i>relative</i>: <code>context</code>'s package name-path plus <code>resourcePath</code> via <code>context</code>'s ClassLoader. This allows locations relative to JAR- and other URLs. </li>
+     *   <li><i>absolute</i>: <code>context</code>'s ClassLoader and the <code>resourcePath</code> as is (filesystem)</li>
      * </ul>
      *
+     * <p>
+     * Returns the resolved and open URLConnection or null if not found.
+     * </p>
+     * 
      * @see #getResource(String, ClassLoader)
+     * @see ClassLoader#getResource(String)
+     * @see ClassLoader#getSystemResource(String)
      */
-    public static URL getResource(Class<?> context, String resourcePath) {
+    public static URLConnection getResource(Class<?> context, String resourcePath) {
         if(null == resourcePath) {
             return null;
         }
-        ClassLoader contextCL = (null!=context)?context.getClassLoader():null;
-        URL url = null;
+        ClassLoader contextCL = (null!=context)?context.getClassLoader():IOUtil.class.getClassLoader();
+        URLConnection conn = null;
         if(null != context) {
             // scoping the path within the class's package
             String className = context.getName().replace('.', '/');
             int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
                 String tmpPath = className.substring(0, lastSlash + 1) + resourcePath;
-                url = getResource(tmpPath, contextCL);
+                conn = getResource(tmpPath, contextCL);
             }
             if(DEBUG) {
-                System.err.println("IOUtil: found <"+resourcePath+"> within class package: "+(null!=url));
+                System.err.println("IOUtil: found <"+resourcePath+"> within class package: "+(null!=conn));
             }
         } else if(DEBUG) {
             System.err.println("IOUtil: null context");
         }
-        if(null == url) {        
-            url = getResource(resourcePath, contextCL);
+        if(null == conn) {
+            conn = getResource(resourcePath, contextCL);
             if(DEBUG) {
-                System.err.println("IOUtil: found <"+resourcePath+"> by classloader: "+(null!=url));
+                System.err.println("IOUtil: found <"+resourcePath+"> by classloader: "+(null!=conn));
             }
         }
-        return url;
+        return conn;
     }
 
     /**
-     * Locating a resource using the ClassLoader's facility if not null,
-     * the absolute URL and absolute file.
+     * Locating a resource using the ClassLoader's facilities.
+     * <p>
+     * Returns the resolved and connected URLConnection or null if not found.
+     * </p>
      *
      * @see ClassLoader#getResource(String)
      * @see ClassLoader#getSystemResource(String)
      * @see URL#URL(String)
      * @see File#File(String)
      */
-    public static URL getResource(String resourcePath, ClassLoader cl) {
+    public static URLConnection getResource(String resourcePath, ClassLoader cl) {
         if(null == resourcePath) {
             return null;
         }
         if(DEBUG) {
             System.err.println("IOUtil: locating <"+resourcePath+">, has cl: "+(null!=cl));
         }
-        URL url = null;
-        if (cl != null) {
-            url = cl.getResource(resourcePath);
-            if(!urlExists(url, "cl.getResource()")) {
-                url = null;
-            }
-        }
-        if(null == url) {
-            url = ClassLoader.getSystemResource(resourcePath);
-            if(!urlExists(url, "cl.getSystemResource()")) {
-                url = null;
-            }
-        }
-        if(null == url) {
+        if(resourcePath.startsWith(AssetURLContext.asset_protocol_prefix)) {
             try {
-                url = new URL(resourcePath);
-                if(!urlExists(url, "new URL()")) {
-                    url = null;
-                }
-            } catch (Throwable e) { 
+                return AssetURLContext.createURL(resourcePath, cl).openConnection();
+            } catch (IOException ioe) {
                 if(DEBUG) {
                     System.err.println("IOUtil: Catched Exception:");
-                    e.printStackTrace();
-                }                
-            }
-        }
-        if(null == url) {
-            try {
-                File file = new File(resourcePath);
-                if(file.exists()) {
-                    url = toURLSimple(file);
+                    ioe.printStackTrace();
                 }
-            } catch (Throwable e) {
+                return null;
+            }
+        } else {
+            try {
+                return AssetURLContext.resolve(resourcePath, cl);
+            } catch (IOException ioe) {
                 if(DEBUG) {
                     System.err.println("IOUtil: Catched Exception:");
-                    e.printStackTrace();
+                    ioe.printStackTrace();
                 }
             }
-            if(DEBUG) {
-                System.err.println("IOUtil: file.exists("+resourcePath+") - "+(null!=url));
-            }
         }
-        return url;
+        return null;
     }
 
     /**
@@ -411,11 +415,11 @@ public class IOUtil {
             return null;
         }
         
-        while (baseLocation != null && relativeFile.startsWith("../")) {
-            baseLocation = baseLocation.getParentFile();
-            relativeFile = relativeFile.substring(3);
-        }
         if (baseLocation != null) {
+            while (relativeFile.startsWith("../")) {
+                baseLocation = baseLocation.getParentFile();
+                relativeFile = relativeFile.substring(3);
+            }
             final File file = new File(baseLocation, relativeFile);
             // Handle things on Windows
             return slashify(file.getPath(), false, false);
@@ -424,55 +428,119 @@ public class IOUtil {
     }
 
     /**
-     * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
-     * 
-     * @param baseLocation denotes a URL to a file
-     * @param relativeFile denotes a relative file to the baseLocation's parent directory
+     * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
+     * @return parent of path
+     * @throws MalformedURLException if path is empty or has parent directory available 
      */
-    public static String getRelativeOf(URL baseLocation, String relativeFile) {    
-        String urlPath = baseLocation.getPath();
-        
-        if ( baseLocation.toString().startsWith("jar") ) {
-            JarURLConnection jarConnection;
-            try {
-                jarConnection = (JarURLConnection) baseLocation.openConnection();
-                urlPath = jarConnection.getEntryName();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return null;
-            }
+    public static String getParentOf(String path) throws MalformedURLException {
+        final int pl = null!=path ? path.length() : 0;
+        if(pl == 0) {
+            throw new MalformedURLException("path is empty <"+path+">");
         }
         
-        // Try relative path first
-        return getRelativeOf(new File(urlPath).getParentFile(), relativeFile);       
+        final int e = path.lastIndexOf("/");
+        if( e < 0 ) {
+            throw new MalformedURLException("path contains no '/' <"+path+">");
+        }
+        if( e == 0 ) {
+            // path is root directory
+            throw new MalformedURLException("path has no parents <"+path+">");
+        }
+        if( e <  pl - 1 ) {
+            // path is file, return it's parent directory
+            return path.substring(0, e+1);
+        }
+        final int j = path.lastIndexOf("!") + 1; // '!' Separates JARFile entry -> local start of path 
+        // path is a directory ..
+        final int p = path.lastIndexOf("/", e-1);
+        if( p >= j) {
+            return path.substring(0, p+1);
+        }
+        throw new MalformedURLException("parent of path contains no '/' <"+path+">");
     }
     
     /**
-     * Returns true, if the URL exists and a connection could be opened.
+     * Generates a path for the 'relativeFile' relative to the 'baseLocation',
+     * hence the result is a absolute location.
+     * 
+     * @param baseLocation denotes a URL to a directory if ending w/ '/', otherwise we assume a file
+     * @param relativeFile denotes a relative file to the baseLocation's parent directory
+     * @throws MalformedURLException 
      */
-    public static boolean urlExists(URL url) {
-        return urlExists(url, ".");
+    public static URL getRelativeOf(URL baseLocation, String relativeFile) throws MalformedURLException {    
+        final String scheme = baseLocation.getProtocol();
+        final String auth = baseLocation.getAuthority();
+        String path = baseLocation.getPath();
+        String query = baseLocation.getQuery();
+        String fragment = baseLocation.getRef();
+        
+        if(!path.endsWith("/")) {
+            path = getParentOf(path);
+        }
+        while (relativeFile.startsWith("../")) {
+            path = getParentOf(path);
+            relativeFile = relativeFile.substring(3);
+        }
+        return compose(scheme, auth, path, relativeFile, query, fragment);
     }
     
-    public static boolean urlExists(URL url, String dbgmsg) {
-        boolean v = false;
+    public static URL compose(String scheme, String auth, String path1, String path2, String query, String fragment) throws MalformedURLException {
+        StringBuffer sb = new StringBuffer();
+        if(null!=scheme) {
+            sb.append(scheme);
+            sb.append(":");
+        }
+        if(null!=auth) {
+            sb.append("//");
+            sb.append(auth);
+        }
+        if(null!=path1) {
+            sb.append(path1);
+        }
+        if(null!=path2) {
+            sb.append(path2);
+        }
+        if(null!=query) {
+            sb.append("?");
+            sb.append(query);
+        }
+        if(null!=fragment) {
+            sb.append("#");
+            sb.append(fragment);
+        }
+        return new URL(sb.toString());
+    }    
+    
+    /**
+     * Returns the connected URLConnection, or null if not url is not available
+     */
+    public static URLConnection openURL(URL url) {
+        return openURL(url, ".");
+    }
+    
+    /**
+     * Returns the connected URLConnection, or null if not url is not available
+     */
+    public static URLConnection openURL(URL url, String dbgmsg) {
         if(null!=url) {
             try {
-                url.openConnection();
-                v = true;
+                final URLConnection c = url.openConnection();
+                c.connect(); // redundant
                 if(DEBUG) {
                     System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - true");
                 }
+                return c;
             } catch (IOException ioe) { 
                 if(DEBUG) {
-                    System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - false: "+ioe.getMessage());
+                    System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - false - "+ioe.getClass().getSimpleName()+": "+ioe.getMessage());
+                    ioe.printStackTrace();
                 }                
             }
         } else if(DEBUG) {
             System.err.println("IOUtil: no url - urlExists(null) ["+dbgmsg+"]");
         }                
         
-        return v;
+        return null;
     }
     
     /**
@@ -507,7 +575,7 @@ public class IOUtil {
      * On Android a <code>temp</code> folder relative to the applications local folder 
      * (see {@link Context#getDir(String, int)}) is returned, if
      * the Android application/activity has registered it's Application Context
-     * via {@link StaticContext#setContext(Context)}.
+     * via {@link StaticContext#init(Context, ClassLoader)}.
      * This allows using the temp folder w/o the need for <code>sdcard</code>
      * access, which would be the <code>java.io.tempdir</code> location on Android!
      * </p>
@@ -517,7 +585,7 @@ public class IOUtil {
      * @throws RuntimeException is the property <code>java.io.tmpdir</code> or the resulting temp directory is invalid
      *  
      * @see PropertyAccess#getProperty(String, boolean, java.security.AccessControlContext)
-     * @see StaticContext#setContext(Context)
+     * @see StaticContext#init(Context, ClassLoader)
      * @see Context#getDir(String, int)
      */
     public static File getTempRoot(AccessControlContext acc)

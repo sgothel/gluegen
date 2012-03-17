@@ -51,7 +51,7 @@ public class LauncherMain {
        userPackageNames.add("com.jogamp.opengl.test");
        Looper.prepareMainLooper();
        ActivityGroup activityGroup = new ActivityGroup(true);
-       ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(activityGroup, getUserPackageNames());
+       ClassLoader cl = ClassLoaderUtil.createClassLoader(activityGroup, getUserPackageNames(), false);
        if(null != cl) {
            Class<?>  activityClazz = Class.forName(getUserActivityName(), true, cl);
            Intent intent = new Intent(activityGroup, activityClazz);

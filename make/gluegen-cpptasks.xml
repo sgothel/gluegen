@@ -44,7 +44,7 @@
 
   <property name="gluegen-cpptasks.file.abs-path" location="${gluegen-cpptasks.file.rel}" />
 
-  <echo message="gluegen-cpptasks.file.abs-path: ${gluegen-cpptasks.file.abs-path}" />
+  <!--echo message="gluegen-cpptasks.file.abs-path: ${gluegen-cpptasks.file.abs-path}" /-->
   <import file="${gluegen-cpptasks.file.abs-path}" optional="false" />
 
 </project>

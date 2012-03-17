@@ -8,10 +8,22 @@ if [ -z "$builddir" ] ; then
     exit 1
 fi
 
+if [ -e /opt-share/apache-ant ] ; then
+    ANT_PATH=/opt-share/apache-ant
+    PATH=$ANT_PATH/bin:$PATH
+    export ANT_PATH
+fi
 if [ -z "$ANT_PATH" ] ; then
     TMP_ANT_PATH=$(dirname `which ant`)/..
     if [ -e $TMP_ANT_PATH/lib/ant.jar ] ; then
         ANT_PATH=$TMP_ANT_PATH
+        export ANT_PATH
+        echo autosetting ANT_PATH to $ANT_PATH
+    fi
+fi
+if [ -z "$ANT_PATH" ] ; then
+    if [ -e /usr/share/ant/bin/ant -a -e /usr/share/ant/lib/ant.jar ] ; then
+        ANT_PATH=/usr/share/ant
         export ANT_PATH
         echo autosetting ANT_PATH to $ANT_PATH
     fi
@@ -37,6 +49,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
+D_ARGS="-Djogamp.debug.IOUtil"
 
 function onetest() {
     clazz=$1
@@ -71,5 +84,8 @@ function onetest() {
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
+onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG

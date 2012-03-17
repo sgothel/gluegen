@@ -32,7 +32,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import android.app.Activity;
-import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -42,7 +41,7 @@ public class ActivityLauncher extends Activity {
    static final String TAG = "NEWTLauncherActivity";
    TextView tv = null;
    Method mOnCreate, mOnDestroy, mOnPause, mOnRestart, mOnResume, 
-          mOnStart, mOnStop, mSetIsInvokedByExternalActivity;
+          mOnStart, mOnStop, mSetRootActivity;
    Class<?> activityClazz = null;
    Object activityObject  = null;
    
@@ -55,7 +54,7 @@ public class ActivityLauncher extends Activity {
        final LauncherUtil.DataSet data = LauncherUtil.DataSet.create(uri);
        data.setSystemProperties();
 
-       ClassLoader cl = ClassLoaderUtil.createJogampClassLoaderSingleton(this, data.getPackages());
+       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getPackages(), false);
        if(null != cl) {
            try {
                activityClazz = Class.forName(data.getActivityName(), true, cl);
@@ -69,7 +68,7 @@ public class ActivityLauncher extends Activity {
                mOnResume = activityClazz.getMethod("onResume");
                mOnStart = activityClazz.getMethod("onStart");
                mOnStop = activityClazz.getMethod("onStop");
-               mSetIsInvokedByExternalActivity = activityClazz.getMethod("setIsInvokedByExternalActivity", Activity.class);
+               mSetRootActivity = activityClazz.getMethod("setRootActivity", Activity.class);
            } catch (Exception e) {
                Log.d(TAG, "error: "+e, e);
                throw new RuntimeException(e);
@@ -78,13 +77,13 @@ public class ActivityLauncher extends Activity {
 
        if( null == mOnCreate || null == mOnDestroy || null == mOnPause ||
            null == mOnRestart || null == mOnResume ||
-           null == mSetIsInvokedByExternalActivity ) {
+           null == mSetRootActivity ) {
            RuntimeException e = new RuntimeException("XXX - incomplete method set");
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
        
-       callMethod(activityObject, mSetIsInvokedByExternalActivity, this);
+       callMethod(activityObject, mSetRootActivity, this);
        
        callMethod(activityObject, mOnCreate, savedInstanceState);
        Log.d(TAG, "onCreate - X");

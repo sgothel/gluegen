@@ -696,6 +696,9 @@
         <exclude name="jogamp/common/os/android/**" />
         <exclude name="${jogamp.android-launcher.classes}" />
       </fileset>
+      <fileset dir="resources/assets">
+        <include name="**" />
+      </fileset>
     </jar>
 
     <copy file="Manifest-rt"
@@ -716,6 +719,9 @@
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
         <exclude name="${jogamp.android-launcher.classes}" />
+      </fileset>
+      <fileset dir="resources/assets">
+        <include name="**" />
       </fileset>
     </jar>
 
@@ -749,6 +755,7 @@
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${jogamp.android-launcher.classes}"
+           excludes="${jogamp.common.classes}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
            source="${target.sourcelevel}" 
@@ -777,6 +784,7 @@
     </jar>
 
     <aapt.signed 
+        assetsdir="resources/android/assets-launcher"
         jarbuilddir="${build}"
         jarbasename="jogamp.android-launcher"
         nativebuilddir="${build}"
@@ -802,6 +810,7 @@
   <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.aapt" if="isAndroid" unless="gluegen.build.skip.aapt" >
 
     <aapt.signed 
+        assetsdir="resources/assets"
         jarbuilddir="${build}"
         jarbasename="gluegen-rt"
         nativebuilddir="${gluegen.lib.dir}"
@@ -813,7 +822,6 @@
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}"
       />
-
   </target>
 
   <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 

@@ -131,11 +131,15 @@
           <fileset dir="${build_t.java}">
             <include name="${test.junit.rel}/**/*.class"/>
           </fileset>
+          <fileset dir="resources/assets-test">
+            <include name="**" />
+          </fileset>
         </jar>
     </target>
 
     <target name="android.package" depends="java.build,native.build" if="isAndroid">
         <aapt.signed 
+            assetsdir="resources/assets-test"
             jarbuilddir="${build_t}"
             jarbasename="gluegen-test"
             nativebuilddir="${build_t.lib}"

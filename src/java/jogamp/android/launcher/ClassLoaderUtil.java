@@ -29,29 +29,62 @@
 package jogamp.android.launcher;
 
 import java.io.File;
-import java.lang.ref.WeakReference;
-import java.lang.reflect.Field;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.util.Log;
-import dalvik.system.DexClassLoader;
 
 public class ClassLoaderUtil {
    private static final String TAG = "JogampClassLoader";
    
-   public static final String packageGlueGen = "com.jogamp.common";       
-   public static final String packageJogl = "javax.media.opengl";   // FIXME: a 'performance' hack
+   // FIXME: Need to generalize this .. (Note: native lib resources must be cached!)
+   private static final String[] packagesJogAmp = { "com.jogamp.common", "javax.media.opengl" };   
+   private static ClassLoader jogAmpClassLoader = null;
    
-   public static final String dexPathName= "jogampDex";
+   // location where optimized dex files will be written
+   private static final String dexPathName= "jogampDex";
+   private static File dexPath = null; 
    
    private static LauncherTempFileCache tmpFileCache = null;
-   private static ClassLoader jogAmpClassLoader = null;
+   
+   private static final String PATH_SEP = "/";
+   private static final String ELEM_SEP = ":";
+   
+   private static synchronized void init(Context ctx) {
+       if(null == tmpFileCache) {
+           if(!LauncherTempFileCache.initSingleton(ctx)) {
+               throw new InternalError("TempFileCache initialization error");
+           }
+           tmpFileCache = new LauncherTempFileCache();
+           if(!tmpFileCache.isValid()) {
+               throw new InternalError("TempFileCache instantiation error");                
+           }           
+           dexPath = new File(tmpFileCache.getTempDir(), dexPathName);
+           Log.d(TAG, "jogamp dexPath: " + dexPath.getAbsolutePath());
+           dexPath.mkdir();
+       }       
+   }
+   
+   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, boolean addLibPath) {       
+       return createClassLoader(ctx, userPackageNames, addLibPath, null); 
+   }
+   
+   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, 
+                                                            boolean addLibPath, ClassLoader parent) {
+       init(ctx);
+       
+       if(null==jogAmpClassLoader) {           
+           jogAmpClassLoader = createClassLoaderImpl(ctx, Arrays.asList(packagesJogAmp), true, 
+                                                     (null != parent ) ? parent : ctx.getClassLoader());
+       }
+       parent =  jogAmpClassLoader;
+       
+       return createClassLoaderImpl(ctx, userPackageNames, addLibPath, jogAmpClassLoader); 
+   }
    
    /**
     * 
@@ -59,59 +92,20 @@ public class ClassLoaderUtil {
     * @param userPackageNames list of user package names, the last entry shall reflect the Activity
     * @return
     */
-   public static synchronized ClassLoader createJogampClassLoaderSingleton(Context ctx, List<String> userPackageNames) {
-       if(null==jogAmpClassLoader) {
-           if(null!=tmpFileCache) {
-               throw new InternalError("XXX0");
-           }
-           if(!LauncherTempFileCache.initSingleton(ctx)) {
-               throw new InternalError("TempFileCache initialization error");
-           }
-           tmpFileCache = new LauncherTempFileCache();
-           if(!tmpFileCache.isValid()) {
-               throw new InternalError("TempFileCache instantiation error");                
-           }
-           final ApplicationInfo ai = ctx.getApplicationInfo();
-           Log.d(TAG, "S: userPackageName: "+userPackageNames+", dataDir: "+ai.dataDir+", nativeLibraryDir: "+ai.nativeLibraryDir);
-    
-           final String appDir = new File(ai.dataDir).getParent();
-           final String libSub = ai.nativeLibraryDir.substring(ai.nativeLibraryDir.lastIndexOf('/')+1);
-           Log.d(TAG, "S: appDir: "+appDir+", libSub: "+libSub);
-           
-           final String libPathName = appDir + "/" + packageGlueGen + "/" + libSub + "/:" +
-                                      appDir + "/" + packageJogl + "/" + libSub + "/" ;
-           Log.d(TAG, "S: libPath: "+libPathName);
-                   
-           String apkGlueGen = null;
-           String apkJogl = null;
+   private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> userPackageNames, 
+                                                                 boolean addLibPath, ClassLoader parent) {
        
-           try {
-               apkGlueGen = ctx.getPackageManager().getApplicationInfo(packageGlueGen,0).sourceDir;
-               apkJogl = ctx.getPackageManager().getApplicationInfo(packageJogl,0).sourceDir;
-           } catch (PackageManager.NameNotFoundException e) {
-               Log.d(TAG, "error: "+e, e);
-           }
-           if(null == apkGlueGen || null == apkJogl) {
-               Log.d(TAG, "not found: gluegen <"+apkGlueGen+">, jogl <"+apkJogl+">");
-               return null;
-           }
-           
-           final String cp = apkGlueGen + ":" + apkJogl ;
-           Log.d(TAG, "jogamp cp: " + cp);
        
-           final File dexPath = new File(tmpFileCache.getTempDir(), dexPathName);
-           Log.d(TAG, "jogamp dexPath: " + dexPath.getAbsolutePath());
-           dexPath.mkdir();
-           jogAmpClassLoader = new DexClassLoader(cp, dexPath.getAbsolutePath(), libPathName, ctx.getClassLoader());
-       } else {
-           if(null==tmpFileCache) {
-               throw new InternalError("XXX1");
-           }           
-       }
+       final ApplicationInfo appInfo = ctx.getApplicationInfo();
+       final String appDir = new File(appInfo.dataDir).getParent();
+       final String libSub = appInfo.nativeLibraryDir.substring(appInfo.nativeLibraryDir.lastIndexOf('/')+1);
+       Log.d(TAG, "S: userPackageName: "+userPackageNames+"; appName "+appInfo.name+", appDir "+appDir+", nativeLibraryDir: "+appInfo.nativeLibraryDir+"; dataDir: "+appInfo.dataDir+", libSub "+libSub);
        
-       StringBuilder userAPKs = new StringBuilder();
-       int numUserAPKs = 0;
+       StringBuilder apks = new StringBuilder();
+       StringBuilder libs = new StringBuilder();
+       int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
+       
        for(Iterator<String> i=userPackageNames.iterator(); i.hasNext(); ) {
            lastUserPackageName = i.next();
            String userAPK = null;
@@ -121,32 +115,33 @@ public class ClassLoaderUtil {
                Log.d(TAG, "error: "+e, e);
            }
            if(null != userAPK) {
-               numUserAPKs++;
-               if(numUserAPKs>0) {
-                   userAPKs.append(":");
+               if(apkCount>0) {
+                   apks.append(ELEM_SEP);
+                   if(addLibPath) {
+                       libs.append(ELEM_SEP);
+                   }
                }
-               userAPKs.append(userAPK);
+               apks.append(userAPK);
+               if(addLibPath) {
+                   libs.append(appDir).append(PATH_SEP).append(lastUserPackageName).append(PATH_SEP).append(libSub).append(PATH_SEP);
+               }
                Log.d(TAG, "APK found: <"+lastUserPackageName+"> -> <"+userAPK+">");
+               apkCount++;
            } else {
                Log.d(TAG, "APK not found: <"+lastUserPackageName+">");
            }
        }
-       if( userPackageNames.size()!=numUserAPKs ) {
+       if( userPackageNames.size()!=apkCount ) {
            Log.d(TAG, "APKs incomplete, abort");
            return null;
        }
        
-       final String userAPKs_s = userAPKs.toString();
-       Log.d(TAG, "user cp: " + userAPKs_s);
-       final File dexPath = new File(tmpFileCache.getTempDir(), lastUserPackageName);
-       Log.d(TAG, "user dexPath: " + dexPath.getAbsolutePath());
-       dexPath.mkdir();
-       ClassLoader cl = new DexClassLoader(userAPKs_s, dexPath.getAbsolutePath(), null, jogAmpClassLoader);
-       Log.d(TAG, "cl: " + cl);
-       
-       return cl;
+       // return new TraceDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
+       return new AssetDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
    }
    
+   /***
+    * 
    public boolean setAPKClassLoader(String activityPackageName, ClassLoader classLoader)
    {
        try {
@@ -188,6 +183,7 @@ public class ClassLoaderUtil {
            }
        }
        return null;
-   }   
+   }
+   */   
 
 }

@@ -35,13 +35,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URL;
+import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.AfterClass;
 import org.junit.Test;
 
 import com.jogamp.common.os.MachineDescription;
@@ -69,9 +67,9 @@ public class TestIOUtil01 extends JunitTracer {
     
     @Test
     public void testCopyStream01Array() throws IOException {
-        URL url = IOUtil.getResource(this.getClass(), tfilename);
-        Assert.assertNotNull(url);
-        final BufferedInputStream bis = new BufferedInputStream( url.openStream() );
+        URLConnection urlConn = IOUtil.getResource(this.getClass(), tfilename);
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
         final byte[] bb;
         try {
             bb = IOUtil.copyStream2ByteArray( bis );
@@ -85,9 +83,9 @@ public class TestIOUtil01 extends JunitTracer {
 
     @Test
     public void testCopyStream02Buffer() throws IOException {
-        URL url = IOUtil.getResource(this.getClass(), tfilename);
-        Assert.assertNotNull(url);
-        final BufferedInputStream bis = new BufferedInputStream( url.openStream() );
+        URLConnection urlConn = IOUtil.getResource(this.getClass(), tfilename);
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
         final ByteBuffer bb;
         try {
             bb = IOUtil.copyStream2ByteBuffer( bis ); 
@@ -103,15 +101,15 @@ public class TestIOUtil01 extends JunitTracer {
     @Test
     public void testCopyStream03Buffer() throws IOException {
         final String tfilename2 = "./test2.bin" ;
-        URL url1 = IOUtil.getResource(this.getClass(), tfilename);
-        Assert.assertNotNull(url1);
+        URLConnection urlConn1 = IOUtil.getResource(this.getClass(), tfilename);
+        Assert.assertNotNull(urlConn1);
         
         File file2 = new File(tfilename2);
-        IOUtil.copyURL2File(url1, file2);
-        URL url2 = IOUtil.getResource(this.getClass(), tfilename2);
-        Assert.assertNotNull(url2);
+        IOUtil.copyURLConn2File(urlConn1, file2);
+        URLConnection urlConn2 = IOUtil.getResource(this.getClass(), tfilename2);
+        Assert.assertNotNull(urlConn2);
 
-        final BufferedInputStream bis = new BufferedInputStream( url2.openStream() );
+        final BufferedInputStream bis = new BufferedInputStream( urlConn2.getInputStream() );
         final ByteBuffer bb;
         try {
             bb = IOUtil.copyStream2ByteBuffer( bis ); 

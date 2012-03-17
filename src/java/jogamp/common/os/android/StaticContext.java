@@ -32,13 +32,21 @@ import android.util.Log;
 
 public class StaticContext {
    private static Context context = null;
+   
    private static boolean DEBUG = false;
    
-   public static final synchronized void setContext(Context ctx) {
-       if(DEBUG) Log.d(MD.TAG, "setContext("+ctx+")");
+   public static final synchronized void init(Context ctx) {
+       if(null != context) {
+           throw new RuntimeException("Context already set");
+       }
+       if(DEBUG) { Log.d(MD.TAG, "init("+ctx+")"); }
        context = ctx;
+   }
+   public static final synchronized void clear() {
+       if(DEBUG) { Log.d(MD.TAG, "clear()"); }
+       context = null;       
    }
    public static final synchronized Context getContext() {
        return context;
-   }
+   }   
 }

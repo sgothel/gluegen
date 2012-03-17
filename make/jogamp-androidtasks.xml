@@ -32,6 +32,7 @@
       -->
 
     <macrodef name="aapt.signed">
+      <attribute name="assetsdir" default="/non.existing.src.path"/>
       <attribute name="jarsrcdir" default="/non.existing.src.path"/>
       <attribute name="jarbuilddir" />
       <attribute name="jarbasename" />
@@ -73,20 +74,24 @@
         <delete file="${m.aapt.release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
 
+        <mkdir dir="${m.aapt.build.apk}/image/assets" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/@{android.abi}" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/src" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/classes" />
-        <mkdir dir="${m.aapt.build.apk}/image/lib/assets" />
         <copy todir="${m.aapt.build.apk}/image/lib/@{android.abi}">
             <fileset dir="@{nativebuilddir}">
                 <include name="*@{nativebasename}*.${native.library.suffix}" />
             </fileset>
         </copy>
 
-        <copy todir="${m.aapt.build.apk}/image" failonerror="false" includeEmptyDirs="false">
+        <copy todir="${m.aapt.build.apk}/image/assets" failonerror="false" includeEmptyDirs="false">
             <fileset dir="@{jarsrcdir}"
                      includes="**"
-                     excludes="**/*.java **/*.class **/*.h **/*.c **/*.m"/>
+                     excludes="**/*.java **/*.class **/*.h **/*.c **/*.m **/*.sh"/>
+        </copy>
+        <copy todir="${m.aapt.build.apk}/image/assets" failonerror="false" includeEmptyDirs="false">
+            <fileset dir="@{assetsdir}"
+                     includes="**"/>
         </copy>
 
         <copy file="@{androidmanifest.path}" tofile="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
@@ -150,8 +155,9 @@
             <arg line="-S" />
             <arg value="@{androidresources.path}"/>
 
+            <!-- implicit image layout
             <arg line="-A" />
-            <arg value="${m.aapt.build.apk}/image/lib/assets"/>
+            <arg value="${m.aapt.build.apk}/image/assets"/> -->
 
             <arg line="-I" />
             <arg line="${android.jar}"/>

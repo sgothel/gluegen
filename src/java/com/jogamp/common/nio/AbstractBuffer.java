@@ -39,6 +39,7 @@ import java.nio.Buffer;
  * @author Sven Gothel
  * @author Michael Bien
  */
+@SuppressWarnings("rawtypes")
 public abstract class AbstractBuffer<B extends AbstractBuffer> implements NativeBuffer<B> {
 
     protected final int elementSize;
