@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Specification-Title: JogAmp Android Launcher API
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp Community
+Implementation-Title: JogAmp Android Launcher
+Implementation-Version: @VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
+Implementation-Vendor: JogAmp Community
+Implementation-Vendor-Id: com.jogamp
+Implementation-URL: http://jogamp.org/
+Extension-Name: jogamp.android.launcher
+Trusted-Library: true
