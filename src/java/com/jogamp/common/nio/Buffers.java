@@ -289,8 +289,7 @@ public class Buffers {
 
     /**
      * Helper routine to tell whether a buffer is direct or not. Null
-     * pointers are considered NOT direct. isDirect() should really be
-     * public in Buffer and not replicated in all subclasses.
+     * pointers <b>are</b> considered direct.
      */
     public static boolean isDirect(Object buf) {
         if (buf == null) {
