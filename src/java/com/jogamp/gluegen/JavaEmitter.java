@@ -72,7 +72,6 @@ public class JavaEmitter implements GlueEmitter {
 
   private StructLayout layout;
   private TypeDictionary typedefDictionary;
-  private TypeDictionary structDictionary;
   private Map<Type, Type> canonMap;
   protected JavaConfiguration cfg;
 
@@ -196,12 +195,12 @@ public class JavaEmitter implements GlueEmitter {
         parseValue = value;
       }
       //System.err.println("parsing " + value + " as long w/ radix " + radix);
-      long longVal = Long.parseLong(parseValue, radix);
+      Long.parseLong(parseValue, radix);
       return radix;
     } catch (NumberFormatException e) {
       try {
         // see if it's a double or float
-        double dVal = Double.parseDouble(value);
+        Double.parseDouble(value);
         return 10;
       } catch (NumberFormatException e2) {
         throw new RuntimeException(
@@ -376,7 +375,6 @@ public class JavaEmitter implements GlueEmitter {
                              Map<Type, Type> canonMap) throws Exception {
 
     this.typedefDictionary = typedefDictionary;
-    this.structDictionary  = structDictionary;
     this.canonMap          = canonMap;
 
     if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
@@ -498,7 +496,8 @@ public class JavaEmitter implements GlueEmitter {
                                    !signatureOnly && needsBody,
                                    cfg.tagNativeBinding(),
                                    false,
-                                   cfg.nioDirectOnly(binding.getName()),
+                                   cfg.useNIOOnly(binding.getName()),
+                                   cfg.useNIODirectOnly(binding.getName()),
                                    false,
                                    false,
                                    false,
@@ -564,7 +563,8 @@ public class JavaEmitter implements GlueEmitter {
                                        false,
                                        cfg.tagNativeBinding(),
                                        true,
-                                       cfg.nioDirectOnly(binding.getName()),
+                                       cfg.useNIOOnly(binding.getName()),
+                                       cfg.useNIODirectOnly(binding.getName()),
                                        true,
                                        true,
                                        false,
@@ -599,7 +599,7 @@ public class JavaEmitter implements GlueEmitter {
                                     true, // NOTE: we always disambiguate with a suffix now, so this is optional
                                     cfg.allStatic(),
                                     (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
-                                    !cfg.nioDirectOnly(binding.getName()),
+                                    !cfg.useNIODirectOnly(binding.getName()),
                                     machDescJava);
       prepCEmitter(binding, cEmitter);
       allEmitters.add(cEmitter);
@@ -751,7 +751,6 @@ public class JavaEmitter implements GlueEmitter {
                            TypeDictionary structDictionary,
                            Map<Type, Type> canonMap) throws Exception {
     this.typedefDictionary = typedefDictionary;
-    this.structDictionary  = structDictionary;
     this.canonMap          = canonMap;
   }
 
@@ -964,6 +963,7 @@ public class JavaEmitter implements GlueEmitter {
                                              cfg.tagNativeBinding(),
                                              false,
                                              true, // FIXME: should unify this with the general emission code
+                                             true, // FIXME: should unify this with the general emission code
                                              false,
                                              false, // FIXME: should unify this with the general emission code
                                              false, // FIXME: should unify this with the general emission code
@@ -982,6 +982,7 @@ public class JavaEmitter implements GlueEmitter {
                                              false,
                                              cfg.tagNativeBinding(),
                                              true,
+                                             true, // FIXME: should unify this with the general emission code
                                              true, // FIXME: should unify this with the general emission code
                                              true,
                                              true, // FIXME: should unify this with the general emission code
@@ -1560,8 +1561,8 @@ public class JavaEmitter implements GlueEmitter {
         CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
             public void emit(PrintWriter w) {
-              for (Iterator iter = intfDocs.iterator(); iter.hasNext(); ) {
-                w.println((String) iter.next());
+              for (Iterator<String> iter = intfDocs.iterator(); iter.hasNext(); ) {
+                w.println(iter.next());
               }
             }
           };
@@ -1590,8 +1591,8 @@ public class JavaEmitter implements GlueEmitter {
         CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
             public void emit(PrintWriter w) {
-              for (Iterator iter = implDocs.iterator(); iter.hasNext(); ) {
-                w.println((String) iter.next());
+              for (Iterator<String> iter = implDocs.iterator(); iter.hasNext(); ) {
+                w.println(iter.next());
               }
             }
           };
@@ -1867,7 +1868,7 @@ public class JavaEmitter implements GlueEmitter {
 
       // FIXME: should add new configuration flag for this
       if (canProduceArrayVariant[0] && (binding.signatureUsesCPrimitivePointers() || binding.signatureUsesCArrays()) &&
-          !cfg.nioDirectOnly(binding.getName()) && !cfg.nioOnly(binding.getName())) {
+          !cfg.useNIOOnly(binding.getName()) ) {
         result.add(lowerMethodBindingPointerTypes(binding, true, null));
       }
     } else {
@@ -1875,10 +1876,6 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     return result;
-  }
-
-  private String resultName() {
-    return "_res";
   }
 
   private Type canonicalize(Type t) {

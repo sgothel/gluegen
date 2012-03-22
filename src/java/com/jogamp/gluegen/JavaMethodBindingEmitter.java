@@ -72,7 +72,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   protected boolean emitBody;
   protected boolean eraseBufferAndArrayTypes;
-  protected boolean directNIOOnly;
+  protected boolean useNIOOnly;
+  protected boolean useNIODirectOnly;
   protected boolean forImplementingMethodCall;
   protected boolean forDirectBufferImplementation;
   protected boolean forIndirectBufferAndArrayImplementation;
@@ -106,7 +107,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
                                   boolean emitBody,
                                   boolean tagNativeBinding,
                                   boolean eraseBufferAndArrayTypes,
-                                  boolean directNIOOnly,
+                                  boolean useNIOOnly,
+                                  boolean useNIODirectOnly,
                                   boolean forImplementingMethodCall,
                                   boolean forDirectBufferImplementation,
                                   boolean forIndirectBufferAndArrayImplementation,
@@ -120,7 +122,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     this.emitBody = emitBody;
     this.tagNativeBinding = tagNativeBinding;
     this.eraseBufferAndArrayTypes = eraseBufferAndArrayTypes;
-    this.directNIOOnly = directNIOOnly;
+    this.useNIOOnly = useNIOOnly;
+    this.useNIODirectOnly = useNIODirectOnly;
     this.forImplementingMethodCall = forImplementingMethodCall;
     this.forDirectBufferImplementation = forDirectBufferImplementation;
     this.forIndirectBufferAndArrayImplementation = forIndirectBufferAndArrayImplementation;
@@ -141,7 +144,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     emitBody                      = arg.emitBody;
     tagNativeBinding              = arg.tagNativeBinding;
     eraseBufferAndArrayTypes      = arg.eraseBufferAndArrayTypes;
-    directNIOOnly                 = arg.directNIOOnly;
+    useNIOOnly                    = arg.useNIOOnly;
+    useNIODirectOnly              = arg.useNIODirectOnly;
     forImplementingMethodCall     = arg.forImplementingMethodCall;
     forDirectBufferImplementation = arg.forDirectBufferImplementation;
     forIndirectBufferAndArrayImplementation = arg.forIndirectBufferAndArrayImplementation;
@@ -352,7 +356,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       if (forDirectBufferImplementation || forIndirectBufferAndArrayImplementation) {
         if (type.isNIOBuffer()) {
           writer.print(", int " + byteOffsetArgName(i));
-          if(!directNIOOnly) {
+          if(!useNIODirectOnly) {
               writer.print(", boolean " + isNIOArgName(i));
           }
         } else if (type.isNIOBufferArray()) {
@@ -362,8 +366,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
       // Add offset argument after each primitive array
       if (type.isPrimitiveArray()) {
-        if(directNIOOnly) {
-            throw new RuntimeException("NIODirectOnly "+binding+" is set, but "+getArgumentName(i)+" is a primitive array");
+        if(useNIOOnly) {
+            throw new RuntimeException("NIO[Direct]Only "+binding+" is set, but "+getArgumentName(i)+" is a primitive array");
         }
         writer.print(", int " + offsetArgName(i));
       }
@@ -373,7 +377,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
 
   protected String getImplMethodName() {
-    return binding.getName() + ( directNIOOnly ? "0" : "1" );
+    return binding.getName() + ( useNIODirectOnly ? "0" : "1" );
   }
 
   protected String byteOffsetArgName(int i) {
@@ -456,19 +460,18 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       } else {
         JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isNIOBuffer()) {
-          if (directNIOOnly) {
+          if (useNIODirectOnly) {
             writer.println("    if (!Buffers.isDirect(" + getArgumentName(i) + "))");
             writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
-                           getArgumentName(i) + "\\\" was not a direct buffer\");");
+                           getArgumentName(i) + "\\\" is not a direct buffer\");");
           } else {
-            writer.print("    boolean " + isNIOArgName(i) + " = ");
-            writer.println(getArgumentName(i) + " != null && Buffers.isDirect(" + getArgumentName(i) + ");");
+            writer.println("    final boolean " + isNIOArgName(i) + " = Buffers.isDirect(" + getArgumentName(i) + ");");
           }
         } else if (javaType.isNIOBufferArray()) {
           // All buffers passed down in an array of NIO buffers must be direct
           String argName = getArgumentName(i);
           String arrayName = byteOffsetArrayArgName(i);
-          writer.println("    int[] " + arrayName + " = new int[" + argName + ".length];");
+          writer.println("    final int[] " + arrayName + " = new int[" + argName + ".length];");
           // Check direct buffer properties of all buffers within
           writer.println("    if (" + argName + " != null) {");
           writer.println("      for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
@@ -504,7 +507,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         if (javaType.isArrayOfCompoundTypeWrappers()) {
           String argName = getArgumentName(i);
           String tempArrayName = argName + COMPOUND_ARRAY_SUFFIX;
-          writer.println("    ByteBuffer[] " + tempArrayName + " = new ByteBuffer[" + argName + ".length];");
+          writer.println("    final ByteBuffer[] " + tempArrayName + " = new ByteBuffer[" + argName + ".length];");
           writer.println("    for (int _ctr = 0; _ctr < + " + argName + ".length; _ctr++) {");
           writer.println("      " + javaType.getName() + " _tmp = " + argName + "[_ctr];");
           writer.println("      " + tempArrayName + "[_ctr] = ((_tmp == null) ? null : _tmp.getBuffer());");
@@ -530,13 +533,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     if (!returnType.isVoid()) {
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOBuffer()) {
-        writer.println("ByteBuffer _res;");
+        writer.println("final ByteBuffer _res;");
         needsResultAssignment = true;
       } else if (returnType.isArrayOfCompoundTypeWrappers()) {
-        writer.println("ByteBuffer[] _res;");
+        writer.println("final ByteBuffer[] _res;");
         needsResultAssignment = true;
       } else if (((epilogue != null) && (epilogue.size() > 0)) ||
                  binding.signatureUsesArraysOfCompoundTypeWrappers()) {
+        writer.print("final ");
         emitReturnType(writer);
         writer.println(" _res;");
         needsResultAssignment = true;
@@ -597,14 +601,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
       if (type.isNIOBuffer()) {
           if(type.isNIOPointerBuffer()) {
-              if (directNIOOnly) {
+              if (useNIODirectOnly) {
                   writer.print( getArgumentName(i)+ " != null ? " + getArgumentName(i) + ".getBuffer() : null");
               } else {
                   writer.print( isNIOArgName(i) + " ? ( " + getArgumentName(i)+ " != null ? " + getArgumentName(i) + ".getBuffer() : null )");
                   writer.print( " : Buffers.getArray(" + getArgumentName(i) + ")" );
               }
           } else {
-              if (directNIOOnly) {
+              if (useNIODirectOnly) {
                   writer.print( getArgumentName(i) );
               } else {
                   writer.print( isNIOArgName(i) + " ? " + getArgumentName(i) + " : Buffers.getArray(" + getArgumentName(i) + ")" );
@@ -623,7 +627,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
 
       if (type.isNIOBuffer()) {
-        if (directNIOOnly) {
+        if (useNIODirectOnly) {
           writer.print( ", Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
         } else {
           writer.print( ", " + isNIOArgName(i) + " ? Buffers.getDirectBufferByteOffset(" + getArgumentName(i) + ")");
@@ -653,12 +657,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
 
       if (type.isNIOBuffer()) {
-        if (!directNIOOnly) {
+        if (!useNIODirectOnly) {
             writer.print( ", " + isNIOArgName(i) );
         }
       } else if (type.isPrimitiveArray()) {
-        if (directNIOOnly) {
-            throw new RuntimeException("NIODirectOnly "+binding+" is set, but "+getArgumentName(i)+" is a primitive array");
+        if (useNIOOnly) {
+            throw new RuntimeException("NIO[Direct]Only "+binding+" is set, but "+getArgumentName(i)+" is a primitive array");
         }
         writer.print( ", false");
       }
@@ -715,14 +719,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
           throw new RuntimeException("ReturnedArrayLength directive currently only supported for pointers to compound types " +
                                      "(error occurred while generating Java glue code for " + getName() + ")");
         }
-        writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[" + expr + "];");
+        writer.println("    final " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[" + expr + "];");
         writer.println("    for (int _count = 0; _count < " + expr + "; _count++) {");
         // Create temporary ByteBuffer slice
         // FIXME: probably need Type.getAlignedSize() for arrays of
         // compound types (rounding up to machine-dependent alignment)
         writer.println("      _res.position(_count * " + getReturnTypeString(true) + ".size());");
         writer.println("      _res.limit   ((1 + _count) * " + getReturnTypeString(true) + ".size());");
-        writer.println("      ByteBuffer _tmp = _res.slice();");
+        writer.println("      final ByteBuffer _tmp = _res.slice();");
         writer.println("      Buffers.nativeOrder(_tmp);");
         writer.println("      _res.position(0);");
         writer.println("      _res.limit(_res.capacity());");
@@ -756,7 +760,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
     } else if (returnType.isArrayOfCompoundTypeWrappers()) {
       writer.println("    if (_res == null) return null;");
-      writer.println("    " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");
+      writer.println("    final " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[_res.length];");
       writer.println("    for (int _count = 0; _count < _res.length; _count++) {");
       writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_res[_count]);");
       writer.println("    }");
@@ -838,13 +842,17 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
             writer.print(enumType.getEnumName(j));
           }
           writer.println("</code>");
-        } else if (directNIOOnly && javaType.isNIOBuffer()) {
+        } else if (javaType.isNIOBuffer()) {
           writer.println();
           writer.print(emitter.getBaseIndentString());
           writer.print("    ");
           writer.print("@param ");
           writer.print(getArgumentName(i));
-          writer.print(" a direct {@link " + javaType.getName() + "}");
+          if (useNIODirectOnly) {
+              writer.print(" a direct only {@link " + javaType.getName() + "}");
+          } else {
+              writer.print(" a direct or array-backed {@link " + javaType.getName() + "}");
+          }
         }
       }
     }

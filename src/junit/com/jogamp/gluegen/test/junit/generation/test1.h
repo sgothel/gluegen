@@ -74,6 +74,9 @@ MYAPI foo MYAPIENTRY arrayTestFooNioOnly(int64_t context, foo * array );
 /** Returns *((foo *)object) */
 MYAPI foo MYAPIENTRY bufferTestNioOnly(void * object);
 
+/** Returns *((foo *)object) */
+MYAPI foo MYAPIENTRY bufferTestNioDirectOnly(void * object);
+
 /** Returns Sum(array) + context + *((foo *)object) */
 MYAPI foo MYAPIENTRY mixedTestNioOnly(int64_t context, void * object, foo * array );
 
@@ -86,10 +89,10 @@ MYAPI int MYAPIENTRY strToInt(const char* str);
 /** Returns itoa(i) - not thread safe */
 MYAPI const char * MYAPIENTRY intToStr(int i);
 
-/** Returns the length of all strings */
+/** Returns the length of all strings, strings maybe NULL. */
 MYAPI int MYAPIENTRY stringArrayRead(const char *  *  strings, int num);
 
-/** Returns the sum of all integers */
+/** Returns the sum of all integers, ints maybe NULL. */
 MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num);
 
 /** Increases the elements by 1, and returns the sum 

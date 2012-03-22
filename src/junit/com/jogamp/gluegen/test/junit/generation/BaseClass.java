@@ -466,29 +466,30 @@ public class BaseClass extends JunitTracer {
           result = binding.bufferTest(lb);
           Assert.assertTrue("Wrong result: "+result, 10==result);
 
+          result = binding.bufferTestNioOnly(lb);
+          Assert.assertTrue("Wrong result: "+result, 10==result);
+
           if(direct) {
-              result = binding.bufferTestNioOnly(lb);
+              result = binding.bufferTestNioDirectOnly(lb);
               Assert.assertTrue("Wrong result: "+result, 10==result);
           } else {
               Exception e = null;
               try {
-                  binding.bufferTestNioOnly(lb);
+                  binding.bufferTestNioDirectOnly(lb);
               } catch (RuntimeException re) {
                   e = re;
               }
               Assert.assertNotNull(e);
           }
-
+          
           result = binding.doubleTest(context, lb, lb1, bb2, lb2);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
           result = binding.doubleTest(context, lb, larray1, larray1_offset, bb2, larray2, larray2_offset);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
-          if(direct) {
-              result = binding.doubleTestNioOnly(context, lb, lb1, bb2, lb2);
-              Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
-          }
+          result = binding.doubleTestNioOnly(context, lb, lb1, bb2, lb2);
+          Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
           result = binding.mixedTest(context, lb, lb1);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
@@ -496,10 +497,8 @@ public class BaseClass extends JunitTracer {
           result = binding.mixedTest(context, lb, larray1, larray1_offset);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
 
-          if(direct) {
-              result = binding.mixedTestNioOnly(context, lb, lb1);
-              Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
-          }
+          result = binding.mixedTestNioOnly(context, lb, lb1);
+          Assert.assertTrue("Wrong result: "+result, 1+10+8000==result);
 
           result = binding.nopTest();
           Assert.assertTrue("Wrong result: "+result, 42==result);
@@ -513,6 +512,9 @@ public class BaseClass extends JunitTracer {
           i = binding.stringArrayRead(new String[] { "1234", "5678", "9a" }, 3);
           Assert.assertTrue("Wrong result: "+i, 10==i);
 
+          i = binding.stringArrayRead(null, 0);
+          Assert.assertTrue("Wrong result: "+i, 0==i);
+
           IntBuffer ib = newIntBuffer(3, direct);
           ib.put(0, 1);
           ib.put(1, 2);
@@ -523,9 +525,15 @@ public class BaseClass extends JunitTracer {
           i = binding.intArrayRead(ib, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
 
+          i = binding.intArrayRead(null, 0);
+          Assert.assertTrue("Wrong result: "+i, 0==i);
+
           i = binding.intArrayRead(iarray, 0, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
 
+          i = binding.intArrayRead(null, 0, 0);
+          Assert.assertTrue("Wrong result: "+i, 0==i);
+          
           {
               long cfg_base = 0xAABBCCDD11223344L;
               

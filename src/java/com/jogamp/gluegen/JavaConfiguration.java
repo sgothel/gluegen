@@ -147,10 +147,10 @@ public class JavaConfiguration {
     private Set<Pattern> ignoreNots = new HashSet<Pattern>();
     private Set<Pattern> unignores = new HashSet<Pattern>();
     private Set<Pattern> unimplemented = new HashSet<Pattern>();
-    private boolean forceNioOnly4All = false;
-    private Set<String> nioOnly = new HashSet<String>();
-    private boolean forceNioDirectOnly4All = false;
-    private Set<String> nioDirectOnly = new HashSet<String>();
+    private boolean forceUseNIOOnly4All = false;
+    private Set<String> useNIOOnly = new HashSet<String>();
+    private boolean forceUseNIODirectOnly4All = false;
+    private Set<String> useNIODirectOnly = new HashSet<String>();
     private Set<String> manuallyImplement = new HashSet<String>();
     private Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
     private Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
@@ -502,25 +502,28 @@ public class JavaConfiguration {
     return argumentsAreString.get(functionName);
   }
 
-  public boolean isForceNioOnly4All()      { return forceNioOnly4All; }
+  public boolean isForceUsingNIOOnly4All() { return forceUseNIOOnly4All; }
 
-  public void addNioOnly(String fname ) {
-      nioOnly.add(fname);
-  }
-  public boolean nioOnly(String functionName) {
-    return forceNioOnly4All || nioOnly.contains(functionName);
-  }
-
-  public boolean isForceNioDirectOnly4All()      { return forceNioDirectOnly4All; }
-
-  public void addNioDirectOnly(String fname ) {
-      nioDirectOnly.add(fname);
+  public void addUseNIOOnly(String fname ) {
+      useNIOOnly.add(fname);
   }
   /** Returns true if the given function should only create a java.nio
       variant, and no array variants, for <code>void*</code> and other
-      C primitive pointers. */
-  public boolean nioDirectOnly(String functionName) {
-    return forceNioDirectOnly4All || nioDirectOnly.contains(functionName);
+      C primitive pointers. NIO only still allows usage of array backed not direct Buffers. */
+  public boolean useNIOOnly(String functionName) {
+    return useNIODirectOnly(functionName) || forceUseNIOOnly4All || useNIOOnly.contains(functionName);
+  }
+
+  public void addUseNIODirectOnly(String fname ) {
+      useNIODirectOnly.add(fname);
+  }
+  /** Returns true if the given function should only create a java.nio
+      variant, and no array variants, for <code>void*</code> and other
+      C primitive pointers. NIO direct only does only allow direct Buffers.
+      Implies useNIOOnly ! 
+   */
+  public boolean useNIODirectOnly(String functionName) {
+    return forceUseNIODirectOnly4All || useNIODirectOnly.contains(functionName);
   }
 
   /** Returns true if the glue code for the given function will be
@@ -961,19 +964,19 @@ public class JavaConfiguration {
       readClassJavadoc(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because readClassJavadoc changes them.
-    } else if (cmd.equalsIgnoreCase("NioOnly")) {
-      String funcName = readString("NioOnly", tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("NIOOnly")) {
+      String funcName = readString("NIOOnly", tok, filename, lineNo);
       if(funcName.equals("__ALL__")) {
-          forceNioOnly4All=true;
+          forceUseNIOOnly4All=true;
       } else {
-          addNioOnly( funcName );
+          addUseNIOOnly( funcName );
       }
-    } else if (cmd.equalsIgnoreCase("NioDirectOnly")) {
-      String funcName = readString("NioDirectOnly", tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("NIODirectOnly")) {
+      String funcName = readString("NIODirectOnly", tok, filename, lineNo);
       if(funcName.equals("__ALL__")) {
-          forceNioDirectOnly4All=true;
+          forceUseNIODirectOnly4All=true;
       } else {
-          addNioDirectOnly( funcName );
+          addUseNIODirectOnly( funcName );
       }
     } else if (cmd.equalsIgnoreCase("EmitStruct")) {
       forcedStructs.add(readString("EmitStruct", tok, filename, lineNo));

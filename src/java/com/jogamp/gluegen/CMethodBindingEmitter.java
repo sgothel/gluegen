@@ -444,7 +444,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     Type cReturnType = binding.getCReturnType();
 
     JavaType javaReturnType = binding.getJavaReturnType();
-    String capitalizedComponentType = null;
     if (!cReturnType.isVoid()) {
       writer.print("  ");
       // Note we must respect const/volatile for return argument
@@ -472,8 +471,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         }
 
         String javaTypeName = componentType.getName();
-        capitalizedComponentType =
-          "" + Character.toUpperCase(javaTypeName.charAt(0)) + javaTypeName.substring(1);
         String javaArrayTypeName = "j" + javaTypeName + "Array";
         writer.print("  ");
         writer.print(javaArrayTypeName);
@@ -567,22 +564,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                               null);
     }
     
-    for (int i = 0; i < binding.getNumArguments(); i++) {
-        JavaType type = binding.getJavaArgumentType(i);
-        if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
-          continue;
-        }
-
-        if (type.isCompoundTypeWrapper() ||
-            (type.isNIOBuffer() && !forIndirectBufferAndArrayImplementation)) {
-          String javaArgName = binding.getArgumentName(i);
-          emitPointerConversion(writer, binding, type,
-                                binding.getCArgumentType(i), javaArgName,
-                                pointerConversionArgumentName(javaArgName),
-                                byteOffsetArgName(i));
-        }
-    }
-
     // Convert all arrays to pointers, and get UTF-8 versions of jstring args
     for (int i = 0; i < binding.getNumArguments(); i++) {
       JavaType javaArgType = binding.getJavaArgumentType(i);
@@ -592,9 +573,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       }
       String javaArgName = binding.getArgumentName(i);
 
-      if (javaArgType.isArray() ||
-          (javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation) ||
-          javaArgType.isArrayOfCompoundTypeWrappers()) {
+      if (javaArgType.isCompoundTypeWrapper() ||
+          (javaArgType.isNIOBuffer() && !forIndirectBufferAndArrayImplementation ) ) {
+        emitPointerConversion(writer, binding, javaArgType,
+                              binding.getCArgumentType(i), javaArgName,
+                              pointerConversionArgumentName(javaArgName),
+                              byteOffsetArgName(i));
+      } else if (javaArgType.isArray() ||
+                 javaArgType.isArrayOfCompoundTypeWrappers() ||
+                 ( javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation ) ) {
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
 
         writer.println("  if ( NULL != " + javaArgName + " ) {");
@@ -786,7 +773,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         String convName = pointerConversionArgumentName(javaArgName);
 
         if (!needsDataCopy) {
-          writer.println("  if ( NULL != " + javaArgName + " && JNI_FALSE == " + isNIOArgName(i) + " ) {");
+          writer.println("  if ( JNI_FALSE == " + isNIOArgName(i) + " && NULL != " + javaArgName + " ) {");
 
           // Release array
           final String modeFlag = isConstPtr(cArgType) || isConstPtrPtr(cArgType) ? "JNI_ABORT" : "0" ; 
@@ -1052,7 +1039,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         } else {
 	  pointerType = retType.asArray().getElementType();
         }
-        Type baseType = pointerType.asPointer().getTargetType();
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
                        ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], sizeof(" + pointerType.getName() + ")));");
         writer.println("  }");

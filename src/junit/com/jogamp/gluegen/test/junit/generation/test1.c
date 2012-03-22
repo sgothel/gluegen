@@ -59,6 +59,7 @@ MYAPI void MYAPIENTRY arrayTestFoo3( foo * array ) {
 MYAPI foo * * MYAPIENTRY arrayTestFoo3ArrayToPtrPtr(const foo * array) {
     int j;
     foo * * result = calloc(ARRAY_SIZE, sizeof(foo *));
+    assert(NULL!=array);
     for(j=0; j<ARRAY_SIZE; j++) {
         result[j] = (foo *) ( array + ARRAY_SIZE * j ) ;
     }
@@ -140,6 +141,10 @@ MYAPI foo MYAPIENTRY arrayTestFooNioOnly(int64_t context, foo * array ) {
 }
 
 MYAPI foo MYAPIENTRY bufferTestNioOnly(void * object) {
+    return bufferTest(object);
+}
+
+MYAPI foo MYAPIENTRY bufferTestNioDirectOnly(void * object) {
     return bufferTest(object);
 }
 
@@ -286,12 +291,14 @@ MYAPI TK_Surface * MYAPIENTRY createSurface() {
 }
 
 MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface) {
+    assert(NULL!=surface);
     free(surface->clips);
     // free(surface->engine);
     free(surface);
 }
 
 static void dumpTK_ComplicatedSuperSet(TK_ComplicatedSuperSet * s) {
+    assert(NULL!=s);
     fprintf(stderr, "TK_ComplicatedSuperSet [\n");
     fprintf(stderr, "  cs.b1         0x%X\n", s->bits1);
 
@@ -382,6 +389,7 @@ MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet() {
 }
 
 MYAPI Bool MYAPIENTRY hasInitValues(TK_ComplicatedSuperSet * s) {
+    assert(NULL!=s);
     Bool b =  s->bits1 == 0xA0U &&
             s->sub1.bits1 == 0xA1U &&
             s->sub1.id == 0x12345678U &&
@@ -415,6 +423,7 @@ MYAPI Bool MYAPIENTRY hasInitValues(TK_ComplicatedSuperSet * s) {
 }
 
 MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s) {
+    assert(NULL!=s);
     free(s);
 }
 
