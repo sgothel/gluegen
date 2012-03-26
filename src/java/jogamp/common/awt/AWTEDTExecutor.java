@@ -25,26 +25,41 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.common.util;
+package jogamp.common.awt;
 
-public interface RunnableExecutor {
-    /** This {@link RunnableExecutor} implementation simply invokes {@link Runnable#run()} 
-     *  on the current thread.
+import java.awt.EventQueue;
+import java.lang.reflect.InvocationTargetException;
+
+import com.jogamp.common.util.RunnableExecutor;
+
+/**
+ * AWT EDT implementation of RunnableExecutor
+ */
+public class AWTEDTExecutor implements RunnableExecutor {
+    /** {@link RunnableExecutor} implementation invoking {@link Runnable#run()}
+     *  on the AWT EDT. 
      */
-    public static final RunnableExecutor currentThreadExecutor = new CurrentThreadExecutor();
+    public static final RunnableExecutor singleton = new AWTEDTExecutor();
+
+    private AWTEDTExecutor() {}
     
-    /**
-     * @param wait if true method waits until {@link Runnable#run()} is completed, otherwise don't wait.  
-     * @param r the {@link Runnable} to be executed.
-     */
-    void invoke(boolean wait, Runnable r);
-    
-    static class CurrentThreadExecutor implements RunnableExecutor {
-        private CurrentThreadExecutor() {}
-        
-        @Override
-        public void invoke(boolean wait, Runnable r) {
-            r.run();            
-        }        
+    @Override
+    public void invoke(boolean wait, Runnable r) {
+        if(EventQueue.isDispatchThread()) {
+            r.run();
+        } else {
+          try {
+            if(wait) {
+                EventQueue.invokeAndWait(r);
+            } else {
+                EventQueue.invokeLater(r);
+            }
+          } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getTargetException());
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
     }
+
 }

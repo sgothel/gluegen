@@ -69,7 +69,9 @@ public class VersionUtil {
         // JVM/JRE
         sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(", VM: ").append(Platform.getJavaVMName());
         sb.append(", Runtime: ").append(Platform.getJavaRuntimeName()).append(Platform.getNewline());
-        sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL()).append(", is JavaSE: ").append(Platform.isJavaSE());        
+        sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL());
+        sb.append(", is JavaSE: ").append(Platform.isJavaSE());
+        sb.append(", AWT enabled: ").append(Platform.AWT_AVAILABLE);
         sb.append(Platform.getNewline()).append(SEPERATOR);
 
         return sb;

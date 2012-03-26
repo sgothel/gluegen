@@ -46,6 +46,11 @@ public final class ReflectionUtil {
     
     public static final boolean DEBUG = Debug.debug("ReflectionUtil");
 
+    public static class AWTNames {
+        public static final String ComponentClass = "java.awt.Component" ;
+        public static final String GraphicsEnvironmentClass = "java.awt.GraphicsEnvironment";
+        public static final String isHeadlessMethod = "isHeadless";
+    }
     private static final Class<?>[] zeroTypes = new Class[0];
 
     /**
@@ -261,11 +266,11 @@ public final class ReflectionUtil {
   }
 
   public static boolean isAWTComponent(Object target) {
-      return instanceOf(target, "java.awt.Component");
+      return instanceOf(target, AWTNames.ComponentClass);
   }
 
   public static boolean isAWTComponent(Class<?> clazz) {
-      return instanceOf(clazz, "java.awt.Component");
+      return instanceOf(clazz, AWTNames.ComponentClass);
   }
 
   /**

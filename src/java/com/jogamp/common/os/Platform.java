@@ -38,6 +38,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
@@ -60,6 +61,9 @@ public class Platform {
      */
     public static final boolean USE_TEMP_JAR_CACHE;
     private static final String useTempJarCachePropName = "jogamp.gluegen.UseTempJarCache";
+    
+    /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
+    public static final boolean AWT_AVAILABLE;
     
     public static final boolean JAVA_SE;
     public static final boolean LITTLE_ENDIAN;
@@ -225,6 +229,19 @@ public class Platform {
         }
         machineDescription = md;
         is32Bit = machineDescription.is32Bit();
+        
+        {
+            final ClassLoader cl = Platform.class.getClassLoader();
+            boolean _AWT_AVAILABLE = false;
+            if( !Debug.getBooleanProperty("java.awt.headless", true) &&
+                ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) && 
+                ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
+                try {
+                    _AWT_AVAILABLE = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
+                } catch (Throwable t) { }
+            }
+            AWT_AVAILABLE = _AWT_AVAILABLE;
+        }
     }
 
     private Platform() {}

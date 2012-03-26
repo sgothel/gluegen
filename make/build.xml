@@ -138,6 +138,7 @@
     <property name="archive"          value="${build}/${archive.name}" />
 
     <property name="jogamp.android-launcher.classes" value="jogamp/android/launcher/**"/>
+    <property name="jogamp.awt.classes" value="jogamp/common/awt/**"/>
     <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes}" />
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>

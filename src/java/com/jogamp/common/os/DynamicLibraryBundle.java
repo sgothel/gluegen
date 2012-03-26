@@ -33,7 +33,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
+import jogamp.common.awt.AWTEDTExecutor;
+
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.util.RunnableExecutor;
 
 /**
  * Provides bundling of:<br>
@@ -69,6 +72,15 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     private HashSet<String> toolGetProcAddressFuncNameSet;
     private List<String> toolGetProcAddressFuncNameList;
 
+    /** Returns an AWT-EDT {@link RunnableExecutor} implementation if AWT is available, otherwise {@link RunnableExecutor#currentThreadExecutor}. */ 
+    public static RunnableExecutor getDefaultRunnableExecutor() {
+        if(Platform.AWT_AVAILABLE) {
+            return AWTEDTExecutor.singleton;
+        } else {
+            return RunnableExecutor.currentThreadExecutor;
+        }
+    }
+    
     /** Instantiates and loads all {@link NativeLibrary}s incl. JNI libraries. */
     public DynamicLibraryBundle(DynamicLibraryBundleInfo info) {
         if(null==info) {

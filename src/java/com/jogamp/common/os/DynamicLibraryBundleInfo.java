@@ -86,6 +86,17 @@ public interface DynamicLibraryBundleInfo {
     /** @return true if the dynamic symbol lookup shall happen system wide, over all loaded libraries. Otherwise only the loaded native libraries are used for lookup, which shall be the default. */
     public boolean shallLookupGlobal();
     
+    /**
+     * Returns a suitable {@link RunnableExecutor} implementation, which is being used 
+     * to load the <code>tool</code> native libraries.
+     * <p>
+     * This allows the generic {@link DynamicLibraryBundle} implementation to 
+     * load the <code>tool</code> native libraries on a designated thread.
+     * </p> 
+     * <p>
+     * An implementation may return {@link DynamicLibraryBundle#getDefaultRunnableExecutor()}.
+     * </p>
+     */
     public RunnableExecutor getLibLoaderExecutor();
 }
 
