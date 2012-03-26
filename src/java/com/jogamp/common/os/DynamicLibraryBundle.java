@@ -81,7 +81,10 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         nativeLibraries = new ArrayList<NativeLibrary>();
         toolLibNames = info.getToolLibNames();
         glueLibNames = info.getGlueLibNames();
-        loadLibraries();
+        info.getLibLoaderExecutor().invoke(true, new Runnable() {
+                public void run() {        
+                    loadLibraries();
+                } } ) ; 
         toolGetProcAddressFuncNameList = info.getToolGetProcAddressFuncNameList();
         if( null != toolGetProcAddressFuncNameList ) {
             toolGetProcAddressFuncNameSet = new HashSet<String>(toolGetProcAddressFuncNameList);

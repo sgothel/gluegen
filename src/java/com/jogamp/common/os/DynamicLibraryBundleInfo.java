@@ -30,6 +30,8 @@ package com.jogamp.common.os;
 
 import java.util.*;
 
+import com.jogamp.common.util.RunnableExecutor;
+
 public interface DynamicLibraryBundleInfo {
     public static final boolean DEBUG = DynamicLibraryBundle.DEBUG;
 
@@ -83,7 +85,8 @@ public interface DynamicLibraryBundleInfo {
 
     /** @return true if the dynamic symbol lookup shall happen system wide, over all loaded libraries. Otherwise only the loaded native libraries are used for lookup, which shall be the default. */
     public boolean shallLookupGlobal();
-
+    
+    public RunnableExecutor getLibLoaderExecutor();
 }
 
 
