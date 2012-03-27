@@ -87,6 +87,7 @@ export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-android-armv7.xml"
 
 which gcc 2>&1 | tee make.gluegen.all.android-armv7-cross.log
 
+#BUILD_ARCHIVE=true \
 ant \
     -Drootrel.build=build-android-armv7 \
     $* 2>&1 | tee -a make.gluegen.all.android-armv7-cross.log
