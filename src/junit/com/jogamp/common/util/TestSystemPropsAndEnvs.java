@@ -52,15 +52,30 @@ public class TestSystemPropsAndEnvs extends JunitTracer {
         System.out.println("Property count: "+i);
     }
     
+    private static String[] suppress_envs = new String[] { "COOKIE", "SSH", "GPG" };
+
+    private static boolean contains(String data, String[] search) {
+        if(null != data && null != search) {            
+            for(int i=0; i<search.length; i++) {
+                if(data.indexOf(search[i]) >= 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }    
+    
     @Test
     public void dumpEnvironment() {
         int i=0;
         Map<String, String> env = System.getenv();
         for (String envName : env.keySet()) {
-            i++;
-            System.out.format("%4d: %s = %s%n",
-                              i, envName,
-                              env.get(envName));
+            if(!contains(envName, suppress_envs)) {
+                i++;
+                System.out.format("%4d: %s = %s%n",
+                                  i, envName,
+                                  env.get(envName));
+            }
         }        
         System.out.println("Environment count: "+i);
     }
