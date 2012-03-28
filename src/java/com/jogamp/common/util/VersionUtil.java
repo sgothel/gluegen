@@ -56,7 +56,8 @@ public class VersionUtil {
 
         // environment
         sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
-        sb.append(Platform.getArchName()).append(" (arch) ").append(Runtime.getRuntime().availableProcessors()).append(" cores");
+        sb.append(Platform.getArchName()).append(" (arch), ").append(Platform.ABI_TYPE).append(", ");
+        sb.append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
         if( AndroidVersion.isAvailable) {
             sb.append("Platform: Android Version: ").append(AndroidVersion.CODENAME).append(", ");

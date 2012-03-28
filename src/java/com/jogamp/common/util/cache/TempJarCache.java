@@ -96,6 +96,9 @@ public class TempJarCache {
                         classFileJars = new HashSet<URL>();
                         resourceFileJars = new HashSet<URL>();
                     }
+                    if(DEBUG) {
+                        System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tmpFileCache.getTempDir());
+                    }
                 }
             }
         }
@@ -109,11 +112,20 @@ public class TempJarCache {
      * <p>
      * In JogAmp, JNI native libraries loaded and registered by {@link JNILibLoaderBase} 
      * derivations, where the native JARs might be loaded via {@link JNILibLoaderBase#addNativeJarLibs(Class, String) }. 
+     * </p>
+     * <p>
+     * The only valid use case to shutdown the TempJarCache is at bootstrapping,
+     * i.e. when no native library is guaranteed to be loaded. This could be useful
+     * if bootstrapping needs to find the proper native library type.
      * </p> 
+     *
     public static void shutdown() {
         if (isInit) { // volatile: ok
             synchronized (TempJarCache.class) {
                 if (isInit) {
+                    if(DEBUG) {
+                        System.err.println("TempJarCache.shutdown(): real "+(false==staticInitError)+", "+ tmpFileCache.getTempDir());
+                    }
                     isInit = false;
                     if(!staticInitError) {
                         nativeLibMap.clear();

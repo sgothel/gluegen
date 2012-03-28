@@ -148,6 +148,21 @@ public class Platform {
     }      
     public static final CPUType CPU_ARCH;
     
+    public enum ABIType {
+        GENERIC_ABI    ( 0x0000 ),        
+        /** ARM GNU-EABI ARMEL -mfloat-abi=softfp */       
+        EABI_GNU_ARMEL ( 0x0001 ),
+        /** ARM GNU-EABI ARMHF -mfloat-abi=hard */       
+        EABI_GNU_ARMHF ( 0x0002 );
+        
+        public final int id;
+        
+        ABIType(int id){
+            this.id = id;
+        }        
+    }      
+    public static final ABIType ABI_TYPE;
+    
     private static final boolean is32Bit;
 
     private static final MachineDescription machineDescription;
@@ -174,44 +189,16 @@ public class Platform {
 
         LITTLE_ENDIAN = queryIsLittleEndianImpl();
         
-        if(        ARCH_lower.equals("x86")  ||
-                   ARCH_lower.equals("i386") ||
-                   ARCH_lower.equals("i486") ||
-                   ARCH_lower.equals("i586") ||
-                   ARCH_lower.equals("i686") ) {
-            CPU_ARCH = CPUType.X86_32;
-        } else if( ARCH_lower.equals("x86_64") ||
-                   ARCH_lower.equals("amd64")  ) {
-            CPU_ARCH = CPUType.X86_64;
-        } else if( ARCH_lower.equals("ia64") ) {
-            CPU_ARCH = CPUType.IA64;
-        } else if( ARCH_lower.equals("arm") ) {
-            CPU_ARCH = CPUType.ARM;
-        } else if( ARCH_lower.equals("armv5l") ) {
-            CPU_ARCH = CPUType.ARMv5;
-        } else if( ARCH_lower.equals("armv6l") ) {
-            CPU_ARCH = CPUType.ARMv6;
-        } else if( ARCH_lower.equals("armv7l") ) {
-            CPU_ARCH = CPUType.ARMv7;
-        } else if( ARCH_lower.equals("sparc") ) {
-            CPU_ARCH = CPUType.SPARC_32;
-        } else if( ARCH_lower.equals("sparcv9") ) {
-            CPU_ARCH = CPUType.SPARCV9_64;
-        } else if( ARCH_lower.equals("pa_risc2.0") ) {
-            CPU_ARCH = CPUType.PA_RISC2_0;
-        } else if( ARCH_lower.equals("ppc") ) {
-            CPU_ARCH = CPUType.PPC;
-        } else {
-            throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");
-        }               
+        CPU_ARCH = getCPUTypeImpl(ARCH_lower);
+        ABI_TYPE = guessABITypeImpl(CPU_ARCH);
         OS_TYPE = getOSTypeImpl();
-        
-        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH);
+        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
         
         USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
                              Debug.getBooleanProperty(useTempJarCachePropName, true, true);
         
         loadGlueGenRTImpl();
+        
         JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
         
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
@@ -267,6 +254,65 @@ public class Platform {
         return 0x0C0D == tst_s.get(0);
     }
   
+    private static CPUType getCPUTypeImpl(String archLower) {
+        if(        archLower.equals("x86")  ||
+                   archLower.equals("i386") ||
+                   archLower.equals("i486") ||
+                   archLower.equals("i586") ||
+                   archLower.equals("i686") ) {
+            return CPUType.X86_32;
+        } else if( archLower.equals("x86_64") ||
+                   archLower.equals("amd64")  ) {
+            return CPUType.X86_64;
+        } else if( archLower.equals("ia64") ) {
+            return CPUType.IA64;
+        } else if( archLower.equals("arm") ) {
+            return CPUType.ARM;
+        } else if( archLower.equals("armv5l") ) {
+            return CPUType.ARMv5;
+        } else if( archLower.equals("armv6l") ) {
+            return CPUType.ARMv6;
+        } else if( archLower.equals("armv7l") ) {
+            return CPUType.ARMv7;
+        } else if( archLower.equals("sparc") ) {
+            return CPUType.SPARC_32;
+        } else if( archLower.equals("sparcv9") ) {
+            return CPUType.SPARCV9_64;
+        } else if( archLower.equals("pa_risc2.0") ) {
+            return CPUType.PA_RISC2_0;
+        } else if( archLower.equals("ppc") ) {
+            return CPUType.PPC;
+        } else {
+            throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + archLower + ")");
+        }
+    }
+    
+    private static boolean contains(String data, String[] search) {
+        if(null != data && null != search) {            
+            for(int i=0; i<search.length; i++) {
+                if(data.indexOf(search[i]) >= 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }    
+    private static ABIType guessABITypeImpl(CPUType cpuType) {
+        if(CPUFamily.ARM != cpuType.family) {
+            return ABIType.GENERIC_ABI;
+        }
+        return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
+            private final String[] gnueabihf = new String[] { "gnueabihf", "armhf" };
+            public ABIType run() {                    
+                if ( contains(System.getProperty("sun.boot.library.path"), gnueabihf) ||
+                     contains(System.getProperty("java.library.path"), gnueabihf) ||
+                     contains(System.getProperty("java.home"), gnueabihf) ) {
+                    return ABIType.EABI_GNU_ARMHF;
+                }
+                return ABIType.EABI_GNU_ARMEL;
+            } } );
+    }
+    
     private static OSType getOSTypeImpl() throws RuntimeException {
         if ( AndroidVersion.isAvailable ) {
             return OSType.ANDROID;
@@ -451,10 +497,10 @@ public class Platform {
      * </ul>
      * @return
      */
-    public static String getOSAndArch(OSType osType, CPUType cpuType) {
+    public static String getOSAndArch(OSType osType, CPUType cpuType, ABIType abiType) {
         String _os_and_arch;
         
-        switch( CPU_ARCH ) {
+        switch( cpuType ) {
             case X86_32:
                 _os_and_arch = "i586";
                 break;
@@ -491,7 +537,10 @@ public class Platform {
             default:
                 throw new InternalError("Complete case block");
         }
-        switch(OS_TYPE) {
+        if( ABIType.EABI_GNU_ARMHF == abiType ) {
+            _os_and_arch = _os_and_arch + "hf" ;
+        }
+        switch( osType ) {
             case ANDROID:
               _os_and_arch = "android-" + _os_and_arch;  
               break;

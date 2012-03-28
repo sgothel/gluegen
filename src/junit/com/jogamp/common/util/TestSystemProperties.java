@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2012 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -29,25 +29,31 @@
 package com.jogamp.common.util;
 
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Properties;
+
 import org.junit.Test;
 
-import com.jogamp.common.GlueGenVersion;
 import com.jogamp.junit.util.JunitTracer;
 
-public class TestVersionInfo extends JunitTracer {
+public class TestSystemProperties extends JunitTracer {
 
     @Test
-    public void testInfo01() {
-        System.err.println("Version Info:");
-        System.err.println(GlueGenVersion.getInstance());
-        System.err.println("");
-        System.err.println("Full Manifest:");
-        System.err.println(GlueGenVersion.getInstance().getFullManifestInfo(null));
+    public void dumpProperties() {
+        int i=0;
+        Properties props = System.getProperties();
+        Iterator<Map.Entry<Object,Object>> iter = props.entrySet().iterator();
+        while (iter.hasNext()) {
+          i++;
+          Map.Entry<Object, Object> entry = iter.next();
+          System.out.println(i+": "+entry.getKey() + " = " + entry.getValue());
+        }
+        System.out.println("Property count: "+i);    
     }
-
-
+    
     public static void main(String args[]) throws IOException {
-        String tstname = TestVersionInfo.class.getName();
+        String tstname = TestSystemProperties.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
