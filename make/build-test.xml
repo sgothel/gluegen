@@ -220,7 +220,13 @@
 
     <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
       <mkdir dir="${build}/test/build/classes"/>
-      <antcall target="android.package" inheritRefs="true"/>
+      <antcall target="android.package" inheritRefs="true"/> <!-- implies java.build -->
+      <antcall target="dump.localinfo" inheritRefs="true"/>
+    </target>
+
+    <target name="dump.localinfo">
+        <echo message="Dump Local Info" />
+        <java fork="false" failonerror="no" classname="com.jogamp.common.util.TestSystemPropsAndEnvs" classpath="${junit.run.jars}"/>  
     </target>
 
     <target name="junit.run.remote.ssh" if="isCrosscompilation" unless="isAndroid">
