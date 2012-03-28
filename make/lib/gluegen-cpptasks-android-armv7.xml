@@ -24,7 +24,7 @@
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
     <property name="isCrosscompilation"               value="true" />
     <property name="android.abi"                      value="armeabi-v7a" />
-
+    <property name="isAbiEabiGnuArmel"                value="true" />
     <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-armv7' done"/>
 </target>
 
