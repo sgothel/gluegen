@@ -899,7 +899,7 @@
         <mkdir dir="${archive}/jar" />
         <copy todir="${archive}/jar">
             <fileset dir="${build}" includes="gluegen*.jar"/>
-            <fileset dir="${build}" includes="gluegen*.apk"/>
+            <fileset dir="${build}" includes="*.apk"/>
         </copy>
         <mkdir dir="${archive}/lib" />
         <copy todir="${archive}/lib">
