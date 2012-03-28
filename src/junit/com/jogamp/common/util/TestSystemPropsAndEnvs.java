@@ -37,7 +37,7 @@ import org.junit.Test;
 
 import com.jogamp.junit.util.JunitTracer;
 
-public class TestSystemProperties extends JunitTracer {
+public class TestSystemPropsAndEnvs extends JunitTracer {
 
     @Test
     public void dumpProperties() {
@@ -47,13 +47,26 @@ public class TestSystemProperties extends JunitTracer {
         while (iter.hasNext()) {
           i++;
           Map.Entry<Object, Object> entry = iter.next();
-          System.out.println(i+": "+entry.getKey() + " = " + entry.getValue());
+          System.out.format("%4d: %s = %s%n", i, entry.getKey(), entry.getValue());
         }
-        System.out.println("Property count: "+i);    
+        System.out.println("Property count: "+i);
+    }
+    
+    @Test
+    public void dumpEnvironment() {
+        int i=0;
+        Map<String, String> env = System.getenv();
+        for (String envName : env.keySet()) {
+            i++;
+            System.out.format("%4d: %s = %s%n",
+                              i, envName,
+                              env.get(envName));
+        }        
+        System.out.println("Environment count: "+i);
     }
     
     public static void main(String args[]) throws IOException {
-        String tstname = TestSystemProperties.class.getName();
+        String tstname = TestSystemPropsAndEnvs.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
