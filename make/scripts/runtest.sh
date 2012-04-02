@@ -69,7 +69,7 @@ function onetest() {
 }
 
 #onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
@@ -90,5 +90,5 @@ onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
+onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG

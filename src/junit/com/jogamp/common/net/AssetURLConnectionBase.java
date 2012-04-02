@@ -31,6 +31,10 @@ public abstract class AssetURLConnectionBase extends JunitTracer {
     protected static final String test_asset_test3a_url  = "asset:com/jogamp/common/net/data/RelativeData.txt";
     protected static final String test_asset_test3b_url  = "asset:/com/jogamp/common/net/data/RelativeData.txt";
     protected static final String test_asset_test3_entry = "com/jogamp/common/net/data/RelativeData.txt";
+    protected static final String test_asset_test4_rel   = "../data2/RelativeData2.txt";
+    protected static final String test_asset_test4a_url  = "asset:com/jogamp/common/net/data2/RelativeData2.txt";
+    protected static final String test_asset_test4b_url  = "asset:/com/jogamp/common/net/data2/RelativeData2.txt";
+    protected static final String test_asset_test4_entry = "com/jogamp/common/net/data2/RelativeData2.txt";
 
     protected static void testAssetConnection(URLConnection c, String entry_name) throws IOException {
         Assert.assertNotNull(c);

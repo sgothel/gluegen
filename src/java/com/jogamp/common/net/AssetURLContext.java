@@ -8,8 +8,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
 
-import jogamp.common.Debug;
-
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.util.IOUtil;
 
@@ -17,7 +15,7 @@ import com.jogamp.common.util.IOUtil;
  * See {@link PiggybackURLConnection} for description and examples.
  */
 public abstract class AssetURLContext implements PiggybackURLContext {
-    private static final boolean DEBUG = Debug.isPropertyDefined("jogamp.debug.IOUtil", true);
+    private static final boolean DEBUG = IOUtil.DEBUG;
     
     /** The <i>asset URL</i> protocol name <code>asset</code> */
     public static final String asset_protocol = "asset";
@@ -154,13 +152,14 @@ public abstract class AssetURLContext implements PiggybackURLContext {
         if(DEBUG) {
             System.err.println("AssetURLContext.resolve: <"+path+">");
         }
+        path = IOUtil.cleanPathString(path);
         
         try {
             // lookup as valid sub-protocol
             url = new URL(path);
             conn = open(url);
             type = null != conn ? 1 : -1;
-        } catch(MalformedURLException e1) { if(DEBUG) { System.err.println("ERR: "+e1.getMessage()); } }
+        } catch(MalformedURLException e1) { if(DEBUG) { System.err.println("ERR(0): "+e1.getMessage()); } }
         
         if(null == conn && null != cl) {
             // lookup via ClassLoader .. cleanup leading '/'
@@ -185,7 +184,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
                     conn = open(url);
                     type = null != conn ? 3 : -1;
                 }
-            } catch (Throwable e) { if(DEBUG) { System.err.println("ERR: "+e.getMessage()); } }
+            } catch (Throwable e) { if(DEBUG) { System.err.println("ERR(1): "+e.getMessage()); } }
         }
         
         if(DEBUG) {

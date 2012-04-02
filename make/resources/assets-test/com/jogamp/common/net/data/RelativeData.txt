@@ -1,3 +1,3 @@
-Relative Data To com/jogamp/common/net/data/AssetURLConnectionTest 
+Relative Data 1 - com/jogamp/common/net/data/RelativeData.txt
 
 This file exists for test purposes.

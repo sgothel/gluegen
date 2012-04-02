@@ -54,7 +54,7 @@ import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
-    private static final boolean DEBUG = Debug.isPropertyDefined("jogamp.debug.IOUtil", true);
+    public static final boolean DEBUG = Debug.debug("IOUtil");
     
     /** Std. temporary directory property key <code>java.io.tmpdir</code> */
     public static final String java_io_tmpdir_propkey = "java.io.tmpdir";
@@ -208,15 +208,27 @@ public class IOUtil {
      *  
      */
     
-    public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) {
-        String p = path.replace('\\', '/'); // unify file seperator        
+    /**
+     * 
+     * @param path
+     * @param startWithSlash
+     * @param endWithSlash
+     * @return
+     * @throws RuntimeException if final path is empty or has no parent directory available while resolving <code>../</code> 
+     */
+    public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) throws RuntimeException {
+        String p = path.replace('\\', '/'); // unify file seperator     
         if (startWithSlash && !p.startsWith("/")) {
             p = "/" + p;
         }
         if (endWithSlash && !p.endsWith("/")) {
             p = p + "/";
         }
-        return p;
+        try {
+            return cleanPathString(p);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }        
     }
     
     /** Using the proper advertised conversion via File -> URI -> URL */
@@ -322,7 +334,9 @@ public class IOUtil {
     /**
      * Locating a resource using {@link #getResource(String, ClassLoader)}:
      * <ul>
-     *   <li><i>relative</i>: <code>context</code>'s package name-path plus <code>resourcePath</code> via <code>context</code>'s ClassLoader. This allows locations relative to JAR- and other URLs. </li>
+     *   <li><i>relative</i>: <code>context</code>'s package name-path plus <code>resourcePath</code> via <code>context</code>'s ClassLoader. 
+     *       This allows locations relative to JAR- and other URLs. 
+     *       The <code>resourcePath</code> may start with <code>../</code> to navigate to parent folder.</li>
      *   <li><i>absolute</i>: <code>context</code>'s ClassLoader and the <code>resourcePath</code> as is (filesystem)</li>
      * </ul>
      *
@@ -337,16 +351,15 @@ public class IOUtil {
     public static URLConnection getResource(Class<?> context, String resourcePath) {
         if(null == resourcePath) {
             return null;
-        }
+        }        
         ClassLoader contextCL = (null!=context)?context.getClassLoader():IOUtil.class.getClassLoader();
         URLConnection conn = null;
         if(null != context) {
-            // scoping the path within the class's package
-            String className = context.getName().replace('.', '/');
-            int lastSlash = className.lastIndexOf('/');
+            // scoping the path within the class's package            
+            final String className = context.getName().replace('.', '/');
+            final int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
-                String tmpPath = className.substring(0, lastSlash + 1) + resourcePath;
-                conn = getResource(tmpPath, contextCL);
+                conn = getResource(className.substring(0, lastSlash + 1) + resourcePath, contextCL);
             }
             if(DEBUG) {
                 System.err.println("IOUtil: found <"+resourcePath+"> within class package: "+(null!=conn));
@@ -416,10 +429,6 @@ public class IOUtil {
         }
         
         if (baseLocation != null) {
-            while (relativeFile.startsWith("../")) {
-                baseLocation = baseLocation.getParentFile();
-                relativeFile = relativeFile.substring(3);
-            }
             final File file = new File(baseLocation, relativeFile);
             // Handle things on Windows
             return slashify(file.getPath(), false, false);
@@ -430,7 +439,7 @@ public class IOUtil {
     /**
      * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
      * @return parent of path
-     * @throws MalformedURLException if path is empty or has parent directory available 
+     * @throws MalformedURLException if path is empty or has parent no directory available 
      */
     public static String getParentOf(String path) throws MalformedURLException {
         final int pl = null!=path ? path.length() : 0;
@@ -460,6 +469,22 @@ public class IOUtil {
     }
     
     /**
+     * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
+     * @return clean path string where <code>../</code> and <code>./</code> is resolved. 
+     * @throws MalformedURLException if path is empty or has no parent directory available while resolving <code>../</code>
+     */
+    public static String cleanPathString(String path) throws MalformedURLException {
+        int idx;
+        while ( ( idx = path.indexOf("../") ) >= 0 ) {
+            path = getParentOf(path.substring(0, idx)) + path.substring(idx+3);
+        }
+        while ( ( idx = path.indexOf("./") ) >= 0 ) {
+            path = path.substring(0, idx) + path.substring(idx+2);
+        }
+        return path;
+    }
+    
+    /**
      * Generates a path for the 'relativeFile' relative to the 'baseLocation',
      * hence the result is a absolute location.
      * 
@@ -476,10 +501,6 @@ public class IOUtil {
         
         if(!path.endsWith("/")) {
             path = getParentOf(path);
-        }
-        while (relativeFile.startsWith("../")) {
-            path = getParentOf(path);
-            relativeFile = relativeFile.substring(3);
         }
         return compose(scheme, auth, path, relativeFile, query, fragment);
     }
@@ -508,7 +529,7 @@ public class IOUtil {
             sb.append("#");
             sb.append(fragment);
         }
-        return new URL(sb.toString());
+        return new URL(cleanPathString(sb.toString()));
     }    
     
     /**

@@ -46,6 +46,11 @@ public class AssetURLConnectionRegisteredTest extends AssetURLConnectionBase {
         Assert.assertNotNull(url1);
         Assert.assertEquals(test_asset_test3a_url, url1.toExternalForm());
         testAssetConnection(url1.openConnection(), test_asset_test3_entry);
+        
+        final URL url2 = IOUtil.getRelativeOf(urlConn0.getURL(), test_asset_test4_rel);
+        Assert.assertNotNull(url1);
+        Assert.assertEquals(test_asset_test4a_url, url2.toExternalForm());
+        testAssetConnection(url2.openConnection(), test_asset_test4_entry);
     }
         
     @Test
@@ -59,6 +64,11 @@ public class AssetURLConnectionRegisteredTest extends AssetURLConnectionBase {
         Assert.assertNotNull(url1);
         Assert.assertEquals(test_asset_test3b_url, url1.toExternalForm());
         testAssetConnection(url1.openConnection(), test_asset_test3_entry);
+        
+        final URL url2 = IOUtil.getRelativeOf(urlConn0.getURL(), test_asset_test4_rel);
+        Assert.assertNotNull(url1);
+        Assert.assertEquals(test_asset_test4b_url, url2.toExternalForm());
+        testAssetConnection(url2.openConnection(), test_asset_test4_entry);        
     }
     
     URLConnection createAssetURLConnection(String path) throws IOException {

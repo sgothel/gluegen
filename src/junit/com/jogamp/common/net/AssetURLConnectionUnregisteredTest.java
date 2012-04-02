@@ -39,6 +39,10 @@ public class AssetURLConnectionUnregisteredTest extends AssetURLConnectionBase {
         final URL url1 = IOUtil.getRelativeOf(urlConn0.getURL(), test_asset_test3_rel);
         Assert.assertNotNull(url1); // JARFile URL ..
         testAssetConnection(url1.openConnection(), test_asset_test3_entry);
+        
+        final URL url2 = IOUtil.getRelativeOf(urlConn0.getURL(), test_asset_test4_rel);
+        Assert.assertNotNull(url1);
+        testAssetConnection(url2.openConnection(), test_asset_test4_entry);        
     }
     
     protected static URLConnection createAssetURLConnection(String path, ClassLoader cl) throws IOException {
