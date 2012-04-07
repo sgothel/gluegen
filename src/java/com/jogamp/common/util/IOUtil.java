@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.AccessControlContext;
+import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -58,6 +59,19 @@ public class IOUtil {
     
     /** Std. temporary directory property key <code>java.io.tmpdir</code> */
     public static final String java_io_tmpdir_propkey = "java.io.tmpdir";
+
+    private static final Constructor<?> fosCtor;
+    
+    static {
+        Constructor<?> _fosCtor;
+        try {
+            _fosCtor = ReflectionUtil.getConstructor("java.io.FileOutputStream", new Class<?>[] { File.class }, IOUtil.class.getClassLoader());
+        } catch (Throwable t) {
+            if(DEBUG) { t.printStackTrace(); }
+            _fosCtor = null;
+        }
+        fosCtor = _fosCtor;
+    }
     
     private IOUtil() {}
     
@@ -278,6 +292,28 @@ public class IOUtil {
         return toLowerCase(filename.substring(lastDot + 1));
     }
 
+    /***
+     * @param file
+     * @param allowOverwrite
+     * @return outputStream The resulting output stream
+     * @throws IOException if the file already exists and <code>allowOverwrite</code> is false, 
+     *                     the class <code>java.io.FileOutputStream</code> is not accessible or
+     *                     the user does not have sufficient rights to access the local filesystem. 
+     */
+    public static FileOutputStream getFileOutputStream(File file, boolean allowOverwrite) throws IOException {
+        if(null == fosCtor) {
+            throw new IOException("Cannot open file (" + file + ") for writing, feature not available.");
+        }
+        if (file.exists() && !allowOverwrite) {
+            throw new IOException("File already exists (" + file + ") and overwrite=false");
+        }
+        try {
+            return (FileOutputStream) fosCtor.newInstance(new Object[] { file });
+        } catch (Exception e) {
+            throw new IOException("error opening " + file + " for write. ", e);
+        }
+    }
+    
     public static String getClassFileName(String clazzBinName) throws IOException {
         // or return clazzBinName.replace('.', File.pathSeparatorChar) + ".class"; ?            
         return clazzBinName.replace('.', '/') + ".class";            
