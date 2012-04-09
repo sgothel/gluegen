@@ -32,7 +32,6 @@
 package com.jogamp.common.nio;
 
 import java.nio.Buffer;
-import java.nio.ByteBuffer;
 
 /**
  * Hardware independent container for various kinds of buffers.

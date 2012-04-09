@@ -254,6 +254,48 @@ public class Buffers {
     }
 
     /**
+     * Slices a ByteBuffer <i>or</i> a primitive float array to a FloatBuffer at the given position with the given size
+     * in float-space.
+     * <p> 
+     * Using a ByteBuffer as the source guarantees 
+     * keeping the source native order programmatically.  
+     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>. 
+     * This bug is resolved at least in Android 3.2.
+     * </p>
+     * 
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer or <code>null</code>. 
+     *            Buffer's position is ignored and floatPos is being used.
+     * @param backing source float array or <code>null</code>
+     * @param floatPos {@link Buffers#SIZEOF_FLOAT} position
+     * @param floatSize {@link Buffers#SIZEOF_FLOAT} size 
+     * @return FloatBuffer w/ native byte order as given ByteBuffer
+     */
+    public static final FloatBuffer slice2Float(Buffer buf, float[] backing, int floatPos, int floatSize) {
+        if(buf instanceof ByteBuffer) {
+            ByteBuffer bb = (ByteBuffer) buf;
+            bb.position( floatPos * Buffers.SIZEOF_FLOAT );
+            bb.limit( (floatPos + floatSize) * Buffers.SIZEOF_FLOAT );
+            FloatBuffer fb = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
+            fb.mark();
+            return fb;
+        } else if(null != backing) {
+            FloatBuffer fb  = FloatBuffer.wrap(backing, floatPos, floatSize);
+            fb.mark();
+            return fb;
+        } else if(buf instanceof FloatBuffer) {
+            FloatBuffer fb = (FloatBuffer) buf;
+            fb.position( floatPos );
+            fb.limit( floatPos + floatSize );
+            FloatBuffer fb0 = fb.slice(); // slice and duplicate may change byte order
+            fb0.mark();
+            return fb0;
+        } else {
+            throw new InternalError("XXX");
+        }
+    }
+
+    
+    /**
      * Helper routine to set a ByteBuffer to the native byte order, if
      * that operation is supported by the underlying NIO
      * implementation.
@@ -330,7 +372,7 @@ public class Buffers {
                 return pos * SIZEOF_CHAR;
             }
         } else if (buf instanceof NativeBuffer) {
-            final NativeBuffer nb = (NativeBuffer) buf;
+            final NativeBuffer<?> nb = (NativeBuffer<?>) buf;
             return nb.position() * nb.elementSize() ;
         }
 
@@ -350,7 +392,7 @@ public class Buffers {
         if (buf instanceof Buffer) {
             return ((Buffer) buf).array();
         } else if (buf instanceof NativeBuffer) {
-            return ((NativeBuffer) buf).array();
+            return ((NativeBuffer<?>) buf).array();
         }
 
         throw new IllegalArgumentException("Disallowed array backing store type in buffer " + buf.getClass().getName());
@@ -384,7 +426,7 @@ public class Buffers {
                 return (SIZEOF_CHAR * (((CharBuffer) buf).arrayOffset() + pos));
             }
         } else if (buf instanceof NativeBuffer) {
-            final NativeBuffer nb = (NativeBuffer) buf;
+            final NativeBuffer<?> nb = (NativeBuffer<?>) buf;
             return nb.elementSize() * ( nb.arrayOffset() + nb.position() );
         }
 
@@ -804,7 +846,7 @@ public class Buffers {
                 bytesRemaining = elementsRemaining * SIZEOF_CHAR;
             }
         } else if (buffer instanceof NativeBuffer) {
-            final NativeBuffer nb = (NativeBuffer) buffer;
+            final NativeBuffer<?> nb = (NativeBuffer<?>) buffer;
             bytesRemaining = nb.remaining() * nb.elementSize();
         }
         if (bytesRemaining < minBytesRemaining) {
