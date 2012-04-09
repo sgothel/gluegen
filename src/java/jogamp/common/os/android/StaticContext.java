@@ -27,26 +27,29 @@
  */
 package jogamp.common.os.android;
 
-import android.content.*;
+import android.content.Context;
 import android.util.Log;
 
 public class StaticContext {
-   private static Context context = null;
+   private static Context appContext = null;
    
    private static boolean DEBUG = false;
    
-   public static final synchronized void init(Context ctx) {
-       if(null != context) {
+   /**
+    * @param appContext mandatory application Context
+    */
+   public static final synchronized void init(Context appContext) {
+       if(null != StaticContext.appContext) {
            throw new RuntimeException("Context already set");
        }
-       if(DEBUG) { Log.d(MD.TAG, "init("+ctx+")"); }
-       context = ctx;
+       if(DEBUG) { Log.d(MD.TAG, "init(appCtx "+appContext+")"); }
+       StaticContext.appContext = appContext;
    }
    public static final synchronized void clear() {
        if(DEBUG) { Log.d(MD.TAG, "clear()"); }
-       context = null;       
+       appContext = null;
    }
    public static final synchronized Context getContext() {
-       return context;
+       return appContext;
    }   
 }

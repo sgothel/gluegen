@@ -146,8 +146,14 @@ public class LauncherUtil {
        public final void setSystemProperties() {
            Iterator<String> argKeys = keyList.iterator();
            while(argKeys.hasNext()) {
-                   final String key = argKeys.next();
-                   System.setProperty(key, map.get(key));
+               final String key = argKeys.next();
+               System.setProperty(key, map.get(key));
+           }
+       }
+       public final void clearSystemProperties() {
+           Iterator<String> argKeys = keyList.iterator();
+           while(argKeys.hasNext()) {
+               System.clearProperty(argKeys.next());
            }
        }
        
@@ -189,6 +195,9 @@ public class LauncherUtil {
        }
        public final void setSystemProperties() {
            properties.setSystemProperties();
+       }   
+       public final void clearSystemProperties() {
+           properties.clearSystemProperties();
        }   
        public final String getProperty(String key) { return properties.getProperty(key); }
        public final OrderedProperties getProperties() { return properties; }

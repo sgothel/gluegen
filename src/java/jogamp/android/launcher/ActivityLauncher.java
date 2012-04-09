@@ -38,12 +38,13 @@ import android.widget.TextView;
 import android.util.Log;
 
 public class ActivityLauncher extends Activity {
-   static final String TAG = "NEWTLauncherActivity";
+   static final String TAG = "JogAmp-ActivityLauncher";
    TextView tv = null;
    Method mOnCreate, mOnDestroy, mOnPause, mOnRestart, mOnResume, 
           mOnStart, mOnStop, mSetRootActivity;
    Class<?> activityClazz = null;
    Object activityObject  = null;
+   LauncherUtil.DataSet data = null;
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +52,7 @@ public class ActivityLauncher extends Activity {
        super.onCreate(savedInstanceState);
        
        final Uri uri = getIntent().getData();
-       final LauncherUtil.DataSet data = LauncherUtil.DataSet.create(uri);
+       data = LauncherUtil.DataSet.create(uri);
        data.setSystemProperties();
 
        ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getPackages(), false);
@@ -133,6 +134,10 @@ public class ActivityLauncher extends Activity {
    public void onDestroy() {
      Log.d(TAG, "onDestroy - S");
      callMethod(activityObject, mOnDestroy);
+     if(null != data) {
+         data.clearSystemProperties();
+         data = null;
+     }
      super.onDestroy();  
      finish();
      Log.d(TAG, "onDestroy - X");
