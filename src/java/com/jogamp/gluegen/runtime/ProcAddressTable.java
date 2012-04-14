@@ -47,7 +47,6 @@ import java.security.PrivilegedAction;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -85,8 +84,7 @@ public abstract class ProcAddressTable {
     private final FunctionAddressResolver resolver;
 
     static {
-        AccessController.doPrivileged(new PrivilegedAction() {
-
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
                 DEBUG = (System.getProperty("jogamp.debug.ProcAddressHelper") != null);
                 if (DEBUG) {
@@ -199,16 +197,16 @@ public abstract class ProcAddressTable {
     /**
      * Returns this table as map with the function name as key and the address as value.
      */
-    public Map/*<String, Long>*/ toMap() {
+    public Map<String, Long> toMap() {
         
-        SortedMap map = new TreeMap();
+        SortedMap<String, Long> map = new TreeMap<String, Long>();
 
         Field[] fields = getClass().getFields();
         try {
             for (int i = 0; i < fields.length; ++i) {
                 String addressFieldName = fields[i].getName();
                 if (isAddressField(addressFieldName)) {
-                    map.put(fieldToFunctionName(addressFieldName), fields[i].get(this));
+                    map.put(fieldToFunctionName(addressFieldName), (Long)fields[i].get(this));
                 }
             }
         } catch (IllegalArgumentException ex) {
@@ -251,12 +249,12 @@ public abstract class ProcAddressTable {
     /**
      * Returns all functions pointing to null.
      */
-    public Set/*<String>*/ getNullPointerFunctions() {
-        Map table = toMap();
-        Set nullPointers = new LinkedHashSet();
-        for (Iterator it = table.entrySet().iterator(); it.hasNext();) {
-            Map.Entry entry = (Entry) it.next();
-            long address = ((Long)entry.getValue()).longValue();
+    public Set<String> getNullPointerFunctions() {
+        Map<String, Long> table = toMap();
+        Set<String> nullPointers = new LinkedHashSet<String>();
+        for (Iterator<Map.Entry<String, Long>> it = table.entrySet().iterator(); it.hasNext();) {
+            Map.Entry<String, Long> entry = it.next();
+            long address = entry.getValue().longValue();
             if(address == 0) {
                 nullPointers.add(entry.getKey());
             }
