@@ -111,7 +111,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   }
 
   public String toString(String variableName) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(elementType.getName());
     if (variableName != null) {
       buf.append(" ");

@@ -43,7 +43,6 @@ import com.jogamp.gluegen.CMethodBindingEmitter;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.JavaType;
 import java.io.*;
-import com.jogamp.gluegen.*;
 import com.jogamp.gluegen.cgram.types.*;
 
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
@@ -203,7 +202,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
     @Override
     protected String jniMangle(MethodBinding binding) {
-        StringBuffer buf = new StringBuffer(super.jniMangle(binding));
+        StringBuilder buf = new StringBuilder(super.jniMangle(binding));
         if (callThroughProcAddress) {
             jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
         }

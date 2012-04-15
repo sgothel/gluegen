@@ -206,7 +206,7 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
     try {
       visiting = true;
       String kind = (isStruct() ? "struct {" : "union {");
-      StringBuffer res = new StringBuffer();
+      StringBuilder res = new StringBuilder();
       res.append(kind);
       int n = getNumFields();
       for (int i = 0; i < n; i++) {

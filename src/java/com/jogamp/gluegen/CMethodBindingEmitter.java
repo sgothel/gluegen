@@ -1090,7 +1090,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   }
 
   protected String jniMangle(MethodBinding binding) {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(jniMangle(getName()));
     buf.append(getImplSuffix());
     buf.append("__");
@@ -1147,7 +1147,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     return buf.toString();
   }
 
-  protected void jniMangle(Class<?> c, StringBuffer res, boolean syntheticArgument) {
+  protected void jniMangle(Class<?> c, StringBuilder res, boolean syntheticArgument) {
     if (c.isPrimitive()) {
            if (c == Boolean.TYPE)   res.append("Z");
       else if (c == Byte.TYPE)      res.append("B");

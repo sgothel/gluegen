@@ -5,18 +5,17 @@ import java.util.Hashtable;
 import java.util.Enumeration;
 
 
-
 public class CSymbolTable {
 
   /** holds list of scopes */
-  private Vector scopeStack;
+  private Vector<String> scopeStack;
 
   /** table where all defined names are mapped to TNode tree nodes */
-  private Hashtable symTable;
+  private Hashtable<String, TNode> symTable;
 
   public CSymbolTable()  {
-    scopeStack = new Vector(10);
-    symTable = new Hashtable(533);
+    scopeStack = new Vector<String>(10);
+    symTable = new Hashtable<String, TNode>(533);
   }
 
 
@@ -39,9 +38,9 @@ public class CSymbolTable {
   /** return the current scope as a string 
    */
   public String currentScopeAsString() {
-      StringBuffer buf = new StringBuffer(100);
+      StringBuilder buf = new StringBuilder(100);
       boolean first = true;
-      Enumeration e = scopeStack.elements();
+      Enumeration<String> e = scopeStack.elements();
       while(e.hasMoreElements()) {
         if(first) 
           first = false;
@@ -85,13 +84,13 @@ public class CSymbolTable {
   /** add a node to the table with it's key as
     the current scope and the name */
   public TNode add(String name, TNode node) {
-    return (TNode)symTable.put(addCurrentScopeToName(name),node);
+    return symTable.put(addCurrentScopeToName(name),node);
   }
 
 
   /** lookup a fully scoped name in the symbol table */
   public TNode lookupScopedName(String scopedName) {
-    return (TNode)symTable.get(scopedName);
+    return symTable.get(scopedName);
   }
 
   /** lookup an unscoped name in the table by prepending
@@ -108,7 +107,7 @@ public class CSymbolTable {
     while (tnode == null && scope != null) {
       scopedName = addScopeToName(scope, name);
       //System.out.println("lookup trying " + scopedName);
-      tnode = (TNode)symTable.get(scopedName);
+      tnode = symTable.get(scopedName);
       scope = removeOneLevelScope(scope);
     }
     return tnode;
@@ -116,11 +115,11 @@ public class CSymbolTable {
 
   /** convert this table to a string */
   public String toString() {
-    StringBuffer buff = new StringBuffer(300);
+    StringBuilder buff = new StringBuilder(300);
     buff.append("CSymbolTable { \nCurrentScope: " + currentScopeAsString() + 
                 "\nDefinedSymbols:\n");
-    Enumeration ke = symTable.keys();
-    Enumeration ve = symTable.elements();
+    Enumeration<String> ke = symTable.keys();
+    Enumeration<TNode> ve = symTable.elements();
     while(ke.hasMoreElements()) {
       buff.append(ke.nextElement().toString() + " (" + 
                   TNode.getNameForType(((TNode)ve.nextElement()).getType()) + ")\n");

@@ -542,7 +542,7 @@ public class IOUtil {
     }
     
     public static URL compose(String scheme, String auth, String path1, String path2, String query, String fragment) throws MalformedURLException {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         if(null!=scheme) {
             sb.append(scheme);
             sb.append(":");

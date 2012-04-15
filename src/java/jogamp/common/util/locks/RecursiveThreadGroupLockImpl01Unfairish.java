@@ -116,7 +116,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
         }
         
         String addOwnerToString() {
-            StringBuffer sb = new StringBuffer();
+            StringBuilder sb = new StringBuilder();
             for(int i=0; i<threadNum; i++) {
                 if(i>0) {
                     sb.append(", ");

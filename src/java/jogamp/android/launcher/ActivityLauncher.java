@@ -197,7 +197,7 @@ public class ActivityLauncher extends Activity {
     protected static final Class<?>[] zeroTypes = new Class[0];
 
     protected static final String asString(Class<?>[] argTypes) {
-        StringBuffer args = new StringBuffer();
+        StringBuilder args = new StringBuilder();
         boolean coma = false;
         if(null != argTypes) {
             for (int i = 0; i < argTypes.length; i++) {

@@ -155,7 +155,7 @@ public void initialize(AST tr) {
   
   /** Returns the text for this node and all children */
   public String getAllChildrenText() {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     buf.append(getText());
     for (TNode node = (TNode) getFirstChild(); node != null; node = (TNode) node.getNextSibling()) {
       buf.append(node.getText());
@@ -304,7 +304,7 @@ public void initialize(AST tr) {
 
   /** return a short string representation of the node */
   public String toString() {
-    StringBuffer str = new StringBuffer( getNameForType(getType()) +
+    StringBuilder str = new StringBuilder( getNameForType(getType()) +
            "[" + getText() + ", " + "]");
 
      if(this.getLineNum() != 0) 

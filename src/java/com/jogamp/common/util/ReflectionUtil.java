@@ -94,7 +94,7 @@ public final class ReflectionUtil {
     }
 
     static final String asString(Class<?>[] argTypes) {
-        StringBuffer args = new StringBuffer();
+        StringBuilder args = new StringBuilder();
         boolean coma = false;
         if(null != argTypes) {
             for (int i = 0; i < argTypes.length; i++) {

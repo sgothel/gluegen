@@ -62,7 +62,7 @@ public class TypeInfo {
 
   @Override
   public String toString() {
-    StringBuffer buf = new StringBuffer("TypeInfo: ");
+    StringBuilder buf = new StringBuilder("TypeInfo: ");
     buf.append(name);
     buf.append(" pointerDepth ");
     buf.append(pointerDepth);

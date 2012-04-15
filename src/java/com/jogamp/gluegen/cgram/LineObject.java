@@ -106,8 +106,8 @@ class LineObject {
   }
 
   public String toString() {
-    StringBuffer ret;
-    ret = new StringBuffer("# " + line + " \"" + source + "\"");
+    StringBuilder ret;
+    ret = new StringBuilder("# " + line + " \"" + source + "\"");
     if (enteringFile) {
         ret.append(" 1");
     }

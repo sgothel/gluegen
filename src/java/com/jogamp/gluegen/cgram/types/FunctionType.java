@@ -134,7 +134,7 @@ public class FunctionType extends Type implements Cloneable {
     }
 
     String toString(String functionName, String callingConvention, boolean emitNativeTag, boolean isPointer) {
-        StringBuffer res = new StringBuffer();
+        StringBuilder res = new StringBuilder();
         res.append(getReturnType());
         res.append(" ");
         if (isPointer) {

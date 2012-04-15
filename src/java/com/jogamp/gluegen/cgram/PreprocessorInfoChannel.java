@@ -4,18 +4,18 @@ import java.util.*;
 
 public class PreprocessorInfoChannel
 {
-    Hashtable lineLists = new Hashtable(); // indexed by Token number
+    Hashtable<Integer, Vector<Object>> lineLists = new Hashtable<Integer, Vector<Object>>(); // indexed by Token number
     int firstValidTokenNumber = 0;
     int maxTokenNumber = 0;
 
     public void addLineForTokenNumber( Object line, Integer toknum )
     {
         if ( lineLists.containsKey( toknum ) ) {
-            Vector lines = (Vector) lineLists.get( toknum );
+            Vector<Object> lines = lineLists.get( toknum );
             lines.addElement(line);
         }
         else {
-            Vector lines = new Vector();
+            Vector<Object> lines = new Vector<Object>();
             lines.addElement(line);
             lineLists.put(toknum, lines);
             if ( maxTokenNumber < toknum.intValue() ) {
@@ -29,16 +29,16 @@ public class PreprocessorInfoChannel
         return maxTokenNumber;
     }
         
-    public Vector extractLinesPrecedingTokenNumber( Integer toknum )
+    public Vector<Object> extractLinesPrecedingTokenNumber( Integer toknum )
     {
-        Vector lines = new Vector();
+        Vector<Object> lines = new Vector<Object>();
         if (toknum == null) return lines;       
         for (int i = firstValidTokenNumber; i < toknum.intValue(); i++){
             Integer inti = new Integer(i);
             if ( lineLists.containsKey( inti ) ) {
-                Vector tokenLineVector = (Vector) lineLists.get( inti );
+                Vector<Object> tokenLineVector = lineLists.get( inti );
                 if ( tokenLineVector != null) {
-                    Enumeration tokenLines = tokenLineVector.elements();
+                    Enumeration<Object> tokenLines = tokenLineVector.elements();
                     while ( tokenLines.hasMoreElements() ) {
                         lines.addElement( tokenLines.nextElement() );
                     }
@@ -52,13 +52,13 @@ public class PreprocessorInfoChannel
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer("PreprocessorInfoChannel:\n");
+        StringBuilder sb = new StringBuilder("PreprocessorInfoChannel:\n");
         for (int i = 0; i <= maxTokenNumber + 1; i++){
             Integer inti = new Integer(i);
             if ( lineLists.containsKey( inti ) ) {
-                Vector tokenLineVector = (Vector) lineLists.get( inti );
+                Vector<Object> tokenLineVector = lineLists.get( inti );
                 if ( tokenLineVector != null) {
-                    Enumeration tokenLines = tokenLineVector.elements();
+                    Enumeration<Object> tokenLines = tokenLineVector.elements();
                     while ( tokenLines.hasMoreElements() ) {
                         sb.append(inti + ":" + tokenLines.nextElement() + '\n');
                     }
