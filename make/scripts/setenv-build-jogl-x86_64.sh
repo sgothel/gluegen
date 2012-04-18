@@ -33,7 +33,14 @@ if [ -e /opt-linux-x86_64/jre6 -a -e /opt-linux-x86_64/j2se6 ] ; then
     export J2RE_HOME JAVA_HOME
 fi
 
-if [ -e /opt-solaris-x86_64/jre6 -a -e /opt-solaris-x86_64/j2se6 ] ; then
+if [ -e /usr/java/jre/bin/amd64 -a -e /usr/java/bin/amd64 ] ; then
+    # make a symbolic link: /usr/java/bin/amd64/bin$ ln -s . bin
+    # since ant looks for $JAVA_HOME/bin/java and we need to force the 64bit JVM
+    J2RE_HOME=/usr/java/jre/bin/amd64
+    JAVA_HOME=/usr/java/bin/amd64
+    PATH=$J2RE_HOME:$JAVA_HOME:$PATH
+    export J2RE_HOME JAVA_HOME
+elif [ -e /opt-solaris-x86_64/jre6 -a -e /opt-solaris-x86_64/j2se6 ] ; then
     # make a symbolic link: /opt-solaris-x86_64/jre6/bin/amd64/bin$ ln -s . bin
     # since ant looks for $JAVA_HOME/bin/java and we need to force the 64bit JVM
     J2RE_HOME=/opt-solaris-x86_64/jre6/bin/amd64
