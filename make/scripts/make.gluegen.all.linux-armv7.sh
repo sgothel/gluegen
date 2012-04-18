@@ -11,6 +11,8 @@
 export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabi
 export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
+export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv4.xml"
+
 ant \
     -Drootrel.build=build-linux-armv7 \
     $* 2>&1 | tee make.gluegen.all.linux-armv7.log
