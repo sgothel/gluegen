@@ -29,6 +29,8 @@
 
     <linker id="linker.cfg.linux" name="gcc">
       <linkerarg value="-m32" />
+      <linkerarg value="-nostdlib" />
+      <linkerarg value="-Bdynamic" />
     </linker>
 
 </target>

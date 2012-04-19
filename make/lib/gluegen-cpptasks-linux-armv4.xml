@@ -43,12 +43,17 @@
       </defineset>
       <compilerarg value="-fpic" /> 
       <compilerarg value="-march=armv4t" />
-      <compilerarg value="-msoft-float" /> 
+      <compilerarg value="-marm" /> 
+      <compilerarg value="-mfloat-abi=soft" />
     </compiler>
 
     <linker id="linker.cfg.linux.armv7" name="gcc">
       <linkerarg value="-fpic" /> 
       <linkerarg value="-march=armv4t" />
+      <linkerarg value="-marm" />
+      <linkerarg value="-mfloat-abi=soft" />
+      <linkerarg value="-nostdlib" />
+      <linkerarg value="-Bdynamic" />
     </linker>
 
 </target>
