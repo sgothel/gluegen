@@ -219,15 +219,19 @@ public class Platform {
         
         {
             final ClassLoader cl = Platform.class.getClassLoader();
-            boolean _AWT_AVAILABLE = false;
-            if( !Debug.getBooleanProperty("java.awt.headless", true) &&
-                ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) && 
-                ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
-                try {
-                    _AWT_AVAILABLE = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
-                } catch (Throwable t) { }
-            }
-            AWT_AVAILABLE = _AWT_AVAILABLE;
+            AWT_AVAILABLE = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+                public Boolean run() {
+                    boolean awtAvailable = false;
+                    if( !Debug.getBooleanProperty("java.awt.headless", true) &&
+                        ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) && 
+                        ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
+                        try {
+                            awtAvailable = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
+                        } catch (Throwable t) { }
+                    }
+                    return new Boolean(awtAvailable);
+                }
+              }).booleanValue();
         }
     }
 
