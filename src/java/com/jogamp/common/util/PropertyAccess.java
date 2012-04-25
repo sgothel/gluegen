@@ -136,11 +136,12 @@ public class PropertyAccess {
     if(0 == propertyKey.length()) {
         throw new IllegalArgumentException("propertyKey is empty");
     }
-    if(isTrusted(propertyKey)) {
+    if( isTrusted(propertyKey) ) {
+        // uses 'trusted' prefix, don't add jnlp prefix
         return getTrustedPropKey(propertyKey);
     }
     String s=null;
-    if( null!=acc ) {
+    if( null != acc ) {
         s = AccessController.doPrivileged(new PrivilegedAction<String>() {
             public String run() {
               return System.getProperty(propertyKey);
@@ -148,12 +149,10 @@ public class PropertyAccess {
     } else {
         s = System.getProperty(propertyKey);
     }
-    if(null==s && jnlpAlias) {
+    if( null == s && jnlpAlias ) {
         // Properties within the namespace "jnlp." or "javaws." should be considered trusted,
-        // i.e. always granted w/o special priviledges.
-        // FIXME: Nevertheless we use this class AccessControlContext to ensure access
-        //        on all supported implementations.
-        return getTrustedPropKey(jnlp_prefix + propertyKey);
+        // i.e. always granted w/o special privileges.
+        s = getTrustedPropKey(jnlp_prefix + propertyKey);
     }
     return s;
   }
