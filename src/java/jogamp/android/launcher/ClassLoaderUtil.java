@@ -43,6 +43,7 @@ public class ClassLoaderUtil {
    
    // FIXME: Need to generalize this .. (Note: native lib resources must be cached!)
    private static final String[] packagesJogAmp = { "com.jogamp.common", "javax.media.opengl" };   
+   // JAU private static final String[] packagesJogAmp = { "javax.media.opengl" };
    private static ClassLoader jogAmpClassLoader = null;
    
    // location where optimized dex files will be written
@@ -104,6 +105,7 @@ public class ClassLoaderUtil {
        
        StringBuilder apks = new StringBuilder();
        StringBuilder libs = new StringBuilder();
+       // JAU libs.append("/data/data/com.jogamp.common/").append(ELEM_SEP);
        int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
        
@@ -124,10 +126,12 @@ public class ClassLoaderUtil {
                        }
                    }
                    apks.append(userAPK);
+                   Log.d(TAG, "APK["+apkCount+"] found: <"+lastUserPackageName+"> -> <"+userAPK+">");
+                   Log.d(TAG, "APK["+apkCount+"] apks: <"+apks.toString()+">");
                    if(addUserLibPath) {
                        libs.append(appDir).append(PATH_SEP).append(lastUserPackageName).append(PATH_SEP).append(libSub).append(PATH_SEP);
+                       Log.d(TAG, "APK["+apkCount+"] libs: <"+libs.toString()+">");
                    }
-                   Log.d(TAG, "APK found: <"+lastUserPackageName+"> -> <"+userAPK+">");
                    apkCount++;
                } else {
                    Log.d(TAG, "APK not found: <"+lastUserPackageName+">");
