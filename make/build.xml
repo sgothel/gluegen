@@ -71,7 +71,7 @@
     <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
     <!-- This is the version of GlueGen you are building -->
-    <property name="gluegen_int_version" value="2"/>
+    <property name="gluegen_int_version" value="1"/>
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
     <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${version.timestamp}" />
