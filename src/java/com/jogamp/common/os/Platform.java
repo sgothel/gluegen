@@ -378,9 +378,9 @@ public class Platform {
     private static void loadGlueGenRTImpl() {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
+              final ClassLoader cl = Platform.class.getClassLoader();
               if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
                   final String nativeJarName = libBaseName+"-natives-"+os_and_arch+".jar";
-                  final ClassLoader cl = Platform.class.getClassLoader();                
                   try {
                     final URL jarUrlRoot = JarUtil.getURLDirname(
                                         JarUtil.getJarSubURL(Platform.class.getName(), cl) );
@@ -391,7 +391,7 @@ public class Platform {
                     System.err.println("Catched: "+e0.getMessage());
                   }
               }
-              DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false);
+              DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);
               return null;
             }
         });

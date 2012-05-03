@@ -46,10 +46,10 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashSet;
 
+import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
@@ -63,9 +63,10 @@ public class JNILibLoaderBase {
      * The implementation should ignore, if the library has been loaded already.<br>
      * @param libname the library to load
      * @param ignoreError if true, errors during loading the library should be ignored 
+     * @param cl optional ClassLoader, used to locate the library
      * @return true if library loaded successful
      */
-    boolean loadLibrary(String libname, boolean ignoreError);
+    boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl);
 
     /**
      * Loads the library specified by libname.<br>
@@ -74,16 +75,17 @@ public class JNILibLoaderBase {
      * @param libname the library to load
      * @param preload the libraries to load before loading the main library if not null
      * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored 
+     * @param cl optional ClassLoader, used to locate the library
      */
-    void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError);
+    void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl);
   }
   
   private static class DefaultAction implements LoaderAction {
-    public boolean loadLibrary(String libname, boolean ignoreError) {
+    public boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
       boolean res = true;
       if(!isLoaded(libname)) {
           try {
-            loadLibraryInternal(libname);
+            loadLibraryInternal(libname, cl);
             addLoaded(libname);
             if(DEBUG) {
                 System.err.println("JNILibLoaderBase: loaded "+libname);
@@ -101,14 +103,14 @@ public class JNILibLoaderBase {
       return res;
     }
 
-    public void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError) {
+    public void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl) {
       if(!isLoaded(libname)) {
           if (null!=preload) {
             for (int i=0; i<preload.length; i++) {
-              loadLibrary(preload[i], preloadIgnoreError);
+              loadLibrary(preload[i], preloadIgnoreError, cl);
             }
           }
-          loadLibrary(libname, false);
+          loadLibrary(libname, false, cl);
       }
     }
   }
@@ -211,17 +213,34 @@ public class JNILibLoaderBase {
     return res;
   }
   
-  protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {
-    if (loaderAction != null) {
-        return loaderAction.loadLibrary(libname, ignoreError);    
-    }
-    return false;
+  /**
+   * Loads the library specified by libname, using the {@link LoaderAction} set by {@link #setLoadingAction(LoaderAction)}.<br>
+   * The implementation should ignore, if the library has been loaded already.<br>
+   * @param libname the library to load
+   * @param ignoreError if true, errors during loading the library should be ignored 
+   * @param cl optional ClassLoader, used to locate the library
+   * @return true if library loaded successful
+   */
+  protected static synchronized boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
+      if (loaderAction != null) {
+          return loaderAction.loadLibrary(libname, ignoreError, cl);    
+      }
+      return false;
   }
   
-  protected static synchronized void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError) {
-    if (loaderAction != null) {
-        loaderAction.loadLibrary(libname, preload, preloadIgnoreError);    
-    }
+  /**
+   * Loads the library specified by libname, using the {@link LoaderAction} set by {@link #setLoadingAction(LoaderAction)}.<br>
+   * Optionally preloads the libraries specified by preload.<br>
+   * The implementation should ignore, if any library has been loaded already.<br>
+   * @param libname the library to load
+   * @param preload the libraries to load before loading the main library if not null
+   * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored 
+   * @param cl optional ClassLoader, used to locate the library
+   */
+  protected static synchronized void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl) {
+      if (loaderAction != null) {
+          loaderAction.loadLibrary(libname, preload, preloadIgnoreError, cl);    
+      }
   }
 
   // private static final Class<?> customLauncherClass;
@@ -284,7 +303,7 @@ public class JNILibLoaderBase {
     customLoadLibraryMethod = loadLibraryMethod;
   }
 
-  private static void loadLibraryInternal(String libraryName) {
+  private static void loadLibraryInternal(String libraryName, ClassLoader cl) {
     // Note: special-casing JAWT which is built in to the JDK
     if (null!=customLoadLibraryMethod && !libraryName.equals("jawt")) {
         try {
@@ -305,22 +324,33 @@ public class JNILibLoaderBase {
         }
     } else {
       if(TempJarCache.isInitialized()) {
-          final String fullLibraryName = TempJarCache.findLibrary(libraryName);
-          if(null != fullLibraryName) {
+          final String libraryPath = TempJarCache.findLibrary(libraryName);
+          if(null != libraryPath) {
             if(DEBUG) {
-              System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> System.load("+fullLibraryName+") (TempJarCache)");
+              System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> System.load("+libraryPath+") (TempJarCache)");
             }
-            System.load(fullLibraryName);
+            System.load(libraryPath);
             return; // done
           } else if(DEBUG) {
             System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> TempJarCache not mapped");
           }
       }
       // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
+      final String libraryPath = NativeLibrary.findLibrary(libraryName, cl);
       if(DEBUG) {
-          System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> System.loadLibrary("+libraryName+")");
+          System.err.print("JNILibLoaderBase: loadLibraryInternal("+libraryName+"): CL: "+libraryPath);
       }
-      System.loadLibrary(libraryName);
+      if(null != libraryPath) {
+          if(DEBUG) {
+              System.err.println(" -> System.load("+libraryPath+")");
+          }
+          System.loadLibrary(libraryPath);
+      } else {
+          if(DEBUG) {
+              System.err.println(" -> System.loadLibrary("+libraryName+")");
+          }
+          System.loadLibrary(libraryName);          
+      }
     }
   }
 }

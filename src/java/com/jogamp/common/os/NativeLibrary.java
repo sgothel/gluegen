@@ -299,10 +299,7 @@ public class NativeLibrary implements DynamicLookupHelper {
 
     // The idea to ask the ClassLoader to find the library is borrowed
     // from the LWJGL library
-    String clPath = getPathFromClassLoader(libName, loader);
-    if (DEBUG) {
-      System.err.println("NativeLibrary Class loader path to " + libName + ": " + clPath);
-    }
+    final String clPath = findLibrary(libName, loader);
     if (clPath != null) {
       paths.add(clPath);
     }
@@ -422,9 +419,10 @@ public class NativeLibrary implements DynamicLookupHelper {
 
   private static boolean initializedFindLibraryMethod = false;
   private static Method  findLibraryMethod = null;
-  private static String getPathFromClassLoader(final String libName, final ClassLoader loader) {
-    if (loader == null)
+  private static String findLibraryImpl(final String libName, final ClassLoader loader) {
+    if (loader == null) {
       return null;
+    }
     if (!initializedFindLibraryMethod) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
           public Object run() {
@@ -459,5 +457,12 @@ public class NativeLibrary implements DynamicLookupHelper {
       }
     }
     return null;
+  }
+  public static String findLibrary(final String libName, final ClassLoader loader) {
+    final String res = findLibraryImpl(libName, loader);
+    if (DEBUG) {
+      System.err.println("NativeLibrary.findLibrary(<"+libName+">, "+loader+"): "+res);
+    }
+    return res;
   }
 }

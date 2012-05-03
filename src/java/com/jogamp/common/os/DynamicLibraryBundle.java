@@ -42,8 +42,8 @@ import com.jogamp.common.util.RunnableExecutor;
 /**
  * Provides bundling of:<br>
  * <ul>
- * <li>The to-be-glued native library, eg OpenGL32.dll. From hereon this is referred as the Tool.</li>
- * <li>The JNI glue-code native library, eg jogl_desktop.dll. From heron this is referred as the Glue</li>
+ * <li>The to-be-glued native library, eg OpenGL32.dll. From here on this is referred as the Tool.</li>
+ * <li>The JNI glue-code native library, eg jogl_desktop.dll. From here on this is referred as the Glue</li>
  * </ul><br>
  * An instance provides a complete {@link com.jogamp.common.os.DynamicLookupHelper}
  * to {@link com.jogamp.gluegen.runtime.ProcAddressTable#reset(com.jogamp.common.os.DynamicLookupHelper) reset}
@@ -52,7 +52,7 @@ import com.jogamp.common.util.RunnableExecutor;
  * <ul>
  *  <li> loads the Tool native library via
  *       {@link com.jogamp.common.os.NativeLibrary#open(java.lang.String, java.lang.ClassLoader, boolean) NativeLibrary's open method}</li>
- *  <li> loads the {@link com.jogamp.common.jvm.JNILibLoaderBase#loadLibrary(java.lang.String, java.lang.String[], boolean)  Glue native library}</li>
+ *  <li> loads the {@link com.jogamp.common.jvm.JNILibLoaderBase#loadLibrary(java.lang.String, java.lang.String[], boolean, ClassLoader)  Glue native library}</li>
  *  <li> resolves the Tool's {@link com.jogamp.common.os.DynamicLibraryBundleInfo#getToolGetProcAddressFuncNameList() GetProcAddress}. (optional)</li>
  * </ul>
  */
@@ -251,13 +251,13 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
 
         toolLibLoadedNumber = 0;
-        ClassLoader loader = getClass().getClassLoader();
+        final ClassLoader cl = info.getClass().getClassLoader();
         NativeLibrary lib = null;
 
         for (i=0; i < toolLibNames.size(); i++) {    
             final List<String> libNames = toolLibNames.get(i);
             if( null != libNames && libNames.size() > 0 ) {
-                lib = loadFirstAvailable(libNames, loader, info.shallLinkGlobal());
+                lib = loadFirstAvailable(libNames, cl, info.shallLinkGlobal());
                 if ( null == lib ) {
                     if(DEBUG) {
                         System.err.println("Unable to load any Tool library of: "+libNames);
@@ -285,7 +285,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             boolean ignoreError = true;
             boolean res;
             try {
-                res = GlueJNILibLoader.loadLibrary(libName, ignoreError);
+                res = GlueJNILibLoader.loadLibrary(libName, ignoreError, cl);
                 if(DEBUG && !res) {
                     System.err.println("Info: Could not load JNI/Glue library: "+libName);
                 }
@@ -375,8 +375,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     /** Inherit access */
     static class GlueJNILibLoader extends JNILibLoaderBase {
-      protected static synchronized boolean loadLibrary(String libname, boolean ignoreError) {
-        return JNILibLoaderBase.loadLibrary(libname, ignoreError);
+      protected static synchronized boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
+        return JNILibLoaderBase.loadLibrary(libname, ignoreError, cl);
       }
     }
 }
