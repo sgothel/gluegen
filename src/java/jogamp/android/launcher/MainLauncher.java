@@ -30,21 +30,28 @@ package jogamp.android.launcher;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 
-public class ActivityLauncher extends Activity {
-   static final String TAG = "JogAmp-ActivityLauncher";
+public class MainLauncher extends Activity {
+   static final String TAG = "JogAmp-MainLauncher";
+   
+   // private static final String[] frameworkAPKs = { "/system/framework/core-junit.jar", "/data/projects/gluegen/make/lib/ant-junit-all.apk" };
+   private static final String[] frameworkAPKs = { "/data/projects/gluegen/make/lib/ant-junit-all.apk" };
    
    LauncherUtil.DataSet data = null;
    
-   Class<?> activityClazz = null;
-   Method mOnCreate, mOnDestroy, mOnPause, mOnRestart, mOnResume, 
-          mOnStart, mOnStop, mSetRootActivity;
-   Object activityObject  = null;
+   Class<?> mainClazz = null;
+   Method mainClazzMain = null;
+      
+   Class<?> staticContextClazz = null;
+   Method mStaticContextInit = null;
+   Method mStaticContextClear = null;
+   String[] mainClassArgs = null;
    
    @Override
    public void onCreate(Bundle savedInstanceState) {
@@ -55,45 +62,40 @@ public class ActivityLauncher extends Activity {
        data = LauncherUtil.DataSet.create(uri);
        data.setSystemProperties();
 
-       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getPackages(), false, null);
+       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getPackages(), false, Arrays.asList(frameworkAPKs));
        if(null != cl) {
            try {
-               activityClazz = Class.forName(data.getActivityName(), true, cl);
-               Log.d(TAG, "Activity Clazz "+activityClazz);
-               mOnCreate = activityClazz.getMethod("onCreate", Bundle.class);
-               mOnDestroy = activityClazz.getMethod("onDestroy");
-               mOnPause = activityClazz.getMethod("onPause");
-               mOnRestart = activityClazz.getMethod("onRestart");
-               mOnResume = activityClazz.getMethod("onResume");
-               mOnStart = activityClazz.getMethod("onStart");
-               mOnStop = activityClazz.getMethod("onStop");
-               mSetRootActivity = activityClazz.getMethod("setRootActivity", Activity.class);
-               activityObject = createInstance(activityClazz, null);
-               Log.d(TAG, "Activity Object "+activityObject);
+               staticContextClazz = Class.forName("jogamp.common.os.android.StaticContext", true, cl);
+               mStaticContextInit = staticContextClazz.getMethod("init", android.content.Context.class);
+               mStaticContextClear = staticContextClazz.getMethod("clear");               
+               
+               mainClazz = Class.forName(data.getActivityName(), true, cl);
+               Log.d(TAG, "Main Clazz "+mainClazz);
+               mainClazzMain = mainClazz.getDeclaredMethod("main", new Class[] { String[].class });
+               Log.d(TAG, "Main Clazz Main "+mainClazzMain);
            } catch (Exception e) {
                Log.d(TAG, "error: "+e, e);
                throw new RuntimeException(e);
            }
        }
 
-       if( null == mOnCreate || null == mOnDestroy || null == mOnPause ||
-           null == mOnRestart || null == mOnResume ||
-           null == mSetRootActivity ) {
+       if( null == mStaticContextInit || null == mStaticContextClear || 
+           null == mainClazzMain ) {
            RuntimeException e = new RuntimeException("XXX - incomplete method set");
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
        
-       callMethod(activityObject, mSetRootActivity, this);
+       callMethod(null, mStaticContextInit, this.getApplicationContext());
        
-       callMethod(activityObject, mOnCreate, savedInstanceState);
+       mainClassArgs=new String[0]; // FIXME
+       
        Log.d(TAG, "onCreate - X");
    }
    
    @Override
    public void onStart() {
      Log.d(TAG, "onStart - S");
-     callMethod(activityObject, mOnStart);
      super.onStart();
      Log.d(TAG, "onStart - X");
    }
@@ -101,7 +103,6 @@ public class ActivityLauncher extends Activity {
    @Override
    public void onRestart() {
      Log.d(TAG, "onRestart - S");
-     callMethod(activityObject, mOnRestart);
      super.onRestart();
      Log.d(TAG, "onRestart - X");
    }
@@ -109,15 +110,21 @@ public class ActivityLauncher extends Activity {
    @Override
    public void onResume() {
      Log.d(TAG, "onResume - S");
-     callMethod(activityObject, mOnResume);
+     try {
+         mainClazzMain.invoke(null, new Object[] { mainClassArgs } );
+     } catch (InvocationTargetException ite) {
+         ite.getTargetException().printStackTrace();
+     } catch (Throwable t) {
+         t.printStackTrace();
+     }
      super.onResume();
+     finish();
      Log.d(TAG, "onResume - X");
    }
 
    @Override
    public void onPause() {
      Log.d(TAG, "onPause - S");
-     callMethod(activityObject, mOnPause);
      super.onPause();
      Log.d(TAG, "onPause - X");
    }
@@ -125,7 +132,6 @@ public class ActivityLauncher extends Activity {
    @Override
    public void onStop() {
      Log.d(TAG, "onStop - S");
-     callMethod(activityObject, mOnStop);
      super.onStop();  
      Log.d(TAG, "onStop - X");
    }
@@ -133,11 +139,11 @@ public class ActivityLauncher extends Activity {
    @Override
    public void onDestroy() {
      Log.d(TAG, "onDestroy - S");
-     callMethod(activityObject, mOnDestroy);
      if(null != data) {
          data.clearSystemProperties();
          data = null;
      }
+     callMethod(null, mStaticContextClear);
      super.onDestroy();  
      finish();
      Log.d(TAG, "onDestroy - X");
@@ -230,6 +236,4 @@ public class ActivityLauncher extends Activity {
       throw new RuntimeException("calling "+method+" failed", t);
     }
   }
-
-
 }

@@ -49,6 +49,21 @@
                 <data android:scheme="launch" android:host="jogamp.org"/>
             </intent-filter>
         </activity>
+        <activity android:name="jogamp.android.launcher.MainLauncher"
+                  android:finishOnTaskLaunch="false"
+                  android:launchMode="standard"
+                  android:configChanges="keyboardHidden|orientation|screenLayout"
+                  android:label="@string/activity_l_name"
+                  android:description="@string/activity_l_descr"
+                  android:exported="true"
+                  >
+                  <!-- android:configChanges="keyboardHidden|orientation|screenLayout|screenSize" -->
+            <intent-filter>
+                <action android:name="org.jogamp.launcher.action.LAUNCH_MAIN" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="launch" android:host="jogamp.org"/>
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>

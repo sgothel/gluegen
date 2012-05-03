@@ -69,21 +69,22 @@ public class ClassLoaderUtil {
        }       
    }
    
-   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, boolean addLibPath) {       
-       return createClassLoader(ctx, userPackageNames, addLibPath, null); 
+   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
+                                                            List<String> apkNames) {       
+       return createClassLoader(ctx, userPackageNames, addUserLibPath, apkNames, null); 
    }
    
-   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, 
-                                                            boolean addLibPath, ClassLoader parent) {
+   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
+                                                            List<String> apkNames, ClassLoader parent) {
        init(ctx);
        
        if(null==jogAmpClassLoader) {           
-           jogAmpClassLoader = createClassLoaderImpl(ctx, Arrays.asList(packagesJogAmp), true, 
+           jogAmpClassLoader = createClassLoaderImpl(ctx, Arrays.asList(packagesJogAmp), true, null,
                                                      (null != parent ) ? parent : ctx.getClassLoader());
        }
        parent =  jogAmpClassLoader;
        
-       return createClassLoaderImpl(ctx, userPackageNames, addLibPath, jogAmpClassLoader); 
+       return createClassLoaderImpl(ctx, userPackageNames, addUserLibPath, apkNames, jogAmpClassLoader); 
    }
    
    /**
@@ -92,8 +93,8 @@ public class ClassLoaderUtil {
     * @param userPackageNames list of user package names, the last entry shall reflect the Activity
     * @return
     */
-   private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> userPackageNames, 
-                                                                 boolean addLibPath, ClassLoader parent) {
+   private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
+                                                                 List<String> apkNames, ClassLoader parent) {
        
        
        final ApplicationInfo appInfo = ctx.getApplicationInfo();
@@ -106,34 +107,53 @@ public class ClassLoaderUtil {
        int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
        
-       for(Iterator<String> i=userPackageNames.iterator(); i.hasNext(); ) {
-           lastUserPackageName = i.next();
-           String userAPK = null;
-           try {
-               userAPK = ctx.getPackageManager().getApplicationInfo(lastUserPackageName,0).sourceDir;
-           } catch (PackageManager.NameNotFoundException e) {
-               Log.d(TAG, "error: "+e, e);
-           }
-           if(null != userAPK) {
-               if(apkCount>0) {
-                   apks.append(ELEM_SEP);
-                   if(addLibPath) {
-                       libs.append(ELEM_SEP);
+       if( null != userPackageNames ) {
+           for(Iterator<String> i=userPackageNames.iterator(); i.hasNext(); ) {
+               lastUserPackageName = i.next();
+               String userAPK = null;
+               try {
+                   userAPK = ctx.getPackageManager().getApplicationInfo(lastUserPackageName,0).sourceDir;
+               } catch (PackageManager.NameNotFoundException e) {
+                   Log.d(TAG, "error: "+e, e);
+               }
+               if(null != userAPK) {
+                   if(apkCount>0) {
+                       apks.append(ELEM_SEP);
+                       if(addUserLibPath) {
+                           libs.append(ELEM_SEP);
+                       }
                    }
+                   apks.append(userAPK);
+                   if(addUserLibPath) {
+                       libs.append(appDir).append(PATH_SEP).append(lastUserPackageName).append(PATH_SEP).append(libSub).append(PATH_SEP);
+                   }
+                   Log.d(TAG, "APK found: <"+lastUserPackageName+"> -> <"+userAPK+">");
+                   apkCount++;
+               } else {
+                   Log.d(TAG, "APK not found: <"+lastUserPackageName+">");
                }
-               apks.append(userAPK);
-               if(addLibPath) {
-                   libs.append(appDir).append(PATH_SEP).append(lastUserPackageName).append(PATH_SEP).append(libSub).append(PATH_SEP);
-               }
-               Log.d(TAG, "APK found: <"+lastUserPackageName+"> -> <"+userAPK+">");
-               apkCount++;
-           } else {
-               Log.d(TAG, "APK not found: <"+lastUserPackageName+">");
+           }
+           if( userPackageNames.size() != apkCount ) {
+               Log.d(TAG, "User APKs incomplete, abort (1)");
+               return null;
            }
        }
-       if( userPackageNames.size()!=apkCount ) {
-           Log.d(TAG, "APKs incomplete, abort");
-           return null;
+       final int userAPKCount = apkCount;
+       
+       if( null != apkNames ) {
+           for(Iterator<String> i=apkNames.iterator(); i.hasNext(); ) {
+               String userAPK = i.next();
+               if(apkCount>0) {
+                   apks.append(ELEM_SEP);
+               }
+               apks.append(userAPK);
+               Log.d(TAG, "APK added: <"+userAPK+">");
+               apkCount++;
+           }
+           if( apkNames.size() != apkCount - userAPKCount ) {
+               Log.d(TAG, "Framework APKs incomplete, abort (2)");
+               return null;
+           }
        }
        
        // return new TraceDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
