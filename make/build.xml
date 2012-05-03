@@ -74,7 +74,7 @@
     <property name="gluegen_int_version" value="2"/>
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
-    <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${gluegen.build.commit}-${version.timestamp}" />
+    <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${version.timestamp}" />
 
     <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
