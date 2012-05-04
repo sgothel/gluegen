@@ -42,8 +42,7 @@ public class ClassLoaderUtil {
    private static final String TAG = "JogampClassLoader";
    
    // FIXME: Need to generalize this .. (Note: native lib resources must be cached!)
-   private static final String[] packagesJogAmp = { "com.jogamp.common", "javax.media.opengl" };   
-   // JAU private static final String[] packagesJogAmp = { "javax.media.opengl" };
+   private static final String[] packagesJogAmp = { "javax.media.opengl" };
    private static ClassLoader jogAmpClassLoader = null;
    
    // location where optimized dex files will be written

@@ -138,8 +138,21 @@
     <property name="archive"          value="${build}/${archive.name}" />
 
     <property name="jogamp.android-launcher.classes" value="jogamp/android/launcher/**"/>
+
+    <condition property="java.include.android"
+               value="${jogamp.android-launcher.classes}">
+       <isset property="isAndroid"/> 
+    </condition>
+
+    <condition property="java.excludes.android"
+               value="${jogamp.android-launcher.classes}">
+       <not>
+           <isset property="isAndroid"/> 
+       </not>
+    </condition>
+
     <property name="jogamp.awt.classes" value="jogamp/common/awt/**"/>
-    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes}" />
+    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${java.excludes.android}" />
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
   </target>
@@ -651,7 +664,7 @@
     <!--compile gluegen-rt first-->
     <javac destdir="${classes}"
            includeAntRuntime="false"
-           includes="${gluegen-rt.classes} ${jogamp.common.classes}"
+           includes="${java.include.android} ${gluegen-rt.classes} ${jogamp.common.classes}"
            excludes="${gluegen.excludes.all}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
@@ -695,7 +708,7 @@
       <fileset dir="${classes}">
         <include name="**/*.class" />
         <exclude name="jogamp/common/os/android/**" />
-        <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${gluegen.excludes.all}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -716,10 +729,11 @@
     <!-- Build gluegen-rt.jar. -->
     <jar destfile="${build}/gluegen-rt.jar" manifest="${build}/Manifest-rt.temp">
       <fileset dir="${classes}">
+        <include name="${java.include.android}" />
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
-        <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${gluegen.excludes.all}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -743,6 +757,7 @@
     </copy>
   </target>
   
+  <!--
   <target name="gluegen.build.check.android-launcher" depends="init">
       <uptodate property="gluegen.build.skip.android-launcher">
         <srcfiles dir= "."            includes="*.xml"/>
@@ -797,7 +812,9 @@
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}"
       />
+
   </target>
+  -->
 
   <target name="gluegen.build.check.aapt" depends="init">
       <uptodate property="gluegen.build.skip.aapt">
@@ -809,7 +826,6 @@
   </target>
 
   <target name="android.package" depends="gluegen.cpptasks.detect.os,gluegen.build.check.aapt" if="isAndroid" unless="gluegen.build.skip.aapt" >
-
     <aapt.signed 
         assetsdir="resources/assets"
         jarbuilddir="${build}"
@@ -825,8 +841,12 @@
       />
   </target>
 
+  <!--
   <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
-                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.c" />
+                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.c" /> -->
+
+  <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
+                              depends="init, gluegen.build.java, gluegen.build.c" />
 
   <target name="all.no_junit" description="Release build" depends="init, base.compile, tag.build, android.package, developer-zip-archive" />
   <target name="all" description="Release build" depends="init, base.compile, tag.build, junit.compile, android.package, developer-zip-archive" />
