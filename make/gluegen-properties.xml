@@ -45,8 +45,9 @@
     <property name="ant-junit.jar" value="${ant.home}/lib/ant-junit.jar" />
 
     <property name="android.version" value="9" /> <!-- default - if not set by jogamp-env.xml:jogamp.env.init -->
-    <!--property name="android.jar" value="${gluegen.root}/make/lib/android-sdk/${android.version}/android.jar" /-->
-    <property name="android.jar" value="${gluegen.root}/make/lib/android-sdk/15/android.jar" />
+    <property name="android-min.jar" value="${gluegen.root}/make/lib/android-sdk/${android.version}/android.jar" />
+    <property name="android-015.jar" value="${gluegen.root}/make/lib/android-sdk/15/android.jar" />
+    <property name="android.jar" value="${android-015.jar}" />
     <property name="ant-junit-all.apk" value="${gluegen.root}/make/lib/ant-junit-all.apk" />
 
     <condition property="win32.c.compiler" value="mingw64">

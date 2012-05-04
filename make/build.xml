@@ -71,7 +71,7 @@
     <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
     <!-- This is the version of GlueGen you are building -->
-    <property name="gluegen_int_version" value="3"/>
+    <property name="gluegen_int_version" value="4"/>
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
     <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${version.timestamp}" />
@@ -105,14 +105,14 @@
     
     <!-- Create the classpath for compiling Android only stuff. -->
     <path id="android.classpath">
-      <pathelement location="${android.jar}"/>
+      <pathelement location="${android-min.jar}"/>
     </path>
     
     <!-- Create the classpath for compiling GlueGen. 
          This requires the user-defined "antlr.jar" property. -->
     <path id="gluegencompile.classpath">
       <pathelement location="${antlr.jar}" />
-      <pathelement location="${android.jar}"/>
+      <pathelement location="${android-min.jar}"/>
     </path>
     
     <!-- Create the classpath for using GlueGen. -->
