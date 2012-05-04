@@ -3,8 +3,11 @@
       sharedUserId="com.jogamp.Community" 
       package="jogamp.android.launcher">
 
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
+
     <uses-permission android:name="android.permission.INTERNET" /> <!-- required for NV's PerfHud and I-Net data streaming -->
-    <!-- uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /--> <!-- required for Android-Trace -->
+    <!-- uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" / --> <!-- required for Android-Trace -->
 
     <uses-sdk android:minSdkVersion="9" />
 
@@ -33,7 +36,6 @@
                   android:description="@string/activity_l_descr"
                   android:exported="true"
                   >
-                  <!-- android:configChanges="keyboardHidden|orientation|screenLayout|screenSize" -->
             <intent-filter>
                 <action android:name="org.jogamp.launcher.action.LAUNCH_ACTIVITY_NORMAL" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -49,12 +51,6 @@
                   android:exported="true"
                   android:theme="@style/Theme.Transparent"
                   >
-                  <!--
-                  android:configChanges="keyboardHidden|orientation|screenLayout|screenSize" 
-                  android:theme="@style/Theme.Transparent"
-                  android:theme="@android:style/Theme_NoDisplay"
-                  android:theme="@android:style/Theme.Translucent"
-                  -->
             <intent-filter>
                 <action android:name="org.jogamp.launcher.action.LAUNCH_ACTIVITY_TRANSPARENT" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -69,7 +65,6 @@
                   android:description="@string/activity_l_descr"
                   android:exported="true"
                   >
-                  <!-- android:configChanges="keyboardHidden|orientation|screenLayout|screenSize" -->
             <intent-filter>
                 <action android:name="org.jogamp.launcher.action.LAUNCH_MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />

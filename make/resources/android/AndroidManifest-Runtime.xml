@@ -3,6 +3,9 @@
       sharedUserId="com.jogamp.Community" 
       package="com.jogamp.common">
 
+    <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
+    <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
+
     <uses-sdk android:minSdkVersion="9" />
 
     <application android:icon="@drawable/icon" 
