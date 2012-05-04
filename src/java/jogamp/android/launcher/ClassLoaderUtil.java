@@ -104,7 +104,6 @@ public class ClassLoaderUtil {
        
        StringBuilder apks = new StringBuilder();
        StringBuilder libs = new StringBuilder();
-       // JAU libs.append("/data/data/com.jogamp.common/").append(ELEM_SEP);
        int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
        
