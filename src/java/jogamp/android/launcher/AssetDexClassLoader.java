@@ -7,7 +7,7 @@ import android.util.Log;
 import dalvik.system.DexClassLoader;
 
 public class AssetDexClassLoader extends DexClassLoader {
-    private static final boolean DEBUG = true;
+    private static final boolean DEBUG = false;
     private static final String assets_folder = "assets/";
     
     private static int next_id = 1;
