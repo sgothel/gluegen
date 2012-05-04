@@ -344,7 +344,7 @@ public class JNILibLoaderBase {
           if(DEBUG) {
               System.err.println(" -> System.load("+libraryPath+")");
           }
-          System.loadLibrary(libraryPath);
+          System.load(libraryPath);
       } else {
           if(DEBUG) {
               System.err.println(" -> System.loadLibrary("+libraryName+")");
