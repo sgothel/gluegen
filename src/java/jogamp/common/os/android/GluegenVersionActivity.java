@@ -34,6 +34,7 @@ import com.jogamp.common.util.VersionUtil;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.util.Log;
 
@@ -46,8 +47,11 @@ public class GluegenVersionActivity extends Activity {
        super.onCreate(savedInstanceState);
        StaticContext.init(this.getApplicationContext());
        tv = new TextView(this);
+       final ScrollView scroller = new ScrollView(this);
+       scroller.addView(tv);
+       setContentView(scroller);
+       
        tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+Platform.NEWLINE);               
-       setContentView(tv);
        Log.d(MD.TAG, "onCreate - X");
    }
    
