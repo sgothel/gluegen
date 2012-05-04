@@ -785,7 +785,7 @@
     </jar>
 
     <aapt.signed 
-        assetsdir="resources/android/assets-launcher"
+        assetsdir="resources/assets-launcher"
         jarbuilddir="${build}"
         jarbasename="jogamp.android-launcher"
         nativebuilddir="${build}"

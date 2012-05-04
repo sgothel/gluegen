@@ -1,0 +1,3 @@
+JogAmp Launcher Asset.
+
+This file exists for test purposes.
