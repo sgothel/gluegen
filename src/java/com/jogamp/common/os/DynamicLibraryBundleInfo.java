@@ -88,11 +88,11 @@ public interface DynamicLibraryBundleInfo {
     
     /**
      * Returns a suitable {@link RunnableExecutor} implementation, which is being used 
-     * to load the <code>tool</code> native libraries.
+     * to load the <code>tool</code> and <code>glue</code> native libraries.
      * <p>
      * This allows the generic {@link DynamicLibraryBundle} implementation to 
-     * load the <code>tool</code> native libraries on a designated thread.
-     * </p> 
+     * load the native libraries on a designated thread.
+     * </p>
      * <p>
      * An implementation may return {@link DynamicLibraryBundle#getDefaultRunnableExecutor()}.
      * </p>

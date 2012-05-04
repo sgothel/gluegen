@@ -44,7 +44,12 @@ import com.jogamp.common.util.RunnableExecutor;
  * <ul>
  * <li>The to-be-glued native library, eg OpenGL32.dll. From here on this is referred as the Tool.</li>
  * <li>The JNI glue-code native library, eg jogl_desktop.dll. From here on this is referred as the Glue</li>
- * </ul><br>
+ * </ul>
+ * <p>
+ * An {@link DynamicLibraryBundleInfo} instance is being passed in the constructor, 
+ * providing the required information about the tool and glue libraries.
+ * The ClassLoader of it's implementation is also being used to help locating the native libraries.
+ * </p>
  * An instance provides a complete {@link com.jogamp.common.os.DynamicLookupHelper}
  * to {@link com.jogamp.gluegen.runtime.ProcAddressTable#reset(com.jogamp.common.os.DynamicLookupHelper) reset}
  * the {@link com.jogamp.gluegen.runtime.ProcAddressTable}.<br>
@@ -84,7 +89,13 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
     }
     
-    /** Instantiates and loads all {@link NativeLibrary}s incl. JNI libraries. */
+    /** 
+     * Instantiates and loads all {@link NativeLibrary}s incl. JNI libraries.
+     * <p>
+     * The ClassLoader of the {@link DynamicLibraryBundleInfo} implementation class  
+     * is being used to help locating the native libraries.
+     * </p>
+     */
     public DynamicLibraryBundle(DynamicLibraryBundleInfo info) {
         if(null==info) {
             throw new RuntimeException("Null DynamicLibraryBundleInfo");
