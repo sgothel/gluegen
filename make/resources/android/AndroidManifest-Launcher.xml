@@ -3,8 +3,8 @@
       sharedUserId="com.jogamp.Community" 
       package="jogamp.android.launcher">
 
-    <!--uses-permission android:name="android.permission.INTERNET" /--> <!-- required for NV's PerfHud -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- required for Android-Trace and I-Net data streaming -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- required for NV's PerfHud and I-Net data streaming -->
+    <!-- uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /--> <!-- required for Android-Trace -->
 
     <uses-sdk android:minSdkVersion="9" />
 
