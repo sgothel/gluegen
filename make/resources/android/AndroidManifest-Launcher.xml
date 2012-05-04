@@ -3,8 +3,8 @@
       sharedUserId="com.jogamp.Community" 
       package="jogamp.android.launcher">
 
-    <uses-permission android:name="android.permission.INTERNET" /> <!-- required for NV's perfhud -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- required for Android trace -->
+    <!--uses-permission android:name="android.permission.INTERNET" /--> <!-- required for NV's perfhud -->
+    <!--uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /--> <!-- required for Android trace -->
 
     <uses-sdk android:minSdkVersion="9" />
 
@@ -13,6 +13,18 @@
                  android:description="@string/app_launcher_descr"
                  android:persistent="false"
                  >
+        <activity android:name="jogamp.android.launcher.LauncherVersionActivity"
+                  android:finishOnTaskLaunch="true"
+                  android:launchMode="singleTop"
+                  android:label="@string/activity_l_name"
+                  android:description="@string/activity_l_descr"
+                  >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity android:name="jogamp.android.launcher.ActivityLauncher"
                   android:finishOnTaskLaunch="false"
                   android:launchMode="standard"
