@@ -101,7 +101,7 @@
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
             <!-- arg line="-v"/ -->
-            <arg line="--debug-mode"/>
+            <!-- arg line=" - - debug-mode"/ -->
             <arg line="-f"/>
             <arg line="-S"/>
             <arg line="@{androidresources.path}"/>
@@ -118,7 +118,7 @@
             source="${target.sourcelevel}" 
             target="${target.targetlevel}" 
             bootclasspath="${target.rt.jar}"
-            debug="true" extdirs=""
+            debug="false" extdirs=""
             destdir="${m.aapt.build.apk}/image/lib/classes"
             verbose="true">
             <src path="${m.aapt.build.apk}/image/lib/src" />
@@ -148,8 +148,8 @@
         <echo>aapt.signed @{jarbasename}: packaging</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
-            <!-- arg line="-v"/ -->
-            <arg line="--debug-mode"/>
+            <!--arg line="-v"/-->
+            <!-- arg line=" - - debug-mode"/ -->
             <arg line="-f"/>
 
             <arg line="-S" />

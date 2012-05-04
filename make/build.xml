@@ -70,8 +70,8 @@
     </exec>
     <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
-    <!-- This is the version of GlueGen you are building -->
-    <property name="gluegen_int_version" value="4"/>
+    <!-- This is the version of GlueGen you are building xxyyzzz, xx=API yy screen-from-to zzz app-version-->
+    <property name="gluegen_int_version" value="0914008"/>
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
     <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${version.timestamp}" />
@@ -790,10 +790,10 @@
         jarbasename="jogamp.android-launcher"
         nativebuilddir="${build}"
         nativebasename="non-existing"
-        android.abi="${android.abi}"
+        android.abi="generic"
         androidmanifest.path="resources/android/AndroidManifest-Launcher.xml"
         androidresources.path="resources/android/res"
-        jarmanifest.path="${build}/Manifest-rt.temp"
+        jarmanifest.path="${build}//Manifest-android-launcher.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}"
       />
