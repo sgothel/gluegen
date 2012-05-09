@@ -71,7 +71,7 @@
     <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
     <!-- This is the version of GlueGen you are building xxyyzzz, xx=API yy screen-from-to zzz app-version-->
-    <property name="gluegen_int_version" value="0914008"/>
+    <property name="gluegen_int_version" value="0914009"/>
     <property name="gluegen_base_version" value="2.0"/>
     <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
     <property name="gluegen.version.plus" value="${gluegen_base_version}-${gluegen.build.branch}-b${gluegen.build.number}-${version.timestamp}" />
