@@ -74,10 +74,10 @@
         <delete file="${m.aapt.release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
 
+        <mkdir dir="${m.aapt.build.apk}/temp/src" />
+        <mkdir dir="${m.aapt.build.apk}/temp/classes" />
         <mkdir dir="${m.aapt.build.apk}/image/assets" />
         <mkdir dir="${m.aapt.build.apk}/image/lib/@{android.abi}" />
-        <mkdir dir="${m.aapt.build.apk}/image/lib/src" />
-        <mkdir dir="${m.aapt.build.apk}/image/lib/classes" />
         <copy todir="${m.aapt.build.apk}/image/lib/@{android.abi}">
             <fileset dir="@{nativebuilddir}">
                 <include name="*@{nativebasename}*.${native.library.suffix}" />
@@ -110,7 +110,7 @@
             <arg line="-I"/>
             <arg line="${android.jar}"/>
             <arg line="-J"/>
-            <arg line="${m.aapt.build.apk}/image/lib/src"/>
+            <arg line="${m.aapt.build.apk}/temp/src"/>
         </exec>
 
         <echo>aapt.signed @{jarbasename}: compiling R.java...</echo>
@@ -119,9 +119,9 @@
             target="${target.targetlevel}" 
             bootclasspath="${target.rt.jar}"
             debug="false" extdirs=""
-            destdir="${m.aapt.build.apk}/image/lib/classes"
+            destdir="${m.aapt.build.apk}/temp/classes"
             verbose="true">
-            <src path="${m.aapt.build.apk}/image/lib/src" />
+            <src path="${m.aapt.build.apk}/temp/src" />
             <classpath>
                  <!-- path refid="@{jarclasspathrefid}"/-->
                  <pathelement location="@{jarbuilddir}/@{jarbasename}.jar" />
@@ -134,7 +134,7 @@
             <arg line="--dex"/>
             <arg line="--output=${m.aapt.dex.file}"/>
             <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
-            <arg line="${m.aapt.build.apk}/image/lib/classes"/>
+            <arg line="${m.aapt.build.apk}/temp/classes"/>
         </exec>
         
         <path id="android.antlibs">
