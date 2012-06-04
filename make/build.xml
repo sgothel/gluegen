@@ -26,14 +26,31 @@
     <property name="gluegen.excludes.nsig" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java com/jogamp/gluegen/nativesig/**" />
   </target>
 
-  <target name="set.debug">
-    <property name="c.compiler.debug" value="true" /> 
-    <property name="javacdebug"       value="true" /> 
-    <property name="javacdebuglevel"  value="source,lines,vars" /> 
-  </target>
-  <target name="init.debug" depends="set.debug, init"/>
+  <target name="init.base" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig"/>
 
-  <target name="init" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig">
+  <target name="init.std" unless="isAndroid" >
+    <!-- Create the classpath for compiling GlueGen. 
+         This requires the user-defined "antlr.jar" property. -->
+    <path id="gluegencompile.classpath">
+      <pathelement location="${antlr.jar}" />
+    </path>
+  </target>
+
+  <target name="init.android" if="isAndroid" >
+    <!-- Create the classpath for compiling Android only stuff. -->
+    <path id="android.classpath">
+      <pathelement location="${android-min.jar}"/>
+    </path>
+
+    <!-- Create the classpath for compiling GlueGen. 
+         This requires the user-defined "antlr.jar" property. -->
+    <path id="gluegencompile.classpath">
+      <pathelement location="${antlr.jar}" />
+      <pathelement location="${android-min.jar}"/>
+    </path>
+  </target>
+
+  <target name="init" depends="init.base,init.std,init.android">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
@@ -103,18 +120,6 @@
       <pathelement location="${antlr.jar}" />
     </path>
     
-    <!-- Create the classpath for compiling Android only stuff. -->
-    <path id="android.classpath">
-      <pathelement location="${android-min.jar}"/>
-    </path>
-    
-    <!-- Create the classpath for compiling GlueGen. 
-         This requires the user-defined "antlr.jar" property. -->
-    <path id="gluegencompile.classpath">
-      <pathelement location="${antlr.jar}" />
-      <pathelement location="${android-min.jar}"/>
-    </path>
-    
     <!-- Create the classpath for using GlueGen. -->
     <path id="gluegen.classpath" >
       <pathelement location="${classes}" />
@@ -137,12 +142,30 @@
     <property name="archive.name"     value="gluegen-${gluegen.version}-${os.and.arch}" />
     <property name="archive"          value="${build}/${archive.name}" />
 
+    <!-- the launcher is compiled and packaged explicit - if android -->
     <property name="jogamp.android-launcher.classes" value="jogamp/android/launcher/**"/>
+
+    <!-- optional android classes - if android -->
+    <property name="java.part.android" value="jogamp/common/os/android/**"/>
+
     <property name="jogamp.awt.classes" value="jogamp/common/awt/**"/>
-    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes}" />
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
+
+    <condition property="java.excludes.android" value="${java.part.android}">
+       <not> <isset property="isAndroid"/> </not>
+    </condition>
+
+    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes} ${java.excludes.android}" />
+
   </target>
+
+  <target name="set.debug">
+    <property name="c.compiler.debug" value="true" /> 
+    <property name="javacdebug"       value="true" /> 
+    <property name="javacdebuglevel"  value="source,lines,vars" /> 
+  </target>
+  <target name="init.debug" depends="set.debug, init"/>
 
   <!--
     - Using ANTLR generate the specified Java files.
@@ -694,8 +717,8 @@
     <jar destfile="${build}/gluegen.jar" manifest="${build}/Manifest.temp">
       <fileset dir="${classes}">
         <include name="**/*.class" />
-        <exclude name="jogamp/common/os/android/**" />
         <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${java.part.android}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -720,6 +743,7 @@
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
         <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${java.excludes.android}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />

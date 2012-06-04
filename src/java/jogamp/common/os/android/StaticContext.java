@@ -36,7 +36,10 @@ public class StaticContext {
    private static boolean DEBUG = false;
    
    /**
+    * Register Android application context for static usage.
+    * 
     * @param appContext mandatory application Context
+    * @throws RuntimeException if the context is already registered.
     */
    public static final synchronized void init(Context appContext) {
        if(null != StaticContext.appContext) {
@@ -45,10 +48,19 @@ public class StaticContext {
        if(DEBUG) { Log.d(MD.TAG, "init(appCtx "+appContext+")"); }
        StaticContext.appContext = appContext;
    }
+   
+   /**
+    * Unregister the Android application Context
+    */
    public static final synchronized void clear() {
        if(DEBUG) { Log.d(MD.TAG, "clear()"); }
        appContext = null;
    }
+   
+   /**
+    * Return the registered Android application Context
+    * @return
+    */
    public static final synchronized Context getContext() {
        return appContext;
    }   

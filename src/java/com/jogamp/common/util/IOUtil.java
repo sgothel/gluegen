@@ -44,13 +44,10 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
 import jogamp.common.Debug;
-import jogamp.common.os.android.StaticContext;
-
-import android.content.Context;
+import jogamp.common.os.AndroidUtils;
 
 import com.jogamp.common.net.AssetURLContext;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
 
@@ -632,7 +629,7 @@ public class IOUtil {
      * On Android a <code>temp</code> folder relative to the applications local folder 
      * (see {@link Context#getDir(String, int)}) is returned, if
      * the Android application/activity has registered it's Application Context
-     * via {@link StaticContext#init(Context, ClassLoader)}.
+     * via {@link jogamp.common.os.android.StaticContext.StaticContext#init(Context, ClassLoader) StaticContext.init(..)}.
      * This allows using the temp folder w/o the need for <code>sdcard</code>
      * access, which would be the <code>java.io.tempdir</code> location on Android!
      * </p>
@@ -642,22 +639,14 @@ public class IOUtil {
      * @throws RuntimeException is the property <code>java.io.tmpdir</code> or the resulting temp directory is invalid
      *  
      * @see PropertyAccess#getProperty(String, boolean, java.security.AccessControlContext)
-     * @see StaticContext#init(Context, ClassLoader)
      * @see Context#getDir(String, int)
      */
     public static File getTempRoot(AccessControlContext acc)
         throws SecurityException, RuntimeException
     {
-        if(AndroidVersion.isAvailable) {
-            final Context ctx = StaticContext.getContext();
-            if(null != ctx) {
-                final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
-                if(null==tmpRoot|| !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
-                    throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved Android static context");
-                }
-                if(DEBUG) {
-                    System.err.println("IOUtil.getTempRoot(Android): temp dir: "+tmpRoot.getAbsolutePath());
-                }
+        {
+            final File tmpRoot = AndroidUtils.getTempRoot(acc); // null if ( !Android || no android-ctx )
+            if(null != tmpRoot) {
                 return tmpRoot;
             }
         }
@@ -670,7 +659,7 @@ public class IOUtil {
             throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved by propery '"+java_io_tmpdir_propkey+"'");
         }
         if(DEBUG) {
-            System.err.println("IOUtil.getTempRoot(isAndroid: "+AndroidVersion.isAvailable+"): temp dir: "+tmpRoot.getAbsolutePath());
+            System.err.println("IOUtil.getTempRoot(): temp dir: "+tmpRoot.getAbsolutePath());
         }
         return tmpRoot;
     }

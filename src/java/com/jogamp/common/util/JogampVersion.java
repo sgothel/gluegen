@@ -29,7 +29,6 @@
 package com.jogamp.common.util;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 
 import java.util.Iterator;
@@ -37,7 +36,7 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-import jogamp.common.os.android.PackageInfoUtil;
+import jogamp.common.os.AndroidUtils;
 
 public class JogampVersion {
 
@@ -48,7 +47,7 @@ public class JogampVersion {
     private Manifest mf;
     private int hash;
     private Attributes mainAttributes;
-    private Set/*<Attributes.Name>*/ mainAttributeNames;
+    private Set<?>/*<Attributes.Name>*/ mainAttributeNames;
     
     private final String androidPackageVersionName;
     
@@ -58,11 +57,7 @@ public class JogampVersion {
         this.hash = this.mf.hashCode();
         mainAttributes = this.mf.getMainAttributes();
         mainAttributeNames = mainAttributes.keySet();
-        if(AndroidVersion.isAvailable) {
-            androidPackageVersionName = PackageInfoUtil.getPackageInfoVersionName(packageName);
-        } else {
-            androidPackageVersionName = null;
-        }
+        androidPackageVersionName = AndroidUtils.getPackageInfoVersionName(packageName); // null if !Android
     }
 
     @Override
@@ -95,7 +90,7 @@ public class JogampVersion {
     }
 
     public final Attributes.Name getAttributeName(String attributeName) {
-        for (Iterator iter = mainAttributeNames.iterator(); iter.hasNext();) {
+        for (Iterator<?> iter = mainAttributeNames.iterator(); iter.hasNext();) {
             Attributes.Name an = (Attributes.Name) iter.next();
             if (an.toString().equals(attributeName)) {
                 return an;
@@ -104,7 +99,10 @@ public class JogampVersion {
         return null;
     }
 
-    public final Set getAttributeNames() {
+    /**
+     * @return set of type {@link Attributes.Name}, disguised as anonymous   
+     */
+    public final Set<?>/*<Attributes.Name>*/ getAttributeNames() {
         return mainAttributeNames;
     }
 

@@ -27,11 +27,15 @@
  */
 package jogamp.common.os.android;
 
-import android.content.*;
-import android.content.pm.*;
+import java.io.File;
+import java.security.AccessControlContext;
+
+import android.content.Context;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.util.Log;
 
-public class PackageInfoUtil {
+public class AndroidUtilsImpl {
    private static boolean DEBUG = false;
    
    public static final PackageInfo getPackageInfo(String packageName) {
@@ -53,11 +57,35 @@ public class PackageInfoUtil {
    public static final int getPackageInfoVersionCode(String packageName) {
        final PackageInfo pInfo = getPackageInfo(packageName);
        return ( null != pInfo ) ? pInfo.versionCode : -1 ;
-   }   
+   }
+   
    public static final String getPackageInfoVersionName(String packageName) {
        final PackageInfo pInfo = getPackageInfo(packageName);
        final String s = ( null != pInfo ) ? pInfo.versionName : null ;
        if(DEBUG) Log.d(MD.TAG, "getPackageInfoVersionName("+packageName+"): "+s);
        return s;
-   }   
+   }
+   
+   /**
+    * @return null if no Android Context is registered 
+    *         via {@link jogamp.common.os.android.StaticContext#init(android.content.Context) StaticContext.init(..)}, 
+    *         otherwise the context relative world readable <code>temp</code> directory returned. 
+    */
+   public static File getTempRoot(AccessControlContext acc)
+        throws SecurityException, RuntimeException
+   {
+       final Context ctx = StaticContext.getContext();
+       if(null != ctx) {
+           final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
+           if(null==tmpRoot|| !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
+               throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved Android static context");
+           }
+           if(DEBUG) {
+               System.err.println("IOUtil.getTempRoot(Android): temp dir: "+tmpRoot.getAbsolutePath());
+           }
+           return tmpRoot;
+       }
+       return null;
+   }
+   
 }
