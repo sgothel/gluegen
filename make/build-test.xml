@@ -144,11 +144,11 @@
             jarbasename="gluegen-test"
             nativebuilddir="${build_t.lib}"
             nativebasename="test"
+            android.abi="${android.abi}"
             androidmanifest.path="resources/android/AndroidManifest-Test.xml"
             androidresources.path="resources/android/res"
             version.code="${gluegen_int_version}"
             version.name="${gluegen.version.plus}" 
-            android.abi="${android.abi}"
           />
     </target>
 

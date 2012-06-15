@@ -1,0 +1,13 @@
+Manifest-Version: 1.0
+Specification-Title: GlueGen Java Bindings Generator
+Specification-Version: @BASEVERSION@
+Specification-Vendor: JogAmp Community
+Implementation-Title: GlueGen Run-Time For Android
+Implementation-Version: @VERSION@
+Implementation-Branch: @SCM_BRANCH@
+Implementation-Commit: @SCM_COMMIT@
+Implementation-Vendor: JogAmp Community
+Implementation-Vendor-Id: com.jogamp
+Implementation-URL: http://jogamp.org/
+Extension-Name: com.jogamp.common
+Trusted-Library: true

@@ -26,12 +26,10 @@
     <property name="gluegen.excludes.nsig" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java com/jogamp/gluegen/nativesig/**" />
   </target>
 
-  <target name="init.base" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig"/>
-
-  <target name="init.std" unless="isAndroid" >
+  <target name="init.base" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig">
     <!-- Create the classpath for compiling GlueGen. 
          This requires the user-defined "antlr.jar" property. -->
-    <path id="gluegencompile.classpath">
+    <path id="cc_gluegen.classpath">
       <pathelement location="${antlr.jar}" />
     </path>
   </target>
@@ -44,13 +42,13 @@
 
     <!-- Create the classpath for compiling GlueGen. 
          This requires the user-defined "antlr.jar" property. -->
-    <path id="gluegencompile.classpath">
+    <path id="cc_gluegen_android.classpath">
       <pathelement location="${antlr.jar}" />
       <pathelement location="${android-min.jar}"/>
     </path>
   </target>
 
-  <target name="init" depends="init.base,init.std,init.android">
+  <target name="init" depends="init.base, init.android">
     <!-- Declare all paths and user defined variables. -->
 
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
@@ -152,11 +150,7 @@
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
 
-    <condition property="java.excludes.android" value="${java.part.android}">
-       <not> <isset property="isAndroid"/> </not>
-    </condition>
-
-    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes} ${java.excludes.android}" />
+    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes}" />
 
   </target>
 
@@ -618,9 +612,7 @@
       </uptodate>
   </target>
 
-  <target name="gluegen.build.java" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
-    <antcall target="generate-hash-maps"  inheritRefs="true"/>
-
+  <target name="gluegen.build.javase">
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
          including supergrammars, in one place, so copy all of the
@@ -675,7 +667,7 @@
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
-           excludes="${gluegen.excludes.all}"
+           excludes="${gluegen.excludes.all} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
            source="${target.sourcelevel}" 
@@ -684,13 +676,13 @@
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
-      <classpath refid="gluegencompile.classpath" />
+      <classpath refid="cc_gluegen.classpath" />
     </javac>
 
     <!--compile gluegen (compile time) -->
     <javac destdir="${classes}"
            includeAntRuntime="true"
-           excludes="${gluegen.excludes.all} ${gluegen-rt.classes}"
+           excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
            source="${host.sourcelevel}" 
@@ -699,7 +691,7 @@
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
-      <classpath refid="gluegencompile.classpath" />
+      <classpath refid="cc_gluegen.classpath" />
     </javac>
 
     <copy file="Manifest"
@@ -743,7 +735,7 @@
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
         <exclude name="${jogamp.android-launcher.classes}" />
-        <exclude name="${java.excludes.android}" />
+        <exclude name="${java.part.android}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -766,7 +758,55 @@
         </filterchain>
     </copy>
   </target>
+
+  <target name="gluegen.build.android" if="isAndroid">
+    <!--compile gluegen-rt-android first-->
+    <javac destdir="${classes}"
+           includeAntRuntime="false"
+           includes="${gluegen-rt.classes} ${jogamp.common.classes}"
+           excludes="${gluegen.excludes.all}"
+           memoryMaximumSize="${javac.memorymax}"
+           encoding="UTF-8"
+           source="${target.sourcelevel}" 
+           target="${target.targetlevel}" 
+           bootclasspath="${target.rt.jar}"
+           debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+      <src path="${src.java}" />
+      <src path="${src.generated.java}" />
+      <classpath refid="cc_gluegen_android.classpath" />
+    </javac>
+
+    <copy file="Manifest-rt-android"
+          tofile="${build}/Manifest-rt-android.temp"
+          overwrite="true">
+        <filterset>
+            <filter token="VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
+            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+        </filterset>
+    </copy>
+
+    <!-- Build gluegen-rt-android.jar. -->
+    <jar destfile="${build}/gluegen-rt-android.jar" manifest="${build}/Manifest-rt-android.temp">
+      <fileset dir="${classes}">
+        <include name="com/jogamp/gluegen/runtime/*.class" />
+        <include name="com/jogamp/common/**" />
+        <include name="jogamp/common/**" />
+        <exclude name="${jogamp.android-launcher.classes}" />
+      </fileset>
+      <fileset dir="resources/assets">
+        <include name="**" />
+      </fileset>
+    </jar>
+  </target>
   
+  <target name="gluegen.build.java" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
+    <antcall target="generate-hash-maps"    inheritRefs="true"/>
+    <antcall target="gluegen.build.javase"  inheritRefs="true"/>
+    <antcall target="gluegen.build.android" inheritRefs="true"/>
+  </target>
+
   <target name="gluegen.build.check.android-launcher" depends="init">
       <uptodate property="gluegen.build.skip.android-launcher">
         <srcfiles dir= "."            includes="*.xml"/>
@@ -814,10 +854,9 @@
         jarbasename="jogamp.android-launcher"
         nativebuilddir="${build}"
         nativebasename="non-existing"
-        android.abi="generic"
         androidmanifest.path="resources/android/AndroidManifest-Launcher.xml"
         androidresources.path="resources/android/res"
-        jarmanifest.path="${build}//Manifest-android-launcher.temp"
+        jarmanifest.path="${build}/Manifest-android-launcher.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}"
       />
@@ -828,7 +867,7 @@
         <srcfiles dir= "."                includes="*.xml"/>
         <srcfiles dir= "${src.java}"      includes="**"/>
         <srcfiles dir= "${src.generated}" includes="**"/>
-        <mapper type="merge" to="${build}/gluegen-rt.apk"/>
+        <mapper type="merge" to="${build}/gluegen-rt-android-${android.abi}.apk"/>
       </uptodate>
   </target>
 
@@ -837,13 +876,13 @@
     <aapt.signed 
         assetsdir="resources/assets"
         jarbuilddir="${build}"
-        jarbasename="gluegen-rt"
+        jarbasename="gluegen-rt-android"
         nativebuilddir="${gluegen.lib.dir}"
         nativebasename="gluegen-rt"
         android.abi="${android.abi}"
         androidmanifest.path="resources/android/AndroidManifest-Runtime.xml"
         androidresources.path="resources/android/res"
-        jarmanifest.path="${build}/Manifest-rt.temp"
+        jarmanifest.path="${build}/Manifest-rt-android.temp"
         version.code="${gluegen_int_version}"
         version.name="${gluegen.version.plus}"
       />
