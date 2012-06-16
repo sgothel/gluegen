@@ -46,7 +46,7 @@ public class TempFileCache {
     // Flag indicating that we got a fatal error in the static initializer.
     private static boolean staticInitError = false;
     
-    private static final String tmpDirPrefix = "jogamp.tmp.cache";
+    private static final String tmpDirPrefix = "file_cache";
     
     // Lifecycle: For one user's JVMs, ClassLoader and time.
     private static final File tmpBaseDir;
@@ -81,7 +81,8 @@ public class TempFileCache {
             // exception, set an error code.
             File _tmpBaseDir = null;
             try {           
-                _tmpBaseDir = IOUtil.getTempDir(tmpDirPrefix, acc); // Retrieve the tmpbase directory.            
+                _tmpBaseDir = new File(IOUtil.getTempDir(true /* executable */, acc), tmpDirPrefix);
+                _tmpBaseDir = IOUtil.testDir(_tmpBaseDir, true /* create */, false /* executable */, acc); // executable already checked
             } catch (Exception ex) {
                 System.err.println("Warning: Catched Exception while retrieving temp base directory:");
                 ex.printStackTrace();

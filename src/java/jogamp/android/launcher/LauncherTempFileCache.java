@@ -40,7 +40,8 @@ public class LauncherTempFileCache {
     private static final boolean DEBUG = true;
 
     // Lifecycle: For all JVMs, ClassLoader and times.
-    private static final String tmpDirPrefix = "jogamp.tmp.cache";
+    private static final String tmpSubDir = "jogamp";
+    private static final String tmpDirPrefix = "file_cache";
     
     // Get the value of the tmproot system property
     // Lifecycle: For all JVMs and ClassLoader
@@ -143,13 +144,13 @@ public class LauncherTempFileCache {
             // Get the name of the tmpbase directory.
             {
                 final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
-                tmpBaseDir = new File(tmpRoot, tmpDirPrefix);
+                tmpBaseDir = new File(new File(tmpRoot, tmpSubDir), tmpDirPrefix);
             }
             tmpRootPropValue = System.getProperty(tmpRootPropName);
 
             if (tmpRootPropValue == null) {
                 // Create the tmpbase directory if it doesn't already exist
-                tmpBaseDir.mkdir();
+                tmpBaseDir.mkdirs();
                 if (!tmpBaseDir.isDirectory()) {
                     throw new IOException("Cannot create directory " + tmpBaseDir);
                 }

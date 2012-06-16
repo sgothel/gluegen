@@ -28,7 +28,6 @@
 package jogamp.common.os.android;
 
 import java.io.File;
-import java.security.AccessControlContext;
 
 import android.content.Context;
 import android.content.pm.PackageInfo;
@@ -71,7 +70,7 @@ public class AndroidUtilsImpl {
     *         via {@link jogamp.common.os.android.StaticContext#init(android.content.Context) StaticContext.init(..)}, 
     *         otherwise the context relative world readable <code>temp</code> directory returned. 
     */
-   public static File getTempRoot(AccessControlContext acc)
+   public static File getTempRoot()
         throws SecurityException, RuntimeException
    {
        final Context ctx = StaticContext.getContext();

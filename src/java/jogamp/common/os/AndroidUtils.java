@@ -29,7 +29,6 @@ package jogamp.common.os;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.security.AccessControlContext;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.util.ReflectionUtil;
@@ -46,7 +45,7 @@ public class AndroidUtils {
             final Class<?> androidAndroidUtilsImplClz = ReflectionUtil.getClass("jogamp.common.os.android.AndroidUtilsImpl", true, cl);
             androidGetPackageInfoVersionCodeMethod = ReflectionUtil.getMethod(androidAndroidUtilsImplClz, "getPackageInfoVersionCode", String.class);
             androidGetPackageInfoVersionNameMethod = ReflectionUtil.getMethod(androidAndroidUtilsImplClz, "getPackageInfoVersionName", String.class);
-            androidGetTempRootMethod = ReflectionUtil.getMethod(androidAndroidUtilsImplClz, "getTempRoot", AccessControlContext.class);
+            androidGetTempRootMethod = ReflectionUtil.getMethod(androidAndroidUtilsImplClz, "getTempRoot");
         } else {
             androidGetPackageInfoVersionCodeMethod = null;
             androidGetPackageInfoVersionNameMethod = null;
@@ -83,10 +82,10 @@ public class AndroidUtils {
      *         via {@link jogamp.common.os.android.StaticContext#init(android.content.Context) StaticContext.init(..)}, 
      *         otherwise the context relative world readable <code>temp</code> directory returned. 
      */
-    public static File getTempRoot(AccessControlContext acc)
+    public static File getTempRoot()
         throws RuntimeException {
         if(null != androidGetTempRootMethod) {
-            return (File) ReflectionUtil.callMethod(null, androidGetTempRootMethod, acc);
+            return (File) ReflectionUtil.callMethod(null, androidGetTempRootMethod);
         }
         return null;       
     }    

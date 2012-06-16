@@ -37,6 +37,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.AccessControlContext;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.lang.reflect.Constructor;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -56,7 +58,12 @@ public class IOUtil {
     
     /** Std. temporary directory property key <code>java.io.tmpdir</code> */
     public static final String java_io_tmpdir_propkey = "java.io.tmpdir";
+    public static final String user_home_propkey = "user.home";
+    private static final String XDG_CACHE_HOME_envkey = "XDG_CACHE_HOME";
 
+    /** Subdirectory within platform's temporary root directory where all JogAmp related temp files are being stored: {@code jogamp} */ 
+    public static final String tmpSubDir = "jogamp";
+    
     private static final Constructor<?> fosCtor;
     
     static {
@@ -312,7 +319,7 @@ public class IOUtil {
     }
     
     public static String getClassFileName(String clazzBinName) throws IOException {
-        // or return clazzBinName.replace('.', File.pathSeparatorChar) + ".class"; ?            
+        // or return clazzBinName.replace('.', File.separatorChar) + ".class"; ?            
         return clazzBinName.replace('.', '/') + ".class";            
     }
     
@@ -597,126 +604,358 @@ public class IOUtil {
         return null;
     }
     
-    /**
-     * Utilizing {@link File#createTempFile(String, String, File)} using
-     * {@link #getTempRoot(AccessControlContext)} as the directory parameter, ie. location 
-     * of the root temp folder.
-     * 
-     * @see File#createTempFile(String, String)
-     * @see File#createTempFile(String, String, File)
-     * @see #getTempRoot(AccessControlContext)
-     * 
-     * @param prefix
-     * @param suffix
-     * @return
-     * @throws IllegalArgumentException
-     * @throws IOException
-     * @throws SecurityException
-     */
-    public static File createTempFile(String prefix, String suffix, AccessControlContext acc) 
-        throws IllegalArgumentException, IOException, SecurityException 
-    {        
-        return File.createTempFile( prefix, suffix, getTempRoot(acc) );
+    private static String getShellSuffix() {
+        switch(Platform.OS_TYPE) {
+            case WINDOWS:
+              return ".bat";
+            default:
+              return ".sh";
+        }
+    }
+    
+    private static boolean getOSHasNoexecFS() {
+        switch(Platform.OS_TYPE) {
+            case WINDOWS:
+            case OPENKODE:
+              return false;
+                
+            default:
+              return true;
+        }
     }
     
     /**
-     * Returns a platform independent writable directory for temporary files. 
+     * @see <a href="http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html">Free-Desktop - XDG Base Directory Specification</a>
+     */
+    private static boolean getOSHasFreeDesktopXDG() {
+        switch(Platform.OS_TYPE) {
+            case ANDROID:
+            case MACOS:
+            case WINDOWS:
+            case OPENKODE:
+              return false;
+                
+            default:
+              return true;
+        }
+    }
+    
+    /**
+     * Test whether {@code file} exists and matches the given requirements
+     * 
+     * @param file
+     * @param shallBeDir
+     * @param shallBeWritable
+     * @return
+     */
+    public static boolean testFile(File file, boolean shallBeDir, boolean shallBeWritable) {        
+        if (!file.exists()) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: does not exist");
+            }
+            return false;            
+        }
+        if (shallBeDir && !file.isDirectory()) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: is not a directory");
+            }
+            return false;
+        }
+        if (shallBeWritable && !file.canWrite()) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: is not writable");
+            }
+            return false; 
+        }
+        return true;
+    }
+
+    /**
+     * Returns true if the given {@code dir}
+     * <ol>
+     *   <li>exists, and</li>
+     *   <li>is a directory, and</li>
+     *   <li>is writeable, and</li>
+     *   <li>files can be executed from the directory</li>  
+     * </ol>
+     *  
+     * @throws SecurityException if file creation and process execution is not allowed within the current security context
+     * @param dir
+     */
+    public static boolean testDirExec(File dir)
+            throws SecurityException
+    {
+        if (!testFile(dir, true, true)) {
+            return false;            
+        }
+        if(!getOSHasNoexecFS()) {
+            return true;
+        }
+        
+        File exetst;
+        try {
+            exetst = File.createTempFile("jogamp_exe_tst", getShellSuffix(), dir);
+        } catch (SecurityException se) {
+            throw se; // fwd Security exception
+        } catch (IOException e) {
+            if(DEBUG) {
+                e.printStackTrace();
+            }
+            return false;
+        }
+        int ok = -1;
+        if(exetst.setExecutable(true)) {
+            try {
+                Process pr = Runtime.getRuntime().exec(exetst.getCanonicalPath());
+                pr.waitFor() ;
+                ok = pr.exitValue();
+            } catch (SecurityException se) {
+                throw se; // fwd Security exception
+            } catch (Throwable t) {
+                ok = -2;
+                if(DEBUG) {
+                    System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: "+t.getMessage());
+                    // t.printStackTrace();
+                }
+            }
+        }
+        exetst.delete();
+        return 0 == ok;
+    }
+
+    private static File testDirImpl(File dir, boolean create, boolean executable) 
+            throws SecurityException
+    {
+        if (create && !dir.exists()) {
+            dir.mkdirs();            
+        }
+        if( executable ) {
+            if(testDirExec(dir)) {
+                return dir;
+            }
+        } else if(testFile(dir, true, true)) {
+            return dir;            
+        }
+        return null;
+    }
+    
+    /**
+     * Returns the directory {@code dir}, which is processed and tested as described below.
+     * <ol>
+     *   <li>If {@code create} is {@code true} and the directory does not exist yet, it is created incl. all sub-directories.</li>
+     *   <li>If {@code dirName} exists, but is not a directory, {@code null} is being returned.</li>
+     *   <li>If the directory does not exist or is not writeable, {@code null} is being returned.</li>
+     *   <li>If {@code executable} is {@code true} and files cannot be executed from the directory, {@code null} is being returned.</li>  
+     * </ol>
+     *  
+     * @param dir the directory to process
+     * @param create true if the directory shall be created if not existing
+     * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
+     * @param acc The security {@link AccessControlContext} to create directories and test <i>executability</i> 
+     * @throws SecurityException if file creation and process execution is not allowed within the current security context
+     */
+    public static File testDir(final File dir, final boolean create, final boolean executable, AccessControlContext acc)
+        throws SecurityException
+    {
+        if( null != acc ) {
+            return AccessController.doPrivileged(new PrivilegedAction<File>() {
+                public File run() {
+                  return testDirImpl(dir, create, executable);
+                } }, acc);
+        } else {
+            return testDirImpl(dir, create, executable);
+        }    
+    }    
+    
+    private static boolean isStringSet(String s) { return null != s && 0 < s.length(); } 
+    
+    /**
+     * This methods finds [and creates] an available temporary sub-directory:
+     * <pre>
+           File tmpBaseDir;    
+           if(null != testDir(tmpRoot, true, executable)) { // check tmpRoot first
+               tmpBaseDir = testDir(new File(tmpRoot, tmpSubDirPrefix), true, executable);
+               for(int i = 0; null == tmpBaseDir && i<=9999; i++) {
+                   final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
+                   tmpBaseDir = testDir(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true, executable);
+               }
+           } else {
+               tmpBaseDir = null;
+           }
+           return tmpBaseDir;
+     * </pre>
      * <p>
-     * On standard Java, the folder specified by <code>java.io.tempdir</code>
-     * is returned.
+     * The iteration through [0000-9999] ensures that the code is multi-user save.
+     * </p>
+     * @param tmpRoot
+     * @param executable
+     * @param tmpDirPrefix
+     * @return a temporary directory, writable by this user
+     * @throws SecurityException
+     */
+    private static File getSubTempDir(File tmpRoot, String tmpSubDirPrefix, boolean executable)
+        throws SecurityException
+    {
+       File tmpBaseDir;    
+       if(null != testDirImpl(tmpRoot, true /* create */, executable)) { // check tmpRoot first
+           tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix), true /* create */, executable);
+           for(int i = 0; null == tmpBaseDir && i<=9999; i++) {
+               final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
+               tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true /* create */, executable);
+           }
+       } else {
+           tmpBaseDir = null;
+       }
+       return tmpBaseDir;
+    }
+        
+    private static File getTempDirImpl(boolean executable)
+        throws SecurityException, RuntimeException
+    {        
+        if(!tempRootSet) { // volatile: ok
+            synchronized(IOUtil.class) {
+                if(!tempRootSet) {
+                    tempRootSet = true;
+                    {
+                        final File ctxTempDir = AndroidUtils.getTempRoot(); // null if ( !Android || no android-ctx )
+                        if(null != ctxTempDir) {
+                            tempRootNoexec = getSubTempDir(ctxTempDir, tmpSubDir, false /* executable, see below */);
+                            tempRootExec = tempRootNoexec; // FIXME: Android temp root is always executable (?)
+                            return tempRootExec;
+                        }
+                    }
+                    
+                    final String java_io_tmpdir = PropertyAccess.getProperty(java_io_tmpdir_propkey, false, null);
+                    final String user_home = PropertyAccess.getProperty(user_home_propkey, false, null);
+                    
+                    final String xdg_cache_home;
+                    {
+                        String _xdg_cache_home;
+                        if( getOSHasFreeDesktopXDG() ) { 
+                            _xdg_cache_home = System.getenv(XDG_CACHE_HOME_envkey);
+                            if( !isStringSet(_xdg_cache_home) && isStringSet(user_home) ) {
+                                _xdg_cache_home = user_home + File.separator + ".cache" ; // default
+                            }                           
+                        } else {
+                            _xdg_cache_home = null;
+                        }
+                        xdg_cache_home = _xdg_cache_home;
+                    }
+                    
+                    // 1) java.io.tmpdir/jogamp
+                    if( null == tempRootExec && isStringSet(java_io_tmpdir) ) {
+                        tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, true /* executable */);
+                    }
+                    
+                    // 2) $XDG_CACHE_HOME/jogamp
+                    if(null == tempRootExec && isStringSet(xdg_cache_home)) {
+                        tempRootExec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, true /* executable */);                        
+                    }
+                    
+                    // 3) $HOME/.jogamp
+                    if(null == tempRootExec && isStringSet(user_home)) {                        
+                        tempRootExec = getSubTempDir(new File(user_home), "." + tmpSubDir, true /* executable */);
+                    }                    
+                    
+                    
+                    if(null != tempRootExec) {
+                        tempRootNoexec = tempRootExec;
+                    } else {
+                        // 1) java.io.tmpdir/jogamp
+                        if( null == tempRootNoexec && isStringSet(java_io_tmpdir) ) {
+                            tempRootNoexec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */);
+                        }
+                        
+                        // 2) $XDG_CACHE_HOME/jogamp
+                        if(null == tempRootNoexec && isStringSet(xdg_cache_home)) {
+                            tempRootNoexec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, false /* executable */);                        
+                        }
+                        
+                        // 3) $HOME/.jogamp
+                        if(null == tempRootNoexec && isStringSet(user_home)) {                        
+                            tempRootNoexec = getSubTempDir(new File(user_home), "." + tmpSubDir, false /* executable */);
+                        }                                            
+                    }
+                    
+                    if(DEBUG) {
+                        System.err.println("IOUtil.getTempRoot(): temp dirs: exec: "+tempRootExec.getAbsolutePath()+", noexec: "+tempRootNoexec.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        final File r = executable ? tempRootExec : tempRootNoexec ;
+        if(null == r) {
+            throw new RuntimeException("Could not determine a temporary directory");
+        }
+        return r;
+    }
+    private static File tempRootExec = null; // writeable and executable
+    private static File tempRootNoexec = null; // writeable, maybe executable
+    private static volatile boolean tempRootSet = false;
+    
+    /**
+     * Returns a platform independent writable directory for temporary files
+     * consisting of the platform's {@code temp-root} + {@link #tmpSubDir}, 
+     * e.g. {@code /tmp/jogamp/}. 
+     * <p>
+     * On standard Java the {@code temp-root} folder is specified by <code>java.io.tempdir</code>.
      * </p> 
      * <p>
-     * On Android a <code>temp</code> folder relative to the applications local folder 
+     * On Android the {@code temp-root} folder is relative to the applications local folder 
      * (see {@link Context#getDir(String, int)}) is returned, if
      * the Android application/activity has registered it's Application Context
      * via {@link jogamp.common.os.android.StaticContext.StaticContext#init(Context, ClassLoader) StaticContext.init(..)}.
      * This allows using the temp folder w/o the need for <code>sdcard</code>
      * access, which would be the <code>java.io.tempdir</code> location on Android!
      * </p>
-     * @param acc The security {@link AccessControlContext} to access <code>java.io.tmpdir</code> 
-     * 
+     * <p>
+     * In case {@code temp-root} is the users home folder,
+     * a dot is being prepended to {@link #tmpSubDir}, i.e.: {@code /home/user/.jogamp/}. 
+     * </p>
+     * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
+     * @param acc The security {@link AccessControlContext} to access properties, environment vars, create directories and test <i>executability</i> 
      * @throws SecurityException if access to <code>java.io.tmpdir</code> is not allowed within the current security context
-     * @throws RuntimeException is the property <code>java.io.tmpdir</code> or the resulting temp directory is invalid
+     * @throws RuntimeException if no temporary directory could be determined
      *  
      * @see PropertyAccess#getProperty(String, boolean, java.security.AccessControlContext)
      * @see Context#getDir(String, int)
      */
-    public static File getTempRoot(AccessControlContext acc)
+    public static File getTempDir(final boolean executable, AccessControlContext acc)
         throws SecurityException, RuntimeException
     {
-        {
-            final File tmpRoot = AndroidUtils.getTempRoot(acc); // null if ( !Android || no android-ctx )
-            if(null != tmpRoot) {
-                return tmpRoot;
-            }
-        }
-        final String tmpRootName = PropertyAccess.getProperty(java_io_tmpdir_propkey, false, acc);
-        if(null == tmpRootName || 0 == tmpRootName.length()) {
-            throw new RuntimeException("Property '"+java_io_tmpdir_propkey+"' value is empty: <"+tmpRootName+">");
-        }
-        final File tmpRoot = new File(tmpRootName);
-        if(null==tmpRoot || !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
-            throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved by propery '"+java_io_tmpdir_propkey+"'");
-        }
-        if(DEBUG) {
-            System.err.println("IOUtil.getTempRoot(): temp dir: "+tmpRoot.getAbsolutePath());
-        }
-        return tmpRoot;
-    }
-    
+        if( null != acc ) {
+            return AccessController.doPrivileged(new PrivilegedAction<File>() {
+                public File run() {
+                  return getTempDirImpl(executable);
+                } }, acc);
+        } else {
+            return getTempDirImpl(executable);
+        }    
+    }    
+     
     /**
-     * This methods finds [and creates] a temporary directory:
-     * <pre>
-     *    for(tempBaseDir = tempRootDir + tmpDirPrefix + _ + [000000-999999]) {
-     *      if(tempBaseDir.isDirectory()) {
-     *          if(tempBaseDir.canWrite()) {
-     *              return tempBaseDir;
-     *          }
-     *      } else {
-     *          tempBaseDir.mkdir();
-     *          return tempBaseDir;
-     *      }
-     *    }
-     * </pre>
-     * The <code>tempRootDir</code> is retrieved by {@link #getTempRoot(AccessControlContext)}.
-     * <p>
-     * The iteration through [000000-999999] ensures that the code is multi-user save.
-     * </p>
-     * @param tmpDirPrefix
-     * @return a temporary directory, writable by this user
+     * Utilizing {@link File#createTempFile(String, String, File)} using
+     * {@link #getTempRoot(AccessControlContext, boolean)} as the directory parameter, ie. location 
+     * of the root temp folder.
+     * 
+     * @see File#createTempFile(String, String)
+     * @see File#createTempFile(String, String, File)
+     * @see #getTempRoot(AccessControlContext, boolean)
+     * 
+     * @param prefix
+     * @param suffix
+     * @param executable true if the temporary root folder needs to hold executable files, otherwise false.
+     * @return
+     * @throws IllegalArgumentException
      * @throws IOException
      * @throws SecurityException
      */
-    public static File getTempDir(String tmpDirPrefix, AccessControlContext acc)
-        throws IOException, SecurityException
-    {
-       final File tempRoot = IOUtil.getTempRoot(acc);
-       
-       for(int i = 0; i<=999999; i++) {
-           final String tmpDirSuffix = String.format("_%06d", i); // 6 digits for iteration
-           final File tmpBaseDir = new File(tempRoot, tmpDirPrefix+tmpDirSuffix);
-           if (tmpBaseDir.isDirectory()) {
-               // existing directory
-               if(tmpBaseDir.canWrite()) {
-                   // can write - OK
-                   return tmpBaseDir; 
-               }
-               // not writable, hence used by another user - continue
-           } else {
-               // non existing directory, create and validate it
-               tmpBaseDir.mkdir();
-               if (!tmpBaseDir.isDirectory()) {
-                   throw new IOException("Cannot create temp base directory " + tmpBaseDir);
-               }
-               if(!tmpBaseDir.canWrite()) {
-                   throw new IOException("Cannot write to created temp base directory " + tmpBaseDir);
-               }
-               return tmpBaseDir; // created and writable - OK
-           }
-       }
-       throw new IOException("Could not create temp directory @ "+tempRoot.getAbsolutePath()+tmpDirPrefix+"_*");        
+    public static File createTempFile(String prefix, String suffix, boolean executable, AccessControlContext acc) 
+        throws IllegalArgumentException, IOException, SecurityException 
+    {        
+        return File.createTempFile( prefix, suffix, getTempDir(executable, acc) );
     }
-    
+
     public static void close(Closeable stream, boolean throwRuntimeException) throws RuntimeException {
         if(null != stream) {
             try {
