@@ -53,6 +53,7 @@ import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
+import jogamp.common.os.PlatformPropsImpl;
 
 public class JNILibLoaderBase {
   public static final boolean DEBUG = Debug.debug("JNILibLoader");  
@@ -149,7 +150,7 @@ public class JNILibLoaderBase {
    */
   public static final boolean addNativeJarLibs(Class<?> classFromJavaJar, String nativeJarBaseName) {
     if(TempJarCache.isInitialized()) {
-        final String nativeJarName = nativeJarBaseName+"-natives-"+Platform.getOSAndArch()+".jar";
+        final String nativeJarName = nativeJarBaseName+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         try {
             URL jarUrlRoot = JarUtil.getURLDirname( JarUtil.getJarSubURL( classFromJavaJar.getName(), cl ) );

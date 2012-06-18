@@ -42,6 +42,7 @@ package com.jogamp.common.os;
 
 import com.jogamp.common.util.IOUtil;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
+import jogamp.common.os.PlatformPropsImpl;
 import jogamp.common.os.UnixDynamicLinkerImpl;
 import jogamp.common.os.WindowsDynamicLinkerImpl;
 
@@ -70,7 +71,7 @@ public class NativeLibrary implements DynamicLookupHelper {
 
   static {
     // Instantiate dynamic linker implementation
-    switch (Platform.OS_TYPE) {
+    switch (PlatformPropsImpl.OS_TYPE) {
       case WINDOWS:
         dynLink = new WindowsDynamicLinkerImpl();
         prefixes = new String[] { "" };
@@ -335,7 +336,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
 
     // Add probable Mac OS X-specific paths
-    if (Platform.OS_TYPE == Platform.OSType.MACOS) {
+    if (PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
       // Add historical location
       addPaths("/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
       // Add current location
@@ -349,7 +350,7 @@ public class NativeLibrary implements DynamicLookupHelper {
   private static String selectName(String windowsLibName,
                                    String unixLibName,
                                    String macOSXLibName) {
-    switch (Platform.OS_TYPE) {
+    switch (PlatformPropsImpl.OS_TYPE) {
       case WINDOWS:
         return windowsLibName;
         
@@ -397,14 +398,14 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
 
     String[] res = new String[prefixes.length * suffixes.length + 
-                              ( Platform.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
+                              ( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
     int idx = 0;
     for (int i = 0; i < prefixes.length; i++) {
       for (int j = 0; j < suffixes.length; j++) {
         res[idx++] = prefixes[i] + libName + suffixes[j];
       }
     }
-    if (Platform.OS_TYPE == Platform.OSType.MACOS) {
+    if (PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
         // Plain library-base-name in Framework folder
         res[idx++] = libName;
     }

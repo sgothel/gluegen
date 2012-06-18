@@ -29,14 +29,10 @@
 package com.jogamp.common.os;
 
 import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
 
-import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
@@ -45,42 +41,21 @@ import com.jogamp.common.util.cache.TempJarCache;
 import jogamp.common.Debug;
 import jogamp.common.jvm.JVMUtil;
 import jogamp.common.os.MachineDescriptionRuntime;
+import jogamp.common.os.PlatformPropsImpl;
 
 /**
  * Utility class for querying platform specific properties.
- * @author Michael Bien, Sven Gothel, et. al.
+ * <p>
+ * Some field declarations and it's static initialization has been delegated
+ * to it's super class {@link PlatformPropsImpl} to solve 
+ * static initialization interdependencies w/ the GlueGen native library loading
+ * and it's derived information {@link #getMachineDescription()}, {@link #is32Bit()}, ..<br>
+ * This mechanism is preferred in this case to avoid synchronization and locking
+ * and allow better performance accessing the mentioned fields/methods.
+ * </p>
  */
-public class Platform {
-
-    /** fixed basename of JAR file and native library */
-    private static final String libBaseName = "gluegen-rt";
+public class Platform extends PlatformPropsImpl {
     
-    /**
-     * System property: 'jogamp.gluegen.UseTempJarCache', 
-     * defaults to true if {@link #OS_TYPE} is not {@link OSType#ANDROID}.
-     */
-    public static final boolean USE_TEMP_JAR_CACHE;
-    private static final String useTempJarCachePropName = "jogamp.gluegen.UseTempJarCache";
-    
-    /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
-    public static final boolean AWT_AVAILABLE;
-    
-    public static final boolean JAVA_SE;
-    public static final boolean LITTLE_ENDIAN;
-    public static final String OS;
-    public static final String OS_lower;
-    public static final String OS_VERSION;
-    public static final VersionNumber OS_VERSION_NUMBER;
-    public static final String ARCH;
-    public static final String ARCH_lower;
-    public static final String JAVA_VENDOR;
-    public static final String JAVA_VENDOR_URL;
-    public static final String JAVA_VM_NAME;
-    public static final String JAVA_RUNTIME_NAME;
-    public static final String JAVA_VERSION;
-    public static final VersionNumber JAVA_VERSION_NUMBER;
-    public static final String NEWLINE;
-
     public enum OSType {
         LINUX(0), FREEBSD(1), ANDROID(2), MACOS(3), SUNOS(4), HPUX(5), WINDOWS(6), OPENKODE(7); 
         
@@ -89,8 +64,7 @@ public class Platform {
         OSType(int id){
             this.id = id;
         }
-    }    
-    public static final OSType OS_TYPE;
+    }
     
     public enum CPUFamily {
         /** AMD/Intel */
@@ -111,7 +85,8 @@ public class Platform {
         CPUFamily(int id){
             this.id = id;
         }
-    }    
+    }
+    
     public enum CPUType {
         /** X86 32bit */       
         X86_32(    CPUFamily.X86,     0x0001),
@@ -146,7 +121,6 @@ public class Platform {
         
         public CPUFamily getFamily() { return family; }
     }      
-    public static final CPUType CPU_ARCH;
     
     public enum ABIType {
         GENERIC_ABI    ( 0x0000 ),        
@@ -160,43 +134,40 @@ public class Platform {
         ABIType(int id){
             this.id = id;
         }        
-    }      
-    public static final ABIType ABI_TYPE;
+    }
     
-    private static final boolean is32Bit;
-
+    private static final String useTempJarCachePropName = "jogamp.gluegen.UseTempJarCache";
+    
+    /** fixed basename of JAR file and native library */
+    private static final String libBaseName = "gluegen-rt";    
+        
+    //
+    // static initialization order:
+    //
+    
+    /**
+     * System property: 'jogamp.gluegen.UseTempJarCache', 
+     * defaults to true if {@link #OS_TYPE} is not {@link OSType#ANDROID}.
+     */
+    public static final boolean USE_TEMP_JAR_CACHE;
+    
+    //
+    // post loading native lib:
+    //
+    
     private static final MachineDescription machineDescription;
     
-    private static final String os_and_arch;
+    private static final boolean is32Bit;
     
-    static {
-        // We don't seem to need an AccessController.doPrivileged() block
-        // here as these system properties are visible even to unsigned Applets.
-        OS =  System.getProperty("os.name");
-        OS_lower = OS.toLowerCase();
-        OS_VERSION =  System.getProperty("os.version");
-        OS_VERSION_NUMBER = new VersionNumber(OS_VERSION, ".");
-        ARCH = System.getProperty("os.arch");
-        ARCH_lower = ARCH.toLowerCase();
-        JAVA_VENDOR = System.getProperty("java.vendor");
-        JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
-        JAVA_VERSION = System.getProperty("java.version");
-        JAVA_VERSION_NUMBER = new VersionNumber(JAVA_VERSION, ".");
-        NEWLINE = System.getProperty("line.separator");
-        JAVA_VM_NAME = System.getProperty("java.vm.name");
-        JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
-        JAVA_SE = initIsJavaSE();
-
-        LITTLE_ENDIAN = queryIsLittleEndianImpl();
+    /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
+    public static final boolean AWT_AVAILABLE;
         
-        CPU_ARCH = getCPUTypeImpl(ARCH_lower);
-        ABI_TYPE = guessABITypeImpl(CPU_ARCH);
-        OS_TYPE = getOSTypeImpl();
-        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
+    static {
+        PlatformPropsImpl.initSingleton(); // just documenting the order of static initialization
         
         USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
                              Debug.getBooleanProperty(useTempJarCachePropName, true, true);
-        
+                
         loadGlueGenRTImpl();
         
         JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
@@ -209,8 +180,8 @@ public class Platform {
         } else {
             MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
             if(!md.compatible(smd.md)) {
-                throw new RuntimeException("Incompatible MachineDescriptions:"+Platform.NEWLINE+
-                                           " Static "+smd+Platform.NEWLINE+
+                throw new RuntimeException("Incompatible MachineDescriptions:"+PlatformPropsImpl.NEWLINE+
+                                           " Static "+smd+PlatformPropsImpl.NEWLINE+
                                            " Runtime "+md);
             }
         }
@@ -246,136 +217,11 @@ public class Platform {
      *
      * @return true if we're running from a Jar URL, otherwise false
      */
-    private static boolean isRunningFromJarURL() {        
+    private static final boolean isRunningFromJarURL() {        
         return JarUtil.hasJarURL(Platform.class.getName(), Platform.class.getClassLoader());
     }
     
-    private static boolean queryIsLittleEndianImpl() {
-        ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
-        IntBuffer tst_i = tst_b.asIntBuffer();
-        ShortBuffer tst_s = tst_b.asShortBuffer();
-        tst_i.put(0, 0x0A0B0C0D);
-        return 0x0C0D == tst_s.get(0);
-    }
-  
-    private static CPUType getCPUTypeImpl(String archLower) {
-        if(        archLower.equals("x86")  ||
-                   archLower.equals("i386") ||
-                   archLower.equals("i486") ||
-                   archLower.equals("i586") ||
-                   archLower.equals("i686") ) {
-            return CPUType.X86_32;
-        } else if( archLower.equals("x86_64") ||
-                   archLower.equals("amd64")  ) {
-            return CPUType.X86_64;
-        } else if( archLower.equals("ia64") ) {
-            return CPUType.IA64;
-        } else if( archLower.equals("arm") ) {
-            return CPUType.ARM;
-        } else if( archLower.equals("armv5l") ) {
-            return CPUType.ARMv5;
-        } else if( archLower.equals("armv6l") ) {
-            return CPUType.ARMv6;
-        } else if( archLower.equals("armv7l") ) {
-            return CPUType.ARMv7;
-        } else if( archLower.equals("sparc") ) {
-            return CPUType.SPARC_32;
-        } else if( archLower.equals("sparcv9") ) {
-            return CPUType.SPARCV9_64;
-        } else if( archLower.equals("pa_risc2.0") ) {
-            return CPUType.PA_RISC2_0;
-        } else if( archLower.equals("ppc") ) {
-            return CPUType.PPC;
-        } else {
-            throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + archLower + ")");
-        }
-    }
-    
-    private static boolean contains(String data, String[] search) {
-        if(null != data && null != search) {            
-            for(int i=0; i<search.length; i++) {
-                if(data.indexOf(search[i]) >= 0) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }    
-    private static ABIType guessABITypeImpl(CPUType cpuType) {
-        if(CPUFamily.ARM != cpuType.family) {
-            return ABIType.GENERIC_ABI;
-        }
-        return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
-            private final String[] gnueabihf = new String[] { "gnueabihf", "armhf" };
-            public ABIType run() {                    
-                if ( contains(System.getProperty("sun.boot.library.path"), gnueabihf) ||
-                     contains(System.getProperty("java.library.path"), gnueabihf) ||
-                     contains(System.getProperty("java.home"), gnueabihf) ) {
-                    return ABIType.EABI_GNU_ARMHF;
-                }
-                return ABIType.EABI_GNU_ARMEL;
-            } } );
-    }
-    
-    private static OSType getOSTypeImpl() throws RuntimeException {
-        if ( AndroidVersion.isAvailable ) {
-            return OSType.ANDROID;
-        }
-        if ( OS_lower.startsWith("linux") ) {
-            return OSType.LINUX;            
-        }
-        if ( OS_lower.startsWith("freebsd") ) {
-            return OSType.FREEBSD;            
-        }
-        if ( OS_lower.startsWith("android") ) {
-            return OSType.ANDROID;            
-        }
-        if ( OS_lower.startsWith("mac os x") ||
-             OS_lower.startsWith("darwin") ) {
-            return OSType.MACOS;            
-        }
-        if ( OS_lower.startsWith("sunos") ) {
-            return OSType.SUNOS;            
-        }
-        if ( OS_lower.startsWith("hp-ux") ) {
-            return OSType.HPUX;            
-        }
-        if ( OS_lower.startsWith("windows") ) {
-            return OSType.WINDOWS;
-        }
-        if ( OS_lower.startsWith("kd") ) {
-            return OSType.OPENKODE;
-        }
-        throw new RuntimeException("Please port OS detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");        
-    }
-
-    private static String getJavaRuntimeNameImpl() {
-        // the fast path, check property Java SE instead of traversing through the ClassLoader
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
-            public String run() {
-              return System.getProperty("java.runtime.name");
-            }
-          });
-    }
-    
-    private static boolean initIsJavaSE() {
-        if(JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
-            return true;
-        }
-
-        // probe for classes we need on a SE environment
-        try {
-            Class.forName("java.nio.LongBuffer");
-            Class.forName("java.nio.DoubleBuffer");
-            return true;
-        } catch(ClassNotFoundException ex) {
-            // continue with Java SE check
-        }
-
-        return false;
-    }
-
-    private static void loadGlueGenRTImpl() {
+    private static final void loadGlueGenRTImpl() {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
               final ClassLoader cl = Platform.class.getClassLoader();
@@ -398,7 +244,7 @@ public class Platform {
     }
     
     /**
-     * kick off static initialization incl native gluegen-rt lib loading
+     * kick off static initialization of <i>platform property information</i> and <i>native gluegen-rt lib loading</i>
      */
     public static void initSingleton() { } 
     
@@ -468,6 +314,13 @@ public class Platform {
     }
     
     /**
+     * Returns the (guessed) ABI.
+     */
+    public static ABIType getABIType() {
+        return ABI_TYPE;
+    }
+    
+    /**
      * Returns the GlueGen common name for the currently running OSType and CPUType
      * as implemented in the build system in 'gluegen-cpptasks-base.xml'.<br>
      * 
@@ -475,104 +328,6 @@ public class Platform {
      */
     public static String getOSAndArch() {
         return os_and_arch;
-    }
-    
-    /**
-     * Returns the GlueGen common name for the given OSType and CPUType
-     * as implemented in the build system in 'gluegen-cpptasks-base.xml'.<br>
-     * 
-     * A list of currently supported <code>os.and.arch</code> strings:
-     * <ul>
-     *   <li>freebsd-i586</li>
-     *   <li>freebsd-amd64</li>
-     *   <li>hpux-hppa</li>
-     *   <li>linux-amd64</li>
-     *   <li>linux-ia64</li>
-     *   <li>linux-i586</li>
-     *   <li>linux-armv7</li>
-     *   <li>android-armv7</li>
-     *   <li>macosx-universal</li>
-     *   <li>solaris-sparc</li>
-     *   <li>solaris-sparcv9</li>
-     *   <li>solaris-amd64</li>
-     *   <li>solaris-i586</li>
-     *   <li>windows-amd64</li>
-     *   <li>windows-i586</li>
-     * </ul>
-     * @return
-     */
-    public static String getOSAndArch(OSType osType, CPUType cpuType, ABIType abiType) {
-        String _os_and_arch;
-        
-        switch( cpuType ) {
-            case X86_32:
-                _os_and_arch = "i586";
-                break;
-            case ARM:
-                _os_and_arch = "armv7"; // TODO: sync with gluegen-cpptasks-base.xml
-                break;
-            case ARMv5:
-                _os_and_arch = "armv5";
-                break;
-            case ARMv6:
-                _os_and_arch = "armv5";
-                break;
-            case ARMv7:
-                _os_and_arch = "armv7";
-                break;
-            case SPARC_32:
-                _os_and_arch = "sparc"; 
-                break;
-            case PPC:
-                _os_and_arch = "ppc"; // TODO: sync with gluegen-cpptasks-base.xml
-                break;
-            case X86_64:
-                _os_and_arch = "amd64";
-                break;
-            case IA64:
-                _os_and_arch = "ia64";
-                break;
-            case SPARCV9_64:
-                _os_and_arch = "sparcv9"; 
-                break;
-            case PA_RISC2_0:
-                _os_and_arch = "risc2.0"; // TODO: sync with gluegen-cpptasks-base.xml 
-                break;
-            default:
-                throw new InternalError("Complete case block");
-        }
-        if( ABIType.EABI_GNU_ARMHF == abiType ) {
-            _os_and_arch = _os_and_arch + "hf" ;
-        }
-        switch( osType ) {
-            case ANDROID:
-              _os_and_arch = "android-" + _os_and_arch;  
-              break;
-            case MACOS:
-              _os_and_arch = "macosx-universal";  
-              break;
-            case WINDOWS:
-              _os_and_arch = "windows-" + _os_and_arch;  
-              break;
-            case OPENKODE:
-              _os_and_arch = "openkode-" + _os_and_arch; // TODO: think about that   
-              break;                
-            case LINUX:
-              _os_and_arch = "linux-" + _os_and_arch;  
-              break;
-            case FREEBSD:
-              _os_and_arch = "freebsd-" + _os_and_arch;  
-              break;
-            case SUNOS:
-              _os_and_arch = "solaris-" + _os_and_arch;  
-              break;
-            case HPUX:
-              _os_and_arch = "hpux-hppa";  // TODO: really only hppa ?
-              break;              
-            default:
-              throw new InternalError("Complete case block");
-        }
-        return _os_and_arch;        
     }
     
     /**
@@ -647,6 +402,11 @@ public class Platform {
      */
     public static MachineDescription getMachineDescription() {
         return machineDescription;
+    }
+    
+    /** Returns <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
+    public static boolean isAWTAvailable() {
+        return AWT_AVAILABLE;
     }
     
     //

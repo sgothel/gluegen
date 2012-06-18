@@ -47,6 +47,7 @@ import java.nio.ByteBuffer;
 
 import jogamp.common.Debug;
 import jogamp.common.os.AndroidUtils;
+import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.net.AssetURLContext;
 import com.jogamp.common.nio.Buffers;
@@ -605,7 +606,7 @@ public class IOUtil {
     }
     
     private static String getShellSuffix() {
-        switch(Platform.OS_TYPE) {
+        switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
               return ".bat";
             default:
@@ -614,7 +615,7 @@ public class IOUtil {
     }
     
     private static boolean getOSHasNoexecFS() {
-        switch(Platform.OS_TYPE) {
+        switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
             case OPENKODE:
               return false;
@@ -628,7 +629,7 @@ public class IOUtil {
      * @see <a href="http://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html">Free-Desktop - XDG Base Directory Specification</a>
      */
     private static boolean getOSHasFreeDesktopXDG() {
-        switch(Platform.OS_TYPE) {
+        switch(PlatformPropsImpl.OS_TYPE) {
             case ANDROID:
             case MACOS:
             case WINDOWS:

@@ -40,6 +40,8 @@
 
 package com.jogamp.common.os;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 /**
  * For alignment and size see {@link com.jogamp.gluegen}
  */
@@ -326,7 +328,7 @@ public class MachineDescription {
     if(null==sb) {
         sb = new StringBuilder();
     }
-    sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(is32Bit()).append(", primitive size / alignment:").append(Platform.getNewline());
+    sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(is32Bit()).append(", primitive size / alignment:").append(PlatformPropsImpl.NEWLINE);
     sb.append("  int8    ").append(int8SizeInBytes)   .append(" / ").append(int8AlignmentInBytes);
     sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes).append(Platform.getNewline());
     sb.append("  int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);

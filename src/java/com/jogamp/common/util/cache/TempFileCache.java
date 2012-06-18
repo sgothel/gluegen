@@ -416,7 +416,7 @@ public class TempFileCache {
             }
         }
         if (DEBUG) {
-            System.err.println("tempDir: "+individualTmpDir+" (ok: "+(!initError)+")");
+            System.err.println("TempFileCache: tempDir "+individualTmpDir+" (ok: "+(!initError)+")");
             System.err.println("----------------------------------------------------------");
         }        
     }

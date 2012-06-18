@@ -53,7 +53,7 @@ public class MachineDescriptionRuntime {
   }  
   
   private static boolean isCPUArch32Bit() throws RuntimeException {
-    switch( Platform.CPU_ARCH ) {
+    switch( PlatformPropsImpl.CPU_ARCH ) {
         case X86_32:
         case ARM:
         case ARMv5:
@@ -68,22 +68,22 @@ public class MachineDescriptionRuntime {
         case PA_RISC2_0:
             return false;
         default:
-            throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + Platform.OS_lower + "/" + Platform.ARCH_lower + "("+Platform.CPU_ARCH+"))");
+            throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + PlatformPropsImpl.OS_lower + "/" + PlatformPropsImpl.ARCH_lower + "("+PlatformPropsImpl.CPU_ARCH+"))");
     }
   }
           
   private static MachineDescription.StaticConfig getStaticImpl() {
       if(isCPUArch32Bit()) {
-        if(Platform.getCPUFamily() == Platform.CPUFamily.ARM && Platform.isLittleEndian()) {
+        if(PlatformPropsImpl.CPU_ARCH.getFamily() == Platform.CPUFamily.ARM && PlatformPropsImpl.LITTLE_ENDIAN) {
             return StaticConfig.ARMle_EABI;
-        } else if(Platform.getOSType() == Platform.OSType.WINDOWS) {
+        } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
             return StaticConfig.X86_32_WINDOWS;            
-        } else if(Platform.getOSType() == Platform.OSType.MACOS) {
+        } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
             return StaticConfig.X86_32_MACOS;
         }
         return StaticConfig.X86_32_UNIX;            
       } else {
-        if(Platform.getOSType() == Platform.OSType.WINDOWS) {
+        if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
             return StaticConfig.X86_64_WINDOWS;                        
         }
         return StaticConfig.X86_64_UNIX;
@@ -128,7 +128,7 @@ public class MachineDescriptionRuntime {
         // size:      int, long, float, double, pointer, pageSize
         // alignment: int8, int16, int32, int64, int, long, float, double, pointer
         return new MachineDescription( 
-            true /* runtime validated */, Platform.isLittleEndian(),
+            true /* runtime validated */, PlatformPropsImpl.LITTLE_ENDIAN,
             
             getSizeOfIntImpl(), getSizeOfLongImpl(),
             getSizeOfFloatImpl(), getSizeOfDoubleImpl(), getSizeOfLongDoubleImpl(), 
