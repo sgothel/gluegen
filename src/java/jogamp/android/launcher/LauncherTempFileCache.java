@@ -101,6 +101,8 @@ public class LauncherTempFileCache {
      *         a. If set, then some other thread in a different ClassLoader has
      *            already created the tmprootdir, so we just need to
      *            use it. The remaining steps are skipped.
+     *            However, we check the existence of the tmpRootDir
+     *            and if non existent, we assume a new launch and continue.
      *
      *         b. If not set, then we are the first thread in this JVM to run,
      *            and we need to create the the tmprootdir.
@@ -148,6 +150,36 @@ public class LauncherTempFileCache {
             }
             tmpRootPropValue = System.getProperty(tmpRootPropName);
 
+            if (tmpRootPropValue != null) {
+                // Make sure that the property is not set to an illegal value
+                if (tmpRootPropValue.indexOf('/') >= 0 ||
+                        tmpRootPropValue.indexOf(File.separatorChar) >= 0) {
+                    throw new IOException("Illegal value of: " + tmpRootPropName);
+                }
+
+                // Set tmpRootDir = ${tmpbase}/${jnlp.applet.launcher.tmproot}
+                if (DEBUG) {
+                    System.err.println("TempFileCache: Trying existing value of: " +
+                            tmpRootPropName + "=" + tmpRootPropValue);
+                }
+                tmpRootDir = new File(tmpBaseDir, tmpRootPropValue);
+                if (DEBUG) {
+                    System.err.println("TempFileCache: Trying tmpRootDir = " + tmpRootDir.getAbsolutePath());
+                }                
+                if (tmpRootDir.isDirectory()) {
+                    if (!tmpRootDir.canWrite()) {
+                        throw new IOException("Temp root directory is not writable: " + tmpRootDir.getAbsolutePath());
+                    }
+                } else {
+                    // It is possible to move to a new GlueGen version within the same JVM
+                    // In case tmpBaseDir has changed, we should assume a new tmpRootDir.
+                    System.err.println("TempFileCache: None existing tmpRootDir = " + tmpRootDir.getAbsolutePath()+", assuming new path due to update");
+                    tmpRootPropValue = null;
+                    tmpRootDir = null;
+                    System.clearProperty(tmpRootPropName);
+                }                
+            }
+            
             if (tmpRootPropValue == null) {
                 // Create the tmpbase directory if it doesn't already exist
                 tmpBaseDir.mkdirs();
@@ -225,25 +257,6 @@ public class LauncherTempFileCache {
                 };
                 reaperThread.setName("TempFileCache-Reaper");
                 reaperThread.start();
-            } else {
-                // Make sure that the property is not set to an illegal value
-                if (tmpRootPropValue.indexOf('/') >= 0 ||
-                        tmpRootPropValue.indexOf(File.separatorChar) >= 0) {
-                    throw new IOException("Illegal value of: " + tmpRootPropName);
-                }
-
-                // Set tmpRootDir = ${tmpbase}/${jnlp.applet.launcher.tmproot}
-                if (DEBUG) {
-                    System.err.println("TempFileCache: Using existing value of: " +
-                            tmpRootPropName + "=" + tmpRootPropValue);
-                }
-                tmpRootDir = new File(tmpBaseDir, tmpRootPropValue);
-                if (DEBUG) {
-                    System.err.println("TempFileCache: tmpRootDir = " + tmpRootDir.getAbsolutePath());
-                }
-                if (!tmpRootDir.isDirectory()) {
-                    throw new IOException("Cannot access " + tmpRootDir);
-                }
             }
         }
         if (DEBUG) {

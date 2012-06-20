@@ -411,6 +411,11 @@ public class TempJarCache {
             // In case one tries to run uncertified JARs, the wrapping applet/JNLP
             // SecurityManager will kick in and throw a SecurityException.
             JarUtil.validateCertificates(rootCerts, jarFile);
-        }                        
+            if(DEBUG) {
+                System.err.println("TempJarCache: validateCertificates: OK - Matching rootCerts in given class "+certClass.getName()+", nativeJar "+jarFile.getName());
+            }            
+        } else if(DEBUG) {
+            System.err.println("TempJarCache: validateCertificates: OK - No rootCerts in given class "+certClass.getName()+", nativeJar "+jarFile.getName());
+        }
     }    
 }

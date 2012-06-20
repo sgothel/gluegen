@@ -132,17 +132,19 @@ public class TempFileCache {
      *        system property.
      *
      *         a. If set, then some other thread in a different ClassLoader has
-     *            already created the tmprootdir, so we just need to
+     *            already created the tmpRootDir, so we just need to
      *            use it. The remaining steps are skipped.
+     *            However, we check the existence of the tmpRootDir
+     *            and if non existent, we assume a new launch and continue.
      *
      *         b. If not set, then we are the first thread in this JVM to run,
-     *            and we need to create the the tmprootdir.
+     *            and we need to create the the tmpRootDir.
      *
-     *     3. Create the tmprootdir, along with the appropriate locks.
+     *     3. Create the tmpRootDir, along with the appropriate locks.
      *        Note that we perform the operations in the following order,
-     *        prior to creating tmprootdir itself, to work around the fact that
+     *        prior to creating tmpRootDir itself, to work around the fact that
      *        the file creation and file lock steps are not atomic, and we need
-     *        to ensure that a newly-created tmprootdir isn't reaped by a
+     *        to ensure that a newly-created tmpRootDir isn't reaped by a
      *        concurrently running JVM.
      *
      *            create jlnNNNN.tmp using File.createTempFile()
@@ -170,6 +172,36 @@ public class TempFileCache {
     private static void initTmpRoot() throws IOException {
         tmpRootPropValue = System.getProperty(tmpRootPropName);
 
+        if (tmpRootPropValue != null) {
+            // Make sure that the property is not set to an illegal value
+            if (tmpRootPropValue.indexOf('/') >= 0 ||
+                    tmpRootPropValue.indexOf(File.separatorChar) >= 0) {
+                throw new IOException("Illegal value of: " + tmpRootPropName);
+            }
+
+            // Set tmpRootDir = ${tmpbase}/${jnlp.applet.launcher.tmproot}
+            if (DEBUG) {
+                System.err.println("TempFileCache: Trying existing value of: " +
+                        tmpRootPropName + "=" + tmpRootPropValue);
+            }
+            tmpRootDir = new File(tmpBaseDir, tmpRootPropValue);
+            if (DEBUG) {
+                System.err.println("TempFileCache: Trying tmpRootDir = " + tmpRootDir.getAbsolutePath());
+            }
+            if (tmpRootDir.isDirectory()) {
+                if (!tmpRootDir.canWrite()) {
+                    throw new IOException("Temp root directory is not writable: " + tmpRootDir.getAbsolutePath());
+                }
+            } else {
+                // It is possible to move to a new GlueGen version within the same JVM
+                // In case tmpBaseDir has changed, we should assume a new tmpRootDir.
+                System.err.println("TempFileCache: None existing tmpRootDir = " + tmpRootDir.getAbsolutePath()+", assuming new path due to update");
+                tmpRootPropValue = null;
+                tmpRootDir = null;
+                System.clearProperty(tmpRootPropName);
+            }
+        }
+        
         if (tmpRootPropValue == null) {
             // Create ${tmpbase}/jlnNNNN.tmp then lock the file
             File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
@@ -241,28 +273,6 @@ public class TempFileCache {
             };
             reaperThread.setName("TempFileCache-Reaper");
             reaperThread.start();
-        } else {
-            // Make sure that the property is not set to an illegal value
-            if (tmpRootPropValue.indexOf('/') >= 0 ||
-                    tmpRootPropValue.indexOf(File.separatorChar) >= 0) {
-                throw new IOException("Illegal value of: " + tmpRootPropName);
-            }
-
-            // Set tmpRootDir = ${tmpbase}/${jnlp.applet.launcher.tmproot}
-            if (DEBUG) {
-                System.err.println("TempFileCache: Using existing value of: " +
-                        tmpRootPropName + "=" + tmpRootPropValue);
-            }
-            tmpRootDir = new File(tmpBaseDir, tmpRootPropValue);
-            if (DEBUG) {
-                System.err.println("TempFileCache: tmpRootDir = " + tmpRootDir.getAbsolutePath());
-            }
-            if (!tmpRootDir.isDirectory()) {
-                throw new IOException("Temp root directory does not exist: " + tmpRootDir.getAbsolutePath());
-            }
-            if (!tmpRootDir.canWrite()) {
-                throw new IOException("Temp root directory is not writable: " + tmpRootDir.getAbsolutePath());
-            }
         }
     }
 

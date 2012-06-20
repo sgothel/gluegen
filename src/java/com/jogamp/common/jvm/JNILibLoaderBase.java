@@ -47,7 +47,6 @@ import java.security.PrivilegedAction;
 import java.util.HashSet;
 
 import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.cache.TempJarCache;

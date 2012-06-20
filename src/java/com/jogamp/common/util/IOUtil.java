@@ -773,9 +773,8 @@ public class IOUtil {
     /**
      * This methods finds [and creates] an available temporary sub-directory:
      * <pre>
-           File tmpBaseDir;    
+           File tmpBaseDir = null;    
            if(null != testDir(tmpRoot, true, executable)) { // check tmpRoot first
-               tmpBaseDir = testDir(new File(tmpRoot, tmpSubDirPrefix), true, executable);
                for(int i = 0; null == tmpBaseDir && i<=9999; i++) {
                    final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
                    tmpBaseDir = testDir(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true, executable);
@@ -797,9 +796,8 @@ public class IOUtil {
     private static File getSubTempDir(File tmpRoot, String tmpSubDirPrefix, boolean executable)
         throws SecurityException
     {
-       File tmpBaseDir;    
+       File tmpBaseDir = null;    
        if(null != testDirImpl(tmpRoot, true /* create */, executable)) { // check tmpRoot first
-           tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix), true /* create */, executable);
            for(int i = 0; null == tmpBaseDir && i<=9999; i++) {
                final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
                tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true /* create */, executable);
@@ -897,7 +895,7 @@ public class IOUtil {
     /**
      * Returns a platform independent writable directory for temporary files
      * consisting of the platform's {@code temp-root} + {@link #tmpSubDir}, 
-     * e.g. {@code /tmp/jogamp/}. 
+     * e.g. {@code /tmp/jogamp_0000/}. 
      * <p>
      * On standard Java the {@code temp-root} folder is specified by <code>java.io.tempdir</code>.
      * </p> 
@@ -911,7 +909,7 @@ public class IOUtil {
      * </p>
      * <p>
      * In case {@code temp-root} is the users home folder,
-     * a dot is being prepended to {@link #tmpSubDir}, i.e.: {@code /home/user/.jogamp/}. 
+     * a dot is being prepended to {@link #tmpSubDir}, i.e.: {@code /home/user/.jogamp_0000/}. 
      * </p>
      * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
      * @param acc The security {@link AccessControlContext} to access properties, environment vars, create directories and test <i>executability</i> 
