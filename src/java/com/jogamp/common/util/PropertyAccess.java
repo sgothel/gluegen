@@ -45,6 +45,7 @@ public class PropertyAccess {
       trustedPrefixes = new HashSet<String>();
       trustedPrefixes.add(javaws_prefix);
       trustedPrefixes.add(jnlp_prefix);
+      // 'jogamp.' and maybe other trusted prefixes will be added later via 'addTrustedPrefix()'
   }
   
   public static final void addTrustedPrefix(String prefix, Class<?> certClass) {
@@ -56,9 +57,9 @@ public class PropertyAccess {
   }
   
   public static final boolean isTrusted(String propertyKey) {
-      int dot1 = propertyKey.indexOf('.');
+      final int dot1 = propertyKey.indexOf('.');
       if(0<=dot1) {
-          return trustedPrefixes.contains(propertyKey.substring(0,  dot1+1));          
+          return trustedPrefixes.contains(propertyKey.substring(0,  dot1+1));
       } else {
           return false;
       }
@@ -136,24 +137,36 @@ public class PropertyAccess {
     if(0 == propertyKey.length()) {
         throw new IllegalArgumentException("propertyKey is empty");
     }
-    if( isTrusted(propertyKey) ) {
-        // uses 'trusted' prefix, don't add jnlp prefix
-        return getTrustedPropKey(propertyKey);
-    }
     String s=null;
-    if( null != acc ) {
-        s = AccessController.doPrivileged(new PrivilegedAction<String>() {
-            public String run() {
-              return System.getProperty(propertyKey);
-            } }, acc);
+    // int cause = 0;
+    
+    if( isTrusted(propertyKey) ) {
+        // 'trusted' property (jnlp., javaws., jogamp., ..)
+        s = getTrustedPropKey(propertyKey);
+        // cause = null != s ? 1 : 0;
     } else {
-        s = System.getProperty(propertyKey);
-    }
+        if( null != acc ) {
+            s = AccessController.doPrivileged(new PrivilegedAction<String>() {
+                public String run() {
+                  return System.getProperty(propertyKey);
+                } }, acc);
+            // cause = null != s ? 2 : 0;
+        } else {
+            s = System.getProperty(propertyKey);
+            // cause = null != s ? 3 : 0;
+        }
+    }    
     if( null == s && jnlpAlias ) {
-        // Properties within the namespace "jnlp." or "javaws." should be considered trusted,
-        // i.e. always granted w/o special privileges.
-        s = getTrustedPropKey(jnlp_prefix + propertyKey);
-    }
+        // Try 'jnlp.' aliased property ..
+        if( !propertyKey.startsWith(jnlp_prefix) ) {
+            // Properties within the namespace "jnlp." or "javaws." should be considered trusted,
+            // i.e. always granted w/o special privileges.
+            s = getTrustedPropKey(jnlp_prefix + propertyKey);
+            // cause = null != s ? 4 : 0;
+        }
+    }    
+    // System.err.println("Prop: <"+propertyKey+"> = <"+s+">, cause "+cause);
+    
     return s;
   }
   
