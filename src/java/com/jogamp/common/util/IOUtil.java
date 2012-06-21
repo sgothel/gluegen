@@ -65,21 +65,39 @@ public class IOUtil {
     /** Subdirectory within platform's temporary root directory where all JogAmp related temp files are being stored: {@code jogamp} */ 
     public static final String tmpSubDir = "jogamp";
     
-    private static final Constructor<?> fosCtor;
-    
-    static {
-        Constructor<?> _fosCtor;
-        try {
-            _fosCtor = ReflectionUtil.getConstructor("java.io.FileOutputStream", new Class<?>[] { File.class }, IOUtil.class.getClassLoader());
-        } catch (Throwable t) {
-            if(DEBUG) { t.printStackTrace(); }
-            _fosCtor = null;
-        }
-        fosCtor = _fosCtor;
-    }
-    
     private IOUtil() {}
     
+    /** 
+     * Since usage of {@link java.io.FileOutputStream} is considered security critical,
+     * we need to check it's availability for each use.
+     * <p>
+     * In case a SecurityManager is installed, privileged access is required.
+     * </p>
+     *     
+     * @return the constructor of {@link java.io.FileOutputStream} if available and 
+     *         no SecurityManager is installed or privileged access is granted. 
+     *         Otherwise null.
+     *          
+     */
+    private static final Constructor<?> getFOSCtor() {
+        Constructor<?> _fosCtor;
+        Throwable _t;
+        try {
+            _fosCtor = ReflectionUtil.getConstructor("java.io.FileOutputStream", new Class<?>[] { File.class }, IOUtil.class.getClassLoader());
+            _t = null;
+        } catch (Throwable t) {
+            _fosCtor = null;
+            _t = t;
+        }
+        if(DEBUG) { 
+            System.err.println("IOUtil: java.io.FileOutputStream available: "+(null != _fosCtor));
+            if(null!=_t) {
+                _t.printStackTrace();
+            }
+        }
+        return _fosCtor;
+    }
+        
     /***
      * 
      * STREAM COPY STUFF
@@ -302,12 +320,13 @@ public class IOUtil {
      * @param allowOverwrite
      * @return outputStream The resulting output stream
      * @throws IOException if the file already exists and <code>allowOverwrite</code> is false, 
-     *                     the class <code>java.io.FileOutputStream</code> is not accessible or
+     *                     the class {@link java.io.FileOutputStream} is not accessible or
      *                     the user does not have sufficient rights to access the local filesystem. 
      */
     public static FileOutputStream getFileOutputStream(File file, boolean allowOverwrite) throws IOException {
+        final Constructor<?> fosCtor = getFOSCtor();
         if(null == fosCtor) {
-            throw new IOException("Cannot open file (" + file + ") for writing, feature not available.");
+            throw new IOException("Cannot open file (" + file + ") for writing, FileOutputStream feature not available.");
         }
         if (file.exists() && !allowOverwrite) {
             throw new IOException("File already exists (" + file + ") and overwrite=false");
