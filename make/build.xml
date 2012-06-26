@@ -141,7 +141,7 @@
     <property name="archive"          value="${build}/${archive.name}" />
 
     <!-- the launcher is compiled and packaged explicit - if android -->
-    <property name="jogamp.android-launcher.classes" value="jogamp/android/launcher/**"/>
+    <property name="jogamp-android-launcher.classes" value="jogamp/android/launcher/**"/>
 
     <!-- optional android classes - if android -->
     <property name="java.part.android" value="jogamp/common/os/android/**"/>
@@ -150,7 +150,7 @@
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
 
-    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp.android-launcher.classes}" />
+    <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp-android-launcher.classes}" />
 
   </target>
 
@@ -709,7 +709,7 @@
     <jar destfile="${build}/gluegen.jar" manifest="${build}/Manifest.temp">
       <fileset dir="${classes}">
         <include name="**/*.class" />
-        <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${jogamp-android-launcher.classes}" />
         <exclude name="${java.part.android}" />
       </fileset>
       <fileset dir="resources/assets">
@@ -734,7 +734,7 @@
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
-        <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${jogamp-android-launcher.classes}" />
         <exclude name="${java.part.android}" />
       </fileset>
       <fileset dir="resources/assets">
@@ -793,7 +793,7 @@
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
-        <exclude name="${jogamp.android-launcher.classes}" />
+        <exclude name="${jogamp-android-launcher.classes}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -812,14 +812,14 @@
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "resources/android" includes="**/*.xml"/>
         <srcfiles dir= "${src.java}/jogamp/android/launcher"  includes="**"/>
-        <mapper type="merge" to="${build}/jogamp.android-launcher.jar"/>
+        <mapper type="merge" to="${build}/jogamp-android-launcher.jar"/>
       </uptodate>
   </target>
 
   <target name="android-launcher.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check.android-launcher" if="isAndroid" unless="gluegen.build.skip.android-launcher">
     <javac destdir="${classes}"
            includeAntRuntime="false"
-           includes="${jogamp.android-launcher.classes}"
+           includes="${jogamp-android-launcher.classes}"
            excludes="${jogamp.common.classes}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
@@ -842,16 +842,16 @@
         </filterset>
     </copy>
 
-    <jar destfile="${build}/jogamp.android-launcher.jar" manifest="${build}/Manifest-android-launcher.temp">
+    <jar destfile="${build}/jogamp-android-launcher.jar" manifest="${build}/Manifest-android-launcher.temp">
       <fileset dir="${classes}">
-        <include name="${jogamp.android-launcher.classes}" />
+        <include name="${jogamp-android-launcher.classes}" />
       </fileset>
     </jar>
 
     <aapt.signed 
         assetsdir="resources/assets-launcher"
         jarbuilddir="${build}"
-        jarbasename="jogamp.android-launcher"
+        jarbasename="jogamp-android-launcher"
         nativebuilddir="${build}"
         nativebasename="non-existing"
         androidmanifest.path="resources/android/AndroidManifest-Launcher.xml"

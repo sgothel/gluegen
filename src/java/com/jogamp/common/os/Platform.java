@@ -162,9 +162,21 @@ public class Platform extends PlatformPropsImpl {
     /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
     public static final boolean AWT_AVAILABLE;
         
+    private static final URL platformClassJarURL;
+    
     static {
         PlatformPropsImpl.initSingleton(); // just documenting the order of static initialization
-        
+
+        {
+            URL _platformClassJarURL;
+            try {
+                _platformClassJarURL = JarUtil.getJarURL(Platform.class.getName(), Platform.class.getClassLoader());
+            } catch (Exception e) { 
+                _platformClassJarURL = null; 
+            }
+            platformClassJarURL = _platformClassJarURL;
+        }
+
         USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
                              Debug.getBooleanProperty(useTempJarCachePropName, true, true);
                 
@@ -209,35 +221,32 @@ public class Platform extends PlatformPropsImpl {
     private Platform() {}
 
     /**
-     * Preemptively avoids initializing and using {@link TempJarCache} in case we are <b>not</b> running 
-     * from a Jar URL, ie. plain class files. Used to set {@link USE_TEMP_JAR_CACHE}.
-     * <p> 
-     * Impact: Less overhead and more robustness.
-     * </p> 
-     *
      * @return true if we're running from a Jar URL, otherwise false
      */
-    private static final boolean isRunningFromJarURL() {        
-        return JarUtil.hasJarURL(Platform.class.getName(), Platform.class.getClassLoader());
+    public static final boolean isRunningFromJarURL() {        
+        return null != platformClassJarURL;
     }
     
     private static final void loadGlueGenRTImpl() {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             public Object run() {
-              final ClassLoader cl = Platform.class.getClassLoader();
               if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
-                  final String nativeJarName = libBaseName+"-natives-"+os_and_arch+".jar";
+                  String nativeJarName = null;
+                  URL jarUrlRoot = null;
+                  URL nativeJarURL = null;
                   try {
-                    final URL jarUrlRoot = JarUtil.getURLDirname(
-                                        JarUtil.getJarSubURL(Platform.class.getName(), cl) );
-                    final URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
-                    TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURL, cl);
+                    final String jarName = JarUtil.getJarBasename(platformClassJarURL);
+                    final String nativeJarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
+                    nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";                    
+                    jarUrlRoot = JarUtil.getURLDirname( JarUtil.getJarSubURL(platformClassJarURL) );
+                    nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
+                    TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURL);
                   } catch (Exception e0) {
                     // IllegalArgumentException, IOException
-                    System.err.println("Catched: "+e0.getMessage());
+                    System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while TempJarCache.bootstrapNativeLib() of "+nativeJarURL+" ("+jarUrlRoot+" + "+nativeJarName+")");
                   }
               }
-              DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);
+              DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, Platform.class.getClassLoader());
               return null;
             }
         });

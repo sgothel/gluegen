@@ -338,19 +338,23 @@ public class IOUtil {
         }
     }
     
-    public static String getClassFileName(String clazzBinName) throws IOException {
+    public static String getClassFileName(String clazzBinName) {
         // or return clazzBinName.replace('.', File.separatorChar) + ".class"; ?            
         return clazzBinName.replace('.', '/') + ".class";            
     }
     
     /**
      * @param clazzBinName com.jogamp.common.util.cache.TempJarCache 
-     * @param cl
+     * @param cl ClassLoader to locate the JarFile
      * @return jar:file:/usr/local/projects/JOGL/gluegen/build-x86_64/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
-     * @throws IOException
+     * @throws IOException if the jar file could not been found by the ClassLoader
      */
     public static URL getClassURL(String clazzBinName, ClassLoader cl) throws IOException {
-        return cl.getResource(getClassFileName(clazzBinName));
+        final URL url = cl.getResource(getClassFileName(clazzBinName));
+        if(null == url) {
+            throw new IOException("Cannot not find: "+clazzBinName);
+        }
+        return url;
     }
         
     /**

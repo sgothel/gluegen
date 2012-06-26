@@ -137,7 +137,7 @@ public class TestJarUtil extends JunitTracer {
         final ClassLoader rootCL = this.getClass().getClassLoader();
         
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL("ClassInJar0", rootCL), rootCL); 
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL("ClassInJar0", rootCL)); 
         
         // Fetch and load the contained "ClassInJar1.jar"
         final URL ClassInJar1_jarFileURL = JarUtil.getJarFileURL(TempJarCache.getResource("ClassInJar1.jar"));
@@ -158,7 +158,7 @@ public class TestJarUtil extends JunitTracer {
         final ClassLoader rootCL = this.getClass().getClassLoader();
         
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL("ClassInJar0", rootCL), rootCL);
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL("ClassInJar0", rootCL));
         
         // Fetch and load the contained "ClassInJar1.jar"
         final URL ClassInJar2_jarFileURL = JarUtil.getJarFileURL(TempJarCache.getResource("sub/ClassInJar2.jar"));
