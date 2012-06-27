@@ -31,7 +31,7 @@ package com.jogamp.common.util.locks;
 /**
  * Reentrance capable locking toolkit.
  */
-public interface RecursiveLock extends LockExt {
+public interface RecursiveLock extends ThreadLock {
     /** Return the number of locks issued to this lock by the same thread.
      * A hold count of 0 identifies this lock as unlocked.<br>
      * A hold count of 1 identifies this lock as locked.<br>

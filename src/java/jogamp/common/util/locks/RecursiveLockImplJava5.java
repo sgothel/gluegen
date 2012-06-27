@@ -14,6 +14,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         lock = new ReentrantLock(fair);
     }
     
+    @Override
     public void lock() {
         try {
             if(!tryLock(TIMEOUT)) {
@@ -25,6 +26,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         owner = Thread.currentThread();
     }
 
+    @Override
     public boolean tryLock(long timeout) throws InterruptedException {
         if(lock.tryLock(timeout, TimeUnit.MILLISECONDS)) {
             owner = Thread.currentThread();
@@ -33,10 +35,12 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         return false;
     }
 
+    @Override
     public void unlock() throws RuntimeException {
         unlock(null);
     }
 
+    @Override
     public void unlock(Runnable taskAfterUnlockBeforeNotify) {
         validateLocked();
         owner = null;
@@ -46,26 +50,27 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         lock.unlock();
     }
     
+    @Override
     public boolean isLocked() {
         return lock.isLocked();
     }
 
+    @Override
     public Thread getOwner() {
         return owner;
     }
 
+    @Override
     public boolean isLockedByOtherThread() {
         return lock.isLocked() && !lock.isHeldByCurrentThread();
     }
 
-    public boolean isOwner() {
-        return lock.isHeldByCurrentThread();
-    }
-
+    @Override
     public boolean isOwner(Thread thread) {
         return lock.isLocked() && owner == thread;
     }
 
+    @Override
     public void validateLocked() throws RuntimeException {
         if ( !lock.isHeldByCurrentThread() ) {
             if ( !lock.isLocked() ) {
@@ -76,10 +81,12 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         }
     }
 
+    @Override
     public int getHoldCount() {
         return lock.getHoldCount();
     }
 
+    @Override
     public int getQueueLength() {
         return lock.getQueueLength();
     }

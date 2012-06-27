@@ -123,6 +123,7 @@ public interface RecursiveThreadGroupLock extends RecursiveLock {
      * 
      * {@inheritDoc}
      */
+    @Override
     void unlock() throws RuntimeException;
     
     /**
@@ -132,6 +133,7 @@ public interface RecursiveThreadGroupLock extends RecursiveLock {
      * 
      * {@inheritDoc}
      */
+    @Override
     void unlock(Runnable taskAfterUnlockBeforeNotify);    
     
 }

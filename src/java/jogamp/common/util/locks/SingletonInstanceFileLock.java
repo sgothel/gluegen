@@ -71,11 +71,13 @@ public class SingletonInstanceFileLock extends SingletonInstance {
         setupFileCleanup();
     }
 
+    @Override
     public final String getName() { return file.getPath(); }
     
     private void setupFileCleanup() {
         file.deleteOnExit();
         Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
             public void run() {
                 unlock();
             }

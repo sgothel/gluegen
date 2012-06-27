@@ -94,42 +94,43 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         }
     }
 
+    @Override
     public final Thread getOwner() {
         synchronized(sync) {
             return sync.getOwner();
         }
     }
 
-    public final boolean isOwner() {
-        synchronized(sync) {
-            return isOwner(Thread.currentThread());
-        }
-    }
-
+    @Override
     public final boolean isOwner(Thread thread) {
         synchronized(sync) {
             return sync.getOwner() == thread ;
         }
     }
 
+    @Override
     public final boolean isLocked() {
         synchronized(sync) {
             return null != sync.getOwner();
         }
     }
 
+    @Override
     public final boolean isLockedByOtherThread() {
         synchronized(sync) {
-            return null != sync.getOwner() && Thread.currentThread() != sync.getOwner() ;
+            final Thread o = sync.getOwner();
+            return null != o && Thread.currentThread() != o ;            
         }
     }
 
+    @Override
     public final int getHoldCount() {
         synchronized(sync) {
             return sync.holdCount;
         }
     }
 
+    @Override
     public final void validateLocked() throws RuntimeException {
         synchronized(sync) {
             if ( Thread.currentThread() != sync.getOwner() ) {
@@ -144,6 +145,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         }
     }
 
+    @Override
     public final void lock() {
         synchronized(sync) {
             try {
@@ -159,6 +161,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         }
     }
 
+    @Override
     public final boolean tryLock(long timeout) throws InterruptedException {
         synchronized(sync) {
             final Thread cur = Thread.currentThread();
@@ -244,12 +247,14 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
     }
     
 
+    @Override
     public final void unlock() {
         synchronized(sync) {
             unlock(null);
         }
     }
 
+    @Override
     public final void unlock(Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             validateLocked();
@@ -293,12 +298,14 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         }
     }
     
+    @Override
     public final int getQueueLength() {
         synchronized(sync) {
             return sync.queue.size();
         }
     }
     
+    @Override
     public String toString() {
         return syncName()+"[count "+sync.holdCount+
                            ", qsz "+sync.queue.size()+", owner "+threadName(sync.getOwner())+"]";

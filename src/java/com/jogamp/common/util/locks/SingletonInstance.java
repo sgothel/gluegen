@@ -68,8 +68,10 @@ public abstract class SingletonInstance implements Lock {
     
     public final long getPollPeriod() { return poll_ms; }
     public abstract String getName();
+    @Override
     public final String toString() { return getName(); }
     
+    @Override
     public synchronized void lock() throws RuntimeException {
         try {
             do {
@@ -82,6 +84,7 @@ public abstract class SingletonInstance implements Lock {
         }
     }
 
+    @Override
     public synchronized boolean tryLock(long maxwait) throws RuntimeException {
         if(locked) {
             return true;
@@ -110,6 +113,7 @@ public abstract class SingletonInstance implements Lock {
     }    
     protected abstract boolean tryLockImpl();
     
+    @Override
     public void unlock() throws RuntimeException {
         if(locked) {
             locked = !unlockImpl();
@@ -121,6 +125,7 @@ public abstract class SingletonInstance implements Lock {
     }
     protected abstract boolean unlockImpl();
 
+    @Override
     public synchronized boolean isLocked() {
         return locked;
     }

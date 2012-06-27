@@ -77,5 +77,6 @@ public interface Lock {
      */
     void unlock() throws RuntimeException;
     
+    /** Query if locked */
     boolean isLocked();
 }

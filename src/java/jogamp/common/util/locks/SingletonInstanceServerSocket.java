@@ -81,6 +81,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
         return singletonServer.getPortNumber();
     }
 
+    @Override
     public final String getName() { return fullName; }
     
     @Override
@@ -180,6 +181,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            return null;
        }
        
+       @Override
        public void run() {
            {
                final Thread currentThread = Thread.currentThread();

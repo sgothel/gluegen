@@ -67,18 +67,23 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         /* package */ SingleThreadSync() {
             super();
         }
+        @Override
         public final Thread getOwner() {
             return getExclusiveOwnerThread();
         }
+        @Override
         public boolean isOwner(Thread t) {
             return getExclusiveOwnerThread()==t;
         }
+        @Override
         public final void setOwner(Thread t) {
             setExclusiveOwnerThread(t);
         }
+        @Override
         public final Throwable getLockedStack() {
             return lockedStack;
         }
+        @Override
         public final void setLockedStack(Throwable s) {
             List<Throwable> ls = LockDebugUtil.getRecursiveLockTrace();
             if(s==null) {
@@ -88,12 +93,18 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
             }            
             lockedStack = s;
         }
+        @Override
         public final int getHoldCount() { return holdCount; }
+        @Override
         public void incrHoldCount(Thread t) { holdCount++; }
+        @Override
         public void decrHoldCount(Thread t) { holdCount--; }
         
+        @Override
         public final int getQSz() { return qsz; }
+        @Override
         public final void incrQSz() { qsz++; }
+        @Override
         public final void decrQSz() { qsz--; }
         
         // lock count by same thread
@@ -124,40 +135,43 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         }
     }
 
+    @Override
     public final Thread getOwner() {
         synchronized(sync) {
             return sync.getOwner();
         }
     }
 
-    public final boolean isOwner() {
-        return isOwner(Thread.currentThread());
-    }
-
+    @Override
     public final boolean isOwner(Thread thread) {
         synchronized(sync) {
-            return sync.isOwner(thread) ;
+            return sync.isOwner(thread);
         }
     }
 
+    @Override
     public final boolean isLocked() {
         synchronized(sync) {
             return null != sync.getOwner();
         }
     }
 
+    @Override
     public final boolean isLockedByOtherThread() {
         synchronized(sync) {
-            return null != sync.getOwner() && !sync.isOwner(Thread.currentThread()) ;
+            final Thread o = sync.getOwner();
+            return null != o && Thread.currentThread() != o ;
         }
     }
 
+    @Override
     public final int getHoldCount() {
         synchronized(sync) {
             return sync.getHoldCount();
         }
     }
 
+    @Override
     public final void validateLocked() throws RuntimeException {
         synchronized(sync) {
             if ( !sync.isOwner(Thread.currentThread()) ) {
@@ -172,6 +186,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         }
     }
 
+    @Override
     public final void lock() {
         synchronized(sync) {
             try {
@@ -187,6 +202,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         }
     }
 
+    @Override
     public final boolean tryLock(long timeout) throws InterruptedException {
         synchronized(sync) {
             final Thread cur = Thread.currentThread();
@@ -242,12 +258,14 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     }
     
 
+    @Override
     public final void unlock() {
         synchronized(sync) {
             unlock(null);
         }
     }
 
+    @Override
     public void unlock(Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             validateLocked();
@@ -277,12 +295,14 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         }
     }
     
+    @Override
     public final int getQueueLength() {
         synchronized(sync) {
             return sync.getQSz();
         }
     }
     
+    @Override
     public String toString() {
         return syncName()+"[count "+sync.getHoldCount()+
                            ", qsz "+sync.getQSz()+", owner "+threadName(sync.getOwner())+"]";

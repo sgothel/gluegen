@@ -31,18 +31,18 @@ package com.jogamp.common.util.locks;
 /**
  * Extending the {@link Lock} features with convenient functionality.
  */
-public interface LockExt extends Lock {
+public interface ThreadLock extends Lock {
 
+    /** Query whether the lock is hold by the a thread other than the current thread. */ 
+    boolean isLockedByOtherThread();
+
+    /** Query whether the lock is hold by the given thread. */ 
+    boolean isOwner(Thread thread);
+    
     /**
      * @return the Thread owning this lock if locked, otherwise null
      */
     Thread getOwner();
-
-    boolean isLockedByOtherThread();
-
-    boolean isOwner();
-
-    boolean isOwner(Thread thread);
 
     /**
      * @throws RuntimeException if current thread does not hold the lock 
