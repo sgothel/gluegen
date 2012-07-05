@@ -39,7 +39,9 @@ public class RunnableTask implements Runnable {
     Object attachment;
 
     Throwable runnableException;
-    long ts0, ts1, ts2;
+    long tCreated, tStarted;
+    volatile long tExecuted;
+    volatile boolean isFlushed;
 
     /**
      * Create a RunnableTask object w/o synchronization,
@@ -75,9 +77,10 @@ public class RunnableTask implements Runnable {
         this.runnable = runnable ;
         this.syncObject = syncObject ;
         this.catchExceptions = catchExceptions ;
-        ts0 = System.currentTimeMillis();
-        ts1 = 0;
-        ts2 = 0;
+        tCreated = System.currentTimeMillis();
+        tStarted = 0;
+        tExecuted = 0;
+        isFlushed = false;
     }
 
     /** Return the user action */
@@ -110,7 +113,7 @@ public class RunnableTask implements Runnable {
     }
 
     public void run() {
-        ts1 = System.currentTimeMillis();
+        tStarted = System.currentTimeMillis();
         if(null == syncObject) {
             try {
                 runnable.run();
@@ -120,7 +123,7 @@ public class RunnableTask implements Runnable {
                     throw new RuntimeException(runnableException);
                 }
             } finally {
-                ts2 = System.currentTimeMillis();
+                tExecuted = System.currentTimeMillis();
             }
         } else {
             synchronized (syncObject) {
@@ -132,17 +135,44 @@ public class RunnableTask implements Runnable {
                         throw new RuntimeException(runnableException);
                     }
                 } finally {
-                    ts2 = System.currentTimeMillis();
+                    tExecuted = System.currentTimeMillis();
                     syncObject.notifyAll();
                 }
             }
         }
     }
+    
+    /** 
+     * Simply flush this task and notify a waiting executor.
+     * The executor which might have been blocked until notified
+     * will be unblocked and the task removed from the queue.
+     * 
+     * @see #isFlushed()
+     * @see #isInQueue()
+     */ 
+    public void flush() {
+        if(!isExecuted() && hasWaiter()) {
+            synchronized (syncObject) {
+                isFlushed = true;
+                syncObject.notifyAll();                
+            }
+        }
+    }
 
+    /**
+     * @return !{@link #isExecuted()} && !{@link #isFlushed()}
+     */
+    public boolean isInQueue() { return 0 != tExecuted && !isFlushed; }
+    
     /**
      * @return True if executed, otherwise false;
      */
-    public boolean isExecuted() { return 0 != ts2 ; }
+    public boolean isExecuted() { return 0 != tExecuted ; }
+
+    /**
+     * @return True if flushed, otherwise false;
+     */
+    public boolean isFlushed() { return isFlushed; }
 
     /**
      * @return True if invoking thread waits until done, 
@@ -156,12 +186,12 @@ public class RunnableTask implements Runnable {
      */
     public Throwable getThrowable() { return runnableException; }
 
-    public long getTimestampCreate() { return ts0; }
-    public long getTimestampBeforeExec() { return ts1; }
-    public long getTimestampAfterExec() { return ts2; }
-    public long getDurationInQueue() { return ts1 - ts0; }
-    public long getDurationInExec() { return ts2 - ts1; }
-    public long getDurationTotal() { return ts2 - ts0; }
+    public long getTimestampCreate() { return tCreated; }
+    public long getTimestampBeforeExec() { return tStarted; }
+    public long getTimestampAfterExec() { return tExecuted; }
+    public long getDurationInQueue() { return tStarted - tCreated; }
+    public long getDurationInExec() { return tExecuted - tStarted; }
+    public long getDurationTotal() { return tExecuted - tCreated; }
 
     @Override
     public String toString() {

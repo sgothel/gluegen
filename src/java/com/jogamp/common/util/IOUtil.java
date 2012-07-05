@@ -423,10 +423,11 @@ public class IOUtil {
             final String className = context.getName().replace('.', '/');
             final int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
-                conn = getResource(className.substring(0, lastSlash + 1) + resourcePath, contextCL);
-            }
-            if(DEBUG) {
-                System.err.println("IOUtil: found <"+resourcePath+"> within class package: "+(null!=conn));
+                final String pkgName = className.substring(0, lastSlash + 1);
+                conn = getResource(pkgName + resourcePath, contextCL);
+                if(DEBUG) {
+                    System.err.println("IOUtil: found <"+resourcePath+"> within class package <"+pkgName+"> of given class <"+context.getName()+">: "+(null!=conn));
+                }
             }
         } else if(DEBUG) {
             System.err.println("IOUtil: null context");
