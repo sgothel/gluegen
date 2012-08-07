@@ -462,8 +462,6 @@ public class JavaEmitter implements GlueEmitter {
   protected void generatePublicEmitters(MethodBinding binding,
                                         List<FunctionEmitter> allEmitters,
                                         boolean signatureOnly) {
-    PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
-
     if (cfg.manuallyImplement(binding.getName()) && !signatureOnly) {
       // We only generate signatures for manually-implemented methods;
       // user provides the implementation
@@ -475,6 +473,8 @@ public class JavaEmitter implements GlueEmitter {
     if (signatureOnly && (accessControl != PUBLIC)) {
       return;
     }
+
+    final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
 
     // It's possible we may not need a body even if signatureOnly is
     // set to false; for example, if the routine doesn't take any
