@@ -223,8 +223,8 @@ public abstract class PlatformPropsImpl {
      *   <li>linux-amd64</li>
      *   <li>linux-ia64</li>
      *   <li>linux-i586</li>
-     *   <li>linux-armv7</li>
-     *   <li>android-armv7</li>
+     *   <li>linux-armv6</li>
+     *   <li>android-armv6</li>
      *   <li>macosx-universal</li>
      *   <li>solaris-sparc</li>
      *   <li>solaris-sparcv9</li>
@@ -243,16 +243,16 @@ public abstract class PlatformPropsImpl {
                 _os_and_arch = "i586";
                 break;
             case ARM:
-                _os_and_arch = "armv7"; // TODO: sync with gluegen-cpptasks-base.xml
+                _os_and_arch = "armv6"; // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             case ARMv5:
-                _os_and_arch = "armv5";
+                _os_and_arch = "armv6";
                 break;
             case ARMv6:
-                _os_and_arch = "armv5";
+                _os_and_arch = "armv6";
                 break;
             case ARMv7:
-                _os_and_arch = "armv7";
+                _os_and_arch = "armv6";
                 break;
             case SPARC_32:
                 _os_and_arch = "sparc"; 

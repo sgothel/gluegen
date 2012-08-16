@@ -13,27 +13,27 @@
     Example: gluegen/make/make.gluegen.all.linux-x86.sh
   -->
 
-<project name="GlueGen-cpptasks-linux-armv4" basedir="." >
+<project name="GlueGen-cpptasks-linux-armv6" basedir="." >
 
 <!-- Set OS and ARCH for crosscompilation compiler configuration -->
 <target name="gluegen.cpptasks.detect.os.custom">
     <property name="gluegen.cpptasks.detected.os"     value="true" /> 
     <property name="isUnix"                           value="true" /> 
     <property name="isLinux"                          value="true" /> 
-    <property name="isLinuxARMv7"                     value="true" /> 
+    <property name="isLinuxARMv6"                     value="true" /> 
     <property name="isX11"                            value="true" /> 
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
     <property name="isCrosscompilation"               value="true" />
     <property name="isAbiEabiGnuArmel"                value="true" />
-    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-linux-armv4' done"/>
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-linux-armv6' done"/>
 </target>
 
 <import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
-    <echo message="Custom forced compiler Linux ARMv4t soft float" />
+    <echo message="Custom forced compiler Linux ARMv5te soft float" />
 
-    <compiler id="compiler.cfg.linux.armv7" name="gcc">
+    <compiler id="compiler.cfg.linux.armv6" name="gcc">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -42,20 +42,19 @@
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
       <compilerarg value="-fpic" /> 
-      <compilerarg value="-march=armv4t" />
+      <compilerarg value="-march=armv5te" />
       <compilerarg value="-marm" /> 
-      <compilerarg value="-mfloat-abi=soft" />
+      <compilerarg value="-mfloat-abi=softfp" />
     </compiler>
 
-    <linker id="linker.cfg.linux.armv7" name="gcc">
+    <linker id="linker.cfg.linux.armv6" name="gcc">
       <linkerarg value="-fpic" /> 
-      <linkerarg value="-march=armv4t" />
+      <linkerarg value="-march=armv5te" />
       <linkerarg value="-marm" />
-      <linkerarg value="-mfloat-abi=soft" />
+      <linkerarg value="-mfloat-abi=softfp" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
     </linker>
-
 </target>
 
 </project>

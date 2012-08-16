@@ -310,10 +310,10 @@
       <property name="linker.cfg.id"                        value="linker.cfg.linux" /> 
     </target>
 
-    <target name="declare.linux.armv7" if="isLinuxARMv7">
-      <echo message="Linux.armv7" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv7" /> 
-      <property name="linker.cfg.id"                        value="linker.cfg.linux.armv7" /> 
+    <target name="declare.linux.armv6" if="isLinuxARMv6">
+      <echo message="Linux.armv6" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.armv6" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.armv6" /> 
     </target>
 
     <target name="declare.linux.alpha" if="isLinuxAlpha">
@@ -364,7 +364,7 @@
       <property name="linker.cfg.id"                        value="linker.cfg.linux.sparc" /> 
     </target>
     
-    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv7" if="isLinux" >
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv6" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>

@@ -16,7 +16,7 @@
    - configuration is exactly as specified.
    - 
    -   is64Bit
-   -   isAbiEabiGnuArmel (implicit if isAndroidARMv7 or isLinuxARMv7)
+   -   isAbiEabiGnuArmel (implicit if isAndroidARMv6 or isLinuxARMv6)
    -   isAbiEabiGnuArmhf (shall be declared explicit)
    -   isUnix
    -   isX11
@@ -26,16 +26,16 @@
    -   isHPUX
    -   isIA64
    -   isAndroid
-   -   isAndroidARMv7
-   -   isAndroidARMv7Armel (set in gluegen.cpptasks.detected.os.2)
-   -   isAndroidARMv7Armhf (set in gluegen.cpptasks.detected.os.2)
+   -   isAndroidARMv6
+   -   isAndroidARMv6Armel (set in gluegen.cpptasks.detected.os.2)
+   -   isAndroidARMv6Armhf (set in gluegen.cpptasks.detected.os.2)
    -   isLinux
    -   isLinuxAMD64
    -   isLinuxIA64
    -   isLinuxX86
-   -   isLinuxARMv7
-   -   isLinuxARMv7Armel   (set in gluegen.cpptasks.detected.os.2)
-   -   isLinuxARMv7Armhf   (set in gluegen.cpptasks.detected.os.2)
+   -   isLinuxARMv6
+   -   isLinuxARMv6Armel   (set in gluegen.cpptasks.detected.os.2)
+   -   isLinuxARMv6Armhf   (set in gluegen.cpptasks.detected.os.2)
    -   isLinuxAlpha
    -   isLinuxHppa
    -   isLinuxMips
@@ -117,7 +117,7 @@
    -   compiler.cfg.linux
    -   compiler.cfg.linux.x86
    -   compiler.cfg.linux.amd64
-   -   compiler.cfg.linux.armv7
+   -   compiler.cfg.linux.armv6
    -   compiler.cfg.linux.alpha
    -   compiler.cfg.linux.hppa
    -   compiler.cfg.linux.mips
@@ -138,7 +138,7 @@
    -   linker.cfg.linux
    -   linker.cfg.linux.x86
    -   linker.cfg.linux.amd64
-   -   linker.cfg.linux.armv7
+   -   linker.cfg.linux.armv6
    -   linker.cfg.linux.alpha
    -   linker.cfg.linux.hppa
    -   linker.cfg.linux.mips
@@ -209,7 +209,7 @@
        by a custom file set in property 'gluegen-cpptasks.file' 
        or environment var 'GLUEGEN_CPPTASKS_FILE' 
 
-       See 'lib/gluegen-cpptasks-linux-armv7.xml' which sets OS and ARCH
+       See 'lib/gluegen-cpptasks-linux-armv6.xml' which sets OS and ARCH
        for crosscompilation.
     -->
   <target name="gluegen.cpptasks.detect.os.custom">
@@ -292,20 +292,22 @@
     <condition property="isHPUX">
       <os name="HP-UX" />
     </condition>
-    <condition property="isAndroidARMv7">
+    <condition property="isAndroidARMv6">
       <and>
         <istrue value="${isAndroid}" />
         <or>
             <os arch="arm" />
+            <os arch="armv6" />
             <os arch="armv7" />
         </or>
       </and>
     </condition>
-    <condition property="isLinuxARMv7">
+    <condition property="isLinuxARMv6">
       <and>
         <istrue value="${isLinux}" />
         <or>
             <os arch="arm" />
+            <os arch="armv6" />
             <os arch="armv7" />
         </or>
       </and>
@@ -314,8 +316,8 @@
       <and>
         <isfalse value="${isAbiEabiGnuArmhf}" />
         <or>
-            <istrue value="${isAndroidARMv7}" />
-            <istrue value="${isLinuxARMv7}" />
+            <istrue value="${isAndroidARMv6}" />
+            <istrue value="${isLinuxARMv6}" />
         </or>
       </and>
     </condition>
@@ -503,29 +505,29 @@
   </target>
 
   <target name="gluegen.cpptasks.detect.os.refine" unless="gluegen.cpptasks.detected.os.2">
-    <condition property="isAndroidARMv7Armel">
+    <condition property="isAndroidARMv6Armel">
       <and>
         <istrue value="${isAbiEabiGnuArmel}" />
-        <istrue value="${isAndroidARMv7}" />
+        <istrue value="${isAndroidARMv6}" />
       </and>
     </condition>
-    <condition property="isAndroidARMv7Armhf">
+    <condition property="isAndroidARMv6Armhf">
       <and>
         <istrue value="${isAbiEabiGnuArmhf}" />
-        <istrue value="${isAndroidARMv7}" />
+        <istrue value="${isAndroidARMv6}" />
       </and>
     </condition>
 
-    <condition property="isLinuxARMv7Armel">
+    <condition property="isLinuxARMv6Armel">
       <and>
         <istrue value="${isAbiEabiGnuArmel}" />
-        <istrue value="${isLinuxARMv7}" />
+        <istrue value="${isLinuxARMv6}" />
       </and>
     </condition>
-    <condition property="isLinuxARMv7Armhf">
+    <condition property="isLinuxARMv6Armhf">
       <and>
         <istrue value="${isAbiEabiGnuArmhf}" />
-        <istrue value="${isLinuxARMv7}" />
+        <istrue value="${isLinuxARMv6}" />
       </and>
     </condition>
 
@@ -541,16 +543,16 @@
     <echo message="HPUX=${isHPUX}" />
     <echo message="IA64=${isIA64}" />
     <echo message="Android=${isAndroid}" />
-    <echo message="AndroidARMv7=${isAndroidARMv7}" />
-    <echo message="AndroidARMv7Armel=${isAndroidARMv7Armel}" />
-    <echo message="AndroidARMv7Armhf=${isAndroidARMv7Armhf}" />
+    <echo message="AndroidARMv6=${isAndroidARMv6}" />
+    <echo message="AndroidARMv6Armel=${isAndroidARMv6Armel}" />
+    <echo message="AndroidARMv6Armhf=${isAndroidARMv6Armhf}" />
     <echo message="Linux=${isLinux}" />
     <echo message="LinuxAMD64=${isLinuxAMD64}" />
     <echo message="LinuxIA64=${isLinuxIA64}" />
     <echo message="LinuxX86=${isLinuxX86}" />
-    <echo message="LinuxARMv7=${isLinuxARMv7}" />
-    <echo message="LinuxARMv7Armel=${isLinuxARMv7Armel}" />
-    <echo message="LinuxARMv7Armhf=${isLinuxARMv7Armhf}" />
+    <echo message="LinuxARMv6=${isLinuxARMv6}" />
+    <echo message="LinuxARMv6Armel=${isLinuxARMv6Armel}" />
+    <echo message="LinuxARMv6Armhf=${isLinuxARMv6Armhf}" />
     <echo message="LinuxAlpha=${isLinuxAlpha}" />
     <echo message="LinuxHppa=${isLinuxHppa}" />
     <echo message="LinuxMips=${isLinuxMips}" />
@@ -604,12 +606,12 @@
     <property name="os.and.arch" value="linux-i586" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux.armv7.armel" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARMv7Armel">
-    <property name="os.and.arch" value="linux-armv7" />
+  <target name="gluegen.cpptasks.detect.os.linux.armv6.armel" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARMv6Armel">
+    <property name="os.and.arch" value="linux-armv6" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux.armv7.armhf" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARMv7Armhf">
-    <property name="os.and.arch" value="linux-armv7hf" />
+  <target name="gluegen.cpptasks.detect.os.linux.armv6.armhf" unless="gluegen.cpptasks.detected.os.2" if="isLinuxARMv6Armhf">
+    <property name="os.and.arch" value="linux-armv6hf" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.linux.alpha" unless="gluegen.cpptasks.detected.os.2" if="isLinuxAlpha">
@@ -644,15 +646,15 @@
     <property name="os.and.arch" value="linux-sparc" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.android.armv7.armel" unless="gluegen.cpptasks.detected.os.2" if="isAndroidARMv7Armel">
-    <property name="os.and.arch" value="android-armv7" />
+  <target name="gluegen.cpptasks.detect.os.android.armv6.armel" unless="gluegen.cpptasks.detected.os.2" if="isAndroidARMv6Armel">
+    <property name="os.and.arch" value="android-armv6" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.android.armv7.armhf" unless="gluegen.cpptasks.detected.os.2" if="isAndroidARMv7Armhf">
-    <property name="os.and.arch" value="android-armv7hf" />
+  <target name="gluegen.cpptasks.detect.os.android.armv6.armhf" unless="gluegen.cpptasks.detected.os.2" if="isAndroidARMv6Armhf">
+    <property name="os.and.arch" value="android-armv6hf" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv7.armel,gluegen.cpptasks.detect.os.linux.armv7.armhf,gluegen.cpptasks.detect.os.android.armv7.armel,gluegen.cpptasks.detect.os.android.armv7.armhf,gluegen.cpptasks.detect.os.linux.alpha,gluegen.cpptasks.detect.os.linux.hppa,gluegen.cpptasks.detect.os.linux.mips,gluegen.cpptasks.detect.os.linux.mipsel,gluegen.cpptasks.detect.os.linux.ppc,gluegen.cpptasks.detect.os.linux.s390,gluegen.cpptasks.detect.os.linux.s390x,gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" />
+  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv6.armel,gluegen.cpptasks.detect.os.linux.armv6.armhf,gluegen.cpptasks.detect.os.android.armv6.armel,gluegen.cpptasks.detect.os.android.armv6.armhf,gluegen.cpptasks.detect.os.linux.alpha,gluegen.cpptasks.detect.os.linux.hppa,gluegen.cpptasks.detect.os.linux.mips,gluegen.cpptasks.detect.os.linux.mipsel,gluegen.cpptasks.detect.os.linux.ppc,gluegen.cpptasks.detect.os.linux.s390,gluegen.cpptasks.detect.os.linux.s390x,gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.suffix"     value="*lib" />
@@ -899,7 +901,7 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.linux.armv7" name="gcc">
+    <compiler id="compiler.cfg.linux.armv6" name="gcc">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -907,6 +909,10 @@
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
+      <compilerarg value="-fpic" /> 
+      <compilerarg value="-march=armv5te" />
+      <compilerarg value="-marm" /> 
+      <compilerarg value="-mfloat-abi=softfp" />
     </compiler>
 
     <compiler id="compiler.cfg.android" name="gcc">
@@ -1106,7 +1112,13 @@
       <linkerarg value="-m64"/>
     </linker>
 
-    <linker id="linker.cfg.linux.armv7" name="gcc">
+    <linker id="linker.cfg.linux.armv6" name="gcc">
+      <linkerarg value="-fpic" /> 
+      <linkerarg value="-march=armv5te" />
+      <linkerarg value="-marm" />
+      <linkerarg value="-mfloat-abi=softfp" />
+      <linkerarg value="-nostdlib" />
+      <linkerarg value="-Bdynamic" />
     </linker>
 
     <linker id="linker.cfg.linux.alpha" name="gcc">
@@ -1296,10 +1308,10 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/alpha" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.linux.armv7" if="isLinuxARMv7">
-      <echo message="Linux.armv7" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv7" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv7" /> 
+    <target name="gluegen.cpptasks.declare.compiler.linux.armv6" if="isLinuxARMv6">
+      <echo message="Linux.armv6" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv6" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv6" /> 
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
     </target>
 
@@ -1359,7 +1371,7 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/sparc" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv7,gluegen.cpptasks.declare.compiler.linux.alpha,gluegen.cpptasks.declare.compiler.linux.hppa,gluegen.cpptasks.declare.compiler.linux.mips,gluegen.cpptasks.declare.compiler.linux.mipsel,gluegen.cpptasks.declare.compiler.linux.ppc,gluegen.cpptasks.declare.compiler.linux.s390,gluegen.cpptasks.declare.compiler.linux.s390x,gluegen.cpptasks.declare.compiler.linux.sparc" if="isLinux">
+    <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv6,gluegen.cpptasks.declare.compiler.linux.alpha,gluegen.cpptasks.declare.compiler.linux.hppa,gluegen.cpptasks.declare.compiler.linux.mips,gluegen.cpptasks.declare.compiler.linux.mipsel,gluegen.cpptasks.declare.compiler.linux.ppc,gluegen.cpptasks.declare.compiler.linux.s390,gluegen.cpptasks.declare.compiler.linux.s390x,gluegen.cpptasks.declare.compiler.linux.sparc" if="isLinux">
         <property name="java.includes.dir.platform" value="${java.includes.dir}/linux" />
     </target>
 

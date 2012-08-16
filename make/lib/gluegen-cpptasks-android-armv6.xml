@@ -13,7 +13,7 @@
     Example: gluegen/make/make.gluegen.all.linux-x86.sh
       -->
 
-<project name="GlueGen-cpptasks-android-armv7" basedir="." >
+<project name="GlueGen-cpptasks-android-armv6" basedir="." >
 
 <!-- Set OS and ARCH for crosscompilation compiler configuration -->
 <target name="gluegen.cpptasks.detect.os.custom">
@@ -23,9 +23,9 @@
     <property name="isAndroidARMv6"                   value="true" /> 
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
     <property name="isCrosscompilation"               value="true" />
-    <property name="android.abi"                      value="armeabi-v7a" />
+    <property name="android.abi"                      value="armeabi" />
     <property name="isAbiEabiGnuArmel"                value="true" />
-    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-armv7' done"/>
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-armv6' done"/>
 </target>
 
 <import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
@@ -45,7 +45,7 @@
       <compilerarg value="-fstack-protector" />
       <compilerarg value="-fpic" /> 
 
-      <compilerarg value="-march=armv7-a" />
+      <compilerarg value="-march=armv6" />
       <compilerarg value="-mfloat-abi=softfp" />
       <compilerarg value="-marm" /> 
 
@@ -76,7 +76,7 @@
          <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
          <linkerarg value="-fpic" /> 
 
-         <linkerarg value="-march=armv7-a" />
+         <linkerarg value="-march=armv6" />
          <linkerarg value="-mfloat-abi=softfp" />
          <linkerarg value="-marm" /> 
 
@@ -93,7 +93,7 @@
            is not correct. Not sure if this is a bug in the NDK or not. We also
            enforce that libgcc is linked after source files but before other shared
            libraries. -->
-         <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/armv7-a" libs="gcc" />
+         <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" libs="gcc" />
          <libset libs="c,m,dl" />
     </linker>
 

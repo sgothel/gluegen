@@ -20,10 +20,10 @@
     <property name="gluegen.cpptasks.detected.os"     value="true" /> 
     <property name="isUnix"                           value="true" /> 
     <property name="isLinux"                          value="true" /> 
-    <property name="isLinuxARMv7"                     value="true" /> 
+    <property name="isLinuxARMv6"                     value="true" /> 
     <property name="isX11"                            value="true" /> 
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
-    <property name="isCrosscompilation"               value="false" />
+    <property name="isCrosscompilation"               value="true" />
     <property name="isAbiEabiGnuArmhf"                value="true" />
     <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-linux-armv6hf' done"/>
 </target>
@@ -33,7 +33,7 @@
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
     <echo message="Custom forced compiler Linux ARMv6t hard float" />
 
-    <compiler id="compiler.cfg.linux.armv7hf" name="gcc">
+    <compiler id="compiler.cfg.linux.armv6" name="gcc">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -44,10 +44,10 @@
       <compilerarg value="-fpic" /> 
       <compilerarg value="-march=armv6" />
       <compilerarg value="-marm" /> 
-      <compilerarg value="-mfloat-abi=hard" />
+      <!-- compilerarg value="-mfloat-abi=hard" / -->
     </compiler>
 
-    <linker id="linker.cfg.linux.armv7hf" name="gcc">
+    <linker id="linker.cfg.linux.armv6" name="gcc">
       <linkerarg value="-fpic" /> 
       <linkerarg value="-march=armv6" />
       <linkerarg value="-marm" />
