@@ -45,10 +45,11 @@
       <attribute name="version.code" />
       <attribute name="version.name" />
       <attribute name="android.abi" default="generic" />
-      <attribute name="keystore.file" default="/non.existing.user.keystore.file" />
-      <attribute name="keystore.alias" default="debug" />
-      <attribute name="keystore.storepass" default="jogamp" />
-      <attribute name="keystore.keypass" default="jogamp" />
+      <attribute name="keystore.file" default="${android.keystore.file}" />
+      <attribute name="keystore.alias" default="${android.keystore.alias}" />
+      <attribute name="keystore.storepass" default="${android.keystore.storepass}" />
+      <attribute name="keystore.keypass" default="${android.keystore.keypass}" />
+
       <sequential>
         <var name="m.aapt.android.abi.extstr" unset="true"/>
         <var name="m.aapt.build.apk" unset="true"/>

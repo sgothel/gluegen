@@ -32,10 +32,17 @@
 <project name="GlueGen-properties" basedir=".">
 
   <target name="gluegen.properties.load.user" unless="gluegen.user.properties.file.set">
+    <property environment="env" />
+
     <!-- Load the user specified properties file that defines various host
       - specific paths.  The user will be notified if this is does not
       - exist. -->
-    <property name="gluegen.user.properties.file" value="${user.home}/gluegen.properties"/>
+
+    <condition property="gluegen.user.properties.file" value="${env.GLUEGEN_PROPERTIES_FILE}" else="${user.home}/gluegen.properties">
+      <not>
+       <equals arg1="${env.GLUEGEN_PROPERTIES_FILE}" arg2="$${env.GLUEGEN_PROPERTIES_FILE}" casesensitive="true" />
+      </not>
+    </condition>
     <property name="gluegen.user.properties.file.set" value="${gluegen.user.properties.file}"/>
     <property file="${gluegen.user.properties.file.set}" />
     <echo message="Loaded ${gluegen.user.properties.file.set}." />
@@ -48,6 +55,12 @@
     <property name="android-min.jar" value="${gluegen.root}/make/lib/android-sdk/${android.version}/android.jar" />
     <property name="android-015.jar" value="${gluegen.root}/make/lib/android-sdk/15/android.jar" />
     <property name="android.jar" value="${android-015.jar}" />
+
+    <property name="android.keystore.file" value="/non.existing.user.keystore.file"/> <!-- default - maybe overriden by the gluegen.user.properties.file -->
+    <property name="android.keystore.alias" value="debug"/>
+    <property name="android.keystore.storepass" value="jogamp"/>
+    <property name="android.keystore.keypass" value="jogamp"/>
+
     <property name="ant-junit-all.apk" value="${gluegen.root}/make/lib/ant-junit-all.apk" />
 
     <condition property="win32.c.compiler" value="mingw64">
