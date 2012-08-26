@@ -261,7 +261,7 @@ public class JNILibLoaderBase {
    */
   public static boolean addNativeJarLibs(Class<?>[] classesFromJavaJars, String singleJarMarker, String[] stripBasenameSuffixes) {
     if(DEBUG) {
-        System.err.println("JNILibLoaderBase: addNativeJarLibs0(classesFromJavaJars "+Arrays.asList(classesFromJavaJars)+", singleJarMarker "+singleJarMarker+", stripBasenameSuffixes "+Arrays.asList(stripBasenameSuffixes));
+        System.err.println("JNILibLoaderBase: addNativeJarLibs0(classesFromJavaJars "+Arrays.asList(classesFromJavaJars)+", singleJarMarker "+singleJarMarker+", stripBasenameSuffixes "+(null!=stripBasenameSuffixes?Arrays.asList(stripBasenameSuffixes):"none"));
     }
     boolean ok = false;
     if(TempJarCache.isInitialized()) {
