@@ -39,7 +39,7 @@ public class AWTEDTExecutor implements RunnableExecutor {
     /** {@link RunnableExecutor} implementation invoking {@link Runnable#run()}
      *  on the AWT EDT. 
      */
-    public static final RunnableExecutor singleton = new AWTEDTExecutor();
+    public static final AWTEDTExecutor singleton = new AWTEDTExecutor();
 
     private AWTEDTExecutor() {}
     
@@ -62,4 +62,28 @@ public class AWTEDTExecutor implements RunnableExecutor {
         }
     }
 
+    /**
+     * Executes the given runnable on the AWT EDT if current thread is not the EDT and the given tree
+     * lock is not hold, otherwise execute the runnable in current thread.
+     * @param treeLock representing the AWT-tree-lock, i.e. {@link java.awt.Component#getTreeLock()}
+     * @param wait if true method waits until {@link Runnable#run()} is completed, otherwise don't wait.  
+     * @param r the {@link Runnable} to be executed.
+     */
+    public void invoke(Object treeLock, boolean wait, Runnable r) {
+        if(EventQueue.isDispatchThread() || Thread.holdsLock(treeLock)) {
+            r.run();
+        } else {
+          try {
+            if(wait) {
+                EventQueue.invokeAndWait(r);
+            } else {
+                EventQueue.invokeLater(r);
+            }
+          } catch (InvocationTargetException e) {
+            throw new RuntimeException(e.getTargetException());
+          } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+          }
+        }
+    }
 }
