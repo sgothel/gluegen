@@ -79,6 +79,9 @@ public class SingletonInstanceFileLock extends SingletonInstance {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
+                if(isLocked()) {
+                    System.err.println("SLOCK "+System.currentTimeMillis()+" XXX "+getName()+" - Unlock @ JVM Shutdown");
+                }
                 unlock();
             }
         });        

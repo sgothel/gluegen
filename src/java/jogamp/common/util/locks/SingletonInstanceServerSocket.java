@@ -70,7 +70,13 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
         }
         
         fullName = ilh.toString()+":"+portNumber;
-        singletonServer = new Server(ilh, portNumber);        
+        singletonServer = new Server(ilh, portNumber);     
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                singletonServer.kill();
+            }
+        });        
     }
 
     public final InetAddress getLocalInetAddress() {
@@ -120,23 +126,23 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        
        private Object syncOnStartStop = new Object();
        private ServerSocket serverSocket = null;
+       private Thread serverThread = null;
        
        public Server(InetAddress localInetAddress, int portNumber) {
            this.localInetAddress = localInetAddress;
            this.portNumber = portNumber;
+           this.serverThread = new Thread(this);
+           this.serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
        }
        
        public final InetAddress getLocalInetAddress() { return localInetAddress; }
        public final int getPortNumber() { return portNumber; }
        
-       public boolean start() {
+       public final boolean start() {
            if(alive) return true;
-           
-           Thread t = new Thread(this);
-           t.setDaemon(true);  // be a daemon, don't keep the JVM running
-           
+                      
            synchronized (syncOnStartStop) {
-               t.start();
+               serverThread.start();
                try {
                    syncOnStartStop.wait();
                } catch (InterruptedException ie) {
@@ -164,8 +170,33 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            }
            if(alive) {
                System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
+               kill();
+               alive = false;
            }
-           return !alive;
+           serverThread = new Thread(this);
+           serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
+           return true;
+       }
+
+       /** 
+        * Brutally kill server thread and close socket regardless.
+        * This is out last chance for JVM shutdown.
+        */
+       @SuppressWarnings("deprecation")
+       public final void kill() {
+           if(alive) {
+                System.err.println("SLOCK "+System.currentTimeMillis()+" XXX "+getName()+" - Kill @ JVM Shutdown");
+           }
+           try {
+               serverThread.stop();
+           } catch(Throwable t) { }
+           if(null != serverSocket) {
+               try {
+                   final ServerSocket ss = serverSocket;
+                   serverSocket = null;
+                   ss.close();
+               } catch (Throwable t) { }
+           }    
        }
        
        public final boolean isRunning() { return alive; }
