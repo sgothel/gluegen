@@ -55,8 +55,6 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
-    clazz=$1
-    shift
     CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/gluegen-test.jar
     libspath=$builddir/test/build/natives
     #CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/classes:$builddir/test/build/classes
@@ -65,7 +63,7 @@ function onetest() {
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo CLASSPATH $CLASSPATH
     echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
-    java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
+    java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
     echo
 }
 
@@ -75,8 +73,10 @@ function onetest() {
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.locks.TestSingletonServerSocket01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.locks.TestSingletonServerSocket01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.locks.TestSingletonServerSocket02 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.locks.TestSingletonServerSocket02 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestArrayHashSet01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
