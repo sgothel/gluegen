@@ -80,7 +80,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
             @Override
             public void run() {
                 if(isLocked()) {
-                    System.err.println("SLOCK "+System.currentTimeMillis()+" XXX "+getName()+" - Unlock @ JVM Shutdown");
+                    System.err.println(infoPrefix()+" XXX "+getName()+" - Unlock @ JVM Shutdown");
                 }
                 unlock();
             }
@@ -97,7 +97,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
                 return true;
             }
         } catch (Exception e) {
-            System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Unable to create and/or lock file");
+            System.err.println(infoPrefix()+" III "+getName()+" - Unable to create and/or lock file");
             e.printStackTrace();
         }
         return false;
@@ -119,7 +119,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
             }
             return true;
         } catch (Exception e) {
-            System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Unable to remove lock file");
+            System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock file");
             e.printStackTrace();
         } finally {
             fileLock = null;

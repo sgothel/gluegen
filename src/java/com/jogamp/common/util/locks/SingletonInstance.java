@@ -95,19 +95,19 @@ public abstract class SingletonInstance implements Lock {
                 locked = tryLockImpl();
                 if(locked) {
                     if(DEBUG) {
-                        System.err.println("SLOCK "+System.currentTimeMillis()+" +++ "+getName()+" - Locked ");
+                        System.err.println(infoPrefix()+" +++ "+getName()+" - Locked ");
                     }            
                     return true;
                 }
                 if(DEBUG && 0==i) {
-                    System.err.println("SLOCK "+System.currentTimeMillis()+" ??? "+getName()+" - Wait for lock");
+                    System.err.println(infoPrefix()+" III "+getName()+" - Wait for lock");
                 }
                 Thread.sleep(poll_ms);
                 maxwait -= poll_ms;
                 i++;
             } while ( 0 < maxwait ) ;
         } catch ( InterruptedException ie ) {
-            throw new RuntimeException("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - couldn't get lock", ie);            
+            throw new RuntimeException(infoPrefix()+" EEE "+getName()+" - couldn't get lock", ie);            
         }
         return false;
     }    
@@ -118,8 +118,7 @@ public abstract class SingletonInstance implements Lock {
         if(locked) {
             locked = !unlockImpl();
             if(DEBUG) {
-                System.err.println("SLOCK "+System.currentTimeMillis()+" --- "+getName()+" - Unlock " 
-                                   + ( locked ? "failed" : "ok" ) );
+                System.err.println(infoPrefix()+" --- "+getName()+" - Unlock "+ ( locked ? "failed" : "ok" ) );
             }
         }
     }
@@ -130,6 +129,10 @@ public abstract class SingletonInstance implements Lock {
         return locked;
     }
 
+    protected String infoPrefix() {
+        return "SLOCK [T "+Thread.currentThread().getName()+" @ "+System.currentTimeMillis()+" ms";
+    }
+    
     private final long poll_ms;
     private boolean locked = false;
 }

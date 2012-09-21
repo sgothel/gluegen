@@ -66,7 +66,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
             } catch (UnknownHostException e) { }
         }
         if(null == ilh) {
-            throw new RuntimeException("Could not determine local InetAddress");
+            throw new RuntimeException(infoPrefix()+" EEE Could not determine local InetAddress");
         }
         
         fullName = ilh.toString()+":"+portNumber;
@@ -126,13 +126,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        
        private Object syncOnStartStop = new Object();
        private ServerSocket serverSocket = null;
-       private Thread serverThread = null;
+       private Thread serverThread = null;  // allowing kill() to force-stop last server-thread
        
        public Server(InetAddress localInetAddress, int portNumber) {
            this.localInetAddress = localInetAddress;
            this.portNumber = portNumber;
-           this.serverThread = new Thread(this);
-           this.serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
        }
        
        public final InetAddress getLocalInetAddress() { return localInetAddress; }
@@ -142,6 +140,8 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            if(alive) return true;
                       
            synchronized (syncOnStartStop) {
+               serverThread = new Thread(this);
+               serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
                serverThread.start();
                try {
                    syncOnStartStop.wait();
@@ -169,12 +169,10 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                }            
            }
            if(alive) {
-               System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
+               System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
                kill();
                alive = false;
            }
-           serverThread = new Thread(this);
-           serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
            return true;
        }
 
@@ -185,11 +183,13 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        @SuppressWarnings("deprecation")
        public final void kill() {
            if(alive) {
-                System.err.println("SLOCK "+System.currentTimeMillis()+" XXX "+getName()+" - Kill @ JVM Shutdown");
+                System.err.println(infoPrefix()+" XXX "+getName()+" - Kill @ JVM Shutdown");
            }
-           try {
-               serverThread.stop();
-           } catch(Throwable t) { }
+           if(null != serverThread) {
+               try {
+                   serverThread.stop();
+               } catch(Throwable t) { }
+           }
            if(null != serverSocket) {
                try {
                    final ServerSocket ss = serverSocket;
@@ -216,7 +216,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        public void run() {
            {
                final Thread currentThread = Thread.currentThread();
-               currentThread.setName(currentThread.getName() + " - SingletonInstanceServerSocket: "+getName());
+               currentThread.setName(currentThread.getName() + " - SISock: "+getName());
                if(DEBUG) {
                    System.err.println(currentThread.getName()+" - started");               
                }
@@ -227,7 +227,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    serverSocket = new ServerSocket(portNumber, 1, localInetAddress);
                    alive = true;
                } catch (IOException e) {
-                    System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Unable to install ServerSocket: "+e.getMessage());
+                    System.err.println(infoPrefix()+" III - Unable to install ServerSocket: "+e.getMessage());
                     shallQuit = true;
                } finally {
                     syncOnStartStop.notifyAll();                   
@@ -239,7 +239,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    final Socket clientSocket = serverSocket.accept();
                    clientSocket.close();
                } catch (IOException ioe) {
-                   System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Exception during accept: " + ioe.getMessage());
+                   System.err.println(infoPrefix()+" EEE - Exception during accept: " + ioe.getMessage());
                }
            }
            
@@ -249,7 +249,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                        serverSocket.close();
                    }
                } catch (IOException e) {
-                   System.err.println("SLOCK "+System.currentTimeMillis()+" EEE "+getName()+" - Exception during close: " + e.getMessage());
+                   System.err.println(infoPrefix()+" EEE - Exception during close: " + e.getMessage());
                } finally {
                    serverSocket = null;
                    alive = false;
