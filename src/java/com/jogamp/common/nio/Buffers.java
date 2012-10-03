@@ -256,6 +256,14 @@ public class Buffers {
     /**
      * Slices a ByteBuffer <i>or</i> a primitive float array to a FloatBuffer at the given position with the given size
      * in float-space.
+     * <p>
+     * The returned sliced buffer's start position is not necessarily zero,
+     * but the float position within the host ByteBuffer.
+     * </p>
+     * <p> 
+     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's starting position. Hence
+     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.  
+     * </p>
      * <p> 
      * Using a ByteBuffer as the source guarantees 
      * keeping the source native order programmatically.  

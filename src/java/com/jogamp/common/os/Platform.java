@@ -381,7 +381,7 @@ public class Platform extends PlatformPropsImpl {
     }
 
     /**
-     * Returns the JAVA vendor.
+     * Returns the platform's line separator.
      */
     public static String getNewline() {
         return NEWLINE;
