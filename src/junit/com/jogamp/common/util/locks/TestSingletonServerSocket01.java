@@ -31,6 +31,7 @@ import java.io.IOException;
 
 import junit.framework.Assert;
 
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -50,6 +51,7 @@ public class TestSingletonServerSocket01 {
     @Test
     public void testJVMShutdown() {
         Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
+        singletonInstance.unlock();
     }
     
     public static void main(String args[]) throws IOException, InterruptedException {
