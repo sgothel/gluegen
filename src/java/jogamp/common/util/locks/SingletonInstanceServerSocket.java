@@ -225,6 +225,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            synchronized (syncOnStartStop) {
                try {
                    serverSocket = new ServerSocket(portNumber, 1, localInetAddress);
+                   serverSocket.setReuseAddress(true); // reuse same port w/ subsequent instance, i.e. overcome TO state when JVM crashed
                    alive = true;
                } catch (IOException e) {
                     System.err.println(infoPrefix()+" III - Unable to install ServerSocket: "+e.getMessage());
