@@ -34,7 +34,7 @@
     </path>
   </target>
 
-  <target name="init.android" if="isAndroid" >
+  <target name="init.android" if="android-jars.available" >
     <!-- Create the classpath for compiling Android only stuff. -->
     <path id="android.classpath">
       <pathelement location="${android-min.jar}"/>
@@ -369,7 +369,7 @@
       <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>
 
-    <target name="declare.android" if="isAndroid" >
+    <target name="declare.android" if="android-jars.available" >
       <property name="c.src.dir.os"                         value="unix" />
     </target>
 
@@ -759,7 +759,7 @@
     </copy>
   </target>
 
-  <target name="gluegen.build.android" if="isAndroid">
+  <target name="gluegen.build.android" if="android-jars.available">
     <!--compile gluegen-rt-android first-->
     <javac destdir="${classes}"
            includeAntRuntime="false"
@@ -793,6 +793,7 @@
         <include name="com/jogamp/gluegen/runtime/*.class" />
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
+        <include name="${java.part.android}" />
         <exclude name="${jogamp-android-launcher.classes}" />
       </fileset>
       <fileset dir="resources/assets">
@@ -816,7 +817,7 @@
       </uptodate>
   </target>
 
-  <target name="android-launcher.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check.android-launcher" if="isAndroid" unless="gluegen.build.skip.android-launcher">
+  <target name="android-launcher.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check.android-launcher" if="android-jars.available" unless="gluegen.build.skip.android-launcher">
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${jogamp-android-launcher.classes}"
@@ -847,7 +848,9 @@
         <include name="${jogamp-android-launcher.classes}" />
       </fileset>
     </jar>
+  </target>
 
+  <target name="android-launcher.package" depends="android-launcher.build" if="isAndroid" unless="gluegen.build.skip.android-launcher">
     <aapt.signed 
         assetsdir="resources/assets-launcher"
         jarbuilddir="${build}"
@@ -889,7 +892,7 @@
   </target>
 
   <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
-                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.c" />
+                              depends="init, android-launcher.package, gluegen.build.java, gluegen.build.c" />
 
   <target name="all.no_junit" description="Release build" depends="init, base.compile, tag.build, android.package, developer-zip-archive" />
   <target name="all" description="Release build" depends="init, base.compile, tag.build, junit.compile, android.package, developer-zip-archive" />

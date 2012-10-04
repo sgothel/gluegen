@@ -54,7 +54,23 @@
     <property name="android.version" value="9" /> <!-- default - if not set by jogamp-env.xml:jogamp.env.init -->
     <property name="android-min.jar" value="${gluegen.root}/make/lib/android-sdk/${android.version}/android.jar" />
     <property name="android-015.jar" value="${gluegen.root}/make/lib/android-sdk/15/android.jar" />
-    <property name="android.jar" value="${android-015.jar}" />
+    <property name="android.jar"     value="${android-015.jar}" />
+    <condition property="android-jars.available">
+        <and>
+            <available file="${android-min.jar}"/>
+            <available file="${android.jar}"/>
+        </and>
+    </condition>
+    <fail message="isAndroid set, but android jar files n/a: ${android-min.jar}, ${android.jar}">
+      <condition>
+        <and>
+          <isset property="isAndroid"/>
+          <not>
+              <isset property="android-jars.available"/>
+          </not>
+        </and>
+      </condition>
+    </fail>
 
     <property name="android.keystore.file" value="/non.existing.user.keystore.file"/> <!-- default - maybe overriden by the gluegen.user.properties.file -->
     <property name="android.keystore.alias" value="debug"/>
