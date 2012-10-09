@@ -279,8 +279,15 @@ public class Buffers {
      * @return FloatBuffer w/ native byte order as given ByteBuffer
      */
     public static final FloatBuffer slice2Float(Buffer buf, float[] backing, int floatPos, int floatSize) {
-        final int pos = buf.position();
-        final int limit = buf.limit();
+        final int pos;
+        final int limit;
+        if(null != buf) {
+            pos = buf.position();
+            limit = buf.limit();
+        } else {
+            pos = 0;
+            limit = 0;
+        }
         final FloatBuffer res;
         try {
             if(buf instanceof ByteBuffer) {
@@ -299,7 +306,9 @@ public class Buffers {
                 throw new InternalError("Buffer not ByteBuffer, nor FloarBuffer, nor backing array given");
             }
         } finally {
-            buf.position(pos).limit(limit);
+            if(null != buf) {
+                buf.position(pos).limit(limit);
+            }
         }
         res.mark();
         return res;
