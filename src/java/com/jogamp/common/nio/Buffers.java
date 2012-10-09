@@ -243,10 +243,10 @@ public class Buffers {
         int limit = buffer.limit();
 
         B slice = null;
-        try{
+        try {
             buffer.position(offset).limit(offset+size);
             slice = slice(buffer);
-        }finally{
+        } finally {
             buffer.position(pos).limit(limit);
         }
 
@@ -279,27 +279,30 @@ public class Buffers {
      * @return FloatBuffer w/ native byte order as given ByteBuffer
      */
     public static final FloatBuffer slice2Float(Buffer buf, float[] backing, int floatPos, int floatSize) {
-        if(buf instanceof ByteBuffer) {
-            ByteBuffer bb = (ByteBuffer) buf;
-            bb.position( floatPos * Buffers.SIZEOF_FLOAT );
-            bb.limit( (floatPos + floatSize) * Buffers.SIZEOF_FLOAT );
-            FloatBuffer fb = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
-            fb.mark();
-            return fb;
-        } else if(null != backing) {
-            FloatBuffer fb  = FloatBuffer.wrap(backing, floatPos, floatSize);
-            fb.mark();
-            return fb;
-        } else if(buf instanceof FloatBuffer) {
-            FloatBuffer fb = (FloatBuffer) buf;
-            fb.position( floatPos );
-            fb.limit( floatPos + floatSize );
-            FloatBuffer fb0 = fb.slice(); // slice and duplicate may change byte order
-            fb0.mark();
-            return fb0;
-        } else {
-            throw new InternalError("XXX");
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final FloatBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( floatPos * Buffers.SIZEOF_FLOAT );
+                bb.limit( (floatPos + floatSize) * Buffers.SIZEOF_FLOAT );
+                res = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
+            } else if(null != backing) {
+                res = FloatBuffer.wrap(backing, floatPos, floatSize);
+            } else if(buf instanceof FloatBuffer) {
+                FloatBuffer fb = (FloatBuffer) buf;
+                fb.position( floatPos );
+                fb.limit( floatPos + floatSize );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new InternalError("Buffer not ByteBuffer, nor FloarBuffer, nor backing array given");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
         }
+        res.mark();
+        return res;
     }
 
     
