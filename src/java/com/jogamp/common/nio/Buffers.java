@@ -877,10 +877,13 @@ public class Buffers {
     /**
      * Appends Buffer details inclusive data to a StringBuilder instance.
      * @param sb optional pass through StringBuilder
+     * @param f optional format string of one element, i.e. "%10.5f" for {@link FloatBuffer}, see {@link java.util.Formatter}, 
+     *          or <code>null</code> for unformatted output. 
+     *          <b>Note:</b> Caller is responsible to match the format string w/ the data type as expected in the given buffer. 
      * @param buffer Any valid Buffer instance
      * @return the modified StringBuilder containing the Buffer details
      */
-    public static StringBuilder toString(StringBuilder sb, Buffer buffer) {
+    public static StringBuilder toString(StringBuilder sb, String f, Buffer buffer) {
         if(null == sb) {
             sb = new StringBuilder();
         }
@@ -893,43 +896,71 @@ public class Buffers {
             final ByteBuffer b = (ByteBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         } else if (buffer instanceof FloatBuffer) {
             final FloatBuffer b = (FloatBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         } else if (buffer instanceof IntBuffer) {
             final IntBuffer b = (IntBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         } else if (buffer instanceof ShortBuffer) {
             final ShortBuffer b = (ShortBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         } else if (buffer instanceof DoubleBuffer) {
             final DoubleBuffer b = (DoubleBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         } else if (buffer instanceof LongBuffer) {
             final LongBuffer b = (LongBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         } else if (buffer instanceof CharBuffer) {
             final CharBuffer b = (CharBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
-                sb.append(b.get(i));
+                if(null == f) {
+                    sb.append(b.get(i));    
+                } else {
+                    sb.append(String.format(f, b.get(i))); 
+                }               
             }
         }
         sb.append("]");
