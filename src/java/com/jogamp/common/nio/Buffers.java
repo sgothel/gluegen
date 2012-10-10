@@ -858,7 +858,7 @@ public class Buffers {
                 bytesRemaining = elementsRemaining * SIZEOF_INT;
             } else if (buffer instanceof ShortBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_SHORT;
-            }else if (buffer instanceof DoubleBuffer) {
+            } else if (buffer instanceof DoubleBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
             } else if (buffer instanceof LongBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_LONG;
@@ -874,4 +874,66 @@ public class Buffers {
         }
     }
 
+    /**
+     * Appends Buffer details inclusive data to a StringBuilder instance.
+     * @param sb optional pass through StringBuilder
+     * @param buffer Any valid Buffer instance
+     * @return the modified StringBuilder containing the Buffer details
+     */
+    public static StringBuilder toString(StringBuilder sb, Buffer buffer) {
+        if(null == sb) {
+            sb = new StringBuilder();
+        }
+        sb.append(buffer.getClass().getSimpleName());
+        sb.append("[pos ").append(buffer.position()).append(", lim ").append(buffer.limit()).append(", cap ").append(buffer.capacity());
+        sb.append(", remaining ").append(buffer.remaining());
+        sb.append("; array ").append(buffer.hasArray()).append(", direct ").append(buffer.isDirect());
+        sb.append(", r/w ").append(!buffer.isReadOnly()).append(": ");
+        if (buffer instanceof ByteBuffer) {
+            final ByteBuffer b = (ByteBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        } else if (buffer instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        } else if (buffer instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        } else if (buffer instanceof ShortBuffer) {
+            final ShortBuffer b = (ShortBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        } else if (buffer instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        } else if (buffer instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        } else if (buffer instanceof CharBuffer) {
+            final CharBuffer b = (CharBuffer)buffer;
+            for(int i=0; i<b.limit(); i++) {
+                if(0<i) { sb.append(", "); }
+                sb.append(b.get(i));
+            }
+        }
+        sb.append("]");
+        return sb;
+    }
+    
 }
