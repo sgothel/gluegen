@@ -61,10 +61,10 @@ import org.apache.tools.ant.util.JavaEnvUtils;
 /**
  * <p>An <a href="http://ant.apache.org">ANT</a> {@link org.apache.tools.ant.Task}
  * for using {@link com.jogamp.gluegen.GlueGen}.</p>
- * 
+ *
  * <p>Usage:</p>
  * <pre>
-    &lt;gluegen src="[source C file]" 
+    &lt;gluegen src="[source C file]"
                 outputrootdir="[optional output root dir]"
                 includes="[optional directory pattern of include files to include]"
                 excludes="[optional directory pattern of include files to exclude]"
@@ -74,7 +74,7 @@ import org.apache.tools.ant.util.JavaEnvUtils;
                 config="[configuration file]"
                 dumpCPP="[optional boolean]"
                 debug="[optional boolean]" /&gt;
- * </pre> 
+ * </pre>
  *
  * @author Rob Grzywinski <a href="mailto:rgrzywinski@realityinteractive.com">rgrzywinski@yahoo.com</a>
  */
@@ -86,7 +86,7 @@ public class GlueGenTask extends Task
      * <p>The {@link com.jogamp.gluegen.GlueGen} classname.</p>
      */
     private static final String GLUE_GEN = "com.jogamp.gluegen.GlueGen";
-    
+
     // =========================================================================
     /**
      * <p>The {@link org.apache.tools.ant.types.CommandlineJava} that is used
@@ -119,25 +119,25 @@ public class GlueGenTask extends Task
      * <p>The configuration file name.</p>
      */
     private String configuration;
-    
+
     /**
      * <p>The name of the source C file that is to be parsed.</p>
      */
     private String sourceFile;
-    
+
     /**
      * <p>The {@link org.apache.tools.ant.types.FileSet} of includes.</p>
      */
     private FileSet includeSet = new FileSet();
-    
+
     /**
      * <p>Because a {@link org.apache.tools.ant.types.FileSet} will include
      * everything in its base directory if it is left untouched, the <code>includeSet</code>
      * must only be added to the set of includes if it has been <i>explicitly</i>
      * set.</p>
      */
-    private boolean usedIncludeSet = false; // by default it is not used 
-    
+    private boolean usedIncludeSet = false; // by default it is not used
+
     /**
      * <p>The set of include sets.  This allows includes to be added in multiple
      * fashions.</p>
@@ -149,11 +149,11 @@ public class GlueGenTask extends Task
      * <p>Comma separated list of literal directories to include.  This is to get around the
      * fact that neither {@link org.apache.tools.ant.types.FileSet} nor
      * {@link org.apache.tools.ant.types.DirSet} can handle multiple drives in
-     * a sane manner or deal with relative path outside of the base-dir.  
+     * a sane manner or deal with relative path outside of the base-dir.
      * If <code>null</code> then it has not been specified.</p>
      */
     private String literalIncludes;
-    
+
     // =========================================================================
     /**
      * <p>Create and add the VM and classname to {@link org.apache.tools.ant.types.CommandlineJava}.</p>
@@ -162,7 +162,7 @@ public class GlueGenTask extends Task
     {
         // create the CommandlineJava that will be used to call GlueGen
         gluegenCommandline = new CommandlineJava();
-        
+
         // set the VM and classname in the commandline
         gluegenCommandline.setVm(JavaEnvUtils.getJreExecutable("java"));
         gluegenCommandline.setClassname(GLUE_GEN);
@@ -192,7 +192,7 @@ public class GlueGenTask extends Task
 
     /**
      * <p>Set the output root dir (optional).  This is called by ANT.</p>
-     * 
+     *
      * @param  outputRootDir the optional output root dir
      */
     public void setOutputRootDir(String outputRootDir)
@@ -203,7 +203,7 @@ public class GlueGenTask extends Task
 
     /**
      * <p>Set the emitter class name.  This is called by ANT.</p>
-     * 
+     *
      * @param  emitter the name of the emitter class
      */
     public void setEmitter(String emitter)
@@ -214,19 +214,19 @@ public class GlueGenTask extends Task
 
     /**
      * <p>Set the configuration file name.  This is called by ANT.</p>
-     * 
+     *
      * @param  configuration the name of the configuration file
      */
     public void setConfig(String configuration)
     {
-        log( ("Setting configuration file name to: " + configuration), 
+        log( ("Setting configuration file name to: " + configuration),
               Project.MSG_VERBOSE);
         this.configuration = configuration;
     }
 
     /**
      * <p>Set the source C file that is to be parsed.  This is called by ANT.</p>
-     * 
+     *
      * @param  sourceFile the name of the source file
      */
     public void setSrc(String sourceFile)
@@ -238,7 +238,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Set a literal include directories, separated with a comma.  See the <code>literalInclude</code>
      * javadoc for more information.</p>
-     * 
+     *
      * @param  commaSeparatedIncludes the comma separated directories to include
      */
     public void setLiteralInclude(String commaSeparatedIncludes)
@@ -249,7 +249,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Add an include file to the list.  This is called by ANT for a nested
      * element.</p>
-     * 
+     *
      * @return {@link org.apache.tools.ant.types.PatternSet.NameEntry}
      */
     public PatternSet.NameEntry createInclude()
@@ -261,7 +261,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Add an include file to the list.  This is called by ANT for a nested
      * element.</p>
-     * 
+     *
      * @return {@link org.apache.tools.ant.types.PatternSet.NameEntry}
      */
     public PatternSet.NameEntry createIncludesFile()
@@ -283,9 +283,9 @@ public class GlueGenTask extends Task
     }
 
     /**
-     * <p>Add an include file to the list that is to be exluded.  This is called 
+     * <p>Add an include file to the list that is to be exluded.  This is called
      * by ANT for a nested element.</p>
-     * 
+     *
      * @return {@link org.apache.tools.ant.types.PatternSet.NameEntry}
      */
     public PatternSet.NameEntry createExclude()
@@ -297,7 +297,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Add an exclude file to the list.  This is called by ANT for a nested
      * element.</p>
-     * 
+     *
      * @return {@link org.apache.tools.ant.types.PatternSet.NameEntry}
      */
     public PatternSet.NameEntry createExcludesFile()
@@ -321,30 +321,30 @@ public class GlueGenTask extends Task
     /**
      * <p>Set a {@link org.apache.tools.ant.types.Reference} to simplify adding
      * of complex sets of files to include.  This is called by ANT.</p>?
-     * 
+     *
      * @param  reference a <code>Reference</code> to a {@link org.apache.tools.ant.types.FileSet}
      *         or {@link org.apache.tools.ant.types.DirSet}
      * @throws BuildException if the specified <code>Reference</code> is not
      *         either a <code>FileSet</code> or <code>DirSet</code>
      */
-    public void setIncludeRefid(Reference reference) 
+    public void setIncludeRefid(Reference reference)
     {
         // ensure that the referenced object is either a FileSet or DirSet
         final Object referencedObject = reference.getReferencedObject(getProject());
-        if( !( (referencedObject instanceof FileSet) || 
+        if( !( (referencedObject instanceof FileSet) ||
                (referencedObject instanceof DirSet)) )
-        {               
+        {
             throw new BuildException("Only FileSets or DirSets are allowed as an include refid.");
         }
 
         // add the referenced object to the set of include sets
-        setOfIncludeSets.add(referencedObject); 
+        setOfIncludeSets.add(referencedObject);
     }
 
     /**
      * <p>Add a nested {@link org.apache.tools.ant.types.DirSet} to specify
      * the files to include.  This is called by ANT.</p>
-     * 
+     *
      * @param  dirset the <code>DirSet</code> to be added
      */
     public void addDirset(DirSet dirset)
@@ -355,7 +355,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Add an optional classpath that defines the location of {@link com.jogamp.gluegen.GlueGen}
      * and <code>GlueGen</code>'s dependencies.</p>
-     * 
+     *
      * @returns {@link org.apache.tools.ant.types.Path}
      */
      public Path createClasspath()
@@ -367,23 +367,23 @@ public class GlueGenTask extends Task
     /**
      * <p>Run the task.  This involves validating the set attributes, creating
      * the command line to be executed and finally executing the command.</p>
-     * 
+     *
      * @see  org.apache.tools.ant.Task#execute()
      */
-    public void execute() 
-        throws BuildException 
+    public void execute()
+        throws BuildException
     {
         // validate that all of the required attributes have been set
         validateAttributes();
-        
+
         // TODO:  add logic to determine if the generated file needs to be
         //        regenerated
-        
+
         // add the attributes to the CommandlineJava
         addAttributes();
 
         log(gluegenCommandline.describeCommand(), Project.MSG_VERBOSE);
-        
+
         // execute the command and throw on error
         final int error = execute(gluegenCommandline.getCommandline());
         if(error == 1)
@@ -392,11 +392,11 @@ public class GlueGenTask extends Task
 
     /**
      * <p>Ensure that the user specified all required arguments.</p>
-     * 
-     * @throws BuildException if there are required arguments that are not 
+     *
+     * @throws BuildException if there are required arguments that are not
      *         present or not valid
      */
-    private void validateAttributes() 
+    private void validateAttributes()
         throws BuildException
     {
         // outputRootDir is optional ..
@@ -408,33 +408,33 @@ public class GlueGenTask extends Task
         // validate that the configuration file is set
         if(!isValid(configuration))
             throw new BuildException("Invalid configuration file name: " + configuration);
-            
+
         // validate that the source file is set
         if(!isValid(sourceFile))
             throw new BuildException("Invalid source file name: " + sourceFile);
-            
+
         // CHECK:  do there need to be includes to be valid?
     }
 
     /**
      * <p>Is the specified string valid?  A valid string is non-<code>null</code>
      * and has a non-zero length.</p>
-     * 
+     *
      * @param  string the string to be tested for validity
      * @return <code>true</code> if the string is valid.  <code>false</code>
-     *         otherwise. 
+     *         otherwise.
      */
     private boolean isValid(String string)
     {
         // check for null
         if(string == null)
             return false;
-            
+
         // ensure that the string has a non-zero length
         // NOTE:  must trim() to remove leading and trailing whitespace
         if(string.trim().length() < 1)
             return false;
-            
+
         // the string is valid
         return true;
     }
@@ -446,9 +446,9 @@ public class GlueGenTask extends Task
     private void addAttributes()
         throws BuildException
     {
-        // NOTE:  GlueGen uses concatenated flag / value rather than two 
+        // NOTE:  GlueGen uses concatenated flag / value rather than two
         //        separate arguments
-        
+
         // add the debug flag if enabled
         if(debug) {
             gluegenCommandline.createArgument().setValue("--debug");
@@ -463,16 +463,16 @@ public class GlueGenTask extends Task
         if(null!=outputRootDir && outputRootDir.trim().length()>0) {
             gluegenCommandline.createArgument().setValue("-O" + outputRootDir);
         }
-        
+
         // add the emitter class name
         gluegenCommandline.createArgument().setValue("-E" + emitter);
-        
+
         // add the configuration file name
         gluegenCommandline.createArgument().setValue("-C" + configuration);
-        
+
         // add the includedSet to the setOfIncludeSets to simplify processing
         // all types of include sets ONLY if it has been set.
-        // NOTE:  see the usedIncludeSet member javadoc for more info 
+        // NOTE:  see the usedIncludeSet member javadoc for more info
         // NOTE:  references and nested DirSets have already been added to the
         //        set of include sets
         if(usedIncludeSet)
@@ -480,8 +480,8 @@ public class GlueGenTask extends Task
             includeSet.setDir(getProject().getBaseDir()); // NOTE:  the base dir must be set
             setOfIncludeSets.add(includeSet);
         }
-        
-        // iterate over all include sets and add their directories to the 
+
+        // iterate over all include sets and add their directories to the
         // list of included directories.
         final List includedDirectories = new LinkedList();
         for(Iterator includes=setOfIncludeSets.iterator(); includes.hasNext(); )
@@ -500,13 +500,13 @@ public class GlueGenTask extends Task
                 final DirSet dirSet = (DirSet)include;
                 DirectoryScanner directoryScanner = dirSet.getDirectoryScanner(getProject());
                 directoryDirs = directoryScanner.getIncludedDirectories();
-            } else 
+            } else
             {
                 // NOTE:  this cannot occur as it is checked on setXXX() but
                 //        just to be pedantic this is here
-                throw new BuildException("Invalid included construct."); 
+                throw new BuildException("Invalid included construct.");
             }
-        	
+
             // add the directoryDirs to the includedDirectories
             // TODO:  exclude any directory that is already in the list
             for(int i=0; i<directoryDirs.length; i++)
@@ -514,7 +514,7 @@ public class GlueGenTask extends Task
             	includedDirectories.add(directoryDirs[i]);
             }
         }
-        
+
         // if literalInclude is valid then add it to the list of included
         // directories
         if( isValid( literalIncludes ) ) {
@@ -526,7 +526,7 @@ public class GlueGenTask extends Task
                 }
             }
         }
-        
+
         // add the included directories to the command
         for(Iterator includes=includedDirectories.iterator(); includes.hasNext(); )
         {
@@ -538,24 +538,24 @@ public class GlueGenTask extends Task
         gluegenCommandline.createArgument().setValue(sourceFile);
     }
 
-    /** 
+    /**
      * <p>Execute {@link com.jogamp.gluegen.GlueGen} in a forked JVM.</p>
-     * 
+     *
      * @throws BuildException
      */
-    private int execute(String[] command) 
+    private int execute(String[] command)
         throws BuildException
     {
         // create the object that will perform the command execution
         Execute execute = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
-                                                           Project.MSG_WARN), 
+                                                           Project.MSG_WARN),
                                       null);
-                                      
+
         // set the project and command line
         execute.setAntRun(project);
         execute.setCommandline(command);
         execute.setWorkingDirectory( project.getBaseDir() );
-        
+
         // execute the command
         try
         {
