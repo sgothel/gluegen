@@ -88,6 +88,7 @@
          <linkerarg value="--demangle" /> 
          <linkerarg value="--gc-sections" /> 
          <linkerarg value="--no-undefined" /> 
+         <linkerarg value="-static-libgcc"/>
          <!-- The gcc from $NDK_TOOLCHAIN/$TARGET_TRIPLE/bin needs to be told
            where to find libgcc as the default location (gcc -print-search-dirs)
            is not correct. Not sure if this is a bug in the NDK or not. We also
