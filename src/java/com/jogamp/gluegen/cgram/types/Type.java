@@ -194,7 +194,7 @@ public abstract class Type implements Cloneable {
       return false;
     }
     Type t = (Type) arg;
-    return (((name == null ? t.name == null : name.equals(t.name)) || (name != null && name.equals(name))) &&
+    return (((name == null ? t.name == null : name.equals(t.name)) || (name != null && name.equals(t.name))) &&
             (size == t.size) && (cvAttributes == t.cvAttributes));
   }
 
