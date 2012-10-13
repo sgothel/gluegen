@@ -42,7 +42,6 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.StringTokenizer;
 
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.DirectoryScanner;
@@ -50,6 +49,7 @@ import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Task;
 import org.apache.tools.ant.taskdefs.Execute;
 import org.apache.tools.ant.taskdefs.LogStreamHandler;
+import org.apache.tools.ant.types.AbstractFileSet;
 import org.apache.tools.ant.types.CommandlineJava;
 import org.apache.tools.ant.types.DirSet;
 import org.apache.tools.ant.types.FileSet;
@@ -143,7 +143,7 @@ public class GlueGenTask extends Task
      * fashions.</p>
      */
     // FIXME:  rename to listXXXX
-    private List setOfIncludeSets = new LinkedList();
+    private List<AbstractFileSet> setOfIncludeSets = new LinkedList<AbstractFileSet>();
 
     /**
      * <p>Comma separated list of literal directories to include.  This is to get around the
@@ -327,19 +327,20 @@ public class GlueGenTask extends Task
      * @throws BuildException if the specified <code>Reference</code> is not
      *         either a <code>FileSet</code> or <code>DirSet</code>
      */
-    public void setIncludeRefid(Reference reference)
-    {
-        // ensure that the referenced object is either a FileSet or DirSet
-        final Object referencedObject = reference.getReferencedObject(getProject());
-        if( !( (referencedObject instanceof FileSet) ||
-               (referencedObject instanceof DirSet)) )
-        {
-            throw new BuildException("Only FileSets or DirSets are allowed as an include refid.");
-        }
+public void setIncludeRefid(Reference reference) {
+	// ensure that the referenced object is either a FileSet or DirSet
+	final Object referencedObject = reference.getReferencedObject(getProject());
+	if (referencedObject instanceof FileSet) {
+		setOfIncludeSets.add((FileSet)referencedObject);
+		return;
+	}
+	if (referencedObject instanceof DirSet) {
+		setOfIncludeSets.add((DirSet)referencedObject);
+		return;
+	}
 
-        // add the referenced object to the set of include sets
-        setOfIncludeSets.add(referencedObject);
-    }
+	throw new BuildException("Only FileSets or DirSets are allowed as an include refid.");
+}
 
     /**
      * <p>Add a nested {@link org.apache.tools.ant.types.DirSet} to specify
@@ -483,29 +484,14 @@ public class GlueGenTask extends Task
 
         // iterate over all include sets and add their directories to the
         // list of included directories.
-        final List includedDirectories = new LinkedList();
-        for(Iterator includes=setOfIncludeSets.iterator(); includes.hasNext(); )
+        final List<String> includedDirectories = new LinkedList<String>();
+        for (Iterator<AbstractFileSet> includes = setOfIncludeSets.iterator(); includes.hasNext();)
         {
             // get the included set and based on its type add the directories
             // to includedDirectories
-        	Object include = (Object)includes.next();
-            final String[] directoryDirs;
-            if(include instanceof FileSet)
-            {
-                final FileSet fileSet = (FileSet)include;
-                DirectoryScanner directoryScanner = fileSet.getDirectoryScanner(getProject());
-                directoryDirs = directoryScanner.getIncludedDirectories();
-            } else if(include instanceof DirSet)
-            {
-                final DirSet dirSet = (DirSet)include;
-                DirectoryScanner directoryScanner = dirSet.getDirectoryScanner(getProject());
-                directoryDirs = directoryScanner.getIncludedDirectories();
-            } else
-            {
-                // NOTE:  this cannot occur as it is checked on setXXX() but
-                //        just to be pedantic this is here
-                throw new BuildException("Invalid included construct.");
-            }
+        	AbstractFileSet include = includes.next();
+        	DirectoryScanner directoryScanner = include.getDirectoryScanner(getProject());
+        	final String[] directoryDirs = directoryScanner.getIncludedDirectories();
 
             // add the directoryDirs to the includedDirectories
             // TODO:  exclude any directory that is already in the list
@@ -528,9 +514,9 @@ public class GlueGenTask extends Task
         }
 
         // add the included directories to the command
-        for(Iterator includes=includedDirectories.iterator(); includes.hasNext(); )
+        for(Iterator<String> includes=includedDirectories.iterator(); includes.hasNext(); )
         {
-        	String directory = (String)includes.next();
+        	String directory = includes.next();
             gluegenCommandline.createArgument().setValue("-I" + directory);
         }
 
