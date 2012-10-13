@@ -194,8 +194,21 @@ public abstract class Type implements Cloneable {
       return false;
     }
     Type t = (Type) arg;
-    return (((name == null ? t.name == null : name.equals(t.name)) || (name != null && name.equals(t.name))) &&
-            (size == t.size) && (cvAttributes == t.cvAttributes));
+    if (size != t.size)
+        return false;
+
+    if (cvAttributes != t.cvAttributes)
+        return false;
+
+    // Includes test for both names == null
+    if (name == t.name)
+        return true;
+
+    if (name != null)
+        return name.equals(t.name);
+
+    // If we got here, name is null, t.name is not, they cannot compare equal
+    return false;
   }
 
   /** Returns a string representation of this type. This string is not
