@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -174,28 +174,36 @@ public abstract class Type implements Cloneable {
     if (name == null) {
       return 0;
     }
-    
+
     if (cvAttributes != 0)  {
       String nameWithAttribs = name + cvAttributes;
       return nameWithAttribs.hashCode();
     }
     return name.hashCode();
   }
-  
+
   /**
    * Equality test for Types.
    */
   @Override
   public boolean equals(Object arg) {
-    if (arg == this) {
+    if (arg == this)
       return true;
-    }
-    if (arg == null || (!(arg instanceof Type))) {
+
+    if (!(arg instanceof Type))
       return false;
-    }
-    Type t = (Type) arg;
-    return (((name == null ? t.name == null : name.equals(t.name)) || (name != null && name.equals(name))) &&
-            (size == t.size) && (cvAttributes == t.cvAttributes));
+
+    Type t = (Type)arg;
+    if (size != t.size)
+        return false;
+
+    if (cvAttributes != t.cvAttributes)
+        return false;
+
+    if (name != null)
+        return name.equals(t.name);
+    else
+        return name == t.name;
   }
 
   /** Returns a string representation of this type. This string is not
@@ -269,5 +277,5 @@ public abstract class Type implements Cloneable {
   /** Helper routine for list equality comparison */
   static boolean listsEqual(List a, List b) {
     return ((a == null && b == null) || (a != null && b != null && a.equals(b)));
-  }  
+  }
 }
