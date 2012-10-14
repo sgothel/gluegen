@@ -961,13 +961,8 @@ public class PCPP {
                                         // ok, it's not a valid decimal value, try hex/octal value
                                         return Long.parseLong(word) != 0;
                                     } catch (NumberFormatException nfe2) {
-                                        try {
-                                            // ok, it's not a valid hex/octal value, try boolean
-                                            return Boolean.valueOf(word) == Boolean.TRUE;
-                                        } catch (NumberFormatException nfe3) {
-                                            // give up; the symbol isn't a numeric or boolean value
-                                            return false;
-                                        }
+                                        // ok, it's not a valid hex/octal value, try boolean last
+                                        return Boolean.valueOf(word).booleanValue();
                                     }
                                 }
                             }
