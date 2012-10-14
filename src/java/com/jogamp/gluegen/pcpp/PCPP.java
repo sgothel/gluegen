@@ -350,7 +350,7 @@ public class PCPP {
                 if (newS == null) {
                     newS = s;
                 }
-                
+
                 Macro macro = macroMap.get(newS);
                 if(macro != null) {
                     newS = "";
@@ -585,7 +585,7 @@ public class PCPP {
                         emitDefine = false;
                     }
                 }
-            
+
             } else if (nameIsMacro) {
                 // list parameters
                 List<String> params = new ArrayList<String>();
@@ -609,7 +609,7 @@ public class PCPP {
                     LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, macro});
                 }
                 emitDefine = false;
-             
+
             }else{
 
                 // find constant expressions like (1 << 3)
@@ -641,7 +641,7 @@ public class PCPP {
                         // This is probably something the user should investigate.
                         throw new RuntimeException("Cannot redefine symbol \"" + name +
                                                    " from \"" + defineMap.get(name) + "\" to non-constant " +
-                                                   " definition \"" + val.toString() + "\"" + 
+                                                   " definition \"" + val.toString() + "\"" +
                                                    " at file \"" + filename() + ", line " + lineNumber() );
                     }
                     defineMap.put(name, val.toString());
@@ -1130,7 +1130,7 @@ public class PCPP {
         print("# " + lineNumber() + " \"" + filename() + "\"");
         println();
     }
-    
+
     private static void usage() {
         System.err.println("Usage: java PCPP [filename | -]");
         System.err.println("Minimal pseudo-C-preprocessor.");
