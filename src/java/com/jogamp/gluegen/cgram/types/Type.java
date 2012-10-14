@@ -187,28 +187,23 @@ public abstract class Type implements Cloneable {
    */
   @Override
   public boolean equals(Object arg) {
-    if (arg == this) {
+    if (arg == this)
       return true;
-    }
-    if (arg == null || (!(arg instanceof Type))) {
+
+    if (!(arg instanceof Type))
       return false;
-    }
-    Type t = (Type) arg;
+
+    Type t = (Type)arg;
     if (size != t.size)
         return false;
 
     if (cvAttributes != t.cvAttributes)
         return false;
 
-    // Includes test for both names == null
-    if (name == t.name)
-        return true;
-
     if (name != null)
         return name.equals(t.name);
-
-    // If we got here, name is null, t.name is not, they cannot compare equal
-    return false;
+    else
+        return name == t.name;
   }
 
   /** Returns a string representation of this type. This string is not
