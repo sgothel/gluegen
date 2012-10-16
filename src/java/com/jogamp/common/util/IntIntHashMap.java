@@ -152,7 +152,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable, Iterable {
         
         for(int i=table.length-1; i>=0; i--) {
             // single linked list -> ArrayList
-            final ArrayList<Entry> entries = new ArrayList();
+            final ArrayList<Entry> entries = new ArrayList<Entry>();
             Entry se = table[i];
             while(null != se) {
                 entries.add(se);
