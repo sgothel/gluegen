@@ -187,23 +187,49 @@ public abstract class Type implements Cloneable {
    */
   @Override
   public boolean equals(Object arg) {
-    if (arg == this)
+    if (arg == this) {
       return true;
+    }
 
-    if (!(arg instanceof Type))
+    if ( !(arg instanceof Type) ) {
       return false;
+    }
 
-    Type t = (Type)arg;
-    if (size != t.size)
+    final Type t = (Type)arg;
+    if ( size != t.size ) {
         return false;
+    }
 
-    if (cvAttributes != t.cvAttributes)
+    if ( cvAttributes != t.cvAttributes ) {
         return false;
+    }
 
-    if (name != null)
+    if ( null == name ) {
+        return null == t.name;
+    } else {
         return name.equals(t.name);
-    else
-        return name == t.name;
+    }
+
+    /*
+     * Orig:
+     * 
+    return ( ( name == null ? t.name == null : name.equals(t.name) ) || 
+             ( name != null && name.equals(name) ) 
+           ) && size == t.size && cvAttributes == t.cvAttributes;
+       
+       Cleaned-1:
+       
+    return size == t.size && cvAttributes == t.cvAttributes &&
+           ( ( name == null ? t.name == null : name.equals(t.name) ) || 
+             ( name != null && name.equals(name) ) 
+           );
+       
+       Cleaned-2:
+       
+    return size == t.size && cvAttributes == t.cvAttributes &&
+           ( null == name ? null == t.name : name.equals(t.name) ) ;
+           
+     */    
   }
 
   /** Returns a string representation of this type. This string is not
