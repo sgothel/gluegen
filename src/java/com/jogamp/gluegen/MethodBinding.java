@@ -157,8 +157,8 @@ public class MethodBinding {
     are no namespace clashes with these fabricated argument
     names. */
     public String getArgumentName(int i) {
-        String ret = sym.getArgumentName(i);
-        if (ret != null) {
+        final String ret = sym.getArgumentName(i);
+        if ( null != ret ) {
             return ret;
         }
         return "arg" + i;

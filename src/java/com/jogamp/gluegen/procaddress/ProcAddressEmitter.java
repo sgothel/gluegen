@@ -55,7 +55,6 @@ import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
-import com.jogamp.gluegen.cgram.types.FunctionType;
 import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.cgram.types.TypeDictionary;
 import com.jogamp.gluegen.runtime.FunctionAddressResolver;
@@ -270,21 +269,6 @@ public class ProcAddressEmitter extends JavaEmitter {
 
         if (config.forceProcAddressGen(symName)) {
             shouldWrap = true;
-        }
-
-        if (shouldWrap) {
-            // Hoist argument names from function pointer if not supplied in prototype
-            Type funcPointerType = typedefDictionary.get(funcPointerTypedefName);
-            if (funcPointerType != null) {
-                FunctionType typedef = funcPointerType.asPointer().getTargetType().asFunction();
-                FunctionType fun = sym.getType();
-                int numarg = typedef.getNumArguments();
-                for (int i = 0; i < numarg; i++) {
-                    if (fun.getArgumentName(i) == null) {
-                        fun.setArgumentName(i, typedef.getArgumentName(i));
-                    }
-                }
-            }
         }
 
         return shouldWrap;
