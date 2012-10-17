@@ -717,14 +717,6 @@ public class JavaConfiguration {
           return true;
       }
     }
-        
-    // Simple case; the entire symbol is in the ignore table.
-    if (ignores.contains(symbol)) {
-      if(DEBUG_IGNORES) {
-          System.err.println("Ignore Impl ignores: "+symbol);
-      }
-      return true;
-    }
 
     // Ok, the slow case. We need to check the entire table, in case the table
     // contains an regular expression that matches the symbol.
@@ -779,12 +771,6 @@ public class JavaConfiguration {
       throws a run-time exception with an "unimplemented" message
       during glue code generation. */
   public boolean isUnimplemented(String symbol) {
-
-    // Simple case; the entire symbol is in the ignore table.
-    if (unimplemented.contains(symbol)) {
-      return true;
-    }
-
     // Ok, the slow case. We need to check the entire table, in case the table
     // contains an regular expression that matches the symbol.
     for (Pattern regexp : unimplemented) {

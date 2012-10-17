@@ -80,7 +80,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
             @Override
             public void run() {
                 if(isLocked()) {
-                    System.err.println(infoPrefix()+" XXX "+getName()+" - Unlock @ JVM Shutdown");
+                    System.err.println(infoPrefix()+" XXX "+SingletonInstanceFileLock.this.getName()+" - Unlock @ JVM Shutdown");
                 }
                 unlock();
             }

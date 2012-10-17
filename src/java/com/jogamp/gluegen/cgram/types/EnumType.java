@@ -91,7 +91,7 @@ public class EnumType extends IntType implements Cloneable {
             n.underlyingType = (IntType) this.underlyingType.clone();
         }
         if(null!=this.enums) {
-            n.enums = (ArrayList) this.enums.clone();
+            n.enums = new ArrayList<Enum>(this.enums);
         }
         return n;
     }

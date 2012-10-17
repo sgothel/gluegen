@@ -269,7 +269,7 @@ public abstract class Type implements Cloneable {
   }
 
   /** Helper routine for list equality comparison */
-  static boolean listsEqual(List a, List b) {
+  static <C> boolean listsEqual(List<C> a, List<C> b) {
     return ((a == null && b == null) || (a != null && b != null && a.equals(b)));
   }
 }
