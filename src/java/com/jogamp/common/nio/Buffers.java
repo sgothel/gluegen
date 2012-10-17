@@ -41,6 +41,8 @@ package com.jogamp.common.nio;
 
 import java.nio.*;
 
+import com.jogamp.common.util.ValueConv;
+
 /**
  * Utility methods allowing easy {@link java.nio.Buffer} manipulations.
  * 
@@ -663,8 +665,9 @@ public class Buffers {
 
 
     //----------------------------------------------------------------------
-    // Convenient put methods with generic target Buffer
-    //
+    // Convenient put methods with generic target Buffer w/o value range conversion, i.e. normalization
+    //    
+    
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B put(B dest, Buffer src) {
         if ((dest instanceof ByteBuffer) && (src instanceof ByteBuffer)) {
@@ -762,6 +765,109 @@ public class Buffers {
         }
     }
 
+    //----------------------------------------------------------------------
+    // Convenient put methods with generic target Buffer and value range conversion, i.e. normalization
+    //
+
+    /** 
+     * Store byte source value in given buffer after normalizing it to the destination value range
+     * considering signed and unsigned source and destination representation.
+     * 
+     * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
+     * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
+     * @param v source byte value to be put in dest buffer
+     * @param sSigned  true if source represents a signed value, false if source represents an unsigned value
+     */ 
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putNb(B dest, boolean dSigned, byte v, boolean sSigned) {
+        if (dest instanceof ByteBuffer) {
+            return (B) ((ByteBuffer) dest).put( v );
+        } else if (dest instanceof ShortBuffer) {
+            return (B) ((ShortBuffer) dest).put( ValueConv.byte_to_short(v, sSigned, dSigned) );
+        } else if (dest instanceof IntBuffer) {
+            return (B) ((IntBuffer) dest).put( ValueConv.byte_to_int(v, sSigned, dSigned) );
+        } else if (dest instanceof FloatBuffer) {            
+            return (B) ((FloatBuffer) dest).put( ValueConv.byte_to_float(v, sSigned) );
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    /** 
+     * Store short source value in given buffer after normalizing it to the destination value range
+     * considering signed and unsigned source and destination representation.
+     * 
+     * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
+     * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
+     * @param v source short value to be put in dest buffer
+     * @param sSigned  true if source represents a signed value, false if source represents an unsigned value
+     */ 
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putNs(B dest, boolean dSigned, short v, boolean sSigned) {
+        if (dest instanceof ByteBuffer) {
+            return (B) ((ByteBuffer) dest).put( ValueConv.short_to_byte(v, sSigned, dSigned) );
+        } else if (dest instanceof ShortBuffer) {
+            return (B) ((ShortBuffer) dest).put( v );
+        } else if (dest instanceof IntBuffer) {
+            return (B) ((IntBuffer) dest).put( ValueConv.short_to_int(v, sSigned, dSigned) );
+        } else if (dest instanceof FloatBuffer) {            
+            return (B) ((FloatBuffer) dest).put( ValueConv.short_to_float(v, sSigned) );
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+    
+    /** 
+     * Store short source value in given buffer after normalizing it to the destination value range
+     * considering signed and unsigned source and destination representation.
+     * 
+     * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
+     * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
+     * @param v source short value to be put in dest buffer
+     * @param sSigned  true if source represents a signed value, false if source represents an unsigned value
+     */ 
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putNi(B dest, boolean dSigned, int v, boolean sSigned) {
+        if (dest instanceof ByteBuffer) {
+            return (B) ((ByteBuffer) dest).put( ValueConv.int_to_byte(v, sSigned, dSigned) );
+        } else if (dest instanceof ShortBuffer) {
+            return (B) ((ShortBuffer) dest).put( ValueConv.int_to_short(v, sSigned, dSigned) );
+        } else if (dest instanceof IntBuffer) {
+            return (B) ((IntBuffer) dest).put( v );
+        } else if (dest instanceof FloatBuffer) {            
+            return (B) ((FloatBuffer) dest).put( ValueConv.int_to_float(v, sSigned) );
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+        
+    /** 
+     * Store float source value in given buffer after normalizing it to the destination value range
+     * considering signed and unsigned destination representation.
+     * 
+     * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
+     * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
+     * @param v source float value to be put in dest buffer
+     */ 
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putNf(B dest, boolean dSigned, float v) {
+        if (dest instanceof ByteBuffer) {
+            return (B) ((ByteBuffer) dest).put( ValueConv.float_to_byte(v, dSigned) );
+        } else if (dest instanceof ShortBuffer) {
+            return (B) ((ShortBuffer) dest).put( ValueConv.float_to_short(v, dSigned) );
+        } else if (dest instanceof IntBuffer) {
+            return (B) ((IntBuffer) dest).put( ValueConv.float_to_int(v, dSigned) );
+        } else if (dest instanceof FloatBuffer) {            
+            return (B) ((FloatBuffer) dest).put( v );
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+    
+    //----------------------------------------------------------------------
+    // Range check methods 
+    //
+    
     public static void rangeCheck(byte[] array, int offset, int minElementsRemaining) {
         if (array == null) {
             return;
