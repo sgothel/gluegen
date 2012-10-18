@@ -54,14 +54,13 @@ public class FunctionType extends Type implements Cloneable {
         this.returnType = returnType;
     }
 
-    @SuppressWarnings("unchecked")
     public Object clone() {
         FunctionType n = (FunctionType) super.clone();
         if(null!=this.argumentTypes) {
-            n.argumentTypes = (ArrayList<Type>) this.argumentTypes.clone();
+            n.argumentTypes = new ArrayList<Type>(this.argumentTypes);
         }
         if(null!=this.argumentNames) {
-            n.argumentNames = (ArrayList<String>) this.argumentNames.clone();
+            n.argumentNames = new ArrayList<String>(this.argumentNames);
         }
         return n;
     }
