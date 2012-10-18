@@ -465,13 +465,14 @@ public class Buffers {
      * a newly-allocated direct ByteBuffer. The returned buffer will
      * have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static ByteBuffer copyByteBuffer(ByteBuffer orig) {
+        final int op0 = orig.position();
         ByteBuffer dest = newDirectByteBuffer(orig.remaining());
         dest.put(orig);
         dest.rewind();
+        orig.position(op0);        
         return dest;
     }
 
@@ -481,8 +482,7 @@ public class Buffers {
      * into a newly-allocated direct FloatBuffer. The returned buffer
      * will have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static FloatBuffer copyFloatBuffer(FloatBuffer orig) {
         return copyFloatBufferAsByteBuffer(orig).asFloatBuffer();
@@ -494,8 +494,7 @@ public class Buffers {
      * into a newly-allocated direct IntBuffer. The returned buffer
      * will have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static IntBuffer copyIntBuffer(IntBuffer orig) {
         return copyIntBufferAsByteBuffer(orig).asIntBuffer();
@@ -507,8 +506,7 @@ public class Buffers {
      * into a newly-allocated direct ShortBuffer. The returned buffer
      * will have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static ShortBuffer copyShortBuffer(ShortBuffer orig) {
         return copyShortBufferAsByteBuffer(orig).asShortBuffer();
@@ -523,13 +521,14 @@ public class Buffers {
      * into a newly-allocated direct ByteBuffer. The returned buffer
      * will have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static ByteBuffer copyFloatBufferAsByteBuffer(FloatBuffer orig) {
+        final int op0 = orig.position();
         ByteBuffer dest = newDirectByteBuffer(orig.remaining() * SIZEOF_FLOAT);
         dest.asFloatBuffer().put(orig);
         dest.rewind();
+        orig.position(op0);
         return dest;
     }
 
@@ -539,13 +538,14 @@ public class Buffers {
      * a newly-allocated direct ByteBuffer. The returned buffer will
      * have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static ByteBuffer copyIntBufferAsByteBuffer(IntBuffer orig) {
+        final int op0 = orig.position();
         ByteBuffer dest = newDirectByteBuffer(orig.remaining() * SIZEOF_INT);
         dest.asIntBuffer().put(orig);
         dest.rewind();
+        orig.position(op0);
         return dest;
     }
 
@@ -555,13 +555,14 @@ public class Buffers {
      * into a newly-allocated direct ByteBuffer. The returned buffer
      * will have its byte order set to the host platform's native byte
      * order. The position of the newly-allocated buffer will be zero,
-     * and the position of the passed buffer is unchanged (though its
-     * mark is changed).
+     * and the position of the passed buffer is unchanged.
      */
     public static ByteBuffer copyShortBufferAsByteBuffer(ShortBuffer orig) {
+        final int op0 = orig.position();
         ByteBuffer dest = newDirectByteBuffer(orig.remaining() * SIZEOF_SHORT);
         dest.asShortBuffer().put(orig);
         dest.rewind();
+        orig.position(op0);
         return dest;
     }
 
