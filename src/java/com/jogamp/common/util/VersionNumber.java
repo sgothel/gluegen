@@ -29,17 +29,17 @@
 package com.jogamp.common.util;
 
 import java.util.StringTokenizer;
+import java.util.regex.Matcher;
 
-public class VersionNumber implements Comparable {
+public class VersionNumber implements Comparable<Object> {
 
-    protected int major;
-    protected int minor;
-    protected int sub;
+    /** int[3] { major, minor, sub } */
+    protected int[] val = new int[] { 0, 0, 0 };
 
     public VersionNumber(int majorRev, int minorRev, int subMinorRev) {
-        major = majorRev;
-        minor = minorRev;
-        sub = subMinorRev;
+        val[0] = majorRev;
+        val[1] = minorRev;
+        val[2] = subMinorRev;
     }
 
     /**
@@ -47,27 +47,19 @@ public class VersionNumber implements Comparable {
      * @param delim the delimiter, e.g. "."
      */
     public VersionNumber(String versionString, String delim) {
-        final java.util.regex.Pattern nonDigitsCutOff = java.util.regex.Pattern.compile("\\D.*");
-        major = 0;
-        minor = 0;
-        sub = 0;
-        
-        StringTokenizer tok = new StringTokenizer(versionString, delim);
-        if (tok.hasMoreTokens()) {
+        // group1: \D* == leading non digits, optional
+        // group2: \d* == digits
+        // group3: .*  == any pending chars, optional
+        final java.util.regex.Pattern nonDigitsCutOff = java.util.regex.Pattern.compile("(\\D*)(\\d*)(.*)");
+        final StringTokenizer tok = new StringTokenizer(versionString, delim);
+        for(int n=0; tok.hasMoreTokens() && n<3; n++) {
             try {
-                major = Integer.parseInt(nonDigitsCutOff.matcher(tok.nextToken()).replaceAll(""));
-            } catch (NumberFormatException e) { }
+                final Matcher matcher = nonDigitsCutOff.matcher( tok.nextToken() );
+                if(matcher.matches()) {
+                    val[n] = Integer.parseInt(matcher.group(2));
+                }
+            } catch (Exception e) { e.printStackTrace(); }
         }
-        if (tok.hasMoreTokens()) {
-            try {
-                minor = Integer.parseInt(nonDigitsCutOff.matcher(tok.nextToken()).replaceAll(""));
-            } catch (NumberFormatException e) { }
-        }
-        if (tok.hasMoreTokens()) {
-            try {
-                sub = Integer.parseInt(nonDigitsCutOff.matcher(tok.nextToken()).replaceAll(""));
-            } catch (NumberFormatException e) { }
-        }        
     }
     
     protected VersionNumber() { }
@@ -75,53 +67,59 @@ public class VersionNumber implements Comparable {
     @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
-        int hash = 31 + major;
-        hash = ((hash << 5) - hash) + minor;
-        return ((hash << 5) - hash) + sub;
+        int hash = 31 + val[0];
+        hash = ((hash << 5) - hash) + val[1];
+        return ((hash << 5) - hash) + val[2];
     }
 
     @Override
     public final boolean equals(Object o) {
-        return 0 == compareTo(o);
+        if ( o instanceof VersionNumber ) {
+            return 0 == compareTo( (VersionNumber) o );
+        }
+        return false;
     }
     
+    @Override
     public final int compareTo(Object o) {
         if ( ! ( o instanceof VersionNumber ) ) {
             Class<?> c = (null != o) ? o.getClass() : null ;
-            throw new ClassCastException("Not a Capabilities object: " + c);
+            throw new ClassCastException("Not a VersionNumber object: " + c);
         }
+        return compareTo( (VersionNumber) o );
+    }
 
-        VersionNumber vo = (VersionNumber) o;
-        if (major > vo.major) {
+    public final int compareTo(VersionNumber vo) {
+        if (val[0] > vo.val[0]) {        // major
             return 1;
-        } else if (major < vo.major) {
+        } else if (val[0] < vo.val[0]) { // major
             return -1;
-        } else if (minor > vo.minor) {
+        } else if (val[1] > vo.val[1]) { // minor
             return 1;
-        } else if (minor < vo.minor) {
+        } else if (val[1] < vo.val[1]) { // minor
             return -1;
-        } else if (sub > vo.sub) {
+        } else if (val[2] > vo.val[2]) { // sub
             return 1;
-        } else if (sub < vo.sub) {
+        } else if (val[2] < vo.val[2]) { // sub
             return -1;
         }
         return 0; // they are equal
     }
-
+    
     public final int getMajor() {
-        return major;
+        return val[0];
     }
 
     public final int getMinor() {
-        return minor;
+        return val[1];
     }
 
     public final int getSub() {
-        return sub;
+        return val[2];
     }
 
     @Override
     public String toString() {
-        return major + "." + minor + "." + sub ;
+        return getMajor() + "." + getMinor() + "." + getSub() ;
     }
 }
