@@ -43,6 +43,13 @@ public class VersionNumber implements Comparable<Object> {
     }
 
     /**
+     * Parser first tokenizes the input versionString w/ given delimiter.
+     * <p>
+     * Each token will represent major, minor and sub version number component.
+     * </p>
+     * <p>
+     * For each token it ignores any leading non-digit and uses only contiguous digits, i.e. ignores pending non-digits. 
+     * </p>
      * @param versionString should be given as [MAJOR[.MINOR[.SUB]]]
      * @param delim the delimiter, e.g. "."
      */
