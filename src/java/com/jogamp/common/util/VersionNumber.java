@@ -58,7 +58,7 @@ public class VersionNumber implements Comparable<Object> {
                 if(matcher.matches()) {
                     val[n] = Integer.parseInt(matcher.group(2));
                 }
-            } catch (Exception e) { e.printStackTrace(); }
+            } catch (Exception e) { }
         }
     }
     
