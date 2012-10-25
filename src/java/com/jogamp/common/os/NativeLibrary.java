@@ -41,6 +41,8 @@
 package com.jogamp.common.os;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.cache.TempJarCache;
+
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.common.os.UnixDynamicLinkerImpl;
@@ -460,9 +462,18 @@ public class NativeLibrary implements DynamicLookupHelper {
     return null;
   }
   public static String findLibrary(final String libName, final ClassLoader loader) {
-    final String res = findLibraryImpl(libName, loader);
-    if (DEBUG) {
-      System.err.println("NativeLibrary.findLibrary(<"+libName+">, "+loader+"): "+res);
+    String res = null;
+    if(TempJarCache.isInitialized()) {
+        res = TempJarCache.findLibrary(libName);
+        if (DEBUG) {
+          System.err.println("NativeLibrary.findLibrary(<"+libName+">) (TempJarCache): "+res);
+        }
+    }
+    if(null == res) {
+        res = findLibraryImpl(libName, loader);
+        if (DEBUG) {
+          System.err.println("NativeLibrary.findLibrary(<"+libName+">, "+loader+") (CL): "+res);
+        }
     }
     return res;
   }

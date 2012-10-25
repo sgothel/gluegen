@@ -425,20 +425,8 @@ public class JNILibLoaderBase {
           throw (UnsatisfiedLinkError) new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
         }
     } else {
-      if(TempJarCache.isInitialized()) {
-          final String libraryPath = TempJarCache.findLibrary(libraryName);
-          if(null != libraryPath) {
-            if(DEBUG) {
-              System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> System.load("+libraryPath+") (TempJarCache)");
-            }
-            System.load(libraryPath);
-            return; // done
-          } else if(DEBUG) {
-            System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+") -> TempJarCache not mapped");
-          }
-      }
       // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
-      final String libraryPath = NativeLibrary.findLibrary(libraryName, cl);
+      final String libraryPath = NativeLibrary.findLibrary(libraryName, cl); // implicit TempJarCache usage if used/initialized
       if(DEBUG) {
           System.err.print("JNILibLoaderBase: loadLibraryInternal("+libraryName+"): CL: "+libraryPath);
       }
