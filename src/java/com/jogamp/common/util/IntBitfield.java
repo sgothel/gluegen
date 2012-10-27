@@ -27,12 +27,21 @@
  */
 package com.jogamp.common.util;
 
+/**
+ * Simple bitfield holder class using an int[] storage.
+ * <p> 
+ * IntBitfield allows convenient access of a wide field of transient bits using efficient storage in O(1).
+ * </p>
+ * <p>
+ * It can be used e.g. to map key-codes to pressed-state etc.
+ * </p> 
+ */
 public class IntBitfield {
     /** Unit size in bits, here 32 bits for one int unit. */
     public static final int UNIT_SIZE = 32;
     
-    final int[] storage;
-    final long bits;
+    private final int[] storage;
+    private final long bits;
     
     /**
      * @param bits
@@ -49,8 +58,10 @@ public class IntBitfield {
         }
     }
     
+    /** Return the capacity of this bit field, i.e. the number of bits stored int this field. */
     public final long capacity() { return bits; }
     
+    /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
     public final boolean get(long bitnum) {
         check(bitnum);
         final int u = (int) ( bitnum / UNIT_SIZE );
@@ -58,14 +69,23 @@ public class IntBitfield {
         return 0 != ( storage[u] & ( 1 << b ) ) ;
     }
     
-    public final void put(long bitnum, boolean bit) {        
+    /** 
+     * Set or clear the bit at position <code>bitnum</code> according to <code>bit</code>
+     * and return the previous value. 
+     */
+    public final boolean put(long bitnum, boolean bit) {        
         check(bitnum);
         final int u = (int) ( bitnum / UNIT_SIZE );
         final int b = (int) ( bitnum - ( u * UNIT_SIZE ) );
-        if(bit) {
-            storage[u] |=    1 << b;
-        } else {
-            storage[u] &= ~( 1 << b );
+        final int m = 1 << b;
+        final boolean prev = 0 != ( storage[u] & m ) ;
+        if( prev != bit ) {
+            if( bit ) {
+                storage[u] |=  m;
+            } else {
+                storage[u] &= ~m;
+            }
         }
+        return prev;
     }
 }
