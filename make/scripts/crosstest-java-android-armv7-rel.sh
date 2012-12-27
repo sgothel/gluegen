@@ -11,8 +11,8 @@ export TARGET_ROOT=/projects
 export BUILD_DIR=../build-android-armv7
 
 if [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
-    export ANDROID_SDK_HOME=/opt-linux-x86/android-sdk-linux_x86
-    export PATH=$ANDROID_SDK_HOME/platform-tools:$PATH
+    export ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
+    export PATH=$ANDROID_HOME/platform-tools:$PATH
 fi 
 
 #
