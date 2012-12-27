@@ -96,23 +96,29 @@ public class ClassLoaderUtil {
    private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
                                                                  List<String> apkNames, ClassLoader parent) {
        
+       final ApplicationInfo appInfoLauncher= ctx.getApplicationInfo();
+       final String appDirLauncher = new File(appInfoLauncher.dataDir).getParent();
+       final String libSubDef = "lib";
+       Log.d(TAG, "S: userPackageNames: "+userPackageNames+"; Launcher: appDir "+appDirLauncher+", dataDir: "+appInfoLauncher.dataDir+", nativeLibraryDir "+appInfoLauncher.nativeLibraryDir);
        
-       final ApplicationInfo appInfo = ctx.getApplicationInfo();
-       final String appDir = new File(appInfo.dataDir).getParent();
-       final String libSub = appInfo.nativeLibraryDir.substring(appInfo.nativeLibraryDir.lastIndexOf('/')+1);
-       Log.d(TAG, "S: userPackageName: "+userPackageNames+"; appName "+appInfo.name+", appDir "+appDir+", nativeLibraryDir: "+appInfo.nativeLibraryDir+"; dataDir: "+appInfo.dataDir+", libSub "+libSub);
-       
-       StringBuilder apks = new StringBuilder();
-       StringBuilder libs = new StringBuilder();
+       final StringBuilder apks = new StringBuilder();
+       final StringBuilder libs = new StringBuilder();
        int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
        
        if( null != userPackageNames ) {
            for(Iterator<String> i=userPackageNames.iterator(); i.hasNext(); ) {
                lastUserPackageName = i.next();
+               
                String userAPK = null;
+               String nativeLibraryDir=null;
                try {
-                   userAPK = ctx.getPackageManager().getApplicationInfo(lastUserPackageName,0).sourceDir;
+                   final PackageManager pm = ctx.getPackageManager();
+                   final ApplicationInfo appInfo = pm.getApplicationInfo(lastUserPackageName, 0);
+                   final String appDir = new File(appInfoLauncher.dataDir).getParent();                   
+                   userAPK = appInfo.sourceDir;
+                   nativeLibraryDir = appInfo.nativeLibraryDir;
+                   Log.d(TAG, "S: userPackage: "+lastUserPackageName+", apk "+userAPK+", appDir "+appDir+", dataDir: "+appInfo.dataDir+", nativeLibraryDir "+nativeLibraryDir);
                } catch (PackageManager.NameNotFoundException e) {
                    Log.d(TAG, "error: "+e, e);
                }
@@ -127,7 +133,11 @@ public class ClassLoaderUtil {
                    Log.d(TAG, "APK["+apkCount+"] found: <"+lastUserPackageName+"> -> <"+userAPK+">");
                    Log.d(TAG, "APK["+apkCount+"] apks: <"+apks.toString()+">");
                    if(addUserLibPath) {
-                       libs.append(appDir).append(PATH_SEP).append(lastUserPackageName).append(PATH_SEP).append(libSub).append(PATH_SEP);
+                       if(null != nativeLibraryDir && nativeLibraryDir.length()>0 ) {
+                           libs.append(nativeLibraryDir).append(PATH_SEP);
+                       } else {
+                           libs.append(appDirLauncher).append(PATH_SEP).append(lastUserPackageName).append(PATH_SEP).append(libSubDef).append(PATH_SEP);
+                       }
                        Log.d(TAG, "APK["+apkCount+"] libs: <"+libs.toString()+">");
                    }
                    apkCount++;
