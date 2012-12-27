@@ -146,11 +146,11 @@
         </exec>
         
         <path id="android.antlibs">
-            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/anttasks.jar" />
-            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/sdklib.jar" />
-            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/androidprefs.jar" />
-            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/apkbuilder.jar" />
-            <pathelement path="${env.ANDROID_SDK_HOME}/tools/lib/jarutils.jar" />
+            <pathelement path="${env.ANDROID_HOME}/tools/lib/anttasks.jar" />
+            <pathelement path="${env.ANDROID_HOME}/tools/lib/sdklib.jar" />
+            <pathelement path="${env.ANDROID_HOME}/tools/lib/androidprefs.jar" />
+            <pathelement path="${env.ANDROID_HOME}/tools/lib/apkbuilder.jar" />
+            <pathelement path="${env.ANDROID_HOME}/tools/lib/jarutils.jar" />
         </path>
 
         <echo>aapt.signed @{jarbasename}: packaging</echo>
@@ -213,7 +213,7 @@
               verbose="false" />
 
         <echo>aapt.signed @{jarbasename}: zip aligning</echo>
-        <exec dir="." executable="${env.ANDROID_SDK_HOME}/tools/zipalign" failonerror="true">
+        <exec dir="." executable="${env.ANDROID_HOME}/tools/zipalign" failonerror="true">
             <arg line="-v" />
             <arg value="-f" />
             <arg value="4" />
