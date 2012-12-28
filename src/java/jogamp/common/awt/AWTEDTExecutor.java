@@ -63,27 +63,48 @@ public class AWTEDTExecutor implements RunnableExecutor {
     }
 
     /**
-     * Executes the given runnable on the AWT EDT if current thread is not the EDT and the given tree
-     * lock is not hold, otherwise execute the runnable in current thread.
+     * Executes the given runnable on the AWT-EDT and return <code>true</code>, if
+     * <ul>
+     *  <li>current-thread is the AWT-EDT, <i>or</i></li>
+     *  <li>the given tree-lock is not hold by current-thread (-> invoke on AWT-EDT)</li>
+     * </ul>
+     * <p>
+     * Otherwise execute the given runnable on the current-thread and return <code>true</code>, if
+     * <code>allowOnNonEDT</code> is <code>true</code>.<br/>
+     * This implies that the given tree-lock is being hold by the current-thread.
+     * </p>
+     * <p>
+     * Otherwise the runnable is not executed and <code>false</code> is returned.
+     * </p>
+     * 
      * @param treeLock representing the AWT-tree-lock, i.e. {@link java.awt.Component#getTreeLock()}
+     * @param allowOnNonEDT allow execution on non AWT-EDT in case current thread is not AWT-EDT and the tree-lock is being hold
      * @param wait if true method waits until {@link Runnable#run()} is completed, otherwise don't wait.  
      * @param r the {@link Runnable} to be executed.
+     * @return <code>true</code> if the {@link Runnable} has been issued for execution, otherwise <code>false</code>   
      */
-    public void invoke(Object treeLock, boolean wait, Runnable r) {
-        if(EventQueue.isDispatchThread() || Thread.holdsLock(treeLock)) {
+    public boolean invoke(Object treeLock, boolean allowOnNonEDT, boolean wait, Runnable r) {
+        if( EventQueue.isDispatchThread() ) {
             r.run();
-        } else {
-          try {
-            if(wait) {
-                EventQueue.invokeAndWait(r);
-            } else {
-                EventQueue.invokeLater(r);
+            return true;
+        } else if ( !Thread.holdsLock(treeLock) ) {
+            try {
+                if(wait) {
+                    EventQueue.invokeAndWait(r);
+                } else {
+                    EventQueue.invokeLater(r);
+                }                
+            } catch (InvocationTargetException e) {
+                throw new RuntimeException(e.getTargetException());
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-          } catch (InvocationTargetException e) {
-            throw new RuntimeException(e.getTargetException());
-          } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-          }
+            return true;
+        } else if ( allowOnNonEDT ) {
+            r.run();
+            return true;
+        } else {
+            return false;
         }
     }
 }
