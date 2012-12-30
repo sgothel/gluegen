@@ -225,6 +225,19 @@ public class StructAccessor {
         }
         return v;
     }
+    
+    public final void setShortsAt(int byteOffset, short[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=2) {
+            bb.putShort(byteOffset, v[i]);
+        }        
+    }
+    
+    public final short[] getShortsAt(int byteOffset, short[] v) {
+        for (int i = 0; i < v.length; i++, byteOffset+=2) {
+            v[i] = bb.getShort(byteOffset);
+        }
+        return v;        
+    }
 
     public final void setIntsAt(int byteOffset, int[] v) {
         for (int i = 0; i < v.length; i++, byteOffset+=4) {
