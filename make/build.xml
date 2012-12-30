@@ -602,14 +602,62 @@
     </copy>
   </target>
 
+  <target name="generate-primitive-stacks">
+
+    <!-- IntegerStack -->
+    <antcall target="create-pstack" inheritrefs="true">
+        <param name="pstack.name" value="IntegerStack"/>
+        <param name="pstack.testname" value="TestIntegerStack01"/>
+        <param name="pstack.value" value="int"/>
+        <param name="pstack.value2" value="IntBuffer"/>
+    </antcall>
+
+  </target>
+
+  <target name="create-pstack">
+    <copy file="${src.java}/com/jogamp/common/util/FloatStack.java"
+        tofile="${src.generated.java}/com/jogamp/common/util/${pstack.name}.java" overwrite="true">
+        <filterchain>
+            <replaceregex pattern="FloatStack" replace="${pstack.name}"/>
+            <replaceregex pattern="@see ${pstack.name}" replace="@see FloatStack"/>
+            <replaceregex pattern="/\*value\*/float/\*value\*/" replace="${pstack.value}"/>
+            <replaceregex pattern="/\*value2\*/FloatBuffer/\*value2\*/" replace="${pstack.value2}"/>
+        </filterchain>
+    </copy>
+    <mkdir dir="${gluegen.root}/${rootrel.build}/test/build/gensrc/classes"/>
+    <copy file="${gluegen.root}/src/junit/com/jogamp/common/util/TestFloatStack01.java"
+        tofile="${gluegen.root}/${rootrel.build}/test/build/gensrc/classes/com/jogamp/common/util/${pstack.testname}.java" overwrite="true">
+        <filterchain>
+            <replaceregex pattern="FloatStack" replace="${pstack.name}"/>
+            <replaceregex pattern="TestFloatStack01" replace="${pstack.testname}"/>
+            <replaceregex pattern="@see ${pstack.name}" replace="@see FloatStack"/>
+            <replaceregex pattern="/\*value\*/float/\*value\*/" replace="${pstack.value}"/>
+            <replaceregex pattern="/\*value2\*/FloatBuffer/\*value2\*/" replace="${pstack.value2}"/>
+        </filterchain>
+    </copy>
+  </target>
+
   <target name="gluegen.build.check.java" depends="init">
-      <uptodate property="gluegen.build.skip.java">
+      <uptodate property="gluegen.build.skip.java1">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
         <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
         <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
         <mapper type="merge" to="${build}/gluegen.jar"/>
       </uptodate>
+      <uptodate property="gluegen.build.skip.java2">
+        <srcfiles dir= "."            includes="*.xml"/>
+        <srcfiles dir= "${src.java}"  includes="**"/>
+        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <mapper type="merge" to="${build}/gluegen-rt.jar"/>
+      </uptodate>
+      <condition property="gluegen.build.skip.java" value="true">
+        <or>
+          <isset property="gluegen.build.skip.java1"/>
+          <isset property="gluegen.build.skip.java2"/>
+        </or>
+      </condition>
   </target>
 
   <target name="gluegen.build.javase">
@@ -803,9 +851,10 @@
   </target>
   
   <target name="gluegen.build.java" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
-    <antcall target="generate-hash-maps"    inheritRefs="true"/>
-    <antcall target="gluegen.build.javase"  inheritRefs="true"/>
-    <antcall target="gluegen.build.android" inheritRefs="true"/>
+    <antcall target="generate-hash-maps"        inheritRefs="true"/>
+    <antcall target="generate-primitive-stacks" inheritRefs="true"/>
+    <antcall target="gluegen.build.javase"      inheritRefs="true"/>
+    <antcall target="gluegen.build.android"     inheritRefs="true"/>
   </target>
 
   <target name="gluegen.build.check.android-launcher" depends="init">
