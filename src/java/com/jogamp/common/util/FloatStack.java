@@ -63,6 +63,14 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
     public final int position() { return position; }
     
     @Override
+    public final void position(int newPosition) throws IndexOutOfBoundsException {
+        if( 0 > position || position >= buffer.length ) {
+            throw new IndexOutOfBoundsException("Invalid new position "+newPosition+", "+this.toString());
+        }
+        position = newPosition; 
+    }
+    
+    @Override
     public final int remaining() { return buffer.length - position; }
     
     @Override
@@ -72,7 +80,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
     public final void setGrowSize(int newGrowSize) { growSize = newGrowSize; }
     
     public final String toString() {
-        return "FloatStack[0..(top "+position+").."+buffer.length+", remaining "+remaining()+"]";
+        return "FloatStack[0..(pos "+position+").."+buffer.length+", remaining "+remaining()+"]";
     }
     
     public final /*value*/float/*value*/[] buffer() { return buffer; }

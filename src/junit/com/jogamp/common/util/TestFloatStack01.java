@@ -51,15 +51,28 @@ public class /*testname*/TestFloatStack01/*testname*/ extends JunitTracer {
     
     
     @Test
-    public void test01PrimitiveArray() {
+    public void test01PrimitiveArray_I32_G02() {
+        final int initialSizeElem = 32;
+        final int growSizeElem = 2;
+        testPrimitiveArrayImpl(initialSizeElem, growSizeElem);
+    }
+    
+    @Test
+    public void test02PrimitiveArray_I00_G32() {
+        final int initialSizeElem = 0;
+        final int growSizeElem = 32;
+        testPrimitiveArrayImpl(initialSizeElem, growSizeElem);
+    }
+    
+    static private final boolean VERBOSE = false;
+    
+    private void testPrimitiveArrayImpl(int initialSizeElem, int growSizeElem) {
         final int compNum  = 3; 
         /*value*/float/*value*/[] e0 = 
                 new /*value*/float/*value*/[] { 0, 1, 2 };
         /*value*/float/*value*/[] e1 = 
                 new /*value*/float/*value*/[] { 3, 4, 5 };
         
-        final int initialSizeElem = 32;
-        final int growSizeElem = 2;
         final int totalSizeElem = initialSizeElem+2*growSizeElem;
         
         final int initialSizeComp = initialSizeElem*compNum;
@@ -72,27 +85,38 @@ public class /*testname*/TestFloatStack01/*testname*/ extends JunitTracer {
         //
         // PUT
         //
-        
+        if(VERBOSE) {
+            System.err.println("0: "+fs0);
+        }
         for(int i=0; i<totalSizeElem; i++) {
             if(i < initialSizeElem) {
-                Assert.assertTrue("Error "+fs0, fs0.remaining() == (initialSizeElem-i)*compNum);
+                Assert.assertTrue("Error #"+i+", "+fs0, fs0.remaining() == (initialSizeElem-i)*compNum);
             } else {
-                int j = ( i - initialSizeElem ) % growSizeElem ;
-                Assert.assertTrue("Error "+fs0, fs0.remaining() == j*compNum);
+                final int j = ( i - initialSizeElem ) % growSizeElem ;
+                final int k = ( 0 < j && j < growSizeElem ) ? growSizeElem - j : 0;
+                Assert.assertTrue("Error #"+i+"("+j+", "+k+"), "+fs0, fs0.remaining() == k*compNum);
             }            
             Assert.assertTrue("Error "+fs0, fs0.position() == i*compNum);
             
-            // String s;
+            String s;
             if( 0 == i % 2) {
-                // s = Arrays.toString(e0);
+                if(VERBOSE) {
+                    s = Arrays.toString(e0);
+                }
                 fs0.putOnTop(e0, 0, compNum);
             } else {
-                // s = Arrays.toString(e1);
+                if(VERBOSE) {
+                    s = Arrays.toString(e1);
+                }
                 fs0.putOnTop(e1, 0, compNum);
             }
-            // System.err.println("#"+i+"/"+totalSizeElem+": "+fs0+" <- "+s);
+            if(VERBOSE) {
+                System.err.println("#"+i+"/"+totalSizeElem+": "+fs0+" <- "+s);
+            }
         }
-        // System.err.println("X: "+fs0);
+        if(VERBOSE) {
+            System.err.println("X: "+fs0);
+        }
         Assert.assertTrue("Error "+fs0, fs0.remaining() == 0);
         Assert.assertTrue("Error "+fs0, fs0.position() == totalSizeComp);
         
@@ -145,7 +169,20 @@ public class /*testname*/TestFloatStack01/*testname*/ extends JunitTracer {
     }
 
     @Test
-    public void test02FloatBuffer() {
+    public void test11FloatBuffer_I32_G02() {
+        final int initialSizeElem = 32;
+        final int growSizeElem = 2;
+        testFloatBufferImpl(initialSizeElem, growSizeElem);
+    }
+    
+    @Test
+    public void test12FloatBuffer_I00_G32() {
+        final int initialSizeElem = 0;
+        final int growSizeElem = 32;
+        testFloatBufferImpl(initialSizeElem, growSizeElem);
+    }
+    
+    private void testFloatBufferImpl(int initialSizeElem, int growSizeElem) {
         final int compNum  = 3; 
         /*value2*/FloatBuffer/*value2*/ fb0 = 
                 /*value2*/FloatBuffer/*value2*/.allocate(3*compNum);
@@ -161,8 +198,6 @@ public class /*testname*/TestFloatStack01/*testname*/ extends JunitTracer {
         fb0.put(e2);
         fb0.position(0);
         
-        final int initialSizeElem = 32;
-        final int growSizeElem = 2;
         final int totalSizeElem = initialSizeElem+2*growSizeElem;
         
         final int initialSizeComp = initialSizeElem*compNum;
@@ -178,18 +213,19 @@ public class /*testname*/TestFloatStack01/*testname*/ extends JunitTracer {
         
         for(int i=0; i<totalSizeElem; i++) {
             if( 0 == i ) {
-                Assert.assertTrue("Error "+fs0+", "+fb0, fb0.position() == 0);
+                Assert.assertTrue("Error #"+i+", "+fs0+", "+fb0, fb0.position() == 0);
             } else if( 0 == i % 2) {
-                Assert.assertTrue("Error "+fs0+", "+fb0, fb0.position() == 2*compNum);
+                Assert.assertTrue("Error #"+i+", "+fs0+", "+fb0, fb0.position() == 2*compNum);
                 fb0.position(0);
             } else {
-                Assert.assertTrue("Error "+fs0+", "+fb0, fb0.position() == compNum);
+                Assert.assertTrue("Error #"+i+", "+fs0+", "+fb0, fb0.position() == compNum);
             }
             if(i < initialSizeElem) {
-                Assert.assertTrue("Error "+fs0, fs0.remaining() == (initialSizeElem-i)*compNum);
+                Assert.assertTrue("Error #"+i+", "+fs0, fs0.remaining() == (initialSizeElem-i)*compNum);
             } else {
-                int j = ( i - initialSizeElem ) % growSizeElem ;
-                Assert.assertTrue("Error "+fs0, fs0.remaining() == j*compNum);
+                final int j = ( i - initialSizeElem ) % growSizeElem ;
+                final int k = ( 0 < j && j < growSizeElem ) ? growSizeElem - j : 0;
+                Assert.assertTrue("Error #"+i+"("+j+", "+k+"), "+fs0, fs0.remaining() == k*compNum);
             }            
             Assert.assertTrue("Error "+fs0, fs0.position() == i*compNum);
             

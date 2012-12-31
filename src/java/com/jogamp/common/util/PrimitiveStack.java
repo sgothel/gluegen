@@ -41,15 +41,23 @@ public interface PrimitiveStack {
     int capacity();
     
     /** 
-     * Returns the current position where the next put operation will store the next element.
+     * Returns the current position of this stack.
      * <p>
-     * The position equals to the number of elements already stored.
+     * Position is in the range: 0 &le; position &lt; {@link #capacity()}. 
      * </p>
-     * <p> 
-     * 0 denotes an empty stack.
+     * <p>
+     * The position equals to the number of elements stored.
      * </p>
      **/
     int position();
+    
+    /**
+     * Sets the position of this stack.
+     * 
+     * @param newPosition the new position
+     * @throws IndexOutOfBoundsException if <code>newPosition</code> is outside of range: 0 &le; position &lt; {@link #capacity()}.
+     */
+    void position(int newPosition) throws IndexOutOfBoundsException;
     
     /** 
      * Returns the remaining elements left before stack will grow about {@link #getGrowSize()}.
@@ -68,5 +76,5 @@ public interface PrimitiveStack {
     int getGrowSize();
 
     /** Set new {@link #growSize(). */
-    void setGrowSize(int newGrowSize);
+    void setGrowSize(int newGrowSize);    
 }
