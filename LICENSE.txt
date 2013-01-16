@@ -46,7 +46,9 @@ L.1) The GlueGen source tree contains code from the JogAmp Community
    You can address the JogAmp Community via:
        Web                http://jogamp.org/
        Forum/Mailinglist  http://jogamp.762907.n3.nabble.com/
-       JogAmp Channel     server: conference.jabber.org room: jogamp
+       Chatrooms
+         IRC              irc.freenode.net #jogamp 
+         Jabber           conference.jabber.org room: jogamp (deprecated!)
        Repository         http://jogamp.org/git/
        Email              mediastream _at_ jogamp _dot_ org
 
