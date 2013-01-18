@@ -90,8 +90,10 @@ public abstract class PlatformPropsImpl {
     }
     
     private static final boolean initIsJavaSE() {
-        if(JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
-            return true;
+        if(JAVA_RUNTIME_NAME!=null) {
+            if(JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
+                return true;
+            }
         }
 
         // probe for classes we need on a SE environment
