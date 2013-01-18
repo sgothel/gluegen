@@ -359,11 +359,25 @@ public class Buffers {
         if (buf == null) {
             return true;
         }
-        if (buf instanceof Buffer) {
-            return ((Buffer) buf).isDirect();
+        if (buf instanceof ByteBuffer) {
+            return ((ByteBuffer) buf).isDirect();
+        } else if (buf instanceof IntBuffer) {
+            return ((IntBuffer) buf).isDirect(); 
+        } else if (buf instanceof ShortBuffer) {
+            return ((ShortBuffer) buf).isDirect(); 
+        } else if (buf instanceof FloatBuffer) {
+            return ((FloatBuffer) buf).isDirect(); 
+        } else if (buf instanceof DoubleBuffer) {
+            return ((DoubleBuffer) buf).isDirect();
+        } else if (buf instanceof LongBuffer) {
+            return ((LongBuffer) buf).isDirect();
+        } else if (buf instanceof CharBuffer) {
+            return ((CharBuffer) buf).isDirect();
         } else if (buf instanceof PointerBuffer) {
             return ((PointerBuffer) buf).isDirect();
-        }
+        } else if (buf instanceof Buffer) {
+            throw new IllegalArgumentException("Unexpected buffer type Buffer.isDirect() operation is undefined");
+        } 
         throw new IllegalArgumentException("Unexpected buffer type " + buf.getClass().getName());
     }
 
