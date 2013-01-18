@@ -71,8 +71,8 @@ public class Buffers {
         return nativeOrder(ByteBuffer.allocateDirect(numElements));
     }
 
-    public static ByteBuffer newDirectByteBuffer(byte[] values, int offset, int lenght) {
-        return (ByteBuffer)newDirectByteBuffer(lenght).put(values, offset, lenght).rewind();
+    public static ByteBuffer newDirectByteBuffer(byte[] values, int offset, int length) {
+        return (ByteBuffer)newDirectByteBuffer(length).put(values, offset, length).rewind();
     }
 
     public static ByteBuffer newDirectByteBuffer(byte[] values, int offset) {
