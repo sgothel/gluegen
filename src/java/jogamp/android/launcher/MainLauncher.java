@@ -31,6 +31,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.List;
 
 import android.app.Activity;
 import android.net.Uri;
@@ -41,7 +42,8 @@ public class MainLauncher extends Activity {
    static final String TAG = "JogAmp-MainLauncher";
    
    // private static final String[] frameworkAPKs = { "/system/framework/core-junit.jar", "/data/projects/gluegen/make/lib/ant-junit-all.apk" };
-   private static final String[] frameworkAPKs = { "/data/projects/gluegen/make/lib/ant-junit-all.apk" };
+   // private static final String[] frameworkAPKs = { "/data/projects/gluegen/make/lib/ant-junit-all.apk" };
+   private static final String[] frameworkAPKs = { "/sdcard/ant-junit-all.apk" };
    
    LauncherUtil.DataSet data = null;
    
@@ -66,7 +68,7 @@ public class MainLauncher extends Activity {
        if(null != cl) {
            try {
                staticContextClazz = Class.forName("jogamp.common.os.android.StaticContext", true, cl);
-               mStaticContextInit = staticContextClazz.getMethod("init", android.content.Context.class);
+               mStaticContextInit = staticContextClazz.getMethod("init", android.content.Context.class, android.view.ViewGroup.class);
                mStaticContextClear = staticContextClazz.getMethod("clear");               
                
                mainClazz = Class.forName(data.getActivityName(), true, cl);
@@ -79,17 +81,21 @@ public class MainLauncher extends Activity {
            }
        }
 
-       if( null == mStaticContextInit || null == mStaticContextClear || 
-           null == mainClazzMain ) {
+       if( null == mStaticContextInit || null == mStaticContextClear || null == mainClazzMain ) {
            RuntimeException e = new RuntimeException("XXX - incomplete method set");
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
        
-       callMethod(null, mStaticContextInit, this.getApplicationContext());
+       final android.view.ViewGroup viewGroup = new android.widget.FrameLayout(getApplicationContext());
+       getWindow().setContentView(viewGroup);
        
-       mainClassArgs=new String[0]; // FIXME
+       callMethod(null, mStaticContextInit, getApplicationContext(), viewGroup);
        
+       List<String> args = data.getArguments();       
+       mainClassArgs=new String[args.size()];
+       args.toArray(mainClassArgs);       
+              
        Log.d(TAG, "onCreate - X");
    }
    
@@ -107,18 +113,26 @@ public class MainLauncher extends Activity {
      Log.d(TAG, "onRestart - X");
    }
 
+   private volatile Thread mainThread = null;
+   
    @Override
    public void onResume() {
      Log.d(TAG, "onResume - S");
-     try {
-         mainClazzMain.invoke(null, new Object[] { mainClassArgs } );
-     } catch (InvocationTargetException ite) {
-         ite.getTargetException().printStackTrace();
-     } catch (Throwable t) {
-         t.printStackTrace();
-     }
      super.onResume();
-     finish();
+     if(null == mainThread) {
+         mainThread = new Thread("Main") {
+             public void run() {
+                 try {
+                     mainClazzMain.invoke(null, new Object[] { mainClassArgs } );
+                 } catch (InvocationTargetException ite) {
+                     ite.getTargetException().printStackTrace();
+                 } catch (Throwable t) {
+                     t.printStackTrace();
+                 }
+                 mainThread = null;
+             } };
+         mainThread.start();
+     }
      Log.d(TAG, "onResume - X");
    }
 
@@ -152,6 +166,10 @@ public class MainLauncher extends Activity {
    @Override
    public void finish() {
      Log.d(TAG, "finish - S");
+     if(null != mainThread) {
+         mainThread.destroy();
+         mainThread = null;
+     }
      super.finish();  
      Log.d(TAG, "finish - X");
    }   

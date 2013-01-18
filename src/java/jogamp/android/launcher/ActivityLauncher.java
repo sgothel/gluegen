@@ -93,24 +93,24 @@ public class ActivityLauncher extends Activity {
    @Override
    public void onStart() {
      Log.d(TAG, "onStart - S");
-     callMethod(activityObject, mOnStart);
      super.onStart();
+     callMethod(activityObject, mOnStart);
      Log.d(TAG, "onStart - X");
    }
      
    @Override
    public void onRestart() {
      Log.d(TAG, "onRestart - S");
-     callMethod(activityObject, mOnRestart);
      super.onRestart();
+     callMethod(activityObject, mOnRestart);
      Log.d(TAG, "onRestart - X");
    }
 
    @Override
    public void onResume() {
      Log.d(TAG, "onResume - S");
-     callMethod(activityObject, mOnResume);
      super.onResume();
+     callMethod(activityObject, mOnResume);
      Log.d(TAG, "onResume - X");
    }
 

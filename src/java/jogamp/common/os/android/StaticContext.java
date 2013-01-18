@@ -29,9 +29,11 @@ package jogamp.common.os.android;
 
 import android.content.Context;
 import android.util.Log;
+import android.view.ViewGroup;
 
 public class StaticContext {
    private static Context appContext = null;
+   private static ViewGroup contentViewGroup = null;
    
    private static boolean DEBUG = false;
    
@@ -42,19 +44,32 @@ public class StaticContext {
     * @throws RuntimeException if the context is already registered.
     */
    public static final synchronized void init(Context appContext) {
-       if(null != StaticContext.appContext) {
-           throw new RuntimeException("Context already set");
-       }
-       if(DEBUG) { Log.d(MD.TAG, "init(appCtx "+appContext+")"); }
-       StaticContext.appContext = appContext;
+       init(appContext, null);
    }
    
    /**
-    * Unregister the Android application Context
+    * Register Android application context w/ a ViewGroup for static usage.
+    * 
+    * @param appContext mandatory application Context
+    * @param contentViewGroup optional ViewGroup acting as the Window's ContentView, usually a FrameLayout instance.
+    * @throws RuntimeException if the context is already registered.
+    */
+   public static final synchronized void init(Context appContext, ViewGroup contentViewGroup) {
+       if(null != StaticContext.appContext) {
+           throw new RuntimeException("Context already set");
+       }
+       if(DEBUG) { Log.d(MD.TAG, "init(appCtx "+appContext+", viewGroup "+contentViewGroup+")"); }
+       StaticContext.appContext = appContext;
+       StaticContext.contentViewGroup = contentViewGroup;
+   }
+   
+   /**
+    * Unregister the Android application Context and ViewGroup
     */
    public static final synchronized void clear() {
        if(DEBUG) { Log.d(MD.TAG, "clear()"); }
        appContext = null;
+       contentViewGroup = null;
    }
    
    /**
@@ -64,4 +79,12 @@ public class StaticContext {
    public static final synchronized Context getContext() {
        return appContext;
    }   
+   
+   /**
+    * Return the registered Android ViewGroup acting as the Window's ContentView
+    * @return
+    */
+   public static final synchronized ViewGroup getContentViewGroup() {
+       return contentViewGroup;
+   }
 }
