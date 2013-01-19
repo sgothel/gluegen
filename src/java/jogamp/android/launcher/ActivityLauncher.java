@@ -139,7 +139,6 @@ public class ActivityLauncher extends Activity {
          data = null;
      }
      super.onDestroy();  
-     finish();
      Log.d(TAG, "onDestroy - X");
    }   
 

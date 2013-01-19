@@ -113,27 +113,25 @@ public class MainLauncher extends Activity {
      Log.d(TAG, "onRestart - X");
    }
 
-   private volatile Thread mainThread = null;
-   
    @Override
    public void onResume() {
-     Log.d(TAG, "onResume - S");
+     Log.d(TAG, "onResume - S - "+Thread.currentThread().getName());
      super.onResume();
-     if(null == mainThread) {
-         mainThread = new Thread("Main") {
-             public void run() {
-                 try {
-                     mainClazzMain.invoke(null, new Object[] { mainClassArgs } );
-                 } catch (InvocationTargetException ite) {
-                     ite.getTargetException().printStackTrace();
-                 } catch (Throwable t) {
-                     t.printStackTrace();
-                 }
-                 mainThread = null;
-             } };
-         mainThread.start();
-     }
-     Log.d(TAG, "onResume - X");
+     final Thread mainThread = new Thread("Main") {
+         public void run() {
+             try {
+                Log.d(TAG, "onResume - main.0 - "+Thread.currentThread().getName());
+                mainClazzMain.invoke(null, new Object[] { mainClassArgs } );
+             } catch (InvocationTargetException ite) {
+                 ite.getTargetException().printStackTrace();
+             } catch (Throwable t) {
+                 t.printStackTrace();
+             }
+             Log.d(TAG, "onResume - main.X -> finish() - "+Thread.currentThread().getName());
+             finish();
+         } };
+     mainThread.start();
+     Log.d(TAG, "onResume - X - "+Thread.currentThread().getName());
    }
 
    @Override
@@ -159,18 +157,12 @@ public class MainLauncher extends Activity {
      }
      callMethod(null, mStaticContextClear);
      super.onDestroy();  
-     finish();
      Log.d(TAG, "onDestroy - X");
    }   
 
    @Override
    public void finish() {
      Log.d(TAG, "finish - S");
-     if(null != mainThread) {
-         // FIXME: No means to trigger an exit a main class, or do we ?
-         // mainThread.destroy(); // n/a on Android
-         mainThread = null;
-     }
      super.finish();  
      Log.d(TAG, "finish - X");
    }   

@@ -24,10 +24,11 @@ TSTCLASS=com.jogamp.common.GlueGenVersion
 
 LOGFILE=`basename $0 .sh`.log
 
-adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall jogamp.android.launcher
-adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall com.jogamp.common
-adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/jogamp-android-launcher.apk
-adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/gluegen-rt-android-armeabi.apk
+#adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall jogamp.android.launcher
+#adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/jogamp-android-launcher.apk
+
+#adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall com.jogamp.common
+#adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/gluegen-rt-android-armeabi.apk
 
 SHELL_CMD="\
 cd /sdcard ; \
@@ -35,9 +36,11 @@ if [ -e $TARGET_ROOT ] ; then rm -r $TARGET_ROOT ; fi ; \
 mkdir $TARGET_ROOT ; cd $TARGET_ROOT ; \
 setprop log.redirect-stdio true ; setprop log.redirect-stderr true ; \
 am kill-all ; \
-am start -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/$TSTCLASS/?pkg=com.jogamp.common \
+am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/$TSTCLASS/?pkg=com.jogamp.common \
 "
 
 adb connect $TARGET_IP:$TARGET_ADB_PORT
+adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -c
 adb -s $TARGET_IP:$TARGET_ADB_PORT shell $SHELL_CMD 2>&1 | tee $LOGFILE
+adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -d 2>&1 | tee $LOGFILE
 
