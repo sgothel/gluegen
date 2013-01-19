@@ -167,7 +167,8 @@ public class MainLauncher extends Activity {
    public void finish() {
      Log.d(TAG, "finish - S");
      if(null != mainThread) {
-         mainThread.destroy();
+         // FIXME: No means to trigger an exit a main class, or do we ?
+         // mainThread.destroy(); // n/a on Android
          mainThread = null;
      }
      super.finish();  
