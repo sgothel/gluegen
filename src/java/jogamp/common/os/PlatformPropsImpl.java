@@ -30,6 +30,9 @@ public abstract class PlatformPropsImpl {
     // static initialization order:
     //
     
+    /** Version 1.6. As a JVM version, it enables certain JVM 1. features. */
+    public static final VersionNumber Version16;
+    
     public static final String OS;
     public static final String OS_lower;
     public static final String OS_VERSION;
@@ -39,10 +42,13 @@ public abstract class PlatformPropsImpl {
     public static final String JAVA_VENDOR;
     public static final String JAVA_VENDOR_URL;
     public static final String JAVA_VERSION;
-    public static final VersionNumber JAVA_VERSION_NUMBER;    
+    public static final VersionNumber JAVA_VERSION_NUMBER;
     public static final String JAVA_VM_NAME;
     public static final String JAVA_RUNTIME_NAME;
+    /** True if having {@link java.nio.LongBuffer} and {@link java.nio.DoubleBuffer} available. */
     public static final boolean JAVA_SE;
+    /** True if being compatible w/ language level 6, e.g. JRE 1.6. Implies {@link #JAVA_SE}. <i>Note</i>: We claim Android is compatible. */ 
+    public static final boolean JAVA_6;
     
     public static final String NEWLINE;
     public static final boolean LITTLE_ENDIAN;
@@ -51,8 +57,9 @@ public abstract class PlatformPropsImpl {
     public static final ABIType ABI_TYPE;
     public static final OSType OS_TYPE;
     public static final String os_and_arch;
-    
+            
     static {
+        Version16 = new VersionNumber(1, 6, 0);
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned Applets.
         OS =  System.getProperty("os.name");
@@ -68,6 +75,7 @@ public abstract class PlatformPropsImpl {
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();
+        JAVA_6 = JAVA_SE && ( AndroidVersion.isAvailable || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
         
         NEWLINE = System.getProperty("line.separator");
         LITTLE_ENDIAN = queryIsLittleEndianImpl();
@@ -75,7 +83,7 @@ public abstract class PlatformPropsImpl {
         CPU_ARCH = getCPUTypeImpl(ARCH_lower);
         ABI_TYPE = guessABITypeImpl(CPU_ARCH);
         OS_TYPE = getOSTypeImpl();
-        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);        
+        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
     }
 
     protected PlatformPropsImpl() {}
@@ -90,10 +98,8 @@ public abstract class PlatformPropsImpl {
     }
     
     private static final boolean initIsJavaSE() {
-        if(JAVA_RUNTIME_NAME!=null) {
-            if(JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
-                return true;
-            }
+        if( null != JAVA_RUNTIME_NAME && JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
+            return true;
         }
 
         // probe for classes we need on a SE environment

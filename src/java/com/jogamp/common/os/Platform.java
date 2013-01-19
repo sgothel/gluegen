@@ -257,12 +257,25 @@ public class Platform extends PlatformPropsImpl {
     public static void initSingleton() { } 
     
     /**
-     * Returns true only if this program is running on the Java Standard Edition.
+     * Returns true only if having {@link java.nio.LongBuffer} and {@link java.nio.DoubleBuffer} available.
      */
     public static boolean isJavaSE() {
         return JAVA_SE;
     }
 
+    /**
+     * Returns true only if being compatible w/ language level 6, e.g. JRE 1.6.
+     * <p>
+     * Implies {@link #isJavaSE()}.
+     * </p>
+     * <p>
+     * <i>Note</i>: We claim Android is compatible.
+     * </p> 
+     */
+    public static boolean isJava6() {
+        return JAVA_6;
+    }
+    
     /**
      * Returns true if this machine is little endian, otherwise false.
      */
