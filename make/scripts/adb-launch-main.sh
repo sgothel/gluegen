@@ -42,5 +42,5 @@ am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.a
 adb connect $TARGET_IP:$TARGET_ADB_PORT
 adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -c
 adb -s $TARGET_IP:$TARGET_ADB_PORT shell $SHELL_CMD 2>&1 | tee $LOGFILE
-adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -d 2>&1 | tee $LOGFILE
+adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -d 2>&1 | tee -a $LOGFILE
 
