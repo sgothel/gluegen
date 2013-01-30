@@ -174,13 +174,13 @@ public class NativeLibrary implements DynamicLookupHelper {
                                                        macOSXLibName,
                                                        searchSystemPathFirst,
                                                        loader);
+    Platform.initSingleton(); // loads native gluegen-rt library
     // Iterate down these and see which one if any we can actually find.
     for (Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
       String path = iter.next();
       if (DEBUG) {
         System.err.println("NativeLibrary.open(): Trying to load " + path);
       }
-      Platform.initSingleton(); // loads native gluegen-rt library
       long res;
       if(global) {
           res = dynLink.openLibraryGlobal(path, DEBUG);
@@ -254,18 +254,22 @@ public class NativeLibrary implements DynamicLookupHelper {
    * @return basename of libName w/o path, ie. /usr/lib/libDrinkBeer.so -> DrinkBeer on Unix systems, but null on Windows.
    */
   public static String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
-    libName = IOUtil.getBasename(libName);
-    final String libNameLC = isLowerCaseAlready ? libName : libName.toLowerCase();
-    for(int i=0; i<prefixes.length; i++) {
-        if (libNameLC.startsWith(prefixes[i])) {
-            for(int j=0; j<suffixes.length; j++) {
-                if (libNameLC.endsWith(suffixes[j])) {
-                    final int s = prefixes[i].length();
-                    final int e = suffixes[j].length();
-                    return libName.substring(s, libName.length()-e);
-                }
+    final String libBaseName = IOUtil.getBasename(libName);
+    final String libBaseNameLC = isLowerCaseAlready ? libBaseName : libBaseName.toLowerCase();
+    int prefixIdx = -1;
+    for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {    
+        if (libBaseNameLC.startsWith(prefixes[i])) {
+            prefixIdx = i;
+        }
+    }
+    if( 0 <= prefixIdx ) {
+        for(int i=0; i<suffixes.length; i++) {
+            if (libBaseNameLC.endsWith(suffixes[i])) {
+                final int s = prefixes[prefixIdx].length();
+                final int e = suffixes[i].length();
+                return libBaseName.substring(s, libBaseName.length()-e);
             }
-        }    
+        }
     }
     return null;  
   }
@@ -273,7 +277,7 @@ public class NativeLibrary implements DynamicLookupHelper {
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
       the indicated native library on the system. */
-  private static List<String> enumerateLibraryPaths(String windowsLibName,
+  public static List<String> enumerateLibraryPaths(String windowsLibName,
                                                     String unixLibName,
                                                     String macOSXLibName,
                                                     boolean searchSystemPathFirst,
@@ -372,46 +376,58 @@ public class NativeLibrary implements DynamicLookupHelper {
   }
 
   private static String[] buildNames(String libName) {
-    // If the library name already has the prefix / suffix added
-    // (principally because we want to force a version number on Unix
-    // operating systems) then just return the library name.
-    if (libName.startsWith(prefixes[0])) {
-      if (libName.endsWith(suffixes[0])) {
-        return new String[] { libName };
-      }
-
-      int idx = libName.indexOf(suffixes[0]);
-      boolean ok = true;
-      if (idx >= 0) {
-        // Check to see if everything after it is a Unix version number
-        for (int i = idx + suffixes[0].length();
-             i < libName.length();
-             i++) {
-          char c = libName.charAt(i);
-          if (!(c == '.' || (c >= '0' && c <= '9'))) {
-            ok = false;
-            break;
+      // If the library name already has the prefix / suffix added
+      // (principally because we want to force a version number on Unix
+      // operating systems) then just return the library name.
+      final String libBaseNameLC = IOUtil.getBasename(libName).toLowerCase();
+      
+      int prefixIdx = -1;
+      for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {    
+          if (libBaseNameLC.startsWith(prefixes[i])) {
+              prefixIdx = i;
           }
-        }
-        if (ok) {
-          return new String[] { libName };
-        }
       }
-    }
+      if( 0 <= prefixIdx ) {
+          for(int i=0; i<suffixes.length; i++) {
+              if (libBaseNameLC.endsWith(suffixes[i])) {
+                  return new String[] { libName };
+              }
+          }
+          int suffixIdx = -1;
+          for(int i=0; i<suffixes.length && 0 > suffixIdx; i++) {
+              suffixIdx = libBaseNameLC.indexOf(suffixes[i]);
+          }
+          boolean ok = true;
+          if (suffixIdx >= 0) {
+              // Check to see if everything after it is a Unix version number
+              for (int i = suffixIdx + suffixes[0].length();
+                      i < libName.length();
+                      i++) {
+                  char c = libName.charAt(i);
+                  if (!(c == '.' || (c >= '0' && c <= '9'))) {
+                      ok = false;
+                      break;
+                  }
+              }
+              if (ok) {
+                  return new String[] { libName };
+              }
+          }
+      }
 
-    String[] res = new String[prefixes.length * suffixes.length + 
-                              ( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
-    int idx = 0;
-    for (int i = 0; i < prefixes.length; i++) {
-      for (int j = 0; j < suffixes.length; j++) {
-        res[idx++] = prefixes[i] + libName + suffixes[j];
+      String[] res = new String[prefixes.length * suffixes.length + 
+                                ( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
+      int idx = 0;
+      for (int i = 0; i < prefixes.length; i++) {
+          for (int j = 0; j < suffixes.length; j++) {
+              res[idx++] = prefixes[i] + libName + suffixes[j];
+          }
       }
-    }
-    if (PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
-        // Plain library-base-name in Framework folder
-        res[idx++] = libName;
-    }
-    return res;
+      if (PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
+          // Plain library-base-name in Framework folder
+          res[idx++] = libName;
+      }
+      return res;
   }
 
   private static void addPaths(String path, String[] baseNames, List<String> paths) {

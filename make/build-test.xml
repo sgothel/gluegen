@@ -417,7 +417,7 @@ chmod 644 ${results}/* \${line.separator}
         <mkdir dir="${build}/test/results"/>
     </target>
 
-    <target name="junit.run.local.d32" if="isOSX">
+    <target name="junit.run.local.osx.d32" if="isOSX">
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d32"/>
 
@@ -433,7 +433,7 @@ chmod 644 ${results}/* \${line.separator}
         <var name="jvmDataModel.arg" value="-d64"/>
     </target>
 
-    <target name="junit.run.tests" depends="junit.run.local.d32, junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/>
+    <target name="junit.run.tests" depends="junit.run.local.osx.d32, junit.run.local, junit.run.remote.ssh, junit.run.remote.adb"/>
 
     <target name="junit.run.if.enabled" unless="junit.is.disabled">
         <antcall target="junit.run.tests"      inheritRefs="true" inheritAll="true"/>

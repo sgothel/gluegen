@@ -47,6 +47,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.JarUtil;
@@ -345,7 +347,7 @@ public class JNILibLoaderBase {
       }
   }
 
-  // private static final Class<?> customLauncherClass;
+  // private static final Class<?> customLauncherClass; // FIXME: remove
   private static final Method customLoadLibraryMethod;
 
   static {
@@ -354,6 +356,7 @@ public class JNILibLoaderBase {
     
     final Method loadLibraryMethod = AccessController.doPrivileged(new PrivilegedAction<Method>() {
         public Method run() {
+            // FIXME: remove
             final boolean usingJNLPAppletLauncher = Debug.getBooleanProperty(sunAppletLauncherProperty, true); 
     
             Class<?> launcherClass = null;
@@ -380,8 +383,7 @@ public class JNILibLoaderBase {
                         launcherClass = null;
                    }
                 }
-            }
-            
+            }            
             if(null==launcherClass) {
                 String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false, null);
                 if(null!=launcherClassName) {
@@ -406,41 +408,77 @@ public class JNILibLoaderBase {
   }
 
   private static void loadLibraryInternal(String libraryName, ClassLoader cl) {
-    // Note: special-casing JAWT which is built in to the JDK
-    if (null!=customLoadLibraryMethod && !libraryName.equals("jawt")) {
-        try {
-          customLoadLibraryMethod.invoke(null, new Object[] { libraryName });
-        } catch (Exception e) {
-          Throwable t = e;
-          if (t instanceof InvocationTargetException) {
-            t = ((InvocationTargetException) t).getTargetException();
-          }
-          if (t instanceof Error) {
-            throw (Error) t;
-          }
-          if (t instanceof RuntimeException) {
-            throw (RuntimeException) t;
-          }
-          // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
-          throw (UnsatisfiedLinkError) new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
-        }
-    } else {
-      // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
-      final String libraryPath = NativeLibrary.findLibrary(libraryName, cl); // implicit TempJarCache usage if used/initialized
-      if(DEBUG) {
-          System.err.print("JNILibLoaderBase: loadLibraryInternal("+libraryName+"): CL: "+libraryPath);
-      }
-      if(null != libraryPath) {
+      // Note: special-casing JAWT which is built in to the JDK 
+      int mode = 0; // 1 - custom, 2 - System.load( TempJarCache ), 3 - System.loadLibrary( name ), 4 - System.load( enumLibNames )
+      if (null!=customLoadLibraryMethod && !libraryName.equals("jawt")) {
+          // FIXME: remove
           if(DEBUG) {
-              System.err.println(" -> System.load("+libraryPath+")");
+              System.err.println("JNILibLoaderBase: customLoad("+libraryName+") - mode 1");
           }
-          System.load(libraryPath);
+          try {
+              customLoadLibraryMethod.invoke(null, new Object[] { libraryName });
+              mode = 1;
+          } catch (Exception e) {
+              Throwable t = e;
+              if (t instanceof InvocationTargetException) {
+                  t = ((InvocationTargetException) t).getTargetException();
+              }
+              if (t instanceof Error) {
+                  throw (Error) t;
+              }
+              if (t instanceof RuntimeException) {
+                  throw (RuntimeException) t;
+              }
+              // Throw UnsatisfiedLinkError for best compatibility with System.loadLibrary()
+              throw (UnsatisfiedLinkError) new UnsatisfiedLinkError("can not load library "+libraryName).initCause(e);
+          }
       } else {
+          // System.err.println("sun.boot.library.path=" + Debug.getProperty("sun.boot.library.path", false));
+          final String libraryPath = NativeLibrary.findLibrary(libraryName, cl); // implicit TempJarCache usage if used/initialized
           if(DEBUG) {
-              System.err.println(" -> System.loadLibrary("+libraryName+")");
+              System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+"), TempJarCache: "+libraryPath);
           }
-          System.loadLibrary(libraryName);          
+          if(null != libraryPath) {
+              if(DEBUG) {
+                  System.err.println("JNILibLoaderBase: System.load("+libraryPath+") - mode 2");
+              }
+              System.load(libraryPath);
+              mode = 2;
+          } else {
+              if(DEBUG) {
+                  System.err.println("JNILibLoaderBase: System.loadLibrary("+libraryName+") - mode 3");
+              }
+              try {
+                  System.loadLibrary(libraryName);
+                  mode = 3;
+              } catch (UnsatisfiedLinkError ex1) {
+                  if(DEBUG) {
+                      System.err.println("ERROR (retry w/ enumLibPath) - "+ex1.getMessage());
+                  }
+                  List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, true, cl);
+                  // Iterate down these and see which one if any we can actually find.
+                  for (Iterator<String> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
+                      String path = iter.next();
+                      if (DEBUG) {
+                          System.err.println("JNILibLoaderBase: System.load("+path+") - mode 4");
+                      }
+                      try {
+                          System.load(path);
+                          mode = 4;
+                      } catch (UnsatisfiedLinkError ex2) {
+                          if(DEBUG) {
+                              System.err.println("n/a - "+ex2.getMessage());
+                          }
+                          if(!iter.hasNext()) {
+                              throw ex2;
+                          }
+                      }
+                  }
+              }
+          }
       }
-    }
+      if(DEBUG) {
+          System.err.println("JNILibLoaderBase: loadLibraryInternal("+libraryName+"): OK - mode "+mode);
+      }
   }
 }
