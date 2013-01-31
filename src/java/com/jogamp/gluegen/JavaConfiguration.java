@@ -142,6 +142,8 @@ public class JavaConfiguration {
     private Map<String, List<Integer>> argumentsAreString = new HashMap<String, List<Integer>>();
     private Set<String> extendedIntfSymbolsIgnore = new HashSet<String>();
     private Set<String> extendedIntfSymbolsOnly = new HashSet<String>();
+    private Set<String> extendedImplSymbolsIgnore = new HashSet<String>();
+    private Set<String> extendedImplSymbolsOnly = new HashSet<String>();
     private Set<Pattern> ignores = new HashSet<Pattern>();
     private Map<String, Pattern> ignoreMap = new HashMap<String, Pattern>();
     private Set<Pattern> ignoreNots = new HashSet<Pattern>();
@@ -652,6 +654,10 @@ public class JavaConfiguration {
     for (String str : extendedIntfSymbolsIgnore) {
         System.err.println("\t"+str);
     }
+    System.err.println("Extended Impl: ");
+    for (String str : extendedImplSymbolsIgnore) {
+        System.err.println("\t"+str);
+    }
     System.err.println("Ignores (All): ");
     for (Pattern pattern : ignores) {
         System.err.println("\t"+pattern);
@@ -687,13 +693,23 @@ public class JavaConfiguration {
     if(DEBUG_IGNORES) {
         dumpIgnoresOnce();
     }
-    // Simple case; the entire symbol (orig or renamed) is in the interface ignore table
-    if (extendedIntfSymbolsIgnore.contains(symbol) ||
-        extendedIntfSymbolsIgnore.contains(getJavaSymbolRename(symbol))) {
+    // Simple case-1; the entire symbol (orig or renamed) is in the interface ignore table
+    final String renamedSymbol = getJavaSymbolRename(symbol);
+    if ( extendedIntfSymbolsIgnore.contains( symbol ) ||
+         extendedIntfSymbolsIgnore.contains( renamedSymbol ) ) {
       if(DEBUG_IGNORES) {
-          System.err.println("Ignore Intf: "+symbol);
+          System.err.println("Ignore Intf ignore : "+symbol);
       }
       return true;
+    }
+    // Simple case-2; the entire symbol (orig or renamed) is _not_ in the not-empty interface only table
+    if ( !extendedIntfSymbolsOnly.isEmpty() &&
+         !extendedIntfSymbolsOnly.contains( symbol ) &&
+         !extendedIntfSymbolsOnly.contains( renamedSymbol ) ) {
+          if(DEBUG_IGNORES) {
+              System.err.println("Ignore Intf !extended: " + symbol);
+          }
+          return true;
     }
     return shouldIgnoreInImpl_Int(symbol);
   }
@@ -708,14 +724,23 @@ public class JavaConfiguration {
       dumpIgnoresOnce();
     }
 
-    if (!extendedIntfSymbolsOnly.isEmpty()) {
-      if(!extendedIntfSymbolsOnly.contains(symbol) &&
-         !extendedIntfSymbolsOnly.contains(getJavaSymbolRename(symbol))) {
+    // Simple case-1; the entire symbol (orig or renamed) is in the implementation ignore table
+    final String renamedSymbol = getJavaSymbolRename(symbol);
+    if ( extendedImplSymbolsIgnore.contains( symbol ) ||
+         extendedImplSymbolsIgnore.contains( renamedSymbol ) ) {
+      if(DEBUG_IGNORES) {
+          System.err.println("Ignore Impl ignore : "+symbol);
+      }
+      return true;
+    }
+    // Simple case-2; the entire symbol (orig or renamed) is _not_ in the not-empty implementation only table
+    if ( !extendedImplSymbolsOnly.isEmpty() &&
+         !extendedImplSymbolsOnly.contains( symbol ) &&
+         !extendedImplSymbolsOnly.contains( renamedSymbol ) ) {
           if(DEBUG_IGNORES) {
               System.err.println("Ignore Impl !extended: " + symbol);
           }
           return true;
-      }
     }
 
     // Ok, the slow case. We need to check the entire table, in case the table
@@ -923,9 +948,17 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("ArgumentIsString")) {
       readArgumentIsString(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsIgnore")) {
-      readExtendedInterfaceSymbols(tok, filename, lineNo, false);
+      readExtendedIntfImplSymbols(tok, filename, lineNo, true, false, false);
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsOnly")) {
-      readExtendedInterfaceSymbols(tok, filename, lineNo, true);
+      readExtendedIntfImplSymbols(tok, filename, lineNo, true, false, true);
+    } else if (cmd.equalsIgnoreCase("ExtendedImplementationSymbolsIgnore")) {
+      readExtendedIntfImplSymbols(tok, filename, lineNo, false, true, false);
+    } else if (cmd.equalsIgnoreCase("ExtendedImplementationSymbolsOnly")) {
+      readExtendedIntfImplSymbols(tok, filename, lineNo, false, true, true);
+    } else if (cmd.equalsIgnoreCase("ExtendedIntfAndImplSymbolsIgnore")) {
+      readExtendedIntfImplSymbols(tok, filename, lineNo, true, true, false);
+    } else if (cmd.equalsIgnoreCase("ExtendedIntfAndImplSymbolsOnly")) {
+      readExtendedIntfImplSymbols(tok, filename, lineNo, true, true, true);
     } else if (cmd.equalsIgnoreCase("Ignore")) {
       readIgnore(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("Unignore")) {
@@ -1115,7 +1148,7 @@ public class JavaConfiguration {
   }
 
   @SuppressWarnings("unchecked")
-  protected void readExtendedInterfaceSymbols(StringTokenizer tok, String filename, int lineNo, boolean onlyList) {
+  protected void readExtendedIntfImplSymbols(StringTokenizer tok, String filename, int lineNo, boolean forInterface, boolean forImplementation, boolean onlyList) {
     File javaFile;
     BufferedReader javaReader;
     try {
@@ -1137,12 +1170,26 @@ public class JavaConfiguration {
       throw new RuntimeException(e);
     }
 
-    if(onlyList) {
-        extendedIntfSymbolsOnly.addAll(parser.getParsedEnumNames());
-        extendedIntfSymbolsOnly.addAll(parser.getParsedFunctionNames());
-    } else {
-        extendedIntfSymbolsIgnore.addAll(parser.getParsedEnumNames());
-        extendedIntfSymbolsIgnore.addAll(parser.getParsedFunctionNames());
+    final Set<String> parsedEnumNames = parser.getParsedEnumNames();
+    final Set<String> parsedFuncNames = parser.getParsedFunctionNames();
+    
+    if(forInterface) {
+        if(onlyList) {
+            extendedIntfSymbolsOnly.addAll(parsedEnumNames);
+            extendedIntfSymbolsOnly.addAll(parsedFuncNames);
+        } else {
+            extendedIntfSymbolsIgnore.addAll(parsedEnumNames);
+            extendedIntfSymbolsIgnore.addAll(parsedFuncNames);
+        }
+    } 
+    if(forImplementation) {
+        if(onlyList) {
+            extendedImplSymbolsOnly.addAll(parsedEnumNames);
+            extendedImplSymbolsOnly.addAll(parsedFuncNames);
+        } else {
+            extendedImplSymbolsIgnore.addAll(parsedEnumNames);
+            extendedImplSymbolsIgnore.addAll(parsedFuncNames);
+        }
     }
   }
 
