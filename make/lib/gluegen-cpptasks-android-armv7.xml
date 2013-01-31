@@ -34,10 +34,10 @@
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
     <compiler id="compiler.cfg.android" name="gcc">
       <compilerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
-      <!-- The default search dirs for 'gcc from $NDK_TOOLCHAIN/$TARGET_TRIPLE/bin will not find
+      <!-- The default search dirs for 'gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin will not find
         subprograms properly (see gcc -print-search-dirs). Not sure if this is a bug in the NDK
         or not. Need to explicitly indicate where subprograms are with -B.
-        NOTE: This is not necessary if using '$TARGET_TRIPLE-gcc' from $NDK_TOOLCHAIN/bin. -->
+        NOTE: This is not necessary if using '$TARGET_TRIPLE-gcc' from $NDK_TOOLCHAIN_ROOT/bin. -->
       <compilerarg value="-B${env.NDK_TOOLCHAIN_ROOT}/libexec/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" />
 
       <compilerarg value="-ffunction-sections" />
@@ -90,7 +90,7 @@
          <linkerarg value="--gc-sections" /> 
          <linkerarg value="--no-undefined" /> 
          <linkerarg value="-static-libgcc"/>
-         <!-- The gcc from $NDK_TOOLCHAIN/$TARGET_TRIPLE/bin needs to be told
+         <!-- The gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin needs to be told
            where to find libgcc as the default location (gcc -print-search-dirs)
            is not correct. Not sure if this is a bug in the NDK or not. We also
            enforce that libgcc is linked after source files but before other shared
