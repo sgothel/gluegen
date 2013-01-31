@@ -29,7 +29,7 @@
 package jogamp.android.launcher;
 
 import java.io.File;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -41,15 +41,13 @@ import android.util.Log;
 public class ClassLoaderUtil {
    private static final String TAG = "JogampClassLoader";
    
-   // FIXME: Need to generalize this .. (Note: native lib resources must be cached!)
-   private static final String[] packagesJogAmp = { "com.jogamp.common", "javax.media.opengl" };   
-   private static ClassLoader jogAmpClassLoader = null;
+   private static HashMap<String, ClassLoader> cachedClassLoader = new HashMap<String, ClassLoader>();
    
    // location where optimized dex files will be written
    private static final String dexPathName= "jogampDex";
    private static File dexPath = null; 
    
-   private static LauncherTempFileCache tmpFileCache = null;
+   private static LauncherTempFileCache tmpFileCache = null;     
    
    private static final String PATH_SEP = "/";
    private static final String ELEM_SEP = ":";
@@ -69,45 +67,69 @@ public class ClassLoaderUtil {
        }       
    }
    
-   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
-                                                            List<String> apkNames) {       
-       return createClassLoader(ctx, userPackageNames, addUserLibPath, apkNames, null); 
-   }
-   
-   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
-                                                            List<String> apkNames, ClassLoader parent) {
-       init(ctx);
-       
-       if(null==jogAmpClassLoader) {           
-           jogAmpClassLoader = createClassLoaderImpl(ctx, Arrays.asList(packagesJogAmp), true, null,
-                                                     (null != parent ) ? parent : ctx.getClassLoader());
-       }
-       parent =  jogAmpClassLoader;
-       
-       return createClassLoaderImpl(ctx, userPackageNames, addUserLibPath, apkNames, jogAmpClassLoader); 
+   /**
+    * @param ctx
+    * @param cachedPackageName list of package names w/ native libraries for which a ClassLoader shall be cached, i.e. persistence.
+    *                          This is usually required for native libraries.
+    * @param userPackageNames list of user package names w/o native libraries, the last entry shall reflect the Activity.
+    * @param userAPKNames optional non-cached user APKs
+    * @return
+    */
+   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> cachedPackageName, 
+                                                            List<String> userPackageNames, List<String> userAPKNames) {       
+       return createClassLoader(ctx, cachedPackageName, userPackageNames, userAPKNames, null); 
    }
    
    /**
-    * 
     * @param ctx
-    * @param userPackageNames list of user package names, the last entry shall reflect the Activity
+    * @param cachedPackageNames list of package names w/ native libraries for which a ClassLoader shall be cached, i.e. persistence.
+    *                           This is usually required for native libraries.
+    * @param userPackageNames list of user package names w/o native libraries, the last entry shall reflect the Activity.
+    * @param userAPKNames optional non-cached user APKs
+    * @param parent
     * @return
     */
-   private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> userPackageNames, boolean addUserLibPath, 
+   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> cachedPackageNames, 
+                                                            List<String> userPackageNames, List<String> userAPKNames, 
+                                                            ClassLoader parent) {
+       init(ctx);
+       
+       final String cacheKey = cachedPackageNames.toString();
+       ClassLoader clCached = cachedClassLoader.get(cacheKey);
+       if( null == clCached ) {
+           clCached = createClassLoaderImpl(ctx, cachedPackageNames, true, null, (null != parent ) ? parent : ctx.getClassLoader());
+           cachedClassLoader.put(cacheKey, clCached);
+           Log.d(TAG, "NEW cached-CL: cachedPackageNames: "+cacheKey);
+       } else {
+           Log.d(TAG, "REUSE cached-CL: cachedPackageNames: "+cacheKey);           
+       }
+       
+       return createClassLoaderImpl(ctx, userPackageNames, false, userAPKNames, clCached); 
+   }
+   
+   /**
+    * @param ctx
+    * @param packageNames list of package names
+    * @param addLibPath
+    * @param apkNames
+    * @param parent
+    * @return
+    */
+   private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> packageNames, boolean addLibPath, 
                                                                  List<String> apkNames, ClassLoader parent) {
        
        final ApplicationInfo appInfoLauncher= ctx.getApplicationInfo();
        final String appDirLauncher = new File(appInfoLauncher.dataDir).getParent();
        final String libSubDef = "lib";
-       Log.d(TAG, "S: userPackageNames: "+userPackageNames+"; Launcher: appDir "+appDirLauncher+", dataDir: "+appInfoLauncher.dataDir+", nativeLibraryDir "+appInfoLauncher.nativeLibraryDir);
+       Log.d(TAG, "S: userPackageNames: "+packageNames+"; Launcher: appDir "+appDirLauncher+", dataDir: "+appInfoLauncher.dataDir+", nativeLibraryDir "+appInfoLauncher.nativeLibraryDir);
        
        final StringBuilder apks = new StringBuilder();
        final StringBuilder libs = new StringBuilder();
        int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
        
-       if( null != userPackageNames ) {
-           for(Iterator<String> i=userPackageNames.iterator(); i.hasNext(); ) {
+       if( null != packageNames ) {
+           for(Iterator<String> i=packageNames.iterator(); i.hasNext(); ) {
                lastUserPackageName = i.next();
                
                String userAPK = null;
@@ -125,14 +147,14 @@ public class ClassLoaderUtil {
                if(null != userAPK) {
                    if(apkCount>0) {
                        apks.append(ELEM_SEP);
-                       if(addUserLibPath) {
+                       if(addLibPath) {
                            libs.append(ELEM_SEP);
                        }
                    }
                    apks.append(userAPK);
                    Log.d(TAG, "APK["+apkCount+"] found: <"+lastUserPackageName+"> -> <"+userAPK+">");
                    Log.d(TAG, "APK["+apkCount+"] apks: <"+apks.toString()+">");
-                   if(addUserLibPath) {
+                   if(addLibPath) {
                        if(null != nativeLibraryDir && nativeLibraryDir.length()>0 ) {
                            libs.append(nativeLibraryDir).append(PATH_SEP);
                        } else {
@@ -145,7 +167,7 @@ public class ClassLoaderUtil {
                    Log.d(TAG, "APK not found: <"+lastUserPackageName+">");
                }
            }
-           if( userPackageNames.size() != apkCount ) {
+           if( packageNames.size() != apkCount ) {
                Log.d(TAG, "User APKs incomplete, abort (1)");
                return null;
            }

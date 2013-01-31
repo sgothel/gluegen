@@ -55,7 +55,7 @@ public class ActivityLauncher extends Activity {
        data = LauncherUtil.DataSet.create(uri);
        data.setSystemProperties();
 
-       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getPackages(), false, null);
+       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getSysPackages(), data.getUsrPackages(), null);
        if(null != cl) {
            try {
                activityClazz = Class.forName(data.getActivityName(), true, cl);
@@ -135,8 +135,18 @@ public class ActivityLauncher extends Activity {
      Log.d(TAG, "onDestroy - S");
      callMethod(activityObject, mOnDestroy);
      if(null != data) {
+         activityObject=null;
+         mOnCreate=null;
+         mOnDestroy=null;
+         mOnPause=null;
+         mOnRestart=null;
+         mOnResume=null; 
+         mOnStart=null;
+         mOnStop=null;
+         mSetRootActivity=null;
+         activityClazz = null;
          data.clearSystemProperties();
-         data = null;
+         data = null;           
      }
      super.onDestroy();  
      Log.d(TAG, "onDestroy - X");

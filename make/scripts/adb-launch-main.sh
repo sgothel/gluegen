@@ -8,9 +8,17 @@ export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
 #export TARGET_IP=panda02
-export TARGET_IP=jautab03
-export TARGET_ADB_PORT=5555
+#export TARGET_IP=jautab03
+export TARGET_IP=C5OKCT139647
+#export TARGET_ADB_PORT=5555
+export TARGET_ADB_PORT=
 export TARGET_ROOT=jogamp-test
+
+if [ -z "$TARGET_ADB_PORT" ] ; then
+  export TARGET_IP_PORT=$TARGET_IP
+else
+  export TARGET_IP_PORT=$TARGET_IP:$TARGET_ADB_PORT
+fi
 
 export BUILD_DIR=../build-android-armv6
 
@@ -19,16 +27,16 @@ if [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
     export PATH=$ANDROID_HOME/platform-tools:$PATH
 fi 
 
-TSTCLASS=com.jogamp.common.GlueGenVersion
-#TSTCLASS=jogamp.android.launcher.LauncherUtil
+#TSTCLASS=com.jogamp.common.GlueGenVersion
+TSTCLASS=jogamp.android.launcher.LauncherUtil
 
 LOGFILE=`basename $0 .sh`.log
 
-#adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall jogamp.android.launcher
-#adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/jogamp-android-launcher.apk
+#adb -s $TARGET_IP_PORT uninstall jogamp.android.launcher
+#adb -s $TARGET_IP_PORT install $BUILD_DIR/jogamp-android-launcher.apk
 
-#adb -s $TARGET_IP:$TARGET_ADB_PORT uninstall com.jogamp.common
-#adb -s $TARGET_IP:$TARGET_ADB_PORT install $BUILD_DIR/gluegen-rt-android-armeabi.apk
+#adb -s $TARGET_IP_PORT uninstall com.jogamp.common
+#adb -s $TARGET_IP_PORT install $BUILD_DIR/gluegen-rt-android-armeabi.apk
 
 SHELL_CMD="\
 cd /sdcard ; \
@@ -39,8 +47,8 @@ am kill-all ; \
 am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/$TSTCLASS/?pkg=com.jogamp.common \
 "
 
-adb connect $TARGET_IP:$TARGET_ADB_PORT
-adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -c
-adb -s $TARGET_IP:$TARGET_ADB_PORT shell $SHELL_CMD 2>&1 | tee $LOGFILE
-adb -s $TARGET_IP:$TARGET_ADB_PORT logcat -d 2>&1 | tee -a $LOGFILE
+adb connect $TARGET_IP_PORT
+adb -s $TARGET_IP_PORT logcat -c
+adb -s $TARGET_IP_PORT shell $SHELL_CMD 2>&1 | tee $LOGFILE
+adb -s $TARGET_IP_PORT logcat -d 2>&1 | tee -a $LOGFILE
 

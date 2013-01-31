@@ -64,7 +64,7 @@ public class MainLauncher extends Activity {
        data = LauncherUtil.DataSet.create(uri);
        data.setSystemProperties();
 
-       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getPackages(), false, Arrays.asList(frameworkAPKs));
+       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getSysPackages(), data.getUsrPackages(), Arrays.asList(frameworkAPKs));
        if(null != cl) {
            try {
                staticContextClazz = Class.forName("jogamp.common.os.android.StaticContext", true, cl);
