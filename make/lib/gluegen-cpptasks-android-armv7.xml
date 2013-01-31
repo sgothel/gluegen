@@ -75,6 +75,7 @@
     <linker id="linker.cfg.android" name="gcc">
          <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
          <linkerarg value="-fpic" /> 
+         <linkerarg value="-fno-use-linker-plugin" /> 
 
          <linkerarg value="-march=armv7-a" />
          <linkerarg value="-mfloat-abi=softfp" />
