@@ -207,15 +207,30 @@ public class IOUtil {
     /**
      * Copy the specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
      * <p>The implementation creates the ByteBuffer w/ {@link #copyStream2ByteArray(InputStream)}'s returned byte array.</p>
+     * 
+     * @param stream input stream, which will be wrapped into a BufferedInputStream, if not already done.
      */
     public static ByteBuffer copyStream2ByteBuffer(InputStream stream) throws IOException {
-        // FIXME: Shall enforce a BufferedInputStream ?
+        return copyStream2ByteBuffer(stream, -1);        
+    }
+    
+    /**
+     * Copy the specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
+     * <p>The implementation creates the ByteBuffer w/ {@link #copyStream2ByteArray(InputStream)}'s returned byte array.</p>
+     * 
+     * @param stream input stream, which will be wrapped into a BufferedInputStream, if not already done.
+     * @param initialCapacity initial buffer capacity in bytes, if &gt; available bytes
+     */
+    public static ByteBuffer copyStream2ByteBuffer(InputStream stream, int initialCapacity) throws IOException {
         if( !(stream instanceof BufferedInputStream) ) {
             stream = new BufferedInputStream(stream);
         }
         int avail = stream.available();
+        if( initialCapacity < avail ) {
+            initialCapacity = avail;
+        }
         final MachineDescription machine = Platform.getMachineDescription(); 
-        ByteBuffer data = Buffers.newDirectByteBuffer( machine.pageAlignedSize(avail) );
+        ByteBuffer data = Buffers.newDirectByteBuffer( machine.pageAlignedSize( initialCapacity ) );
         byte[] chunk = new byte[machine.pageSizeInBytes()];
         int chunk2Read = Math.min(machine.pageSizeInBytes(), avail);
         int numRead = 0;
@@ -232,8 +247,8 @@ public class IOUtil {
                 data.put(chunk, 0, numRead);
             }
             avail = stream.available();
-            chunk2Read = Math.min(machine.pageSizeInBytes(), avail);
-        } while (avail > 0 && numRead >= 0);
+            chunk2Read = Math.min(machine.pageSizeInBytes(), avail);            
+        } while ( numRead > -1 ); // EOS: -1 == numRead
 
         data.flip();
         return data;
