@@ -243,12 +243,12 @@ public class IOUtil {
             }
             
             numRead = stream.read(chunk, 0, chunk2Read);
-            if (numRead >= 0) {
+            if (numRead > 0) {
                 data.put(chunk, 0, numRead);
             }
             avail = stream.available();
             chunk2Read = Math.min(machine.pageSizeInBytes(), avail);            
-        } while ( numRead > -1 ); // EOS: -1 == numRead
+        } while ( numRead > 0 ); // EOS: -1 == numRead, EOF maybe reached earlier w/ 0 == numRead
 
         data.flip();
         return data;
