@@ -151,7 +151,12 @@
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
 
     <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp-android-launcher.classes}" />
+  </target>
 
+  <target name="init.gg" depends="init">
+    <!-- Define the GlueGen task we just built -->
+    <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
+             classpathref="gluegen.classpath" />
   </target>
 
   <target name="set.debug">
@@ -191,14 +196,51 @@
     </antlr>
   </target>
 
+  <property name="gluegen.root" value="../" />
+
+  <!-- Use GlueGen to generate the source code for the ElfHeader
+       implementation. Note that to make the build process simpler (in
+       particular, the nightly builds) we do not do this every time we
+       run the build, but instead check in the generated sources to
+       the source tree. -->
+  <target name="generate.os.sources" depends="init.gg" >
+    <property name="stub.includes.gluegen.gg"  value="stub_includes/gluegen" />
+    <dirset id="stub.includes.fileset.os" dir=".">
+      <include name="stub_includes/os/**" />
+    </dirset>
+    <gluegen src="stub_includes/os/elf_header.h"
+             config="elf-header.cfg"
+             includeRefId="stub.includes.fileset.os"
+             literalInclude="${stub.includes.gluegen.gg}"
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             debug="false">
+      <classpath refid="gluegen.classpath" />
+    </gluegen>
+    <!-- Only to cherry pick defines -> java files
+    <gluegen src="stub_includes/os/elf_eh_const.h"
+             config="elf-eh-const.cfg"
+             includeRefId="stub.includes.fileset.os"
+             literalInclude="${stub.includes.gluegen.gg}"
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             debug="false">
+      <classpath refid="gluegen.classpath" />
+    </gluegen>
+    <gluegen src="stub_includes/os/elf_sh_const.h"
+             config="elf-sh-const.cfg"
+             includeRefId="stub.includes.fileset.os"
+             literalInclude="${stub.includes.gluegen.gg}"
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             debug="false">
+      <classpath refid="gluegen.classpath" />
+    </gluegen> -->
+  </target>
+
   <!-- Use GlueGen to generate the source code for the NativeLibrary
        implementation. Note that to make the build process simpler (in
        particular, the nightly builds) we do not do this every time we
        run the build, but instead check in the generated sources to
        the source tree. -->
-
-  <property name="gluegen.root" value="../" />
-  <target name="generate.nativelibrary.sources" depends="init" >
+  <target name="generate.nativelibrary.sources" depends="init.gg" >
     <!-- Define the appropriate include paths -->
     <dirset id="stub.includes.fileset.windows" dir=".">
       <include name="stub_includes/windows/**" />
@@ -209,14 +251,19 @@
     <dirset id="stub.includes.fileset.macosx" dir=".">
       <include name="stub_includes/macosx/**" />
     </dirset>
-    <!-- Define the GlueGen task we just built -->
-    <taskdef name="gluegen" classname="com.jogamp.gluegen.ant.GlueGenTask"
-             classpathref="gluegen.classpath" />
 
     <!-- Execute it against all of the OSs' header files -->
     <gluegen src="stub_includes/windows/dynamic-linker.h"
              config="dynlink-windows.cfg"
              includeRefId="stub.includes.fileset.windows"
+             emitter="com.jogamp.gluegen.JavaEmitter"
+             dumpCPP="false"
+             debug="false">
+      <classpath refid="gluegen.classpath" />
+    </gluegen>
+    <gluegen src="stub_includes/unix/elf-header.h"
+             config="dynlink-unix.cfg"
+             includeRefId="stub.includes.fileset.unix"
              emitter="com.jogamp.gluegen.JavaEmitter"
              dumpCPP="false"
              debug="false">

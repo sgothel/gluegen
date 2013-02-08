@@ -1,16 +1,17 @@
 export HOST_UID=sven
-export HOST_IP=192.168.0.52
+export HOST_IP=jogamp02
 export HOST_RSYNC_ROOT=PROJECTS/JOGL
 
 export TARGET_UID=jogamp
-export TARGET_IP=beagle01
+export TARGET_IP=panda02
 export TARGET_ROOT=projects-cross
 
 export ANT_PATH=/usr/share/ant
-export BUILD_DIR=../build-linux-armv7
+export BUILD_DIR=../build-linux-armv6hf
 
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
-TSTCLASS=com.jogamp.common.GlueGenVersion
+#TSTCLASS=com.jogamp.common.GlueGenVersion
+TSTCLASS=com.jogamp.common.os.TestElfReader01
 
 LOGFILE=`basename $0 .sh`.log
 

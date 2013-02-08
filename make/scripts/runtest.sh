@@ -47,7 +47,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djava.io.tmpdir=/run/tmp"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
-D_ARGS="-Djogamp.debug.JNILibLoader"
+#D_ARGS="-Djogamp.debug.JNILibLoader"
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
@@ -64,6 +64,7 @@ function onetest() {
     export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo CLASSPATH $CLASSPATH
+    which java
     echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
     java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
     echo
@@ -89,7 +90,8 @@ function onetest() {
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
+onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG

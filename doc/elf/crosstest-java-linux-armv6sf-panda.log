@@ -1,0 +1,60 @@
+JUnit version 4.8.2
+.++++ TestCase.setUp: com.jogamp.common.os.TestElfReader01 - testGNULinuxSelfExe
+[0..4]: 0x0x7f, 0x0x45, 0x0x4c, 0x0x46
+e_class      1, 32 bits
+e_data       1, 1
+e_flags      0x5000002
+    ARM ABI     5
+    ARM lGCC    2
+    ARM FLOAT   0, is hard-float false
+e_version    1
+e_osabi      0, Linux 3
+e_abiversion 0
+e_machine    40, isARM true, isIntel false
+e_version    1
+e_type       2
+EH Size      52
+SH num       28
+SH entsz     40
+SH off       0x828c
+SH strndx    27
+SH num 28
+SH size 40
+abiVFPArgsAcceptsVFPVariant false
+SectionHeader[idx 0, name , type 0x0, link 0, info 0x0, flags 0x0]
+SectionHeader[idx 1, name .interp, type 0x1, link 0, info 0x0, flags 0x2]
+SectionHeader[idx 2, name .note.ABI-tag, type 0x7, link 0, info 0x0, flags 0x2]
+SectionHeader[idx 3, name .note.gnu.build-id, type 0x7, link 0, info 0x0, flags 0x2]
+SectionHeader[idx 4, name .gnu.hash, type 0x6ffffff6, link 5, info 0x0, flags 0x2]
+SectionHeader[idx 5, name .dynsym, type 0xb, link 6, info 0x1, flags 0x2]
+SectionHeader[idx 6, name .dynstr, type 0x3, link 0, info 0x0, flags 0x2]
+SHT_STRTAB: read 1000, Section[SectionHeader[idx 6, name .dynstr, type 0x3, link 0, info 0x0, flags 0x2], data[off 0, len 1000/1000]]
+SectionHeader[idx 7, name .gnu.version, type 0x6fffffff, link 5, info 0x0, flags 0x2]
+SectionHeader[idx 8, name .gnu.version_r, type 0x6ffffffe, link 6, info 0x5, flags 0x2]
+SectionHeader[idx 9, name .rel.dyn, type 0x9, link 5, info 0x0, flags 0x2]
+SectionHeader[idx 10, name .rel.plt, type 0x9, link 5, info 0xc, flags 0x2]
+SectionHeader[idx 11, name .init, type 0x1, link 0, info 0x0, flags 0x6]
+SectionHeader[idx 12, name .plt, type 0x1, link 0, info 0x0, flags 0x6]
+SectionHeader[idx 13, name .text, type 0x1, link 0, info 0x0, flags 0x6]
+SectionHeader[idx 14, name .fini, type 0x1, link 0, info 0x0, flags 0x6]
+SectionHeader[idx 15, name .rodata, type 0x1, link 0, info 0x0, flags 0x2]
+SectionHeader[idx 16, name .ARM.exidx, type 0x70000001, link 13, info 0x0, flags 0x82]
+SectionHeader[idx 17, name .init_array, type 0xe, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 18, name .fini_array, type 0xf, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 19, name .jcr, type 0x1, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 20, name .data.rel.ro, type 0x1, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 21, name .dynamic, type 0x6, link 6, info 0x0, flags 0x3]
+SectionHeader[idx 22, name .got, type 0x1, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 23, name .data, type 0x1, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 24, name .bss, type 0x8, link 0, info 0x0, flags 0x3]
+SectionHeader[idx 25, name .ARM.attributes, type 0x70000003, link 0, info 0x0, flags 0x0]
+SHT_ARM_ATTRIBUTES: read 49, SectionArmAttributes[SectionHeader[idx 25, name .ARM.attributes, type 0x70000003, link 0, info 0x0, flags 0x0], data[off 0, len 49/49], [aeabi[CPU_name = 7-A, CPU_arch = 10, CPU_arch_profile = 65, ARM_ISA_use = 1, THUMB_ISA_use = 2, FP_arch = 4, ABI_PCS_wchar_t = 4, ABI_FP_denormal = 1, ABI_FP_exceptions = 1, ABI_FP_number_model = 3, ABI_align_needed = 1, ABI_align_preserved = 1, ABI_enum_size = 2, ABI_HardFP_use = 3, DIV_use = 1]]]
+SectionHeader[idx 26, name .gnu_debuglink, type 0x1, link 0, info 0x0, flags 0x0]
+SectionHeader[idx 27, name .shstrtab, type 0x3, link 0, info 0x0, flags 0x0]
+SHT_STRTAB: read 259, Section[SectionHeader[idx 27, name .shstrtab, type 0x3, link 0, info 0x0, flags 0x0], data[off 0, len 259/259]]
+++++ TestCase.tearDown: com.jogamp.common.os.TestElfReader01 - testGNULinuxSelfExe
+
+Time: 0.083
+
+OK (1 test)
+

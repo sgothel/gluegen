@@ -1,16 +1,16 @@
 package com.jogamp.common.nio;
 
-import com.jogamp.common.os.*;
-import com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter;
-import com.jogamp.junit.util.JunitTracer;
+import static java.lang.System.out;
 
 import java.io.IOException;
-import java.nio.*;
+import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.Test;
 
-import static java.lang.System.*;
+import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
 
 public class TestStructAccessorEndian extends JunitTracer {
 
