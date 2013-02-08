@@ -14,6 +14,7 @@ import jogamp.common.os.elf.SectionHeader;
 
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform.OSType;
 import com.jogamp.junit.util.JunitTracer;
 
 public class TestElfReader01 extends JunitTracer {
@@ -23,7 +24,9 @@ public class TestElfReader01 extends JunitTracer {
     
     @Test
     public void testGNULinuxSelfExe () throws IOException {
-        testElfHeaderImpl(GNU_LINUX_SELF_EXE, false);
+        if( OSType.LINUX == Platform.getOSType() ) {
+            testElfHeaderImpl(GNU_LINUX_SELF_EXE, false);
+        }
     }
     
     // @Test
