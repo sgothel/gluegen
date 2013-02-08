@@ -9,7 +9,8 @@ export HOST_RSYNC_ROOT=PROJECTS/JOGL
 export TARGET_UID=jogamp
 #export TARGET_IP=panda02
 #export TARGET_IP=jautab03
-export TARGET_IP=C5OKCT139647
+#export TARGET_IP=C5OKCT139647
+export TARGET_IP=D025A0A025040L5L
 #export TARGET_ADB_PORT=5555
 export TARGET_ADB_PORT=
 export TARGET_ROOT=jogamp-test
@@ -27,8 +28,9 @@ if [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
     export PATH=$ANDROID_HOME/platform-tools:$PATH
 fi 
 
-#TSTCLASS=com.jogamp.common.GlueGenVersion
-TSTCLASS=jogamp.android.launcher.LauncherUtil
+TSTCLASS=com.jogamp.common.GlueGenVersion
+#TSTCLASS=jogamp.android.launcher.LauncherUtil
+#TSTSCLASS=com.jogamp.common.os.TestElfReader01
 
 LOGFILE=`basename $0 .sh`.log
 
@@ -44,7 +46,7 @@ if [ -e $TARGET_ROOT ] ; then rm -r $TARGET_ROOT ; fi ; \
 mkdir $TARGET_ROOT ; cd $TARGET_ROOT ; \
 setprop log.redirect-stdio true ; setprop log.redirect-stderr true ; \
 am kill-all ; \
-am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/$TSTCLASS/?pkg=com.jogamp.common \
+am start -W -S -a android.intent.action.MAIN -n jogamp.android.launcher/jogamp.android.launcher.MainLauncher -d launch://jogamp.org/$TSTCLASS/?sys=com.jogamp.common \
 "
 
 adb connect $TARGET_IP_PORT
