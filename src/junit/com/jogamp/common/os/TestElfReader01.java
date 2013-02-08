@@ -39,27 +39,9 @@ public class TestElfReader01 extends JunitTracer {
     void testElfHeaderImpl(String file, boolean fileOutSections) throws IOException {
         RandomAccessFile in = new RandomAccessFile(file, "r");
         try {
-            ElfHeader eh = ElfHeader.read(in);            
-            byte[] e_ident = eh.d.getE_ident();
+            final ElfHeader eh = ElfHeader.read(in);            
             int i=0;
-            System.err.print("[0..4]: 0x"+toHexString(e_ident[i++]));
-            System.err.print(", 0x"+toHexString(e_ident[i++]));
-            System.err.print(", 0x"+toHexString(e_ident[i++]));
-            System.err.println(", 0x"+toHexString(e_ident[i++]));
-            System.err.println("e_class      "+e_ident[ElfHeader.EI_CLASS]+", "+eh.getArchClassBits()+" bits");
-            System.err.println("e_data       "+e_ident[ElfHeader.EI_DATA]+", "+eh.getDataEncodingMode());
-            System.err.println("e_flags      "+toHexString(eh.getFlags()));
-            System.err.println("    ARM ABI     "+eh.getArmABI());
-            System.err.println("    ARM lGCC    "+eh.getArmLegacyGCCFlags());
-            System.err.println("    ARM FLOAT   "+eh.getArmFloatMode()+", is hard-float "+(2 == eh.getArmFloatMode()));
-            System.err.println("e_version    "+e_ident[ElfHeader.EI_VERSION]);
-            System.err.println("e_osabi      "+eh.getOSABI()+", Linux "+ElfHeader.ELFOSABI_LINUX);
-            System.err.println("e_abiversion "+e_ident[ElfHeader.EI_ABIVERSION]);
-            System.err.println("e_machine    "+eh.getMachine()+", isARM "+eh.isArm()+", isIntel "+eh.isIntel());
-            System.err.println("e_version    "+eh.d.getE_version());
-            System.err.println("e_type       "+eh.getType());
-            System.err.println("EH Size      "+eh.d.getE_ehsize());
-            System.err.println("SH num       "+eh.d.getE_shnum());
+            System.err.println(eh);
             System.err.println("SH entsz     "+eh.d.getE_shentsize());
             System.err.println("SH off       "+toHexString(eh.d.getE_shoff()));
             System.err.println("SH strndx    "+eh.d.getE_shstrndx());

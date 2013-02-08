@@ -10,8 +10,8 @@ export ANT_PATH=/usr/share/ant
 export BUILD_DIR=../build-linux-armv6hf
 
 #TSTCLASS=com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
-#TSTCLASS=com.jogamp.common.GlueGenVersion
-TSTCLASS=com.jogamp.common.os.TestElfReader01
+TSTCLASS=com.jogamp.common.GlueGenVersion
+#TSTCLASS=com.jogamp.common.os.TestElfReader01
 
 LOGFILE=`basename $0 .sh`.log
 
@@ -25,12 +25,12 @@ cd $TARGET_ROOT/gluegen/make ;
 LD_LIBRARY_PATH=$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
 java \
   -Djava.library.path=$BUILD_DIR/obj:$BUILD_DIR/test/build/natives \
-  -Djava.class.path=lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:$BUILD_DIR/gluegen.jar:$BUILD_DIR/test/build/gluegen-test.jar \
+  -cp lib/junit.jar:$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:$BUILD_DIR/gluegen-rt.jar:$BUILD_DIR/gluegen.jar:$BUILD_DIR/test/build/gluegen-test.jar \
   -Djogamp.debug.JNILibLoader=true \
   -Djogamp.debug.NativeLibrary=true \
   -Djogamp.debug.NativeLibrary.Lookup=true \
   -Djogamp.debug.ProcAddressHelper=true \
-  $TSTCLASS \
+  $* $TSTCLASS \
  2>&1 | tee $LOGFILE \
 "
 

@@ -1,10 +1,17 @@
 package jogamp.common.os;
 
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+
+import jogamp.common.Debug;
+import jogamp.common.os.elf.ElfHeader;
+import jogamp.common.os.elf.SectionArmAttributes;
+import jogamp.common.os.elf.SectionHeader;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.AndroidVersion;
@@ -26,6 +33,8 @@ import com.jogamp.common.util.VersionNumber;
  * </p>
  */
 public abstract class PlatformPropsImpl {
+    static final boolean DEBUG = Debug.debug("Platform");
+    
     //
     // static initialization order:
     //
@@ -81,8 +90,8 @@ public abstract class PlatformPropsImpl {
         LITTLE_ENDIAN = queryIsLittleEndianImpl();
         
         CPU_ARCH = getCPUTypeImpl(ARCH_lower);
-        ABI_TYPE = guessABITypeImpl(CPU_ARCH);
         OS_TYPE = getOSTypeImpl();
+        ABI_TYPE = queryABITypeImpl(CPU_ARCH, OS_TYPE);
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
     }
 
@@ -155,6 +164,7 @@ public abstract class PlatformPropsImpl {
         }
     }
     
+    @SuppressWarnings("unused")
     private static final boolean contains(String data, String[] search) {
         if(null != data && null != search) {            
             for(int i=0; i<search.length; i++) {
@@ -166,19 +176,80 @@ public abstract class PlatformPropsImpl {
         return false;
     }
     
-    private static final ABIType guessABITypeImpl(CPUType cpuType) {
-        if(CPUFamily.ARM != cpuType.family) {
+    /**
+     * Returns the {@link ABIType} of the current platform using given {@link CPUType cpuType}
+     * and {@link OSType osType} as a hint.
+     * <p>
+     * Note the following queries are performed:
+     * <ul>
+     *   <li> not {@link CPUFamily#ARM} -> {@link ABIType#GENERIC_ABI} </li>
+     *   <li> else 
+     *   <ul> 
+     *     <li> not {@link OSType#LINUX} -> {@link ABIType#EABI_GNU_ARMEL} </li>
+     *     <li> else 
+     *     <ul> 
+     *       <li> Elf ARM Tags -> {@link ABIType#EABI_GNU_ARMEL}, {@link ABIType#EABI_GNU_ARMHF} </li>
+     *     </ul></li>
+     *   </ul></li> 
+     * </ul>
+     * </p>
+     * <p>
+     * Elf ARM Tags are read using {@link ElfHeader}, .. and {@link SectionArmAttributes#abiVFPArgsAcceptsVFPVariant(byte)}.
+     * </p>
+     *  
+     * @param cpuType
+     * @param osType
+     * @return
+     */
+    private static final ABIType queryABITypeImpl(CPUType cpuType, OSType osType) {
+        if( CPUFamily.ARM  != cpuType.family ) {
             return ABIType.GENERIC_ABI;
         }
+        // TODO: GNU/Linux-Android and other OS
+        //   Android: /proc/self/exe: open failed: EACCES (Permission denied)
+        //   ( OSType.LINUX   != osType  && OSType.ANDROID != osType ) )
+        if( OSType.LINUX   != osType ) { 
+            return ABIType.EABI_GNU_ARMEL;
+        }
         return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
-            private final String[] gnueabihf = new String[] { "gnueabihf", "armhf" };
-            public ABIType run() {                    
-                if ( contains(System.getProperty("sun.boot.library.path"), gnueabihf) ||
-                     contains(System.getProperty("java.library.path"), gnueabihf) ||
-                     contains(System.getProperty("java.home"), gnueabihf) ) {
-                    return ABIType.EABI_GNU_ARMHF;
+            private final String GNU_LINUX_SELF_EXE = "/proc/self/exe";
+            public ABIType run() {
+                boolean abiVFPArgsAcceptsVFPVariant = false;
+                RandomAccessFile in = null;
+                try {
+                    in = new RandomAccessFile(GNU_LINUX_SELF_EXE, "r");
+                    final ElfHeader eh = ElfHeader.read(in);
+                    if(DEBUG) {
+                        System.err.println("ELF: Got HDR "+GNU_LINUX_SELF_EXE+": "+eh);
+                    }
+                    final SectionHeader sh = eh.getSectionHeader(SectionHeader.SHT_ARM_ATTRIBUTES);
+                    if( null != sh ) {
+                        if(DEBUG) {
+                            System.err.println("ELF: Got ARM Attribs Section Header: "+sh);
+                        }
+                        final SectionArmAttributes sArmAttrs = (SectionArmAttributes) sh.readSection(in);
+                        if(DEBUG) {
+                            System.err.println("ELF: Got ARM Attribs Section Block : "+sArmAttrs);
+                        }
+                        final SectionArmAttributes.Attribute abiVFPArgsAttr = sArmAttrs.get(SectionArmAttributes.Tag.ABI_VFP_args);
+                        if( null != abiVFPArgsAttr ) {
+                            abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
+                        }
+                    }
+                } catch(Throwable t) {
+                    t.printStackTrace();
+                } finally {
+                    if(null != in) {
+                        try {
+                            in.close();
+                        } catch (IOException e) { }
+                    }
                 }
-                return ABIType.EABI_GNU_ARMEL;
+                final ABIType res = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
+                if(DEBUG) {
+                    System.err.println("ELF: abiVFPArgsAcceptsVFPVariant   : "+abiVFPArgsAcceptsVFPVariant+" -> "+res);
+                }
+                return res;
             } } );
     }
     

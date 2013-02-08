@@ -34,6 +34,7 @@ import java.nio.ByteBuffer;
 import static jogamp.common.os.elf.IOUtils.readBytes;
 import static jogamp.common.os.elf.IOUtils.seek;
 import static jogamp.common.os.elf.IOUtils.shortToInt;
+import static jogamp.common.os.elf.IOUtils.toHexString;
 
 /**
  * ELF ABI Header
@@ -370,6 +371,8 @@ public class ElfHeader {
     /** Public access to the {@link SectionHeader} */
     public final SectionHeader[] sht; 
     
+    private final String string;
+    
     /**
      * Note: The input stream shall stay untouch to be able to read sections!
      * 
@@ -397,6 +400,7 @@ public class ElfHeader {
             throw new IllegalArgumentException("Buffer is not an ELF Header");
         }
         sht = readSectionHeaderTable(in);
+        string = toStringImpl();
     }
 
     public final short getSize() { return d.getE_ehsize(); }
@@ -415,29 +419,34 @@ public class ElfHeader {
     }
     
     /** 
-     * Returns the processor's data encoding, 
-     * 1 for {@link #ELFDATA2LSB}, 2 for for {@link #ELFDATA2MSB}
-     * and 0 for for {@link #ELFDATANONE}
+     * Returns the processor's data encoding, i.e.  
+     * {@link #ELFDATA2LSB}, {@link #ELFDATA2MSB} or {@link #ELFDATANONE}; 
      */
-    public final int getDataEncodingMode() {
-        switch( d.getE_ident()[EI_DATA] ) {
-            case ELFDATA2LSB: return 1;
-            case ELFDATA2MSB: return 2;
-            default: return 0;
-        }
+    public final byte getDataEncodingMode() {
+        return d.getE_ident()[EI_DATA];
     }
     
-    /** 3 == Linux */
+    /** Returns the ELF file version, should be {@link #EV_CURRENT}. */
+    public final byte getVersion() {
+        return d.getE_ident()[EI_VERSION];
+    }
+    
+    /** Returns the operating system and ABI for this file, 3 == Linux. Note: Often not used. */
     public final byte getOSABI() {
         return d.getE_ident()[EI_OSABI];
     }
+    
+    /** Returns the version of the {@link #getOSABI() OSABI} for this file. */
+    public final byte getOSABIVersion() {
+        return d.getE_ident()[EI_ABIVERSION];
+    }
 
-    /** Returns the object file type */ 
+    /** Returns the object file type, e.g. {@link #ET_EXEC}, .. */ 
     public final short getType() {
         return d.getE_type();
     }
 
-    /** Returns the required architecture for the file */ 
+    /** Returns the required architecture for the file, e.g. {@link #EM_386}, .. */ 
     public final short getMachine() {
         return d.getE_machine();    
     }
@@ -516,6 +525,37 @@ public class ElfHeader {
             }
         }
         return null;
+    }
+    
+    public final String toString() {
+        return string;
+    }
+    
+    private final String toStringImpl() {
+        final String machineS;
+        if( isArm() ) {
+            machineS=", arm";
+        } else if( isIntel() ) {
+            machineS=", intel";
+        } else {
+            machineS="";
+        }
+        final int enc = getDataEncodingMode();
+        final String encS;
+        switch(enc) {
+            case 1:  encS = "LSB"; break;
+            case 2:  encS = "MSB"; break;
+            default: encS = "NON"; break;
+        }
+        final int armABI = getArmABI();
+        final String armFlagsS;
+        if( 0 != armABI ) {
+            armFlagsS=", arm[abi "+armABI+", lGCC "+getArmLegacyGCCFlags()+", float "+getArmFloatMode()+"]";
+        } else {
+            armFlagsS="";
+        }        
+        return "ElfHeader[vers "+getVersion()+", machine["+getMachine()+machineS+"], bits "+getArchClassBits()+", enc "+encS+
+               ", abi[os "+getOSABI()+", vers "+getOSABIVersion()+"], flags["+toHexString(getFlags())+armFlagsS+"], type "+getType()+", sh-num "+sht.length+"]";
     }
     
     final SectionHeader[] readSectionHeaderTable(RandomAccessFile in) throws IOException, IllegalArgumentException {
