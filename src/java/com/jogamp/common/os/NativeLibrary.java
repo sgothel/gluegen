@@ -277,11 +277,11 @@ public class NativeLibrary implements DynamicLookupHelper {
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
       the indicated native library on the system. */
-  public static List<String> enumerateLibraryPaths(String windowsLibName,
-                                                    String unixLibName,
-                                                    String macOSXLibName,
-                                                    boolean searchSystemPathFirst,
-                                                    ClassLoader loader) {
+  public static List<String> enumerateLibraryPaths(final String windowsLibName,
+                                                   final String unixLibName,
+                                                   final String macOSXLibName,
+                                                   final boolean searchSystemPathFirst,
+                                                   final ClassLoader loader) {
     List<String> paths = new ArrayList<String>();
     String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
     if (libName == null) {
@@ -312,17 +312,43 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
 
     // Add entries from java.library.path
-    String javaLibraryPath =
-      AccessController.doPrivileged(new PrivilegedAction<String>() {
-          public String run() {
-            return System.getProperty("java.library.path");
+    final String[] javaLibraryPaths =
+      AccessController.doPrivileged(new PrivilegedAction<String[]>() {
+          public String[] run() {
+            int count = 0;
+            final String usrPath = System.getProperty("java.library.path");
+            if(null != usrPath) {
+                count++;
+            }
+            final String sysPath = System.getProperty("sun.boot.library.path");
+            if(null != sysPath) {
+                count++;
+            }
+            final String[] res = new String[count];
+            int i=0;
+            if (searchSystemPathFirst) {
+                if(null != sysPath) {
+                    res[i++] = sysPath;
+                }                            
+            }
+            if(null != usrPath) {
+                res[i++] = usrPath;
+            }
+            if (!searchSystemPathFirst) {
+                if(null != sysPath) {
+                    res[i++] = sysPath;
+                }                            
+            }
+            return res;
           }
         });
-    if (javaLibraryPath != null) {
-      StringTokenizer tokenizer = new StringTokenizer(javaLibraryPath, File.pathSeparator);
-      while (tokenizer.hasMoreTokens()) {
-        addPaths(tokenizer.nextToken(), baseNames, paths);
-      }
+    if ( null != javaLibraryPaths ) {
+        for( int i=0; i < javaLibraryPaths.length; i++ ) {
+            final StringTokenizer tokenizer = new StringTokenizer(javaLibraryPaths[i], File.pathSeparator);
+            while (tokenizer.hasMoreTokens()) {
+                addPaths(tokenizer.nextToken(), baseNames, paths);
+            }
+        }
     }
 
     // Add current working directory

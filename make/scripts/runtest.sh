@@ -41,7 +41,7 @@ rm -f $LOG
 
 #D_ARGS="-Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true"
 #D_ARGS="-Djogamp.debug.TraceLock"
-D_ARGS="-Djogamp.debug.Platform"
+D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
 #D_ARGS="-Djogamp.debug.JarUtil"
 #D_ARGS="-Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.TempFileCache"
@@ -68,10 +68,12 @@ function onetest() {
     which java
     echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
     java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
+    #echo java -cp $CLASSPATH $D_ARGS $clazz
+    #java -cp $CLASSPATH $D_ARGS $*
     echo
 }
 #
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG

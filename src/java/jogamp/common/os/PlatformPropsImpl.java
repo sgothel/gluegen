@@ -1,5 +1,6 @@
 package jogamp.common.os;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -7,6 +8,7 @@ import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.List;
 
 import jogamp.common.Debug;
 import jogamp.common.os.elf.ElfHeader;
@@ -15,6 +17,7 @@ import jogamp.common.os.elf.SectionHeader;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.AndroidVersion;
+import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.os.Platform.ABIType;
 import com.jogamp.common.os.Platform.CPUFamily;
@@ -91,7 +94,7 @@ public abstract class PlatformPropsImpl {
         
         CPU_ARCH = getCPUTypeImpl(ARCH_lower);
         OS_TYPE = getOSTypeImpl();
-        ABI_TYPE = queryABITypeImpl(CPU_ARCH, OS_TYPE);
+        ABI_TYPE = queryABITypeImpl(OS_TYPE, CPU_ARCH);
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
     }
 
@@ -185,59 +188,81 @@ public abstract class PlatformPropsImpl {
      *   <li> not {@link CPUFamily#ARM} -> {@link ABIType#GENERIC_ABI} </li>
      *   <li> else 
      *   <ul> 
-     *     <li> not {@link OSType#LINUX} -> {@link ABIType#EABI_GNU_ARMEL} </li>
+     *     <li> {@link OSType#ANDROID} -> {@link ABIType#EABI_GNU_ARMEL} (due to EACCES, Permission denied)</li>
      *     <li> else 
      *     <ul> 
-     *       <li> Elf ARM Tags -> {@link ABIType#EABI_GNU_ARMEL}, {@link ABIType#EABI_GNU_ARMHF} </li>
+     *       <li> Elf ARM Tags -> {@link ABIType#EABI_GNU_ARMEL}, {@link ABIType#EABI_GNU_ARMHF}</li>
+     *       <li> On Error -> {@link ABIType#EABI_GNU_ARMEL}</li>
      *     </ul></li>
      *   </ul></li> 
      * </ul>
      * </p>
      * <p>
+     * For Elf parsing either the current executable is used (Linux) or a found java/jvm native library. 
+     * </p>
+     * <p>
      * Elf ARM Tags are read using {@link ElfHeader}, .. and {@link SectionArmAttributes#abiVFPArgsAcceptsVFPVariant(byte)}.
      * </p>
-     *  
-     * @param cpuType
      * @param osType
+     * @param cpuType
+     *  
      * @return
      */
-    private static final ABIType queryABITypeImpl(CPUType cpuType, OSType osType) {
+    private static final ABIType queryABITypeImpl(final OSType osType, final CPUType cpuType) {
         if( CPUFamily.ARM  != cpuType.family ) {
             return ABIType.GENERIC_ABI;
         }
-        // TODO: GNU/Linux-Android and other OS
-        //   Android: /proc/self/exe: open failed: EACCES (Permission denied)
-        //   ( OSType.LINUX   != osType  && OSType.ANDROID != osType ) )
-        if( OSType.LINUX   != osType ) { 
+        if( OSType.ANDROID == osType ) { // EACCES (Permission denied) - We assume a not rooted device! 
             return ABIType.EABI_GNU_ARMEL;
         }
         return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
             private final String GNU_LINUX_SELF_EXE = "/proc/self/exe";
             public ABIType run() {
+                boolean abiARM = false;
                 boolean abiVFPArgsAcceptsVFPVariant = false;
                 RandomAccessFile in = null;
                 try {
-                    in = new RandomAccessFile(GNU_LINUX_SELF_EXE, "r");
-                    final ElfHeader eh = ElfHeader.read(in);
-                    if(DEBUG) {
-                        System.err.println("ELF: Got HDR "+GNU_LINUX_SELF_EXE+": "+eh);
+                    File file = null;
+                    if( OSType.LINUX == osType ) {
+                        file = new File(GNU_LINUX_SELF_EXE);
+                        if( !checkFileReadAccess(file) ) {
+                            file = null;
+                        }
                     }
-                    final SectionHeader sh = eh.getSectionHeader(SectionHeader.SHT_ARM_ATTRIBUTES);
-                    if( null != sh ) {
+                    if( null == file ) {
+                        file = findSysLib("java");
+                    }
+                    if( null == file ) {
+                        file = findSysLib("jvm");
+                    }
+                    if( null != file ) {                    
+                        in = new RandomAccessFile(file, "r");
+                        final ElfHeader eh = ElfHeader.read(in);
                         if(DEBUG) {
-                            System.err.println("ELF: Got ARM Attribs Section Header: "+sh);
+                            System.err.println("ELF: Got HDR "+GNU_LINUX_SELF_EXE+": "+eh);
                         }
-                        final SectionArmAttributes sArmAttrs = (SectionArmAttributes) sh.readSection(in);
-                        if(DEBUG) {
-                            System.err.println("ELF: Got ARM Attribs Section Block : "+sArmAttrs);
-                        }
-                        final SectionArmAttributes.Attribute abiVFPArgsAttr = sArmAttrs.get(SectionArmAttributes.Tag.ABI_VFP_args);
-                        if( null != abiVFPArgsAttr ) {
-                            abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
+                        abiARM = eh.isArm();
+                        if( abiARM ) {
+                            final SectionHeader sh = eh.getSectionHeader(SectionHeader.SHT_ARM_ATTRIBUTES);
+                            if( null != sh ) {
+                                if(DEBUG) {
+                                    System.err.println("ELF: Got ARM Attribs Section Header: "+sh);
+                                }
+                                final SectionArmAttributes sArmAttrs = (SectionArmAttributes) sh.readSection(in);
+                                if(DEBUG) {
+                                    System.err.println("ELF: Got ARM Attribs Section Block : "+sArmAttrs);
+                                }
+                                final SectionArmAttributes.Attribute abiVFPArgsAttr = sArmAttrs.get(SectionArmAttributes.Tag.ABI_VFP_args);
+                                if( null != abiVFPArgsAttr ) {
+                                    abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
+                                }
+                            }
                         }
                     }
                 } catch(Throwable t) {
-                    t.printStackTrace();
+                    if(DEBUG) {
+                        t.printStackTrace();
+                    }
                 } finally {
                     if(null != in) {
                         try {
@@ -245,12 +270,41 @@ public abstract class PlatformPropsImpl {
                         } catch (IOException e) { }
                     }
                 }
-                final ABIType res = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
+                final ABIType res;
+                if( abiARM ) {
+                    res = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
+                } else {
+                    res = ABIType.GENERIC_ABI;
+                }                
                 if(DEBUG) {
-                    System.err.println("ELF: abiVFPArgsAcceptsVFPVariant   : "+abiVFPArgsAcceptsVFPVariant+" -> "+res);
+                    System.err.println("ELF: abiARM "+abiARM+", abiVFPArgsAcceptsVFPVariant "+abiVFPArgsAcceptsVFPVariant+" -> "+res);
                 }
                 return res;
             } } );
+    }
+    private static boolean checkFileReadAccess(File file) {
+        try {
+            return file.isFile() && file.canRead();
+        } catch (Throwable t) { }
+        return false;
+    }    
+    private static File findSysLib(String libName) {
+        ClassLoader cl = PlatformPropsImpl.class.getClassLoader();
+        final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
+        for(int i=0; i<possibleLibPaths.size(); i++) {
+            final String libPath = possibleLibPaths.get(i);
+            final File lib = new File(libPath);
+            if(DEBUG) {
+                System.err.println("findSysLib #"+i+": test "+lib);
+            }
+            if( checkFileReadAccess(lib) ) {
+                return lib;
+            }
+            if(DEBUG) {
+                System.err.println("findSysLib #"+i+": "+lib+" not readable");
+            }
+        }
+        return null;
     }
     
     private static final OSType getOSTypeImpl() throws RuntimeException {
@@ -303,6 +357,7 @@ public abstract class PlatformPropsImpl {
      *   <li>linux-ia64</li>
      *   <li>linux-i586</li>
      *   <li>linux-armv6</li>
+     *   <li>linux-armv6hf</li>
      *   <li>android-armv6</li>
      *   <li>macosx-universal</li>
      *   <li>solaris-sparc</li>
@@ -322,16 +377,10 @@ public abstract class PlatformPropsImpl {
                 _os_and_arch = "i586";
                 break;
             case ARM:
-                _os_and_arch = "armv6"; // TODO: sync with gluegen-cpptasks-base.xml
-                break;
             case ARMv5:
-                _os_and_arch = "armv6";
-                break;
             case ARMv6:
-                _os_and_arch = "armv6";
-                break;
             case ARMv7:
-                _os_and_arch = "armv6";
+                _os_and_arch = "armv6"; // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             case SPARC_32:
                 _os_and_arch = "sparc"; 

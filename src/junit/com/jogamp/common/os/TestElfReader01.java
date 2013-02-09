@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.util.List;
 
 import jogamp.common.os.elf.ElfHeader;
 import jogamp.common.os.elf.Section;
@@ -21,28 +22,61 @@ public class TestElfReader01 extends JunitTracer {
     public static String GNU_LINUX_SELF_EXE = "/proc/self/exe";
     public static String ARM_HF_EXE = "tst-exe-armhf";
     public static String ARM_SF_EXE = "tst-exe-arm";
+            
+    private static boolean checkFileReadAccess(File file) {
+        try {
+            return file.isFile() && file.canRead();
+        } catch (Throwable t) { }
+        return false;
+    }    
+    static File findJVMLib(String libName) {
+        ClassLoader cl = TestElfReader01.class.getClassLoader();
+        final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
+        for(int i=0; i<possibleLibPaths.size(); i++) {
+            final String libPath = possibleLibPaths.get(i);
+            final File lib = new File(libPath);
+            System.err.println("XXX2 #"+i+": test "+lib);
+            if( checkFileReadAccess(lib) ) {
+                return lib;
+            }
+            System.err.println("XXX2 #"+i+": "+lib+" not readable");
+        }
+        return null;
+    }
     
     @Test
     public void testGNULinuxSelfExe () throws IOException {
         if( OSType.LINUX == Platform.getOSType() ) {
-            testElfHeaderImpl(GNU_LINUX_SELF_EXE, false);
+            File f = new File(GNU_LINUX_SELF_EXE);
+            if( checkFileReadAccess(f) ) {
+                testElfHeaderImpl(f, false);
+            }
         }
     }
     
-    // @Test
-    public void testArmHFExe () throws IOException {
-        testElfHeaderImpl(ARM_HF_EXE, false);
+    @Test
+    public void testJavaLib () throws IOException {
+        File jvmLib = findJVMLib("java");
+        if( null == jvmLib ) {
+            jvmLib = findJVMLib("jvm");
+        }
+        if( null != jvmLib ) {
+            testElfHeaderImpl(jvmLib, false);
+        }
     }
     
-    // @Test
-    public void testArmSFExe () throws IOException {
-        testElfHeaderImpl(ARM_SF_EXE, false);
-    }
-    
-    void testElfHeaderImpl(String file, boolean fileOutSections) throws IOException {
+    void testElfHeaderImpl(File file, boolean fileOutSections) throws IOException {
+        System.err.println("Test file "+file.getAbsolutePath());
         RandomAccessFile in = new RandomAccessFile(file, "r");
         try {
-            final ElfHeader eh = ElfHeader.read(in);            
+            final ElfHeader eh;
+            try {
+                eh = ElfHeader.read(in);
+            } catch (Exception e) {
+                System.err.println("Probably not an ELF file - or not in current format: (catched) "+e.getMessage());
+                e.printStackTrace();
+                return;
+            }
             int i=0;
             System.err.println(eh);
             System.err.println("SH entsz     "+eh.d.getE_shentsize());
