@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2013 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -32,20 +32,25 @@ package com.jogamp.common.util;
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
  */
-public class RunnableTask extends TaskBase {
-    protected final Runnable runnable;
+public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
+    protected Function<R,A> runnable;
+    protected R result;
+    protected A[] args;
 
     /**
-     * Invoks <code>runnable</code>.
-     * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately. 
-     * @param runnable the {@link Runnable} to execute.
+     * Invokes <code>func</code>.
+     * @param waitUntilDone if <code>true</code>, waits until <code>func</code> execution is completed, otherwise returns immediately. 
+     * @param func the {@link Function} to execute.
+     * @param args the {@link Function} arguments
+     * @return the {@link Function} return value
      */
-    public static void invoke(boolean waitUntilDone, Runnable runnable) {
+    public static <U,V> U invoke(boolean waitUntilDone, Function<U,V> func, V... args) {
         Throwable throwable = null;
         final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true ); 
+        final FunctionTask<U,V> rt = new FunctionTask<U,V>( func, waitUntilDone ? sync : null, true );
+        final U res;
         synchronized(sync) {
-            rt.run();
+            res = rt.eval(args);
             if( waitUntilDone ) {
                 try {
                     sync.wait();
@@ -60,34 +65,72 @@ public class RunnableTask extends TaskBase {
                 }
             }
         }
+        return res;
     }
     
     /**
      * Create a RunnableTask object w/ synchronization,
-     * ie. suitable for <code>invokeAndWait()</code>, i.e. {@link #invoke(boolean, Runnable) invoke(true, runnable)}. 
+     * ie. suitable for <code>invokeAndWait()</code>. 
      * 
      * @param runnable the user action
-     * @param syncObject the synchronization object if caller wait until <code>runnable</code> execution is completed,
+     * @param syncObject the synchronization object the caller shall wait until <code>runnable</code> execution is completed,
      *                   or <code>null</code> if waiting is not desired. 
      * @param catchExceptions if true, exception during <code>runnable</code> execution are catched, otherwise not.
      *                        Use {@link #getThrowable()} to determine whether an exception has been catched. 
      */
-    public RunnableTask(Runnable runnable, Object syncObject, boolean catchExceptions) {
+    public FunctionTask(Function<R,A> runnable, Object syncObject, boolean catchExceptions) {
         super(syncObject, catchExceptions);
         this.runnable = runnable ;
+        result = null;
+        args = null;
     }
 
     /** Return the user action */
-    public Runnable getRunnable() {
+    public Function<R,A> getRunnable() {
         return runnable;
     }
 
+    /**
+     * Sets the arguments for {@link #run()}.
+     * They will be cleared afterwards.
+     */
+    public void setArgs(A... args) {
+        this.args = args;
+    }
+    
+    /**
+     * Retrieves the cached result of {@link #run()}
+     * and clears it afterwards.
+     */
+    public R getResult() {
+        final R res = result;
+        result = null;
+        return res;
+    }
+    
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Calls {@link #eval(Object...)}.
+     * </p>
+     * <p>
+     * You may set the {@link #eval(Object...)} arguments via {@link #setArgs(Object...)}
+     * and retrieve the result via {@link #getResult()}.
+     * </p>
+     */
     @Override
     public void run() {
+        result = eval(args);
+        args = null;
+    }
+
+    @Override
+    public R eval(A... args) {
+        R res = null;
         tStarted = System.currentTimeMillis();
         if(null == syncObject) {
             try {
-                runnable.run();
+                res = runnable.eval(args);
             } catch (Throwable t) {
                 runnableException = t;
                 if(!catchExceptions) {
@@ -99,7 +142,7 @@ public class RunnableTask extends TaskBase {
         } else {
             synchronized (syncObject) {
                 try {
-                    runnable.run();
+                    res = runnable.eval(args);
                 } catch (Throwable t) {
                     runnableException = t;
                     if(!catchExceptions) {
@@ -111,6 +154,7 @@ public class RunnableTask extends TaskBase {
                 }
             }
         }        
+        return res;
     }    
 }
 
