@@ -55,7 +55,7 @@ public abstract class TaskBase implements Runnable {
      * Return the synchronization object if any.
      * @see #RunnableTask(Runnable, Object, boolean) 
      */
-    public Object getSyncObject() {
+    public final Object getSyncObject() {
         return syncObject;
     }
     
@@ -63,7 +63,7 @@ public abstract class TaskBase implements Runnable {
      * Attach a custom object to this task. 
      * Useful to piggybag further information, ie tag a task final. 
      */
-    public void setAttachment(Object o) {
+    public final void setAttachment(Object o) {
         attachment = o;
     }
 
@@ -71,7 +71,7 @@ public abstract class TaskBase implements Runnable {
      * Return the attachment object if any.
      * @see #setAttachment(Object) 
      */
-    public Object getAttachment() {
+    public final Object getAttachment() {
         return attachment;
     }
 
@@ -86,7 +86,7 @@ public abstract class TaskBase implements Runnable {
      * @see #isFlushed()
      * @see #isInQueue()
      */ 
-    public void flush() {
+    public final void flush() {
         if(!isExecuted() && hasWaiter()) {
             synchronized (syncObject) {
                 isFlushed = true;
@@ -98,36 +98,36 @@ public abstract class TaskBase implements Runnable {
     /**
      * @return !{@link #isExecuted()} && !{@link #isFlushed()}
      */
-    public boolean isInQueue() { return 0 != tExecuted && !isFlushed; }
+    public final boolean isInQueue() { return 0 != tExecuted && !isFlushed; }
     
     /**
      * @return True if executed, otherwise false;
      */
-    public boolean isExecuted() { return 0 != tExecuted ; }
+    public final boolean isExecuted() { return 0 != tExecuted ; }
 
     /**
      * @return True if flushed, otherwise false;
      */
-    public boolean isFlushed() { return isFlushed; }
+    public final boolean isFlushed() { return isFlushed; }
 
     /**
      * @return True if invoking thread waits until done, 
      *         ie a <code>notifyObject</code> was passed, otherwise false;
      */
-    public boolean hasWaiter() { return null != syncObject; }
+    public final boolean hasWaiter() { return null != syncObject; }
 
     /**
      * @return A thrown exception while execution of the user action, if any and if catched
      * @see #RunnableTask(Runnable, Object, boolean)
      */
-    public Throwable getThrowable() { return runnableException; }
+    public final Throwable getThrowable() { return runnableException; }
 
-    public long getTimestampCreate() { return tCreated; }
-    public long getTimestampBeforeExec() { return tStarted; }
-    public long getTimestampAfterExec() { return tExecuted; }
-    public long getDurationInQueue() { return tStarted - tCreated; }
-    public long getDurationInExec() { return tExecuted - tStarted; }
-    public long getDurationTotal() { return tExecuted - tCreated; }
+    public final long getTimestampCreate() { return tCreated; }
+    public final long getTimestampBeforeExec() { return tStarted; }
+    public final long getTimestampAfterExec() { return tExecuted; }
+    public final long getDurationInQueue() { return tStarted - tCreated; }
+    public final long getDurationInExec() { return tExecuted - tStarted; }
+    public final long getDurationTotal() { return tExecuted - tCreated; }
 
     @Override
     public String toString() {

@@ -78,12 +78,12 @@ public class RunnableTask extends TaskBase {
     }
 
     /** Return the user action */
-    public Runnable getRunnable() {
+    public final Runnable getRunnable() {
         return runnable;
     }
 
     @Override
-    public void run() {
+    public final void run() {
         tStarted = System.currentTimeMillis();
         if(null == syncObject) {
             try {

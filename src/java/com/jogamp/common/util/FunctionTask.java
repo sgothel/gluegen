@@ -86,23 +86,23 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     }
 
     /** Return the user action */
-    public Function<R,A> getRunnable() {
+    public final Function<R,A> getRunnable() {
         return runnable;
     }
 
     /**
      * Sets the arguments for {@link #run()}.
-     * They will be cleared afterwards.
+     * They will be cleared after calling {@link #run()} or {@link #eval(Object...)}. 
      */
-    public void setArgs(A... args) {
+    public final void setArgs(A... args) {
         this.args = args;
     }
     
     /**
      * Retrieves the cached result of {@link #run()}
-     * and clears it afterwards.
+     * and is cleared within this method.
      */
-    public R getResult() {
+    public final R getResult() {
         final R res = result;
         result = null;
         return res;
@@ -119,18 +119,14 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
      * </p>
      */
     @Override
-    public void run() {
-        result = eval(args);
-        args = null;
-    }
-
-    @Override
-    public R eval(A... args) {
-        R res = null;
+    public final void run() {
+        final A[] args = this.args;
+        this.args = null;
+        this.result = null;
         tStarted = System.currentTimeMillis();
         if(null == syncObject) {
             try {
-                res = runnable.eval(args);
+                this.result = runnable.eval(args);
             } catch (Throwable t) {
                 runnableException = t;
                 if(!catchExceptions) {
@@ -142,7 +138,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
         } else {
             synchronized (syncObject) {
                 try {
-                    res = runnable.eval(args);
+                    this.result = runnable.eval(args);
                 } catch (Throwable t) {
                     runnableException = t;
                     if(!catchExceptions) {
@@ -153,8 +149,16 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                     syncObject.notifyAll();
                 }
             }
-        }        
+        }
+    }
+
+    @Override
+    public final R eval(A... args) {
+        this.args = args;
+        run();        
+        final R res = result;
+        result = null;
         return res;
-    }    
+    }
 }
 
