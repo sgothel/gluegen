@@ -6,10 +6,13 @@
    - by other projects which use GlueGen to generate native code and
    - need to compile that native code.
    - 
-   - Before importing this file, the property "gluegen.root" must be
-   - defined; this is the relative path from the current working
+   - Before importing this file, the properties "gluegen.root" must be defined; 
+   - this is the relative path from the current working
    - directory (e.g., from which the parent project's build.xml is being
    - executed) to the top of the checked-out GlueGen workspace.
+   - 
+   - The property "gluegen.root.abs-path" must be defined as well;
+   - this is the absolute path of "gluegen.root", see above.
    - 
    - The gluegen.cpptasks.detect.os target sets the following
    - properties appropriately. They are only set to "true" if the OS/CPU
@@ -184,8 +187,16 @@
 
     <!-- NOTE: the values of the macos<arch> attributes will not be overridden if already set externally -->
     <property name="macosppc"     value="false" /> 
-    <property name="macosx32"     value="true" /> 
     <property name="macosx64"     value="true" /> 
+    <!-- No 32bit binaries on OSX since Java7 -->
+    <condition property="macosx32" value="false" else="true">
+        <or>
+            <contains string="${ant.java.version}" substring="1.7" casesensitive="false" />
+            <contains string="${ant.java.version}" substring="1.8" casesensitive="false" />
+            <contains string="${ant.java.version}" substring="1.9" casesensitive="false" />
+            <contains string="${ant.java.version}" substring="2.0" casesensitive="false" />
+        </or>
+    </condition>
 
     <!-- Need a way to be able to disable the macosx64 property specification in a build.xml -->
     <condition property="use.macosppc">
@@ -1428,8 +1439,13 @@
       <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.macosx" /> 
       <!-- Java7 std location -->
-      <condition property="java.includes.dir.platform"
+      <!-- Temporary workaround:
+           Provided darwin/jawt_md.h from Oracle for OSX / Java7
+           has X11 dependencies and does not define JAWT_SurfaceLayers. 
                  value="${java.includes.dir}/darwin">
+        -->
+      <condition property="java.includes.dir.platform"
+                 value="${gluegen.root.abs-path}/make/stub_includes/jni/macosx">
                  <available file="${java.includes.dir}/darwin/jawt_md.h"/>
       </condition>
       <condition property="java.lib.dir.platform"

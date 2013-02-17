@@ -42,6 +42,8 @@
                     <contains string="${ant.java.version}" substring="1.6" casesensitive="false" />
                     <contains string="${ant.java.version}" substring="1.7" casesensitive="false" />
                     <contains string="${ant.java.version}" substring="1.8" casesensitive="false" />
+                    <contains string="${ant.java.version}" substring="1.9" casesensitive="false" />
+                    <contains string="${ant.java.version}" substring="2.0" casesensitive="false" />
                 </or>
             </not>
         </condition>
