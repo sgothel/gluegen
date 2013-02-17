@@ -841,16 +841,29 @@
     <!-- 
        - Set up java.home.dir appropriately on all platforms.
       -->
-    <target name="setup.java.home.dir.nonmacosx" unless="isOSX">
+  <target name="setup.java.home.dir.nonmacosx" unless="isOSX">
       <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
       <property name="java.home.dir" value="${java.home}/.." />
-    </target>
-    <target name="setup.java.home.dir.macosx" if="isOSX">
+      <property name="java.includes.dir" value="${java.home.dir}/include" />
+  </target>
+  <target name="setup.java.home.dir.macosx" if="isOSX">
+      <!-- Java7 std location -->
+      <condition property="java.home.dir"
+                 value="${java.home}/..">
+                 <available file="${java.home}/../include/jni.h"/>
+      </condition>
+      <condition property="java.includes.dir"
+                 value="${java.home}/../include">
+                 <available file="${java.home}/../include/jni.h"/>
+      </condition>
+      <!-- Fallback value Java6 -->
       <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
-    </target>
-    <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx">
-    <property name="java.includes.dir" value="${java.home.dir}/include" />
-    </target>
+      <property name="java.includes.dir" value="/System/Library/Frameworks/JavaVM.framework/Headers" />
+  </target>
+  <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx">
+      <echo message="java.home.dir      ${java.home.dir}" />
+      <echo message="java.includes.dir  ${java.includes.dir}" />
+  </target>
 
   <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir">
 
@@ -1414,18 +1427,20 @@
       <echo message="MacOSX" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.macosx" /> 
-      <!-- Need to select either Java 10.6 Update 4's location or the old one -->
+      <!-- Java7 std location -->
       <condition property="java.includes.dir.platform"
-                 value="/System/Library/Frameworks/JavaVM.framework/Headers" 
-                 else="/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Headers">
-                 <available file="/System/Library/Frameworks/JavaVM.framework/Headers/jni.h"/>
+                 value="${java.includes.dir}/darwin">
+                 <available file="${java.includes.dir}/darwin/jawt_md.h"/>
       </condition>
-      <condition property="java.osx.frameworks.dir"
-                 value="/System/Library/Frameworks/JavaVM.framework/Frameworks"
-                 else="/OSX/JavaVM.framework/Frameworks/does/not/exist">
-                 <available file="/System/Library/Frameworks/JavaVM.framework/Frameworks/JavaNativeFoundation.framework/Headers/JavaNativeFoundation.h"/>
+      <condition property="java.lib.dir.platform"
+                 value="${java.home.dir}/jre/lib">
+                 <available file="${java.home.dir}/jre/lib/libjawt.dylib"/>
       </condition>
-      <property name="java.lib.dir.platform"         value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
+      <!-- Fallback value Java6 -->
+      <property name="java.includes.dir.platform" value="/System/Library/Frameworks/JavaVM.framework/Headers" />
+      <property name="java.lib.dir.platform"      value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
+      <echo message="java.includes.dir.platform   ${java.includes.dir.platform}" />
+      <echo message="java.lib.dir.platform        ${java.lib.dir.platform}" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.freebsd.x86" if="isFreeBSDX86">

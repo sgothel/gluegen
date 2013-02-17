@@ -136,30 +136,51 @@
 
     <property name="target.sourcelevel"       value="${ant.java.version}" />      <!-- default fallback values -->
     <property name="target.targetlevel"       value="${ant.java.version}" />      <!-- default fallback values -->
+    <!-- default value for std Java -->
+    <condition property="target.rt.jar"
+               value="${java.home}/lib/rt.jar">
+               <available file="${java.home}/lib/rt.jar"/>
+    </condition>
     <!-- default fallback value on OS X -->
-    <available property="target.rt.jar"
-               type="file"
-               file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"
-               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+    <condition property="target.rt.jar"
+               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar">
+               <available file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+    </condition>
     <!-- default fallback value on std Java -->
-    <property name="target.rt.jar"            value="${java.home}/lib/rt.jar" />
     <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
     <echo message="target.rt.jar              ${target.rt.jar}"/>
+    <fail message="No target.rt.jar specified not found.">
+      <condition>
+        <not>
+          <isset property="target.rt.jar"/>
+        </not>
+      </condition>
+    </fail>
 
     <property name="host.sourcelevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
     <property name="host.targetlevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
-    <!-- default fallback value for compile time components on OS X -->
-    <available property="host.rt.jar"
-               type="file"
-               file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"
-               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
-    <!-- default fallback value for compile time components on std Java -->
-    <property name="host.rt.jar"              value="${java.home}/lib/rt.jar" />
+    <!-- default value for std Java -->
+    <condition property="host.rt.jar"
+               value="${java.home}/lib/rt.jar">
+               <available file="${java.home}/lib/rt.jar"/>
+    </condition>
+    <!-- default fallback value on OS X -->
+    <condition property="host.rt.jar"
+               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar">
+               <available file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+    </condition>
     <echo message="host.sourcelevel           ${host.sourcelevel}"/>
     <echo message="host.targetlevel           ${host.targetlevel}"/>
     <echo message="host.rt.jar                ${host.rt.jar}"/>
+    <fail message="No host.rt.jar specified not found.">
+      <condition>
+        <not>
+          <isset property="host.rt.jar"/>
+        </not>
+      </condition>
+    </fail>
 
     <fail message="Unsupported Target Java version (sourcelevel): ${target.sourcelevel}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
         <condition>

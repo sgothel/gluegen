@@ -19,4 +19,4 @@ ant \
     -Dtarget.targetlevel=1.6 \
     -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
     -Drootrel.build=build-macosx-java7 \
-    $* 2>&1 | tee make.gluegen.all.macosx.log
+    $* 2>&1 | tee make.gluegen.all.macosx-java7.log
