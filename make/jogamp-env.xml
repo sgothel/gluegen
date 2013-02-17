@@ -27,6 +27,16 @@
     <echo message="java.version               ${java.version}"/>
     <echo message="java.home                  ${java.home}"/>
 
+    <property name="jvmJava.exe" value="${java.home}/bin/java" /> <!-- the java jvm executable for unit tests -->
+    <echo message="jvmJava.exe                ${jvmJava.exe}"/>
+
+    <condition property="jvmJava7.exe" value="${env.JAVA7_EXE}">
+        <not>
+         <equals arg1="${env.JAVA7_EXE}" arg2="$${env.JAVA7_EXE}" casesensitive="true" />
+        </not>
+    </condition>
+    <echo message="jvmJava7.exe               ${jvmJava7.exe}"/> <!-- optional extra Java7 JVM for unit tests -->
+
     <fail message="Please build using Ant 1.8.0 or higher.">
       <condition>
           <not>
@@ -224,6 +234,7 @@
 
     <echo message="junit.run.arg0             ${junit.run.arg0}"/>
     <echo message="junit.run.arg1             ${junit.run.arg1}"/>
+
   </target>
 
 </project>
