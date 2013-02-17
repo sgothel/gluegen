@@ -53,6 +53,43 @@ public class JarUtil {
     private static final boolean DEBUG = Debug.debug("JarUtil");
 
     /**
+     * This interface allows users to provide an URL resolver that will convert custom classloader
+     * URLs like Eclipse/OSGi "bundleresource:" URLs to normal "jar:" URLs. This is needed when
+     * the classloader has been customized.
+     */
+    public interface Resolver {
+        URL resolve(URL url);
+    }
+
+    /** If non-null, we use this to resolve class file URLs after querying them from the classloader.
+     * The resolver won't be used on an URL if it's already of a common type like file, jar, or http[s].*/
+    private static Resolver resolver;
+    
+    /**
+     * Setter.
+     * @param r Resolver to use after querying class file URLs from the classloader.
+     * @throws Error if the resolver has already been set.
+     * @throws SecurityException if the security manager doesn't have the setFactory
+     * permission 
+     */
+    public static void setResolver(Resolver r) {
+        if(r == null) {
+            return;
+        }
+
+        if(resolver != null) {
+            throw new Error("Resolver already set!");
+        }
+
+        SecurityManager security = System.getSecurityManager();
+        if(security != null) {
+            security.checkSetFactory();
+        }
+
+        resolver = r;
+    }
+
+    /**
      * Returns <code>true</code> if the Class's <code>"com.jogamp.common.GlueGenVersion"</code>
      * is loaded from a JarFile and hence has a Jar URL like 
      * URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>.
@@ -92,7 +129,14 @@ public class JarUtil {
         if(null == clazzBinName || null == cl) {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
-        final URL url = IOUtil.getClassURL(clazzBinName, cl);
+        URL url = IOUtil.getClassURL(clazzBinName, cl);
+    	if(   resolver != null
+    	   && !url.toString().startsWith("jar:")
+    	   && !url.toString().startsWith("file:")
+    	   && !url.toString().startsWith("http:")
+    	   && !url.toString().startsWith("https:")) {
+    	    url = resolver.resolve(url);
+        }
         // test name ..
         final String urlS = url.toExternalForm();
         if(DEBUG) {

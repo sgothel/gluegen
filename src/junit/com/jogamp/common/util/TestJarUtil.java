@@ -29,10 +29,12 @@
 package com.jogamp.common.util;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.net.URLConnection;
 import java.net.JarURLConnection;
+import java.net.URLStreamHandler;
 import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
@@ -156,6 +158,81 @@ public class TestJarUtil extends JunitTracer {
         Assert.assertTrue(TempJarCache.isInitialized());
         
         final ClassLoader rootCL = this.getClass().getClassLoader();
+        
+        // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL("ClassInJar0", rootCL));
+        
+        // Fetch and load the contained "ClassInJar1.jar"
+        final URL ClassInJar2_jarFileURL = JarUtil.getJarFileURL(TempJarCache.getResource("sub/ClassInJar2.jar"));
+        final ClassLoader cl = new URLClassLoader(new URL[] { ClassInJar2_jarFileURL }, rootCL);
+        Assert.assertNotNull(cl);        
+        validateJarUtil("ClassInJar2.jar", "ClassInJar2", cl);
+        System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+    }
+    
+    /**
+     * Tests JarUtil's ability to resolve non-JAR URLs with a custom resolver. Meant to be used
+     * in cases like an OSGi plugin, where all classes are loaded with custom classloaders and
+     * therefore return URLs that don't start with "jar:". Adapted from test 02 above.
+     */
+    @Test
+    public void testJarUtilJarInJar03() throws IOException, ClassNotFoundException {
+        System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+        
+        Assert.assertTrue(TempJarCache.initSingleton());
+        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
+        Assert.assertTrue(TempJarCache.isInitialized());
+
+        /** This classloader mimics what OSGi's does -- it takes jar: URLs and makes them into bundleresource: URLs
+         * where the JAR is not directly accessible anymore. Here I leave the JAR name at the end of the URL so I can
+         * retrieve it later in the resolver, but OSGi obscures it completely and returns URLs like
+         * "bundleresource:4.fwk1990213994:1/Something.class" where the JAR name not present. */
+        class CustomClassLoader extends ClassLoader {
+            CustomClassLoader() {
+                super(TestJarUtil.this.getClass().getClassLoader());
+            }
+
+            /** Override normal method to return un-resolvable URL. */
+            public URL getResource(String name) {
+                URL url = super.getResource(name);
+                if(url == null)
+                    return(null);
+                URL urlReturn = null;
+                try {
+                    // numbers to mimic OSGi -- can be anything
+                    urlReturn = new URL("bundleresource", "4.fwk1990213994", 1, url.getFile(),
+                        new URLStreamHandler() {
+                            @Override
+                            protected URLConnection openConnection(URL u) throws IOException {
+                                return null;
+                            }
+                        });
+                } catch(MalformedURLException e) {
+                    // shouldn't happen, since I create the URL correctly above
+                    Assert.assertTrue(false);
+                }
+                return(urlReturn);
+            }
+        };
+
+        /* This resolver converts bundleresource: URLs back into jar: URLs. OSGi does this by consulting
+         * opaque bundle data inside its custom classloader to find the stored JAR path; we do it here
+         * by simply retrieving the JAR name from where we left it at the end of the URL. */
+        JarUtil.setResolver( new JarUtil.Resolver() {
+            public URL resolve( URL url ) {
+                if(url.toString().startsWith("bundleresource")) {
+                    try {
+                        return(new URL("jar", "", url.getFile()));
+                    } catch(IOException e) {
+                        return(url);
+                    }
+                }
+                else
+                    return(url);
+            }
+        } );
+
+        final ClassLoader rootCL = new CustomClassLoader();
         
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
         TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL("ClassInJar0", rootCL));
