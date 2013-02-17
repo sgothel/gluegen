@@ -61,14 +61,31 @@ public class JarUtil {
         URL resolve(URL url);
     }
 
-    /** If non-null, we use this to resolve class file URLs after querying them from the classloader. */
+    /** If non-null, we use this to resolve class file URLs after querying them from the classloader.
+     * The resolver won't be used on an URL if it's already of a common type like file, jar, or http[s].*/
     private static Resolver resolver;
     
     /**
      * Setter.
-     * @param r Resolver to use after querying class file URLs from the classloader. 
+     * @param r Resolver to use after querying class file URLs from the classloader.
+     * @throws Error if the resolver has already been set.
+     * @throws SecurityException if the security manager doesn't have the setFactory
+     * permission 
      */
     public static void setResolver(Resolver r) {
+        if(r == null) {
+            return;
+        }
+
+        if(resolver != null) {
+            throw new Error("Resolver already set!");
+        }
+
+        SecurityManager security = System.getSecurityManager();
+        if(security != null) {
+            security.checkSetFactory();
+        }
+
         resolver = r;
     }
 
@@ -113,8 +130,13 @@ public class JarUtil {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
         URL url = IOUtil.getClassURL(clazzBinName, cl);
-    	if(resolver != null)
-    		url = resolver.resolve(url);
+    	if(   resolver != null
+    	   && !url.toString().startsWith("jar:")
+    	   && !url.toString().startsWith("file:")
+    	   && !url.toString().startsWith("http:")
+    	   && !url.toString().startsWith("https:")) {
+    	    url = resolver.resolve(url);
+        }
         // test name ..
         final String urlS = url.toExternalForm();
         if(DEBUG) {
