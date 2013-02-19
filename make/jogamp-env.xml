@@ -64,10 +64,9 @@
   <target name="jogamp.env.init" depends="jogamp.env.validation">
     <property environment="env" />
 
+    <!-- only set 'junit.is.disabled' if set in environment as 'true' to disable JUNIT tests -->
     <condition property="junit.is.disabled" value="${env.JUNIT_DISABLED}">
-        <not>
-         <equals arg1="${env.JUNIT_DISABLED}" arg2="$${env.JUNIT_DISABLED}" casesensitive="true" />
-        </not>
+        <istrue value="${env.JUNIT_DISABLED}"/>
     </condition>
     <echo message="junit.is.disabled         ${junit.is.disabled}"/>
 
@@ -84,7 +83,7 @@
     </condition>
     <property name="junit.run.arg1"       value="-Djunit.run.arg1=dummy" />      <!-- default dummy values -->
 
-    <!-- only set 'build.archiveon' if set in environment to trigger archive creation -->
+    <!-- only set 'build.archiveon' if set in environment as 'true' to trigger archive creation -->
     <condition property="build.archiveon" value="${env.BUILD_ARCHIVE}">
         <istrue value="${env.BUILD_ARCHIVE}"/>
     </condition>
