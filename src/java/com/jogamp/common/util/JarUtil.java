@@ -53,35 +53,42 @@ public class JarUtil {
     private static final boolean DEBUG = Debug.debug("JarUtil");
 
     /**
-     * This interface allows users to provide an URL resolver that will convert custom classloader
-     * URLs like Eclipse/OSGi "bundleresource:" URLs to normal "jar:" URLs. This is needed when
-     * the classloader has been customized.
+     * Interface allowing users to provide an URL resolver that will convert custom classloader
+     * URLs like Eclipse/OSGi <i>bundleresource:</i> URLs to normal <i>jar:</i> URLs.
+     * <p> 
+     * This might be required for custom classloader where the URL protocol is unknown 
+     * to the standard runtime environment. 
+     * </p>
+     * <p>
+     * Note: The provided resolver is only utilized if a given URL's protocol could not be resolved.
+     * I.e. it will not be invoked for known protocols like <i>http</i>, <i>https</i>, <i>jar</i> or <i>file</i>. 
+     * </p>
      */
     public interface Resolver {
         URL resolve(URL url);
     }
 
-    /** If non-null, we use this to resolve class file URLs after querying them from the classloader.
-     * The resolver won't be used on an URL if it's already of a common type like file, jar, or http[s].*/
     private static Resolver resolver;
     
     /**
-     * Setter.
-     * @param r Resolver to use after querying class file URLs from the classloader.
-     * @throws Error if the resolver has already been set.
+     * Setting a custom {@link Resolver} instance.
+     * 
+     * @param r {@link Resolver} to use after querying class file URLs from the classloader.
+     * @throws IllegalArgumentException if the passed resolver is <code>null</code>
+     * @throws IllegalStateException if the resolver has already been set.
      * @throws SecurityException if the security manager doesn't have the setFactory
      * permission 
      */
-    public static void setResolver(Resolver r) {
+    public static void setResolver(Resolver r) throws IllegalArgumentException, IllegalStateException, SecurityException {
         if(r == null) {
-            return;
+            throw new IllegalArgumentException("Null Resolver passed");
         }
 
         if(resolver != null) {
-            throw new Error("Resolver already set!");
+            throw new IllegalStateException("Resolver already set!");
         }
 
-        SecurityManager security = System.getSecurityManager();
+        final SecurityManager security = System.getSecurityManager();
         if(security != null) {
             security.checkSetFactory();
         }
@@ -129,18 +136,30 @@ public class JarUtil {
         if(null == clazzBinName || null == cl) {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
-        URL url = IOUtil.getClassURL(clazzBinName, cl);
-    	if(   resolver != null
-    	   && !url.toString().startsWith("jar:")
-    	   && !url.toString().startsWith("file:")
-    	   && !url.toString().startsWith("http:")
-    	   && !url.toString().startsWith("https:")) {
-    	    url = resolver.resolve(url);
+        final URL url;
+        final String urlS;
+        {
+            final URL _url = IOUtil.getClassURL(clazzBinName, cl);
+            final String _urlS = _url.toExternalForm();
+            if( resolver != null &&
+            	!_urlS.startsWith("jar:") &&
+            	!_urlS.startsWith("file:") &&
+            	!_urlS.startsWith("http:") &&
+            	!_urlS.startsWith("https:") ) 
+            {
+        	    url = resolver.resolve(_url);
+        	    urlS = url.toExternalForm();
+                if(DEBUG) {
+                    System.out.println("getJarURL Resolver: "+_urlS+" -> "+urlS);
+                }
+            } else {
+                url = _url;
+                urlS = _urlS;                
+            }
         }
         // test name ..
-        final String urlS = url.toExternalForm();
         if(DEBUG) {
-            System.out.println("getJarURL "+url+", extForm: "+urlS);
+            System.out.println("getJarURL "+urlS);
         }
         if(!urlS.startsWith("jar:")) {
             throw new IllegalArgumentException("JAR URL doesn't start with 'jar:', got <"+urlS+">");
