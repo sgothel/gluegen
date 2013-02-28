@@ -384,8 +384,9 @@ chmod 644 ${results}/* \${line.separator}
             <jvmarg value="-Dgluegen.root=${gluegen.root}"/>
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
             <!--
-            <jvmarg value="-Dgluegen.debug.NativeLibrary=true"/>
-            <jvmarg value="-Dgluegen.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogamp.debug.NativeLibrary=true"/>
+            <jvmarg value="-Djogamp.debug.ProcAddressHelper=true"/>
+            <jvmarg value="-Djogamp.debug.JNILibLoader=true"/>
             <jvmarg value="-verbose:jni"/> 
             <jvmarg value="-client"/>
             -->
@@ -417,7 +418,7 @@ chmod 644 ${results}/* \${line.separator}
         <mkdir dir="${build}/test/results"/>
     </target>
 
-    <target name="junit.run.local.osx.d32" if="isOSX">
+    <target name="junit.run.local.osx.d32" if="use.macosx32">
         <var name="jvmDataModel.arg" unset="true"/>
         <var name="jvmDataModel.arg" value="-d32"/>
 

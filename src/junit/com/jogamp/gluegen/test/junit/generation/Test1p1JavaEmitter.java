@@ -31,9 +31,8 @@ package com.jogamp.gluegen.test.junit.generation;
 import java.io.IOException;
 
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
-import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 
-
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 
@@ -46,8 +45,8 @@ public class Test1p1JavaEmitter extends BaseClass {
     /**
      * Verifies loading of the new library.
      */
-    @Test
-    public void chapter01TestLoadLibrary() throws Exception {
+    @BeforeClass
+    public static void chapter01TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest1p1();
     }
 

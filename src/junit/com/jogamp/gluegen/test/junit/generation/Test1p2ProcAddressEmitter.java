@@ -34,7 +34,9 @@ import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 
 import com.jogamp.common.os.NativeLibrary;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
@@ -48,10 +50,10 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     /**
      * Verifies loading of the new library.
      */
-    @Test
-    public void chapter01TestLoadLibrary() throws Exception {
+    @BeforeClass
+    public static void chapter01TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest1p2();
-        dynamicLookupHelper = NativeLibrary.open("test1", getClass().getClassLoader(), true);
+        dynamicLookupHelper = NativeLibrary.open("test1", Test1p2ProcAddressEmitter.class.getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test1) failed", dynamicLookupHelper);
 
         Bindingtest1p2Impl.resetProcAddressTable(dynamicLookupHelper);
@@ -122,8 +124,8 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     /**
      * Verifies unloading of the new library.
      */
-    @Test
-    public void chapter0XTestUnloadLibrary() throws Exception {
+    @AfterClass
+    public static void chapter0XTestUnloadLibrary() throws Exception {
         Assert.assertNotNull(dynamicLookupHelper);
         dynamicLookupHelper.close();
         dynamicLookupHelper = null;
