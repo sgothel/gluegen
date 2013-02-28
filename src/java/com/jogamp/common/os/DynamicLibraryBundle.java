@@ -34,10 +34,10 @@ import java.util.HashSet;
 import java.util.List;
 
 import jogamp.common.Debug;
-import jogamp.common.awt.AWTEDTExecutor;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.util.RunnableExecutor;
+import com.jogamp.common.util.awt.AWTEDTExecutor;
 
 /**
  * Provides bundling of:<br>

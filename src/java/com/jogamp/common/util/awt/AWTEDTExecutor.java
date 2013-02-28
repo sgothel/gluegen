@@ -25,7 +25,7 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package jogamp.common.awt;
+package com.jogamp.common.util.awt;
 
 import java.awt.EventQueue;
 import java.lang.reflect.InvocationTargetException;

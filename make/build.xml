@@ -146,7 +146,8 @@
     <!-- optional android classes - if android -->
     <property name="java.part.android" value="jogamp/common/os/android/**"/>
 
-    <property name="jogamp.awt.classes" value="jogamp/common/awt/**"/>
+    <!-- property name="java.part.awt" value="com/jogamp/common/util/awt/** jogamp/common/awt/**"/-->
+    <property name="java.part.awt" value="com/jogamp/common/util/awt/**"/>
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
 
@@ -889,6 +890,7 @@
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
         <include name="${java.part.android}" />
+        <exclude name="${java.part.awt}" />
         <exclude name="${jogamp-android-launcher.classes}" />
       </fileset>
       <fileset dir="resources/assets">
