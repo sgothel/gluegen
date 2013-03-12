@@ -597,6 +597,7 @@
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="IntObjectHashMap"/>
         <param name="map.key" value="int"/>
+        <param name="map.keyHash" value="\1"/>
         <param name="map.value" value="Object"/>
         <param name="map.null" value="null"/>
     </antcall>
@@ -604,6 +605,7 @@
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="IntLongHashMap"/>
         <param name="map.key" value="int"/>
+        <param name="map.keyHash" value="\1"/>
         <param name="map.value" value="long"/>
         <param name="map.null" value="-1"/>
     </antcall>
@@ -612,6 +614,7 @@
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="LongObjectHashMap"/>
         <param name="map.key" value="long"/>
+        <param name="map.keyHash" value="HashUtil.getAddrHash32_EqualDist(\1)"/>
         <param name="map.value" value="Object"/>
         <param name="map.null" value="null"/>
     </antcall>
@@ -619,6 +622,7 @@
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="LongIntHashMap"/>
         <param name="map.key" value="long"/>
+        <param name="map.keyHash" value="HashUtil.getAddrHash32_EqualDist(\1)"/>
         <param name="map.value" value="int"/>
         <param name="map.null" value="-1"/>
     </antcall>
@@ -626,6 +630,7 @@
     <antcall target="create-map" inheritrefs="true">
         <param name="map.name" value="LongLongHashMap"/>
         <param name="map.key" value="long"/>
+        <param name="map.keyHash" value="HashUtil.getAddrHash32_EqualDist(\1)"/>
         <param name="map.value" value="long"/>
         <param name="map.null" value="-1"/>
     </antcall>
@@ -641,6 +646,7 @@
             <replaceregex pattern="@see ${map.name}" replace="@see IntIntHashMap"/>
             <replaceregex pattern="/\*value\*/int/\*value\*/" replace="${map.value}"/>
             <replaceregex pattern="/\*key\*/int/\*key\*/" replace="${map.key}"/>
+            <replaceregex pattern="/\*keyHash\*/(.*)/\*keyHash\*/" replace="${map.keyHash}"/>
             <replaceregex pattern="/\*null\*/-1/\*null\*/" replace="${map.null}"/>
         </filterchain>
         <!-- no clue why we have to do this twice... otherwise it will only replace one token per line -->

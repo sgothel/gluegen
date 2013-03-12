@@ -207,8 +207,8 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
 //    @SuppressWarnings(value="cast")
     public boolean containsKey(/*key*/int/*key*/ key) {
-        Entry[] t = this.table;
-        int index = (int) (key & mask);
+        final Entry[] t = this.table;
+        final int index = /*keyHash*/key/*keyHash*/ & mask;
         for (Entry e = t[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return true;
@@ -223,8 +223,8 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
      */
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ get(/*key*/int/*key*/ key) {
-        Entry[] t = this.table;
-        int index = (int) (key & mask);
+        final Entry[] t = this.table;
+        final int index = /*keyHash*/key/*keyHash*/ & mask;
         for (Entry e = t[index]; e != null; e = e.next) {
             if (e.key == key) {
                 return e.value;
@@ -240,7 +240,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
         final Entry[] t = this.table;
-        int index = (int) (key & mask);
+        final int index = /*keyHash*/key/*keyHash*/ & mask;
         // Check if key already exists.
         for (Entry e = t[index]; e != null; e = e.next) {
             if (e.key != key) {
@@ -254,18 +254,18 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
         if (size++ >= threshold) {
             // Rehash.
-            int newCapacity = 2 * capacity;
+            final int newCapacity = 2 * capacity;
             final Entry[] newTable = new Entry[newCapacity];
-            /*key*/int/*key*/ bucketmask = newCapacity - 1;
+            final int newMask = newCapacity - 1;
             for (int j = 0; j < t.length; j++) {
                 Entry e = t[j];
                 if (e != null) {
                     t[j] = null;
                     do {
                         Entry next = e.next;
-                        index = (int) (e.key & bucketmask);
-                        e.next = newTable[index];
-                        newTable[index] = e;
+                        final int index2 = /*keyHash*/e.key/*keyHash*/ & newMask;
+                        e.next = newTable[index2];
+                        newTable[index2] = e;
                         e = next;
                     } while (e != null);
                 }
@@ -273,7 +273,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
             table = newTable;
             capacity = newCapacity;
             threshold = (int) (newCapacity * loadFactor);
-            mask = capacity - 1;
+            mask = newMask;
         }
         return keyNotFoundValue;
     }
@@ -296,9 +296,10 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 //    @SuppressWarnings(value="cast")
     public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
         final Entry[] t = this.table;
-        final int index = (int) (key & mask);
+        final int index = /*keyHash*/key/*keyHash*/ & mask;
         Entry prev = t[index];
         Entry e = prev;
+        
         while (e != null) {
             Entry next = e.next;
             if (e.key == key) {

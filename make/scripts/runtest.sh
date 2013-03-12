@@ -41,7 +41,7 @@ rm -f $LOG
 
 #D_ARGS="-Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true"
 #D_ARGS="-Djogamp.debug.TraceLock"
-D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
+#D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
 #D_ARGS="-Djogamp.debug.JarUtil"
 #D_ARGS="-Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.TempFileCache"
@@ -88,13 +88,13 @@ function onetest() {
 #onetest com.jogamp.common.util.TestArrayHashSet01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
