@@ -71,12 +71,12 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
             }            
             lockedStack = s;
         }
-        // lock count by same thread
+        /** lock count by same thread */
         private int holdCount = 0;
-        // stack trace of the lock, only used if DEBUG
-        private Throwable lockedStack = null;
-        // waiting thread queue
+        /** waiting thread queue */
         final ArrayList<WaitingThread> queue = new ArrayList<WaitingThread>();
+        /** stack trace of the lock, only used if DEBUG */
+        private Throwable lockedStack = null;
     }
     private Sync sync = new Sync();
     
@@ -180,6 +180,9 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                 
                 if ( 0 >= timeout ) {
                     // locked by other thread and no waiting requested
+                    if(TRACE_LOCK) {
+                        System.err.println("+++ LOCK XY "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms");
+                    }
                     return false;
                 }
     
@@ -213,15 +216,12 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                     }
                 } while ( cur != sync.getOwner() && 0 < timeout ) ;
     
-                if( 0 >= timeout ) {
+                if( 0 >= timeout && cur != sync.getOwner() ) {
                     // timed out
                     if(!wCur.signaledByUnlock) {
                         sync.queue.remove(wCur); // O(n)
                     }
-                    if(cur == sync.getOwner()) {
-                        sync.setOwner(null);
-                    }
-                    if(TRACE_LOCK || DEBUG) {
+                    if(TRACE_LOCK) {
                         System.err.println("+++ LOCK XX "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms");
                     }
                     return false;

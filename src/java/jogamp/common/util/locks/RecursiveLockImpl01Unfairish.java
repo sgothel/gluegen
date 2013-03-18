@@ -107,11 +107,12 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         @Override
         public final void decrQSz() { qsz--; }
         
-        // lock count by same thread
-        private int holdCount = 0;        
-        // stack trace of the lock, only used if DEBUG
-        private Throwable lockedStack = null;        
+        /** lock count by same thread */
+        private int holdCount = 0;
+        /** queue size of waiting threads */
         private int qsz = 0;
+        /** stack trace of the lock, only used if DEBUG */
+        private Throwable lockedStack = null;
     }
     
     protected final Sync sync;
@@ -207,7 +208,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         synchronized(sync) {
             final Thread cur = Thread.currentThread();
             if(TRACE_LOCK) {
-                System.err.println("+++ LOCK 0 "+toString()+", cur "+threadName(cur));
+                System.err.println("+++ LOCK 0 "+toString()+", timeout "+timeout+" ms, cur "+threadName(cur));
             }
             if (sync.isOwner(cur)) {
                 sync.incrHoldCount(cur);
@@ -221,6 +222,9 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     
                 if ( 0 >= timeout ) {
                     // locked by other thread and no waiting requested
+                    if(TRACE_LOCK) {
+                        System.err.println("+++ LOCK XY "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms");
+                    }
                     return false;
                 }
     
@@ -232,9 +236,9 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
                 } while (null != sync.getOwner() && 0 < timeout) ;
                 sync.decrQSz();
     
-                if( 0 >= timeout ) {
+                if( 0 >= timeout && sync.getOwner() != null ) {
                     // timed out
-                    if(TRACE_LOCK || DEBUG) {
+                    if(TRACE_LOCK) {
                         System.err.println("+++ LOCK XX "+toString()+", cur "+threadName(cur)+", left "+timeout+" ms");
                     }
                     return false;
