@@ -30,14 +30,20 @@ package com.jogamp.common.util;
 
 import java.io.PrintStream;
 
+import jogamp.common.Debug;
+
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
  */
 public abstract class TaskBase implements Runnable {
+    /** Enable via the property <code>jogamp.debug.TaskBase.TraceSource</code> */
+    private static final boolean TRACE_SOURCE = Debug.isPropertyDefined("jogamp.debug.TaskBase.TraceSource", true);
+    
     protected final Object syncObject;
     protected final boolean catchExceptions;
-    protected final PrintStream exceptionOut;
+    protected final PrintStream exceptionOut;    
+    protected final Throwable sourceStack;
     
     protected Object attachment;
     protected Throwable runnableException;
@@ -49,10 +55,20 @@ public abstract class TaskBase implements Runnable {
         this.syncObject = syncObject;
         this.catchExceptions = catchExceptions;
         this.exceptionOut = exceptionOut;
+        this.sourceStack = TRACE_SOURCE ? new Throwable("Creation @") : null;
         tCreated = System.currentTimeMillis();
         tStarted = 0;
         tExecuted = 0;
         isFlushed = false;
+    }
+    
+    protected final String getExceptionOutIntro() {
+        return catchExceptions ? "A catched" : "An uncatched";
+    }
+    protected final void printSourceTrace() {
+        if( null != sourceStack && null != exceptionOut ) {
+            sourceStack.printStackTrace(exceptionOut);
+        }
     }
 
     /** 
@@ -130,12 +146,12 @@ public abstract class TaskBase implements Runnable {
     public final long getTimestampBeforeExec() { return tStarted; }
     public final long getTimestampAfterExec() { return tExecuted; }
     public final long getDurationInQueue() { return tStarted - tCreated; }
-    public final long getDurationInExec() { return tExecuted - tStarted; }
-    public final long getDurationTotal() { return tExecuted - tCreated; }
+    public final long getDurationInExec() { return 0 < tExecuted ? tExecuted - tStarted : 0; }
+    public final long getDurationTotal() { return 0 < tExecuted ? tExecuted - tCreated : tStarted - tCreated; }
 
     @Override
     public String toString() {
-        return "RunnableTask[executed "+isExecuted()+", t2-t0 "+getDurationTotal()+", t2-t1 "+getDurationInExec()+", t1-t0 "+getDurationInQueue()+", throwable "+getThrowable()+", Attachment "+attachment+"]";
+        return "RunnableTask[executed "+isExecuted()+", tTotal "+getDurationTotal()+" ms, tExec "+getDurationInExec()+" ms, tQueue "+getDurationInQueue()+" ms, attachment "+attachment+", throwable "+getThrowable()+"]";
     }
 }
 
