@@ -80,7 +80,7 @@ public class TestRunnableTask01 extends JunitTracer {
           }
         };
         
-        final RunnableTask rTask = new RunnableTask(clientAction, new Object(), false);                    
+        final RunnableTask rTask = new RunnableTask(clientAction, new Object(), false, null);                    
         System.err.println("BB.0: "+rTask.getSyncObject());
         synchronized (rTask.getSyncObject()) {
             System.err.println("BB.1: "+rTask.getSyncObject());

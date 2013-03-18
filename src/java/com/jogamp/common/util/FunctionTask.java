@@ -28,6 +28,8 @@
  
 package com.jogamp.common.util;
 
+import java.io.PrintStream;
+
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
@@ -47,7 +49,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     public static <U,V> U invoke(boolean waitUntilDone, Function<U,V> func, V... args) {
         Throwable throwable = null;
         final Object sync = new Object();
-        final FunctionTask<U,V> rt = new FunctionTask<U,V>( func, waitUntilDone ? sync : null, true );
+        final FunctionTask<U,V> rt = new FunctionTask<U,V>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
         final U res;
         synchronized(sync) {
             res = rt.eval(args);
@@ -75,11 +77,13 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
      * @param runnable the user action
      * @param syncObject the synchronization object the caller shall wait until <code>runnable</code> execution is completed,
      *                   or <code>null</code> if waiting is not desired. 
-     * @param catchExceptions if true, exception during <code>runnable</code> execution are catched, otherwise not.
-     *                        Use {@link #getThrowable()} to determine whether an exception has been catched. 
+     * @param catchExceptions Influence an occurring exception during <code>runnable</code> execution.
+     *                        If <code>true</code>, the exception is silenced and can be retrieved via {@link #getThrowable()},
+     *                        otherwise the exception is thrown.
+     * @param exceptionOut If not <code>null</code>, exceptions are written to this {@link PrintStream}.
      */
-    public FunctionTask(Function<R,A> runnable, Object syncObject, boolean catchExceptions) {
-        super(syncObject, catchExceptions);
+    public FunctionTask(Function<R,A> runnable, Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
+        super(syncObject, catchExceptions, exceptionOut);
         this.runnable = runnable ;
         result = null;
         args = null;
@@ -129,6 +133,9 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                 this.result = runnable.eval(args);
             } catch (Throwable t) {
                 runnableException = t;
+                if(null != exceptionOut) {
+                    t.printStackTrace(exceptionOut);
+                }
                 if(!catchExceptions) {
                     throw new RuntimeException(runnableException);
                 }
@@ -141,6 +148,9 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                     this.result = runnable.eval(args);
                 } catch (Throwable t) {
                     runnableException = t;
+                    if(null != exceptionOut) {
+                        t.printStackTrace(exceptionOut);
+                    }
                     if(!catchExceptions) {
                         throw new RuntimeException(runnableException);
                     }

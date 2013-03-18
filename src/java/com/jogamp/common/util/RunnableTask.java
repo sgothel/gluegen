@@ -28,6 +28,8 @@
  
 package com.jogamp.common.util;
 
+import java.io.PrintStream;
+
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
@@ -43,7 +45,7 @@ public class RunnableTask extends TaskBase {
     public static void invoke(boolean waitUntilDone, Runnable runnable) {
         Throwable throwable = null;
         final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true ); 
+        final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err ); 
         synchronized(sync) {
             rt.run();
             if( waitUntilDone ) {
@@ -66,16 +68,18 @@ public class RunnableTask extends TaskBase {
      * Create a RunnableTask object w/ synchronization,
      * ie. suitable for <code>invokeAndWait()</code>, i.e. {@link #invoke(boolean, Runnable) invoke(true, runnable)}. 
      * 
-     * @param runnable the user action
-     * @param syncObject the synchronization object if caller wait until <code>runnable</code> execution is completed,
+     * @param runnable The user action
+     * @param syncObject The synchronization object if caller wait until <code>runnable</code> execution is completed,
      *                   or <code>null</code> if waiting is not desired. 
-     * @param catchExceptions if true, exception during <code>runnable</code> execution are catched, otherwise not.
-     *                        Use {@link #getThrowable()} to determine whether an exception has been catched. 
+     * @param catchExceptions Influence an occurring exception during <code>runnable</code> execution.
+     *                        If <code>true</code>, the exception is silenced and can be retrieved via {@link #getThrowable()},
+     *                        otherwise the exception is thrown.
+     * @param exceptionOut If not <code>null</code>, exceptions are written to this {@link PrintStream}.
      */
-    public RunnableTask(Runnable runnable, Object syncObject, boolean catchExceptions) {
-        super(syncObject, catchExceptions);
+    public RunnableTask(Runnable runnable, Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
+        super(syncObject, catchExceptions, exceptionOut);
         this.runnable = runnable ;
-    }
+    } 
 
     /** Return the user action */
     public final Runnable getRunnable() {
@@ -90,6 +94,9 @@ public class RunnableTask extends TaskBase {
                 runnable.run();
             } catch (Throwable t) {
                 runnableException = t;
+                if(null != exceptionOut) {
+                    t.printStackTrace(exceptionOut);
+                }
                 if(!catchExceptions) {
                     throw new RuntimeException(runnableException);
                 }
@@ -102,6 +109,9 @@ public class RunnableTask extends TaskBase {
                     runnable.run();
                 } catch (Throwable t) {
                     runnableException = t;
+                    if(null != exceptionOut) {
+                        t.printStackTrace(exceptionOut);
+                    }
                     if(!catchExceptions) {
                         throw new RuntimeException(runnableException);
                     }

@@ -41,13 +41,15 @@ public interface Lock {
     /** Enable via the property <code>jogamp.debug.Lock</code> */
     public static final boolean DEBUG = Debug.debug("Lock");
 
-    /** Defines the default {@link #TIMEOUT} value */
+    /** The default {@link #TIMEOUT} value, of {@value} ms */
     public static final long DEFAULT_TIMEOUT = 5000; // 5s default timeout
     
     /** 
-     * Defines the <code>TIMEOUT</code> for {@link #lock()} in ms,
-     * and defaults to {@link #DEFAULT_TIMEOUT}.<br>
+     * The <code>TIMEOUT</code> for {@link #lock()} in ms,
+     * defaults to {@link #DEFAULT_TIMEOUT}.
+     * <p>
      * It can be overridden via the system property <code>jogamp.common.utils.locks.Lock.timeout</code>.
+     * </p>
      */
     public static final long TIMEOUT = Debug.getLongProperty("jogamp.common.utils.locks.Lock.timeout", true, DEFAULT_TIMEOUT);
 

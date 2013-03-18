@@ -28,6 +28,8 @@
  
 package com.jogamp.common.util;
 
+import java.io.PrintStream;
+
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
@@ -35,6 +37,7 @@ package com.jogamp.common.util;
 public abstract class TaskBase implements Runnable {
     protected final Object syncObject;
     protected final boolean catchExceptions;
+    protected final PrintStream exceptionOut;
     
     protected Object attachment;
     protected Throwable runnableException;
@@ -42,9 +45,10 @@ public abstract class TaskBase implements Runnable {
     protected volatile long tExecuted;
     protected volatile boolean isFlushed;
 
-    protected TaskBase(Object syncObject, boolean catchExceptions) {
-        this.syncObject = syncObject ;
-        this.catchExceptions = catchExceptions ;
+    protected TaskBase(Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
+        this.syncObject = syncObject;
+        this.catchExceptions = catchExceptions;
+        this.exceptionOut = exceptionOut;
         tCreated = System.currentTimeMillis();
         tStarted = 0;
         tExecuted = 0;
