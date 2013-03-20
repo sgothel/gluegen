@@ -623,7 +623,7 @@ public class BaseClass extends JunitTracer {
               
               bbPb = safeByteBuffer2PointerBuffer(bb, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
-              Assert.assertEquals(blobPb.get(0), binding.getAPtrAddress(bbPb.getBuffer()));
+              Assert.assertEquals( blobPb.get(0), cleanAddress( binding.getAPtrAddress(bbPb.getBuffer()) ) );
               
               bb2 = binding.arrayTestAVoidPtrTypeDim0(bb);
               bbA2 = cleanAddress( binding.getAPtrAddress(bb2) );
@@ -672,7 +672,7 @@ public class BaseClass extends JunitTracer {
               
               bbPb = safeByteBuffer2PointerBuffer(bb, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
-              Assert.assertEquals(blobPb.get(0), binding.getAPtrAddress(bbPb.getBuffer()));
+              Assert.assertEquals(blobPb.get(0), cleanAddress( binding.getAPtrAddress(bbPb.getBuffer()) ) );
               
               bb2 = binding.arrayTestAPtr1TypeDim0(bb);
               bbA2 = cleanAddress( binding.getAPtrAddress(bb2) );
