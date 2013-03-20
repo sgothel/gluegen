@@ -37,7 +37,13 @@
   </table>
   <p>
   <b>Warning:</b> Try to avoid unspecified bit sized types, especially <b>long</b>, since it differs on Unix and Windows!<br/>
-  <b>Note 1:</b>  Type <b>long</b> will result in broken code on Windows, since we don't differentiate the OS and it's bit size is ambiguous.
+  <b>Notes:</b>
+  <ol>
+      <li>Type <b>long</b> will result in broken code on Windows, since we don't differentiate the OS and it's bit size is ambiguous.</li>
+      <li>Anonymous void-pointer <i>void*</i> are mapped to NIO <i>Buffer</i>.</li>
+      <li>Pointers to pointer-size types like <i>intptr_t*</i>, <i>uintptr_t*</i>, <i>ptrdiff_t*</i> and <i>size_t*</i> are mapped to <i>PointerBuffer</i>, 
+                      to reflect the architecture depending storage size.</li>
+  </ol>
   </p>
   
   <h4>GlueGen Internal Alignment for Compound Data</h4>

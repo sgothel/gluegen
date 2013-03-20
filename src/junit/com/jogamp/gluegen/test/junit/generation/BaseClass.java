@@ -77,9 +77,7 @@ public class BaseClass extends JunitTracer {
     public void chapter__TestCoverageSignature(Bindingtest1 binding) throws Exception {
           int i;
           long context = 0;
-          ByteBuffer bb=null;
           LongBuffer lb=null;
-          PointerBuffer pb=null;
           IntBuffer ib=null;
           long[] larray = null;
           int larray_offset = 0;
@@ -89,6 +87,38 @@ public class BaseClass extends JunitTracer {
           int iarray_offset = 0;
           long result = 0;
           long l = result;
+
+          {              
+              ByteBuffer bb = binding.createAPtrBlob();
+              PointerBuffer pb = safeByteBuffer2PointerBuffer(bb, 1);
+              long bb2A = binding.getAPtrAddress(bb);
+              bb2A = bb2A - 0; // avoid warning
+          
+              binding.arrayTestAVoidPtrTypeDim1Mutable(pb);
+              pb = PointerBuffer.wrap( binding.arrayTestAVoidPtrTypeDim1Immutable(pb) );
+              pb = PointerBuffer.wrap( binding.arrayTestAVoidPtrTypeDim0(pb.getBuffer()) );
+              binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
+              
+              binding.arrayTestAIntPtrTypeDim1Mutable(pb);
+              result = binding.arrayTestAIntPtrTypeDim1Immutable(pb);
+              result = binding.arrayTestAIntPtrTypeDim0(pb.get(0));
+              binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
+              
+              binding.arrayTestAPtr1TypeDim1Mutable(pb);
+              pb = PointerBuffer.wrap( binding.arrayTestAPtr1TypeDim1Immutable(pb) );
+              pb = PointerBuffer.wrap( binding.arrayTestAPtr1TypeDim0(pb.getBuffer()) );
+              binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
+              
+              binding.arrayTestAPtr2TypeDim1Mutable(pb);
+              result = binding.arrayTestAPtr2TypeDim1Immutable(pb);
+              result = binding.arrayTestAPtr2TypeDim0(pb.get(0));
+              binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
+
+              binding.releaseAPtrBlob(bb);
+          }
+          
+          ByteBuffer bb=null;
+          PointerBuffer pb=null;
 
           result = binding.arrayTestInt32(context, ib);
           result = binding.arrayTestInt32(context, iarray, iarray_offset);
@@ -197,6 +227,31 @@ public class BaseClass extends JunitTracer {
           Assert.assertTrue(!pb.isDirect());
           return pb;
         }
+    }
+    
+    long cleanAddress(long a) {
+        if (Platform.is32Bit()) {
+            return a & 0x00000000FFFFFFFFL;
+        } else {
+            return a;
+        }        
+    }
+    
+    PointerBuffer validatePointerBuffer(PointerBuffer pb, int elements) {
+        Assert.assertNotNull(pb);
+        Assert.assertEquals("PointerBuffer capacity not "+elements, elements, pb.capacity());
+        Assert.assertEquals("PointerBuffer remaining not "+elements, elements, pb.remaining());
+        System.err.println("Testing accessing PointerBuffer values [0.."+(elements-1)+"]");
+        for(int i=0; i<elements; i++) {
+            final long v = pb.get(i);
+            System.err.println("  "+i+"/"+elements+": 0x"+Long.toHexString(v));
+        }
+        return pb;
+    }
+    PointerBuffer safeByteBuffer2PointerBuffer(ByteBuffer bb, int elements) {
+        Assert.assertEquals("ByteBuffer capacity not PointerBuffer ELEMENT_SIZE * "+elements, elements * PointerBuffer.ELEMENT_SIZE, bb.capacity());
+        Assert.assertEquals("ByteBuffer remaining not PointerBuffer ELEMENT_SIZE * "+elements, elements * PointerBuffer.ELEMENT_SIZE, bb.remaining());
+        return validatePointerBuffer(PointerBuffer.wrap(bb), elements);
     }
     
     /**
@@ -370,15 +425,10 @@ public class BaseClass extends JunitTracer {
               Assert.assertTrue("Wrong result: "+lb3.remaining(), Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE == lb3.remaining());
 
               PointerBuffer pb = binding.arrayTestFoo3ArrayToPtrPtr(lb3);
-              // System.out.println("pb: "+pb);
-              Assert.assertTrue("Wrong result: "+pb.capacity(), Bindingtest1.ARRAY_SIZE == pb.capacity());
-              Assert.assertTrue("Wrong result: "+pb.remaining(), Bindingtest1.ARRAY_SIZE == pb.remaining());
+              validatePointerBuffer(pb, Bindingtest1.ARRAY_SIZE);
 
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);
-
-              Assert.assertNotNull(pb2);
-              Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
-              Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
+              validatePointerBuffer(pb2, Bindingtest1.ARRAY_SIZE);
               for(j=0; j<Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE; j++) {
                 Assert.assertEquals("Wrong result: s:"+lb2.get(j%Bindingtest1.ARRAY_SIZE)+" d: "+lb3.get(j), 
                                   1+lb2.get(j%Bindingtest1.ARRAY_SIZE), lb3.get(j));
@@ -405,16 +455,12 @@ public class BaseClass extends JunitTracer {
               pb.rewind();
 
               // System.out.println("lb3: "+lb3);
-              Assert.assertTrue("Wrong result: "+pb.capacity(), Bindingtest1.ARRAY_SIZE == pb.capacity());
-              Assert.assertTrue("Wrong result: "+pb.remaining(), Bindingtest1.ARRAY_SIZE == pb.remaining());
+              validatePointerBuffer(pb, Bindingtest1.ARRAY_SIZE);
               Assert.assertNotNull(pb.getReferencedBuffer(0));
               Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2, pb.getReferencedBuffer(0).equals(lb2));              
 
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb); // pb2 is shallow
-
-              Assert.assertNotNull(pb2);
-              Assert.assertTrue("Wrong result: "+pb2.capacity(), Bindingtest1.ARRAY_SIZE == pb2.capacity());
-              Assert.assertTrue("Wrong result: "+pb2.remaining(), Bindingtest1.ARRAY_SIZE == pb2.remaining());
+              validatePointerBuffer(pb2, Bindingtest1.ARRAY_SIZE);
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                   LongBuffer i64b = (LongBuffer) pb.getReferencedBuffer(j);
                   for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
@@ -442,8 +488,7 @@ public class BaseClass extends JunitTracer {
                   pbS.referenceBuffer(lb3);
               }
               pbS.rewind();
-              Assert.assertTrue("Wrong result: "+pbS.capacity(), Bindingtest1.ARRAY_SIZE == pbS.capacity());
-              Assert.assertTrue("Wrong result: "+pbS.remaining(), Bindingtest1.ARRAY_SIZE == pbS.remaining());
+              validatePointerBuffer(pbS, Bindingtest1.ARRAY_SIZE);
               Assert.assertNotNull(pbS.getReferencedBuffer(0));
               Assert.assertTrue("Wrong result: "+pbS.getReferencedBuffer(0)+" != "+lb2, pbS.getReferencedBuffer(0).equals(lb2));
               
@@ -451,15 +496,11 @@ public class BaseClass extends JunitTracer {
               
               // System.err.println("\n***pbS "+pbS); System.err.println("***pbD "+pbD);
               binding.arrayTestFoo3CopyPtrPtrA(pbD, pbS); // pbD is shallow              
-              Assert.assertTrue("Wrong result: "+pbD.capacity(), Bindingtest1.ARRAY_SIZE == pbD.capacity());
-              Assert.assertTrue("Wrong result: "+pbD.remaining(), Bindingtest1.ARRAY_SIZE == pbD.remaining());
-              
+              validatePointerBuffer(pbD, Bindingtest1.ARRAY_SIZE);              
               
               PointerBuffer pbD2 = binding.arrayTestFoo3PtrPtr(pbD); // pbD2 is shallow
               Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pbD, 10000));
-              Assert.assertNotNull(pbD2);
-              Assert.assertTrue("Wrong result: "+pbD2.capacity(), Bindingtest1.ARRAY_SIZE == pbD2.capacity());
-              Assert.assertTrue("Wrong result: "+pbD2.remaining(), Bindingtest1.ARRAY_SIZE == pbD2.remaining());
+              validatePointerBuffer(pbD2, Bindingtest1.ARRAY_SIZE);
               Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pbD2, 10000));
           }
 
@@ -563,6 +604,107 @@ public class BaseClass extends JunitTracer {
     }
 
     public void chapter04TestPointerBuffer(Bindingtest1 binding) throws Exception {
+          final long DEADBEEF = 0x00000000DEADBEEFL;
+
+          {
+              long bbA, bbA2;
+              ByteBuffer bb, bb2;
+              PointerBuffer bbPb; 
+              
+              final ByteBuffer blob = binding.createAPtrBlob();
+              final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
+              
+              binding.arrayTestAVoidPtrTypeDim1Mutable(blobPb); // new memory in [0]
+              Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
+              bb = binding.arrayTestAVoidPtrTypeDim1Immutable(blobPb); // returns memory address of [0], returned as bb (blob)
+              bbA = cleanAddress( binding.getAPtrAddress(bb) ); // address of new memory in [0]
+              Assert.assertEquals(blobPb.get(0), bbA);
+              
+              bbPb = safeByteBuffer2PointerBuffer(bb, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
+              Assert.assertEquals(blobPb.get(0), binding.getAPtrAddress(bbPb.getBuffer()));
+              
+              bb2 = binding.arrayTestAVoidPtrTypeDim0(bb);
+              bbA2 = cleanAddress( binding.getAPtrAddress(bb2) );
+              Assert.assertEquals(bbA, bbA2);          
+              binding.releaseAPtrBlob(bb);
+              binding.releaseAPtrBlob(blob);
+          }
+          
+          {
+              long bbA, bbA2;
+              ByteBuffer bb;
+              PointerBuffer bbPb;
+              
+              final ByteBuffer blob = binding.createAPtrBlob();
+              final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
+
+              binding.arrayTestAIntPtrTypeDim1Mutable(blobPb);  // new memory in [0]
+              Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
+              bbA = cleanAddress( binding.arrayTestAIntPtrTypeDim1Immutable(blobPb) );  // returns memory address of [0], returned as intptr_t              
+              Assert.assertEquals(blobPb.get(0), bbA);
+              bb = binding.getAPtrMemory(bbA);
+              bbPb = safeByteBuffer2PointerBuffer(bb, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
+              
+              bbA2 = cleanAddress( binding.arrayTestAIntPtrTypeDim0(bbA) );
+              Assert.assertEquals(bbA, bbA2);                        
+              binding.releaseAPtrBlob(bb);
+              binding.releaseAPtrBlob(blob);
+          }
+
+          {
+              long bbA, bbA2;
+              ByteBuffer bb, bb2;
+              PointerBuffer bbPb; 
+              
+              final ByteBuffer blob = binding.createAPtrBlob();
+              final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
+              
+              binding.arrayTestAPtr1TypeDim1Mutable(blobPb); // new memory in [0]
+              Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
+              bb = binding.arrayTestAPtr1TypeDim1Immutable(blobPb); // returns memory address of [0], returned as bb (blob)
+              bbA = cleanAddress( binding.getAPtrAddress(bb) ); // address of new memory in [0]
+              Assert.assertEquals(blobPb.get(0), bbA);
+              
+              bbPb = safeByteBuffer2PointerBuffer(bb, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
+              Assert.assertEquals(blobPb.get(0), binding.getAPtrAddress(bbPb.getBuffer()));
+              
+              bb2 = binding.arrayTestAPtr1TypeDim0(bb);
+              bbA2 = cleanAddress( binding.getAPtrAddress(bb2) );
+              Assert.assertEquals(bbA, bbA2);          
+              binding.releaseAPtrBlob(bb);
+              binding.releaseAPtrBlob(blob);
+              
+          }
+          
+          {
+              long bbA, bbA2;
+              ByteBuffer bb;
+              PointerBuffer bbPb;
+              
+              final ByteBuffer blob = binding.createAPtrBlob();
+              final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
+
+              binding.arrayTestAPtr2TypeDim1Mutable(blobPb);  // new memory in [0]
+              Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
+              bbA = cleanAddress( binding.arrayTestAPtr2TypeDim1Immutable(blobPb) );  // returns memory address of [0], returned as intptr_t              
+              Assert.assertEquals(blobPb.get(0), bbA);
+              bb = binding.getAPtrMemory(bbA);
+              bbPb = safeByteBuffer2PointerBuffer(bb, 1);
+              Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
+              
+              bbA2 = cleanAddress( binding.arrayTestAPtr2TypeDim0(bbA) );
+              Assert.assertEquals(bbA, bbA2);                        
+              binding.releaseAPtrBlob(bb);
+              binding.releaseAPtrBlob(blob);
+          }
+          
     }
 
     /**

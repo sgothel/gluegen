@@ -12,6 +12,64 @@ MYAPI foo MYAPIENTRY nopTest() {
     return 42;
 }
 
+/**
+ * new blob sizeof(void*) filled w/ 0xDEADBEEF
+ */
+MYAPI void * MYAPIENTRY createAPtrBlob () {
+    uint32_t * mem = (uint32_t *) calloc(1, sizeof(void *));
+    *mem = 0xDEADBEEF;
+    return (void *)mem;
+}
+MYAPI void MYAPIENTRY releaseAPtrBlob (void * blob) {
+    free(blob);
+}
+MYAPI intptr_t MYAPIENTRY getAPtrAddress (const void * immutable ) {
+    return (intptr_t)immutable;
+}
+MYAPI void * MYAPIENTRY getAPtrMemory (const intptr_t address ) {
+    return (void *)address;
+}
+
+MYAPI void *   MYAPIENTRY arrayTestAVoidPtrTypeDim0 (const void * immutable ) {
+    return immutable;
+}
+MYAPI void     MYAPIENTRY arrayTestAVoidPtrTypeDim1Mutable  (void ** mutable ) {
+    *mutable = createAPtrBlob ();
+}
+MYAPI void *   MYAPIENTRY arrayTestAVoidPtrTypeDim1Immutable  (const void ** immutable ) {
+    return *immutable;
+}
+
+MYAPI intptr_t MYAPIENTRY arrayTestAIntPtrTypeDim0  (intptr_t immutable) {
+    return immutable;
+}
+MYAPI void     MYAPIENTRY arrayTestAIntPtrTypeDim1Mutable  (intptr_t * mutable ) {
+    *mutable = (intptr_t) createAPtrBlob ();
+}
+MYAPI intptr_t MYAPIENTRY arrayTestAIntPtrTypeDim1Immutable(const intptr_t * immutable ) {
+    return *immutable;
+}
+
+MYAPI APtr1Type MYAPIENTRY arrayTestAPtr1TypeDim0 (APtr1Type immutable ) {
+    return immutable;
+}
+MYAPI void MYAPIENTRY arrayTestAPtr1TypeDim1Mutable  (APtr1Type * mutable ) {
+    *mutable = (APtr1Type) createAPtrBlob ();
+}
+MYAPI APtr1Type MYAPIENTRY arrayTestAPtr1TypeDim1Immutable(const APtr1Type * immutable ) {
+    return *immutable;
+}
+
+MYAPI APtr2Type MYAPIENTRY arrayTestAPtr2TypeDim0  (APtr2Type immutable ) {
+    return immutable;
+}
+MYAPI void      MYAPIENTRY arrayTestAPtr2TypeDim1Mutable  (APtr2Type * mutable ) {
+    *mutable = (APtr2Type) createAPtrBlob ();
+}
+MYAPI APtr2Type MYAPIENTRY arrayTestAPtr2TypeDim1Immutable(const APtr2Type * immutable ) {
+    return *immutable;
+}
+
 MYAPI int32_t MYAPIENTRY arrayTestInt32(int64_t context, int32_t * array) {
     int32_t r=0;
     int i;

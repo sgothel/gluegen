@@ -28,9 +28,36 @@
 
 typedef int Bool;
 typedef uint64_t foo;
+typedef void * APtr1Type;
+typedef intptr_t APtr2Type;
 
 /** Returns 42 */
 MYAPI foo MYAPIENTRY nopTest();
+
+//
+// Different pointer type tests ..
+//
+
+MYAPI void * MYAPIENTRY createAPtrBlob ();
+MYAPI void MYAPIENTRY releaseAPtrBlob (void * blob);
+MYAPI intptr_t MYAPIENTRY getAPtrAddress (const void * immutable );
+MYAPI void * MYAPIENTRY getAPtrMemory (const intptr_t address );
+
+MYAPI void *   MYAPIENTRY arrayTestAVoidPtrTypeDim0 (const void * immutable );
+MYAPI void     MYAPIENTRY arrayTestAVoidPtrTypeDim1Mutable  (void ** mutable );
+MYAPI void *   MYAPIENTRY arrayTestAVoidPtrTypeDim1Immutable  (const void ** immutable );
+
+MYAPI intptr_t MYAPIENTRY arrayTestAIntPtrTypeDim0  (intptr_t immutable);
+MYAPI void     MYAPIENTRY arrayTestAIntPtrTypeDim1Mutable  (intptr_t * mutable );
+MYAPI intptr_t MYAPIENTRY arrayTestAIntPtrTypeDim1Immutable(const intptr_t * immutable );
+
+MYAPI APtr1Type MYAPIENTRY arrayTestAPtr1TypeDim0 (APtr1Type immutable );
+MYAPI void MYAPIENTRY arrayTestAPtr1TypeDim1Mutable  (APtr1Type * mutable );
+MYAPI APtr1Type MYAPIENTRY arrayTestAPtr1TypeDim1Immutable(const APtr1Type * immutable );
+
+MYAPI APtr2Type MYAPIENTRY arrayTestAPtr2TypeDim0  (APtr2Type immutable );
+MYAPI void      MYAPIENTRY arrayTestAPtr2TypeDim1Mutable  (APtr2Type * mutable );
+MYAPI APtr2Type MYAPIENTRY arrayTestAPtr2TypeDim1Immutable(const APtr2Type * immutable );
 
 /** Returns Sum(array) + context */
 MYAPI int32_t MYAPIENTRY arrayTestInt32(int64_t context, int32_t * array );

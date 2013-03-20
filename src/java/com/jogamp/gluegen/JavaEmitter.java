@@ -1245,7 +1245,7 @@ public class JavaEmitter implements GlueEmitter {
           // t is <type>[], we need to get <type>
           targetType = t.asArray().getElementType();
         }
-
+        
         // Handle Types of form pointer-to-type or array-of-type, like
         // char* or int[]; these are expanded out into Java primitive
         // arrays, NIO buffers, or both in expandMethodBinding
@@ -1253,8 +1253,9 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isVoid()) {
             return JavaType.createForCVoidPointer();
           } else if (targetType.isInt()) {
-            // size_t and intptr_t is always a PointerBuffer since size is arch dependent
-            if ("size_t".equals(targetType.getName()) || "intptr_t".equals(targetType.getName())) {
+            final SizeThunk targetSizeThunk = targetType.getSize();
+            if( null != targetSizeThunk && SizeThunk.POINTER == targetSizeThunk ) { 
+              // Map intptr_t*, uintptr_t*, ptrdiff_t* and size_t* to PointerBuffer, since referenced memory-size is arch dependent
               return JavaType.forNIOPointerBufferClass();
             }
             switch ((int) targetType.getSize(curMachDesc)) {
