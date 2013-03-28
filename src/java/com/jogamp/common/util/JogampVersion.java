@@ -118,7 +118,7 @@ public class JogampVersion {
     }
 
     /** 
-     * Returns the implementation build number, e.g. <code>2.0-b456-201303281921</code>.
+     * Returns the implementation build number, e.g. <code>2.0-b456-20130328</code>.
      */
     public final String getImplementationBuild() {
         return this.getAttribute(GlueGenVersion.IMPLEMENTATION_BUILD);
@@ -157,7 +157,7 @@ public class JogampVersion {
     /** 
      * Retruns the {@link Attributes.Name#IMPLEMENTATION_VERSION IMPLEMENTATION_VERSION}.
      * <p>
-     * E.g. <code>2.0.2-rc-201303281050</code> for snapshots prior to <code>2.0.2</code> release
+     * E.g. <code>2.0.2-rc-20130328</code> for snapshots prior to <code>2.0.2</code> release
      * and <code>2.0.2</code> for the upcoming release.
      * </p>
      */

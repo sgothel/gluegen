@@ -65,7 +65,7 @@
     <property environment="env" />
 
     <tstamp>
-        <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
+        <format property="version.timestamp" pattern="yyyyMMdd"/>
     </tstamp>
 
     <property name="jogamp.version.major" value="2"/>
