@@ -81,8 +81,7 @@
     </exec>
     <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
-    <property name="gluegen_base_version" value="2.0"/>
-    <property name="gluegen.version" value="${gluegen_base_version}-b${gluegen.build.number}-${version.timestamp}" />
+    <property name="gluegen.version" value="${jogamp.version.base}-b${gluegen.build.number}-${version.timestamp}" />
 
     <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
@@ -797,7 +796,7 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
         </filterset>
     </copy>
 
@@ -821,7 +820,7 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
         </filterset>
     </copy>
 
@@ -881,7 +880,7 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
         </filterset>
     </copy>
 
@@ -940,7 +939,7 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="BASEVERSION" value="${gluegen_base_version}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
         </filterset>
     </copy>
 
@@ -1182,14 +1181,14 @@
     </target>
 
     <target name="maven.install" depends="init, base.compile, tag.build">
-        <property name="maven.artifacts.version" value="${gluegen_base_version}"/>
+        <property name="maven.artifacts.version" value="${jogamp.version.base}"/>
         <antcall target="maven.antcalls" inheritall="true">
             <param name="mvn.task" value="install"/>
         </antcall>
     </target>
 
     <target name="maven.deploy.snapshot" depends="init, base.compile, tag.build">
-        <property name="maven.artifacts.version" value="${gluegen_base_version}-SNAPSHOT"/>
+        <property name="maven.artifacts.version" value="${jogamp.version.base}-SNAPSHOT"/>
         <antcall target="maven.antcalls" inheritall="true">
             <param name="mvn.task" value="deploy"/>
         </antcall>

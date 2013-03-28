@@ -68,8 +68,14 @@
         <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
     </tstamp>
 
-    <property name="jogamp.version" value="2.0.2-rc-${version.timestamp}" />
+    <property name="jogamp.version.major" value="2"/>
+    <property name="jogamp.version.minor" value="0"/>
+    <property name="jogamp.version.submi" value="2"/>
+    <property name="jogamp.version.devel" value="-rc-${version.timestamp}"/>
+    <property name="jogamp.version.base"  value="${jogamp.version.major}.${jogamp.version.minor}"/>
+    <property name="jogamp.version"       value="${jogamp.version.base}.${jogamp.version.submi}${jogamp.version.devel}" />
     <echo message="jogamp.version             ${jogamp.version}"/>
+
     <!-- This is the Android version: xxyyzzz, xx=API yy screen-from-to zzz app-version-->
     <property name="jogamp_int_version" value="0914012"/>
     <echo message="jogamp_int_version         ${jogamp_int_version}"/>
