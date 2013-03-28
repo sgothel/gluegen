@@ -960,7 +960,7 @@
         androidmanifest.path="resources/android/AndroidManifest-Launcher.xml"
         androidresources.path="resources/android/res"
         jarmanifest.path="${build}/Manifest-android-launcher.temp"
-        version.code="${jogamp_int_version}"
+        version.code="${jogamp.version.int}"
         version.name="${jogamp.version}"
       />
   </target>
@@ -986,7 +986,7 @@
         androidmanifest.path="resources/android/AndroidManifest-Runtime.xml"
         androidresources.path="resources/android/res"
         jarmanifest.path="${build}/Manifest-rt-android.temp"
-        version.code="${jogamp_int_version}"
+        version.code="${jogamp.version.int}"
         version.name="${jogamp.version}"
       />
   </target>

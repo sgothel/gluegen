@@ -148,7 +148,7 @@
             android.abi="${android.abi}"
             androidmanifest.path="resources/android/AndroidManifest-Test.xml"
             androidresources.path="resources/android/res"
-            version.code="${jogamp_int_version}"
+            version.code="${jogamp.version.int}"
             version.name="${jogamp.version}"
           />
     </target>
