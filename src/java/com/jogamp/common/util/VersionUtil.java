@@ -95,7 +95,19 @@ public class VersionUtil {
      * @return the requested manifest or null when not found.
      */
     public static Manifest getManifest(ClassLoader cl, String extension) {
-         
+        return getManifest(cl, new String[] { extension } );
+    }
+    
+    /**
+     * Returns the manifest of the jar which contains one of the specified extensions. 
+     * The provided ClassLoader is used for resource loading.
+     * @param cl A ClassLoader which should find the manifest.
+     * @param extensions The values of many 'Extension-Name's jar-manifest attribute; used to identify the manifest.
+     *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.  
+     * @return the requested manifest or null when not found.
+     */
+    public static Manifest getManifest(ClassLoader cl, String[] extensions) {         
+        final Manifest[] extManifests = new Manifest[extensions.length];
         try {
             Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");
             while (resources.hasMoreElements()) {
@@ -107,12 +119,25 @@ public class VersionUtil {
                     IOUtil.close(is, false);
                 }
                 Attributes attributes = manifest.getMainAttributes();
-                if(attributes != null && extension.equals(attributes.getValue(Attributes.Name.EXTENSION_NAME))) {
-                    return manifest;
+                if(attributes != null) {
+                    for(int i=0; i < extensions.length && null == extManifests[i]; i++) {
+                        final String extension = extensions[i];
+                        if( extension.equals( attributes.getValue( Attributes.Name.EXTENSION_NAME ) ) ) {
+                            if( 0 == i ) {
+                                return manifest; // 1st one has highest prio - done
+                            }
+                            extManifests[i] = manifest;
+                        }
+                    }
                 }
             }
         } catch (IOException ex) {
             throw new RuntimeException("Unable to read manifest.", ex);
+        }
+        for(int i=1; i<extManifests.length; i++) {
+            if( null != extManifests[i] ) {
+                return extManifests[i];
+            }
         }
         return null;
     }
@@ -127,8 +152,8 @@ public class VersionUtil {
         }
 
         Attributes attr = mf.getMainAttributes();
-        Set keys = attr.keySet();
-        for(Iterator iter=keys.iterator(); iter.hasNext(); ) {
+        Set<Object> keys = attr.keySet();
+        for(Iterator<Object> iter=keys.iterator(); iter.hasNext(); ) {
             Attributes.Name key = (Attributes.Name) iter.next();
             String val = attr.getValue(key);
             sb.append(" ");
