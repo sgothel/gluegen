@@ -64,11 +64,21 @@
   <target name="jogamp.env.init" depends="jogamp.env.validation">
     <property environment="env" />
 
+    <tstamp>
+        <format property="version.timestamp" pattern="yyyyMMddHHmm"/>
+    </tstamp>
+
+    <property name="jogamp.version" value="2.0.2-rc-${version.timestamp}" />
+    <echo message="jogamp.version             ${jogamp.version}"/>
+    <!-- This is the Android version: xxyyzzz, xx=API yy screen-from-to zzz app-version-->
+    <property name="jogamp_int_version" value="0914012"/>
+    <echo message="jogamp_int_version         ${jogamp_int_version}"/>
+
     <!-- only set 'junit.is.disabled' if set in environment as 'true' to disable JUNIT tests -->
     <condition property="junit.is.disabled" value="${env.JUNIT_DISABLED}">
         <istrue value="${env.JUNIT_DISABLED}"/>
     </condition>
-    <echo message="junit.is.disabled         ${junit.is.disabled}"/>
+    <echo message="junit.is.disabled          ${junit.is.disabled}"/>
 
     <condition property="junit.run.arg0" value="${env.JUNIT_RUN_ARG0}">
         <not>

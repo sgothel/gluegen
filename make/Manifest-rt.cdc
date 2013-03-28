@@ -4,6 +4,7 @@ Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp Community
 Implementation-Title: GlueGen Run-Time CDC
 Implementation-Version: @VERSION@
+Implementation-Build: @BUILD_VERSION@
 Implementation-Branch: @SCM_BRANCH@
 Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community

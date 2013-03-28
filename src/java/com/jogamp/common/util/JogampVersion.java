@@ -40,7 +40,11 @@ import jogamp.common.os.AndroidUtils;
 
 public class JogampVersion {
 
+    /** See {@link #getImplementationBuild()} */
+    public static final Attributes.Name IMPLEMENTATION_BUILD = new Attributes.Name("Implementation-Build");
+    /** See {@link #getImplementationBranch()} */
     public static final Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
+    /** See {@link #getImplementationCommit()} */
     public static final Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
     
     private String packageName;
@@ -113,10 +117,23 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.EXTENSION_NAME);
     }
 
+    /** 
+     * Returns the implementation build number, e.g. <code>2.0-b456-201303281921</code>.
+     */
+    public final String getImplementationBuild() {
+        return this.getAttribute(GlueGenVersion.IMPLEMENTATION_BUILD);
+    }
+    
+    /**
+     * Returns the SCM branch name
+     */
     public final String getImplementationBranch() {
         return this.getAttribute(GlueGenVersion.IMPLEMENTATION_BRANCH);
     }
 
+    /**
+     * Returns the SCM version of the last commit, e.g. git's sha1
+     */
     public final String getImplementationCommit() {
         return this.getAttribute(GlueGenVersion.IMPLEMENTATION_COMMIT);
     }
@@ -137,6 +154,13 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.IMPLEMENTATION_URL);
     }
 
+    /** 
+     * Retruns the {@link Attributes.Name#IMPLEMENTATION_VERSION IMPLEMENTATION_VERSION}.
+     * <p>
+     * E.g. <code>2.0.2-rc-201303281050</code> for snapshots prior to <code>2.0.2</code> release
+     * and <code>2.0.2</code> for the upcoming release.
+     * </p>
+     */
     public final String getImplementationVersion() {
         return this.getAttribute(Attributes.Name.IMPLEMENTATION_VERSION);
     }
@@ -176,6 +200,7 @@ public class JogampVersion {
         sb.append("Implementation Vendor ID: ").append(getImplementationVendorID()).append(nl);
         sb.append("Implementation URL: ").append(getImplementationURL()).append(nl);
         sb.append("Implementation Version: ").append(getImplementationVersion()).append(nl);
+        sb.append("Implementation Build: ").append(getImplementationBuild()).append(nl);
         sb.append("Implementation Branch: ").append(getImplementationBranch()).append(nl);
         sb.append("Implementation Commit: ").append(getImplementationCommit()).append(nl);
         if(null != getAndroidPackageVersionName()) {

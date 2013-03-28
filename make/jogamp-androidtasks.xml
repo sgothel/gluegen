@@ -16,7 +16,7 @@
             androidmanifest.path="resources/android/AndroidManifest.xml"
             androidresources.path="resources/android/res"
             jarmanifest.path="${build}/Manifest-rt.temp" // optional
-            version.code="${gluegen_int_version}"
+            version.code="${jogamp_int_version}"
             version.name="${gluegen.version.plus}" 
 
             // optional values, for having a valid keystore:
