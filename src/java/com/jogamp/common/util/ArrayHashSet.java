@@ -68,13 +68,24 @@ import java.util.ListIterator;
 public class ArrayHashSet<E>
     implements Cloneable, Collection<E>, List<E>
 {
-    HashMap<E,E>   map  = new HashMap<E,E>();   // object -> object
-    ArrayList<E> data = new ArrayList<E>(); // list of objects
+    private final HashMap<E,E> map; // object -> object
+    private final ArrayList<E> data; // list of objects
 
     public ArrayHashSet() {
-        clear();
+        map  = new HashMap<E,E>();
+        data = new ArrayList<E>();
     }
 
+    public ArrayHashSet(int initialCapacity) {
+        map  = new HashMap<E,E>(initialCapacity);
+        data = new ArrayList<E>(initialCapacity);
+    }
+    
+    public ArrayHashSet(int initialCapacity, float loadFactor) {
+        map  = new HashMap<E,E>(initialCapacity, loadFactor);
+        data = new ArrayList<E>(initialCapacity);
+    }
+    
     //
     // Cloneable
     //
@@ -83,6 +94,7 @@ public class ArrayHashSet<E>
      * @return a shallow copy of this ArrayHashSet, elements are not copied.
      */
     public final Object clone() {
+        @SuppressWarnings("unchecked")
         ArrayList<E> clonedList = (ArrayList<E>)data.clone();
 
         ArrayHashSet<E> newObj = new ArrayHashSet<E>();
@@ -90,7 +102,14 @@ public class ArrayHashSet<E>
 
         return newObj;
     }
-
+    
+    /** Returns this object ordered ArrayList. Use w/ care, it's not a copy. */
+    public final ArrayList<E> getData() { return data; }
+    /** Returns this object hash map. Use w/ care, it's not a copy. */
+    public final HashMap<E,E> getMap() { return map; }
+    
+    public final String toString() { return data.toString(); }
+    
     //
     // Collection
     //
@@ -356,6 +375,7 @@ public class ArrayHashSet<E>
     /**
      * @return a shallow copy of this ArrayHashSet's ArrayList, elements are not copied.
      */
+    @SuppressWarnings("unchecked")
     public final ArrayList<E> toArrayList() {
         return (ArrayList<E>) data.clone();
     }
