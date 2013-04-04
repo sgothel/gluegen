@@ -168,8 +168,8 @@ public class ArrayHashSet<E>
      */
     public final boolean addAll(Collection<? extends E> c) {
         boolean mod = false;
-        for (Iterator<? extends E> iter = c.iterator(); iter.hasNext(); ) {
-            mod = mod || add(iter.next()) ;
+        for (E o : c) {
+            mod |= add(o);
         }
         return mod;
     }
@@ -195,8 +195,8 @@ public class ArrayHashSet<E>
      *         otherwise false.
      */
     public final boolean containsAll(Collection<?> c) {
-        for (Iterator<?> iter = c.iterator(); iter.hasNext(); ) {
-            if (! this.contains(iter.next()) ) {
+        for (Object o : c) {
+            if (!this.contains(o)) {
                 return false;
             }
         }
@@ -213,8 +213,8 @@ public class ArrayHashSet<E>
      */
     public final boolean removeAll(Collection<?> c) {
         boolean mod = false;
-        for (Iterator<?> iter = c.iterator(); iter.hasNext(); ) {
-            mod = this.remove(iter.next()) || mod;
+        for (Object o : c) {
+            mod |= this.remove(o);
         }
         return mod;
     }
@@ -230,10 +230,9 @@ public class ArrayHashSet<E>
      */
     public final boolean retainAll(Collection<?> c) {
         boolean mod = false;
-        for (Iterator<?> iter = this.iterator(); iter.hasNext(); ) {
-            Object o = iter.next();
-            if (! c.contains(o) ) {
-                mod = this.remove(o) || mod;
+        for (Object o : c) {
+            if (!c.contains(o)) {
+                mod |= this.remove(o);
             }
         }
         return mod;
