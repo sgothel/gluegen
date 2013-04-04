@@ -94,8 +94,7 @@ public class ArrayHashSet<E>
      * @return a shallow copy of this ArrayHashSet, elements are not copied.
      */
     public final Object clone() {
-        @SuppressWarnings("unchecked")
-        ArrayList<E> clonedList = (ArrayList<E>)data.clone();
+        ArrayList<E> clonedList = new ArrayList<E>(data);
 
         ArrayHashSet<E> newObj = new ArrayHashSet<E>();
         newObj.addAll(clonedList);
@@ -375,9 +374,8 @@ public class ArrayHashSet<E>
     /**
      * @return a shallow copy of this ArrayHashSet's ArrayList, elements are not copied.
      */
-    @SuppressWarnings("unchecked")
     public final ArrayList<E> toArrayList() {
-        return (ArrayList<E>) data.clone();
+        return new ArrayList<E>(data);
     }
 
     /**
