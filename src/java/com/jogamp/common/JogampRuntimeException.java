@@ -31,6 +31,7 @@ package com.jogamp.common;
 /** A generic exception for Jogamp errors used throughout the binding
     as a substitute for {@link RuntimeException}. */
 
+@SuppressWarnings("serial")
 public class JogampRuntimeException extends RuntimeException {
   /** Constructs a JogampRuntimeException object. */
   public JogampRuntimeException() {

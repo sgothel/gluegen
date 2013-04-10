@@ -40,32 +40,60 @@ public class IntBitfield {
     /** Unit size in bits, here 32 bits for one int unit. */
     public static final int UNIT_SIZE = 32;
     
+    private static final long UNIT_SHIFT_L = 5L;
+    private static final int UNIT_SHIFT_I = 5;
+    
     private final int[] storage;
-    private final long bits;
+    private final long bitsCountL;
+    private final int bitsCountI;
     
     /**
-     * @param bits
+     * @param bitCount
      */
-    public IntBitfield(long bits) {
-        final int units = (int) ( ( bits + 7L ) / (long)UNIT_SIZE );
+    public IntBitfield(long bitCount) {
+        final int units = (int) ( ( bitCount + 7L ) >> UNIT_SHIFT_L );
         this.storage = new int[units];
-        this.bits = units * (long)UNIT_SIZE;
+        this.bitsCountL = (long)units << UNIT_SHIFT_L ;
+        this.bitsCountI = bitsCountL > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)bitsCountL; 
+    }
+    
+    /**
+     * @param bitCount
+     */
+    public IntBitfield(int bitCount) {
+        final int units = ( bitCount + 7 ) >> UNIT_SHIFT_I;
+        this.storage = new int[units];
+        this.bitsCountI = units << UNIT_SHIFT_I;
+        this.bitsCountL = bitsCountI;
     }
     
     private final void check(long bitnum) {
-        if( 0 > bitnum || bitnum >= bits ) {
-            throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(bits-1)+"], but is "+bitnum);
+        if( 0 > bitnum || bitnum >= bitsCountL ) {
+            throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(bitsCountL-1)+"], but is "+bitnum);
+        }
+    }
+    private final void check(int bitnum) {
+        if( 0 > bitnum || bitnum >= bitsCountI ) {
+            throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(bitsCountI-1)+"], but is "+bitnum);
         }
     }
     
     /** Return the capacity of this bit field, i.e. the number of bits stored int this field. */
-    public final long capacity() { return bits; }
+    public final long capacity() { return bitsCountL; }
     
     /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
     public final boolean get(long bitnum) {
         check(bitnum);
-        final int u = (int) ( bitnum / UNIT_SIZE );
-        final int b = (int) ( bitnum - ( u * UNIT_SIZE ) );
+        final int u = (int) ( bitnum >> UNIT_SHIFT_L );
+        final int b = (int) ( bitnum - ( (long)u << UNIT_SHIFT_L ) );
+        return 0 != ( storage[u] & ( 1 << b ) ) ;
+    }
+    
+    /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
+    public final boolean get(int bitnum) {
+        check(bitnum);
+        final int u = bitnum >> UNIT_SHIFT_I;
+        final int b = bitnum - ( u << UNIT_SHIFT_I );
         return 0 != ( storage[u] & ( 1 << b ) ) ;
     }
     
@@ -75,8 +103,28 @@ public class IntBitfield {
      */
     public final boolean put(long bitnum, boolean bit) {        
         check(bitnum);
-        final int u = (int) ( bitnum / UNIT_SIZE );
-        final int b = (int) ( bitnum - ( u * UNIT_SIZE ) );
+        final int u = (int) ( bitnum >> UNIT_SHIFT_L );
+        final int b = (int) ( bitnum - ( (long)u << UNIT_SHIFT_L ) );
+        final int m = 1 << b;
+        final boolean prev = 0 != ( storage[u] & m ) ;
+        if( prev != bit ) {
+            if( bit ) {
+                storage[u] |=  m;
+            } else {
+                storage[u] &= ~m;
+            }
+        }
+        return prev;
+    }
+    
+    /** 
+     * Set or clear the bit at position <code>bitnum</code> according to <code>bit</code>
+     * and return the previous value. 
+     */
+    public final boolean put(int bitnum, boolean bit) {        
+        check(bitnum);
+        final int u = bitnum >> UNIT_SHIFT_I;
+        final int b = bitnum - ( u << UNIT_SHIFT_I );
         final int m = 1 << b;
         final boolean prev = 0 != ( storage[u] & m ) ;
         if( prev != bit ) {
