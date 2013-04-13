@@ -122,6 +122,9 @@ MYAPI int MYAPIENTRY stringArrayRead(const char *  *  strings, int num);
 /** Returns the sum of all integers, ints maybe NULL. */
 MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num);
 
+/** Copies num integer from src to dest. */
+MYAPI int MYAPIENTRY intArrayCopy(int * dest, const int * src, int num);
+
 /** Increases the elements by 1, and returns the sum 
 MYAPI int MYAPIENTRY intArrayWrite(int *  *  ints, int num); */
 

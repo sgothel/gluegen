@@ -246,6 +246,16 @@ MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num) {
     return s;
 }
 
+MYAPI int MYAPIENTRY intArrayCopy(int * dest, const int * src, int num) {
+    int i=0;
+    if(NULL!=dest && NULL!=src) {
+        for(i=0; i<num; i++) {
+            dest[i] = src[i];
+        }
+    }
+    return num;
+}
+
 /**
 MYAPI int intArrayWrite(int * *  ints, int num) {
     int i=0, s=0;

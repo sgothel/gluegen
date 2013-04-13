@@ -38,6 +38,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
+import java.util.Arrays;
 
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -725,6 +726,54 @@ public class BaseClass extends JunitTracer {
 
           i = binding.intArrayRead(iarray, 0, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
+          
+          final int[] src = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+          final IntBuffer srcB = IntBuffer.wrap(src);
+          {
+              final int[] dst = new int[src.length];
+              i = binding.intArrayCopy(dst, 0, src, 0, src.length);
+              System.err.println("ArrayCopy.01: "+Arrays.toString(dst));
+              Assert.assertTrue("Wrong result: "+i, src.length==i);
+              Assert.assertTrue(Arrays.equals(src, dst));              
+          }
+          {
+              IntBuffer dstB = IntBuffer.allocate(src.length);
+              i = binding.intArrayCopy(dstB, srcB, src.length);
+              System.err.println("ArrayCopy.02: "+Arrays.toString(dstB.array())+", "+dstB);
+              Assert.assertTrue("Wrong result: "+i, src.length==i);
+              Assert.assertTrue(Arrays.equals(src, dstB.array()));
+          }
+          
+          {
+              final int[] src36 = new int[] { 4, 5, 6, 7 };
+              final int[] dst = new int[src36.length];
+              i = binding.intArrayCopy(dst, 0, src, 3, src36.length);
+              System.err.println("ArrayCopy.03: "+Arrays.toString(dst));
+              Assert.assertTrue("Wrong result: "+i, src36.length==i);
+              Assert.assertTrue(Arrays.equals(src36, dst));
+          }
+          
+          final int[] src2 = new int[] { 0, 0, 0, 4, 5, 6, 7, 0, 0, 0 };
+          {
+              final int[] dst = new int[src2.length];
+              i = binding.intArrayCopy(dst, 3, src, 3, 4);
+              System.err.println("ArrayCopy.04: "+Arrays.toString(dst));
+              Assert.assertTrue("Wrong result: "+i, 4==i);
+              Assert.assertTrue(Arrays.equals(src2, dst));
+          }
+          {
+              IntBuffer dstB = IntBuffer.allocate(src2.length);
+              {
+                  dstB.position(3);
+                  srcB.position(3);
+                  i = binding.intArrayCopy(dstB, srcB, 4);
+                  dstB.position(0);
+                  srcB.position(0);
+              }
+              System.err.println("ArrayCopy.05: "+Arrays.toString(dstB.array())+", "+dstB);
+              Assert.assertTrue("Wrong result: "+i, 4==i);
+              Assert.assertTrue(Arrays.equals(src2, dstB.array()));
+          }
     }
     
     void assertAPTR(final long expected, final long actual) {
