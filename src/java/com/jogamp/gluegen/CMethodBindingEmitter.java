@@ -600,10 +600,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             cArgTypeName = "jstring *";
           }        
           writer.print(cArgTypeName);
-          writer.print(") (((char*) ( JNI_TRUE == " + isNIOArgName(i) + " ? "); 
+          writer.print(") ( JNI_TRUE == " + isNIOArgName(i) + " ? "); 
           writer.print(" (*env)->GetDirectBufferAddress(env, " + javaArgName + ") : ");
-          writer.print(" (*env)->GetPrimitiveArrayCritical(env, " + javaArgName + ", NULL) ) ) + ");
-          writer.println(byteOffsetArgName(i) + ");");
+          writer.print(" (*env)->GetPrimitiveArrayCritical(env, " + javaArgName + ", NULL) );");
         } else {
           // Handle the case where the array elements are of a type that needs a
           // data copy operation to convert from the java memory model to the C
@@ -912,7 +911,12 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         writer.print(CMethodBindingEmitter.cThisArgumentName());
       } else {
         writer.print("(");        
-        Type cArgType = binding.getCSymbol().getArgumentType(i);
+        Type cArgType = binding.getCArgumentType(i);
+        boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
+        boolean needsArrayOffset = !needsDataCopy && (
+                                     javaArgType.isArray() ||
+                                     javaArgType.isArrayOfCompoundTypeWrappers() ||
+                                     ( javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation ) );                
         if (isConstPtrPtr(cArgType)) {
             writer.print("const ");
         }
@@ -923,9 +927,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         }
         if (javaArgType.isArray() || javaArgType.isNIOBuffer() ||
             javaArgType.isCompoundTypeWrapper() || javaArgType.isArrayOfCompoundTypeWrappers()) {
+          if( needsArrayOffset ) {
+              writer.print("(((char *) ");
+          }
           writer.print(pointerConversionArgumentName(binding.getArgumentName(i)));
-          if (javaArgTypeNeedsDataCopy(javaArgType)) {
+          if ( needsDataCopy ) {
             writer.print("_copy");
+          }
+          if( needsArrayOffset ) {
+              writer.print(") + " + byteOffsetArgName(i) + ")");
           }
         } else {
           if (javaArgType.isString()) { writer.print(STRING_CHARS_PREFIX); }
