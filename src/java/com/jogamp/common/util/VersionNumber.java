@@ -31,19 +31,27 @@ package com.jogamp.common.util;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 
+/**
+ * Simple version number class containing a version number
+ * either being {@link #VersionNumber(int, int, int) defined explicit}
+ * or {@link #VersionNumber(String, String) derived from a string}. 
+ */
 public class VersionNumber implements Comparable<Object> {
 
-    /** int[3] { major, minor, sub } */
-    protected int[] val = new int[] { 0, 0, 0 };
+    protected final int major, minor, sub;
 
+    /** Explicit version number instantiation. */
     public VersionNumber(int majorRev, int minorRev, int subMinorRev) {
-        val[0] = majorRev;
-        val[1] = minorRev;
-        val[2] = subMinorRev;
+        major = majorRev;
+        minor = minorRev;
+        sub   = subMinorRev;
     }
 
     /**
+     * String derived version number instantiation.
+     * <p>
      * Parser first tokenizes the input versionString w/ given delimiter.
+     * </p>
      * <p>
      * Tokens represent the major, minor and sub version number component in this order.
      * </p>
@@ -59,6 +67,7 @@ public class VersionNumber implements Comparable<Object> {
         // group3: .*  == any pending chars, optional
         final java.util.regex.Pattern nonDigitsCutOff = java.util.regex.Pattern.compile("(\\D*)(\\d*)(.*)");
         final StringTokenizer tok = new StringTokenizer(versionString, delim);
+        final int[] val = new int[3];
         for(int n=0; tok.hasMoreTokens() && n<3; n++) {
             try {
                 final Matcher matcher = nonDigitsCutOff.matcher( tok.nextToken() );
@@ -67,16 +76,21 @@ public class VersionNumber implements Comparable<Object> {
                 }
             } catch (Exception e) { }
         }
+        major = val[0];
+        minor = val[1];
+        sub   = val[2];
     }
     
-    protected VersionNumber() { }
-
+    public final boolean isZero() {
+        return major == 0 && minor == 0 && sub == 0;
+    }
+    
     @Override
     public final int hashCode() {
         // 31 * x == (x << 5) - x
-        int hash = 31 + val[0];
-        hash = ((hash << 5) - hash) + val[1];
-        return ((hash << 5) - hash) + val[2];
+        int hash = 31 + major;
+        hash = ((hash << 5) - hash) + minor;
+        return ((hash << 5) - hash) + sub;
     }
 
     @Override
@@ -97,36 +111,36 @@ public class VersionNumber implements Comparable<Object> {
     }
 
     public final int compareTo(VersionNumber vo) {
-        if (val[0] > vo.val[0]) {        // major
+        if (major > vo.major) {
             return 1;
-        } else if (val[0] < vo.val[0]) { // major
+        } else if (major < vo.major) {
             return -1;
-        } else if (val[1] > vo.val[1]) { // minor
+        } else if (minor > vo.minor) {
             return 1;
-        } else if (val[1] < vo.val[1]) { // minor
+        } else if (minor < vo.minor) {
             return -1;
-        } else if (val[2] > vo.val[2]) { // sub
+        } else if (sub > vo.sub) {
             return 1;
-        } else if (val[2] < vo.val[2]) { // sub
+        } else if (sub < vo.sub) {
             return -1;
         }
-        return 0; // they are equal
+        return 0;
     }
     
     public final int getMajor() {
-        return val[0];
+        return major;
     }
 
     public final int getMinor() {
-        return val[1];
+        return minor;
     }
 
     public final int getSub() {
-        return val[2];
+        return sub;
     }
 
     @Override
     public String toString() {
-        return getMajor() + "." + getMinor() + "." + getSub() ;
+        return major + "." + minor + "." + sub ;
     }
 }
