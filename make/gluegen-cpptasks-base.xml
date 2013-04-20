@@ -18,6 +18,8 @@
    - properties appropriately. They are only set to "true" if the OS/CPU
    - configuration is exactly as specified.
    - 
+   -   isI386
+   -   isAMD64
    -   is64Bit
    -   isAbiEabiGnuArmel (implicit if isAndroidARMv6 or isLinuxARMv6)
    -   isAbiEabiGnuArmhf (shall be declared explicit)
@@ -229,15 +231,27 @@
 
   <!-- Detect OS and compiler configuration -->
   <target name="gluegen.cpptasks.detect.os.1" depends="gluegen.cpptasks.initialize" unless="gluegen.cpptasks.detected.os">
-    <condition property="is64Bit">
+    <condition property="isI386">
+      <or>
+          <os arch="i386" />
+          <os arch="x86" />
+      </or>
+    </condition>
+    <condition property="isAMD64">
       <or>
         <os arch="amd64" />
         <os arch="AMD64" />
         <os arch="x86_64" />
+      </or>
+    </condition>
+    <condition property="is64Bit">
+      <or>
+        <istrue value="${isAMD64}" />
         <os arch="IA64" />
         <os arch="sparcv9" />
       </or>
     </condition>
+
     <condition property="isOSX">
       <and>
         <os family="mac"/>
@@ -270,10 +284,7 @@
     <condition property="isWindowsX86">
       <and>
         <istrue value="${isWindows}" />
-        <or>
-          <os arch="i386" />
-          <os arch="x86" />
-        </or>
+        <istrue value="${isI386}" />
       </and>
     </condition>
     <condition property="isWindowsAMD64">
@@ -285,19 +296,13 @@
     <condition property="isFreeBSDX86">
       <and>
         <istrue value="${isFreeBSD}" />
-        <or>
-          <os arch="i386" />
-          <os arch="x86" />
-        </or>
+        <istrue value="${isI386}" />
       </and>
     </condition>
     <condition property="isFreeBSDAMD64">
       <and>
         <istrue value="${isFreeBSD}" />
-        <or>
-          <os arch="AMD64" />
-          <os arch="x86_64" />
-        </or>
+        <istrue value="${isAMD64}" />
       </and>
     </condition>
     <condition property="isHPUX">
@@ -411,19 +416,13 @@
     <condition property="isLinuxX86">
       <and>
         <istrue value="${isLinux}" />
-        <or>
-          <os arch="i386" />
-          <os arch="x86" />
-        </or>
+        <istrue value="${isI386}" />
       </and>
     </condition>
     <condition property="isLinuxAMD64">
       <and>
         <istrue value="${isLinux}" />
-        <or>
-          <os arch="AMD64" />
-          <os arch="x86_64" />
-        </or>
+        <istrue value="${isAMD64}" />
       </and>
     </condition>
     <condition property="isLinuxIA64">
@@ -464,16 +463,13 @@
     <condition property="isSolarisAMD64">
        <and>
          <istrue value="${isSolaris}" />
-          <os arch="AMD64" />
+         <istrue value="${isAMD64}" />
        </and>
     </condition>
     <condition property="isSolarisX86">
       <and>
          <istrue value="${isSolaris}" />
-         <or>
-          <os arch="i386" />
-          <os arch="x86" />
-         </or>
+         <istrue value="${isI386}" />
       </and>
     </condition>
 
@@ -542,6 +538,8 @@
       </and>
     </condition>
 
+    <echo message="isI386=${isI386}" />
+    <echo message="isAMD64=${isAMD64}" />
     <echo message="is64Bit=${is64Bit}" />
     <echo message="isAbiEabiGnuArmel=${isAbiEabiGnuArmel}" />
     <echo message="isAbiEabiGnuArmhf=${isAbiEabiGnuArmhf}" />
