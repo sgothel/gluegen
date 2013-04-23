@@ -923,6 +923,10 @@
       </defineset>
     </compiler>
 
+    <!-- Using default compiler settings - utilize:
+           - lib/gluegen-cpptasks-linux-armv6.xml   (armv5te + softfp), or 
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
+         for official JogAmp builds! -->
     <compiler id="compiler.cfg.linux.armv6" name="gcc">
       <defineset>
         <define name="__unix__"/>
@@ -932,9 +936,6 @@
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
       <compilerarg value="-fpic" /> 
-      <compilerarg value="-march=armv5te" />
-      <compilerarg value="-marm" /> 
-      <compilerarg value="-mfloat-abi=softfp" />
     </compiler>
 
     <compiler id="compiler.cfg.android" name="gcc">
@@ -1137,11 +1138,12 @@
       <linkerarg value="-static-libgcc"/>
     </linker>
 
+    <!-- Using default compiler settings - utilize:
+           - lib/gluegen-cpptasks-linux-armv6.xml   (armv5te + softfp), or 
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
+         for official JogAmp builds! -->
     <linker id="linker.cfg.linux.armv6" name="gcc">
       <linkerarg value="-fpic" /> 
-      <linkerarg value="-march=armv5te" />
-      <linkerarg value="-marm" />
-      <linkerarg value="-mfloat-abi=softfp" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
       <linkerarg value="-static-libgcc"/>
