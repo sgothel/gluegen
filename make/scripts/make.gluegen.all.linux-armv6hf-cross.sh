@@ -7,7 +7,7 @@ if [ -e $SDIR/setenv-build-jogl-x86_64.sh ] ; then
 fi
 
 # arm-linux-gnueabihf == armhf triplet
-PATH=`pwd`/lib/linux/arm-linux-gnueabihf/bin:$PATH
+PATH=`pwd`/lib/toolchain/armhf-linux-gnueabi/bin:$PATH
 export PATH
 
 #    -Dc.compiler.debug=true 

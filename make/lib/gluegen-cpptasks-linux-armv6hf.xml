@@ -44,7 +44,7 @@
       <compilerarg value="-fpic" /> 
       <compilerarg value="-march=armv6" />
       <compilerarg value="-marm" /> 
-      <!-- compilerarg value="-mfloat-abi=hard" / -->
+      <compilerarg value="-mfloat-abi=hard" />
     </compiler>
 
     <linker id="linker.cfg.linux.armv6" name="gcc">
