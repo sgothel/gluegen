@@ -15,8 +15,6 @@
 
 <project name="GlueGen-cpptasks-linux-armv6hf" basedir="." >
 
-<property name="useGCCARMTargetArchAndFloatOptions" value="true" /> 
-
 <!-- Set OS and ARCH for crosscompilation compiler configuration -->
 <target name="gluegen.cpptasks.detect.os.custom">
     <property name="gluegen.cpptasks.detected.os"     value="true" /> 
