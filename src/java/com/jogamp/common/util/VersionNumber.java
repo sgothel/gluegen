@@ -38,6 +38,9 @@ import java.util.regex.Matcher;
  */
 public class VersionNumber implements Comparable<Object> {
 
+    /** A {@link #isZero() zero} version instance. */
+    public static final VersionNumber zeroVersion = new VersionNumber(0, 0, 0);
+    
     protected final int major, minor, sub;
 
     /** Explicit version number instantiation. */
@@ -80,7 +83,8 @@ public class VersionNumber implements Comparable<Object> {
         minor = val[1];
         sub   = val[2];
     }
-    
+
+    /** Returns <code>true</code>, if all version components are zero, otherwise <code>false</code>. */ 
     public final boolean isZero() {
         return major == 0 && minor == 0 && sub == 0;
     }

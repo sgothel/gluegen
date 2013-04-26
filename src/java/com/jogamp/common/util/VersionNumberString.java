@@ -34,6 +34,9 @@ package com.jogamp.common.util;
  */
 public class VersionNumberString extends VersionNumber {
 
+    /** A {@link #isZero() zero} version instance. */
+    public static final VersionNumberString zeroVersion = new VersionNumberString(0, 0, 0, "n/a");
+    
     protected final String strVal;
 
     public VersionNumberString(int majorRev, int minorRev, int subMinorRev, String versionString) {
