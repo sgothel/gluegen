@@ -971,12 +971,34 @@ public class Buffers {
         }
     }
 
-    public static void rangeCheckBytes(Object buffer, int minBytesRemaining) {
+    /**
+     * @param buffer buffer to test for minimum
+     * @param minBytesRemaining minimum bytes remaining
+     * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
+     * @throws IndexOutOfBoundsException if {@link #getRemainingBytes(Object)} is &lt; <code>minBytesRemaining<code>.
+     */
+    public static void rangeCheckBytes(Object buffer, int minBytesRemaining) throws IllegalArgumentException, IndexOutOfBoundsException {
         if (buffer == null) {
             return;
         }
-
-        int bytesRemaining = 0;
+        final int bytesRemaining = getRemainingBytes(buffer);
+        if (bytesRemaining < minBytesRemaining) {
+            throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
+        }
+    }
+    
+    /**
+     * Returns the number of remaining bytes of the given anonymous <code>buffer</code>.
+     * 
+     * @param buffer Anonymous <i>Buffer</i> of type {@link NativeBuffer} or a derivation of {@link Buffer}.
+     * @return If <code>buffer</code> is null, returns <code>0<code>, otherwise the remaining size in bytes.
+     * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
+     */
+    public static int getRemainingBytes(Object buffer) throws IllegalArgumentException {
+        if (buffer == null) {
+            return 0;
+        }
+        final int bytesRemaining;
         if (buffer instanceof Buffer) {
             int elementsRemaining = ((Buffer) buffer).remaining();
             if (buffer instanceof ByteBuffer) {
@@ -993,14 +1015,16 @@ public class Buffers {
                 bytesRemaining = elementsRemaining * SIZEOF_LONG;
             } else if (buffer instanceof CharBuffer) {
                 bytesRemaining = elementsRemaining * SIZEOF_CHAR;
+            } else {
+                throw new InternalError("Unsupported Buffer type: "+buffer.getClass().getCanonicalName());
             }
         } else if (buffer instanceof NativeBuffer) {
             final NativeBuffer<?> nb = (NativeBuffer<?>) buffer;
             bytesRemaining = nb.remaining() * nb.elementSize();
+        } else {
+            throw new IllegalArgumentException("Unsupported anonymous buffer type: "+buffer.getClass().getCanonicalName());
         }
-        if (bytesRemaining < minBytesRemaining) {
-            throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
-        }
+        return bytesRemaining;
     }
 
     /**

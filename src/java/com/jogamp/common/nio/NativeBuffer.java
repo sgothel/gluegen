@@ -39,6 +39,7 @@ import java.nio.Buffer;
  * @author Sven Gothel
  * @author Michael Bien
  */
+@SuppressWarnings("rawtypes")
 public interface NativeBuffer<B extends NativeBuffer> {
 
     public int elementSize();
