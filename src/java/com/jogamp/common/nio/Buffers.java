@@ -329,7 +329,8 @@ public class Buffers {
     }
 
     /**
-     * Returns the size of a single element of this buffer in bytes.
+     * Returns the size of a single element of the given buffer in bytes 
+     * or <code>0</code> if the given buffer is <code>null</code>.
      */
     public static int sizeOfBufferElem(Buffer buffer) {
         if (buffer == null) {
@@ -353,6 +354,28 @@ public class Buffers {
         throw new RuntimeException("Unexpected buffer type " + buffer.getClass().getName());
     }
 
+    /**
+     * Returns the size of a single element of given buffer type in bytes.
+     */
+    public static int sizeOfBufferType(Class<?> bufferType) {
+        if (ByteBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_BYTE;
+        } else if (IntBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_INT;
+        } else if (ShortBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_SHORT;
+        } else if (FloatBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_FLOAT;
+        } else if (DoubleBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_DOUBLE;
+        } else if (LongBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_LONG;
+        } else if (CharBuffer.class.isInstance(bufferType)) {
+            return SIZEOF_CHAR;
+        }
+        throw new RuntimeException("Unexpected buffer type " + bufferType.getName());
+    }
+    
     /**
      * Helper routine to tell whether a buffer is direct or not. Null
      * pointers <b>are</b> considered direct.
