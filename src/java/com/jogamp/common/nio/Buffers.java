@@ -332,7 +332,7 @@ public class Buffers {
      * Returns the size of a single element of the given buffer in bytes 
      * or <code>0</code> if the given buffer is <code>null</code>.
      */
-    public static int sizeOfBufferElem(Buffer buffer) {
+    public static int sizeOfBufferElem(Object buffer) {
         if (buffer == null) {
             return 0;
         }
@@ -350,32 +350,72 @@ public class Buffers {
             return SIZEOF_LONG;
         } else if (buffer instanceof CharBuffer) {
             return SIZEOF_CHAR;
+        } else if (buffer instanceof NativeBuffer) {
+            return ((NativeBuffer<?>) buffer).elementSize();
         }
         throw new RuntimeException("Unexpected buffer type " + buffer.getClass().getName());
     }
 
     /**
-     * Returns the size of a single element of given buffer type in bytes.
+     * Returns the number of remaining elements of the given anonymous <code>buffer</code>.
+     * 
+     * @param buffer Anonymous <i>Buffer</i> of type {@link NativeBuffer} or a derivation of {@link Buffer}.
+     * @return If <code>buffer</code> is null, returns <code>0<code>, otherwise the remaining size in elements.
+     * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
      */
-    public static int sizeOfBufferType(Class<?> bufferType) {
-        if (ByteBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_BYTE;
-        } else if (IntBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_INT;
-        } else if (ShortBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_SHORT;
-        } else if (FloatBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_FLOAT;
-        } else if (DoubleBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_DOUBLE;
-        } else if (LongBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_LONG;
-        } else if (CharBuffer.class.isInstance(bufferType)) {
-            return SIZEOF_CHAR;
+    public static int remainingElem(Object buffer) throws IllegalArgumentException {
+        if (buffer == null) {
+            return 0;
         }
-        throw new RuntimeException("Unexpected buffer type " + bufferType.getName());
+        if (buffer instanceof Buffer) {
+            return ((Buffer) buffer).remaining();
+        } else if (buffer instanceof NativeBuffer) {
+            return ((NativeBuffer<?>) buffer).remaining();
+        } else {
+            throw new IllegalArgumentException("Unsupported anonymous buffer type: "+buffer.getClass().getCanonicalName());
+        }
     }
     
+    /**
+     * Returns the number of remaining bytes of the given anonymous <code>buffer</code>.
+     * 
+     * @param buffer Anonymous <i>Buffer</i> of type {@link NativeBuffer} or a derivation of {@link Buffer}.
+     * @return If <code>buffer</code> is null, returns <code>0<code>, otherwise the remaining size in bytes.
+     * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
+     */
+    public static int remainingBytes(Object buffer) throws IllegalArgumentException {
+        if (buffer == null) {
+            return 0;
+        }
+        final int bytesRemaining;
+        if (buffer instanceof Buffer) {
+            int elementsRemaining = ((Buffer) buffer).remaining();
+            if (buffer instanceof ByteBuffer) {
+                bytesRemaining = elementsRemaining;
+            } else if (buffer instanceof FloatBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_FLOAT;
+            } else if (buffer instanceof IntBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_INT;
+            } else if (buffer instanceof ShortBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_SHORT;
+            } else if (buffer instanceof DoubleBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
+            } else if (buffer instanceof LongBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_LONG;
+            } else if (buffer instanceof CharBuffer) {
+                bytesRemaining = elementsRemaining * SIZEOF_CHAR;
+            } else {
+                throw new InternalError("Unsupported Buffer type: "+buffer.getClass().getCanonicalName());
+            }
+        } else if (buffer instanceof NativeBuffer) {
+            final NativeBuffer<?> nb = (NativeBuffer<?>) buffer;
+            bytesRemaining = nb.remaining() * nb.elementSize();
+        } else {
+            throw new IllegalArgumentException("Unsupported anonymous buffer type: "+buffer.getClass().getCanonicalName());
+        }
+        return bytesRemaining;
+    }
+
     /**
      * Helper routine to tell whether a buffer is direct or not. Null
      * pointers <b>are</b> considered direct.
@@ -998,58 +1038,18 @@ public class Buffers {
      * @param buffer buffer to test for minimum
      * @param minBytesRemaining minimum bytes remaining
      * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
-     * @throws IndexOutOfBoundsException if {@link #getRemainingBytes(Object)} is &lt; <code>minBytesRemaining<code>.
+     * @throws IndexOutOfBoundsException if {@link #remainingBytes(Object)} is &lt; <code>minBytesRemaining<code>.
      */
     public static void rangeCheckBytes(Object buffer, int minBytesRemaining) throws IllegalArgumentException, IndexOutOfBoundsException {
         if (buffer == null) {
             return;
         }
-        final int bytesRemaining = getRemainingBytes(buffer);
+        final int bytesRemaining = remainingBytes(buffer);
         if (bytesRemaining < minBytesRemaining) {
             throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
         }
     }
     
-    /**
-     * Returns the number of remaining bytes of the given anonymous <code>buffer</code>.
-     * 
-     * @param buffer Anonymous <i>Buffer</i> of type {@link NativeBuffer} or a derivation of {@link Buffer}.
-     * @return If <code>buffer</code> is null, returns <code>0<code>, otherwise the remaining size in bytes.
-     * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
-     */
-    public static int getRemainingBytes(Object buffer) throws IllegalArgumentException {
-        if (buffer == null) {
-            return 0;
-        }
-        final int bytesRemaining;
-        if (buffer instanceof Buffer) {
-            int elementsRemaining = ((Buffer) buffer).remaining();
-            if (buffer instanceof ByteBuffer) {
-                bytesRemaining = elementsRemaining;
-            } else if (buffer instanceof FloatBuffer) {
-                bytesRemaining = elementsRemaining * SIZEOF_FLOAT;
-            } else if (buffer instanceof IntBuffer) {
-                bytesRemaining = elementsRemaining * SIZEOF_INT;
-            } else if (buffer instanceof ShortBuffer) {
-                bytesRemaining = elementsRemaining * SIZEOF_SHORT;
-            } else if (buffer instanceof DoubleBuffer) {
-                bytesRemaining = elementsRemaining * SIZEOF_DOUBLE;
-            } else if (buffer instanceof LongBuffer) {
-                bytesRemaining = elementsRemaining * SIZEOF_LONG;
-            } else if (buffer instanceof CharBuffer) {
-                bytesRemaining = elementsRemaining * SIZEOF_CHAR;
-            } else {
-                throw new InternalError("Unsupported Buffer type: "+buffer.getClass().getCanonicalName());
-            }
-        } else if (buffer instanceof NativeBuffer) {
-            final NativeBuffer<?> nb = (NativeBuffer<?>) buffer;
-            bytesRemaining = nb.remaining() * nb.elementSize();
-        } else {
-            throw new IllegalArgumentException("Unsupported anonymous buffer type: "+buffer.getClass().getCanonicalName());
-        }
-        return bytesRemaining;
-    }
-
     /**
      * Appends Buffer details inclusive data to a StringBuilder instance.
      * @param sb optional pass through StringBuilder
