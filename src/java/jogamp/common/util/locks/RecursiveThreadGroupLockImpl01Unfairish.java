@@ -172,8 +172,8 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             final ThreadGroupSync tgSync = (ThreadGroupSync)sync;
             
             if( tgSync.getAddOwnerCount()>0 ) {
-                if(DEBUG) {
-                    System.err.println("++ unlock(0): currentThread "+cur.getName()+", lock: "+this.toString());
+                if(TRACE_LOCK) {
+                    System.err.println("--- LOCK XR (tg) "+toString()+", cur "+threadName(cur)+" -> owner...");
                 }
                 if( tgSync.isOriginalOwner(cur) ) {
                     // original locking owner thread
@@ -196,8 +196,9 @@ public class RecursiveThreadGroupLockImpl01Unfairish
                     }                
                 }
             }
-            if(DEBUG) {
+            if(TRACE_LOCK) {
                 System.err.println("++ unlock(X): currentThread "+cur.getName()+", lock: "+this.toString());
+                System.err.println("--- LOCK X0 (tg) "+toString()+", cur "+threadName(cur)+" -> unlock!");
             }
             super.unlock(taskAfterUnlockBeforeNotify);       
         }
