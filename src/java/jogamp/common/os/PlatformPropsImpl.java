@@ -77,13 +77,13 @@ public abstract class PlatformPropsImpl {
         OS =  System.getProperty("os.name");
         OS_lower = OS.toLowerCase();
         OS_VERSION =  System.getProperty("os.version");
-        OS_VERSION_NUMBER = new VersionNumber(OS_VERSION, ".");
+        OS_VERSION_NUMBER = new VersionNumber(OS_VERSION);
         ARCH = System.getProperty("os.arch");
         ARCH_lower = ARCH.toLowerCase();
         JAVA_VENDOR = System.getProperty("java.vendor");
         JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
         JAVA_VERSION = System.getProperty("java.version");
-        JAVA_VERSION_NUMBER = new VersionNumber(JAVA_VERSION, ".");
+        JAVA_VERSION_NUMBER = new VersionNumber(JAVA_VERSION);
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();

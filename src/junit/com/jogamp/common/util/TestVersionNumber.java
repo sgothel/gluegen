@@ -39,58 +39,255 @@ public class TestVersionNumber extends JunitTracer {
 
     @Test
     public void test01() {
-        final String delim = ".";
-        
         final String vs00 = "1.0.16";
         final String vs01 = "OpenGL ES GLSL ES 1.0.16";
         final String vs02 = "1.0.16 OpenGL ES GLSL ES";
         final VersionNumber vn0 = new VersionNumber(1, 0, 16);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
+        
+        VersionNumber vn;
+        
+        vn = new VersionNumber(vs00);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs01);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs02);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+    }
+    @Test
+    public void test01b() {
+        final String delim = ",";
+        
+        final String vs00 = "1,0,16";
+        final String vs01 = "OpenGL ES GLSL ES 1,0,16";
+        final String vs02 = "1,0,16 OpenGL ES GLSL ES";
+        final VersionNumber vn0 = new VersionNumber(1, 0, 16);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
         
         VersionNumber vn;
         
         vn = new VersionNumber(vs00, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
         Assert.assertEquals(vn0, vn);
+        
         vn = new VersionNumber(vs01, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
         Assert.assertEquals(vn0, vn);
+        
         vn = new VersionNumber(vs02, delim);
-        Assert.assertEquals(vn0, vn);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);        
     }
 
     @Test
     public void test02() {
-        final String delim = ".";
-        
         final String vs00 = "4.20";
         final String vs01 = "COMPANY via Stupid tool 4.20";
         final String vs02 = "4.20 COMPANY via Stupid tool";
         final VersionNumber vn0 = new VersionNumber(4, 20, 0);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
+        
+        VersionNumber vn;
+        
+        vn = new VersionNumber(vs00);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(!vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs01);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(!vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs02);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(!vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+    }
+    
+    @Test
+    public void test02b() {
+        final String delim = ",";
+        
+        final String vs00 = "4,20";
+        final String vs01 = "COMPANY via Stupid tool 4,20";
+        final String vs02 = "4,20 COMPANY via Stupid tool";
+        final VersionNumber vn0 = new VersionNumber(4, 20, 0);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
         
         VersionNumber vn;
         
         vn = new VersionNumber(vs00, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(!vn.hasSub());
         Assert.assertEquals(vn0, vn);
+        
         vn = new VersionNumber(vs01, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(!vn.hasSub());
         Assert.assertEquals(vn0, vn);
+        
         vn = new VersionNumber(vs02, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(!vn.hasSub());
         Assert.assertEquals(vn0, vn);
     }
 
     @Test
     public void test03() {
-        final String delim = ".";
-        
         final String vs00 = "A10.11.12b";
-        final String vs01 = "Prelim Text 10.Funny11 .Weird12 Something is odd";
-        final String vs02 = "Prelim Text 10 .Funny11l1.Weird12 2 Something is odd";
+        final String vs01 = "Prelim Text 10.Funny11.Weird12 Something is odd";
+        final String vs02 = "Prelim Text 10.Funny11l1.Weird12 2 Something is odd";
         final VersionNumber vn0 = new VersionNumber(10, 11, 12);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
+        
+        VersionNumber vn;
+        
+        vn = new VersionNumber(vs00);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs01);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs02);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+    }
+    
+    @Test
+    public void test03b() {
+        final String delim = ",";
+        
+        final String vs00 = "A10,11,12b";
+        final String vs01 = "Prelim Text 10,Funny11,Weird12 Something is odd";
+        final String vs02 = "Prelim Text 10,Funny11l1,Weird12 2 Something is odd";
+        final VersionNumber vn0 = new VersionNumber(10, 11, 12);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
         
         VersionNumber vn;
         
         vn = new VersionNumber(vs00, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
         Assert.assertEquals(vn0, vn);
+        
         vn = new VersionNumber(vs01, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
         Assert.assertEquals(vn0, vn);
+        
         vn = new VersionNumber(vs02, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+    }
+    
+    @Test
+    public void test04() {
+        final String vs00 = "A10.11.12b (git-d6c318e)";
+        final String vs01 = "Prelim Text 10.Funny11.Weird12 Something is odd (git-d6c318e)";
+        final String vs02 = "Prelim Text 10.Funny11l1.Weird12 2 Something is odd (git-d6c318e)";
+        final VersionNumber vn0 = new VersionNumber(10, 11, 12);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
+        
+        VersionNumber vn;
+        
+        vn = new VersionNumber(vs00);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs01);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs02);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+    }
+    @Test
+    public void test04b() {
+        final String delim = ",";
+        
+        final String vs00 = "A10,11,12b (git-d6c318e)";
+        final String vs01 = "Prelim Text 10,Funny11,Weird12 Something is odd (git-d6c318e)";
+        final String vs02 = "Prelim Text 10,Funny11l1,Weird12 2 Something is odd (git-d6c318e)";
+        final VersionNumber vn0 = new VersionNumber(10, 11, 12);
+        Assert.assertTrue(vn0.hasMajor());
+        Assert.assertTrue(vn0.hasMinor());
+        Assert.assertTrue(vn0.hasSub());
+        
+        VersionNumber vn;
+        
+        vn = new VersionNumber(vs00, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs01, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
+        Assert.assertEquals(vn0, vn);
+        
+        vn = new VersionNumber(vs02, delim);
+        Assert.assertTrue(vn.hasMajor());
+        Assert.assertTrue(vn.hasMinor());
+        Assert.assertTrue(vn.hasSub());
         Assert.assertEquals(vn0, vn);
     }
     

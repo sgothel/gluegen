@@ -34,21 +34,49 @@ package com.jogamp.common.util;
  */
 public class VersionNumberString extends VersionNumber {
 
-    /** A {@link #isZero() zero} version instance. */
-    public static final VersionNumberString zeroVersion = new VersionNumberString(0, 0, 0, "n/a");
+    /** 
+     * A {@link #isZero() zero} version instance, w/o any component defined explicitly. 
+     * @see #hasMajor()
+     * @see #hasMinor()
+     * @see #hasSub() 
+     */
+    public static final VersionNumberString zeroVersion = new VersionNumberString(0, 0, 0, -1, (short)0, "n/a");
     
     protected final String strVal;
 
+    protected VersionNumberString(int majorRev, int minorRev, int subMinorRev, int strEnd, short _state, String versionString) {
+        super(majorRev, minorRev, subMinorRev, strEnd, _state);
+        strVal = versionString;
+    }
+    
+    /**
+     * See {@link VersionNumber#VersionNumber(int, int, int)}.
+     */
     public VersionNumberString(int majorRev, int minorRev, int subMinorRev, String versionString) {
-        super(majorRev, minorRev, subMinorRev);
+        this(majorRev, minorRev, subMinorRev, -1, (short)(HAS_MAJOR | HAS_MINOR | HAS_SUB), versionString);
+    }
+    
+    /**
+     * See {@link VersionNumber#VersionNumber(String)}.
+     */
+    public VersionNumberString(final String versionString) {
+        super( versionString);
         strVal = versionString;
     }
     
     /**
      * See {@link VersionNumber#VersionNumber(String, String)}.
      */
-    public VersionNumberString(String versionString, String delim) {
+    public VersionNumberString(final String versionString, final String delim) {
         super( versionString, delim);
+        strVal = versionString;
+    }
+    
+    /**
+     * See {@link VersionNumber#VersionNumber(String, java.util.regex.Pattern)}.
+     */
+    public VersionNumberString(final String versionString, final java.util.regex.Pattern versionPattern) {
+        super( versionString, versionPattern);
         strVal = versionString;
     }
     
