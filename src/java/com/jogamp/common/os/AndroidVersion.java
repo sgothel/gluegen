@@ -28,9 +28,8 @@
 package com.jogamp.common.os;
 
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
 
+import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class AndroidVersion {
@@ -72,8 +71,8 @@ public class AndroidVersion {
             INCREMENTAL = getString(abvClass, abvObject, "INCREMENTAL");
             RELEASE = getString(abvClass, abvObject, "RELEASE");
             SDK_INT = getInt(abvClass, abvObject, "SDK_INT");
-            final Map<Integer, String> version_codes = getVersionCodes(abvcClass, abvcObject);
-            String sdk_name = version_codes.get(new Integer(SDK_INT));
+            final IntObjectHashMap version_codes = getVersionCodes(abvcClass, abvcObject);
+            final String sdk_name = (String) version_codes.get(SDK_INT);
             SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ;            
         } else {
             CODENAME = null;
@@ -84,9 +83,9 @@ public class AndroidVersion {
         }
     }
     
-    private static final Map<Integer, String> getVersionCodes(Class<?> cls, Object obj) {
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        Field[] fields = cls.getFields();
+    private static final IntObjectHashMap getVersionCodes(Class<?> cls, Object obj) {
+        final Field[] fields = cls.getFields();
+        IntObjectHashMap map = new IntObjectHashMap( 3 * fields.length / 2, 0.75f );
         for(int i=0; i<fields.length; i++) {
             try {
                 final int version = fields[i].getInt(obj);
