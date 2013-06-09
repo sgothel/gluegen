@@ -35,7 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.JarURLConnection;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.cert.Certificate;
@@ -56,11 +57,11 @@ public class JarUtil {
      * Interface allowing users to provide an URL resolver that will convert custom classloader
      * URLs like Eclipse/OSGi <i>bundleresource:</i> URLs to normal <i>jar:</i> URLs.
      * <p> 
-     * This might be required for custom classloader where the URL protocol is unknown 
+     * This might be required for custom classloader where the URI protocol is unknown
      * to the standard runtime environment. 
      * </p>
      * <p>
-     * Note: The provided resolver is only utilized if a given URL's protocol could not be resolved.
+     * Note: The provided resolver is only utilized if a given URI's protocol could not be resolved.
      * I.e. it will not be invoked for known protocols like <i>http</i>, <i>https</i>, <i>jar</i> or <i>file</i>. 
      * </p>
      */
@@ -98,8 +99,8 @@ public class JarUtil {
 
     /**
      * Returns <code>true</code> if the Class's <code>"com.jogamp.common.GlueGenVersion"</code>
-     * is loaded from a JarFile and hence has a Jar URL like 
-     * URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>.
+     * is loaded from a JarFile and hence has a Jar URI like 
+     * URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
      * </p>
@@ -107,19 +108,18 @@ public class JarUtil {
      * @param clazzBinName "com.jogamp.common.GlueGenVersion" 
      * @param cl
      * @return true if the class is loaded from a Jar file, otherwise false.
-     * @see {@link #getJarURL(String, ClassLoader)}
+     * @see {@link #getJarURI(String, ClassLoader)}
      */
-    public static boolean hasJarURL(String clazzBinName, ClassLoader cl) {
+    public static boolean hasJarURI(String clazzBinName, ClassLoader cl) {
         try {
-            final URL url = getJarURL(clazzBinName, cl);
-            return null != url;        
+            return null != getJarURI(clazzBinName, cl);
         } catch (Exception e) { /* ignore */ }
         return false;
     }
     
     /**
      * The Class's <code>"com.jogamp.common.GlueGenVersion"</code> 
-     * URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>
+     * URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>
      * will be returned.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
@@ -128,103 +128,104 @@ public class JarUtil {
      * @param clazzBinName "com.jogamp.common.GlueGenVersion" 
      * @param cl ClassLoader to locate the JarFile
      * @return "jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting or null arguments
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting or null arguments
      * @throws IOException if the class's Jar file could not been found by the ClassLoader 
+     * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URL getJarURL(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException {
+    public static URI getJarURI(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
         if(null == clazzBinName || null == cl) {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
-        final URL url;
-        final String urlS;
+        final URI uri;
         {
-            final URL _url = IOUtil.getClassURL(clazzBinName, cl);
-            final String _urlS = _url.toExternalForm();
-            if( resolver != null &&
-            	!_urlS.startsWith("jar:") &&
-            	!_urlS.startsWith("file:") &&
-            	!_urlS.startsWith("http:") &&
-            	!_urlS.startsWith("https:") ) 
+            final URL url = IOUtil.getClassURL(clazzBinName, cl);
+            final String scheme = url.getProtocol();
+            if( null != resolver &&
+                !scheme.startsWith( IOUtil.JAR_SCHEME ) &&
+                !scheme.startsWith( IOUtil.FILE_SCHEME ) &&
+                !scheme.startsWith( IOUtil.HTTP_SCHEME ) &&
+                !scheme.startsWith( IOUtil.HTTPS_SCHEME ) ) 
             {
-        	    url = resolver.resolve(_url);
-        	    urlS = url.toExternalForm();
+                final URL _url = resolver.resolve( url );
+                uri = _url.toURI();
                 if(DEBUG) {
-                    System.out.println("getJarURL Resolver: "+_urlS+" -> "+urlS);
+                    System.out.println("getJarURI Resolver: "+url+"\n\t-> "+_url+"\n\t-> "+uri);
                 }
             } else {
-                url = _url;
-                urlS = _urlS;                
+                uri = url.toURI();
+                if(DEBUG) {
+                    System.out.println("getJarURI Default "+url+"\n\t-> "+uri);
+                }
             }
         }
         // test name ..
-        if(DEBUG) {
-            System.out.println("getJarURL "+urlS);
+        if( !uri.getScheme().equals( IOUtil.JAR_SCHEME ) ) {
+            throw new IllegalArgumentException("URI is not using scheme "+IOUtil.JAR_SCHEME+": <"+uri+">");
         }
-        if(!urlS.startsWith("jar:")) {
-            throw new IllegalArgumentException("JAR URL doesn't start with 'jar:', got <"+urlS+">");
-        }
-        return url;
+        return uri;
     }
     
     
     /**
-     * The Class's Jar URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
+     * The Class's Jar URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
      * Jar basename <code>gluegen-rt.jar</code> will be returned.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
      * </p>
      * 
-     * @param classJarURL as retrieved w/ {@link #getJarURL(String, ClassLoader) getJarURL("com.jogamp.common.GlueGenVersion", cl)}, 
+     * @param classJarURI as retrieved w/ {@link #getJarURI(String, ClassLoader) getJarURI("com.jogamp.common.GlueGenVersion", cl).toURI()}, 
      *                    i.e. <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
      * @return <code>gluegen-rt.jar</code>
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting or is null 
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting or is null 
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static String getJarBasename(URL classJarURL) throws IllegalArgumentException {
-        if(null == classJarURL) {
-            throw new IllegalArgumentException("URL is null");            
+    public static String getJarBasename(URI classJarURI) throws IllegalArgumentException {
+        if(null == classJarURI) {
+            throw new IllegalArgumentException("URI is null");
         }
-        String urlS = classJarURL.toExternalForm();            
-        urlS = urlS.substring(4, urlS.length()); // exclude 'jar:'
+        if( !classJarURI.getScheme().equals(IOUtil.JAR_SCHEME) ) {
+            throw new IllegalArgumentException("URI is not using scheme "+IOUtil.JAR_SCHEME+": <"+classJarURI+">");
+        }
+        String uriS = classJarURI.getRawSchemeSpecificPart();
         
         // from 
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
         // to
         //   file:/some/path/gluegen-rt.jar
-        int idx = urlS.lastIndexOf('!');
+        int idx = uriS.lastIndexOf('!');
         if (0 <= idx) {
-            urlS = urlS.substring(0, idx); // exclude '!/'                
+            uriS = uriS.substring(0, idx); // exclude '!/'                
         } else {
-            throw new IllegalArgumentException("JAR URL does not contain jar url terminator '!', in <"+classJarURL.toExternalForm()+">, got <"+urlS+">");
+            throw new IllegalArgumentException("JAR URI does not contain jar uri terminator '!', in <"+classJarURI+">");
         }
         
         // from 
         //   file:/some/path/gluegen-rt.jar
         // to
         //   gluegen-rt.jar
-        idx = urlS.lastIndexOf('/');
+        idx = uriS.lastIndexOf('/');
         if(0 > idx) {
             // no abs-path, check for protocol terminator ':'
-            idx = urlS.lastIndexOf(':');
+            idx = uriS.lastIndexOf(':');
             if(0 > idx) {
-                throw new IllegalArgumentException("JAR URL does not contain protocol terminator ':', in <"+classJarURL.toExternalForm()+">, got <"+urlS+">");
+                throw new IllegalArgumentException("JAR URI does not contain protocol terminator ':', in <"+classJarURI+">");
             }
         }
-        urlS = urlS.substring(idx+1); // just the jar name
+        uriS = uriS.substring(idx+1); // just the jar name
         
-        if(0 >= urlS.lastIndexOf(".jar")) {
-            throw new IllegalArgumentException("No Jar name in <"+classJarURL.toExternalForm()+">, got <"+urlS+">");
+        if(0 >= uriS.lastIndexOf(".jar")) {
+            throw new IllegalArgumentException("No Jar name in <"+classJarURI+">");
         }                    
         if(DEBUG) {
-            System.out.println("getJarName res: "+urlS);
+            System.out.println("getJarName res: "+uriS);
         }
-        return urlS;
+        return uriS;
     }
 
     /**
      * The Class's <code>com.jogamp.common.GlueGenVersion</code> 
-     * URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
+     * URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
      * Jar basename <code>gluegen-rt.jar</code> will be returned.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
@@ -233,60 +234,63 @@ public class JarUtil {
      * @param clazzBinName <code>com.jogamp.common.GlueGenVersion</code>
      * @param cl
      * @return <code>gluegen-rt.jar</code>
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting 
-     * @throws IOException if the class's Jar file could not been found by the ClassLoader 
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting 
+     * @throws IOException if the class's Jar file could not been found by the ClassLoader.
+     * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static String getJarBasename(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException {
-        return getJarBasename(getJarURL(clazzBinName, cl));
+    public static String getJarBasename(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+        return getJarBasename( getJarURI(clazzBinName, cl) );
     }
     
     /**
-     * The Class's Jar URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
-     * Jar file's sub URL <code><i>sub_protocol</i>:/some/path/gluegen-rt.jar</code> will be returned.
+     * The Class's Jar URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
+     * Jar file's sub URI <code><i>sub_protocol</i>:/some/path/gluegen-rt.jar</code> will be returned.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
      * </p>
      * 
-     * @param classJarURL as retrieved w/ {@link #getJarURL(String, ClassLoader) getJarURL("com.jogamp.common.GlueGenVersion", cl)}, 
+     * @param classJarURI as retrieved w/ {@link #getJarURI(String, ClassLoader) getJarURI("com.jogamp.common.GlueGenVersion", cl).toURI()}, 
      *                    i.e. <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
      * @param cl
      * @return <code><i>sub_protocol</i>:/some/path/gluegen-rt.jar</code>
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting or is null 
-     * @throws MalformedURLException if the computed URL specifies an unknown protocol
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting or is null 
+     * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URL getJarSubURL(URL classJarURL) throws IllegalArgumentException, MalformedURLException {
-        if(null == classJarURL) {
-            throw new IllegalArgumentException("URL is null");            
+    public static URI getJarSubURI(URI classJarURI) throws IllegalArgumentException, URISyntaxException {
+        if(null == classJarURI) {
+            throw new IllegalArgumentException("URI is null");            
         }
-        String urlS = classJarURL.toExternalForm();
-        urlS = urlS.substring(4, urlS.length()); // exclude 'jar:'
+        if( !classJarURI.getScheme().equals(IOUtil.JAR_SCHEME) ) {
+            throw new IllegalArgumentException("URI is not a using scheme "+IOUtil.JAR_SCHEME+": <"+classJarURI+">");
+        }
+        String uriS = classJarURI.getRawSchemeSpecificPart();
         
         // from 
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class
         // to
         //   file:/some/path/gluegen-rt.jar
-        int idx = urlS.lastIndexOf('!');
+        int idx = uriS.lastIndexOf('!');
         if (0 <= idx) {
-            urlS = urlS.substring(0, idx); // exclude '!/'
+            uriS = uriS.substring(0, idx); // exclude '!/'
         } else {
-            throw new IllegalArgumentException("JAR URL does not contain jar url terminator '!', url <"+urlS+">");
+            throw new IllegalArgumentException("JAR URI does not contain jar uri terminator '!', uri <"+classJarURI+">");
         }
         
-        if(0 >= urlS.lastIndexOf(".jar")) {
-            throw new IllegalArgumentException("No Jar name in <"+classJarURL.toExternalForm()+">, got <"+urlS+">");
+        if(0 >= uriS.lastIndexOf(".jar")) {
+            throw new IllegalArgumentException("No Jar name in <"+classJarURI+">");
         }                    
         if(DEBUG) {
-            System.out.println("getJarSubURL res: "+urlS);
+            System.out.println("getJarSubURI res: "+uriS);
         }
-        return new URL(urlS);
+        return new URI(uriS);
     }
 
     /**
      * The Class's <code>com.jogamp.common.GlueGenVersion</code> 
-     * URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
-     * Jar file's sub URL <code><i>sub_protocol</i>:/some/path/gluegen-rt.jar</code> will be returned.
+     * URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
+     * Jar file's sub URI <code><i>sub_protocol</i>:/some/path/gluegen-rt.jar</code> will be returned.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
      * </p>
@@ -294,18 +298,19 @@ public class JarUtil {
      * @param clazzBinName <code>com.jogamp.common.GlueGenVersion</code>
      * @param cl
      * @return <code><i>sub_protocol</i>:/some/path/gluegen-rt.jar</code>
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting 
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting 
      * @throws IOException if the class's Jar file could not been found by the ClassLoader 
+     * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URL getJarSubURL(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException {
-        return getJarSubURL(getJarURL(clazzBinName, cl));
+    public static URI getJarSubURI(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+        return getJarSubURI( getJarURI(clazzBinName, cl) );
     }
 
     /**
      * The Class's <code>"com.jogamp.common.GlueGenVersion"</code> 
-     * URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>
-     * Jar file URL <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/</code> will be returned.
+     * URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class"</code>
+     * Jar file URI <code>jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/</code> will be returned.
      * <p>
      * <i>sub_protocol</i> may be "file", "http", etc..
      * </p>
@@ -313,101 +318,101 @@ public class JarUtil {
      * @param clazzBinName "com.jogamp.common.GlueGenVersion" 
      * @param cl
      * @return "jar:<i>sub_protocol</i>:/some/path/gluegen-rt.jar!/"
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting or null arguments 
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting or null arguments 
      * @throws IOException if the class's Jar file could not been found by the ClassLoader 
+     * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URL getJarFileURL(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException {
+    public static URI getJarFileURI(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
         if(null == clazzBinName || null == cl) {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
-        URL url = getJarSubURL(clazzBinName, cl);
-        url = new URL("jar:"+url.toExternalForm()+"!/");
+        final URI uri = new URI(IOUtil.JAR_SCHEME, getJarSubURI(clazzBinName, cl).toString()+"!/", null);
         if(DEBUG) {
-            System.out.println("getJarFileURL res: "+url);
+            System.out.println("getJarFileURI res: "+uri);
         }
-        return url;
+        return uri;
     }
 
     /**
-     * The URL's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
-     * parent dirname URL <code><i>protocol</i>:/some/path/</code> will be returned.
+     * The URI's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
+     * parent dirname URI <code><i>protocol</i>:/some/path/</code> will be returned.
      * <p>
      * <i>protocol</i> may be "file", "http", etc..
      * </p>
      * 
-     * @param aURL "<i>protocol</i>:/some/path/gluegen-rt.jar"
+     * @param aURI "<i>protocol</i>:/some/path/gluegen-rt.jar"
      * @return "<i>protocol</i>:/some/path/"
-     * @throws IllegalArgumentException if the URL doesn't match the expected formatting, or is null
-     * @throws MalformedURLException
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
+     * @throws URISyntaxException 
      */
-    public static URL getURLDirname(URL aURL) throws IllegalArgumentException, MalformedURLException {
-        if(null == aURL) {
-            throw new IllegalArgumentException("URL is null");            
+    public static URI getURIDirname(URI aURI) throws IllegalArgumentException, URISyntaxException {
+        if(null == aURI) {
+            throw new IllegalArgumentException("URI is null");            
         }
-        String urlS = aURL.toExternalForm();
+        String uriS = aURI.toString();
         if(DEBUG) {
-            System.out.println("getURLDirname "+aURL+", extForm: "+urlS);
+            System.out.println("getURIDirname "+aURI+", extForm: "+uriS);
         }
         // from 
         //   file:/some/path/gluegen-rt.jar  _or_ rsrc:gluegen-rt.jar
         // to
         //   file:/some/path/                _or_ rsrc:
-        int idx = urlS.lastIndexOf('/');
+        int idx = uriS.lastIndexOf('/');
         if(0 > idx) {
             // no abs-path, check for protocol terminator ':'
-            idx = urlS.lastIndexOf(':');
+            idx = uriS.lastIndexOf(':');
             if(0 > idx) {
-                throw new IllegalArgumentException("URL does not contain protocol terminator ':', in <"+aURL.toExternalForm()+">, got <"+urlS+">");
+                throw new IllegalArgumentException("URI does not contain protocol terminator ':', in <"+aURI+">");
             }
         }
-        urlS = urlS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'        
+        uriS = uriS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'        
         
         if(DEBUG) {
-            System.out.println("getJarURLDirname res: "+urlS);
+            System.out.println("getJarURIDirname res: "+uriS);
         }        
-        return new URL(urlS);
+        return new URI(uriS);
     }
             
     /**
-     * @param baseUrl file:/some/path/
+     * @param baseUri file:/some/path/
      * @param jarFileName gluegen-rt.jar
      * @return jar:file:/some/path/gluegen-rt.jar!/
-     * @throws MalformedURLException
+     * @throws URISyntaxException 
      * @throws IllegalArgumentException null arguments
      */
-    public static URL getJarFileURL(URL baseUrl, String jarFileName) throws IOException, MalformedURLException {
-        if(null == baseUrl || null == jarFileName) {
-            throw new IllegalArgumentException("null arguments: baseUrl "+baseUrl+", jarFileName "+jarFileName);
+    public static URI getJarFileURI(URI baseUri, String jarFileName) throws IllegalArgumentException, URISyntaxException {
+        if(null == baseUri || null == jarFileName) {
+            throw new IllegalArgumentException("null arguments: baseURI "+baseUri+", jarFileName "+jarFileName);
         }
-        return new URL("jar:"+baseUrl.toExternalForm()+jarFileName+"!/");
+        return new URI(IOUtil.JAR_SCHEME, baseUri.toString()+jarFileName+"!/", null);
     }
     
     /**
-     * @param jarSubUrl file:/some/path/gluegen-rt.jar
+     * @param jarSubUri file:/some/path/gluegen-rt.jar
      * @return jar:file:/some/path/gluegen-rt.jar!/
-     * @throws MalformedURLException
      * @throws IllegalArgumentException null arguments
+     * @throws URISyntaxException 
      */
-    public static URL getJarFileURL(URL jarSubUrl) throws MalformedURLException, IllegalArgumentException {
-        if(null == jarSubUrl) {
-            throw new IllegalArgumentException("jarSubUrl is null");
+    public static URI getJarFileURI(URI jarSubUri) throws IllegalArgumentException, URISyntaxException {
+        if(null == jarSubUri) {
+            throw new IllegalArgumentException("jarSubURI is null");
         }
-        return new URL("jar:"+jarSubUrl.toExternalForm()+"!/");
+        return new URI(IOUtil.JAR_SCHEME, jarSubUri.toString()+"!/", null);
     }
     
     /**
-     * @param jarFileURL jar:file:/some/path/gluegen-rt.jar!/
+     * @param jarFileURI jar:file:/some/path/gluegen-rt.jar!/
      * @param jarEntry com/jogamp/common/GlueGenVersion.class
      * @return jar:file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class
-     * @throws MalformedURLException
      * @throws IllegalArgumentException null arguments
+     * @throws URISyntaxException 
      */
-    public static URL getJarEntryURL(URL jarFileURL, String jarEntry) throws MalformedURLException, IllegalArgumentException {
+    public static URI getJarEntryURI(URI jarFileURI, String jarEntry) throws IllegalArgumentException, URISyntaxException {
         if(null == jarEntry) {
             throw new IllegalArgumentException("jarEntry is null");
         }
-        return new URL(jarFileURL.toExternalForm()+jarEntry);
+        return new URI(jarFileURI.toString()+jarEntry);
     }
     
     /**
@@ -416,28 +421,30 @@ public class JarUtil {
      * @return JarFile containing the named class within the given ClassLoader
      * @throws IOException if the class's Jar file could not been found by the ClassLoader 
      * @throws IllegalArgumentException null arguments
-     * @see {@link #getJarFileURL(String, ClassLoader)}
+     * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
+     * @see {@link #getJarFileURI(String, ClassLoader)}
      */
-    public static JarFile getJarFile(String clazzBinName, ClassLoader cl) throws IOException, IllegalArgumentException {
-        return getJarFile(getJarFileURL(clazzBinName, cl));
+    public static JarFile getJarFile(String clazzBinName, ClassLoader cl) throws IOException, IllegalArgumentException, URISyntaxException {
+        return getJarFile( getJarFileURI(clazzBinName, cl) );
     }
 
     /**
-     * @param jarFileURL jar:file:/some/path/gluegen-rt.jar!/
-     * @return JarFile as named by URL within the given ClassLoader
+     * @param jarFileURI jar:file:/some/path/gluegen-rt.jar!/
+     * @return JarFile as named by URI within the given ClassLoader
      * @throws IllegalArgumentException null arguments
      * @throws IOException if the Jar file could not been found 
      */
-    public static JarFile getJarFile(URL jarFileUrl) throws IOException, IllegalArgumentException {
-        if(null == jarFileUrl) {
-            throw new IllegalArgumentException("null jarFileUrl");
+    public static JarFile getJarFile(URI jarFileURI) throws IOException, IllegalArgumentException {
+        if(null == jarFileURI) {
+            throw new IllegalArgumentException("null jarFileURI");
         }
         if(DEBUG) {
-            System.out.println("getJarFile: "+jarFileUrl);
-        }        
-        URLConnection urlc = jarFileUrl.openConnection();
+            System.out.println("getJarFile: "+jarFileURI);
+        }
+        final URL jarFileURL = jarFileURI.toURL();
+        final URLConnection urlc = jarFileURL.openConnection();
         if(urlc instanceof JarURLConnection) {
-            JarURLConnection jarConnection = (JarURLConnection)jarFileUrl.openConnection();
+            JarURLConnection jarConnection = (JarURLConnection)jarFileURL.openConnection();
             JarFile jarFile = jarConnection.getJarFile();
             if(DEBUG) {
                 System.out.println("getJarFile res: "+jarFile.getName());
@@ -458,8 +465,8 @@ public class JarUtil {
             System.err.println("JarUtil: getNativeLibNames: "+jarFile);
         }
 
-        Map<String,String> nameMap = new HashMap<String, String>();
-        Enumeration<JarEntry> entries = jarFile.entries();
+        final Map<String,String> nameMap = new HashMap<String, String>();
+        final Enumeration<JarEntry> entries = jarFile.entries();
         
         while (entries.hasMoreElements()) {
             final JarEntry entry = entries.nextElement();

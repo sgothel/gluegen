@@ -76,7 +76,7 @@ function onetest() {
 #onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
@@ -100,7 +100,7 @@ onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG

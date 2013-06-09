@@ -31,6 +31,8 @@ package com.jogamp.common.util;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.jar.JarFile;
@@ -137,7 +139,7 @@ public class TestTempJarCache extends JunitTracer {
     }
     
     @Test
-    public void testJarUtil01a() throws IOException {
+    public void testJarUtil01a() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         JarFile jarFile = JarUtil.getJarFile(GlueGenVersion.class.getName(), this.getClass().getClassLoader());
         Assert.assertNotNull(jarFile);
@@ -168,11 +170,11 @@ public class TestTempJarCache extends JunitTracer {
     }
     
     @Test
-    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException {
+    public void testTempJarCache01LoadAllTestManifestAndClass() throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
 
         final ClassLoader cl = getClass().getClassLoader();
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURL(GlueGenVersion.class.getName(), cl));
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURI(GlueGenVersion.class.getName(), cl));
         
         File f0 = new File(TempJarCache.getTempFileCache().getTempDir(), "META-INF/MANIFEST.MF");
         Assert.assertTrue(f0.exists());
@@ -190,18 +192,18 @@ public class TestTempJarCache extends JunitTracer {
     }
     
     @Test
-    public void testTempJarCache02AddNativeLibs() throws IOException {
+    public void testTempJarCache02AddNativeLibs() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         final String nativeJarName = "gluegen-rt-natives-"+Platform.getOSAndArch()+".jar";
         final String libBaseName = "gluegen-rt";        
         final ClassLoader cl = getClass().getClassLoader();
         
-        URL jarUrlRoot = JarUtil.getJarSubURL(TempJarCache.class.getName(), cl);
-        jarUrlRoot = JarUtil.getURLDirname(jarUrlRoot);
+        URI jarUriRoot = JarUtil.getJarSubURI(TempJarCache.class.getName(), cl);
+        jarUriRoot = JarUtil.getURIDirname(jarUriRoot);
         
-        URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);        
+        URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);        
         
-        TempJarCache.addNativeLibs(TempJarCache.class, nativeJarURL);
+        TempJarCache.addNativeLibs(TempJarCache.class, nativeJarURI);
         String libFullPath = TempJarCache.findLibrary(libBaseName);
         Assert.assertNotNull(libFullPath);
         Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));
@@ -235,9 +237,9 @@ public class TestTempJarCache extends JunitTracer {
     }
     
     @Test
-    public void testTempJarCache04bDiffClassLoader() throws IOException {
+    public void testTempJarCache04bDiffClassLoader() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
-        URL[] urls = new URL[] { JarUtil.getJarFileURL(TempJarCache.class.getName(), getClass().getClassLoader()) };                
+        URL[] urls = new URL[] { JarUtil.getJarFileURI(TempJarCache.class.getName(), getClass().getClassLoader()).toURL() };                
         System.err.println("url: "+urls[0]);
         ClassLoader cl2 = new TestClassLoader(urls, null);
         ClassLoader cl3 = new TestClassLoader(urls, null);

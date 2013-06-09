@@ -28,7 +28,7 @@
  
 package com.jogamp.common.os;
 
-import java.net.URL;
+import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
@@ -162,19 +162,19 @@ public class Platform extends PlatformPropsImpl {
     /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
     public static final boolean AWT_AVAILABLE;
         
-    private static final URL platformClassJarURL;
+    private static final URI platformClassJarURI;
     
     static {
         PlatformPropsImpl.initSingleton(); // just documenting the order of static initialization
 
         {
-            URL _platformClassJarURL;
+            URI _platformClassJarURI;
             try {
-                _platformClassJarURL = JarUtil.getJarURL(Platform.class.getName(), Platform.class.getClassLoader());
+                _platformClassJarURI = JarUtil.getJarURI(Platform.class.getName(), Platform.class.getClassLoader());
             } catch (Exception e) { 
-                _platformClassJarURL = null; 
+                _platformClassJarURI = null; 
             }
-            platformClassJarURL = _platformClassJarURL;
+            platformClassJarURI = _platformClassJarURI;
         }
 
         USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
@@ -228,24 +228,24 @@ public class Platform extends PlatformPropsImpl {
      * @return true if we're running from a Jar URL, otherwise false
      */
     public static final boolean isRunningFromJarURL() {        
-        return null != platformClassJarURL;
+        return null != platformClassJarURI;
     }
     
     private static final void loadGlueGenRTImpl() {
         if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
             String nativeJarName = null;
-            URL jarUrlRoot = null;
-            URL nativeJarURL = null;
+            URI jarUriRoot = null;
+            URI nativeJarURI = null;
             try {
-                final String jarName = JarUtil.getJarBasename(platformClassJarURL);
+                final String jarName = JarUtil.getJarBasename(platformClassJarURI);
                 final String nativeJarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
                 nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";                    
-                jarUrlRoot = JarUtil.getURLDirname( JarUtil.getJarSubURL(platformClassJarURL) );
-                nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
-                TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURL);
+                jarUriRoot = JarUtil.getURIDirname( JarUtil.getJarSubURI( platformClassJarURI ) );
+                nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
+                TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURI);
             } catch (Exception e0) {
                 // IllegalArgumentException, IOException
-                System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while TempJarCache.bootstrapNativeLib() of "+nativeJarURL+" ("+jarUrlRoot+" + "+nativeJarName+")");
+                System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while TempJarCache.bootstrapNativeLib() of "+nativeJarURI+" ("+jarUriRoot+" + "+nativeJarName+")");
             }
         }
         DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, Platform.class.getClassLoader());

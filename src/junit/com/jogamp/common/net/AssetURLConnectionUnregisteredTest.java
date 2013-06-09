@@ -1,6 +1,8 @@
 package com.jogamp.common.net;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -32,17 +34,17 @@ public class AssetURLConnectionUnregisteredTest extends AssetURLConnectionBase {
     }
     
     @Test
-    public void assetUnregisteredIOUtilGetResourceRel0_RT() throws IOException {
+    public void assetUnregisteredIOUtilGetResourceRel0_RT() throws IOException, URISyntaxException {
         final URLConnection urlConn0 = IOUtil.getResource(this.getClass(), test_asset_test2_rel);
         testAssetConnection(urlConn0, test_asset_test2_entry);
         
-        final URL url1 = IOUtil.getRelativeOf(urlConn0.getURL(), test_asset_test3_rel);
-        Assert.assertNotNull(url1); // JARFile URL ..
-        testAssetConnection(url1.openConnection(), test_asset_test3_entry);
+        final URI uri1 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test3_rel);
+        Assert.assertNotNull(uri1); // JARFile URL ..
+        testAssetConnection(uri1.toURL().openConnection(), test_asset_test3_entry);
         
-        final URL url2 = IOUtil.getRelativeOf(urlConn0.getURL(), test_asset_test4_rel);
-        Assert.assertNotNull(url1);
-        testAssetConnection(url2.openConnection(), test_asset_test4_entry);        
+        final URI uri2 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test4_rel);
+        Assert.assertNotNull(uri2);
+        testAssetConnection(uri2.toURL().openConnection(), test_asset_test4_entry);        
     }
     
     protected static URLConnection createAssetURLConnection(String path, ClassLoader cl) throws IOException {

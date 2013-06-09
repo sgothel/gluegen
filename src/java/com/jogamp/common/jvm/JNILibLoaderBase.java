@@ -42,7 +42,8 @@ package com.jogamp.common.jvm;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
@@ -145,23 +146,23 @@ public class JNILibLoaderBase {
     loaderAction = action;
   }
 
-  /* pp */ static final boolean addNativeJarLibsImpl(Class<?> classFromJavaJar, URL classJarURL, String nativeJarBasename, StringBuilder msg)
-    throws IOException, IllegalArgumentException, SecurityException
+  /* pp */ static final boolean addNativeJarLibsImpl(Class<?> classFromJavaJar, URI classJarURI, String nativeJarBasename, StringBuilder msg)
+    throws IOException, SecurityException, URISyntaxException
   {
     msg.setLength(0); // reset
-    msg.append("addNativeJarLibsImpl(classFromJavaJar ").append(classFromJavaJar).append(", classJarURL ").append(classJarURL).append(", nativeJarBaseName ").append(nativeJarBasename).append("): ");
+    msg.append("addNativeJarLibsImpl(classFromJavaJar ").append(classFromJavaJar).append(", classJarURI ").append(classJarURI).append(", nativeJarBaseName ").append(nativeJarBasename).append("): ");
     boolean ok = false;
     if(TempJarCache.isInitialized()) {        
         final String nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
         msg.append(nativeJarName);
-        final URL jarUrlRoot = JarUtil.getURLDirname( JarUtil.getJarSubURL( classJarURL ) );
-        msg.append(" + ").append(jarUrlRoot);
-        final URL nativeJarURL = JarUtil.getJarFileURL(jarUrlRoot, nativeJarName);
-        msg.append(" -> ").append(nativeJarURL);
+        final URI jarUriRoot = JarUtil.getURIDirname( JarUtil.getJarSubURI( classJarURI ) );
+        msg.append(" + ").append(jarUriRoot);
+        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
+        msg.append(" -> ").append(nativeJarURI);
         if(DEBUG) {
             System.err.println(msg.toString());
         }
-        TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURL);
+        TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI);
         ok = true;
     }
     return ok;
@@ -169,7 +170,7 @@ public class JNILibLoaderBase {
   
   /**
    * Loads and adds a JAR file's native library to the TempJarCache.<br>
-   * The native library JAR file's URL is derived as follows:
+   * The native library JAR file's URI is derived as follows:
    * <ul>
    *   <li> [1] <code>GLProfile.class</code> -> </li> 
    *   <li> [2] <code>http://lala/</code> -> </li>
@@ -178,7 +179,7 @@ public class JNILibLoaderBase {
    * Where:
    * <ul>
    *   <li> [1] is the <code>classFromJavaJar</code></li>
-   *   <li> [2] is it's <i>URL path</i></li>
+   *   <li> [2] is it's <i>URI path</i></li>
    *   <li> [4] is the derived native JAR filename</li>
    * </ul>
    * 
@@ -190,8 +191,8 @@ public class JNILibLoaderBase {
     if(TempJarCache.isInitialized()) {
         final StringBuilder msg = new StringBuilder();
         try {
-            final URL classJarURL = JarUtil.getJarURL(classFromJavaJar.getName(), classFromJavaJar.getClassLoader());
-            return addNativeJarLibsImpl(classFromJavaJar, classJarURL, nativeJarBasename, msg);
+            final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), classFromJavaJar.getClassLoader());
+            return addNativeJarLibsImpl(classFromJavaJar, classJarURI, nativeJarBasename, msg);
         } catch (Exception e0) {
             // IllegalArgumentException, IOException
             System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
@@ -207,7 +208,7 @@ public class JNILibLoaderBase {
    
   /**
    * Loads and adds a JAR file's native library to the TempJarCache.<br>
-   * The native library JAR file's URL is derived as follows:
+   * The native library JAR file's URI is derived as follows:
    * <ul>
    *   <li> [1] <code>GLProfile.class</code> -> </li> 
    *   <li> [2] <code>http://lala/gluegen-rt.jar</code> -> </li>
@@ -217,8 +218,8 @@ public class JNILibLoaderBase {
    * Where:
    * <ul>
    *   <li> [1] is one of <code>classesFromJavaJars</code></li>
-   *   <li> [2] is it's complete URL</li>
-   *   <li> [3] is it's <i>base URL</i></li>
+   *   <li> [2] is it's complete URI</li>
+   *   <li> [3] is it's <i>base URI</i></li>
    *   <li> [4] is the derived native JAR filename</li>
    * </ul>
    *
@@ -256,7 +257,7 @@ public class JNILibLoaderBase {
    * @param classesFromJavaJars For each given Class, load the native library JAR.
    * @param singleJarMarker Optional string marker like "-all" to identify the single 'all-in-one' JAR file
    *                        after which processing of the class array shall stop.
-   * @param stripBasenameSuffixes Optional substrings to be stripped of the <i>base URL</i>
+   * @param stripBasenameSuffixes Optional substrings to be stripped of the <i>base URI</i>
    *  
    * @return true if either the 'all-in-one' native JAR or all native JARs loaded successful or were loaded already,
    *         false in case of an error
@@ -274,14 +275,14 @@ public class JNILibLoaderBase {
             ok = true;
             for(int i=0; !done && ok && i<classesFromJavaJars.length && null!=classesFromJavaJars[i]; i++) {
                 final ClassLoader cl = classesFromJavaJars[i].getClassLoader();
-                final URL classJarURL = JarUtil.getJarURL(classesFromJavaJars[i].getName(), cl);
-                final String jarName = JarUtil.getJarBasename(classJarURL);
+                final URI classJarURI = JarUtil.getJarURI(classesFromJavaJars[i].getName(), cl);
+                final String jarName = JarUtil.getJarBasename(classJarURI);
                 ok = null != jarName;
                 if(ok) {
                     final String jarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
                     final String nativeJarBasename = stripName(jarBasename, stripBasenameSuffixes);
                     done = null != singleJarMarker && jarBasename.indexOf(singleJarMarker) >= 0; // done if single-jar ('all' variant)
-                    ok = JNILibLoaderBase.addNativeJarLibsImpl(classesFromJavaJars[i], classJarURL, nativeJarBasename, msg);
+                    ok = JNILibLoaderBase.addNativeJarLibsImpl(classesFromJavaJars[i], classJarURI, nativeJarBasename, msg);
                     if(ok) { count++; }
                     if(DEBUG && done) {
                         System.err.println("JNILibLoaderBase: addNativeJarLibs0: end after all-in-one JAR: "+jarBasename);

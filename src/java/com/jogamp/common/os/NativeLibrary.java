@@ -50,6 +50,7 @@ import jogamp.common.os.WindowsDynamicLinkerImpl;
 
 import java.io.*;
 import java.lang.reflect.*;
+import java.net.URISyntaxException;
 import java.security.*;
 import java.util.*;
 
@@ -254,7 +255,12 @@ public class NativeLibrary implements DynamicLookupHelper {
    * @return basename of libName w/o path, ie. /usr/lib/libDrinkBeer.so -> DrinkBeer on Unix systems, but null on Windows.
    */
   public static String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
-    final String libBaseName = IOUtil.getBasename(libName);
+    final String libBaseName;
+    try {
+        libBaseName = IOUtil.getBasename(libName);
+    } catch (URISyntaxException uriEx) {
+        throw new IllegalArgumentException(uriEx);
+    }
     final String libBaseNameLC = isLowerCaseAlready ? libBaseName : libBaseName.toLowerCase();
     int prefixIdx = -1;
     for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {    
@@ -405,7 +411,12 @@ public class NativeLibrary implements DynamicLookupHelper {
       // If the library name already has the prefix / suffix added
       // (principally because we want to force a version number on Unix
       // operating systems) then just return the library name.
-      final String libBaseNameLC = IOUtil.getBasename(libName).toLowerCase();
+      final String libBaseNameLC;
+      try {
+          libBaseNameLC = IOUtil.getBasename(libName).toLowerCase();
+      } catch (URISyntaxException uriEx) {
+          throw new IllegalArgumentException(uriEx);
+      }
       
       int prefixIdx = -1;
       for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {    

@@ -40,7 +40,8 @@ import java.security.AccessControlContext;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.lang.reflect.Constructor;
-import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
@@ -57,6 +58,11 @@ import com.jogamp.common.os.Platform;
 public class IOUtil {
     public static final boolean DEBUG = Debug.debug("IOUtil");
     
+    public static final String JAR_SCHEME = "jar";
+    public static final String FILE_SCHEME = "file";
+    public static final String HTTP_SCHEME = "http";
+    public static final String HTTPS_SCHEME = "https";
+        
     /** Std. temporary directory property key <code>java.io.tmpdir</code> */
     public static final String java_io_tmpdir_propkey = "java.io.tmpdir";
     public static final String user_home_propkey = "user.home";
@@ -266,9 +272,9 @@ public class IOUtil {
      * @param startWithSlash
      * @param endWithSlash
      * @return
-     * @throws RuntimeException if final path is empty or has no parent directory available while resolving <code>../</code> 
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) throws RuntimeException {
+    public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) throws URISyntaxException {
         String p = path.replace('\\', '/'); // unify file seperator     
         if (startWithSlash && !p.startsWith("/")) {
             p = "/" + p;
@@ -276,25 +282,25 @@ public class IOUtil {
         if (endWithSlash && !p.endsWith("/")) {
             p = p + "/";
         }
-        try {
-            return cleanPathString(p);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }        
+        return cleanPathString(p);
     }
     
-    /** Using the proper advertised conversion via File -> URI -> URL */
-    public static URL toURL(File file) throws MalformedURLException {
-        return file.toURI().toURL();
+    /** 
+     * Using the simple conversion via File -> URI, assuming proper characters. 
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
+     * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI 
+     */
+    public static URI toURISimple(File file) throws URISyntaxException {
+        return new URI(FILE_SCHEME, null, slashify(file.getAbsolutePath(), true, file.isDirectory()), null);        
     }
     
-    /** Using the simple conversion via File -> URL, assuming proper characters. */
-    public static URL toURLSimple(File file) throws MalformedURLException {
-        return new URL("file", "", slashify(file.getAbsolutePath(), true, file.isDirectory()));        
-    }
-    
-    public static URL toURLSimple(String protocol, String file, boolean isDirectory) throws MalformedURLException {
-        return new URL(protocol, "", slashify(file, true, isDirectory));        
+    /** 
+     * Using the simple conversion via File -> URI, assuming proper characters. 
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
+     * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI 
+     */
+    public static URI toURISimple(String protocol, String file, boolean isDirectory) throws URISyntaxException {
+        return new URI(protocol, null, slashify(file, true, isDirectory), null);        
     }
     
     /**
@@ -374,8 +380,9 @@ public class IOUtil {
         
     /**
      * Returns the basename of the given fname w/o directory part
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String getBasename(String fname) {
+    public static String getBasename(String fname) throws URISyntaxException {
         fname = slashify(fname, false, false);
         int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
@@ -386,8 +393,9 @@ public class IOUtil {
     
     /**
      * Returns unified '/' dirname including the last '/'
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String getDirname(String fname) {
+    public static String getDirname(String fname) throws URISyntaxException {
         fname = slashify(fname, false, false);
         int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
@@ -502,8 +510,9 @@ public class IOUtil {
      * 
      * @param baseLocation denotes a directory
      * @param relativeFile denotes a relative file to the baseLocation
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String getRelativeOf(File baseLocation, String relativeFile) {
+    public static String getRelativeOf(File baseLocation, String relativeFile) throws URISyntaxException {
         if(null == relativeFile) {
             return null;
         }
@@ -519,21 +528,21 @@ public class IOUtil {
     /**
      * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
      * @return parent of path
-     * @throws MalformedURLException if path is empty or has parent no directory available 
+     * @throws URISyntaxException if path is empty or has no parent directory available 
      */
-    public static String getParentOf(String path) throws MalformedURLException {
+    public static String getParentOf(String path) throws URISyntaxException {
         final int pl = null!=path ? path.length() : 0;
         if(pl == 0) {
-            throw new MalformedURLException("path is empty <"+path+">");
+            throw new IllegalArgumentException("path is empty <"+path+">");
         }
         
         final int e = path.lastIndexOf("/");
         if( e < 0 ) {
-            throw new MalformedURLException("path contains no '/' <"+path+">");
+            throw new URISyntaxException(path, "path contains no '/'");
         }
         if( e == 0 ) {
             // path is root directory
-            throw new MalformedURLException("path has no parents <"+path+">");
+            throw new URISyntaxException(path, "path has no parents");
         }
         if( e <  pl - 1 ) {
             // path is file, return it's parent directory
@@ -545,15 +554,15 @@ public class IOUtil {
         if( p >= j) {
             return path.substring(0, p+1);
         }
-        throw new MalformedURLException("parent of path contains no '/' <"+path+">");
+        throw new URISyntaxException(path, "parent of path contains no '/'");
     }
     
     /**
      * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
      * @return clean path string where <code>../</code> and <code>./</code> is resolved. 
-     * @throws MalformedURLException if path is empty or has no parent directory available while resolving <code>../</code>
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String cleanPathString(String path) throws MalformedURLException {
+    public static String cleanPathString(String path) throws URISyntaxException {
         int idx;
         while ( ( idx = path.indexOf("../") ) >= 0 ) {
             path = getParentOf(path.substring(0, idx)) + path.substring(idx+3);
@@ -565,51 +574,56 @@ public class IOUtil {
     }
     
     /**
-     * Generates a path for the 'relativeFile' relative to the 'baseLocation',
+     * Generates a URI for the <i>relativePath</i> relative to the <i>baseURI</i>,
      * hence the result is a absolute location.
+     * <p>
+     * Impl. operates on the <i>scheme-specific-part</i>, and hence is sub-protocol savvy. 
+     * </p>
+     * <p>
+     * In case <i>baseURI</i> is not a path ending w/ '/', it's a assumed to be a file and it's parent is being used. 
+     * </p>
      * 
-     * @param baseLocation denotes a URL to a directory if ending w/ '/', otherwise we assume a file
-     * @param relativeFile denotes a relative file to the baseLocation's parent directory
-     * @throws MalformedURLException 
+     * @param baseURI denotes a URI to a directory ending w/ '/', or a file. In the latter case the file's directory is being used.
+     * @param relativePath denotes a relative file to the baseLocation's parent directory
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static URL getRelativeOf(URL baseLocation, String relativeFile) throws MalformedURLException {    
-        final String scheme = baseLocation.getProtocol();
-        final String auth = baseLocation.getAuthority();
-        String path = baseLocation.getPath();
-        String query = baseLocation.getQuery();
-        String fragment = baseLocation.getRef();
-        
-        if(!path.endsWith("/")) {
-            path = getParentOf(path);
-        }
-        return compose(scheme, auth, path, relativeFile, query, fragment);
+    public static URI getRelativeOf(URI baseURI, String relativePath) throws URISyntaxException {    
+        return compose(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), relativePath, baseURI.getRawFragment());
     }
     
-    public static URL compose(String scheme, String auth, String path1, String path2, String query, String fragment) throws MalformedURLException {
-        StringBuilder sb = new StringBuilder();
-        if(null!=scheme) {
-            sb.append(scheme);
-            sb.append(":");
+    /**
+     * Generates a URI for the <i>relativePath</i> relative to the <i>schemeSpecificPart</i>,
+     * hence the result is a absolute location.
+     * <p>
+     * <i>schemeSpecificPart</i>'s query, if exist is split to <i>path</i> and <i>query</i>. 
+     * </p>
+     * <p>
+     * In case <i>path</i> is not a path ending w/ '/', it's a assumed to be a file and it's parent is being used. 
+     * </p>
+     * 
+     * @param scheme scheme of the resulting URI
+     * @param schemeSpecificPart may include a query, which is separated while processing
+     * @param relativePath denotes a relative file to the baseLocation's parent directory
+     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
+     */
+    public static URI compose(String scheme, String schemeSpecificPart, String relativePath, String fragment) throws URISyntaxException {
+        // cut off optional query in scheme-specific-part
+        final String query;
+        final int queryI = schemeSpecificPart.lastIndexOf('?');
+        if( queryI >= 0 ) {
+            query = schemeSpecificPart.substring(queryI+1);
+            schemeSpecificPart = schemeSpecificPart.substring(0, queryI);
+        } else {
+            query = null;
         }
-        if(null!=auth) {
-            sb.append("//");
-            sb.append(auth);
+        if( null != relativePath ) {
+            if( null != relativePath && !schemeSpecificPart.endsWith("/") ) {
+                schemeSpecificPart = getParentOf(schemeSpecificPart);
+            }
+            schemeSpecificPart = schemeSpecificPart + relativePath;
         }
-        if(null!=path1) {
-            sb.append(path1);
-        }
-        if(null!=path2) {
-            sb.append(path2);
-        }
-        if(null!=query) {
-            sb.append("?");
-            sb.append(query);
-        }
-        if(null!=fragment) {
-            sb.append("#");
-            sb.append(fragment);
-        }
-        return new URL(cleanPathString(sb.toString()));
+        schemeSpecificPart = cleanPathString( schemeSpecificPart );
+        return new URI(scheme, null == query ? schemeSpecificPart : schemeSpecificPart + "?" + query, fragment);
     }    
     
     /**

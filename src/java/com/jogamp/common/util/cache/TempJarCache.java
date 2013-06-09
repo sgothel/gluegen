@@ -34,8 +34,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.cert.Certificate;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -75,9 +75,9 @@ public class TempJarCache {
     }
     
     // Set of jar files added
-    private static Map<URL, LoadState> nativeLibJars;
-    private static Map<URL, LoadState> classFileJars;
-    private static Map<URL, LoadState> resourceFileJars;
+    private static Map<URI, LoadState> nativeLibJars;
+    private static Map<URI, LoadState> classFileJars;
+    private static Map<URI, LoadState> resourceFileJars;
 
     private static TempFileCache tmpFileCache;
     
@@ -104,9 +104,9 @@ public class TempJarCache {
                     if(!staticInitError) {
                         // Initialize the collections of resources
                         nativeLibMap = new HashMap<String, String>();
-                        nativeLibJars = new HashMap<URL, LoadState>();
-                        classFileJars = new HashMap<URL, LoadState>();
-                        resourceFileJars = new HashMap<URL, LoadState>();
+                        nativeLibJars = new HashMap<URI, LoadState>();
+                        classFileJars = new HashMap<URI, LoadState>();
+                        resourceFileJars = new HashMap<URI, LoadState>();
                     }
                     if(DEBUG) {
                         System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tmpFileCache.getTempDir());
@@ -175,52 +175,51 @@ public class TempJarCache {
         return tmpFileCache;
     }
     
-    public synchronized static boolean checkNativeLibs(URL jarURL, LoadState exp) throws IOException {
+    public synchronized static boolean checkNativeLibs(URI jarURI, LoadState exp) throws IOException {
         checkInitialized();
-        if(null == jarURL) {
-            throw new IllegalArgumentException("jarURL is null");
+        if(null == jarURI) {
+            throw new IllegalArgumentException("jarURI is null");
         }
-        return testLoadState(nativeLibJars.get(jarURL), exp);
+        return testLoadState(nativeLibJars.get(jarURI), exp);
     }    
 
-    public synchronized static boolean checkClasses(URL jarURL, LoadState exp) throws IOException {
+    public synchronized static boolean checkClasses(URI jarURI, LoadState exp) throws IOException {
         checkInitialized();
-        if(null == jarURL) {
-            throw new IllegalArgumentException("jarURL is null");
+        if(null == jarURI) {
+            throw new IllegalArgumentException("jarURI is null");
         }
-        return testLoadState(classFileJars.get(jarURL), exp);
+        return testLoadState(classFileJars.get(jarURI), exp);
     }    
 
-    public synchronized static boolean checkResources(URL jarURL, LoadState exp) throws IOException {
+    public synchronized static boolean checkResources(URI jarURI, LoadState exp) throws IOException {
         checkInitialized();
-        if(null == jarURL) {
-            throw new IllegalArgumentException("jarURL is null");
+        if(null == jarURI) {
+            throw new IllegalArgumentException("jarURI is null");
         }
-        return testLoadState(resourceFileJars.get(jarURL), exp);
+        return testLoadState(resourceFileJars.get(jarURI), exp);
     }
     
     /**
      * Adds native libraries, if not yet added.
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
-     * @param jarURL
-     * @throws IOException if the <code>jarURL</code> could not be loaded or a previous load attempt failed
+     * @param jarURI
+     * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
      */
-    public synchronized static final void addNativeLibs(Class<?> certClass, URL jarURL) throws IOException, SecurityException {        
-        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURL);
+    public synchronized static final void addNativeLibs(Class<?> certClass, URI jarURI) throws IOException, SecurityException {        
+        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) { 
-            nativeLibJars.put(jarURL, LoadState.LOOKED_UP);
-            final JarFile jarFile = JarUtil.getJarFile(jarURL);
+            nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
+            final JarFile jarFile = JarUtil.getJarFile(jarURI);
             if(DEBUG) {
-                System.err.println("TempJarCache: addNativeLibs: "+jarURL+": nativeJar "+jarFile.getName());
+                System.err.println("TempJarCache: addNativeLibs: "+jarURI+": nativeJar "+jarFile.getName());
             }
             validateCertificates(certClass, jarFile);
-            JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
-                            true, false, false); 
-            nativeLibJars.put(jarURL, LoadState.LOADED);
+            JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, true, false, false); 
+            nativeLibJars.put(jarURI, LoadState.LOADED);
         } else if( !testLoadState(nativeLibJarsLS, LoadState.LOADED) ) {
-            throw new IOException("TempJarCache: addNativeLibs: "+jarURL+", previous load attempt failed");
+            throw new IOException("TempJarCache: addNativeLibs: "+jarURI+", previous load attempt failed");
         }
     }
     
@@ -231,24 +230,24 @@ public class TempJarCache {
      * needs Classloader.defineClass(..) access, ie. own derivation - will do when needed ..
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
-     * @param jarFile
-     * @throws IOException if the <code>jarURL</code> could not be loaded or a previous load attempt failed
+     * @param jarURI
+     * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
      */
-    public synchronized static final void addClasses(Class<?> certClass, URL jarURL) throws IOException, SecurityException {
-        final LoadState classFileJarsLS = classFileJars.get(jarURL);
+    public synchronized static final void addClasses(Class<?> certClass, URI jarURI) throws IOException, SecurityException {
+        final LoadState classFileJarsLS = classFileJars.get(jarURI);
         if( !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ) { 
-            classFileJars.put(jarURL, LoadState.LOOKED_UP);
-            final JarFile jarFile = JarUtil.getJarFile(jarURL);
+            classFileJars.put(jarURI, LoadState.LOOKED_UP);
+            final JarFile jarFile = JarUtil.getJarFile(jarURI);
             if(DEBUG) {
-                System.err.println("TempJarCache: addClasses: "+jarURL+": nativeJar "+jarFile.getName());
+                System.err.println("TempJarCache: addClasses: "+jarURI+": nativeJar "+jarFile.getName());
             }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, true, false); 
-            classFileJars.put(jarURL, LoadState.LOADED);
+            classFileJars.put(jarURI, LoadState.LOADED);
         } else if( !testLoadState(classFileJarsLS, LoadState.LOADED) ) {
-            throw new IOException("TempJarCache: addClasses: "+jarURL+", previous load attempt failed");
+            throw new IOException("TempJarCache: addClasses: "+jarURI+", previous load attempt failed");
         }
     }
     
@@ -256,25 +255,25 @@ public class TempJarCache {
      * Adds native resources, if not yet added.
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
-     * @param jarFile
+     * @param jarURI
      * @return
-     * @throws IOException if the <code>jarURL</code> could not be loaded or a previous load attempt failed
+     * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
      */
-    public synchronized static final void addResources(Class<?> certClass, URL jarURL) throws IOException, SecurityException {        
-        final LoadState resourceFileJarsLS = resourceFileJars.get(jarURL);
+    public synchronized static final void addResources(Class<?> certClass, URI jarURI) throws IOException, SecurityException {        
+        final LoadState resourceFileJarsLS = resourceFileJars.get(jarURI);
         if( !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) { 
-            resourceFileJars.put(jarURL, LoadState.LOOKED_UP);
-            final JarFile jarFile = JarUtil.getJarFile(jarURL);
+            resourceFileJars.put(jarURI, LoadState.LOOKED_UP);
+            final JarFile jarFile = JarUtil.getJarFile(jarURI);
             if(DEBUG) {
-                System.err.println("TempJarCache: addResources: "+jarURL+": nativeJar "+jarFile.getName());
+                System.err.println("TempJarCache: addResources: "+jarURI+": nativeJar "+jarFile.getName());
             }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
                             false, false, true); 
-            resourceFileJars.put(jarURL, LoadState.LOADED);
+            resourceFileJars.put(jarURI, LoadState.LOADED);
         } else if( !testLoadState(resourceFileJarsLS, LoadState.LOADED) ) {
-            throw new IOException("TempJarCache: addResources: "+jarURL+", previous load attempt failed");
+            throw new IOException("TempJarCache: addResources: "+jarURI+", previous load attempt failed");
         }
     }
     
@@ -286,18 +285,18 @@ public class TempJarCache {
      * needs Classloader.defineClass(..) access, ie. own derivation - will do when needed ..
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
-     * @param jarFile
-     * @throws IOException if the <code>jarURL</code> could not be loaded or a previous load attempt failed
+     * @param jarURI
+     * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
      */
-    public synchronized static final void addAll(Class<?> certClass, URL jarURL) throws IOException, SecurityException {
+    public synchronized static final void addAll(Class<?> certClass, URI jarURI) throws IOException, SecurityException {
         checkInitialized();
-        if(null == jarURL) {
-            throw new IllegalArgumentException("jarURL is null");
+        if(null == jarURI) {
+            throw new IllegalArgumentException("jarURI is null");
         }
-        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURL);
-        final LoadState classFileJarsLS = classFileJars.get(jarURL);
-        final LoadState resourceFileJarsLS = resourceFileJars.get(jarURL);
+        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
+        final LoadState classFileJarsLS = classFileJars.get(jarURI);
+        final LoadState resourceFileJarsLS = resourceFileJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) || 
             !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) || 
             !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) {
@@ -308,18 +307,18 @@ public class TempJarCache {
             
             // mark looked-up (those who are not loaded)
             if(extractNativeLibraries) {
-                nativeLibJars.put(jarURL, LoadState.LOOKED_UP);
+                nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
             }
             if(extractClassFiles) {
-                classFileJars.put(jarURL, LoadState.LOOKED_UP);
+                classFileJars.put(jarURI, LoadState.LOOKED_UP);
             }
             if(extractOtherFiles) {
-                resourceFileJars.put(jarURL, LoadState.LOOKED_UP);
+                resourceFileJars.put(jarURI, LoadState.LOOKED_UP);
             }
             
-            final JarFile jarFile = JarUtil.getJarFile(jarURL);
+            final JarFile jarFile = JarUtil.getJarFile(jarURI);
             if(DEBUG) {
-                System.err.println("TempJarCache: addAll: "+jarURL+": nativeJar "+jarFile.getName());
+                System.err.println("TempJarCache: addAll: "+jarURI+": nativeJar "+jarFile.getName());
             }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
@@ -327,18 +326,18 @@ public class TempJarCache {
             
             // mark loaded (those were just loaded)
             if(extractNativeLibraries) {
-                nativeLibJars.put(jarURL, LoadState.LOADED);
+                nativeLibJars.put(jarURI, LoadState.LOADED);
             }
             if(extractClassFiles) {
-                classFileJars.put(jarURL, LoadState.LOADED);
+                classFileJars.put(jarURI, LoadState.LOADED);
             }
             if(extractOtherFiles) {
-                resourceFileJars.put(jarURL, LoadState.LOADED);
+                resourceFileJars.put(jarURI, LoadState.LOADED);
             }
         } else if( !testLoadState(nativeLibJarsLS, LoadState.LOADED) || 
                    !testLoadState(classFileJarsLS, LoadState.LOADED) || 
                    !testLoadState(resourceFileJarsLS, LoadState.LOADED) ) {
-            throw new IOException("TempJarCache: addAll: "+jarURL+", previous load attempt failed");            
+            throw new IOException("TempJarCache: addAll: "+jarURI+", previous load attempt failed");            
         }
     }
     
@@ -382,11 +381,11 @@ public class TempJarCache {
         return null;
     }
     
-    public synchronized static final URL getResource(String name) throws MalformedURLException {
+    public synchronized static final URI getResource(String name) throws URISyntaxException {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
-            return IOUtil.toURLSimple(f);
+            return IOUtil.toURISimple(f);
         }
         return null;
     }
@@ -402,18 +401,18 @@ public class TempJarCache {
      * @throws IOException
      * @throws SecurityException
      */
-    public synchronized static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, URL jarURL) 
+    public synchronized static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, URI jarURI) 
             throws IOException, SecurityException {
         checkInitialized();
         boolean ok = false;
         int countEntries = 0;
-        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURL);
+        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) && !nativeLibMap.containsKey(libBaseName) ) {
             if(DEBUG) {
-                System.err.println("TempJarCache: bootstrapNativeLib(certClass: "+certClass+", libBaseName "+libBaseName+", jarURL "+jarURL+")");
+                System.err.println("TempJarCache: bootstrapNativeLib(certClass: "+certClass+", libBaseName "+libBaseName+", jarURI "+jarURI+")");
             }
-            nativeLibJars.put(jarURL, LoadState.LOOKED_UP);
-            final JarFile jarFile = JarUtil.getJarFile(jarURL);
+            nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
+            final JarFile jarFile = JarUtil.getJarFile(jarURI);
             if(DEBUG) {
                 System.err.println("TempJarCache: bootstrapNativeLib: nativeJar "+jarFile.getName());
             }
@@ -442,7 +441,7 @@ public class TempJarCache {
                     } finally { in.close(); out.close(); }
                     if (numBytes>0) {
                         nativeLibMap.put(libBaseName, destFile.getAbsolutePath());
-                        nativeLibJars.put(jarURL, LoadState.LOADED);
+                        nativeLibJars.put(jarURI, LoadState.LOADED);
                         ok = true;
                         countEntries++;
                     }
@@ -451,7 +450,7 @@ public class TempJarCache {
         } else if( testLoadState(nativeLibJarsLS, LoadState.LOADED) ) {
             ok = true; // already loaded
         } else {
-            throw new IOException("TempJarCache: bootstrapNativeLib: "+jarURL+", previous load attempt failed");
+            throw new IOException("TempJarCache: bootstrapNativeLib: "+jarURI+", previous load attempt failed");
         }
         if(DEBUG) {
             System.err.println("TempJarCache: bootstrapNativeLib() done, count "+countEntries+", ok "+ok);

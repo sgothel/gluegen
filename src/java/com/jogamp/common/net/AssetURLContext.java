@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -152,7 +153,11 @@ public abstract class AssetURLContext implements PiggybackURLContext {
         if(DEBUG) {
             System.err.println("AssetURLContext.resolve: <"+path+">");
         }
-        path = IOUtil.cleanPathString(path);
+        try {
+            path = IOUtil.cleanPathString(path);
+        } catch (URISyntaxException uriEx) {
+            throw new IOException(uriEx);
+        }
         
         try {
             // lookup as valid sub-protocol
@@ -180,7 +185,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
             try {
                 File file = new File(path);
                 if(file.exists()) {
-                    url = IOUtil.toURLSimple(file);
+                    url = IOUtil.toURISimple(file).toURL();
                     conn = open(url);
                     type = null != conn ? 3 : -1;
                 }
