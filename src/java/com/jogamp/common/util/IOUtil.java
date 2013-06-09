@@ -592,6 +592,18 @@ public class IOUtil {
     }
     
     /**
+     * Wraps {@link #getRelativeOf(URI, String)} for convenience.
+     * @throws IOException
+     */
+    public static URL getRelativeOf(URL baseURL, String relativePath) throws IOException {    
+        try {
+            return getRelativeOf(baseURL.toURI(), relativePath).toURL();
+        } catch (URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+    
+    /**
      * Generates a URI for the <i>relativePath</i> relative to the <i>schemeSpecificPart</i>,
      * hence the result is a absolute location.
      * <p>
