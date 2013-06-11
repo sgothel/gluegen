@@ -1,0 +1,209 @@
+/**
+ * Copyright 2013 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ * 
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ * 
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ * 
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
+ 
+package com.jogamp.junit.sec;
+
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.security.AccessControlException;
+import java.io.File;
+import java.io.IOException;
+
+import junit.framework.Assert;
+
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.JarUtil;
+import com.jogamp.junit.util.JunitTracer;
+
+public class TestSecIOUtil01 extends JunitTracer {
+    static final String java_io_tmpdir_propkey = "java.io.tmpdir";
+    static final String java_home_propkey = "java.home";
+    static final String os_name_propkey = "os.name";
+    static final boolean usesSecurityManager;
+    
+    static {
+        if( null == System.getSecurityManager() ) {
+            usesSecurityManager = false;
+            System.err.println("No SecurityManager Installed");
+        } else {
+            usesSecurityManager = true;
+            System.err.println("SecurityManager Already Installed");            
+        }
+    }
+    
+    @BeforeClass
+    public static void setup() throws IOException {
+        Platform.initSingleton();
+    }
+
+    static void testPropImpl01(String propKey, boolean isSecure) {
+        isSecure |= !usesSecurityManager;
+        
+        Exception se0 = null;
+        try {
+            String p0 = System.getProperty(propKey);
+            System.err.println(propKey+": "+p0);
+        } catch (AccessControlException e) {
+            se0 = e;
+            if( !isSecure ) {
+                System.err.println("Expected exception for insecure property <"+propKey+">");
+                System.err.println("Message: "+se0.getMessage());
+            } else {
+                System.err.println("Unexpected exception for secure property <"+propKey+">");
+                se0.printStackTrace();
+            }
+        }
+        if( isSecure ) {
+            Assert.assertNull("AccessControlException thrown on secure property <"+propKey+">", se0);
+        } else {
+            Assert.assertNotNull("AccessControlException not thrown on insecure property <"+propKey+">", se0);
+        }
+    }
+    
+    @Test
+    public void testProp00_Temp() {
+        testPropImpl01(os_name_propkey, true);
+    }
+    
+    @Test
+    public void testProp01_Temp() {
+        testPropImpl01(java_home_propkey, false);
+    }
+    
+    @Test
+    public void testProp02_Temp() {
+        testPropImpl01(java_io_tmpdir_propkey, false);
+    }
+    
+    static void testTempDirImpl(boolean isSecure) {
+        isSecure |= !usesSecurityManager;
+        
+        Exception se0 = null;
+        try {
+            File tmp = IOUtil.getTempDir(true);
+            System.err.println("Temp: "+tmp);
+        } catch (AccessControlException e) {
+            se0 = e;
+            if( !isSecure ) {
+                System.err.println("Expected exception for insecure temp dir");
+                System.err.println("Message: "+se0.getMessage());
+            } else {
+                System.err.println("Unexpected exception for secure temp dir");
+                se0.printStackTrace();
+            }
+        }
+        if( isSecure ) {
+            Assert.assertNull("AccessControlException thrown on secure temp dir", se0);
+        } else {
+            Assert.assertNotNull("AccessControlException not thrown on insecure temp dir", se0);
+        }
+    }
+    
+    @Test
+    public void testTempDir00() {
+        testTempDirImpl(false);
+    }
+
+    private void testOpenLibraryImpl(boolean global) {
+        final ClassLoader cl = getClass().getClassLoader();
+        System.err.println("CL "+cl);
+        
+        String libBaseName = null;
+        final Class<?> clazz = this.getClass();
+        URL libURL = clazz.getResource("/libtest1.so");
+        if( null != libURL ) {
+            libBaseName = "libtest1.so";
+        } else {
+            libURL = clazz.getResource("/test1.dll");
+            if( null != libURL ) {
+                libBaseName = "test1.dll";
+            }
+        }
+        System.err.println("Untrusted Library (URL): "+libURL);
+        
+        String libDir1 = null;
+        if( null != libURL ) {
+            try {
+                libDir1 = JarUtil.getJarSubURI(libURL.toURI()).getPath();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            if( null != libDir1 ) {
+                System.err.println("libDir1.1: "+libDir1);
+                try {
+                    libDir1= IOUtil.getParentOf(libDir1);
+                } catch (URISyntaxException e) {
+                    e.printStackTrace();
+                }
+                System.err.println("libDir1.2: "+libDir1);
+            }
+        }
+        System.err.println("Untrusted Library Dir1 (abs): "+libDir1);
+        final String absLib = libDir1 + "natives/" + libBaseName;
+        Exception se0 = null;
+        try {
+            NativeLibrary nlib = NativeLibrary.open(absLib, cl);
+            System.err.println("NativeLibrary: "+nlib);
+        } catch (SecurityException e) {
+            se0 = e;
+            if( usesSecurityManager ) {
+                System.err.println("Expected exception for loading native library");
+                System.err.println("Message: "+se0.getMessage());
+            } else {
+                System.err.println("Unexpected exception for loading native library");
+                se0.printStackTrace();
+            }            
+        }
+        if( !usesSecurityManager ) {
+            Assert.assertNull("SecurityException thrown on loading native library", se0);
+        } else {
+            Assert.assertNotNull("SecurityException not thrown on loading native library", se0);
+        }
+    }
+    
+    public void testOpenLibrary() {
+        testOpenLibraryImpl(true);
+    }
+    
+    public static void main(String args[]) throws IOException {
+        TestSecIOUtil01.setup();
+        
+        TestSecIOUtil01 aa = new TestSecIOUtil01();
+        aa.testProp00_Temp();
+        aa.testProp01_Temp();
+        aa.testProp02_Temp();
+        aa.testTempDir00();
+        aa.testOpenLibrary();
+    }
+
+}

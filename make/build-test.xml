@@ -132,6 +132,9 @@
           <fileset dir="${build_t.java}">
             <include name="${test.junit.rel}/**/*.class"/>
           </fileset>
+          <fileset dir="${build_t.lib}">
+              <include name="*${native.library.suffix}" />
+          </fileset>
           <fileset dir="resources/assets-test">
             <include name="**" />
           </fileset>

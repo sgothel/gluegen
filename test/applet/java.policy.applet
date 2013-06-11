@@ -1,0 +1,5 @@
+
+grant codeBase "file:/home/sven/projects/JOGL/gluegen/test/applet/jar/*" {
+      permission java.security.AllPermission;
+};
+

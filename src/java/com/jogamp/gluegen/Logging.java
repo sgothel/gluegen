@@ -38,7 +38,6 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.jogamp.common.util.PropertyAccess;
-import com.jogamp.common.util.SecurityUtil;
 
 /**
  *
@@ -48,11 +47,11 @@ public class Logging {
 
     static void init() {
         final String packageName = Logging.class.getPackage().getName();        
-        final String property = PropertyAccess.getProperty(packageName+".level", true, SecurityUtil.getCommonAccessControlContext(Logging.class)); 
+        final String property = PropertyAccess.getProperty(packageName+".level", true); 
         Level level;
         if(property != null) {
             level = Level.parse(property);
-        }else{
+        } else {
             level = Level.WARNING;
         }
 

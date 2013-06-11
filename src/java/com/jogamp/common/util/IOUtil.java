@@ -33,12 +33,10 @@ import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.AccessControlContext;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -817,20 +815,12 @@ public class IOUtil {
      * @param dir the directory to process
      * @param create true if the directory shall be created if not existing
      * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
-     * @param acc The security {@link AccessControlContext} to create directories and test <i>executability</i> 
      * @throws SecurityException if file creation and process execution is not allowed within the current security context
      */
-    public static File testDir(final File dir, final boolean create, final boolean executable, AccessControlContext acc)
+    public static File testDir(final File dir, final boolean create, final boolean executable)
         throws SecurityException
     {
-        if( null != acc ) {
-            return AccessController.doPrivileged(new PrivilegedAction<File>() {
-                public File run() {
-                  return testDirImpl(dir, create, executable);
-                } }, acc);
-        } else {
-            return testDirImpl(dir, create, executable);
-        }    
+        return testDirImpl(dir, create, executable);
     }    
     
     private static boolean isStringSet(String s) { return null != s && 0 < s.length(); } 
@@ -873,9 +863,35 @@ public class IOUtil {
        return tmpBaseDir;
     }
         
-    private static File getTempDirImpl(boolean executable)
+    /**
+     * Returns a platform independent writable directory for temporary files
+     * consisting of the platform's {@code temp-root} + {@link #tmpSubDir}, 
+     * e.g. {@code /tmp/jogamp_0000/}. 
+     * <p>
+     * On standard Java the {@code temp-root} folder is specified by <code>java.io.tempdir</code>.
+     * </p> 
+     * <p>
+     * On Android the {@code temp-root} folder is relative to the applications local folder 
+     * (see {@link Context#getDir(String, int)}) is returned, if
+     * the Android application/activity has registered it's Application Context
+     * via {@link jogamp.common.os.android.StaticContext.StaticContext#init(Context, ClassLoader) StaticContext.init(..)}.
+     * This allows using the temp folder w/o the need for <code>sdcard</code>
+     * access, which would be the <code>java.io.tempdir</code> location on Android!
+     * </p>
+     * <p>
+     * In case {@code temp-root} is the users home folder,
+     * a dot is being prepended to {@link #tmpSubDir}, i.e.: {@code /home/user/.jogamp_0000/}. 
+     * </p>
+     * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
+     * @throws RuntimeException if no temporary directory could be determined
+     * @throws SecurityException if access to <code>java.io.tmpdir</code> is not allowed within the current security context
+     *  
+     * @see PropertyAccess#getProperty(String, boolean)
+     * @see Context#getDir(String, int)
+     */
+    public static File getTempDir(final boolean executable)
         throws SecurityException, RuntimeException
-    {        
+    {
         if(!tempRootSet) { // volatile: ok
             synchronized(IOUtil.class) {
                 if(!tempRootSet) {
@@ -889,8 +905,8 @@ public class IOUtil {
                         }
                     }
                     
-                    final String java_io_tmpdir = PropertyAccess.getProperty(java_io_tmpdir_propkey, false, null);
-                    final String user_home = PropertyAccess.getProperty(user_home_propkey, false, null);
+                    final String java_io_tmpdir = PropertyAccess.getProperty(java_io_tmpdir_propkey, false);
+                    final String user_home = PropertyAccess.getProperty(user_home_propkey, false);
                     
                     final String xdg_cache_home;
                     {
@@ -951,6 +967,8 @@ public class IOUtil {
         if(null == r) {
             throw new RuntimeException("Could not determine a temporary directory");
         }
+        final FilePermission fp = new FilePermission(r.getAbsolutePath(), "read,write,delete");
+        SecurityUtil.checkPermission(fp);
         return r;
     }
     private static File tempRootExec = null; // writeable and executable
@@ -958,53 +976,13 @@ public class IOUtil {
     private static volatile boolean tempRootSet = false;
     
     /**
-     * Returns a platform independent writable directory for temporary files
-     * consisting of the platform's {@code temp-root} + {@link #tmpSubDir}, 
-     * e.g. {@code /tmp/jogamp_0000/}. 
-     * <p>
-     * On standard Java the {@code temp-root} folder is specified by <code>java.io.tempdir</code>.
-     * </p> 
-     * <p>
-     * On Android the {@code temp-root} folder is relative to the applications local folder 
-     * (see {@link Context#getDir(String, int)}) is returned, if
-     * the Android application/activity has registered it's Application Context
-     * via {@link jogamp.common.os.android.StaticContext.StaticContext#init(Context, ClassLoader) StaticContext.init(..)}.
-     * This allows using the temp folder w/o the need for <code>sdcard</code>
-     * access, which would be the <code>java.io.tempdir</code> location on Android!
-     * </p>
-     * <p>
-     * In case {@code temp-root} is the users home folder,
-     * a dot is being prepended to {@link #tmpSubDir}, i.e.: {@code /home/user/.jogamp_0000/}. 
-     * </p>
-     * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
-     * @param acc The security {@link AccessControlContext} to access properties, environment vars, create directories and test <i>executability</i> 
-     * @throws SecurityException if access to <code>java.io.tmpdir</code> is not allowed within the current security context
-     * @throws RuntimeException if no temporary directory could be determined
-     *  
-     * @see PropertyAccess#getProperty(String, boolean, java.security.AccessControlContext)
-     * @see Context#getDir(String, int)
-     */
-    public static File getTempDir(final boolean executable, AccessControlContext acc)
-        throws SecurityException, RuntimeException
-    {
-        if( null != acc ) {
-            return AccessController.doPrivileged(new PrivilegedAction<File>() {
-                public File run() {
-                  return getTempDirImpl(executable);
-                } }, acc);
-        } else {
-            return getTempDirImpl(executable);
-        }    
-    }    
-     
-    /**
      * Utilizing {@link File#createTempFile(String, String, File)} using
-     * {@link #getTempRoot(AccessControlContext, boolean)} as the directory parameter, ie. location 
+     * {@link #getTempDir(boolean)} as the directory parameter, ie. location 
      * of the root temp folder.
      * 
      * @see File#createTempFile(String, String)
      * @see File#createTempFile(String, String, File)
-     * @see #getTempRoot(AccessControlContext, boolean)
+     * @see #getTempDir(boolean)
      * 
      * @param prefix
      * @param suffix
@@ -1014,10 +992,10 @@ public class IOUtil {
      * @throws IOException
      * @throws SecurityException
      */
-    public static File createTempFile(String prefix, String suffix, boolean executable, AccessControlContext acc) 
+    public static File createTempFile(String prefix, String suffix, boolean executable) 
         throws IllegalArgumentException, IOException, SecurityException 
     {        
-        return File.createTempFile( prefix, suffix, getTempDir(executable, acc) );
+        return File.createTempFile( prefix, suffix, getTempDir(executable) );
     }
 
     public static void close(Closeable stream, boolean throwRuntimeException) throws RuntimeException {

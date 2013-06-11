@@ -27,30 +27,127 @@
  */
 package com.jogamp.common.util;
 
-import java.security.AccessControlContext;
 import java.security.AccessController;
+import java.security.AllPermission;
 import java.security.CodeSource;
+import java.security.Permission;
 import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
 
 public class SecurityUtil {
-    /* package private */ static final AccessControlContext localACC;
-    /* package private */ static final Certificate[] localCerts;
+    private static final SecurityManager securityManager;
+    private static final Permission allPermissions;
+    private static final boolean DEBUG = false;
     
     static {
-        localACC = AccessController.doPrivileged(new PrivilegedAction<AccessControlContext>() {
-                                public AccessControlContext run() { 
-                                    return AccessController.getContext(); 
-                                } } );        
-        localCerts = getCerts(SecurityUtil.class);
+        allPermissions = new AllPermission();
+        securityManager = System.getSecurityManager();
+        
+        if( DEBUG ) {
+            final boolean hasAllPermissions;
+            {
+                final ProtectionDomain insecPD = AccessController.doPrivileged(new PrivilegedAction<ProtectionDomain>() {
+                                                public ProtectionDomain run() {
+                                                    return SecurityUtil.class.getProtectionDomain();
+                                                } } );
+                boolean _hasAllPermissions;
+                try {
+                    insecPD.implies(allPermissions);
+                    _hasAllPermissions = true;
+                } catch( SecurityException ace ) { 
+                    _hasAllPermissions = false;
+                }
+                hasAllPermissions = _hasAllPermissions;
+            }
+            
+            System.err.println("SecurityUtil: Has SecurityManager: "+ ( null != securityManager ) ) ;
+            System.err.println("SecurityUtil: Has AllPermissions: "+hasAllPermissions);
+            final Certificate[] certs = AccessController.doPrivileged(new PrivilegedAction<Certificate[]>() {
+                                                public Certificate[] run() {
+                                                    return getCerts(SecurityUtil.class);
+                                                } } );
+            System.err.println("SecurityUtil: Cert count: "+ ( null != certs ? certs.length : 0 ));
+            if( null != certs ) {
+                for(int i=0; i<certs.length; i++) {
+                    System.err.println("\t cert["+i+"]: "+certs[i].toString());
+                }
+            }
+        }
     }
     
-    public static final Certificate[] getCerts(final Class<?> clz) {
-        final ProtectionDomain pd = AccessController.doPrivileged(new PrivilegedAction<ProtectionDomain>() {
-                                        public ProtectionDomain run() {
-                                            return clz.getProtectionDomain();
-                                        } } );                
+    /**
+     * Returns <code>true</code> if no {@link SecurityManager} has been installed
+     * or the installed {@link SecurityManager}'s <code>checkPermission(new AllPermission())</code>
+     * passes. Otherwise method returns <code>false</code>.
+     */
+    public static final boolean hasAllPermissions() {
+        return hasPermission(allPermissions);
+    }
+    
+    /**
+     * Returns <code>true</code> if no {@link SecurityManager} has been installed
+     * or the installed {@link SecurityManager}'s <code>checkPermission(perm)</code>
+     * passes. Otherwise method returns <code>false</code>.
+     */
+    public static final boolean hasPermission(Permission perm) {
+        try {
+            checkPermission(perm);
+            return true;
+        } catch( SecurityException ace ) { 
+            return false;
+        }
+    }
+    
+    /**
+     * Throws an {@link SecurityException} if an installed {@link SecurityManager}
+     * does not permit the requested {@link AllPermission}.
+     */
+    public static final void checkAllPermissions() throws SecurityException {
+        checkPermission(allPermissions);
+    }
+    
+    /**
+     * Throws an {@link SecurityException} if an installed {@link SecurityManager}
+     * does not permit the requested {@link Permission}.
+     */
+    public static final void checkPermission(Permission perm) throws SecurityException {
+        if( null != securityManager ) {
+            securityManager.checkPermission(perm);
+        }
+    }
+    
+    /**
+     * Returns <code>true</code> if no {@link SecurityManager} has been installed
+     * or the installed {@link SecurityManager}'s <code>checkLink(libName)</code>
+     * passes. Otherwise method returns <code>false</code>.
+     */
+    public static final boolean hasLinkPermission(String libName) {
+        try {
+            checkLinkPermission(libName);
+            return true;
+        } catch( SecurityException ace ) { 
+            return false;
+        }
+    }
+    
+    /**
+     * Throws an {@link SecurityException} if an installed {@link SecurityManager}
+     * does not permit to dynamically link the given libName.
+     */
+    public static final void checkLinkPermission(String libName) throws SecurityException {
+        if( null != securityManager ) {
+            securityManager.checkLink(libName);
+        }
+    }
+    
+    /**
+     * @param clz
+     * @return
+     * @throws SecurityException if the caller has no permission to access the ProtectedDomain of the given class.
+     */
+    public static final Certificate[] getCerts(final Class<?> clz) throws SecurityException {
+        final ProtectionDomain pd = clz.getProtectionDomain();
         final CodeSource cs = (null != pd) ? pd.getCodeSource() : null;
         final Certificate[] certs = (null != cs) ? cs.getCertificates() : null;
         return (null != certs && certs.length>0) ? certs : null;
@@ -72,21 +169,5 @@ public class SecurityUtil {
             i++;
         }        
         return i == a.length;
-    }
-    
-    public static final boolean equalsLocalCert(Certificate[] b) {
-        return equals(localCerts, b);
-    }
-    
-    public static final boolean equalsLocalCert(Class<?> clz) {
-        return equalsLocalCert(getCerts(clz));
-    }
-    
-    public static final AccessControlContext getCommonAccessControlContext(Class<?> clz) {
-        if(equalsLocalCert(clz)) {
-            return localACC;
-        } else {
-            return null;
-        }
-    }
+    }    
 }

@@ -48,12 +48,13 @@ public class PropertyAccess {
       // 'jogamp.' and maybe other trusted prefixes will be added later via 'addTrustedPrefix()'
   }
   
-  public static final void addTrustedPrefix(String prefix, Class<?> certClass) {
-      if(SecurityUtil.equalsLocalCert(certClass)) {
-          trustedPrefixes.add(prefix);
-      } else {
-          throw new SecurityException("Illegal Access - prefix "+prefix+", with cert class "+certClass);
-      }      
+  /**
+   * @param prefix New prefix to be registered as trusted.
+   * @throws AccessControlException as thrown by {@link SecurityUtil#checkAllPermissions()}. 
+   */
+  protected static final void addTrustedPrefix(String prefix) throws AccessControlException {
+      SecurityUtil.checkAllPermissions();
+      trustedPrefixes.add(prefix);
   }
   
   public static final boolean isTrusted(String propertyKey) {
@@ -65,11 +66,11 @@ public class PropertyAccess {
       }
   }
   
-  /** @see #getProperty(String, boolean, AccessControlContext) */
-  public static final int getIntProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc, int defaultValue) {
+  /** @see #getProperty(String, boolean) */
+  public static final int getIntProperty(final String property, final boolean jnlpAlias, int defaultValue) {
     int i=defaultValue;
     try {
-        final String sv = PropertyAccess.getProperty(property, jnlpAlias, acc);
+        final String sv = PropertyAccess.getProperty(property, jnlpAlias);
         if(null!=sv) {
             i = Integer.valueOf(sv).intValue();
         }
@@ -77,11 +78,11 @@ public class PropertyAccess {
     return i;
   }
 
-  /** @see #getProperty(String, boolean, AccessControlContext) */
-  public static final long getLongProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc, long defaultValue) {
+  /** @see #getProperty(String, boolean) */
+  public static final long getLongProperty(final String property, final boolean jnlpAlias, long defaultValue) {
     long l=defaultValue;
     try {
-        final String sv = PropertyAccess.getProperty(property, jnlpAlias, acc);
+        final String sv = PropertyAccess.getProperty(property, jnlpAlias);
         if(null!=sv) {
             l = Long.valueOf(sv).longValue();
         }
@@ -89,23 +90,23 @@ public class PropertyAccess {
     return l;
   }
 
-  /** @see #getProperty(String, boolean, AccessControlContext) */
-  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    return Boolean.valueOf(PropertyAccess.getProperty(property, jnlpAlias, acc)).booleanValue();
+  /** @see #getProperty(String, boolean) */
+  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
+    return Boolean.valueOf(PropertyAccess.getProperty(property, jnlpAlias)).booleanValue();
   }
 
-  /** @see #getProperty(String, boolean, AccessControlContext) */
-  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, final AccessControlContext acc, boolean defaultValue) {
-    final String valueS = PropertyAccess.getProperty(property, jnlpAlias, acc);
+  /** @see #getProperty(String, boolean) */
+  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, boolean defaultValue) {
+    final String valueS = PropertyAccess.getProperty(property, jnlpAlias);
     if(null != valueS) {
         return Boolean.valueOf(valueS).booleanValue();
     }
     return defaultValue;
   }
 
-  /** @see #getProperty(String, boolean, AccessControlContext) */
-  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias, final AccessControlContext acc) {
-    return (PropertyAccess.getProperty(property, jnlpAlias, acc) != null) ? true : false;
+  /** @see #getProperty(String, boolean) */
+  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
+    return (PropertyAccess.getProperty(property, jnlpAlias) != null) ? true : false;
   }
 
   /**
@@ -119,8 +120,6 @@ public class PropertyAccess {
    * @param propertyKey the property name to query. 
    * @param jnlpAlias true if a fallback attempt to query the JNLP aliased <i>trusted property</i> shall be made,
    *                  otherwise false.
-   * @param acc the AccessControlerContext to be used for privileged access to the system property, or null.
-   * 
    * @return the property value if exists, or null
    * 
    * @throws NullPointerException if the property name is null
@@ -129,7 +128,7 @@ public class PropertyAccess {
    * 
    * @see System#getProperty(String)
    */
-  public static final String getProperty(final String propertyKey, final boolean jnlpAlias, final AccessControlContext acc) 
+  public static final String getProperty(final String propertyKey, final boolean jnlpAlias) 
       throws SecurityException, NullPointerException, IllegalArgumentException {
     if(null == propertyKey) {
         throw new NullPointerException("propertyKey is NULL");
@@ -138,23 +137,13 @@ public class PropertyAccess {
         throw new IllegalArgumentException("propertyKey is empty");
     }
     String s=null;
-    // int cause = 0;
     
     if( isTrusted(propertyKey) ) {
         // 'trusted' property (jnlp., javaws., jogamp., ..)
         s = getTrustedPropKey(propertyKey);
-        // cause = null != s ? 1 : 0;
     } else {
-        if( null != acc ) {
-            s = AccessController.doPrivileged(new PrivilegedAction<String>() {
-                public String run() {
-                  return System.getProperty(propertyKey);
-                } }, acc);
-            // cause = null != s ? 2 : 0;
-        } else {
-            s = System.getProperty(propertyKey);
-            // cause = null != s ? 3 : 0;
-        }
+        // may throw SecurityException, AccessControlerException
+        s = System.getProperty(propertyKey);
     }    
     if( null == s && jnlpAlias ) {
         // Try 'jnlp.' aliased property ..
@@ -162,11 +151,8 @@ public class PropertyAccess {
             // Properties within the namespace "jnlp." or "javaws." should be considered trusted,
             // i.e. always granted w/o special privileges.
             s = getTrustedPropKey(jnlp_prefix + propertyKey);
-            // cause = null != s ? 4 : 0;
         }
-    }    
-    // System.err.println("Prop: <"+propertyKey+"> = <"+s+">, cause "+cause);
-    
+    }
     return s;
   }
   
@@ -177,7 +163,6 @@ public class PropertyAccess {
               return System.getProperty(propertyKey);
           } catch (SecurityException se) {
               throw new SecurityException("Could not access trusted property '"+propertyKey+"'", se);
-                      
           }
         }
       });      

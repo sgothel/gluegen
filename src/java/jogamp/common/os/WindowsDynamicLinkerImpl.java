@@ -3,6 +3,7 @@
 package jogamp.common.os;
 
 import com.jogamp.common.os.DynamicLinker;
+import com.jogamp.common.util.SecurityUtil;
 
 public class WindowsDynamicLinkerImpl implements DynamicLinker {
 
@@ -20,13 +21,14 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
 
 
   // --- Begin CustomJavaCode .cfg declarations
-  public long openLibraryLocal(String libraryName, boolean debug) {
+  public long openLibraryLocal(String libraryName, boolean debug) throws SecurityException {
     // How does that work under Windows ?
     // Don't know .. so it's an alias for the time being
     return openLibraryGlobal(libraryName, debug);
   }
   
-  public long openLibraryGlobal(String libraryName, boolean debug) {
+  public long openLibraryGlobal(String libraryName, boolean debug) throws SecurityException {
+    SecurityUtil.checkLinkPermission(libraryName);
     long handle = LoadLibraryW(libraryName);
     if(0==handle && debug) {
         int err = GetLastError();

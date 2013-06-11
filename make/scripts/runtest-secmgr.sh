@@ -1,5 +1,13 @@
 #! /bin/bash
 
+TDIR=`pwd`
+SDIR=`dirname $0` #scripts
+cd $SDIR
+SDIR=`pwd` #scripts
+cd $TDIR
+MDIR=`dirname $SDIR` #make
+RDIR=`dirname $MDIR` #gluegen
+
 builddir=$1
 shift
 
@@ -7,6 +15,8 @@ if [ -z "$builddir" ] ; then
     echo Usage $0 build-dir
     exit 1
 fi
+
+BDIR=$RDIR/`basename $builddir`
 
 if [ -e /opt-share/apache-ant ] ; then
     ANT_PATH=/opt-share/apache-ant
@@ -53,23 +63,22 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.IOUtil"
-#D_ARGS="-Djogamp.debug=all"
+D_ARGS="-Djogamp.debug=all"
+
+SPFILE=$BDIR/java.policy.secure
+
+echo "grant codeBase \"file:$BDIR/*\" {" > $SPFILE
+echo "   permission java.security.AllPermission;" >> $SPFILE
+echo "};" >> $SPFILE
 
 function onetest() {
-    CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/gluegen-test.jar
-    libspath=$builddir/test/build/natives
-    #CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/classes:$builddir/test/build/classes
-    #libspath=$builddir/obj:$builddir/test/build/natives:
-    LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
-    DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
+    CLASSPATH=lib/junit.jar:$ANT_JARS:$RDIR/make/lib/TestJarsInJar.jar:$BDIR/gluegen-rt.jar:$BDIR/test/build/gluegen-test.jar
+    libspath=$BDIR/test/build/natives
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo CLASSPATH $CLASSPATH
     which java
-    echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
-    java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
-    #echo java -cp $CLASSPATH $D_ARGS $clazz
-    #java -cp $CLASSPATH $D_ARGS $*
+    echo java -Djava.security.policy=$SPFILE -Dfile.encoding=UTF-8 -cp $CLASSPATH $D_ARGS $*
+    java -Djava.security.manager -Djava.security.policy=$SPFILE -Dfile.encoding=UTF-8 -cp $CLASSPATH $D_ARGS $*
     echo
 }
 #

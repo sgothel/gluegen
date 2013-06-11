@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2010 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,6 +40,9 @@
 
 package jogamp.common;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
+
 import com.jogamp.common.util.PropertyAccess;
 
 /** Helper routines for logging and debugging. */
@@ -49,28 +53,16 @@ public class Debug extends PropertyAccess {
   private static final boolean debugAll;
   
   static {
-    PropertyAccess.addTrustedPrefix("jogamp.", Debug.class);
+    AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        public Object run() {
+            PropertyAccess.addTrustedPrefix("jogamp.");
+            return null;
+    } } );
 
     verbose = isPropertyDefined("jogamp.verbose", true);
     debugAll = isPropertyDefined("jogamp.debug", true);
   }
 
-  public static final boolean isPropertyDefined(final String property, final boolean jnlpAlias) {
-    return PropertyAccess.isPropertyDefined(property, jnlpAlias, null);
-  }
-  
-  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias) {
-      return PropertyAccess.getBooleanProperty(property, jnlpAlias, null);
-  }
-  
-  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, boolean defaultValue) {
-      return PropertyAccess.getBooleanProperty(property, jnlpAlias, null, defaultValue);      
-  }
-  
-  public static final long getLongProperty(final String property, final boolean jnlpAlias, long defaultValue) {
-      return PropertyAccess.getLongProperty(property, jnlpAlias, null, defaultValue);
-  }
-  
   public static boolean verbose() {
     return verbose;
   }

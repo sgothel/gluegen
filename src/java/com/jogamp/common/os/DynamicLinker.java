@@ -46,8 +46,8 @@ public interface DynamicLinker {
   public static final boolean DEBUG = NativeLibrary.DEBUG;
   public static final boolean DEBUG_LOOKUP = NativeLibrary.DEBUG_LOOKUP;
         
-  public long openLibraryGlobal(String pathname, boolean debug);
-  public long openLibraryLocal(String pathname, boolean debug);
+  public long openLibraryGlobal(String pathname, boolean debug) throws SecurityException;
+  public long openLibraryLocal(String pathname, boolean debug) throws SecurityException;
   public long lookupSymbol(long libraryHandle, String symbolName);
   public long lookupSymbolGlobal(String symbolName);
   public void closeLibrary(long libraryHandle);

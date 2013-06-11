@@ -162,49 +162,69 @@ public class Platform extends PlatformPropsImpl {
     /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
     public static final boolean AWT_AVAILABLE;
         
-    private static final URI platformClassJarURI;
+    private static final boolean isRunningFromJarURL;
     
     static {
-        PlatformPropsImpl.initSingleton(); // just documenting the order of static initialization
-
-        {
-            URI _platformClassJarURI;
-            try {
-                _platformClassJarURI = JarUtil.getJarURI(Platform.class.getName(), Platform.class.getClassLoader());
-            } catch (Exception e) { 
-                _platformClassJarURI = null; 
-            }
-            platformClassJarURI = _platformClassJarURI;
-        }
-
-        USE_TEMP_JAR_CACHE = (OS_TYPE != OSType.ANDROID) && isRunningFromJarURL() &&
-                             Debug.getBooleanProperty(useTempJarCachePropName, true, true);
+        final boolean[] _isRunningFromJarURL = new boolean[] { false };
+        final boolean[] _USE_TEMP_JAR_CACHE = new boolean[] { false };
+        final boolean[] _AWT_AVAILABLE = new boolean[] { false };
+        
+        AccessController.doPrivileged(new PrivilegedAction<Object>() { 
+            public Object run() {
                 
-        AWT_AVAILABLE = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-            public Boolean run() {
-                // load GluegenRT native library
-                loadGlueGenRTImpl();
+                PlatformPropsImpl.initSingleton(); // documenting the order of static initialization
                 
-                // JVM bug workaround
-                JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
+                final ClassLoader cl = Platform.class.getClassLoader();
                 
-                // detect AWT availability
-                boolean awtAvailable = false;
+                final URI platformClassJarURI;
                 {
-                    final ClassLoader cl = Platform.class.getClassLoader();
-                    if( !Debug.getBooleanProperty("java.awt.headless", true) &&
-                        ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) && 
-                        ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
-                        try {
-                            awtAvailable = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
-                        } catch (Throwable t) { }
+                    URI _platformClassJarURI = null;
+                    try {
+                        _platformClassJarURI = JarUtil.getJarURI(Platform.class.getName(), cl);
+                    } catch (Exception e) { }
+                    platformClassJarURI = _platformClassJarURI;
+                }
+                _isRunningFromJarURL[0] = null != platformClassJarURI; 
+                                
+                _USE_TEMP_JAR_CACHE[0] = ( OS_TYPE != OSType.ANDROID ) && ( null != platformClassJarURI ) &&
+                                         Debug.getBooleanProperty(useTempJarCachePropName, true, true);
+            
+                // load GluegenRT native library
+                if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
+                    String nativeJarName = null;
+                    URI jarUriRoot = null;
+                    URI nativeJarURI = null;
+                    try {
+                        final String jarName = JarUtil.getJarBasename( platformClassJarURI );
+                        final String nativeJarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
+                        nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";                    
+                        jarUriRoot = JarUtil.getURIDirname( JarUtil.getJarSubURI( platformClassJarURI ) );
+                        nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
+                        TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURI);
+                    } catch (Exception e0) {
+                        // IllegalArgumentException, IOException
+                        System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while TempJarCache.bootstrapNativeLib() of "+nativeJarURI+" ("+jarUriRoot+" + "+nativeJarName+")");
                     }
                 }
-                return new Boolean(awtAvailable);
-            }
-          }).booleanValue();
-        
-        
+                DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);
+            
+                // JVM bug workaround
+                JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
+            
+                // AWT Headless determination
+                if( !Debug.getBooleanProperty("java.awt.headless", true) &&
+                    ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) && 
+                    ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
+                    try {
+                        _AWT_AVAILABLE[0] = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
+                    } catch (Throwable t) { }
+                }
+                return null;
+            } } );
+        isRunningFromJarURL = _isRunningFromJarURL[0];
+        USE_TEMP_JAR_CACHE = _USE_TEMP_JAR_CACHE[0];
+        AWT_AVAILABLE = _AWT_AVAILABLE[0];
+                        
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {
             MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
@@ -228,27 +248,7 @@ public class Platform extends PlatformPropsImpl {
      * @return true if we're running from a Jar URL, otherwise false
      */
     public static final boolean isRunningFromJarURL() {        
-        return null != platformClassJarURI;
-    }
-    
-    private static final void loadGlueGenRTImpl() {
-        if(USE_TEMP_JAR_CACHE && TempJarCache.initSingleton()) {
-            String nativeJarName = null;
-            URI jarUriRoot = null;
-            URI nativeJarURI = null;
-            try {
-                final String jarName = JarUtil.getJarBasename(platformClassJarURI);
-                final String nativeJarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
-                nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";                    
-                jarUriRoot = JarUtil.getURIDirname( JarUtil.getJarSubURI( platformClassJarURI ) );
-                nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
-                TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURI);
-            } catch (Exception e0) {
-                // IllegalArgumentException, IOException
-                System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while TempJarCache.bootstrapNativeLib() of "+nativeJarURI+" ("+jarUriRoot+" + "+nativeJarName+")");
-            }
-        }
-        DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, Platform.class.getClassLoader());
+        return isRunningFromJarURL;
     }
     
     /**

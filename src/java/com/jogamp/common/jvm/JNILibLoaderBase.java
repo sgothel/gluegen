@@ -386,7 +386,7 @@ public class JNILibLoaderBase {
                 }
             }            
             if(null==launcherClass) {
-                String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false, null);
+                String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false);
                 if(null!=launcherClassName) {
                     try {
                         launcherClass = Class.forName(launcherClassName);
