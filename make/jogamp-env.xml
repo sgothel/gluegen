@@ -163,17 +163,17 @@
 
     <property name="target.sourcelevel"       value="${ant.java.version}" />      <!-- default fallback values -->
     <property name="target.targetlevel"       value="${ant.java.version}" />      <!-- default fallback values -->
-    <!-- default value for std Java -->
+    <!-- Default value for std Java (incl. Java7 on OS X) -->
     <condition property="target.rt.jar"
                value="${java.home}/lib/rt.jar">
                <available file="${java.home}/lib/rt.jar"/>
     </condition>
-    <!-- default fallback value on OS X -->
+    <!-- Default fallback value for Java6 OS X -->
     <condition property="target.rt.jar"
-               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar">
-               <available file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+               value="${java.home}/../Classes/classes.jar">
+               <available file="${java.home}/../Classes/classes.jar"/>
     </condition>
-    <!-- default fallback value on std Java -->
+    <!-- Default fallback value on std Java -->
     <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
@@ -188,15 +188,15 @@
 
     <property name="host.sourcelevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
     <property name="host.targetlevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
-    <!-- default value for std Java -->
+    <!-- Default value for std Java (incl. Java7 on OS X) -->
     <condition property="host.rt.jar"
                value="${java.home}/lib/rt.jar">
                <available file="${java.home}/lib/rt.jar"/>
     </condition>
-    <!-- default fallback value on OS X -->
+    <!-- Default fallback value for Java6 OS X -->
     <condition property="host.rt.jar"
-               value="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar">
-               <available file="/System/Library/Frameworks/JavaVM.framework/Versions/${ant.java.version}/Classes/classes.jar"/>
+               value="${java.home}/../Classes/classes.jar">
+               <available file="${java.home}/../Classes/classes.jar"/>
     </condition>
     <echo message="host.sourcelevel           ${host.sourcelevel}"/>
     <echo message="host.targetlevel           ${host.targetlevel}"/>

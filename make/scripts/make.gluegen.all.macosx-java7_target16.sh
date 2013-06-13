@@ -15,5 +15,8 @@ PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
 ant \
-    -Drootrel.build=build-macosx-java7 \
-    $* 2>&1 | tee make.gluegen.all.macosx-java7.log
+    -Dtarget.sourcelevel=1.6 \
+    -Dtarget.targetlevel=1.6 \
+    -Dtarget.rt.jar=/opt-share/jre1.6.0_30/lib/rt.jar \
+    -Drootrel.build=build-macosx-java7_target16 \
+    $* 2>&1 | tee make.gluegen.all.macosx-java7_target16.log
