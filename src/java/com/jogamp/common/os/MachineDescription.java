@@ -58,7 +58,9 @@ public class MachineDescription {
       /** {@link Platform.CPUType#X86_64} Little Endian MacOS */
       X86_32_WINDOWS(Platform.CPUType.X86_32),
       /** {@link Platform.CPUType#X86_64} Little Endian Windows */
-      X86_64_WINDOWS(Platform.CPUType.X86_64);
+      X86_64_WINDOWS(Platform.CPUType.X86_64),
+      /** {@link Platform.CPUType#SPARC_32} Big Endian Solaris */
+      SPARC_32_SUNOS(Platform.CPUType.SPARC_32);
       
       public final Platform.CPUType cpu;
 
@@ -74,6 +76,7 @@ public class MachineDescription {
   private final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
   private final static int[] size_x86_64_unix     =  { 4,    8,     4,     8,     16,    8,   4096 };
   private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
+  private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
 
   /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */                            
   private final static int[] align_armeabi        =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
@@ -82,20 +85,23 @@ public class MachineDescription {
   private final static int[] align_x86_32_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,      4,   4 };
   private final static int[] align_x86_64_unix    =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
   private final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
+  private final static int[] align_sparc_32_sunos =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
   
   public enum StaticConfig {
       /** {@link MachineDescription.ID#ARMle_EABI } */
-      ARMle_EABI(ID.ARMle_EABI,         true, size_armeabi,        align_armeabi),
+      ARMle_EABI(ID.ARMle_EABI,         true,  size_armeabi,        align_armeabi),
       /** {@link MachineDescription.ID#X86_32_UNIX } */
-      X86_32_UNIX(ID.X86_32_UNIX,       true, size_x86_32_unix,    align_x86_32_unix),
+      X86_32_UNIX(ID.X86_32_UNIX,       true,  size_x86_32_unix,    align_x86_32_unix),
       /** {@link MachineDescription.ID#X86_64_UNIX } */
-      X86_64_UNIX(ID.X86_64_UNIX,       true, size_x86_64_unix,    align_x86_64_unix),
+      X86_64_UNIX(ID.X86_64_UNIX,       true,  size_x86_64_unix,    align_x86_64_unix),
       /** {@link MachineDescription.ID#X86_32_MACOS } */
-      X86_32_MACOS(ID.X86_32_MACOS,     true, size_x86_32_macos,   align_x86_32_macos),
+      X86_32_MACOS(ID.X86_32_MACOS,     true,  size_x86_32_macos,   align_x86_32_macos),
       /** {@link MachineDescription.ID#X86_32_WINDOWS } */
-      X86_32_WINDOWS(ID.X86_32_WINDOWS, true, size_x86_32_windows, align_x86_32_windows),
+      X86_32_WINDOWS(ID.X86_32_WINDOWS, true,  size_x86_32_windows, align_x86_32_windows),
       /** {@link MachineDescription.ID#X86_64_WINDOWS } */
-      X86_64_WINDOWS(ID.X86_64_WINDOWS, true, size_x86_64_windows, align_x86_64_windows);
+      X86_64_WINDOWS(ID.X86_64_WINDOWS, true,  size_x86_64_windows, align_x86_64_windows),
+      /** {@link MachineDescription.ID#SPARC_32_SUNOS } */
+      SPARC_32_SUNOS(ID.SPARC_32_SUNOS, false, size_sparc_32_sunos, align_sparc_32_sunos);
       
       public final ID id;      
       public final MachineDescription md;

@@ -74,19 +74,24 @@ public class MachineDescriptionRuntime {
           
   private static MachineDescription.StaticConfig getStaticImpl() {
       if(isCPUArch32Bit()) {
-        if(PlatformPropsImpl.CPU_ARCH.getFamily() == Platform.CPUFamily.ARM && PlatformPropsImpl.LITTLE_ENDIAN) {
-            return StaticConfig.ARMle_EABI;
-        } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
-            return StaticConfig.X86_32_WINDOWS;            
-        } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
-            return StaticConfig.X86_32_MACOS;
-        }
-        return StaticConfig.X86_32_UNIX;            
+          if(PlatformPropsImpl.CPU_ARCH.getFamily() == Platform.CPUFamily.ARM && PlatformPropsImpl.LITTLE_ENDIAN) {
+              return StaticConfig.ARMle_EABI;
+          } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
+              return StaticConfig.X86_32_WINDOWS;
+          } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
+              return StaticConfig.X86_32_MACOS;
+          } else if (PlatformPropsImpl.OS_TYPE == Platform.OSType.SUNOS) {
+              if (PlatformPropsImpl.CPU_ARCH == Platform.CPUType.SPARC_32) {
+                  return StaticConfig.SPARC_32_SUNOS;
+              }
+              // TODO SPARCv9 description is missing
+          }
+          return StaticConfig.X86_32_UNIX;
       } else {
-        if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
-            return StaticConfig.X86_64_WINDOWS;                        
-        }
-        return StaticConfig.X86_64_UNIX;
+          if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
+              return StaticConfig.X86_64_WINDOWS;
+          }
+          return StaticConfig.X86_64_UNIX;
       }
   }
       
