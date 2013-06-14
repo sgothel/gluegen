@@ -802,6 +802,9 @@
 
     <!-- Build gluegen.jar. -->
     <jar destfile="${build}/gluegen.jar" manifest="${build}/Manifest.temp">
+      <service type="javax.annotation.processing.Processor">
+        <provider classname="com.jogamp.gluegen.structgen.CStructAnnotationProcessor"/>
+      </service>
       <fileset dir="${classes}">
         <include name="**/*.class" />
         <exclude name="${jogamp-android-launcher.classes}" />

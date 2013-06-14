@@ -156,6 +156,17 @@ public class PropertyAccess {
     return s;
   }
   
+  /** See {@link #getProperty(String, boolean)}, additionally allows a <code>defaultValue</code> if property value is <code>null</code>. */
+  public static final String getProperty(final String propertyKey, final boolean jnlpAlias, String defaultValue) 
+      throws SecurityException, NullPointerException, IllegalArgumentException {
+    final String s = PropertyAccess.getProperty(propertyKey, jnlpAlias);
+    if( null != s ) {
+        return s;
+    } else {
+        return defaultValue;
+    }
+  }
+  
   private static final String getTrustedPropKey(final String propertyKey) {
     return AccessController.doPrivileged(new PrivilegedAction<String>() {
         public String run() {

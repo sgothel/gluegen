@@ -114,6 +114,7 @@
         <echo message=" test.base.dir ${test.base.dir}"/>
         <echo message=" build_t.gen     ${build_t.gen}"/>
 
+        <!-- Annotation Processor Only - First -->
         <javac destdir="${build_t.java}" 
                fork="yes"
                includeAntRuntime="false"
@@ -124,6 +125,24 @@
                bootclasspath="${target.rt.jar}"
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit.compile.classpath"/>
+            <compilerarg value="-proc:only"/>
+            <compilerarg value="-J-Djogamp.gluegen.structgen.debug"/>
+            <compilerarg value="-J-Djogamp.gluegen.structgen.output=${build_t.gen}/classes"/>
+            <src path="${test.base.dir}/com/jogamp/gluegen/test/junit/structgen"/>
+        </javac>
+
+        <!-- Javac Only - Second -->
+        <javac destdir="${build_t.java}" 
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               bootclasspath="${target.rt.jar}"
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="junit.compile.classpath"/>
+            <compilerarg value="-proc:none"/>
             <src path="${test.base.dir}"/>
             <src path="${build_t.gen}" />
         </javac>
