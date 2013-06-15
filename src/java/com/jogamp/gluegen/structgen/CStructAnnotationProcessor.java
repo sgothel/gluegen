@@ -53,8 +53,6 @@ import javax.tools.StandardLocation;
 
 import jogamp.common.Debug;
 
-import static java.io.File.*;
-
 /**
  * <p>
  * If the <i>header file</i> is absolute, the <i>root path</i> is the parent folder of the folder containing the package source, i.e.:
@@ -108,57 +106,65 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
         outputPath = outputPath == null ? STRUCTGENOUTPUT : outputPath;
     }
 
+    private File locateSource(String packageName, String relativeName) {
+        try {
+            if( DEBUG ) { 
+                System.err.println("CStruct.locateSource.0: p "+packageName+", r "+relativeName);
+            }
+            final FileObject h = filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName);
+            if( DEBUG ) {
+                System.err.println("CStruct.locateSource.1: h "+h.toUri());
+            }
+            final File f = new File( h.toUri().getPath() ); // URI is incomplete (no scheme), hence use path only!
+            if( f.exists() ) {
+                return f;
+            }
+        } catch (IOException e) { if(DEBUG) { System.err.println("Catched "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
+        return null;
+    }
+    
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
+        final String user_dir = System.getProperty("user.dir");
 
-        Set<? extends Element> elements = env.getElementsAnnotatedWith(CStruct.class);
+        final Set<? extends Element> elements = env.getElementsAnnotatedWith(CStruct.class);
 
         for (Element element : elements) {
 
             final String packageName = eltUtils.getPackageOf(element).toString();
-            final String user_dir = System.getProperty("user.dir");
 
             try {
                 final CStruct struct = element.getAnnotation(CStruct.class);
                 final String headerRelPath = struct.header();
-                final FileObject header;
-                final File headerFileRel;
+                final Element enclElement = element.getEnclosingElement();
+                
+                System.err.println("CStruct: "+struct+", package "+packageName+", header "+headerRelPath); 
+                if(DEBUG) {
+                    System.err.println("CStruct.0: user.dir: "+user_dir);
+                    System.err.println("CStruct.0: element: "+element+", .simpleName "+element.getSimpleName());
+                    System.err.println("CStruct.0: enclElement: "+enclElement+", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());                    
+                }
+                
+                final File headerFile;
                 {
-                    FileObject h = filer.getResource(StandardLocation.SOURCE_PATH, packageName, headerRelPath);
-                    File f = new File( h.toUri().getPath() ); // URI is incomplete (no scheme), hence use path only!
-                    if( !f.exists() ) {
-                        h = filer.getResource(StandardLocation.SOURCE_PATH, "", headerRelPath);
-                        f = new File( h.toUri().getPath() ); // URI is incomplete (no scheme), hence use path only!
-                        if( !f.exists() ) {
+                    File f = locateSource(packageName, headerRelPath);
+                    if( null == f ) {
+                        f = locateSource("", headerRelPath);
+                        if( null == f ) {
                             // bail out
                             throw new RuntimeException("Could not locate header "+headerRelPath+", package "+packageName);
                         }
                     }
-                    header = h;
-                    headerFileRel = f;
+                    headerFile = f;
                 }
                 
-                final boolean headerFileRelIsAbsolute = headerFileRel.isAbsolute();  
-
                 final String root;
-                final File headerFile;
-                if( headerFileRelIsAbsolute ) {
-                    headerFile = headerFileRel;
-
+                {
                     String root0 = headerFile.getAbsolutePath();
                     root0 = root0.substring(0, root0.length()-headerFile.getName().length()-1);
                     root = root0.substring(0, root0.length()-packageName.length()) +"..";
-                } else {
-                    root = user_dir;
-                    headerFile = new File(root + separator + header.toUri());
                 }
-                System.err.println("CStruct: "+struct);
-                System.err.println("CStruct: package "+packageName+", header "+headerRelPath+": "+headerFile);                
-                if(DEBUG) {
-                    System.err.println("CStruct: header "+headerFileRel+", abs-path: "+headerFileRelIsAbsolute);
-                    System.err.println("CStruct: Root: "+root);
-                    System.err.println("CStruct: user.dir: "+user_dir);
-                }
+                System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", root "+root);
 
                 generateStructBinding(element, struct, root, packageName, headerFile);
             } catch (IOException ex) {
@@ -185,8 +191,8 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             final File outputDirFile = new File(outputPath);
             outputDirAbs = outputDirFile.isAbsolute();
         }
-        final String outputPath1 = outputDirAbs ? outputPath : root + separator + outputPath;
-        final String config = outputPath1 + separator + header.getName() + ".cfg";
+        final String outputPath1 = outputDirAbs ? outputPath : root + File.separator + outputPath;
+        final String config = outputPath1 + File.separator + header.getName() + ".cfg";
         final File configFile = new File(config);
         if(DEBUG) {
             System.err.println("CStruct: OutputDir: "+outputPath+", is-abs "+outputDirAbs);
