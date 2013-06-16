@@ -43,6 +43,7 @@ package com.jogamp.common.os;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
+import jogamp.common.os.BionicDynamicLinkerImpl;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.common.os.UnixDynamicLinkerImpl;
@@ -87,9 +88,14 @@ public class NativeLibrary implements DynamicLookupHelper {
         suffixes = new String[] { ".dylib", ".jnilib" };
         break;
 
+      case ANDROID:
+        dynLink = new BionicDynamicLinkerImpl();
+        prefixes = new String[] { "lib" };
+        suffixes = new String[] { ".so" };
+        break;
+        
       /*
       case FREEBSD:
-      case DALVIK:
       case SUNOS:
       case HPUX: 
       case OPENKODE:         

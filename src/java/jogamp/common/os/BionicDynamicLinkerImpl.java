@@ -3,22 +3,24 @@ package jogamp.common.os;
 import com.jogamp.common.util.SecurityUtil;
 
 /**
- * Mac OS X specialization of {@link UnixDynamicLinkerImpl}
- * utilizing OS X 's non POSIX flags and mode values.
+ * Bionic specialization of {@link UnixDynamicLinkerImpl}
+ * utilizing Bionic's non POSIX flags and mode values.
+ * <p>
+ * Bionic is used on Android.
+ * </p>
  */
-public class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
-
-  private static final long RTLD_DEFAULT = -2L;
-  //      static final long RTLD_NEXT    = -1L;
-
+public class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
+  private static final long RTLD_DEFAULT = 0xffffffffL;
+  //      static final long RTLD_NEXT    = 0xfffffffeL;
+  
   private static final int RTLD_LAZY     = 0x00001;
-  //      static final int RTLD_NOW      = 0x00002;
-  private static final int RTLD_LOCAL    = 0x00004;
-  private static final int RTLD_GLOBAL   = 0x00008;
+  //      static final int RTLD_NOW      = 0x00000;
+  private static final int RTLD_LOCAL    = 0x00000;
+  private static final int RTLD_GLOBAL   = 0x00002;
 
   // --- Begin CustomJavaCode .cfg declarations
   public long openLibraryLocal(String pathname, boolean debug) throws SecurityException {
-    // Note we use RTLD_LOCAL visibility to _NOT_ allow this functionality to
+    // Note we use RTLD_GLOBAL visibility to _NOT_ allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
     // requiring that all references to symbols in those libraries be
     // looked up dynamically via the ProcAddressTable mechanism; in
@@ -28,7 +30,7 @@ public class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
     SecurityUtil.checkLinkPermission(pathname);
     return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
   }
-  
+
   public long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
     // Note we use RTLD_GLOBAL visibility to allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
