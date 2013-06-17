@@ -227,58 +227,6 @@
     </gluegen> -->
   </target>
 
-  <!-- Use GlueGen to generate the source code for the NativeLibrary
-       implementation. Note that to make the build process simpler (in
-       particular, the nightly builds) we do not do this every time we
-       run the build, but instead check in the generated sources to
-       the source tree. -->
-  <target name="generate.nativelibrary.sources" depends="init.gg" >
-    <!-- Define the appropriate include paths -->
-    <dirset id="stub.includes.fileset.windows" dir=".">
-      <include name="stub_includes/windows/**" />
-    </dirset>
-    <dirset id="stub.includes.fileset.unix" dir=".">
-      <include name="stub_includes/unix/**" />
-    </dirset>
-    <dirset id="stub.includes.fileset.macosx" dir=".">
-      <include name="stub_includes/macosx/**" />
-    </dirset>
-
-    <!-- Execute it against all of the OSs' header files -->
-    <gluegen src="stub_includes/windows/dynamic-linker.h"
-             config="dynlink-windows.cfg"
-             includeRefId="stub.includes.fileset.windows"
-             emitter="com.jogamp.gluegen.JavaEmitter"
-             dumpCPP="false"
-             debug="false">
-      <classpath refid="gluegen.classpath" />
-    </gluegen>
-    <gluegen src="stub_includes/unix/elf-header.h"
-             config="dynlink-unix.cfg"
-             includeRefId="stub.includes.fileset.unix"
-             emitter="com.jogamp.gluegen.JavaEmitter"
-             dumpCPP="false"
-             debug="false">
-      <classpath refid="gluegen.classpath" />
-    </gluegen>
-    <gluegen src="stub_includes/unix/dynamic-linker.h"
-             config="dynlink-unix.cfg"
-             includeRefId="stub.includes.fileset.unix"
-             emitter="com.jogamp.gluegen.JavaEmitter"
-             dumpCPP="false"
-             debug="false">
-      <classpath refid="gluegen.classpath" />
-    </gluegen>
-    <gluegen src="stub_includes/macosx/dynamic-linker.h"
-             config="dynlink-macosx.cfg"
-             includeRefId="stub.includes.fileset.macosx"
-             emitter="com.jogamp.gluegen.JavaEmitter"
-             dumpCPP="false"
-             debug="false">
-      <classpath refid="gluegen.classpath" />
-    </gluegen>
-  </target>
-
     <!-- ================================================================== -->
     <!-- 
        - Compile the native C code for GlueGen's dynamic linker interface.
