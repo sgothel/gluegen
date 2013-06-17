@@ -71,5 +71,8 @@ public class UnixDynamicLinkerImpl implements DynamicLinker {
   public void closeLibrary(long libraryHandle) {
     dlclose(libraryHandle);
   }
-
+  
+  public String getLastError() {
+      return dlerror();
+  }
 }

@@ -66,4 +66,9 @@ public class WindowsDynamicLinkerImpl implements DynamicLinker {
     FreeLibrary(libraryHandle);
   }
 
+  public String getLastError() {
+      final int err = GetLastError();
+      return "Last error: 0x"+Integer.toHexString(err)+" ("+err+")";
+  }
+  
 }

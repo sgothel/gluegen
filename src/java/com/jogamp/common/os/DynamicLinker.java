@@ -51,4 +51,5 @@ public interface DynamicLinker {
   public long lookupSymbol(long libraryHandle, String symbolName);
   public long lookupSymbolGlobal(String symbolName);
   public void closeLibrary(long libraryHandle);
+  public String getLastError();
 }

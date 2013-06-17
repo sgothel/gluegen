@@ -186,13 +186,26 @@ public class NativeLibrary implements DynamicLookupHelper {
     for (Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
       String path = iter.next();
       if (DEBUG) {
-        System.err.println("NativeLibrary.open(): Trying to load " + path);
+        System.err.println("NativeLibrary.open(global "+global+"): Trying to load " + path);
       }
       long res;
-      if(global) {
-          res = dynLink.openLibraryGlobal(path, DEBUG);
-      } else {
-          res = dynLink.openLibraryLocal(path, DEBUG);
+      try {
+          if(global) {
+              res = dynLink.openLibraryGlobal(path, DEBUG);
+          } else {
+              res = dynLink.openLibraryLocal(path, DEBUG);
+          }
+      } catch (Throwable t1) {
+          if( DEBUG ) {
+              System.err.println("NativeLibrary.open: Catched "+t1.getClass().getSimpleName()+": "+t1.getMessage());
+              String errstr;
+              try {
+                  errstr = dynLink.getLastError();
+              } catch (Throwable t2) { errstr=null; }      
+              System.err.println("NativeLibrary.open: Last error "+errstr);
+              t1.printStackTrace();
+          }
+          res = 0;
       }
       if (res != 0) {
         return new NativeLibrary(res, path, global);
@@ -200,7 +213,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
 
     if (DEBUG) {
-      System.err.println("NativeLibrary.open(): Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
+      System.err.println("NativeLibrary.open(global "+global+"): Did not succeed in loading (" + windowsLibName + ", " + unixLibName + ", " + macOSXLibName + ")");
     }
 
     // For now, just return null to indicate the open operation didn't
