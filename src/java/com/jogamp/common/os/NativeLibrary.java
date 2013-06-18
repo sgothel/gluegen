@@ -184,32 +184,37 @@ public class NativeLibrary implements DynamicLookupHelper {
     Platform.initSingleton(); // loads native gluegen-rt library
     // Iterate down these and see which one if any we can actually find.
     for (Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
-      String path = iter.next();
-      if (DEBUG) {
-        System.err.println("NativeLibrary.open(global "+global+"): Trying to load " + path);
-      }
-      long res;
-      try {
-          if(global) {
-              res = dynLink.openLibraryGlobal(path, DEBUG);
-          } else {
-              res = dynLink.openLibraryLocal(path, DEBUG);
-          }
-      } catch (Throwable t1) {
-          if( DEBUG ) {
-              System.err.println("NativeLibrary.open: Catched "+t1.getClass().getSimpleName()+": "+t1.getMessage());
-              String errstr;
-              try {
-                  errstr = dynLink.getLastError();
-              } catch (Throwable t2) { errstr=null; }      
-              System.err.println("NativeLibrary.open: Last error "+errstr);
-              t1.printStackTrace();
-          }
-          res = 0;
-      }
-      if (res != 0) {
-        return new NativeLibrary(res, path, global);
-      }
+        String path = iter.next();
+        if (DEBUG) {
+            System.err.println("NativeLibrary.open(global "+global+"): Trying to load " + path);
+        }
+        long res;
+        Throwable t = null;
+        try {
+            if(global) {
+                res = dynLink.openLibraryGlobal(path, DEBUG);
+            } else {
+                res = dynLink.openLibraryLocal(path, DEBUG);
+            }
+        } catch (Throwable t1) {
+            t = t1;
+            res = 0;
+        }
+        if ( 0 != res ) {
+            return new NativeLibrary(res, path, global);
+        } else if( DEBUG ) {
+            if( null != t ) {
+                System.err.println("NativeLibrary.open: Catched "+t.getClass().getSimpleName()+": "+t.getMessage());
+            }
+            String errstr;
+            try {
+                errstr = dynLink.getLastError();
+            } catch (Throwable t2) { errstr=null; }
+            System.err.println("NativeLibrary.open: Last error "+errstr);
+            if( null != t ) {
+                t.printStackTrace();
+            }
+        }      
     }
 
     if (DEBUG) {
