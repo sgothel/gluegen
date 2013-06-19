@@ -199,7 +199,7 @@ public class TestTempJarCache extends JunitTracer {
         final ClassLoader cl = getClass().getClassLoader();
         
         URI jarUriRoot = JarUtil.getJarSubURI(TempJarCache.class.getName(), cl);
-        jarUriRoot = JarUtil.getURIDirname(jarUriRoot);
+        jarUriRoot = IOUtil.getDirname(jarUriRoot);
         
         URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);        
         

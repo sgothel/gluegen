@@ -33,6 +33,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
 
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
@@ -198,7 +199,7 @@ public class Platform extends PlatformPropsImpl {
                         final String jarName = JarUtil.getJarBasename( platformClassJarURI );
                         final String nativeJarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
                         nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";                    
-                        jarUriRoot = JarUtil.getURIDirname( JarUtil.getJarSubURI( platformClassJarURI ) );
+                        jarUriRoot = IOUtil.getDirname( JarUtil.getJarSubURI( platformClassJarURI ) );
                         nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
                         TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURI);
                     } catch (Exception e0) {

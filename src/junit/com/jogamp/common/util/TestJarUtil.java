@@ -94,10 +94,11 @@ public class TestJarUtil extends JunitTracer {
         }
     }
     
-    void validateJarFileURL(URI jarFileURI) throws IllegalArgumentException, IOException {
-        Assert.assertNotNull(jarFileURI);     
-        URLConnection aURLc = jarFileURI.toURL().openConnection();
-        Assert.assertTrue("jarFileURI/URL has zero content: "+jarFileURI, aURLc.getContentLength()>0);
+    void validateJarFileURL(URI jarFileURI) throws IllegalArgumentException, IOException, URISyntaxException {
+        Assert.assertNotNull(jarFileURI);
+        final URL jarFileURL = IOUtil.toURL(jarFileURI);
+        URLConnection aURLc = jarFileURL.openConnection();
+        Assert.assertTrue("jarFileURI/URL has zero content: "+jarFileURL, aURLc.getContentLength()>0);
         System.err.println("URLConnection: "+aURLc);
         Assert.assertTrue("Not a JarURLConnection: "+aURLc, (aURLc instanceof JarURLConnection) );
         JarURLConnection jURLc = (JarURLConnection) aURLc;
@@ -110,9 +111,10 @@ public class TestJarUtil extends JunitTracer {
         Assert.assertNotNull(jarName);
         Assert.assertEquals(expJarName, jarName);
         
-        URI jarSubURL = JarUtil.getJarSubURI(clazzBinName, cl);
-        Assert.assertNotNull(jarSubURL);     
-        URLConnection urlConn = jarSubURL.toURL().openConnection();
+        URI jarSubURI = JarUtil.getJarSubURI(clazzBinName, cl);
+        Assert.assertNotNull(jarSubURI);
+        final URL jarSubURL= IOUtil.toURL(jarSubURI);
+        URLConnection urlConn = jarSubURL.openConnection();
         Assert.assertTrue("jarSubURL has zero content: "+jarSubURL, urlConn.getContentLength()>0);
         System.err.println("URLConnection of jarSubURL: "+urlConn);
         

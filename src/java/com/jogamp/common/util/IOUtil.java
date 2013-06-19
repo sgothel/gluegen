@@ -56,14 +56,22 @@ import com.jogamp.common.os.Platform;
 public class IOUtil {
     public static final boolean DEBUG = Debug.debug("IOUtil");
     
-    public static final String JAR_SCHEME = "jar";
+    /** {@value} */
+    public static final String SCHEME_SEPARATOR = ":";
+    /** {@value} */
     public static final String FILE_SCHEME = "file";
+    /** {@value} */
     public static final String HTTP_SCHEME = "http";
+    /** {@value} */
     public static final String HTTPS_SCHEME = "https";
+    /** {@value} */
+    public static final String JAR_SCHEME = "jar";
+    /** A JAR subprotocol is separeted from the JAR entry w/ this separator {@value}. Even if no class is specified '!/' must follow!. */
+    public static final String JAR_SCHEME_SEPARATOR = "!";
         
-    /** Std. temporary directory property key <code>java.io.tmpdir</code> */
-    public static final String java_io_tmpdir_propkey = "java.io.tmpdir";
-    public static final String user_home_propkey = "user.home";
+    /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
+    private static final String java_io_tmpdir_propkey = "java.io.tmpdir";    
+    private static final String user_home_propkey = "user.home";
     private static final String XDG_CACHE_HOME_envkey = "XDG_CACHE_HOME";
 
     /** Subdirectory within platform's temporary root directory where all JogAmp related temp files are being stored: {@code jogamp} */ 
@@ -300,7 +308,7 @@ public class IOUtil {
     public static URI toURISimple(String protocol, String file, boolean isDirectory) throws URISyntaxException {
         return new URI(protocol, null, slashify(file, true, isDirectory), null);        
     }
-    
+
     /**
      * Returns the lowercase suffix of the given file name (the text
      * after the last '.' in the file name). Returns null if the file
@@ -333,7 +341,14 @@ public class IOUtil {
         }
         return toLowerCase(filename.substring(lastDot + 1));
     }
+    private static String toLowerCase(String arg) {
+        if (arg == null) {
+            return null;
+        }
 
+        return arg.toLowerCase();
+    }
+    
     /***
      * @param file
      * @param allowOverwrite
@@ -402,14 +417,88 @@ public class IOUtil {
         return fname;
     }
     
-    private static String toLowerCase(String arg) {
-        if (arg == null) {
-            return null;
+    /**
+     * The URI's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
+     * parent dirname URI <code><i>protocol</i>:/some/path/</code> will be returned.
+     * <p>
+     * <i>protocol</i> may be "file", "http", etc..
+     * </p>
+     * 
+     * @param uri "<i>protocol</i>:/some/path/gluegen-rt.jar"
+     * @return "<i>protocol</i>:/some/path/"
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
+     * @throws URISyntaxException 
+     */
+    public static URI getDirname(URI uri) throws IllegalArgumentException, URISyntaxException {
+        if(null == uri) {
+            throw new IllegalArgumentException("URI is null");            
         }
-
-        return arg.toLowerCase();
+        String uriS = uri.toString();
+        if( DEBUG ) {
+            System.out.println("getURIDirname "+uri+", extForm: "+uriS);
+        }
+        // from 
+        //   file:/some/path/gluegen-rt.jar  _or_ rsrc:gluegen-rt.jar
+        // to
+        //   file:/some/path/                _or_ rsrc:
+        int idx = uriS.lastIndexOf('/');
+        if(0 > idx) {
+            // no abs-path, check for protocol terminator ':'
+            idx = uriS.lastIndexOf(':');
+            if(0 > idx) {
+                throw new IllegalArgumentException("URI does not contain protocol terminator ':', in <"+uri+">");
+            }
+        }
+        uriS = uriS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'        
+        
+        if( DEBUG ) {
+            System.out.println("getJarURIDirname res: "+uriS);
+        }        
+        return new URI(uriS);
     }
     
+    /** 
+     * Converts an {@link URI} to an {@link URL} while using a non encoded path
+     * for <i>file scheme</i>, i.e. <code>file:/</code>.
+     * Otherwise the default {@link URL} translation {@link URI#toURL()} is being used.
+     * <p>
+     * The folloing cases are considered:
+     * <ul>
+     *   <li><i>file schema</i> is converted via <code>new File(uri).getPath()</code>.</li>
+     *   <li><i>jar scheme</i>
+     *   <ul>
+     *     <li>subprotocol is being converted as above, if <i>file scheme</i>.</li>
+     *     <li>JAR entry is not converted but preserved.</li>
+     *   </ul></li>
+     * </ul>
+     * </p>
+     * @param uri
+     * @return
+     * @throws IOException
+     * @throws IllegalArgumentException
+     * @throws URISyntaxException
+     */
+    public static URL toURL(URI uri) throws IOException, IllegalArgumentException, URISyntaxException {
+        final URL url;
+        final String uriSchema = uri.getScheme();
+        final boolean isJAR = IOUtil.JAR_SCHEME.equals(uriSchema);
+        final URI specificURI = isJAR ? JarUtil.getJarSubURI(uri) : uri; 
+        if( IOUtil.FILE_SCHEME.equals( specificURI.getScheme() ) ) {
+            final File f = new File(specificURI);
+            if( specificURI == uri ) {
+                url = new URL(IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath());
+                // url = f.toURI().toURL(); // Doesn't work, since it uses encoded path!
+            } else {
+                final String post = isJAR ? IOUtil.JAR_SCHEME_SEPARATOR + JarUtil.getJarEntry(uri) : "";
+                final String urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath()+post;
+                url = new URL(urlS);
+            }
+        } else {
+            url = uri.toURL();
+        }
+        return url;
+    }
+        
     /***
      * 
      * RESOURCE LOCATION STUFF

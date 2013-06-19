@@ -52,6 +52,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -155,7 +156,7 @@ public class JNILibLoaderBase {
     if(TempJarCache.isInitialized()) {        
         final String nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
         msg.append(nativeJarName);
-        final URI jarUriRoot = JarUtil.getURIDirname( JarUtil.getJarSubURI( classJarURI ) );
+        final URI jarUriRoot = IOUtil.getDirname( JarUtil.getJarSubURI( classJarURI ) );
         msg.append(" + ").append(jarUriRoot);
         final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
         msg.append(" -> ").append(nativeJarURI);

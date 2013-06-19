@@ -206,8 +206,10 @@ public class TempJarCache {
      * @param jarURI
      * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
+     * @throws URISyntaxException 
+     * @throws IllegalArgumentException 
      */
-    public synchronized static final void addNativeLibs(Class<?> certClass, URI jarURI) throws IOException, SecurityException {        
+    public synchronized static final void addNativeLibs(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {        
         final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) { 
             nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
@@ -233,8 +235,10 @@ public class TempJarCache {
      * @param jarURI
      * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
+     * @throws URISyntaxException 
+     * @throws IllegalArgumentException 
      */
-    public synchronized static final void addClasses(Class<?> certClass, URI jarURI) throws IOException, SecurityException {
+    public synchronized static final void addClasses(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         final LoadState classFileJarsLS = classFileJars.get(jarURI);
         if( !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ) { 
             classFileJars.put(jarURI, LoadState.LOOKED_UP);
@@ -259,8 +263,10 @@ public class TempJarCache {
      * @return
      * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
+     * @throws URISyntaxException 
+     * @throws IllegalArgumentException 
      */
-    public synchronized static final void addResources(Class<?> certClass, URI jarURI) throws IOException, SecurityException {        
+    public synchronized static final void addResources(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {        
         final LoadState resourceFileJarsLS = resourceFileJars.get(jarURI);
         if( !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) { 
             resourceFileJars.put(jarURI, LoadState.LOOKED_UP);
@@ -288,8 +294,10 @@ public class TempJarCache {
      * @param jarURI
      * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
+     * @throws URISyntaxException 
+     * @throws IllegalArgumentException 
      */
-    public synchronized static final void addAll(Class<?> certClass, URI jarURI) throws IOException, SecurityException {
+    public synchronized static final void addAll(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         checkInitialized();
         if(null == jarURI) {
             throw new IllegalArgumentException("jarURI is null");
@@ -400,9 +408,11 @@ public class TempJarCache {
      *  
      * @throws IOException
      * @throws SecurityException
+     * @throws URISyntaxException 
+     * @throws IllegalArgumentException 
      */
     public synchronized static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, URI jarURI) 
-            throws IOException, SecurityException {
+            throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         checkInitialized();
         boolean ok = false;
         int countEntries = 0;

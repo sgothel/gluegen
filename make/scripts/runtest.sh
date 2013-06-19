@@ -1,6 +1,6 @@
 #! /bin/bash
 
-builddir=$1
+builddir="$1"
 shift
 
 if [ -z "$builddir" ] ; then 
@@ -56,18 +56,20 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
-    CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/gluegen-rt.jar:$builddir/gluegen.jar:$builddir/test/build/gluegen-test.jar
-    libspath=$builddir/test/build/natives
-    #CLASSPATH=lib/junit.jar:$ANT_JARS:$builddir/../make/lib/TestJarsInJar.jar:$builddir/classes:$builddir/test/build/classes
-    #libspath=$builddir/obj:$builddir/test/build/natives:
+    CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/test/build/gluegen-test.jar
+    libspath="$builddir"/test/build/natives
+    #CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes
+    #libspath="$builddir"/obj:"$builddir"/test/build/natives:
     LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
     DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
     export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo CLASSPATH $CLASSPATH
     which java
-    echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
-    java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
+    #echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
+    #java -cp $CLASSPATH $D_ARGS -Djava.library.path="$libspath" $*
+    echo java -cp "$CLASSPATH" $D_ARGS $clazz
+    java -cp "$CLASSPATH" $D_ARGS $*
     #echo java -cp $CLASSPATH $D_ARGS $clazz
     #java -cp $CLASSPATH $D_ARGS $*
     echo
@@ -96,7 +98,7 @@ function onetest() {
 #onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
@@ -105,5 +107,5 @@ onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $L
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG
+onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.junit.sec.TestSecIOUtil01 2>&1 | tee -a $LOG
