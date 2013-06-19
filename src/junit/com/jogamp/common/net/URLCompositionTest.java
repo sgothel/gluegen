@@ -130,8 +130,10 @@ public class URLCompositionTest extends JunitTracer {
         } else {
             expectedOS = expected;
         }
-        System.err.println("expected: "+expected+", "+expectedOS);
-        Assert.assertEquals(expectedOS, actual);
+        System.err.println("expected: orig "+expected+", OS "+expectedOS);
+        final boolean equalsA = expected.equals(actual);
+        final boolean equalsB = expectedOS.equals(actual);
+        Assert.assertTrue("No match, neither expected orig or OS w/ url", equalsA || equalsB);
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
     
