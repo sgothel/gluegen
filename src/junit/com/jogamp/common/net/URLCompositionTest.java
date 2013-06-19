@@ -120,7 +120,17 @@ public class URLCompositionTest extends JunitTracer {
         final URL url0 = IOUtil.toURL(uri0);
         final String actual = url0.toExternalForm();
         System.err.println("url: "+actual);
-        final String expectedOS = usesFile ? expected.replace('/', File.separatorChar) : expected;
+        final String expectedOS;
+        if( usesFile ) {
+            final int jarSepI = expected.lastIndexOf("!");
+            final int replB = 0 <= jarSepI ? jarSepI : expected.length();
+            final String partA = expected.substring(0, replB).replace('/', File.separatorChar);
+            final String partB = expected.substring(replB);
+            expectedOS = partA+partB; 
+        } else {
+            expectedOS = expected;
+        }
+        System.err.println("expected: "+expected+", "+expectedOS);
         Assert.assertEquals(expectedOS, actual);
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
