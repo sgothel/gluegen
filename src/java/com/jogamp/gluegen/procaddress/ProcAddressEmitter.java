@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2013 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -67,7 +68,8 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
  */
 public class ProcAddressEmitter extends JavaEmitter {
 
-    public static final String PROCADDRESS_VAR_PREFIX = ProcAddressTable.PROCADDRESS_VAR_PREFIX;
+    /** Must be synchronized w/ ProcAddressTable.PROCADDRESS_VAR_PREFIX !!! */
+    public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";    
     protected static final String WRAP_PREFIX = "dispatch_";
     private TypeDictionary typedefDictionary;
     protected PrintWriter tableWriter;
@@ -297,15 +299,19 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
 
     protected void beginProcAddressTable() throws Exception {
-        tableClassPackage = getProcAddressConfig().tableClassPackage();
-        tableClassName = getProcAddressConfig().tableClassName();
+        final ProcAddressConfiguration cfg = getProcAddressConfig();
+        tableClassPackage = cfg.tableClassPackage();
+        tableClassName = cfg.tableClassName();
 
         // Table defaults to going into the impl directory unless otherwise overridden
         String implPackageName = tableClassPackage;
         if (implPackageName == null) {
             implPackageName = getImplPackageName();
         }
-        String jImplRoot = getJavaOutputDir() + File.separator + CodeGenUtils.packageAsPath(implPackageName);
+        final String fullTableClassName = implPackageName + "." + tableClassName;
+        final MethodAccess tableClassAccess = cfg.accessControl(fullTableClassName);
+        
+        final String jImplRoot = getJavaOutputDir() + File.separator + CodeGenUtils.packageAsPath(implPackageName);
 
         tableWriter = openFile(jImplRoot + File.separator + tableClassName + ".java", tableClassName);
         emittedTableEntries = new HashSet<String>();
@@ -318,13 +324,14 @@ public class ProcAddressEmitter extends JavaEmitter {
             tableWriter.println("import " + imporT + ";");
         }
         tableWriter.println("import " + ProcAddressTable.class.getName() + ";");
+        tableWriter.println("import com.jogamp.common.util.SecurityUtil;");
         tableWriter.println();
 
         tableWriter.println("/**");
         tableWriter.println(" * This table is a cache of pointers to the dynamically-linkable C library.");
         tableWriter.println(" * @see " + ProcAddressTable.class.getSimpleName());
         tableWriter.println(" */");
-        tableWriter.println("public class " + tableClassName + " extends "+ ProcAddressTable.class.getSimpleName() + " {");
+        tableWriter.println(tableClassAccess.getJavaName() + " final class " + tableClassName + " extends "+ ProcAddressTable.class.getSimpleName() + " {");
         tableWriter.println();
 
         for (String string : getProcAddressConfig().getForceProcAddressGen()) {
@@ -352,7 +359,7 @@ public class ProcAddressEmitter extends JavaEmitter {
             return;
         }
         emittedTableEntries.add(str);
-        tableWriter.print("  public long ");
+        tableWriter.print("  /* pp */ long ");
         tableWriter.print(PROCADDRESS_VAR_PREFIX);
         tableWriter.print(str);
         tableWriter.println(";");

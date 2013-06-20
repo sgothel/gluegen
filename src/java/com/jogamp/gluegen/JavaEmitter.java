@@ -86,7 +86,16 @@ public class JavaEmitter implements GlueEmitter {
   /**
    * Access control for emitted Java methods.
    */
-  public enum MethodAccess {PUBLIC, PROTECTED, PRIVATE, PACKAGE_PRIVATE, PUBLIC_ABSTRACT}
+  public enum MethodAccess { 
+      PUBLIC("public"), PROTECTED("protected"), PRIVATE("private"), PACKAGE_PRIVATE("/* pp */"), PUBLIC_ABSTRACT("abstract");
+      
+      public final String getJavaName() { return javaName; }
+            
+      MethodAccess(String javaName) {
+          this.javaName = javaName;
+      }
+      private final String javaName;
+  }
 
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
