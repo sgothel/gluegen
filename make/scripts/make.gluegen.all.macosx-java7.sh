@@ -14,6 +14,8 @@ JAVA_HOME=`/usr/libexec/java_home -version 1.7`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
+export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+
 ant \
     -Drootrel.build=build-macosx-java7 \
     $* 2>&1 | tee make.gluegen.all.macosx-java7.log

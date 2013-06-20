@@ -37,6 +37,12 @@ export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6.xml"
 #export JUNIT_DISABLED="true"
 export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
+export SOURCE_LEVEL=1.6
+export TARGET_LEVEL=1.6
+export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+
+export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+
 ant \
     -Drootrel.build=build-linux-armv6 \
     $* 2>&1 | tee make.gluegen.all.linux-armv6-cross.log

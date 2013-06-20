@@ -12,3 +12,7 @@ Implementation-Vendor-Id: com.jogamp
 Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.common
 Trusted-Library: true
+Permissions: all-permissions
+Name: jogamp/common/
+Sealed: true
+@JAR_CODEBASE_TAG@

@@ -68,6 +68,14 @@
         <format property="version.timestamp" pattern="yyyyMMdd"/>
     </tstamp>
 
+    <condition property="jogamp.jar.codebase" value="${env.JOGAMP_JAR_CODEBASE}">
+        <not>
+         <equals arg1="${env.JOGAMP_JAR_CODEBASE}" arg2="$${env.JOGAMP_JAR_CODEBASE}" casesensitive="true" />
+        </not>
+    </condition>
+    <property name="jogamp.jar.codebase"      value=""/> <!-- A jogamp build uses value "Codebase: *.jogamp.org" -->
+    <echo message="jogamp.jar.codebase        ${jogamp.jar.codebase}"/>
+
     <property name="jogamp.version.major" value="2"/>
     <property name="jogamp.version.minor" value="0"/>
     <property name="jogamp.version.submi" value="2"/>

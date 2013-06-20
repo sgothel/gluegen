@@ -15,6 +15,12 @@ fi
 #    -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml \
 #
 
+export SOURCE_LEVEL=1.6
+export TARGET_LEVEL=1.6
+export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+
+export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+
 ant \
     -Drootrel.build=build-x86 \
     $* 2>&1 | tee make.gluegen.all.linux-x86.log

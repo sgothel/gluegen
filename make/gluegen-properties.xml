@@ -73,7 +73,7 @@
     </fail>
 
     <property name="android.keystore.file" value="/non.existing.user.keystore.file"/> <!-- default - maybe overriden by the gluegen.user.properties.file -->
-    <property name="android.keystore.alias" value="debug"/>
+    <property name="android.keystore.alias" value="debug_alias"/>
     <property name="android.keystore.storepass" value="jogamp"/>
     <property name="android.keystore.keypass" value="jogamp"/>
 

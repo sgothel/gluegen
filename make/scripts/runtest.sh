@@ -75,7 +75,7 @@ function onetest() {
     echo
 }
 #
-#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -107,5 +107,5 @@ function onetest() {
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
-onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.junit.sec.TestSecIOUtil01 2>&1 | tee -a $LOG

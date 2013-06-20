@@ -193,7 +193,7 @@
             <arg value="@{keystore.alias}" />
 
             <arg value="-dname" />
-            <arg value="CN=JogAmp Debug,O=JogAmp,C=DE" />
+            <arg value='CN=JogAmp Debug,O=JogAmp,C=DE' />
 
             <arg value="-keypass" />
             <arg value="@{keystore.keypass}" />

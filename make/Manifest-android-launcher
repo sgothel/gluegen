@@ -12,3 +12,7 @@ Implementation-Vendor-Id: com.jogamp
 Implementation-URL: http://jogamp.org/
 Extension-Name: jogamp.android.launcher
 Trusted-Library: true
+Permissions: all-permissions
+Name: jogamp/android/launcher/
+Sealed: true
+@JAR_CODEBASE_TAG@

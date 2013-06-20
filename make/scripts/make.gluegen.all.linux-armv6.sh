@@ -13,6 +13,8 @@ export TARGET_JAVA_LIBS=/usr/lib/jvm/default-java/jre/lib/arm
 
 export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6.xml"
 
+export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+
 ant \
     -Drootrel.build=build-linux-armv6 \
     $* 2>&1 | tee make.gluegen.all.linux-armv6.log

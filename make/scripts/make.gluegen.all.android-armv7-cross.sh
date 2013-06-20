@@ -1,5 +1,9 @@
 #! /bin/sh
 
+if [ -e $SDIR/setenv-build-jogl-x86_64.sh ] ; then
+    . $SDIR/setenv-build-jogl-x86_64.sh
+fi
+
 export NODE_LABEL=.
 
 export HOST_UID=jogamp
@@ -87,6 +91,8 @@ export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-android-armv7.xml"
 #export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
 which gcc 2>&1 | tee make.gluegen.all.android-armv7-cross.log
+
+export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 
 #BUILD_ARCHIVE=true \
 ant \
