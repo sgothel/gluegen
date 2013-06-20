@@ -178,17 +178,22 @@ public class ProcAddressEmitter extends JavaEmitter {
     // Internals only below this point
     //
 
+  /** If 'native', enforce 'private native' modifiers. */
+  protected void fixSecurityModifiers(JavaMethodBindingEmitter javaEmitter) {
+    if(  javaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) && 
+        !javaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) ) 
+    {
+        javaEmitter.removeModifier(JavaMethodBindingEmitter.PUBLIC);
+        javaEmitter.removeModifier(JavaMethodBindingEmitter.PROTECTED);
+        javaEmitter.removeModifier(JavaMethodBindingEmitter.NATIVE);
+        javaEmitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+        javaEmitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+    }
+  }
+  
   protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List<FunctionEmitter> emitters) {
         // See whether we need a proc address entry for this one
         boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
-
-        ProcAddressJavaMethodBindingEmitter emitter =
-                new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
-                callThroughProcAddress,
-                getProcAddressConfig().getProcAddressTableExpr(),
-                baseJavaEmitter.isForImplementingMethodCall(),
-                this);
-        emitters.add(emitter);
 
         // If this emitter doesn't have a body (i.e., is a direct native
         // call with no intervening argument processing), we need to force
@@ -199,18 +204,35 @@ public class ProcAddressEmitter extends JavaEmitter {
         // from incorrectly introducing method bodies to the private
         // native implementing methods; want this to work at least for
         // public and package-private methods
-        if (baseJavaEmitter.signatureOnly()
-                && !baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE)
-                && baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE)
-                && callThroughProcAddress) {
-            emitter.setEmitBody(true);
-            emitter.removeModifier(JavaMethodBindingEmitter.NATIVE);
-            emitter = new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
+        final boolean needsJavaWrapper = baseJavaEmitter.signatureOnly() &&
+                                        !baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) &&
+                                         baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
+                                         callThroughProcAddress;
+        
+            
+        {
+            final ProcAddressJavaMethodBindingEmitter emitter = new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
+                    callThroughProcAddress,
+                    getProcAddressConfig().getProcAddressTableExpr(),
+                    baseJavaEmitter.isForImplementingMethodCall(),
+                    this);
+            if( needsJavaWrapper ) {
+                emitter.setEmitBody(true);                
+                emitter.removeModifier(JavaMethodBindingEmitter.NATIVE);
+            } else if ( callThroughProcAddress ) {
+                fixSecurityModifiers(emitter);
+            }
+            emitters.add(emitter);
+        }
+
+        if( needsJavaWrapper ) {
+            final ProcAddressJavaMethodBindingEmitter emitter = new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
                     callThroughProcAddress,
                     getProcAddressConfig().getProcAddressTableExpr(),
                     true,
                     this);
             emitter.setForImplementingMethodCall(true);
+            fixSecurityModifiers(emitter);
             emitters.add(emitter);
         }
     }
