@@ -45,13 +45,14 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
   private static native long LoadLibraryW(java.lang.String lpLibFileName);
 
 
-  // --- Begin CustomJavaCode .cfg declarations
+  @Override
   public final long openLibraryLocal(String libraryName, boolean debug) throws SecurityException {
     // How does that work under Windows ?
     // Don't know .. so it's an alias for the time being
     return openLibraryGlobal(libraryName, debug);
   }
   
+  @Override
   public final long openLibraryGlobal(String libraryName, boolean debug) throws SecurityException {
     SecurityUtil.checkLinkPermission(libraryName);
     long handle = LoadLibraryW(libraryName);
@@ -62,6 +63,7 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
     return handle;
   }
   
+  @Override
   public final long lookupSymbol(long libraryHandle, String symbolName) {
     String _symbolName = symbolName;
     long addr = GetProcAddressA(libraryHandle, _symbolName);
@@ -81,6 +83,7 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
     return addr;
   }
   
+  @Override
   public final long lookupSymbolGlobal(String symbolName) {
     if(DEBUG_LOOKUP) {
         System.err.println("lookupSymbolGlobal: Not supported on Windows");
@@ -89,10 +92,12 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
     return 0;
   }
 
+  @Override
   public final void closeLibrary(long libraryHandle) {
     FreeLibrary(libraryHandle);
   }
 
+  @Override
   public final String getLastError() {
       final int err = GetLastError();
       return "Last error: 0x"+Integer.toHexString(err)+" ("+err+")";

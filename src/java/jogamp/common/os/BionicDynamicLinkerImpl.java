@@ -45,7 +45,7 @@ public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   private static final int RTLD_LOCAL    = 0x00000;
   private static final int RTLD_GLOBAL   = 0x00002;
 
-  // --- Begin CustomJavaCode .cfg declarations
+  @Override
   public final long openLibraryLocal(String pathname, boolean debug) throws SecurityException {
     // Note we use RTLD_GLOBAL visibility to _NOT_ allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
@@ -58,6 +58,7 @@ public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
     return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
   }
 
+  @Override
   public final long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
     // Note we use RTLD_GLOBAL visibility to allow this functionality to
     // be used to pre-resolve dependent libraries of JNI code without
@@ -70,6 +71,7 @@ public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
     return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
   }
   
+  @Override
   public final long lookupSymbolGlobal(String symbolName) {
     final long addr = dlsym(RTLD_DEFAULT, symbolName);
     if(DEBUG_LOOKUP) {

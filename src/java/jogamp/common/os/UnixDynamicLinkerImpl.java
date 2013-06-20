@@ -50,6 +50,7 @@ import com.jogamp.common.os.DynamicLinker;
   protected static native long dlsym(long arg0, java.lang.String arg1);
 
 
+  @Override
   public final long lookupSymbol(long libraryHandle, String symbolName) {
     final long addr = dlsym(libraryHandle, symbolName);
     if(DEBUG_LOOKUP) {
@@ -58,10 +59,12 @@ import com.jogamp.common.os.DynamicLinker;
     return addr;    
   }
 
+  @Override
   public final void closeLibrary(long libraryHandle) {
     dlclose(libraryHandle);
   }
   
+  @Override
   public final String getLastError() {
       return dlerror();
   }
