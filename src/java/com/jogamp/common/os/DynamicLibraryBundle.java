@@ -357,6 +357,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return 0;
     }
     
+    @Override
     public final long dynamicLookupFunction(String funcName) {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {
@@ -382,6 +383,11 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             addr = toolDynamicLookupFunction(funcName);            
         }
         return addr;
+    }
+    
+    @Override
+    public final boolean isFunctionAvailable(String funcName) {
+        return 0 != dynamicLookupFunction(funcName);
     }
 
     /** Inherit access */

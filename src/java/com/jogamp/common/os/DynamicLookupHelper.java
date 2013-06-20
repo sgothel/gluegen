@@ -51,7 +51,12 @@ public interface DynamicLookupHelper {
   public static final boolean DEBUG_LOOKUP = Debug.debug("NativeLibrary.Lookup");
   
   /**
-   * Try to fetch the function pointer for function 'funcName'.
+   * Returns the function handle for function 'funcName'.
    */
   public long dynamicLookupFunction(String funcName);
+  
+  /**
+   * Queries whether function 'funcName' is available.
+   */
+  public boolean isFunctionAvailable(String funcName);
 }
