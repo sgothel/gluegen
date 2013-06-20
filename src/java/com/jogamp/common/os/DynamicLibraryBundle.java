@@ -64,15 +64,16 @@ import com.jogamp.common.util.awt.AWTEDTExecutor;
 public class DynamicLibraryBundle implements DynamicLookupHelper {
     public static final boolean USE_CURRENT_THREAD_LIBLOADER = Debug.debug("NativeLibrary.UseCurrentThreadLibLoader");
     
-    private DynamicLibraryBundleInfo info;
+    private final DynamicLibraryBundleInfo info;
 
-    private List<List<String>> toolLibNames;
-    private boolean[] toolLibLoaded;
+    protected final List<NativeLibrary> nativeLibraries;
+    private final List<List<String>> toolLibNames;
+    private final List<String> glueLibNames;
+    private final boolean[] toolLibLoaded;
+    
     private int toolLibLoadedNumber;
-    protected List<NativeLibrary> nativeLibraries;
 
-    private List<String> glueLibNames;
-    private boolean[] glueLibLoaded;
+    private final boolean[] glueLibLoaded;
     private int glueLibLoadedNumber;
 
     private long toolGetProcAddressHandle;
@@ -107,10 +108,30 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         nativeLibraries = new ArrayList<NativeLibrary>();
         toolLibNames = info.getToolLibNames();
         glueLibNames = info.getGlueLibNames();
+        toolLibLoaded = new boolean[toolLibNames.size()];
+        if(DEBUG) {
+            if( toolLibNames.size() == 0 ) {
+                System.err.println("No Tool native library names given");
+            }
+    
+            if( glueLibNames.size() == 0 ) {
+                System.err.println("No Glue native library names given");
+            }
+        }
+        
+        for(int i=toolLibNames.size()-1; i>=0; i--) {
+            toolLibLoaded[i] = false;
+        }
+        glueLibLoaded = new boolean[glueLibNames.size()];
+        for(int i=glueLibNames.size()-1; i>=0; i--) {
+            glueLibLoaded[i] = false;
+        }
+        
         info.getLibLoaderExecutor().invoke(true, new Runnable() {
                 public void run() {        
                     loadLibraries();
                 } } ) ; 
+        
         toolGetProcAddressFuncNameList = info.getToolGetProcAddressFuncNameList();
         if( null != toolGetProcAddressFuncNameList ) {
             toolGetProcAddressFuncNameSet = new HashSet<String>(toolGetProcAddressFuncNameList);
@@ -134,7 +155,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
     
     /** Unload all {@link NativeLibrary}s, and remove all references. */
-    public void destroy() {
+    public final void destroy() {
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.destroy() START: "+info.getClass().getName());
         }
@@ -145,13 +166,11 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             nativeLibraries.get(i).close();
         }
         nativeLibraries.clear();
-        nativeLibraries = null;
-        toolLibNames = null;
-        glueLibNames = null;
+        toolLibNames.clear();
+        glueLibNames.clear();
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.destroy() END: "+info.getClass().getName());
         }
-        info = null;
     }
 
     public final boolean isLibComplete() {
@@ -215,7 +234,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     public final DynamicLibraryBundleInfo getBundleInfo() { return info; }
 
-    protected long getToolGetProcAddressHandle() {
+    protected final long getToolGetProcAddressHandle() {
         if(!isToolLibLoaded()) {
             return 0;
         }
@@ -230,7 +249,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return aptr;
     }
 
-    protected NativeLibrary loadFirstAvailable(List<String> libNames, ClassLoader loader, boolean global) {
+    protected final NativeLibrary loadFirstAvailable(List<String> libNames, ClassLoader loader, boolean global) {
         for (int i=0; i < libNames.size(); i++) {            
             final NativeLibrary lib = NativeLibrary.open(libNames.get(i), loader, global);
             if (lib != null) {
@@ -240,27 +259,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return null;
     }
 
-    private void loadLibraries() {
+    private final void loadLibraries() {
         int i;
-        toolLibLoaded = new boolean[toolLibNames.size()];
-        for(i=toolLibNames.size()-1; i>=0; i--) {
-            toolLibLoaded[i] = false;
-        }
-        glueLibLoaded = new boolean[glueLibNames.size()];
-        for(i=glueLibNames.size()-1; i>=0; i--) {
-            glueLibLoaded[i] = false;
-        }
-        
-        if(DEBUG) {
-            if( toolLibNames.size() == 0 ) {
-                System.err.println("No Tool native library names given");
-            }
-    
-            if( glueLibNames.size() == 0 ) {
-                System.err.println("No Glue native library names given");
-            }
-        }
-
         toolLibLoadedNumber = 0;
         final ClassLoader cl = info.getClass().getClassLoader();
         NativeLibrary lib = null;
@@ -314,7 +314,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
     }
     
-    private long dynamicLookupFunctionOnLibs(String funcName) {
+    private final long dynamicLookupFunctionOnLibs(String funcName) {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {
                 System.err.println("Lookup-Native: <" + funcName + "> ** FAILED ** Tool native library not loaded");
@@ -344,7 +344,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return addr;
     }
 
-    private long toolDynamicLookupFunction(String funcName) {
+    private final long toolDynamicLookupFunction(String funcName) {
         if(0 != toolGetProcAddressHandle) {
             long addr = info.toolGetProcAddress(toolGetProcAddressHandle, funcName);
             if(DEBUG_LOOKUP) {
@@ -357,7 +357,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return 0;
     }
     
-    public long dynamicLookupFunction(String funcName) {
+    public final long dynamicLookupFunction(String funcName) {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {
                 System.err.println("Lookup: <" + funcName + "> ** FAILED ** Tool native library not loaded");
@@ -385,7 +385,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
 
     /** Inherit access */
-    static class GlueJNILibLoader extends JNILibLoaderBase {
+    static final class GlueJNILibLoader extends JNILibLoaderBase {
       protected static synchronized boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
         return JNILibLoaderBase.loadLibrary(libname, ignoreError, cl);
       }

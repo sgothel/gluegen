@@ -46,7 +46,7 @@ import com.jogamp.common.util.cache.TempJarCache;
 import jogamp.common.os.BionicDynamicLinkerImpl;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
 import jogamp.common.os.PlatformPropsImpl;
-import jogamp.common.os.UnixDynamicLinkerImpl;
+import jogamp.common.os.PosixDynamicLinkerImpl;
 import jogamp.common.os.WindowsDynamicLinkerImpl;
 
 import java.io.*;
@@ -68,10 +68,10 @@ import java.util.*;
     ProcAddressTable glue code generation style without additional
     supporting code needed in the generated library. */
 
-public class NativeLibrary implements DynamicLookupHelper {  
-  private static DynamicLinker dynLink;
-  private static String[] prefixes;
-  private static String[] suffixes;
+public final class NativeLibrary implements DynamicLookupHelper {  
+  private static final DynamicLinker dynLink;
+  private static final String[] prefixes;
+  private static final String[] suffixes;
 
   static {
     // Instantiate dynamic linker implementation
@@ -101,7 +101,7 @@ public class NativeLibrary implements DynamicLookupHelper {
       case OPENKODE:         
       case LINUX: */
       default:
-        dynLink = new UnixDynamicLinkerImpl();
+        dynLink = new PosixDynamicLinkerImpl();
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
         break;
@@ -114,9 +114,9 @@ public class NativeLibrary implements DynamicLookupHelper {
   private long libraryHandle;
 
   // May as well keep around the path to the library we opened
-  private String libraryPath;
+  private final String libraryPath;
   
-  private boolean global;
+  private final boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
   private NativeLibrary(long libraryHandle, String libraryPath, boolean global) {
@@ -128,7 +128,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
   }
 
-  public String toString() {
+  public final String toString() {
     return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
   }
 
@@ -136,7 +136,7 @@ public class NativeLibrary implements DynamicLookupHelper {
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
       used to help find the library in the case of e.g. Java Web Start. */
-  public static NativeLibrary open(String libName, ClassLoader loader) {
+  public static final NativeLibrary open(String libName, ClassLoader loader) {
     return open(libName, libName, libName, true, loader, true);
   }
 
@@ -144,7 +144,7 @@ public class NativeLibrary implements DynamicLookupHelper {
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
       used to help find the library in the case of e.g. Java Web Start. */
-  public static NativeLibrary open(String libName, ClassLoader loader, boolean global) {
+  public static final NativeLibrary open(String libName, ClassLoader loader, boolean global) {
     return open(libName, libName, libName, true, loader, global);
   }
 
@@ -163,19 +163,19 @@ public class NativeLibrary implements DynamicLookupHelper {
       dynamic loading facility is used correctly the version number
       will be irrelevant.
   */
-  public static NativeLibrary open(String windowsLibName,
-                                   String unixLibName,
-                                   String macOSXLibName,
-                                   boolean searchSystemPathFirst,
-                                   ClassLoader loader) {
+  public static final NativeLibrary open(String windowsLibName,
+                                         String unixLibName,
+                                         String macOSXLibName,
+                                         boolean searchSystemPathFirst,
+                                         ClassLoader loader) {
     return open(windowsLibName, unixLibName, macOSXLibName, searchSystemPathFirst, loader, true);
   }
 
-  public static NativeLibrary open(String windowsLibName,
-                                   String unixLibName,
-                                   String macOSXLibName,
-                                   boolean searchSystemPathFirst,
-                                   ClassLoader loader, boolean global) {
+  public static final NativeLibrary open(String windowsLibName,
+                                         String unixLibName,
+                                         String macOSXLibName,
+                                         boolean searchSystemPathFirst,
+                                         ClassLoader loader, boolean global) {
     List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                        unixLibName,
                                                        macOSXLibName,
@@ -228,32 +228,32 @@ public class NativeLibrary implements DynamicLookupHelper {
   }
 
   /** Looks up the given function name in this native library. */
-  public long dynamicLookupFunction(String funcName) {
+  public final long dynamicLookupFunction(String funcName) {
     if (libraryHandle == 0)
       throw new RuntimeException("Library is not open");
     return dynLink.lookupSymbol(libraryHandle, funcName);
   }
 
   /** Looks up the given function name in all loaded libraries. */
-  public static long dynamicLookupFunctionGlobal(String funcName) {
+  public static final long dynamicLookupFunctionGlobal(String funcName) {
     return dynLink.lookupSymbolGlobal(funcName);
   }
 
   /** Retrieves the low-level library handle from this NativeLibrary
       object. On the Windows platform this is an HMODULE, and on Unix
       and Mac OS X platforms the void* result of calling dlopen(). */
-  public long getLibraryHandle() {
+  public final long getLibraryHandle() {
     return libraryHandle;
   }
 
   /** Retrieves the path under which this library was opened. */
-  public String getLibraryPath() {
+  public final String getLibraryPath() {
     return libraryPath;
   }
 
   /** Closes this native library. Further lookup operations are not
       allowed after calling this method. */
-  public void close() {
+  public final void close() {
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): closing " + this);
     }
@@ -278,7 +278,7 @@ public class NativeLibrary implements DynamicLookupHelper {
    * 
    * @return basename of libName w/o path, ie. /usr/lib/libDrinkBeer.so -> DrinkBeer on Unix systems, but null on Windows.
    */
-  public static String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
+  public static final String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
     final String libBaseName;
     try {
         libBaseName = IOUtil.getBasename(libName);
@@ -307,7 +307,7 @@ public class NativeLibrary implements DynamicLookupHelper {
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
       the indicated native library on the system. */
-  public static List<String> enumerateLibraryPaths(final String windowsLibName,
+  public static final List<String> enumerateLibraryPaths(final String windowsLibName,
                                                    final String unixLibName,
                                                    final String macOSXLibName,
                                                    final boolean searchSystemPathFirst,
@@ -409,7 +409,7 @@ public class NativeLibrary implements DynamicLookupHelper {
   }
 
 
-  private static String selectName(String windowsLibName,
+  private static final String selectName(String windowsLibName,
                                    String unixLibName,
                                    String macOSXLibName) {
     switch (PlatformPropsImpl.OS_TYPE) {
@@ -431,7 +431,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
   }
 
-  private static String[] buildNames(String libName) {
+  private static final String[] buildNames(String libName) {
       // If the library name already has the prefix / suffix added
       // (principally because we want to force a version number on Unix
       // operating systems) then just return the library name.
@@ -491,7 +491,7 @@ public class NativeLibrary implements DynamicLookupHelper {
       return res;
   }
 
-  private static void addPaths(String path, String[] baseNames, List<String> paths) {
+  private static final void addPaths(String path, String[] baseNames, List<String> paths) {
     for (int j = 0; j < baseNames.length; j++) {
       paths.add(path + File.separator + baseNames[j]);
     }
@@ -499,7 +499,7 @@ public class NativeLibrary implements DynamicLookupHelper {
 
   private static boolean initializedFindLibraryMethod = false;
   private static Method  findLibraryMethod = null;
-  private static String findLibraryImpl(final String libName, final ClassLoader loader) {
+  private static final String findLibraryImpl(final String libName, final ClassLoader loader) {
     if (loader == null) {
       return null;
     }
@@ -538,7 +538,7 @@ public class NativeLibrary implements DynamicLookupHelper {
     }
     return null;
   }
-  public static String findLibrary(final String libName, final ClassLoader loader) {
+  public static final String findLibrary(final String libName, final ClassLoader loader) {
     String res = null;
     if(TempJarCache.isInitialized()) {
         res = TempJarCache.findLibrary(libName);

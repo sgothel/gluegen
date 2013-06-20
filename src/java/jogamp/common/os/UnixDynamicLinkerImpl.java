@@ -1,58 +1,56 @@
+/**
+ * Copyright 2013 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package jogamp.common.os;
 
 import com.jogamp.common.os.DynamicLinker;
-import com.jogamp.common.util.SecurityUtil;
 
+/* pp */ abstract class UnixDynamicLinkerImpl implements DynamicLinker {
 
-public class UnixDynamicLinkerImpl implements DynamicLinker {
-
-  private static final long RTLD_DEFAULT = 0;
-  //      static final long RTLD_NEXT    = -1L;
-  
-  private static final int RTLD_LAZY     = 0x00001;
-  //      static final int RTLD_NOW      = 0x00002;
-  private static final int RTLD_LOCAL    = 0x00000;
-  private static final int RTLD_GLOBAL   = 0x00100;
-
+  //
+  // Package private scope of class w/ protected native code access
+  // and sealed jogamp.common.* package definition
+  // ensuring no abuse via subclassing.
+  //
+    
   /** Interface to C language function: <br> <code> int dlclose(void * ); </code>    */
-  /* pp */ static native int dlclose(long arg0);
+  protected static native int dlclose(long arg0);
 
   /** Interface to C language function: <br> <code> char *  dlerror(void); </code>    */
-  /* pp */ static native java.lang.String dlerror();
+  protected static native java.lang.String dlerror();
 
   /** Interface to C language function: <br> <code> void *  dlopen(const char * , int); </code>    */
-  /* pp */ static native long dlopen(java.lang.String arg0, int arg1);
+  protected static native long dlopen(java.lang.String arg0, int arg1);
 
   /** Interface to C language function: <br> <code> void *  dlsym(void * , const char * ); </code>    */
-  /* pp */ static native long dlsym(long arg0, java.lang.String arg1);
+  protected static native long dlsym(long arg0, java.lang.String arg1);
 
 
-  // --- Begin CustomJavaCode .cfg declarations
-  public long openLibraryLocal(String pathname, boolean debug) throws SecurityException {
-    // Note we use RTLD_GLOBAL visibility to _NOT_ allow this functionality to
-    // be used to pre-resolve dependent libraries of JNI code without
-    // requiring that all references to symbols in those libraries be
-    // looked up dynamically via the ProcAddressTable mechanism; in
-    // other words, one can actually link against the library instead of
-    // having to dlsym all entry points. System.loadLibrary() uses
-    // RTLD_LOCAL visibility so can't be used for this purpose.
-    SecurityUtil.checkLinkPermission(pathname);
-    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
-  }
-
-  public long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
-    // Note we use RTLD_GLOBAL visibility to allow this functionality to
-    // be used to pre-resolve dependent libraries of JNI code without
-    // requiring that all references to symbols in those libraries be
-    // looked up dynamically via the ProcAddressTable mechanism; in
-    // other words, one can actually link against the library instead of
-    // having to dlsym all entry points. System.loadLibrary() uses
-    // RTLD_LOCAL visibility so can't be used for this purpose.
-    SecurityUtil.checkLinkPermission(pathname);
-    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
-  }
-  
-  public long lookupSymbol(long libraryHandle, String symbolName) {
+  public final long lookupSymbol(long libraryHandle, String symbolName) {
     final long addr = dlsym(libraryHandle, symbolName);
     if(DEBUG_LOOKUP) {
         System.err.println("DynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> 0x"+Long.toHexString(addr));
@@ -60,19 +58,11 @@ public class UnixDynamicLinkerImpl implements DynamicLinker {
     return addr;    
   }
 
-  public long lookupSymbolGlobal(String symbolName) {
-    final long addr = dlsym(RTLD_DEFAULT, symbolName);
-    if(DEBUG_LOOKUP) {
-        System.err.println("DynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
-    }
-    return addr;    
-  }
-  
-  public void closeLibrary(long libraryHandle) {
+  public final void closeLibrary(long libraryHandle) {
     dlclose(libraryHandle);
   }
   
-  public String getLastError() {
+  public final String getLastError() {
       return dlerror();
   }
 }
