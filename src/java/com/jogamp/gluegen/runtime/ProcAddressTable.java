@@ -119,15 +119,16 @@ public abstract class ProcAddressTable {
             throw new RuntimeException("Passed null DynamicLookupHelper");
         }
 
+        final Field[] fields = getClass().getDeclaredFields();
+        
         final PrintStream dout;
         if (DEBUG) {
             dout = getDebugOutStream();
-            dout.println(getClass().getName()+".reset()");
+            dout.println(getClass().getName()+".reset() (w/ "+fields.length+" prospective fields)");
         } else {
             dout = null;
         }
 
-        final Field[] fields = getClass().getFields();
         for (int i = 0; i < fields.length; ++i) {
             final String fieldName = fields[i].getName();
             if ( isAddressField(fieldName) ) {
@@ -155,10 +156,11 @@ public abstract class ProcAddressTable {
         setEntry(field, name, lookup);
     }
 
-    private final void setEntry(Field addressField, String funcName, DynamicLookupHelper lookup) {
+    private final void setEntry(Field addressField, String funcName, DynamicLookupHelper lookup) throws SecurityException {
         try {
             assert (addressField.getType() == Long.TYPE);
             long newProcAddress = resolver.resolve(funcName, lookup);
+            addressField.setAccessible(true);
             // set the current value of the proc address variable in the table object
             addressField.setLong(this, newProcAddress);
             if (DEBUG) {
