@@ -17,7 +17,8 @@ set SOURCE_LEVEL=1.6
 set TARGET_LEVEL=1.6
 set TARGET_RT_JAR=C:\jre1.6.0_30\lib\rt.jar
 
-set JOGAMP_JAR_CODEBASE=Codebase: *.jogamp.org
+REM set JOGAMP_JAR_CODEBASE=Codebase: *.jogamp.org
+set JOGAMP_JAR_CODEBASE=Codebase: *.goethel.localnet
 
 ant -Drootrel.build=build-win32 %1 %2 %3 %4 %5 %6 %7 %8 %9 > make.gluegen.all.win32.log 2>&1
 

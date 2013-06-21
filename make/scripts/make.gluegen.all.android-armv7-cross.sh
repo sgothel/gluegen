@@ -92,7 +92,8 @@ export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-android-armv7.xml"
 
 which gcc 2>&1 | tee make.gluegen.all.android-armv7-cross.log
 
-export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+#export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
+export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
 #BUILD_ARCHIVE=true \
 ant \
