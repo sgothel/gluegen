@@ -44,6 +44,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -132,7 +133,10 @@ public abstract class ProcAddressTable {
         } else {
             dout = null;
         }
-
+        
+        // All at once - performance.
+        AccessibleObject.setAccessible(fields, true);
+        
         for (int i = 0; i < fields.length; ++i) {
             final String fieldName = fields[i].getName();
             if ( isAddressField(fieldName) ) {
@@ -159,18 +163,17 @@ public abstract class ProcAddressTable {
      * @throws IllegalArgumentException if this function is not in this table.
      * @throws SecurityException if user is not granted access for all libraries.
      */
-    public void initEntry(String name, DynamicLookupHelper lookup) throws SecurityException, IllegalArgumentException {
+    public void initEntry(final String name, final DynamicLookupHelper lookup) throws SecurityException, IllegalArgumentException {
         SecurityUtil.checkAllLinkPermission();
-        Field field = fieldForFunction(name);
-        setEntry(field, name, lookup);
+        final Field addressField = fieldForFunction(name);
+        addressField.setAccessible(true);
+        setEntry(addressField, name, lookup);
     }
 
-    private final void setEntry(Field addressField, String funcName, DynamicLookupHelper lookup) throws SecurityException {
+    private final void setEntry(final Field addressField, final String funcName, final DynamicLookupHelper lookup) throws SecurityException {
         try {
             assert (addressField.getType() == Long.TYPE);
-            long newProcAddress = resolver.resolve(funcName, lookup);
-            addressField.setAccessible(true);
-            // set the current value of the proc address variable in the table object
+            final long newProcAddress = resolver.resolve(funcName, lookup);            
             addressField.setLong(this, newProcAddress);
             if (DEBUG) {
                 getDebugOutStream().println("  " + addressField.getName() + " -> 0x" + Long.toHexString(newProcAddress));
@@ -181,16 +184,38 @@ public abstract class ProcAddressTable {
         }
     }
 
-    private final  String fieldToFunctionName(String addressFieldName) {
+    private final String fieldToFunctionName(final String addressFieldName) {
         return addressFieldName.substring(PROCADDRESS_VAR_PREFIX_LEN);
     }
 
-    private final Field fieldForFunction(String name) throws IllegalArgumentException {
+    private final Field fieldForFunction(final String name) throws IllegalArgumentException {
         try {
-            return getClass().getField(PROCADDRESS_VAR_PREFIX + name);
+            return getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
         } catch (NoSuchFieldException ex) {
             throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
         }
+    }
+    
+    /** 
+     * Warning: Returns an accessible probably protected field!
+     * <p>
+     * Caller should have checked link permissions
+     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>
+     * <i>if</i> exposing the field or address!
+     * </p> 
+     */
+    private final Field fieldForFunctionInSec(final String name) throws IllegalArgumentException {
+        return AccessController.doPrivileged(new PrivilegedAction<Field>() {
+            public Field run() {
+                try {
+                    final Field addressField = ProcAddressTable.this.getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
+                    addressField.setAccessible(true); // we need to read the protected value!
+                    return addressField;
+                } catch (NoSuchFieldException ex) {
+                    throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
+                }
+            }
+        } );
     }
 
     private final boolean isAddressField(String fieldName) {
@@ -260,7 +285,7 @@ public abstract class ProcAddressTable {
      * @throws IllegalArgumentException if this function is not in this table.
      */
     protected boolean isFunctionAvailableImpl(String functionName) throws IllegalArgumentException {
-        Field addressField = fieldForFunction(functionName);
+        final Field addressField = fieldForFunctionInSec(functionName);
         try {
             return 0 != addressField.getLong(this);
         } catch (IllegalAccessException ex) {
@@ -285,7 +310,7 @@ public abstract class ProcAddressTable {
      */
     public long getAddressFor(String functionName) throws SecurityException, IllegalArgumentException {
         SecurityUtil.checkAllLinkPermission();
-        Field addressField = fieldForFunction(functionName);
+        final Field addressField = fieldForFunctionInSec(functionName);
         try {
             return addressField.getLong(this);
         } catch (IllegalAccessException ex) {
