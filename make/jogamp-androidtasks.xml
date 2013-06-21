@@ -186,6 +186,14 @@
         <exec dir="." executable="keytool" failonerror="true">
             <arg value="-genkey"/>
 
+            <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
+            <arg value="-sigalg"/>
+            <arg value="MD5withRSA"/>
+            <arg value="-keyalg"/>
+            <arg value="RSA"/>
+            <arg value="-keysize"/>
+            <arg value="1024"/>
+
             <arg value="-keystore" />
             <arg value="${m.aapt.build.apk}/debug.keystore" />
 
@@ -202,15 +210,41 @@
             <arg value="@{keystore.storepass}" />
         </exec>
 
+        <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
         <echo>aapt.signed @{jarbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
-        <signjar
+        <!-- signjar
+              sigalg="MD5withRSA"
+              digestalg="SHA1"
               jar="${m.aapt.unsigned.package.file.name}"
               signedjar="${m.aapt.signed.file.name}"
               keystore="${m.aapt.keystore.file}"
               alias="@{keystore.alias}"
               keypass="@{keystore.keypass}"
               storepass="@{keystore.storepass}"
-              verbose="false" />
+              verbose="false" / -->
+
+        <exec dir="." executable="jarsigner" failonerror="true">
+            <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
+            <arg value="-sigalg"/>
+            <arg value="MD5withRSA"/>
+            <arg value="-digestalg"/>
+            <arg value="SHA1"/>
+
+            <arg value="-keystore" />
+            <arg value="${m.aapt.keystore.file}" />
+
+            <arg value="-keypass" />
+            <arg value="@{keystore.keypass}" />
+
+            <arg value="-storepass" />
+            <arg value="@{keystore.storepass}" />
+
+            <arg value="-signedjar" />
+            <arg value="${m.aapt.signed.file.name}" />
+
+            <arg value="${m.aapt.unsigned.package.file.name}" />
+            <arg value="@{keystore.alias}" />
+        </exec>
 
         <echo>aapt.signed @{jarbasename}: zip aligning</echo>
         <exec dir="." executable="${env.ANDROID_HOME}/tools/zipalign" failonerror="true">
