@@ -39,7 +39,7 @@ ANT_JARS=$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:$ANT_PATH/lib/ant-lau
 LOG=runtest.log
 rm -f $LOG
 
-#D_ARGS="-Djogamp.debug.ProcAddressHelper=true -Djogamp.debug.NativeLibrary=true"
+#D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup"
 #D_ARGS="-Djogamp.debug.TraceLock"
 #D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
 #D_ARGS="-Djogamp.debug.JarUtil"
@@ -75,7 +75,7 @@ function onetest() {
     echo
 }
 #
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -97,7 +97,7 @@ onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
