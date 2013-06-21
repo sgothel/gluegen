@@ -110,10 +110,14 @@ public abstract class ProcAddressTable {
 
     /**
      * Resets the complete table.
-     * @throws SecurityException if caller has not all-permissions in case a SecurityManager is installed
+     * <p>
+     * If a {@link SecurityManager} is installed, user needs link permissions
+     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
+     * </p>
+     * @throws SecurityException if user is not granted access for all libraries.
      */
     public void reset(DynamicLookupHelper lookup) throws SecurityException, RuntimeException {
-        SecurityUtil.checkAllPermissions();
+        SecurityUtil.checkAllLinkPermission();
         
         if(null==lookup) {
             throw new RuntimeException("Passed null DynamicLookupHelper");
@@ -147,11 +151,16 @@ public abstract class ProcAddressTable {
 
     /**
      * Initializes the mapping for a single function.
+     * <p>
+     * If a {@link SecurityManager} is installed, user needs link permissions
+     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
+     * </p>
+     *
      * @throws IllegalArgumentException if this function is not in this table.
-     * @throws SecurityException if caller has not all-permissions in case a SecurityManager is installed
+     * @throws SecurityException if user is not granted access for all libraries.
      */
     public void initEntry(String name, DynamicLookupHelper lookup) throws SecurityException, IllegalArgumentException {
-        SecurityUtil.checkAllPermissions();
+        SecurityUtil.checkAllLinkPermission();
         Field field = fieldForFunction(name);
         setEntry(field, name, lookup);
     }
@@ -266,12 +275,16 @@ public abstract class ProcAddressTable {
      * manually compute the &quot;{@link #PROCADDRESS_VAR_PREFIX} + &lt;functionName&gt;&quot;
      * member variable name and look it up via reflection.
      * </p>
+     * <p>
+     * If a {@link SecurityManager} is installed, user needs link permissions
+     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
+     * </p>
      *
      * @throws IllegalArgumentException if this function is not in this table.
-     * @throws SecurityException if caller has not all-permissions in case a SecurityManager is installed
+     * @throws SecurityException if user is not granted access for all libraries.
      */
     public long getAddressFor(String functionName) throws SecurityException, IllegalArgumentException {
-        SecurityUtil.checkAllPermissions();
+        SecurityUtil.checkAllLinkPermission();
         Field addressField = fieldForFunction(functionName);
         try {
             return addressField.getLong(this);
