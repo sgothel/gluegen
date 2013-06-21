@@ -1,55 +1,102 @@
-/*
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
- * 
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
- * 
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
- * 
- * Neither the name of Sun Microsystems, Inc. or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- * 
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
+/**
+ * Copyright 2013 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
 
 package com.jogamp.common.os;
 
-/** Provides an abstract interface to the OS's low-level dynamic
-    linking functionality. */
-
+/** Low level secure dynamic linker access. */
 public interface DynamicLinker {
   public static final boolean DEBUG = NativeLibrary.DEBUG;
   public static final boolean DEBUG_LOOKUP = NativeLibrary.DEBUG_LOOKUP;
-        
+
+  /**
+   * If a {@link SecurityManager} is installed, user needs link permissions
+   * for the named library.
+   * <p>
+   * Opens the named library, allowing system wide access for other <i>users</i>.
+   * </p>
+   * 
+   * @param pathname the full pathname for the library to open
+   * @param debug set to true to enable debugging
+   * @return the library handle, maybe 0 if not found. 
+   * @throws SecurityException if user is not granted access for the named library.
+   */
   public long openLibraryGlobal(String pathname, boolean debug) throws SecurityException;
+
+  /**
+   * If a {@link SecurityManager} is installed, user needs link permissions
+   * for the named library.
+   * <p>
+   * Opens the named library, restricting access to this process.
+   * </p>
+   * 
+   * @param pathname the full pathname for the library to open
+   * @param debug set to true to enable debugging
+   * @return the library handle, maybe 0 if not found. 
+   * @throws SecurityException if user is not granted access for the named library.
+   */
   public long openLibraryLocal(String pathname, boolean debug) throws SecurityException;
-  public long lookupSymbol(long libraryHandle, String symbolName);
-  public long lookupSymbolGlobal(String symbolName);
-  public void closeLibrary(long libraryHandle);
+  
+  /**
+   * If a {@link SecurityManager} is installed, user needs link permissions
+   * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
+   * 
+   * @param symbolName global symbol name to lookup up system wide.
+   * @return the library handle, maybe 0 if not found. 
+   * @throws SecurityException if user is not granted access for all libraries.
+   */
+  public long lookupSymbolGlobal(String symbolName) throws SecurityException;
+  
+  /**
+   * Security checks are implicit by previous call of 
+   * {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}
+   * retrieving the <code>librarHandle</code>.
+   * 
+   * @param libraryHandle a library handle previously retrieved via {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}.
+   * @param symbolName global symbol name to lookup up system wide.
+   * @return the library handle, maybe 0 if not found. 
+   * @throws IllegalArgumentException in case case <code>libraryHandle</code> is unknown.
+   */
+  public long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException;
+  
+  /**
+   * Security checks are implicit by previous call of 
+   * {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}
+   * retrieving the <code>librarHandle</code>.
+   * 
+   * @param libraryHandle a library handle previously retrieved via {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}.
+   * @throws IllegalArgumentException in case case <code>libraryHandle</code> is unknown.
+   */
+  public void closeLibrary(long libraryHandle) throws IllegalArgumentException;
+  
+  /**
+   * Returns a string containing the last error. 
+   * Maybe called for debuging purposed if any method fails. 
+   * @return error string, maybe null. A null or non-null value has no semantics. 
+   */
   public String getLastError();
 }

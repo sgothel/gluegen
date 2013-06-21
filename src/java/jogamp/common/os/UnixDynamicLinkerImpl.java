@@ -27,9 +27,7 @@
  */
 package jogamp.common.os;
 
-import com.jogamp.common.os.DynamicLinker;
-
-/* pp */ abstract class UnixDynamicLinkerImpl implements DynamicLinker {
+/* pp */ abstract class UnixDynamicLinkerImpl extends DynamicLinkerImpl {
 
   //
   // Package private scope of class w/ protected native code access
@@ -49,9 +47,11 @@ import com.jogamp.common.os.DynamicLinker;
   /** Interface to C language function: <br> <code> void *  dlsym(void * , const char * ); </code>    */
   protected static native long dlsym(long arg0, java.lang.String arg1);
 
-
   @Override
-  public final long lookupSymbol(long libraryHandle, String symbolName) {
+  public final long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException {
+    if( null == getLibRef( libraryHandle ) ) {
+        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
+    }
     final long addr = dlsym(libraryHandle, symbolName);
     if(DEBUG_LOOKUP) {
         System.err.println("DynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> 0x"+Long.toHexString(addr));
@@ -60,7 +60,10 @@ import com.jogamp.common.os.DynamicLinker;
   }
 
   @Override
-  public final void closeLibrary(long libraryHandle) {
+  public final void closeLibrary(long libraryHandle) throws IllegalArgumentException {
+    if( null == decrLibRefCount( libraryHandle ) ) {
+        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
+    }
     dlclose(libraryHandle);
   }
   

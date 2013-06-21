@@ -134,7 +134,7 @@ public class TestSecIOUtil01 extends JunitTracer {
         testTempDirImpl(false);
     }
 
-    private void testOpenLibraryImpl(boolean global) {
+    private NativeLibrary openLibraryImpl(boolean global) {
         final ClassLoader cl = getClass().getClassLoader();
         System.err.println("CL "+cl);
         
@@ -171,8 +171,9 @@ public class TestSecIOUtil01 extends JunitTracer {
         System.err.println("Untrusted Library Dir1 (abs): "+libDir1);
         final String absLib = libDir1 + "natives/" + libBaseName;
         Exception se0 = null;
+        NativeLibrary nlib = null;
         try {
-            NativeLibrary nlib = NativeLibrary.open(absLib, cl);
+            nlib = NativeLibrary.open(absLib, cl);
             System.err.println("NativeLibrary: "+nlib);
         } catch (SecurityException e) {
             se0 = e;
@@ -189,10 +190,14 @@ public class TestSecIOUtil01 extends JunitTracer {
         } else {
             Assert.assertNotNull("SecurityException not thrown on loading native library", se0);
         }
+        return nlib;
     }
     
     public void testOpenLibrary() {
-        testOpenLibraryImpl(true);
+        NativeLibrary nlib = openLibraryImpl(true);
+        if( null != nlib ) {
+            nlib.close();
+        }
     }
     
     public static void main(String args[]) throws IOException {

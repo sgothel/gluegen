@@ -324,7 +324,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         long addr = 0;
         NativeLibrary lib = null;
 
-        if(info.shallLookupGlobal()) {
+        if( info.shallLookupGlobal() ) {
             // Try a global symbol lookup first ..
             addr = NativeLibrary.dynamicLookupFunctionGlobal(funcName);
         }

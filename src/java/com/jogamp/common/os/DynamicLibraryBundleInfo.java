@@ -28,14 +28,19 @@
  
 package com.jogamp.common.os;
 
-import java.util.*;
+import java.util.List;
 
 import com.jogamp.common.util.RunnableExecutor;
+
 
 public interface DynamicLibraryBundleInfo {
     public static final boolean DEBUG = DynamicLibraryBundle.DEBUG;
 
-    /** @return a list of Tool library names or alternative library name lists.<br>
+    /** 
+     * If a {@link SecurityManager} is installed, user needs link permissions
+     * for the named libraries.
+     *  
+     * @return a list of Tool library names or alternative library name lists.<br>
      * <ul>
      * <li>GL/GLU example Unix:   [ [ "libGL.so.1", "libGL.so", "GL" ], [ "libGLU.so", "GLU" ] ] </li>
      * <li>GL/GLU example Windows: [ "OpenGL32", "GLU32" ] </li>
@@ -44,7 +49,11 @@ public interface DynamicLibraryBundleInfo {
      */
     public List<List<String>> getToolLibNames();
 
-    /** @return a list of Glue library names.<br>
+    /** 
+     * If a {@link SecurityManager} is installed, user needs link permissions
+     * for the named libraries.
+     *  
+     * @return a list of Glue library names.<br>
      * <ul>
      * <li>GL:   [ "nativewindow_x11", "jogl_gl2es12", "jogl_desktop" ] </li>
      * <li>NEWT: [ "nativewindow_x11", "newt" ] </li>
@@ -55,23 +64,21 @@ public interface DynamicLibraryBundleInfo {
      */
     public List<String> getGlueLibNames();
 
-    /** May return the native libraries <pre>GetProcAddressFunc</pre> names, the first found function is being used.<br>
+    /** 
+     * May return the native libraries <pre>GetProcAddressFunc</pre> names, the first found function is being used.<br>
      * This could be eg: <pre> glXGetProcAddressARB, glXGetProcAddressARB </pre>.<br>
      * If your Tool does not has this facility, just return null.
      * @see #toolGetProcAddress(long, String)
      */
     public List<String> getToolGetProcAddressFuncNameList() ; 
 
-    /** May implement the lookup function using the Tools facility.<br>
+    /** 
+     * May implement the lookup function using the Tools facility.<br>
      * The actual function pointer is provided to allow proper bootstrapping of the ProcAddressTable,
      * using one of the provided function names by {@link #getToolGetProcAddressFuncNameList()}.<br>
      */
     public long toolGetProcAddress(long toolGetProcAddressHandle, String funcName);
 
-    /** May implement the lookup function using the Tools facility.<br>
-     * The actual function pointer is provided to allow proper bootstrapping of the ProcAddressTable.<br>
-     */
-    
     /**
      * @param funcName
      * @return true if {@link #toolGetProcAddress(long, String)} shall be tried before 
@@ -83,7 +90,13 @@ public interface DynamicLibraryBundleInfo {
     /** @return true if the native library symbols shall be made available for symbol resolution of subsequently loaded libraries. */
     public boolean shallLinkGlobal();
 
-    /** @return true if the dynamic symbol lookup shall happen system wide, over all loaded libraries. Otherwise only the loaded native libraries are used for lookup, which shall be the default. */
+    /** 
+     * If method returns <code>true</code> <i>and</i> if a {@link SecurityManager} is installed, user needs link permissions
+     * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>!
+     *  
+     * @return true if the dynamic symbol lookup shall happen system wide, over all loaded libraries. 
+     * Otherwise only the loaded native libraries are used for lookup, which shall be the default. 
+     */
     public boolean shallLookupGlobal();
     
     /**

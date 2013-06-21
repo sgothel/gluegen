@@ -27,10 +27,9 @@
  */
 package jogamp.common.os;
 
-import com.jogamp.common.os.DynamicLinker;
 import com.jogamp.common.util.SecurityUtil;
 
-public final class WindowsDynamicLinkerImpl implements DynamicLinker {
+public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
 
   /** Interface to C language function: <br> <code> BOOL FreeLibrary(HANDLE hLibModule); </code>    */
   private static native int FreeLibrary(long hLibModule);
@@ -44,7 +43,6 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
   /** Interface to C language function: <br> <code> HANDLE LoadLibraryW(LPCWSTR lpLibFileName); </code>    */
   private static native long LoadLibraryW(java.lang.String lpLibFileName);
 
-
   @Override
   public final long openLibraryLocal(String libraryName, boolean debug) throws SecurityException {
     // How does that work under Windows ?
@@ -55,8 +53,10 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
   @Override
   public final long openLibraryGlobal(String libraryName, boolean debug) throws SecurityException {
     SecurityUtil.checkLinkPermission(libraryName);
-    long handle = LoadLibraryW(libraryName);
-    if(0==handle && debug) {
+    final long handle = LoadLibraryW(libraryName);
+    if( 0 != handle ) {
+        incrLibRefCount(handle, libraryName);
+    } else if ( DEBUG || debug ) {
         int err = GetLastError();
         System.err.println("LoadLibraryW \""+libraryName+"\" failed, error code: 0x"+Integer.toHexString(err)+", "+err);
     }
@@ -64,7 +64,20 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
   }
   
   @Override
-  public final long lookupSymbol(long libraryHandle, String symbolName) {
+  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
+    SecurityUtil.checkAllLinkPermission();
+    if(DEBUG_LOOKUP) {
+        System.err.println("lookupSymbolGlobal: Not supported on Windows");
+    }
+    // allow DynamicLibraryBundle to continue w/ local libs
+    return 0;
+  }
+
+  @Override
+  public final long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException {
+    if( null == getLibRef( libraryHandle ) ) {
+        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
+    }
     String _symbolName = symbolName;
     long addr = GetProcAddressA(libraryHandle, _symbolName);
     if(0==addr) {
@@ -84,16 +97,10 @@ public final class WindowsDynamicLinkerImpl implements DynamicLinker {
   }
   
   @Override
-  public final long lookupSymbolGlobal(String symbolName) {
-    if(DEBUG_LOOKUP) {
-        System.err.println("lookupSymbolGlobal: Not supported on Windows");
+  public final void closeLibrary(long libraryHandle) throws IllegalArgumentException {
+    if( null == decrLibRefCount( libraryHandle ) ) {
+        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
     }
-    // allow DynamicLibraryBundle to continue w/ local libs
-    return 0;
-  }
-
-  @Override
-  public final void closeLibrary(long libraryHandle) {
     FreeLibrary(libraryHandle);
   }
 

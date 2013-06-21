@@ -76,10 +76,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private static final DynamicLinker dynLink;
   private static final String[] prefixes;
   private static final String[] suffixes;
-  /** TODO: Hide all lookup methods - Then make protected method accessible ..
-  private static final Method dynLinkLookupLocal;
-  private static final Method dynLinkLookupGlobal;
-  */
 
   static {
     // Instantiate dynamic linker implementation
@@ -114,23 +110,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
         suffixes = new String[] { ".so" };
         break;
     }
-    
-    /** TODO: Hide all lookup methods - Then make protected method accessible ..
-        // public long lookupSymbol(long libraryHandle, String symbolName);
-        // public long lookupSymbolGlobal(String symbolName);    
-        final Method[] dlLookups = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
-            public Method[] run() {
-                final Method[] ms = new Method[2];
-                ms[0] = ReflectionUtil.getMethod(dynLink.getClass(), "lookupSymbol", Long.class, String.class);
-                ms[0].setAccessible(true);
-                ms[1] = ReflectionUtil.getMethod(dynLink.getClass(), "lookupSymbolGlobal", String.class);
-                ms[0].setAccessible(true);
-                return ms;
-            }
-        } );
-        dynLinkLookupLocal = dlLookups[0];
-        dynLinkLookupGlobal = dlLookups[1];
-      */
   }
 
   // Platform-specific representation for the handle to the open
@@ -258,7 +237,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
       throw new RuntimeException("Library is not open");
     }
     return dynLink.lookupSymbol(libraryHandle, funcName);
-    // TODO: return ( (Long) ReflectionUtil.callMethod(dynLink, dynLinkLookupLocal, Long.valueOf(libraryHandle), funcName) ).longValue();
   }
 
   @Override
@@ -267,19 +245,16 @@ public final class NativeLibrary implements DynamicLookupHelper {
       throw new RuntimeException("Library is not open");
     }
     return 0 != dynLink.lookupSymbol(libraryHandle, funcName);
-    // TODO return 0 != ( (Long) ReflectionUtil.callMethod(dynLink, dynLinkLookupLocal, Long.valueOf(libraryHandle), funcName) ).longValue();
   }
 
   /** Looks up the given function name in all loaded libraries. */
   public static final long dynamicLookupFunctionGlobal(String funcName) {
     return dynLink.lookupSymbolGlobal(funcName);
-    // TODO return ( (Long) ReflectionUtil.callMethod(dynLink, dynLinkLookupGlobal, funcName) ).longValue();
   }
 
   /** Looks up the given function name in all loaded libraries. */
   public static final boolean isFunctionAvailableGlobal(String funcName) {
     return 0 != dynLink.lookupSymbolGlobal(funcName);
-    // TODO return 0 != ( (Long) ReflectionUtil.callMethod(dynLink, dynLinkLookupGlobal, funcName) ).longValue();
   }
 
   /** Retrieves the low-level library handle from this NativeLibrary
@@ -300,7 +275,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): closing " + this);
     }
-    if (libraryHandle == 0) {
+    if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library already closed");
     }
     long handle = libraryHandle;

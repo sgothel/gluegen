@@ -142,6 +142,17 @@ public class SecurityUtil {
     }
     
     /**
+     * Throws an {@link SecurityException} if an installed {@link SecurityManager}
+     * does not permit to dynamically link to all libraries.
+     */
+    public static final void checkAllLinkPermission() throws SecurityException {
+        if( null != securityManager ) {
+            securityManager.checkPermission(allLinkPermission);
+        }
+    }
+    private static final RuntimePermission allLinkPermission = new RuntimePermission("loadLibrary.*");
+    
+    /**
      * @param clz
      * @return
      * @throws SecurityException if the caller has no permission to access the ProtectedDomain of the given class.

@@ -53,7 +53,13 @@ public final class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
     // having to dlsym all entry points. System.loadLibrary() uses
     // RTLD_LOCAL visibility so can't be used for this purpose.
     SecurityUtil.checkLinkPermission(pathname);
-    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
+    final long handle = dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
+    if( 0 != handle ) {
+        incrLibRefCount(handle, pathname);
+    } else if ( DEBUG || debug ) {
+        System.err.println("dlopen \""+pathname+"\" local failed, error: "+dlerror());
+    }
+    return handle;
   }
   
   @Override
@@ -66,11 +72,18 @@ public final class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
     // having to dlsym all entry points. System.loadLibrary() uses
     // RTLD_LOCAL visibility so can't be used for this purpose.
     SecurityUtil.checkLinkPermission(pathname);
-    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
+    final long handle = dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
+    if( 0 != handle ) {
+        incrLibRefCount(handle, pathname);
+    } else if ( DEBUG || debug ) {
+        System.err.println("dlopen \""+pathname+"\" global failed, error: "+dlerror());
+    }
+    return handle;
   }
   
   @Override
-  public final long lookupSymbolGlobal(String symbolName) {
+  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
+    SecurityUtil.checkAllLinkPermission();
     final long addr = dlsym(RTLD_DEFAULT, symbolName);
     if(DEBUG_LOOKUP) {
         System.err.println("DynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
