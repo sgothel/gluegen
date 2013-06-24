@@ -89,25 +89,33 @@ public abstract class SingletonInstance implements Lock {
         if(locked) {
             return true;
         }
+        final long t0 = System.currentTimeMillis();
         int i=0;
         try {
             do {
+                final long t1 = System.currentTimeMillis();
                 locked = tryLockImpl();
                 if(locked) {
-                    if(DEBUG) {
-                        System.err.println(infoPrefix()+" +++ "+getName()+" - Locked ");
+                    if( DEBUG ) {
+                        final long t2 = System.currentTimeMillis();
+                        System.err.println(infoPrefix(t2)+" +++ "+getName()+" - Locked within "+(t2-t0)+" ms, "+(i+1)+" attempts");
                     }            
                     return true;
                 }
-                if(DEBUG && 0==i) {
-                    System.err.println(infoPrefix()+" III "+getName()+" - Wait for lock");
+                if( DEBUG && 0==i ) {
+                    System.err.println(infoPrefix(System.currentTimeMillis())+" III "+getName()+" - Wait for lock");
                 }
                 Thread.sleep(poll_ms);
-                maxwait -= poll_ms;
+                maxwait -= System.currentTimeMillis()-t1;
                 i++;
             } while ( 0 < maxwait ) ;
         } catch ( InterruptedException ie ) {
-            throw new RuntimeException(infoPrefix()+" EEE "+getName()+" - couldn't get lock", ie);            
+            final long t2 = System.currentTimeMillis();
+            throw new RuntimeException(infoPrefix(t2)+" EEE (1) "+getName()+" - couldn't get lock within "+(t2-t0)+" ms, "+i+" attempts", ie);
+        }
+        if( DEBUG ) {
+            final long t2 = System.currentTimeMillis();
+            System.err.println(infoPrefix(t2)+" +++ EEE (2) "+getName()+" - couldn't get lock within "+(t2-t0)+" ms, "+i+" attempts");
         }
         return false;
     }    
@@ -115,10 +123,12 @@ public abstract class SingletonInstance implements Lock {
     
     @Override
     public void unlock() throws RuntimeException {
+        final long t0 = System.currentTimeMillis();
         if(locked) {
             locked = !unlockImpl();
-            if(DEBUG) {
-                System.err.println(infoPrefix()+" --- "+getName()+" - Unlock "+ ( locked ? "failed" : "ok" ) );
+            if( DEBUG ) {
+                final long t2 = System.currentTimeMillis();
+                System.err.println(infoPrefix(t2)+" --- "+getName()+" - Unlock "+ ( locked ? "failed" : "ok" ) + " within "+(t2-t0)+" ms");
             }
         }
     }
@@ -129,8 +139,8 @@ public abstract class SingletonInstance implements Lock {
         return locked;
     }
 
-    protected String infoPrefix() {
-        return "SLOCK [T "+Thread.currentThread().getName()+" @ "+System.currentTimeMillis()+" ms";
+    protected String infoPrefix(long currentMillis) {
+        return "SLOCK [T "+Thread.currentThread().getName()+" @ "+currentMillis+" ms";
     }
     
     private final long poll_ms;
