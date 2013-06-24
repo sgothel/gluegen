@@ -142,6 +142,9 @@ public abstract class SingletonInstance implements Lock {
     protected String infoPrefix(long currentMillis) {
         return "SLOCK [T "+Thread.currentThread().getName()+" @ "+currentMillis+" ms";
     }
+    protected String infoPrefix() {
+        return infoPrefix(System.currentTimeMillis());
+    }
     
     private final long poll_ms;
     private boolean locked = false;
