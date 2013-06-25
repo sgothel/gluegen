@@ -57,18 +57,18 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** no backup array, use for direct usage only */
-    PointerBuffer(ByteBuffer bb) {
-        super(Platform.is32Bit() ? bb.asIntBuffer() : bb.asLongBuffer(), ELEMENT_SIZE);
+    static PointerBuffer create(ByteBuffer bb) {
+        return Platform.is32Bit() ? new PointerBuffer( bb.asIntBuffer() ) : new PointerBuffer( bb.asLongBuffer() );
     }
     
     /** supports backup array */
     PointerBuffer(IntBuffer b) {
-        super(b, ELEMENT_SIZE);
+        super(b, ELEMENT_SIZE, b.capacity());
     }
     
     /** supports backup array */
     PointerBuffer(LongBuffer b) {
-        super(b, ELEMENT_SIZE);
+        super(b, ELEMENT_SIZE, b.capacity());
     }
     
     private final void validateDataMap() {
@@ -89,16 +89,16 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
 
     /** Returns a direct PointerBuffer in native order, w/o backup array */
     public static PointerBuffer allocateDirect(int size) {
-        return new PointerBuffer(Buffers.newDirectByteBuffer(ELEMENT_SIZE * size));
+        return create(Buffers.newDirectByteBuffer(ELEMENT_SIZE * size));
     }
 
     public static PointerBuffer wrap(ByteBuffer src) {
-        return new PointerBuffer(src);
+        return create(src);
     }
 
     /**
      * @return new PointerBuffer sharing the same buffer data of this instance (identity),
-     *         but having independent position, limit and capacity.
+     *         but having an independent position.
      */
     public final PointerBuffer duplicate() {
         PointerBuffer npb;
@@ -110,7 +110,6 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         if(null != dataMap) {
             npb.dataMap = (LongObjectHashMap) dataMap.clone();
         }
-        npb.capacity = capacity;
         npb.position = position;
         return npb;
     }

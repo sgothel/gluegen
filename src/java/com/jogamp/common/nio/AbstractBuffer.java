@@ -42,9 +42,9 @@ import java.nio.Buffer;
 @SuppressWarnings("rawtypes")
 public abstract class AbstractBuffer<B extends AbstractBuffer> implements NativeBuffer<B> {
 
-    protected final int elementSize;
     protected final Buffer buffer;
-    protected int capacity;
+    protected final int elementSize;
+    protected final int capacity;
     protected int position;
 
     static {
@@ -52,15 +52,20 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     }
 
     /** 
-     * @param buffer expected in target format
-     * @param elementSize the target element size in bytes
+     * capacity and elementSize should be match the equation w/ target buffer type
+     * <pre>
+     *    capacity = elementSizeInBytes(buffer) * buffer.capacity() ) / elementSize
+     * </pre>
+     * @param buffer shall be in target format.
+     * @param elementSize the target element size in bytes.
+     * @param capacity the target capacity in elements of size <code>elementSize</code>.
      */
-    protected AbstractBuffer(Buffer buffer, int elementSize) {
-        this.elementSize = elementSize;
+    protected AbstractBuffer(Buffer buffer, int elementSize, int capacity) {
         this.buffer = buffer;
-
-        capacity = ( Buffers.sizeOfBufferElem(buffer) * buffer.capacity() ) / elementSize ;
-        position = 0;
+        this.elementSize = elementSize;
+        this.capacity = capacity;
+        
+        this.position = 0;
     }
 
     public final int elementSize() {
@@ -114,7 +119,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     }
 
     public final int arrayOffset() {
-        if(hasArray()) {
+        if( hasArray() ) {
             return buffer.arrayOffset();
         } else {
             return 0;
