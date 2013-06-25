@@ -59,7 +59,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         this.elementSize = elementSize;
         this.buffer = buffer;
 
-        capacity = buffer.capacity() /* / elementSize */;
+        capacity = ( Buffers.sizeOfBufferElem(buffer) * buffer.capacity() ) / elementSize ;
         position = 0;
     }
 
