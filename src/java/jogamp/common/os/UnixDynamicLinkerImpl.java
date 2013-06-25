@@ -27,6 +27,8 @@
  */
 package jogamp.common.os;
 
+import com.jogamp.common.util.SecurityUtil;
+
 /* pp */ abstract class UnixDynamicLinkerImpl extends DynamicLinkerImpl {
 
   //
@@ -47,6 +49,26 @@ package jogamp.common.os;
   /** Interface to C language function: <br> <code> void *  dlsym(void * , const char * ); </code>    */
   protected static native long dlsym(long arg0, java.lang.String arg1);
 
+  protected final long openLibraryImpl(String pathname, int dlSymFlags, boolean debug) throws SecurityException {
+    SecurityUtil.checkLinkPermission(pathname);
+    final long handle = dlopen(pathname, dlSymFlags);
+    if( 0 != handle ) {
+        incrLibRefCount(handle, pathname);
+    } else if ( DEBUG || debug ) {
+        System.err.println("dlopen \""+pathname+"\" failed, error: "+dlerror());
+    }
+    return handle;
+  }
+  
+  protected final long lookupSymbolGlobalImpl(long dlSymGlobalFlag, String symbolName) throws SecurityException {
+    SecurityUtil.checkAllLinkPermission();
+    final long addr = dlsym(dlSymGlobalFlag, symbolName);
+    if(DEBUG_LOOKUP) {
+        System.err.println("DynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
+    }
+    return addr;    
+  }
+  
   @Override
   public final long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException {
     if( null == getLibRef( libraryHandle ) ) {

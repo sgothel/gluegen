@@ -27,8 +27,6 @@
  */
 package jogamp.common.os;
 
-import com.jogamp.common.util.SecurityUtil;
-
 /**
  * Bionic specialization of {@link UnixDynamicLinkerImpl}
  * utilizing Bionic's non POSIX flags and mode values.
@@ -47,50 +45,17 @@ public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
 
   @Override
   public final long openLibraryLocal(String pathname, boolean debug) throws SecurityException {
-    // Note we use RTLD_GLOBAL visibility to _NOT_ allow this functionality to
-    // be used to pre-resolve dependent libraries of JNI code without
-    // requiring that all references to symbols in those libraries be
-    // looked up dynamically via the ProcAddressTable mechanism; in
-    // other words, one can actually link against the library instead of
-    // having to dlsym all entry points. System.loadLibrary() uses
-    // RTLD_LOCAL visibility so can't be used for this purpose.
-    SecurityUtil.checkLinkPermission(pathname);
-    final long handle = dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
-    if( 0 != handle ) {
-        incrLibRefCount(handle, pathname);
-    } else if ( DEBUG || debug ) {
-        System.err.println("dlopen \""+pathname+"\" local failed, error: "+dlerror());
-    }
-    return handle;
+    return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_LOCAL, debug);
   }
 
   @Override
   public final long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
-    // Note we use RTLD_GLOBAL visibility to allow this functionality to
-    // be used to pre-resolve dependent libraries of JNI code without
-    // requiring that all references to symbols in those libraries be
-    // looked up dynamically via the ProcAddressTable mechanism; in
-    // other words, one can actually link against the library instead of
-    // having to dlsym all entry points. System.loadLibrary() uses
-    // RTLD_LOCAL visibility so can't be used for this purpose.
-    SecurityUtil.checkLinkPermission(pathname);
-    final long handle = dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
-    if( 0 != handle ) {
-        incrLibRefCount(handle, pathname);
-    } else if ( DEBUG || debug ) {
-        System.err.println("dlopen \""+pathname+"\" global failed, error: "+dlerror());
-    }
-    return handle;
+    return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_GLOBAL, debug);
   }
   
   @Override
-  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
-    SecurityUtil.checkAllLinkPermission();
-    final long addr = dlsym(RTLD_DEFAULT, symbolName);
-    if(DEBUG_LOOKUP) {
-        System.err.println("DynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
-    }
-    return addr;    
+  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {      
+    return this.lookupSymbolGlobalImpl(RTLD_DEFAULT, symbolName);
   }
   
 }
