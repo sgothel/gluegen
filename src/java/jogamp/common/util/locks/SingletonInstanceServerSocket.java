@@ -171,7 +171,6 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            if(alive) {
                System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
                kill();
-               alive = false;
            }
            return true;
        }
@@ -185,6 +184,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            if(alive) {
                 System.err.println(infoPrefix()+" XXX "+getName()+" - Kill @ JVM Shutdown");
            }
+           alive = false;
            if(null != serverThread) {
                try {
                    serverThread.stop();
