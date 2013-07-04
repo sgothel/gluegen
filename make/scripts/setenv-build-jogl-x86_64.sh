@@ -48,10 +48,12 @@ if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /usr/java/jre/bin/amd64 -a -e /usr/java/bin/amd64 ] ; then
         # make a symbolic link: /usr/java/bin/amd64/bin$ ln -s . bin
         # since ant looks for $JAVA_HOME/bin/java and we need to force the 64bit JVM
-        J2RE_HOME=/usr/java/jre/bin/amd64
-        JAVA_HOME=/usr/java/bin/amd64
-        PATH=$J2RE_HOME:$JAVA_HOME:$PATH
-        export J2RE_HOME JAVA_HOME
+        J2RE_HOME=/usr/java/jre
+        JAVA_HOME=/usr/java
+        PATH=$J2RE_HOME/bin/amd64:$JAVA_HOME/bin/amd64:$PATH
+        JAVACMD=$JAVA_HOME/bin/amd64/java
+        ANT_OPTS="-d64 -DjvmJava.exe=$J2RE_HOME/bin/amd64/java"
+        export J2RE_HOME JAVA_HOME JAVACMD ANT_OPTS
         FOUND_JAVA=1
     fi
 fi
@@ -69,4 +71,10 @@ fi
 
 export PATH
 
+echo FOUND_JAVA $FOUND_JAVA
+echo J2RE_HOME $J2RE_HOME
+echo JAVA_HOME $JAVA_HOME
+echo PATH $PATH
+which java
+java -version
 

@@ -38,6 +38,17 @@ if [ -z "$FOUND_JAVA" ] ; then
 fi 
 
 if [ -z "$FOUND_JAVA" ] ; then
+    if [ -e /usr/java/jre/bin -a -e /usr/java/bin ] ; then
+        # make a symbolic link: /usr/java/bin/amd64/bin$ ln -s . bin
+        # since ant looks for $JAVA_HOME/bin/java and we need to force the 64bit JVM
+        J2RE_HOME=/usr/java/jre
+        JAVA_HOME=/usr/java
+        PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi
+fi
+if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /opt-solaris-x86/jre7 -a -e /opt-solaris-x86/j2se7 ] ; then
         J2RE_HOME=/opt-solaris-x86/jre7
         JAVA_HOME=/opt-solaris-x86/j2se7
@@ -58,4 +69,11 @@ if [ -z "$FOUND_JAVA" ] ; then
 fi
 
 export PATH
+
+echo FOUND_JAVA $FOUND_JAVA
+echo J2RE_HOME $J2RE_HOME
+echo JAVA_HOME $JAVA_HOME
+echo PATH $PATH
+which java
+java -version
 
