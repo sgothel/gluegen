@@ -132,9 +132,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
         if(null == syncObject) {
             try {
                 this.result = runnable.eval(args);
-                tExecuted = System.currentTimeMillis();
             } catch (Throwable t) {
-                tExecuted = System.currentTimeMillis();
                 runnableException = t;
                 if(null != exceptionOut) {
                     exceptionOut.println("FunctionTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -144,14 +142,14 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                 if(!catchExceptions) {
                     throw new RuntimeException(runnableException);
                 }
+            } finally {
+                tExecuted = System.currentTimeMillis();
             }
         } else {
             synchronized (syncObject) {
                 try {
                     this.result = runnable.eval(args);
-                    tExecuted = System.currentTimeMillis();
                 } catch (Throwable t) {
-                    tExecuted = System.currentTimeMillis();
                     runnableException = t;
                     if(null != exceptionOut) {
                         exceptionOut.println("FunctionTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -162,6 +160,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                         throw new RuntimeException(runnableException);
                     }
                 } finally {
+                    tExecuted = System.currentTimeMillis();
                     syncObject.notifyAll();
                 }
             }

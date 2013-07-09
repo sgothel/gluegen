@@ -93,9 +93,7 @@ public class RunnableTask extends TaskBase {
         if(null == syncObject) {
             try {
                 runnable.run();
-                tExecuted = System.currentTimeMillis();
             } catch (Throwable t) {
-                tExecuted = System.currentTimeMillis();
                 runnableException = t;
                 if(null != exceptionOut) {
                     exceptionOut.println("RunnableTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -105,14 +103,14 @@ public class RunnableTask extends TaskBase {
                 if(!catchExceptions) {
                     throw new RuntimeException(runnableException);
                 }
+            } finally {
+                tExecuted = System.currentTimeMillis();                
             }
         } else {
             synchronized (syncObject) {
                 try {
                     runnable.run();
-                    tExecuted = System.currentTimeMillis();
                 } catch (Throwable t) {
-                    tExecuted = System.currentTimeMillis();
                     runnableException = t;
                     if(null != exceptionOut) {
                         exceptionOut.println("RunnableTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -123,6 +121,7 @@ public class RunnableTask extends TaskBase {
                         throw new RuntimeException(runnableException);
                     }
                 } finally {
+                    tExecuted = System.currentTimeMillis();
                     syncObject.notifyAll();
                 }
             }
