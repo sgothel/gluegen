@@ -154,8 +154,8 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.IMPLEMENTATION_URL);
     }
 
-    /** 
-     * Retruns the {@link Attributes.Name#IMPLEMENTATION_VERSION IMPLEMENTATION_VERSION}.
+    /**
+     * Returns the {@link Attributes.Name#IMPLEMENTATION_VERSION IMPLEMENTATION_VERSION}.
      * <p>
      * E.g. <code>2.0.2-rc-20130328</code> for snapshots prior to <code>2.0.2</code> release
      * and <code>2.0.2</code> for the upcoming release.

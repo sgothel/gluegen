@@ -468,7 +468,7 @@ public class ElfHeader {
                EM_X86_64 == m;
     }
     
-    /** Retruns the processor-specific flags associated with the file. */
+    /** Returns the processor-specific flags associated with the file. */
     public final int getFlags() {
         return d.getE_flags();
     }
