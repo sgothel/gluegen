@@ -306,10 +306,25 @@ public abstract class PlatformPropsImpl {
         }
         return null;
     }
-    
+    private static final boolean guessBroadcomVCIV() {
+        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            private final File vcliblocation = new File(
+                    "/opt/vc/lib/libbcm_host.so");
+            public Boolean run() {
+                if ( vcliblocation.isFile() ) {
+                    return Boolean.TRUE;
+                }
+                return Boolean.FALSE;
+            }
+        } ).booleanValue();
+    }
+
     private static final OSType getOSTypeImpl() throws RuntimeException {
         if ( AndroidVersion.isAvailable ) {
             return OSType.ANDROID;
+        }
+        if(guessBroadcomVCIV()){
+            return OSType.RASPBERRYPI;
         }
         if ( OS_lower.startsWith("linux") ) {
             return OSType.LINUX;            
