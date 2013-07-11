@@ -58,7 +58,7 @@ import jogamp.common.os.PlatformPropsImpl;
 public class Platform extends PlatformPropsImpl {
     
     public enum OSType {
-        LINUX(0), FREEBSD(1), ANDROID(2), MACOS(3), SUNOS(4), HPUX(5), WINDOWS(6), OPENKODE(7); 
+        LINUX(0), FREEBSD(1), ANDROID(2), MACOS(3), SUNOS(4), HPUX(5), WINDOWS(6), OPENKODE(7), RASPBERRYPI(8);
         
         public final int id;
 
