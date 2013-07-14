@@ -215,7 +215,7 @@ void printAddingLineDirectives( TNode t ) {
             // preserve flags 3 and 4 if present in current file
             if ( ! sourceFiles.empty() ) {
                 LineObject l = (LineObject) sourceFiles.peek();
-                StringBuffer tFlags = new StringBuffer("");
+                StringBuilder tFlags = new StringBuilder("");
                 if (l.getSystemHeader()) {
                     tFlags.append(" 3");
                 }
@@ -249,7 +249,7 @@ void printAddingLineDirectives( TNode t ) {
             }
             
             // put in the return flag, plus others as needed
-            StringBuffer tFlags = new StringBuffer(" 2");
+            StringBuilder tFlags = new StringBuilder(" 2");
             if (l.getSystemHeader()) {
                 tFlags.append(" 3");
             }

@@ -43,8 +43,6 @@ import java.io.*;
 import java.text.*;
 import java.util.*;
 
-import com.jogamp.gluegen.*;
-
 public class ProcAddressConfiguration extends JavaConfiguration {
 
     private boolean emitProcAddressTable = false;

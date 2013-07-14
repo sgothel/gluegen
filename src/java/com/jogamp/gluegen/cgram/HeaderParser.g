@@ -208,7 +208,7 @@ options {
     }
 
     private String getTypeString(Type t) {
-      StringBuffer sb = new StringBuffer();
+      StringBuilder sb = new StringBuilder();
       sb.append("[");
       sb.append(t);
       sb.append(", size: ");
