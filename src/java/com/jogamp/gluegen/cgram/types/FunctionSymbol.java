@@ -39,11 +39,18 @@
 package com.jogamp.gluegen.cgram.types;
 
 
-/** Describes a function symbol, which includes the name and
-type. Since we are currently only concerned with processing
-functions this is the only symbol type, though plausibly more
-types should be added and a true symbol table constructed during
-parsing. */
+/** 
+ * Describes a function symbol, which includes the name and
+ * type. Since we are currently only concerned with processing
+ * functions this is the only symbol type, though plausibly more
+ * types should be added and a true symbol table constructed during parsing.
+ * <p>
+ * Note: Since C does not support method-overloading polymorphism like C++ or Java,
+ * we ignore the {@link FunctionType} attribute in {@link #equals(Object)} and {@link #hashCode()}.<br/>
+ * Hence we assume all method occurrences w/ same name are of equal or compatible type. <br/>
+ * Deep comparison can be performed via {@link #isCompletelyEqual(Object o)}; 
+ * </p>
+ **/
 public class FunctionSymbol {
 
     private String name;
@@ -118,12 +125,23 @@ public class FunctionSymbol {
             return false;
         }
 
-        FunctionSymbol other = (FunctionSymbol) arg;
+        final FunctionSymbol other = (FunctionSymbol) arg;
 
         if (getName() == null && other.getName() != null) {
             return false;
         }
 
-        return (getName().equals(other.getName()) || getName().equals(other.getName())) && type.equals(other.type);
+        return getName().equals(other.getName());
+    }
+
+    /**
+     * Compares the function type as well, since {@link #equals(Object)} 
+     * and {@link #hashCode()} won't.
+     */
+    public boolean isCompletelyEqual(Object arg) {
+        if( !this.equals(arg) ) {
+            return false;
+        }
+        return type.equals( ((FunctionSymbol)arg).type );
     }
 }
