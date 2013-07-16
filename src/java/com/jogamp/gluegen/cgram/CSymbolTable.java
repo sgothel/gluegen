@@ -121,8 +121,8 @@ public class CSymbolTable {
     Enumeration<String> ke = symTable.keys();
     Enumeration<TNode> ve = symTable.elements();
     while(ke.hasMoreElements()) {
-      buff.append(ke.nextElement().toString() + " (" + 
-                  TNode.getNameForType(((TNode)ve.nextElement()).getType()) + ")\n");
+      buff.append(ke.nextElement().toString());
+      buff.append(" (").append(TNode.getNameForType(ve.nextElement().getType())).append(")\n");
     }
     buff.append("}\n");
     return buff.toString();
