@@ -716,7 +716,7 @@ public class IOUtil {
             query = null;
         }
         if( null != relativePath ) {
-            if( null != relativePath && !schemeSpecificPart.endsWith("/") ) {
+            if( !schemeSpecificPart.endsWith("/") ) {
                 schemeSpecificPart = getParentOf(schemeSpecificPart);
             }
             schemeSpecificPart = schemeSpecificPart + relativePath;
