@@ -185,7 +185,7 @@ public void initialize(AST tr) {
   /** return the first sibling of this node, which is 
       this if the prev sibling is null */
   public TNode getFirstSibling() {
-    TNode prev = (TNode)left;
+    TNode prev = left;
     if(prev != null)
       return prev.getFirstSibling();
     else
@@ -195,7 +195,7 @@ public void initialize(AST tr) {
 
   /** return the parent node of this node */
   public TNode getParent() {
-    return (TNode)getFirstSibling().up;
+    return getFirstSibling().up;
   }
 
 
@@ -231,8 +231,8 @@ public void initialize(AST tr) {
   /** remove this node from the tree, resetting sibling and parent
     pointers as necessary.  This method maintains double-linking */
   public void removeSelf() {
-    TNode parent = (TNode)up;
-    TNode prev = (TNode)left;
+    TNode parent = up;
+    TNode prev = left;
     TNode next = (TNode)right;
      
     if(parent != null) { 
