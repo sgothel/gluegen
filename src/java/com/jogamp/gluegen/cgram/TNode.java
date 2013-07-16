@@ -37,7 +37,7 @@ public class TNode extends CommonAST {
   protected TNode up;
   protected TNode left;
   protected boolean marker = false;
-  protected Hashtable attributes = null;
+  protected Hashtable<String, Object> attributes = null;
   static String tokenVocabulary;  
   
 
@@ -91,9 +91,9 @@ public void initialize(AST tr) {
 
   /** get the hashtable that holds attribute values.
    */  
-  public Hashtable getAttributesTable() {
+  public Hashtable<String, Object> getAttributesTable() {
     if(attributes == null)
-      attributes = new Hashtable(7);
+      attributes = new Hashtable<String, Object>(7);
     return attributes;
   }
 
@@ -101,7 +101,7 @@ public void initialize(AST tr) {
    */
   public void setAttribute(String attrName, Object value) {
     if(attributes == null)
-      attributes = new Hashtable(7);
+      attributes = new Hashtable<String, Object>(7);
     attributes.put(attrName,value);
   }
 
@@ -273,7 +273,7 @@ public void initialize(AST tr) {
     copy.lineNum = lineNum;
     copy.defNode = defNode;
     if(attributes != null)
-      copy.attributes = (Hashtable)attributes.clone();
+      copy.attributes = new Hashtable<String, Object>(attributes);
     if(down != null)
       copy.down = ((TNode)down).deepCopyWithRightSiblings();
     copy.doubleLink();
@@ -292,7 +292,7 @@ public void initialize(AST tr) {
     copy.lineNum = lineNum;
     copy.defNode = defNode;
     if(attributes != null)
-      copy.attributes = (Hashtable)attributes.clone();
+      copy.attributes = new Hashtable<String, Object>(attributes);
     if(down != null)
       copy.down = ((TNode)down).deepCopyWithRightSiblings();
     if(right != null)
@@ -310,9 +310,9 @@ public void initialize(AST tr) {
      if(this.getLineNum() != 0) 
        str.append(" line:" + (this.getLineNum() ) );
 
-     Enumeration keys = (this.getAttributesTable().keys());
+     Enumeration<String> keys = (this.getAttributesTable().keys());
      while (keys.hasMoreElements()) {
-       String key = (String) keys.nextElement();
+       String key = keys.nextElement();
        str.append(" " + key + ":" + (this.getAttribute(key)));
      }
 
@@ -350,9 +350,9 @@ public void initialize(AST tr) {
      if(((TNode)t).getLineNum() != 0) 
        System.out.print(" line:" + ((TNode)t).getLineNum() );
 
-     Enumeration keys = ((TNode)t).getAttributesTable().keys();
+     Enumeration<String> keys = ((TNode)t).getAttributesTable().keys();
      while (keys.hasMoreElements()) {
-       String key = (String) keys.nextElement();
+       String key = keys.nextElement();
        System.out.print(" " + key + ":" + ((TNode)t).getAttribute(key));
      }
      TNode def = ((TNode)t).getDefNode();
@@ -380,7 +380,7 @@ public void initialize(AST tr) {
       and is dependent on how ANTLR 2.00 outputs that class. */
   public static String getNameForType(int t) {
     try{
-      Class c = Class.forName(tokenVocabulary);
+      Class<?> c = Class.forName(tokenVocabulary);
       Field[] fields = c.getDeclaredFields();
       if(t-2 < fields.length)
         return fields[t-2].getName();
