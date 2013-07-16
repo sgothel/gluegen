@@ -946,8 +946,6 @@ public class IOUtil {
                final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
                tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true /* create */, executable);
            }
-       } else {
-           tmpBaseDir = null;
        }
        return tmpBaseDir;
     }
