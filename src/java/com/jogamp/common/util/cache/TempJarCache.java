@@ -429,7 +429,7 @@ public class TempJarCache {
             validateCertificates(certClass, jarFile);
             final Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
-                final JarEntry entry = (JarEntry) entries.nextElement();
+                final JarEntry entry = entries.nextElement();
                 final String entryName = entry.getName();
     
                 if( entryName.indexOf('/') == -1 &&

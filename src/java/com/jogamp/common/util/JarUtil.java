@@ -522,7 +522,7 @@ public class JarUtil {
 
         Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()) {
-            JarEntry entry = (JarEntry) entries.nextElement();
+            JarEntry entry = entries.nextElement();
             String entryName = entry.getName();
 
             // Match entries with correct prefix and suffix (ignoring case)
