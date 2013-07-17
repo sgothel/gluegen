@@ -80,8 +80,13 @@ import jogamp.common.Debug;
 @SupportedAnnotationTypes(value = {"com.jogamp.gluegen.structgen.CStruct"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class CStructAnnotationProcessor extends AbstractProcessor {
-    private static final boolean DEBUG = Debug.isPropertyDefined("jogamp.gluegen.structgen.debug", true);
     private static final String DEFAULT = "_default_";
+    private static final boolean DEBUG;
+    
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.isPropertyDefined("jogamp.gluegen.structgen.debug", true);
+    }
     
     private static final String STRUCTGENOUTPUT_OPTION = "structgen.output";
     private static final String STRUCTGENOUTPUT = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENOUTPUT_OPTION, true, "gensrc");

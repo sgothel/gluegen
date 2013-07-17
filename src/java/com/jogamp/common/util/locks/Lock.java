@@ -35,11 +35,11 @@ import jogamp.common.Debug;
  */
 public interface Lock {
 
-    /** Enable via the property <code>jogamp.debug.Lock.TraceLock</code> */
-    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("jogamp.debug.Lock.TraceLock", true);
-
     /** Enable via the property <code>jogamp.debug.Lock</code> */
     public static final boolean DEBUG = Debug.debug("Lock");
+
+    /** Enable via the property <code>jogamp.debug.Lock.TraceLock</code> */
+    public static final boolean TRACE_LOCK = Debug.isPropertyDefined("jogamp.debug.Lock.TraceLock", true);
 
     /** The default {@link #TIMEOUT} value, of {@value} ms */
     public static final long DEFAULT_TIMEOUT = 5000; // 5s default timeout

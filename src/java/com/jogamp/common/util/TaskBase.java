@@ -38,7 +38,12 @@ import jogamp.common.Debug;
  */
 public abstract class TaskBase implements Runnable {
     /** Enable via the property <code>jogamp.debug.TaskBase.TraceSource</code> */
-    private static final boolean TRACE_SOURCE = Debug.isPropertyDefined("jogamp.debug.TaskBase.TraceSource", true);
+    private static final boolean TRACE_SOURCE;
+    
+    static {
+        Debug.initSingleton();
+        TRACE_SOURCE = Debug.isPropertyDefined("jogamp.debug.TaskBase.TraceSource", true);
+    }
     
     protected final Object syncObject;
     protected final boolean catchExceptions;
