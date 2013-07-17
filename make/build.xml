@@ -998,10 +998,14 @@
              overview="../src/java/com/jogamp/gluegen/package.html"
              encoding="UTF-8"
              source="${target.sourcelevel}"
-             maxmemory="${javac.memorymax}" >
+             maxmemory="${javac.memorymax}"
+             stylesheetfile="doc/javadoc/stylesheet.css">
         <classpath path="${classes}"/>
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
     </javadoc>
+    <copy todir="${javadoc.gluegen.path}/resources" overwrite="true">
+        <fileset dir="doc/javadoc/resources" includes="*" />
+    </copy>
     <archive.7z destfile="${build}/javadoc.7z"
                 basedir="${javadoc.root.path}"
                 includes="gluegen/**" />
