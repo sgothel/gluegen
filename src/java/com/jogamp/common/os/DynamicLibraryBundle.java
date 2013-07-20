@@ -62,8 +62,6 @@ import com.jogamp.common.util.awt.AWTEDTExecutor;
  * </ul>
  */
 public class DynamicLibraryBundle implements DynamicLookupHelper {
-    public static final boolean USE_CURRENT_THREAD_LIBLOADER = Debug.debug("NativeLibrary.UseCurrentThreadLibLoader");
-    
     private final DynamicLibraryBundleInfo info;
 
     protected final List<NativeLibrary> nativeLibraries;
@@ -83,11 +81,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     /** Returns an AWT-EDT {@link RunnableExecutor} implementation if AWT is available, otherwise {@link RunnableExecutor#currentThreadExecutor}. */ 
     public static RunnableExecutor getDefaultRunnableExecutor() {
-        if(!USE_CURRENT_THREAD_LIBLOADER && Platform.AWT_AVAILABLE) {
-            return AWTEDTExecutor.singleton;
-        } else {
-            return RunnableExecutor.currentThreadExecutor;
-        }
+        return RunnableExecutor.currentThreadExecutor;
     }
     
     /** 
