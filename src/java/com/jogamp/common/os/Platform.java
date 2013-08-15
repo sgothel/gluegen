@@ -434,6 +434,28 @@ public class Platform extends PlatformPropsImpl {
     //
     // time / jitter
     //
+    
+    /** 
+     * Returns the unix based current time in milliseconds, based on <code>gettimeofday(..)</code>.
+     * <p>
+     * This is an alternative to {@link System#currentTimeMillis()} and {@link System#nanoTime()}.
+     * While the named {@link System} methods do provide the required precision, 
+     * <code>gettimeofday()</code> <i>also</i> guarantees time accuracy, i.e. update interval.
+     * </p>
+     * @see #currentTimeMicros()
+     */
+    public static native long currentTimeMillis();
+    
+    /** 
+     * Returns the unix based current time in microseconds, based on <code>gettimeofday(..)</code>.
+     * <p>
+     * This is an alternative to {@link System#currentTimeMillis()} and {@link System#nanoTime()}.
+     * While the named {@link System} methods do provide the required precision, 
+     * <code>gettimeofday()</code> <i>also</i> guarantees time accuracy, i.e. update interval.
+     * </p>
+     * @see #currentTimeMillis()
+     */
+    public static native long currentTimeMicros();
 
     /**
      * Returns the estimated sleep jitter value in nanoseconds.
