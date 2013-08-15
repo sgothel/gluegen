@@ -78,10 +78,10 @@
 
     <property name="jogamp.version.major" value="2"/>
     <property name="jogamp.version.minor" value="0"/>
-    <property name="jogamp.version.submi" value="2"/>
-    <!--property name="jogamp.version.devel" value="-rc-${version.timestamp}"/--> <!-- devel tag, blank for release -->
-    <!-- property name="jogamp.version.devel" value="-rc12"/--> <!-- RC tag, blank for release -->
-    <property name="jogamp.version.devel" value=""/> <!-- RC tag, blank for release -->
+    <property name="jogamp.version.submi" value="3"/>
+    <property name="jogamp.version.devel" value="-rc-${version.timestamp}"/> <!-- Devel tag -->
+    <!-- property name="jogamp.version.devel" value="-rc12"/--> <!-- RC tag -->
+    <!-- property name="jogamp.version.devel" value=""/--> <!-- Release tag -->
     <property name="jogamp.version.base"  value="${jogamp.version.major}.${jogamp.version.minor}"/>
     <property name="jogamp.version"       value="${jogamp.version.base}.${jogamp.version.submi}${jogamp.version.devel}" />
     <echo message="jogamp.version             ${jogamp.version}"/>
