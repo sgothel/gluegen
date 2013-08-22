@@ -75,7 +75,7 @@ function onetest() {
     echo
 }
 #
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -91,21 +91,24 @@ onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
+onetest com.jogamp.common.util.TestLFRingBuffer01 $*
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.junit.sec.TestSecIOUtil01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
+
