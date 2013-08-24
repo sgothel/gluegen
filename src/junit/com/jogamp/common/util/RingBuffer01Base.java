@@ -36,7 +36,7 @@ import com.jogamp.common.util.Ringbuffer;
 
 public abstract class RingBuffer01Base {
     private static boolean DEBUG = false;
-    
+        
     public abstract Ringbuffer<Integer> createEmpty(int initialCapacity);
     public abstract Ringbuffer<Integer> createFull(Integer[] source);
     
@@ -75,7 +75,7 @@ public abstract class RingBuffer01Base {
         Assert.assertTrue("Is full "+rb, !rb.isFull());
         
         for(int i=0; i<len; i++) {
-            rb.put( Integer.valueOf(startValue+i) );
+            Assert.assertTrue("Buffer is full at put #"+i+": "+rb, rb.put( Integer.valueOf(startValue+i) ));
         }
         
         Assert.assertEquals("Invalid size "+rb, preSize+len, rb.size());
@@ -225,13 +225,6 @@ public abstract class RingBuffer01Base {
         Assert.assertTrue("Not empty "+rb, rb.isEmpty());
     }
     
-    private static Ringbuffer.AllocEmptyArray<Integer> rbAllocIntArray = new Ringbuffer.AllocEmptyArray<Integer>() {
-        @Override
-        public Integer[] newArray(int size) {
-            return new Integer[size];
-        }        
-    };
-    
     private void test_GrowEmptyImpl(int initCapacity, int pos) {
         final int growAmount = 5;
         final int grownCapacity = initCapacity+growAmount;
@@ -248,7 +241,7 @@ public abstract class RingBuffer01Base {
         if( DEBUG ) {
             rb.dump(System.err, "GrowEmpty["+pos+"].pre1");
         }
-        rb.growBuffer(growArray, growAmount, rbAllocIntArray);
+        rb.growEmptyBuffer(growArray);
         if( DEBUG ) {
             rb.dump(System.err, "GrowEmpty["+pos+"].post");
         }
@@ -288,10 +281,6 @@ public abstract class RingBuffer01Base {
     private void test_GrowFullImpl(int initCapacity, int pos, boolean debug) {
         final int growAmount = 5;
         final int grownCapacity = initCapacity+growAmount;
-        final Integer[] growArray = new Integer[growAmount];
-        for(int i=0; i<growAmount; i++) {
-            growArray[i] = Integer.valueOf(100+i);
-        }
         final Integer[] source = createIntArray(initCapacity, 0);
         final Ringbuffer<Integer> rb = createFull(source);        
         
@@ -302,7 +291,7 @@ public abstract class RingBuffer01Base {
         if( DEBUG || debug ) {
             rb.dump(System.err, "GrowFull["+pos+"].pre1");
         }
-        rb.growBuffer(growArray, growAmount, rbAllocIntArray);
+        rb.growFullBuffer(growAmount);
         if( DEBUG || debug ) {
             rb.dump(System.err, "GrowFull["+pos+"].post");
         }
@@ -312,10 +301,21 @@ public abstract class RingBuffer01Base {
         Assert.assertTrue("Is full "+rb, !rb.isFull());
         Assert.assertTrue("Is empty "+rb, !rb.isEmpty());
         
+        for(int i=0; i<growAmount; i++) {
+            Assert.assertTrue("Buffer is full at put #"+i+": "+rb, rb.put( Integer.valueOf(100+i) ));
+        }
+        Assert.assertEquals("Not new size "+rb, grownCapacity, rb.size());
+        Assert.assertTrue("Not full "+rb, rb.isFull());
+        
         for(int i=0; i<initCapacity; i++) {
             Integer vI = rb.get();
             Assert.assertNotNull("Empty at read #"+(i+1)+": "+rb, vI);
             Assert.assertEquals("Wrong value at read #"+(i+1)+": "+rb, (pos+i)%initCapacity, vI.intValue());
+        }
+        for(int i=0; i<growAmount; i++) {
+            Integer vI = rb.get();
+            Assert.assertNotNull("Empty at read #"+(i+1)+": "+rb, vI);
+            Assert.assertEquals("Wrong value at read #"+(i+1)+": "+rb, 100+i, vI.intValue());
         }
         
         Assert.assertEquals("Not zero size "+rb, 0, rb.size());

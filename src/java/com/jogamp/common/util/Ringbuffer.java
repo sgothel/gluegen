@@ -44,18 +44,6 @@ import java.io.PrintStream;
  */
 public interface Ringbuffer<T> {
     
-    /** 
-     * Implementation hook for {@link #growBuffer(Object[], int, AllocEmptyArray)}
-     * to pass an implementation of {@link #newArray(int)}. 
-     * @param <T> type of array
-     */
-    public static interface AllocEmptyArray<T> {
-        /**
-         * Returns a new allocated empty array of generic type T with given size.
-         */
-        public T[] newArray(int size);
-    }
-    
     /** Returns a short string representation incl. size/capacity and internal r/w index (impl. dependent). */ 
     public String toString();
 
@@ -190,25 +178,28 @@ public interface Ringbuffer<T> {
     public void waitForFreeSlots(int count) throws InterruptedException;
 
     /**
-     * Grows a full or empty ring buffer, increasing it's capacity about the amount.
+     * Grows an empty ring buffer, increasing it's capacity about the amount.
      * <p>
      * Growing an empty ring buffer increases it's size about the amount, i.e. renders it not empty.
      * The new elements are inserted at the read position, able to be read out via {@link #get()} etc.
      * </p>
+     * 
+     * @param newElements array of new full elements the empty buffer shall grow about.
+     * @throws IllegalStateException if buffer is not empty
+     * @throws IllegalArgumentException if newElements is null
+     */
+    public void growEmptyBuffer(T[] newElements) throws IllegalStateException, IllegalArgumentException;
+    
+    /**
+     * Grows a full ring buffer, increasing it's capacity about the amount.
      * <p>
      * Growing a full ring buffer leaves the size intact, i.e. renders it not full.
-     * The new elements are inserted at the write position, able to be written to via {@link #put(Object)} etc.
+     * New <code>null</code> elements are inserted at the write position, able to be written to via {@link #put(Object)} etc.
      * </p>
-     * 
-     * @param newElements array of new empty elements the buffer shall grow about, maybe <code>null</code>.
-     *        If not <code>null</code>, array size must be <= <code>amount</code>
      * @param amount the amount of elements the buffer shall grow about
-     * @param allocEmptyArray implementation hook to allocate a new empty array of generic type T
-     * @throws IllegalStateException if buffer is neither full nor empty
-     * @throws IllegalArgumentException if newElements is given but is > amount
+     * 
+     * @throws IllegalStateException if buffer is not full
+     * @throws IllegalArgumentException if amount is < 0
      */
-    public void growBuffer(T[] newElements, int amount,
-            AllocEmptyArray<T> allocEmptyArray) throws IllegalStateException,
-            IllegalArgumentException;
-
+    public void growFullBuffer(int amount) throws IllegalStateException, IllegalArgumentException;
 }

@@ -32,18 +32,11 @@ import com.jogamp.common.util.Ringbuffer;
 import com.jogamp.common.util.SyncedRingbuffer;
 
 public class TestSyncRingBuffer01 extends RingBuffer01Base {
-    
-    static final Ringbuffer.AllocEmptyArray<Integer> allocEmptyIntArray = new Ringbuffer.AllocEmptyArray<Integer>() {
-            @Override
-            public Integer[] newArray(int size) {
-                return new Integer[size];
-            } };
-            
     public Ringbuffer<Integer> createEmpty(int initialCapacity) {
-        return new SyncedRingbuffer<Integer>(initialCapacity, allocEmptyIntArray);
+        return new SyncedRingbuffer<Integer>(Integer[].class, initialCapacity);
     }
     public Ringbuffer<Integer> createFull(Integer[] source) {
-        return new SyncedRingbuffer<Integer>(source, allocEmptyIntArray);
+        return new SyncedRingbuffer<Integer>(source);
     }
     
     public static void main(String args[]) {

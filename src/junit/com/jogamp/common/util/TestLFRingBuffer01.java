@@ -32,17 +32,11 @@ import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
 
 public class TestLFRingBuffer01 extends RingBuffer01Base {
-    static final Ringbuffer.AllocEmptyArray<Integer> allocEmptyIntArray = new Ringbuffer.AllocEmptyArray<Integer>() {
-            @Override
-            public Integer[] newArray(int size) {
-                return new Integer[size];
-            } };
-            
     public Ringbuffer<Integer> createEmpty(int initialCapacity) {
-        return new LFRingbuffer<Integer>(initialCapacity, allocEmptyIntArray);
+        return new LFRingbuffer<Integer>(Integer[].class, initialCapacity);
     }
     public Ringbuffer<Integer> createFull(Integer[] source) {
-        return new LFRingbuffer<Integer>(source, allocEmptyIntArray);
+        return new LFRingbuffer<Integer>(source);
     }
     
     public static void main(String args[]) {

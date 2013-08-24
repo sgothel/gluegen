@@ -29,6 +29,7 @@
 package com.jogamp.common.util;
 
 import java.io.PrintStream;
+import java.lang.reflect.Array;
 
 /** 
  * Simple synchronized implementation of {@link Ringbuffer}.
@@ -77,10 +78,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * <pre>
      *  Integer[] source = new Integer[10];
      *  // fill source with content ..
-     *  Ringbuffer<Integer> rb = new SyncedRingbuffer<Integer>(source, new Ringbuffer.AllocEmptyArray<Integer>() {
-     *      public Integer[] newArray(int size) {
-     *          return new Integer[size];
-     *      } } );
+     *  Ringbuffer<Integer> rb = new SyncedRingbuffer<Integer>(source);
      * </pre>
      * </p>
      * <p>
@@ -91,12 +89,12 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * and copy all elements from array <code>copyFrom</code> into the internal array.
      * </p>
      * @param copyFrom mandatory source array determining ring buffer's net {@link #capacity()} and initial content.
-     * @param allocEmptyArray implementation hook to allocate a new empty array of generic type T
      * @throws IllegalArgumentException if <code>copyFrom</code> is <code>null</code>   
      */
-    public SyncedRingbuffer(T[] copyFrom, AllocEmptyArray<T> allocEmptyArray) throws IllegalArgumentException {
+    @SuppressWarnings("unchecked")
+    public SyncedRingbuffer(T[] copyFrom) throws IllegalArgumentException {
         capacity = copyFrom.length;
-        array = allocEmptyArray.newArray(capacity);
+        array = (T[]) newArray(copyFrom.getClass(), capacity);
         resetImpl(true, copyFrom);
     }
     
@@ -105,10 +103,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * <p> 
      * Example for a 10 element Integer array:
      * <pre>
-     *  Ringbuffer<Integer> rb = new SyncedRingbuffer<Integer>(10, new Ringbuffer.AllocEmptyArray<Integer>() {
-     *      public Integer[] newArray(int size) {
-     *          return new Integer[size];
-     *      } } );
+     *  Ringbuffer<Integer> rb = new SyncedRingbuffer<Integer>(10, Integer[].class);
      * </pre>
      * </p>
      * <p>
@@ -117,13 +112,13 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * <p>
      * Implementation will allocate an internal array of size <code>capacity</code>.
      * </p>
+     * @param arrayType the array type of the created empty internal array.
      * @param capacity the initial net capacity of the ring buffer
-     * @param allocEmptyArray implementation hook to allocate a new empty array of generic type T
      */
-    public SyncedRingbuffer(int capacity, AllocEmptyArray<T> allocEmptyArray) {
+    public SyncedRingbuffer(Class<? extends T[]> arrayType, int capacity) {
         this.capacity = capacity;
-        this.array = allocEmptyArray.newArray(capacity);
-        resetImpl(false, null);
+        this.array = (T[]) newArray(arrayType, capacity);
+        resetImpl(false, null /* empty, nothing to copy */ );
     }
     
     @Override
@@ -160,7 +155,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
                     throw new IllegalArgumentException("copyFrom array length "+copyFrom.length+" != capacity "+this);
                 }
                 System.arraycopy(copyFrom, 0, array, 0, copyFrom.length);
-            } else if( full ) {
+            } else if ( full ) {
                 throw new IllegalArgumentException("copyFrom array is null");
             }
             readPos = 0;
@@ -325,57 +320,91 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
         }
     }
     
+    
     @Override
-    public void growBuffer(T[] newElements, int amount, AllocEmptyArray<T> allocEmptyArray) throws IllegalStateException, IllegalArgumentException {
+    public final void growEmptyBuffer(final T[] newElements) throws IllegalStateException, IllegalArgumentException {
         synchronized ( syncGlobal ) {
-            final boolean isFull = capacity == size;
-            final boolean isEmpty = 0 == size;
-            if( !isFull && !isEmpty ) {
-                throw new IllegalStateException("Buffer neither full nor empty: "+this);
+            if( null == newElements ) {
+                throw new IllegalArgumentException("newElements is null");
+            }
+            @SuppressWarnings("unchecked")
+            final Class<? extends T[]> arrayTypeInternal = (Class<? extends T[]>) array.getClass();
+            @SuppressWarnings("unchecked")
+            final Class<? extends T[]> arrayTypeNew = (Class<? extends T[]>) newElements.getClass();
+            if( arrayTypeInternal != arrayTypeNew ) {
+                throw new IllegalArgumentException("newElements array-type mismatch, internal "+arrayTypeInternal+", newElements "+arrayTypeNew);
+            }
+            if( 0 != size ) {
+                throw new IllegalStateException("Buffer is not empty: "+this);
             }
             if( readPos != writePos ) {
                 throw new InternalError("R/W pos not equal: "+this);
             }
-            if( null != newElements && amount < newElements.length ) {
-                throw new IllegalArgumentException("amount "+amount+" < newElements "+newElements.length);
-            }
-            final int newCapacity = capacity + amount;
-            final T[] oldArray = array;
-            final T[] newArray = allocEmptyArray.newArray(newCapacity);
             
-            if( isFull ) {
-                // writePos == readPos
-                readPos += amount; // warp readPos to the end of the new data location
-                
-                if(writePos > 0) {
-                    System.arraycopy(oldArray,        0, newArray,        0, writePos);
-                }
-                if( null != newElements && newElements.length > 0 ) {
-                    System.arraycopy(newElements,     0, newArray, writePos, newElements.length);
-                }
-                final int tail = capacity-writePos;
-                if( tail > 0 ) {
-                    System.arraycopy(oldArray, writePos, newArray,  readPos, tail);
-                }
-            } else /* if ( isEmpty ) */ {
-                // writePos == readPos
-                writePos += amount; // warp writePos to the end of the new data location
-                
-                if( readPos > 0 ) {
-                    System.arraycopy(oldArray,        0, newArray,        0, readPos);
-                }
-                if( null != newElements && newElements.length > 0 ) {
-                    System.arraycopy(newElements,     0, newArray,  readPos, newElements.length);
-                }
-                final int tail = capacity-readPos;
-                if( tail > 0 ) {
-                    System.arraycopy(oldArray,  readPos, newArray, writePos, tail);
-                }
-                size = amount;
+            final int growAmount = newElements.length;
+            final int newCapacity = capacity + growAmount;
+            final T[] oldArray = array;
+            final T[] newArray = (T[]) newArray(arrayTypeInternal, newCapacity);
+            
+            // writePos == readPos
+            writePos += growAmount; // warp writePos to the end of the new data location
+            
+            if( readPos > 0 ) {
+                System.arraycopy(oldArray,        0, newArray,        0, readPos);
+            }
+            if( growAmount > 0 ) {
+                System.arraycopy(newElements,     0, newArray,  readPos, growAmount);
+            }
+            final int tail = capacity-readPos;
+            if( tail > 0 ) {
+                System.arraycopy(oldArray,  readPos, newArray, writePos, tail);
+            }
+            size = growAmount;
+            
+            capacity = newCapacity;
+            array = newArray;
+        }
+    }
+    
+    @Override
+    public final void growFullBuffer(final int growAmount) throws IllegalStateException, IllegalArgumentException {
+        synchronized ( syncGlobal ) {
+            if( 0 > growAmount ) {
+                throw new IllegalArgumentException("amount "+growAmount+" < 0 ");
+            }
+            if( capacity != size ) {
+                throw new IllegalStateException("Buffer is not full: "+this);
+            }        
+            if( readPos != writePos ) {
+                throw new InternalError("R/W pos not equal: "+this);
+            }
+            @SuppressWarnings("unchecked")
+            final Class<? extends T[]> arrayTypeInternal = (Class<? extends T[]>) array.getClass();
+
+            final int newCapacity = capacity + growAmount;
+            final T[] oldArray = array;
+            final T[] newArray = (T[]) newArray(arrayTypeInternal, newCapacity);
+            
+            // writePos == readPos
+            readPos += growAmount; // warp readPos to the end of the new data location
+            
+            if(writePos > 0) {
+                System.arraycopy(oldArray,        0, newArray,        0, writePos);
+            }
+            final int tail = capacity-writePos;
+            if( tail > 0 ) {
+                System.arraycopy(oldArray, writePos, newArray,  readPos, tail);
             }
             
             capacity = newCapacity;
             array = newArray;
         }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private static <T> T[] newArray(Class<? extends T[]> arrayType, int length) {
+        return ((Object)arrayType == (Object)Object[].class)
+            ? (T[]) new Object[length]
+            : (T[]) Array.newInstance(arrayType.getComponentType(), length);
     }
 }
