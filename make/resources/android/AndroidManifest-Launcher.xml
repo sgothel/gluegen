@@ -4,10 +4,12 @@
       package="jogamp.android.launcher">
 
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
-    <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <uses-permission android:name="android.permission.INTERNET" /> <!-- required for NV's PerfHud and I-Net data streaming -->
     <!-- uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" / --> <!-- required for Android-Trace -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <uses-sdk android:minSdkVersion="9" />
 
