@@ -220,7 +220,7 @@ public class URLCompositionTest extends JunitTracer {
            URI uri1 = new URI(uri_s1);
            showURI(uri0);
            showURI(uri1);
-           URIQueryProps data = URIQueryProps.create(uri1);
+           URIQueryProps data = URIQueryProps.create(uri1, ';');
            if(null == data) {
                System.err.println("Error: NULL: <"+uri_s1+"> -> "+uri1+" -> NULL");
            } else {

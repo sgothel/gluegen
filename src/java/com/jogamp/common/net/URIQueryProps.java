@@ -46,13 +46,18 @@ import java.util.Map;
  */
 public class URIQueryProps {
    private static final String QMARK = "?";
-   private static final String AMPER = "&";
    private static final char ASSIG = '=';
    private static final String EMPTY = "";
+   private final String query_separator;
    
    private final HashMap<String, String> properties = new HashMap<String, String>();
    
+   private URIQueryProps(char querySeparator) {
+       query_separator = String.valueOf(querySeparator);
+   }
+   
    public final Map<String, String> getProperties() { return properties; }
+   public final char getQuerySeparator() { return query_separator.charAt(0); }
    
    public final String appendQuery(String baseQuery) throws URISyntaxException {
        boolean needsSep = false;
@@ -62,14 +67,14 @@ public class URIQueryProps {
                baseQuery = baseQuery.substring(1);
            }
            sb.append(baseQuery);
-           if( !baseQuery.endsWith(AMPER) ) {
+           if( !baseQuery.endsWith(query_separator) ) {
                needsSep = true;
            }
        }
        Iterator<String> propKeys = properties.keySet().iterator();
        while(propKeys.hasNext()) {
            if(needsSep) {
-               sb.append(AMPER);
+               sb.append(query_separator);
            }
            final String key = propKeys.next();
            final String val = properties.get(key);
@@ -88,14 +93,24 @@ public class URIQueryProps {
                       base.getRawPath(), appendQuery(base.getRawQuery()), base.getRawFragment());
    }
    
-   public static final URIQueryProps create(URI uri) {
-       final URIQueryProps data = new URIQueryProps();
+   /**
+    * 
+    * @param uri
+    * @param querySeparator should be either <i>;</i> or <i>&</i>, <i>;</i> is encouraged due to troubles of escaping <i>&</i>.
+    * @return
+    * @throws IllegalArgumentException if <code>querySeparator</code> is illegal, i.e. neither <i>;</i> nor <i>&</i> 
+    */
+   public static final URIQueryProps create(URI uri, char querySeparator) throws IllegalArgumentException {
+       if( ';' != querySeparator && '&' != querySeparator ) {
+           throw new IllegalArgumentException("querySeparator is invalid: "+querySeparator);
+       }
+       final URIQueryProps data = new URIQueryProps(querySeparator);
        final String q = uri.getQuery();
        final int q_l = null != q ? q.length() : -1;
        int q_e = -1;
        while(q_e < q_l) {
            int q_b = q_e + 1; // next term
-           q_e = q.indexOf(AMPER, q_b);
+           q_e = q.indexOf(querySeparator, q_b);
            if(0 == q_e) {
                // single separator
                continue; 
