@@ -47,6 +47,10 @@ import static org.junit.Assert.*;
  * serves mainly as entry point for debugging purposes.
  * @author Sven Gothel, Michael Bien
  */
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class PCPPTest extends JunitTracer {
 
     @BeforeClass

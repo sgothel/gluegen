@@ -14,6 +14,10 @@ import org.junit.Test;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.junit.util.JunitTracer;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class URLCompositionTest extends JunitTracer {
     
     @BeforeClass

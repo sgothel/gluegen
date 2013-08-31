@@ -35,6 +35,10 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSingletonServerSocket01 {
     // public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
     public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;

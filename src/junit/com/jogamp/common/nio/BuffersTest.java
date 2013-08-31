@@ -41,6 +41,10 @@ import static org.junit.Assert.*;
 /**
  * @author Michael Bien
  */
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BuffersTest extends JunitTracer {
 
     @Test

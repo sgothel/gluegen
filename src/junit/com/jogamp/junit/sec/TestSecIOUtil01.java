@@ -45,6 +45,10 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.junit.util.JunitTracer;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSecIOUtil01 extends JunitTracer {
     static final String java_io_tmpdir_propkey = "java.io.tmpdir";
     static final String java_home_propkey = "java.home";

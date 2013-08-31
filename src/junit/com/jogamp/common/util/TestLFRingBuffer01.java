@@ -31,6 +31,10 @@ package com.jogamp.common.util;
 import com.jogamp.common.util.LFRingbuffer;
 import com.jogamp.common.util.Ringbuffer;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestLFRingBuffer01 extends RingBuffer01Base {
     public Ringbuffer<Integer> createEmpty(int initialCapacity) {
         return new LFRingbuffer<Integer>(Integer[].class, initialCapacity);

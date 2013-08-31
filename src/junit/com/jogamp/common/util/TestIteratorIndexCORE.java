@@ -40,6 +40,10 @@ import org.junit.Test;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.JunitTracer;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestIteratorIndexCORE extends JunitTracer {
 
     static int elems = 10;

@@ -37,6 +37,10 @@ import static com.jogamp.common.util.ValueConv.*;
 /**
  * Testing ValueConv's value conversion of primitive types
  */
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestValueConversion {
         
     @Test

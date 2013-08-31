@@ -43,6 +43,10 @@ import org.junit.Test;
  * @author Michael Bien
  * @author Sven Gothel
  */
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test1p2ProcAddressEmitter extends BaseClass {
 
     static NativeLibrary dynamicLookupHelper;

@@ -31,6 +31,10 @@ package com.jogamp.common.util;
 import com.jogamp.common.util.Ringbuffer;
 import com.jogamp.common.util.SyncedRingbuffer;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSyncRingBuffer01 extends RingBuffer01Base {
     public Ringbuffer<Integer> createEmpty(int initialCapacity) {
         return new SyncedRingbuffer<Integer>(Integer[].class, initialCapacity);

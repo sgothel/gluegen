@@ -48,6 +48,10 @@ import static java.lang.System.*;
  * @author Michael Bien
  * @author Sven Gothel 
  */
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class IntIntHashMapTest {
 
     private static int iterations;

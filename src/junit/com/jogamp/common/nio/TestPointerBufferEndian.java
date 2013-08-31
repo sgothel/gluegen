@@ -11,6 +11,10 @@ import org.junit.Test;
 
 import static java.lang.System.*;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestPointerBufferEndian extends JunitTracer {
 
     protected void testImpl (boolean direct) {

@@ -35,6 +35,10 @@ import org.junit.Test;
 
 import com.jogamp.junit.util.JunitTracer;
 
+import org.junit.FixMethodOrder;
+import org.junit.runners.MethodSorters;
+
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBuffersFloatDoubleConversion extends JunitTracer {
 
     public static boolean cmpFloatArray(float[] d1, int d1_offset, float[] d2, int d2_offset, int len) {
