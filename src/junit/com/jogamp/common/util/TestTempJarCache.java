@@ -29,6 +29,7 @@
 package com.jogamp.common.util;
 
 import java.io.File;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -40,7 +41,9 @@ import java.util.jar.JarFile;
 import junit.framework.Assert;
 
 import org.junit.BeforeClass;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
+import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.jvm.JNILibLoaderBase;
@@ -52,6 +55,7 @@ import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
 import com.jogamp.junit.util.JunitTracer;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestTempJarCache extends JunitTracer {
     static TempFileCache fileCache;
     
