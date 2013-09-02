@@ -208,6 +208,30 @@ public class JNILibLoaderBase {
   }
    
   /**
+   * Loads and adds a JAR file's native library to the TempJarCache, 
+   * calling {@link JNILibLoaderBase#addNativeJarLibs(Class[], String, String[])}
+   * with default JOGL deployment configuration:
+   * <pre>
+        return JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
+   * </pre>
+   * If <code>Class1.class</code> is contained in a JAR file which name includes <code>singleJarMarker</code> <i>-all</i>,
+   * implementation will attempt to resolve the native JAR file as follows:
+   * <ul>
+   *   <li><i>ClassJar-all</i>[-noawt,-mobile,-android]?.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
+   * </ul>
+   * Otherwise the native JAR files will be resolved for each class's JAR file:
+   * <ul>
+   *   <li><i>ClassJar1</i>[-noawt,-mobile,-core,-android]?.jar to <i>ClassJar1</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>ClassJar2</i>[-noawt,-mobile,-core,-android]?.jar to <i>ClassJar2</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li>..</li>
+   * </ul> 
+   */
+  public static final boolean addNativeJarLibsJoglCfg(final Class<?>[] classesFromJavaJars) {
+      return addNativeJarLibs(classesFromJavaJars, "-all", joglDeployCfg);
+  }
+  private static final String[] joglDeployCfg = new String[] { "-noawt", "-mobile", "-core", "-android" };
+
+  /**
    * Loads and adds a JAR file's native library to the TempJarCache.<br>
    * The native library JAR file's URI is derived as follows:
    * <ul>
@@ -223,37 +247,59 @@ public class JNILibLoaderBase {
    *   <li> [3] is it's <i>base URI</i></li>
    *   <li> [4] is the derived native JAR filename</li>
    * </ul>
-   *
-   * Examples:<br>
-   * <br>
+   * <p>
+   * Generic description:
+   * <pre>
+       final ClassLoader cl = GLProfile.class.getClassLoader();
+       final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
+       final Class<?>[] classesFromJavaJars = new Class<?>[] { Class1.class, Class2.class };
+       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-suff1", "-suff2" } );
+   * </pre>
+   * If <code>Class1.class</code> is contained in a JAR file which name includes <code>singleJarMarker</code>, here <i>-all</i>,
+   * implementation will attempt to resolve the native JAR file as follows:
+   * <ul>
+   *   <li><i>ClassJar-all</i>[-suff1,-suff2]?.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
+   * </ul>
+   * Otherwise the native JAR files will be resolved for each class's JAR file: 
+   * <ul> 
+   *   <li><i>Class1Jar</i>[-suff1,-suff2]?.jar to <i>Class1Jar</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>Class2Jar</i>[-suff1,-suff2]?.jar to <i>Class2Jar</i>-natives-<i>os.and.arch</i>.jar</li>
+   * </ul> 
+   * </p>
+   * <p>
+   * Examples:
+   * </p>
+   * <p>
    * JOCL:
    * <pre>
-        // only: jocl.jar -> jocl-natives-'os.and.arch'.jar
+        // only: jocl.jar -> jocl-natives-<i>os.and.arch</i>.jar
         addNativeJarLibs(new Class<?>[] { JOCLJNILibLoader.class }, null, null );
    * </pre>
    * 
    * Newt Only:
    * <pre>
-       // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
-       // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar,
-       //         newt-core.jar                                           -> newt-natives-<os.and.arch>.jar
-       JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class }, "-all", new String[] { "-noawt", "-mobile", "-core" } );
+       // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar, jogl-all-android.jar] -> jogl-all-natives-<i>os.and.arch</i>.jar
+       // or:     nativewindow-core.jar                                                         -> nativewindow-natives-<i>os.and.arch</i>.jar,
+       //         newt-core.jar                                                                 -> newt-natives-<i>os.and.arch</i>.jar
+       JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class }, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
    * </pre>
-   * 
+   * </p>
+   * <p>
    * JOGL:
    * <pre>
        final ClassLoader cl = GLProfile.class.getClassLoader();
-       // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar] -> jogl-all-natives-<os.and.arch>.jar
-       // or:     nativewindow-core.jar                                   -> nativewindow-natives-<os.and.arch>.jar,
-       //         jogl-core.jar                                           -> jogl-natives-<os.and.arch>.jar,
-       //        (newt-core.jar                                           -> newt-natives-<os.and.arch>.jar)? (if available)
+       // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar, jogl-all-android.jar] -> jogl-all-natives-<i>os.and.arch</i>.jar
+       // or:     nativewindow-core.jar                                                         -> nativewindow-natives-<i>os.and.arch</i>.jar,
+       //         jogl-core.jar                                                                 -> jogl-natives-<i>os.and.arch</i>.jar,
+       //        (newt-core.jar                                                                 -> newt-natives-<i>os.and.arch</i>.jar)? (if available)
        final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
        final Class<?>[] classesFromJavaJars = new Class<?>[] { NWJNILibLoader.class, GLProfile.class, null };
        if( ReflectionUtil.isClassAvailable(newtFactoryClassName, cl) ) {
            classesFromJavaJars[2] = ReflectionUtil.getClass(newtFactoryClassName, false, cl);
        }
-       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core" } );
+       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
    * </pre>
+   * </p>
    * 
    * @param classesFromJavaJars For each given Class, load the native library JAR.
    * @param singleJarMarker Optional string marker like "-all" to identify the single 'all-in-one' JAR file
