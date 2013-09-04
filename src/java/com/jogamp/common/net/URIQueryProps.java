@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Helper class to process URI's query, handled as properties.
@@ -59,7 +60,7 @@ public class URIQueryProps {
    public final Map<String, String> getProperties() { return properties; }
    public final char getQuerySeparator() { return query_separator.charAt(0); }
 
-   public final String appendQuery(String baseQuery) throws URISyntaxException {
+   public final String appendQuery(String baseQuery) {
        boolean needsSep = false;
        final StringBuilder sb = new StringBuilder();
        if ( null != baseQuery ) {
@@ -71,16 +72,15 @@ public class URIQueryProps {
                needsSep = true;
            }
        }
-       Iterator<String> propKeys = properties.keySet().iterator();
-       while(propKeys.hasNext()) {
+       Iterator<Entry<String, String>> entries = properties.entrySet().iterator();
+       while(entries.hasNext()) {
            if(needsSep) {
                sb.append(query_separator);
            }
-           final String key = propKeys.next();
-           final String val = properties.get(key);
-           sb.append(key);
-           if( EMPTY != val ) {
-               sb.append(ASSIG).append(properties.get(key));
+           final Entry<String, String> entry = entries.next();
+           sb.append(entry.getKey());
+           if( EMPTY != entry.getValue() ) {
+               sb.append(ASSIG).append(entry.getValue());
            }
            needsSep = true;
        }
