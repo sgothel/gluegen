@@ -22,14 +22,14 @@ a:hover, a:focus {
 }
 a:active {
     text-decoration:none;
-    color:#4444ff;
+    color:#4444cc;
 }
 a[name] {
-    color:#4444ff;
+    color:#4444cc;
 }
 a[name]:hover {
     text-decoration:none;
-    color:#4444ff;
+    color:#4444cc;
 }
 pre {
     font-size:1.3em;
