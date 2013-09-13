@@ -99,6 +99,8 @@
    - properties appropriately. They are only set to "true" if the OS/compiler
    - configuration is exactly as specified.
    - 
+   -   isGCC
+   -   isCLANG
    -   isVCFamily
    -   isVC6
    -   isVC7
@@ -737,6 +739,15 @@
      - out because this must sometimes be called late in the setup process
     -->
   <target name="gluegen.cpptasks.detect.compiler">
+    <condition property="isGCC">
+        <equals arg1="${gcc.compat.compiler}" arg2="gcc" />
+    </condition>
+    <condition property="isCLANG">
+        <equals arg1="${gcc.compat.compiler}" arg2="clang" />
+    </condition>
+    <echo message="GCC=${isGCC}" />
+    <echo message="CLANG=${isCLANG}" />
+
     <!-- Set up compiler selection on Windows -->
     <condition property="isVCFamily">
       <and>
@@ -878,7 +889,7 @@
 
     <!-- UNIX compiler configuration -->
 
-    <compiler id="compiler.cfg.freebsd" name="gcc">
+    <compiler id="compiler.cfg.freebsd" name="${gcc.compat.compiler}">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -890,7 +901,7 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.linux" name="gcc">
+    <compiler id="compiler.cfg.linux" name="${gcc.compat.compiler}">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -900,7 +911,7 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.linux.x86" name="gcc">
+    <compiler id="compiler.cfg.linux.x86" name="${gcc.compat.compiler}">
       <compilerarg value="-m32"/>
       <defineset>
         <define name="__unix__"/>
@@ -911,7 +922,7 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.linux.amd64" name="gcc">
+    <compiler id="compiler.cfg.linux.amd64" name="${gcc.compat.compiler}">
       <compilerarg value="-fPIC"/>
       <compilerarg value="-m64"/>
       <defineset>
@@ -927,7 +938,7 @@
            - lib/gluegen-cpptasks-linux-armv6.xml   (armv5te + softfp), or 
            - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
          for official JogAmp builds! -->
-    <compiler id="compiler.cfg.linux.armv6" name="gcc">
+    <compiler id="compiler.cfg.linux.armv6" name="${gcc.compat.compiler}">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -938,11 +949,11 @@
       <compilerarg value="-fpic" /> 
     </compiler>
 
-    <compiler id="compiler.cfg.android" name="gcc">
+    <compiler id="compiler.cfg.android" name="${gcc.compat.compiler}">
         <!-- shall be defined in custom ${gluegen-cpptasks.file} ! -->
     </compiler>
 
-    <compiler id="compiler.cfg.freebsd" name="gcc">
+    <compiler id="compiler.cfg.freebsd" name="${gcc.compat.compiler}">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
@@ -982,7 +993,7 @@
  
     <!-- SOLARIS compiler configuration --> 
 
-    <compiler id="compiler.cfg.solaris" name="gcc"> 
+    <compiler id="compiler.cfg.solaris" name="${gcc.compat.compiler}"> 
       <compilerarg value="-m32"/>
       <defineset> 
         <define name="__unix__"/>
@@ -994,7 +1005,7 @@
       </defineset> 
     </compiler> 
 
-    <compiler id="compiler.cfg.solaris.sparcv9" name="gcc"> 
+    <compiler id="compiler.cfg.solaris.sparcv9" name="${gcc.compat.compiler}"> 
       <compilerarg value="-fast" /> 
       <compilerarg value="-xchip=ultra" /> 
       <compilerarg value="-xarch=v9a" /> 
@@ -1008,7 +1019,7 @@
       </defineset> 
     </compiler> 
 
-    <compiler id="compiler.cfg.solaris.amd64" name="gcc"> 
+    <compiler id="compiler.cfg.solaris.amd64" name="${gcc.compat.compiler}"> 
       <compilerarg value="-fPIC"/>
       <compilerarg value="-m64"/>
       <!-- compilerarg value="-fast" /--> 
@@ -1027,7 +1038,7 @@
 
     <!-- MacOSX compiler configuration -->
 
-    <compiler id="compiler.cfg.macosx" name="gcc">
+    <compiler id="compiler.cfg.macosx" name="${gcc.compat.compiler}">
       <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
       <compilerarg value="-arch" if="use.macosppc"/>
       <compilerarg value="ppc" if="use.macosppc"/>
@@ -1040,7 +1051,6 @@
       <compilerarg value="-ObjC" />
       <compilerarg value="-mmacosx-version-min=10.5"/>
       <defineset>
-        <define name="macosx" />
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
@@ -1060,7 +1070,7 @@
         <compilerarg value="-m32"/>
     </compiler>
 
-    <compiler id="compiler.cfg.win32.mingw" name="gcc">
+    <compiler id="compiler.cfg.win32.mingw" name="${gcc.compat.compiler}">
       <compilerarg value="-g" if="c.compiler.use-debug"/> 
       <compilerarg value="-O0" if="c.compiler.use-debug"/> 
       <compilerarg value="-O2" unless="c.compiler.use-debug"/>
@@ -1077,7 +1087,7 @@
       </defineset>
     </compiler>
 
-    <compiler id="compiler.cfg.win64.mingw" name="gcc">
+    <compiler id="compiler.cfg.win64.mingw" name="${gcc.compat.compiler}">
       <compilerarg value="-g" if="c.compiler.use-debug"/> 
       <compilerarg value="-O0" if="c.compiler.use-debug"/> 
       <compilerarg value="-O2" unless="c.compiler.use-debug"/>
@@ -1124,91 +1134,91 @@
  
     <!-- Unix linker configuration -->
 
-    <linker id="linker.cfg.linux" name="gcc">
-      <linkerarg value="-static-libgcc"/>
+    <linker id="linker.cfg.linux" name="${gcc.compat.compiler}">
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker>
 
-    <linker id="linker.cfg.linux.x86" name="gcc">
+    <linker id="linker.cfg.linux.x86" name="${gcc.compat.compiler}">
       <linkerarg value="-m32"/>
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker>
 
-    <linker id="linker.cfg.linux.amd64" name="gcc">
+    <linker id="linker.cfg.linux.amd64" name="${gcc.compat.compiler}">
       <linkerarg value="-m64"/>
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker>
 
     <!-- Using default compiler settings - utilize:
            - lib/gluegen-cpptasks-linux-armv6.xml   (armv5te + softfp), or 
            - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
          for official JogAmp builds! -->
-    <linker id="linker.cfg.linux.armv6" name="gcc">
+    <linker id="linker.cfg.linux.armv6" name="${gcc.compat.compiler}">
       <linkerarg value="-fpic" /> 
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker>
 
-    <linker id="linker.cfg.linux.alpha" name="gcc">
+    <linker id="linker.cfg.linux.alpha" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.hppa" name="gcc">
+    <linker id="linker.cfg.linux.hppa" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.mips" name="gcc">
+    <linker id="linker.cfg.linux.mips" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.mipsel" name="gcc">
+    <linker id="linker.cfg.linux.mipsel" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.ppc" name="gcc">
+    <linker id="linker.cfg.linux.ppc" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.s390" name="gcc">
+    <linker id="linker.cfg.linux.s390" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.s390x" name="gcc">
+    <linker id="linker.cfg.linux.s390x" name="${gcc.compat.compiler}">
     </linker>
 
-    <linker id="linker.cfg.linux.sparc" name="gcc">
+    <linker id="linker.cfg.linux.sparc" name="${gcc.compat.compiler}">
     </linker>
 
-    <compiler id="linker.cfg.android" name="gcc">
+    <compiler id="linker.cfg.android" name="${gcc.compat.compiler}">
       <!-- shall be defined in custom ${gluegen-cpptasks.file} ! -->
     </compiler>
 
     <linker id="linker.cfg.hpux" name="aCC">
     </linker>
 
-    <linker id="linker.cfg.freebsd.x86" name="gcc">
+    <linker id="linker.cfg.freebsd.x86" name="${gcc.compat.compiler}">
       <linkerarg value="-m32"/>
     </linker>
 
-    <linker id="linker.cfg.freebsd.amd64" name="gcc">
+    <linker id="linker.cfg.freebsd.amd64" name="${gcc.compat.compiler}">
       <linkerarg value="-m64"/>
     </linker>
 
     <!-- SOLARIS linker configuration --> 
 
-    <linker id="linker.cfg.solaris" name="gcc"> 
+    <linker id="linker.cfg.solaris" name="${gcc.compat.compiler}"> 
       <linkerarg value="-m32"/>
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker> 
 
-    <linker id="linker.cfg.solaris.sparcv9" name="gcc"> 
+    <linker id="linker.cfg.solaris.sparcv9" name="${gcc.compat.compiler}"> 
       <linkerarg value="-xarch=v9a" /> 
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker> 
 
-    <linker id="linker.cfg.solaris.amd64" name="gcc"> 
+    <linker id="linker.cfg.solaris.amd64" name="${gcc.compat.compiler}"> 
       <linkerarg value="-m64"/>
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
       <!-- linkerarg value="-xarch=amd64" / --> 
     </linker>
 
     <!-- MacOSX linker configuration -->
 
-    <linker id="linker.cfg.macosx" name="gcc">
+    <linker id="linker.cfg.macosx" name="${gcc.compat.compiler}">
       <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
       <linkerarg value="-arch" if="use.macosppc"/>
       <linkerarg value="ppc" if="use.macosppc"/>
@@ -1217,7 +1227,7 @@
       <linkerarg value="-arch" if="use.macosx64"/>
       <linkerarg value="x86_64" if="use.macosx64"/>
       <linkerarg value="-mmacosx-version-min=10.5"/>
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
     </linker>
 
@@ -1236,20 +1246,20 @@
       <linkerarg value="-static-libgcc"/>
     </linker>
 
-    <linker id="linker.cfg.win32.mingw" name="gcc" incremental="false">
+    <linker id="linker.cfg.win32.mingw" name="${gcc.compat.compiler}" incremental="false">
       <linkerarg value="-m32"/>
       <linkerarg value="-Wl,--enable-auto-import"/>    <!-- for linking against dll directly -->
       <linkerarg value="-Wl,--enable-stdcall-fixup"/>  <!-- for linking against dll directly -->
       <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker>
 
-    <linker id="linker.cfg.win64.mingw" name="gcc" incremental="false">
+    <linker id="linker.cfg.win64.mingw" name="${gcc.compat.compiler}" incremental="false">
       <linkerarg value="-m64"/>
       <linkerarg value="-Wl,--enable-auto-import"/>    <!-- for linking against dll directly -->
       <linkerarg value="-Wl,--enable-stdcall-fixup"/>  <!-- for linking against dll directly -->
       <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">

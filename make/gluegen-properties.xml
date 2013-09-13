@@ -6,6 +6,9 @@
    - This Ant project file depends on the following properties being set
    - externally:
    - 
+   -   gcc.compat.compiler
+   -       either "gcc" (default) or "clang"
+   -
    -   win32.c.compiler (required to be set on Windows):
    -       one of "vc6", "vc7", "vc8", "mingw32" (default) or "mingw64".
    -   c.compiler.debug:
@@ -78,6 +81,9 @@
     <property name="android.keystore.keypass" value="jogamp"/>
 
     <property name="ant-junit-all.apk" value="${gluegen.root}/make/lib/ant-junit-all.apk" />
+
+    <!-- maybe overriden, e.g. with "clang" -->
+    <property name="gcc.compat.compiler" value="gcc"/>
 
     <condition property="win32.c.compiler" value="mingw64">
       <and>
