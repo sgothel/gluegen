@@ -59,7 +59,7 @@ JAWT_MacOSXDrawingSurfaceInfo;
     @property (readonly) CALayer *windowLayer;
     @end
 
-#endif __GLUEGEN__
+#endif /* __GLUEGEN__ */
 
 #ifdef __cplusplus
 }
