@@ -3,6 +3,9 @@
  
 /**
  *
+ * Note: Patching a specific glibc symbol version is only required if *not* statically linking glibc,
+ *       which should be preferred.
+ *
  * Note: JogAmp's minimum GLIBC is 2.4 due to '__stack_chk_fail' (stack overflow checking)
  *   
  *   GLIBC 2.4 - March 2006  - Standard for LSB 4.0, Used in SLES 10
@@ -12,13 +15,17 @@
  *
  * Check build-in macro definitions via 'gcc -dM -E - < /dev/null'
  */
-#if defined(__arm__)
-   #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
-#elif defined(__amd64__)
-   #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
+#if defined(__GNUC__)
+    #if defined(__arm__)
+       #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
+    #elif defined(__amd64__)
+       #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
+    #else
+       #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
+    #endif /*__amd64__*/
 #else
-   #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
-#endif /*__amd64__*/
+    #define GLIBC_COMPAT_SYMBOL(FFF)
+#endif
 
 GLIBC_COMPAT_SYMBOL(memcpy)
  
