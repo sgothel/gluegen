@@ -726,9 +726,9 @@
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${host.sourcelevel}" 
-           target="${host.targetlevel}" 
-           bootclasspath="${host.rt.jar}"
+           source="${target.sourcelevel}" 
+           target="${target.targetlevel}" 
+           bootclasspath="${target.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
