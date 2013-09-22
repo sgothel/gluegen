@@ -44,6 +44,8 @@ public abstract class PlatformPropsImpl {
     
     /** Version 1.6. As a JVM version, it enables certain JVM 1. features. */
     public static final VersionNumber Version16;
+    /** Version 1.7. As a JVM version, it enables certain JVM 1.7 features. */
+    public static final VersionNumber Version17;
     
     public static final String OS;
     public static final String OS_lower;
@@ -55,6 +57,7 @@ public abstract class PlatformPropsImpl {
     public static final String JAVA_VENDOR_URL;
     public static final String JAVA_VERSION;
     public static final VersionNumber JAVA_VERSION_NUMBER;
+    public static final int JAVA_VERSION_UPDATE;
     public static final String JAVA_VM_NAME;
     public static final String JAVA_RUNTIME_NAME;
     /** True if having {@link java.nio.LongBuffer} and {@link java.nio.DoubleBuffer} available. */
@@ -72,6 +75,7 @@ public abstract class PlatformPropsImpl {
             
     static {
         Version16 = new VersionNumber(1, 6, 0);
+        Version17 = new VersionNumber(1, 7, 0);
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned Applets.
         OS =  System.getProperty("os.name");
@@ -84,6 +88,17 @@ public abstract class PlatformPropsImpl {
         JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
         JAVA_VERSION = System.getProperty("java.version");
         JAVA_VERSION_NUMBER = new VersionNumber(JAVA_VERSION);
+        {
+           final int usIdx = JAVA_VERSION.lastIndexOf("_");
+           int jvmUpdate = 0;
+           if( usIdx > 0 ) {
+               final String buildS = Platform.JAVA_VERSION.substring(usIdx+1);
+               try {
+                   jvmUpdate = Integer.valueOf(buildS);
+               } catch (NumberFormatException nfe) {}
+           }
+           JAVA_VERSION_UPDATE = jvmUpdate;
+        }
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();

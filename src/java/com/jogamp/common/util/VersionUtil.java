@@ -68,7 +68,7 @@ public class VersionUtil {
         Platform.getMachineDescription().toString(sb).append(Platform.getNewline());
 
         // JVM/JRE
-        sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(", VM: ").append(Platform.getJavaVMName());
+        sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(" (").append(Platform.getJavaVersionNumber()).append("u").append(Platform.JAVA_VERSION_UPDATE).append("), VM: ").append(Platform.getJavaVMName());
         sb.append(", Runtime: ").append(Platform.getJavaRuntimeName()).append(Platform.getNewline());
         sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL());
         sb.append(", JavaSE: ").append(Platform.isJavaSE());
