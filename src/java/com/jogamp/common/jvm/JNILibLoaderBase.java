@@ -156,9 +156,13 @@ public class JNILibLoaderBase {
     if(TempJarCache.isInitialized()) {        
         final String nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
         msg.append(nativeJarName);
-        final URI jarUriRoot = IOUtil.getDirname( JarUtil.getJarSubURI( classJarURI ) );
-        msg.append(" + ").append(jarUriRoot);
-        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
+        final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
+        if(null == jarSubURI) {
+            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);            
+        }
+        final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+        msg.append(" + ").append(jarUriRoot_s);
+        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarName);
         msg.append(" -> ").append(nativeJarURI);
         if(DEBUG) {
             System.err.println(msg.toString());

@@ -393,6 +393,19 @@ public class JarUtil {
     }
     
     /**
+     * @param jarSubUriS file:/some/path/gluegen-rt.jar
+     * @return jar:file:/some/path/gluegen-rt.jar!/
+     * @throws IllegalArgumentException null arguments
+     * @throws URISyntaxException 
+     */
+    public static URI getJarFileURI(String jarSubUriS) throws IllegalArgumentException, URISyntaxException {
+        if(null == jarSubUriS) {
+            throw new IllegalArgumentException("jarSubURIS is null");
+        }
+        return new URI(IOUtil.JAR_SCHEME, jarSubUriS+"!/", null);
+    }
+    
+    /**
      * @param jarFileURI jar:file:/some/path/gluegen-rt.jar!/
      * @param jarEntry com/jogamp/common/GlueGenVersion.class
      * @return jar:file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class

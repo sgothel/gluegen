@@ -444,13 +444,32 @@ public class IOUtil {
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
      * @throws URISyntaxException 
      */
-    public static URI getDirname(URI uri) throws IllegalArgumentException, URISyntaxException {
+    public static URI getURIDirname(URI uri) throws IllegalArgumentException, URISyntaxException {
         if(null == uri) {
             throw new IllegalArgumentException("URI is null");            
         }
         String uriS = uri.toString();
         if( DEBUG ) {
             System.out.println("getURIDirname "+uri+", extForm: "+uriS);
+        }
+        return new URI( getURIDirname(uriS) );
+    }
+    
+    /**
+     * The URI's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
+     * parent dirname URI <code><i>protocol</i>:/some/path/</code> will be returned.
+     * <p>
+     * <i>protocol</i> may be "file", "http", etc..
+     * </p>
+     * 
+     * @param uri "<i>protocol</i>:/some/path/gluegen-rt.jar"
+     * @return "<i>protocol</i>:/some/path/"
+     * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
+     * @throws URISyntaxException 
+     */
+    public static String getURIDirname(String uriS) throws IllegalArgumentException, URISyntaxException {
+        if(null == uriS) {
+            throw new IllegalArgumentException("uriS is null");            
         }
         // from 
         //   file:/some/path/gluegen-rt.jar  _or_ rsrc:gluegen-rt.jar
@@ -461,7 +480,7 @@ public class IOUtil {
             // no abs-path, check for protocol terminator ':'
             idx = uriS.lastIndexOf(':');
             if(0 > idx) {
-                throw new IllegalArgumentException("URI does not contain protocol terminator ':', in <"+uri+">");
+                throw new IllegalArgumentException("URI does not contain protocol terminator ':', in <"+uriS+">");
             }
         }
         uriS = uriS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'        
@@ -469,7 +488,7 @@ public class IOUtil {
         if( DEBUG ) {
             System.out.println("getJarURIDirname res: "+uriS);
         }        
-        return new URI(uriS);
+        return uriS;
     }
     
     /** 
