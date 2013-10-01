@@ -148,22 +148,43 @@ public class JNILibLoaderBase {
     loaderAction = action;
   }
 
-  /* pp */ static final boolean addNativeJarLibsImpl(Class<?> classFromJavaJar, URI classJarURI, String nativeJarBasename, StringBuilder msg)
+  /**
+   * 
+   * @param classFromJavaJar
+   * @param classJarURI
+   * @param jarBasename jar basename w/ suffix
+   * @param nativeJarBasename native jar basename w/ suffix
+   * @param msg
+   * @return
+   * @throws IOException
+   * @throws SecurityException
+   * @throws URISyntaxException
+   */
+  /* pp */ static final boolean addNativeJarLibsImpl(Class<?> classFromJavaJar, URI classJarURI, String jarBasename, String nativeJarBasename, StringBuilder msg)
     throws IOException, SecurityException, URISyntaxException
   {
     msg.setLength(0); // reset
     msg.append("addNativeJarLibsImpl(classFromJavaJar ").append(classFromJavaJar).append(", classJarURI ").append(classJarURI).append(", nativeJarBaseName ").append(nativeJarBasename).append("): ");
     boolean ok = false;
     if(TempJarCache.isInitialized()) {
+        final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
+        if(null == jarSubURI) {
+            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);            
+        }
+        final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+        
         final String nativeLibraryPath = "natives/"+PlatformPropsImpl.os_and_arch+"/";
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
         if( null != nativeLibraryURI ) {
             // We probably have one big-fat jar file, containing java classes 
             // and all native platform libraries under 'natives/os.and.arch'!
-            if( TempJarCache.addNativeLibs(classFromJavaJar, classJarURI, nativeLibraryPath) ) {
+            final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+jarBasename);
+            if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
                 ok = true;
-                msg.append(classJarURI).append(" (fat)");
+                msg.append(jarBasename);
+                msg.append(" + ").append(jarUriRoot_s);
+                msg.append(" -> fat: ").append(jarBasename);
                 if(DEBUG) {
                     System.err.println(msg.toString());
                 }
@@ -171,16 +192,10 @@ public class JNILibLoaderBase {
         }
         if( !ok ) {
             // We assume one slim native jar file per 'os.and.arch'! 
-            final String nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
-            msg.append(nativeJarName);
-            final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
-            if(null == jarSubURI) {
-                throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);            
-            }
-            final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+            msg.append(nativeJarBasename);
             msg.append(" + ").append(jarUriRoot_s);
-            final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarName);
-            msg.append(" -> ").append(nativeJarURI).append(" (slim)");
+            final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarBasename);
+            msg.append(" -> slim: ").append(nativeJarURI);
             if(DEBUG) {
                 System.err.println(msg.toString());
             }
@@ -214,7 +229,8 @@ public class JNILibLoaderBase {
         final StringBuilder msg = new StringBuilder();
         try {
             final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), classFromJavaJar.getClassLoader());
-            return addNativeJarLibsImpl(classFromJavaJar, classJarURI, nativeJarBasename, msg);
+            final String jarName = JarUtil.getJarBasename(classJarURI);
+            return addNativeJarLibsImpl(classFromJavaJar, classJarURI, jarName, nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar", msg);
         } catch (Exception e0) {
             // IllegalArgumentException, IOException
             System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
@@ -348,9 +364,9 @@ public class JNILibLoaderBase {
                 ok = null != jarName;
                 if(ok) {
                     final String jarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
-                    final String nativeJarBasename = stripName(jarBasename, stripBasenameSuffixes);
+                    final String nativeJarBasename = stripName(jarBasename, stripBasenameSuffixes)+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
                     done = null != singleJarMarker && jarBasename.indexOf(singleJarMarker) >= 0; // done if single-jar ('all' variant)
-                    ok = JNILibLoaderBase.addNativeJarLibsImpl(classesFromJavaJars[i], classJarURI, nativeJarBasename, msg);
+                    ok = JNILibLoaderBase.addNativeJarLibsImpl(classesFromJavaJars[i], classJarURI, jarName, nativeJarBasename, msg);
                     if(ok) { count++; }
                     if(DEBUG && done) {
                         System.err.println("JNILibLoaderBase: addNativeJarLibs0: end after all-in-one JAR: "+jarBasename);

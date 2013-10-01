@@ -210,13 +210,16 @@ public class TempJarCache {
             nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
             final JarFile jarFile = JarUtil.getJarFile(jarURI);
             if(DEBUG) {
-                System.err.println("TempJarCache: addNativeLibs: "+jarURI+": nativeJar "+jarFile.getName());
+                System.err.println("TempJarCache: addNativeLibs: "+jarURI+": nativeJar "+jarFile.getName()+" (NEW)");
             }
             validateCertificates(certClass, jarFile);
             final int num = JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, nativeLibraryPath, true, false, false); 
             nativeLibJars.put(jarURI, LoadState.LOADED);
             return num > 0;
         } else if( testLoadState(nativeLibJarsLS, LoadState.LOADED) ) {
+            if(DEBUG) {
+                System.err.println("TempJarCache: addNativeLibs: "+jarURI+": nativeJar "+jarURI+" (REUSE)");
+            }
             return true;
         }
         throw new IOException("TempJarCache: addNativeLibs: "+jarURI+", previous load attempt failed");
