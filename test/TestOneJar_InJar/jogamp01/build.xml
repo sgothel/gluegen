@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="jogamp01" basedir="." default="build">
+
+    <!-- Hook into One-Jar project -->
+    <available property="one-jar.dir" file="../one-jar/build.onejar.xml" value="../one-jar"/>
+    <!-- Will be ignored if available above -->
+	<property name="one-jar.dir" location="one-jar" />
+    <import file="${one-jar.dir}/build.onejar.xml"/>
+    
+	<property name="eclipse.jar-in-jar.dir" value="build-lib/eclipse"/>
+	<property name="temp.dir" value="temp" />	
+    <path id="libraries">
+    	<fileset dir="lib" includes="*.jar"/>
+    </path>
+    
+    <target name="mkdirs">
+        <mkdir dir="${test.results.dir}" />
+        <mkdir dir="${test.reports.dir}"/>
+        <mkdir dir="classes/src"/>
+    	<mkdir dir="classes/test"/>
+        <mkdir dir="classes/junit"/>
+    	<mkdir dir="build"/>
+    </target>
+
+	<target name="build" depends="clean, mkdirs, compile, build.jogamp01" />
+
+	<target name="clean">
+		<delete dir="classes" />
+	</target>
+	
+	<target name="distclean" depends="clean" description="clean distribution">
+	    <delete dir="build"/>
+		<delete dir="test-reports"/>
+	    <delete dir="test-results"/>
+	</target>
+
+	<target name="compile" depends="mkdirs">
+        <javac destdir="classes/src" includes="**/*.java" debug="true">
+            <src path="src" />
+            <classpath refid="libraries" />
+            <classpath refid="one-jar.libraries"/>
+            <classpath path="${one-jar.ant.jar}"/>
+        </javac>
+        <javac destdir="classes/test" includes="**/*.java" debug="true">
+            <src path="test" />
+            <classpath refid="libraries" />
+            <classpath refid="one-jar.libraries"/>
+            <classpath path="${one-jar.ant.jar}"/>
+        </javac>
+        <javac destdir="classes/junit" includes="**/*.java" debug="true">
+            <src path="junit" />
+            <classpath refid="libraries" />
+            <classpath refid="one-jar.libraries"/>
+            <!-- Uses Invoker to set up a JUnit test bridge -->
+        	<classpath path="classes/test"/>
+        </javac>
+	</target>
+
+    <!-- Build the One-Jar -->
+	<target name="build.jogamp01">
+		<mkdir dir="build"/>
+		<one-jar destfile="build/jogamp01.jar">
+            <manifest>
+                <attribute name="Main-Class" value="jogamp.Boot"/>
+                <attribute name="One-Jar-Main-Class" value="com.jogamp.newt.opengl.GLWindow"/>
+            </manifest>
+            <main>
+                <fileset dir="classes/src"/>
+            </main>
+            <lib>
+                <fileset dir="lib" includes="*.jar" />
+            </lib>
+		</one-jar>
+		<one-jar destfile="build/test-jogamp01.jar">
+            <manifest>
+                <attribute name="Main-Class" value="jogamp.Boot"/>
+            	<attribute name="One-Jar-Main-Class" value="jogamp.test.Test"/>
+            </manifest>
+            <zipfileset src="${one-jar.ant.jar}" includes="**/Testable.class"/>
+			<main>
+				<fileset dir="classes/test"/>
+			</main>
+			<lib>
+				<fileset dir="lib" includes="*.jar" />
+			</lib>
+		</one-jar>
+		<delete dir="${temp.dir}" />
+	</target>
+
+    <property name="formatter" value="xml" />
+
+    <!-- Test the distribution -->
+    <target name="junit.report.jogamp01" depends="build" description="JUnit test of jogamp01">
+        <antcall target="junit.jogamp01" />
+        <antcall target="junit.report"/>   
+    </target>
+   
+    <target name="junit.jogamp01" depends="build">
+        <echo>********** junit-jogamp01.jar</echo>
+        <junit fork="yes" showoutput="no" printsummary="yes">
+            <jvmarg value="-Done-jar.verbose=true" />
+            <jvmarg value="-Done-jar.jarname=${basedir}/build/test-jogamp01.jar" />
+            <classpath>
+                <fileset file="${basedir}/build/test-jogamp01.jar" />
+                <path refid="one-jar.libraries"/>
+            	<path location="classes/junit" />
+            </classpath>
+
+            <!-- Uses Invoker to set up a JUnit test bridge -->
+            <test name="jogamp.test.Jogamp01Suite" todir="${test.results.dir}" outfile="Jogamp01Suite" />
+            <formatter type="${formatter}" usefile="yes" />
+        </junit>
+    </target>
+
+    <target name="run.jogamp01" depends="build" description="Run a One-Jar jogamp01">
+        <java fork="true" jar="build/jogamp01.jar"/>
+    </target>
+
+	<target name="test.jogamp01" depends="build" description="Stand-alone test a One-Jar jogamp01">
+        <java fork="true" jar="build/test-jogamp01.jar"/>
+    </target>
+	
+</project>
