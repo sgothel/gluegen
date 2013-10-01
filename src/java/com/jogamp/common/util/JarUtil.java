@@ -53,6 +53,8 @@ import jogamp.common.Debug;
 public class JarUtil {
     private static final boolean DEBUG = Debug.debug("JarUtil");
 
+    private static final int BUFFER_SIZE = 4096;
+    
     /**
      * Interface allowing users to provide an URL resolver that will convert custom classloader
      * URLs like Eclipse/OSGi <i>bundleresource:</i> URLs to normal <i>jar:</i> URLs.
@@ -579,7 +581,7 @@ public class JarUtil {
                 final OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
                 int numBytes = -1; 
                 try {
-                    numBytes = IOUtil.copyStream2Stream(in, out, -1);
+                    numBytes = IOUtil.copyStream2Stream(BUFFER_SIZE, in, out, -1);
                 } finally {
                     in.close();
                     out.close();

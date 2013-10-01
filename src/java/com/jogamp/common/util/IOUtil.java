@@ -169,7 +169,22 @@ public class IOUtil {
      * @throws IOException
      */
     public static int copyStream2Stream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
-        final byte[] buf = new byte[Platform.getMachineDescription().pageSizeInBytes()];
+        return copyStream2Stream(Platform.getMachineDescription().pageSizeInBytes(), in, out, totalNumBytes);
+    }
+
+    /**
+     * Copy the specified input stream to the specified output stream. The total
+     * number of bytes written is returned.
+     * 
+     * @param bufferSize the intermediate buffer size, should be {@link MachineDescription#pageSizeInBytes()} for best performance.
+     * @param in the source 
+     * @param out the destination
+     * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown 
+     * @return
+     * @throws IOException
+     */
+    public static int copyStream2Stream(int bufferSize, InputStream in, OutputStream out, int totalNumBytes) throws IOException {
+        final byte[] buf = new byte[bufferSize];
         int numBytes = 0;
         while (true) {
             int count;
@@ -181,7 +196,7 @@ public class IOUtil {
         }
         return numBytes;
     }
-
+    
     /**
      * Copy the specified input stream to a byte array, which is being returned.
      */
@@ -281,7 +296,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) throws URISyntaxException {
-        String p = path.replace('\\', '/'); // unify file seperator     
+        String p = path.replace('\\', '/'); // unify file separator     
         if (startWithSlash && !p.startsWith("/")) {
             p = "/" + p;
         }

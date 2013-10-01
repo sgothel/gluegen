@@ -33,7 +33,7 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
 
-import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
@@ -192,19 +192,11 @@ public class Platform extends PlatformPropsImpl {
             
                 // load GluegenRT native library
                 if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
-                    String nativeJarName = null;
-                    URI jarUriRoot = null;
-                    URI nativeJarURI = null;
                     try {
-                        final String jarName = JarUtil.getJarBasename( platformClassJarURI );
-                        final String nativeJarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
-                        nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";                    
-                        jarUriRoot = IOUtil.getDirname( JarUtil.getJarSubURI( platformClassJarURI ) );
-                        nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
-                        TempJarCache.bootstrapNativeLib(Platform.class, libBaseName, nativeJarURI);
+                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null, null );
                     } catch (Exception e0) {
                         // IllegalArgumentException, IOException
-                        System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while TempJarCache.bootstrapNativeLib() of "+nativeJarURI+" ("+jarUriRoot+" + "+nativeJarName+")");
+                        System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
                     }
                 }
                 DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);

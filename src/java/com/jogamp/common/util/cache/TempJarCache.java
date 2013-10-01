@@ -27,20 +27,13 @@
  */
 package com.jogamp.common.util.cache;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.cert.Certificate;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import jogamp.common.Debug;
@@ -397,76 +390,7 @@ public class TempJarCache {
         }
         return null;
     }
-    
-    
-    /**
-     * Bootstrapping version extracting the JAR files root entry containing libBaseName,
-     * assuming it's a native library. This is used to get the 'gluegen-rt'
-     * native library, hence bootstrapping.
-     *  
-     * @param certClass if class is certified, the JarFile entries needs to have the same certificate
-     *  
-     * @throws IOException
-     * @throws SecurityException
-     * @throws URISyntaxException 
-     * @throws IllegalArgumentException 
-     */
-    public synchronized static final void bootstrapNativeLib(Class<?> certClass, String libBaseName, URI jarURI) 
-            throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
-        checkInitialized();
-        boolean ok = false;
-        int countEntries = 0;
-        final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
-        if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) && !nativeLibMap.containsKey(libBaseName) ) {
-            if(DEBUG) {
-                System.err.println("TempJarCache: bootstrapNativeLib(certClass: "+certClass+", libBaseName "+libBaseName+", jarURI "+jarURI+")");
-            }
-            nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
-            final JarFile jarFile = JarUtil.getJarFile(jarURI);
-            if(DEBUG) {
-                System.err.println("TempJarCache: bootstrapNativeLib: nativeJar "+jarFile.getName());
-            }
-            validateCertificates(certClass, jarFile);
-            final Enumeration<JarEntry> entries = jarFile.entries();
-            while (entries.hasMoreElements()) {
-                final JarEntry entry = entries.nextElement();
-                final String entryName = entry.getName();
-    
-                if( entryName.indexOf('/') == -1 &&
-                    entryName.indexOf(File.separatorChar) == -1 &&
-                    entryName.indexOf(libBaseName) >= 0 ) 
-                {
-                    final File destFile = new File(tmpFileCache.getTempDir(), entryName);
-                    final InputStream in = new BufferedInputStream(jarFile.getInputStream(entry));
-                    final OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
-                    int numBytes = 0; 
-                    try {
-                        final byte[] buf = new byte[ 2048 ];
-                        while (true) {
-                            int countBytes;
-                            if ((countBytes = in.read(buf)) == -1) { break; }
-                            out.write(buf, 0, countBytes);
-                            numBytes += countBytes;
-                        }
-                    } finally { in.close(); out.close(); }
-                    if (numBytes>0) {
-                        nativeLibMap.put(libBaseName, destFile.getAbsolutePath());
-                        nativeLibJars.put(jarURI, LoadState.LOADED);
-                        ok = true;
-                        countEntries++;
-                    }
-                }
-            }
-        } else if( testLoadState(nativeLibJarsLS, LoadState.LOADED) ) {
-            ok = true; // already loaded
-        } else {
-            throw new IOException("TempJarCache: bootstrapNativeLib: "+jarURI+", previous load attempt failed");
-        }
-        if(DEBUG) {
-            System.err.println("TempJarCache: bootstrapNativeLib() done, count "+countEntries+", ok "+ok);
-        }
-    }
-    
+        
     private static void validateCertificates(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
         if(null == certClass) {
             throw new IllegalArgumentException("certClass is null");
