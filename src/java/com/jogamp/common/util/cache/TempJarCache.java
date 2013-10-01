@@ -197,12 +197,14 @@ public class TempJarCache {
      * 
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate 
      * @param jarURI
+     * @param nativeLibraryPath if not null, only extracts native libraries within this path.
+     * @return true if native libraries were added or previously loaded from given jarURI, otherwise false
      * @throws IOException if the <code>jarURI</code> could not be loaded or a previous load attempt failed
      * @throws SecurityException
      * @throws URISyntaxException 
      * @throws IllegalArgumentException 
      */
-    public synchronized static final void addNativeLibs(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {        
+    public synchronized static final boolean addNativeLibs(Class<?> certClass, URI jarURI, String nativeLibraryPath) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {        
         final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) { 
             nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
@@ -211,11 +213,13 @@ public class TempJarCache {
                 System.err.println("TempJarCache: addNativeLibs: "+jarURI+": nativeJar "+jarFile.getName());
             }
             validateCertificates(certClass, jarFile);
-            JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, true, false, false); 
+            final int num = JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, nativeLibraryPath, true, false, false); 
             nativeLibJars.put(jarURI, LoadState.LOADED);
-        } else if( !testLoadState(nativeLibJarsLS, LoadState.LOADED) ) {
-            throw new IOException("TempJarCache: addNativeLibs: "+jarURI+", previous load attempt failed");
+            return num > 0;
+        } else if( testLoadState(nativeLibJarsLS, LoadState.LOADED) ) {
+            return true;
         }
+        throw new IOException("TempJarCache: addNativeLibs: "+jarURI+", previous load attempt failed");
     }
     
     /**
@@ -241,7 +245,7 @@ public class TempJarCache {
             }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
-                            false, true, false); 
+                            null /* nativeLibraryPath */, false, true, false); 
             classFileJars.put(jarURI, LoadState.LOADED);
         } else if( !testLoadState(classFileJarsLS, LoadState.LOADED) ) {
             throw new IOException("TempJarCache: addClasses: "+jarURI+", previous load attempt failed");
@@ -269,7 +273,7 @@ public class TempJarCache {
             }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), null, jarFile, 
-                            false, false, true); 
+                            null /* nativeLibraryPath */, false, false, true); 
             resourceFileJars.put(jarURI, LoadState.LOADED);
         } else if( !testLoadState(resourceFileJarsLS, LoadState.LOADED) ) {
             throw new IOException("TempJarCache: addResources: "+jarURI+", previous load attempt failed");
@@ -323,7 +327,7 @@ public class TempJarCache {
             }
             validateCertificates(certClass, jarFile);
             JarUtil.extract(tmpFileCache.getTempDir(), nativeLibMap, jarFile, 
-                            extractNativeLibraries, extractClassFiles, extractOtherFiles);
+                            null /* nativeLibraryPath */, extractNativeLibraries, extractClassFiles, extractOtherFiles);
             
             // mark loaded (those were just loaded)
             if(extractNativeLibraries) {

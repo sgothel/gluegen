@@ -147,7 +147,7 @@ public class TestTempJarCache extends JunitTracer {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         JarFile jarFile = JarUtil.getJarFile(GlueGenVersion.class.getName(), this.getClass().getClassLoader());
         Assert.assertNotNull(jarFile);
-        JarUtil.extract(fileCache.getTempDir(), null, jarFile, false, true, true);
+        JarUtil.extract(fileCache.getTempDir(), null, jarFile, null, false, true, true);
         File f = new File(fileCache.getTempDir(), "META-INF/MANIFEST.MF");
         Assert.assertTrue(f.exists());
         f = new File(fileCache.getTempDir(), IOUtil.getClassFileName(GlueGenVersion.class.getName()));
@@ -207,7 +207,7 @@ public class TestTempJarCache extends JunitTracer {
         
         URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);        
         
-        TempJarCache.addNativeLibs(TempJarCache.class, nativeJarURI);
+        TempJarCache.addNativeLibs(TempJarCache.class, nativeJarURI, null /* nativeLibraryPath */);
         String libFullPath = TempJarCache.findLibrary(libBaseName);
         Assert.assertNotNull(libFullPath);
         Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));

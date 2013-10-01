@@ -514,22 +514,23 @@ public class JarUtil {
      * @param dest
      * @param nativeLibMap
      * @param jarFile
-     * @param deepDirectoryTraversal
+     * @param nativeLibraryPath if not null, only extracts native libraries within this path. 
      * @param extractNativeLibraries
      * @param extractClassFiles
      * @param extractOtherFiles
+     * @param deepDirectoryTraversal
      * @return
      * @throws IOException
      */
     public static final int extract(File dest, Map<String, String> nativeLibMap, 
                                     JarFile jarFile,
+                                    String nativeLibraryPath,
                                     boolean extractNativeLibraries,
-                                    boolean extractClassFiles,
-                                    boolean extractOtherFiles) throws IOException {
+                                    boolean extractClassFiles, boolean extractOtherFiles) throws IOException {
 
         if (DEBUG) {
             System.err.println("JarUtil: extract: "+jarFile.getName()+" -> "+dest+
-                               ", extractNativeLibraries "+extractNativeLibraries+
+                               ", extractNativeLibraries "+extractNativeLibraries+" ("+nativeLibraryPath+")"+
                                ", extractClassFiles "+extractClassFiles+
                                ", extractOtherFiles "+extractOtherFiles);
         }
@@ -543,11 +544,29 @@ public class JarUtil {
             // Match entries with correct prefix and suffix (ignoring case)
             final String libBaseName = NativeLibrary.isValidNativeLibraryName(entryName, false);
             final boolean isNativeLib = null != libBaseName;
-            if(isNativeLib && !extractNativeLibraries) {
-                if (DEBUG) {
-                    System.err.println("JarUtil: JarEntry : " + entryName + " native-lib skipped");
+            if(isNativeLib) {
+                if(!extractNativeLibraries) {
+                    if (DEBUG) {
+                        System.err.println("JarUtil: JarEntry : " + entryName + " native-lib skipped, skip all native libs");
+                    }
+                    continue;
                 }
-                continue;
+                if(null != nativeLibraryPath) {
+                    final String nativeLibraryPathS;
+                    final String dirnameS;
+                    try {
+                        nativeLibraryPathS = IOUtil.slashify(nativeLibraryPath, false /* startWithSlash */, true /* endWithSlash */);
+                        dirnameS = IOUtil.getDirname(entryName);
+                    } catch (URISyntaxException e) {
+                        throw new IOException(e);
+                    }
+                    if( !nativeLibraryPathS.equals(dirnameS) ) {
+                        if (DEBUG) {
+                            System.err.println("JarUtil: JarEntry : " + entryName + " native-lib skipped, not in path: "+nativeLibraryPathS);
+                        }
+                        continue;
+                    }
+                }
             }
             
             final boolean isClassFile = entryName.endsWith(".class");
@@ -581,14 +600,14 @@ public class JarUtil {
                 if (DEBUG) {
                     System.err.println("JarUtil: MKDIR: " + entryName + " -> " + destFile );
                 }
-                destFile.mkdir();
+                destFile.mkdirs();
             } else {
                 final File destFolder = new File(destFile.getParent());
                 if(!destFolder.exists()) {
                     if (DEBUG) {
                         System.err.println("JarUtil: MKDIR (parent): " + entryName + " -> " + destFolder );
                     }                    
-                    destFolder.mkdir();
+                    destFolder.mkdirs();
                 }
                 final InputStream in = new BufferedInputStream(jarFile.getInputStream(entry));
                 final OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));

@@ -44,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
@@ -153,22 +154,38 @@ public class JNILibLoaderBase {
     msg.setLength(0); // reset
     msg.append("addNativeJarLibsImpl(classFromJavaJar ").append(classFromJavaJar).append(", classJarURI ").append(classJarURI).append(", nativeJarBaseName ").append(nativeJarBasename).append("): ");
     boolean ok = false;
-    if(TempJarCache.isInitialized()) {        
-        final String nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
-        msg.append(nativeJarName);
-        final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
-        if(null == jarSubURI) {
-            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);            
+    if(TempJarCache.isInitialized()) {
+        final String nativeLibraryPath = "natives/"+PlatformPropsImpl.os_and_arch+"/";
+        final ClassLoader cl = classFromJavaJar.getClassLoader();
+        final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
+        if( null != nativeLibraryURI ) {
+            // We probably have one big-fat jar file, containing java classes 
+            // and all native platform libraries under 'natives/os.and.arch'!
+            if( TempJarCache.addNativeLibs(classFromJavaJar, classJarURI, nativeLibraryPath) ) {
+                ok = true;
+                msg.append(classJarURI).append(" (fat)");
+                if(DEBUG) {
+                    System.err.println(msg.toString());
+                }
+            }
         }
-        final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
-        msg.append(" + ").append(jarUriRoot_s);
-        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarName);
-        msg.append(" -> ").append(nativeJarURI);
-        if(DEBUG) {
-            System.err.println(msg.toString());
+        if( !ok ) {
+            // We assume one slim native jar file per 'os.and.arch'! 
+            final String nativeJarName = nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
+            msg.append(nativeJarName);
+            final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
+            if(null == jarSubURI) {
+                throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);            
+            }
+            final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+            msg.append(" + ").append(jarUriRoot_s);
+            final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarName);
+            msg.append(" -> ").append(nativeJarURI).append(" (slim)");
+            if(DEBUG) {
+                System.err.println(msg.toString());
+            }
+            ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, null /* nativeLibraryPath */);
         }
-        TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI);
-        ok = true;
     }
     return ok;
   }
