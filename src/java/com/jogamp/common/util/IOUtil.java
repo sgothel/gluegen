@@ -513,22 +513,40 @@ public class IOUtil {
      * @throws URISyntaxException
      */
     public static URL toURL(URI uri) throws IOException, IllegalArgumentException, URISyntaxException {
-        final URL url;
+        URL url = null;
         final String uriSchema = uri.getScheme();
         final boolean isJAR = IOUtil.JAR_SCHEME.equals(uriSchema);
-        final URI specificURI = isJAR ? JarUtil.getJarSubURI(uri) : uri; 
+        final URI specificURI = isJAR ? JarUtil.getJarSubURI(uri) : uri;
+        int mode = 0;
         if( IOUtil.FILE_SCHEME.equals( specificURI.getScheme() ) ) {
-            final File f = new File(specificURI);
-            if( specificURI == uri ) {
-                url = new URL(IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath());
-                // url = f.toURI().toURL(); // Doesn't work, since it uses encoded path!
-            } else {
-                final String post = isJAR ? IOUtil.JAR_SCHEME_SEPARATOR + JarUtil.getJarEntry(uri) : "";
-                final String urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath()+post;
-                url = new URL(urlS);
+            File f;
+            try {
+                f = new File(specificURI);
+            } catch( IllegalArgumentException iae) {
+                if( DEBUG ) {
+                    System.out.println("toURL: "+uri+" -> File("+specificURI+") failed: "+iae.getMessage());
+                }
+                f = null;
             }
-        } else {
+            if( null != f ) {
+                if( specificURI == uri ) {
+                    url = new URL(IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath());
+                    // url = f.toURI().toURL(); // Doesn't work, since it uses encoded path!
+                    mode = 1;
+                } else {
+                    final String post = isJAR ? IOUtil.JAR_SCHEME_SEPARATOR + JarUtil.getJarEntry(uri) : "";
+                    final String urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath()+post;
+                    url = new URL(urlS);
+                    mode = 2;
+                }
+            }
+        }
+        if( null == url ) {
             url = uri.toURL();
+            mode = 3;
+        }
+        if( DEBUG ) {
+            System.err.println("IOUtil.toURL: "+uri+", isJar "+isJAR+": "+specificURI+" -> mode "+mode+", "+url);
         }
         return url;
     }

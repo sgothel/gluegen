@@ -140,8 +140,9 @@ public class JarUtil {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
         final URI uri;
+        final URL url;
         {
-            final URL url = IOUtil.getClassURL(clazzBinName, cl);
+            url = IOUtil.getClassURL(clazzBinName, cl);
             final String scheme = url.getProtocol();
             if( null != resolver &&
                 !scheme.equals( IOUtil.JAR_SCHEME ) &&
@@ -164,6 +165,9 @@ public class JarUtil {
         // test name ..
         if( !uri.getScheme().equals( IOUtil.JAR_SCHEME ) ) {
             throw new IllegalArgumentException("URI is not using scheme "+IOUtil.JAR_SCHEME+": <"+uri+">");
+        }
+        if(DEBUG) {
+            System.out.println("getJarURI res: "+clazzBinName+" -> "+url+" -> "+uri);
         }
         return uri;
     }
@@ -266,26 +270,27 @@ public class JarUtil {
         if( !classJarURI.getScheme().equals(IOUtil.JAR_SCHEME) ) {
             throw new IllegalArgumentException("URI is not a using scheme "+IOUtil.JAR_SCHEME+": <"+classJarURI+">");
         }
-        String uriS = classJarURI.getRawSchemeSpecificPart();
         
         // from 
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class
         // to
         //   file:/some/path/gluegen-rt.jar
-        int idx = uriS.lastIndexOf('!');
+        final String uriS0 = classJarURI.getRawSchemeSpecificPart();        
+        int idx = uriS0.lastIndexOf('!');
+        final String uriS1;
         if (0 <= idx) {
-            uriS = uriS.substring(0, idx); // exclude '!/'
+            uriS1 = uriS0.substring(0, idx); // exclude '!/'
         } else {
             throw new IllegalArgumentException("JAR URI does not contain jar uri terminator '!', uri <"+classJarURI+">");
         }
         
-        if(0 >= uriS.lastIndexOf(".jar")) {
+        if(0 >= uriS1.lastIndexOf(".jar")) {
             throw new IllegalArgumentException("No Jar name in <"+classJarURI+">");
         }                    
         if(DEBUG) {
-            System.out.println("getJarSubURI res: "+uriS);
+            System.out.println("getJarSubURI res: "+classJarURI+" -> "+uriS0+" -> "+uriS1+" -> "+uriS1);
         }
-        return new URI(uriS);
+        return new URI(uriS1);
     }
     
     /**
