@@ -40,12 +40,19 @@ public class PropertyAccess {
   public static final String javaws_prefix = "javaws.";
   
   static final HashSet<String> trustedPrefixes;
+  static final HashSet<String> trusted;
   
   static {
       trustedPrefixes = new HashSet<String>();
       trustedPrefixes.add(javaws_prefix);
       trustedPrefixes.add(jnlp_prefix);
       // 'jogamp.' and maybe other trusted prefixes will be added later via 'addTrustedPrefix()'
+      
+      trusted = new HashSet<String>();
+      trusted.add("sun.java2d.opengl");
+      trusted.add("sun.java2d.noddraw");
+      trusted.add("sun.java2d.d3d");
+      trusted.add("sun.awt.noerasebackground");
   }
   
   /**
@@ -60,7 +67,7 @@ public class PropertyAccess {
   public static final boolean isTrusted(String propertyKey) {
       final int dot1 = propertyKey.indexOf('.');
       if(0<=dot1) {
-          return trustedPrefixes.contains(propertyKey.substring(0,  dot1+1));
+          return trustedPrefixes.contains(propertyKey.substring(0,  dot1+1)) || trusted.contains(propertyKey);
       } else {
           return false;
       }
