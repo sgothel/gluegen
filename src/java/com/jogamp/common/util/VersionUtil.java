@@ -55,7 +55,7 @@ public class VersionUtil {
         sb.append(SEPERATOR).append(Platform.getNewline());
 
         // environment
-        sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (os), ");
+        sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (").append(Platform.getOSVersionNumber()).append("), ");
         sb.append(Platform.getArchName()).append(" (arch), ").append(Platform.getABIType()).append(", ");
         sb.append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
