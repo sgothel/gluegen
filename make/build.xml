@@ -981,7 +981,8 @@
   </target>    
 
   <target name="tag.build" depends="init">
-    <echo message='gluegen.build.number=${gluegen.build.number}${line.separator}' file="${build}/artifact.properties"/>
+    <echo message='gluegen.build.version=${jogamp.version}${line.separator}'      file="${build}/artifact.properties"/>
+    <echo message='gluegen.build.number=${gluegen.build.number}${line.separator}' file="${build}/artifact.properties" append="true"/>
     <echo message='gluegen.build.id=${gluegen.build.id}${line.separator}'         file="${build}/artifact.properties" append="true"/>
     <echo message='gluegen.build.branch=${gluegen.build.branch}${line.separator}' file="${build}/artifact.properties" append="true"/>
     <echo message='gluegen.build.commit=${gluegen.build.commit}${line.separator}' file="${build}/artifact.properties" append="true"/>
