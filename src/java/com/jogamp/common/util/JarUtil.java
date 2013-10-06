@@ -193,7 +193,7 @@ public class JarUtil {
         if( !classJarURI.getScheme().equals(IOUtil.JAR_SCHEME) ) {
             throw new IllegalArgumentException("URI is not using scheme "+IOUtil.JAR_SCHEME+": <"+classJarURI+">");
         }
-        String uriS = classJarURI.getRawSchemeSpecificPart();
+        String uriS = classJarURI.getSchemeSpecificPart();
         
         // from 
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
@@ -275,7 +275,7 @@ public class JarUtil {
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class
         // to
         //   file:/some/path/gluegen-rt.jar
-        final String uriS0 = classJarURI.getRawSchemeSpecificPart();        
+        final String uriS0 = classJarURI.getSchemeSpecificPart();        
         int idx = uriS0.lastIndexOf('!');
         final String uriS1;
         if (0 <= idx) {
@@ -283,14 +283,14 @@ public class JarUtil {
         } else {
             throw new IllegalArgumentException("JAR URI does not contain jar uri terminator '!', uri <"+classJarURI+">");
         }
-        
         if(0 >= uriS1.lastIndexOf(".jar")) {
             throw new IllegalArgumentException("No Jar name in <"+classJarURI+">");
-        }                    
-        if(DEBUG) {
-            System.out.println("getJarSubURI res: "+classJarURI+" -> "+uriS0+" -> "+uriS1+" -> "+uriS1);
         }
-        return new URI(uriS1);
+        final String uriS2 = IOUtil.encodeToURI(uriS1);
+        if(DEBUG) {
+            System.out.println("getJarSubURI res: "+classJarURI+" -> "+uriS0+" -> "+uriS1+" -> "+uriS2);
+        }
+        return new URI(uriS2);
     }
     
     /**
@@ -309,7 +309,7 @@ public class JarUtil {
         if( !classJarURI.getScheme().equals(IOUtil.JAR_SCHEME) ) {
             throw new IllegalArgumentException("URI is not a using scheme "+IOUtil.JAR_SCHEME+": <"+classJarURI+">");
         }
-        String uriS = classJarURI.getRawSchemeSpecificPart();
+        String uriS = classJarURI.getSchemeSpecificPart();
         
         // from 
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class

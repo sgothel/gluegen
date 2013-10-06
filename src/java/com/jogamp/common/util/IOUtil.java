@@ -43,6 +43,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+import java.util.regex.Pattern;
 
 import jogamp.common.Debug;
 import jogamp.common.os.AndroidUtils;
@@ -312,7 +313,7 @@ public class IOUtil {
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI 
      */
     public static URI toURISimple(File file) throws URISyntaxException {
-        return new URI(FILE_SCHEME, null, slashify(file.getAbsolutePath(), true, file.isDirectory()), null);        
+        return new URI(FILE_SCHEME, null, encodeToURI(slashify(file.getAbsolutePath(), true, file.isDirectory())), null);        
     }
     
     /** 
@@ -321,7 +322,7 @@ public class IOUtil {
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI 
      */
     public static URI toURISimple(String protocol, String file, boolean isDirectory) throws URISyntaxException {
-        return new URI(protocol, null, slashify(file, true, isDirectory), null);        
+        return new URI(protocol, null, encodeToURI(slashify(file, true, isDirectory)), null);        
     }
 
     /**
@@ -462,7 +463,7 @@ public class IOUtil {
      * <i>protocol</i> may be "file", "http", etc..
      * </p>
      * 
-     * @param uri "<i>protocol</i>:/some/path/gluegen-rt.jar"
+     * @param uri "<i>protocol</i>:/some/path/gluegen-rt.jar" (URI encoded)
      * @return "<i>protocol</i>:/some/path/"
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
      * @throws URISyntaxException 
@@ -727,7 +728,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static URI getRelativeOf(URI baseURI, String relativePath) throws URISyntaxException {    
-        return compose(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), relativePath, baseURI.getRawFragment());
+        return compose(baseURI.getScheme(), baseURI.getSchemeSpecificPart(), encodeToURI(relativePath), baseURI.getFragment());
     }
     
     /**
@@ -753,9 +754,11 @@ public class IOUtil {
      * </p>
      * 
      * @param scheme scheme of the resulting URI
-     * @param schemeSpecificPart may include a query, which is separated while processing
-     * @param relativePath denotes a relative file to the baseLocation's parent directory
+     * @param schemeSpecificPart may include a query, which is separated while processing (URI encoded)
+     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
+     * @param fragment the URI fragment (URI encoded)
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
+     * @see #encodeToURI(String)
      */
     public static URI compose(String scheme, String schemeSpecificPart, String relativePath, String fragment) throws URISyntaxException {
         // cut off optional query in scheme-specific-part
@@ -776,6 +779,26 @@ public class IOUtil {
         schemeSpecificPart = cleanPathString( schemeSpecificPart );
         return new URI(scheme, null == query ? schemeSpecificPart : schemeSpecificPart + "?" + query, fragment);
     }    
+    
+    private static final Pattern patternSpaceRaw = Pattern.compile(" ");
+    private static final Pattern patternSpaceEnc = Pattern.compile("%20");
+    
+    /** 
+     * Escapes characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
+     * <ul>
+     *   <li>SPACE -> %20</li>
+     * </ul>
+     */
+    public static String encodeToURI(String s) {
+        return patternSpaceRaw.matcher(s).replaceAll("%20");
+    }
+    
+    /** 
+     * Reverses escaping of characters as performed via {@link #encodeToURI(String)}.
+     */
+    public static String decodeFromURI(String s) {
+        return patternSpaceEnc.matcher(s).replaceAll(" ");
+    }
     
     /**
      * Returns the connected URLConnection, or null if not url is not available
