@@ -6,7 +6,7 @@
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <!-- uses-feature android:name="android.hardware.camera" android:required="false" / --> <!-- not yet -->
 
-    <uses-sdk android:minSdkVersion="9" />
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_runtime_name"

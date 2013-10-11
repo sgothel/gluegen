@@ -11,7 +11,7 @@
     <!-- uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" / --> <!-- required for Android-Trace -->
     <uses-permission android:name="android.permission.CAMERA" />
 
-    <uses-sdk android:minSdkVersion="9" />
+    <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="14"/>
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_launcher_name"
