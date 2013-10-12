@@ -94,8 +94,8 @@ public class Buffers {
         return newDirectByteBuffer(numElements * SIZEOF_DOUBLE).asDoubleBuffer();
     }
 
-    public static DoubleBuffer newDirectDoubleBuffer(double[] values, int offset, int lenght) {
-        return (DoubleBuffer)newDirectDoubleBuffer(lenght).put(values, offset, lenght).rewind();
+    public static DoubleBuffer newDirectDoubleBuffer(double[] values, int offset, int length) {
+        return (DoubleBuffer)newDirectDoubleBuffer(length).put(values, offset, length).rewind();
     }
 
     public static DoubleBuffer newDirectDoubleBuffer(double[] values, int offset) {
@@ -115,8 +115,8 @@ public class Buffers {
         return newDirectByteBuffer(numElements * SIZEOF_FLOAT).asFloatBuffer();
     }
 
-    public static FloatBuffer newDirectFloatBuffer(float[] values, int offset, int lenght) {
-        return (FloatBuffer)newDirectFloatBuffer(lenght).put(values, offset, lenght).rewind();
+    public static FloatBuffer newDirectFloatBuffer(float[] values, int offset, int length) {
+        return (FloatBuffer)newDirectFloatBuffer(length).put(values, offset, length).rewind();
     }
 
     public static FloatBuffer newDirectFloatBuffer(float[] values, int offset) {
@@ -136,8 +136,8 @@ public class Buffers {
         return newDirectByteBuffer(numElements * SIZEOF_INT).asIntBuffer();
     }
 
-    public static IntBuffer newDirectIntBuffer(int[] values, int offset, int lenght) {
-        return (IntBuffer)newDirectIntBuffer(lenght).put(values, offset, lenght).rewind();
+    public static IntBuffer newDirectIntBuffer(int[] values, int offset, int length) {
+        return (IntBuffer)newDirectIntBuffer(length).put(values, offset, length).rewind();
     }
 
     public static IntBuffer newDirectIntBuffer(int[] values, int offset) {
@@ -157,8 +157,8 @@ public class Buffers {
         return newDirectByteBuffer(numElements * SIZEOF_LONG).asLongBuffer();
     }
 
-    public static LongBuffer newDirectLongBuffer(long[] values, int offset, int lenght) {
-        return (LongBuffer)newDirectLongBuffer(lenght).put(values, offset, lenght).rewind();
+    public static LongBuffer newDirectLongBuffer(long[] values, int offset, int length) {
+        return (LongBuffer)newDirectLongBuffer(length).put(values, offset, length).rewind();
     }
 
     public static LongBuffer newDirectLongBuffer(long[] values, int offset) {
@@ -178,8 +178,8 @@ public class Buffers {
         return newDirectByteBuffer(numElements * SIZEOF_SHORT).asShortBuffer();
     }
 
-    public static ShortBuffer newDirectShortBuffer(short[] values, int offset, int lenght) {
-        return (ShortBuffer)newDirectShortBuffer(lenght).put(values, offset, lenght).rewind();
+    public static ShortBuffer newDirectShortBuffer(short[] values, int offset, int length) {
+        return (ShortBuffer)newDirectShortBuffer(length).put(values, offset, length).rewind();
     }
 
     public static ShortBuffer newDirectShortBuffer(short[] values, int offset) {
@@ -199,8 +199,8 @@ public class Buffers {
         return newDirectByteBuffer(numElements * SIZEOF_SHORT).asCharBuffer();
     }
 
-    public static CharBuffer newDirectCharBuffer(char[] values, int offset, int lenght) {
-        return (CharBuffer)newDirectCharBuffer(lenght).put(values, offset, lenght).rewind();
+    public static CharBuffer newDirectCharBuffer(char[] values, int offset, int length) {
+        return (CharBuffer)newDirectCharBuffer(length).put(values, offset, length).rewind();
     }
 
     public static CharBuffer newDirectCharBuffer(char[] values, int offset) {
