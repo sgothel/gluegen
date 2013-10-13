@@ -1082,8 +1082,8 @@
         <define name="DBUILD_DLL" />
         <define name="_STRICT_ANSI" /> 
         <define name="_JNI_IMPLEMENTATION_" />
-        <define name="WINVER"         value="0x0501"/> <!-- set windows version to >= Windows XP -->
-        <define name="_WIN32_WINNT"   value="0x0501"/> <!-- set windows version to >= Windows XP -->
+        <define name="WINVER"         value="0x0601"/> <!-- set windows version to >= Windows 7 -->
+        <define name="_WIN32_WINNT"   value="0x0601"/> <!-- set windows version to >= Windows 7 -->
       </defineset>
     </compiler>
 
@@ -1099,8 +1099,8 @@
         <define name="DBUILD_DLL" />
         <define name="_STRICT_ANSI" /> 
         <define name="_JNI_IMPLEMENTATION_" />
-        <define name="WINVER"         value="0x0501"/> <!-- set windows version to >= Windows XP -->
-        <define name="_WIN32_WINNT"   value="0x0501"/> <!-- set windows version to >= Windows XP -->
+        <define name="WINVER"         value="0x0601"/> <!-- set windows version to >= Windows 7 -->
+        <define name="_WIN32_WINNT"   value="0x0601"/> <!-- set windows version to >= Windows 7 -->
       </defineset>
     </compiler>
 
