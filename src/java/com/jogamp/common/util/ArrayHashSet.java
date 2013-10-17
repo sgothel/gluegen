@@ -95,9 +95,9 @@ public class ArrayHashSet<E>
      */
     @Override
     public final Object clone() {
-        ArrayList<E> clonedList = new ArrayList<E>(data);
+        final ArrayList<E> clonedList = new ArrayList<E>(data);
 
-        ArrayHashSet<E> newObj = new ArrayHashSet<E>();
+        final ArrayHashSet<E> newObj = new ArrayHashSet<E>();
         newObj.addAll(clonedList);
 
         return newObj;
@@ -131,7 +131,7 @@ public class ArrayHashSet<E>
      */
     @Override
     public final boolean add(E element) {
-        boolean exists = map.containsKey(element);
+        final boolean exists = map.containsKey(element);
         if(!exists) {
             if(null != map.put(element, element)) {
                 throw new InternalError("Already existing, but checked before: "+element);
@@ -343,7 +343,7 @@ public class ArrayHashSet<E>
      */
     @Override
     public final E set(int index, E element) {
-        E old = remove(index);
+        final E old = remove(index);
         if(null!=old) {
             add(index, element);
         }
@@ -359,7 +359,7 @@ public class ArrayHashSet<E>
      */
     @Override
     public final E remove(int index) {
-        E o = get(index);
+        final E o = get(index);
         if( null!=o && remove(o) ) {
             return o;
         }
@@ -428,13 +428,13 @@ public class ArrayHashSet<E>
      * or add the given <code>key</code> and return it.
      */
     public final E getOrAdd(E key) {
-        E identity = get(key);
+        final E identity = get(key);
         if(null == identity) {
             // object not contained yet, add it
             if(!this.add(key)) {
                 throw new InternalError("Key not mapped, but contained in list: "+key);
             }
-            identity = key;
+            return key;
         }
         return identity;
     }
