@@ -93,6 +93,7 @@ public class ArrayHashSet<E>
     /**
      * @return a shallow copy of this ArrayHashSet, elements are not copied.
      */
+    @Override
     public final Object clone() {
         ArrayList<E> clonedList = new ArrayList<E>(data);
 
@@ -107,12 +108,14 @@ public class ArrayHashSet<E>
     /** Returns this object hash map. Use w/ care, it's not a copy. */
     public final HashMap<E,E> getMap() { return map; }
     
+    @Override
     public final String toString() { return data.toString(); }
     
     //
     // Collection
     //
 
+    @Override
     public final void clear() {
         data.clear();
         map.clear();
@@ -126,6 +129,7 @@ public class ArrayHashSet<E>
      * @return true if the element was added to this list,
      *         otherwise false (already contained).
      */
+    @Override
     public final boolean add(E element) {
         boolean exists = map.containsKey(element);
         if(!exists) {
@@ -148,6 +152,7 @@ public class ArrayHashSet<E>
      * @return true if the element was removed from this list,
      *         otherwise false (not contained).
      */
+    @Override
     public final boolean remove(Object element) {
         if ( null != map.remove(element) ) {
             if ( ! data.remove(element) ) {
@@ -166,6 +171,7 @@ public class ArrayHashSet<E>
      * @return true if at least one element was added to this list,
      *         otherwise false (completely container).
      */
+    @Override
     public final boolean addAll(Collection<? extends E> c) {
         boolean mod = false;
         for (E o : c) {
@@ -182,6 +188,7 @@ public class ArrayHashSet<E>
      * @return true if the given element is contained by this list using fast hash map,
      *         otherwise false.
      */
+    @Override
     public final boolean contains(Object element) {
         return map.containsKey(element);
     }
@@ -194,6 +201,7 @@ public class ArrayHashSet<E>
      * @return true if the given Collection is completly contained by this list using hash map,
      *         otherwise false.
      */
+    @Override
     public final boolean containsAll(Collection<?> c) {
         for (Object o : c) {
             if (!this.contains(o)) {
@@ -211,6 +219,7 @@ public class ArrayHashSet<E>
      * @return true if at least one element of this list was removed,
      *         otherwise false.
      */
+    @Override
     public final boolean removeAll(Collection<?> c) {
         boolean mod = false;
         for (Object o : c) {
@@ -228,6 +237,7 @@ public class ArrayHashSet<E>
      * @return true if at least one element of this list was removed,
      *         otherwise false.
      */
+    @Override
     public final boolean retainAll(Collection<?> c) {
         boolean mod = false;
         for (Object o : c) {
@@ -244,6 +254,7 @@ public class ArrayHashSet<E>
      * @return true if arrayHashSet is of type ArrayHashSet and all entries are equal
      * Performance: arrayHashSet(1)
      */
+    @Override
     public final boolean equals(Object arrayHashSet) {
         if ( !(arrayHashSet instanceof ArrayHashSet) ) {
             return false;
@@ -257,26 +268,32 @@ public class ArrayHashSet<E>
      * @return the hash code of this list as define in {@link java.util.List#hashCode()},
      * ie hashing all elements of this list.
      */
+    @Override
     public final int hashCode() {
         return data.hashCode();
     }
 
+    @Override
     public final boolean isEmpty() {
         return data.isEmpty();
     }
 
+    @Override
     public final Iterator<E> iterator() {
         return data.iterator();
     }
 
+    @Override
     public final int size() {
         return data.size();
     }
 
+    @Override
     public final Object[] toArray() {
         return data.toArray();
     }
 
+    @Override
     public final <T> T[] toArray(T[] a) {
         return data.toArray(a);
     }
@@ -285,10 +302,12 @@ public class ArrayHashSet<E>
     // List
     //
 
+    @Override
     public final E get(int index) {
         return data.get(index);
     }
 
+    @Override
     public final int indexOf(Object element) {
         return data.indexOf(element);
     }
@@ -300,6 +319,7 @@ public class ArrayHashSet<E>
      *
      * @throws IllegalArgumentException if the given element was already contained
      */
+    @Override
     public final void add(int index, E element) {
         if ( map.containsKey(element) ) {
             throw new IllegalArgumentException("Element "+element+" is already contained");
@@ -313,6 +333,7 @@ public class ArrayHashSet<E>
     /**
      * @throws UnsupportedOperationException
      */
+    @Override
     public final boolean addAll(int index, Collection<? extends E> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -320,6 +341,7 @@ public class ArrayHashSet<E>
     /**
      * @throws UnsupportedOperationException
      */
+    @Override
     public final E set(int index, E element) {
         E old = remove(index);
         if(null!=old) {
@@ -335,6 +357,7 @@ public class ArrayHashSet<E>
      *
      * @return the removed object
      */
+    @Override
     public final E remove(int index) {
         E o = get(index);
         if( null!=o && remove(o) ) {
@@ -350,18 +373,22 @@ public class ArrayHashSet<E>
      *
      * @return index of element, or -1 if not found
      */
+    @Override
     public final int lastIndexOf(Object o) {
         return indexOf(o);
     }
 
+    @Override
     public final ListIterator<E> listIterator() {
         return data.listIterator();
     }
 
+    @Override
     public final ListIterator<E> listIterator(int index) {
         return data.listIterator(index);
     }
 
+    @Override
     public final List<E> subList(int fromIndex, int toIndex) {
         return data.subList(fromIndex, toIndex);
     }
