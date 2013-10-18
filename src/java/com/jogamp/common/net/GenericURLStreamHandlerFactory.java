@@ -10,30 +10,30 @@ import java.util.Map;
 
 public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
     private static GenericURLStreamHandlerFactory factory = null;
-    
+
     private final Map<String, URLStreamHandler> protocolHandlers;
 
     private GenericURLStreamHandlerFactory() {
         protocolHandlers = new HashMap<String, URLStreamHandler>();
     }
-    
+
     /**
      * Sets the <code>handler</code> for <code>protocol</code>.
-     * 
+     *
      * @return the previous set <code>handler</code>, or null if none was set.
      */
     public synchronized final URLStreamHandler setHandler(String protocol, URLStreamHandler handler) {
         return protocolHandlers.put(protocol, handler);
     }
-    
+
     /**
-     * Returns the <code>protocol</code> handler previously set via {@link #setHandler(String, URLStreamHandler)}, 
+     * Returns the <code>protocol</code> handler previously set via {@link #setHandler(String, URLStreamHandler)},
      * or null if none was set.
      */
     public synchronized final URLStreamHandler getHandler(String protocol) {
         return protocolHandlers.get(protocol);
     }
-    
+
     @Override
     public synchronized final URLStreamHandler createURLStreamHandler(String protocol) {
         return getHandler(protocol);

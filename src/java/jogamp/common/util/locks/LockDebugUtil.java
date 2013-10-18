@@ -50,7 +50,7 @@ public class LockDebugUtil {
             dummy = new ArrayList<Throwable>(0);
         }
     }
-    
+
     public static List<Throwable> getRecursiveLockTrace() {
         if(Lock.DEBUG) {
             ArrayList<Throwable> ls = tlsLockedStacks.get();
@@ -63,7 +63,7 @@ public class LockDebugUtil {
             return dummy;
         }
     }
-    
+
     public static void dumpRecursiveLockTrace(PrintStream out) {
         if(Lock.DEBUG) {
             List<Throwable> ls = getRecursiveLockTrace();

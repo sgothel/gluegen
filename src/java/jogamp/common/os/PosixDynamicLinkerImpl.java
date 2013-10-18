@@ -31,7 +31,7 @@ public final class PosixDynamicLinkerImpl extends UnixDynamicLinkerImpl {
 
   private static final long RTLD_DEFAULT = 0;
   //      static final long RTLD_NEXT    = -1L;
-  
+
   private static final int RTLD_LAZY     = 0x00001;
   //      static final int RTLD_NOW      = 0x00002;
   private static final int RTLD_LOCAL    = 0x00000;
@@ -46,7 +46,7 @@ public final class PosixDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   public final long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
     return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_GLOBAL, debug);
   }
-  
+
   @Override
   public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
     return this.lookupSymbolGlobalImpl(RTLD_DEFAULT, symbolName);

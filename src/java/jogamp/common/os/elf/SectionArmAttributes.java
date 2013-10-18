@@ -23,17 +23,17 @@ import java.util.List;
  */
 public class SectionArmAttributes extends Section {
     public static final byte FORMAT_VERSION_A = 0x41; // 'A';
-    
+
     public static enum Type {
         /** No Value */
-        None, 
+        None,
         /** A Sub-Section - following the 4 byte sub section total size (tag + size + content) - byte order of the ELF file */
         SubSection,
         /** Null Terminated Byte-String */
         NTBS,
         ULEB128,
     }
-    
+
     /** ULEB128 Value for {@link Tag#ABI_VFP_args}: FP parameter/result passing conforms to AAPCS, BASE variant. */
     public static final byte ABI_VFP_ARGS_IS_BASE_VARIANT = 0;
     /** ULEB128 Value for {@link Tag#ABI_VFP_args}: FP parameter/result passing conforms to AAPCS, VFP variant. */
@@ -41,18 +41,18 @@ public class SectionArmAttributes extends Section {
     /** ULEB128 Value for {@link Tag#ABI_VFP_args}: FP parameter/result passing conforms to custom toolchain. */
     public static final byte ABI_VFP_ARGS_IS_CUSTOM_VARIANT = 2;
     /** ULEB128 Value for {@link Tag#ABI_VFP_args}: FP parameter/result passing conforms to both , BASE and VFP variant. */
-    public static final byte ABI_VFP_ARGS_IS_BOTH_BASE_AND_VFP_VARIANT = 3;        
-    
-    /** 
+    public static final byte ABI_VFP_ARGS_IS_BOTH_BASE_AND_VFP_VARIANT = 3;
+
+    /**
      * Returns true if value is either {@link #ABI_VFP_ARGS_IS_VFP_VARIANT} or {@link #ABI_VFP_ARGS_IS_BOTH_BASE_AND_VFP_VARIANT}
      * @param v ULEB128 Value from {@link Tag#ABI_VFP_args} attribute
      */
     public static final boolean abiVFPArgsAcceptsVFPVariant(byte v) {
         return ABI_VFP_ARGS_IS_VFP_VARIANT == v || ABI_VFP_ARGS_IS_BOTH_BASE_AND_VFP_VARIANT == v;
     }
-    
+
     public static enum Tag {
-        None(0, Type.None), 
+        None(0, Type.None),
         File(1, Type.SubSection), Section(2, Type.SubSection), Symbol(3, Type.SubSection),
         CPU_raw_name( 4, Type.NTBS ),
         CPU_name( 5, Type.NTBS ),
@@ -96,10 +96,10 @@ public class SectionArmAttributes extends Section {
         undefined69( 69, Type.None ),
         MPextension_use_legacy( 70, Type.ULEB128 )
         ;
-        
+
         public final int id;
-        public final Type type; 
-        
+        public final Type type;
+
         /** Slow O(n) transition of a native tag value to a Tag. */
         public static Tag get(final int id) {
             final Tag[] tags = Tag.values();
@@ -117,16 +117,16 @@ public class SectionArmAttributes extends Section {
             this.type = type;
         }
     }
-    
+
     public static class Attribute {
         public final Tag tag;
         private final Object value;
-        
+
         Attribute(Tag tag, Object value) {
             this.tag = tag;
             this.value = value;
         }
-        
+
         public final boolean isNTBS() {
             return Type.NTBS == tag.type;
         }
@@ -136,7 +136,7 @@ public class SectionArmAttributes extends Section {
             }
             throw new IllegalArgumentException("Not NTBS but "+tag.type);
         }
-        
+
         public final boolean isULEB128() {
             return Type.ULEB128 == tag.type;
         }
@@ -146,41 +146,41 @@ public class SectionArmAttributes extends Section {
             }
             throw new IllegalArgumentException("Not ULEB128 but "+tag.type);
         }
-        
+
         public String toString() {
             return tag+" = "+value;
         }
     }
-    
+
     public static class VendorAttributes {
         public final String vendor;
         public final List<Attribute> attributes;
-        
+
         VendorAttributes(String vendor, List<Attribute> attributes) {
             this.vendor = vendor;
-            this.attributes = attributes;            
+            this.attributes = attributes;
         }
-        
+
         public String toString() {
             return vendor + attributes.toString();
         }
     }
     public final List<VendorAttributes> vendorAttributesList;
-    
+
     SectionArmAttributes(SectionHeader sh, byte[] data, int offset, int length) throws IndexOutOfBoundsException, IllegalArgumentException {
         super(sh, data, offset, length);
         this.vendorAttributesList = parse(data, offset, length);
     }
-    
+
     public String toString() {
         return "SectionArmAttributes["+super.toSubString()+", "+vendorAttributesList.toString()+"]";
     }
-    
+
     public final Attribute get(Tag tag) {
         for(int i=0; i<vendorAttributesList.size(); i++) {
             final List<Attribute> attributes = vendorAttributesList.get(i).attributes;
             for(int j=0; j<attributes.size(); j++) {
-                final Attribute a = attributes.get(j); 
+                final Attribute a = attributes.get(j);
                 if( a.tag == tag ) {
                     return a;
                 }
@@ -188,11 +188,11 @@ public class SectionArmAttributes extends Section {
         }
         return null;
     }
-    
+
     public final List<Attribute> get(String vendor) {
         return get(vendorAttributesList, vendor);
     }
-    
+
     static final List<Attribute> get(final List<VendorAttributes> vendorAttributesList, String vendor) {
         for(int i=0; i<vendorAttributesList.size(); i++) {
             final VendorAttributes vas = vendorAttributesList.get(i);
@@ -202,14 +202,14 @@ public class SectionArmAttributes extends Section {
         }
         return null;
     }
-    
+
     /**
      * @param in byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
-     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>, 
+     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
      *                  which shall not exceed <code>sb.length - offset</code>.
-     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.  
-     * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.  
+     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
+     * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
     static List<VendorAttributes> parse(final byte[] in, final int offset, final int remaining) throws IndexOutOfBoundsException, IllegalArgumentException {
         checkBounds(in, offset, remaining);
@@ -218,33 +218,33 @@ public class SectionArmAttributes extends Section {
             throw new IllegalArgumentException("ShArmAttr: Not version A, but: "+toHexString(in[i]));
         }
         i++;
-        
+
         final List<VendorAttributes> vendorAttributesList = new ArrayList<VendorAttributes>();
-        
+
         while(i < remaining) {
-            final int i_pre = i;           
+            final int i_pre = i;
             final int secLen = readUInt32(in, i); /* total section size: 4 + string + content, i.e. offset to next section */
             i+=4;
-            
+
             final String vendor;
             {
-                int[] i_post = new int[] { 0 };                
+                int[] i_post = new int[] { 0 };
                 vendor = getString(in, i, secLen - 4, i_post);
                 i = i_post[0];
             }
-            
+
             final List<Attribute> attributes = new ArrayList<Attribute>();
-            
+
             while(i < secLen) {
-                int[] i_post = new int[] { 0 };            
-                parseSub(in, i, secLen - i, i_post, attributes);                
+                int[] i_post = new int[] { 0 };
+                parseSub(in, i, secLen - i, i_post, attributes);
                 i = i_post[0];
             }
-            
+
             if( i_pre + secLen != i ) {
                 throw new IllegalArgumentException("ShArmAttr: Section length count mismatch, expected "+(i_pre + secLen)+", has "+i);
             }
-            
+
             final List<Attribute> mergeAttribs = get(vendorAttributesList, vendor);
             if( null != mergeAttribs ) {
                 mergeAttribs.addAll(attributes);
@@ -252,21 +252,21 @@ public class SectionArmAttributes extends Section {
                 vendorAttributesList.add(new VendorAttributes(vendor, attributes));
             }
         }
-        
+
         return vendorAttributesList;
     }
-    
+
     /**
      * @param in byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
-     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>, 
+     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
      *                  which shall not exceed <code>sb.length - offset</code>.
-     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.  
-     * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.  
+     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
+     * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
     static void parseSub(final byte[] in, final int offset, final int remaining, int[] offset_post, List<Attribute> attributes) throws IndexOutOfBoundsException, IllegalArgumentException {
         checkBounds(in, offset, remaining);
-        
+
         // Starts w/ sub-section Tag
         int i = offset;
         final int i_sTag = in[i++];
@@ -274,7 +274,7 @@ public class SectionArmAttributes extends Section {
         if( null == sTag ) {
             throw new IllegalArgumentException("ShArmAttr: Invalid Sub-Section tag (NaT): "+i_sTag);
         }
-        final int subSecLen; // sub section total size (tag + size + content) 
+        final int subSecLen; // sub section total size (tag + size + content)
         switch(sTag) {
             case File:
             case Section:
@@ -295,7 +295,7 @@ public class SectionArmAttributes extends Section {
                 switch(tag.type) {
                     case NTBS:
                         {
-                            int[] i_post = new int[] { 0 };                
+                            int[] i_post = new int[] { 0 };
                             final String value = getString(in, i, subSecLen + offset - i, i_post);
                             attributes.add(new Attribute(tag, value));
                             i = i_post[0];
@@ -313,5 +313,5 @@ public class SectionArmAttributes extends Section {
             }
         }
         offset_post[0] = offset + subSecLen;
-    }    
+    }
 }

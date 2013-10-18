@@ -33,27 +33,27 @@ package com.jogamp.common.util.locks;
  */
 public interface ThreadLock extends Lock {
 
-    /** Query whether the lock is hold by the a thread other than the current thread. */ 
+    /** Query whether the lock is hold by the a thread other than the current thread. */
     boolean isLockedByOtherThread();
 
-    /** Query whether the lock is hold by the given thread. */ 
+    /** Query whether the lock is hold by the given thread. */
     boolean isOwner(Thread thread);
-    
+
     /**
      * @return the Thread owning this lock if locked, otherwise null
      */
     Thread getOwner();
 
     /**
-     * @throws RuntimeException if current thread does not hold the lock 
+     * @throws RuntimeException if current thread does not hold the lock
      */
     void validateLocked() throws RuntimeException;
-    
+
     /**
      * Execute the {@link Runnable Runnable taskAfterUnlockBeforeNotify} while holding the exclusive lock.
      * <p>
      * Then release the lock.
-     * </p> 
+     * </p>
      */
-    void unlock(Runnable taskAfterUnlockBeforeNotify);    
+    void unlock(Runnable taskAfterUnlockBeforeNotify);
 }

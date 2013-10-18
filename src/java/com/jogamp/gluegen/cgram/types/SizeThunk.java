@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -48,8 +48,8 @@ import com.jogamp.common.os.MachineDescription;
     32-bit and 64-bit) from the same internal representation of the
     various types involved. */
 public abstract class SizeThunk implements Cloneable {
-  private boolean fixedNativeSize; 
-  
+  private boolean fixedNativeSize;
+
   // Private constructor because there are only a few of these
   private SizeThunk(boolean fixedNativeSize) { this.fixedNativeSize = fixedNativeSize; }
 
@@ -60,7 +60,7 @@ public abstract class SizeThunk implements Cloneable {
         throw new InternalError();
     }
   }
-  
+
   public final boolean hasFixedNativeSize() { return fixedNativeSize; }
 
   public abstract long computeSize(MachineDescription machDesc);
@@ -156,7 +156,7 @@ public abstract class SizeThunk implements Cloneable {
           return thunk1.computeSize(machDesc) + thunk2.computeSize(machDesc);
         }
         public long computeAlignment(MachineDescription machDesc) {
-          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk1A = thunk1.computeAlignment(machDesc);
           final long thunk2A = thunk2.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
@@ -170,7 +170,7 @@ public abstract class SizeThunk implements Cloneable {
           return thunk1.computeSize(machDesc) * thunk2.computeSize(machDesc);
         }
         public long computeAlignment(MachineDescription machDesc) {
-          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk1A = thunk1.computeAlignment(machDesc);
           final long thunk2A = thunk2.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
@@ -185,17 +185,17 @@ public abstract class SizeThunk implements Cloneable {
           // remainder = net_size & ( alignment - 1 )
           // padding = alignment - remainder ;
           // aligned_size = net_size + padding ;
-            
+
           final long size = offsetThunk.computeSize(machDesc);
           final long alignment = alignmentThunk.computeAlignment(machDesc);
-          
+
           final long remainder = size & ( alignment - 1 ) ;
           final long padding = (remainder > 0) ? alignment - remainder : 0;
           return size + padding;
         }
-        
+
         public long computeAlignment(MachineDescription machDesc) {
-          final long thunk1A = offsetThunk.computeAlignment(machDesc); 
+          final long thunk1A = offsetThunk.computeAlignment(machDesc);
           final long thunk2A = alignmentThunk.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
@@ -209,7 +209,7 @@ public abstract class SizeThunk implements Cloneable {
           return Math.max(thunk1.computeSize(machDesc), thunk2.computeSize(machDesc));
         }
         public long computeAlignment(MachineDescription machDesc) {
-          final long thunk1A = thunk1.computeAlignment(machDesc); 
+          final long thunk1A = thunk1.computeAlignment(machDesc);
           final long thunk2A = thunk2.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
         }
@@ -222,8 +222,8 @@ public abstract class SizeThunk implements Cloneable {
           return constant;
         }
         public long computeAlignment(MachineDescription machDesc) {
-          return 1; // no alignment for constants 
-        }        
+          return 1; // no alignment for constants
+        }
       };
   }
 }

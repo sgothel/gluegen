@@ -4,14 +4,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -21,7 +21,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -58,7 +58,7 @@ import java.nio.ShortBuffer;
  * <li>factories created with createSynchronized(...) are threadsafe</li>
  * </ul>
  * </p>
- * 
+ *
  * @author Michael Bien
  */
 public class CachedBufferFactory {
@@ -67,20 +67,20 @@ public class CachedBufferFactory {
      * default size for internal buffer allocation.
      */
     public static final int DEFAULT_ALLOCATION_SIZE = 1024 * 1024;
-    
+
     private final int ALLOCATION_SIZE;
     private ByteBuffer currentBuffer;
-    
+
     private CachedBufferFactory() {
         this(DEFAULT_ALLOCATION_SIZE, DEFAULT_ALLOCATION_SIZE);
     }
-    
+
     private CachedBufferFactory(int initialSize, int allocationSize) {
         currentBuffer = Buffers.newDirectByteBuffer(initialSize);
         ALLOCATION_SIZE = allocationSize;
     }
-    
-    
+
+
     /**
      * Creates a factory with initial size and allocation size set to
      * {@link #DEFAULT_ALLOCATION_SIZE}.
@@ -88,7 +88,7 @@ public class CachedBufferFactory {
     public static CachedBufferFactory create() {
         return new CachedBufferFactory();
     }
-    
+
     /**
      * Creates a factory with the specified initial size. The allocation size is set to
      * {@link #DEFAULT_ALLOCATION_SIZE}.
@@ -96,7 +96,7 @@ public class CachedBufferFactory {
     public static CachedBufferFactory create(int initialSize) {
         return new CachedBufferFactory(initialSize, DEFAULT_ALLOCATION_SIZE);
     }
-    
+
     /**
      * Creates a factory with the specified initial size. The allocation size is set to
      * {@link #DEFAULT_ALLOCATION_SIZE}.
@@ -106,43 +106,43 @@ public class CachedBufferFactory {
     public static CachedBufferFactory create(int initialSize, boolean fixed) {
         return new CachedBufferFactory(initialSize, fixed?-1:DEFAULT_ALLOCATION_SIZE);
     }
-    
+
     /**
      * Creates a factory with the specified initial size and allocation size.
      */
     public static CachedBufferFactory create(int initialSize, int allocationSize) {
         return new CachedBufferFactory(initialSize, allocationSize);
     }
-    
-    
+
+
     /**
      * Synchronized version of {@link #create()}.
      */
     public static CachedBufferFactory createSynchronized() {
         return new SynchronizedCachedBufferFactory();
     }
-    
+
     /**
      * Synchronized version of {@link #create(int)}.
      */
     public static CachedBufferFactory createSynchronized(int initialSize) {
         return new SynchronizedCachedBufferFactory(initialSize, DEFAULT_ALLOCATION_SIZE);
     }
-    
+
     /**
      * Synchronized version of {@link #create(int, boolean)}.
      */
     public static CachedBufferFactory createSynchronized(int initialSize, boolean fixed) {
         return new SynchronizedCachedBufferFactory(initialSize, fixed?-1:DEFAULT_ALLOCATION_SIZE);
     }
-    
+
     /**
      * Synchronized version of {@link #create(int, int)}.
      */
     public static CachedBufferFactory createSynchronized(int initialSize, int allocationSize) {
         return new CachedBufferFactory(initialSize, allocationSize);
     }
-    
+
     /**
      * Returns true only if this factory does not allow to allocate more buffers
      * as limited by the initial size.
@@ -150,7 +150,7 @@ public class CachedBufferFactory {
     public boolean isFixed() {
         return ALLOCATION_SIZE == -1;
     }
-    
+
     /**
      * Returns the allocation size used to create new internal buffers.
      * 0 means that the buffer will not grows, see {@link #isFixed()}.
@@ -158,7 +158,7 @@ public class CachedBufferFactory {
     public int getAllocationSize() {
         return ALLOCATION_SIZE;
     }
-    
+
     /**
      * @return true if buffer cannot grow, otherwise false
      */
@@ -175,7 +175,7 @@ public class CachedBufferFactory {
         }
     }
     public ByteBuffer newDirectByteBuffer(int size) {
-        
+
         // if large enough... just create it
         if (size > currentBuffer.capacity()) {
             checkIfFixed();
@@ -194,7 +194,7 @@ public class CachedBufferFactory {
         currentBuffer.limit(currentBuffer.capacity());
         return result;
     }
-    
+
 
     public ByteBuffer newDirectByteBuffer(byte[] values, int offset, int lenght) {
         return (ByteBuffer)newDirectByteBuffer(lenght).put(values, offset, lenght).rewind();
@@ -326,8 +326,8 @@ public class CachedBufferFactory {
     public String toString() {
         return getClass().getName()+"[static:"+isFixed()+" alloc size:"+getAllocationSize()+"]";
     }
-    
-    
+
+
     // nothing special, just synchronized
     private static class SynchronizedCachedBufferFactory extends CachedBufferFactory {
 
@@ -338,12 +338,12 @@ public class CachedBufferFactory {
         private SynchronizedCachedBufferFactory(int size, int step) {
             super(size, step);
         }
-        
+
         @Override
         public synchronized ByteBuffer newDirectByteBuffer(int size) {
             return super.newDirectByteBuffer(size);
         }
-        
+
     }
 
 }

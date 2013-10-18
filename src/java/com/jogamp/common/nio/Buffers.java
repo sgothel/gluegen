@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -47,7 +47,7 @@ import com.jogamp.common.util.ValueConv;
 
 /**
  * Utility methods allowing easy {@link java.nio.Buffer} manipulations.
- * 
+ *
  * @author Kenneth Russel
  * @author Sven Gothel
  * @author Michael Bien
@@ -213,7 +213,7 @@ public class Buffers {
 
     /**
      * Calls slice on the specified buffer while maintaining the byteorder.
-     * @see #slice(java.nio.Buffer, int, int) 
+     * @see #slice(java.nio.Buffer, int, int)
      */
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B slice(B buffer) {
@@ -264,22 +264,22 @@ public class Buffers {
      * The returned sliced buffer's start position is not necessarily zero,
      * but the float position within the host ByteBuffer.
      * </p>
-     * <p> 
+     * <p>
      * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's starting position. Hence
-     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.  
+     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
      * </p>
-     * <p> 
-     * Using a ByteBuffer as the source guarantees 
-     * keeping the source native order programmatically.  
-     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>. 
+     * <p>
+     * Using a ByteBuffer as the source guarantees
+     * keeping the source native order programmatically.
+     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>.
      * This bug is resolved at least in Android 3.2.
      * </p>
-     * 
-     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer or <code>null</code>. 
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer or <code>null</code>.
      *            Buffer's position is ignored and floatPos is being used.
      * @param backing source float array or <code>null</code>
      * @param floatPos {@link Buffers#SIZEOF_FLOAT} position
-     * @param floatSize {@link Buffers#SIZEOF_FLOAT} size 
+     * @param floatSize {@link Buffers#SIZEOF_FLOAT} size
      * @return FloatBuffer w/ native byte order as given ByteBuffer
      */
     public static final FloatBuffer slice2Float(Buffer buf, float[] backing, int floatPos, int floatSize) {
@@ -318,7 +318,7 @@ public class Buffers {
         return res;
     }
 
-    
+
     /**
      * Helper routine to set a ByteBuffer to the native byte order, if
      * that operation is supported by the underlying NIO
@@ -329,7 +329,7 @@ public class Buffers {
     }
 
     /**
-     * Returns the size of a single element of the given buffer in bytes 
+     * Returns the size of a single element of the given buffer in bytes
      * or <code>0</code> if the given buffer is <code>null</code>.
      */
     public static int sizeOfBufferElem(Object buffer) {
@@ -358,7 +358,7 @@ public class Buffers {
 
     /**
      * Returns the number of remaining elements of the given anonymous <code>buffer</code>.
-     * 
+     *
      * @param buffer Anonymous <i>Buffer</i> of type {@link NativeBuffer} or a derivation of {@link Buffer}.
      * @return If <code>buffer</code> is null, returns <code>0<code>, otherwise the remaining size in elements.
      * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
@@ -375,10 +375,10 @@ public class Buffers {
             throw new IllegalArgumentException("Unsupported anonymous buffer type: "+buffer.getClass().getCanonicalName());
         }
     }
-    
+
     /**
      * Returns the number of remaining bytes of the given anonymous <code>buffer</code>.
-     * 
+     *
      * @param buffer Anonymous <i>Buffer</i> of type {@link NativeBuffer} or a derivation of {@link Buffer}.
      * @return If <code>buffer</code> is null, returns <code>0<code>, otherwise the remaining size in bytes.
      * @throws IllegalArgumentException if <code>buffer</code> is of invalid type.
@@ -434,11 +434,11 @@ public class Buffers {
             if (buf instanceof ByteBuffer) {
                 return ((ByteBuffer) buf).isDirect();
             } else if (buf instanceof IntBuffer) {
-                return ((IntBuffer) buf).isDirect(); 
+                return ((IntBuffer) buf).isDirect();
             } else if (buf instanceof ShortBuffer) {
-                return ((ShortBuffer) buf).isDirect(); 
+                return ((ShortBuffer) buf).isDirect();
             } else if (buf instanceof FloatBuffer) {
-                return ((FloatBuffer) buf).isDirect(); 
+                return ((FloatBuffer) buf).isDirect();
             } else if (buf instanceof DoubleBuffer) {
                 return ((DoubleBuffer) buf).isDirect();
             } else if (buf instanceof LongBuffer) {
@@ -490,7 +490,7 @@ public class Buffers {
      * Helper routine to return the array backing store reference from
      * a Buffer object.
      * @throws UnsupportedOperationException if the passed Object does not have an array backing store
-     * @throws IllegalArgumentException if the passed Object is neither of type {@link java.nio.Buffer} or {@link NativeBuffer}.  
+     * @throws IllegalArgumentException if the passed Object is neither of type {@link java.nio.Buffer} or {@link NativeBuffer}.
      */
     public static Object getArray(Object buf) throws UnsupportedOperationException, IllegalArgumentException {
         if (buf == null) {
@@ -557,7 +557,7 @@ public class Buffers {
         ByteBuffer dest = newDirectByteBuffer(orig.remaining());
         dest.put(orig);
         dest.rewind();
-        orig.position(op0);        
+        orig.position(op0);
         return dest;
     }
 
@@ -752,8 +752,8 @@ public class Buffers {
 
     //----------------------------------------------------------------------
     // Convenient put methods with generic target Buffer w/o value range conversion, i.e. normalization
-    //    
-    
+    //
+
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B put(B dest, Buffer src) {
         if ((dest instanceof ByteBuffer) && (src instanceof ByteBuffer)) {
@@ -841,7 +841,7 @@ public class Buffers {
             throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
         }
     }
-    
+
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putd(B dest, double v) {
         if (dest instanceof FloatBuffer) {
@@ -855,15 +855,15 @@ public class Buffers {
     // Convenient put methods with generic target Buffer and value range conversion, i.e. normalization
     //
 
-    /** 
+    /**
      * Store byte source value in given buffer after normalizing it to the destination value range
      * considering signed and unsigned source and destination representation.
-     * 
+     *
      * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
      * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
      * @param v source byte value to be put in dest buffer
      * @param sSigned  true if source represents a signed value, false if source represents an unsigned value
-     */ 
+     */
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putNb(B dest, boolean dSigned, byte v, boolean sSigned) {
         if (dest instanceof ByteBuffer) {
@@ -872,22 +872,22 @@ public class Buffers {
             return (B) ((ShortBuffer) dest).put( ValueConv.byte_to_short(v, sSigned, dSigned) );
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put( ValueConv.byte_to_int(v, sSigned, dSigned) );
-        } else if (dest instanceof FloatBuffer) {            
+        } else if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put( ValueConv.byte_to_float(v, sSigned) );
         } else {
             throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
     }
 
-    /** 
+    /**
      * Store short source value in given buffer after normalizing it to the destination value range
      * considering signed and unsigned source and destination representation.
-     * 
+     *
      * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
      * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
      * @param v source short value to be put in dest buffer
      * @param sSigned  true if source represents a signed value, false if source represents an unsigned value
-     */ 
+     */
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putNs(B dest, boolean dSigned, short v, boolean sSigned) {
         if (dest instanceof ByteBuffer) {
@@ -896,22 +896,22 @@ public class Buffers {
             return (B) ((ShortBuffer) dest).put( v );
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put( ValueConv.short_to_int(v, sSigned, dSigned) );
-        } else if (dest instanceof FloatBuffer) {            
+        } else if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put( ValueConv.short_to_float(v, sSigned) );
         } else {
             throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
     }
-    
-    /** 
+
+    /**
      * Store short source value in given buffer after normalizing it to the destination value range
      * considering signed and unsigned source and destination representation.
-     * 
+     *
      * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
      * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
      * @param v source short value to be put in dest buffer
      * @param sSigned  true if source represents a signed value, false if source represents an unsigned value
-     */ 
+     */
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putNi(B dest, boolean dSigned, int v, boolean sSigned) {
         if (dest instanceof ByteBuffer) {
@@ -920,21 +920,21 @@ public class Buffers {
             return (B) ((ShortBuffer) dest).put( ValueConv.int_to_short(v, sSigned, dSigned) );
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put( v );
-        } else if (dest instanceof FloatBuffer) {            
+        } else if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put( ValueConv.int_to_float(v, sSigned) );
         } else {
             throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
     }
-        
-    /** 
+
+    /**
      * Store float source value in given buffer after normalizing it to the destination value range
      * considering signed and unsigned destination representation.
-     * 
+     *
      * @param dest One of {@link ByteBuffer}, {@link ShortBuffer}, {@link IntBuffer}, {@link FloatBuffer}
      * @param dSigned  true if destination buffer holds signed values, false if destination buffer holds unsigned values
      * @param v source float value to be put in dest buffer
-     */ 
+     */
     @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putNf(B dest, boolean dSigned, float v) {
         if (dest instanceof ByteBuffer) {
@@ -943,17 +943,17 @@ public class Buffers {
             return (B) ((ShortBuffer) dest).put( ValueConv.float_to_short(v, dSigned) );
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put( ValueConv.float_to_int(v, dSigned) );
-        } else if (dest instanceof FloatBuffer) {            
+        } else if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put( v );
         } else {
             throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
         }
     }
-    
+
     //----------------------------------------------------------------------
-    // Range check methods 
+    // Range check methods
     //
-    
+
     public static void rangeCheck(byte[] array, int offset, int minElementsRemaining) {
         if (array == null) {
             return;
@@ -1049,13 +1049,13 @@ public class Buffers {
             throw new IndexOutOfBoundsException("Required " + minBytesRemaining + " remaining bytes in buffer, only had " + bytesRemaining);
         }
     }
-    
+
     /**
      * Appends Buffer details inclusive data to a StringBuilder instance.
      * @param sb optional pass through StringBuilder
-     * @param f optional format string of one element, i.e. "%10.5f" for {@link FloatBuffer}, see {@link java.util.Formatter}, 
-     *          or <code>null</code> for unformatted output. 
-     *          <b>Note:</b> Caller is responsible to match the format string w/ the data type as expected in the given buffer. 
+     * @param f optional format string of one element, i.e. "%10.5f" for {@link FloatBuffer}, see {@link java.util.Formatter},
+     *          or <code>null</code> for unformatted output.
+     *          <b>Note:</b> Caller is responsible to match the format string w/ the data type as expected in the given buffer.
      * @param buffer Any valid Buffer instance
      * @return the modified StringBuilder containing the Buffer details
      */
@@ -1073,74 +1073,74 @@ public class Buffers {
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         } else if (buffer instanceof FloatBuffer) {
             final FloatBuffer b = (FloatBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         } else if (buffer instanceof IntBuffer) {
             final IntBuffer b = (IntBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         } else if (buffer instanceof ShortBuffer) {
             final ShortBuffer b = (ShortBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         } else if (buffer instanceof DoubleBuffer) {
             final DoubleBuffer b = (DoubleBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         } else if (buffer instanceof LongBuffer) {
             final LongBuffer b = (LongBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         } else if (buffer instanceof CharBuffer) {
             final CharBuffer b = (CharBuffer)buffer;
             for(int i=0; i<b.limit(); i++) {
                 if(0<i) { sb.append(", "); }
                 if(null == f) {
-                    sb.append(b.get(i));    
+                    sb.append(b.get(i));
                 } else {
-                    sb.append(String.format(f, b.get(i))); 
-                }               
+                    sb.append(String.format(f, b.get(i)));
+                }
             }
         }
         sb.append("]");
         return sb;
     }
-    
+
 }

@@ -49,7 +49,7 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
     // Don't know .. so it's an alias for the time being
     return openLibraryGlobal(libraryName, debug);
   }
-  
+
   @Override
   public final long openLibraryGlobal(String libraryName, boolean debug) throws SecurityException {
     SecurityUtil.checkLinkPermission(libraryName);
@@ -62,7 +62,7 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
     }
     return handle;
   }
-  
+
   @Override
   public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
     SecurityUtil.checkAllLinkPermission();
@@ -95,7 +95,7 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
     }
     return addr;
   }
-  
+
   @Override
   public final void closeLibrary(long libraryHandle) throws IllegalArgumentException {
     if( null == decrLibRefCount( libraryHandle ) ) {
@@ -109,5 +109,5 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
       final int err = GetLastError();
       return "Last error: 0x"+Integer.toHexString(err)+" ("+err+")";
   }
-  
+
 }

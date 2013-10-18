@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.common.util;
 
 import com.jogamp.common.os.AndroidVersion;
@@ -97,16 +97,16 @@ public class VersionUtil {
     public static Manifest getManifest(ClassLoader cl, String extension) {
         return getManifest(cl, new String[] { extension } );
     }
-    
+
     /**
-     * Returns the manifest of the jar which contains one of the specified extensions. 
+     * Returns the manifest of the jar which contains one of the specified extensions.
      * The provided ClassLoader is used for resource loading.
      * @param cl A ClassLoader which should find the manifest.
      * @param extensions The values of many 'Extension-Name's jar-manifest attribute; used to identify the manifest.
-     *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.  
+     *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.
      * @return the requested manifest or null when not found.
      */
-    public static Manifest getManifest(ClassLoader cl, String[] extensions) {         
+    public static Manifest getManifest(ClassLoader cl, String[] extensions) {
         final Manifest[] extManifests = new Manifest[extensions.length];
         try {
             Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");

@@ -43,8 +43,8 @@ public interface Lock {
 
     /** The default {@link #TIMEOUT} value, of {@value} ms */
     public static final long DEFAULT_TIMEOUT = 5000; // 5s default timeout
-    
-    /** 
+
+    /**
      * The <code>TIMEOUT</code> for {@link #lock()} in ms,
      * defaults to {@link #DEFAULT_TIMEOUT}.
      * <p>
@@ -78,7 +78,7 @@ public interface Lock {
      * @throws RuntimeException in case the lock is not acquired by this thread.
      */
     void unlock() throws RuntimeException;
-    
+
     /** Query if locked */
     boolean isLocked();
 }

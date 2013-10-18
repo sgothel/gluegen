@@ -5,18 +5,18 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -64,7 +64,7 @@ public class JavaConfiguration {
 
     public static final boolean DEBUG_IGNORES = GlueGen.debug() || false;
     public static final boolean DEBUG_RENAMES = GlueGen.debug() || false;
-    
+
     private int nestedReads;
     private String packageName;
     private String implPackageName;
@@ -72,7 +72,7 @@ public class JavaConfiguration {
     private String implClassName;
 
     protected static final Logger LOG = Logger.getLogger(JavaConfiguration.class.getPackage().getName());
-    
+
     /**
      * Root directory for the hierarchy of generated java classes. Default is
      * working directory.
@@ -178,7 +178,7 @@ public class JavaConfiguration {
   public final void read(String filename) throws  IOException {
     read(filename, null);
   }
-  
+
   /** Reads the specified file, treating each line as if it started with the
       specified string.
       @param filename path to file that should be read
@@ -209,7 +209,7 @@ public class JavaConfiguration {
           // comment line
           continue;
         }
-        
+
         StringTokenizer tok = new StringTokenizer(line);
         if (tok.hasMoreTokens()) {
           // always reset delimiters in case of CustomJavaCode, etc.
@@ -466,7 +466,7 @@ public class JavaConfiguration {
       else if (c == Float.TYPE)   jt = JavaType.createForCFloatPointer();
       else if (c == Double.TYPE)  jt = JavaType.createForCDoublePointer();
 
-      if (jt != null) 
+      if (jt != null)
         return new TypeInfo(info.name(), pd + numPointersStripped, jt);
     }
 
@@ -474,7 +474,7 @@ public class JavaConfiguration {
       c = Array.newInstance(c, 0).getClass();
       --diff;
     }
-    
+
     return new TypeInfo(info.name(),
                         numPointersStripped,
                         JavaType.createForClass(c));
@@ -522,7 +522,7 @@ public class JavaConfiguration {
   /** Returns true if the given function should only create a java.nio
       variant, and no array variants, for <code>void*</code> and other
       C primitive pointers. NIO direct only does only allow direct Buffers.
-      Implies useNIOOnly ! 
+      Implies useNIOOnly !
    */
   public boolean useNIODirectOnly(String functionName) {
     return forceUseNIODirectOnly4All || useNIODirectOnly.contains(functionName);
@@ -671,20 +671,20 @@ public class JavaConfiguration {
     }
   }
   private static boolean dumpedRenames = false;
-  
+
   public void dumpRenames() {
     System.err.println("Symbol Renames: ");
     for (String key : javaSymbolRenames.keySet()) {
         System.err.println("\t"+key+" -> "+javaSymbolRenames.get(key));
     }
-    
+
     System.err.println("Symbol Aliasing (through renaming): ");
     for(String newName : javaSymbolRenames.values()) {
         Set<String> origNames = javaRenamedSymbols.get(newName);
         if(null!=origNames) {
             System.err.println("\t"+newName+" <- "+origNames);
         }
-    }       
+    }
   }
 
   /** Returns true if this #define, function, struct, or field within
@@ -762,7 +762,7 @@ public class JavaConfiguration {
       for (Pattern regexp : ignoreNots) {
         Matcher matcher = regexp.matcher(symbol);
         if (!matcher.matches()) {
-          // Special case as this is most often likely to be the case. 
+          // Special case as this is most often likely to be the case.
           // Unignores are not used very often.
           if(unignores.isEmpty()) {
             if(DEBUG_IGNORES) {
@@ -770,7 +770,7 @@ public class JavaConfiguration {
             }
             return true;
           }
-         	  
+
           boolean unignoreFound = false;
           for (Pattern unignoreRegexp : unignores) {
             Matcher unignoreMatcher = unignoreRegexp.matcher(symbol);
@@ -779,7 +779,7 @@ public class JavaConfiguration {
               break;
             }
           }
-         	  
+
           if (!unignoreFound)
             if(DEBUG_IGNORES) {
                 System.err.println("Ignore Impl !unignore: "+symbol);
@@ -836,7 +836,7 @@ public class JavaConfiguration {
   public Set<String> getRenamedJavaSymbols(String aliasedName) {
     return javaRenamedSymbols.get(aliasedName);
   }
-  
+
   /** Programmatically adds a rename directive for the given symbol. */
   public void addJavaSymbolRename(String origName, String newName) {
     if(DEBUG_RENAMES) {
@@ -850,13 +850,13 @@ public class JavaConfiguration {
     if(DEBUG_RENAMES) {
         System.err.println();
     }
-    
+
     Set<String> origNames = javaRenamedSymbols.get(newName);
     if(null == origNames) {
         origNames = new HashSet<String>();
         javaRenamedSymbols.put(newName, origNames);
     }
-    origNames.add(origName);    
+    origNames.add(origName);
   }
 
   /** Returns true if the emission style is AllStatic. */
@@ -907,7 +907,7 @@ public class JavaConfiguration {
   //
 
   protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
-    //System.err.println("read cmd = [" + cmd + "]"); 
+    //System.err.println("read cmd = [" + cmd + "]");
     if (cmd.equalsIgnoreCase("Package")) {
       packageName = readString("package", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("GlueGenRuntimePackage")) {
@@ -1172,7 +1172,7 @@ public class JavaConfiguration {
 
     final Set<String> parsedEnumNames = parser.getParsedEnumNames();
     final Set<String> parsedFuncNames = parser.getParsedFunctionNames();
-    
+
     if(forInterface) {
         if(onlyList) {
             extendedIntfSymbolsOnly.addAll(parsedEnumNames);
@@ -1181,7 +1181,7 @@ public class JavaConfiguration {
             extendedIntfSymbolsIgnore.addAll(parsedEnumNames);
             extendedIntfSymbolsIgnore.addAll(parsedFuncNames);
         }
-    } 
+    }
     if(forImplementation) {
         if(onlyList) {
             extendedImplSymbolsOnly.addAll(parsedEnumNames);
@@ -1213,12 +1213,12 @@ public class JavaConfiguration {
       ignoreMap.remove(regex);
       ignores.remove(pattern);
 
-      // If the pattern wasn't registered before, then make sure we have a 
+      // If the pattern wasn't registered before, then make sure we have a
       // valid pattern instance to put into the unignores set.
       if(pattern == null)
         pattern = Pattern.compile(regex);
       unignores.add(pattern);
-       
+
       //System.err.println("UN-IGNORING " + regex + " / " + ignores.get(regex));
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Unignore\" command at line " + lineNo +
@@ -1329,7 +1329,7 @@ public class JavaConfiguration {
    * <pre>
    * public abstract void FuncName(byte[] ugh, int bar, byte[] foo, byte[] goop);
    * </pre>
-   * 
+   *
    * However, if you supplied the following directive:
    *
    * <pre>
@@ -1363,7 +1363,7 @@ public class JavaConfiguration {
         " in file \"" + filename + "\"", e);
     }
   }
-  
+
   protected void readStructPackage(StringTokenizer tok, String filename, int lineNo) {
     try {
       String struct = tok.nextToken();
@@ -1453,7 +1453,7 @@ public class JavaConfiguration {
       while (tok.countTokens() > 1)
       {
         linePrefix.append(tok.nextToken());
-        linePrefix.append(" ");  
+        linePrefix.append(" ");
       }
       // last token is filename
       String includedFilename = tok.nextToken();
@@ -1538,7 +1538,7 @@ public class JavaConfiguration {
       }
       addJavaPrologueOrEpilogue(methodName, restOfLine, prologue);
     } catch (NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"" + 
+      throw new RuntimeException("Error parsing \"" +
                                  (prologue ? "JavaPrologue" : "JavaEpilogue") +
                                  "\" command at line " + lineNo +
                                  " in file \"" + filename + "\"", e);

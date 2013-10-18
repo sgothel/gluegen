@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 /*
  * Created on Saturday, March 27 2010 11:55
  */
@@ -51,7 +51,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         Platform.initSingleton(); // loads native gluegen-rt library
     }
 
-    /** 
+    /**
      * capacity and elementSize should be match the equation w/ target buffer type
      * <pre>
      *    capacity = elementSizeInBytes(buffer) * buffer.capacity() ) / elementSize
@@ -64,14 +64,14 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         this.buffer = buffer;
         this.elementSize = elementSize;
         this.capacity = capacity;
-        
+
         this.position = 0;
     }
 
     public final int elementSize() {
         return elementSize;
     }
-    
+
     public final int limit() {
         return capacity;
     }
@@ -113,7 +113,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     public final boolean isDirect() {
         return buffer.isDirect();
     }
-    
+
     public final boolean hasArray() {
         return buffer.hasArray();
     }
@@ -129,7 +129,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     public Object array() throws UnsupportedOperationException {
         return buffer.array();
     }
-    
+
     @Override
     public String toString() {
         return "AbstractBuffer[direct "+isDirect()+", hasArray "+hasArray()+", capacity "+capacity+", position "+position+", elementSize "+elementSize+", buffer[capacity "+buffer.capacity()+", lim "+buffer.limit()+", pos "+buffer.position()+"]]";

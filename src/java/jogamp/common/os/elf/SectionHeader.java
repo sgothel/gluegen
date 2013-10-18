@@ -120,7 +120,7 @@ public class SectionHeader {
      * {@value}
      */
     public static final int SHT_HIUSER      = 0xffffffff;
-    
+
     /**
      * {@value}
      */
@@ -141,7 +141,7 @@ public class SectionHeader {
      * {@value}
      */
     public static final int SHT_ARM_OVERLAYSECTION = 0x70000005;
-            
+
     /**
      * {@value}
      */
@@ -169,14 +169,14 @@ public class SectionHeader {
     /**
      * {@value}
      */
-    public static final short SHN_HIRESERVE = (short)0xffff;    
-    
+    public static final short SHN_HIRESERVE = (short)0xffff;
+
     /** Public access to the raw elf section header */
     public final Shdr d;
-    
+
     private int idx;
     private String name;
-  
+
     SectionHeader(byte[] buf, int offset, int length, int sectionIdx) {
         this( ByteBuffer.wrap(buf, 0, buf.length), sectionIdx );
     }
@@ -185,11 +185,11 @@ public class SectionHeader {
         this.idx = idx;
         name = null;
     }
-    
+
     public String toString() {
         return "SectionHeader[idx "+idx+", name "+name+", type "+toHexString(getType())+", link "+d.getSh_link()+", info "+toHexString(d.getSh_info())+", flags "+toHexString(getFlags())+"]";
     }
-    
+
     /**
      * @param strS the {@link SectionHeader#SHT_STRTAB} section containing all strings
      * @param nameOffset name offset within strS
@@ -202,7 +202,7 @@ public class SectionHeader {
     public int getIndex() {
         return idx;
     }
-    
+
     /** Returns the type of this section. */
     public int getType() {
         return d.getSh_type();
@@ -212,7 +212,7 @@ public class SectionHeader {
     public long getFlags() {
         return d.getSh_flags();
     }
-    
+
     /** Returns the size of this section. */
     public long getSize() {
         return d.getSh_size();
@@ -222,10 +222,10 @@ public class SectionHeader {
     public String getName() {
         return name;
     }
-    
+
     /**
      * Returns the Section referenced w/ this section header
-     *  
+     *
      * @param in file owning the section
      * @throws IOException if read error occurs
      * @throws IllegalArgumentException if section offset or size mismatch including size &gt; {@link Integer#MAX_VALUE}
@@ -238,10 +238,10 @@ public class SectionHeader {
         final byte[] s_buf = new byte[s_size];
         return readSectionImpl(in, s_buf, 0, s_size);
     }
-    
+
     /**
      * Returns the Section referenced w/ this section header using given byte array.
-     *  
+     *
      * @param in file owning the section
      * @param b destination buffer
      * @param b_off offset in destination buffer
@@ -260,7 +260,7 @@ public class SectionHeader {
         }
         return readSectionImpl(in, b, b_off, r_len);
     }
-    
+
     Section readSectionImpl(RandomAccessFile in, byte[] b, int b_off, int r_len) throws IOException, IllegalArgumentException {
         final long s_off = d.getSh_offset();
         seek(in, s_off);
@@ -270,5 +270,5 @@ public class SectionHeader {
         } else {
             return new Section(this, b, b_off, r_len);
         }
-    }    
+    }
 }

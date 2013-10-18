@@ -86,16 +86,16 @@ class Test {
                 String s = (String) iter.next();
                 System.out.println(s);
             }
-			
+
 			// do something with the tree
 			//doTreeAction(f, parser.getAST(), parser.getTokenNames());
 		}
 		catch (Exception e) {
 			System.err.println("parser exception: "+e);
-			e.printStackTrace();   // so we can get stack trace		
+			e.printStackTrace();   // so we can get stack trace
 		}
 	}
-	
+
     /*
 	public static void doTreeAction(String f, AST t, String[] tokenNames) {
 		if ( t==null ) return;

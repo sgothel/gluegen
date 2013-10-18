@@ -34,25 +34,25 @@ import com.jogamp.common.util.ReflectionUtil;
 
 public class AndroidVersion {
     public static final boolean isAvailable;
-    
-    /** Development codename, or the string "REL" for official release */    
+
+    /** Development codename, or the string "REL" for official release */
     public static final String CODENAME;
-    
+
     /** internal build value used by the underlying source control. */
     public static final String INCREMENTAL;
-    
+
     /** official build version string */
     public static final String RELEASE;
-    
+
     /** SDK Version number, key to VERSION_CODES */
     public static final int SDK_INT;
 
     /** SDK Version string */
     public static final String SDK_NAME;
-    
+
     private static final String androidBuildVersion = "android.os.Build$VERSION";
     private static final String androidBuildVersionCodes = "android.os.Build$VERSION_CODES";
-    
+
     static {
         final ClassLoader cl = AndroidVersion.class.getClassLoader();
         Class<?> abvClass = null;
@@ -65,7 +65,7 @@ public class AndroidVersion {
             abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
             abvcObject = abvcClass.newInstance();
         } catch (Exception e) { /* n/a */ }
-        isAvailable = null != abvObject; 
+        isAvailable = null != abvObject;
         if(isAvailable) {
             CODENAME = getString(abvClass, abvObject, "CODENAME");
             INCREMENTAL = getString(abvClass, abvObject, "INCREMENTAL");
@@ -73,16 +73,16 @@ public class AndroidVersion {
             SDK_INT = getInt(abvClass, abvObject, "SDK_INT");
             final IntObjectHashMap version_codes = getVersionCodes(abvcClass, abvcObject);
             final String sdk_name = (String) version_codes.get(SDK_INT);
-            SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ;            
+            SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ;
         } else {
             CODENAME = null;
             INCREMENTAL = null;
             RELEASE = null;
-            SDK_INT = -1;  
+            SDK_INT = -1;
             SDK_NAME = null;
         }
     }
-    
+
     private static final IntObjectHashMap getVersionCodes(Class<?> cls, Object obj) {
         final Field[] fields = cls.getFields();
         IntObjectHashMap map = new IntObjectHashMap( 3 * fields.length / 2, 0.75f );
@@ -93,10 +93,10 @@ public class AndroidVersion {
                 // System.err.println(i+": "+version+": "+version_name);
                 map.put(new Integer(version), version_name);
             } catch (Exception e) { e.printStackTrace(); /* n/a */ }
-        }        
+        }
         return map;
     }
-    
+
     private static final String getString(Class<?> cls, Object obj, String name) {
         try {
             Field f = cls.getField(name);
@@ -112,6 +112,6 @@ public class AndroidVersion {
         } catch (Exception e) { e.printStackTrace(); /* n/a */ }
         return -1;
     }
-    
+
     // android.os.Build.VERSION
 }

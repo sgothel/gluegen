@@ -36,7 +36,7 @@ import com.jogamp.common.util.SecurityUtil;
   // and sealed jogamp.common.* package definition
   // ensuring no abuse via subclassing.
   //
-    
+
   /** Interface to C language function: <br> <code> int dlclose(void * ); </code>    */
   protected static native int dlclose(long arg0);
 
@@ -59,16 +59,16 @@ import com.jogamp.common.util.SecurityUtil;
     }
     return handle;
   }
-  
+
   protected final long lookupSymbolGlobalImpl(long dlSymGlobalFlag, String symbolName) throws SecurityException {
     SecurityUtil.checkAllLinkPermission();
     final long addr = dlsym(dlSymGlobalFlag, symbolName);
     if(DEBUG_LOOKUP) {
         System.err.println("DynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
     }
-    return addr;    
+    return addr;
   }
-  
+
   @Override
   public final long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException {
     if( null == getLibRef( libraryHandle ) ) {
@@ -78,7 +78,7 @@ import com.jogamp.common.util.SecurityUtil;
     if(DEBUG_LOOKUP) {
         System.err.println("DynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> 0x"+Long.toHexString(addr));
     }
-    return addr;    
+    return addr;
   }
 
   @Override
@@ -88,7 +88,7 @@ import com.jogamp.common.util.SecurityUtil;
     }
     dlclose(libraryHandle);
   }
-  
+
   @Override
   public final String getLastError() {
       return dlerror();

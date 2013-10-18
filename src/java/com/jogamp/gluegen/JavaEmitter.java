@@ -86,11 +86,11 @@ public class JavaEmitter implements GlueEmitter {
   /**
    * Access control for emitted Java methods.
    */
-  public enum MethodAccess { 
+  public enum MethodAccess {
       PUBLIC("public"), PROTECTED("protected"), PRIVATE("private"), PACKAGE_PRIVATE("/* pp */"), PUBLIC_ABSTRACT("abstract");
-      
+
       public final String getJavaName() { return javaName; }
-            
+
       MethodAccess(String javaName) {
           this.javaName = javaName;
       }
@@ -102,7 +102,7 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter cWriter;
   private final MachineDescription machDescJava = MachineDescription.StaticConfig.X86_64_UNIX.md;
   private final MachineDescription.StaticConfig[] machDescTargetConfigs = MachineDescription.StaticConfig.values();
-      
+
   protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
 
   public void readConfigurationFile(String filename) throws Exception {
@@ -615,7 +615,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  protected void prepCEmitter(MethodBinding binding, CMethodBindingEmitter cEmitter) 
+  protected void prepCEmitter(MethodBinding binding, CMethodBindingEmitter cEmitter)
   {
       // See whether we need an expression to help calculate the
       // length of any return type
@@ -786,14 +786,14 @@ public class JavaEmitter implements GlueEmitter {
     String containingTypeName = containingType.getName();
 
     // machDescJava global MachineDescription is the one used to determine
-    // the sizes of the primitive types seen in the public API in Java. 
+    // the sizes of the primitive types seen in the public API in Java.
     // For example, if a C long is an element of a struct, it is the size
     // of a Java int on a 32-bit machine but the size of a Java long
     // on a 64-bit machine. To support both of these sizes with the
     // same API, the abstract base class must take and return a Java
     // long from the setter and getter for this field. However the
     // implementation on a 32-bit platform must downcast this to an
-    // int and set only an int's worth of data in the struct. 
+    // int and set only an int's worth of data in the struct.
     //
     // The machDescTarget MachineDescription is the one used to determine how
     // much data to set in or get from the struct and exactly from
@@ -872,10 +872,10 @@ public class JavaEmitter implements GlueEmitter {
     writer.println();
     writer.println("  StructAccessor accessor;");
     writer.println();
-    writer.println("  private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();");    
+    writer.println("  private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();");
     writer.println();
     // generate all offset and size arrays
-    generateOffsetAndSizeArrays(writer, containingTypeName, structType, null); /* w/o offset */    
+    generateOffsetAndSizeArrays(writer, containingTypeName, structType, null); /* w/o offset */
     for (int i = 0; i < structType.getNumFields(); i++) {
       final Field field = structType.getField(i);
       final Type fieldType = field.getType();
@@ -922,7 +922,7 @@ public class JavaEmitter implements GlueEmitter {
           }
         }
       }
-    }    
+    }
     writer.println();
 
     writer.println("  public static int size() {");
@@ -1061,7 +1061,7 @@ public class JavaEmitter implements GlueEmitter {
             writer.println(" }");
         } else {
           JavaType javaType = null;
-          
+
           try {
             javaType = typeToJavaType(fieldType, false, machDescJava);
           } catch (Exception e) {
@@ -1071,7 +1071,7 @@ public class JavaEmitter implements GlueEmitter {
           }
           if (javaType.isPrimitive()) {
             // Primitive type
-            final boolean fieldTypeNativeSizeFixed = fieldType.getSize().hasFixedNativeSize(); 
+            final boolean fieldTypeNativeSizeFixed = fieldType.getSize().hasFixedNativeSize();
             final String javaTypeName;
             if ( isOpaque(fieldType) ) {
               javaTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
@@ -1079,15 +1079,15 @@ public class JavaEmitter implements GlueEmitter {
               javaTypeName = javaType.getName();
             }
             final String capJavaTypeName = capitalizeString(javaTypeName);
-            final String capFieldName = capitalizeString(fieldName);            
+            final String capFieldName = capitalizeString(fieldName);
             final String sizeDenominator = fieldType.isPointer() ? "pointer" : javaTypeName ;
-            
+
             if(GlueGen.debug()) {
                 System.err.println("Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getName(true)+", "+javaTypeName+", "+
                                    ", fixedSize "+fieldTypeNativeSizeFixed+", opaque "+isOpaque(fieldType)+", isPointer "+fieldType.isPointer()+", isCompound "+fieldType.isCompound()+
                                    ", sizeDenominator "+sizeDenominator);
             }
-            
+
             writer.println();
             // Setter
             generateSetterSignature(writer, false, containingTypeName, capFieldName, javaTypeName);
@@ -1100,16 +1100,16 @@ public class JavaEmitter implements GlueEmitter {
             writer.println("    return this;");
             writer.println("  }");
             writer.println();
-            
+
             // Getter
             generateGetterSignature(writer, false, javaTypeName, capFieldName);
             writer.println(" {");
-            writer.print  ("    return ");            
+            writer.print  ("    return ");
             if( fieldTypeNativeSizeFixed ) {
                 writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx]);");
             } else {
                 writer.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
-            }            
+            }
             writer.println("  }");
           }
         }
@@ -1162,9 +1162,9 @@ public class JavaEmitter implements GlueEmitter {
       writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(" + paramTypeName + " val)");
   }
 
-  private void generateOffsetAndSizeArrays(PrintWriter writer, String fieldName, Type fieldType, Field field) {      
+  private void generateOffsetAndSizeArrays(PrintWriter writer, String fieldName, Type fieldType, Field field) {
       if(null != field) {
-          writer.print("  private static final int[] "+fieldName+"_offset = new int[] { ");    
+          writer.print("  private static final int[] "+fieldName+"_offset = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
               if(0<i) {
                   writer.print(", ");
@@ -1175,7 +1175,7 @@ public class JavaEmitter implements GlueEmitter {
           writer.println(" };");
       }
       if(null!=fieldType) {
-          writer.print("  private static final int[] "+fieldName+"_size = new int[] { ");    
+          writer.print("  private static final int[] "+fieldName+"_size = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
               if(0<i) {
                   writer.print(", ");
@@ -1186,7 +1186,7 @@ public class JavaEmitter implements GlueEmitter {
           writer.println("  };");
       }
   }
-  
+
   private JavaType typeToJavaType(Type cType, boolean outgoingArgument, MachineDescription curMachDesc) {
     // Recognize JNIEnv* case up front
     PointerType opt = cType.asPointer();
@@ -1254,7 +1254,7 @@ public class JavaEmitter implements GlueEmitter {
           // t is <type>[], we need to get <type>
           targetType = t.asArray().getElementType();
         }
-        
+
         // Handle Types of form pointer-to-type or array-of-type, like
         // char* or int[]; these are expanded out into Java primitive
         // arrays, NIO buffers, or both in expandMethodBinding
@@ -1263,7 +1263,7 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.createForCVoidPointer();
           } else if (targetType.isInt()) {
             final SizeThunk targetSizeThunk = targetType.getSize();
-            if( null != targetSizeThunk && SizeThunk.POINTER == targetSizeThunk ) { 
+            if( null != targetSizeThunk && SizeThunk.POINTER == targetSizeThunk ) {
               // Map intptr_t*, uintptr_t*, ptrdiff_t* and size_t* to PointerBuffer, since referenced memory-size is arch dependent
               return JavaType.forNIOPointerBufferClass();
             }

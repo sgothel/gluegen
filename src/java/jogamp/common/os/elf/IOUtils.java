@@ -34,15 +34,15 @@ import java.nio.ByteOrder;
 
 class IOUtils {
     static final long MAX_INT_VALUE = ( (long) Integer.MAX_VALUE & 0xffffffffL ) ;
-    
+
     static String toHexString(int i) { return "0x"+Integer.toHexString(i); }
-    
+
     static String toHexString(long i) { return "0x"+Long.toHexString(i); }
-    
+
     static int shortToInt(short s) {
         return (int)s & 0x0000ffff;
     }
-    
+
     static int long2Int(final long v) {
         if( MAX_INT_VALUE < v ) {
             throw new IllegalArgumentException("Read uint32 value "+toHexString(v)+" > int32-max "+toHexString(MAX_INT_VALUE));
@@ -53,46 +53,46 @@ class IOUtils {
     static void checkBounds(final byte[] sb, final int offset, final int remaining) {
         if( offset + remaining > sb.length ) {
             throw new IndexOutOfBoundsException("Buffer of size "+sb.length+" cannot hold offset "+offset+" + remaining "+remaining);
-        }        
+        }
     }
-    
-    static void readBytes(final RandomAccessFile in, final byte[] out, final int offset, final int len) 
-            throws IOException, IllegalArgumentException 
-    {        
+
+    static void readBytes(final RandomAccessFile in, final byte[] out, final int offset, final int len)
+            throws IOException, IllegalArgumentException
+    {
         in.readFully(out, offset, len);
     }
-    
+
     static void seek(final RandomAccessFile in, long newPos) throws IOException {
         in.seek(newPos);
     }
-    
+
     static int readUInt32(final byte[] in, final int offset) {
         final int v = readInt32(in, offset);
         if( 0 > v ) {
-            throw new IllegalArgumentException("Read uint32 value "+toHexString(v)+" > int32-max "+toHexString(MAX_INT_VALUE));            
+            throw new IllegalArgumentException("Read uint32 value "+toHexString(v)+" > int32-max "+toHexString(MAX_INT_VALUE));
         }
         return v;
         /** Need to fix endian for below path ..
         checkBounds(in, offset, 4);
-        final byte[] uint = new byte[] { 0, 0, 0, 0, in[offset+0],  in[offset+1],  in[offset+2],  in[offset+3] }; 
+        final byte[] uint = new byte[] { 0, 0, 0, 0, in[offset+0],  in[offset+1],  in[offset+2],  in[offset+3] };
         final ByteBuffer b = ByteBuffer.wrap(uint, 0, 8).order(ByteOrder.nativeOrder());
         return b.asLongBuffer().get(0); */
     }
-    
+
     static int readInt32(final byte[] in, final int offset) {
         checkBounds(in, offset, 4);
         final ByteBuffer b = ByteBuffer.wrap(in, offset, 4).order(ByteOrder.nativeOrder());
         return b.asIntBuffer().get(0);
     }
-    
+
     /**
      * @param sb byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
-     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>, 
+     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
      *                  which shall not exceed <code>sb.length - offset</code>.
      * @param offset_post optional integer array holding offset post parsing
      * @return the parsed string
-     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.  
+     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
     static String getString(final byte[] sb, final int offset, final int remaining, int[] offset_post) throws IndexOutOfBoundsException {
         checkBounds(sb, offset, remaining);
@@ -104,14 +104,14 @@ class IOUtils {
         }
         return s;
     }
-    
+
     /**
      * @param sb byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
-     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>, 
+     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
      *                  which shall not exceed <code>sb.length - offset</code>.
      * @return the number of parsed strings
-     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.  
+     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
     static int getStringCount(final byte[] sb, int offset, final int remaining) throws IndexOutOfBoundsException {
         checkBounds(sb, offset, remaining);
@@ -120,21 +120,21 @@ class IOUtils {
             for(; i < remaining && sb[i + offset] != 0; i++) { }
             strnum++;
         }
-        return strnum;        
+        return strnum;
     }
-    
+
     /**
      * @param sb byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
-     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>, 
+     * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
      *                  which shall not exceed <code>sb.length - offset</code>.
      * @return the parsed strings
-     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.  
+     * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
     public static String[] getStrings(final byte[] sb, int offset, final int remaining) throws IndexOutOfBoundsException  {
         final int strnum = getStringCount(sb, offset, remaining);
         // System.err.println("XXX: strnum "+strnum+", sb_off "+sb_off+", sb_len "+sb_len);
-        
+
         final String[] sa = new String[strnum];
         final int[] io_off = new int[] { offset };
         for(int i=0; i < strnum; i++) {
@@ -142,7 +142,7 @@ class IOUtils {
             sa[i] = getString(sb, io_off[0], remaining - io_off[0], io_off);
             // System.err.println(".. "+io_off[0]+"[ "+sa[i]);
         }
-        return sa;        
+        return sa;
     }
-               
+
 }

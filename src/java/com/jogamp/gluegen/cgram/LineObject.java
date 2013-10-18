@@ -9,7 +9,7 @@ class LineObject {
   boolean systemHeader = false;
   boolean treatAsC = false;
 
-  public LineObject() 
+  public LineObject()
   {
     super();
   }
@@ -25,27 +25,27 @@ class LineObject {
     treatAsC = lobj.getTreatAsC();
   }
 
-  public LineObject( String src) 
+  public LineObject( String src)
   {
     source = src;
   }
 
-  public void setSource(String src) 
+  public void setSource(String src)
   {
     source = src;
   }
 
-  public String getSource() 
+  public String getSource()
   {
     return source;
   }
 
-  public void setParent(LineObject par) 
+  public void setParent(LineObject par)
   {
     parent = par;
   }
 
-  public LineObject getParent() 
+  public LineObject getParent()
   {
     return parent;
   }
@@ -55,7 +55,7 @@ class LineObject {
     line = l;
   }
 
-  public int getLine() 
+  public int getLine()
   {
     return line;
   }
@@ -65,42 +65,42 @@ class LineObject {
     line++;
   }
 
-  public void setEnteringFile(boolean v) 
+  public void setEnteringFile(boolean v)
   {
     enteringFile = v;
   }
 
-  public boolean getEnteringFile() 
+  public boolean getEnteringFile()
   {
     return enteringFile;
   }
 
-  public void setReturningToFile(boolean v) 
+  public void setReturningToFile(boolean v)
   {
     returningToFile = v;
   }
 
-  public boolean getReturningToFile() 
+  public boolean getReturningToFile()
   {
     return returningToFile;
   }
 
-  public void setSystemHeader(boolean v) 
+  public void setSystemHeader(boolean v)
   {
     systemHeader = v;
   }
 
-  public boolean getSystemHeader() 
+  public boolean getSystemHeader()
   {
     return systemHeader;
   }
 
-  public void setTreatAsC(boolean v) 
+  public void setTreatAsC(boolean v)
   {
     treatAsC = v;
   }
 
-  public boolean getTreatAsC() 
+  public boolean getTreatAsC()
   {
     return treatAsC;
   }

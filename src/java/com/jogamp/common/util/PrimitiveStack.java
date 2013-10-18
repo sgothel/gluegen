@@ -31,50 +31,50 @@ package com.jogamp.common.util;
  * Simple primitive-type stack.
  */
 public interface PrimitiveStack {
-    
-    /** 
+
+    /**
      * Returns this stack's current capacity.
      * <p>
      * The capacity may grow with a put operation w/ insufficient {@link #remaining()} elements left, if {@link #getGrowSize()} &gt; 0.
-     * </p> 
+     * </p>
      */
     int capacity();
-    
-    /** 
+
+    /**
      * Returns the current position of this stack.
      * <p>
-     * Position is in the range: 0 &le; position &lt; {@link #capacity()}. 
+     * Position is in the range: 0 &le; position &lt; {@link #capacity()}.
      * </p>
      * <p>
      * The position equals to the number of elements stored.
      * </p>
      **/
     int position();
-    
+
     /**
      * Sets the position of this stack.
-     * 
+     *
      * @param newPosition the new position
      * @throws IndexOutOfBoundsException if <code>newPosition</code> is outside of range: 0 &le; position &lt; {@link #capacity()}.
      */
     void position(int newPosition) throws IndexOutOfBoundsException;
-    
-    /** 
+
+    /**
      * Returns the remaining elements left before stack will grow about {@link #getGrowSize()}.
      * <pre>
      *   remaining := capacity() - position();
      * </pre>
-     * <p> 
+     * <p>
      * 0 denotes a full stack.
-     * </p> 
+     * </p>
      * @see #capacity()
      * @see #position()
      **/
     int remaining();
-    
+
     /** Returns the grow size. A stack grows by this size in case a put operation exceeds it's {@link #capacity()}. */
     int getGrowSize();
 
     /** Set new {@link #growSize(). */
-    void setGrowSize(int newGrowSize);    
+    void setGrowSize(int newGrowSize);
 }

@@ -46,16 +46,16 @@ public class JogampVersion {
     public static final Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
     /** See {@link #getImplementationCommit()} */
     public static final Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
-    
+
     private String packageName;
     private Manifest mf;
     private int hash;
     private Attributes mainAttributes;
     private Set<?>/*<Attributes.Name>*/ mainAttributeNames;
-    
+
     private final String androidPackageVersionName;
-    
-    protected JogampVersion(String packageName, Manifest mf) {        
+
+    protected JogampVersion(String packageName, Manifest mf) {
         this.packageName = packageName;
         this.mf = ( null != mf ) ? mf : new Manifest();
         this.hash = this.mf.hashCode();
@@ -104,7 +104,7 @@ public class JogampVersion {
     }
 
     /**
-     * @return set of type {@link Attributes.Name}, disguised as anonymous   
+     * @return set of type {@link Attributes.Name}, disguised as anonymous
      */
     public final Set<?>/*<Attributes.Name>*/ getAttributeNames() {
         return mainAttributeNames;
@@ -117,13 +117,13 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.EXTENSION_NAME);
     }
 
-    /** 
+    /**
      * Returns the implementation build number, e.g. <code>2.0-b456-20130328</code>.
      */
     public final String getImplementationBuild() {
         return this.getAttribute(GlueGenVersion.IMPLEMENTATION_BUILD);
     }
-    
+
     /**
      * Returns the SCM branch name
      */
@@ -168,7 +168,7 @@ public class JogampVersion {
     public final String getAndroidPackageVersionName() {
         return androidPackageVersionName;
     }
-    
+
     public final String getSpecificationTitle() {
         return this.getAttribute(Attributes.Name.SPECIFICATION_TITLE);
     }
@@ -220,7 +220,7 @@ public class JogampVersion {
 
         return sb;
     }
-    
+
     @Override
     public String toString() {
         return toString(null).toString();

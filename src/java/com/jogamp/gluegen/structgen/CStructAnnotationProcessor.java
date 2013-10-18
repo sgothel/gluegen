@@ -73,7 +73,7 @@ import jogamp.common.Debug;
  * <p>
  * User can enable DEBUG while defining property <code>jogamp.gluegen.structgen.debug</code>.
  * </p>
- * 
+ *
  * @author Michael Bien
  * @author Sven Gothel, et.al.
  */
@@ -82,15 +82,15 @@ import jogamp.common.Debug;
 public class CStructAnnotationProcessor extends AbstractProcessor {
     private static final String DEFAULT = "_default_";
     private static final boolean DEBUG;
-    
+
     static {
         Debug.initSingleton();
         DEBUG = Debug.isPropertyDefined("jogamp.gluegen.structgen.debug", true);
     }
-    
+
     private static final String STRUCTGENOUTPUT_OPTION = "structgen.output";
     private static final String STRUCTGENOUTPUT = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENOUTPUT_OPTION, true, "gensrc");
-    
+
     private Filer filer;
     private Messager messager;
     private Elements eltUtils;
@@ -113,7 +113,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
 
     private File locateSource(String packageName, String relativeName) {
         try {
-            if( DEBUG ) { 
+            if( DEBUG ) {
                 System.err.println("CStruct.locateSource.0: p "+packageName+", r "+relativeName);
             }
             final FileObject h = filer.getResource(StandardLocation.SOURCE_PATH, packageName, relativeName);
@@ -127,7 +127,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
         } catch (IOException e) { if(DEBUG) { System.err.println("Catched "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
         return null;
     }
-    
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
         final String user_dir = System.getProperty("user.dir");
@@ -142,14 +142,14 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                 final CStruct struct = element.getAnnotation(CStruct.class);
                 final String headerRelPath = struct.header();
                 final Element enclElement = element.getEnclosingElement();
-                
-                System.err.println("CStruct: "+struct+", package "+packageName+", header "+headerRelPath); 
+
+                System.err.println("CStruct: "+struct+", package "+packageName+", header "+headerRelPath);
                 if(DEBUG) {
                     System.err.println("CStruct.0: user.dir: "+user_dir);
                     System.err.println("CStruct.0: element: "+element+", .simpleName "+element.getSimpleName());
-                    System.err.println("CStruct.0: enclElement: "+enclElement+", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());                    
+                    System.err.println("CStruct.0: enclElement: "+enclElement+", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());
                 }
-                
+
                 final File headerFile;
                 {
                     File f = locateSource(packageName, headerRelPath);
@@ -162,7 +162,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                     }
                     headerFile = f;
                 }
-                
+
                 final String root;
                 {
                     String root0 = headerFile.getAbsolutePath();

@@ -44,7 +44,7 @@ public abstract class SingletonInstance implements Lock {
     public static SingletonInstance createFileLock(long poll_ms, File lockFile) {
         return new SingletonInstanceFileLock(poll_ms, lockFile);
     }
-    
+
     /**
      * A user shall use <b>ephemeral ports</b>:
      * <ul>
@@ -54,23 +54,23 @@ public abstract class SingletonInstance implements Lock {
      *  <li>FreeBSD < 4.6 and BSD use ports 1024 through 4999.</li>
      *  <li>Microsoft Windows operating systems through Server 2003 use the range 1025 to 5000</li>
      *  <li>Windows Vista, Windows 7, and Server 2008 use the IANA range.</li>
-     * </ul> 
+     * </ul>
      * @param pollPeriod
-     * @param portNumber to be used for this single instance server socket. 
+     * @param portNumber to be used for this single instance server socket.
      */
     public static SingletonInstance createServerSocket(long poll_ms, int portNumber) {
         return new SingletonInstanceServerSocket(poll_ms, portNumber);
     }
-    
+
     protected SingletonInstance(long poll_ms) {
         this.poll_ms = Math.max(10, poll_ms);
     }
-    
+
     public final long getPollPeriod() { return poll_ms; }
     public abstract String getName();
     @Override
     public final String toString() { return getName(); }
-    
+
     @Override
     public synchronized void lock() throws RuntimeException {
         try {
@@ -99,7 +99,7 @@ public abstract class SingletonInstance implements Lock {
                     if( DEBUG ) {
                         final long t2 = System.currentTimeMillis();
                         System.err.println(infoPrefix(t2)+" +++ "+getName()+" - Locked within "+(t2-t0)+" ms, "+(i+1)+" attempts");
-                    }            
+                    }
                     return true;
                 }
                 if( DEBUG && 0==i ) {
@@ -118,9 +118,9 @@ public abstract class SingletonInstance implements Lock {
             System.err.println(infoPrefix(t2)+" +++ EEE (2) "+getName()+" - couldn't get lock within "+(t2-t0)+" ms, "+i+" attempts");
         }
         return false;
-    }    
+    }
     protected abstract boolean tryLockImpl();
-    
+
     @Override
     public void unlock() throws RuntimeException {
         final long t0 = System.currentTimeMillis();
@@ -145,7 +145,7 @@ public abstract class SingletonInstance implements Lock {
     protected String infoPrefix() {
         return infoPrefix(System.currentTimeMillis());
     }
-    
+
     private final long poll_ms;
     private boolean locked = false;
 }

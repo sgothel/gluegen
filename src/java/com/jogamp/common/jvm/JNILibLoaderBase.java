@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -62,14 +62,14 @@ import jogamp.common.Debug;
 import jogamp.common.os.PlatformPropsImpl;
 
 public class JNILibLoaderBase {
-  public static final boolean DEBUG = Debug.debug("JNILibLoader");  
+  public static final boolean DEBUG = Debug.debug("JNILibLoader");
 
   public interface LoaderAction {
     /**
      * Loads the library specified by libname.<br>
      * The implementation should ignore, if the library has been loaded already.<br>
      * @param libname the library to load
-     * @param ignoreError if true, errors during loading the library should be ignored 
+     * @param ignoreError if true, errors during loading the library should be ignored
      * @param cl optional ClassLoader, used to locate the library
      * @return true if library loaded successful
      */
@@ -81,12 +81,12 @@ public class JNILibLoaderBase {
      * The implementation should ignore, if any library has been loaded already.<br>
      * @param libname the library to load
      * @param preload the libraries to load before loading the main library if not null
-     * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored 
+     * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored
      * @param cl optional ClassLoader, used to locate the library
      */
     void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl);
   }
-  
+
   private static class DefaultAction implements LoaderAction {
     public boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
       boolean res = true;
@@ -143,13 +143,13 @@ public class JNILibLoaderBase {
   public static void enableLoading() {
     setLoadingAction(new DefaultAction());
   }
-  
+
   public static synchronized void setLoadingAction(LoaderAction action) {
     loaderAction = action;
   }
 
   /**
-   * 
+   *
    * @param classFromJavaJar
    * @param classJarURI
    * @param jarBasename jar basename w/ suffix
@@ -170,16 +170,16 @@ public class JNILibLoaderBase {
     if(TempJarCache.isInitialized()) {
         final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
         if(null == jarSubURI) {
-            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);            
+            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);
         }
         final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
         msg.append("[ ").append(jarSubURI.toString()).append(" -> ").append(jarUriRoot_s).append(" ] + ");
-        
+
         final String nativeLibraryPath = "natives/"+PlatformPropsImpl.os_and_arch+"/";
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
         if( null != nativeLibraryURI ) {
-            // We probably have one big-fat jar file, containing java classes 
+            // We probably have one big-fat jar file, containing java classes
             // and all native platform libraries under 'natives/os.and.arch'!
             final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+jarBasename);
             if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
@@ -188,7 +188,7 @@ public class JNILibLoaderBase {
             }
         }
         if( !ok ) {
-            // We assume one slim native jar file per 'os.and.arch'! 
+            // We assume one slim native jar file per 'os.and.arch'!
             final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarBasename);
             msg.append(nativeJarBasename).append(" -> slim: ").append(nativeJarURI);
             ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, null /* nativeLibraryPath */);
@@ -201,22 +201,22 @@ public class JNILibLoaderBase {
     }
     return ok;
   }
-  
+
   /**
    * Loads and adds a JAR file's native library to the TempJarCache.<br>
    * The native library JAR file's URI is derived as follows:
    * <ul>
-   *   <li> [1] <code>GLProfile.class</code> -> </li> 
+   *   <li> [1] <code>GLProfile.class</code> -> </li>
    *   <li> [2] <code>http://lala/</code> -> </li>
    *   <li> [4] <code>http://lala/'nativeJarBaseName'-'os.and.arch'.jar</code> </li>
-   * </ul> 
+   * </ul>
    * Where:
    * <ul>
    *   <li> [1] is the <code>classFromJavaJar</code></li>
    *   <li> [2] is it's <i>URI path</i></li>
    *   <li> [4] is the derived native JAR filename</li>
    * </ul>
-   * 
+   *
    * @param classFromJavaJar GLProfile
    * @param nativeJarBasename jogl-all
    * @return true if the native JAR file loaded successful or were loaded already, false in case of an error
@@ -234,15 +234,15 @@ public class JNILibLoaderBase {
             if(DEBUG) {
                 e0.printStackTrace();
             }
-        }            
+        }
     } else if(DEBUG) {
         System.err.println("JNILibLoaderBase: addNativeJarLibs1: disabled due to uninitialized TempJarCache");
     }
     return false;
   }
-   
+
   /**
-   * Loads and adds a JAR file's native library to the TempJarCache, 
+   * Loads and adds a JAR file's native library to the TempJarCache,
    * calling {@link JNILibLoaderBase#addNativeJarLibs(Class[], String, String[])}
    * with default JOGL deployment configuration:
    * <pre>
@@ -258,7 +258,7 @@ public class JNILibLoaderBase {
    *   <li><i>ClassJar1</i>[-noawt,-mobile,-core,-android]?.jar to <i>ClassJar1</i>-natives-<i>os.and.arch</i>.jar</li>
    *   <li><i>ClassJar2</i>[-noawt,-mobile,-core,-android]?.jar to <i>ClassJar2</i>-natives-<i>os.and.arch</i>.jar</li>
    *   <li>..</li>
-   * </ul> 
+   * </ul>
    */
   public static final boolean addNativeJarLibsJoglCfg(final Class<?>[] classesFromJavaJars) {
       return addNativeJarLibs(classesFromJavaJars, "-all", joglDeployCfg);
@@ -269,11 +269,11 @@ public class JNILibLoaderBase {
    * Loads and adds a JAR file's native library to the TempJarCache.<br>
    * The native library JAR file's URI is derived as follows:
    * <ul>
-   *   <li> [1] <code>GLProfile.class</code> -> </li> 
+   *   <li> [1] <code>GLProfile.class</code> -> </li>
    *   <li> [2] <code>http://lala/gluegen-rt.jar</code> -> </li>
    *   <li> [3] <code>http://lala/gluegen-rt</code> -> </li>
    *   <li> [4] <code>http://lala/gluegen-rt-natives-'os.and.arch'.jar</code> </li>
-   * </ul> 
+   * </ul>
    * Where:
    * <ul>
    *   <li> [1] is one of <code>classesFromJavaJars</code></li>
@@ -294,11 +294,11 @@ public class JNILibLoaderBase {
    * <ul>
    *   <li><i>ClassJar-all</i>[-suff1,-suff2]?.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
    * </ul>
-   * Otherwise the native JAR files will be resolved for each class's JAR file: 
-   * <ul> 
+   * Otherwise the native JAR files will be resolved for each class's JAR file:
+   * <ul>
    *   <li><i>Class1Jar</i>[-suff1,-suff2]?.jar to <i>Class1Jar</i>-natives-<i>os.and.arch</i>.jar</li>
    *   <li><i>Class2Jar</i>[-suff1,-suff2]?.jar to <i>Class2Jar</i>-natives-<i>os.and.arch</i>.jar</li>
-   * </ul> 
+   * </ul>
    * </p>
    * <p>
    * Examples:
@@ -309,7 +309,7 @@ public class JNILibLoaderBase {
         // only: jocl.jar -> jocl-natives-<i>os.and.arch</i>.jar
         addNativeJarLibs(new Class<?>[] { JOCLJNILibLoader.class }, null, null );
    * </pre>
-   * 
+   *
    * Newt Only:
    * <pre>
        // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar, jogl-all-android.jar] -> jogl-all-natives-<i>os.and.arch</i>.jar
@@ -334,12 +334,12 @@ public class JNILibLoaderBase {
        JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
    * </pre>
    * </p>
-   * 
+   *
    * @param classesFromJavaJars For each given Class, load the native library JAR.
    * @param singleJarMarker Optional string marker like "-all" to identify the single 'all-in-one' JAR file
    *                        after which processing of the class array shall stop.
    * @param stripBasenameSuffixes Optional substrings to be stripped of the <i>base URI</i>
-   *  
+   *
    * @return true if either the 'all-in-one' native JAR or all native JARs loaded successful or were loaded already,
    *         false in case of an error
    */
@@ -351,7 +351,7 @@ public class JNILibLoaderBase {
     if(TempJarCache.isInitialized()) {
         final StringBuilder msg = new StringBuilder();
         int count = 0;
-        try {            
+        try {
             boolean done = false;
             ok = true;
             for(int i=0; !done && ok && i<classesFromJavaJars.length && null!=classesFromJavaJars[i]; i++) {
@@ -386,7 +386,7 @@ public class JNILibLoaderBase {
     }
     return ok;
   }
-  
+
   private static final String stripName(String name, String[] suffixes) {
       if(null != suffixes) {
           for(int i=0; i<suffixes.length && null != suffixes[i]; i++) {
@@ -398,34 +398,34 @@ public class JNILibLoaderBase {
       }
       return name;
   }
-  
+
   /**
    * Loads the library specified by libname, using the {@link LoaderAction} set by {@link #setLoadingAction(LoaderAction)}.<br>
    * The implementation should ignore, if the library has been loaded already.<br>
    * @param libname the library to load
-   * @param ignoreError if true, errors during loading the library should be ignored 
+   * @param ignoreError if true, errors during loading the library should be ignored
    * @param cl optional ClassLoader, used to locate the library
    * @return true if library loaded successful
    */
   protected static synchronized boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
       if (loaderAction != null) {
-          return loaderAction.loadLibrary(libname, ignoreError, cl);    
+          return loaderAction.loadLibrary(libname, ignoreError, cl);
       }
       return false;
   }
-  
+
   /**
    * Loads the library specified by libname, using the {@link LoaderAction} set by {@link #setLoadingAction(LoaderAction)}.<br>
    * Optionally preloads the libraries specified by preload.<br>
    * The implementation should ignore, if any library has been loaded already.<br>
    * @param libname the library to load
    * @param preload the libraries to load before loading the main library if not null
-   * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored 
+   * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored
    * @param cl optional ClassLoader, used to locate the library
    */
   protected static synchronized void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl) {
       if (loaderAction != null) {
-          loaderAction.loadLibrary(libname, preload, preloadIgnoreError, cl);    
+          loaderAction.loadLibrary(libname, preload, preloadIgnoreError, cl);
       }
   }
 
@@ -435,20 +435,20 @@ public class JNILibLoaderBase {
   static {
     final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
     final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
-    
+
     final Method loadLibraryMethod = AccessController.doPrivileged(new PrivilegedAction<Method>() {
         public Method run() {
             // FIXME: remove
-            final boolean usingJNLPAppletLauncher = Debug.getBooleanProperty(sunAppletLauncherProperty, true); 
-    
+            final boolean usingJNLPAppletLauncher = Debug.getBooleanProperty(sunAppletLauncherProperty, true);
+
             Class<?> launcherClass = null;
             Method loadLibraryMethod = null;
-        
+
             if (usingJNLPAppletLauncher) {
                 try {
                   launcherClass = Class.forName(sunAppletLauncherClassName);
                 } catch (ClassNotFoundException cnfe) {
-                  // oops .. look like JNLPAppletLauncher doesn't exist, despite property 
+                  // oops .. look like JNLPAppletLauncher doesn't exist, despite property
                   // this may happen if a previous applet was using JNLPAppletLauncher in the same JVM
                   System.err.println("JNILibLoaderBase: <"+sunAppletLauncherClassName+"> not found, despite enabled property <"+sunAppletLauncherProperty+">, JNLPAppletLauncher was probably used before");
                   System.setProperty(sunAppletLauncherProperty, Boolean.FALSE.toString());
@@ -465,7 +465,7 @@ public class JNILibLoaderBase {
                         launcherClass = null;
                    }
                 }
-            }            
+            }
             if(null==launcherClass) {
                 String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false);
                 if(null!=launcherClassName) {
@@ -490,7 +490,7 @@ public class JNILibLoaderBase {
   }
 
   private static void loadLibraryInternal(String libraryName, ClassLoader cl) {
-      // Note: special-casing JAWT which is built in to the JDK 
+      // Note: special-casing JAWT which is built in to the JDK
       int mode = 0; // 1 - custom, 2 - System.load( TempJarCache ), 3 - System.loadLibrary( name ), 4 - System.load( enumLibNames )
       if (null!=customLoadLibraryMethod && !libraryName.equals("jawt")) {
           // FIXME: remove

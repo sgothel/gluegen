@@ -1,21 +1,21 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -28,11 +28,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -59,7 +59,7 @@ public abstract class FunctionEmitter {
     this.defaultOutput = defaultOutput;
     this.isInterfaceVal = isInterface;
   }
-  
+
   /**
    * Makes this FunctionEmitter a copy of the passed one.
    */
@@ -133,7 +133,7 @@ public abstract class FunctionEmitter {
    * null, in which case no comment emitter has been set.
    */
   public CommentEmitter getCommentEmitter() { return commentEmitter; }
-  
+
   protected void emitDocComment(PrintWriter writer) {
 
     if (commentEmitter != null)    {
@@ -144,13 +144,13 @@ public abstract class FunctionEmitter {
       commentEmitter.emit(this, writer);
 
       writer.print(getBaseIndentString()); //indent
-      
+
       writer.println(getCommentEndString());
     }
   }
-  
+
   protected void emitSignature(PrintWriter writer)  {
-      
+
     writer.print(getBaseIndentString()); // indent method
 
     int numEmitted = emitModifiers(writer);
@@ -182,21 +182,21 @@ public abstract class FunctionEmitter {
   }
 
   protected String getBaseIndentString() { return ""; }
-  
+
   protected String getCommentStartString() { return "/* "; }
   protected String getCommentEndString() { return " */"; }
-  
+
   protected abstract void emitReturnType(PrintWriter writer);
-  protected abstract void emitName(PrintWriter writer); 
+  protected abstract void emitName(PrintWriter writer);
   /** Returns the number of arguments emitted. */
-  protected abstract int emitArguments(PrintWriter writer);  
+  protected abstract int emitArguments(PrintWriter writer);
   protected abstract void emitBody(PrintWriter writer);
-  
+
   public static class EmissionModifier  {
 
     @Override
     public final String toString() { return emittedForm; }
-    
+
     private String emittedForm;
 
     @Override
@@ -213,7 +213,7 @@ public abstract class FunctionEmitter {
       return emittedForm.equals(((EmissionModifier) arg).emittedForm);
     }
 
-    protected EmissionModifier(String emittedForm) { this.emittedForm = emittedForm; } 
+    protected EmissionModifier(String emittedForm) { this.emittedForm = emittedForm; }
   }
 }
 

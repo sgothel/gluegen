@@ -37,9 +37,9 @@ import com.jogamp.common.util.LongObjectHashMap;
   // and sealed jogamp.common.* package definition
   // ensuring no abuse via subclassing.
   //
-    
+
   private final LongObjectHashMap libHandle2Name = new LongObjectHashMap( 16 /* initialCapacity */ );
-  
+
   protected static final class LibRef {
       public LibRef(String name) {
           this.name = name;
@@ -48,18 +48,18 @@ import com.jogamp.common.util.LongObjectHashMap;
       public final int incrRefCount() { return ++refCount; }
       public final int decrRefCount() { return --refCount; }
       public final int getRefCount() { return refCount; }
-      
+
       public final String getName() { return name; }
       public final String toString() { return "LibRef["+name+", refCount "+refCount+"]"; }
-      
+
       private final String name;
       private int refCount;
   }
-  
+
   protected final synchronized LibRef getLibRef(long handle) {
       return (LibRef) libHandle2Name.get(handle);
   }
-  
+
   protected final synchronized LibRef incrLibRefCount(long handle, String libName) {
       LibRef libRef = getLibRef(handle);
       if( null == libRef ) {
@@ -73,7 +73,7 @@ import com.jogamp.common.util.LongObjectHashMap;
       }
       return libRef;
   }
-  
+
   protected final synchronized LibRef decrLibRefCount(long handle) {
       LibRef libRef = getLibRef(handle);
       if( null != libRef ) {

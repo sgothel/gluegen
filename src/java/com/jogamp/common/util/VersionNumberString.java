@@ -34,28 +34,28 @@ package com.jogamp.common.util;
  */
 public class VersionNumberString extends VersionNumber {
 
-    /** 
-     * A {@link #isZero() zero} version instance, w/o any component defined explicitly. 
+    /**
+     * A {@link #isZero() zero} version instance, w/o any component defined explicitly.
      * @see #hasMajor()
      * @see #hasMinor()
-     * @see #hasSub() 
+     * @see #hasSub()
      */
     public static final VersionNumberString zeroVersion = new VersionNumberString(0, 0, 0, -1, (short)0, "n/a");
-    
+
     protected final String strVal;
 
     protected VersionNumberString(int majorRev, int minorRev, int subMinorRev, int strEnd, short _state, String versionString) {
         super(majorRev, minorRev, subMinorRev, strEnd, _state);
         strVal = versionString;
     }
-    
+
     /**
      * See {@link VersionNumber#VersionNumber(int, int, int)}.
      */
     public VersionNumberString(int majorRev, int minorRev, int subMinorRev, String versionString) {
         this(majorRev, minorRev, subMinorRev, -1, (short)(HAS_MAJOR | HAS_MINOR | HAS_SUB), versionString);
     }
-    
+
     /**
      * See {@link VersionNumber#VersionNumber(String)}.
      */
@@ -63,7 +63,7 @@ public class VersionNumberString extends VersionNumber {
         super( versionString);
         strVal = versionString;
     }
-    
+
     /**
      * See {@link VersionNumber#VersionNumber(String, String)}.
      */
@@ -71,7 +71,7 @@ public class VersionNumberString extends VersionNumber {
         super( versionString, delim);
         strVal = versionString;
     }
-    
+
     /**
      * See {@link VersionNumber#VersionNumber(String, java.util.regex.Pattern)}.
      */
@@ -79,10 +79,10 @@ public class VersionNumberString extends VersionNumber {
         super( versionString, versionPattern);
         strVal = versionString;
     }
-    
+
     /** Returns the version string this version number is derived from. */
     public final String getVersionString() { return strVal; }
-    
+
     @Override
     public String toString() {
         return super.toString() + " ("+strVal+")" ;

@@ -54,7 +54,7 @@ import java.util.List;
  * An emitter that emits only the interface for a Java<->C JNI binding.
  */
 public class JavaMethodBindingEmitter extends FunctionEmitter {
-    
+
   public static final EmissionModifier PUBLIC = new EmissionModifier("public");
   public static final EmissionModifier PROTECTED = new EmissionModifier("protected");
   public static final EmissionModifier PRIVATE = new EmissionModifier("private");

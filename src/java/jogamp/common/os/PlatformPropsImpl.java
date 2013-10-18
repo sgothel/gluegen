@@ -37,16 +37,16 @@ import com.jogamp.common.util.VersionNumber;
  */
 public abstract class PlatformPropsImpl {
     static final boolean DEBUG = Debug.debug("Platform");
-    
+
     //
     // static initialization order:
     //
-    
+
     /** Version 1.6. As a JVM version, it enables certain JVM 1. features. */
     public static final VersionNumber Version16;
     /** Version 1.7. As a JVM version, it enables certain JVM 1.7 features. */
     public static final VersionNumber Version17;
-    
+
     public static final String OS;
     public static final String OS_lower;
     public static final String OS_VERSION;
@@ -62,17 +62,17 @@ public abstract class PlatformPropsImpl {
     public static final String JAVA_RUNTIME_NAME;
     /** True if having {@link java.nio.LongBuffer} and {@link java.nio.DoubleBuffer} available. */
     public static final boolean JAVA_SE;
-    /** True if being compatible w/ language level 6, e.g. JRE 1.6. Implies {@link #JAVA_SE}. <i>Note</i>: We claim Android is compatible. */ 
+    /** True if being compatible w/ language level 6, e.g. JRE 1.6. Implies {@link #JAVA_SE}. <i>Note</i>: We claim Android is compatible. */
     public static final boolean JAVA_6;
-    
+
     public static final String NEWLINE;
     public static final boolean LITTLE_ENDIAN;
-    
+
     public static final CPUType CPU_ARCH;
     public static final ABIType ABI_TYPE;
     public static final OSType OS_TYPE;
     public static final String os_and_arch;
-            
+
     static {
         Version16 = new VersionNumber(1, 6, 0);
         Version17 = new VersionNumber(1, 7, 0);
@@ -103,10 +103,10 @@ public abstract class PlatformPropsImpl {
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();
         JAVA_6 = JAVA_SE && ( AndroidVersion.isAvailable || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
-        
+
         NEWLINE = System.getProperty("line.separator");
         LITTLE_ENDIAN = queryIsLittleEndianImpl();
-        
+
         CPU_ARCH = getCPUTypeImpl(ARCH_lower);
         OS_TYPE = getOSTypeImpl();
         ABI_TYPE = queryABITypeImpl(OS_TYPE, CPU_ARCH);
@@ -114,7 +114,7 @@ public abstract class PlatformPropsImpl {
     }
 
     protected PlatformPropsImpl() {}
-    
+
     private static final String getJavaRuntimeNameImpl() {
         // the fast path, check property Java SE instead of traversing through the ClassLoader
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
@@ -123,7 +123,7 @@ public abstract class PlatformPropsImpl {
             }
           });
     }
-    
+
     private static final boolean initIsJavaSE() {
         if( null != JAVA_RUNTIME_NAME && JAVA_RUNTIME_NAME.indexOf("Java SE") != -1) {
             return true;
@@ -148,7 +148,7 @@ public abstract class PlatformPropsImpl {
         tst_i.put(0, 0x0A0B0C0D);
         return 0x0C0D == tst_s.get(0);
     }
-  
+
     private static final CPUType getCPUTypeImpl(String archLower) {
         if(        archLower.equals("x86")  ||
                    archLower.equals("i386") ||
@@ -181,10 +181,10 @@ public abstract class PlatformPropsImpl {
             throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + archLower + ")");
         }
     }
-    
+
     @SuppressWarnings("unused")
     private static final boolean contains(String data, String[] search) {
-        if(null != data && null != search) {            
+        if(null != data && null != search) {
             for(int i=0; i<search.length; i++) {
                 if(data.indexOf(search[i]) >= 0) {
                     return true;
@@ -193,7 +193,7 @@ public abstract class PlatformPropsImpl {
         }
         return false;
     }
-    
+
     /**
      * Returns the {@link ABIType} of the current platform using given {@link CPUType cpuType}
      * and {@link OSType osType} as a hint.
@@ -201,33 +201,33 @@ public abstract class PlatformPropsImpl {
      * Note the following queries are performed:
      * <ul>
      *   <li> not {@link CPUFamily#ARM} -> {@link ABIType#GENERIC_ABI} </li>
-     *   <li> else 
-     *   <ul> 
+     *   <li> else
+     *   <ul>
      *     <li> {@link OSType#ANDROID} -> {@link ABIType#EABI_GNU_ARMEL} (due to EACCES, Permission denied)</li>
-     *     <li> else 
-     *     <ul> 
+     *     <li> else
+     *     <ul>
      *       <li> Elf ARM Tags -> {@link ABIType#EABI_GNU_ARMEL}, {@link ABIType#EABI_GNU_ARMHF}</li>
      *       <li> On Error -> {@link ABIType#EABI_GNU_ARMEL}</li>
      *     </ul></li>
-     *   </ul></li> 
+     *   </ul></li>
      * </ul>
      * </p>
      * <p>
-     * For Elf parsing either the current executable is used (Linux) or a found java/jvm native library. 
+     * For Elf parsing either the current executable is used (Linux) or a found java/jvm native library.
      * </p>
      * <p>
      * Elf ARM Tags are read using {@link ElfHeader}, .. and {@link SectionArmAttributes#abiVFPArgsAcceptsVFPVariant(byte)}.
      * </p>
      * @param osType
      * @param cpuType
-     *  
+     *
      * @return
      */
     private static final ABIType queryABITypeImpl(final OSType osType, final CPUType cpuType) {
         if( CPUFamily.ARM  != cpuType.family ) {
             return ABIType.GENERIC_ABI;
         }
-        if( OSType.ANDROID == osType ) { // EACCES (Permission denied) - We assume a not rooted device! 
+        if( OSType.ANDROID == osType ) { // EACCES (Permission denied) - We assume a not rooted device!
             return ABIType.EABI_GNU_ARMEL;
         }
         return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
@@ -250,7 +250,7 @@ public abstract class PlatformPropsImpl {
                     if( null == file ) {
                         file = findSysLib("jvm");
                     }
-                    if( null != file ) {                    
+                    if( null != file ) {
                         in = new RandomAccessFile(file, "r");
                         final ElfHeader eh = ElfHeader.read(in);
                         if(DEBUG) {
@@ -290,7 +290,7 @@ public abstract class PlatformPropsImpl {
                     res = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
                 } else {
                     res = ABIType.GENERIC_ABI;
-                }                
+                }
                 if(DEBUG) {
                     System.err.println("ELF: abiARM "+abiARM+", abiVFPArgsAcceptsVFPVariant "+abiVFPArgsAcceptsVFPVariant+" -> "+res);
                 }
@@ -302,7 +302,7 @@ public abstract class PlatformPropsImpl {
             return file.isFile() && file.canRead();
         } catch (Throwable t) { }
         return false;
-    }    
+    }
     private static File findSysLib(String libName) {
         ClassLoader cl = PlatformPropsImpl.class.getClassLoader();
         final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
@@ -321,29 +321,29 @@ public abstract class PlatformPropsImpl {
         }
         return null;
     }
-    
+
     private static final OSType getOSTypeImpl() throws RuntimeException {
         if ( AndroidVersion.isAvailable ) {
             return OSType.ANDROID;
         }
         if ( OS_lower.startsWith("linux") ) {
-            return OSType.LINUX;            
+            return OSType.LINUX;
         }
         if ( OS_lower.startsWith("freebsd") ) {
-            return OSType.FREEBSD;            
+            return OSType.FREEBSD;
         }
         if ( OS_lower.startsWith("android") ) {
-            return OSType.ANDROID;            
+            return OSType.ANDROID;
         }
         if ( OS_lower.startsWith("mac os x") ||
              OS_lower.startsWith("darwin") ) {
-            return OSType.MACOS;            
+            return OSType.MACOS;
         }
         if ( OS_lower.startsWith("sunos") ) {
-            return OSType.SUNOS;            
+            return OSType.SUNOS;
         }
         if ( OS_lower.startsWith("hp-ux") ) {
-            return OSType.HPUX;            
+            return OSType.HPUX;
         }
         if ( OS_lower.startsWith("windows") ) {
             return OSType.WINDOWS;
@@ -351,18 +351,18 @@ public abstract class PlatformPropsImpl {
         if ( OS_lower.startsWith("kd") ) {
             return OSType.OPENKODE;
         }
-        throw new RuntimeException("Please port OS detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");        
+        throw new RuntimeException("Please port OS detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");
     }
 
     /**
      * kick off static initialization of <i>platform property information</i>
      */
-    public static void initSingleton() { } 
-    
+    public static void initSingleton() { }
+
     /**
      * Returns the GlueGen common name for the given OSType and CPUType
      * as implemented in the build system in 'gluegen-cpptasks-base.xml'.<br>
-     * 
+     *
      * A list of currently supported <code>os.and.arch</code> strings:
      * <ul>
      *   <li>freebsd-i586</li>
@@ -386,7 +386,7 @@ public abstract class PlatformPropsImpl {
      */
     public static final String getOSAndArch(OSType osType, CPUType cpuType, ABIType abiType) {
         String _os_and_arch;
-        
+
         switch( cpuType ) {
             case X86_32:
                 _os_and_arch = "i586";
@@ -398,7 +398,7 @@ public abstract class PlatformPropsImpl {
                 _os_and_arch = "armv6"; // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             case SPARC_32:
-                _os_and_arch = "sparc"; 
+                _os_and_arch = "sparc";
                 break;
             case PPC:
                 _os_and_arch = "ppc"; // TODO: sync with gluegen-cpptasks-base.xml
@@ -410,10 +410,10 @@ public abstract class PlatformPropsImpl {
                 _os_and_arch = "ia64";
                 break;
             case SPARCV9_64:
-                _os_and_arch = "sparcv9"; 
+                _os_and_arch = "sparcv9";
                 break;
             case PA_RISC2_0:
-                _os_and_arch = "risc2.0"; // TODO: sync with gluegen-cpptasks-base.xml 
+                _os_and_arch = "risc2.0"; // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             default:
                 throw new InternalError("Complete case block");
@@ -423,33 +423,33 @@ public abstract class PlatformPropsImpl {
         }
         switch( osType ) {
             case ANDROID:
-              _os_and_arch = "android-" + _os_and_arch;  
+              _os_and_arch = "android-" + _os_and_arch;
               break;
             case MACOS:
-              _os_and_arch = "macosx-universal";  
+              _os_and_arch = "macosx-universal";
               break;
             case WINDOWS:
-              _os_and_arch = "windows-" + _os_and_arch;  
+              _os_and_arch = "windows-" + _os_and_arch;
               break;
             case OPENKODE:
-              _os_and_arch = "openkode-" + _os_and_arch; // TODO: think about that   
-              break;                
+              _os_and_arch = "openkode-" + _os_and_arch; // TODO: think about that
+              break;
             case LINUX:
-              _os_and_arch = "linux-" + _os_and_arch;  
+              _os_and_arch = "linux-" + _os_and_arch;
               break;
             case FREEBSD:
-              _os_and_arch = "freebsd-" + _os_and_arch;  
+              _os_and_arch = "freebsd-" + _os_and_arch;
               break;
             case SUNOS:
-              _os_and_arch = "solaris-" + _os_and_arch;  
+              _os_and_arch = "solaris-" + _os_and_arch;
               break;
             case HPUX:
               _os_and_arch = "hpux-hppa";  // TODO: really only hppa ?
-              break;              
+              break;
             default:
               throw new InternalError("Complete case block");
         }
-        return _os_and_arch;        
+        return _os_and_arch;
     }
-        
+
 }

@@ -28,11 +28,11 @@ public class PreprocessorInfoChannel
     {
         return maxTokenNumber;
     }
-        
+
     public Vector<Object> extractLinesPrecedingTokenNumber( Integer toknum )
     {
         Vector<Object> lines = new Vector<Object>();
-        if (toknum == null) return lines;       
+        if (toknum == null) return lines;
         for (int i = firstValidTokenNumber; i < toknum.intValue(); i++){
             Integer inti = new Integer(i);
             if ( lineLists.containsKey( inti ) ) {

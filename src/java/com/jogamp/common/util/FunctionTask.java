@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.common.util;
 
 import java.io.PrintStream;
@@ -41,7 +41,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
 
     /**
      * Invokes <code>func</code>.
-     * @param waitUntilDone if <code>true</code>, waits until <code>func</code> execution is completed, otherwise returns immediately. 
+     * @param waitUntilDone if <code>true</code>, waits until <code>func</code> execution is completed, otherwise returns immediately.
      * @param func the {@link Function} to execute.
      * @param args the {@link Function} arguments
      * @return the {@link Function} return value
@@ -69,14 +69,14 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
         }
         return res;
     }
-    
+
     /**
      * Create a RunnableTask object w/ synchronization,
-     * ie. suitable for <code>invokeAndWait()</code>. 
-     * 
+     * ie. suitable for <code>invokeAndWait()</code>.
+     *
      * @param runnable the user action
      * @param syncObject the synchronization object the caller shall wait until <code>runnable</code> execution is completed,
-     *                   or <code>null</code> if waiting is not desired. 
+     *                   or <code>null</code> if waiting is not desired.
      * @param catchExceptions Influence an occurring exception during <code>runnable</code> execution.
      *                        If <code>true</code>, the exception is silenced and can be retrieved via {@link #getThrowable()},
      *                        otherwise the exception is thrown.
@@ -96,12 +96,12 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
 
     /**
      * Sets the arguments for {@link #run()}.
-     * They will be cleared after calling {@link #run()} or {@link #eval(Object...)}. 
+     * They will be cleared after calling {@link #run()} or {@link #eval(Object...)}.
      */
     public final void setArgs(A... args) {
         this.args = args;
     }
-    
+
     /**
      * Retrieves the cached result of {@link #run()}
      * and is cleared within this method.
@@ -111,7 +111,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
         result = null;
         return res;
     }
-    
+
     /**
      * {@inheritDoc}
      * <p>
@@ -170,7 +170,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     @Override
     public final R eval(A... args) {
         this.args = args;
-        run();        
+        run();
         final R res = result;
         result = null;
         return res;

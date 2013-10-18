@@ -31,12 +31,12 @@ import java.util.Arrays;
 
 import com.jogamp.common.util.locks.RecursiveThreadGroupLock;
 
-public class RecursiveThreadGroupLockImpl01Unfairish 
-    extends RecursiveLockImpl01Unfairish 
-    implements RecursiveThreadGroupLock 
+public class RecursiveThreadGroupLockImpl01Unfairish
+    extends RecursiveLockImpl01Unfairish
+    implements RecursiveThreadGroupLock
 {
     /* package */ @SuppressWarnings("serial")
-    static class ThreadGroupSync extends SingleThreadSync {        
+    static class ThreadGroupSync extends SingleThreadSync {
         /* package */ ThreadGroupSync() {
             super();
             threadNum = 0;
@@ -44,23 +44,23 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             holdCountAdditionOwner = 0;
         }
         @Override
-        public final void incrHoldCount(Thread t) { 
-            super.incrHoldCount(t); 
-            if(!isOriginalOwner(t)) { 
-                holdCountAdditionOwner++; 
-            } 
+        public final void incrHoldCount(Thread t) {
+            super.incrHoldCount(t);
+            if(!isOriginalOwner(t)) {
+                holdCountAdditionOwner++;
+            }
         }
         @Override
-        public final void decrHoldCount(Thread t) { 
-            super.decrHoldCount(t); 
-            if(!isOriginalOwner(t)) { 
-                holdCountAdditionOwner--; 
-            } 
+        public final void decrHoldCount(Thread t) {
+            super.decrHoldCount(t);
+            if(!isOriginalOwner(t)) {
+                holdCountAdditionOwner--;
+            }
         }
         public final int getAdditionalOwnerHoldCount() {
             return holdCountAdditionOwner;
         }
-        
+
         public final boolean isOriginalOwner(Thread t) {
             return super.isOwner(t);
         }
@@ -76,11 +76,11 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             }
             return false;
         }
-        
+
         public final int getAddOwnerCount() {
             return threadNum;
         }
-        public final void addOwner(Thread t) throws IllegalArgumentException {            
+        public final void addOwner(Thread t) throws IllegalArgumentException {
             if(null == threads) {
                 if(threadNum>0) {
                     throw new InternalError("XXX");
@@ -98,15 +98,15 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             threads[threadNum] = t;
             threadNum++;
         }
-        
+
         public final void removeAllOwners() {
             for(int i=threadNum-1; 0<=i; i--) {
                 threads[i]=null;
             }
-            threadNum=0;            
+            threadNum=0;
         }
-        
-        public final void removeOwner(Thread t) throws IllegalArgumentException {       
+
+        public final void removeOwner(Thread t) throws IllegalArgumentException {
             for (int i = 0 ; i < threadNum ; i++) {
                 if (threads[i] == t) {
                     threadNum--;
@@ -117,7 +117,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             }
             throw new IllegalArgumentException("Not an owner: "+t);
         }
-        
+
         String addOwnerToString() {
             StringBuilder sb = new StringBuilder();
             for(int i=0; i<threadNum; i++) {
@@ -126,19 +126,19 @@ public class RecursiveThreadGroupLockImpl01Unfairish
                 }
                 sb.append(threads[i].getName());
             }
-            return sb.toString();            
+            return sb.toString();
         }
-        
+
         // lock count by addition owner threads
-        private int holdCountAdditionOwner;        
+        private int holdCountAdditionOwner;
         private Thread[] threads;
         private int threadNum;
     }
-    
+
     public RecursiveThreadGroupLockImpl01Unfairish() {
         super(new ThreadGroupSync());
     }
-    
+
     @Override
     public final boolean isOriginalOwner() {
         return isOriginalOwner(Thread.currentThread());
@@ -164,13 +164,13 @@ public class RecursiveThreadGroupLockImpl01Unfairish
         }
         tgSync.addOwner(t);
     }
-    
+
     @Override
     public final void unlock(Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             final Thread cur = Thread.currentThread();
             final ThreadGroupSync tgSync = (ThreadGroupSync)sync;
-            
+
             if( tgSync.getAddOwnerCount()>0 ) {
                 if(TRACE_LOCK) {
                     System.err.println("--- LOCK XR (tg) "+toString()+", cur "+threadName(cur)+" -> owner...");
@@ -193,23 +193,23 @@ public class RecursiveThreadGroupLockImpl01Unfairish
                     final Thread originalOwner = tgSync.getOwner();
                     if(originalOwner.getState() == Thread.State.WAITING) {
                         originalOwner.interrupt();
-                    }                
+                    }
                 }
             }
             if(TRACE_LOCK) {
                 System.err.println("++ unlock(X): currentThread "+cur.getName()+", lock: "+this.toString());
                 System.err.println("--- LOCK X0 (tg) "+toString()+", cur "+threadName(cur)+" -> unlock!");
             }
-            super.unlock(taskAfterUnlockBeforeNotify);       
+            super.unlock(taskAfterUnlockBeforeNotify);
         }
     }
-    
+
     @Override
     public final void removeOwner(Thread t) throws RuntimeException, IllegalArgumentException {
         validateLocked();
         ((ThreadGroupSync)sync).removeOwner(t);
     }
-    
+
     @Override
     public String toString() {
         final ThreadGroupSync tgSync = (ThreadGroupSync)sync;

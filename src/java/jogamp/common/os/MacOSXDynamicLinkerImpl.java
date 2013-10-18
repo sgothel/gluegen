@@ -45,15 +45,15 @@ public final class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   public final long openLibraryLocal(String pathname, boolean debug) throws SecurityException {
     return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_LOCAL, debug);
   }
-  
+
   @Override
   public final long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
     return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_GLOBAL, debug);
   }
-  
+
   @Override
   public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
     return this.lookupSymbolGlobalImpl(RTLD_DEFAULT, symbolName);
   }
-  
+
 }

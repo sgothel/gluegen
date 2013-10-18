@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -60,22 +60,22 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     static PointerBuffer create(ByteBuffer bb) {
         return Platform.is32Bit() ? new PointerBuffer( bb.asIntBuffer() ) : new PointerBuffer( bb.asLongBuffer() );
     }
-    
+
     /** supports backup array */
     PointerBuffer(IntBuffer b) {
         super(b, ELEMENT_SIZE, b.capacity());
     }
-    
+
     /** supports backup array */
     PointerBuffer(LongBuffer b) {
         super(b, ELEMENT_SIZE, b.capacity());
     }
-    
+
     private final void validateDataMap() {
         if(null == dataMap) {
             dataMap = new LongObjectHashMap();
-            dataMap.setKeyNotFoundValue(null);            
-        }        
+            dataMap.setKeyNotFoundValue(null);
+        }
     }
 
     /** Returns a non direct PointerBuffer in native order, having a backup array */
@@ -84,7 +84,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
             return new PointerBuffer(IntBuffer.wrap(new int[size]));
         } else {
             return new PointerBuffer(LongBuffer.wrap(new long[size]));
-        }               
+        }
     }
 
     /** Returns a direct PointerBuffer in native order, w/o backup array */
@@ -113,9 +113,9 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         npb.position = position;
         return npb;
     }
-    
-    /** 
-     * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code> 
+
+    /**
+     * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code>
      * to this buffer and increment the position by <code>capacity-position</code>. */
     public final PointerBuffer put(PointerBuffer src) {
         if (remaining() < src.remaining()) {
@@ -145,7 +145,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         }
         return this;
     }
-            
+
     /** Relative get method. Get the pointer value at the current position and increment the position by one. */
     public final long get() {
         long r = get(position);
@@ -164,9 +164,9 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
             return ((LongBuffer) buffer).get(idx);
         }
     }
-    
-    /** 
-     * Relative bulk get method. Copy the pointer values <code> [ position .. position+length [</code> 
+
+    /**
+     * Relative bulk get method. Copy the pointer values <code> [ position .. position+length [</code>
      * to the destination array <code> [ dest[offset] .. dest[offset+length] [ </code>
      * and increment the position by <code>length</code>. */
     public final PointerBuffer get(long[] dest, int offset, int length) {
@@ -203,8 +203,8 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         return this;
     }
 
-    /** 
-     * Relative bulk put method. Put the pointer values <code> [ src[offset] .. src[offset+length] [</code> 
+    /**
+     * Relative bulk put method. Put the pointer values <code> [ src[offset] .. src[offset+length] [</code>
      * at the current position and increment the position by <code>length</code>. */
     public final PointerBuffer put(long[] src, int offset, int length) {
         if (src.length<offset+length) {
@@ -223,8 +223,8 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     /** Put the address of the given direct Buffer at the given position
         of this pointer array.
         Adding a reference of the given direct Buffer to this object.
-        
-        @throws IllegalArgumentException if bb is null or not a direct buffer 
+
+        @throws IllegalArgumentException if bb is null or not a direct buffer
      */
     public final PointerBuffer referenceBuffer(int index, Buffer bb) {
         if(null==bb) {
@@ -239,7 +239,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
             throw new RuntimeException("Couldn't determine native address of given Buffer: "+bb);
         }
         validateDataMap();
-        put(index, bbAddr);        
+        put(index, bbAddr);
         dataMap.put(bbAddr, bb);
         return this;
     }

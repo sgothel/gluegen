@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -61,14 +61,14 @@ public class MachineDescription {
       X86_64_WINDOWS(Platform.CPUType.X86_64),
       /** {@link Platform.CPUType#SPARC_32} Big Endian Solaris */
       SPARC_32_SUNOS(Platform.CPUType.SPARC_32);
-      
+
       public final Platform.CPUType cpu;
 
       ID(Platform.CPUType cpu){
           this.cpu = cpu;
       }
-  }    
-  
+  }
+
   /*                              arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
   private final static int[] size_armeabi         =  { 4,    4,     4,     8,      8,    4,   4096 };
   private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
@@ -78,7 +78,7 @@ public class MachineDescription {
   private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
   private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
 
-  /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */                            
+  /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */
   private final static int[] align_armeabi        =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
   private final static int[] align_x86_32_unix    =  { 1,   2,   4,   4,   4,    4,     4,     4,      4,   4 };
   private final static int[] align_x86_32_macos   =  { 1,   2,   4,   4,   4,    4,     4,     4,     16,   4 };
@@ -86,7 +86,7 @@ public class MachineDescription {
   private final static int[] align_x86_64_unix    =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
   private final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
   private final static int[] align_sparc_32_sunos =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
-  
+
   public enum StaticConfig {
       /** {@link MachineDescription.ID#ARMle_EABI } */
       ARMle_EABI(ID.ARMle_EABI,         true,  size_armeabi,        align_armeabi),
@@ -102,10 +102,10 @@ public class MachineDescription {
       X86_64_WINDOWS(ID.X86_64_WINDOWS, true,  size_x86_64_windows, align_x86_64_windows),
       /** {@link MachineDescription.ID#SPARC_32_SUNOS } */
       SPARC_32_SUNOS(ID.SPARC_32_SUNOS, false, size_sparc_32_sunos, align_sparc_32_sunos);
-      
-      public final ID id;      
+
+      public final ID id;
       public final MachineDescription md;
-      
+
       StaticConfig(ID id, boolean littleEndian, int[] sizes, int[] alignments) {
           this.id = id;
           int i=0, j=0;
@@ -128,7 +128,7 @@ public class MachineDescription {
                                            alignments[j++],
                                            alignments[j++]);
       }
-      
+
       public StringBuilder toString(StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
@@ -137,23 +137,23 @@ public class MachineDescription {
         md.toString(sb);
         return sb;
       }
-        
+
       @Override
       public String toString() {
         return toString(null).toString();
       }
   }
 
-  
+
   final private boolean runtimeValidated;
-  
+
   final private boolean littleEndian;
-    
+
   final private int int8SizeInBytes = 1;
   final private int int16SizeInBytes = 2;
   final private int int32SizeInBytes = 4;
   final private int int64SizeInBytes = 8;
-  
+
   final private int intSizeInBytes;
   final private int longSizeInBytes;
   final private int floatSizeInBytes;
@@ -162,7 +162,7 @@ public class MachineDescription {
   final private int pointerSizeInBytes;
   final private int pageSizeInBytes;
   final private boolean is32Bit;
-    
+
   final private int int8AlignmentInBytes;
   final private int int16AlignmentInBytes;
   final private int int32AlignmentInBytes;
@@ -176,7 +176,7 @@ public class MachineDescription {
 
   public MachineDescription(boolean runtimeValidated,
                             boolean littleEndian,
-          
+
                             int intSizeInBytes,
                             int longSizeInBytes,
                             int floatSizeInBytes,
@@ -184,7 +184,7 @@ public class MachineDescription {
                             int ldoubleSizeInBytes,
                             int pointerSizeInBytes,
                             int pageSizeInBytes,
-                            
+
                             int int8AlignmentInBytes,
                             int int16AlignmentInBytes,
                             int int32AlignmentInBytes,
@@ -195,16 +195,16 @@ public class MachineDescription {
                             int doubleAlignmentInBytes,
                             int ldoubleAlignmentInBytes,
                             int pointerAlignmentInBytes) {
-    this.runtimeValidated = runtimeValidated;    
+    this.runtimeValidated = runtimeValidated;
     this.littleEndian = littleEndian;
-    
+
     this.intSizeInBytes     = intSizeInBytes;
     this.longSizeInBytes    = longSizeInBytes;
     this.floatSizeInBytes   = floatSizeInBytes;
     this.doubleSizeInBytes  = doubleSizeInBytes;
     this.ldoubleSizeInBytes = ldoubleSizeInBytes;
     this.pointerSizeInBytes = pointerSizeInBytes;
-    this.pageSizeInBytes    = pageSizeInBytes; 
+    this.pageSizeInBytes    = pageSizeInBytes;
     this.is32Bit            = 4 == pointerSizeInBytes;
 
     this.int8AlignmentInBytes    = int8AlignmentInBytes;
@@ -218,14 +218,14 @@ public class MachineDescription {
     this.ldoubleAlignmentInBytes = ldoubleAlignmentInBytes;
     this.pointerAlignmentInBytes = pointerAlignmentInBytes;
   }
-  
+
   /**
    * @return true if all values are validated at runtime, otherwise false (i.e. for static compilation w/ preset values)
    */
   public final boolean isRuntimeValidated() {
       return runtimeValidated;
   }
-  
+
   /**
    * Returns true only if this system uses little endian byte ordering.
    */
@@ -246,7 +246,7 @@ public class MachineDescription {
   public final  boolean is64Bit() {
     return !is32Bit;
   }
-  
+
   public final int intSizeInBytes()     { return intSizeInBytes;    }
   public final int longSizeInBytes()    { return longSizeInBytes;   }
   public final int int8SizeInBytes()    { return int8SizeInBytes;  }
@@ -258,7 +258,7 @@ public class MachineDescription {
   public final int ldoubleSizeInBytes() { return ldoubleSizeInBytes; }
   public final int pointerSizeInBytes() { return pointerSizeInBytes; }
   public final int pageSizeInBytes()    { return pageSizeInBytes; }
-  
+
   public final int intAlignmentInBytes()     { return intAlignmentInBytes;    }
   public final int longAlignmentInBytes()    { return longAlignmentInBytes;   }
   public final int int8AlignmentInBytes()    { return int8AlignmentInBytes;  }
@@ -269,20 +269,20 @@ public class MachineDescription {
   public final int doubleAlignmentInBytes()  { return doubleAlignmentInBytes; }
   public final int ldoubleAlignmentInBytes() { return ldoubleAlignmentInBytes; }
   public final int pointerAlignmentInBytes() { return pointerAlignmentInBytes; }
-  
+
   /**
    * @return number of pages required for size in bytes
    */
   public int pageCount(int size) {
     return ( size + ( pageSizeInBytes - 1) ) / pageSizeInBytes ; // integer arithmetic
   }
-    
+
   /**
    * @return page aligned size in bytes
    */
   public int pageAlignedSize(int size) {
     return pageCount(size) * pageSizeInBytes;
-  }    
+  }
 
   /**
    * Checks whether two size objects are equal. Two instances
@@ -294,7 +294,7 @@ public class MachineDescription {
   public final boolean equals(Object obj) {
       if (this == obj) { return true; }
       if ( !(obj instanceof MachineDescription) ) { return false; }
-      final MachineDescription md = (MachineDescription) obj; 
+      final MachineDescription md = (MachineDescription) obj;
 
       return pageSizeInBytes == md.pageSizeInBytes &&
              compatible(md);
@@ -309,7 +309,7 @@ public class MachineDescription {
    */
   public final boolean compatible(MachineDescription md) {
       return littleEndian == md.littleEndian &&
-              
+
              intSizeInBytes == md.intSizeInBytes &&
              longSizeInBytes == md.longSizeInBytes &&
              floatSizeInBytes == md.floatSizeInBytes &&
@@ -317,7 +317,7 @@ public class MachineDescription {
              ldoubleSizeInBytes == md.ldoubleSizeInBytes &&
              pointerSizeInBytes == md.pointerSizeInBytes &&
              is32Bit == md.is32Bit &&
-                
+
              int8AlignmentInBytes == md.int8AlignmentInBytes &&
              int16AlignmentInBytes == md.int16AlignmentInBytes &&
              int32AlignmentInBytes == md.int32AlignmentInBytes &&
@@ -329,7 +329,7 @@ public class MachineDescription {
              ldoubleAlignmentInBytes == md.ldoubleAlignmentInBytes &&
              pointerAlignmentInBytes == md.pointerAlignmentInBytes ;
   }
-  
+
   public StringBuilder toString(StringBuilder sb) {
     if(null==sb) {
         sb = new StringBuilder();
@@ -345,13 +345,13 @@ public class MachineDescription {
     sb.append(", double  ").append(doubleSizeInBytes) .append(" / ").append(doubleAlignmentInBytes);
     sb.append(", ldouble ").append(ldoubleSizeInBytes).append(" / ").append(ldoubleAlignmentInBytes).append(Platform.getNewline());
     sb.append("  pointer ").append(pointerSizeInBytes).append(" / ").append(pointerAlignmentInBytes);
-    sb.append(", page    ").append(pageSizeInBytes);                
+    sb.append(", page    ").append(pageSizeInBytes);
     return sb;
   }
-    
+
   @Override
   public String toString() {
     return toString(null).toString();
   }
-  
+
 }

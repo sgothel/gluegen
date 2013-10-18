@@ -5,14 +5,14 @@ package com.jogamp.common.util;
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -22,7 +22,7 @@ package com.jogamp.common.util;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -51,7 +51,7 @@ public class ValueConv {
         } else {
             return (short) ( v * 65535.0f );
         }
-    }    
+    }
     public static final int float_to_int(float v, boolean dSigned) {
         // float significand          0x007fffff
         // double significand 0x000fffffffffffffL
@@ -63,7 +63,7 @@ public class ValueConv {
             return (int) (long) ( v * 4294967295.0 );
         }
     }
-    
+
     public static final byte double_to_byte(double v, boolean dSigned) {
         // lossy
         if( dSigned ) {
@@ -88,27 +88,27 @@ public class ValueConv {
             return (int) (long) ( v * 4294967295.0 );
         }
     }
-    
+
     public static final float byte_to_float(byte v, boolean sSigned) {
         if( sSigned ) {
             return (v & 0xff) / ( v > 0 ? 127.0f : -128.0f ) ;
         } else {
             return (v & 0xff) / 255.0f ;
-        }        
+        }
     }
     public static final double byte_to_double(byte v, boolean sSigned) {
         if( sSigned ) {
             return (v & 0xff) / ( v > 0 ? 127.0 : -128.0 ) ;
         } else {
             return (v & 0xff) / 255.0 ;
-        }        
-    }    
+        }
+    }
     public static final float short_to_float(short v, boolean sSigned) {
         if( sSigned ) {
             return (v & 0xffff) / ( v > 0 ? 32767.0f : -32768.0f ) ;
         } else {
             return (v & 0xffff) / 65535.0f ;
-        }        
+        }
     }
     public static final double short_to_double(short v, boolean sSigned) {
         // lossy
@@ -116,8 +116,8 @@ public class ValueConv {
             return (v & 0xffff) / ( v > 0 ? 32767.0 : -32768.0 ) ;
         } else {
             return (v & 0xffff) / 65535.0 ;
-        }        
-    }    
+        }
+    }
     public static final float int_to_float(int v, boolean sSigned) {
         // lossy
         // float significand          0x007fffff
@@ -128,30 +128,30 @@ public class ValueConv {
             return (float) ( v / ( v > 0 ? 2147483647.0 : 2147483648.0 ) );
         } else {
             return (float) ( ((long)v & 0xffffffffL) / 4294967295.0 );
-        }        
+        }
     }
     public static final double int_to_double(int v, boolean sSigned) {
         if( sSigned ) {
             return v / ( v > 0 ? 2147483647.0 : 2147483648.0 ) ;
         } else {
             return ((long)v & 0xffffffffL) / 4294967295.0 ;
-        }        
+        }
     }
-    
+
     public static final short byte_to_short(byte v, boolean sSigned, boolean dSigned) {
         return float_to_short(byte_to_float(v, sSigned), dSigned);
     }
     public static final int byte_to_int(byte v, boolean sSigned, boolean dSigned) {
         return float_to_int(byte_to_float(v, sSigned), dSigned);
     }
-    
+
     public static final byte short_to_byte(short v, boolean sSigned, boolean dSigned) {
         return float_to_byte(short_to_float(v, sSigned), dSigned);
     }
     public static final int short_to_int(short v, boolean sSigned, boolean dSigned) {
         return float_to_int(short_to_float(v, sSigned), dSigned);
     }
-    
+
     public static final byte int_to_byte(int v, boolean sSigned, boolean dSigned) {
         return float_to_byte(int_to_float(v, sSigned), dSigned);
     }

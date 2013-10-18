@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -50,8 +50,8 @@ import com.jogamp.gluegen.cgram.types.*;
  * contains some utility methods for creating common types.
  */
 public class JavaType {
- 
- /* 
+
+ /*
   * Represents C arrays that will / can be represented
   * with NIO buffers (resolved down to another JavaType later in processing)
   */
@@ -309,13 +309,13 @@ public class JavaType {
 
       if (elementType.isArray()) {
         // Type is array-of-arrays-of-something
-        
-        if (elementType.getComponentType().isPrimitive()) {          
-          // Type is an array-of-arrays-of-primitive          
+
+        if (elementType.getComponentType().isPrimitive()) {
+          // Type is an array-of-arrays-of-primitive
           return "jobjectArray /* elements are " + elementType.getComponentType() + "[]*/";
           //return "jobjectArray";
         } else {
-          throw new RuntimeException("Multi-dimensional arrays of types that are not primitives or Strings are not supported.");          
+          throw new RuntimeException("Multi-dimensional arrays of types that are not primitives or Strings are not supported.");
         }
       }
 
@@ -431,12 +431,12 @@ public class JavaType {
   public boolean isCompoundTypeWrapper() {
     return (clazz == null && name != null && !isJNIEnv());
   }
-  
+
   public boolean isArrayOfCompoundTypeWrappers() {
     return elementType != null;
   }
-  
-  
+
+
   public boolean isCPrimitivePointerType() {
     return primitivePointerType != null;
   }
@@ -482,7 +482,7 @@ public class JavaType {
   public String toString() {
     return getName();
   }
-  
+
   //----------------------------------------------------------------------
   // Internals only below this point
   //
@@ -537,7 +537,7 @@ public class JavaType {
     this.name = name;
     this.elementType = elementType;
   }
-  
+
   private String arrayName(Class<?> clazz) {
     StringBuilder buf = new StringBuilder();
     int arrayCount = 0;

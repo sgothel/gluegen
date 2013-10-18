@@ -43,9 +43,9 @@ public class TempFileCache {
 
     // Flag indicating that we got a fatal error in the static initializer.
     private static boolean staticInitError = false;
-    
+
     private static final String tmpDirPrefix = "file_cache";
-    
+
     // Lifecycle: For one user's JVMs, ClassLoader and time.
     private static final File tmpBaseDir;
 
@@ -71,12 +71,12 @@ public class TempFileCache {
 
     static {
         // Global Lock !
-        synchronized (System.out) {           
+        synchronized (System.out) {
             // Create / initialize the temp root directory, starting the Reaper
             // thread to reclaim old installations if necessary. If we get an
             // exception, set an error code.
             File _tmpBaseDir = null;
-            try {           
+            try {
                 _tmpBaseDir = new File(IOUtil.getTempDir(true /* executable */), tmpDirPrefix);
                 _tmpBaseDir = IOUtil.testDir(_tmpBaseDir, true /* create */, false /* executable */); // executable already checked
             } catch (Exception ex) {
@@ -85,12 +85,12 @@ public class TempFileCache {
                 staticInitError = true;
             }
             tmpBaseDir = _tmpBaseDir;
-            
+
             if (DEBUG) {
                 System.err.println("TempFileCache: Static Initialization ---------------------------------------------- OK: "+(!staticInitError));
                 System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", tempBaseDir "+tmpBaseDir.getAbsolutePath());
             }
-    
+
             if(!staticInitError) {
                 try {
                     initTmpRoot();
@@ -105,15 +105,15 @@ public class TempFileCache {
             }
         }
     }
-    
+
     /**
      * Documented way to kick off static initialization
      * @return true is static initialization was successful
      */
     public static boolean initSingleton() {
-        return !staticInitError;        
+        return !staticInitError;
     }
-    
+
     /**
      * This method is called by the static initializer to create / initialize
      * the temp root directory that will hold the temp directories for this
@@ -197,7 +197,7 @@ public class TempFileCache {
                 System.clearProperty(tmpRootPropName);
             }
         }
-        
+
         if (tmpRootPropValue == null) {
             // Create ${tmpbase}/jlnNNNN.tmp then lock the file
             File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
@@ -413,7 +413,7 @@ public class TempFileCache {
             System.err.println("TempFileCache: new TempFileCache() --------------------- (static ok: "+(!staticInitError)+")");
             System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", this 0x"+Integer.toHexString(hashCode()));
         }
-        if(!staticInitError) { 
+        if(!staticInitError) {
             try {
                 createTmpDir();
             } catch (Exception ex) {
@@ -424,16 +424,16 @@ public class TempFileCache {
         if (DEBUG) {
             System.err.println("TempFileCache: tempDir "+individualTmpDir+" (ok: "+(!initError)+")");
             System.err.println("----------------------------------------------------------");
-        }        
+        }
     }
-    
+
     /** Delete the <code>individualTmpDir</code> recursively and remove it's reference. */
     public void destroy() {
         if (DEBUG) {
             System.err.println("TempFileCache: destroy() --------------------- (static ok: "+(!staticInitError)+")");
             System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", this 0x"+Integer.toHexString(hashCode()));
         }
-        if(!staticInitError) { 
+        if(!staticInitError) {
             try {
                 removeAll(individualTmpDir);
             } catch (Exception ex) {
@@ -443,26 +443,26 @@ public class TempFileCache {
         individualTmpDir = null;
         if (DEBUG) {
             System.err.println("TempFileCache: destroy() END");
-        }        
+        }
     }
-    
+
     /**
      * @return true is static and object initialization was successful
      */
     public boolean isValid() { return !staticInitError && !initError; }
-    
+
     /**
      * Base temp directory used by TempFileCache.
-     * 
-     * <p> 
+     *
+     * <p>
      * Lifecycle: For one user's JVMs, ClassLoader and time.
      * </p>
-     * 
+     *
      * This is set to:
      * <pre>
      *   ${java.io.tmpdir}/tmpDirPrefix
      * </pre>
-     * 
+     *
      * @return
      */
     public File getBaseDir() { return tmpBaseDir; }
@@ -481,18 +481,18 @@ public class TempFileCache {
      *
      * <p>
      * Use Case: Per ClassLoader files, eg. native libraries.
-     * </p> 
+     * </p>
      *
      * <p>
      * Old temp directories are cleaned up the next time a JVM is launched that
      * uses TempFileCache.
      * </p>
      *
-     * 
+     *
      * @return
      */
     public File getRootDir() { return tmpRootDir; }
-    
+
     /**
      * Temporary directory for individual files (eg. native libraries of one ClassLoader instance).
      * The directory name is:
@@ -508,12 +508,12 @@ public class TempFileCache {
      * where jlnMMMMM is the unique filename created by File.createTempFile()
      * without the ".tmp" extension.
      *
-     * 
+     *
      * @return
      */
     public File getTempDir() { return individualTmpDir; }
-    
-    
+
+
     /**
      * Create the temp directory in tmpRootDir. To do this, we create a temp
      * file with a ".tmp" extension, and then create a directory of the

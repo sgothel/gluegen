@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.common.util;
 
 import java.io.PrintStream;
@@ -39,13 +39,13 @@ public class RunnableTask extends TaskBase {
 
     /**
      * Invoks <code>runnable</code>.
-     * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately. 
+     * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
      * @param runnable the {@link Runnable} to execute.
      */
     public static void invoke(boolean waitUntilDone, Runnable runnable) {
         Throwable throwable = null;
         final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err ); 
+        final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
         synchronized(sync) {
             rt.run();
             if( waitUntilDone ) {
@@ -63,14 +63,14 @@ public class RunnableTask extends TaskBase {
             }
         }
     }
-    
+
     /**
      * Create a RunnableTask object w/ synchronization,
-     * ie. suitable for <code>invokeAndWait()</code>, i.e. {@link #invoke(boolean, Runnable) invoke(true, runnable)}. 
-     * 
+     * ie. suitable for <code>invokeAndWait()</code>, i.e. {@link #invoke(boolean, Runnable) invoke(true, runnable)}.
+     *
      * @param runnable The user action
      * @param syncObject The synchronization object if caller wait until <code>runnable</code> execution is completed,
-     *                   or <code>null</code> if waiting is not desired. 
+     *                   or <code>null</code> if waiting is not desired.
      * @param catchExceptions Influence an occurring exception during <code>runnable</code> execution.
      *                        If <code>true</code>, the exception is silenced and can be retrieved via {@link #getThrowable()},
      *                        otherwise the exception is thrown.
@@ -79,7 +79,7 @@ public class RunnableTask extends TaskBase {
     public RunnableTask(Runnable runnable, Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
         super(syncObject, catchExceptions, exceptionOut);
         this.runnable = runnable ;
-    } 
+    }
 
     /** Return the user action */
     public final Runnable getRunnable() {
@@ -104,7 +104,7 @@ public class RunnableTask extends TaskBase {
                     throw new RuntimeException(runnableException);
                 }
             } finally {
-                tExecuted = System.currentTimeMillis();                
+                tExecuted = System.currentTimeMillis();
             }
         } else {
             synchronized (syncObject) {
@@ -125,7 +125,7 @@ public class RunnableTask extends TaskBase {
                     syncObject.notifyAll();
                 }
             }
-        }        
-    }    
+        }
+    }
 }
 

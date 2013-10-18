@@ -9,8 +9,8 @@ import antlr.collections.AST;
 public class TNodeFactory extends ASTFactory {
 
   /** Create a new ampty AST node */
-  public AST create() { 
-    return new TNode(); 
+  public AST create() {
+    return new TNode();
   }
 
         /** Create a new AST node from type and text */
@@ -29,5 +29,5 @@ public class TNodeFactory extends ASTFactory {
                 return newast;
         }
 
-  
+
 }

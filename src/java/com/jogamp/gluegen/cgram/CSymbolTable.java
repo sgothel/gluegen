@@ -35,14 +35,14 @@ public class CSymbolTable {
       scopeStack.removeElementAt(size - 1);
   }
 
-  /** return the current scope as a string 
+  /** return the current scope as a string
    */
   public String currentScopeAsString() {
       StringBuilder buf = new StringBuilder(100);
       boolean first = true;
       Enumeration<String> e = scopeStack.elements();
       while(e.hasMoreElements()) {
-        if(first) 
+        if(first)
           first = false;
         else
           buf.append("::");
@@ -51,7 +51,7 @@ public class CSymbolTable {
       return buf.toString();
   }
 
-  /** given a name for a type, append it with the 
+  /** given a name for a type, append it with the
     current scope.
     */
   public String addCurrentScopeToName(String name) {
@@ -59,7 +59,7 @@ public class CSymbolTable {
     return addScopeToName(currScope, name);
   }
 
-  /** given a name for a type, append it with the 
+  /** given a name for a type, append it with the
     given scope.  MBZ
     */
   public String addScopeToName(String scope, String name) {
@@ -80,7 +80,7 @@ public class CSymbolTable {
     }
     return null;
   }
-  
+
   /** add a node to the table with it's key as
     the current scope and the name */
   public TNode add(String name, TNode node) {
@@ -116,7 +116,7 @@ public class CSymbolTable {
   /** convert this table to a string */
   public String toString() {
     StringBuilder buff = new StringBuilder(300);
-    buff.append("CSymbolTable { \nCurrentScope: " + currentScopeAsString() + 
+    buff.append("CSymbolTable { \nCurrentScope: " + currentScopeAsString() +
                 "\nDefinedSymbols:\n");
     Enumeration<String> ke = symTable.keys();
     Enumeration<TNode> ve = symTable.elements();

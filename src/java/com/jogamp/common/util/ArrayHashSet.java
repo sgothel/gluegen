@@ -35,7 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 
-/** 
+/**
  * Hashed ArrayList implementation of the List and Collection interface.
  *
  * Implementation properties are:
@@ -80,12 +80,12 @@ public class ArrayHashSet<E>
         map  = new HashMap<E,E>(initialCapacity);
         data = new ArrayList<E>(initialCapacity);
     }
-    
+
     public ArrayHashSet(int initialCapacity, float loadFactor) {
         map  = new HashMap<E,E>(initialCapacity, loadFactor);
         data = new ArrayList<E>(initialCapacity);
     }
-    
+
     //
     // Cloneable
     //
@@ -102,15 +102,15 @@ public class ArrayHashSet<E>
 
         return newObj;
     }
-    
+
     /** Returns this object ordered ArrayList. Use w/ care, it's not a copy. */
     public final ArrayList<E> getData() { return data; }
     /** Returns this object hash map. Use w/ care, it's not a copy. */
     public final HashMap<E,E> getMap() { return map; }
-    
+
     @Override
     public final String toString() { return data.toString(); }
-    
+
     //
     // Collection
     //
@@ -408,7 +408,7 @@ public class ArrayHashSet<E>
      * Identity method allowing to get the identical object, using the internal hash map.
      * <br>
      * This is an O(1) operation.
-     * 
+     *
      * @param key hash source to find the identical Object within this list
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or null if not contained

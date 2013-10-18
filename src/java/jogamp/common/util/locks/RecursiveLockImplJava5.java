@@ -9,11 +9,11 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
 
     volatile Thread owner = null;
     ReentrantLock lock;
-    
+
     public RecursiveLockImplJava5(boolean fair) {
         lock = new ReentrantLock(fair);
     }
-    
+
     @Override
     public void lock() {
         try {
@@ -49,7 +49,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         }
         lock.unlock();
     }
-    
+
     @Override
     public boolean isLocked() {
         return lock.isLocked();

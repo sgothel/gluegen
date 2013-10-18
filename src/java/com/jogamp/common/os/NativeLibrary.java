@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2011 JogAmp Community. All rights reserved.
- *  
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -72,7 +72,7 @@ import com.jogamp.common.util.cache.TempJarCache;
     ProcAddressTable glue code generation style without additional
     supporting code needed in the generated library. */
 
-public final class NativeLibrary implements DynamicLookupHelper {  
+public final class NativeLibrary implements DynamicLookupHelper {
   private static final DynamicLinker dynLink;
   private static final String[] prefixes;
   private static final String[] suffixes;
@@ -85,7 +85,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
         prefixes = new String[] { "" };
         suffixes = new String[] { ".dll" };
         break;
-        
+
       case MACOS:
         dynLink = new MacOSXDynamicLinkerImpl();
         prefixes = new String[] { "lib" };
@@ -97,12 +97,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
         break;
-        
+
       /*
       case FREEBSD:
       case SUNOS:
-      case HPUX: 
-      case OPENKODE:         
+      case HPUX:
+      case OPENKODE:
       case LINUX: */
       default:
         dynLink = new PosixDynamicLinkerImpl();
@@ -119,7 +119,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
   // May as well keep around the path to the library we opened
   private final String libraryPath;
-  
+
   private final boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
@@ -218,7 +218,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             if( null != t ) {
                 t.printStackTrace();
             }
-        }      
+        }
     }
 
     if (DEBUG) {
@@ -290,10 +290,10 @@ public final class NativeLibrary implements DynamicLookupHelper {
   /**
    * Comparison of prefix and suffix of the given libName's basename
    * is performed case insensitive <br>
-   *  
-   * @param libName the full path library name with prefix and suffix 
+   *
+   * @param libName the full path library name with prefix and suffix
    * @param isLowerCaseAlready indicates if libName is already lower-case
-   * 
+   *
    * @return basename of libName w/o path, ie. /usr/lib/libDrinkBeer.so -> DrinkBeer on Unix systems, but null on Windows.
    */
   public static final String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
@@ -305,7 +305,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
     final String libBaseNameLC = isLowerCaseAlready ? libBaseName : libBaseName.toLowerCase();
     int prefixIdx = -1;
-    for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {    
+    for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {
         if (libBaseNameLC.startsWith(prefixes[i])) {
             prefixIdx = i;
         }
@@ -319,9 +319,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
             }
         }
     }
-    return null;  
+    return null;
   }
-  
+
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
       the indicated native library on the system. */
@@ -377,7 +377,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             if (searchSystemPathFirst) {
                 if(null != sysPath) {
                     res[i++] = sysPath;
-                }                            
+                }
             }
             if(null != usrPath) {
                 res[i++] = usrPath;
@@ -385,7 +385,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             if (!searchSystemPathFirst) {
                 if(null != sysPath) {
                     res[i++] = sysPath;
-                }                            
+                }
             }
             return res;
           }
@@ -422,7 +422,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       // Add current location
       addPaths("/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
     }
-    
+
     return paths;
   }
 
@@ -433,7 +433,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     switch (PlatformPropsImpl.OS_TYPE) {
       case WINDOWS:
         return windowsLibName;
-        
+
       case MACOS:
         return macOSXLibName;
 
@@ -441,8 +441,8 @@ public final class NativeLibrary implements DynamicLookupHelper {
       case FREEBSD:
       case DALVIK:
       case SUNOS:
-      case HPUX: 
-      case OPENKODE:         
+      case HPUX:
+      case OPENKODE:
       case LINUX: */
       default:
         return unixLibName;
@@ -459,9 +459,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
       } catch (URISyntaxException uriEx) {
           throw new IllegalArgumentException(uriEx);
       }
-      
+
       int prefixIdx = -1;
-      for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {    
+      for(int i=0; i<prefixes.length && 0 > prefixIdx; i++) {
           if (libBaseNameLC.startsWith(prefixes[i])) {
               prefixIdx = i;
           }
@@ -494,7 +494,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
           }
       }
 
-      String[] res = new String[prefixes.length * suffixes.length + 
+      String[] res = new String[prefixes.length * suffixes.length +
                                 ( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
       int idx = 0;
       for (int i = 0; i < prefixes.length; i++) {

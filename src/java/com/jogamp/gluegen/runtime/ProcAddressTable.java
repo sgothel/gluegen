@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2013 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -119,13 +119,13 @@ public abstract class ProcAddressTable {
      */
     public void reset(DynamicLookupHelper lookup) throws SecurityException, RuntimeException {
         SecurityUtil.checkAllLinkPermission();
-        
+
         if(null==lookup) {
             throw new RuntimeException("Passed null DynamicLookupHelper");
         }
 
         final Field[] fields = getClass().getDeclaredFields();
-        
+
         final PrintStream dout;
         if (DEBUG) {
             dout = getDebugOutStream();
@@ -133,10 +133,10 @@ public abstract class ProcAddressTable {
         } else {
             dout = null;
         }
-        
+
         // All at once - performance.
         AccessibleObject.setAccessible(fields, true);
-        
+
         for (int i = 0; i < fields.length; ++i) {
             final String fieldName = fields[i].getName();
             if ( isAddressField(fieldName) ) {
@@ -173,7 +173,7 @@ public abstract class ProcAddressTable {
     private final void setEntry(final Field addressField, final String funcName, final DynamicLookupHelper lookup) throws SecurityException {
         try {
             assert (addressField.getType() == Long.TYPE);
-            final long newProcAddress = resolver.resolve(funcName, lookup);            
+            final long newProcAddress = resolver.resolve(funcName, lookup);
             addressField.setLong(this, newProcAddress);
             if (DEBUG) {
                 getDebugOutStream().println("  " + addressField.getName() + " -> 0x" + Long.toHexString(newProcAddress));
@@ -195,14 +195,14 @@ public abstract class ProcAddressTable {
             throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
         }
     }
-    
-    /** 
+
+    /**
      * Warning: Returns an accessible probably protected field!
      * <p>
      * Caller should have checked link permissions
      * for <b>all</b> libraries, i.e. for <code>new RuntimePermission("loadLibrary.*");</code>
      * <i>if</i> exposing the field or address!
-     * </p> 
+     * </p>
      */
     private final Field fieldForFunctionInSec(final String name) throws IllegalArgumentException {
         return AccessController.doPrivileged(new PrivilegedAction<Field>() {
@@ -243,7 +243,7 @@ public abstract class ProcAddressTable {
     /**
      * Returns this table as map with the function name as key and the address as value.
      */
-    private final Map<String, Long> toMap() {        
+    private final Map<String, Long> toMap() {
         final SortedMap<String, Long> map = new TreeMap<String, Long>();
 
         final Field[] fields = getClass().getFields();
@@ -259,7 +259,7 @@ public abstract class ProcAddressTable {
         } catch (IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
-        
+
         return map;
     }
 
@@ -292,7 +292,7 @@ public abstract class ProcAddressTable {
             throw new RuntimeException(ex);
         }
     }
-    
+
     /**
      * This is a convenience method to query the native function handle by name.
      * <p>
@@ -317,7 +317,7 @@ public abstract class ProcAddressTable {
             throw new RuntimeException(ex);
         }
     }
-    
+
     /**
      * Returns all functions pointing to null.
      */

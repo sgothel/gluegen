@@ -7,13 +7,13 @@ import java.lang.reflect.*;
 import java.util.Hashtable;
 import java.util.Enumeration;
 
-/** 
+/**
   Class TNode is an implementation of the AST interface
   and adds many useful features:
 
   It is double-linked for reverse searching.
   (this is currently incomplete, in that method doubleLink() must
-  be called after any changes to the tree to maintain the 
+  be called after any changes to the tree to maintain the
   reverse links).
 
   It can store a definition node (defNode), so that nodes such
@@ -38,8 +38,8 @@ public class TNode extends CommonAST {
   protected TNode left;
   protected boolean marker = false;
   protected Hashtable<String, Object> attributes = null;
-  static String tokenVocabulary;  
-  
+  static String tokenVocabulary;
+
 
 
 
@@ -50,7 +50,7 @@ public class TNode extends CommonAST {
     tokenVocabulary = s;
   }
 
-    
+
 public void initialize(Token token) {
         CToken tok = (CToken) token;
         setText(tok.getText());
@@ -58,7 +58,7 @@ public void initialize(Token token) {
         setLineNum(tok.getLine());
         setAttribute("source", tok.getSource());
         setAttribute("tokenNumber", new Integer(tok.getTokenNumber()));
-}       
+}
 public void initialize(AST tr) {
         TNode t = (TNode) tr;
         setText(t.getText());
@@ -66,31 +66,31 @@ public void initialize(AST tr) {
         setLineNum(t.getLineNum());
         setDefNode(t.getDefNode());
         this.attributes = t.getAttributesTable();
-}       
+}
 
 
   /** Get the token type for this node */
   public int getType() { return ttype; }
-  
+
   /** Set the token type for this node */
-  public void setType(int ttype_) { 
-    ttype = ttype_; 
+  public void setType(int ttype_) {
+    ttype = ttype_;
   }
-  
+
   /** Get the marker value for this node.
    This member is a general-use marker.
    */
   public boolean getMarker() { return marker; }
-  
+
   /** Set the marker value for this node.
    This property is a general-use boolean marker.
    */
-  public void setMarker(boolean marker_) { 
-    marker = marker_; 
+  public void setMarker(boolean marker_) {
+    marker = marker_;
   }
 
   /** get the hashtable that holds attribute values.
-   */  
+   */
   public Hashtable<String, Object> getAttributesTable() {
     if(attributes == null)
       attributes = new Hashtable<String, Object>(7);
@@ -117,42 +117,42 @@ public void initialize(AST tr) {
 
   /** Get the line number for this node.
    If the line number is 0, search for a non-zero line num among children */
-  public int getLineNum() { 
+  public int getLineNum() {
     if(lineNum != 0)
-      return lineNum; 
+      return lineNum;
     else
       if(down == null)
-        return lineNum; 
+        return lineNum;
       else
         return ((TNode)down).getLocalLineNum();
   }
-  
-  public int getLocalLineNum() { 
+
+  public int getLocalLineNum() {
     if(lineNum != 0)
-      return lineNum; 
+      return lineNum;
     else
       if(down == null)
         if(right == null)
-          return lineNum; 
+          return lineNum;
         else
           return ((TNode)right).getLocalLineNum();
       else
         return ((TNode)down).getLocalLineNum();
   }
-  
+
   /** Set the line number for this node */
-  public void setLineNum(int lineNum_) { 
-    lineNum = lineNum_; 
+  public void setLineNum(int lineNum_) {
+    lineNum = lineNum_;
   }
-  
+
   /** Get the token text for this node */
   public String getText() { return text; }
-  
+
   /** Set the token text for this node */
-  public void setText(String text_) { 
-    text = text_; 
+  public void setText(String text_) {
+    text = text_;
   }
-  
+
   /** Returns the text for this node and all children */
   public String getAllChildrenText() {
     StringBuilder buf = new StringBuilder();
@@ -167,12 +167,12 @@ public void initialize(AST tr) {
   public TNode getLastChild() {
     TNode down = (TNode)getFirstChild();
     if(down != null)
-      return down.getLastSibling(); 
-    else 
+      return down.getLastSibling();
+    else
       return null;
   }
 
-  /** return the last sibling of this node, which is 
+  /** return the last sibling of this node, which is
       this if the next sibling is null */
   public TNode getLastSibling() {
     TNode next = (TNode)getNextSibling();
@@ -182,7 +182,7 @@ public void initialize(AST tr) {
       return this;
   }
 
-  /** return the first sibling of this node, which is 
+  /** return the first sibling of this node, which is
       this if the prev sibling is null */
   public TNode getFirstSibling() {
     TNode prev = left;
@@ -201,7 +201,7 @@ public void initialize(AST tr) {
 
   /** add the new node as a new sibling, inserting it ahead of any
     existing next sibling.  This method maintains double-linking.
-    if node is null, nothing happens.  If the node has siblings, 
+    if node is null, nothing happens.  If the node has siblings,
     then they are added in as well.
     */
   public void addSibling(AST node) {
@@ -215,7 +215,7 @@ public void initialize(AST tr) {
       next.left = nodeLastSib;
   }
 
- 
+
   /** return the number of children of this node */
   public int numberOfChildren() {
     int count = 0;
@@ -234,15 +234,15 @@ public void initialize(AST tr) {
     TNode parent = up;
     TNode prev = left;
     TNode next = (TNode)right;
-     
-    if(parent != null) { 
+
+    if(parent != null) {
       parent.down = next;
       if(next != null) {
         next.up = parent;
         next.left = prev;    // which should be null
       }
-    } 
-    else {      
+    }
+    else {
      if(prev != null)
       prev.right = next;
      if(next != null)
@@ -255,7 +255,7 @@ public void initialize(AST tr) {
   public TNode getDefNode() {
       return defNode;
   }
-  
+
   /** set the def node for this node */
   public void setDefNode(TNode n) {
     defNode = n;
@@ -307,7 +307,7 @@ public void initialize(AST tr) {
     StringBuilder str = new StringBuilder( getNameForType(getType()) +
            "[" + getText() + ", " + "]");
 
-     if(this.getLineNum() != 0) 
+     if(this.getLineNum() != 0)
        str.append(" line:" + (this.getLineNum() ) );
 
      Enumeration<String> keys = (this.getAttributesTable().keys());
@@ -331,23 +331,23 @@ public void initialize(AST tr) {
   /** protected method that does the work of printing */
   protected static void printASTNode(AST t, int indent) {
      AST child1, next;
-     child1 = t.getFirstChild();         
+     child1 = t.getFirstChild();
 
     System.out.print("\n");
-     for(int i = 0; i < indent; i++) 
+     for(int i = 0; i < indent; i++)
        System.out.print("   ");
 
-     if(child1 != null) 
+     if(child1 != null)
         System.out.print("(");
 
      String s = t.getText();
      if(s != null && s.length() > 0) {
        System.out.print(getNameForType(t.getType()));
        System.out.print(": \"" + s + "\"");
-     }  
+     }
      else
        System.out.print(getNameForType(t.getType()));
-     if(((TNode)t).getLineNum() != 0) 
+     if(((TNode)t).getLineNum() != 0)
        System.out.print(" line:" + ((TNode)t).getLineNum() );
 
      Enumeration<String> keys = ((TNode)t).getAttributesTable().keys();
@@ -364,7 +364,7 @@ public void initialize(AST tr) {
         printASTNode(child1,indent + 1);
 
         System.out.print("\n");
-        for(int i = 0; i < indent; i++) 
+        for(int i = 0; i < indent; i++)
            System.out.print("   ");
         System.out.print(")");
      }
@@ -418,22 +418,22 @@ public void initialize(AST tr) {
     return up.parentOfType(type);
   }
 
-  /** find the first child of the node 
+  /** find the first child of the node
     of the given type, return null on failure */
   public TNode firstChildOfType(int type) {
     TNode down = (TNode)getFirstChild();
-    if(down == null) 
+    if(down == null)
       return null;
     if(down.getType() == type)
       return down;
     return down.firstSiblingOfType(type);
   }
 
-  /** find the first sibling of the node 
+  /** find the first sibling of the node
     of the given type, return null on failure */
   public TNode firstSiblingOfType(int type) {
     TNode right = (TNode)getNextSibling();
-    if(right == null) 
+    if(right == null)
       return null;
     if(right.getType() == type)
       return right;

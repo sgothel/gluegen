@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package jogamp.common.util.locks;
 
 import java.io.IOException;
@@ -39,11 +39,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
 
     private final Server singletonServer;
     private final String fullName;
-    
+
     public SingletonInstanceServerSocket(long poll_ms, int portNumber) {
         super(poll_ms);
-        
-        // Gather the local InetAddress, loopback is prioritized 
+
+        // Gather the local InetAddress, loopback is prioritized
         InetAddress ilh = null;
         try {
             ilh = InetAddress.getByName(null); // loopback
@@ -56,10 +56,10 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
         }
         if(null == ilh) {
             try {
-                ilh = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 } );            
+                ilh = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 } );
                 if(null!=ilh && !ilh.isLoopbackAddress()) { ilh = null; }
             } catch (UnknownHostException e) { }
-        }        
+        }
         if(null == ilh) {
             try {
                 ilh = InetAddress.getLocalHost();
@@ -68,15 +68,15 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
         if(null == ilh) {
             throw new RuntimeException(infoPrefix()+" EEE Could not determine local InetAddress");
         }
-        
+
         fullName = ilh.toString()+":"+portNumber;
-        singletonServer = new Server(ilh, portNumber);     
+        singletonServer = new Server(ilh, portNumber);
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
                 singletonServer.kill();
             }
-        });        
+        });
     }
 
     public final InetAddress getLocalInetAddress() {
@@ -89,13 +89,13 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
 
     @Override
     public final String getName() { return fullName; }
-    
+
     @Override
     protected boolean tryLockImpl() {
         if( singletonServer.isRunning() ) {
             return false; // same JVM .. server socket already installed !
         }
-        
+
         // check if other JVM's locked the server socket ..
         Socket clientSocket = singletonServer.connect();
         if(null != clientSocket) {
@@ -104,11 +104,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
             } catch (IOException e) { }
             return false;
         }
-        
+
         if( !singletonServer.start() ) {
             return false;
         }
-        
+
         return true;
     }
 
@@ -119,26 +119,26 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
 
     public class Server implements Runnable {
        private final InetAddress localInetAddress;
-       private final int portNumber;   
-       
-       private volatile boolean shallQuit = false; 
+       private final int portNumber;
+
+       private volatile boolean shallQuit = false;
        private volatile boolean alive = false;
-       
+
        private Object syncOnStartStop = new Object();
        private ServerSocket serverSocket = null;
        private Thread serverThread = null;  // allowing kill() to force-stop last server-thread
-       
+
        public Server(InetAddress localInetAddress, int portNumber) {
            this.localInetAddress = localInetAddress;
            this.portNumber = portNumber;
        }
-       
+
        public final InetAddress getLocalInetAddress() { return localInetAddress; }
        public final int getPortNumber() { return portNumber; }
-       
+
        public final boolean start() {
            if(alive) return true;
-                      
+
            synchronized (syncOnStartStop) {
                serverThread = new Thread(this);
                serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
@@ -147,7 +147,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    syncOnStartStop.wait();
                } catch (InterruptedException ie) {
                    ie.printStackTrace();
-               }            
+               }
            }
            boolean ok = isBound();
            if(!ok) {
@@ -155,10 +155,10 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            }
            return ok;
        }
-       
+
        public final boolean shutdown() {
            if(!alive) return true;
-           
+
            synchronized (syncOnStartStop) {
                shallQuit = true;
                connect();
@@ -166,7 +166,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    syncOnStartStop.wait();
                } catch (InterruptedException ie) {
                    ie.printStackTrace();
-               }            
+               }
            }
            if(alive) {
                System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
@@ -175,7 +175,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            return true;
        }
 
-       /** 
+       /**
         * Brutally kill server thread and close socket regardless.
         * This is out last chance for JVM shutdown.
         */
@@ -196,11 +196,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    serverSocket = null;
                    ss.close();
                } catch (Throwable t) { }
-           }    
+           }
        }
-       
+
        public final boolean isRunning() { return alive; }
-       
+
        public final boolean isBound() {
            return alive && null != serverSocket && serverSocket.isBound() ;
        }
@@ -211,14 +211,14 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            } catch (Exception e) { }
            return null;
        }
-       
+
        @Override
        public void run() {
            {
                final Thread currentThread = Thread.currentThread();
                currentThread.setName(currentThread.getName() + " - SISock: "+getName());
                if(DEBUG) {
-                   System.err.println(currentThread.getName()+" - started");               
+                   System.err.println(currentThread.getName()+" - started");
                }
            }
            alive = false;
@@ -231,10 +231,10 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                     System.err.println(infoPrefix()+" III - Unable to install ServerSocket: "+e.getMessage());
                     shallQuit = true;
                } finally {
-                    syncOnStartStop.notifyAll();                   
+                    syncOnStartStop.notifyAll();
                }
            }
-           
+
            while (!shallQuit) {
                try {
                    final Socket clientSocket = serverSocket.accept();
@@ -243,7 +243,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    System.err.println(infoPrefix()+" EEE - Exception during accept: " + ioe.getMessage());
                }
            }
-           
+
            synchronized (syncOnStartStop) {
                try {
                    if(null != serverSocket) {

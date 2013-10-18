@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2013 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,11 +29,11 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
- * 
+ *
  * Sun gratefully acknowledges that this software was originally authored
  * and developed by Kenneth Bradley Russell and Christopher John Kline.
  */
@@ -69,7 +69,7 @@ import com.jogamp.gluegen.runtime.ProcAddressTable;
 public class ProcAddressEmitter extends JavaEmitter {
 
     /** Must be synchronized w/ ProcAddressTable.PROCADDRESS_VAR_PREFIX !!! */
-    public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";    
+    public static final String PROCADDRESS_VAR_PREFIX = "_addressof_";
     protected static final String WRAP_PREFIX = "dispatch_";
     private TypeDictionary typedefDictionary;
     protected PrintWriter tableWriter;
@@ -182,8 +182,8 @@ public class ProcAddressEmitter extends JavaEmitter {
 
   /** If 'native', enforce 'private native' modifiers. */
   protected void fixSecurityModifiers(JavaMethodBindingEmitter javaEmitter) {
-    if(  javaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) && 
-        !javaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) ) 
+    if(  javaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
+        !javaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) )
     {
         javaEmitter.removeModifier(JavaMethodBindingEmitter.PUBLIC);
         javaEmitter.removeModifier(JavaMethodBindingEmitter.PROTECTED);
@@ -192,7 +192,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         javaEmitter.addModifier(JavaMethodBindingEmitter.NATIVE);
     }
   }
-  
+
   protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List<FunctionEmitter> emitters) {
         // See whether we need a proc address entry for this one
         boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
@@ -210,8 +210,8 @@ public class ProcAddressEmitter extends JavaEmitter {
                                         !baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) &&
                                          baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
                                          callThroughProcAddress;
-        
-            
+
+
         {
             final ProcAddressJavaMethodBindingEmitter emitter = new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
                     callThroughProcAddress,
@@ -219,7 +219,7 @@ public class ProcAddressEmitter extends JavaEmitter {
                     baseJavaEmitter.isForImplementingMethodCall(),
                     this);
             if( needsJavaWrapper ) {
-                emitter.setEmitBody(true);                
+                emitter.setEmitBody(true);
                 emitter.removeModifier(JavaMethodBindingEmitter.NATIVE);
             } else if ( callThroughProcAddress ) {
                 fixSecurityModifiers(emitter);
@@ -310,7 +310,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         }
         final String fullTableClassName = implPackageName + "." + tableClassName;
         final MethodAccess tableClassAccess = cfg.accessControl(fullTableClassName);
-        
+
         final String jImplRoot = getJavaOutputDir() + File.separator + CodeGenUtils.packageAsPath(implPackageName);
 
         tableWriter = openFile(jImplRoot + File.separator + tableClassName + ".java", tableClassName);

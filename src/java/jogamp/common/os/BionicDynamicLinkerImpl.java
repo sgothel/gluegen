@@ -37,7 +37,7 @@ package jogamp.common.os;
 public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   private static final long RTLD_DEFAULT = 0xffffffffL;
   //      static final long RTLD_NEXT    = 0xfffffffeL;
-  
+
   private static final int RTLD_LAZY     = 0x00001;
   //      static final int RTLD_NOW      = 0x00000;
   private static final int RTLD_LOCAL    = 0x00000;
@@ -52,10 +52,10 @@ public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   public final long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
     return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_GLOBAL, debug);
   }
-  
+
   @Override
-  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {      
+  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
     return this.lookupSymbolGlobalImpl(RTLD_DEFAULT, symbolName);
   }
-  
+
 }

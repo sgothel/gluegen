@@ -32,19 +32,19 @@ public class Section {
     public byte[] data;
     public int offset;
     public int length;
-    
+
     Section(SectionHeader sh, byte[] data, int offset, int length) {
         this.sh = sh;
         this.data = data;
         this.offset = offset;
         this.length = length;
     }
-    
+
     public String toString() {
         return "Section["+toSubString()+"]";
     }
     String toSubString() {
         return sh+", data[off "+offset+", len "+length+"/"+data.length+"]";
     }
-        
+
 }

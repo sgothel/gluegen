@@ -8,11 +8,11 @@ import java.net.URLConnection;
  */
 public interface PiggybackURLContext {
 
-    /** Returns the specific protocol, constant for this implementation. */    
+    /** Returns the specific protocol, constant for this implementation. */
     public String getImplementedProtocol();
-    
-    /** 
-     * Resolving path to a URL sub protocol and return it's open URLConnection 
+
+    /**
+     * Resolving path to a URL sub protocol and return it's open URLConnection
      **/
-    public URLConnection resolve(String path) throws IOException;    
+    public URLConnection resolve(String path) throws IOException;
 }

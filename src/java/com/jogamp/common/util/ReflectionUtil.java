@@ -1,22 +1,22 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  * Copyright (c) 2010 JogAmp Community. All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
  * met:
- * 
+ *
  * - Redistribution of source code must retain the above copyright
  *   notice, this list of conditions and the following disclaimer.
- * 
+ *
  * - Redistribution in binary form must reproduce the above copyright
  *   notice, this list of conditions and the following disclaimer in the
  *   documentation and/or other materials provided with the distribution.
- * 
+ *
  * Neither the name of Sun Microsystems, Inc. or the names of
  * contributors may be used to endorse or promote products derived from
  * this software without specific prior written permission.
- * 
+ *
  * This software is provided "AS IS," without a warranty of any kind. ALL
  * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
  * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
@@ -29,7 +29,7 @@
  * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
  * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
  * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- * 
+ *
  * You acknowledge that this software is not designed or intended for use
  * in the design, construction, operation or maintenance of any nuclear
  * facility.
@@ -43,7 +43,7 @@ import com.jogamp.common.JogampRuntimeException;
 import jogamp.common.Debug;
 
 public final class ReflectionUtil {
-    
+
     public static final boolean DEBUG = Debug.debug("ReflectionUtil");
 
     public static class AWTNames {
@@ -112,16 +112,16 @@ public final class ReflectionUtil {
      * Returns a compatible constructor
      * if available, otherwise throws an exception.
      * <p>
-     * It first attempts to get the specific Constructor 
-     * using the given <code>cstrArgTypes</code>. 
+     * It first attempts to get the specific Constructor
+     * using the given <code>cstrArgTypes</code>.
      * If this fails w/ <code>NoSuchMethodException</code>, a compatible
      * Constructor is being looked-up w/ with parameter types assignable
      * from the given <code>cstrArgs</code>.
-     * </p> 
-     * 
+     * </p>
+     *
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes) 
+    public static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes)
         throws JogampRuntimeException {
         if(null == cstrArgTypes) {
             cstrArgTypes = zeroTypes;
@@ -147,13 +147,13 @@ public final class ReflectionUtil {
                     if(types.length == j) {
                         cstr = c; // gotcha
                     }
-                }                
+                }
             }
         }
         if(null == cstr) {
             throw new JogampRuntimeException("Constructor: '" + clazz.getName() + "(" + asString(cstrArgTypes) + ")' not found");
         }
-        return cstr;        
+        return cstr;
     }
 
   public static final Constructor<?> getConstructor(String clazzName, ClassLoader cl)
@@ -164,7 +164,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs) 
+  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs)
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -183,17 +183,17 @@ public final class ReflectionUtil {
       throw new JogampRuntimeException("can not create instance of "+cstr.getName(), t);
     }
   }
-  
+
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs) 
+  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs)
       throws JogampRuntimeException, RuntimeException
   {
     return createInstance(getConstructor(clazz, cstrArgTypes), cstrArgs);
   }
 
-  public static final Object createInstance(Class<?> clazz, Object ... cstrArgs) 
+  public static final Object createInstance(Class<?> clazz, Object ... cstrArgs)
       throws JogampRuntimeException, RuntimeException
   {
     Class<?>[] cstrArgTypes = null;
@@ -206,7 +206,7 @@ public final class ReflectionUtil {
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName, Class<?>[] cstrArgTypes, Object[] cstrArgs, ClassLoader cl) 
+  public static final Object createInstance(String clazzName, Class<?>[] cstrArgTypes, Object[] cstrArgs, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     try {
@@ -216,7 +216,7 @@ public final class ReflectionUtil {
     }
   }
 
-  public static final Object createInstance(String clazzName, Object[] cstrArgs, ClassLoader cl) 
+  public static final Object createInstance(String clazzName, Object[] cstrArgs, ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     Class<?>[] cstrArgTypes = null;
@@ -345,24 +345,24 @@ public final class ReflectionUtil {
   }
 
   /** Convenient Method access class */
-  public static class MethodAccessor {        
+  public static class MethodAccessor {
     Method m = null;
-    
+
     /** Check {@link #available()} before using instance. */
     public MethodAccessor(Class<?> clazz, String methodName, Class<?> ... argTypes) {
         try {
             m = ReflectionUtil.getMethod(clazz, methodName, argTypes);
         } catch (JogampRuntimeException jre) { /* method n/a */ }
     }
-    
+
     /** Returns true if method is available, otherwise false. */
     public boolean available() {
         return null != m;
     }
-    
-    /** 
+
+    /**
      * Check {@link #available()} before calling to avoid throwing a JogampRuntimeException.
-     * @throws JogampRuntimeException if method is not available 
+     * @throws JogampRuntimeException if method is not available
      */
     public Object callMethod(Object instance, Object ... args) {
         if(null == m) {
@@ -371,6 +371,6 @@ public final class ReflectionUtil {
         return ReflectionUtil.callMethod(instance, m, args);
     }
   }
-  
+
 }
 
