@@ -186,6 +186,7 @@ public class SectionHeader {
         name = null;
     }
 
+    @Override
     public String toString() {
         return "SectionHeader[idx "+idx+", name "+name+", type "+toHexString(getType())+", link "+d.getSh_link()+", info "+toHexString(d.getSh_info())+", flags "+toHexString(getFlags())+"]";
     }

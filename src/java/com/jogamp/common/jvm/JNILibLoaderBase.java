@@ -88,6 +88,7 @@ public class JNILibLoaderBase {
   }
 
   private static class DefaultAction implements LoaderAction {
+    @Override
     public boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
       boolean res = true;
       if(!isLoaded(libname)) {
@@ -110,6 +111,7 @@ public class JNILibLoaderBase {
       return res;
     }
 
+    @Override
     public void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl) {
       if(!isLoaded(libname)) {
           if (null!=preload) {
@@ -437,6 +439,7 @@ public class JNILibLoaderBase {
     final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
 
     final Method loadLibraryMethod = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+        @Override
         public Method run() {
             // FIXME: remove
             final boolean usingJNLPAppletLauncher = Debug.getBooleanProperty(sunAppletLauncherProperty, true);

@@ -117,6 +117,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     /**
      * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code>
      * to this buffer and increment the position by <code>capacity-position</code>. */
+    @Override
     public final PointerBuffer put(PointerBuffer src) {
         if (remaining() < src.remaining()) {
             throw new IndexOutOfBoundsException();
@@ -147,6 +148,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** Relative get method. Get the pointer value at the current position and increment the position by one. */
+    @Override
     public final long get() {
         long r = get(position);
         position++;
@@ -154,6 +156,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** Absolute get method. Get the pointer value at the given index */
+    @Override
     public final long get(int idx) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
@@ -184,6 +187,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** Absolute put method. Put the pointer value at the given index */
+    @Override
     public final PointerBuffer put(int idx, long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
@@ -197,6 +201,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** Relative put method. Put the pointer value at the current position and increment the position by one. */
+    @Override
     public final PointerBuffer put(long value) {
         put(position, value);
         position++;

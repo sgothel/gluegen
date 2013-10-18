@@ -61,6 +61,7 @@ public class FloatType extends PrimitiveType implements Cloneable {
   @Override
   public FloatType asFloat() { return this; }
 
+  @Override
   Type newCVVariant(int cvAttributes) {
     return new FloatType(getName(), getSize(), cvAttributes);
   }

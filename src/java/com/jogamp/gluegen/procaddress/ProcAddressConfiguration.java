@@ -197,6 +197,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
             msgFmt = new MessageFormat(fmt);
         }
 
+        @Override
         String convert(String funcName) {
             StringBuffer buf = new StringBuffer();
             msgFmt.format(new Object[]{funcName}, buf, null);
@@ -212,6 +213,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
             this.str = str;
         }
 
+        @Override
         String convert(String funcName) {
             return str;
         }
@@ -225,6 +227,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
             this.children = children;
         }
 
+        @Override
         String convert(String funcName) {
             StringBuilder res = new StringBuilder();
             for (ConvNode node : children) {
@@ -244,6 +247,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
             this.child = child;
         }
 
+        @Override
         public String convert(String funcName) {
             if (upperCase) {
                 return child.convert(funcName).toUpperCase();

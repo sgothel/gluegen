@@ -171,6 +171,7 @@ public class Platform extends PlatformPropsImpl {
         final boolean[] _AWT_AVAILABLE = new boolean[] { false };
 
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
 
                 PlatformPropsImpl.initSingleton(); // documenting the order of static initialization

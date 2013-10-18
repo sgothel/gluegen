@@ -147,6 +147,7 @@ public class SectionArmAttributes extends Section {
             throw new IllegalArgumentException("Not ULEB128 but "+tag.type);
         }
 
+        @Override
         public String toString() {
             return tag+" = "+value;
         }
@@ -161,6 +162,7 @@ public class SectionArmAttributes extends Section {
             this.attributes = attributes;
         }
 
+        @Override
         public String toString() {
             return vendor + attributes.toString();
         }
@@ -172,6 +174,7 @@ public class SectionArmAttributes extends Section {
         this.vendorAttributesList = parse(data, offset, length);
     }
 
+    @Override
     public String toString() {
         return "SectionArmAttributes["+super.toSubString()+", "+vendorAttributesList.toString()+"]";
     }

@@ -49,6 +49,7 @@ public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
     public synchronized static GenericURLStreamHandlerFactory register() {
         if(null == factory) {
             factory = AccessController.doPrivileged(new PrivilegedAction<GenericURLStreamHandlerFactory>() {
+                @Override
                 public GenericURLStreamHandlerFactory run() {
                     boolean ok = false;
                     GenericURLStreamHandlerFactory f = new GenericURLStreamHandlerFactory();

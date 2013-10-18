@@ -18,6 +18,7 @@ public class NativeTaglet implements Taglet
   /**
    * Return the name of this custom tag.
    */
+  @Override
   public String getName()
   {
     return NAME;
@@ -27,6 +28,7 @@ public class NativeTaglet implements Taglet
    * @return true since this tag can be used in a field
    *         doc comment
    */
+  @Override
   public boolean inField()
   {
     return true;
@@ -36,6 +38,7 @@ public class NativeTaglet implements Taglet
    * @return true since this tag can be used in a constructor
    *         doc comment
    */
+  @Override
   public boolean inConstructor()
   {
     return true;
@@ -45,6 +48,7 @@ public class NativeTaglet implements Taglet
    * @return true since this tag can be used in a method
    *         doc comment
    */
+  @Override
   public boolean inMethod()
   {
     return true;
@@ -54,6 +58,7 @@ public class NativeTaglet implements Taglet
    * @return true since this tag can be used in an overview
    *         doc comment
    */
+  @Override
   public boolean inOverview()
   {
     return true;
@@ -63,6 +68,7 @@ public class NativeTaglet implements Taglet
    * @return true since this tag can be used in a package
    *         doc comment
    */
+  @Override
   public boolean inPackage()
   {
     return true;
@@ -71,6 +77,7 @@ public class NativeTaglet implements Taglet
   /**
    * @return true since this
    */
+  @Override
   public boolean inType()
   {
     return true;
@@ -82,6 +89,7 @@ public class NativeTaglet implements Taglet
    * @return true since this is an inline tag.
    */
 
+  @Override
   public boolean isInlineTag()
   {
     return true;
@@ -109,6 +117,7 @@ public class NativeTaglet implements Taglet
    *
    * @param tag the <code>Tag</code> representation of this custom tag.
    */
+  @Override
   public String toString(Tag tag)
   {
     String text= tag.text().trim();
@@ -220,6 +229,7 @@ public class NativeTaglet implements Taglet
    *
    * @param tags the array of <code>Tag</code>s representing of this custom tag.
    */
+  @Override
   public String toString(Tag[] tags)
   {
     return null;

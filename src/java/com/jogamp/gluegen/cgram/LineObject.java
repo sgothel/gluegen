@@ -105,6 +105,7 @@ class LineObject {
     return treatAsC;
   }
 
+  @Override
   public String toString() {
     StringBuilder ret;
     ret = new StringBuilder("# " + line + " \"" + source + "\"");

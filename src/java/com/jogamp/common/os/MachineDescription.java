@@ -291,6 +291,7 @@ public class MachineDescription {
    * @return  <code>true</code> if the two MachineDescription are equal;
    *          otherwise <code>false</code>.
    */
+  @Override
   public final boolean equals(Object obj) {
       if (this == obj) { return true; }
       if ( !(obj instanceof MachineDescription) ) { return false; }

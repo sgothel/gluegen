@@ -71,6 +71,7 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
     }
   }
 
+  @Override
   public Object clone() {
     CompoundType n = (CompoundType) super.clone();
     if(null!=this.fields) {

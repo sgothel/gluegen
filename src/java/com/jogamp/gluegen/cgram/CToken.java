@@ -26,6 +26,7 @@ public class CToken extends antlr.CommonToken {
     tokenNumber = i;
   }
 
+    @Override
     public String toString() {
         return "CToken:" +"(" + hashCode() + ")" + "[" + getType() + "] "+ getText() + " line:" + getLine() + " source:" + source ;
     }

@@ -50,6 +50,7 @@ import com.jogamp.common.util.LongObjectHashMap;
       public final int getRefCount() { return refCount; }
 
       public final String getName() { return name; }
+      @Override
       public final String toString() { return "LibRef["+name+", refCount "+refCount+"]"; }
 
       private final String name;

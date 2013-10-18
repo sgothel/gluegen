@@ -153,6 +153,7 @@ public class PointerType extends Type implements Cloneable {
         targetType.visit(arg);
     }
 
+    @Override
     Type newCVVariant(int cvAttributes) {
         return new PointerType(getSize(), targetType, cvAttributes, hasTypedefedName, (hasTypedefedName ? getName() : null));
     }

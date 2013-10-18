@@ -63,6 +63,7 @@ public abstract class Type implements Cloneable {
     hasTypedefName = false;
   }
 
+  @Override
   public Object clone() {
     try {
         return super.clone();

@@ -54,6 +54,7 @@ public class ReferencedStructs implements TypeVisitor {
     return results.iterator();
   }
 
+  @Override
   public void visitType(Type t) {
     if (t.isPointer()) {
       PointerType p = t.asPointer();

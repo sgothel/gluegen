@@ -105,6 +105,7 @@ public class JavaEmitter implements GlueEmitter {
 
   protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
 
+  @Override
   public void readConfigurationFile(String filename) throws Exception {
     cfg = createConfig();
     cfg.read(filename);
@@ -114,15 +115,18 @@ public class JavaEmitter implements GlueEmitter {
 
     private List<ConstantDefinition> constants;
 
+    @Override
     public void filterSymbols(List<ConstantDefinition> constants, List<FunctionSymbol> functions) {
       this.constants = constants;
       doWork();
     }
 
+    @Override
     public List<ConstantDefinition> getConstants() {
       return constants;
     }
 
+    @Override
     public List<FunctionSymbol> getFunctions() {
       return null;
     }
@@ -138,6 +142,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
+    @Override
     public void beginEmission(GlueEmitterControls controls) throws IOException {
 
         // Request emission of any structs requested
@@ -158,6 +163,7 @@ public class JavaEmitter implements GlueEmitter {
         }
     }
 
+    @Override
     public void endEmission() {
         if (!cfg.structsOnly()) {
             emitAllFileFooters();
@@ -170,6 +176,7 @@ public class JavaEmitter implements GlueEmitter {
         }
     }
 
+  @Override
   public void beginDefines() throws Exception {
     if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
       javaWriter().println();
@@ -342,6 +349,7 @@ public class JavaEmitter implements GlueEmitter {
       "\" cannot be assigned to a int, long, float, or double");
   }
 
+  @Override
   public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception  {
 
     if (cfg.allStatic() || cfg.emitInterface()) {
@@ -376,9 +384,11 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
+  @Override
   public void endDefines() throws Exception {
   }
 
+  @Override
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
                              Map<Type, Type> canonMap) throws Exception {
@@ -391,6 +401,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
+  @Override
   public Iterator<FunctionSymbol> emitFunctions(List<FunctionSymbol> originalCFunctions) throws Exception {
 
     // Sometimes headers will have the same function prototype twice, once
@@ -412,6 +423,7 @@ public class JavaEmitter implements GlueEmitter {
     ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet);
     // sort functions to make them easier to find in native code
     Collections.sort(funcsToBind, new Comparator<FunctionSymbol>() {
+            @Override
             public int compare(FunctionSymbol o1, FunctionSymbol o2) {
                 return o1.getName().compareTo(o2.getName());
             }
@@ -739,6 +751,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
 
+  @Override
   public void endFunctions() throws Exception {
     if (!cfg.structsOnly()) {
         if (cfg.allStatic() || cfg.emitInterface()) {
@@ -750,12 +763,16 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
+  @Override
   public void beginStructLayout() throws Exception {}
+  @Override
   public void layoutStruct(CompoundType t) throws Exception {
     getLayout().layout(t);
   }
+  @Override
   public void endStructLayout() throws Exception {}
 
+  @Override
   public void beginStructs(TypeDictionary typedefDictionary,
                            TypeDictionary structDictionary,
                            Map<Type, Type> canonMap) throws Exception {
@@ -763,6 +780,7 @@ public class JavaEmitter implements GlueEmitter {
     this.canonMap          = canonMap;
   }
 
+  @Override
   public void emitStruct(CompoundType structType, String alternateName) throws Exception {
     String name = structType.getName();
     if (name == null && alternateName != null) {
@@ -1124,6 +1142,7 @@ public class JavaEmitter implements GlueEmitter {
       newWriter.close();
     }
   }
+  @Override
   public void endStructs() throws Exception {}
 
   public static int addStrings2Buffer(StringBuilder buf, String sep, String first, Collection<String> col) {
@@ -1576,6 +1595,7 @@ public class JavaEmitter implements GlueEmitter {
         final List<String> intfDocs = cfg.javadocForClass(cfg.className());
         CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
+            @Override
             public void emit(PrintWriter w) {
               for (Iterator<String> iter = intfDocs.iterator(); iter.hasNext(); ) {
                 w.println(iter.next());
@@ -1606,6 +1626,7 @@ public class JavaEmitter implements GlueEmitter {
         final List<String> implDocs = cfg.javadocForClass(cfg.implClassName());
         CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
+            @Override
             public void emit(PrintWriter w) {
               for (Iterator<String> iter = implDocs.iterator(); iter.hasNext(); ) {
                 w.println(iter.next());

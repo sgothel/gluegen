@@ -79,6 +79,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
     @Override
     public final void setGrowSize(int newGrowSize) { growSize = newGrowSize; }
 
+    @Override
     public final String toString() {
         return "FloatStack[0..(pos "+position+").."+buffer.length+", remaining "+remaining()+"]";
     }

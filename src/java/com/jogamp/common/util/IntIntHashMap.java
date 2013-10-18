@@ -85,6 +85,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
         if(!isPrimitive) {
             final EntryCM cm = AccessController.doPrivileged(new PrivilegedAction<EntryCM>() {
+                @Override
                 @SuppressWarnings("unchecked")
                 public EntryCM run() {
                     EntryCM r = new EntryCM();
@@ -501,6 +502,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
     private static Method getCloneMethod(Object obj) {
         final Class<?> clazz = obj.getClass();
         return AccessController.doPrivileged(new PrivilegedAction<Method>() {
+                @Override
                 public Method run() {
                     try {
                         return clazz.getDeclaredMethod("clone");

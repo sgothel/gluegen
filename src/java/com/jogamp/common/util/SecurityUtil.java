@@ -48,6 +48,7 @@ public class SecurityUtil {
             final boolean hasAllPermissions;
             {
                 final ProtectionDomain insecPD = AccessController.doPrivileged(new PrivilegedAction<ProtectionDomain>() {
+                                                @Override
                                                 public ProtectionDomain run() {
                                                     return SecurityUtil.class.getProtectionDomain();
                                                 } } );
@@ -64,6 +65,7 @@ public class SecurityUtil {
             System.err.println("SecurityUtil: Has SecurityManager: "+ ( null != securityManager ) ) ;
             System.err.println("SecurityUtil: Has AllPermissions: "+hasAllPermissions);
             final Certificate[] certs = AccessController.doPrivileged(new PrivilegedAction<Certificate[]>() {
+                                                @Override
                                                 public Certificate[] run() {
                                                     return getCerts(SecurityUtil.class);
                                                 } } );

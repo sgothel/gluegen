@@ -45,9 +45,12 @@ public class StructType extends CompoundType {
     return super.equals(arg);
   }
 
+  @Override
   public final boolean isStruct() { return true; }
+  @Override
   public final boolean isUnion()  { return false; }
 
+  @Override
   Type newCVVariant(int cvAttributes) {
     StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName());
     t.setFields(getFields());

@@ -237,6 +237,7 @@ public class TempFileCache {
             // We do this so that the locks never get garbage-collected.
             Runtime.getRuntime().addShutdownHook(new Thread() {
                 /* @Override */
+                @Override
                 public void run() {
                     // NOTE: we don't really expect that this code will ever
                     // be called. If it does, we will close the output
@@ -263,6 +264,7 @@ public class TempFileCache {
             // Start a new Reaper thread to do stuff...
             Thread reaperThread = new Thread() {
                 /* @Override */
+                @Override
                 public void run() {
                     deleteOldTempDirs();
                 }
@@ -286,6 +288,7 @@ public class TempFileCache {
         final String ourLockFile = tmpRootPropValue + ".lck";
         FilenameFilter lckFilter = new FilenameFilter() {
             /* @Override */
+            @Override
             public boolean accept(File dir, String name) {
                 return name.endsWith(".lck") && !name.equals(ourLockFile);
             }

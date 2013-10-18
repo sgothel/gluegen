@@ -90,6 +90,7 @@ public abstract class ProcAddressTable {
 
     static {
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 DEBUG = (System.getProperty("jogamp.debug.ProcAddressHelper") != null);
                 if (DEBUG) {
@@ -206,6 +207,7 @@ public abstract class ProcAddressTable {
      */
     private final Field fieldForFunctionInSec(final String name) throws IllegalArgumentException {
         return AccessController.doPrivileged(new PrivilegedAction<Field>() {
+            @Override
             public Field run() {
                 try {
                     final Field addressField = ProcAddressTable.this.getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
@@ -340,6 +342,7 @@ public abstract class ProcAddressTable {
     }
 
     private static class One2OneResolver implements FunctionAddressResolver {
+        @Override
         public long resolve(String name, DynamicLookupHelper lookup) {
             return lookup.dynamicLookupFunction(name);
         }

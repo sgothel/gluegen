@@ -114,6 +114,7 @@ public class CSymbolTable {
   }
 
   /** convert this table to a string */
+  @Override
   public String toString() {
     StringBuilder buff = new StringBuilder(300);
     buff.append("CSymbolTable { \nCurrentScope: " + currentScopeAsString() +

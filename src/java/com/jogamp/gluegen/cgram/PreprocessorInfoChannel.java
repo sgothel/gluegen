@@ -50,6 +50,7 @@ public class PreprocessorInfoChannel
         return lines;
     }
 
+    @Override
     public String toString()
     {
         StringBuilder sb = new StringBuilder("PreprocessorInfoChannel:\n");

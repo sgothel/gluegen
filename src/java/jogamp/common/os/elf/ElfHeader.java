@@ -527,6 +527,7 @@ public class ElfHeader {
         return null;
     }
 
+    @Override
     public final String toString() {
         return string;
     }

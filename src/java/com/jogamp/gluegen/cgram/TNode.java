@@ -51,6 +51,7 @@ public class TNode extends CommonAST {
   }
 
 
+@Override
 public void initialize(Token token) {
         CToken tok = (CToken) token;
         setText(tok.getText());
@@ -59,6 +60,7 @@ public void initialize(Token token) {
         setAttribute("source", tok.getSource());
         setAttribute("tokenNumber", new Integer(tok.getTokenNumber()));
 }
+@Override
 public void initialize(AST tr) {
         TNode t = (TNode) tr;
         setText(t.getText());
@@ -70,9 +72,11 @@ public void initialize(AST tr) {
 
 
   /** Get the token type for this node */
+  @Override
   public int getType() { return ttype; }
 
   /** Set the token type for this node */
+  @Override
   public void setType(int ttype_) {
     ttype = ttype_;
   }
@@ -146,9 +150,11 @@ public void initialize(AST tr) {
   }
 
   /** Get the token text for this node */
+  @Override
   public String getText() { return text; }
 
   /** Set the token text for this node */
+  @Override
   public void setText(String text_) {
     text = text_;
   }
@@ -303,6 +309,7 @@ public void initialize(AST tr) {
 
 
   /** return a short string representation of the node */
+  @Override
   public String toString() {
     StringBuilder str = new StringBuilder( getNameForType(getType()) +
            "[" + getText() + ", " + "]");

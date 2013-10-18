@@ -54,6 +54,7 @@ public class VoidType extends Type implements Cloneable {
         return this;
     }
 
+    @Override
     Type newCVVariant(int cvAttributes) {
         return new VoidType(getName(), cvAttributes);
     }

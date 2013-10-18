@@ -118,6 +118,7 @@ public abstract class PlatformPropsImpl {
     private static final String getJavaRuntimeNameImpl() {
         // the fast path, check property Java SE instead of traversing through the ClassLoader
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            @Override
             public String run() {
               return System.getProperty("java.runtime.name");
             }
@@ -232,6 +233,7 @@ public abstract class PlatformPropsImpl {
         }
         return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
             private final String GNU_LINUX_SELF_EXE = "/proc/self/exe";
+            @Override
             public ABIType run() {
                 boolean abiARM = false;
                 boolean abiVFPArgsAcceptsVFPVariant = false;

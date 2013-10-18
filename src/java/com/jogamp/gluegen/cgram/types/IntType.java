@@ -87,6 +87,7 @@ public class IntType extends PrimitiveType implements Cloneable {
         return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getName();
     }
 
+    @Override
     Type newCVVariant(int cvAttributes) {
         return new IntType(getName(), getSize(), isUnsigned(), cvAttributes, typedefedUnsigned);
     }

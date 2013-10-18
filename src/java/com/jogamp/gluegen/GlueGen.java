@@ -71,14 +71,17 @@ public class GlueGen implements GlueEmitterControls {
 
     public static boolean debug() { return debug; }
 
+    @Override
     public void forceStructEmission(String typedefName) {
         forcedStructNames.add(typedefName);
     }
 
+    @Override
     public String findHeaderFile(String headerFileName) {
         return preprocessor.findFile(headerFileName);
     }
 
+    @Override
     public void runSymbolFilter(SymbolFilter filter) {
         filter.filterSymbols(constants, functions);
         List<ConstantDefinition> newConstants = filter.getConstants();

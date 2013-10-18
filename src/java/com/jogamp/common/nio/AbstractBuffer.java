@@ -68,22 +68,27 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         this.position = 0;
     }
 
+    @Override
     public final int elementSize() {
         return elementSize;
     }
 
+    @Override
     public final int limit() {
         return capacity;
     }
 
+    @Override
     public final int capacity() {
         return capacity;
     }
 
+    @Override
     public final int position() {
         return position;
     }
 
+    @Override
     public final B position(int newPos) {
         if (0 > newPos || newPos >= capacity) {
             throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
@@ -93,31 +98,38 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         return (B)this;
     }
 
+    @Override
     public final int remaining() {
         return capacity - position;
     }
 
+    @Override
     public final boolean hasRemaining() {
         return position < capacity;
     }
 
+    @Override
     public final B rewind() {
         position = 0;
         return (B) this;
     }
 
+    @Override
     public final Buffer getBuffer() {
         return buffer;
     }
 
+    @Override
     public final boolean isDirect() {
         return buffer.isDirect();
     }
 
+    @Override
     public final boolean hasArray() {
         return buffer.hasArray();
     }
 
+    @Override
     public final int arrayOffset() {
         if( hasArray() ) {
             return buffer.arrayOffset();
@@ -126,6 +138,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         }
     }
 
+    @Override
     public Object array() throws UnsupportedOperationException {
         return buffer.array();
     }

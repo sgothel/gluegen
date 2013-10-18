@@ -45,6 +45,7 @@ import java.io.PrintStream;
 public interface Ringbuffer<T> {
 
     /** Returns a short string representation incl. size/capacity and internal r/w index (impl. dependent). */
+    @Override
     public String toString();
 
     /** Debug functionality - Dumps the contents of the internal array. */

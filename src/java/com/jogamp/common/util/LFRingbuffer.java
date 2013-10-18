@@ -81,10 +81,12 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     private volatile int writePos;
     private volatile int size;
 
+    @Override
     public final String toString() {
         return "LFRingbuffer<?>[filled "+size+" / "+(capacityPlusOne-1)+", writePos "+writePos+", readPos "+readPos+"]";
     }
 
+    @Override
     public final void dump(PrintStream stream, String prefix) {
         stream.println(prefix+" "+toString()+" {");
         for(int i=0; i<capacityPlusOne; i++) {

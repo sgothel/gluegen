@@ -132,6 +132,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
   }
 
+  @Override
   public final String toString() {
     return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
   }
@@ -362,6 +363,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     // Add entries from java.library.path
     final String[] javaLibraryPaths =
       AccessController.doPrivileged(new PrivilegedAction<String[]>() {
+          @Override
           public String[] run() {
             int count = 0;
             final String usrPath = System.getProperty("java.library.path");
@@ -402,6 +404,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     // Add current working directory
     String userDir =
       AccessController.doPrivileged(new PrivilegedAction<String>() {
+          @Override
           public String run() {
             return System.getProperty("user.dir");
           }
@@ -523,6 +526,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
     if (!initializedFindLibraryMethod) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {
+          @Override
           public Object run() {
             try {
               findLibraryMethod = ClassLoader.class.getDeclaredMethod("findLibrary",
@@ -539,6 +543,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     if (findLibraryMethod != null) {
       try {
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
+            @Override
             public String run() {
               try {
                 return (String) findLibraryMethod.invoke(loader, new Object[] { libName });

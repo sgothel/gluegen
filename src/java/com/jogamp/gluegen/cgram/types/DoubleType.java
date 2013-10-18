@@ -62,6 +62,7 @@ public class DoubleType extends PrimitiveType implements Cloneable {
         return this;
     }
 
+    @Override
     Type newCVVariant(int cvAttributes) {
         return new DoubleType(getName(), getSize(), cvAttributes);
     }

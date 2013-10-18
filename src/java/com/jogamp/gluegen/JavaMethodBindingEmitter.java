@@ -162,6 +162,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   public boolean isForDirectBufferImplementation() { return forDirectBufferImplementation; }
   public boolean isForIndirectBufferAndArrayImplementation() { return forIndirectBufferAndArrayImplementation; }
 
+  @Override
   public String getName() {
     return binding.getName();
   }
@@ -234,6 +235,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     this.forIndirectBufferAndArrayImplementation = indirect;
   }
 
+  @Override
   protected void emitReturnType(PrintWriter writer)  {
     writer.print(getReturnTypeString(false));
   }
@@ -303,6 +305,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return erasedTypeString(binding.getJavaReturnType(), true) + "[]";
   }
 
+  @Override
   protected void emitName(PrintWriter writer)  {
     if (forImplementingMethodCall) {
       writer.print(getImplMethodName());
@@ -311,6 +314,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
+  @Override
   protected int emitArguments(PrintWriter writer) {
     boolean needComma = false;
     int numEmitted = 0;
@@ -404,6 +408,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return getArgumentName(i) + "_offset";
   }
 
+  @Override
   protected void emitBody(PrintWriter writer)  {
     if (!emitBody) {
       writer.println(';');
@@ -804,6 +809,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
    * emitter java method.
    */
   protected class DefaultCommentEmitter implements CommentEmitter {
+    @Override
     public void emit(FunctionEmitter emitter, PrintWriter writer) {
       emitBeginning(emitter, writer);
       emitBindingCSignature(((JavaMethodBindingEmitter)emitter).getBinding(), writer);

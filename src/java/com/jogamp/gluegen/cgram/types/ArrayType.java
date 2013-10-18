@@ -129,6 +129,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
     elementType.visit(arg);
   }
 
+  @Override
   Type newCVVariant(int cvAttributes) {
     return new ArrayType(elementType, getSize(), length, cvAttributes);
   }

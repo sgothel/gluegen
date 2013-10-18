@@ -147,6 +147,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
   public final MethodBinding getBinding() { return binding; }
 
+  @Override
   public String getName() {
     return binding.getName();
   }
@@ -291,12 +292,14 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   public final MachineDescription getMachineDescription() { return machDesc; }
 
 
+  @Override
   protected void emitReturnType(PrintWriter writer)  {
     writer.print("JNIEXPORT ");
     writer.print(binding.getJavaReturnType().jniTypeName());
     writer.print(" JNICALL");
   }
 
+  @Override
   protected void emitName(PrintWriter writer)  {
     writer.println(); // start name on new line
     writer.print("Java_");
@@ -326,6 +329,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     return "";
   }
 
+  @Override
   protected int emitArguments(PrintWriter writer)  {
     writer.print("JNIEnv *env, ");
     int numEmitted = 1; // initially just the JNIEnv
@@ -374,6 +378,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   }
 
 
+  @Override
   protected void emitBody(PrintWriter writer)  {
     writer.println(" {");
 //    writer.println("printf(\" - - - - "+ getName() + getImplSuffix() +" - - - -\\n\");");
@@ -1478,6 +1483,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
    * emitter java method.
    */
   protected static class DefaultCommentEmitter implements CommentEmitter {
+    @Override
     public void emit(FunctionEmitter emitter, PrintWriter writer) {
       emitBeginning((CMethodBindingEmitter)emitter, writer);
       emitEnding((CMethodBindingEmitter)emitter, writer);

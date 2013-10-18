@@ -54,6 +54,7 @@ public class FunctionType extends Type implements Cloneable {
         this.returnType = returnType;
     }
 
+    @Override
     public Object clone() {
         FunctionType n = (FunctionType) super.clone();
         if(null!=this.argumentTypes) {
@@ -195,6 +196,7 @@ public class FunctionType extends Type implements Cloneable {
         }
     }
 
+    @Override
     Type newCVVariant(int cvAttributes) {
         // Functions don't have const/volatile attributes
         return this;
