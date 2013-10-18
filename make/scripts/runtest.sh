@@ -52,7 +52,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
-#D_ARGS="-Djogamp.debug.IOUtil"
+D_ARGS="-Djogamp.debug.IOUtil"
 #D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
@@ -75,7 +75,7 @@ function onetest() {
     echo
 }
 #
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -94,14 +94,17 @@ onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestIOUtilURICompose 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestIOUtilURIHandling 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
+#onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.net.TestURIQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionRegisteredTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.net.URLCompositionTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.junit.sec.TestSecIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG

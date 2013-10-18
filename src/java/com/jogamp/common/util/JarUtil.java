@@ -449,9 +449,12 @@ public class JarUtil {
             throw new IllegalArgumentException("null jarFileURI");
         }
         if(DEBUG) {
-            System.out.println("getJarFile: "+jarFileURI.toString());
+            System.out.println("getJarFile.0: "+jarFileURI.toString());
         }
         final URL jarFileURL = IOUtil.toURL(jarFileURI);
+        if(DEBUG) {
+            System.out.println("getJarFile.1: "+jarFileURL.toString());
+        }
         // final URL jarFileURL = jarFileURI.toURL(); // doesn't work due to encoded path even w/ file schema!
         final URLConnection urlc = jarFileURL.openConnection();
         if(urlc instanceof JarURLConnection) {

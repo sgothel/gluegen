@@ -497,15 +497,18 @@ public class IOUtil {
      * for <i>file scheme</i>, i.e. <code>file:/</code>.
      * Otherwise the default {@link URL} translation {@link URI#toURL()} is being used.
      * <p>
-     * The folloing cases are considered:
+     * The following cases are considered:
      * <ul>
      *   <li><i>file schema</i> is converted via <code>new File(uri).getPath()</code>.</li>
      *   <li><i>jar scheme</i>
      *   <ul>
-     *     <li>subprotocol is being converted as above, if <i>file scheme</i>.</li>
+     *     <li>sub-protocol is being converted as above, if <i>file scheme</i>.</li>
      *     <li>JAR entry is not converted but preserved.</li>
      *   </ul></li>
      * </ul>
+     * </p>
+     * <p>
+     * Tested w/ unit test <code>com.jogamp.common.util.TestIOUtilURIHandling</code>
      * </p>
      * @param uri
      * @return
@@ -513,41 +516,100 @@ public class IOUtil {
      * @throws IllegalArgumentException
      * @throws URISyntaxException
      */
-    public static URL toURL(URI uri) throws IOException, IllegalArgumentException, URISyntaxException {
+    public static URL toURL(final URI uri) throws IOException, IllegalArgumentException, URISyntaxException {
         URL url = null;
         final String uriSchema = uri.getScheme();
-        final boolean isJAR = IOUtil.JAR_SCHEME.equals(uriSchema);
-        final URI specificURI = isJAR ? JarUtil.getJarSubURI(uri) : uri;
+        final boolean isJar = IOUtil.JAR_SCHEME.equals(uriSchema);
+        final URI specificURI = isJar ? JarUtil.getJarSubURI(uri) : uri;
+        final boolean hasJarSubURI = specificURI != uri;
+        if( DEBUG ) {
+            System.out.println("IOUtil.toURL.0: isJAR "+isJar+", hasSubURI "+hasJarSubURI+Platform.getNewline()+
+                               "\t, uri "+uri+Platform.getNewline()+
+                               "\t -> "+specificURI.toString());
+        }
         int mode = 0;
         if( IOUtil.FILE_SCHEME.equals( specificURI.getScheme() ) ) {
             File f;
             try {
                 f = new File(specificURI);
-            } catch( IllegalArgumentException iae) {
+            } catch(Exception iae) {
                 if( DEBUG ) {
-                    System.out.println("toURL: "+uri+" -> File("+specificURI+") failed: "+iae.getMessage());
+                    System.out.println("Catched "+iae.getClass().getSimpleName()+": new File("+specificURI+") failed: "+iae.getMessage());
+                    iae.printStackTrace();
                 }
                 f = null;
             }
             if( null != f ) {
-                if( specificURI == uri ) {
-                    url = new URL(IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath());
-                    // url = f.toURI().toURL(); // Doesn't work, since it uses encoded path!
-                    mode = 1;
-                } else {
-                    final String post = isJAR ? IOUtil.JAR_SCHEME_SEPARATOR + JarUtil.getJarEntry(uri) : "";
-                    final String urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+f.getPath()+post;
-                    url = new URL(urlS);
-                    mode = 2;
+                String urlS = null;
+                try {
+                    final String fPath = f.getPath();
+                    final String fPathUriS = encodeFilePathToURI(fPath);
+                    /**
+                     * Below 'url = f.toURI().toURL()' Doesn't work, since it uses encoded path,
+                     * but we need the decoded path due to subsequent file access.
+                     *   URI:       jar:file:/C:/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/
+                     *   File:      file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar
+                     *   URI:  fUri file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar
+                     *   URL:  fUrl file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar
+                     *
+                     * Goal:        file:/C:/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/
+                     */
+                    if(DEBUG) {
+                        try {
+                            final URI fUri = f.toURI();
+                            final URL fUrl = fUri.toURL();
+                            System.out.println("IOUtil.toURL.1b: fUri "+fUri+Platform.getNewline()+
+                                               "\t, fUrl "+fUrl);
+                        } catch (Exception ee) {
+                            System.out.println("Catched "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
+                            ee.printStackTrace();
+                        }
+                    }
+                    if( !hasJarSubURI ) {
+                        urlS = IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+fPathUriS;
+                        if( DEBUG ) {
+                            System.out.println("IOUtil.toURL.1: fPath "+fPath+Platform.getNewline()+
+                                               "\t -> "+fPathUriS+Platform.getNewline()+
+                                               "\t -> "+urlS);
+                        }
+                        url = new URL(urlS);
+                        mode = 1;
+                    } else {
+                        final String jarEntry = JarUtil.getJarEntry(uri);
+                        final String post = isJar ? IOUtil.JAR_SCHEME_SEPARATOR + jarEntry : "";
+                        urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+fPathUriS+post;
+                        if( DEBUG ) {
+                            System.out.println("IOUtil.toURL.2: fPath "+fPath+Platform.getNewline()+
+                                               "\t -> "+fPathUriS+Platform.getNewline()+
+                                               "\t, jarEntry "+jarEntry+Platform.getNewline()+
+                                               "\t, post "+post+Platform.getNewline()+
+                                               "\t -> "+urlS);
+                        }
+                        url = new URL(urlS);
+                        mode = 2;
+                    }
+                } catch (Exception mue) {
+                    if( DEBUG ) {
+                        System.out.println("Catched "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
+                        mue.printStackTrace();
+                    }
                 }
             }
         }
         if( null == url ) {
-            url = uri.toURL();
-            mode = 3;
+            try {
+                url = uri.toURL();
+                mode = 3;
+            } catch (Exception e) {
+                if( DEBUG ) {
+                    System.out.println("Catched "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
+                    e.printStackTrace();
+                }
+            }
         }
         if( DEBUG ) {
-            System.err.println("IOUtil.toURL: "+uri+", isJar "+isJAR+": "+specificURI+" -> mode "+mode+", "+url);
+            System.err.println("IOUtil.toURL.X: mode "+mode+", "+uri+Platform.getNewline()+
+                               "\t -> "+url);
         }
         return url;
     }
@@ -798,6 +860,36 @@ public class IOUtil {
      */
     public static String decodeFromURI(String s) {
         return patternSpaceEnc.matcher(s).replaceAll(" ");
+    }
+
+    private static final Pattern patternSingleBS = Pattern.compile("\\\\{1,}");
+
+    /**
+     * Escapes file path characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
+     * <p>
+     * Processes input filePath if {@link File#separatorChar} <code> != '/'</code>
+     * as follows:
+     * <ul>
+     *   <li>backslash -> slash</li>
+     *   <li>ensure starting with slash</li>
+     * </ul>
+     * </p>
+     * <p>
+     * Even though Oracle's JarURLStreamHandler can handle backslashes and
+     * erroneous URIs w/ e.g. Windows file 'syntax', other may not (Netbeans).<br>
+     * See Bug 857 - http://jogamp.org/bugzilla/show_bug.cgi?id=857
+     * </p>
+     */
+    public static String encodeFilePathToURI(String filePath) {
+        if( !File.separator.equals("/") ) {
+            final String r = patternSingleBS.matcher(filePath).replaceAll("/");
+            if( !r.startsWith("/") ) {
+                return "/" + r;
+            } else {
+                return r;
+            }
+        }
+        return filePath;
     }
 
     /**
