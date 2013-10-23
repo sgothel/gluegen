@@ -1006,9 +1006,15 @@ public class IOUtil {
             throws SecurityException
     {
         if (!testFile(dir, true, true)) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Not writeable dir");
+            }
             return false;
         }
         if(!getOSHasNoexecFS()) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Always executable");
+            }
             return true;
         }
 
@@ -1023,40 +1029,45 @@ public class IOUtil {
             }
             return false;
         }
-        int ok = -1;
-        if(exetst.setExecutable(true)) {
+        int res = -1;
+        if(exetst.setExecutable(true /* exec */, true /* ownerOnly */)) {
             try {
                 Process pr = Runtime.getRuntime().exec(exetst.getCanonicalPath());
                 pr.waitFor() ;
-                ok = pr.exitValue();
+                res = pr.exitValue();
             } catch (SecurityException se) {
                 throw se; // fwd Security exception
             } catch (Throwable t) {
-                ok = -2;
+                res = -2;
                 if(DEBUG) {
-                    System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: "+t.getMessage());
+                    System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: Catched "+t.getClass().getSimpleName()+": "+t.getMessage());
                     // t.printStackTrace();
                 }
             }
         }
         exetst.delete();
-        return 0 == ok;
+        if(DEBUG) {
+            System.err.println("IOUtil.testDirExec(): <"+dir.getAbsolutePath()+">: res "+res);
+        }
+        return 0 == res;
     }
 
-    private static File testDirImpl(File dir, boolean create, boolean executable)
+    private static File testDirImpl(File dir, boolean create, boolean executable, String dbgMsg)
             throws SecurityException
     {
+        final File res;
         if (create && !dir.exists()) {
             dir.mkdirs();
         }
         if( executable ) {
-            if(testDirExec(dir)) {
-                return dir;
-            }
-        } else if(testFile(dir, true, true)) {
-            return dir;
+            res = testDirExec(dir) ? dir : null;
+        } else {
+            res = testFile(dir, true, true) ? dir : null;
         }
-        return null;
+        if(DEBUG) {
+            System.err.println("IOUtil.testDirImpl("+dbgMsg+"): <"+dir.getAbsolutePath()+">, create "+create+", exec "+executable+": "+(null != res));
+        }
+        return res;
     }
 
     /**
@@ -1076,7 +1087,7 @@ public class IOUtil {
     public static File testDir(final File dir, final boolean create, final boolean executable)
         throws SecurityException
     {
-        return testDirImpl(dir, create, executable);
+        return testDirImpl(dir, create, executable, "testDir");
     }
 
     private static boolean isStringSet(String s) { return null != s && 0 < s.length(); }
@@ -1100,18 +1111,19 @@ public class IOUtil {
      * </p>
      * @param tmpRoot
      * @param executable
+     * @param dbgMsg TODO
      * @param tmpDirPrefix
      * @return a temporary directory, writable by this user
      * @throws SecurityException
      */
-    private static File getSubTempDir(File tmpRoot, String tmpSubDirPrefix, boolean executable)
+    private static File getSubTempDir(File tmpRoot, String tmpSubDirPrefix, boolean executable, String dbgMsg)
         throws SecurityException
     {
        File tmpBaseDir = null;
-       if(null != testDirImpl(tmpRoot, true /* create */, executable)) { // check tmpRoot first
+       if(null != testDirImpl(tmpRoot, true /* create */, executable, dbgMsg)) { // check tmpRoot first
            for(int i = 0; null == tmpBaseDir && i<=9999; i++) {
                final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
-               tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true /* create */, executable);
+               tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true /* create */, executable, dbgMsg);
            }
        }
        return tmpBaseDir;
@@ -1153,13 +1165,25 @@ public class IOUtil {
                     {
                         final File ctxTempDir = AndroidUtils.getTempRoot(); // null if ( !Android || no android-ctx )
                         if(null != ctxTempDir) {
-                            tempRootNoexec = getSubTempDir(ctxTempDir, tmpSubDir, false /* executable, see below */);
+                            tempRootNoexec = getSubTempDir(ctxTempDir, tmpSubDir, false /* executable, see below */, "Android.ctxTemp");
                             tempRootExec = tempRootNoexec; // FIXME: Android temp root is always executable (?)
                             return tempRootExec;
                         }
                     }
 
                     final String java_io_tmpdir = PropertyAccess.getProperty(java_io_tmpdir_propkey, false);
+                    final String user_temp; // only if diff than java_io_tmpdir
+                    {
+                        String _user_temp = System.getenv("TMPDIR");
+                        if( !isStringSet(_user_temp) ) {
+                            _user_temp = System.getenv("TEMP");
+                        }
+                        if( isStringSet(_user_temp) && !_user_temp.equals(java_io_tmpdir) ) {
+                            user_temp = _user_temp;
+                        } else {
+                            user_temp = null;
+                        }
+                    }
                     final String user_home = PropertyAccess.getProperty(user_home_propkey, false);
 
                     final String xdg_cache_home;
@@ -1178,41 +1202,58 @@ public class IOUtil {
 
                     // 1) java.io.tmpdir/jogamp
                     if( null == tempRootExec && isStringSet(java_io_tmpdir) ) {
-                        tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, true /* executable */);
+                        if( Platform.OSType.MACOS == Platform.getOSType() ) {
+                            // Bug 865: Safari >= 6.1 [OSX] May employ xattr on 'com.apple.quarantine' on 'PluginProcess.app'
+                            // We attempt to fix this issue _after_ gluegen native lib is loaded, see JarUtil.fixNativeLibAttribs(File).
+                            tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */, "tempX1");
+                        } else {
+                            tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, true /* executable */, "tempX1");
+                        }
                     }
 
                     // 2) $XDG_CACHE_HOME/jogamp
                     if(null == tempRootExec && isStringSet(xdg_cache_home)) {
-                        tempRootExec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, true /* executable */);
+                        tempRootExec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, true /* executable */, "tempX2");
                     }
 
-                    // 3) $HOME/.jogamp
+                    // 3) $TMPDIR/jogamp
+                    if(null == tempRootExec && isStringSet(user_temp)) {
+                        tempRootExec = getSubTempDir(new File(user_temp), tmpSubDir, true /* executable */, "tempX3");
+                    }
+
+                    // 4) $HOME/.jogamp
                     if(null == tempRootExec && isStringSet(user_home)) {
-                        tempRootExec = getSubTempDir(new File(user_home), "." + tmpSubDir, true /* executable */);
+                        tempRootExec = getSubTempDir(new File(user_home), "." + tmpSubDir, true /* executable */, "tempX4");
                     }
-
 
                     if(null != tempRootExec) {
                         tempRootNoexec = tempRootExec;
                     } else {
                         // 1) java.io.tmpdir/jogamp
                         if( null == tempRootNoexec && isStringSet(java_io_tmpdir) ) {
-                            tempRootNoexec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */);
+                            tempRootNoexec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */, "temp01");
                         }
 
                         // 2) $XDG_CACHE_HOME/jogamp
                         if(null == tempRootNoexec && isStringSet(xdg_cache_home)) {
-                            tempRootNoexec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, false /* executable */);
+                            tempRootNoexec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, false /* executable */, "temp02");
                         }
 
-                        // 3) $HOME/.jogamp
+                        // 3) $TMPDIR/jogamp
+                        if(null == tempRootNoexec && isStringSet(user_temp)) {
+                            tempRootNoexec = getSubTempDir(new File(user_temp), tmpSubDir, false /* executable */, "temp03");
+                        }
+
+                        // 4) $HOME/.jogamp
                         if(null == tempRootNoexec && isStringSet(user_home)) {
-                            tempRootNoexec = getSubTempDir(new File(user_home), "." + tmpSubDir, false /* executable */);
+                            tempRootNoexec = getSubTempDir(new File(user_home), "." + tmpSubDir, false /* executable */, "temp04");
                         }
                     }
 
                     if(DEBUG) {
-                        System.err.println("IOUtil.getTempRoot(): temp dirs: exec: "+tempRootExec.getAbsolutePath()+", noexec: "+tempRootNoexec.getAbsolutePath());
+                        final String tempRootExecAbsPath = null != tempRootExec ? tempRootExec.getAbsolutePath() : null;
+                        final String tempRootNoexecAbsPath = null != tempRootNoexec ? tempRootNoexec.getAbsolutePath() : null;
+                        System.err.println("IOUtil.getTempRoot(): temp dirs: exec: "+tempRootExecAbsPath+", noexec: "+tempRootNoexecAbsPath);
                     }
                 }
             }

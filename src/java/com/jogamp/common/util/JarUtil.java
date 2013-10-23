@@ -47,6 +47,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.common.os.Platform;
 
 import jogamp.common.Debug;
 
@@ -632,6 +633,7 @@ public class JarUtil {
                     if (isNativeLib && ( isRootEntry || !nativeLibMap.containsKey(libBaseName) ) ) {
                         nativeLibMap.put(libBaseName, destFile.getAbsolutePath());
                         addedAsNativeLib = true;
+                        fixNativeLibAttribs(destFile);
                     }
                 }
                 if (DEBUG) {
@@ -641,6 +643,32 @@ public class JarUtil {
         }
         return num;
     }
+
+    /**
+     * Mitigate file permission issues of native library files, i.e.:
+     * <ul>
+     *   <li>Bug 865: Safari >= 6.1 [OSX]: May employ xattr on 'com.apple.quarantine' on 'PluginProcess.app'</li>
+     * </ul>
+     */
+    private final static void fixNativeLibAttribs(File file) {
+        // We tolerate UnsatisfiedLinkError (and derived) to solve the chicken and egg problem
+        // of loading gluegen's native library.
+        // On Safari(OSX), Bug 865, we simply hope the destination folder is executable.
+        if( Platform.OSType.MACOS == Platform.getOSType() ) {
+            final String fileAbsPath = file.getAbsolutePath();
+            try {
+                fixNativeLibAttribs(fileAbsPath);
+                if( DEBUG ) {
+                    System.err.println("JarUtil.fixNativeLibAttribs: "+fileAbsPath+" - OK");
+                }
+            } catch (Throwable t) {
+                if( DEBUG ) {
+                    System.err.println("JarUtil.fixNativeLibAttribs: "+fileAbsPath+" - "+t.getClass().getSimpleName()+": "+t.getMessage());
+                }
+            }
+        }
+    }
+    private native static boolean fixNativeLibAttribs(String fname);
 
     /**
      * Validate the certificates for each native Lib in the jar file.
