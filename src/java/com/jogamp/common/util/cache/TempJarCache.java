@@ -74,7 +74,7 @@ public class TempJarCache {
 
     private static TempFileCache tmpFileCache;
 
-    private static boolean staticInitError = false;
+    private static volatile boolean staticInitError = false;
     private static volatile boolean isInit = false;
 
     /**
@@ -86,7 +86,6 @@ public class TempJarCache {
         if (!isInit) { // volatile: ok
             synchronized (TempJarCache.class) {
                 if (!isInit) {
-                    isInit = true;
                     staticInitError = !TempFileCache.initSingleton();
 
                     if(!staticInitError) {
@@ -104,6 +103,7 @@ public class TempJarCache {
                     if(DEBUG) {
                         System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tmpFileCache.getTempDir());
                     }
+                    isInit = true;
                 }
             }
         }
@@ -150,16 +150,30 @@ public class TempJarCache {
         }
     } */
 
+    private static boolean isInitializedImpl() {
+        if (!isInit) { // volatile: ok
+            synchronized (TempJarCache.class) {
+                if (!isInit) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /**
      * @return true if this class has been properly initialized, ie. is in use, otherwise false.
      */
     public static boolean isInitialized() {
-        return isInit && !staticInitError;
+        return isInitializedImpl() && !staticInitError;
     }
 
     /* package */ static void checkInitialized() {
-        if(!isInit) {
+        if(!isInitializedImpl()) {
             throw new RuntimeException("initSingleton() has to be called first.");
+        }
+        if(staticInitError) {
+            throw new RuntimeException("initSingleton() failed.");
         }
     }
 
@@ -205,6 +219,7 @@ public class TempJarCache {
      * @throws IllegalArgumentException
      */
     public synchronized static final boolean addNativeLibs(Class<?> certClass, URI jarURI, String nativeLibraryPath) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+        checkInitialized();
         final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) {
             nativeLibJars.put(jarURI, LoadState.LOOKED_UP);
@@ -239,6 +254,7 @@ public class TempJarCache {
      * @throws IllegalArgumentException
      */
     public synchronized static final void addClasses(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+        checkInitialized();
         final LoadState classFileJarsLS = classFileJars.get(jarURI);
         if( !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ) {
             classFileJars.put(jarURI, LoadState.LOOKED_UP);
@@ -267,6 +283,7 @@ public class TempJarCache {
      * @throws IllegalArgumentException
      */
     public synchronized static final void addResources(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+        checkInitialized();
         final LoadState resourceFileJarsLS = resourceFileJars.get(jarURI);
         if( !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) {
             resourceFileJars.put(jarURI, LoadState.LOOKED_UP);
