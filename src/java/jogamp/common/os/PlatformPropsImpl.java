@@ -38,11 +38,21 @@ import com.jogamp.common.util.VersionNumber;
 public abstract class PlatformPropsImpl {
     static final boolean DEBUG = Debug.debug("Platform");
 
+    /** Selected {@link Platform.OSType#MACOS} {@link VersionNumber}s. */
+    public static class OSXVersion {
+        /** OSX Tiger, i.e. 10.4.0 */
+        public static final VersionNumber Tiger = new VersionNumber(10,4,0);
+        /** OSX Lion, i.e. 10.7.0 */
+        public static final VersionNumber Lion = new VersionNumber(10,7,0);
+        /** OSX Mavericks, i.e. 10.9.0 */
+        public static final VersionNumber Mavericks = new VersionNumber(10,9,0);
+    }
+
     //
     // static initialization order:
     //
 
-    /** Version 1.6. As a JVM version, it enables certain JVM 1. features. */
+    /** Version 1.6. As a JVM version, it enables certain JVM 1.6 features. */
     public static final VersionNumber Version16;
     /** Version 1.7. As a JVM version, it enables certain JVM 1.7 features. */
     public static final VersionNumber Version17;
