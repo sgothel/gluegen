@@ -1050,6 +1050,7 @@
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
       <compilerarg value="-mmacosx-version-min=10.5"/>
+      <!-- sysincludepath path="${macosx.sdkroot}" if="macosx.sdkroot"/ -->
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>

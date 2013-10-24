@@ -260,6 +260,13 @@
     <echo message="junit.run.arg0             ${junit.run.arg0}"/>
     <echo message="junit.run.arg1             ${junit.run.arg1}"/>
 
+    <condition property="macosx.sdkroot" value="${env.SDKROOT}">
+        <not>
+         <equals arg1="${env.SDKROOT}" arg2="$${env.SDKROOT}" casesensitive="true" />
+        </not>
+    </condition>
+    <echo message="macosx.sdkroot             ${macosx.sdkroot}"/>
+
   </target>
 
 </project>
