@@ -78,7 +78,7 @@
 
     <property name="jogamp.version.major" value="2"/>
     <property name="jogamp.version.minor" value="1"/>
-    <property name="jogamp.version.submi" value="1"/>
+    <property name="jogamp.version.submi" value="2"/>
     <property name="jogamp.version.devel" value="-rc-${version.timestamp}"/> <!-- Devel tag -->
     <!-- property name="jogamp.version.devel" value="-rc12"/ --> <!-- RC tag -->
     <!-- property name="jogamp.version.devel" value=""/ --> <!-- Release tag -->
