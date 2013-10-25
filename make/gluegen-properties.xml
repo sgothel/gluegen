@@ -84,6 +84,7 @@
 
     <!-- maybe overriden, e.g. with "clang" -->
     <property name="gcc.compat.compiler" value="gcc"/>
+    <echo message="gcc.compat.compiler=${gcc.compat.compiler}" />
 
     <condition property="win32.c.compiler" value="mingw64">
       <and>

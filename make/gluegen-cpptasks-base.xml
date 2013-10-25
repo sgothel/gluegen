@@ -743,8 +743,12 @@
         <equals arg1="${gcc.compat.compiler}" arg2="gcc" />
     </condition>
     <condition property="isCLANG">
-        <equals arg1="${gcc.compat.compiler}" arg2="clang" />
+        <or>
+            <equals arg1="${gcc.compat.compiler}" arg2="clang" />
+            <equals arg1="${gcc.compat.compiler}" arg2="xcode.clang" />
+        </or>
     </condition>
+    <echo message="gcc.compat.compiler=${gcc.compat.compiler}" />
     <echo message="GCC=${isGCC}" />
     <echo message="CLANG=${isCLANG}" />
 
