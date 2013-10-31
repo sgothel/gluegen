@@ -473,6 +473,72 @@ public class JarUtil {
     }
 
     /**
+     * Locates the {@link JarUtil#getJarFileURI(URI) Jar file URI} of a given resource
+     * relative to a given class's Jar's URI.
+     * <pre>
+     *   class's jar url path + cutOffInclSubDir + relResPath,
+     * </pre>
+     * Example #1
+     * <pre>
+     *   classFromJavaJar = com.lighting.Test (in: file:/storage/TestLighting.jar)
+     *   cutOffInclSubDir = lights/
+     *   relResPath       = LightAssets.jar
+     *   Result           : file:/storage/lights/LightAssets.jar
+     * </pre>
+     * Example #2
+     * <pre>
+     *   classFromJavaJar = com.lighting.Test (in: file:/storage/lights/TestLighting.jar)
+     *   cutOffInclSubDir = lights/
+     *   relResPath       = LightAssets.jar
+     *   Result           : file:/storage/lights/LightAssets.jar
+     * </pre>
+     *
+     * TODO: Enhance documentation!
+     *
+     * @param classFromJavaJar Used to get the root URI for the class's Jar URI.
+     * @param cutOffInclSubDir The <i>cut off</i> included sub-directory prepending the relative resource path.
+     *                         If the root URI includes cutOffInclSubDir, it is no more added to the result.
+     * @param relResPath The relative resource path.
+     * @return The resulting resource URI, which is not tested.
+     * @throws IllegalArgumentException
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static URI getRelativeOf(Class<?> classFromJavaJar, String cutOffInclSubDir, String relResPath) throws IllegalArgumentException, IOException, URISyntaxException {
+        final ClassLoader cl = classFromJavaJar.getClassLoader();
+        final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), cl);
+        if( DEBUG ) {
+            System.err.println("JarUtil.getRelativeOf: "+"(classFromJavaJar "+classFromJavaJar+", classJarURI "+classJarURI+
+                    ", cutOffInclSubDir "+cutOffInclSubDir+", relResPath "+relResPath+"): ");
+        }
+
+        final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
+        if(null == jarSubURI) {
+            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);
+        }
+        final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+        if( DEBUG ) {
+            System.err.println("JarUtil.getRelativeOf: "+"uri "+jarSubURI.toString()+" -> "+jarUriRoot_s);
+        }
+
+        final String resUri_s;
+        if( jarUriRoot_s.endsWith(cutOffInclSubDir) ) {
+            resUri_s = jarUriRoot_s+relResPath;
+        } else {
+            resUri_s = jarUriRoot_s+cutOffInclSubDir+relResPath;
+        }
+        if( DEBUG ) {
+            System.err.println("JarUtil.getRelativeOf: "+"...  -> "+resUri_s);
+        }
+
+        final URI resURI = JarUtil.getJarFileURI(resUri_s);
+        if( DEBUG ) {
+            System.err.println("JarUtil.getRelativeOf: "+"fin "+resURI);
+        }
+        return resURI;
+    }
+
+    /**
      * Return a map from native-lib-base-name to entry-name.
      */
     public static Map<String, String> getNativeLibNames(JarFile jarFile) {

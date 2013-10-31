@@ -397,6 +397,7 @@ public class TempJarCache {
         return null;
     } */
 
+    /** Similar to {@link ClassLoader#getResource(String)}. */
     public synchronized static final String findResource(String name) {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
@@ -406,6 +407,7 @@ public class TempJarCache {
         return null;
     }
 
+    /** Similar to {@link ClassLoader#getResource(String)}. */
     public synchronized static final URI getResource(String name) throws URISyntaxException {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
