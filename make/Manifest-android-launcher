@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Application-Name: JogAmp Android Launcher
 Specification-Title: JogAmp Android Launcher API
 Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp Community

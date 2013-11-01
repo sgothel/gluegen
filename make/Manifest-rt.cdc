@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Application-Name: GlueGen Run-Time CDC
 Specification-Title: GlueGen Java Bindings Generator
 Specification-Version: @BASEVERSION@
 Specification-Vendor: JogAmp Community
