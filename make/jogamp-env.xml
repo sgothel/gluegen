@@ -77,8 +77,8 @@
     <echo message="jogamp.jar.codebase        ${jogamp.jar.codebase}"/>
 
     <property name="jogamp.version.major" value="2"/>
-    <property name="jogamp.version.minor" value="2"/>
-    <property name="jogamp.version.submi" value="0"/>
+    <property name="jogamp.version.minor" value="1"/>
+    <property name="jogamp.version.submi" value="3"/>
     <property name="jogamp.version.devel" value="-rc-${version.timestamp}"/> <!-- Devel RC Tag -->
     <!-- property name="jogamp.version.devel" value=""/ --> <!-- Release tag -->
     <property name="jogamp.version.base"  value="${jogamp.version.major}.${jogamp.version.minor}"/>
