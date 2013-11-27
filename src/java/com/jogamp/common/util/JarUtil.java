@@ -204,7 +204,7 @@ public class JarUtil {
         if (0 <= idx) {
             uriS = uriS.substring(0, idx); // exclude '!/'
         } else {
-            throw new IllegalArgumentException("JAR URI does not contain jar uri terminator '!', in <"+classJarURI+">");
+            throw new IllegalArgumentException("URI does not contain jar uri terminator '!', in <"+classJarURI+">");
         }
 
         // from
@@ -216,7 +216,7 @@ public class JarUtil {
             // no abs-path, check for protocol terminator ':'
             idx = uriS.lastIndexOf(':');
             if(0 > idx) {
-                throw new IllegalArgumentException("JAR URI does not contain protocol terminator ':', in <"+classJarURI+">");
+                throw new IllegalArgumentException("URI does not contain protocol terminator ':', in <"+classJarURI+">");
             }
         }
         uriS = uriS.substring(idx+1); // just the jar name
