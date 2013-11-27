@@ -313,7 +313,7 @@ public class IOUtil {
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
      */
     public static URI toURISimple(File file) throws URISyntaxException {
-        return new URI(FILE_SCHEME, null, encodeToURI(slashify(file.getAbsolutePath(), true, file.isDirectory())), null);
+        return new URI(FILE_SCHEME, null, encodeToURI(slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */)), null);
     }
 
     /**
@@ -321,8 +321,8 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
      */
-    public static URI toURISimple(String protocol, String file, boolean isDirectory) throws URISyntaxException {
-        return new URI(protocol, null, encodeToURI(slashify(file, true, isDirectory)), null);
+    public static URI toURISimple(String protocol, String path, boolean isDirectory) throws URISyntaxException {
+        return new URI(protocol, null, encodeToURI(slashify(new File(path).getAbsolutePath(), true /* startWithSlash */, isDirectory /* endWithSlash */)), null);
     }
 
     /**
@@ -412,7 +412,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static String getBasename(String fname) throws URISyntaxException {
-        fname = slashify(fname, false, false);
+        fname = slashify(fname, false /* startWithSlash */, false /* endWithSlash */);
         int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
             fname = fname.substring(lios+1);
@@ -425,7 +425,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static String getDirname(String fname) throws URISyntaxException {
-        fname = slashify(fname, false, false);
+        fname = slashify(fname, false /* startWithSlash */, false /* endWithSlash */);
         int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
             fname = fname.substring(0, lios+1);
@@ -487,7 +487,7 @@ public class IOUtil {
         uriS = uriS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'
 
         if( DEBUG ) {
-            System.out.println("getJarURIDirname res: "+uriS);
+            System.err.println("getJarURIDirname res: "+uriS);
         }
         return uriS;
     }
@@ -726,7 +726,7 @@ public class IOUtil {
         if (baseLocation != null) {
             final File file = new File(baseLocation, relativeFile);
             // Handle things on Windows
-            return slashify(file.getPath(), false, false);
+            return slashify(file.getPath(), false /* startWithSlash */, false /* endWithSlash */);
         }
         return null;
     }
