@@ -154,12 +154,12 @@ public class JarUtil {
                 final URL _url = resolver.resolve( url );
                 uri = _url.toURI();
                 if(DEBUG) {
-                    System.out.println("getJarURI Resolver: "+url+"\n\t-> "+_url+"\n\t-> "+uri);
+                    System.err.println("getJarURI Resolver: "+url+"\n\t-> "+_url+"\n\t-> "+uri);
                 }
             } else {
                 uri = url.toURI();
                 if(DEBUG) {
-                    System.out.println("getJarURI Default "+url+"\n\t-> "+uri);
+                    System.err.println("getJarURI Default "+url+"\n\t-> "+uri);
                 }
             }
         }
@@ -168,7 +168,7 @@ public class JarUtil {
             throw new IllegalArgumentException("URI is not using scheme "+IOUtil.JAR_SCHEME+": <"+uri+">");
         }
         if(DEBUG) {
-            System.out.println("getJarURI res: "+clazzBinName+" -> "+url+" -> "+uri);
+            System.err.println("getJarURI res: "+clazzBinName+" -> "+url+" -> "+uri);
         }
         return uri;
     }
@@ -225,7 +225,7 @@ public class JarUtil {
             throw new IllegalArgumentException("No Jar name in <"+classJarURI+">");
         }
         if(DEBUG) {
-            System.out.println("getJarName res: "+uriS);
+            System.err.println("getJarName res: "+uriS);
         }
         return uriS;
     }
@@ -289,7 +289,7 @@ public class JarUtil {
         }
         final String uriS2 = IOUtil.encodeToURI(uriS1);
         if(DEBUG) {
-            System.out.println("getJarSubURI res: "+classJarURI+" -> "+uriS0+" -> "+uriS1+" -> "+uriS2);
+            System.err.println("getJarSubURI res: "+classJarURI+" -> "+uriS0+" -> "+uriS1+" -> "+uriS2);
         }
         return new URI(uriS2);
     }
@@ -366,7 +366,7 @@ public class JarUtil {
         }
         final URI uri = new URI(IOUtil.JAR_SCHEME, getJarSubURI(clazzBinName, cl).toString()+"!/", null);
         if(DEBUG) {
-            System.out.println("getJarFileURI res: "+uri);
+            System.err.println("getJarFileURI res: "+uri);
         }
         return uri;
     }
@@ -450,11 +450,11 @@ public class JarUtil {
             throw new IllegalArgumentException("null jarFileURI");
         }
         if(DEBUG) {
-            System.out.println("getJarFile.0: "+jarFileURI.toString());
+            System.err.println("getJarFile.0: "+jarFileURI.toString());
         }
         final URL jarFileURL = IOUtil.toURL(jarFileURI);
         if(DEBUG) {
-            System.out.println("getJarFile.1: "+jarFileURL.toString());
+            System.err.println("getJarFile.1: "+jarFileURL.toString());
         }
         // final URL jarFileURL = jarFileURI.toURL(); // doesn't work due to encoded path even w/ file schema!
         final URLConnection urlc = jarFileURL.openConnection();
@@ -462,12 +462,12 @@ public class JarUtil {
             JarURLConnection jarConnection = (JarURLConnection)jarFileURL.openConnection();
             JarFile jarFile = jarConnection.getJarFile();
             if(DEBUG) {
-                System.out.println("getJarFile res: "+jarFile.getName());
+                System.err.println("getJarFile res: "+jarFile.getName());
             }
             return jarFile;
         }
         if(DEBUG) {
-            System.out.println("getJarFile res: NULL");
+            System.err.println("getJarFile res: NULL");
         }
         return null;
     }

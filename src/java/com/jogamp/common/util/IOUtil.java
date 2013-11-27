@@ -451,7 +451,7 @@ public class IOUtil {
         }
         String uriS = uri.toString();
         if( DEBUG ) {
-            System.out.println("getURIDirname "+uri+", extForm: "+uriS);
+            System.err.println("getURIDirname "+uri+", extForm: "+uriS);
         }
         return new URI( getURIDirname(uriS) );
     }
@@ -523,9 +523,13 @@ public class IOUtil {
         final URI specificURI = isJar ? JarUtil.getJarSubURI(uri) : uri;
         final boolean hasJarSubURI = specificURI != uri;
         if( DEBUG ) {
-            System.out.println("IOUtil.toURL.0: isJAR "+isJar+", hasSubURI "+hasJarSubURI+Platform.getNewline()+
-                               "\t, uri "+uri+Platform.getNewline()+
-                               "\t -> "+specificURI.toString());
+            System.err.println("IOUtil.toURL.0: isJAR "+isJar+", hasSubURI "+hasJarSubURI+PlatformPropsImpl.NEWLINE+
+                               "\t, uri "+uri+PlatformPropsImpl.NEWLINE+
+                               "\t str -> "+specificURI.toString()+PlatformPropsImpl.NEWLINE+
+                               "\t ascii -> "+specificURI.toASCIIString()+PlatformPropsImpl.NEWLINE+
+                               "\t path -> "+specificURI.getPath()+PlatformPropsImpl.NEWLINE+
+                               "\t decoded.path -> "+decodeFromURI(specificURI.getPath())
+                               );
         }
         int mode = 0;
         if( IOUtil.FILE_SCHEME.equals( specificURI.getScheme() ) ) {
@@ -534,7 +538,7 @@ public class IOUtil {
                 f = new File(specificURI);
             } catch(Exception iae) {
                 if( DEBUG ) {
-                    System.out.println("Catched "+iae.getClass().getSimpleName()+": new File("+specificURI+") failed: "+iae.getMessage());
+                    System.err.println("Catched "+iae.getClass().getSimpleName()+": new File("+decodeFromURI(specificURI.getPath())+") failed: "+iae.getMessage());
                     iae.printStackTrace();
                 }
                 f = null;
@@ -558,18 +562,18 @@ public class IOUtil {
                         try {
                             final URI fUri = f.toURI();
                             final URL fUrl = fUri.toURL();
-                            System.out.println("IOUtil.toURL.1b: fUri "+fUri+Platform.getNewline()+
+                            System.err.println("IOUtil.toURL.1b: fUri "+fUri+PlatformPropsImpl.NEWLINE+
                                                "\t, fUrl "+fUrl);
                         } catch (Exception ee) {
-                            System.out.println("Catched "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
+                            System.err.println("Catched "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
                             ee.printStackTrace();
                         }
                     }
                     if( !hasJarSubURI ) {
                         urlS = IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+fPathUriS;
                         if( DEBUG ) {
-                            System.out.println("IOUtil.toURL.1: fPath "+fPath+Platform.getNewline()+
-                                               "\t -> "+fPathUriS+Platform.getNewline()+
+                            System.err.println("IOUtil.toURL.1: fPath "+fPath+PlatformPropsImpl.NEWLINE+
+                                               "\t -> "+fPathUriS+PlatformPropsImpl.NEWLINE+
                                                "\t -> "+urlS);
                         }
                         url = new URL(urlS);
@@ -579,10 +583,10 @@ public class IOUtil {
                         final String post = isJar ? IOUtil.JAR_SCHEME_SEPARATOR + jarEntry : "";
                         urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+fPathUriS+post;
                         if( DEBUG ) {
-                            System.out.println("IOUtil.toURL.2: fPath "+fPath+Platform.getNewline()+
-                                               "\t -> "+fPathUriS+Platform.getNewline()+
-                                               "\t, jarEntry "+jarEntry+Platform.getNewline()+
-                                               "\t, post "+post+Platform.getNewline()+
+                            System.err.println("IOUtil.toURL.2: fPath "+fPath+PlatformPropsImpl.NEWLINE+
+                                               "\t -> "+fPathUriS+PlatformPropsImpl.NEWLINE+
+                                               "\t, jarEntry "+jarEntry+PlatformPropsImpl.NEWLINE+
+                                               "\t, post "+post+PlatformPropsImpl.NEWLINE+
                                                "\t -> "+urlS);
                         }
                         url = new URL(urlS);
@@ -590,7 +594,7 @@ public class IOUtil {
                     }
                 } catch (Exception mue) {
                     if( DEBUG ) {
-                        System.out.println("Catched "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
+                        System.err.println("Catched "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
                         mue.printStackTrace();
                     }
                 }
@@ -602,13 +606,13 @@ public class IOUtil {
                 mode = 3;
             } catch (Exception e) {
                 if( DEBUG ) {
-                    System.out.println("Catched "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
+                    System.err.println("Catched "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
                     e.printStackTrace();
                 }
             }
         }
         if( DEBUG ) {
-            System.err.println("IOUtil.toURL.X: mode "+mode+", "+uri+Platform.getNewline()+
+            System.err.println("IOUtil.toURL.X: mode "+mode+", "+uri+PlatformPropsImpl.NEWLINE+
                                "\t -> "+url);
         }
         return url;
