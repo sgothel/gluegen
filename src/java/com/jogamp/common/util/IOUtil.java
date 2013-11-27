@@ -68,7 +68,7 @@ public class IOUtil {
     /** {@value} */
     public static final String JAR_SCHEME = "jar";
     /** A JAR subprotocol is separeted from the JAR entry w/ this separator {@value}. Even if no class is specified '!/' must follow!. */
-    public static final String JAR_SCHEME_SEPARATOR = "!";
+    public static final char JAR_SCHEME_SEPARATOR = '!';
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
     private static final String java_io_tmpdir_propkey = "java.io.tmpdir";

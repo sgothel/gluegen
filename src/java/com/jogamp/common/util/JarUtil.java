@@ -200,7 +200,7 @@ public class JarUtil {
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
         // to
         //   file:/some/path/gluegen-rt.jar
-        int idx = uriS.lastIndexOf('!');
+        int idx = uriS.lastIndexOf(IOUtil.JAR_SCHEME_SEPARATOR);
         if (0 <= idx) {
             uriS = uriS.substring(0, idx); // exclude '!/'
         } else {
@@ -277,7 +277,7 @@ public class JarUtil {
         // to
         //   file:/some/path/gluegen-rt.jar
         final String uriS0 = classJarURI.getSchemeSpecificPart();
-        int idx = uriS0.lastIndexOf('!');
+        int idx = uriS0.lastIndexOf(IOUtil.JAR_SCHEME_SEPARATOR);
         final String uriS1;
         if (0 <= idx) {
             uriS1 = uriS0.substring(0, idx); // exclude '!/'
@@ -310,15 +310,20 @@ public class JarUtil {
         if( !classJarURI.getScheme().equals(IOUtil.JAR_SCHEME) ) {
             throw new IllegalArgumentException("URI is not a using scheme "+IOUtil.JAR_SCHEME+": <"+classJarURI+">");
         }
-        String uriS = classJarURI.getSchemeSpecificPart();
+        // final String uriS = classJarURI.toString(); // getSchemeSpecificPart(); ignore fragment !
+        final String uriS = classJarURI.getSchemeSpecificPart();
 
         // from
         //   file:/some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class
         // to
-        //   file:/some/path/gluegen-rt.jar
-        int idx = uriS.lastIndexOf('!');
+        //   /com/jogamp/common/GlueGenVersion.class
+        final int idx = uriS.lastIndexOf(IOUtil.JAR_SCHEME_SEPARATOR);
         if (0 <= idx) {
-            return uriS.substring(idx+1); // right of '!'
+            final String res = uriS.substring(idx+1); // right of '!'
+            if(DEBUG) {
+                System.err.println("getJarEntry res: "+classJarURI+" -> "+uriS+" -> "+idx+" -> "+res);
+            }
+            return res;
         } else {
             throw new IllegalArgumentException("JAR URI does not contain jar uri terminator '!', uri <"+classJarURI+">");
         }
