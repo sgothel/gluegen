@@ -313,7 +313,7 @@ public class IOUtil {
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
      */
     public static URI toURISimple(File file) throws URISyntaxException {
-        return new URI(FILE_SCHEME, null, encodeToURI(slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */)), null);
+        return new URI(FILE_SCHEME, null, slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */), null);
     }
 
     /**
@@ -322,7 +322,7 @@ public class IOUtil {
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
      */
     public static URI toURISimple(String protocol, String path, boolean isDirectory) throws URISyntaxException {
-        return new URI(protocol, null, encodeToURI(slashify(new File(path).getAbsolutePath(), true /* startWithSlash */, isDirectory /* endWithSlash */)), null);
+        return new URI(protocol, null, slashify(new File(path).getAbsolutePath(), true /* startWithSlash */, isDirectory /* endWithSlash */), null);
     }
 
     /**
@@ -804,7 +804,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static URI getRelativeOf(URI baseURI, String relativePath) throws URISyntaxException {
-        return compose(baseURI.getScheme(), baseURI.getSchemeSpecificPart(), encodeToURI(relativePath), baseURI.getFragment());
+        return compose(baseURI.getScheme(), baseURI.getSchemeSpecificPart(), relativePath, baseURI.getFragment());
     }
 
     /**
