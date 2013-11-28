@@ -287,7 +287,7 @@ public class JarUtil {
         if(0 >= uriS1.lastIndexOf(".jar")) {
             throw new IllegalArgumentException("No Jar name in <"+classJarURI+">");
         }
-        final String uriS2 = IOUtil.encodeToURI(uriS1);
+        final String uriS2 = IOUtil.encodeToURI(uriS1); // 'new URI(String)' will not encode space!
         if(DEBUG) {
             System.err.println("getJarSubURI res: "+classJarURI+" -> "+uriS0+" -> "+uriS1+" -> "+uriS2);
         }

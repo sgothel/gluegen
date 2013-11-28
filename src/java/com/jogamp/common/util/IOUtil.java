@@ -493,17 +493,26 @@ public class IOUtil {
     }
 
     /**
-     * Converts an {@link URI} to an {@link URL} while using a non encoded path
-     * for <i>file scheme</i>, i.e. <code>file:/</code>.
+     * Converts an {@link URI} to an {@link URL} while using a non encoded path.
+     * <p>
+     * A <i>file scheme</i> path, i.e. path following <code>file:</code>, is converted as follows:<br/>
+     * <code><br/>
+            File file = new File( {@link #decodeFromURI(String) decodeFromURI}( specificURI.getPath() ) );<br/>
+            String uriFilePath = {@link #encodeFilePathToURI(String) encodeFilePathToURI}( file.getPath() );<br/>
+     * </code><br/>
+     * above conversion results in a decoded <i>file path</i> appropriate to be used by subsequent file i/o operations (JarFile, zip, ..).
+     * </p>
+     * <p>
      * Otherwise the default {@link URL} translation {@link URI#toURL()} is being used.
+     * </p>
      * <p>
      * The following cases are considered:
      * <ul>
      *   <li><i>file schema</i> is converted via <code>new File(uri).getPath()</code>.</li>
      *   <li><i>jar scheme</i>
      *   <ul>
-     *     <li>sub-protocol is being converted as above, if <i>file scheme</i>.</li>
-     *     <li>JAR entry is not converted but preserved.</li>
+     *     <li>sub-protocol <i>file scheme</i> is being converted as above, other schema are preserved</li>
+     *     <li>JAR entry is preserved.</li>
      *   </ul></li>
      * </ul>
      * </p>
@@ -527,18 +536,19 @@ public class IOUtil {
                                "\t, uri "+uri+PlatformPropsImpl.NEWLINE+
                                "\t str -> "+specificURI.toString()+PlatformPropsImpl.NEWLINE+
                                "\t ascii -> "+specificURI.toASCIIString()+PlatformPropsImpl.NEWLINE+
+                               "\t ssp -> "+specificURI.getSchemeSpecificPart()+PlatformPropsImpl.NEWLINE+
+                               "\t frag -> "+specificURI.getFragment()+PlatformPropsImpl.NEWLINE+
                                "\t path -> "+specificURI.getPath()+PlatformPropsImpl.NEWLINE+
-                               "\t decoded.path -> "+decodeFromURI(specificURI.getPath())
-                               );
+                               "\t path.decoded -> "+decodeFromURI( specificURI.getPath() ) );
         }
         int mode = 0;
         if( IOUtil.FILE_SCHEME.equals( specificURI.getScheme() ) ) {
             File f;
             try {
-                f = new File(specificURI);
+                f = new File( decodeFromURI( specificURI.getPath() ) ); // validates uri, uses decoded uri.getPath() and normalizes it
             } catch(Exception iae) {
                 if( DEBUG ) {
-                    System.err.println("Catched "+iae.getClass().getSimpleName()+": new File("+decodeFromURI(specificURI.getPath())+") failed: "+iae.getMessage());
+                    System.err.println("Catched "+iae.getClass().getSimpleName()+": new File("+decodeFromURI( specificURI.getPath() )+") failed: "+iae.getMessage());
                     iae.printStackTrace();
                 }
                 f = null;
@@ -861,17 +871,21 @@ public class IOUtil {
 
     /**
      * Reverses escaping of characters as performed via {@link #encodeToURI(String)}.
+     * <ul>
+     *   <li>%20 -> SPACE</li>
+     * </ul>
      */
     public static String decodeFromURI(String s) {
         return patternSpaceEnc.matcher(s).replaceAll(" ");
     }
 
     private static final Pattern patternSingleBS = Pattern.compile("\\\\{1,}");
+    private static final Pattern patternSingleFS = Pattern.compile("/{1,}");
 
     /**
-     * Escapes file path characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
+     * Encodes file path characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
      * <p>
-     * Processes input filePath if {@link File#separatorChar} <code> != '/'</code>
+     * Implementation processes the <code>filePath</code> if {@link File#separatorChar} <code> != '/'</code>
      * as follows:
      * <ul>
      *   <li>backslash -> slash</li>
@@ -879,12 +893,17 @@ public class IOUtil {
      * </ul>
      * </p>
      * <p>
+     * Note that this method does not perform <i>space</i> encoding,
+     * which can be utilized via {@link #encodeToURI(String)}.
+     * </p>
+     * <p>
      * Even though Oracle's JarURLStreamHandler can handle backslashes and
      * erroneous URIs w/ e.g. Windows file 'syntax', other may not (Netbeans).<br>
      * See Bug 857 - http://jogamp.org/bugzilla/show_bug.cgi?id=857
      * </p>
+     * @see #encodeToURI(String)
      */
-    public static String encodeFilePathToURI(String filePath) {
+    public static String encodeFilePathToURI(final String filePath) {
         if( !File.separator.equals("/") ) {
             final String r = patternSingleBS.matcher(filePath).replaceAll("/");
             if( !r.startsWith("/") ) {
@@ -894,6 +913,49 @@ public class IOUtil {
             }
         }
         return filePath;
+    }
+
+    /**
+     * Decodes uri-file path characters complying w/ RFC 2396 to native file-path.
+     * <p>
+     * Implementation decodes the space-encoding <code>path={@link #decodeFromURI(String) decodeFromURI}(uriPath)</code>.
+     * </p>
+     * <p>
+     * Then it processes the <code>path</code> if {@link File#separatorChar} <code> != '/'</code>
+     * as follows:
+     * <ul>
+     *   <li>drop a starting slash</li>
+     *   <li>slash -> backslash</li>
+     * </ul>
+     * </p>
+     * @see #decodeFromURI(String)
+     */
+    public static String decodeURIToFilePath(final String uriPath) {
+        final String path = IOUtil.decodeFromURI(uriPath);
+        if( !File.separator.equals("/") ) {
+            final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
+            if( r.startsWith("\\") ) {
+                return r.substring(1);
+            } else {
+                return r;
+            }
+        }
+        return path;
+    }
+
+    /**
+     * If <code>uri</code> is a <i>file scheme</i>,
+     * implementation returns the decoded {@link URI#getPath()} via {@link #decodeURIToFilePath(String)},
+     * otherwise it returns the {@link URI#toASCIIString()} encoded URI.
+     *
+     * @see #decodeFromURI(String)
+     * @see #decodeURIToFilePath(String)
+     */
+    public static String decodeURIIfFilePath(final URI uri) {
+        if( IOUtil.FILE_SCHEME.equals( uri.getScheme() ) ) {
+            return decodeURIToFilePath( uri.getPath() );
+        }
+        return uri.toASCIIString();
     }
 
     /**
@@ -1206,7 +1268,7 @@ public class IOUtil {
 
                     // 1) java.io.tmpdir/jogamp
                     if( null == tempRootExec && isStringSet(java_io_tmpdir) ) {
-                        if( Platform.OSType.MACOS == Platform.getOSType() ) {
+                        if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
                             // Bug 865: Safari >= 6.1 [OSX] May employ xattr on 'com.apple.quarantine' on 'PluginProcess.app'
                             // We attempt to fix this issue _after_ gluegen native lib is loaded, see JarUtil.fixNativeLibAttribs(File).
                             tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */, "tempX1");
