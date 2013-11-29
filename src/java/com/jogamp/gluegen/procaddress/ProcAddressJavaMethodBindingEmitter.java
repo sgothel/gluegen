@@ -123,7 +123,8 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
             String procAddressVariable = ProcAddressEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
             writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
             writer.println("    if (__addr_ == 0) {");
-            writer.println("      throw new " + emitter.unsupportedExceptionType() + "(\"Method \\\"" + binding.getName() + "\\\" not available\");");
+            writer.format("      throw new %s(String.format(\"Method \\\"%%s\\\" not available\", \"%s\"));%n",
+                          emitter.unsupportedExceptionType(), binding.getName());
             writer.println("    }");
         }
     }
