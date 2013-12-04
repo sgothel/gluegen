@@ -197,7 +197,7 @@ public class MethodBinding {
       less than 0 then replaces the return type. */
   public MethodBinding replaceJavaArgumentType(int argumentNumber, JavaType newArgType) {
 
-    MethodBinding binding = (MethodBinding) clone();
+    MethodBinding binding = new MethodBinding(this);
     binding.javaArgumentTypes = null;
     if (argumentNumber < 0) {
       binding.setJavaReturnType(newArgType);
@@ -551,11 +551,6 @@ public class MethodBinding {
     }
     buf.append(')');
     return buf.toString();
-  }
-
-  @Override
-  public final Object clone() {
-    return new MethodBinding(this);
   }
 
   /** Returns a String containing the descriptor (signature in
