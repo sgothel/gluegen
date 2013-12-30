@@ -635,6 +635,43 @@ public class IOUtil {
      */
 
     /**
+     * Helper compound associating a class instance and resource paths
+     * to be {@link #resolve(int) resolved} at a later time.
+     */
+    public static class ClassResources {
+        /** Class instance used to {@link #resolve(int)} the {@link #resourcePaths}. */
+        public final Class<?> contextCL;
+
+        /** Resource paths, see {@link #resolve(int)}. */
+        public final String[] resourcePaths;
+
+        /** Returns the number of resources, i.e. <code>resourcePaths.length</code>. */
+        public final int resourceCount() { return resourcePaths.length; }
+
+        /**
+         * @param contextCL class instance to {@link #resolve(int)} {@link #resourcePaths}.
+         * @param resourcePaths array of strings denominating multiple resource paths. None shall be null.
+         */
+        public ClassResources(Class<?> contextCL, String[] resourcePaths) {
+            for(int i=resourcePaths.length-1; i>=0; i--) {
+                if( null == resourcePaths[i] ) {
+                    throw new IllegalArgumentException("resourcePath["+i+"] is null");
+                }
+            }
+            this.contextCL = contextCL;
+            this.resourcePaths = resourcePaths;
+        }
+
+        /**
+         * Resolving one of the {@link #resourcePaths} indexed by <code>uriIndex</code> using {@link #contextCL} and {@link IOUtil#getResource(Class, String)}.
+         * @throws ArrayIndexOutOfBoundsException if <code>uriIndex</code> is < 0 or >= {@link #resourceCount()}.
+         */
+        public URLConnection resolve(int uriIndex) throws ArrayIndexOutOfBoundsException {
+            return getResource(contextCL, resourcePaths[uriIndex]);
+        }
+    }
+
+    /**
      * Locating a resource using {@link #getResource(String, ClassLoader)}:
      * <ul>
      *   <li><i>relative</i>: <code>context</code>'s package name-path plus <code>resourcePath</code> via <code>context</code>'s ClassLoader.
