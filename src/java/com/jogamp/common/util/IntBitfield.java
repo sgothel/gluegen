@@ -51,7 +51,7 @@ public class IntBitfield {
      * @param bitCount
      */
     public IntBitfield(long bitCount) {
-        final int units = (int) ( ( bitCount + 7L ) >> UNIT_SHIFT_L );
+        final int units = (int) Math.max(1L, ( bitCount + 7L ) >>> UNIT_SHIFT_L);
         this.storage = new int[units];
         this.bitsCountL = (long)units << UNIT_SHIFT_L ;
         this.bitsCountI = bitsCountL > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)bitsCountL;
@@ -61,7 +61,7 @@ public class IntBitfield {
      * @param bitCount
      */
     public IntBitfield(int bitCount) {
-        final int units = ( bitCount + 7 ) >> UNIT_SHIFT_I;
+        final int units = Math.max(1, ( bitCount + 7 ) >>> UNIT_SHIFT_I);
         this.storage = new int[units];
         this.bitsCountI = units << UNIT_SHIFT_I;
         this.bitsCountL = bitsCountI;
@@ -84,7 +84,7 @@ public class IntBitfield {
     /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
     public final boolean get(long bitnum) {
         check(bitnum);
-        final int u = (int) ( bitnum >> UNIT_SHIFT_L );
+        final int u = (int) ( bitnum >>> UNIT_SHIFT_L );
         final int b = (int) ( bitnum - ( (long)u << UNIT_SHIFT_L ) );
         return 0 != ( storage[u] & ( 1 << b ) ) ;
     }
@@ -92,7 +92,7 @@ public class IntBitfield {
     /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
     public final boolean get(int bitnum) {
         check(bitnum);
-        final int u = bitnum >> UNIT_SHIFT_I;
+        final int u = bitnum >>> UNIT_SHIFT_I;
         final int b = bitnum - ( u << UNIT_SHIFT_I );
         return 0 != ( storage[u] & ( 1 << b ) ) ;
     }
@@ -103,7 +103,7 @@ public class IntBitfield {
      */
     public final boolean put(long bitnum, boolean bit) {
         check(bitnum);
-        final int u = (int) ( bitnum >> UNIT_SHIFT_L );
+        final int u = (int) ( bitnum >>> UNIT_SHIFT_L );
         final int b = (int) ( bitnum - ( (long)u << UNIT_SHIFT_L ) );
         final int m = 1 << b;
         final boolean prev = 0 != ( storage[u] & m ) ;
@@ -123,7 +123,7 @@ public class IntBitfield {
      */
     public final boolean put(int bitnum, boolean bit) {
         check(bitnum);
-        final int u = bitnum >> UNIT_SHIFT_I;
+        final int u = bitnum >>> UNIT_SHIFT_I;
         final int b = bitnum - ( u << UNIT_SHIFT_I );
         final int m = 1 << b;
         final boolean prev = 0 != ( storage[u] & m ) ;
@@ -146,14 +146,19 @@ public class IntBitfield {
      * </pre>
      */
     public static final int getBitCount(final int n) {
+        // Note: Original used 'unsigned int',
+        // hence we use the unsigned right-shift '>>>'
         int c = n;
-        c -= (n >> 1) & 033333333333;
-        c -= (n >> 2) & 011111111111;
-        return ( (c + ( c >> 3 ) ) & 030707070707 ) % 63;
+        c -= (n >>> 1) & 033333333333;
+        c -= (n >>> 2) & 011111111111;
+        return ( (c + ( c >>> 3 ) ) & 030707070707 ) % 63;
     }
 
     /**
      * Returns the number of set bits within this bitfield.
+     * <p>
+     * Utilizes {#link {@link #getBitCount(int)}}.
+     * </p>
      */
     public long getBitCount() {
         long c = 0;
