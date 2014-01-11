@@ -108,16 +108,25 @@ public abstract class TaskBase implements Runnable {
      * The executor which might have been blocked until notified
      * will be unblocked and the task removed from the queue.
      *
+     * @param t optional Throwable to be assigned for later {@link #getThrowable()} query in case of an error.
+     *
      * @see #isFlushed()
      * @see #isInQueue()
      */
-    public final void flush() {
+    public final void flush(Throwable t) {
         if(!isExecuted() && hasWaiter()) {
+            runnableException = t;
             synchronized (syncObject) {
                 isFlushed = true;
                 syncObject.notifyAll();
             }
         }
+    }
+    /**
+     * @deprecated Use {@link #flush(Throwable)}.
+     */
+    public final void flush() {
+        this.flush(null);
     }
 
     /**
