@@ -73,6 +73,8 @@ public class JavaConfiguration {
 
     protected static final Logger LOG = Logger.getLogger(JavaConfiguration.class.getPackage().getName());
 
+    public static String NEWLINE = System.getProperty("line.separator");
+
     /**
      * Root directory for the hierarchy of generated java classes. Default is
      * working directory.
@@ -114,7 +116,7 @@ public class JavaConfiguration {
     /**
      * List of imports to emit at the head of the output files.
      */
-    private List<String> imports = new ArrayList<String>();
+    private final List<String> imports = new ArrayList<String>();
 
     /**
      * The package in which the generated glue code expects to find its
@@ -130,47 +132,48 @@ public class JavaConfiguration {
     private String runtimeExceptionType = "RuntimeException";
     private String unsupportedExceptionType = "UnsupportedOperationException";
 
-    private Map<String, MethodAccess> accessControl = new HashMap<String, MethodAccess>();
-    private Map<String, TypeInfo> typeInfoMap = new HashMap<String, TypeInfo>();
-    private Set<String> returnsString = new HashSet<String>();
-    private Map<String, String> returnedArrayLengths = new HashMap<String, String>();
+    private final Map<String, MethodAccess> accessControl = new HashMap<String, MethodAccess>();
+    private final Map<String, TypeInfo> typeInfoMap = new HashMap<String, TypeInfo>();
+    private final Set<String> returnsString = new HashSet<String>();
+    private final Map<String, String> returnedArrayLengths = new HashMap<String, String>();
 
     /**
      * Key is function that has some byte[] or short[] arguments that should be
      * converted to String args; value is List of Integer argument indices
      */
-    private Map<String, List<Integer>> argumentsAreString = new HashMap<String, List<Integer>>();
-    private Set<String> extendedIntfSymbolsIgnore = new HashSet<String>();
-    private Set<String> extendedIntfSymbolsOnly = new HashSet<String>();
-    private Set<String> extendedImplSymbolsIgnore = new HashSet<String>();
-    private Set<String> extendedImplSymbolsOnly = new HashSet<String>();
-    private Set<Pattern> ignores = new HashSet<Pattern>();
-    private Map<String, Pattern> ignoreMap = new HashMap<String, Pattern>();
-    private Set<Pattern> ignoreNots = new HashSet<Pattern>();
-    private Set<Pattern> unignores = new HashSet<Pattern>();
-    private Set<Pattern> unimplemented = new HashSet<Pattern>();
+    private final Map<String, List<Integer>> argumentsAreString = new HashMap<String, List<Integer>>();
+    private final Set<String> extendedIntfSymbolsIgnore = new HashSet<String>();
+    private final Set<String> extendedIntfSymbolsOnly = new HashSet<String>();
+    private final Set<String> extendedImplSymbolsIgnore = new HashSet<String>();
+    private final Set<String> extendedImplSymbolsOnly = new HashSet<String>();
+    private final Set<Pattern> ignores = new HashSet<Pattern>();
+    private final Map<String, Pattern> ignoreMap = new HashMap<String, Pattern>();
+    private final Set<Pattern> ignoreNots = new HashSet<Pattern>();
+    private final Set<Pattern> unignores = new HashSet<Pattern>();
+    private final Set<Pattern> unimplemented = new HashSet<Pattern>();
     private boolean forceUseNIOOnly4All = false;
-    private Set<String> useNIOOnly = new HashSet<String>();
+    private final Set<String> useNIOOnly = new HashSet<String>();
     private boolean forceUseNIODirectOnly4All = false;
-    private Set<String> useNIODirectOnly = new HashSet<String>();
-    private Set<String> manuallyImplement = new HashSet<String>();
-    private Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
-    private Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
-    private Map<String, String> structPackages = new HashMap<String, String>();
-    private List<String> customCCode = new ArrayList<String>();
-    private List<String> forcedStructs = new ArrayList<String>();
-    private Map<String, String> returnValueCapacities = new HashMap<String, String>();
-    private Map<String, String> returnValueLengths = new HashMap<String, String>();
-    private Map<String, List<String>> temporaryCVariableDeclarations = new HashMap<String, List<String>>();
-    private Map<String, List<String>> temporaryCVariableAssignments = new HashMap<String, List<String>>();
-    private Map<String, List<String>> extendedInterfaces = new HashMap<String, List<String>>();
-    private Map<String, List<String>> implementedInterfaces = new HashMap<String, List<String>>();
-    private Map<String, String> parentClass = new HashMap<String, String>();
-    private Map<String, String> javaTypeRenames = new HashMap<String, String>();
-    private Map<String, String> javaSymbolRenames = new HashMap<String, String>();
-    private Map<String, Set<String>> javaRenamedSymbols = new HashMap<String, Set<String>>();
-    private Map<String, List<String>> javaPrologues = new HashMap<String, List<String>>();
-    private Map<String, List<String>> javaEpilogues = new HashMap<String, List<String>>();
+    private final Set<String> useNIODirectOnly = new HashSet<String>();
+    private final Set<String> manuallyImplement = new HashSet<String>();
+    private final Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> methodJavadoc = new HashMap<String, List<String>>();
+    private final Map<String, String> structPackages = new HashMap<String, String>();
+    private final List<String> customCCode = new ArrayList<String>();
+    private final List<String> forcedStructs = new ArrayList<String>();
+    private final Map<String, String> returnValueCapacities = new HashMap<String, String>();
+    private final Map<String, String> returnValueLengths = new HashMap<String, String>();
+    private final Map<String, List<String>> temporaryCVariableDeclarations = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> temporaryCVariableAssignments = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> extendedInterfaces = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> implementedInterfaces = new HashMap<String, List<String>>();
+    private final Map<String, String> parentClass = new HashMap<String, String>();
+    private final Map<String, String> javaTypeRenames = new HashMap<String, String>();
+    private final Map<String, String> javaSymbolRenames = new HashMap<String, String>();
+    private final Map<String, Set<String>> javaRenamedSymbols = new HashMap<String, Set<String>>();
+    private final Map<String, List<String>> javaPrologues = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> javaEpilogues = new HashMap<String, List<String>>();
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -543,6 +546,15 @@ public class JavaConfiguration {
     if (res == null) {
       res = new ArrayList<String>();
       customJavaCode.put(className, res);
+    }
+    return res;
+  }
+
+  public List<String> javadocForMethod(String methodName) {
+    List<String> res = methodJavadoc.get(methodName);
+    if (res == null) {
+      res = new ArrayList<String>();
+      methodJavadoc.put(methodName, res);
     }
     return res;
   }
@@ -979,6 +991,10 @@ public class JavaConfiguration {
       readCustomCCode(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because readCustomCCode changes them.
+    } else if (cmd.equalsIgnoreCase("MethodJavadoc")) {
+      readMethodJavadoc(tok, filename, lineNo);
+      // Warning: make sure delimiters are reset at the top of this loop
+      // because readMethodJavadoc changes them.
     } else if (cmd.equalsIgnoreCase("ClassJavadoc")) {
       readClassJavadoc(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -1295,6 +1311,21 @@ public class JavaConfiguration {
     } catch (NoSuchElementException e) {
       customCCode.add("");
     }
+  }
+
+  protected void readMethodJavadoc(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String tokenClassName = tok.nextToken();
+      String restOfLine = tok.nextToken("\n\r\f");
+      addMethodJavadoc(tokenClassName, restOfLine);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"MethodJavadoc\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+  protected void addMethodJavadoc(String methodName, String code) {
+    List<String> codeList = javadocForMethod(methodName);
+    codeList.add(code);
   }
 
   protected void readClassJavadoc(StringTokenizer tok, String filename, int lineNo) {

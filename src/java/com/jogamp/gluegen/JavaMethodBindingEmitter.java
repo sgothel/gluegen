@@ -48,6 +48,7 @@ import com.jogamp.gluegen.cgram.types.Type;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -67,8 +68,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   protected final CommentEmitter defaultInterfaceCommentEmitter = new InterfaceCommentEmitter();
 
   // Exception type raised in the generated code if runtime checks fail
-  private String runtimeExceptionType;
-  private String unsupportedExceptionType;
+  private final String runtimeExceptionType;
+  private final String unsupportedExceptionType;
 
   protected boolean emitBody;
   protected boolean eraseBufferAndArrayTypes;
@@ -98,7 +99,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   private static final String COMPOUND_ARRAY_SUFFIX = "_buf_array_copy";
 
   // Only present to provide more clear comments
-  private JavaConfiguration cfg;
+  private final JavaConfiguration cfg;
 
   public JavaMethodBindingEmitter(MethodBinding binding,
                                   PrintWriter output,
@@ -795,6 +796,21 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   @Override
   protected String getCommentStartString() { return "/** "; }
+
+  @Override
+  protected String getCommentEndString() {
+      final StringBuilder sb = new StringBuilder();
+      final String methodName = binding.getName();
+      final List<String> methodDocs = cfg.javadocForMethod(methodName);
+      for (Iterator<String> iter = methodDocs.iterator(); iter.hasNext(); ) {
+        sb.append(JavaConfiguration.NEWLINE).append(getBaseIndentString()).append(iter.next());
+      }
+      if( methodDocs.size() > 0 ) {
+          sb.append(JavaConfiguration.NEWLINE).append(getBaseIndentString());
+      }
+      sb.append(" */");
+      return sb.toString();
+  }
 
   @Override
   protected String getBaseIndentString() { return "  "; }
