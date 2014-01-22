@@ -14,3 +14,4 @@ Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.gluegen
 Main-Class: com.jogamp.gluegen.GlueGen
 Class-Path: antlr.jar
+
