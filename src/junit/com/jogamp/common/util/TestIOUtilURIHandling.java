@@ -84,6 +84,9 @@ public class TestIOUtilURIHandling extends JunitTracer {
         new String[] {"jar:file:/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class",
                       "jar:file:/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class" },
 
+        new String[] {"jar:file://filehost/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class",
+                      "jar:file://filehost/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class" },
+
         /** Not possible, '#' is fragment in URI
         new String[] {"jar:file:/gluegen/%23/gluegen-rt.jar!/",
                       "jar:file:/gluegen/#/gluegen-rt.jar!/" }, */
@@ -110,6 +113,12 @@ public class TestIOUtilURIHandling extends JunitTracer {
 
         new String[] {"jar:file:/C:/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class",
                       "jar:file:/C:/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class" },
+
+        new String[] {"jar:file:///C:/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class",
+                      "jar:file:/C:/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class" },
+
+        new String[] {"jar:file://filehost/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class",
+                      "jar:file://filehost/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class" },
 
         /** Not possible, '#' is fragment in URI
         new String[] {"jar:file:/C:/gluegen/%23/gluegen-rt.jar!/",
@@ -159,6 +168,11 @@ public class TestIOUtilURIHandling extends JunitTracer {
                       "file:/C:/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar",
                       "file:/C:/gluegen/build-x86_64 öä lala/gluegen-rt.jar",
                       "C:\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar"},
+
+        new String[] {"\\\\filehost\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar",
+                      "file://filehost/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar",
+                      "file://filehost/gluegen/build-x86_64 öä lala/gluegen-rt.jar",
+                      "\\\\filehost\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar"},
 
         /* No support for '#' fragment in URI path !
         new String[] {"C:/gluegen/#/gluegen-rt.jar",
@@ -364,22 +378,21 @@ public class TestIOUtilURIHandling extends JunitTracer {
         final File file = new File(fileSource);
         {
             final URI uri0 = file.toURI();
-            System.err.println("uri.string: "+uri0.toString());
-            System.err.println("uri.ascii : "+uri0.toASCIIString());
+            System.err.println("uri0.string: "+uri0.toString());
+            System.err.println("uri0.ascii : "+uri0.toASCIIString());
         }
-        final URI uri0 = IOUtil.toURISimple(file);
-        System.err.println("uri.string: "+uri0.toString());
-        System.err.println("uri.ascii : "+uri0.toASCIIString());
-        showURI(uri0);
-        showURL(uri0.toURL());
+        final URI uri1 = IOUtil.toURISimple(file);
+        System.err.println("uri1.string: "+uri1.toString());
+        System.err.println("uri1.ascii : "+uri1.toASCIIString());
+        showURI(uri1);
+        showURL(uri1.toURL());
 
-        final URL actualUrl = IOUtil.toURL(uri0);
+        final URL actualUrl = IOUtil.toURL(uri1);
         final String actualUrlS = actualUrl.toExternalForm();
-        final String actualUrlPathS = actualUrl.getPath();
-        final String actualFilePathS = IOUtil.decodeURIToFilePath( actualUrlPathS );
-        final boolean equalsFilePath = fileExpected.equals(actualFilePathS);
-        System.err.println("actual____url-path: "+actualUrlPathS);
-        System.err.println("actual___file-path: "+actualFilePathS);
+        final String actualFileS = IOUtil.decodeURIIfFilePath(uri1);
+        final boolean equalsFilePath = fileExpected.equals(actualFileS);
+        System.err.println("actual_______uri  : "+actualUrlS);
+        System.err.println("actual___file-path: "+actualFileS);
         System.err.println("expected_path: "+fileExpected+" - "+(equalsFilePath?"OK":"ERROR"));
         final boolean equalsDecUri = uriDecExpected.equals(actualUrlS);
         System.err.println("actual_______uri: "+actualUrlS);

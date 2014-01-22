@@ -517,6 +517,9 @@ public class IOUtil {
      * </ul>
      * </p>
      * <p>
+     * Note that a given {@link URI#getAuthority() authority} for <i>file scheme</i>s is preserved to support window's shares.
+     * </p>
+     * <p>
      * Tested w/ unit test <code>com.jogamp.common.util.TestIOUtilURIHandling</code>
      * </p>
      * @param uri
@@ -531,6 +534,12 @@ public class IOUtil {
         final boolean isJar = IOUtil.JAR_SCHEME.equals(uriSchema);
         final URI specificURI = isJar ? JarUtil.getJarSubURI(uri) : uri;
         final boolean hasJarSubURI = specificURI != uri;
+        final String authorityS;
+        {
+            final String authority = specificURI.getAuthority();
+            authorityS = ( null == authority ) ? "" : "//"+authority;
+        }
+
         if( DEBUG ) {
             System.err.println("IOUtil.toURL.0: isJAR "+isJar+", hasSubURI "+hasJarSubURI+PlatformPropsImpl.NEWLINE+
                                "\t, uri "+uri+PlatformPropsImpl.NEWLINE+
@@ -538,6 +547,7 @@ public class IOUtil {
                                "\t ascii -> "+specificURI.toASCIIString()+PlatformPropsImpl.NEWLINE+
                                "\t ssp -> "+specificURI.getSchemeSpecificPart()+PlatformPropsImpl.NEWLINE+
                                "\t frag -> "+specificURI.getFragment()+PlatformPropsImpl.NEWLINE+
+                               "\t auth -> "+authorityS+PlatformPropsImpl.NEWLINE+ /* "//user-info@host:port" */
                                "\t path -> "+specificURI.getPath()+PlatformPropsImpl.NEWLINE+
                                "\t path.decoded -> "+decodeFromURI( specificURI.getPath() ) );
         }
@@ -580,9 +590,9 @@ public class IOUtil {
                         }
                     }
                     if( !hasJarSubURI ) {
-                        urlS = IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+fPathUriS;
+                        urlS = IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+authorityS+fPathUriS;
                         if( DEBUG ) {
-                            System.err.println("IOUtil.toURL.1: fPath "+fPath+PlatformPropsImpl.NEWLINE+
+                            System.err.println("IOUtil.toURL.1: authorityS "+authorityS+", fPath "+fPath+PlatformPropsImpl.NEWLINE+
                                                "\t -> "+fPathUriS+PlatformPropsImpl.NEWLINE+
                                                "\t -> "+urlS);
                         }
@@ -591,9 +601,9 @@ public class IOUtil {
                     } else {
                         final String jarEntry = JarUtil.getJarEntry(uri);
                         final String post = isJar ? IOUtil.JAR_SCHEME_SEPARATOR + jarEntry : "";
-                        urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+fPathUriS+post;
+                        urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+authorityS+fPathUriS+post;
                         if( DEBUG ) {
-                            System.err.println("IOUtil.toURL.2: fPath "+fPath+PlatformPropsImpl.NEWLINE+
+                            System.err.println("IOUtil.toURL.2: authorityS "+authorityS+", fPath "+fPath+PlatformPropsImpl.NEWLINE+
                                                "\t -> "+fPathUriS+PlatformPropsImpl.NEWLINE+
                                                "\t, jarEntry "+jarEntry+PlatformPropsImpl.NEWLINE+
                                                "\t, post "+post+PlatformPropsImpl.NEWLINE+
@@ -916,8 +926,8 @@ public class IOUtil {
         return patternSpaceEnc.matcher(s).replaceAll(" ");
     }
 
-    private static final Pattern patternSingleBS = Pattern.compile("\\\\{1,}");
-    private static final Pattern patternSingleFS = Pattern.compile("/{1,}");
+    private static final Pattern patternSingleBS = Pattern.compile("\\\\{1}");
+    private static final Pattern patternSingleFS = Pattern.compile("/{1}");
 
     /**
      * Encodes file path characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
@@ -961,8 +971,8 @@ public class IOUtil {
      * Then it processes the <code>path</code> if {@link File#separatorChar} <code> != '/'</code>
      * as follows:
      * <ul>
-     *   <li>drop a starting slash</li>
      *   <li>slash -> backslash</li>
+     *   <li>drop a starting single backslash</li>
      * </ul>
      * </p>
      * @see #decodeFromURI(String)
@@ -971,7 +981,7 @@ public class IOUtil {
         final String path = IOUtil.decodeFromURI(uriPath);
         if( !File.separator.equals("/") ) {
             final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
-            if( r.startsWith("\\") ) {
+            if( r.startsWith("\\") && !r.startsWith("\\\\") ) { // '\\\\' denotes UNC hostname, which shall not be cut-off
                 return r.substring(1);
             } else {
                 return r;
@@ -982,15 +992,26 @@ public class IOUtil {
 
     /**
      * If <code>uri</code> is a <i>file scheme</i>,
-     * implementation returns the decoded {@link URI#getPath()} via {@link #decodeURIToFilePath(String)},
-     * otherwise it returns the {@link URI#toASCIIString()} encoded URI.
+     * implementation returns the decoded <i>[ "//"+{@link URI#getAuthority()} ] + {@link URI#getPath()}</i> via {@link #decodeURIToFilePath(String)}.
+     * <p>
+     * Otherwise it returns the {@link URI#toASCIIString()} encoded URI.
+     * </p>
      *
      * @see #decodeFromURI(String)
      * @see #decodeURIToFilePath(String)
      */
     public static String decodeURIIfFilePath(final URI uri) {
         if( IOUtil.FILE_SCHEME.equals( uri.getScheme() ) ) {
-            return decodeURIToFilePath( uri.getPath() );
+            final String authorityS;
+            {
+                final String authority = uri.getAuthority();
+                if( null == authority ) {
+                    authorityS = "";
+                } else {
+                    authorityS = "//"+authority;
+                }
+                return decodeURIToFilePath(authorityS+uri.getPath());
+            }
         }
         return uri.toASCIIString();
     }
