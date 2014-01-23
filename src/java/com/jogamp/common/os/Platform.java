@@ -315,21 +315,27 @@ public class Platform extends PlatformPropsImpl {
     }
 
     /**
-     * Returns the CPU type.
+     * Returns the CPU family.
      */
     public static CPUFamily getCPUFamily() {
         return CPU_ARCH.getFamily();
     }
 
     /**
-     * Returns the CPU architecture.
+     * Returns the CPU architecture type.
      */
     public static CPUType getCPUType() {
         return CPU_ARCH;
     }
 
     /**
-     * Returns the (guessed) ABI.
+     * Returns the ABI type.
+     * <p>
+     * In case of {@link CPUFamily#ARM}, the value is determined by parsing the <i>Elf Headers</i> of the running VM.
+     * </p>
+     * <p>
+     * Otherwise the value is {@link ABIType#GENERIC_ABI}.
+     * </p>
      */
     public static ABIType getABIType() {
         return ABI_TYPE;
