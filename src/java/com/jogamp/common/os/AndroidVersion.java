@@ -29,11 +29,24 @@ package com.jogamp.common.os;
 
 import java.lang.reflect.Field;
 
+import com.jogamp.common.os.Platform.ABIType;
+import com.jogamp.common.os.Platform.CPUFamily;
+import com.jogamp.common.os.Platform.CPUType;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.ReflectionUtil;
 
 public class AndroidVersion {
     public static final boolean isAvailable;
+
+    /** The name of the instruction set (CPU type + ABI convention) of native code. API-4. All lower case.*/
+    public static final String CPU_ABI;
+    public static final CPUType CPU_TYPE;
+    public static final ABIType ABI_TYPE;
+
+    /** The name of the second instruction set (CPU type + ABI convention) of native code. API-8. All lower case.*/
+    public static final String CPU_ABI2;
+    public static final CPUType CPU_TYPE2;
+    public static final ABIType ABI_TYPE2;
 
     /** Development codename, or the string "REL" for official release */
     public static final String CODENAME;
@@ -50,37 +63,90 @@ public class AndroidVersion {
     /** SDK Version string */
     public static final String SDK_NAME;
 
+    private static final String androidBuild = "android.os.Build";
     private static final String androidBuildVersion = "android.os.Build$VERSION";
     private static final String androidBuildVersionCodes = "android.os.Build$VERSION_CODES";
 
+    /**
+     * Returns {@link CPUType} for matching <code>cpuABI<code>,
+     * i.e. {@link #CPU_ABI} or {@link #CPU_ABI2},
+     * or <code>null</code> for no match.
+     * <p>
+     * FIXME: Where is a comprehensive list of known 'android.os.Build.CPU_ABI' and 'android.os.Build.CPU_ABI2' strings ?<br/>
+     * Fount this one: <code>http://www.kandroid.org/ndk/docs/CPU-ARCH-ABIS.html</code>
+     * <pre>
+     *  lib/armeabi/libfoo.so
+     *  lib/armeabi-v7a/libfoo.so
+     *  lib/x86/libfoo.so
+     *  lib/mips/libfoo.so
+     * </pre>
+     * </p>
+     */
+    private static final CPUType getCPUTypeImpl(String cpuABI) {
+        if( null == cpuABI ) {
+            return null;
+        } else if( cpuABI.equals("armeabi-v7a") ) {
+            return CPUType.ARMv7;
+        } else if( cpuABI.equals("armeabi") ||
+                   cpuABI.startsWith("arm") ) { // last chance ..
+            return CPUType.ARM;
+        } else if( cpuABI.equals("x86") ) {
+            return CPUType.X86_32;
+        } else if( cpuABI.equals("mips") ) {    // no 32bit vs 64bit identifier ?
+            return CPUType.MIPS_32;
+        } else {
+            return null;
+        }
+    }
+    private static final ABIType getABITypeImpl(final CPUType cpuType, String cpuABI) {
+        if( null == cpuType || null == cpuABI ) {
+            return null;
+        } else if( CPUFamily.ARM  != cpuType.family ) {
+            return ABIType.GENERIC_ABI;
+        }
+        return ABIType.EABI_GNU_ARMEL; // FIXME: How will they name ABIType.EABI_GNU_ARMHF
+    }
+
     static {
         final ClassLoader cl = AndroidVersion.class.getClassLoader();
+        Class<?> abClass = null;
+        Object abObject= null;
         Class<?> abvClass = null;
         Object abvObject= null;
         Class<?> abvcClass = null;
         Object abvcObject= null;
         try {
+            abClass = ReflectionUtil.getClass(androidBuild, true, cl);
+            abObject = abClass.newInstance();
             abvClass = ReflectionUtil.getClass(androidBuildVersion, true, cl);
             abvObject = abvClass.newInstance();
             abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
             abvcObject = abvcClass.newInstance();
         } catch (Exception e) { /* n/a */ }
-        isAvailable = null != abvObject;
+        isAvailable = null != abObject && null != abvObject && null != abvcObject;
         if(isAvailable) {
-            CODENAME = getString(abvClass, abvObject, "CODENAME");
-            INCREMENTAL = getString(abvClass, abvObject, "INCREMENTAL");
-            RELEASE = getString(abvClass, abvObject, "RELEASE");
+            CPU_ABI = getString(abClass, abObject, "CPU_ABI", true);
+            CPU_ABI2 = getString(abClass, abObject, "CPU_ABI2", true);
+            CODENAME = getString(abvClass, abvObject, "CODENAME", false);
+            INCREMENTAL = getString(abvClass, abvObject, "INCREMENTAL", false);
+            RELEASE = getString(abvClass, abvObject, "RELEASE", false);
             SDK_INT = getInt(abvClass, abvObject, "SDK_INT");
             final IntObjectHashMap version_codes = getVersionCodes(abvcClass, abvcObject);
             final String sdk_name = (String) version_codes.get(SDK_INT);
             SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ;
         } else {
+            CPU_ABI = null;
+            CPU_ABI2 = null;
             CODENAME = null;
             INCREMENTAL = null;
             RELEASE = null;
             SDK_INT = -1;
             SDK_NAME = null;
         }
+        CPU_TYPE = getCPUTypeImpl(CPU_ABI);
+        ABI_TYPE = getABITypeImpl(CPU_TYPE, CPU_ABI);
+        CPU_TYPE2 = getCPUTypeImpl(CPU_ABI2);
+        ABI_TYPE2 = getABITypeImpl(CPU_TYPE2, CPU_ABI2);
     }
 
     private static final IntObjectHashMap getVersionCodes(Class<?> cls, Object obj) {
@@ -97,10 +163,15 @@ public class AndroidVersion {
         return map;
     }
 
-    private static final String getString(Class<?> cls, Object obj, String name) {
+    private static final String getString(Class<?> cls, Object obj, String name, boolean lowerCase) {
         try {
             Field f = cls.getField(name);
-            return (String) f.get(obj);
+            final String s = (String) f.get(obj);
+            if( lowerCase && null != s ) {
+                return s.toLowerCase();
+            } else {
+                return s;
+            }
         } catch (Exception e) { e.printStackTrace(); /* n/a */ }
         return null;
     }

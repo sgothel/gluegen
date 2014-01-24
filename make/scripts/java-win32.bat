@@ -13,7 +13,8 @@ set CP_ALL=.;%BLD_DIR%\gluegen-rt.jar;%BLD_DIR%\test\build\gluegen-test.jar;lib\
 
 echo CP_ALL %CP_ALL%
 
-set D_ARGS="-Djogamp.debug.IOUtil"
+set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary"
+REM set D_ARGS="-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogamp.debug=all"
 
 %J2RE_HOME%\bin\java -classpath %CP_ALL% %D_ARGS% "-Djava.library.path=%LIB_DIR%" "-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win32.log 2>&1

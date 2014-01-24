@@ -78,6 +78,8 @@ public abstract class PlatformPropsImpl {
     public static final String NEWLINE;
     public static final boolean LITTLE_ENDIAN;
 
+    /* pp */ static final CPUType sCpuType;
+
     public static final CPUType CPU_ARCH;
     public static final ABIType ABI_TYPE;
     public static final OSType OS_TYPE;
@@ -86,14 +88,10 @@ public abstract class PlatformPropsImpl {
     static {
         Version16 = new VersionNumber(1, 6, 0);
         Version17 = new VersionNumber(1, 7, 0);
+
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned Applets.
-        OS =  System.getProperty("os.name");
-        OS_lower = OS.toLowerCase();
-        OS_VERSION =  System.getProperty("os.version");
-        OS_VERSION_NUMBER = new VersionNumber(OS_VERSION);
-        ARCH = System.getProperty("os.arch");
-        ARCH_lower = ARCH.toLowerCase();
+        final boolean isAndroid = AndroidVersion.isAvailable; // also triggers it's static initialization
         JAVA_VENDOR = System.getProperty("java.vendor");
         JAVA_VENDOR_URL = System.getProperty("java.vendor.url");
         JAVA_VERSION = System.getProperty("java.version");
@@ -111,14 +109,116 @@ public abstract class PlatformPropsImpl {
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();
-        JAVA_6 = JAVA_SE && ( AndroidVersion.isAvailable || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
+        JAVA_6 = JAVA_SE && ( isAndroid || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
 
         NEWLINE = System.getProperty("line.separator");
+
+        OS =  System.getProperty("os.name");
+        OS_lower = OS.toLowerCase();
+        OS_VERSION =  System.getProperty("os.version");
+        OS_VERSION_NUMBER = new VersionNumber(OS_VERSION);
+        OS_TYPE = getOSTypeImpl(OS_lower, isAndroid);
+
         LITTLE_ENDIAN = queryIsLittleEndianImpl();
 
-        CPU_ARCH = getCPUTypeImpl(ARCH_lower);
-        OS_TYPE = getOSTypeImpl();
-        ABI_TYPE = queryABITypeImpl(OS_TYPE, CPU_ARCH);
+        // Soft values, i.e. w/o probing binaries
+        final String sARCH = System.getProperty("os.arch");
+        final String sARCH_lower = sARCH.toLowerCase();
+        sCpuType = getCPUTypeImpl(sARCH_lower);
+        if( DEBUG ) {
+            System.err.println("Platform.Soft: str "+sARCH+", cpuType "+sCpuType);
+        }
+
+        // Hard values, i.e. w/ probing binaries
+        //
+        // FIXME / HACK:
+        //   We use sCPUType for MachineDescriptionRuntime.getStatic()
+        //   until we have determined the final CPU_TYPE, etc.
+        //   MachineDescriptionRuntime gets notified via MachineDescriptionRuntime.notifyPropsInitialized() below.
+        //
+        //   We could use Elf Ehdr's machine value to determine the bit-size
+        //   used for it's offset table!
+        //   However, 'os.arch' should be a good guess for this task.
+        final CPUType ehCpuType;
+        final ABIType ehAbiType;
+        final boolean ehValid;
+        {
+            final CPUType[] _ehCpuType = { null };
+            final ABIType[] _ehAbiType = { null };
+            final ElfHeader eh = queryABITypeImpl(OS_TYPE, _ehCpuType, _ehAbiType);
+            if( null != eh && null != _ehCpuType[0] && null != _ehAbiType[0] ) {
+                ehCpuType = _ehCpuType[0];
+                ehAbiType = _ehAbiType[0];
+                if( isAndroid ) {
+                    if( DEBUG ) {
+                        System.err.println("Android: CPU_ABI1 str "+AndroidVersion.CPU_ABI+", cpu "+AndroidVersion.CPU_TYPE+", abi "+AndroidVersion.ABI_TYPE);
+                        System.err.println("Android: CPU_ABI2 str "+AndroidVersion.CPU_ABI2+", cpu "+AndroidVersion.CPU_TYPE2+", abi "+AndroidVersion.ABI_TYPE2);
+                    }
+                    final CPUFamily aCpuFamily1 = null != AndroidVersion.CPU_TYPE ? AndroidVersion.CPU_TYPE.family : null;
+                    final CPUFamily aCpuFamily2 = null != AndroidVersion.CPU_TYPE2 ? AndroidVersion.CPU_TYPE2.family : null;
+                    if( ehCpuType.family != aCpuFamily1 && ehCpuType.family != aCpuFamily2 ) {
+                        // Ooops !
+                        ehValid = false;
+                    } else {
+                        ehValid = true;
+                    }
+                } else {
+                    if( ehCpuType.family != sCpuType.family ) {
+                        // Ooops !
+                        ehValid = false;
+                    } else {
+                        ehValid = true;
+                    }
+                }
+                if( DEBUG ) {
+                    System.err.println("Platform.Elf: cpuType "+ehCpuType+", abiType "+ehAbiType+", valid "+ehValid);
+                }
+            } else {
+                ehCpuType = null;
+                ehAbiType = null;
+                ehValid = false;
+                if( DEBUG ) {
+                    System.err.println("Platform.Elf: n/a");
+                }
+            }
+        }
+        if( isAndroid ) {
+            if( ehValid ) {
+                if( ehCpuType.family == AndroidVersion.CPU_TYPE.family ) {
+                    ARCH = AndroidVersion.CPU_ABI;
+                    CPU_ARCH = AndroidVersion.CPU_TYPE;
+                } else {
+                    ARCH = AndroidVersion.CPU_ABI2;
+                    CPU_ARCH = AndroidVersion.CPU_TYPE2;
+                }
+                ABI_TYPE = ehAbiType;
+            } else {
+                // default
+                if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM || null == AndroidVersion.CPU_TYPE2 ) {
+                    ARCH = AndroidVersion.CPU_ABI;
+                    CPU_ARCH = AndroidVersion.CPU_TYPE;
+                    ABI_TYPE = AndroidVersion.ABI_TYPE;
+                } else {
+                    ARCH = AndroidVersion.CPU_ABI2;
+                    CPU_ARCH = AndroidVersion.CPU_TYPE2;
+                    ABI_TYPE = AndroidVersion.ABI_TYPE2;
+                }
+            }
+            ARCH_lower  = ARCH;
+        } else {
+            ARCH = sARCH;
+            ARCH_lower = sARCH_lower;
+            if( ehValid && CPUFamily.ARM == ehCpuType.family ) {
+                // Use Elf for ARM
+                CPU_ARCH = ehCpuType;
+                ABI_TYPE = ehAbiType;
+            } else {
+                // Otherwise trust detailed os.arch (?)
+                CPU_ARCH = sCpuType;
+                ABI_TYPE = ABIType.GENERIC_ABI;
+            }
+        }
+        MachineDescriptionRuntime.notifyPropsInitialized();
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
     }
 
@@ -159,8 +259,8 @@ public abstract class PlatformPropsImpl {
         return 0x0C0D == tst_s.get(0);
     }
 
-    private static final CPUType getCPUTypeImpl(String archLower) {
-        if(        archLower.equals("x86")  ||
+    private static final CPUType getCPUTypeImpl(final String archLower) {
+        if(        archLower.equals("x86")  ||         // jvm + android
                    archLower.equals("i386") ||
                    archLower.equals("i486") ||
                    archLower.equals("i586") ||
@@ -177,7 +277,9 @@ public abstract class PlatformPropsImpl {
             return CPUType.ARMv5;
         } else if( archLower.equals("armv6l") ) {
             return CPUType.ARMv6;
-        } else if( archLower.equals("armv7l") ) {
+        } else if( archLower.equals("armv7l") ||
+                   archLower.equals("armeabi") ||      // android
+                   archLower.equals("armeabi-v7a") ) { // android
             return CPUType.ARMv7;
         } else if( archLower.equals("sparc") ) {
             return CPUType.SPARC_32;
@@ -187,13 +289,15 @@ public abstract class PlatformPropsImpl {
             return CPUType.PA_RISC2_0;
         } else if( archLower.equals("ppc") ) {
             return CPUType.PPC;
+        } else if( archLower.equals("mips") ) {        // android
+            return CPUType.MIPS_32;
         } else {
             throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + archLower + ")");
         }
     }
 
     @SuppressWarnings("unused")
-    private static final boolean contains(String data, String[] search) {
+    private static final boolean contains(final String data, final String[] search) {
         if(null != data && null != search) {
             for(int i=0; i<search.length; i++) {
                 if(data.indexOf(search[i]) >= 0) {
@@ -208,114 +312,120 @@ public abstract class PlatformPropsImpl {
      * Returns the {@link ABIType} of the current platform using given {@link CPUType cpuType}
      * and {@link OSType osType} as a hint.
      * <p>
-     * Note the following queries are performed:
+     * For Elf parsing one of the following binaries is used:
      * <ul>
-     *   <li> not {@link CPUFamily#ARM} -> {@link ABIType#GENERIC_ABI} </li>
-     *   <li> else
-     *   <ul>
-     *     <li> {@link OSType#ANDROID} -> {@link ABIType#EABI_GNU_ARMEL} (due to EACCES, Permission denied)</li>
-     *     <li> else
-     *     <ul>
-     *       <li> Elf ARM Tags -> {@link ABIType#EABI_GNU_ARMEL}, {@link ABIType#EABI_GNU_ARMHF}</li>
-     *       <li> On Error -> {@link ABIType#EABI_GNU_ARMEL}</li>
-     *     </ul></li>
-     *   </ul></li>
+     *  <li>Linux: Current executable</li>
+     *  <li>Android: Found gluegen-rt library</li>
+     *  <li>Other: A found java/jvm native library.</li>
      * </ul>
-     * </p>
-     * <p>
-     * For Elf parsing either the current executable is used (Linux) or a found java/jvm native library.
      * </p>
      * <p>
      * Elf ARM Tags are read using {@link ElfHeader}, .. and {@link SectionArmAttributes#abiVFPArgsAcceptsVFPVariant(byte)}.
      * </p>
-     * @param osType
-     * @param cpuType
-     *
-     * @return
      */
-    private static final ABIType queryABITypeImpl(final OSType osType, final CPUType cpuType) {
-        if( CPUFamily.ARM  != cpuType.family ) {
-            return ABIType.GENERIC_ABI;
-        }
-        if( OSType.ANDROID == osType ) { // EACCES (Permission denied) - We assume a not rooted device!
-            return ABIType.EABI_GNU_ARMEL;
-        }
-        return AccessController.doPrivileged(new PrivilegedAction<ABIType>() {
-            private final String GNU_LINUX_SELF_EXE = "/proc/self/exe";
+    private static final ElfHeader queryABITypeImpl(final OSType osType, final CPUType[] cpuType, final ABIType[] abiType) {
+        return AccessController.doPrivileged(new PrivilegedAction<ElfHeader>() {
             @Override
-            public ABIType run() {
-                boolean abiARM = false;
-                boolean abiVFPArgsAcceptsVFPVariant = false;
-                RandomAccessFile in = null;
+            public ElfHeader run() {
+                ElfHeader res = null;
                 try {
                     File file = null;
-                    if( OSType.LINUX == osType ) {
-                        file = new File(GNU_LINUX_SELF_EXE);
-                        if( !checkFileReadAccess(file) ) {
-                            file = null;
-                        }
-                    }
-                    if( null == file ) {
-                        file = findSysLib("java");
-                    }
-                    if( null == file ) {
-                        file = findSysLib("jvm");
-                    }
-                    if( null != file ) {
-                        in = new RandomAccessFile(file, "r");
-                        final ElfHeader eh = ElfHeader.read(in);
-                        if(DEBUG) {
-                            System.err.println("ELF: Got HDR "+GNU_LINUX_SELF_EXE+": "+eh);
-                        }
-                        abiARM = eh.isArm();
-                        if( abiARM ) {
-                            final SectionHeader sh = eh.getSectionHeader(SectionHeader.SHT_ARM_ATTRIBUTES);
-                            if( null != sh ) {
-                                if(DEBUG) {
-                                    System.err.println("ELF: Got ARM Attribs Section Header: "+sh);
-                                }
-                                final SectionArmAttributes sArmAttrs = (SectionArmAttributes) sh.readSection(in);
-                                if(DEBUG) {
-                                    System.err.println("ELF: Got ARM Attribs Section Block : "+sArmAttrs);
-                                }
-                                final SectionArmAttributes.Attribute abiVFPArgsAttr = sArmAttrs.get(SectionArmAttributes.Tag.ABI_VFP_args);
-                                if( null != abiVFPArgsAttr ) {
-                                    abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
-                                }
+                    if( OSType.ANDROID == osType ) {
+                        file = new File(NativeLibrary.findLibrary("gluegen-rt", PlatformPropsImpl.class.getClassLoader()));
+                    } else {
+                        if( OSType.LINUX == osType ) {
+                            file = new File("/proc/self/exe");
+                            if( !checkFileReadAccess(file) ) {
+                                file = null;
                             }
                         }
+                        if( null == file ) {
+                            file = findSysLib("java");
+                        }
+                        if( null == file ) {
+                            file = findSysLib("jvm");
+                        }
+                    }
+                    if( null != file ) {
+                        res = queryABITypeImpl(file, cpuType, abiType);
                     }
                 } catch(Throwable t) {
                     if(DEBUG) {
                         t.printStackTrace();
                     }
-                } finally {
-                    if(null != in) {
-                        try {
-                            in.close();
-                        } catch (IOException e) { }
-                    }
-                }
-                final ABIType res;
-                if( abiARM ) {
-                    res = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
-                } else {
-                    res = ABIType.GENERIC_ABI;
-                }
-                if(DEBUG) {
-                    System.err.println("ELF: abiARM "+abiARM+", abiVFPArgsAcceptsVFPVariant "+abiVFPArgsAcceptsVFPVariant+" -> "+res);
                 }
                 return res;
             } } );
     }
-    private static boolean checkFileReadAccess(File file) {
+    private static final ElfHeader queryABITypeImpl(final File file, final CPUType[] cpuType, final ABIType[] abiType) {
+        ElfHeader res = null;
+        RandomAccessFile in = null;
+        try {
+            in = new RandomAccessFile(file, "r");
+            final ElfHeader eh = ElfHeader.read(in);
+            if(DEBUG) {
+                System.err.println("ELF: Got HDR "+file+": "+eh);
+            }
+            if( eh.isArm() ) {
+                boolean abiVFPArgsAcceptsVFPVariant = false;
+                final SectionHeader sh = eh.getSectionHeader(SectionHeader.SHT_ARM_ATTRIBUTES);
+                if( null != sh ) {
+                    if(DEBUG) {
+                        System.err.println("ELF: Got ARM Attribs Section Header: "+sh);
+                    }
+                    final SectionArmAttributes sArmAttrs = (SectionArmAttributes) sh.readSection(in);
+                    if(DEBUG) {
+                        System.err.println("ELF: Got ARM Attribs Section Block : "+sArmAttrs);
+                    }
+                    final SectionArmAttributes.Attribute abiVFPArgsAttr = sArmAttrs.get(SectionArmAttributes.Tag.ABI_VFP_args);
+                    if( null != abiVFPArgsAttr ) {
+                        abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
+                    }
+                }
+                cpuType[0] = CPUType.ARM; // lowest denominator, ok for us
+                abiType[0] = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
+                if(DEBUG) {
+                    System.err.println("ELF: abiARM, abiVFPArgsAcceptsVFPVariant "+abiVFPArgsAcceptsVFPVariant);
+                }
+            } else if ( eh.isX86_64() ) {
+                cpuType[0] = CPUType.X86_64;
+                abiType[0] = ABIType.GENERIC_ABI;
+            } else if ( eh.isX86_32() ) {
+                cpuType[0] = CPUType.X86_32;
+                abiType[0] = ABIType.GENERIC_ABI;
+            } else if ( eh.isIA64() ) {
+                cpuType[0] = CPUType.IA64;
+                abiType[0] = ABIType.GENERIC_ABI;
+            } else if ( eh.isMips() ) {
+                cpuType[0] = CPUType.MIPS_32; // FIXME
+                abiType[0] = ABIType.GENERIC_ABI;
+            }
+            res = eh;
+        } catch(Throwable t) {
+            if(DEBUG) {
+                System.err.println("Catched: "+t.getMessage());
+                t.printStackTrace();
+            }
+        } finally {
+            if(null != in) {
+                try {
+                    in.close();
+                } catch (IOException e) { }
+            }
+        }
+        if(DEBUG) {
+            System.err.println("ELF: res "+res+", cpuType "+cpuType[0]+", abiType "+abiType[0]);
+        }
+        return res;
+    }
+    private static boolean checkFileReadAccess(final File file) {
         try {
             return file.isFile() && file.canRead();
         } catch (Throwable t) { }
         return false;
     }
-    private static File findSysLib(String libName) {
-        ClassLoader cl = PlatformPropsImpl.class.getClassLoader();
+    private static File findSysLib(final String libName) {
+        final ClassLoader cl = PlatformPropsImpl.class.getClassLoader();
         final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
         for(int i=0; i<possibleLibPaths.size(); i++) {
             final String libPath = possibleLibPaths.get(i);
@@ -333,33 +443,33 @@ public abstract class PlatformPropsImpl {
         return null;
     }
 
-    private static final OSType getOSTypeImpl() throws RuntimeException {
-        if ( AndroidVersion.isAvailable ) {
+    private static final OSType getOSTypeImpl(final String osLower, final boolean isAndroid) throws RuntimeException {
+        if ( isAndroid ) {
             return OSType.ANDROID;
         }
-        if ( OS_lower.startsWith("linux") ) {
+        if ( osLower.startsWith("linux") ) {
             return OSType.LINUX;
         }
-        if ( OS_lower.startsWith("freebsd") ) {
+        if ( osLower.startsWith("freebsd") ) {
             return OSType.FREEBSD;
         }
-        if ( OS_lower.startsWith("android") ) {
+        if ( osLower.startsWith("android") ) {
             return OSType.ANDROID;
         }
-        if ( OS_lower.startsWith("mac os x") ||
-             OS_lower.startsWith("darwin") ) {
+        if ( osLower.startsWith("mac os x") ||
+             osLower.startsWith("darwin") ) {
             return OSType.MACOS;
         }
-        if ( OS_lower.startsWith("sunos") ) {
+        if ( osLower.startsWith("sunos") ) {
             return OSType.SUNOS;
         }
-        if ( OS_lower.startsWith("hp-ux") ) {
+        if ( osLower.startsWith("hp-ux") ) {
             return OSType.HPUX;
         }
-        if ( OS_lower.startsWith("windows") ) {
+        if ( osLower.startsWith("windows") ) {
             return OSType.WINDOWS;
         }
-        if ( OS_lower.startsWith("kd") ) {
+        if ( osLower.startsWith("kd") ) {
             return OSType.OPENKODE;
         }
         throw new RuntimeException("Please port OS detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");
@@ -395,7 +505,7 @@ public abstract class PlatformPropsImpl {
      * </ul>
      * @return
      */
-    public static final String getOSAndArch(OSType osType, CPUType cpuType, ABIType abiType) {
+    public static final String getOSAndArch(final OSType osType, final CPUType cpuType, final ABIType abiType) {
         String _os_and_arch;
 
         switch( cpuType ) {

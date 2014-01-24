@@ -461,11 +461,35 @@ public class ElfHeader {
     /**
      * Returns true if {@link #getMachine() machine} is a 32 or 64 bit Intel CPU
      * of type {@link #EM_386}, {@link #EM_486} or {@link #EM_X86_64}. */
-    public final boolean isIntel() {
+    public final boolean isX86_32() {
         final short m = getMachine();
         return EM_386 == m ||
                EM_486 == m ||
                EM_X86_64 == m;
+    }
+
+    /**
+     * Returns true if {@link #getMachine() machine} is a 64 bit AMD/Intel x86_64 CPU
+     * of type {@link #EM_X86_64}. */
+    public final boolean isX86_64() {
+        return getMachine() == EM_X86_64;
+    }
+
+    /**
+     * Returns true if {@link #getMachine() machine} is a 64 bit Intel Itanium CPU
+     * of type {@link #EM_IA_64}. */
+    public final boolean isIA64() {
+        return getMachine() == EM_IA_64;
+    }
+
+    /**
+     * Returns true if {@link #getMachine() machine} is a 32 or 64 bit MIPS CPU
+     * of type {@link #EM_MIPS}, {@link #EM_MIPS_X} or {@link #EM_MIPS_RS3_LE}. */
+    public final boolean isMips() {
+        final short m = getMachine();
+        return EM_MIPS == m ||
+               EM_MIPS_X == m ||
+               EM_MIPS_RS3_LE == m;
     }
 
     /** Returns the processor-specific flags associated with the file. */
@@ -536,8 +560,14 @@ public class ElfHeader {
         final String machineS;
         if( isArm() ) {
             machineS=", arm";
-        } else if( isIntel() ) {
-            machineS=", intel";
+        } else if( isX86_64() ) {
+            machineS=", x86_64";
+        } else if( isX86_32() ) {
+            machineS=", x86_32";
+        } else if( isIA64() ) {
+            machineS=", itanium";
+        } else if( isMips() ) {
+            machineS=", mips";
         } else {
             machineS="";
         }

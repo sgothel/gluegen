@@ -37,23 +37,42 @@ import com.jogamp.common.os.MachineDescription.StaticConfig;
  */
 public class MachineDescriptionRuntime {
 
-  static volatile boolean smdQueried = false;
-  static MachineDescription.StaticConfig smd = null;
+  static volatile boolean smdHardQueried = false;
+  static MachineDescription.StaticConfig smdHard = null;
+
+  static volatile boolean smdSoftQueried = false;
+  static MachineDescription.StaticConfig smdSoft = null;
+
+  static volatile boolean smdHardEnabled = false;
+
+  /* pp */ static void notifyPropsInitialized() { smdHardEnabled = true; }
 
   public static MachineDescription.StaticConfig getStatic() {
-        if(!smdQueried) {
-            synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
-                if(!smdQueried) {
-                    smd = getStaticImpl();
-                    smdQueried=true;
-                }
-            }
-        }
-        return smd;
+      if(!smdHardEnabled) {
+          if(!smdSoftQueried) {
+              synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
+                  if(!smdSoftQueried) {
+                      smdSoft = get(PlatformPropsImpl.OS_TYPE, PlatformPropsImpl.sCpuType, PlatformPropsImpl.LITTLE_ENDIAN);
+                      smdSoftQueried=true;
+                  }
+              }
+          }
+          return smdSoft;
+      } else {
+          if(!smdHardQueried) {
+              synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
+                  if(!smdHardQueried) {
+                      smdHard = get(PlatformPropsImpl.OS_TYPE, PlatformPropsImpl.CPU_ARCH, PlatformPropsImpl.LITTLE_ENDIAN);
+                      smdHardQueried=true;
+                  }
+              }
+          }
+          return smdHard;
+      }
   }
 
-  private static boolean isCPUArch32Bit() throws RuntimeException {
-    switch( PlatformPropsImpl.CPU_ARCH ) {
+  private static boolean isCPUArch32Bit(final Platform.CPUType cpuType) throws RuntimeException {
+    switch( cpuType ) {
         case X86_32:
         case ARM:
         case ARMv5:
@@ -72,23 +91,23 @@ public class MachineDescriptionRuntime {
     }
   }
 
-  private static MachineDescription.StaticConfig getStaticImpl() {
-      if(isCPUArch32Bit()) {
-          if(PlatformPropsImpl.CPU_ARCH.getFamily() == Platform.CPUFamily.ARM && PlatformPropsImpl.LITTLE_ENDIAN) {
+  private static MachineDescription.StaticConfig get(final Platform.OSType osType, final Platform.CPUType cpuType, final boolean littleEndian) {
+      if( isCPUArch32Bit(cpuType) ) {
+          if( cpuType.getFamily() == Platform.CPUFamily.ARM && littleEndian) {
               return StaticConfig.ARMle_EABI;
-          } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
+          } else if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_32_WINDOWS;
-          } else if(PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
+          } else if( osType == Platform.OSType.MACOS ) {
               return StaticConfig.X86_32_MACOS;
-          } else if (PlatformPropsImpl.OS_TYPE == Platform.OSType.SUNOS) {
-              if (PlatformPropsImpl.CPU_ARCH == Platform.CPUType.SPARC_32) {
+          } else if ( osType == Platform.OSType.SUNOS ) {
+              if ( cpuType == Platform.CPUType.SPARC_32 ) {
                   return StaticConfig.SPARC_32_SUNOS;
               }
               // TODO SPARCv9 description is missing
           }
           return StaticConfig.X86_32_UNIX;
       } else {
-          if(PlatformPropsImpl.OS_TYPE == Platform.OSType.WINDOWS) {
+          if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_64_WINDOWS;
           }
           return StaticConfig.X86_64_UNIX;

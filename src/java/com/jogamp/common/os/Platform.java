@@ -76,6 +76,8 @@ public class Platform extends PlatformPropsImpl {
         PPC(    0x00020000),
         /** SPARC */
         SPARC(  0x00030000),
+        /** Mips */
+        MIPS(   0x00040000),
         /** PA RISC */
         PA_RISC(0xFFFF0000),
         /** Itanium */
@@ -107,6 +109,10 @@ public class Platform extends PlatformPropsImpl {
         SPARC_32(  CPUFamily.SPARC,   0x0001),
         /** SPARC 64bit */
         SPARCV9_64(CPUFamily.SPARC,   0x0002),
+        /** MIPS 32bit */
+        MIPS_32(  CPUFamily.MIPS,     0x0001),
+        /** MIPS 64bit */
+        MIPS_64(  CPUFamily.MIPS,     0x0002),
         /** Itanium default */
         IA64(      CPUFamily.IA64,    0x0000),
         /** PA_RISC2_0 */
@@ -308,7 +314,7 @@ public class Platform extends PlatformPropsImpl {
 
     /**
      * Returns the OS type.
-     * <p>In case of {@link OSType#ANDROID} the OS name, see {@link #getOSName()}, is Linux</p>
+     * <p>In case of {@link OSType#ANDROID} the {@link #getOSName() OS name}, is Linux</p>
      */
     public static OSType getOSType() {
         return OS_TYPE;
