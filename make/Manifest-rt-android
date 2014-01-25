@@ -14,8 +14,9 @@ Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp.common
 Trusted-Library: true
 Permissions: all-permissions
-Name: jogamp/common/
-Sealed: true
 Application-Library-Allowable-Codebase: *
 @JAR_CODEBASE_TAG@
+
+Name: jogamp/common/
+Sealed: true
 
