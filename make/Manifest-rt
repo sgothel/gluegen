@@ -20,3 +20,6 @@ Application-Library-Allowable-Codebase: *
 Name: jogamp/common/
 Sealed: true
 
+Name: com/jogamp/common/
+Sealed: true
+

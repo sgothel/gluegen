@@ -759,7 +759,6 @@
       <fileset dir="${classes}">
         <include name="**/*.class" />
         <exclude name="${jogamp-android-launcher.classes}" />
-        <exclude name="${java.part.android}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -860,7 +859,6 @@
         <include name="com/jogamp/common/**" />
         <include name="jogamp/common/**" />
         <include name="${java.part.android}" />
-        <exclude name="${java.part.awt}" />
         <exclude name="${jogamp-android-launcher.classes}" />
       </fileset>
       <fileset dir="resources/assets">

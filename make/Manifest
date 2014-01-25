@@ -15,3 +15,9 @@ Extension-Name: com.jogamp.gluegen
 Main-Class: com.jogamp.gluegen.GlueGen
 Class-Path: antlr.jar
 
+Name: jogamp/common/
+Sealed: true
+
+Name: com/jogamp/common/
+Sealed: true
+
