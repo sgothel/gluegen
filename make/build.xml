@@ -823,7 +823,7 @@
   </target>
 
   <target name="gluegen.build.android" if="android-jars.available">
-    <!--compile gluegen-rt-android first-->
+    <!--compile gluegen-rt-android last-->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
