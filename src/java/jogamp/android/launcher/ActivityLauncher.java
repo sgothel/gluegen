@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -38,22 +38,24 @@ import android.util.Log;
 
 public class ActivityLauncher extends Activity {
    static final String TAG = "JogAmp-ActivityLauncher";
-   
+
    LauncherUtil.DataSet data = null;
-   
+   boolean dataSet = false;
+
    Class<?> activityClazz = null;
-   Method mOnCreate, mOnDestroy, mOnPause, mOnRestart, mOnResume, 
+   Method mOnCreate, mOnDestroy, mOnPause, mOnRestart, mOnResume,
           mOnStart, mOnStop, mSetRootActivity;
    Object activityObject  = null;
-   
+
    @Override
    public void onCreate(Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
-       
+
        final Uri uri = getIntent().getData();
        data = LauncherUtil.DataSet.create(uri);
        data.setSystemProperties();
+       dataSet = true;
 
        ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getSysPackages(), data.getUsrPackages(), null);
        if(null != cl) {
@@ -83,21 +85,25 @@ public class ActivityLauncher extends Activity {
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
-       
+
        callMethod(activityObject, mSetRootActivity, this);
-       
+
        callMethod(activityObject, mOnCreate, savedInstanceState);
        Log.d(TAG, "onCreate - X");
    }
-   
+
    @Override
    public void onStart() {
      Log.d(TAG, "onStart - S");
      super.onStart();
+     if( !dataSet && null != data ) {
+         data.setSystemProperties();
+         dataSet = true;
+     }
      callMethod(activityObject, mOnStart);
      Log.d(TAG, "onStart - X");
    }
-     
+
    @Override
    public void onRestart() {
      Log.d(TAG, "onRestart - S");
@@ -126,7 +132,11 @@ public class ActivityLauncher extends Activity {
    public void onStop() {
      Log.d(TAG, "onStop - S");
      callMethod(activityObject, mOnStop);
-     super.onStop();  
+     super.onStop();
+     if( dataSet && null != data ) {
+         data.clearSystemProperties();
+         dataSet = false;
+     }
      Log.d(TAG, "onStop - X");
    }
 
@@ -140,35 +150,35 @@ public class ActivityLauncher extends Activity {
          mOnDestroy=null;
          mOnPause=null;
          mOnRestart=null;
-         mOnResume=null; 
+         mOnResume=null;
          mOnStart=null;
          mOnStop=null;
          mSetRootActivity=null;
          activityClazz = null;
          data.clearSystemProperties();
-         data = null;           
+         data = null;
      }
-     super.onDestroy();  
+     super.onDestroy();
      Log.d(TAG, "onDestroy - X");
-   }   
+   }
 
    @Override
    public void finish() {
      Log.d(TAG, "finish - S");
-     super.finish();  
+     super.finish();
      Log.d(TAG, "finish - X");
-   }   
+   }
 
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs) 
+  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs)
       throws RuntimeException
   {
     return createInstance(getConstructor(clazz, cstrArgTypes), cstrArgs);
   }
 
-  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs) 
+  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs)
       throws RuntimeException
   {
     try {
@@ -187,11 +197,11 @@ public class ActivityLauncher extends Activity {
       throw new RuntimeException("can not create instance of "+cstr.getName(), t);
     }
   }
-  
+
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    protected static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes) 
+    protected static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes)
         throws RuntimeException {
         try {
             if(null == cstrArgTypes) {
@@ -202,7 +212,7 @@ public class ActivityLauncher extends Activity {
             throw new RuntimeException("Constructor: '" + clazz + "(" + asString(cstrArgTypes) + ")' not found", ex);
         }
     }
-    
+
     protected static final Class<?>[] zeroTypes = new Class[0];
 
     protected static final String asString(Class<?>[] argTypes) {
@@ -219,7 +229,7 @@ public class ActivityLauncher extends Activity {
         }
         return args.toString();
     }
-    
+
   protected static final Object callMethod(Object instance, Method method, Object ... args)
       throws RuntimeException
   {
