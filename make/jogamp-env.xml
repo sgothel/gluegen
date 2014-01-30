@@ -79,14 +79,14 @@
     <property name="jogamp.version.major" value="2"/>
     <property name="jogamp.version.minor" value="1"/>
     <property name="jogamp.version.submi" value="4"/>
-    <property name="jogamp.version.devel" value="-rc-${version.timestamp}"/> <!-- Devel RC Tag -->
-    <!-- property name="jogamp.version.devel" value=""/ --> <!-- Release tag -->
+    <!-- property name="jogamp.version.devel" value="-rc-${version.timestamp}"/ --> <!-- Devel RC Tag -->
+    <property name="jogamp.version.devel" value=""/> <!-- Release tag -->
     <property name="jogamp.version.base"  value="${jogamp.version.major}.${jogamp.version.minor}"/>
     <property name="jogamp.version"       value="${jogamp.version.base}.${jogamp.version.submi}${jogamp.version.devel}" />
     <echo message="jogamp.version             ${jogamp.version}"/>
 
     <!-- This is the Android version: xxyyzzz, xx=API yy screen-from-to zzz app-version-->
-    <property name="jogamp.version.int"   value="0914017"/>
+    <property name="jogamp.version.int"   value="0914018"/>
     <echo message="jogamp.version.int         ${jogamp.version.int}"/>
 
     <!-- only set 'junit.is.disabled' if set in environment as 'true' to disable JUNIT tests -->
