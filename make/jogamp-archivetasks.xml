@@ -21,7 +21,7 @@
              spawn="false"
              failifexecutionfails="true"
              failonerror="true">
-         <arg line="a -r ${destfile.path} @{includes}"/>
+         <arg line="a -r '${destfile.path}' @{includes}"/>
        </exec>
       </sequential>
     </macrodef>  
