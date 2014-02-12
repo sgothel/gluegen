@@ -37,14 +37,41 @@
 
 package com.jogamp.common.util;
 
-import java.lang.reflect.*;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import jogamp.common.Debug;
 
 import com.jogamp.common.JogampRuntimeException;
-import jogamp.common.Debug;
 
 public final class ReflectionUtil {
 
-    public static final boolean DEBUG = Debug.debug("ReflectionUtil");
+    public static final boolean DEBUG;
+    public static final boolean DEBUG_STATS_FORNAME;
+
+    private static final Object forNameLock;
+    private static final Map<String, ClassNameLookup> forNameStats;
+    private static int forNameCount = 0;
+    private static long forNameNanoCosts = 0;
+
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.debug("ReflectionUtil");
+        DEBUG_STATS_FORNAME = Debug.isPropertyDefined("jogamp.debug.ReflectionUtil.forNameStats", true);
+        if(DEBUG_STATS_FORNAME) {
+            forNameLock = new Object();
+            forNameStats = new HashMap<String, ClassNameLookup>();
+        } else {
+            forNameLock = null;
+            forNameStats = null;
+        }
+    }
 
     public static class AWTNames {
         public static final String ComponentClass = "java.awt.Component" ;
@@ -53,12 +80,80 @@ public final class ReflectionUtil {
     }
     private static final Class<?>[] zeroTypes = new Class[0];
 
+    private static class ClassNameLookup {
+        public ClassNameLookup(String name) {
+            this.name = name;
+            this.nanoCosts = 0;
+            this.count = 0;
+        }
+        public final String name;
+        public long nanoCosts;
+        public int count;
+        public String toString() {
+            return String.format("%8.3f ms, %03d invoc, %s", nanoCosts/1e6, count, name);
+        }
+    }
+    public static void resetForNameCount() {
+        if(DEBUG_STATS_FORNAME) {
+            synchronized(forNameLock) {
+                forNameCount=0;
+                forNameNanoCosts=0;
+                forNameStats.clear();
+            }
+        }
+    }
+    public static StringBuilder getForNameStats(StringBuilder sb) {
+        if( null == sb ) {
+            sb = new StringBuilder();
+        }
+        if(DEBUG_STATS_FORNAME) {
+            synchronized(forNameLock) {
+                sb.append(String.format("ReflectionUtil.forName: %8.3f ms, %03d invoc%n", forNameNanoCosts/1e6, forNameCount));
+                final Set<Entry<String, ClassNameLookup>> entries = forNameStats.entrySet();
+                int entryNum = 0;
+                for(Iterator<Entry<String, ClassNameLookup>> iter = entries.iterator(); iter.hasNext(); entryNum++) {
+                    final Entry<String, ClassNameLookup> entry = iter.next();
+                    sb.append(String.format("ReflectionUtil.forName[%03d]: %s%n", entryNum, entry.getValue()));
+                }
+            }
+        }
+        return sb;
+    }
+
+    private static Class<?> getClassImpl(String clazzName, boolean initialize, ClassLoader cl) throws ClassNotFoundException {
+        if(DEBUG_STATS_FORNAME) {
+            final long t0 = System.nanoTime();
+            final Class<?> res = Class.forName(clazzName, initialize, cl);
+            final long t1 = System.nanoTime();
+            final long nanoCosts = t1 - t0;
+            synchronized(forNameLock) {
+                forNameCount++;
+                forNameNanoCosts += nanoCosts;
+                ClassNameLookup cnl = forNameStats.get(clazzName);
+                if( null == cnl ) {
+                    cnl = new ClassNameLookup(clazzName);
+                    forNameStats.put(clazzName, cnl);
+                }
+                cnl.count++;
+                cnl.nanoCosts += nanoCosts;
+                System.err.printf("ReflectionUtil.getClassImpl.%03d: %8.3f ms, init %b, [%s]@ Thread %s%n",
+                        forNameCount, nanoCosts/1e6, initialize, cnl.toString(), Thread.currentThread().getName());
+                if(DEBUG) {
+                    Thread.dumpStack();
+                }
+            }
+            return res;
+        } else {
+            return Class.forName(clazzName, initialize, cl);
+        }
+    }
+
     /**
      * Returns true only if the class could be loaded.
      */
     public static final boolean isClassAvailable(String clazzName, ClassLoader cl) {
         try {
-            return null != Class.forName(clazzName, false, cl);
+            return null != getClassImpl(clazzName, false, cl);
         } catch (ClassNotFoundException e) {
             return false;
         }
@@ -75,10 +170,6 @@ public final class ReflectionUtil {
         } catch (ClassNotFoundException e) {
             throw new JogampRuntimeException(clazzName + " not available", e);
         }
-    }
-
-    private static Class<?> getClassImpl(String clazzName, boolean initialize, ClassLoader cl) throws ClassNotFoundException {
-        return Class.forName(clazzName, initialize, cl);
     }
 
     /**
