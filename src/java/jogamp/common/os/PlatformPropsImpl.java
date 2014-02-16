@@ -97,9 +97,16 @@ public abstract class PlatformPropsImpl {
         JAVA_VERSION = System.getProperty("java.version");
         JAVA_VERSION_NUMBER = new VersionNumber(JAVA_VERSION);
         {
-           final int usIdx = JAVA_VERSION.lastIndexOf("_");
-           if( usIdx > 0 ) {
-               final String buildS = Platform.JAVA_VERSION.substring(usIdx+1);
+           int usIdx = JAVA_VERSION.lastIndexOf("-u"); // OpenJDK update notation
+           int usOff;
+           if( 0 < usIdx ) {
+               usOff = 2;
+           } else {
+               usIdx = JAVA_VERSION.lastIndexOf("_"); // Oracle update notation
+               usOff = 1;
+           }
+           if( 0 < usIdx ) {
+               final String buildS = Platform.JAVA_VERSION.substring(usIdx+usOff);
                final VersionNumber update = new VersionNumber(buildS);
                JAVA_VERSION_UPDATE = update.getMajor();
            } else {
