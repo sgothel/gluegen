@@ -29,18 +29,19 @@ package jogamp.common.os.elf;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
+
+import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.Bitstream;
 
 class IOUtils {
-    static final long MAX_INT_VALUE = ( (long) Integer.MAX_VALUE & 0xffffffffL ) ;
+    static final long MAX_INT_VALUE = ( Integer.MAX_VALUE & 0xffffffffL ) ;
 
     static String toHexString(int i) { return "0x"+Integer.toHexString(i); }
 
     static String toHexString(long i) { return "0x"+Long.toHexString(i); }
 
     static int shortToInt(short s) {
-        return (int)s & 0x0000ffff;
+        return s & 0x0000ffff;
     }
 
     static int long2Int(final long v) {
@@ -48,12 +49,6 @@ class IOUtils {
             throw new IllegalArgumentException("Read uint32 value "+toHexString(v)+" > int32-max "+toHexString(MAX_INT_VALUE));
         }
         return (int)v;
-    }
-
-    static void checkBounds(final byte[] sb, final int offset, final int remaining) {
-        if( offset + remaining > sb.length ) {
-            throw new IndexOutOfBoundsException("Buffer of size "+sb.length+" cannot hold offset "+offset+" + remaining "+remaining);
-        }
     }
 
     static void readBytes(final RandomAccessFile in, final byte[] out, final int offset, final int len)
@@ -80,9 +75,7 @@ class IOUtils {
     }
 
     static int readInt32(final byte[] in, final int offset) {
-        checkBounds(in, offset, 4);
-        final ByteBuffer b = ByteBuffer.wrap(in, offset, 4).order(ByteOrder.nativeOrder());
-        return b.asIntBuffer().get(0);
+        return Bitstream.readInt32(!Platform.isLittleEndian(), in, offset);
     }
 
     /**
@@ -95,7 +88,7 @@ class IOUtils {
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
     static String getString(final byte[] sb, final int offset, final int remaining, int[] offset_post) throws IndexOutOfBoundsException {
-        checkBounds(sb, offset, remaining);
+        Bitstream.checkBounds(sb, offset, remaining);
         int strlen = 0;
         for(; strlen < remaining && sb[strlen + offset] != 0; strlen++) { }
         final String s = 0 < strlen ? new String(sb, offset, strlen) : "" ;
@@ -114,7 +107,7 @@ class IOUtils {
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
     static int getStringCount(final byte[] sb, int offset, final int remaining) throws IndexOutOfBoundsException {
-        checkBounds(sb, offset, remaining);
+        Bitstream.checkBounds(sb, offset, remaining);
         int strnum=0;
         for(int i=0; i < remaining; i++) {
             for(; i < remaining && sb[i + offset] != 0; i++) { }

@@ -1,12 +1,13 @@
 package jogamp.common.os.elf;
 
 import static jogamp.common.os.elf.IOUtils.toHexString;
-import static jogamp.common.os.elf.IOUtils.checkBounds;
 import static jogamp.common.os.elf.IOUtils.readUInt32;
 import static jogamp.common.os.elf.IOUtils.getString;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import com.jogamp.common.util.Bitstream;
 
 /**
  * ARM EABI attributes within section header {@link SectionHeader#SHT_ARM_ATTRIBUTES}.
@@ -215,7 +216,7 @@ public class SectionArmAttributes extends Section {
      * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
     static List<VendorAttributes> parse(final byte[] in, final int offset, final int remaining) throws IndexOutOfBoundsException, IllegalArgumentException {
-        checkBounds(in, offset, remaining);
+        Bitstream.checkBounds(in, offset, remaining);
         int i = offset;
         if( FORMAT_VERSION_A != in[ i ] ) {
             throw new IllegalArgumentException("ShArmAttr: Not version A, but: "+toHexString(in[i]));
@@ -268,7 +269,7 @@ public class SectionArmAttributes extends Section {
      * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
     static void parseSub(final byte[] in, final int offset, final int remaining, int[] offset_post, List<Attribute> attributes) throws IndexOutOfBoundsException, IllegalArgumentException {
-        checkBounds(in, offset, remaining);
+        Bitstream.checkBounds(in, offset, remaining);
 
         // Starts w/ sub-section Tag
         int i = offset;
