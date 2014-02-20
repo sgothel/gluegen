@@ -41,7 +41,7 @@ rm -f $LOG
 
 #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup"
 #D_ARGS="-Djogamp.debug.TraceLock"
-D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
+#D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
 #D_ARGS="-Djogamp.debug.JarUtil"
 #D_ARGS="-Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.TempFileCache"
@@ -53,6 +53,7 @@ D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.IOUtil"
+#D_ARGS="-Djogamp.debug.Bitstream"
 #D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
@@ -95,13 +96,18 @@ function onetest() {
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtilURICompose 2>&1 | tee -a $LOG
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtilURIHandling 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
+#onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestURIQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
@@ -110,7 +116,7 @@ onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
