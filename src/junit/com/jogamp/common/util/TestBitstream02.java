@@ -71,7 +71,7 @@ public class TestBitstream02 extends JunitTracer {
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, false /* outputMode */);
         {
-            final byte r8 = (byte) bs.readInt8(true /* msbFirst */);
+            final byte r8 = (byte) bs.readUInt8(true /* msbFirst */);
             System.err.println("Read8.1 "+r8+", "+toHexBinaryString(r8, 8));
             Assert.assertEquals(val8, r8);
         }
@@ -81,7 +81,7 @@ public class TestBitstream02 extends JunitTracer {
         bs.writeInt8(true /* msbFirst */, val8);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
         {
-            final byte r8 = (byte) bs.readInt8(true /* msbFirst */);
+            final byte r8 = (byte) bs.readUInt8(true /* msbFirst */);
             System.err.println("Read8.2 "+r8+", "+toHexBinaryString(r8, 8));
             Assert.assertEquals(val8, r8);
         }
@@ -119,7 +119,7 @@ public class TestBitstream02 extends JunitTracer {
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
 
         final int rPre = (short) bs.readBits31(true /* msbFirst */, preBits);
-        final byte r8 = (byte) bs.readInt8(true /* msbFirst */);
+        final byte r8 = (byte) bs.readUInt8(true /* msbFirst */);
         System.err.println("ReadPre "+rPre+", "+toBinaryString(rPre, preBits));
         System.err.println("Read8 "+r8+", "+toHexBinaryString(r8, 8));
         Assert.assertEquals(val8, r8);

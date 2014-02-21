@@ -104,10 +104,10 @@ function onetest() {
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
 onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestURIQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG

@@ -1027,14 +1027,17 @@ public class Bitstream<T> {
     }
 
     /**
-     * Return incoming int8 as read via {@link #readBits31(boolean, int)}.
+     * Return incoming <code>uint8_t</code> as read via {@link #readBits31(boolean, int)}.
+     * <p>
+     * In case of a <code>int8_t</code> 2-complement signed value, simply cast the result to <code>byte</code>
+     * after checking for {@link #EOS}.
+     * </p>
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
-     * @return {@link #EOS} or the 8bit value, which might be unsigned or 2-complement signed value.
-     *         In the signed case, user shall cast the result to <code>byte</code>.
+     * @return {@link #EOS} or the 8bit unsigned value within the lower bits.
      * @throws IllegalStateException if not in input mode or stream closed
      * @throws IOException
      */
-    public final int readInt8(final boolean msbFirst) throws IllegalStateException, IOException {
+    public final int readUInt8(final boolean msbFirst) throws IllegalStateException, IOException {
         if( 0 == bitCount && msbFirst ) {
             // fast path
             if( outputMode || null == bytes ) {
@@ -1047,7 +1050,7 @@ public class Bitstream<T> {
     }
 
     /**
-     * Write the given int8 via {@link #writeBits31(boolean, int, int)}.
+     * Write the given 8 bits via {@link #writeBits31(boolean, int, int)}.
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
      * @return {@link #EOS} or the written 8bit value.
      * @throws IllegalStateException if not in output mode or stream closed
@@ -1066,16 +1069,19 @@ public class Bitstream<T> {
     }
 
     /**
-     * Return incoming int16 as read via {@link #readBits31(boolean, int)}
+     * Return incoming <code>uint16_t</code> as read via {@link #readBits31(boolean, int)}
      * and swap bytes if !bigEndian.
+     * <p>
+     * In case of a <code>int16_t</code> 2-complement signed value, simply cast the result to <code>short</code>
+     * after checking for {@link #EOS}.
+     * </p>
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
-     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
-     * @return {@link #EOS} or the 16bit value, which might be unsigned or 2-complement signed value.
-     *         In the signed case, user shall cast the result to <code>short</code>.
+     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as big-endian.
+     * @return {@link #EOS} or the 16bit unsigned value within the lower bits.
      * @throws IllegalStateException if not in input mode or stream closed
      * @throws IOException
      */
-    public final int readInt16(final boolean msbFirst, final boolean bigEndian) throws IllegalStateException, IOException {
+    public final int readUInt16(final boolean msbFirst, final boolean bigEndian) throws IllegalStateException, IOException {
         if( 0 == bitCount && msbFirst ) {
             // fast path
             if( outputMode || null == bytes ) {
@@ -1105,13 +1111,15 @@ public class Bitstream<T> {
     }
 
     /**
-     * Return incoming int16 value and swap bytes if !bigEndian.
-     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
-     * @return the 16bit value, which might be unsigned or 2-complement signed value.
-     *         In the signed case, user shall cast the result to <code>short</code>.
+     * Return incoming <code>uint16_t</code> value and swap bytes if !bigEndian.
+     * <p>
+     * In case of a <code>int16_t</code> 2-complement signed value, simply cast the result to <code>short</code>.
+     * </p>
+     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as big-endian.
+     * @return the 16bit unsigned value within the lower bits.
      * @throws IndexOutOfBoundsException
      */
-    public static final int readInt16(final boolean bigEndian, final byte[] bytes, final int offset) throws IndexOutOfBoundsException {
+    public static final int readUInt16(final boolean bigEndian, final byte[] bytes, final int offset) throws IndexOutOfBoundsException {
         checkBounds(bytes, offset, 2);
         final int b1 = bytes[offset];
         final int b2 = bytes[offset+1];
@@ -1123,10 +1131,10 @@ public class Bitstream<T> {
     }
 
     /**
-     * Write the given int16 via {@link #writeBits31(boolean, int, int)},
+     * Write the given 16 bits via {@link #writeBits31(boolean, int, int)},
      * while swapping bytes if !bigEndian beforehand.
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
-     * @param bigEndian if false, swap given bytes to little-endian, otherwise leave them as little-endian.
+     * @param bigEndian if false, swap given bytes to little-endian, otherwise leave them as big-endian.
      * @return {@link #EOS} or the written 16bit value.
      * @throws IllegalStateException if not in output mode or stream closed
      * @throws IOException
@@ -1163,20 +1171,19 @@ public class Bitstream<T> {
     }
 
     /**
-     * Return incoming int32 as read via {@link #readBits31(boolean, int)}
+     * Return incoming <code>uint32_t</code> as read via {@link #readBits31(boolean, int)}
      * and swap bytes if !bigEndian.
      * <p>
-     * In case the returned value shall be interpreted as <code>uint32_t</code>
-     * utilize {@link #toUInt32Long(int)} or {@link #toUInt32Int(int)} for
-     * an appropriate conversion.
+     * In case of a <code>int32_t</code> 2-complement signed value, simply cast the result to <code>int</code>
+     * after checking for {@link #EOS}.
      * </p>
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
-     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
-     * @return {@link #EOS} or the 32bit value, which might be unsigned or 2-complement signed value.
+     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as big-endian.
+     * @return {@link #EOS} or the 32bit unsigned value within the lower bits.
      * @throws IllegalStateException if not in input mode or stream closed
      * @throws IOException
      */
-    public final int readInt32(final boolean msbFirst, final boolean bigEndian) throws IllegalStateException, IOException {
+    public final long readUInt32(final boolean msbFirst, final boolean bigEndian) throws IllegalStateException, IOException {
         if( 0 == bitCount && msbFirst ) {
             // fast path
             if( outputMode || null == bytes ) {
@@ -1189,9 +1196,9 @@ public class Bitstream<T> {
             if( EOS == b4 ) {
                 return EOS;
             } else if( bigEndian ) {
-                return b1 << 24 | b2 << 16 | b3 << 8 | b4;
+                return 0xffffffffL & ( b1 << 24 | b2 << 16 | b3 << 8 | b4 );
             } else {
-                return b4 << 24 | b3 << 16 | b2 << 8 | b1;
+                return 0xffffffffL & ( b4 << 24 | b3 << 16 | b2 << 8 | b1 );
             }
         } else {
             final int i16a = readBits31(msbFirst, 16);
@@ -1199,44 +1206,41 @@ public class Bitstream<T> {
             if( EOS == i16b ) {
                 return EOS;
             } else if( bigEndian ) {
-                return i16a << 16 | i16b;
+                return 0xffffffffL & ( i16a << 16 | i16b );
             } else {
                 final int b1 = 0xff & ( i16a >>> 8 );
                 final int b2 = 0xff &   i16a;
                 final int b3 = 0xff & ( i16b >>> 8 );
                 final int b4 = 0xff &   i16b;
-                return b4 << 24 | b3 << 16 | b2 << 8 | b1;
+                return 0xffffffffL & ( b4 << 24 | b3 << 16 | b2 << 8 | b1 );
             }
         }
     }
 
     /**
-     * Return incoming int32 as read via {@link #readBits31(boolean, int)}
-     * and swap bytes if !bigEndian.
+     * Return incoming <code>uint32_t</code> and swap bytes if !bigEndian.
      * <p>
-     * In case the returned value shall be interpreted as <code>uint32_t</code>
-     * utilize {@link #toUInt32Long(int)} or {@link #toUInt32Int(int)} for
-     * an appropriate conversion.
+     * In case of a <code>int32_t</code> 2-complement signed value, simply cast the result to <code>int</code>.
      * </p>
-     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
-     * @return the 32bit value, which might be unsigned or 2-complement signed value.
+     * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as big-endian.
+     * @return the 32bit unsigned value within the lower bits.
      * @throws IndexOutOfBoundsException
      */
-    public static final int readInt32(final boolean bigEndian, final byte[] bytes, final int offset) throws IndexOutOfBoundsException {
+    public static final long readUInt32(final boolean bigEndian, final byte[] bytes, final int offset) throws IndexOutOfBoundsException {
         checkBounds(bytes, offset, 4);
         final int b1 = bytes[offset];
         final int b2 = bytes[offset+1];
         final int b3 = bytes[offset+2];
         final int b4 = bytes[offset+3];
         if( bigEndian ) {
-            return b1 << 24 | b2 << 16 | b3 << 8 | b4;
+            return 0xffffffffL & ( b1 << 24 | b2 << 16 | b3 << 8 | b4 );
         } else {
-            return b4 << 24 | b3 << 16 | b2 << 8 | b1;
+            return 0xffffffffL & ( b4 << 24 | b3 << 16 | b2 << 8 | b1 );
         }
     }
 
     /**
-     * Write the given int32 via {@link #writeBits31(boolean, int, int)},
+     * Write the given 32 bits via {@link #writeBits31(boolean, int, int)},
      * while swapping bytes if !bigEndian beforehand.
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
      * @param bigEndian if false, swap given bytes to little-endian, otherwise leave them as little-endian.

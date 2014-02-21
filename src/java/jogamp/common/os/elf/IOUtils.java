@@ -62,7 +62,7 @@ class IOUtils {
     }
 
     static int readUInt32(final byte[] in, final int offset) {
-        final int v = readInt32(in, offset);
+        final int v = Bitstream.uint32LongToInt(Bitstream.readUInt32(!Platform.isLittleEndian(), in, offset));
         if( 0 > v ) {
             throw new IllegalArgumentException("Read uint32 value "+toHexString(v)+" > int32-max "+toHexString(MAX_INT_VALUE));
         }
@@ -72,10 +72,6 @@ class IOUtils {
         final byte[] uint = new byte[] { 0, 0, 0, 0, in[offset+0],  in[offset+1],  in[offset+2],  in[offset+3] };
         final ByteBuffer b = ByteBuffer.wrap(uint, 0, 8).order(ByteOrder.nativeOrder());
         return b.asLongBuffer().get(0); */
-    }
-
-    static int readInt32(final byte[] in, final int offset) {
-        return Bitstream.readInt32(!Platform.isLittleEndian(), in, offset);
     }
 
     /**

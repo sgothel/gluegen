@@ -47,7 +47,7 @@ import org.junit.runners.MethodSorters;
  * Test {@link Bitstream} w/ int16 read/write access w/ semantics
  * as well as with aligned and unaligned access.
  * <ul>
- *  <li>{@link Bitstream#readInt16(boolean, boolean)}</li>
+ *  <li>{@link Bitstream#readUInt16(boolean, boolean)}</li>
  *  <li>{@link Bitstream#writeInt16(boolean, boolean, short)}</li>
  * </ul>
  */
@@ -82,7 +82,7 @@ public class TestBitstream03 extends JunitTracer {
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, false /* outputMode */);
         {
-            final short r16 = (short) bs.readInt16(true /* msbFirst */, bigEndian);
+            final short r16 = (short) bs.readUInt16(true /* msbFirst */, bigEndian);
             System.err.println("Read16.1 "+r16+", "+toHexBinaryString(r16, 16));
             Assert.assertEquals(val16, r16);
         }
@@ -92,7 +92,7 @@ public class TestBitstream03 extends JunitTracer {
         bs.writeInt16(true /* msbFirst */, bigEndian, val16);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
         {
-            final short r16 = (short) bs.readInt16(true /* msbFirst */, bigEndian);
+            final short r16 = (short) bs.readUInt16(true /* msbFirst */, bigEndian);
             System.err.println("Read16.2 "+r16+", "+toHexBinaryString(r16, 16));
             Assert.assertEquals(val16, r16);
         }
@@ -140,7 +140,7 @@ public class TestBitstream03 extends JunitTracer {
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
 
         final int rPre = (short) bs.readBits31(true /* msbFirst */, preBits);
-        final short r16 = (short) bs.readInt16(true /* msbFirst */, bigEndian);
+        final short r16 = (short) bs.readUInt16(true /* msbFirst */, bigEndian);
         System.err.println("ReadPre "+rPre+", "+toBinaryString(rPre, preBits));
         System.err.println("Read16 "+r16+", "+toHexBinaryString(r16, 16));
         Assert.assertEquals(val16, r16);

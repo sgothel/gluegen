@@ -47,7 +47,7 @@ import org.junit.runners.MethodSorters;
  * Test {@link Bitstream} w/ int32 read/write access w/ semantics
  * as well as with aligned and unaligned access.
  * <ul>
- *  <li>{@link Bitstream#readInt32(boolean, boolean)}</li>
+ *  <li>{@link Bitstream#readUInt32(boolean, boolean)}</li>
  *  <li>{@link Bitstream#writeInt32(boolean, boolean, int)}</li>
  * </ul>
  */
@@ -61,32 +61,40 @@ public class TestBitstream04 extends JunitTracer {
         test01Int32BitsImpl(ByteOrder.LITTLE_ENDIAN);
     }
     void test01Int32BitsImpl(ByteOrder byteOrder) throws IOException {
-        test01Int32BitsAlignedImpl(byteOrder, 0);
-        test01Int32BitsAlignedImpl(byteOrder, 1);
-        test01Int32BitsAlignedImpl(byteOrder, -1);
-        test01Int32BitsAlignedImpl(byteOrder, 7);
-        test01Int32BitsAlignedImpl(byteOrder, 0x0fffffff);
-        test01Int32BitsAlignedImpl(byteOrder, Integer.MIN_VALUE);
-        test01Int32BitsAlignedImpl(byteOrder, Integer.MAX_VALUE);
-        test01Int32BitsAlignedImpl(byteOrder, 0xffffffff);
+        test01Int32BitsAlignedImpl(byteOrder, 0, 0);
+        test01Int32BitsAlignedImpl(byteOrder, 1, 1);
+        test01Int32BitsAlignedImpl(byteOrder, -1, -1);
+        test01Int32BitsAlignedImpl(byteOrder, 7, 7);
+        test01Int32BitsAlignedImpl(byteOrder, 0x0fffffff, 0x0fffffff);
+        test01Int32BitsAlignedImpl(byteOrder, Integer.MIN_VALUE, -1);
+        test01Int32BitsAlignedImpl(byteOrder, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        test01Int32BitsAlignedImpl(byteOrder, 0xffffffff, -1);
     }
-    void test01Int32BitsAlignedImpl(ByteOrder byteOrder, int val32) throws IOException {
+    void test01Int32BitsAlignedImpl(ByteOrder byteOrder, int val32, int expUInt32Int) throws IOException {
         // Test with buffer defined value
         final ByteBuffer bb = ByteBuffer.allocate(Buffers.SIZEOF_INT);
         if( null != byteOrder ) {
             bb.order(byteOrder);
         }
         final boolean bigEndian = ByteOrder.BIG_ENDIAN == bb.order();
+        final String val32_hs = toHexString(val32);
         System.err.println("XXX Test01Int32BitsAligned: byteOrder "+byteOrder+" (bigEndian "+bigEndian+"), value "+val32+", "+toHexBinaryString(val32, 32));
-        System.err.println("XXX Test01Int32BitsAligned: "+toUnsignedBinaryString(val32));
+        System.err.println("XXX Test01Int32BitsAligned: "+val32+", "+val32_hs);
+
         bb.putInt(0, val32);
 
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, false /* outputMode */);
         {
-            final int r32 = bs.readInt32(true /* msbFirst */, bigEndian);
-            System.err.println("Read32.1 "+r32+", "+toHexBinaryString(r32, 32)+", "+toUnsignedBinaryString(r32));
-            Assert.assertEquals(val32, r32);
+            final long uint32_l = bs.readUInt32(true /* msbFirst */, bigEndian);
+            final int int32_l = (int)uint32_l;
+            final String uint32_l_hs = toHexString(uint32_l);
+            final int uint32_i = Bitstream.uint32LongToInt(uint32_l);
+            System.err.printf("Read32.1 uint32_l %012d, %10s; int32_l %012d %10s; uint32_i %012d %10s%n",
+                    uint32_l, uint32_l_hs, int32_l, toHexString(int32_l), uint32_i, toHexString(uint32_i));
+            Assert.assertEquals(val32_hs, uint32_l_hs);
+            Assert.assertEquals(val32, int32_l);
+            Assert.assertEquals(expUInt32Int, uint32_i);
         }
 
         // Test with written bitstream value
@@ -94,9 +102,15 @@ public class TestBitstream04 extends JunitTracer {
         bs.writeInt32(true /* msbFirst */, bigEndian, val32);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
         {
-            final int r32 = bs.readInt32(true /* msbFirst */, bigEndian);
-            System.err.println("Read32.2 "+r32+", "+toHexBinaryString(r32, 32)+", "+toUnsignedBinaryString(r32));
-            Assert.assertEquals(val32, r32);
+            final long uint32_l = bs.readUInt32(true /* msbFirst */, bigEndian);
+            final int int32_l = (int)uint32_l;
+            final String uint32_l_hs = toHexString(uint32_l);
+            final int uint32_i = Bitstream.uint32LongToInt(uint32_l);
+            System.err.printf("Read32.2 uint32_l %012d, %10s; int32_l %012d %10s; uint32_i %012d %10s%n",
+                    uint32_l, uint32_l_hs, int32_l, toHexString(int32_l), uint32_i, toHexString(uint32_i));
+            Assert.assertEquals(val32_hs, uint32_l_hs);
+            Assert.assertEquals(val32, int32_l);
+            Assert.assertEquals(expUInt32Int, uint32_i);
         }
     }
 
@@ -116,16 +130,16 @@ public class TestBitstream04 extends JunitTracer {
         test02Int32BitsUnalignedImpl(byteOrder, 25);
     }
     void test02Int32BitsUnalignedImpl(ByteOrder byteOrder, final int preBits) throws IOException {
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, 0);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, 1);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, -1);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, 7);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, 0x0fffffff);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, Integer.MIN_VALUE);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, Integer.MAX_VALUE);
-        test02Int32BitsUnalignedImpl(byteOrder, preBits, 0xffffffff);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, 0, 0);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, 1, 1);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, -1, -1);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, 7, 7);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, 0x0fffffff, 0x0fffffff);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, Integer.MIN_VALUE, -1);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        test02Int32BitsUnalignedImpl(byteOrder, preBits, 0xffffffff, -1);
     }
-    void test02Int32BitsUnalignedImpl(ByteOrder byteOrder, int preBits, int val32) throws IOException {
+    void test02Int32BitsUnalignedImpl(ByteOrder byteOrder, int preBits, int val32, int expUInt32Int) throws IOException {
         final int preBytes = ( preBits + 7 ) >>> 3;
         final int byteCount = preBytes + Buffers.SIZEOF_INT;
         final ByteBuffer bb = ByteBuffer.allocate(byteCount);
@@ -133,8 +147,9 @@ public class TestBitstream04 extends JunitTracer {
             bb.order(byteOrder);
         }
         final boolean bigEndian = ByteOrder.BIG_ENDIAN == bb.order();
+        final String val32_hs = toHexString(val32);
         System.err.println("XXX Test02Int32BitsUnaligned: byteOrder "+byteOrder+" (bigEndian "+bigEndian+"), preBits "+preBits+", value "+val32+", "+toHexBinaryString(val32, 32));
-        System.err.println("XXX Test02Int32BitsUnaligned: "+toUnsignedBinaryString(val32));
+        System.err.println("XXX Test02Int32BitsUnaligned: "+val32+", "+val32_hs);
 
         // Test with written bitstream value
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
@@ -144,10 +159,16 @@ public class TestBitstream04 extends JunitTracer {
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
 
         final int rPre = bs.readBits31(true /* msbFirst */, preBits);
-        final int r32 = bs.readInt32(true /* msbFirst */, bigEndian);
+        final long uint32_l = bs.readUInt32(true /* msbFirst */, bigEndian);
+        final int int32_l = (int)uint32_l;
+        final String uint32_l_hs = toHexString(uint32_l);
+        final int uint32_i = Bitstream.uint32LongToInt(uint32_l);
         System.err.println("ReadPre "+rPre+", "+toBinaryString(rPre, preBits));
-        System.err.println("Read32 "+r32+", "+toHexBinaryString(r32, 32)+", "+toUnsignedBinaryString(r32));
-        Assert.assertEquals(val32, r32);
+        System.err.printf("Read32 uint32_l %012d, %10s; int32_l %012d %10s; uint32_i %012d %10s%n",
+                uint32_l, uint32_l_hs, int32_l, toHexString(int32_l), uint32_i, toHexString(uint32_i));
+        Assert.assertEquals(val32_hs, uint32_l_hs);
+        Assert.assertEquals(val32, int32_l);
+        Assert.assertEquals(expUInt32Int, uint32_i);
     }
 
     public static void main(String args[]) throws IOException {
