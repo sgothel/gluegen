@@ -35,10 +35,13 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
 import org.junit.Test;
+import org.junit.Assert;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
+
 import static com.jogamp.common.util.BitstreamData.*;
+
 import com.jogamp.junit.util.JunitTracer;
 
 import org.junit.FixMethodOrder;
@@ -90,7 +93,25 @@ public class TestBitstream00 extends JunitTracer {
     }
 
     @Test
-    public void test01ShiftSigned() {
+    public void test01Uint32Conversion() {
+        testUInt32Conversion(1, 1);
+        testUInt32Conversion(Integer.MAX_VALUE, Integer.MAX_VALUE);
+        testUInt32Conversion(0xffff0000, -1);
+        testUInt32Conversion(0xffffffff, -1);
+    }
+    void testUInt32Conversion(final int int32, final int expUint32Int) {
+        final String int32_hStr = toHexString(int32);
+        final long l = Bitstream.toUint32Long(int32);
+        final String l_hStr = toHexString(l);
+        final int i = Bitstream.toUint32Int(int32);
+        final String i_hStr = toHexString(i);
+        System.err.printf("int32_t %012d %10s -> (long) %012d %10s, (int) %012d %10s%n", int32, int32_hStr, l, l_hStr, i, i_hStr);
+        Assert.assertEquals(int32_hStr, l_hStr);
+        Assert.assertEquals(expUint32Int, i);
+    }
+
+    @Test
+    public void test02ShiftSigned() {
         shiftSigned(0xA0000000); // negative w/ '1010' top-nibble
         shiftSigned(-1);
     }

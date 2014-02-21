@@ -1166,11 +1166,9 @@ public class Bitstream<T> {
      * Return incoming int32 as read via {@link #readBits31(boolean, int)}
      * and swap bytes if !bigEndian.
      * <p>
-     * In case the returned value shall be interpreted as unsigned,
-     * it shall be cast to <code>long</code> as follows:
-     * <pre>
-     *   final long l = 0xffffffffL & int32;
-     * </pre>
+     * In case the returned value shall be interpreted as <code>uint32_t</code>
+     * utilize {@link #toUint32Long(int)} or {@link #toUint32Int(int)} for
+     * an appropriate conversion.
      * </p>
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
      * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
@@ -1216,11 +1214,9 @@ public class Bitstream<T> {
      * Return incoming int32 as read via {@link #readBits31(boolean, int)}
      * and swap bytes if !bigEndian.
      * <p>
-     * In case the returned value shall be interpreted as unsigned,
-     * it shall be cast to <code>long</code> as follows:
-     * <pre>
-     *   final long l = 0xffffffffL & int32;
-     * </pre>
+     * In case the returned value shall be interpreted as <code>uint32_t</code>
+     * utilize {@link #toUint32Long(int)} or {@link #toUint32Int(int)} for
+     * an appropriate conversion.
      * </p>
      * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
      * @return the 32bit value, which might be unsigned or 2-complement signed value.
@@ -1300,6 +1296,32 @@ public class Bitstream<T> {
                 }
             }
             return EOS;
+        }
+    }
+
+    /**
+     * Reinterpret the given <code>int32_t</code> value as <code>uint32_t</code>,
+     * i.e. perform the following cast to <code>long</code>:
+     * <pre>
+     *   final long l = 0xffffffffL & int32;
+     * </pre>
+     */
+    public static final long toUint32Long(final int val) {
+        return 0xffffffffL & val;
+    }
+
+    /**
+     * Returns the reinterpreted given <code>int32_t</code> value
+     * as <code>uint32_t</code> if &lt; {@link Integer#MAX_VALUE}
+     * as within an <code>int</code> storage.
+     * Otherwise return -1.
+     */
+    public static final int toUint32Int(final int val) {
+        final long v = toUint32Long(val);
+        if( v > Integer.MAX_VALUE ) {
+            return -1;
+        } else {
+            return (int)v;
         }
     }
 

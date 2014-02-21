@@ -103,7 +103,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
-#onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
@@ -116,7 +116,7 @@ function onetest() {
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
-onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG

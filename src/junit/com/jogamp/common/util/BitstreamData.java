@@ -83,6 +83,9 @@ public class BitstreamData {
     public static String toHexString(int v) {
         return "0x"+Integer.toHexString(v);
     }
+    public static String toHexString(long v) {
+        return "0x"+Long.toHexString(v);
+    }
     public static final String strZeroPadding=  "0000000000000000000000000000000000000000000000000000000000000000"; // 64
     public static String toBinaryString(int v, int bitCount) {
         if( 0 == bitCount ) {
@@ -113,7 +116,8 @@ public class BitstreamData {
         return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
     public static String toUnsignedBinaryString(final int int32) {
-        final long l = 0xffffffffL & int32;
-        return l+", "+toHexBinaryString(l, 32);
+        final long l = Bitstream.toUint32Long(int32);
+        final int i = Bitstream.toUint32Int(int32);
+        return "(long)"+l+", (int)"+i+", "+toHexBinaryString(l, 32);
     }
 }
