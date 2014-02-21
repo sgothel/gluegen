@@ -109,7 +109,7 @@
 
     </target>
 
-    <target name="java.build" depends="java.generate">
+    <target name="java.build">
         <echo message=" - - - compiling all java files - - - "/>
         <echo message=" test.base.dir ${test.base.dir}"/>
         <echo message=" build_t.gen     ${build_t.gen}"/>
@@ -160,7 +160,7 @@
         </jar>
     </target>
 
-    <target name="android.package" depends="java.build,native.build" if="isAndroid">
+    <target name="android.package" depends="java.generate,java.build,native.build" if="isAndroid">
         <aapt.signed 
             assetsdir="resources/assets-test"
             jarbuilddir="${build_t}"
@@ -243,7 +243,7 @@
 
     <target name="junit.compile" depends="junit.compile.check" unless="junit.compile.skip">
       <mkdir dir="${build}/test/build/classes"/>
-      <antcall target="android.package" inheritRefs="true"/> <!-- implies java.build -->
+      <antcall target="android.package" inheritRefs="true"/> <!-- implies java.generate,java.build -->
       <antcall target="dump.localinfo" inheritRefs="true"/>
     </target>
 
