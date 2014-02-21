@@ -1317,7 +1317,7 @@ public class Bitstream<T> {
      * Otherwise return -1.
      */
     public static final int toUInt32Int(final int int32) {
-        return uint32LongtoInt(toUInt32Long(int32));
+        return uint32LongToInt(toUInt32Long(int32));
     }
 
     /**
@@ -1325,7 +1325,7 @@ public class Bitstream<T> {
      * value as <code>int</code> if &le; {@link Integer#MAX_VALUE}.
      * Otherwise return -1.
      */
-    public static final int uint32LongtoInt(final long uint32) {
+    public static final int uint32LongToInt(final long uint32) {
         if( Integer.MAX_VALUE >= uint32 ) {
             return (int)uint32;
         } else {
