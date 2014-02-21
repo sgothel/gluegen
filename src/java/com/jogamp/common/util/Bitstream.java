@@ -1167,7 +1167,7 @@ public class Bitstream<T> {
      * and swap bytes if !bigEndian.
      * <p>
      * In case the returned value shall be interpreted as <code>uint32_t</code>
-     * utilize {@link #toUint32Long(int)} or {@link #toUint32Int(int)} for
+     * utilize {@link #toUInt32Long(int)} or {@link #toUInt32Int(int)} for
      * an appropriate conversion.
      * </p>
      * @param msbFirst if true incoming stream bit order is MSB to LSB, otherwise LSB to MSB.
@@ -1215,7 +1215,7 @@ public class Bitstream<T> {
      * and swap bytes if !bigEndian.
      * <p>
      * In case the returned value shall be interpreted as <code>uint32_t</code>
-     * utilize {@link #toUint32Long(int)} or {@link #toUint32Int(int)} for
+     * utilize {@link #toUInt32Long(int)} or {@link #toUInt32Int(int)} for
      * an appropriate conversion.
      * </p>
      * @param bigEndian if false, swap incoming bytes to little-endian, otherwise leave them as little-endian.
@@ -1306,22 +1306,30 @@ public class Bitstream<T> {
      *   final long l = 0xffffffffL & int32;
      * </pre>
      */
-    public static final long toUint32Long(final int val) {
-        return 0xffffffffL & val;
+    public static final long toUInt32Long(final int int32) {
+        return 0xffffffffL & int32;
     }
 
     /**
      * Returns the reinterpreted given <code>int32_t</code> value
-     * as <code>uint32_t</code> if &lt; {@link Integer#MAX_VALUE}
+     * as <code>uint32_t</code> if &le; {@link Integer#MAX_VALUE}
      * as within an <code>int</code> storage.
      * Otherwise return -1.
      */
-    public static final int toUint32Int(final int val) {
-        final long v = toUint32Long(val);
-        if( v > Integer.MAX_VALUE ) {
-            return -1;
+    public static final int toUInt32Int(final int int32) {
+        return uint32LongtoInt(toUInt32Long(int32));
+    }
+
+    /**
+     * Returns the given <code>uint32_t</code> value <code>long</code>
+     * value as <code>int</code> if &le; {@link Integer#MAX_VALUE}.
+     * Otherwise return -1.
+     */
+    public static final int uint32LongtoInt(final long uint32) {
+        if( Integer.MAX_VALUE >= uint32 ) {
+            return (int)uint32;
         } else {
-            return (int)v;
+            return -1;
         }
     }
 

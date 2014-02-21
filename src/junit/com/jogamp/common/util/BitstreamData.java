@@ -116,8 +116,8 @@ public class BitstreamData {
         return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
     public static String toUnsignedBinaryString(final int int32) {
-        final long l = Bitstream.toUint32Long(int32);
-        final int i = Bitstream.toUint32Int(int32);
+        final long l = Bitstream.toUInt32Long(int32);
+        final int i = Bitstream.toUInt32Int(int32);
         return "(long)"+l+", (int)"+i+", "+toHexBinaryString(l, 32);
     }
 }
