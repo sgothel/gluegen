@@ -556,6 +556,7 @@ public class Bitstream<T> {
     private int bitsCountMark;
 
     private boolean outputMode;
+    private boolean throwIOExceptionOnEOF;
 
     /**
      * @param stream
@@ -567,6 +568,7 @@ public class Bitstream<T> {
         this.outputMode = outputMode;
         resetLocal();
         validateMode();
+        throwIOExceptionOnEOF = false;
     }
 
     private final void resetLocal() {
@@ -586,6 +588,19 @@ public class Bitstream<T> {
             throw new IllegalArgumentException("stream cannot input as requested: "+this);
         }
     }
+
+    /**
+     * Enables or disables throwing an {@link IOException} in case {@link #EOS} appears.
+     * <p>
+     * Default behavior for I/O methods is not to throw an {@link IOException}, but to return {@link #EOS}.
+     * </p>
+     */
+    public final void setThrowIOExceptionOnEOF(boolean enable) {
+        throwIOExceptionOnEOF = enable;
+    }
+
+    /** Returns true if I/O methods throw an {@link IOException} if {@link #EOS} appears, otherwise false (default). */
+    public final boolean getThrowIOExceptionOnEOF() { return throwIOExceptionOnEOF; }
 
     /**
      * Sets the underlying stream, without {@link #close()}ing the previous one.
@@ -640,19 +655,27 @@ public class Bitstream<T> {
      * Method also flushes incomplete bytes to the underlying {@link ByteStream}
      * and hence skips to the next byte position.
      * </p>
+     * @return {@link #EOS} caused by writing, otherwise zero.
      * @throws IllegalStateException if not in output mode or stream closed
      * @throws IOException
      */
-    public final void flush() throws IllegalStateException, IOException {
+    public final int flush() throws IllegalStateException, IOException {
         if( !outputMode || null == bytes ) {
             throw new IllegalStateException("not in output-mode: "+this);
         }
         bytes.flush();
         if( 0 != bitCount ) {
-            bytes.write((byte)bitBuffer);
+            final int r = bytes.write((byte)bitBuffer);
             bitBuffer = 0;
             bitCount = 0;
+            if( EOS == r ) {
+                if( throwIOExceptionOnEOF ) {
+                    throw new IOException("EOS "+this);
+                }
+                return EOS;
+            }
         }
+        return 0;
     }
 
     /** Return true if stream can handle input, i.e. {@link #readBit(boolean)}. */
@@ -773,6 +796,9 @@ public class Bitstream<T> {
             } else {
                 bitBuffer = bytes.read();
                 if( EOS == bitBuffer ) {
+                    if( throwIOExceptionOnEOF ) {
+                        throw new IOException("EOS "+this);
+                    }
                     return EOS;
                 } else {
                     bitCount=7;
@@ -787,6 +813,9 @@ public class Bitstream<T> {
             } else {
                 bitBuffer = bytes.read();
                 if( EOS == bitBuffer ) {
+                    if( throwIOExceptionOnEOF ) {
+                        throw new IOException("EOS "+this);
+                    }
                     return EOS;
                 } else {
                     bitCount=7;
@@ -813,7 +842,11 @@ public class Bitstream<T> {
                 bitCount--;
                 bitBuffer |= ( 0x01 & bit ) << bitCount;
                 if( 0 == bitCount ) {
-                    return bytes.write((byte)bitBuffer);
+                    final int r = bytes.write((byte)bitBuffer);
+                    if( throwIOExceptionOnEOF && EOS == r ) {
+                        throw new IOException("EOS "+this);
+                    }
+                    return r;
                 }
             } else {
                 bitCount = 7;
@@ -825,7 +858,11 @@ public class Bitstream<T> {
                 bitCount--;
                 bitBuffer |= ( 0x01 & bit ) << ( 7 - bitCount );
                 if( 0 == bitCount ) {
-                    return bytes.write((byte)bitBuffer);
+                    final int r = bytes.write((byte)bitBuffer);
+                    if( throwIOExceptionOnEOF && EOS == r ) {
+                        throw new IOException("EOS "+this);
+                    }
+                    return r;
                 }
             } else {
                 bitCount = 7;
@@ -860,7 +897,9 @@ public class Bitstream<T> {
             } else { // n > bitCount
                 if( outputMode ) {
                     if( 0 < bitCount ) {
-                        bytes.write((byte)bitBuffer);
+                        if( EOS == bytes.write((byte)bitBuffer) ) {
+                            return 0;
+                        }
                     }
                     bitBuffer = 0;
                 }
@@ -880,16 +919,24 @@ public class Bitstream<T> {
                     if( DEBUG ) {
                         System.err.println("Bitstream.skip.F_EOS: "+n+" - "+toStringImpl());
                     }
+                    if( throwIOExceptionOnEOF ) {
+                        throw new IOException("EOS "+this);
+                    }
                     return nX;
                 }
                 bitCount = ( 8 - n5 ) & 7; // % 8
+                int notReadBits = 0;
                 if( !outputMode && 0 < bitCount ) {
                     bitBuffer = bytes.read();
+                    if( EOS == bitBuffer ) {
+                        notReadBits = bitCount;
+                        bitCount = 0;
+                    }
                 }
                 if( DEBUG ) {
-                    System.err.println("Bitstream.skip.F_N2: "+n+" - "+toStringImpl());
+                    System.err.println("Bitstream.skip.F_N2: "+n+", notReadBits "+notReadBits+" - "+toStringImpl());
                 }
-                return nX;
+                return nX - notReadBits;
             }
         } else {
             // FIXME: Backward skip
@@ -949,6 +996,9 @@ public class Bitstream<T> {
             do {
                 bitBuffer = bytes.read();
                 if( EOS == bitBuffer ) {
+                    if( throwIOExceptionOnEOF ) {
+                        throw new IOException("EOS "+this);
+                    }
                     return EOS;
                 }
                 final int n2 = Math.min(c, 8); // full portion
@@ -1002,6 +1052,9 @@ public class Bitstream<T> {
                 bitBuffer |= ( m1 & ( bits >> c ) ) << bitCount;
                 if( 0 == bitCount ) {
                     if( EOS == bytes.write((byte)bitBuffer) ) {
+                        if( throwIOExceptionOnEOF ) {
+                            throw new IOException("EOS "+this);
+                        }
                         return EOS;
                     }
                 }
@@ -1018,6 +1071,9 @@ public class Bitstream<T> {
                 bitBuffer = ( m2 & ( bits >> c ) ) << bitCount;
                 if( 0 == bitCount ) {
                     if( EOS == bytes.write((byte)bitBuffer) ) {
+                        if( throwIOExceptionOnEOF ) {
+                            throw new IOException("EOS "+this);
+                        }
                         return EOS;
                     }
                 }
@@ -1043,7 +1099,11 @@ public class Bitstream<T> {
             if( outputMode || null == bytes ) {
                 throw new IllegalStateException("not in input-mode: "+this);
             }
-            return bytes.read();
+            final int r = bytes.read();
+            if( throwIOExceptionOnEOF && EOS == r ) {
+                throw new IOException("EOS "+this);
+            }
+            return r;
         } else {
             return readBits31(msbFirst, 8);
         }
@@ -1062,7 +1122,11 @@ public class Bitstream<T> {
             if( !outputMode || null == bytes ) {
                 throw new IllegalStateException("not in output-mode: "+this);
             }
-            return bytes.write(int8);
+            final int r = bytes.write(int8);
+            if( throwIOExceptionOnEOF && EOS == r ) {
+                throw new IOException("EOS "+this);
+            }
+            return r;
         } else {
             return this.writeBits31(msbFirst, 8, int8);
         }
@@ -1090,6 +1154,9 @@ public class Bitstream<T> {
             final int b1 = bytes.read();
             final int b2 = EOS != b1 ? bytes.read() : EOS;
             if( EOS == b2 ) {
+                if( throwIOExceptionOnEOF ) {
+                    throw new IOException("EOS "+this);
+                }
                 return EOS;
             } else if( bigEndian ) {
                 return b1 << 8 | b2;
@@ -1160,6 +1227,9 @@ public class Bitstream<T> {
                     return int16;
                 }
             }
+            if( throwIOExceptionOnEOF ) {
+                throw new IOException("EOS "+this);
+            }
             return EOS;
         } else if( bigEndian ) {
             return writeBits31(msbFirst, 16, int16);
@@ -1194,6 +1264,9 @@ public class Bitstream<T> {
             final int b3 = EOS != b2 ? bytes.read() : EOS;
             final int b4 = EOS != b3 ? bytes.read() : EOS;
             if( EOS == b4 ) {
+                if( throwIOExceptionOnEOF ) {
+                    throw new IOException("EOS "+this);
+                }
                 return EOS;
             } else if( bigEndian ) {
                 return 0xffffffffL & ( b1 << 24 | b2 << 16 | b3 << 8 | b4 );
@@ -1278,6 +1351,9 @@ public class Bitstream<T> {
                         }
                     }
                 }
+            }
+            if( throwIOExceptionOnEOF ) {
+                throw new IOException("EOS "+this);
             }
             return EOS;
         } else if( bigEndian ) {
