@@ -72,7 +72,7 @@
     </exec>
     <exec dir="." executable="sed" logError="true" failonerror="false" failifexecutionfails="false"
               outputproperty="gluegen.build.branch">
-        <arg line="-e '/^[^*]/d' -e 's/* \(.*\)/\1/' ${build}/localbranch.raw"/>
+        <arg line="-e '/^[^*]/d' -e 's/* \(.*\)/\1/' '${build}/localbranch.raw'"/>
     </exec>
     <property name="gluegen.build.branch" value="manual"/> <!-- fallback -->
     <exec dir="${project.root}" executable="git" logError="true" failonerror="false" failifexecutionfails="false"
