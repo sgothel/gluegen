@@ -427,7 +427,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           writer.println("  jsize _tmpArrayLen;");
 
           // Pointer to the data in the Buffer, taking the offset into account
-          writer.println("  int * _offsetHandle = NULL;");
+          if(type.isNIOBufferArray())
+            writer.println("  int * _offsetHandle = NULL;");
 
           emittedDataCopyTemps = true;
         }
@@ -925,6 +926,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         if (isConstPtrPtr(cArgType)) {
             writer.print("const ");
         }
+
+        // if this is a pointer to an unsigned type, add unsigned to the name to avoid compiler warnings
+        if(cArgType.isPointer()) {
+          Type typeLast = ((PointerType)cArgType).getLastTargetType();
+          if(typeLast.isInt() && (((IntType)typeLast).isPrimitiveUnsigned())) {
+            writer.print("unsigned ");
+          }
+        }
+
         writer.print(cArgType.getName());
         writer.print(") ");
         if (binding.getCArgumentType(i).isPointer() && javaArgType.isPrimitive()) {
@@ -1048,11 +1058,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         writer.println("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
         writer.println("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
         Type retType = binding.getCSymbol().getReturnType();
-	Type pointerType;
+        Type pointerType;
         if (retType.isPointer()) {
-	  pointerType = retType.asPointer().getTargetType();
+          pointerType = retType.asPointer().getTargetType();
         } else {
-	  pointerType = retType.asArray().getElementType();
+          pointerType = retType.asArray().getElementType();
         }
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
                        ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], sizeof(" + pointerType.getName() + ")));");
