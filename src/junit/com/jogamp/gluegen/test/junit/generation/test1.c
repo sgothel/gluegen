@@ -236,6 +236,18 @@ MYAPI int MYAPIENTRY stringArrayRead(const char *  *  strings, int num) {
     return l;
 }
 
+MYAPI int MYAPIENTRY binaryArrayRead(const size_t * lengths, const unsigned char *  * binaries, int num) {
+	int i, j, n=0;
+	for(i=0; i<num; i++) {
+		for(j=0; j<lengths[i]; j++) {
+			if(0xff==binaries[i][j]) {
+				++n;
+			}
+		}
+	}
+	return n;
+}
+
 MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num) {
     int i=0, s=0;
     if(NULL!=ints) {

@@ -120,6 +120,13 @@ public class PointerType extends Type implements Cloneable {
         return targetType;
     }
 
+    public Type getLastTargetType() {
+    	if(targetType.isPointer())
+    		return ((PointerType)targetType).getLastTargetType();
+    	else
+    		return targetType;
+    }
+
     @Override
     public boolean isFunctionPointer() {
         return targetType.isFunction();
