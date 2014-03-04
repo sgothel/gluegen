@@ -121,10 +121,10 @@ public class PointerType extends Type implements Cloneable {
     }
 
     public Type getLastTargetType() {
-    	if(targetType.isPointer())
-    		return ((PointerType)targetType).getLastTargetType();
-    	else
-    		return targetType;
+        if(targetType.isPointer())
+            return ((PointerType)targetType).getLastTargetType();
+        else
+            return targetType;
     }
 
     @Override

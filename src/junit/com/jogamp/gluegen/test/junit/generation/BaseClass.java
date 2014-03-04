@@ -560,10 +560,10 @@ public class BaseClass extends JunitTracer {
           Assert.assertTrue("Wrong result: "+i, 0==i);
 
           {
-        	  // one 0xff in each byte array
+              // one 0xff in each byte array
               // the referenced buffer must be direct, non direct is not supported
-        	  ByteBuffer bbB = Buffers.newDirectByteBuffer(new byte [] {(byte)0xaa, (byte)0xff, (byte)0xba, (byte)0xbe});
-        	  bbB.rewind();
+              ByteBuffer bbB = Buffers.newDirectByteBuffer(new byte [] {(byte)0xaa, (byte)0xff, (byte)0xba, (byte)0xbe});
+              bbB.rewind();
               PointerBuffer pbB = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
               PointerBuffer pbL = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
               for(int j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
@@ -579,8 +579,8 @@ public class BaseClass extends JunitTracer {
               long temp = pbL.get();
               Assert.assertTrue("Wrong result: "+temp, temp==bbB.capacity());
               pbL.rewind();
-	          i = binding.binaryArrayRead(pbL, pbB, Bindingtest1.ARRAY_SIZE);
-	          Assert.assertTrue("Wrong result: "+i, Bindingtest1.ARRAY_SIZE==i);
+              i = binding.binaryArrayRead(pbL, pbB, Bindingtest1.ARRAY_SIZE);
+              Assert.assertTrue("Wrong result: "+i, Bindingtest1.ARRAY_SIZE==i);
           }
 
           IntBuffer ib = newIntBuffer(3, direct);
