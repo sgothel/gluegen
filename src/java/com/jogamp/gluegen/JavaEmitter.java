@@ -788,6 +788,9 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     if (name == null) {
+        if ((structType.getStructName() != null) && cfg.shouldIgnoreInInterface(structType.getStructName()))
+            return;
+
         LOG.log(WARNING, "skipping emission of unnamed struct \"{0}\"", structType);
         return;
     }
