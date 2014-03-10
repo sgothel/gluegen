@@ -61,22 +61,22 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   protected MethodBinding binding;
 
   /** Name of the package in which the corresponding Java method resides.*/
-  private String packageName;
+  private final String packageName;
 
   /** Name of the class in which the corresponding Java method resides.*/
-  private String className;
+  private final String className;
 
   /**
    * Whether or not the Java<->C JNI binding for this emitter's MethodBinding
    * is overloaded.
    */
-  private boolean isOverloadedBinding;
+  private final boolean isOverloadedBinding;
 
   /**
    * Whether or not the Java-side of the Java<->C JNI binding for this
    * emitter's MethodBinding is static.
    */
-  private boolean isJavaMethodStatic;
+  private final boolean isJavaMethodStatic;
 
   // Flags which change various aspects of glue code generation
   protected boolean forImplementingMethodCall;
@@ -427,8 +427,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           writer.println("  jsize _tmpArrayLen;");
 
           // Pointer to the data in the Buffer, taking the offset into account
-          if(type.isNIOBufferArray())
+          if(type.isNIOBufferArray()) {
             writer.println("  int * _offsetHandle = NULL;");
+          }
 
           emittedDataCopyTemps = true;
         }

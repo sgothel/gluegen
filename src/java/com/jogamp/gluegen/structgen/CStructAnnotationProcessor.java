@@ -74,8 +74,7 @@ import jogamp.common.Debug;
  * User can enable DEBUG while defining property <code>jogamp.gluegen.structgen.debug</code>.
  * </p>
  *
- * @author Michael Bien
- * @author Sven Gothel, et.al.
+ * @author Michael Bien, et al.
  */
 @SupportedAnnotationTypes(value = {"com.jogamp.gluegen.structgen.CStruct"})
 @SupportedSourceVersion(SourceVersion.RELEASE_7)

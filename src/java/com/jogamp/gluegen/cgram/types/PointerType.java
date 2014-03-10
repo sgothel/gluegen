@@ -41,7 +41,7 @@ package com.jogamp.gluegen.cgram.types;
 
 public class PointerType extends Type implements Cloneable {
 
-    private Type targetType;
+    private final Type targetType;
     private String computedName;
     private boolean hasTypedefedName;
 
@@ -121,10 +121,11 @@ public class PointerType extends Type implements Cloneable {
     }
 
     public Type getLastTargetType() {
-        if(targetType.isPointer())
+        if(targetType.isPointer()) {
             return ((PointerType)targetType).getLastTargetType();
-        else
+        } else {
             return targetType;
+        }
     }
 
     @Override
