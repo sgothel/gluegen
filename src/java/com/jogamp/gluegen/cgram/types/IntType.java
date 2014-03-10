@@ -82,6 +82,11 @@ public class IntType extends PrimitiveType implements Cloneable {
         return unsigned;
     }
 
+    /** Indicates whether this type is an unsigned primitive type, as opposed to a typedef type that's unsigned. */
+    public boolean isPrimitiveUnsigned() {
+        return unsigned && !typedefedUnsigned;
+    }
+
     @Override
     public String toString() {
         return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getName();

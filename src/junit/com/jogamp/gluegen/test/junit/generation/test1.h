@@ -119,6 +119,9 @@ MYAPI const char * MYAPIENTRY intToStr(int i);
 /** Returns the length of all strings, strings maybe NULL. */
 MYAPI int MYAPIENTRY stringArrayRead(const char *  *  strings, int num);
 
+/** Returns the number of 0xff bytes found in all binaries. */
+MYAPI int MYAPIENTRY binaryArrayRead(const size_t * lengths, const unsigned char *  * binaries, int num);
+
 /** Returns the sum of all integers, ints maybe NULL. */
 MYAPI int MYAPIENTRY intArrayRead(const int *  ints, int num);
 
