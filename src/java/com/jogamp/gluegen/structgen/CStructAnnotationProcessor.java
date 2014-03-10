@@ -78,7 +78,7 @@ import jogamp.common.Debug;
  * @author Sven Gothel, et.al.
  */
 @SupportedAnnotationTypes(value = {"com.jogamp.gluegen.structgen.CStruct"})
-@SupportedSourceVersion(SourceVersion.RELEASE_6)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class CStructAnnotationProcessor extends AbstractProcessor {
     private static final String DEFAULT = "_default_";
     private static final boolean DEBUG;
