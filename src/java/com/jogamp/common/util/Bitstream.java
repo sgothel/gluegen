@@ -1188,8 +1188,9 @@ public class Bitstream<T> {
      */
     public static final int readUInt16(final boolean bigEndian, final byte[] bytes, final int offset) throws IndexOutOfBoundsException {
         checkBounds(bytes, offset, 2);
-        final int b1 = bytes[offset];
-        final int b2 = bytes[offset+1];
+        // Make sure we clear any high bits that get set in sign-extension
+        final int b1 = bytes[offset] & 0xff;
+        final int b2 = bytes[offset+1] & 0xff;
         if( bigEndian ) {
             return b1 << 8 | b2;
         } else {
