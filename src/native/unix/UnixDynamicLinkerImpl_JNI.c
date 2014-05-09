@@ -9,6 +9,10 @@
  #include <dlfcn.h>
  #include <inttypes.h>
 
+#ifndef RTLD_DEFAULT
+    #define RTLD_DEFAULT   ((void *) 0)
+#endif
+
 /*   Java->C glue code:
  *   Java package: jogamp.common.os.UnixDynamicLinkerImpl
  *    Java method: int dlclose(long arg0)
@@ -34,6 +38,11 @@ Java_jogamp_common_os_UnixDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unuse
   if (_res == NULL) return NULL;  return (*env)->NewStringUTF(env, _res);
 }
 
+// #define DEBUG_DLOPEN 1
+
+#ifdef DEBUG_DLOPEN
+    typedef void *(*DLOPEN_FPTR_TYPE)(const char *filename, int flag); 
+#endif
 
 /*   Java->C glue code:
  *   Java package: jogamp.common.os.UnixDynamicLinkerImpl
@@ -44,6 +53,11 @@ JNIEXPORT jlong JNICALL
 Java_jogamp_common_os_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring arg0, jint arg1) {
   const char* _UTF8arg0 = NULL;
   void *  _res;
+#ifdef DEBUG_DLOPEN
+  DLOPEN_FPTR_TYPE dlopenFunc = NULL;
+  fprintf(stderr, "XXX dlopen.0\n");
+#endif
+
   if (arg0 != NULL) {
     if (arg0 != NULL) {
       _UTF8arg0 = (*env)->GetStringUTFChars(env, arg0, (jboolean*)NULL);
@@ -54,10 +68,20 @@ Java_jogamp_common_os_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv 
     }
     }
   }
+#ifdef DEBUG_DLOPEN
+  dlopenFunc = (DLOPEN_FPTR_TYPE) dlsym(RTLD_DEFAULT, "dlopen");
+  fprintf(stderr, "XXX dlopen.1: lib %s, dlopen-fptr %p %p (%d)\n", _UTF8arg0, dlopen, dlopenFunc, dlopen==dlopenFunc); fflush(stderr);
   _res = dlopen((char *) _UTF8arg0, (int) arg1);
+  fprintf(stderr, "XXX dlopen.2: %p\n", _res); fflush(stderr);
+#else
+  _res = dlopen((char *) _UTF8arg0, (int) arg1);
+#endif
   if (arg0 != NULL) {
     (*env)->ReleaseStringUTFChars(env, arg0, _UTF8arg0);
   }
+#ifdef DEBUG_DLOPEN
+  fprintf(stderr, "XXX dlopen.X\n"); fflush(stderr);
+#endif
   return (jlong) (intptr_t) _res;
 }
 
