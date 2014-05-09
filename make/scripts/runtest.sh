@@ -57,22 +57,22 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
-    CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/test/build/gluegen-test.jar
+    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/test/build/gluegen-test.jar
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/test/build/gluegen-test.jar
     libspath="$builddir"/test/build/natives
-    #CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes
     #libspath="$builddir"/obj:"$builddir"/test/build/natives:
     LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
     DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
     export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
-    echo CLASSPATH $CLASSPATH
+    echo USE_CLASSPATH $USE_CLASSPATH
     which java
-    #echo java -cp $CLASSPATH $D_ARGS -Djava.library.path=$libspath $clazz
-    #java -cp $CLASSPATH $D_ARGS -Djava.library.path="$libspath" $*
-    echo java -cp "$CLASSPATH" $D_ARGS $clazz
-    java -cp "$CLASSPATH" $D_ARGS $*
-    #echo java -cp $CLASSPATH $D_ARGS $clazz
-    #java -cp $CLASSPATH $D_ARGS $*
+    #echo java -cp $USE_CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
+    #java -cp $USE_CLASSPATH $D_ARGS -Djava.library.path="$libspath" $*
+    echo java -cp "$USE_CLASSPATH" $D_ARGS $*
+    java -cp "$USE_CLASSPATH" $D_ARGS $*
+    #j3 -cp "$USE_CLASSPATH" $D_ARGS $*
     echo
 }
 #
@@ -103,11 +103,11 @@ function onetest() {
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
-onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestURIQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.AssetURLConnectionUnregisteredTest 2>&1 | tee -a $LOG
@@ -119,6 +119,7 @@ onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 

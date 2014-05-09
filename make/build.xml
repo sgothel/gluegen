@@ -778,6 +778,19 @@
         </filterset>
     </copy>
 
+    <!-- copy file="Manifest-rt-alt"
+          tofile="${build}/Manifest-rt-alt.temp"
+          overwrite="true">
+        <filterset>
+            <filter token="VERSION" value="${jogamp.version}"/>
+            <filter token="BUILD_VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+            <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+        </filterset>
+    </copy -->
+
     <copy file="Manifest-rt-natives"
           tofile="${build}/Manifest-rt-natives.temp"
           overwrite="true">
@@ -804,6 +817,20 @@
         <include name="**" />
       </fileset>
     </jar>
+
+    <!-- Build gluegen-rt-alt.jar. -->
+    <!-- jar destfile="${build}/gluegen-rt-alt.jar" manifest="${build}/Manifest-rt-alt.temp">
+      <fileset dir="${classes}">
+        <include name="com/jogamp/gluegen/runtime/*.class" />
+        <include name="com/jogamp/common/**" />
+        <include name="jogamp/common/**" />
+        <exclude name="${jogamp-android-launcher.classes}" />
+        <exclude name="${java.part.android}" />
+      </fileset>
+      <fileset dir="resources/assets">
+        <include name="**" />
+      </fileset>
+    </jar -->
 
     <!-- Copy antlr.jar into build directory for convenience so
          gluegen.jar can be run via "java -jar". antlr.jar is
