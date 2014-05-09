@@ -30,10 +30,10 @@ package jogamp.common.os;
 public final class PosixDynamicLinkerImpl extends UnixDynamicLinkerImpl {
 
   private static final long RTLD_DEFAULT = 0;
-  //      static final long RTLD_NEXT    = -1L;
+  // private static final long RTLD_NEXT    = -1L;
 
   private static final int RTLD_LAZY     = 0x00001;
-  //      static final int RTLD_NOW      = 0x00002;
+  // private static final int RTLD_NOW      = 0x00002;
   private static final int RTLD_LOCAL    = 0x00000;
   private static final int RTLD_GLOBAL   = 0x00100;
 
