@@ -425,6 +425,9 @@ chmod 644 ${results}/* \${line.separator}
               <formatter usefile="true" type="xml"/>
             </batchtest>
         </junit>
+        <move todir="${results}">
+            <fileset dir="." includes="hs_err_pid*.log" />
+        </move>
     </target>
 
     <target name="junit.run.settings" depends="init, gluegen.cpptasks.detect.os">
