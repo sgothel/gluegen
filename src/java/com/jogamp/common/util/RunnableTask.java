@@ -38,7 +38,7 @@ public class RunnableTask extends TaskBase {
     protected final Runnable runnable;
 
     /**
-     * Invoks <code>runnable</code>.
+     * Invokes <code>runnable</code> on the current thread.
      * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
      * @param runnable the {@link Runnable} to execute.
      */
@@ -63,6 +63,44 @@ public class RunnableTask extends TaskBase {
             }
         }
     }
+
+    /**
+     * Invokes <code>runnable</code> on a new thread belonging to the given {@link ThreadGroup}.
+     * @param tg the {@link ThreadGroup} for the new thread, maybe <code>null</code>
+     * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
+     * @param runnable the {@link Runnable} to execute on the new thread. If <code>waitUntilDone</code> is <code>true</code>,
+     *                 the runnable <b>must exist</b>, i.e. not loop forever.
+     * @param threadName the name for the new thread
+     * @return the newly created {@link Thread}
+     */
+    public static Thread invokeOnNewThread(final ThreadGroup tg, final boolean waitUntilDone, final Runnable runnable, final String threadName) {
+        final Thread t = new Thread(tg, threadName) {
+            @Override
+            public void run() {
+                Throwable throwable = null;
+                final Object sync = new Object();
+                final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
+                synchronized(sync) {
+                    rt.run();
+                    if( waitUntilDone ) {
+                        try {
+                            sync.wait();
+                        } catch (InterruptedException ie) {
+                            throwable = ie;
+                        }
+                        if(null==throwable) {
+                            throwable = rt.getThrowable();
+                        }
+                        if(null!=throwable) {
+                            throw new RuntimeException(throwable);
+                        }
+                    }
+                }
+            } };
+        t.start();
+        return t;
+    }
+
 
     /**
      * Create a RunnableTask object w/ synchronization,
