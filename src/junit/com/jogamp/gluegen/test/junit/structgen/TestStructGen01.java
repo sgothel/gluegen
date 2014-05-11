@@ -1,26 +1,23 @@
 package com.jogamp.gluegen.test.junit.structgen;
 
-import com.jogamp.gluegen.structgen.CStruct;
 import com.jogamp.junit.util.JunitTracer;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestStructGen01 extends JunitTracer {
 
-    // APT is only triggered for fields,
-    // hence we use unused fields in this unit test!
-    
-    // @CStruct(name="RenderingConfig", header="TestStruct01.h")
-    // MyRenderingConfig config;
-    
-    @CStruct(header="TestStruct01.h")
-    RenderingConfig config0;
-    
+    @BeforeClass
+    public static void init() {
+        // Enforce dependency,
+        // i.e. CStruct annotation processor to generate the types 'RenderingConfig' etc.
+        BuildStruct01.initSingleton();
+    }
+
     @Test
     public void test01() {
         RenderingConfig config = RenderingConfig.create();
@@ -46,10 +43,10 @@ public class TestStructGen01 extends JunitTracer {
         cam_orig.setY(1);
         cam_orig.setZ(2);
     }
-    
+
     public static void main(String args[]) {
         String tstname = TestStructGen01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
-    
+
 }

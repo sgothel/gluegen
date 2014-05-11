@@ -27,7 +27,7 @@ export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
-# BUILD_ARCHIVE=true \
+BUILD_ARCHIVE=true \
 ant \
     -Drootrel.build=build-x86_64 \
     $* 2>&1 | tee make.gluegen.all.linux-x86_64.log

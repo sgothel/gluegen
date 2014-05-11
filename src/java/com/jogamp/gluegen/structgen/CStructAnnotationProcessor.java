@@ -30,12 +30,20 @@ package com.jogamp.gluegen.structgen;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.gluegen.GlueGen;
 import com.jogamp.gluegen.JavaEmitter;
+
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.Messager;
@@ -76,11 +84,11 @@ import jogamp.common.Debug;
  *
  * @author Michael Bien, et al.
  */
-@SupportedAnnotationTypes(value = {"com.jogamp.gluegen.structgen.CStruct"})
+@SupportedAnnotationTypes(value = {"com.jogamp.gluegen.structgen.CStruct", "com.jogamp.gluegen.structgen.CStructs"})
 @SupportedSourceVersion(SourceVersion.RELEASE_6)
 public class CStructAnnotationProcessor extends AbstractProcessor {
     private static final String DEFAULT = "_default_";
-    private static final boolean DEBUG;
+    static final boolean DEBUG;
 
     static {
         Debug.initSingleton();
@@ -131,71 +139,96 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
         final String user_dir = System.getProperty("user.dir");
 
-        final Set<? extends Element> elements = env.getElementsAnnotatedWith(CStruct.class);
-
-        for (Element element : elements) {
-
-            final String packageName = eltUtils.getPackageOf(element).toString();
-
-            try {
-                final CStruct struct = element.getAnnotation(CStruct.class);
-                final String headerRelPath = struct.header();
-                final Element enclElement = element.getEnclosingElement();
-
-                System.err.println("CStruct: "+struct+", package "+packageName+", header "+headerRelPath);
-                if(DEBUG) {
-                    System.err.println("CStruct.0: user.dir: "+user_dir);
-                    System.err.println("CStruct.0: element: "+element+", .simpleName "+element.getSimpleName());
-                    System.err.println("CStruct.0: enclElement: "+enclElement+", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());
+        final Set<? extends Element> cStructsElements = env.getElementsAnnotatedWith(CStructs.class);
+        for (Element structsElement : cStructsElements) {
+            final String packageName = eltUtils.getPackageOf(structsElement).toString();
+            final CStructs cstructs = structsElement.getAnnotation(CStructs.class);
+            if( null != cstructs ) {
+                final CStruct[] cstructArray = cstructs.value();
+                for(CStruct cstruct : cstructArray) {
+                    processCStruct(cstruct, structsElement, packageName, user_dir);
                 }
+            }
+        }
 
-                final File headerFile;
-                {
-                    File f = locateSource(packageName, headerRelPath);
-                    if( null == f ) {
-                        f = locateSource("", headerRelPath);
-                        if( null == f ) {
-                            // bail out
-                            throw new RuntimeException("Could not locate header "+headerRelPath+", package "+packageName);
-                        }
-                    }
-                    headerFile = f;
-                }
-
-                final String root;
-                {
-                    String root0 = headerFile.getAbsolutePath();
-                    root0 = root0.substring(0, root0.length()-headerFile.getName().length()-1);
-                    root = root0.substring(0, root0.length()-packageName.length()) +"..";
-                }
-                System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", root "+root);
-
-                generateStructBinding(element, struct, root, packageName, headerFile);
-            } catch (IOException ex) {
-                throw new RuntimeException("IOException while processing!", ex);
+        final Set<? extends Element> cStructElements = env.getElementsAnnotatedWith(CStruct.class);
+        for (Element structElement : cStructElements) {
+            final String packageName = eltUtils.getPackageOf(structElement).toString();
+            final CStruct cstruct = structElement.getAnnotation(CStruct.class);
+            if( null != cstruct ) {
+                processCStruct(cstruct, structElement, packageName, user_dir);
             }
         }
         return true;
     }
 
-    private void generateStructBinding(Element element, CStruct struct, String root, String pakage, File header) throws IOException {
-        final String declaredType = element.asType().toString();
-        final String structName   = struct.name().equals(DEFAULT) ? declaredType : struct.name();
+    private void processCStruct(final CStruct struct, final Element element, final String packageName, final String user_dir) {
+        try {
+            final String headerRelPath = struct.header();
+            final Element enclElement = element.getEnclosingElement();
+            final boolean isPackageOrType = null == enclElement;
 
-        if( generatedStructs.contains(structName) ) {
-            messager.printMessage(Kind.WARNING, "struct "+structName+" already defined elsewhere.", element);
+            System.err.println("CStruct: "+struct+", package "+packageName+", header "+headerRelPath);
+            if(DEBUG) {
+                System.err.println("CStruct.0: user.dir: "+user_dir);
+                System.err.println("CStruct.0: element: "+element+", .simpleName "+element.getSimpleName());
+                System.err.print("CStruct.0: isPackageOrType "+isPackageOrType+", enclElement: "+enclElement);
+                if( !isPackageOrType ) {
+                    System.err.println(", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());
+                } else {
+                    System.err.println("");
+                }
+            }
+            if( isPackageOrType && struct.name().equals(DEFAULT) ) {
+                throw new IllegalArgumentException("CStruct annotation on package or type must have name specified: "+struct+" @ "+element);
+            }
+
+            final File headerFile;
+            {
+                File f = locateSource(packageName, headerRelPath);
+                if( null == f ) {
+                    f = locateSource("", headerRelPath);
+                    if( null == f ) {
+                        // bail out
+                        throw new RuntimeException("Could not locate header "+headerRelPath+", package "+packageName);
+                    }
+                }
+                headerFile = f;
+            }
+
+            final String rootOut, headerParent;
+            {
+                final String root0 = headerFile.getAbsolutePath();
+                headerParent = root0.substring(0, root0.length()-headerFile.getName().length()-1);
+                rootOut = headerParent.substring(0, headerParent.length()-packageName.length()) + "..";
+            }
+            System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", headerParent "+headerParent+", rootOut "+rootOut);
+
+            generateStructBinding(element, struct, isPackageOrType, rootOut, packageName, headerFile, headerParent);
+        } catch (IOException ex) {
+            throw new RuntimeException("IOException while processing!", ex);
+        }
+    }
+
+    private void generateStructBinding(Element element, CStruct struct, boolean isPackageOrType, String rootOut, String pakage, File header, String headerParent) throws IOException {
+        final String declaredType = element.asType().toString();
+        final boolean useStructName = !struct.name().equals(DEFAULT);
+        final String structName = useStructName ? struct.name() : declaredType;
+        final boolean useJavaName = !struct.jname().equals(DEFAULT);
+
+        final String finalType = useJavaName ? struct.jname() : ( !isPackageOrType ? declaredType : structName );
+        System.err.println("CStruct: Generating struct accessor for struct: "+structName+" -> "+finalType+" [struct.name "+struct.name()+", struct.jname "+struct.jname()+", declaredType "+declaredType+"]");
+        if( generatedStructs.contains(finalType) ) {
+            messager.printMessage(Kind.NOTE, "struct "+structName+" already defined elsewhere, skipping.", element);
             return;
         }
-        System.out.println("generating struct accessor for struct: "+structName);
-
-        generatedStructs.add(structName);
 
         final boolean outputDirAbs;
         {
             final File outputDirFile = new File(outputPath);
             outputDirAbs = outputDirFile.isAbsolute();
         }
-        final String outputPath1 = outputDirAbs ? outputPath : root + File.separator + outputPath;
+        final String outputPath1 = outputDirAbs ? outputPath : rootOut + File.separator + outputPath;
         final String config = outputPath1 + File.separator + header.getName() + ".cfg";
         final File configFile = new File(config);
         if(DEBUG) {
@@ -209,7 +242,8 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             writer = new FileWriter(configFile);
             writer.write("Package "+pakage+"\n");
             writer.write("EmitStruct "+structName+"\n");
-            if(!struct.name().equals(DEFAULT)) {
+            if( finalType != structName ) {
+                // We allow renaming the structType to the element's declaredType (FIELD annotation only)
                 writer.write("RenameJavaType " + struct.name()+" " + declaredType +"\n");
             }
         } finally {
@@ -217,16 +251,23 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                 writer.close();
             }
         }
-
-        // TODO: Handle exceptions .. suppressed by Gluegen.main(..) ?
-        GlueGen.main(
-                //                "-I"+path+"/build/",
-                "-O" + outputPath1,
-                "-E" + AnnotationProcessorJavaStructEmitter.class.getName(),
-                "-C" + config,
-                header.getPath());
+        final List<String> cfgFiles = new ArrayList<String>();
+        cfgFiles.add(config);
+        final List<String> includePaths = new ArrayList<String>();
+        includePaths.add(headerParent);
+        includePaths.add(outputPath1);
+        final Reader reader;
+        final String filename = header.getPath();
+        try {
+            reader = new BufferedReader(new FileReader(filename));
+        } catch (FileNotFoundException ex) {
+            throw new RuntimeException("input file not found", ex);
+        }
+        new GlueGen().run(reader, filename, AnnotationProcessorJavaStructEmitter.class,
+                          includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */);
 
         configFile.delete();
+        generatedStructs.add(finalType);
     }
 
     public static class AnnotationProcessorJavaStructEmitter extends JavaEmitter {
@@ -234,14 +275,17 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
         @Override
         protected PrintWriter openFile(String filename, String simpleClassName) throws IOException {
 
+            if( generatedStructs.contains(simpleClassName) ) {
+                System.err.println("skipping -> " + simpleClassName);
+                return null;
+            }
+
             // look for recursive generated structs... keep it DRY
             if( !simpleClassName.endsWith("32") &&
                 !simpleClassName.endsWith("64") ) {
-
-                System.out.println("generating -> " + simpleClassName);
+                System.err.println("generating -> " + simpleClassName);
                 generatedStructs.add(simpleClassName);
             }
-
             return super.openFile(filename, simpleClassName);
         }
 

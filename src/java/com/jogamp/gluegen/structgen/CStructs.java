@@ -33,32 +33,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @author Michael Bien, et al.
+ * Multiple {@link CStruct} elements
  */
 @Target(value = {ElementType.TYPE, ElementType.PACKAGE, ElementType.FIELD, ElementType.LOCAL_VARIABLE})
 @Retention(value = RetentionPolicy.SOURCE)
-public @interface CStruct {
+public @interface CStructs {
 
     /**
-     * Relative path to the header file.
-     * <p>
-     * Mandatory.
-     * </p>
+     * Multiple {@link CStruct} elements.
      */
-    String header();
-
-    /**
-     * The name of the struct.
-     * <p>
-     * Mandatory for {@link ElementType.TYPE} and {@link ElementType.PACKAGE} annotations
-     * otherwise optional.
-     * </p>
-     */
-    String name() default "_default_";
-
-    /**
-     * The optional java name of the struct.
-     */
-    String jname() default "_default_";
-
+    CStruct[] value();
 }
