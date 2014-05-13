@@ -1,10 +1,11 @@
-https://github.com/jeluard/semantic-versioning
+https://github.com/sgothel/semantic-versioning
+  forked from https://github.com/jeluard/semantic-versioning
 
 0.9.24-SNAPSHOT
 
-commit dd1e89102b15eb10d8c94e9efe3a4203e5484121
-Author: Julien Eluard <julien.eluard@gmail.com>
-Date:   Fri Apr 18 08:44:34 2014 -0300
+commit 731db3566b4096ecf6a08a9d33991400e66c5021
+Author: Sven Gothel <sgothel@jausoft.com>
+Date:   Tue May 13 16:15:09 2014 +0200
 
-branch master
+branch jogamp
 

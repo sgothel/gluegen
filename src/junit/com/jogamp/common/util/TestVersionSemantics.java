@@ -78,8 +78,7 @@ public class TestVersionSemantics extends JunitTracer {
     static final Set<String> excludes;
     static {
         excludes = new HashSet<String>();
-        excludes.add("jogamp.common.**");
-        excludes.add("jogamp.android.**");
+        excludes.add("^\\Qjogamp/\\E.*$");
     }
 
     @Test

@@ -39,8 +39,8 @@ import org.junit.Assert;
 import org.osjava.jardiff.DiffCriteria;
 import org.semver.Comparer;
 import org.semver.Delta;
-import org.semver.Dumper;
 import org.semver.Delta.Difference;
+import org.semver.Dumper;
 
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
@@ -52,7 +52,7 @@ public class VersionSemanticsUtil {
                                    final Delta.CompatibilityType expectedCompatibilityType,
                                    final File previousJar, final VersionNumberString preVersionNumber,
                                    final Class<?> currentJarClazz, final ClassLoader currentJarCL, final VersionNumberString curVersionNumber,
-                                   final Set<String> excludes)
+                                   final Set<String> excludesRegExp)
                                        throws IllegalArgumentException, IOException, URISyntaxException
     {
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
@@ -62,19 +62,19 @@ public class VersionSemanticsUtil {
         testVersion(diffCriteria, expectedCompatibilityType,
                     previousJar, preVersionNumber,
                     currentJar, curVersionNumber,
-                    excludes);
+                    excludesRegExp);
     }
 
     public static void testVersion(final DiffCriteria diffCriteria,
                                    final Delta.CompatibilityType expectedCompatibilityType,
                                    final File previousJar, final VersionNumberString preVersionNumber,
                                    final File currentJar, final VersionNumberString curVersionNumber,
-                                   final Set<String> excludes)
+                                   final Set<String> excludesRegExp)
                                        throws IllegalArgumentException, IOException, URISyntaxException
     {
-        final Set<String> includes = new HashSet<String>();
+        final Set<String> includesRegExp = new HashSet<String>();
 
-        final Comparer comparer = new Comparer(diffCriteria, previousJar, currentJar, includes, excludes);
+        final Comparer comparer = new Comparer(diffCriteria, previousJar, currentJar, includesRegExp, true, excludesRegExp, true);
         final Delta delta = comparer.diff();
 
         //Validates that computed and provided compatibility type are compatible.
@@ -111,7 +111,7 @@ public class VersionSemanticsUtil {
             final Difference diff = iter.next();
             System.err.printf("Diff %4d: %-11s in class %s%n", diffI, diff.getClass().getSimpleName(), diff.getClassName());
         }
-        Dumper.dump(delta);
+        Dumper.dump(delta, System.err);
 
         Assert.assertTrue(resS, compOK);
 
