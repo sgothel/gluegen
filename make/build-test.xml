@@ -32,9 +32,11 @@
 
         <property name="test.base.dir"  value="${gluegen.root}/src/junit" />
         <property name="test.junit.rel" value="com/jogamp" />
+        <property name="test.junit.util.rel" value="com/jogamp/junit/util" />
         <property name="test.junit.generation.rel" value="${test.junit.rel}/gluegen/test/junit/generation" />
         <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
+        <property name="build"        location="${project.root}/${rootrel.build}" />
         <property name="test.dir"     value="${gluegen.root}/${rootrel.build}/test"/>
         <property name="results"      value="${test.dir}/results" />
         <property name="build_t"      value="${test.dir}/build" />
@@ -60,6 +62,7 @@
         <property name="gluegen-rt.jar" location="${gluegen.root}/${rootrel.build}/gluegen-rt.jar" />
         <property name="gluegen.lib" value="${gluegen.root}/${rootrel.build}/obj" />
 
+        <property name="gluegen-test-util.jar" location="${build}/gluegen-test-util.jar" />
         <property name="TestJarsInJar.jar" location="${gluegen.root}/make/lib/TestJarsInJar.jar" />
         <property name="gluegen-test.jar" location="${build_t}/gluegen-test.jar" />
         <property name="gluegen-test.apk" location="${build_t}/gluegen-test.apk" />
@@ -85,10 +88,11 @@
             <pathelement location="${TestJarsInJar.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${gluegen.jar}" />
+            <pathelement location="${gluegen-test-util.jar}" />
             <pathelement location="${gluegen-test.jar}" />
         </path>
-        <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${semver.jar}${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
-        <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${env.TARGET_ANT_HOME}/lib/semantic-versioning/semver.jar${path.separator}${gluegen.root}/make/lib/TestJarsInJar.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build_t}/gluegen-test.jar"/>
+        <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${semver.jar}${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build}/gluegen-test-util.jar${path.separator}${build_t}/gluegen-test.jar"/>
+        <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${semver.jar}${path.separator}${gluegen.root}/make/lib/TestJarsInJar.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build}/gluegen-test-util.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.apks" value="${gluegen.root}/${rootrel.build}/jogamp-android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt-android-${android.abi}.apk${path.separator}${build_t}/gluegen-test.apk${path.separator}${gluegen.root}/make/lib/TestJarsInJar.apk"/>
 
         <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
@@ -166,9 +170,16 @@
             <src path="${build_t.gen}" />
         </javac>
 
+        <jar destfile="${gluegen-test-util.jar}">
+          <fileset dir="${build_t.java}">
+            <include name="${test.junit.util.rel}/**/*.class"/>
+          </fileset>
+        </jar>
+
         <jar destfile="${gluegen-test.jar}">
           <fileset dir="${build_t.java}">
             <include name="${test.junit.rel}/**/*.class"/>
+            <exclude name="${test.junit.util.rel}/**"/>
           </fileset>
           <fileset dir="${build_t.lib}">
               <include name="*${native.library.suffix}" />
