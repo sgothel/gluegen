@@ -3,10 +3,11 @@ https://github.com/sgothel/semantic-versioning
 
 0.9.25-SNAPSHOT
 
-commit c4930f9d23ae7515434942836f628f767411876c
+commit 174953022b62681653db1f57b087581e29313f5b
 Author: Sven Gothel <sgothel@jausoft.com>
-Date:   Tue May 13 16:15:09 2014 +0200
-Solve issues w/ 'simplifyRegularExpression(..)': Allow passing regexp directly (Comparer, ..) and hence skip production of regexp
+Date:   Wed May 14 00:18:52 2014 +0200
+
+    Dumper: Add dump method for sorted List<Difference> (refactored) allowing dumping separate diff-types
 
 branch jogamp
 
