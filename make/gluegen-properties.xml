@@ -54,6 +54,7 @@
     <property name="ant.jar"       value="${ant.home}/lib/ant.jar" />
     <property name="ant-junit.jar" value="${ant.home}/lib/ant-junit.jar" />
     <property name="ant-junit4.jar" value="${ant.home}/lib/ant-junit4.jar" />
+    <property name="semver.jar" value="${gluegen.root}/make/lib/semantic-versioning/semver.jar" />
 
     <property name="android.version" value="9" /> <!-- default - if not set by jogamp-env.xml:jogamp.env.init -->
     <property name="android-min.jar" value="${gluegen.root}/make/lib/android-sdk/${android.version}/android.jar" />
