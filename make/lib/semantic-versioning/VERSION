@@ -1,11 +1,12 @@
 https://github.com/sgothel/semantic-versioning
   forked from https://github.com/jeluard/semantic-versioning
 
-0.9.24-SNAPSHOT
+0.9.25-SNAPSHOT
 
-commit 731db3566b4096ecf6a08a9d33991400e66c5021
+commit c4930f9d23ae7515434942836f628f767411876c
 Author: Sven Gothel <sgothel@jausoft.com>
 Date:   Tue May 13 16:15:09 2014 +0200
+Solve issues w/ 'simplifyRegularExpression(..)': Allow passing regexp directly (Comparer, ..) and hence skip production of regexp
 
 branch jogamp
 
