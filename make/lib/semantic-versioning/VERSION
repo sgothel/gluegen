@@ -3,11 +3,11 @@ https://github.com/sgothel/semantic-versioning
 
 0.9.25-SNAPSHOT
 
-commit 174953022b62681653db1f57b087581e29313f5b
+commit 9ec2e5329780214d317b026f7c0b086972a94a5c
 Author: Sven Gothel <sgothel@jausoft.com>
-Date:   Wed May 14 00:18:52 2014 +0200
+Date:   Wed May 14 01:04:14 2014 +0200
 
-    Dumper: Add dump method for sorted List<Difference> (refactored) allowing dumping separate diff-types
+    Dump: Add dumpFullStats(..) producing diff stat per-class w/ diff-type-count and dump all diffs separated by diff-type
 
 branch jogamp
 

@@ -31,20 +31,13 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Assert;
 import org.osjava.jardiff.DiffCriteria;
 import org.semver.Comparer;
 import org.semver.Delta;
-import org.semver.Delta.Difference;
 import org.semver.Dumper;
 
 import com.jogamp.common.util.IOUtil;
@@ -108,82 +101,13 @@ public class VersionSemanticsUtil {
             resS = "Current version "+curVersionNumber+" is not "+expectedCompatibilityType+" to previous version "+preVersionNumber+", but "+detectedCompatibilityType;
         }
         System.err.println(resS);
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
+        System.err.printf("%n%n");
 
-        final Set<Difference> diffs = delta.getDifferences();
+        Dumper.dumpFullStats(delta, 4, System.err);
 
-        final List<Difference> diffsAdd = new ArrayList<Difference>();
-        final List<Difference> diffsChange = new ArrayList<Difference>();
-        final List<Difference> diffsDeprecate = new ArrayList<Difference>();
-        final List<Difference> diffsRemove = new ArrayList<Difference>();
-        final Map<String, DiffCount> className2DiffCount = new HashMap<String, DiffCount>();
-
-        int maxClassNameLen = 0;
-
-        for(final Iterator<Difference> iter = diffs.iterator(); iter.hasNext(); ) {
-            final Difference diff = iter.next();
-            final String className = diff.getClassName();
-            maxClassNameLen = Math.max(maxClassNameLen, className.length());
-
-            DiffCount dc = className2DiffCount.get(className);
-            if( null == dc ) {
-                dc = new DiffCount(className);
-                className2DiffCount.put(className, dc);
-            }
-
-            if( diff instanceof Delta.Add ) {
-                diffsAdd.add(diff);
-                dc.additions++;
-            } else if( diff instanceof Delta.Change ) {
-                diffsChange.add(diff);
-                dc.changes++;
-            } else if( diff instanceof Delta.Deprecate ) {
-                diffsDeprecate.add(diff);
-                dc.deprecates++;
-            } else if( diff instanceof Delta.Remove ) {
-                diffsRemove.add(diff);
-                dc.removes++;
-            }
-        }
-        Collections.sort(diffsAdd);
-        Collections.sort(diffsChange);
-        Collections.sort(diffsDeprecate);
-        Collections.sort(diffsRemove);
-
-        final List<String> classNames = new ArrayList<String>(className2DiffCount.keySet());
-        Collections.sort(classNames);
-
-        System.err.println("Summary: "+diffs.size()+" differences in "+classNames.size()+" classes:");
-        System.err.println("  Remove "+diffsRemove.size()+
-                           ", Change "+diffsChange.size()+
-                           ", Deprecate "+diffsDeprecate.size()+
-                           ", Add "+diffsAdd.size());
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-
-        int iterI = 0;
-        for(final Iterator<String> iter = classNames.iterator(); iter.hasNext(); iterI++) {
-            final String className = iter.next();
-            final DiffCount dc = className2DiffCount.get(className);
-            System.err.printf("%4d/%4d: %-"+maxClassNameLen+"s: %s%n", iterI, classNames.size(), className, dc.format(4));
-        }
-
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        System.err.println("Removes");
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        Dumper.dump(diffsRemove, System.err);
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        System.err.println("Changes");
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        Dumper.dump(diffsChange, System.err);
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        System.err.println("Deprecates");
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        Dumper.dump(diffsDeprecate, System.err);
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        System.err.println("Additions");
-        System.err.println("--------------------------------------------------------------------------------------------------------------");
-        Dumper.dump(diffsAdd, System.err);
-        System.err.println("==============================================================================================================");
+        // Also dump sorted by class name
+        System.err.printf("%n%nClass Order%n%n");
+        Dumper.dump(delta, System.err);
 
         Assert.assertTrue(resS, compOK);
 
@@ -195,18 +119,5 @@ public class VersionSemanticsUtil {
         //Validates that current version number is valid based on semantic versioning principles.
         final boolean compatible = delta.validate(previous, current);
         */
-    }
-    static class DiffCount {
-        public DiffCount(String name) { this.name = name; }
-        public final String name;
-        public int removes;
-        public int changes;
-        public int deprecates;
-        public int additions;
-        public String toString() { return name+": Remove "+removes+", Change "+changes+", Deprecate "+deprecates+", Add "+additions; }
-        public String format(final int digits) {
-            return String.format("Remove %"+digits+"d, Change %"+digits+"d, Deprecate %"+digits+"d, Add %"+digits+"d",
-                                    removes, changes, deprecates, additions);
-        }
     }
 }
