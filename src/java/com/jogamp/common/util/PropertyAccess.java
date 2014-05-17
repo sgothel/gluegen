@@ -79,7 +79,7 @@ public class PropertyAccess {
     try {
         final String sv = PropertyAccess.getProperty(property, jnlpAlias);
         if(null!=sv) {
-            i = Integer.valueOf(sv).intValue();
+            i = Integer.parseInt(sv);
         }
     } catch (NumberFormatException nfe) {}
     return i;
@@ -91,7 +91,7 @@ public class PropertyAccess {
     try {
         final String sv = PropertyAccess.getProperty(property, jnlpAlias);
         if(null!=sv) {
-            l = Long.valueOf(sv).longValue();
+            l = Long.parseLong(sv);
         }
     } catch (NumberFormatException nfe) {}
     return l;
