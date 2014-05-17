@@ -216,27 +216,33 @@ public class GlueGen implements GlueEmitterControls {
             emit.beginDefines();
             Set<String> emittedDefines = new HashSet<String>(100);
             // emit java equivalent of enum { ... } statements
+            StringBuilder comment = new StringBuilder();
             for (ConstantDefinition def : constants) {
                 if (!emittedDefines.contains(def.getName())) {
                     emittedDefines.add(def.getName());
-                    String comment = null;
                     Set<String> aliases = def.getAliases();
                     if (aliases != null) {
-                        comment = "Alias for: <code>";
+                        comment.append("Alias for: <code>");
                         for (String alias : aliases) {
-                            comment += " " + alias;
+                            comment.append(" ").append(alias);
                         }
-                        comment += "</code>";
+                        comment.append("</code>");
                     }
                     if (def.getEnumName() != null) {
-                        String enumName = "Defined as part of enum type \"" + def.getEnumName() + "\"";
-                        if (comment == null) {
-                            comment = enumName;
-                        } else {
-                            comment += "<br>\n" + enumName;
-                        }
+                        if (comment.length() > 0)
+                            comment.append("<br>\n");
+
+                        comment.append("Defined as part of enum type \"");
+                        comment.append(def.getEnumName());
+                        comment.append("\"");
                     }
-                    emit.emitDefine(def, comment);
+                    if (comment.length() > 0) {
+                        emit.emitDefine(def, comment.toString());
+                        comment.setLength(0);
+                    }
+                    else {
+                        emit.emitDefine(def, null);
+                    }
                 }
             }
             emit.endDefines();
