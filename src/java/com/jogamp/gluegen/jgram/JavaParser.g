@@ -155,7 +155,7 @@ tokens {
     }
 
     /** Returns the EnumTypes this HeaderParser processed. */
-    public Set getParsedEnumNames() {
+    public Set<String> getParsedEnumNames() {
         return enumNames;
     }
 
@@ -167,13 +167,13 @@ tokens {
     }
 
     /** Returns the list of FunctionSymbols this HeaderParser has parsed. */
-    public Set getParsedFunctionNames() {
+    public Set<String> getParsedFunctionNames() {
         return functionNames;
     }
 
-    private Set/*<String>*/ functionNames = new HashSet();
+    private Set<String> functionNames = new HashSet<String>();
     // hash from name of an enumerated value to the EnumType to which it belongs
-    private Set/*<String>*/ enumNames = new HashSet();
+    private Set<String> enumNames = new HashSet<String>();
 
     private int blockDepth = 0;
 }
