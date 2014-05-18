@@ -169,7 +169,6 @@ public abstract class FunctionEmitter {
   }
 
   protected int emitModifiers(PrintWriter writer)  {
-    PrintWriter w = getDefaultOutput();
     int numEmitted = 0;
     for (Iterator<EmissionModifier> it = getModifiers(); it.hasNext(); )   {
       writer.print(it.next());
