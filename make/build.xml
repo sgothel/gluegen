@@ -157,36 +157,6 @@
   </target>
   <target name="init.debug" depends="set.debug, init"/>
 
-  <!--
-    - Using ANTLR generate the specified Java files.
-    -
-    - @param target the grammar file to process
-    - @param output.dir the directory to write the generated files to.  If
-    -        the directory does not exist, it will be created.
-    -->
-  <target name="generate.grammar">
-    <!-- Generate the Java files -->
-    <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}">
-      <classpath refid="antlr.classpath" />
-    </antlr>
-  </target>
-    
-  <!--
-    - Using ANTLR generate the specified Java files with an overridden
-    - grammar file.
-    -
-    - @param target the grammar file to process
-    - @param glib the overridding grammar file
-    - @param output.dir the directory to write the generated files to.  If
-    -        the directory does not exist, it will be created.
-   -->
-  <target name="generate.c.grammar.glib">
-    <!-- Generate the Java files -->
-    <antlr target="${output.dir}/${target}" glib="${output.dir}/${glib}" outputdirectory="${output.dir}">
-      <classpath refid="antlr.classpath" />
-    </antlr>
-  </target>
-
   <property name="gluegen.root" value="../" />
 
   <!-- Use GlueGen to generate the source code for the ElfHeader
@@ -649,6 +619,36 @@
       </condition>
   </target>
 
+    <!--
+    - Using ANTLR generate the specified Java files.
+    -
+    - @param target the grammar file to process
+    - @param output.dir the directory to write the generated files to.  If
+    -        the directory does not exist, it will be created.
+    -->
+  <target name="generate.java">
+    <!-- Generate the Java files -->
+    <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}">
+      <classpath refid="antlr.classpath" />
+    </antlr>
+  </target>
+
+  <!--
+    - Using ANTLR generate the specified Java files with an overridden
+    - grammar file.
+    -
+    - @param target the grammar file to process
+    - @param override the overridding grammar file
+    - @param output.dir the directory to write the generated files to.  If
+    -        the directory does not exist, it will be created.
+   -->
+  <target name="generate.java.override">
+    <!-- Generate the Java files -->
+    <antlr target="${output.dir}/${target}" glib="${output.dir}/${override}" outputdirectory="${output.dir}">
+      <classpath refid="antlr.classpath" />
+    </antlr>
+  </target>
+  
   <target name="gluegen.build.javase">
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
@@ -669,32 +669,32 @@
     </copy>
 
     <!-- Generate the Java files from the C grammar using ANTLR. -->
-    <antcall target="generate.grammar"  inheritRefs="true">
+    <antcall target="generate.java"  inheritRefs="true">
       <param name="output.dir" value="${c.grammar.out.dir}" />
-      <param name="target" value="StdCParser.g" />
+      <param name="target"     value="StdCParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
+    <antcall target="generate.java.override"  inheritRefs="true">
       <param name="output.dir" value="${c.grammar.out.dir}" />
-      <param name="target" value="GnuCParser.g" />
-      <param name="glib" value="StdCParser.g" />
+      <param name="target"     value="GnuCParser.g" />
+      <param name="override"   value="StdCParser.g" />
     </antcall>
-    <antcall target="generate.grammar"  inheritRefs="true">
+    <antcall target="generate.java"  inheritRefs="true">
       <param name="output.dir" value="${c.grammar.out.dir}" />
-      <param name="target" value="GnuCTreeParser.g" />
+      <param name="target"     value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
+    <antcall target="generate.java.override"  inheritRefs="true">
       <param name="output.dir" value="${c.grammar.out.dir}" />
-      <param name="target" value="GnuCEmitter.g" />
-      <param name="glib" value="GnuCTreeParser.g" />
+      <param name="target"     value="GnuCEmitter.g" />
+      <param name="override"   value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
+    <antcall target="generate.java.override"  inheritRefs="true">
       <param name="output.dir" value="${c.grammar.out.dir}" />
-      <param name="target" value="HeaderParser.g" />
-      <param name="glib" value="GnuCTreeParser.g" />
+      <param name="target"     value="HeaderParser.g" />
+      <param name="override"   value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.grammar"  inheritRefs="true">
+    <antcall target="generate.java"  inheritRefs="true">
       <param name="output.dir" value="${j.grammar.out.dir}" />
-      <param name="target" value="JavaParser.g" />
+      <param name="target"     value="JavaParser.g" />
     </antcall>
 
     <!-- Build GlueGen using the generated Java files along with the
