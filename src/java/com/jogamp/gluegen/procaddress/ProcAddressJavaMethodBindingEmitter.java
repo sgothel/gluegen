@@ -42,7 +42,6 @@ import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
 import java.io.*;
-import com.jogamp.gluegen.*;
 
 /** A specialization of JavaMethodBindingEmitter with knowledge of how
 to call through a function pointer. */

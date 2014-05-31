@@ -1,6 +1,5 @@
 package com.jogamp.gluegen.cgram;
 
-import antlr.Token;
 import antlr.ASTFactory;
 import antlr.collections.AST;
 
