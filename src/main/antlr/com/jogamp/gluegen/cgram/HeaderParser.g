@@ -100,7 +100,7 @@ options {
 
     /** Pre-define the list of EnumTypes for this HeaderParser. Must be
                 done before parsing. */
-    public void setEnums(List/*<EnumType>*/ enumTypes) {
+    public void setEnums(List<EnumType> enumTypes) {
         // FIXME: Need to take the input set of EnumTypes, extract all
         // the enumerates from each EnumType, and fill in the enumHash
         // so that each enumerate maps to the enumType to which it
@@ -109,8 +109,8 @@ options {
     }
 
     /** Returns the EnumTypes this HeaderParser processed. */
-    public List/*<EnumType>*/ getEnums() {
-        return new ArrayList(enumHash.values());
+    public List<EnumType> getEnums() {
+        return new ArrayList<EnumType>(enumHash.values());
     }    
     
     /** Clears the list of functions this HeaderParser has parsed.
@@ -121,7 +121,7 @@ options {
     }
 
     /** Returns the list of FunctionSymbols this HeaderParser has parsed. */
-    public List getParsedFunctions() {
+    public List<FunctionSymbol> getParsedFunctions() {
         return functions;
     }
 
@@ -241,9 +241,9 @@ options {
     private List    parameters;
     private TypeDictionary typedefDictionary;
     private TypeDictionary structDictionary;
-    private List/*<FunctionSymbol>*/ functions = new ArrayList();
+    private List<FunctionSymbol> functions = new ArrayList<FunctionSymbol>();
     // hash from name of an enumerated value to the EnumType to which it belongs
-    private HashMap/*<String,EnumType>*/ enumHash = new HashMap();
+    private HashMap<String, EnumType> enumHash = new HashMap<String, EnumType>();
 
     // Storage class specifiers
     private static final int AUTO     = 1 << 0;
@@ -317,9 +317,9 @@ options {
           returns an existing one if it has already been created. */
   private EnumType getEnumType(String enumTypeName) {
         EnumType enumType = null;
-        Iterator it = enumHash.values().iterator(); 
+        Iterator<EnumType> it = enumHash.values().iterator(); 
         while (it.hasNext()) {
-          EnumType potentialMatch = (EnumType)it.next();
+          EnumType potentialMatch = it.next();
           if (potentialMatch.getName().equals(enumTypeName)) {
                 enumType = potentialMatch;
                 break;        
@@ -652,7 +652,7 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                     if (eVal != null) {
                       String vTxt = eVal.getAllChildrenText();
                       if (enumHash.containsKey(vTxt)) {
-                        EnumType oldEnumType = (EnumType) enumHash.get(vTxt);
+                        EnumType oldEnumType = enumHash.get(vTxt);
                         value = oldEnumType.getEnumValue(vTxt);
                       } else {
                         try {
@@ -669,7 +669,7 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                                         newDefaultValue = value+1;
                                           String eTxt = eName.getText();
                                           if (enumHash.containsKey(eTxt)) {
-                                                EnumType oldEnumType = (EnumType) enumHash.get(eTxt);
+                                                EnumType oldEnumType = enumHash.get(eTxt);
                                                 long oldValue = oldEnumType.getEnumValue(eTxt);
                                                   System.err.println("WARNING: redefinition of enumerated value '" + eTxt + "';" +
                                                      " existing definition is in enumeration '" + oldEnumType.getName() +

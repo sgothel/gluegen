@@ -190,8 +190,7 @@ public class GlueGen implements GlueEmitterControls {
             // Repackage the enum and #define statements from the parser into a common format
             // so that SymbolFilters can operate upon both identically
             constants = new ArrayList<ConstantDefinition>();
-            for (Object elem : headerParser.getEnums()) {
-                EnumType enumeration = (EnumType) elem;
+            for (EnumType enumeration : headerParser.getEnums()) {
                 String enumName = enumeration.getName();
                 if (enumName.equals("<anonymous>")) {
                     enumName = null;
