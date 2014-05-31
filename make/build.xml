@@ -58,6 +58,7 @@
     <!-- The source and build directories. -->
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
+    <property name="src.antlr" value="${project.root}/src/main/antlr" />
     <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="javadoc.root.path"    location="${build}/javadoc" />
     <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
@@ -116,15 +117,13 @@
     </path>
 
     <!-- The location of the GlueGen source and the C grammar files. -->
-    <property name="gluegen" value="${src.java}/com/jogamp/gluegen" />
-    <property name="c.grammar" value="${gluegen}/cgram" />
-    <property name="j.grammar" value="${gluegen}/jgram" />
+    <property name="c.grammar" value="${src.antlr}/com/jogamp/gluegen/cgram" />
+    <property name="j.grammar" value="${src.antlr}/com/jogamp/gluegen/jgram" />
         
     <!-- The resulting location of the generated Java files from the
       - C grammar via ANTLR. -->
-    <property name="gluegen.build" value="${src.generated.java}/com/jogamp/gluegen" />
-    <property name="generated.java.from.c.grammar" value="${gluegen.build}/cgram" />
-    <property name="generated.java.from.j.grammar" value="${gluegen.build}/jgram" />
+    <property name="generated.java.from.c.grammar" value="${src.generated.java}/com/jogamp/gluegen/cgram" />
+    <property name="generated.java.from.j.grammar" value="${src.generated.java}/com/jogamp/gluegen/jgram" />
 
     <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
@@ -631,15 +630,15 @@
       <uptodate property="gluegen.build.skip.java1">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
-        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
-        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${c.grammar}" includes="*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="*.g"/>
         <mapper type="merge" to="${build}/gluegen.jar"/>
       </uptodate>
       <uptodate property="gluegen.build.skip.java2">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
-        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
-        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${c.grammar}" includes="*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="*.g"/>
         <mapper type="merge" to="${build}/gluegen-rt.jar"/>
       </uptodate>
       <condition property="gluegen.build.skip.java" value="true">
