@@ -16,7 +16,15 @@
  * Check build-in macro definitions via 'gcc -dM -E - < /dev/null'
  */
 #if defined(__linux__) /* Actually we like to test whether we link against GLIBC .. */
-    #if defined(__GNUC__) || defined(__clang__)
+    #if defined(__GNUC__)
+        #if defined(__arm__)
+           #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
+        #elif defined(__amd64__)
+           #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
+        #else
+           #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.0");
+        #endif /*__amd64__*/
+    #elif defined(__clang__)
         #if defined(__arm__)
            #define GLIBC_COMPAT_SYMBOL(FFF) asm(".symver " #FFF "," #FFF "@GLIBC_2.4");
         #elif defined(__amd64__)
