@@ -7,7 +7,7 @@
    - externally:
    - 
    -   gcc.compat.compiler
-   -       either "gcc" (default) or "clang"
+   -       either "gcc" (default), "clang" or "xcode.clang" (default for OSX)
    -
    -   win32.c.compiler (required to be set on Windows):
    -       one of "vc6", "vc7", "vc8", "mingw32" (default) or "mingw64".
@@ -49,6 +49,7 @@
     <property name="gluegen.user.properties.file.set" value="${gluegen.user.properties.file}"/>
     <property file="${gluegen.user.properties.file.set}" />
     <echo message="Loaded ${gluegen.user.properties.file.set}." />
+    <echo message="Setting defaults:" />
     <property name="antlr.jar" value="${gluegen.root}/make/lib/antlr.jar" />
     <property name="junit.jar" value="${gluegen.root}/make/lib/junit.jar" />
     <property name="ant.jar"       value="${ant.home}/lib/ant.jar" />
@@ -85,7 +86,14 @@
     <property name="ant-junit-all.apk" value="${gluegen.root}/make/lib/ant-junit-all.apk" />
 
     <!-- maybe overriden, e.g. with "clang" -->
-    <property name="gcc.compat.compiler" value="gcc"/>
+    <echo message="Setting default gcc.compat.compiler" />
+    <condition property="gcc.compat.compiler" value="xcode.clang"> <!-- default for OSX -->
+      <and>
+        <os family="mac"/>
+        <os family="unix"/>
+      </and>
+    </condition>
+    <property name="gcc.compat.compiler" value="gcc"/>             <!-- default for all others .. -->
     <echo message="gcc.compat.compiler=${gcc.compat.compiler}" />
 
     <condition property="win32.c.compiler" value="mingw64">
