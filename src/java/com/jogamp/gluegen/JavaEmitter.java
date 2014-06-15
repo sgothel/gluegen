@@ -1273,8 +1273,7 @@ public class JavaEmitter implements GlueEmitter {
       return javaType(Double.TYPE);
     } else if (t.isVoid()) {
       return javaType(Void.TYPE);
-    } else {
-      if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
+    } else if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
         Type targetType; // target type
         if (t.isPointer()) {
           // t is <type>*, we need to get <type>
@@ -1394,11 +1393,10 @@ public class JavaEmitter implements GlueEmitter {
             t.arrayDimension() + " targetType=\"" + targetType + "\"]");
         }
 
-      } else {
+    } else {
         throw new RuntimeException(
           "Could not convert C type \"" + t + "\" (class " +
           t.getClass().getName() + ") to appropriate Java type");
-      }
     }
   }
 

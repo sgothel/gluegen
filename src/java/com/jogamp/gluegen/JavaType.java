@@ -489,7 +489,9 @@ public class JavaType {
 
   // For debugging
   public String getDumpString() {
-    return "[clazz = " + clazz + " , name = " + name + " , elementType = " + elementType + " , primitivePointerType = " + primitivePointerType + "]";
+    return "[clazz = " + clazz + " , name = " + name + " , elementType = " + elementType + " , primitivePointerType = " + primitivePointerType +
+           ", isArray "+isArray()+", isArrayOfCompoundTypeWrappers "+isArrayOfCompoundTypeWrappers()+
+           ", isNIOBuffer "+isNIOBuffer()+", isNIOBufferArray "+isNIOBufferArray()+"]";
   }
   public void dump() {
     System.err.println(getDumpString());
