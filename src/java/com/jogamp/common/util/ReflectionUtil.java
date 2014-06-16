@@ -120,10 +120,10 @@ public final class ReflectionUtil {
         return sb;
     }
 
-    private static Class<?> getClassImpl(String clazzName, boolean initialize, ClassLoader cl) throws ClassNotFoundException {
+    private static Class<?> getClassImpl(String clazzName, boolean initializeClazz, ClassLoader cl) throws ClassNotFoundException {
         if(DEBUG_STATS_FORNAME) {
             final long t0 = System.nanoTime();
-            final Class<?> res = Class.forName(clazzName, initialize, cl);
+            final Class<?> res = Class.forName(clazzName, initializeClazz, cl);
             final long t1 = System.nanoTime();
             final long nanoCosts = t1 - t0;
             synchronized(forNameLock) {
@@ -137,14 +137,14 @@ public final class ReflectionUtil {
                 cnl.count++;
                 cnl.nanoCosts += nanoCosts;
                 System.err.printf("ReflectionUtil.getClassImpl.%03d: %8.3f ms, init %b, [%s]@ Thread %s%n",
-                        forNameCount, nanoCosts/1e6, initialize, cnl.toString(), Thread.currentThread().getName());
+                        forNameCount, nanoCosts/1e6, initializeClazz, cnl.toString(), Thread.currentThread().getName());
                 if(DEBUG) {
                     Thread.dumpStack();
                 }
             }
             return res;
         } else {
-            return Class.forName(clazzName, initialize, cl);
+            return Class.forName(clazzName, initializeClazz, cl);
         }
     }
 
@@ -163,22 +163,23 @@ public final class ReflectionUtil {
      * Loads and returns the class or null.
      * @see Class#forName(java.lang.String, boolean, java.lang.ClassLoader)
      */
-    public static final Class<?> getClass(String clazzName, boolean initialize, ClassLoader cl)
+    public static final Class<?> getClass(String clazzName, boolean initializeClazz, ClassLoader cl)
         throws JogampRuntimeException {
         try {
-            return getClassImpl(clazzName, initialize, cl);
+            return getClassImpl(clazzName, initializeClazz, cl);
         } catch (ClassNotFoundException e) {
             throw new JogampRuntimeException(clazzName + " not available", e);
         }
     }
 
     /**
+     * @param initializeClazz TODO
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor<?> getConstructor(String clazzName, Class<?>[] cstrArgTypes, ClassLoader cl)
+    public static final Constructor<?> getConstructor(String clazzName, Class<?>[] cstrArgTypes, boolean initializeClazz, ClassLoader cl)
         throws JogampRuntimeException {
         try {
-            return getConstructor(getClassImpl(clazzName, true, cl), cstrArgTypes);
+            return getConstructor(getClassImpl(clazzName, initializeClazz, cl), cstrArgTypes);
         } catch (ClassNotFoundException ex) {
             throw new JogampRuntimeException(clazzName + " not available", ex);
         }
@@ -249,7 +250,7 @@ public final class ReflectionUtil {
 
   public static final Constructor<?> getConstructor(String clazzName, ClassLoader cl)
         throws JogampRuntimeException {
-    return getConstructor(clazzName, null, cl);
+    return getConstructor(clazzName, null, true, cl);
   }
 
   /**

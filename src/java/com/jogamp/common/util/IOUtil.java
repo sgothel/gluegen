@@ -96,7 +96,7 @@ public class IOUtil {
         Constructor<?> _fosCtor;
         Throwable _t;
         try {
-            _fosCtor = ReflectionUtil.getConstructor("java.io.FileOutputStream", new Class<?>[] { File.class }, IOUtil.class.getClassLoader());
+            _fosCtor = ReflectionUtil.getConstructor("java.io.FileOutputStream", new Class<?>[] { File.class }, true, IOUtil.class.getClassLoader());
             _t = null;
         } catch (Throwable t) {
             _fosCtor = null;
