@@ -79,6 +79,19 @@ if [ -z "$FOUND_JAVA" ] ; then
     fi
 fi
 
+if [ -z "$FOUND_JAVA" ] ; then
+    # make a symbolic link, e.g. OpenJDK:
+    # /usr/lib/jvm/java-7-openjdk-amd64 -> /usr/lib/jvm/java-amd64
+    if [ -e /usr/lib/jvm/java-amd64 ] ; then
+        J2RE_HOME=/usr/lib/jvm/java-amd64/jre
+        JAVA_HOME=/usr/lib/jvm/java-amd64
+        PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi 
+fi 
+
+
 export PATH
 
 echo FOUND_JAVA $FOUND_JAVA

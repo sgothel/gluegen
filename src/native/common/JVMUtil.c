@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
+ * Copyright (c) 2014 JogAmp Community. All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,6 +49,6 @@ Java_jogamp_common_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject n
   if (nioBuffer != NULL) {
         ptr = (void *) (*env)->GetDirectBufferAddress(env, nioBuffer);
   }
-  return ( NULL==ptr ) ? JNI_FALSE : JNI_TRUE ;
+  return NULL != ptr ? JNI_TRUE : JNI_FALSE;
 }
 

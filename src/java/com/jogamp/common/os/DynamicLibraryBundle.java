@@ -74,7 +74,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     private long toolGetProcAddressHandle;
     private boolean toolGetProcAddressComplete;
     private HashSet<String> toolGetProcAddressFuncNameSet;
-    private List<String> toolGetProcAddressFuncNameList;
+    private final List<String> toolGetProcAddressFuncNameList;
 
     /** Returns an AWT-EDT {@link RunnableExecutor} implementation if AWT is available, otherwise {@link RunnableExecutor#currentThreadExecutor}. */
     public static RunnableExecutor getDefaultRunnableExecutor() {
