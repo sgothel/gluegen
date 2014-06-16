@@ -462,7 +462,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
                        "(\"Length of array \\\"" + getArgumentName(i) +
                        "\\\" was less than the required " + arrayType.getLength() + "\");");
         // FIXME: What is this ??? Until resolved - throw an exception !
-        throw new RuntimeException("????? "+binding+": binding.getCArgumentType("+i+").isArray(): "+type);
+        throw new RuntimeException("????? "+binding+": binding.getCArgumentType("+i+").isArray(): "+type); // FIXME: Compound and Compound-Arrays
       } else {
         JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isNIOBuffer()) {

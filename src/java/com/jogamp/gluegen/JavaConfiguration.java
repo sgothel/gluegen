@@ -156,6 +156,7 @@ public class JavaConfiguration {
     private boolean forceUseNIODirectOnly4All = false;
     private final Set<String> useNIODirectOnly = new HashSet<String>();
     private final Set<String> manuallyImplement = new HashSet<String>();
+    private final Set<String> manualStaticInit = new HashSet<String>();
     private final Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
     private final Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
     private final Map<String, List<String>> methodJavadoc = new HashMap<String, List<String>>();
@@ -535,6 +536,12 @@ public class JavaConfiguration {
       manually implemented by the end user. */
   public boolean manuallyImplement(String functionName) {
     return manuallyImplement.contains(functionName);
+  }
+
+  /** Returns true if the static initialization java code for the given class will be
+      manually implemented by the end user. */
+  public boolean manualStaticInit(String clazzName) {
+    return manualStaticInit.contains(clazzName);
   }
 
   /** Returns a list of Strings containing user-implemented code for
@@ -983,6 +990,8 @@ public class JavaConfiguration {
       readIgnoreField(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ManuallyImplement")) {
       readManuallyImplement(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ManualStaticInit")) {
+      readManualStaticInit(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("CustomJavaCode")) {
       readCustomJavaCode(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -1280,6 +1289,15 @@ public class JavaConfiguration {
       manuallyImplement.add(name);
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ManuallyImplement\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+  protected void readManualStaticInit(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String name = tok.nextToken();
+      manualStaticInit.add(name);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"ManualStaticInit\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }

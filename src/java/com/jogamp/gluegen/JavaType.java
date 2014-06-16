@@ -487,14 +487,50 @@ public class JavaType {
   // Internals only below this point
   //
 
+  private void append(final StringBuilder sb, final String val, final boolean prepComma) {
+      if( prepComma ) {
+          sb.append(", ");
+      }
+      sb.append(val);
+  }
   // For debugging
   public String getDumpString() {
-    return "[clazz = " + clazz + " , name = " + name + " , elementType = " + elementType + " , primitivePointerType = " + primitivePointerType +
-           ", isArray "+isArray()+", isArrayOfCompoundTypeWrappers "+isArrayOfCompoundTypeWrappers()+
-           ", isNIOBuffer "+isNIOBuffer()+", isNIOBufferArray "+isNIOBufferArray()+"]";
-  }
-  public void dump() {
-    System.err.println(getDumpString());
+    final StringBuilder sb = new StringBuilder();
+    sb.append("JavaType[");
+    boolean prepComma = false;
+    if( null != clazz ) {
+        append(sb, "clazz = "+clazz.getName(), prepComma); prepComma=true;
+    }
+    if( null != name ) {
+        append(sb, "name = "+name, prepComma); prepComma=true;
+    }
+    if( null != elementType ) {
+        append(sb, "elementType = "+elementType, prepComma); prepComma=true;
+    }
+    if( null != primitivePointerType ) {
+        append(sb, "primitivePointerType = "+primitivePointerType, prepComma); prepComma=true;
+    }
+    append(sb, "is[", prepComma); prepComma=false;
+    if( isArray() ) {
+        append(sb, "array", prepComma); prepComma=true;
+    }
+    if( isArrayOfCompoundTypeWrappers() ) {
+        append(sb, "compoundArray", prepComma); prepComma=true;
+    }
+    if( isCompoundTypeWrapper() ) {
+        append(sb, "compound", prepComma); prepComma=true;
+    }
+    if( isNIOBuffer() ) {
+        append(sb, "nioBuffer", prepComma); prepComma=true;
+    }
+    if( isNIOBufferArray() ) {
+        append(sb, "nioBufferArray", prepComma); prepComma=true;
+    }
+    if( isCPrimitivePointerType() ) {
+        append(sb, "C-Primitive-Pointer", prepComma); prepComma=true;
+    }
+    sb.append("]]");
+    return sb.toString();
   }
 
   /**
@@ -516,14 +552,6 @@ public class JavaType {
     this.elementType = null;
   }
 
-  /** Constructs a type representing an array of C pointers. */
-  private JavaType(Type elementType) {
-    this.primitivePointerType = null;
-    this.clazz = null;
-    this.name = null;
-    this.elementType = elementType;
-  }
-
   /** Constructs a type representing a pointer to a C primitive
       (integer, floating-point, or void pointer) type. */
   private JavaType(C_PTR primitivePointerType) {
@@ -531,6 +559,14 @@ public class JavaType {
     this.clazz = null;
     this.name = null;
     this.elementType = null;
+  }
+
+  /** Constructs a type representing an array of C pointers. */
+  private JavaType(Type elementType) {
+    this.primitivePointerType = null;
+    this.clazz = null;
+    this.name = null;
+    this.elementType = elementType;
   }
 
   private JavaType(C_PTR primitivePointerType, Class<?> clazz, String name, Type elementType) {

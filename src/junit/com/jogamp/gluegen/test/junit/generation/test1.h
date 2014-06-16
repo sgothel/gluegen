@@ -240,3 +240,13 @@ MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface);
 MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet();
 MYAPI Bool MYAPIENTRY hasInitValues(TK_ComplicatedSuperSet * s);
 MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s);
+
+//
+// Call by Value !!!
+//
+
+MYAPI TK_Dimension MYAPIENTRY getBoundsValue(int32_t x, int32_t y, int32_t width, int32_t height);
+MYAPI TK_Surface MYAPIENTRY getSurfaceValue(TK_Dimension bounds);
+MYAPI TK_Dimension MYAPIENTRY getSurfaceBoundsValue(TK_Surface s);
+MYAPI Bool MYAPIENTRY isSameInstanceByVal(TK_Dimension s1, TK_Dimension s2);
+MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimension *s2);

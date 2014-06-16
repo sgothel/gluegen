@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.nio.Buffers;
@@ -64,7 +64,7 @@ public class BaseClass extends JunitTracer {
         Assert.assertNotNull(ifName+" does not exist", clazzIf);
         Assert.assertNotNull(implName+" does not exist", clazzImpl);
 
-        Assert.assertEquals((int)1,  clazzIf.getDeclaredField("CONSTANT_ONE").get(null));
+        Assert.assertEquals(1,  clazzIf.getDeclaredField("CONSTANT_ONE").get(null));
 
         Object obj = clazzImpl.newInstance();
         Assert.assertTrue("Not of type "+ifName, clazzIf.isAssignableFrom(obj.getClass()));
@@ -89,27 +89,27 @@ public class BaseClass extends JunitTracer {
           long result = 0;
           long l = result;
 
-          {              
+          {
               ByteBuffer bb = binding.createAPtrBlob();
               PointerBuffer pb = safeByteBuffer2PointerBuffer(bb, 1);
               long bb2A = binding.getAPtrAddress(bb);
               bb2A = bb2A - 0; // avoid warning
-          
+
               binding.arrayTestAVoidPtrTypeDim1Mutable(pb);
               pb = PointerBuffer.wrap( binding.arrayTestAVoidPtrTypeDim1Immutable(pb) );
               pb = PointerBuffer.wrap( binding.arrayTestAVoidPtrTypeDim0(pb.getBuffer()) );
               binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
-              
+
               binding.arrayTestAIntPtrTypeDim1Mutable(pb);
               result = binding.arrayTestAIntPtrTypeDim1Immutable(pb);
               result = binding.arrayTestAIntPtrTypeDim0(pb.get(0));
               binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
-              
+
               binding.arrayTestAPtr1TypeDim1Mutable(pb);
               pb = PointerBuffer.wrap( binding.arrayTestAPtr1TypeDim1Immutable(pb) );
               pb = PointerBuffer.wrap( binding.arrayTestAPtr1TypeDim0(pb.getBuffer()) );
               binding.releaseAPtrBlob( binding.getAPtrMemory( pb.get(0) ) );
-              
+
               binding.arrayTestAPtr2TypeDim1Mutable(pb);
               result = binding.arrayTestAPtr2TypeDim1Immutable(pb);
               result = binding.arrayTestAPtr2TypeDim0(pb.get(0));
@@ -117,7 +117,7 @@ public class BaseClass extends JunitTracer {
 
               binding.releaseAPtrBlob(bb);
           }
-          
+
           ByteBuffer bb=null;
           PointerBuffer pb=null;
 
@@ -191,7 +191,7 @@ public class BaseClass extends JunitTracer {
             return bb;
         }
     }
-    
+
     IntBuffer newIntBuffer(int size, boolean direct) {
         if(direct) {
             final IntBuffer ib = Buffers.newDirectIntBuffer(size);
@@ -209,13 +209,13 @@ public class BaseClass extends JunitTracer {
         if(direct) {
             final LongBuffer lb = Buffers.newDirectLongBuffer(size);
             Assert.assertTrue(lb.isDirect());
-            return lb;            
+            return lb;
         } else {
             final LongBuffer lb = LongBuffer.wrap(new long[size]);
             Assert.assertTrue(!lb.isDirect());
             Assert.assertTrue(lb.hasArray());
             return lb;
-        }        
+        }
     }
 
     PointerBuffer newPointerBuffer(int size, boolean direct) {
@@ -231,15 +231,15 @@ public class BaseClass extends JunitTracer {
           return pb;
         }
     }
-    
+
     long cleanAddress(long a) {
         if (Platform.is32Bit()) {
             return a & 0x00000000FFFFFFFFL;
         } else {
             return a;
-        }        
+        }
     }
-    
+
     PointerBuffer validatePointerBuffer(PointerBuffer pb, int elements) {
         Assert.assertNotNull(pb);
         Assert.assertEquals("PointerBuffer capacity not "+elements, elements, pb.capacity());
@@ -256,7 +256,7 @@ public class BaseClass extends JunitTracer {
         Assert.assertEquals("ByteBuffer remaining not PointerBuffer ELEMENT_SIZE * "+elements, elements * PointerBuffer.ELEMENT_SIZE, bb.remaining());
         return validatePointerBuffer(PointerBuffer.wrap(bb), elements);
     }
-    
+
     /**
      * Verifies if all methods / signatures are properly generated,
      * can be invoked and functions.
@@ -433,7 +433,7 @@ public class BaseClass extends JunitTracer {
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb);
               validatePointerBuffer(pb2, Bindingtest1.ARRAY_SIZE);
               for(j=0; j<Bindingtest1.ARRAY_SIZE*Bindingtest1.ARRAY_SIZE; j++) {
-                Assert.assertEquals("Wrong result: s:"+lb2.get(j%Bindingtest1.ARRAY_SIZE)+" d: "+lb3.get(j), 
+                Assert.assertEquals("Wrong result: s:"+lb2.get(j%Bindingtest1.ARRAY_SIZE)+" d: "+lb3.get(j),
                                   1+lb2.get(j%Bindingtest1.ARRAY_SIZE), lb3.get(j));
               }
               Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pb2, 10000));
@@ -460,14 +460,14 @@ public class BaseClass extends JunitTracer {
               // System.out.println("lb3: "+lb3);
               validatePointerBuffer(pb, Bindingtest1.ARRAY_SIZE);
               Assert.assertNotNull(pb.getReferencedBuffer(0));
-              Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2, pb.getReferencedBuffer(0).equals(lb2));              
+              Assert.assertTrue("Wrong result: "+pb.getReferencedBuffer(0)+" != "+lb2, pb.getReferencedBuffer(0).equals(lb2));
 
               PointerBuffer pb2 = binding.arrayTestFoo3PtrPtr(pb); // pb2 is shallow
               validatePointerBuffer(pb2, Bindingtest1.ARRAY_SIZE);
               for(j=0; j<Bindingtest1.ARRAY_SIZE; j++) {
                   LongBuffer i64b = (LongBuffer) pb.getReferencedBuffer(j);
                   for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
-                    Assert.assertEquals("Wrong result: ["+j+"]["+i+"] s:"+lb2.get(i)+" d: "+i64b.get(i), 
+                    Assert.assertEquals("Wrong result: ["+j+"]["+i+"] s:"+lb2.get(i)+" d: "+i64b.get(i),
                                         1+lb2.get(i), i64b.get(i));
                   }
               }
@@ -475,7 +475,7 @@ public class BaseClass extends JunitTracer {
           }
 
           // pb = PointerBuffer.alloc*(ARRAY_SIZE)
-          // arrayTestFoo3CopyPtrPtrA(PointerBuffer dst, PointerBuffer src) (Native deep copy w/ alloc)  
+          // arrayTestFoo3CopyPtrPtrA(PointerBuffer dst, PointerBuffer src) (Native deep copy w/ alloc)
           //  " "
           // PointerBuffer arrayTestFoo3PtrPtr(PointerBuffer)
           {
@@ -494,13 +494,13 @@ public class BaseClass extends JunitTracer {
               validatePointerBuffer(pbS, Bindingtest1.ARRAY_SIZE);
               Assert.assertNotNull(pbS.getReferencedBuffer(0));
               Assert.assertTrue("Wrong result: "+pbS.getReferencedBuffer(0)+" != "+lb2, pbS.getReferencedBuffer(0).equals(lb2));
-              
+
               PointerBuffer pbD = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
-              
+
               // System.err.println("\n***pbS "+pbS); System.err.println("***pbD "+pbD);
-              binding.arrayTestFoo3CopyPtrPtrA(pbD, pbS); // pbD is shallow              
-              validatePointerBuffer(pbD, Bindingtest1.ARRAY_SIZE);              
-              
+              binding.arrayTestFoo3CopyPtrPtrA(pbD, pbS); // pbD is shallow
+              validatePointerBuffer(pbD, Bindingtest1.ARRAY_SIZE);
+
               PointerBuffer pbD2 = binding.arrayTestFoo3PtrPtr(pbD); // pbD2 is shallow
               Assert.assertEquals(0, binding.arrayTestFoo3PtrPtrValidation(pbD, 10000));
               validatePointerBuffer(pbD2, Bindingtest1.ARRAY_SIZE);
@@ -525,7 +525,7 @@ public class BaseClass extends JunitTracer {
               }
               Assert.assertNotNull(e);
           }
-          
+
           result = binding.doubleTest(context, lb, lb1, bb2, lb2);
           Assert.assertTrue("Wrong result: "+result, 1+10+8000+100+80000==result);
 
@@ -601,10 +601,10 @@ public class BaseClass extends JunitTracer {
 
           i = binding.intArrayRead(null, 0, 0);
           Assert.assertTrue("Wrong result: "+i, 0==i);
-          
+
           {
               long cfg_base = 0xAABBCCDD11223344L;
-              
+
               PointerBuffer pb = newPointerBuffer(Bindingtest1.ARRAY_SIZE, direct);
               for(i=0; i<Bindingtest1.ARRAY_SIZE; i++) {
                 long cfg_native;
@@ -636,48 +636,48 @@ public class BaseClass extends JunitTracer {
           {
               long bbA, bbA2;
               ByteBuffer bb, bb2;
-              PointerBuffer bbPb; 
-              
+              PointerBuffer bbPb;
+
               final ByteBuffer blob = binding.createAPtrBlob();
               final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
-              
+
               binding.arrayTestAVoidPtrTypeDim1Mutable(blobPb); // new memory in [0]
               Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
               bb = binding.arrayTestAVoidPtrTypeDim1Immutable(blobPb); // returns memory address of [0], returned as bb (blob)
               bbA = cleanAddress( binding.getAPtrAddress(bb) ); // address of new memory in [0]
               Assert.assertEquals(blobPb.get(0), bbA);
-              
+
               bbPb = safeByteBuffer2PointerBuffer(bb, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
               Assert.assertEquals( blobPb.get(0), cleanAddress( binding.getAPtrAddress(bbPb.getBuffer()) ) );
-              
+
               bb2 = binding.arrayTestAVoidPtrTypeDim0(bb);
               bbA2 = cleanAddress( binding.getAPtrAddress(bb2) );
-              Assert.assertEquals(bbA, bbA2);          
+              Assert.assertEquals(bbA, bbA2);
               binding.releaseAPtrBlob(bb);
               binding.releaseAPtrBlob(blob);
           }
-          
+
           {
               long bbA, bbA2;
               ByteBuffer bb;
               PointerBuffer bbPb;
-              
+
               final ByteBuffer blob = binding.createAPtrBlob();
               final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
 
               binding.arrayTestAIntPtrTypeDim1Mutable(blobPb);  // new memory in [0]
               Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
-              bbA = cleanAddress( binding.arrayTestAIntPtrTypeDim1Immutable(blobPb) );  // returns memory address of [0], returned as intptr_t              
+              bbA = cleanAddress( binding.arrayTestAIntPtrTypeDim1Immutable(blobPb) );  // returns memory address of [0], returned as intptr_t
               Assert.assertEquals(blobPb.get(0), bbA);
               bb = binding.getAPtrMemory(bbA);
               bbPb = safeByteBuffer2PointerBuffer(bb, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
-              
+
               bbA2 = cleanAddress( binding.arrayTestAIntPtrTypeDim0(bbA) );
-              Assert.assertEquals(bbA, bbA2);                        
+              Assert.assertEquals(bbA, bbA2);
               binding.releaseAPtrBlob(bb);
               binding.releaseAPtrBlob(blob);
           }
@@ -685,53 +685,53 @@ public class BaseClass extends JunitTracer {
           {
               long bbA, bbA2;
               ByteBuffer bb, bb2;
-              PointerBuffer bbPb; 
-              
+              PointerBuffer bbPb;
+
               final ByteBuffer blob = binding.createAPtrBlob();
               final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
-              
+
               binding.arrayTestAPtr1TypeDim1Mutable(blobPb); // new memory in [0]
               Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
               bb = binding.arrayTestAPtr1TypeDim1Immutable(blobPb); // returns memory address of [0], returned as bb (blob)
               bbA = cleanAddress( binding.getAPtrAddress(bb) ); // address of new memory in [0]
               Assert.assertEquals(blobPb.get(0), bbA);
-              
+
               bbPb = safeByteBuffer2PointerBuffer(bb, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
               Assert.assertEquals(blobPb.get(0), cleanAddress( binding.getAPtrAddress(bbPb.getBuffer()) ) );
-              
+
               bb2 = binding.arrayTestAPtr1TypeDim0(bb);
               bbA2 = cleanAddress( binding.getAPtrAddress(bb2) );
-              Assert.assertEquals(bbA, bbA2);          
+              Assert.assertEquals(bbA, bbA2);
               binding.releaseAPtrBlob(bb);
               binding.releaseAPtrBlob(blob);
-              
+
           }
-          
+
           {
               long bbA, bbA2;
               ByteBuffer bb;
               PointerBuffer bbPb;
-              
+
               final ByteBuffer blob = binding.createAPtrBlob();
               final PointerBuffer blobPb = safeByteBuffer2PointerBuffer(blob, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & blobPb.get(0));
 
               binding.arrayTestAPtr2TypeDim1Mutable(blobPb);  // new memory in [0]
               Assert.assertTrue(DEADBEEF != ( 0xFFFFFFFF & blobPb.get(0) ) );
-              bbA = cleanAddress( binding.arrayTestAPtr2TypeDim1Immutable(blobPb) );  // returns memory address of [0], returned as intptr_t              
+              bbA = cleanAddress( binding.arrayTestAPtr2TypeDim1Immutable(blobPb) );  // returns memory address of [0], returned as intptr_t
               Assert.assertEquals(blobPb.get(0), bbA);
               bb = binding.getAPtrMemory(bbA);
               bbPb = safeByteBuffer2PointerBuffer(bb, 1);
               Assert.assertEquals(DEADBEEF, 0xFFFFFFFF & bbPb.get(0));
-              
+
               bbA2 = cleanAddress( binding.arrayTestAPtr2TypeDim0(bbA) );
-              Assert.assertEquals(bbA, bbA2);                        
+              Assert.assertEquals(bbA, bbA2);
               binding.releaseAPtrBlob(bb);
               binding.releaseAPtrBlob(blob);
           }
-          
+
     }
 
     /**
@@ -752,7 +752,7 @@ public class BaseClass extends JunitTracer {
 
           i = binding.intArrayRead(iarray, 0, 3);
           Assert.assertTrue("Wrong result: "+i, 6==i);
-          
+
           final int[] src = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
           final IntBuffer srcB = IntBuffer.wrap(src);
           {
@@ -760,7 +760,7 @@ public class BaseClass extends JunitTracer {
               i = binding.intArrayCopy(dst, 0, src, 0, src.length);
               System.err.println("ArrayCopy.01: "+Arrays.toString(dst));
               Assert.assertTrue("Wrong result: "+i, src.length==i);
-              Assert.assertTrue(Arrays.equals(src, dst));              
+              Assert.assertTrue(Arrays.equals(src, dst));
           }
           {
               IntBuffer dstB = IntBuffer.allocate(src.length);
@@ -769,7 +769,7 @@ public class BaseClass extends JunitTracer {
               Assert.assertTrue("Wrong result: "+i, src.length==i);
               Assert.assertTrue(Arrays.equals(src, dstB.array()));
           }
-          
+
           {
               final int[] src36 = new int[] { 4, 5, 6, 7 };
               final int[] dst = new int[src36.length];
@@ -778,7 +778,7 @@ public class BaseClass extends JunitTracer {
               Assert.assertTrue("Wrong result: "+i, src36.length==i);
               Assert.assertTrue(Arrays.equals(src36, dst));
           }
-          
+
           final int[] src2 = new int[] { 0, 0, 0, 4, 5, 6, 7, 0, 0, 0 };
           {
               final int[] dst = new int[src2.length];
@@ -801,7 +801,7 @@ public class BaseClass extends JunitTracer {
               Assert.assertTrue(Arrays.equals(src2, dstB.array()));
           }
     }
-    
+
     void assertAPTR(final long expected, final long actual) {
         System.err.println("0x"+Long.toHexString(expected)+" == 0x"+Long.toHexString(actual));
         if (Platform.is32Bit()) {
@@ -809,7 +809,7 @@ public class BaseClass extends JunitTracer {
             int act32;
             // if(Platform.isLittleEndian()) {
                 exp32 = (int) ( expected ) ;
-                act32 = (int) ( actual ) ;                
+                act32 = (int) ( actual ) ;
             /* } else {
                 exp32 = (int) ( expected >> 32 ) ;
                 act32 = (int) ( actual >> 32 ) ;
@@ -818,22 +818,23 @@ public class BaseClass extends JunitTracer {
             Assert.assertEquals(exp32, act32);
         } else {
             Assert.assertEquals(expected, actual);
-        }        
+        }
     }
-    
-    public void chapter09TestCompoundAndAlignment(Bindingtest1 binding) throws Exception {
-        
+
+    public void chapter09TestCompoundAlignment(Bindingtest1 binding) throws Exception {
+
         MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
-        
+
         System.err.println("static  md: "+smd);
         System.err.println("runtime md: "+md);
         System.err.println("compatible static/runtime: "+md.compatible(smd.md));
-        
+
+        // Test compound alignment read
         {
             TK_ComplicatedSuperSet cs =  binding.createComplicatedSuperSet();
             Assert.assertEquals((byte)0xA0, cs.getBits1());
-            
+
             TK_ComplicatedSubSet sub1 =  cs.getSub1();
             Assert.assertEquals((byte)0xA1, sub1.getBits1());
             Assert.assertEquals(0x12345678, sub1.getId());
@@ -844,11 +845,11 @@ public class BaseClass extends JunitTracer {
             Assert.assertEquals((byte)0xA4, sub1.getBits4());
             Assert.assertEquals(256.12345f, sub1.getReal1(), 0.0);
             Assert.assertEquals((byte)0xA5, sub1.getBits5());
-            Assert.assertEquals((long)0xdeadbeefL, sub1.getLongX());
+            Assert.assertEquals(0xdeadbeefL, sub1.getLongX());
             Assert.assertEquals((byte)0xA6, sub1.getBits6());
-    
+
             Assert.assertEquals((byte)0xB0, cs.getBits2());
-            
+
             TK_ComplicatedSubSet sub2 =  cs.getSub2();
             Assert.assertEquals((byte)0xB1, sub2.getBits1());
             Assert.assertEquals(0x12345678, sub2.getId());
@@ -859,20 +860,21 @@ public class BaseClass extends JunitTracer {
             Assert.assertEquals((byte)0xB4, sub2.getBits4());
             Assert.assertEquals(256.12345f, sub2.getReal1(), 0.0);
             Assert.assertEquals((byte)0xB5, sub2.getBits5());
-            Assert.assertEquals((long)0xdeadbeefL, sub2.getLongX());
+            Assert.assertEquals(0xdeadbeefL, sub2.getLongX());
             Assert.assertEquals((byte)0xB6, sub2.getBits6());
-            
+
             Assert.assertEquals((byte)0xC0, cs.getBits3());
-            
+
             binding.destroyComplicatedSuperSet(cs);
         }
 
         /********************************************************************************/
 
+        // Test compound alignment write
         {
             TK_ComplicatedSuperSet cs =  TK_ComplicatedSuperSet.create();
             cs.setBits1((byte)0xA0);
-            
+
             TK_ComplicatedSubSet sub1 =  cs.getSub1();
             sub1.setBits1((byte)0xA1);
             sub1.setId(0x12345678);
@@ -882,12 +884,12 @@ public class BaseClass extends JunitTracer {
             sub1.setReal0(3.1415926535897932384626433832795);
             sub1.setBits4((byte)0xA4);
             sub1.setReal1(256.12345f);
-            sub1.setBits5((byte)0xA5);            
-            sub1.setLongX((long)0xdeadbeefL);
+            sub1.setBits5((byte)0xA5);
+            sub1.setLongX(0xdeadbeefL);
             sub1.setBits6((byte)0xA6);
-    
+
             cs.setBits2((byte)0xB0);
-            
+
             TK_ComplicatedSubSet sub2 =  cs.getSub2();
             sub2.setBits1((byte)0xB1);
             sub2.setId(0x12345678);
@@ -897,57 +899,64 @@ public class BaseClass extends JunitTracer {
             sub2.setReal0(3.1415926535897932384626433832795);
             sub2.setBits4((byte)0xB4);
             sub2.setReal1(256.12345f);
-            sub2.setBits5((byte)0xB5);            
-            sub2.setLongX((long)0xdeadbeefL);
+            sub2.setBits5((byte)0xB5);
+            sub2.setLongX(0xdeadbeefL);
             sub2.setBits6((byte)0xB6);
-            
+
             cs.setBits3((byte)0xC0);
-            
+
             Assert.assertTrue(binding.hasInitValues(cs));
         }
+    }
 
-        /********************************************************************************/
-        
-        TK_Surface surface = binding.createSurface();
-        
-        final long surfaceContext = surface.getCtx(); 
+    private void dumpDim(final String pre, final TK_Dimension dim) {
+        System.err.println(pre+dim.getX()+"/"+dim.getY()+" "+dim.getWidth()+"x"+dim.getHeight());
+    }
+
+    /** Test compound access call-by-reference */
+    public void chapter10TestCompoundCallByReference(Bindingtest1 binding) throws Exception {
+
+        final TK_Surface surface = binding.createSurface();
+
+        final long surfaceContext = surface.getCtx();
         assertAPTR(0x123456789abcdef0L, surfaceContext);
-        
+
         TK_ContextWrapper ctxWrapper = surface.getCtxWrapper();
         final long wrapperContext = ctxWrapper.getCtx();
         assertAPTR(0xA23456781abcdef0L, wrapperContext);
-        
+
         TK_Engine engine = surface.getEngine();
         final long engineContext = engine.getCtx();
         assertAPTR(0xB23456782abcdef0L, engineContext);
         Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
-        
+
         surface.setCtx(surfaceContext);
         assertAPTR(surfaceContext, surface.getCtx());
         assertAPTR(wrapperContext, ctxWrapper.getCtx());
         assertAPTR(engineContext, engine.getCtx());
         Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
-        
+
         ctxWrapper.setCtx(wrapperContext);
         assertAPTR(surfaceContext, surface.getCtx());
         assertAPTR(wrapperContext, ctxWrapper.getCtx());
         assertAPTR(engineContext, engine.getCtx());
         Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
-        
+
         engine.setCtx(engineContext);
         assertAPTR(surfaceContext, surface.getCtx());
         assertAPTR(wrapperContext, ctxWrapper.getCtx());
         assertAPTR(engineContext, engine.getCtx());
         Assert.assertEquals(0x0111, engine.render(0x0100, 0x0010, 0x0001));
-        
+
         TK_Dimension dimension = surface.getBounds();
+        dumpDim("ch10: ref-dim ", dimension);
         Assert.assertEquals(0x11111111, dimension.getX());
         Assert.assertEquals(0x22222222, dimension.getY());
         Assert.assertEquals(0x33333333, dimension.getWidth());
         Assert.assertEquals(0x44444444, dimension.getHeight());
 
         Assert.assertEquals(2, surface.getClipSize());
-        
+
         for(int i=0; i<surface.getClipSize(); i++) {
             TK_Dimension clip = surface.getClip(i);
             Assert.assertEquals(0x44444444 * (i+1) + 0x11111111, clip.getX());
@@ -958,4 +967,49 @@ public class BaseClass extends JunitTracer {
         binding.destroySurface(surface);
     }
 
+    /** Test compound access call-by-value */
+    public void chapter11TestCompoundCallByValue(Bindingtest1 binding) throws Exception {
+
+        {
+            final TK_Surface surface = binding.createSurface();
+            final TK_Dimension dim0 = surface.getBounds();
+            dumpDim("ch11.0: ref-dim ", dim0);
+            Assert.assertEquals(0x11111111, dim0.getX());
+            Assert.assertEquals(0x22222222, dim0.getY());
+            Assert.assertEquals(0x33333333, dim0.getWidth());
+            Assert.assertEquals(0x44444444, dim0.getHeight());
+
+            final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
+            dumpDim("ch11.0: val-dim ", dim1);
+            Assert.assertEquals(0x11111111, dim1.getX());
+            Assert.assertEquals(0x22222222, dim1.getY());
+            Assert.assertEquals(0x33333333, dim1.getWidth());
+            Assert.assertEquals(0x44444444, dim1.getHeight());
+
+            binding.destroySurface(surface);
+        }
+        final TK_Dimension dim0 = binding.getBoundsValue(11, 22, 33, 44);
+        {
+            dumpDim("ch11.1: val-dim ", dim0);
+            Assert.assertEquals(11, dim0.getX());
+            Assert.assertEquals(22, dim0.getY());
+            Assert.assertEquals(33, dim0.getWidth());
+            Assert.assertEquals(44, dim0.getHeight());
+        }
+        final TK_Surface surface = binding.getSurfaceValue(dim0);
+        final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
+        {
+            dumpDim("ch11.2: val-dim ", dim0);
+            Assert.assertEquals(11, dim1.getX());
+            Assert.assertEquals(22, dim1.getY());
+            Assert.assertEquals(33, dim1.getWidth());
+            Assert.assertEquals(44, dim1.getHeight());
+        }
+        final boolean sameInstanceByVal = binding.isSameInstanceByVal(dim0, dim1);
+        final boolean sameInstanceByRef = binding.isSameInstanceByRef(dim0, dim1);
+        System.err.println("ch11.3: sameInstanceByVal "+sameInstanceByVal);
+        System.err.println("ch11.3: sameInstanceByRef "+sameInstanceByRef);
+        Assert.assertFalse(sameInstanceByVal);
+        Assert.assertFalse(sameInstanceByRef);
+    }
 }

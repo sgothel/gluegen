@@ -302,17 +302,14 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   @Override
   protected void emitName(PrintWriter writer)  {
     writer.println(); // start name on new line
-    writer.print("Java_");
-    writer.print(jniMangle(getJavaPackageName()));
-    writer.print("_");
-    writer.print(jniMangle(getJavaClassName()));
+    writer.print(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
     writer.print("_");
     if (isOverloadedBinding)    {
       writer.print(jniMangle(binding));
       //System.err.println("OVERLOADED MANGLING FOR " + getName() +
       //                   " = " + jniMangle(binding));
     } else {
-      writer.print(jniMangle(getName()));
+      writer.print(JavaEmitter.jniMangle(getName()));
       //System.err.println("    NORMAL MANGLING FOR " + binding.getName() +
       //                   " = " + jniMangle(getName()));
     }
@@ -938,13 +935,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         writer.print(cArgType.getName());
         writer.print(") ");
-        if (binding.getCArgumentType(i).isPointer() && javaArgType.isPrimitive()) {
+        if (cArgType.isPointer() && javaArgType.isPrimitive()) {
           writer.print("(intptr_t) ");
         }
         if (javaArgType.isArray() || javaArgType.isNIOBuffer() ||
             javaArgType.isCompoundTypeWrapper() || javaArgType.isArrayOfCompoundTypeWrappers()) {
           if( needsArrayOffset ) {
               writer.print("(((char *) ");
+          } else if( !cArgType.isPointer() && javaArgType.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
+              writer.print("*");
           }
           writer.print(pointerConversionArgumentName(binding.getArgumentName(i)));
           if ( needsDataCopy ) {
@@ -1012,10 +1011,18 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           writer.print("(" + javaReturnType.jniTypeName() + ") (intptr_t) ");
         }
         writer.println("_res;");
-      } else if (javaReturnType.isNIOBuffer() ||
-                 javaReturnType.isCompoundTypeWrapper()) {
+      } else if ( !cReturnType.isPointer() && javaReturnType.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
+        final String returnSizeOf;
+        if (returnValueCapacityExpression != null) {
+            returnSizeOf = returnValueCapacityExpression.format(argumentNameArray());
+        } else {
+            returnSizeOf = "sizeof(" + cReturnType.getName() + ")";
+        }
+        writer.println("  return JVMUtil_NewDirectByteBufferCopy(env, &_res, "+returnSizeOf+");");
+      } else if (javaReturnType.isNIOBuffer() || javaReturnType.isCompoundTypeWrapper()) {
         writer.println("  if (NULL == _res) return NULL;");
         writer.print("  return (*env)->NewDirectByteBuffer(env, _res, ");
+
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
           writer.print(
@@ -1038,11 +1045,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             "No capacity specified for java.nio.Buffer return " +
             "value for function \"" + binding.getName() + "\"" +
             " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding);
-          /**
-          throw new RuntimeException(
-            "No capacity specified for java.nio.Buffer return " +
-            "value for function \"" + binding + "\";" +
-            " C return type is " + cReturnType.getName() + ": " + binding);  */
         }
         writer.println(");");
       } else if (javaReturnType.isString()) {
@@ -1099,8 +1101,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         //writer.print(arrayRes);
         //writer.println(";");
       } else {
-        System.err.print("Unhandled return type: ");
-        javaReturnType.dump();
+        System.err.print("Unhandled return type: "+javaReturnType.getDumpString());
         throw new RuntimeException("Unhandled return type");
       }
     }
@@ -1110,14 +1111,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     return "this0";
   }
 
-  // Mangle a class, package or function name
-  protected String jniMangle(String name) {
-    return name.replaceAll("_", "_1").replace('.', '_');
-  }
-
   protected String jniMangle(MethodBinding binding) {
     StringBuilder buf = new StringBuilder();
-    buf.append(jniMangle(getName()));
+    buf.append(JavaEmitter.jniMangle(getName()));
     buf.append(getImplSuffix());
     buf.append("__");
     if (binding.hasContainingType()) {
@@ -1399,7 +1395,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     if (!needsDataCopy) {
       // declare the pointer variable
       writer.print(ptrTypeString);
-      writer.print(" ");
+      if( !cType.isPointer() && javaType.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
+          writer.print(" * ");
+      } else {
+          writer.print(" ");
+      }
       writer.print(cVariableName);
       writer.println(" = NULL;");
     } else {
@@ -1444,9 +1444,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       byteOffsetVarName = null;
     }
 
+    final String cVariableType;
+    if( !cType.isPointer() && type.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
+        cVariableType = cType.getName()+" *";
+    } else {
+        cVariableType = cType.getName();
+    }
     emitGetDirectBufferAddress(writer,
                                incomingArgumentName,
-                               cType.getName(),
+                               cVariableType,
                                cVariableName,
                                byteOffsetVarName,
                                false);

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,18 +20,18 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.IOException;
 
+import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
-
 import com.jogamp.common.os.NativeLibrary;
 
 import org.junit.AfterClass;
@@ -118,13 +118,29 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     }
 
     /**
-     * This covers compounds (structs) and data alignment
+     * This covers compounds (structs) data alignment
      */
     @Test
-    public void chapter09TestCompoundAndAlignment() throws Exception {
-        chapter09TestCompoundAndAlignment(new Bindingtest1p2Impl());
+    public void chapter09TestCompoundAlignment() throws Exception {
+        chapter09TestCompoundAlignment(new Bindingtest1p2Impl());
     }
-    
+
+    /**
+     * This covers compounds (structs) call-by-reference
+     */
+    @Test
+    public void chapter10TestCompoundCallByReference() throws Exception {
+        chapter10TestCompoundCallByReference(new Bindingtest1p2Impl());
+    }
+
+    /**
+     * This covers compounds (structs) call-by-value
+     */
+    @Test
+    public void chapter11TestCompoundCallByValue() throws Exception {
+        chapter11TestCompoundCallByValue(new Bindingtest1p2Impl());
+    }
+
     /**
      * Verifies unloading of the new library.
      */
@@ -134,9 +150,9 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
         dynamicLookupHelper.close();
         dynamicLookupHelper = null;
     }
-    
+
     public static void main(String args[]) throws IOException {
         String tstname = Test1p2ProcAddressEmitter.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
-    }    
+    }
 }

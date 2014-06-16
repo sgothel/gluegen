@@ -31,13 +31,13 @@ MYAPI void * MYAPIENTRY getAPtrMemory (const intptr_t address ) {
 }
 
 MYAPI void *   MYAPIENTRY arrayTestAVoidPtrTypeDim0 (const void * immutable ) {
-    return immutable;
+    return (void*)immutable;
 }
 MYAPI void     MYAPIENTRY arrayTestAVoidPtrTypeDim1Mutable  (void ** mutable ) {
     *mutable = createAPtrBlob ();
 }
 MYAPI void *   MYAPIENTRY arrayTestAVoidPtrTypeDim1Immutable  (const void ** immutable ) {
-    return *immutable;
+    return (void*)(*immutable);
 }
 
 MYAPI intptr_t MYAPIENTRY arrayTestAIntPtrTypeDim0  (intptr_t immutable) {
@@ -507,3 +507,24 @@ MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s) {
     free(s);
 }
 
+MYAPI TK_Dimension MYAPIENTRY getBoundsValue(int32_t x, int32_t y, int32_t width, int32_t height) {
+    TK_Dimension r = { x, y, width, height };
+    return r;
+}
+MYAPI TK_Surface MYAPIENTRY getSurfaceValue(TK_Dimension bounds) {
+    TK_Surface s;
+    memset(&s, 0, sizeof(s));
+    s.bounds = bounds;
+    return s;
+}
+MYAPI TK_Dimension MYAPIENTRY getSurfaceBoundsValue(TK_Surface s) {
+    TK_Dimension res = s.bounds;
+    fprintf(stderr, "XXX.getSurfaceBoundsValue: dim %d/%d %dx%d\n", res.x, res.y, res.width, res.height);
+    return res;
+}
+MYAPI Bool MYAPIENTRY isSameInstanceByVal(TK_Dimension s1, TK_Dimension s2) {
+    return &s1 == &s2;
+}
+MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimension *s2) {
+    return s1 == s2;
+}
