@@ -47,7 +47,7 @@ public abstract class FunctionEmitter {
   public static final EmissionModifier STATIC = new EmissionModifier("static");
 
   private boolean isInterfaceVal;
-  private ArrayList<EmissionModifier> modifiers = new ArrayList<EmissionModifier>();
+  private final ArrayList<EmissionModifier> modifiers;
   private CommentEmitter commentEmitter = null;
   private PrintWriter defaultOutput;
 
@@ -56,6 +56,7 @@ public abstract class FunctionEmitter {
    */
   public FunctionEmitter(PrintWriter defaultOutput, boolean isInterface)  {
     assert(defaultOutput != null);
+    this.modifiers = new ArrayList<EmissionModifier>();
     this.defaultOutput = defaultOutput;
     this.isInterfaceVal = isInterface;
   }
@@ -63,9 +64,8 @@ public abstract class FunctionEmitter {
   /**
    * Makes this FunctionEmitter a copy of the passed one.
    */
-  @SuppressWarnings("unchecked")
   public FunctionEmitter(FunctionEmitter arg) {
-    modifiers      = (ArrayList<EmissionModifier>)arg.modifiers.clone();
+    modifiers      = new ArrayList<EmissionModifier>(arg.modifiers);
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
     isInterfaceVal = arg.isInterfaceVal;
@@ -169,7 +169,6 @@ public abstract class FunctionEmitter {
   }
 
   protected int emitModifiers(PrintWriter writer)  {
-    PrintWriter w = getDefaultOutput();
     int numEmitted = 0;
     for (Iterator<EmissionModifier> it = getModifiers(); it.hasNext(); )   {
       writer.print(it.next());

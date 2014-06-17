@@ -1,13 +1,11 @@
 package com.jogamp.gluegen.jgram;
 
-import java.util.*;
-
-import java.io.*;
-// import antlr.collections.AST;
-import antlr.collections.impl.*;
-import antlr.debug.misc.*;
-import antlr.*;
-// import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.util.Iterator;
+import java.util.Set;
 
 class Test {
 
@@ -74,16 +72,16 @@ class Test {
 			// start parsing at the compilationUnit rule
 			parser.compilationUnit();
 
-            Set set = parser.getParsedEnumNames();
+            Set<String> set = parser.getParsedEnumNames();
             System.out.println("Enums");
-            for(Iterator iter = set.iterator(); iter.hasNext(); ) {
-                String s = (String) iter.next();
+            for(Iterator<String> iter = set.iterator(); iter.hasNext(); ) {
+                String s = iter.next();
                 System.out.println(s);
             }
             System.out.println("Functions");
             set = parser.getParsedFunctionNames();
-            for(Iterator iter = set.iterator(); iter.hasNext(); ) {
-                String s = (String) iter.next();
+            for(Iterator<String> iter = set.iterator(); iter.hasNext(); ) {
+                String s = iter.next();
                 System.out.println(s);
             }
 

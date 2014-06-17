@@ -1,7 +1,5 @@
 package com.jogamp.gluegen.cgram;
 
-import antlr.CommonToken;
-
 public class CToken extends antlr.CommonToken {
   String source = "";
   int tokenNumber;

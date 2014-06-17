@@ -58,6 +58,7 @@
     <!-- The source and build directories. -->
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
+    <property name="src.antlr" value="${project.root}/src/main/antlr" />
     <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="javadoc.root.path"    location="${build}/javadoc" />
     <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
@@ -116,15 +117,13 @@
     </path>
 
     <!-- The location of the GlueGen source and the C grammar files. -->
-    <property name="gluegen" value="${src.java}/com/jogamp/gluegen" />
-    <property name="c.grammar" value="${gluegen}/cgram" />
-    <property name="j.grammar" value="${gluegen}/jgram" />
+    <property name="c.grammar" value="${src.antlr}/com/jogamp/gluegen/cgram" />
+    <property name="j.grammar" value="${src.antlr}/com/jogamp/gluegen/jgram" />
         
     <!-- The resulting location of the generated Java files from the
       - C grammar via ANTLR. -->
-    <property name="gluegen.build" value="${src.generated.java}/com/jogamp/gluegen" />
-    <property name="generated.java.from.c.grammar" value="${gluegen.build}/cgram" />
-    <property name="generated.java.from.j.grammar" value="${gluegen.build}/jgram" />
+    <property name="c.grammar.out.dir" value="${src.generated.java}/com/jogamp/gluegen/cgram" />
+    <property name="j.grammar.out.dir" value="${src.generated.java}/com/jogamp/gluegen/jgram" />
 
     <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
@@ -157,36 +156,6 @@
     <property name="javacdebuglevel"  value="source,lines,vars" /> 
   </target>
   <target name="init.debug" depends="set.debug, init"/>
-
-  <!--
-    - Using ANTLR generate the specified Java files.
-    -
-    - @param target the grammar file to process
-    - @param output.dir the directory to write the generated files to.  If
-    -        the directory does not exist, it will be created.
-    -->
-  <target name="generate.grammar">
-    <!-- Generate the Java files -->
-    <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}">
-      <classpath refid="antlr.classpath" />
-    </antlr>
-  </target>
-    
-  <!--
-    - Using ANTLR generate the specified Java files with an overridden
-    - grammar file.
-    -
-    - @param target the grammar file to process
-    - @param glib the overridding grammar file
-    - @param output.dir the directory to write the generated files to.  If
-    -        the directory does not exist, it will be created.
-   -->
-  <target name="generate.c.grammar.glib">
-    <!-- Generate the Java files -->
-    <antlr target="${output.dir}/${target}" glib="${output.dir}/${glib}" outputdirectory="${output.dir}">
-      <classpath refid="antlr.classpath" />
-    </antlr>
-  </target>
 
   <property name="gluegen.root" value="../" />
 
@@ -631,15 +600,15 @@
       <uptodate property="gluegen.build.skip.java1">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
-        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
-        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${c.grammar}" includes="*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="*.g"/>
         <mapper type="merge" to="${build}/gluegen.jar"/>
       </uptodate>
       <uptodate property="gluegen.build.skip.java2">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
-        <srcfiles dir= "${c.grammar}" includes="**/*.g"/>
-        <srcfiles dir= "${j.grammar}" includes="**/*.g"/>
+        <srcfiles dir= "${c.grammar}" includes="*.g"/>
+        <srcfiles dir= "${j.grammar}" includes="*.g"/>
         <mapper type="merge" to="${build}/gluegen-rt.jar"/>
       </uptodate>
       <condition property="gluegen.build.skip.java" value="true">
@@ -650,52 +619,82 @@
       </condition>
   </target>
 
+    <!--
+    - Using ANTLR generate the specified Java files.
+    -
+    - @param target the grammar file to process
+    - @param output.dir the directory to write the generated files to.  If
+    -        the directory does not exist, it will be created.
+    -->
+  <target name="generate.java">
+    <!-- Generate the Java files -->
+    <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}">
+      <classpath refid="antlr.classpath" />
+    </antlr>
+  </target>
+
+  <!--
+    - Using ANTLR generate the specified Java files with an overridden
+    - grammar file.
+    -
+    - @param target the grammar file to process
+    - @param override the overridding grammar file
+    - @param output.dir the directory to write the generated files to.  If
+    -        the directory does not exist, it will be created.
+   -->
+  <target name="generate.java.override">
+    <!-- Generate the Java files -->
+    <antlr target="${output.dir}/${target}" glib="${output.dir}/${override}" outputdirectory="${output.dir}">
+      <classpath refid="antlr.classpath" />
+    </antlr>
+  </target>
+  
   <target name="gluegen.build.javase">
     <!-- Because ANTLR looks for importVocab files in the current
          working directory, it likes to have all of its files,
          including supergrammars, in one place, so copy all of the
          grammars to the output directory up front so we don't put
          temporary files into the source tree -->
-    <mkdir dir="${generated.java.from.c.grammar}" />
-    <copy todir="${generated.java.from.c.grammar}">
+    <mkdir dir="${c.grammar.out.dir}" />
+    <copy todir="${c.grammar.out.dir}">
       <fileset dir="${c.grammar}">
         <include name="*.g" />
       </fileset>
     </copy>
-    <mkdir dir="${generated.java.from.j.grammar}" />
-    <copy todir="${generated.java.from.j.grammar}">
+    <mkdir dir="${j.grammar.out.dir}" />
+    <copy todir="${j.grammar.out.dir}">
       <fileset dir="${j.grammar}">
         <include name="*.g" />
       </fileset>
     </copy>
 
     <!-- Generate the Java files from the C grammar using ANTLR. -->
-    <antcall target="generate.grammar"  inheritRefs="true">
-      <param name="output.dir" value="${generated.java.from.c.grammar}" />
-      <param name="target" value="StdCParser.g" />
+    <antcall target="generate.java"  inheritRefs="true">
+      <param name="output.dir" value="${c.grammar.out.dir}" />
+      <param name="target"     value="StdCParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
-      <param name="output.dir" value="${generated.java.from.c.grammar}" />
-      <param name="target" value="GnuCParser.g" />
-      <param name="glib" value="StdCParser.g" />
+    <antcall target="generate.java.override"  inheritRefs="true">
+      <param name="output.dir" value="${c.grammar.out.dir}" />
+      <param name="target"     value="GnuCParser.g" />
+      <param name="override"   value="StdCParser.g" />
     </antcall>
-    <antcall target="generate.grammar"  inheritRefs="true">
-      <param name="output.dir" value="${generated.java.from.c.grammar}" />
-      <param name="target" value="GnuCTreeParser.g" />
+    <antcall target="generate.java"  inheritRefs="true">
+      <param name="output.dir" value="${c.grammar.out.dir}" />
+      <param name="target"     value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
-      <param name="output.dir" value="${generated.java.from.c.grammar}" />
-      <param name="target" value="GnuCEmitter.g" />
-      <param name="glib" value="GnuCTreeParser.g" />
+    <antcall target="generate.java.override"  inheritRefs="true">
+      <param name="output.dir" value="${c.grammar.out.dir}" />
+      <param name="target"     value="GnuCEmitter.g" />
+      <param name="override"   value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.c.grammar.glib"  inheritRefs="true">
-      <param name="output.dir" value="${generated.java.from.c.grammar}" />
-      <param name="target" value="HeaderParser.g" />
-      <param name="glib" value="GnuCTreeParser.g" />
+    <antcall target="generate.java.override"  inheritRefs="true">
+      <param name="output.dir" value="${c.grammar.out.dir}" />
+      <param name="target"     value="HeaderParser.g" />
+      <param name="override"   value="GnuCTreeParser.g" />
     </antcall>
-    <antcall target="generate.grammar"  inheritRefs="true">
-      <param name="output.dir" value="${generated.java.from.j.grammar}" />
-      <param name="target" value="JavaParser.g" />
+    <antcall target="generate.java"  inheritRefs="true">
+      <param name="output.dir" value="${j.grammar.out.dir}" />
+      <param name="target"     value="JavaParser.g" />
     </antcall>
 
     <!-- Build GlueGen using the generated Java files along with the

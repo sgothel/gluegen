@@ -41,7 +41,6 @@ package com.jogamp.gluegen;
 
 import java.util.*;
 
-import com.jogamp.common.os.MachineDescription;
 import com.jogamp.gluegen.cgram.types.*;
 
 /** Debug emitter which prints the parsing results to standard output. */
