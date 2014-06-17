@@ -58,7 +58,7 @@
     <!-- The source and build directories. -->
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
-    <property name="src.antlr" value="${project.root}/src/main/antlr" />
+    <property name="src.antlr" value="${project.root}/src/antlr" />
     <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="javadoc.root.path"    location="${build}/javadoc" />
     <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
