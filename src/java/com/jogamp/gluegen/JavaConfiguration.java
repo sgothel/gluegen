@@ -156,7 +156,8 @@ public class JavaConfiguration {
     private boolean forceUseNIODirectOnly4All = false;
     private final Set<String> useNIODirectOnly = new HashSet<String>();
     private final Set<String> manuallyImplement = new HashSet<String>();
-    private final Set<String> manualStaticInit = new HashSet<String>();
+    private final Set<String> manualStaticInitCall = new HashSet<String>();
+    private final Set<String> forceStaticInitCode = new HashSet<String>();
     private final Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
     private final Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
     private final Map<String, List<String>> methodJavadoc = new HashMap<String, List<String>>();
@@ -538,10 +539,30 @@ public class JavaConfiguration {
     return manuallyImplement.contains(functionName);
   }
 
-  /** Returns true if the static initialization java code for the given class will be
-      manually implemented by the end user. */
-  public boolean manualStaticInit(String clazzName) {
-    return manualStaticInit.contains(clazzName);
+  /**
+   * Returns true if the static initialization java code calling <code>initializeImpl()</code>
+   * for the given class will be manually implemented by the end user
+   * as requested via configuration directive <code>ManualStaticInitCall 'class-name'</code>.
+   */
+  public boolean manualStaticInitCall(String clazzName) {
+    return manualStaticInitCall.contains(clazzName);
+  }
+
+  /**
+   * Returns true if the static initialization java code implementing <code>initializeImpl()</code>
+   * and the native code implementing:
+   * <pre>
+   *   static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity);
+   * </pre>
+   * for the given class will be included in the generated code, always,
+   * as requested via configuration directive <code>ForceStaticInitCode 'class-name'</code>.
+   * <p>
+   * If case above code has been generated, static class initialization is generated
+   * to call <code>initializeImpl()</code>, see {@link #manualStaticInitCall(String)}.
+   * </p>
+   */
+  public boolean forceStaticInitCode(String clazzName) {
+    return forceStaticInitCode.contains(clazzName);
   }
 
   /** Returns a list of Strings containing user-implemented code for
@@ -990,8 +1011,10 @@ public class JavaConfiguration {
       readIgnoreField(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ManuallyImplement")) {
       readManuallyImplement(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("ManualStaticInit")) {
-      readManualStaticInit(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ManualStaticInitCall")) {
+      readManualStaticInitCall(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ForceStaticInitCode")) {
+      readForceStaticInitCode(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("CustomJavaCode")) {
       readCustomJavaCode(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -1292,12 +1315,21 @@ public class JavaConfiguration {
         " in file \"" + filename + "\"", e);
     }
   }
-  protected void readManualStaticInit(StringTokenizer tok, String filename, int lineNo) {
+  protected void readManualStaticInitCall(StringTokenizer tok, String filename, int lineNo) {
     try {
       String name = tok.nextToken();
-      manualStaticInit.add(name);
+      manualStaticInitCall.add(name);
     } catch (NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"ManualStaticInit\" command at line " + lineNo +
+      throw new RuntimeException("Error parsing \"ManualStaticInitCall\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+  protected void readForceStaticInitCode(StringTokenizer tok, String filename, int lineNo) {
+    try {
+      String name = tok.nextToken();
+      forceStaticInitCode.add(name);
+    } catch (NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"ForceStaticInitCode\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }

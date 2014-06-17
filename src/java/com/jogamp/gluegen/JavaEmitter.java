@@ -73,6 +73,7 @@ public class JavaEmitter implements GlueEmitter {
   private TypeDictionary typedefDictionary;
   private Map<Type, Type> canonMap;
   protected JavaConfiguration cfg;
+  private boolean requiresStaticInitialization = false;
 
   /**
    * Style of code emission. Can emit everything into one class
@@ -403,6 +404,7 @@ public class JavaEmitter implements GlueEmitter {
 
     this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
+    this.requiresStaticInitialization = false; // reset
 
     if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
       javaWriter().println();
@@ -481,6 +483,22 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   /**
+   * Returns <code>true</code> if implementation (java and native-code)
+   * requires {@link #staticClassInitCodeCCode} and {@link #staticClassInitCallJavaCode}
+   * and have <code>initializeImpl()</code> being called at static class initialization.
+   * <p>
+   * This is currently true, if one of the following method returns <code>true</code>
+   * <ul>
+   *   <li>{@link MethodBinding#signatureUsesCompoundTypeWrappers() one of the binding's signature uses compound-types}</li>
+   *   <li>{@link JavaConfiguration#forceStaticInitCode(String)}</li>
+   * </ul>
+   * </p>
+   */
+  protected final boolean requiresStaticInitialization(final String clazzName) {
+      return requiresStaticInitialization || cfg.forceStaticInitCode(clazzName);
+  }
+
+  /**
    * Generates the public emitters for this MethodBinding which will
    * produce either simply signatures (for the interface class, if
    * any) or function definitions with or without a body (depending on
@@ -488,67 +506,69 @@ public class JavaEmitter implements GlueEmitter {
    * native code because it doesn't need any processing of the
    * outgoing arguments).
    */
-  protected void generatePublicEmitters(MethodBinding binding,
-                                        List<FunctionEmitter> allEmitters,
-                                        boolean signatureOnly) {
-    if (cfg.manuallyImplement(binding.getName()) && !signatureOnly) {
-      // We only generate signatures for manually-implemented methods;
-      // user provides the implementation
-      return;
-    }
+  protected void generatePublicEmitters(MethodBinding binding, List<FunctionEmitter> allEmitters, boolean signatureOnly) {
+      if (cfg.manuallyImplement(binding.getName()) && !signatureOnly) {
+          // We only generate signatures for manually-implemented methods;
+          // user provides the implementation
+          return;
+      }
 
-    MethodAccess accessControl = cfg.accessControl(binding.getName());
-    // We should not emit anything except public APIs into interfaces
-    if (signatureOnly && (accessControl != PUBLIC)) {
-      return;
-    }
+      final MethodAccess accessControl = cfg.accessControl(binding.getName());
+      // We should not emit anything except public APIs into interfaces
+      if (signatureOnly && (accessControl != PUBLIC)) {
+          return;
+      }
 
-    final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
+      final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
 
-    // It's possible we may not need a body even if signatureOnly is
-    // set to false; for example, if the routine doesn't take any
-    // arrays or buffers as arguments
-    boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
-    List<String> prologue = cfg.javaPrologueForMethod(binding, false, false);
-    List<String> epilogue = cfg.javaEpilogueForMethod(binding, false, false);
-    boolean needsBody = (isUnimplemented ||
-                         (binding.needsNIOWrappingOrUnwrapping() ||
-                          binding.signatureUsesJavaPrimitiveArrays()) ||
-                         (prologue != null) ||
-                         (epilogue != null));
+      // It's possible we may not need a body even if signatureOnly is
+      // set to false; for example, if the routine doesn't take any
+      // arrays or buffers as arguments
+      final boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
+      final List<String> prologue = cfg.javaPrologueForMethod(binding, false, false);
+      final List<String> epilogue = cfg.javaEpilogueForMethod(binding, false, false);
+      final boolean needsBody = isUnimplemented ||
+                                binding.needsNIOWrappingOrUnwrapping() ||
+                                binding.signatureUsesJavaPrimitiveArrays() ||
+                                null != prologue  ||
+                                null != epilogue;
 
-    JavaMethodBindingEmitter emitter =
-      new JavaMethodBindingEmitter(binding,
-                                   writer,
-                                   cfg.runtimeExceptionType(),
-                                   cfg.unsupportedExceptionType(),
-                                   !signatureOnly && needsBody,
-                                   cfg.tagNativeBinding(),
-                                   false, // eraseBufferAndArrayTypes
-                                   cfg.useNIOOnly(binding.getName()),
-                                   cfg.useNIODirectOnly(binding.getName()),
-                                   false,
-                                   false,
-                                   false,
-                                   isUnimplemented,
-                                   signatureOnly,
-                                   cfg);
-    switch (accessControl) {
-      case PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
-      case PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
-      case PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
-      default: break; // package-private adds no modifiers
-    }
-    if (cfg.allStatic()) {
-      emitter.addModifier(JavaMethodBindingEmitter.STATIC);
-    }
-    if (!isUnimplemented && !needsBody && !signatureOnly) {
-      emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-    }
-    emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-    emitter.setPrologue(prologue);
-    emitter.setEpilogue(epilogue);
-    allEmitters.add(emitter);
+      if( !requiresStaticInitialization ) {
+          requiresStaticInitialization = binding.signatureUsesCompoundTypeWrappers();
+      }
+
+      final JavaMethodBindingEmitter emitter =
+              new JavaMethodBindingEmitter(binding,
+                      writer,
+                      cfg.runtimeExceptionType(),
+                      cfg.unsupportedExceptionType(),
+                      !signatureOnly && needsBody,
+                      cfg.tagNativeBinding(),
+                      false, // eraseBufferAndArrayTypes
+                      cfg.useNIOOnly(binding.getName()),
+                      cfg.useNIODirectOnly(binding.getName()),
+                      false,
+                      false,
+                      false,
+                      isUnimplemented,
+                      signatureOnly,
+                      cfg);
+      switch (accessControl) {
+          case PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
+          case PROTECTED:  emitter.addModifier(JavaMethodBindingEmitter.PROTECTED); break;
+          case PRIVATE:    emitter.addModifier(JavaMethodBindingEmitter.PRIVATE); break;
+          default: break; // package-private adds no modifiers
+      }
+      if (cfg.allStatic()) {
+          emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+      }
+      if (!isUnimplemented && !needsBody && !signatureOnly) {
+          emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+      }
+      emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
+      emitter.setPrologue(prologue);
+      emitter.setEpilogue(epilogue);
+      allEmitters.add(emitter);
   }
 
   /**
@@ -562,77 +582,81 @@ public class JavaEmitter implements GlueEmitter {
    */
   protected void generatePrivateEmitters(MethodBinding binding,
                                          List<FunctionEmitter> allEmitters) {
-    if (cfg.manuallyImplement(binding.getName())) {
-      // Don't produce emitters for the implementation class
-      return;
-    }
-
-    boolean hasPrologueOrEpilogue =
-        ((cfg.javaPrologueForMethod(binding, false, false) != null) ||
-         (cfg.javaEpilogueForMethod(binding, false, false) != null));
-
-    // If we already generated a public native entry point for this
-    // method, don't emit another one
-    if (!cfg.isUnimplemented(binding.getName()) &&
-        (binding.needsNIOWrappingOrUnwrapping() ||
-         // binding.signatureUsesJavaPrimitiveArrays() /* excluded below */ ||
-         hasPrologueOrEpilogue)) {
-      PrintWriter writer = (cfg.allStatic() ? javaWriter() : javaImplWriter());
-
-      // If the binding uses primitive arrays, we are going to emit
-      // the private native entry point for it along with the version
-      // taking only NIO buffers
-      if ( !binding.signatureUsesJavaPrimitiveArrays() ) {
-        // (Always) emit the entry point taking only direct buffers
-        JavaMethodBindingEmitter emitter =
-          new JavaMethodBindingEmitter(binding,
-                                       writer,
-                                       cfg.runtimeExceptionType(),
-                                       cfg.unsupportedExceptionType(),
-                                       false,
-                                       cfg.tagNativeBinding(),
-                                       true, // eraseBufferAndArrayTypes
-                                       cfg.useNIOOnly(binding.getName()),
-                                       cfg.useNIODirectOnly(binding.getName()),
-                                       true,
-                                       true,
-                                       false,
-                                       false,
-                                       false,
-                                       cfg);
-        emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
-        if (cfg.allStatic()) {
-          emitter.addModifier(JavaMethodBindingEmitter.STATIC);
-        }
-        emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-        emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
-        allEmitters.add(emitter);
+      if (cfg.manuallyImplement(binding.getName())) {
+          // Don't produce emitters for the implementation class
+          return;
       }
-    }
 
-    // Now generate the C emitter(s). We need to produce one for every
-    // Java native entry point (public or private). The only
-    // situations where we don't produce one are (a) when the method
-    // is unimplemented, and (b) when the signature contains primitive
-    // arrays, since the latter is handled by the method binding
-    // variant taking only NIO Buffers.
-    if (!cfg.isUnimplemented(binding.getName()) &&
-        !binding.signatureUsesJavaPrimitiveArrays()) {
-      CMethodBindingEmitter cEmitter;
-      // Generate a binding without mixed access (NIO-direct, -indirect, array)
-      cEmitter =
-          new CMethodBindingEmitter(binding,
-                                    cWriter(),
-                                    cfg.implPackageName(),
-                                    cfg.implClassName(),
-                                    true, // NOTE: we always disambiguate with a suffix now, so this is optional
-                                    cfg.allStatic(),
-                                    (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
-                                    !cfg.useNIODirectOnly(binding.getName()),
-                                    machDescJava);
-      prepCEmitter(binding, cEmitter);
-      allEmitters.add(cEmitter);
-    }
+      final boolean hasPrologueOrEpilogue =
+              cfg.javaPrologueForMethod(binding, false, false) != null ||
+              cfg.javaEpilogueForMethod(binding, false, false) != null ;
+
+      if ( !cfg.isUnimplemented( binding.getName() ) ) {
+          if( !requiresStaticInitialization ) {
+              requiresStaticInitialization = binding.signatureUsesCompoundTypeWrappers();
+          }
+
+          // If we already generated a public native entry point for this
+          // method, don't emit another one
+          //
+          // !binding.signatureUsesJavaPrimitiveArrays():
+          //   If the binding uses primitive arrays, we are going to emit
+          //   the private native entry point for it along with the version
+          //   taking only NIO buffers
+          if ( !binding.signatureUsesJavaPrimitiveArrays() &&
+               ( binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue )
+             )
+          {
+              final PrintWriter writer = (cfg.allStatic() ? javaWriter() : javaImplWriter());
+
+              // (Always) emit the entry point taking only direct buffers
+              final JavaMethodBindingEmitter emitter =
+                      new JavaMethodBindingEmitter(binding,
+                              writer,
+                              cfg.runtimeExceptionType(),
+                              cfg.unsupportedExceptionType(),
+                              false,
+                              cfg.tagNativeBinding(),
+                              true, // eraseBufferAndArrayTypes
+                              cfg.useNIOOnly(binding.getName()),
+                              cfg.useNIODirectOnly(binding.getName()),
+                              true,
+                              true,
+                              false,
+                              false,
+                              false,
+                              cfg);
+              emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+              if (cfg.allStatic()) {
+                  emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+              }
+              emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+              emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
+              allEmitters.add(emitter);
+          }
+
+          // Now generate the C emitter(s). We need to produce one for every
+          // Java native entry point (public or private). The only
+          // situations where we don't produce one are (a) when the method
+          // is unimplemented, and (b) when the signature contains primitive
+          // arrays, since the latter is handled by the method binding
+          // variant taking only NIO Buffers.
+          if ( !binding.signatureUsesJavaPrimitiveArrays() ) {
+              // Generate a binding without mixed access (NIO-direct, -indirect, array)
+              final CMethodBindingEmitter cEmitter =
+                      new CMethodBindingEmitter(binding,
+                              cWriter(),
+                              cfg.implPackageName(),
+                              cfg.implClassName(),
+                              true, // NOTE: we always disambiguate with a suffix now, so this is optional
+                              cfg.allStatic(),
+                              (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
+                              !cfg.useNIODirectOnly(binding.getName()),
+                              machDescJava);
+              prepCEmitter(binding, cEmitter);
+              allEmitters.add(cEmitter);
+          }
+      }
   }
 
   protected void prepCEmitter(MethodBinding binding, CMethodBindingEmitter cEmitter)
@@ -768,6 +792,14 @@ public class JavaEmitter implements GlueEmitter {
         if (!cfg.allStatic() && cfg.emitImpl()) {
             emitCustomJavaCode(javaImplWriter(), cfg.implClassName());
         }
+        if ( cfg.allStatic() ) {
+            emitJavaInitCode(javaWriter(), cfg.className());
+        } else if ( cfg.emitImpl() ) {
+            emitJavaInitCode(javaImplWriter(), cfg.implClassName());
+        }
+        if ( cfg.emitImpl() ) {
+            emitCInitCode(cWriter(), getImplPackageName(), cfg.implClassName());
+        }
     }
   }
 
@@ -815,6 +847,8 @@ public class JavaEmitter implements GlueEmitter {
       return;
     }
     String containingTypeName = containingType.getName();
+
+    this.requiresStaticInitialization = false; // reset
 
     // machDescJava global MachineDescription is the one used to determine
     // the sizes of the primitive types seen in the public API in Java.
@@ -963,10 +997,6 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
     javaWriter.println();
-    if (needsNativeCode) {
-        emitJavaInitCode(javaWriter, containingTypeName);
-        javaWriter.println();
-    }
     javaWriter.println("  public static int size() {");
     javaWriter.println("    return "+containingTypeName+"_size[mdIdx];");
     javaWriter.println("  }");
@@ -1161,10 +1191,16 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
     emitCustomJavaCode(javaWriter, containingTypeName);
+    if (needsNativeCode) {
+        javaWriter.println();
+        emitJavaInitCode(javaWriter, containingTypeName);
+        javaWriter.println();
+    }
     javaWriter.println("}");
     javaWriter.flush();
     javaWriter.close();
     if (needsNativeCode) {
+      emitCInitCode(jniWriter, structClassPkg, containingTypeName);
       jniWriter.flush();
       jniWriter.close();
     }
@@ -1695,7 +1731,6 @@ public class JavaEmitter implements GlueEmitter {
       }
 
       if (cfg.emitImpl()) {
-        emitJavaInitCode();
         emitCHeader(cWriter(), getImplPackageName(), cfg.implClassName());
       }
     } catch (Exception e) {
@@ -1707,7 +1742,25 @@ public class JavaEmitter implements GlueEmitter {
 
   }
 
-  private static final String initClassAccessCode = "\n"+
+  protected void emitCHeader(PrintWriter cWriter, String packageName, String className) {
+    cWriter.println("#include <jni.h>");
+    cWriter.println("#include <stdlib.h>");
+    cWriter.println("#include <string.h>");
+    cWriter.println();
+
+    if (getConfig().emitImpl()) {
+      cWriter.println("#include <assert.h>");
+      cWriter.println();
+      cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity); /* forward decl. */");
+      cWriter.println();
+    }
+    for (String code : cfg.customCCode()) {
+      cWriter.println(code);
+    }
+    cWriter.println();
+  }
+
+  private static final String staticClassInitCodeCCode = "\n"+
          "static const char * clazzNameBuffers = \"com/jogamp/common/nio/Buffers\";\n"+
          "static const char * clazzNameBuffersStaticNewCstrName = \"newDirectByteBuffer\";\n"+
          "static const char * clazzNameBuffersStaticNewCstrSignature = \"(I)Ljava/nio/ByteBuffer;\";\n"+
@@ -1752,7 +1805,7 @@ public class JavaEmitter implements GlueEmitter {
          "}\n"+
          "\n";
 
-  private static final String staticClassInitCode = "\n"+
+  private static final String staticClassInitCallJavaCode = "\n"+
          "  static {\n"+
          "    if( !initializeImpl() ) {\n"+
          "      throw new RuntimeException(\"Initialization failure\");\n"+
@@ -1760,46 +1813,23 @@ public class JavaEmitter implements GlueEmitter {
          "  }\n"+
          "\n";
 
-  protected void emitCHeader(PrintWriter cWriter, String packageName, String className) {
-    cWriter.println("#include <jni.h>");
-    cWriter.println("#include <stdlib.h>");
-    cWriter.println("#include <string.h>");
-    cWriter.println();
-
-    if (getConfig().emitImpl()) {
-      cWriter.println("#include <assert.h>");
-      cWriter.println();
-    }
-    emitCInitCode(cWriter, packageName, className);
-    for (String code : cfg.customCCode()) {
-      cWriter.println(code);
-    }
-    cWriter.println();
-  }
-
   protected void emitCInitCode(PrintWriter cWriter, String packageName, String className) {
-    if (getConfig().emitImpl()) {
-      cWriter.println(initClassAccessCode);
+    if ( requiresStaticInitialization(className) ) {
+      cWriter.println(staticClassInitCodeCCode);
       cWriter.println("JNIEXPORT jboolean JNICALL "+JavaEmitter.getJNIMethodNamePrefix(packageName, className)+"_initializeImpl(JNIEnv *env, jclass _unused) {");
       cWriter.println("    return _initClazzAccess(env);");
       cWriter.println("}");
       cWriter.println();
     }
   }
-  protected void emitJavaInitCode() {
-    if ( cfg.allStatic() ) {
-        emitJavaInitCode( javaWriter(), cfg.className() );
-    } else if( cfg.emitImpl() ) {
-        emitJavaInitCode( javaImplWriter(), cfg.implClassName() );
-    }
-  }
+
   protected void emitJavaInitCode(PrintWriter jWriter, String className) {
-    if( null != jWriter ) {
+    if( null != jWriter && requiresStaticInitialization(className) ) {
         jWriter.println();
         jWriter.println("  private static native boolean initializeImpl();");
         jWriter.println();
-        if( !cfg.manualStaticInit(className) ) {
-            jWriter.println(staticClassInitCode);
+        if( !cfg.manualStaticInitCall(className) ) {
+            jWriter.println(staticClassInitCallJavaCode);
         }
     }
   }
@@ -1808,7 +1838,7 @@ public class JavaEmitter implements GlueEmitter {
    * Write out any footer information for the output files (closing brace of
    * class definition, etc).
    */
-  protected void emitAllFileFooters(){
+  protected void emitAllFileFooters() {
     if (cfg.allStatic() || cfg.emitInterface()) {
       javaWriter().println();
       javaWriter().println("} // end of class " + cfg.className());
