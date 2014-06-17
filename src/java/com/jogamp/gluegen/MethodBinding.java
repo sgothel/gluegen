@@ -53,9 +53,9 @@ import java.util.List;
 
 public class MethodBinding {
 
-  private FunctionSymbol sym;
+  private final FunctionSymbol sym;
   private String         renamedMethodName;
-  private HashSet<String> aliasedNames;
+  private final HashSet<String> aliasedNames;
   private JavaType       javaReturnType;
   private List<JavaType> javaArgumentTypes;
   private boolean        computedSignatureProperties;
@@ -266,11 +266,11 @@ public class MethodBinding {
   /**
    * Returns true if the function needs NIO-related
    * wrapping/unwrapping or conversion of various arguments. Currently
-   * this returns the logical OR of signatureUsesNIO() and
-   * signatureUsesCompoundTypeWrappers().
+   * this returns the logical OR of signatureUsesNIO(),
+   * signatureUsesCompoundTypeWrappers() and signatureUsesArraysOfCompoundTypeWrappers().
    */
   public boolean needsNIOWrappingOrUnwrapping() {
-    return (signatureUsesNIO() || signatureUsesCompoundTypeWrappers());
+    return (signatureUsesNIO() || signatureUsesCompoundTypeWrappers() || signatureUsesArraysOfCompoundTypeWrappers() );
   }
 
   /**

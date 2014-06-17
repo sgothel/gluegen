@@ -45,7 +45,7 @@ import java.util.*;
 declarations and (via PointerType) function pointers. */
 public class FunctionType extends Type implements Cloneable {
 
-    private Type returnType;
+    private final Type returnType;
     private ArrayList<Type> argumentTypes;
     private ArrayList<String> argumentNames;
 
@@ -136,6 +136,9 @@ public class FunctionType extends Type implements Cloneable {
 
     String toString(String functionName, String callingConvention, boolean emitNativeTag, boolean isPointer) {
         StringBuilder res = new StringBuilder();
+        if(isConst()) {
+            res.append("const ");
+        }
         res.append(getReturnType());
         res.append(" ");
         if (isPointer) {
@@ -163,11 +166,18 @@ public class FunctionType extends Type implements Cloneable {
         for (int i = 0; i < n; i++) {
             Type t = getArgumentType(i);
             if (t.isFunctionPointer()) {
-                FunctionType ft = t.asPointer().getTargetType().asFunction();
+                Type targetType = t.asPointer().getTargetType();
+                if(targetType.isConst()) {
+                    res.append("const ");
+                }
+                FunctionType ft = targetType.asFunction();
                 res.append(ft.toString(getArgumentName(i), callingConvention, false, true));
             } else if (t.isArray()) {
                 res.append(t.asArray().toString(getArgumentName(i)));
             } else {
+                if(t.isConst()) {
+                    res.append("const ");
+                }
                 res.append(t);
                 String argumentName = getArgumentName(i);
                 if (argumentName != null) {

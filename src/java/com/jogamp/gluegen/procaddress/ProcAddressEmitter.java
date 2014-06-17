@@ -119,8 +119,7 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
 
     protected boolean needsModifiedEmitters(FunctionSymbol sym) {
-        if (!needsProcAddressWrapper(sym)
-                || getConfig().isUnimplemented(getAliasedSymName(sym))) {
+        if (!needsProcAddressWrapper(sym) || getConfig().isUnimplemented(getAliasedSymName(sym))) {
             return false;
         }
 

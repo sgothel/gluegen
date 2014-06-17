@@ -46,8 +46,8 @@ package com.jogamp.gluegen.cgram.types;
     should be passed in to the constructor. */
 
 public class ArrayType extends MemoryLayoutType implements Cloneable {
-  private Type elementType;
-  private int length;
+  private final Type elementType;
+  private final int length;
   private String computedName;
 
   public ArrayType(Type elementType, SizeThunk sizeInBytes, int length, int cvAttributes) {
@@ -87,7 +87,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
 
   /** Return the bottommost element type if this is a multidimensional
       array. */
-  public Type    getBaseElementType() {
+  public Type getBaseElementType() {
     ArrayType t = this;
     while (t.getElementType().isArray()) {
       t = t.getElementType().asArray();
@@ -112,6 +112,9 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
 
   public String toString(String variableName) {
     StringBuilder buf = new StringBuilder();
+    if(elementType.isConst()) {
+        buf.append("const ");
+    }
     buf.append(elementType.getName());
     if (variableName != null) {
       buf.append(" ");

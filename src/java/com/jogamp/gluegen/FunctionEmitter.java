@@ -42,14 +42,16 @@ package com.jogamp.gluegen;
 import java.util.*;
 import java.io.*;
 
+import com.jogamp.gluegen.cgram.types.Type;
+
 public abstract class FunctionEmitter {
 
   public static final EmissionModifier STATIC = new EmissionModifier("static");
 
-  private boolean isInterfaceVal;
+  private final boolean isInterfaceVal;
   private final ArrayList<EmissionModifier> modifiers;
   private CommentEmitter commentEmitter = null;
-  private PrintWriter defaultOutput;
+  private final PrintWriter defaultOutput;
 
   /**
    * Constructs the FunctionEmitter with a CommentEmitter that emits nothing.
@@ -72,6 +74,25 @@ public abstract class FunctionEmitter {
   }
 
   public boolean isInterface() { return isInterfaceVal; }
+
+  /**
+   * Checks the base type of pointer-to-pointer, pointer, array or plain for const-ness.
+   * <p>
+   * Note: Implementation walks down to the base type and returns it's const-ness.
+   * Intermediate 'const' qualifier are not considered, e.g. const pointer.
+   * </p>
+   */
+  protected final boolean isBaseTypeConst(Type type) {
+    if ( 2 == type.pointerDepth() ) {
+      return type.asPointer().getTargetType().asPointer().getTargetType().isConst();
+    } else if ( 1 == type.pointerDepth() ) {
+      return type.asPointer().getTargetType().isConst();
+    } else if( type.isArray() ) {
+      return type.asArray().getBaseElementType().isConst();
+    } else {
+      return type.isConst();
+    }
+  }
 
   public PrintWriter getDefaultOutput() { return defaultOutput; }
 
@@ -196,7 +217,7 @@ public abstract class FunctionEmitter {
     @Override
     public final String toString() { return emittedForm; }
 
-    private String emittedForm;
+    private final String emittedForm;
 
     @Override
     public int hashCode() {

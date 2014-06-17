@@ -1011,5 +1011,29 @@ public class BaseClass extends JunitTracer {
         System.err.println("ch11.3: sameInstanceByRef "+sameInstanceByRef);
         Assert.assertFalse(sameInstanceByVal);
         Assert.assertFalse(sameInstanceByRef);
+
+        final TK_Dimension dim2 = binding.getBoundsValue(1, 2, 3, 4);
+        final TK_Dimension[] sumands = { dim1, dim2 };
+        final TK_Dimension dimSum = binding.addDimensions(sumands);
+        {
+            dumpDim("ch11.4: sum-dim ", dimSum);
+            Assert.assertEquals(11+1, dimSum.getX());
+            Assert.assertEquals(22+2, dimSum.getY());
+            Assert.assertEquals(33+3, dimSum.getWidth());
+            Assert.assertEquals(44+4, dimSum.getHeight());
+        }
+        binding.zeroDimensions(sumands);
+        {
+            dumpDim("ch11.5: zero-dim[0] ", sumands[0]);
+            dumpDim("ch11.5: zero-dim[1] ", sumands[1]);
+            Assert.assertEquals(0, sumands[0].getX());
+            Assert.assertEquals(0, sumands[0].getY());
+            Assert.assertEquals(0, sumands[0].getWidth());
+            Assert.assertEquals(0, sumands[0].getHeight());
+            Assert.assertEquals(0, sumands[1].getX());
+            Assert.assertEquals(0, sumands[1].getY());
+            Assert.assertEquals(0, sumands[1].getWidth());
+            Assert.assertEquals(0, sumands[1].getHeight());
+        }
     }
 }

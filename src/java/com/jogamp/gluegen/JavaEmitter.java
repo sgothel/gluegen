@@ -524,7 +524,7 @@ public class JavaEmitter implements GlueEmitter {
                                    cfg.unsupportedExceptionType(),
                                    !signatureOnly && needsBody,
                                    cfg.tagNativeBinding(),
-                                   false,
+                                   false, // eraseBufferAndArrayTypes
                                    cfg.useNIOOnly(binding.getName()),
                                    cfg.useNIODirectOnly(binding.getName()),
                                    false,
@@ -575,14 +575,14 @@ public class JavaEmitter implements GlueEmitter {
     // method, don't emit another one
     if (!cfg.isUnimplemented(binding.getName()) &&
         (binding.needsNIOWrappingOrUnwrapping() ||
-         binding.signatureUsesJavaPrimitiveArrays() ||
+         // binding.signatureUsesJavaPrimitiveArrays() /* excluded below */ ||
          hasPrologueOrEpilogue)) {
       PrintWriter writer = (cfg.allStatic() ? javaWriter() : javaImplWriter());
 
       // If the binding uses primitive arrays, we are going to emit
       // the private native entry point for it along with the version
       // taking only NIO buffers
-      if (!binding.signatureUsesJavaPrimitiveArrays()) {
+      if ( !binding.signatureUsesJavaPrimitiveArrays() ) {
         // (Always) emit the entry point taking only direct buffers
         JavaMethodBindingEmitter emitter =
           new JavaMethodBindingEmitter(binding,
@@ -591,7 +591,7 @@ public class JavaEmitter implements GlueEmitter {
                                        cfg.unsupportedExceptionType(),
                                        false,
                                        cfg.tagNativeBinding(),
-                                       true,
+                                       true, // eraseBufferAndArrayTypes
                                        cfg.useNIOOnly(binding.getName()),
                                        cfg.useNIODirectOnly(binding.getName()),
                                        true,
@@ -1012,7 +1012,7 @@ public class JavaEmitter implements GlueEmitter {
                                              cfg.unsupportedExceptionType(),
                                              true,
                                              cfg.tagNativeBinding(),
-                                             false,
+                                             false, // eraseBufferAndArrayTypes
                                              true, // FIXME: should unify this with the general emission code
                                              true, // FIXME: should unify this with the general emission code
                                              false,
@@ -1255,7 +1255,7 @@ public class JavaEmitter implements GlueEmitter {
           targetType = t.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = t.asArray().getElementType();
+          targetType = t.asArray().getBaseElementType();
         }
         if (t.pointerDepth() == 2 || t.arrayDimension() == 2) {
           // Get the target type of the target type (targetType was computer earlier
@@ -1297,7 +1297,7 @@ public class JavaEmitter implements GlueEmitter {
           targetType = t.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = t.asArray().getElementType();
+          targetType = t.asArray().getBaseElementType();
         }
 
         // Handle Types of form pointer-to-type or array-of-type, like
@@ -1326,7 +1326,7 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.createForCDoublePointer();
           } else if (targetType.isCompound()) {
             if (t.isArray()) { // FIXME: Compound and Compound-Arrays
-              throw new RuntimeException("Arrays of compound types not handled yet");
+              return JavaType.createForCArray(targetType);
             }
             // Special cases for known JNI types (in particular for converting jawt.h)
             if (t.getName() != null &&
@@ -1361,7 +1361,7 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.forNIOPointerBufferClass();
           } else {
             // t is<type>[][], targetType is <type>[], we need to get <type>
-            bottomType = targetType.asArray().getElementType();
+            bottomType = targetType.asArray().getBaseElementType();
             LOG.log(WARNING, "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2} -> Unhandled!", new Object[]{t, targetType, bottomType});
           }
 

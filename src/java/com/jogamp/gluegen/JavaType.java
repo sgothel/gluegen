@@ -103,6 +103,9 @@ public class JavaType {
   public JavaType getElementType() {
        return new JavaType(elementType);
   }
+  public Type getElementCType() {
+       return elementType;
+  }
 
   /** Creates a JavaType corresponding to the given Java type. This
       can be used to represent arrays of primitive values or Strings;

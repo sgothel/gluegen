@@ -250,3 +250,6 @@ MYAPI TK_Surface MYAPIENTRY getSurfaceValue(TK_Dimension bounds);
 MYAPI TK_Dimension MYAPIENTRY getSurfaceBoundsValue(TK_Surface s);
 MYAPI Bool MYAPIENTRY isSameInstanceByVal(TK_Dimension s1, TK_Dimension s2);
 MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimension *s2);
+MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[2]);
+MYAPI void MYAPIENTRY zeroDimensions(TK_Dimension s[2]);
+

@@ -454,15 +454,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     // Check lengths of any incoming arrays if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
       Type type = binding.getCArgumentType(i);
-      if (type.isArray()) {
+      if (type.isArray()) { // FIXME: Compound and Compound-Arrays
         ArrayType arrayType = type.asArray();
         writer.println("    if (" + getArgumentName(i) + ".length < " +
                        arrayType.getLength() + ")");
         writer.println("      throw new " + getRuntimeExceptionType() +
                        "(\"Length of array \\\"" + getArgumentName(i) +
                        "\\\" was less than the required " + arrayType.getLength() + "\");");
-        // FIXME: What is this ??? Until resolved - throw an exception !
-        throw new RuntimeException("????? "+binding+": binding.getCArgumentType("+i+").isArray(): "+type); // FIXME: Compound and Compound-Arrays
       } else {
         JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isNIOBuffer()) {
@@ -686,7 +684,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       // ByteBuffers back into the wrapper types
       for (int i = 0; i < binding.getNumArguments(); i++) {
         JavaType javaArgType = binding.getJavaArgumentType(i);
-        if (javaArgType.isArrayOfCompoundTypeWrappers()) {
+        if ( javaArgType.isArrayOfCompoundTypeWrappers() && !isBaseTypeConst(javaArgType.getElementCType()) ) {
           String argName = binding.getArgumentName(i);
           writer.println("    for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
           writer.println("      if ((" + argName + "[_ctr] == null && " + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr] == null) ||");
