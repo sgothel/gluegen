@@ -909,8 +909,29 @@ public class BaseClass extends JunitTracer {
         }
     }
 
-    private void dumpDim(final String pre, final TK_Dimension dim) {
+    private static void dumpDim(final String pre, final TK_Dimension dim) {
         System.err.println(pre+dim.getX()+"/"+dim.getY()+" "+dim.getWidth()+"x"+dim.getHeight());
+    }
+    private static void assertDim(final String pre,
+                                  final int expX, final int expY, final int expWidth, final int expHeight,
+                                  final TK_Dimension hasDim) {
+        dumpDim(pre, hasDim);
+        Assert.assertEquals(expX, hasDim.getX());
+        Assert.assertEquals(expY, hasDim.getY());
+        Assert.assertEquals(expWidth, hasDim.getWidth());
+        Assert.assertEquals(expHeight, hasDim.getHeight());
+    }
+    private static void dumpDim(final String pre, final int[] pos, final int size[]) {
+        System.err.println(pre+pos[0]+"/"+pos[1]+" "+size[0]+"x"+size[1]);
+    }
+    private static void assertDim(final String pre,
+                                  final int expX, final int expY, final int expWidth, final int expHeight,
+                                  final int[] pos, final int size[]) {
+        dumpDim(pre, pos, size);
+        Assert.assertEquals(expX, pos[0]);
+        Assert.assertEquals(expY, pos[1]);
+        Assert.assertEquals(expWidth, size[0]);
+        Assert.assertEquals(expHeight, size[1]);
     }
 
     /** Test compound access call-by-reference */
@@ -973,67 +994,78 @@ public class BaseClass extends JunitTracer {
         {
             final TK_Surface surface = binding.createSurface();
             final TK_Dimension dim0 = surface.getBounds();
-            dumpDim("ch11.0: ref-dim ", dim0);
-            Assert.assertEquals(0x11111111, dim0.getX());
-            Assert.assertEquals(0x22222222, dim0.getY());
-            Assert.assertEquals(0x33333333, dim0.getWidth());
-            Assert.assertEquals(0x44444444, dim0.getHeight());
+            assertDim("ch11.0: ref-dim ", 0x11111111, 0x22222222, 0x33333333, 0x44444444, dim0);
 
             final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
-            dumpDim("ch11.0: val-dim ", dim1);
-            Assert.assertEquals(0x11111111, dim1.getX());
-            Assert.assertEquals(0x22222222, dim1.getY());
-            Assert.assertEquals(0x33333333, dim1.getWidth());
-            Assert.assertEquals(0x44444444, dim1.getHeight());
+            assertDim("ch11.0: val-dim ", 0x11111111, 0x22222222, 0x33333333, 0x44444444, dim1);
 
             binding.destroySurface(surface);
         }
-        final TK_Dimension dim0 = binding.getBoundsValue(11, 22, 33, 44);
         {
-            dumpDim("ch11.1: val-dim ", dim0);
-            Assert.assertEquals(11, dim0.getX());
-            Assert.assertEquals(22, dim0.getY());
-            Assert.assertEquals(33, dim0.getWidth());
-            Assert.assertEquals(44, dim0.getHeight());
+            final TK_Dimension dim0 = binding.getBoundsValue(11, 22, 33, 44);
+            assertDim("ch11.1: val-dim ", 11, 22, 33, 44, dim0);
+            final TK_Surface surface = binding.getSurfaceValue(dim0);
+            final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
+            assertDim("ch11.2: val-dim ", 11, 22, 33, 44, dim1);
+            final boolean sameInstanceByVal = binding.isSameInstanceByVal(dim0, dim1);
+            final boolean sameInstanceByRef = binding.isSameInstanceByRef(dim0, dim1);
+            System.err.println("ch11.3: sameInstanceByVal "+sameInstanceByVal);
+            System.err.println("ch11.3: sameInstanceByRef "+sameInstanceByRef);
+            Assert.assertFalse(sameInstanceByVal);
+            Assert.assertFalse(sameInstanceByRef);
         }
-        final TK_Surface surface = binding.getSurfaceValue(dim0);
-        final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
         {
-            dumpDim("ch11.2: val-dim ", dim0);
-            Assert.assertEquals(11, dim1.getX());
-            Assert.assertEquals(22, dim1.getY());
-            Assert.assertEquals(33, dim1.getWidth());
-            Assert.assertEquals(44, dim1.getHeight());
+            final TK_Dimension dim1 = binding.getBoundsValue(11, 22, 33, 44);
+            final TK_Dimension dim2 = binding.getBoundsValue(1, 2, 3, 4);
+            final TK_Dimension[] sumands = { dim1, dim2 };
+            final TK_Dimension dimSum = binding.addDimensions(sumands);
+            assertDim("ch11.4: sum-dim ", 11+1, 22+2, 33+3, 44+4, dimSum);
+            binding.zeroDimensions(sumands);
+            assertDim("ch11.5: zero-dim[0] ", 0, 0, 0, 0, sumands[0]);
+            assertDim("ch11.5: zero-dim[1] ", 0, 0, 0, 0, sumands[1]);
         }
-        final boolean sameInstanceByVal = binding.isSameInstanceByVal(dim0, dim1);
-        final boolean sameInstanceByRef = binding.isSameInstanceByRef(dim0, dim1);
-        System.err.println("ch11.3: sameInstanceByVal "+sameInstanceByVal);
-        System.err.println("ch11.3: sameInstanceByRef "+sameInstanceByRef);
-        Assert.assertFalse(sameInstanceByVal);
-        Assert.assertFalse(sameInstanceByRef);
+        {
+            final TK_Dimension dim0 = binding.getBoundsValue(0, 0, 0, 0);
+            final TK_Dimension[] dim0A = { dim0 };
+            binding.copyPrimToDimensions(new int[] { 11,  22}, 0, new int[] { 100, 200}, 0, dim0A);
+            assertDim("ch11.6: copyPrim2Dim ", 11, 22, 100, 200, dim0);
+            final int[] pos = { 0, 0 };
+            final int[] size = { 0, 0 };
+            binding.copyDimensionsToPrim(dim0, pos, 0, size, 0);
+            assertDim("ch11.7: copyDim2Prim ", 11, 22, 100, 200, pos, size);
+        }
+        {
+            final int expRGBAi = 0x112233aa;
+            final byte[] expRGBAb = { (byte)0xaa, 0x33, 0x22, 0x11 };
+            final int hasRGBAi = binding.rgbaToInt(expRGBAb, 0);
+            System.err.println("ch11.8: expRGBAb 0x"+
+                    Integer.toHexString(expRGBAb[3])+", 0x"+
+                    Integer.toHexString(expRGBAb[2])+", 0x"+
+                    Integer.toHexString(expRGBAb[1])+", 0x"+
+                    Integer.toHexString(expRGBAb[0]) );
+            System.err.println("ch11.8: hasRGBAi 0x"+Integer.toHexString(hasRGBAi));
+            Assert.assertEquals(expRGBAi, hasRGBAi);
 
-        final TK_Dimension dim2 = binding.getBoundsValue(1, 2, 3, 4);
-        final TK_Dimension[] sumands = { dim1, dim2 };
-        final TK_Dimension dimSum = binding.addDimensions(sumands);
-        {
-            dumpDim("ch11.4: sum-dim ", dimSum);
-            Assert.assertEquals(11+1, dimSum.getX());
-            Assert.assertEquals(22+2, dimSum.getY());
-            Assert.assertEquals(33+3, dimSum.getWidth());
-            Assert.assertEquals(44+4, dimSum.getHeight());
+            final byte[] hasRGBAb = new byte[] { 0, 0, 0, 0 };
+            binding.intToRgba(hasRGBAi, hasRGBAb, 0);
+            System.err.println("ch11.9: hasRGBAb 0x"+
+                    Integer.toHexString(hasRGBAb[3])+", 0x"+
+                    Integer.toHexString(hasRGBAb[2])+", 0x"+
+                    Integer.toHexString(hasRGBAb[1])+", 0x"+
+                    Integer.toHexString(hasRGBAb[0]) );
+            Assert.assertArrayEquals(expRGBAb, hasRGBAb);
         }
-        binding.zeroDimensions(sumands);
         {
-            dumpDim("ch11.5: zero-dim[0] ", sumands[0]);
-            dumpDim("ch11.5: zero-dim[1] ", sumands[1]);
-            Assert.assertEquals(0, sumands[0].getX());
-            Assert.assertEquals(0, sumands[0].getY());
-            Assert.assertEquals(0, sumands[0].getWidth());
-            Assert.assertEquals(0, sumands[0].getHeight());
-            Assert.assertEquals(0, sumands[1].getX());
-            Assert.assertEquals(0, sumands[1].getY());
-            Assert.assertEquals(0, sumands[1].getWidth());
-            Assert.assertEquals(0, sumands[1].getHeight());
+            final int[] result = { 0 };
+            binding.addInt(new int[] { 1,  2}, 0, result, 0);
+            System.err.println("ch11.10: addInt "+result[0]);
+            Assert.assertEquals(3, result[0]);
+        }
+        {
+            final byte[] result = { 0 };
+            binding.addByte(new byte[] { 1,  2}, 0, result, 0);
+            System.err.println("ch11.11: addByte "+result[0]);
+            Assert.assertEquals(3, result[0]);
         }
     }
 }

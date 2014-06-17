@@ -543,3 +543,35 @@ MYAPI void MYAPIENTRY zeroDimensions(TK_Dimension s[2]) {
     s[1].width = 0;
     s[1].height = 0;
 }
+
+MYAPI void MYAPIENTRY copyPrimToDimensions(const int pos[2], const int size[2], TK_Dimension dest[1]) {
+    dest[0].x = pos[0];
+    dest[0].y = pos[1];
+    dest[0].width = size[0];
+    dest[0].height = size[1];
+}
+MYAPI void MYAPIENTRY copyDimensionsToPrim(TK_Dimension dim, int dpos[2], int dsize[2]) {
+    dpos[0] = dim.x;
+    dpos[1] = dim.y;
+    dsize[0] = dim.width;
+    dsize[1] = dim.height;
+}
+MYAPI int MYAPIENTRY rgbaToInt(const char rgba[4]) {
+    return ((unsigned int)rgba[3] & 0xffU) << 24 | 
+           ((unsigned int)rgba[2] & 0xffU) << 16 | 
+           ((unsigned int)rgba[1] & 0xffU) << 8 | 
+           ((unsigned int)rgba[0] & 0xffU);
+}
+MYAPI void MYAPIENTRY intToRgba(int irgba, char rgbaSink[4]) {
+    rgbaSink[0] = (char) ( (irgba       ) & 0xff );
+    rgbaSink[1] = (char) ( (irgba >>  8 ) & 0xff );
+    rgbaSink[2] = (char) ( (irgba >> 16 ) & 0xff );
+    rgbaSink[3] = (char) ( (irgba >> 24 ) & 0xff );
+}
+MYAPI void MYAPIENTRY addInt(const int summands[2], int result[1]) {
+    result[0] = summands[0] + summands[1];
+}
+MYAPI void MYAPIENTRY addByte(const char summands[2], char result[1]) {
+    result[0] = summands[0] + summands[1];
+}
+

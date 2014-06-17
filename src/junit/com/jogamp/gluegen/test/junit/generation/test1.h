@@ -253,3 +253,10 @@ MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimen
 MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[2]);
 MYAPI void MYAPIENTRY zeroDimensions(TK_Dimension s[2]);
 
+MYAPI void MYAPIENTRY copyPrimToDimensions(const int pos[2], const int size[2], TK_Dimension dest[1]);
+MYAPI void MYAPIENTRY copyDimensionsToPrim(TK_Dimension dim, int dpos[2], int dsize[2]);
+MYAPI int MYAPIENTRY rgbaToInt(const char rgba[4]);
+MYAPI void MYAPIENTRY intToRgba(int irgba, char rgbaSink[4]);
+MYAPI void MYAPIENTRY addInt(const int summands[2], int result[1]);
+MYAPI void MYAPIENTRY addByte(const char summands[2], char result[1]);
+

@@ -450,55 +450,63 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   protected void emitArrayLengthAndNIOBufferChecks(MethodBinding binding, PrintWriter writer) {
-
-    // Check lengths of any incoming arrays if necessary
-    for (int i = 0; i < binding.getNumArguments(); i++) {
-      Type type = binding.getCArgumentType(i);
-      if (type.isArray()) { // FIXME: Compound and Compound-Arrays
-        ArrayType arrayType = type.asArray();
-        writer.println("    if (" + getArgumentName(i) + ".length < " +
-                       arrayType.getLength() + ")");
-        writer.println("      throw new " + getRuntimeExceptionType() +
-                       "(\"Length of array \\\"" + getArgumentName(i) +
-                       "\\\" was less than the required " + arrayType.getLength() + "\");");
-      } else {
-        JavaType javaType = binding.getJavaArgumentType(i);
-        if (javaType.isNIOBuffer()) {
-          if (useNIODirectOnly) {
-            writer.println("    if (!Buffers.isDirect(" + getArgumentName(i) + "))");
-            writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
-                           getArgumentName(i) + "\\\" is not a direct buffer\");");
-          } else {
-            writer.println("    final boolean " + isNIOArgName(i) + " = Buffers.isDirect(" + getArgumentName(i) + ");");
+      // Check lengths of any incoming arrays if necessary
+      for (int i = 0; i < binding.getNumArguments(); i++) {
+          final Type type = binding.getCArgumentType(i);
+          final JavaType javaType = binding.getJavaArgumentType(i);
+          if ( type.isArray() ) { // FIXME: Compound and Compound-Arrays
+              // Simply add a range check upfront
+              ArrayType arrayType = type.asArray();
+              if (javaType.isNIOBuffer()) {
+                  writer.println("    if ( Buffers.remainingElem("+getArgumentName(i)+") < " + arrayType.getLength() + ")");
+              } else {
+                  writer.println("    if ( "+getArgumentName(i)+".length < " + arrayType.getLength() + ")");
+              }
+              writer.print("      throw new " + getRuntimeExceptionType() +
+                      "(\"Array \\\"" + getArgumentName(i) +
+                      "\\\" length (\" + ");
+              if (javaType.isNIOBuffer()) {
+                  writer.print("Buffers.remainingElem("+getArgumentName(i)+")");
+              } else {
+                  writer.print(getArgumentName(i)+".length");
+              }
+              writer.println("+ \") was less than the required (" + arrayType.getLength() + ")\");");
           }
-        } else if (javaType.isNIOBufferArray()) {
-          // All buffers passed down in an array of NIO buffers must be direct
-          String argName = getArgumentName(i);
-          String arrayName = byteOffsetArrayArgName(i);
-          writer.println("    final int[] " + arrayName + " = new int[" + argName + ".length];");
-          // Check direct buffer properties of all buffers within
-          writer.println("    if (" + argName + " != null) {");
-          writer.println("      for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
-          writer.println("        if (!Buffers.isDirect(" + argName + "[_ctr])) {");
-          writer.println("          throw new " + getRuntimeExceptionType() +
-                         "(\"Element \" + _ctr + \" of argument \\\"" +
-                         getArgumentName(i) + "\\\" was not a direct buffer\");");
-          writer.println("        }");
-          // get the Buffer Array offset values and save them into another array to send down to JNI
-          writer.print  ("        " + arrayName + "[_ctr] = Buffers.getDirectBufferByteOffset(");
-          writer.println(argName + "[_ctr]);");
-          writer.println("      }");
-          writer.println("    }");
-        } else if (javaType.isPrimitiveArray()) {
-          String argName = getArgumentName(i);
-          String offsetArg = offsetArgName(i);
-          writer.println("    if(" + argName + " != null && " + argName + ".length <= " + offsetArg + ")");
-          writer.print  ("      throw new " + getRuntimeExceptionType());
-          writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" (\" + " + offsetArg +
-                         " + \") equals or exceeds array length (\" + " + argName + ".length + \")\");");
-        }
+          if (javaType.isNIOBuffer()) {
+              if (useNIODirectOnly) {
+                  writer.println("    if (!Buffers.isDirect(" + getArgumentName(i) + "))");
+                  writer.println("      throw new " + getRuntimeExceptionType() + "(\"Argument \\\"" +
+                          getArgumentName(i) + "\\\" is not a direct buffer\");");
+              } else {
+                  writer.println("    final boolean " + isNIOArgName(i) + " = Buffers.isDirect(" + getArgumentName(i) + ");");
+              }
+          } else if (javaType.isNIOBufferArray()) {
+              // All buffers passed down in an array of NIO buffers must be direct
+              String argName = getArgumentName(i);
+              String arrayName = byteOffsetArrayArgName(i);
+              writer.println("    final int[] " + arrayName + " = new int[" + argName + ".length];");
+              // Check direct buffer properties of all buffers within
+              writer.println("    if (" + argName + " != null) {");
+              writer.println("      for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
+              writer.println("        if (!Buffers.isDirect(" + argName + "[_ctr])) {");
+              writer.println("          throw new " + getRuntimeExceptionType() +
+                      "(\"Element \" + _ctr + \" of argument \\\"" +
+                      getArgumentName(i) + "\\\" was not a direct buffer\");");
+              writer.println("        }");
+              // get the Buffer Array offset values and save them into another array to send down to JNI
+              writer.print  ("        " + arrayName + "[_ctr] = Buffers.getDirectBufferByteOffset(");
+              writer.println(argName + "[_ctr]);");
+              writer.println("      }");
+              writer.println("    }");
+          } else if (javaType.isPrimitiveArray()) {
+              String argName = getArgumentName(i);
+              String offsetArg = offsetArgName(i);
+              writer.println("    if(" + argName + " != null && " + argName + ".length <= " + offsetArg + ")");
+              writer.print  ("      throw new " + getRuntimeExceptionType());
+              writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" (\" + " + offsetArg +
+                      " + \") equals or exceeds array length (\" + " + argName + ".length + \")\");");
+          }
       }
-    }
   }
 
   protected void emitCompoundArrayCopies(MethodBinding binding, PrintWriter writer) {
