@@ -68,6 +68,7 @@ public class MethodBinding {
   private boolean        signatureUsesCPrimitivePointers;
   private boolean        signatureUsesCArrays;
   private boolean        signatureUsesJavaPrimitiveArrays;
+  private boolean        signatureRequiresStaticInitialization;
   private JavaType       containingType;
   private Type           containingCType;
   private int            thisPointerIndex = -1;
@@ -96,6 +97,7 @@ public class MethodBinding {
     this.signatureUsesCPrimitivePointers  = bindingToCopy.signatureUsesCPrimitivePointers;
     this.signatureUsesCArrays             = bindingToCopy.signatureUsesCArrays;
     this.signatureUsesJavaPrimitiveArrays = bindingToCopy.signatureUsesJavaPrimitiveArrays;
+    this.signatureRequiresStaticInitialization = bindingToCopy.signatureRequiresStaticInitialization;
     this.thisPointerIndex                 = bindingToCopy.thisPointerIndex;
   }
 
@@ -254,6 +256,21 @@ public class MethodBinding {
   }
 
   /**
+   * Returns true if the wrapper implementation requires
+   * static native code to be initialized, see {@link JavaConfiguration#forceStaticInitCode(String)}.
+   * <p>
+   * Currently triggered by:
+   * <ul>
+   *   <li>Return type is a "compound type" and not a pointer</li>
+   * </ul>
+   * </p>
+   */
+  public boolean signatureRequiresStaticInitialization() {
+    computeSignatureProperties();
+    return signatureRequiresStaticInitialization;
+  }
+
+  /**
    * Returns true if the return type or any of the outgoing arguments
    * in the method's signature use arrays of "compound type wrappers",
    * or NIO-based wrappers for C data structures.
@@ -326,11 +343,17 @@ public class MethodBinding {
     signatureUsesCPrimitivePointers = false;
     signatureUsesCArrays = false;
     signatureUsesJavaPrimitiveArrays = false;
+    signatureRequiresStaticInitialization = false;
 
-    if (javaReturnType.isCompoundTypeWrapper()) {
+    if ( javaReturnType.isCompoundTypeWrapper() ) {
       // Needs wrapping and/or setting of byte order (neither of which
       // can be done easily from native code)
       signatureUsesCompoundTypeWrappers = true;
+
+      final Type cReturnType = getCReturnType();
+      if ( !cReturnType.isPointer() ) { // FIXME: Compound call-by-value
+          signatureRequiresStaticInitialization = true;
+      }
     }
 
     if (javaReturnType.isNIOBuffer() ||

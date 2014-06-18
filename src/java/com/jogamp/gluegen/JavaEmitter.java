@@ -489,7 +489,7 @@ public class JavaEmitter implements GlueEmitter {
    * <p>
    * This is currently true, if one of the following method returns <code>true</code>
    * <ul>
-   *   <li>{@link MethodBinding#signatureUsesCompoundTypeWrappers() one of the binding's signature uses compound-types}</li>
+   *   <li>{@link MethodBinding#signatureRequiresStaticInitialization() one of the binding's signature requires it}</li>
    *   <li>{@link JavaConfiguration#forceStaticInitCode(String)}</li>
    * </ul>
    * </p>
@@ -534,7 +534,10 @@ public class JavaEmitter implements GlueEmitter {
                                 null != epilogue;
 
       if( !requiresStaticInitialization ) {
-          requiresStaticInitialization = binding.signatureUsesCompoundTypeWrappers();
+          requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
+          if( requiresStaticInitialization ) {
+              LOG.log(INFO, "StaticInit Trigger.1 \"{0}\"", binding);
+          }
       }
 
       final JavaMethodBindingEmitter emitter =
@@ -593,7 +596,10 @@ public class JavaEmitter implements GlueEmitter {
 
       if ( !cfg.isUnimplemented( binding.getName() ) ) {
           if( !requiresStaticInitialization ) {
-              requiresStaticInitialization = binding.signatureUsesCompoundTypeWrappers();
+              requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
+              if( requiresStaticInitialization ) {
+                  LOG.log(INFO, "StaticInit Trigger.2 \"{0}\"", binding);
+              }
           }
 
           // If we already generated a public native entry point for this
@@ -1766,6 +1772,7 @@ public class JavaEmitter implements GlueEmitter {
          "static const char * clazzNameBuffersStaticNewCstrSignature = \"(I)Ljava/nio/ByteBuffer;\";\n"+
          "static jclass clazzBuffers = NULL;\n"+
          "static jmethodID cstrBuffersNew = NULL;\n"+
+         "static jboolean _initClazzAccessDone = JNI_FALSE;\n"+
          "\n"+
          "static jboolean _initClazzAccess(JNIEnv *env) {\n"+
          "    jclass c;\n"+
@@ -1788,18 +1795,27 @@ public class JavaEmitter implements GlueEmitter {
          "    cstrBuffersNew = (*env)->GetStaticMethodID(env, clazzBuffers,\n"+
          "                            clazzNameBuffersStaticNewCstrName, clazzNameBuffersStaticNewCstrSignature);\n"+
          "    if(NULL==cstrBuffersNew) {\n"+
-         "        fprintf(stderr, \"FatalError: Java_jogamp_common_jvm_JVMUtil:: can't create %s.%s %s\\n\",\n"+
+         "        fprintf(stderr, \"FatalError: can't create %s.%s %s\\n\",\n"+
          "            clazzNameBuffers,\n"+
          "            clazzNameBuffersStaticNewCstrName, clazzNameBuffersStaticNewCstrSignature);\n"+
          "        (*env)->FatalError(env, clazzNameBuffersStaticNewCstrName);\n"+
          "        return JNI_FALSE;\n"+
          "    }\n"+
+         "    _initClazzAccessDone = JNI_TRUE;\n"+
          "    return JNI_TRUE;\n"+
          "}\n"+
          "\n"+
          "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity) {\n"+
-         "    jobject jbyteBuffer  = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffersNew, capacity);\n"+
-         "    void * byteBufferPtr = (*env)->GetDirectBufferAddress(env, jbyteBuffer);\n"+
+         "    jobject jbyteBuffer;\n"+
+         "    void * byteBufferPtr;\n"+
+         "\n"+
+         "    if( JNI_FALSE == _initClazzAccessDone ) {\n"+
+         "        fprintf(stderr, \"FatalError: initializeImpl() not called\\n\");\n"+
+         "        (*env)->FatalError(env, \"initializeImpl() not called\");\n"+
+         "        return NULL;\n"+
+         "    }\n"+
+         "    jbyteBuffer  = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffersNew, capacity);\n"+
+         "    byteBufferPtr = (*env)->GetDirectBufferAddress(env, jbyteBuffer);\n"+
          "    memcpy(byteBufferPtr, source_address, capacity);\n"+
          "    return jbyteBuffer;\n"+
          "}\n"+
