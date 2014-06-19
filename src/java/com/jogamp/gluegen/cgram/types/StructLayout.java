@@ -40,6 +40,9 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.common.os.MachineDescription;
+import com.jogamp.gluegen.GlueGen;
+
 /** Encapsulates algorithm for laying out data structures. Note that
     this ends up embedding code in various places via SizeThunks. If
     the 32-bit and 64-bit ports on a given platform differ
@@ -48,7 +51,7 @@ package com.jogamp.gluegen.cgram.types;
     SizeThunks maintained in various places. */
 
 public class StructLayout {
-  private int baseOffset;
+  private final int baseOffset;
 
   protected StructLayout(int baseOffset) {
     this.baseOffset = baseOffset;
@@ -60,12 +63,21 @@ public class StructLayout {
      * - 2) add the aligned size of the new data type
      * - 3) add trailing padding (largest element size)
      */
-    int n = t.getNumFields();
+    final int n = t.getNumFields();
     SizeThunk curOffset = SizeThunk.constant(baseOffset);
     SizeThunk maxSize   = SizeThunk.constant(0);
+
+    final MachineDescription dbgMD;
+    if( GlueGen.debug() ) {
+        dbgMD = MachineDescription.StaticConfig.X86_64_UNIX.md;
+        System.err.printf("SL.__: o %03d, s %03d, t %s{%d}%n", curOffset.computeSize(dbgMD), 0, t, t.getNumFields());
+    } else {
+        dbgMD = null;
+    }
+
     for (int i = 0; i < n; i++) {
-      Field f = t.getField(i);
-      Type ft = f.getType();
+      final Field f = t.getField(i);
+      final Type ft = f.getType();
       if (ft.isInt() || ft.isFloat() || ft.isDouble() || ft.isPointer()) {
         final SizeThunk sz = ft.getSize();
         curOffset = SizeThunk.align(curOffset, sz);
@@ -74,6 +86,9 @@ public class StructLayout {
           maxSize = SizeThunk.max(maxSize, sz);
         } else {
           curOffset = SizeThunk.add(curOffset, sz);
+        }
+        if( GlueGen.debug() ) {
+            System.err.printf("SL.%02d: o %03d, s %03d, t %s: %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), ft, f);
         }
       } else if (ft.isCompound()) {
         final CompoundType ct = ft.asCompound();
@@ -88,8 +103,11 @@ public class StructLayout {
         } else {
           curOffset = SizeThunk.add(curOffset, sz);
         }
+        if( GlueGen.debug() ) {
+            System.err.printf("SL.%02d: o %03d, s %03d, t %s{%d}: %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), ft, ct.getNumFields(), f);
+        }
       } else if (ft.isArray()) {
-        ArrayType arrayType = ft.asArray();
+        final ArrayType arrayType = ft.asArray();
         if(!arrayType.isLayouted()) {
             CompoundType compoundElementType = arrayType.getBaseElementType().asCompound();
             if (compoundElementType != null) {
@@ -104,6 +122,9 @@ public class StructLayout {
         curOffset = SizeThunk.align(curOffset, sz);
         f.setOffset(curOffset);
         curOffset = SizeThunk.add(curOffset, sz);
+        if( GlueGen.debug() ) {
+            System.err.printf("SL.%02d: o %03d, s %03d, t %s: %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), ft, f);
+        }
       } else {
         // FIXME
         String name = t.getName();
@@ -122,6 +143,9 @@ public class StructLayout {
       // trailing struct padding ..
       curOffset = SizeThunk.align(curOffset, curOffset);
       t.setSize(curOffset);
+    }
+    if( GlueGen.debug() ) {
+        System.err.printf("SL.XX: o %03d, s %03d, t %s{%d}%n%n", curOffset.computeSize(dbgMD), t.getSize(dbgMD), t, t.getNumFields());
     }
     t.setLayouted();
   }

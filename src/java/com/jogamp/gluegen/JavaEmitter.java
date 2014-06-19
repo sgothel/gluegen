@@ -951,16 +951,22 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println("  private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();");
     javaWriter.println();
     // generate all offset and size arrays
-    generateOffsetAndSizeArrays(javaWriter, "  ", containingTypeName, structType, null); /* w/o offset */
+    generateOffsetAndSizeArrays(javaWriter, "  ", containingTypeName, structType, null, null); /* w/o offset */
+    if( GlueGen.debug() ) {
+        System.err.printf("SE.__: t %s: %s%n", structType, containingTypeName);
+    }
     for (int i = 0; i < structType.getNumFields(); i++) {
       final Field field = structType.getField(i);
       final Type fieldType = field.getType();
 
       if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
         final String renamed = cfg.getJavaSymbolRename(field.getName());
-        final String fieldName = renamed==null ? field.getName() : renamed;
+        final String fieldName = null==renamed ? field.getName() : renamed;
         if (fieldType.isFunctionPointer()) {
-           // no offset/size for function pointer ..
+          // no offset/size for function pointer ..
+          if( GlueGen.debug() ) {
+            System.err.printf("SE.os.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "SKIP FuncPtr");
+          }
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate
@@ -969,17 +975,18 @@ public class JavaEmitter implements GlueEmitter {
             throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
                                        field + "\" in type \"" + name + "\")");
           }
-
-          generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field);
+          if( GlueGen.debug() ) {
+            System.err.printf("SE.os.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "compound");
+          }
+          generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field, null);
         } else if (fieldType.isArray()) {
-            Type baseElementType = field.getType().asArray().getBaseElementType();
-
-            if(!baseElementType.isPrimitive())
-                break;
-
-            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field); /* w/o size */
+            final Type baseElementType = field.getType().asArray().getBaseElementType();
+            if( GlueGen.debug() ) {
+                System.err.printf("SE.os.%02d: t %s: %s / %s - baseType %s (%s)%n", (i+1), fieldType, field, fieldName, baseElementType, "array");
+            }
+            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field, null);
         } else {
-          JavaType externalJavaType = null;
+          final JavaType externalJavaType;
           try {
             externalJavaType = typeToJavaType(fieldType, false, machDescJava);
           } catch (Exception e) {
@@ -987,19 +994,26 @@ public class JavaEmitter implements GlueEmitter {
                                field.getName() + "\" in type \"" + name + "\"");
             throw(e);
           }
+          if( GlueGen.debug() ) {
+              System.err.printf("SE.os.%02d: t %s: %s / %s - javaType %s (%s)%n", (i+1), fieldType, field, fieldName, externalJavaType.getDumpString(), "MISC");
+          }
           if (externalJavaType.isPrimitive()) {
             // Primitive type
-            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field); /* w/o size */
+            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
           } else if (externalJavaType.isCPrimitivePointerType()) {
             // FIXME: Primitive Pointer type
-            generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, field);
+            generateOffsetAndSizeArrays(javaWriter, "// Skipped C-Primitive-Ptr-Type: ", fieldName, fieldType, field, externalJavaType.getDumpString());
           } else {
-            // FIXME
-            LOG.log(WARNING, "Complicated fields (field \"{0}\" of type \"{1}\") not implemented yet: "+externalJavaType.getDumpString(), new Object[]{field, name});
+            // FIXME ???
+            generateOffsetAndSizeArrays(javaWriter, "// Skipped Complicated Field: ", fieldName, fieldType, field, externalJavaType.getDumpString());
+            LOG.log(WARNING, "Complicated fields (field \"{0}\" of type \"{1}\") not implemented yet: {2}",
+                    new Object[]{field, name, externalJavaType.getDumpString()});
             //          throw new RuntimeException("Complicated fields (field \"" + field + "\" of type \"" + t +
             //                                     "\") not implemented yet");
           }
         }
+      } else if( GlueGen.debug() ) {
+        System.err.printf("SE.os.%02d: t %s: %s (IGNORED)%n", (i+1), fieldType, field);
       }
     }
     javaWriter.println();
@@ -1032,11 +1046,14 @@ public class JavaEmitter implements GlueEmitter {
         final String fieldName = renamed==null ? field.getName() : renamed;
 
         if (fieldType.isFunctionPointer()) {
+            if( GlueGen.debug() ) {
+              System.err.printf("SE.ac.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "funcPtr");
+            }
             try {
               // Emit method call and associated native code
-              FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
-              FunctionSymbol funcSym      = new FunctionSymbol(fieldName, funcType);
-              MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDescJava);
+              final FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
+              final FunctionSymbol funcSym      = new FunctionSymbol(fieldName, funcType);
+              final MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDescJava);
               binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
               javaWriter.println();
 
@@ -1105,6 +1122,9 @@ public class JavaEmitter implements GlueEmitter {
             throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
                                        field + "\" in type \"" + name + "\")");
           }
+          if( GlueGen.debug() ) {
+            System.err.printf("SE.ac.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "compound");
+          }
 
           javaWriter.println();
           generateGetterSignature(javaWriter, false, fieldType.getName(), capitalizeString(fieldName));
@@ -1114,30 +1134,60 @@ public class JavaEmitter implements GlueEmitter {
           javaWriter.println(" }");
 
         } else if (fieldType.isArray()) {
+            final Type baseElementType = field.getType().asArray().getBaseElementType();
+            final JavaType paramType = typeToJavaType(baseElementType, false, machDescJava);
 
-            Type baseElementType = field.getType().asArray().getBaseElementType();
-
-            if(!baseElementType.isPrimitive())
-                break;
-
-            String paramType = typeToJavaType(baseElementType, false, machDescJava).getName();
-            String capitalized = capitalizeString(fieldName);
+            final String paramTypeName = paramType.getName();
+            final String capitalized = capitalizeString(fieldName);
+            if( GlueGen.debug() ) {
+                System.err.printf("SE.ac.%02d: t %s: %s / %s - baseType %s, paramType %s (%s)%n", (i+1), fieldType, field, fieldName, baseElementType, paramType.getDumpString(), "array");
+            }
 
             // Setter
             javaWriter.println();
-            generateSetterSignature(javaWriter, false, containingTypeName, capitalized, paramType+"[]");
+            generateSetterSignature(javaWriter, false, containingTypeName, capitalized, paramTypeName+"[]");
             javaWriter.println(" {");
-            javaWriter.print  ("    accessor.set" + capitalizeString(paramType) + "sAt(" + fieldName+"_offset[mdIdx], val);");
-            javaWriter.println("    return this;");
+            if(baseElementType.isPrimitive()) {
+                javaWriter.print  ("    accessor.set" + capitalizeString(paramTypeName) + "sAt(" + fieldName+"_offset[mdIdx], val);");
+                javaWriter.println("    return this;");
+            } else {
+                javaWriter.println("    final int elemSize = "+paramTypeName+".size();");
+                javaWriter.println("    final ByteBuffer destB = getBuffer();");
+                javaWriter.println("    int offset = "+fieldName+"_offset[mdIdx];");
+                javaWriter.println("    final int total = "+fieldType.asArray().getLength()+" * elemSize;");
+                javaWriter.println("    if( total > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"total \"+total+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * "+fieldType.asArray().getLength()+"\"); };");
+                javaWriter.println("    final int limes = offset + total;");
+                javaWriter.println("    if( limes >= destB.limit() ) { throw new IndexOutOfBoundsException(\"limes \"+limes+\" >= buffer.limit \"+destB.limit()+\", elemOff \"+offset+\", elemSize \"+elemSize+\" * "+fieldType.asArray().getLength()+"\"); };");
+                javaWriter.println("    for(int e=0; e<"+fieldType.asArray().getLength()+"; e++) {");
+                javaWriter.println("      final "+paramTypeName+" source = val[e];");
+                javaWriter.println("      final ByteBuffer sourceB = source.getBuffer();");
+                javaWriter.println("      for(int f=0; f<elemSize; f++) {");
+                javaWriter.println("        if( offset >= limes ) { throw new IndexOutOfBoundsException(\"elem-byte[\"+e+\"][\"+f+\"]: offset \"+offset+\" >= limes \"+limes+\", elemSize \"+elemSize+\" * "+fieldType.asArray().getLength()+"\"); };");
+                javaWriter.println("        destB.put(offset++, sourceB.get(f));");
+                javaWriter.println("      }");
+                javaWriter.println("    }");
+                javaWriter.println("    return this;");
+            }
             javaWriter.println("  }");
             javaWriter.println();
             // Getter
-            generateGetterSignature(javaWriter, false, paramType+"[]", capitalized);
+            generateGetterSignature(javaWriter, false, paramTypeName+"[]", capitalized);
             javaWriter.println(" {");
-            javaWriter.print  ("    return accessor.get" + capitalizeString(paramType) + "sAt(" + fieldName+"_offset[mdIdx], new " +paramType+"["+fieldType.asArray().getLength()+"]);");
+            if(baseElementType.isPrimitive()) {
+                javaWriter.print  ("    return accessor.get" + capitalizeString(paramTypeName) + "sAt(" + fieldName+"_offset[mdIdx], new " +paramTypeName+"["+fieldType.asArray().getLength()+"]);");
+            } else {
+                javaWriter.println("    final "+paramTypeName+"[] res = new "+paramTypeName+"["+fieldType.asArray().getLength()+"];");
+                javaWriter.println("    int offset = "+fieldName+"_offset[mdIdx];");
+                javaWriter.println("    final int elemSize = "+paramTypeName+".size();");
+                javaWriter.println("    for(int e=0; e<"+fieldType.asArray().getLength()+"; e++) {");
+                javaWriter.println("      res[e] = "+paramTypeName+".create(accessor.slice(offset, elemSize));");
+                javaWriter.println("      offset += elemSize;");
+                javaWriter.println("    }");
+                javaWriter.println("    return res;");
+            }
             javaWriter.println(" }");
         } else {
-          JavaType javaType = null;
+          final JavaType javaType;
 
           try {
             javaType = typeToJavaType(fieldType, false, machDescJava);
@@ -1145,6 +1195,9 @@ public class JavaEmitter implements GlueEmitter {
             System.err.println("Error occurred while creating accessor for field \"" +
                                field.getName() + "\" in type \"" + name + "\"");
             throw(e);
+          }
+          if( GlueGen.debug() ) {
+              System.err.printf("SE.ac.%02d: t %s: %s / %s - javaType %s (%s)%n", (i+1), fieldType, field, fieldName, javaType.getDumpString(), "MISC");
           }
           if (javaType.isPrimitive()) {
             // Primitive type
@@ -1210,6 +1263,9 @@ public class JavaEmitter implements GlueEmitter {
       jniWriter.flush();
       jniWriter.close();
     }
+    if( GlueGen.debug() ) {
+        System.err.printf("SE.XX: t %s: %s%n", structType, containingTypeName);
+    }
   }
   @Override
   public void endStructs() throws Exception {}
@@ -1250,7 +1306,7 @@ public class JavaEmitter implements GlueEmitter {
       writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(" + paramTypeName + " val)");
   }
 
-  private void generateOffsetAndSizeArrays(PrintWriter writer, String prefix, String fieldName, Type fieldType, Field field) {
+  private void generateOffsetAndSizeArrays(PrintWriter writer, String prefix, String fieldName, Type fieldType, Field field, String postfix) {
       if(null != field) {
           writer.print(prefix+"private static final int[] "+fieldName+"_offset = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
@@ -1271,7 +1327,12 @@ public class JavaEmitter implements GlueEmitter {
               writer.print(fieldType.getSize(machDescTargetConfigs[i].md) +
                            " /* " + machDescTargetConfigs[i].name() + " */");
           }
-          writer.println("  };");
+          writer.print("  };");
+          if( null != postfix ) {
+              writer.println(postfix);
+          } else {
+              writer.println();
+          }
       }
   }
 

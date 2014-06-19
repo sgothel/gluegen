@@ -297,7 +297,7 @@ options {
     private void handleArrayExpr(TypeBox tb, AST t) {
         if (t != null) {
             try {
-                int len = parseIntConstExpr(t);
+                final int len = parseIntConstExpr(t);
                 tb.setType(canonicalize(new ArrayType(tb.type(), SizeThunk.mul(SizeThunk.constant(len), tb.type().getSize()), len, 0)));
                 return;
             } catch (RecognitionException e) {
@@ -782,4 +782,17 @@ nonemptyAbstractDeclarator[TypeBox tb]
    constants. Can be made more complicated as necessary. */
 intConstExpr returns [int i] { i = -1; }
         : n:Number   { return Integer.parseInt(n.getText()); }
+        | e:ID {
+            final String enumName = e.getText();
+            final EnumType enumType = enumHash.get(enumName);
+            if( null == enumType ) {
+               throw new IllegalArgumentException("Error: intConstExpr ID "+enumName+" recognized, but no containing enum-type found");
+            }
+            final long enumValue = enumType.getEnumValue(enumName);
+            System.err.println("INFO: intConstExpr: enum[Type "+enumType.getName()+", name "+enumName+", value "+enumValue+"]");
+            if( (long)Integer.MIN_VALUE > enumValue || (long)Integer.MAX_VALUE < enumValue ) {
+               throw new IndexOutOfBoundsException("Error: intConstExpr ID "+enumName+" enum-value "+enumValue+" out of int range");
+            }
+            return (int)enumValue;
+          }
         ;

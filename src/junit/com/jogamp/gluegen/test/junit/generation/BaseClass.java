@@ -990,27 +990,30 @@ public class BaseClass extends JunitTracer {
 
     /** Test compound access call-by-value */
     public void chapter11TestCompoundCallByValue(Bindingtest1 binding) throws Exception {
-
+        int sub = 0;
         {
             final TK_Surface surface = binding.createSurface();
             final TK_Dimension dim0 = surface.getBounds();
-            assertDim("ch11.0: ref-dim ", 0x11111111, 0x22222222, 0x33333333, 0x44444444, dim0);
+            assertDim("ch11."+sub+": ref-dim ", 0x11111111, 0x22222222, 0x33333333, 0x44444444, dim0);
 
             final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
-            assertDim("ch11.0: val-dim ", 0x11111111, 0x22222222, 0x33333333, 0x44444444, dim1);
+            assertDim("ch11."+sub+": val-dim ", 0x11111111, 0x22222222, 0x33333333, 0x44444444, dim1);
 
             binding.destroySurface(surface);
         }
         {
+            sub++;
             final TK_Dimension dim0 = binding.getBoundsValue(11, 22, 33, 44);
-            assertDim("ch11.1: val-dim ", 11, 22, 33, 44, dim0);
+            assertDim("ch11."+sub+": val-dim ", 11, 22, 33, 44, dim0);
+            sub++;
             final TK_Surface surface = binding.getSurfaceValue(dim0);
             final TK_Dimension dim1 = binding.getSurfaceBoundsValue(surface);
-            assertDim("ch11.2: val-dim ", 11, 22, 33, 44, dim1);
+            assertDim("ch11."+sub+": val-dim ", 11, 22, 33, 44, dim1);
+            sub++;
             final boolean sameInstanceByVal = binding.isSameInstanceByVal(dim0, dim1);
             final boolean sameInstanceByRef = binding.isSameInstanceByRef(dim0, dim1);
-            System.err.println("ch11.3: sameInstanceByVal "+sameInstanceByVal);
-            System.err.println("ch11.3: sameInstanceByRef "+sameInstanceByRef);
+            System.err.println("ch11."+sub+": sameInstanceByVal "+sameInstanceByVal);
+            System.err.println("ch11."+sub+": sameInstanceByRef "+sameInstanceByRef);
             Assert.assertFalse(sameInstanceByVal);
             Assert.assertFalse(sameInstanceByRef);
         }
@@ -1018,37 +1021,62 @@ public class BaseClass extends JunitTracer {
             final TK_Dimension dim1 = binding.getBoundsValue(11, 22, 33, 44);
             final TK_Dimension dim2 = binding.getBoundsValue(1, 2, 3, 4);
             final TK_Dimension[] sumands = { dim1, dim2 };
-            final TK_Dimension dimSum = binding.addDimensions(sumands);
-            assertDim("ch11.4: sum-dim ", 11+1, 22+2, 33+3, 44+4, dimSum);
-            binding.zeroDimensions(sumands);
-            assertDim("ch11.5: zero-dim[0] ", 0, 0, 0, 0, sumands[0]);
-            assertDim("ch11.5: zero-dim[1] ", 0, 0, 0, 0, sumands[1]);
+            {
+                sub++;
+                final TK_Dimension dimSum = binding.addDimensions(sumands);
+                assertDim("ch11."+sub+": sum-dimArray ", 11+1, 22+2, 33+3, 44+4, dimSum);
+            }
+
+            final TK_DimensionPair dimPair = TK_DimensionPair.create();
+            dimPair.setPair(sumands);
+            {
+                sub++;
+                final TK_Dimension[] dimsGet = dimPair.getPair();
+                assertDim("ch11."+sub+": dimsGet[0] ", 11, 22, 33, 44, dimsGet[0]);
+                assertDim("ch11."+sub+": dimsGet[1] ",  1,  2,  3,  4, dimsGet[1]);
+            }
+            {
+                sub++;
+                final TK_Dimension dimSum = binding.addDimensionPair(dimPair);
+                assertDim("ch11."+sub+": sum-dimPair ", 11+1, 22+2, 33+3, 44+4, dimSum);
+            }
+            {
+                sub++;
+                binding.zeroDimensions(sumands);
+                assertDim("ch11."+sub+": zero-dim[0] ", 0, 0, 0, 0, sumands[0]);
+                assertDim("ch11."+sub+": zero-dim[1] ", 0, 0, 0, 0, sumands[1]);
+            }
         }
         {
+            sub++;
             final TK_Dimension dim0 = binding.getBoundsValue(0, 0, 0, 0);
             final TK_Dimension[] dim0A = { dim0 };
             binding.copyPrimToDimensions(new int[] { 11,  22}, 0, new int[] { 100, 200}, 0, dim0A);
-            assertDim("ch11.6: copyPrim2Dim ", 11, 22, 100, 200, dim0);
+            assertDim("ch11."+sub+": copyPrim2Dim ", 11, 22, 100, 200, dim0);
+
+            sub++;
             final int[] pos = { 0, 0 };
             final int[] size = { 0, 0 };
             binding.copyDimensionsToPrim(dim0, pos, 0, size, 0);
-            assertDim("ch11.7: copyDim2Prim ", 11, 22, 100, 200, pos, size);
+            assertDim("ch11."+sub+": copyDim2Prim ", 11, 22, 100, 200, pos, size);
         }
         {
+            sub++;
             final int expRGBAi = 0x112233aa;
             final byte[] expRGBAb = { (byte)0xaa, 0x33, 0x22, 0x11 };
             final int hasRGBAi = binding.rgbaToInt(expRGBAb, 0);
-            System.err.println("ch11.8: expRGBAb 0x"+
+            System.err.println("ch11."+sub+": expRGBAb 0x"+
                     Integer.toHexString(expRGBAb[3])+", 0x"+
                     Integer.toHexString(expRGBAb[2])+", 0x"+
                     Integer.toHexString(expRGBAb[1])+", 0x"+
                     Integer.toHexString(expRGBAb[0]) );
-            System.err.println("ch11.8: hasRGBAi 0x"+Integer.toHexString(hasRGBAi));
+            System.err.println("ch11."+sub+": hasRGBAi 0x"+Integer.toHexString(hasRGBAi));
             Assert.assertEquals(expRGBAi, hasRGBAi);
 
+            sub++;
             final byte[] hasRGBAb = new byte[] { 0, 0, 0, 0 };
             binding.intToRgba(hasRGBAi, hasRGBAb, 0);
-            System.err.println("ch11.9: hasRGBAb 0x"+
+            System.err.println("ch11."+sub+": hasRGBAb 0x"+
                     Integer.toHexString(hasRGBAb[3])+", 0x"+
                     Integer.toHexString(hasRGBAb[2])+", 0x"+
                     Integer.toHexString(hasRGBAb[1])+", 0x"+
@@ -1056,15 +1084,17 @@ public class BaseClass extends JunitTracer {
             Assert.assertArrayEquals(expRGBAb, hasRGBAb);
         }
         {
+            sub++;
             final int[] result = { 0 };
             binding.addInt(new int[] { 1,  2}, 0, result, 0);
-            System.err.println("ch11.10: addInt "+result[0]);
+            System.err.println("ch11."+sub+": addInt "+result[0]);
             Assert.assertEquals(3, result[0]);
         }
         {
+            sub++;
             final byte[] result = { 0 };
             binding.addByte(new byte[] { 1,  2}, 0, result, 0);
-            System.err.println("ch11.11: addByte "+result[0]);
+            System.err.println("ch11."+sub+": addByte "+result[0]);
             Assert.assertEquals(3, result[0]);
         }
     }

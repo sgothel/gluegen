@@ -234,6 +234,19 @@ typedef struct {
                                // 120 gross 64bit/linux 
 } TK_ComplicatedSuperSet;
 
+typedef enum {
+    ZERO = 0,
+    ONE = 1,
+    TWO = 2,
+    THREE = 3
+} TK_Numbers;
+
+typedef struct {
+    int32_t i1;
+    TK_Dimension pair[TWO];
+    int32_t i2;
+} TK_DimensionPair;
+
 MYAPI TK_Surface * MYAPIENTRY createSurface();
 MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface);
 
@@ -250,7 +263,8 @@ MYAPI TK_Surface MYAPIENTRY getSurfaceValue(TK_Dimension bounds);
 MYAPI TK_Dimension MYAPIENTRY getSurfaceBoundsValue(TK_Surface s);
 MYAPI Bool MYAPIENTRY isSameInstanceByVal(TK_Dimension s1, TK_Dimension s2);
 MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimension *s2);
-MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[2]);
+MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[TWO]);
+MYAPI TK_Dimension MYAPIENTRY addDimensionPair(const TK_DimensionPair s);
 MYAPI void MYAPIENTRY zeroDimensions(TK_Dimension s[2]);
 
 MYAPI void MYAPIENTRY copyPrimToDimensions(const int pos[2], const int size[2], TK_Dimension dest[1]);

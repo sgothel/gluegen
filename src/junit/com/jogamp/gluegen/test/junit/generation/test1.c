@@ -528,10 +528,13 @@ MYAPI Bool MYAPIENTRY isSameInstanceByVal(TK_Dimension s1, TK_Dimension s2) {
 MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimension *s2) {
     return s1 == s2;
 }
-MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[2]) {
+MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[TWO]) {
     TK_Dimension r = { s[0].x + s[1].x, s[0].y + s[1].y, 
                        s[0].width + s[1].width, s[0].height + s[1].height };
     return r;
+}
+MYAPI TK_Dimension MYAPIENTRY addDimensionPair(const TK_DimensionPair s) {
+    return addDimensions(s.pair);
 }
 MYAPI void MYAPIENTRY zeroDimensions(TK_Dimension s[2]) {
     s[0].x = 0;
