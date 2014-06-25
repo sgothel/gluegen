@@ -436,8 +436,16 @@ public class MethodBinding {
     computedSignatureProperties = true;
   }
 
-  /** Indicates whether this MethodBinding is for a function pointer
-      contained in a struct. */
+  /**
+   * Indicates whether this MethodBinding is for a function pointer
+   * contained in a struct, or to access array- or pointer-data from a struct.
+   * <p>
+   * The native calling convention, i.e. via a 'this' function pointer
+   * or by a static native function must be decided in the
+   * {@link JavaEmitter} handling structs and
+   * passed to the {@link CMethodBindingEmitter#setIsCStructFunctionPointer(boolean)}.
+   * </p>
+   */
   public boolean hasContainingType() {
     return (getContainingType() != null);
   }

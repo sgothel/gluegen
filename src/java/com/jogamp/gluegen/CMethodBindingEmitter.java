@@ -909,7 +909,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         writer.print(CMethodBindingEmitter.cThisArgumentName());
       } else {
         writer.print("(");
-        Type cArgType = binding.getCArgumentType(i);
+        final Type cArgType = binding.getCArgumentType(i);
         boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
         boolean needsArrayOffset = !needsDataCopy && (
                                      javaArgType.isArray() ||
@@ -921,8 +921,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         // if this is a pointer to an unsigned type, add unsigned to the name to avoid compiler warnings
         if(cArgType.isPointer()) {
-          Type typeLast = ((PointerType)cArgType).getLastTargetType();
-          if(typeLast.isInt() && (((IntType)typeLast).isPrimitiveUnsigned())) {
+          final Type baseType = cArgType.getBaseElementType();
+          if(baseType.isInt() && (((IntType)baseType).isPrimitiveUnsigned())) {
             writer.print("unsigned ");
           }
         }
@@ -955,8 +955,18 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     return binding.getNumArguments();
   }
 
-  protected void emitBodyCallCFunction(PrintWriter writer) {
+  private boolean isCStructFunctionPointer = false;
 
+  /**
+   * If method originates from a struct, see {@link MethodBinding#hasContainingType()},
+   * it can either purposed to call a native static function (default)
+   * or a struct's function pointer.
+   */
+  protected void setIsCStructFunctionPointer(final boolean v) {
+      isCStructFunctionPointer = v;
+  }
+
+  protected void emitBodyCallCFunction(PrintWriter writer) {
     // Make the call to the actual C function
     writer.print("  ");
 
@@ -967,7 +977,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     if (!cReturnType.isVoid()) {
       writer.print("_res = ");
     }
-    if (binding.hasContainingType()) {
+    if ( isCStructFunctionPointer && binding.hasContainingType() ) {
       // Call through function pointer
       writer.print(CMethodBindingEmitter.cThisArgumentName() + "->");
     }
@@ -1019,8 +1029,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
-          writer.print(
-            returnValueCapacityExpression.format(argumentNameArray()));
+          writer.print( returnValueCapacityExpression.format( argumentNameArray() ) );
         } else {
           if (cReturnType.isPointer() &&
               cReturnType.asPointer().getTargetType().isCompound()) {
@@ -1030,7 +1039,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                 "for function \"" + binding + "\": " +
                 "Structs to be emitted should have been laid out by this point " +
                 "(type " + cReturnType.asPointer().getTargetType().getName() + " / " +
-                cReturnType.asPointer().getTargetType() + " was not)"
+                cReturnType.asPointer().getTargetType() + " was not) for "+binding
               );
             }
           }
@@ -1073,7 +1082,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         throw new RuntimeException(
                                    "Could not emit native code for function \"" + binding +
-                                   "\": array return values for non-char types not implemented yet");
+                                   "\": array return values for non-char types not implemented yet, for "+binding);
 
         // FIXME: This is approximately what will be required here
         //
@@ -1095,8 +1104,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         //writer.print(arrayRes);
         //writer.println(";");
       } else {
-        System.err.print("Unhandled return type: "+javaReturnType.getDumpString());
-        throw new RuntimeException("Unhandled return type");
+        System.err.print("Unhandled return type: "+javaReturnType.getDebugString());
+        throw new RuntimeException("Unhandled return type: "+javaReturnType.getDebugString()+" for "+binding);
       }
     }
   }
@@ -1474,11 +1483,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   }
 
   protected String byteOffsetArgName(int i) {
-    return byteOffsetArgName(binding.getArgumentName(i));
-  }
-
-  protected String byteOffsetArgName(String s) {
-    return s + "_byte_offset";
+    return JavaMethodBindingEmitter.byteOffsetArgName(binding.getArgumentName(i));
   }
 
   protected String isNIOArgName(int i) {

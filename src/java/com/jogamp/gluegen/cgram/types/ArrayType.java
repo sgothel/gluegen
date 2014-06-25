@@ -72,8 +72,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
     // names during parsing
     // Note: don't think cvAttributes can be set for array types (unlike pointer types)
     if (computedName == null) {
-      computedName = elementType.getName() + " *";
-      computedName = computedName.intern();
+      computedName = (elementType.getName() + " *").intern();
     }
     return computedName;
   }
@@ -85,14 +84,14 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   public int     getLength()      { return length;      }
   public boolean hasLength()      { return length >= 0; }
 
-  /** Return the bottommost element type if this is a multidimensional
-      array. */
+  @Override
   public Type getBaseElementType() {
     ArrayType t = this;
     while (t.getElementType().isArray()) {
       t = t.getElementType().asArray();
     }
     return t.getElementType();
+    // return elementType.getBaseElementType();
   }
 
   /** Recompute the size of this array if necessary. This needs to be

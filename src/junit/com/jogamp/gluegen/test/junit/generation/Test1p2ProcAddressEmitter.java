@@ -30,7 +30,6 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.IOException;
 
-import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 import com.jogamp.common.os.NativeLibrary;
 
@@ -139,6 +138,22 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     @Test
     public void chapter11TestCompoundCallByValue() throws Exception {
         chapter11TestCompoundCallByValue(new Bindingtest1p2Impl());
+    }
+
+    /**
+     * Test compound access read-only
+     */
+    @Test
+    public void chapter12TestStructArrayModelConst() throws Exception {
+        chapter12TestStructArrayModelConst(new Bindingtest1p2Impl());
+    }
+
+    /**
+     * Test compound access read-write
+     */
+    @Test
+    public void chapter13TestStructArrayModelMutable() throws Exception {
+        chapter13TestStructArrayModelMutable(new Bindingtest1p2Impl());
     }
 
     /**

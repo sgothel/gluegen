@@ -41,9 +41,7 @@ package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.cgram.HeaderParser;
 import com.jogamp.gluegen.cgram.types.ArrayType;
-import com.jogamp.gluegen.cgram.types.CompoundType;
 import com.jogamp.gluegen.cgram.types.EnumType;
-import com.jogamp.gluegen.cgram.types.PointerType;
 import com.jogamp.gluegen.cgram.types.Type;
 
 import java.io.PrintWriter;
@@ -93,6 +91,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   // incoming Java arguments as parameters and computing as an int the
   // number of elements of the returned array.
   private String returnedArrayLengthExpression;
+  private boolean returnedArrayLengthExpressionOnlyForComments = false;
 
   // A suffix used to create a temporary outgoing array of Buffers to
   // represent an array of compound type wrappers
@@ -154,6 +153,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     prologue                      = arg.prologue;
     epilogue                      = arg.epilogue;
     returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
+    returnedArrayLengthExpressionOnlyForComments = arg.returnedArrayLengthExpressionOnlyForComments;
     cfg                           = arg.cfg;
   }
 
@@ -192,6 +192,17 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       arguments. */
   public void setReturnedArrayLengthExpression(String expr) {
     returnedArrayLengthExpression = expr;
+    returnedArrayLengthExpressionOnlyForComments = false;
+  }
+  protected void setReturnedArrayLengthExpression(String expr, boolean onlyForComments) {
+    returnedArrayLengthExpression = expr;
+    returnedArrayLengthExpressionOnlyForComments = onlyForComments;
+  }
+  protected String getReturnedArrayLengthExpression() {
+    return returnedArrayLengthExpressionOnlyForComments ? null : returnedArrayLengthExpression;
+  }
+  protected String getReturnedArrayLengthComment() {
+    return returnedArrayLengthExpression;
   }
 
   /** Sets the manually-generated prologue code for this emitter. */
@@ -278,6 +289,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
     }
     String name = type.getName();
+    if( null == name ) {
+        throw new IllegalArgumentException("null type name: "+type.getDebugString());
+    }
     int index = name.lastIndexOf('.')+1; // always >= 0
     name = name.substring(index);
 
@@ -389,7 +403,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return byteOffsetArgName(getArgumentName(i));
   }
 
-  protected String byteOffsetArgName(String s) {
+  protected static String byteOffsetArgName(String s) {
     return s + "_byte_offset";
   }
 
@@ -715,38 +729,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     JavaType returnType = binding.getJavaReturnType();
 
     if (returnType.isCompoundTypeWrapper()) {
-      String fmt = getReturnedArrayLengthExpression();
+      // Details are handled in JavaEmitter's struct handling!
       writer.println("    if (_res == null) return null;");
-      if (fmt == null) {
-        writer.print("    return " + returnType.getName() + ".create(Buffers.nativeOrder(_res))");
-      } else {
-        writer.println("    Buffers.nativeOrder(_res);");
-        String expr = new MessageFormat(fmt).format(argumentNameArray());
-        PointerType cReturnTypePointer = binding.getCReturnType().asPointer();
-        CompoundType cReturnType = null;
-        if (cReturnTypePointer != null) {
-          cReturnType = cReturnTypePointer.getTargetType().asCompound();
-        }
-        if (cReturnType == null) {
-          throw new RuntimeException("ReturnedArrayLength directive currently only supported for pointers to compound types " +
-                                     "(error occurred while generating Java glue code for " + getName() + ")");
-        }
-        writer.println("    final " + getReturnTypeString(false) + " _retarray = new " + getReturnTypeString(true) + "[" + expr + "];");
-        writer.println("    for (int _count = 0; _count < " + expr + "; _count++) {");
-        // Create temporary ByteBuffer slice
-        // FIXME: probably need Type.getAlignedSize() for arrays of
-        // compound types (rounding up to machine-dependent alignment)
-        writer.println("      _res.position(_count * " + getReturnTypeString(true) + ".size());");
-        writer.println("      _res.limit   ((1 + _count) * " + getReturnTypeString(true) + ".size());");
-        writer.println("      final ByteBuffer _tmp = _res.slice();");
-        writer.println("      Buffers.nativeOrder(_tmp);");
-        writer.println("      _res.position(0);");
-        writer.println("      _res.limit(_res.capacity());");
-        writer.println("      _retarray[_count] = " + getReturnTypeString(true) + ".create(_tmp);");
-        writer.println("    }");
-        writer.print  ("    return _retarray");
-      }
-      writer.println(";");
+      writer.println("    return " + returnType.getName() + ".create(Buffers.nativeOrder(_res));");
     } else if (returnType.isNIOBuffer()) {
       writer.println("    if (_res == null) return null;");
       writer.println("    Buffers.nativeOrder(_res);");
@@ -821,10 +806,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   @Override
   protected String getBaseIndentString() { return "  "; }
 
-  protected String getReturnedArrayLengthExpression() {
-    return returnedArrayLengthExpression;
-  }
-
   /**
    * Class that emits a generic comment for JavaMethodBindingEmitters; the comment
    * includes the C signature of the native method that is being bound by the
@@ -835,6 +816,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     public void emit(FunctionEmitter emitter, PrintWriter writer) {
       emitBeginning(emitter, writer);
       emitBindingCSignature(((JavaMethodBindingEmitter)emitter).getBinding(), writer);
+      final String arrayLengthExpr = getReturnedArrayLengthComment();
+      if( null != arrayLengthExpr ) {
+          writer.print(", covering an array of length <code>"+arrayLengthExpr+"</code>");
+      }
       emitEnding(emitter, writer);
     }
     protected void emitBeginning(FunctionEmitter emitter, PrintWriter writer) {
@@ -889,8 +874,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     protected class InterfaceCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
 
         @Override
-        protected void emitBeginning(FunctionEmitter emitter,
-                PrintWriter writer) {
+        protected void emitBeginning(FunctionEmitter emitter, PrintWriter writer) {
             writer.print("Interface to C language function: <br> ");
         }
     }

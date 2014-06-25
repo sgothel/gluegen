@@ -5,11 +5,12 @@ set JAVA_HOME=c:\jdk1.7.0_45_x64
 set ANT_PATH=C:\apache-ant-1.8.2
 
 set BLD_DIR=..\%BLD_SUB%
-set LIB_DIR=..\%BLD_SUB%\obj;..\%BLD_SUB%\test\build\natives
+REM set LIB_DIR=..\%BLD_SUB%\obj;..\%BLD_SUB%\test\build\natives
+set LIB_DIR=..\%BLD_SUB%\test\build\natives
 
 set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%LIB_DIR%;%PATH%
 
-set CP_ALL=.;%BLD_DIR%\gluegen-rt.jar;%BLD_DIR%\test\build\gluegen-test.jar;lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar
+set CP_ALL=.;lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;lib/semantic-versioning/semver.jar;%BLD_DIR%\gluegen-rt.jar;%BLD_DIR%\gluegen.jar;%BLD_DIR%\gluegen-test-util.jar;%BLD_DIR%\test\build\gluegen-test.jar
 
 echo CP_ALL %CP_ALL%
 

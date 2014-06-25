@@ -97,8 +97,7 @@ public class PointerType extends Type implements Cloneable {
             // Lazy computation of name due to lazy setting of compound type
             // names during parsing
             if (computedName == null) {
-                computedName = targetType.getName(includeCVAttrs) + " *";
-                computedName = computedName.intern();
+                computedName = (targetType.getName(includeCVAttrs) + " *").intern();
             }
             if (!includeCVAttrs) {
                 return computedName;
@@ -120,12 +119,15 @@ public class PointerType extends Type implements Cloneable {
         return targetType;
     }
 
-    public Type getLastTargetType() {
+    @Override
+    public Type getBaseElementType() {
+        /**
         if(targetType.isPointer()) {
-            return ((PointerType)targetType).getLastTargetType();
+            return ((PointerType)targetType).getBaseElementType();
         } else {
             return targetType;
-        }
+        } */
+        return targetType.getBaseElementType();
     }
 
     @Override

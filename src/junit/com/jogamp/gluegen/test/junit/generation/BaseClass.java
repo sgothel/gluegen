@@ -36,6 +36,7 @@ import com.jogamp.junit.util.JunitTracer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
@@ -978,13 +979,28 @@ public class BaseClass extends JunitTracer {
 
         Assert.assertEquals(2, surface.getClipSize());
 
+        TK_Dimension[] allclips = surface.getClips(0, new TK_Dimension[surface.getClipSize()]);
+
         for(int i=0; i<surface.getClipSize(); i++) {
-            TK_Dimension clip = surface.getClip(i);
-            Assert.assertEquals(0x44444444 * (i+1) + 0x11111111, clip.getX());
-            Assert.assertEquals(0x44444444 * (i+1) + 0x22222222, clip.getY());
-            Assert.assertEquals(0x44444444 * (i+1) + 0x33333333, clip.getWidth());
-            Assert.assertEquals(0x44444444 * (i+1) + 0x44444444, clip.getHeight());
+            TK_Dimension clip0 = surface.getClip(i);
+            Assert.assertEquals(0x44444444 * (i+1) + 0x11111111, clip0.getX());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x22222222, clip0.getY());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x33333333, clip0.getWidth());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x44444444, clip0.getHeight());
+
+            TK_Dimension[] clip1 = new TK_Dimension[1];
+            surface.getClips(i, clip1);
+            Assert.assertEquals(0x44444444 * (i+1) + 0x11111111, clip1[0].getX());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x22222222, clip1[0].getY());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x33333333, clip1[0].getWidth());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x44444444, clip1[0].getHeight());
+
+            Assert.assertEquals(0x44444444 * (i+1) + 0x11111111, allclips[i].getX());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x22222222, allclips[i].getY());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x33333333, allclips[i].getWidth());
+            Assert.assertEquals(0x44444444 * (i+1) + 0x44444444, allclips[i].getHeight());
         }
+
         binding.destroySurface(surface);
     }
 
@@ -1028,10 +1044,10 @@ public class BaseClass extends JunitTracer {
             }
 
             final TK_DimensionPair dimPair = TK_DimensionPair.create();
-            dimPair.setPair(sumands);
+            dimPair.setPair(0, sumands);
             {
                 sub++;
-                final TK_Dimension[] dimsGet = dimPair.getPair();
+                final TK_Dimension[] dimsGet = dimPair.getPair(0, new TK_Dimension[2]);
                 assertDim("ch11."+sub+": dimsGet[0] ", 11, 22, 33, 44, dimsGet[0]);
                 assertDim("ch11."+sub+": dimsGet[1] ",  1,  2,  3,  4, dimsGet[1]);
             }
@@ -1097,5 +1113,442 @@ public class BaseClass extends JunitTracer {
             System.err.println("ch11."+sub+": addByte "+result[0]);
             Assert.assertEquals(3, result[0]);
         }
+    }
+
+    public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
+
+    /** Test array and pointer bindings of structs  */
+    public void chapter12TestStructArrayModelConst(Bindingtest1 binding) throws Exception {
+        final TK_ModelConst model = binding.createModelConst();
+
+        Assert.assertEquals(3, model.getIntxxPointerCustomLenVal());
+        Assert.assertEquals(3, model.getInt32PointerCustomLenVal());
+        Assert.assertEquals(3, model.getInt32ArrayFixedLenArrayLength());
+        Assert.assertEquals(3, model.getStructArrayFixedLenArrayLength());
+        Assert.assertEquals(3, model.getStructPointerCustomLenVal());
+
+        // field: int32ArrayFixedLen
+        //        CType['int32_t *', size [fixed false, lnx64 12], [array*1]], with array length of 3
+        {
+            final int size = model.getInt32ArrayFixedLenArrayLength();
+            final int[] all = model.getInt32ArrayFixedLen(0, new int[size]);
+            final IntBuffer allB = model.getInt32ArrayFixedLen();
+            Assert.assertEquals(size, allB.limit());
+            for(int i=0; i<size; i++) {
+                Assert.assertEquals(21 + i, all[i]);
+                Assert.assertEquals(21 + i, allB.get(i));
+                final int[] s = model.getInt32ArrayFixedLen(i, new int[1]);
+                Assert.assertEquals(21 + i, s[0]);
+            }
+        }
+
+        // field: int32ArrayOneElem
+        //        CType['int32_t *', size [fixed false, lnx64 4], [array*1]], with array length of 1
+        {
+            Assert.assertEquals(30, model.getInt32ArrayOneElem());
+        }
+
+        // field: int32PointerCustomLen
+        //        field: CType['int32_t *', size [fixed false, lnx64 8], [pointer*1]], with array length of getInt32PointerCustomLenVal()
+        {
+            final int size = model.getInt32PointerCustomLenVal();
+            final IntBuffer all = model.getInt32PointerCustomLen();
+            Assert.assertEquals(size, all.limit());
+            for(int i=0; i<size; i++) {
+                Assert.assertEquals(31 + i, all.get(i));
+            }
+        }
+
+        // field: int32PointerOneElem
+        //        CType['int32_t *', size [fixed false, lnx64 8], [pointer*1]], with array length of 1
+        {
+            final IntBuffer all = model.getInt32PointerOneElem();
+            Assert.assertEquals(1, all.limit());
+            Assert.assertEquals(41, all.get(0));
+        }
+
+        // field: mat4x4
+        //        CType['float * *', size [fixed false, lnx64 64], [array*2]], with array length of <code>4*4</code> */
+        {
+            Assert.assertEquals(4*4, model.getMat4x4ArrayLength());
+            final FloatBuffer mat4x4 = model.getMat4x4();
+            Assert.assertEquals(4*4, mat4x4.limit());
+            for(int i=0; i<4; i++) {
+                final float[] vec4 = model.getMat4x4(i*4, new float[4]);
+                for(int j=0; j<4; j++) {
+                    Assert.assertEquals(i*4+j, mat4x4.get(i*4+j), EPSILON);
+                    Assert.assertEquals(i*4+j, vec4[j], EPSILON);
+                }
+            }
+        }
+
+        // field: structArrayFixedLen
+        //        field: CType['TK_Dimension *', size [fixed false, lnx64 48], [array*1]], with array length of 3
+        {
+            final int size = model.getStructArrayFixedLenArrayLength();
+            final TK_Dimension[] all = model.getStructArrayFixedLen(0, new TK_Dimension[size]);
+            for(int i=0; i<size; i++) {
+                Assert.assertEquals(51 + i * 10, all[i].getX());
+                Assert.assertEquals(52 + i * 10, all[i].getY());
+                Assert.assertEquals(53 + i * 10, all[i].getWidth());
+                Assert.assertEquals(54 + i * 10, all[i].getHeight());
+            }
+        }
+
+        // field: structArrayOneElem
+        //        CType['TK_Dimension *', size [fixed false, lnx64 16], [array*1]], with array length of 1
+        {
+            final TK_Dimension all = model.getStructArrayOneElem();
+            Assert.assertEquals(81, all.getX());
+            Assert.assertEquals(82, all.getY());
+            Assert.assertEquals(83, all.getWidth());
+            Assert.assertEquals(84, all.getHeight());
+        }
+
+        // field: structPointerCustomLen
+        //        CType['TK_Dimension *', size [fixed false, lnx64 8], [pointer*1]], with array length of getStructPointerCustomLenVal()
+        {
+            final int size = model.getStructPointerCustomLenVal();
+            final TK_Dimension[] all = model.getStructPointerCustomLen(0, new TK_Dimension[size]);
+            for(int i=0; i<size; i++) {
+                Assert.assertEquals(91 + i * 10, all[i].getX());
+                Assert.assertEquals(92 + i * 10, all[i].getY());
+                Assert.assertEquals(93 + i * 10, all[i].getWidth());
+                Assert.assertEquals(94 + i * 10, all[i].getHeight());
+            }
+        }
+
+        // field: structPointerOneElem
+        //        CType['TK_Dimension *', size [fixed false, lnx64 8], [pointer*1]], with array length of 1
+        {
+            final TK_Dimension all = model.getStructPointerOneElem();
+            Assert.assertEquals(121, all.getX());
+            Assert.assertEquals(122, all.getY());
+            Assert.assertEquals(123, all.getWidth());
+            Assert.assertEquals(124, all.getHeight());
+
+        }
+
+        final long surfaceContext = model.getCtx();
+        assertAPTR(0x123456789abcdef0L, surfaceContext);
+
+        model.setCtx(surfaceContext);
+        assertAPTR(surfaceContext, model.getCtx());
+
+        {
+            Assert.assertEquals(12, model.getModelNameArrayFixedLenArrayLength());
+
+            final ByteBuffer bb = model.getModelNameArrayFixedLen();
+            Assert.assertEquals(12, bb.limit());
+
+            final String exp = "Hello Array";
+            final String has = model.getModelNameArrayFixedLenAsString();
+            // System.err.println("exp '"+exp+"'");
+            System.err.println("has '"+has+"'");
+            // dumpStringChars("exp", exp);
+            dumpStringChars("has", has);
+            Assert.assertEquals(11, has.length()); // w/o EOS
+            Assert.assertEquals(exp, has);
+        }
+        {
+            Assert.assertEquals(14, model.getModelNamePointerCStringArrayLength());
+
+            final ByteBuffer bb = model.getModelNamePointerCString();
+            Assert.assertEquals(14, bb.limit());
+
+            final String exp = "Hello CString";
+            final String has = model.getModelNamePointerCStringAsString();
+            // System.err.println("exp '"+exp+"'");
+            System.err.println("has '"+has+"'");
+            // dumpStringChars("exp", exp);
+            dumpStringChars("has", has);
+            Assert.assertEquals(13, has.length()); // w/o EOS
+            Assert.assertEquals(exp, has);
+        }
+        {
+            Assert.assertEquals(14, model.getModelNamePointerCustomLenVal());
+
+            final ByteBuffer bb = model.getModelNamePointerCustomLen();
+            Assert.assertEquals(14, bb.limit());
+
+            final String exp = "Hello Pointer";
+            final String has = model.getModelNamePointerCustomLenAsString();
+            // System.err.println("exp '"+exp+"'");
+            System.err.println("has '"+has+"'");
+            // dumpStringChars("exp", exp);
+            dumpStringChars("has", has);
+            Assert.assertEquals(13, has.length()); // w/o EOS
+            Assert.assertEquals(exp, has);
+        }
+
+        binding.destroyModelConst(model);
+    }
+    private void dumpStringChars(String prefix, String s) {
+        final int len = s.length();
+        for(int i=0; i<len; i++) {
+            final char c = s.charAt(i);
+            System.err.printf("%s %3d: 0x%X %c%n", prefix, i, (int)c, c);
+        }
+    }
+
+    public void chapter13TestStructArrayModelMutable(Bindingtest1 binding) throws Exception {
+        final TK_ModelMutable model = binding.createModelMutable();
+
+        Assert.assertEquals(3, model.getIntxxPointerCustomLenVal());
+        Assert.assertEquals(3, model.getInt32PointerCustomLenVal());
+        Assert.assertEquals(3, model.getInt32ArrayFixedLenArrayLength());
+        Assert.assertEquals(3, model.getStructArrayFixedLenArrayLength());
+        Assert.assertEquals(3, model.getStructPointerCustomLenVal());
+
+        // field: int32ArrayFixedLen
+        //        CType['int32_t *', size [fixed false, lnx64 12], [array*1]], with array length of 3
+        {
+            final int size = model.getInt32ArrayFixedLenArrayLength();
+            {
+                final int[] values = new int[] { 1, 2, 3 };
+                model.setInt32ArrayFixedLen(0, values);
+
+                final int[] all = model.getInt32ArrayFixedLen(0, new int[size]);
+                final IntBuffer allB = model.getInt32ArrayFixedLen();
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(1 + i, all[i]);
+                    Assert.assertEquals(1 + i, allB.get(i));
+                    final int[] s = model.getInt32ArrayFixedLen(i, new int[1]);
+                    Assert.assertEquals(1 + i, s[0]);
+                }
+            }
+            {
+                for(int i=0; i<size; i++) {
+                    final int[] ia = new int[] { 4 + i };
+                    model.setInt32ArrayFixedLen(i, ia);
+                }
+
+                final int[] all = model.getInt32ArrayFixedLen(0, new int[size]);
+                final IntBuffer allB = model.getInt32ArrayFixedLen();
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(4 + i, all[i]);
+                    Assert.assertEquals(4 + i, allB.get(i));
+                    final int[] s = model.getInt32ArrayFixedLen(i, new int[1]);
+                    Assert.assertEquals(4 + i, s[0]);
+                }
+            }
+        }
+
+        // field: int32ArrayOneElem
+        //        CType['int32_t *', size [fixed false, lnx64 4], [array*1]], with array length of 1
+        {
+            model.setInt32ArrayOneElem(1);
+            Assert.assertEquals(1, model.getInt32ArrayOneElem());
+        }
+
+        // field: int32PointerCustomLen
+        //        field: CType['int32_t *', size [fixed false, lnx64 8], [pointer*1]], with array length of getInt32PointerCustomLenVal()
+        {
+            final int size = model.getInt32PointerCustomLenVal();
+            {
+                final IntBuffer all0 = model.getInt32PointerCustomLen();
+                Assert.assertEquals(size, all0.limit());
+                for(int i=0; i<size; i++) {
+                    all0.put(i, 1+i);
+                }
+
+                final IntBuffer all1 = model.getInt32PointerCustomLen();
+                Assert.assertEquals(size, all1.limit());
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(1 + i, all1.get(i));
+                }
+            }
+        }
+
+        // field: int32PointerOneElem
+        //        CType['int32_t *', size [fixed false, lnx64 8], [pointer*1]], with array length of 1
+        {
+            {
+                final IntBuffer one0 = model.getInt32PointerOneElem();
+                Assert.assertEquals(1, one0.limit());
+                one0.put(0, 1);
+
+                final IntBuffer one1 = model.getInt32PointerOneElem();
+                Assert.assertEquals(1, one1.limit());
+                Assert.assertEquals(1, one1.get(0));
+            }
+        }
+
+
+        // field: mat4x4
+        //        CType['float * *', size [fixed false, lnx64 64], [array*2]], with array length of <code>4*4</code> */
+        {
+            model.setMat4x4(0*4, new float[] { 11, 12, 13, 14 } );
+            model.setMat4x4(1*4, new float[] { 21, 22, 23, 24 } );
+            model.setMat4x4(2*4, new float[] { 31, 32, 33, 34 } );
+            model.setMat4x4(3*4, new float[] { 41, 42, 43, 44 } );
+
+            Assert.assertEquals(4*4, model.getMat4x4ArrayLength());
+            final FloatBuffer mat4x4 = model.getMat4x4();
+            Assert.assertEquals(4*4, mat4x4.limit());
+            for(int i=0; i<4; i++) {
+                final float[] vec4 = model.getMat4x4(i*4, new float[4]);
+                for(int j=0; j<4; j++) {
+                    Assert.assertEquals((i+1)*10+(j+1), mat4x4.get(i*4+j), EPSILON);
+                    Assert.assertEquals((i+1)*10+(j+1), vec4[j], EPSILON);
+                }
+            }
+        }
+
+        // field: structArrayFixedLen
+        //        field: CType['TK_Dimension *', size [fixed false, lnx64 48], [array*1]], with array length of 3
+        {
+            final int size = model.getStructArrayFixedLenArrayLength();
+            {
+                for(int i=0; i<size; i++) {
+                    final TK_Dimension d = TK_Dimension.create();
+                    d.setX(1+i*10);
+                    d.setY(2+i*10);
+                    d.setWidth(3+i*10);
+                    d.setHeight(4+i*10);
+                    model.setStructArrayFixedLen(i, d);
+                }
+                final TK_Dimension[] all = model.getStructArrayFixedLen(0, new TK_Dimension[size]);
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(1 + i * 10, all[i].getX());
+                    Assert.assertEquals(2 + i * 10, all[i].getY());
+                    Assert.assertEquals(3 + i * 10, all[i].getWidth());
+                    Assert.assertEquals(4 + i * 10, all[i].getHeight());
+                    final TK_Dimension[] one = model.getStructArrayFixedLen(i, new TK_Dimension[1]);
+                    Assert.assertEquals(1 + i * 10, one[0].getX());
+                    Assert.assertEquals(2 + i * 10, one[0].getY());
+                    Assert.assertEquals(3 + i * 10, one[0].getWidth());
+                    Assert.assertEquals(4 + i * 10, one[0].getHeight());
+                }
+            }
+            {
+                final TK_Dimension[] da = new TK_Dimension[size];
+                for(int i=0; i<size; i++) {
+                    final TK_Dimension d = TK_Dimension.create();
+                    d.setX(5+i*10);
+                    d.setY(6+i*10);
+                    d.setWidth(7+i*10);
+                    d.setHeight(8+i*10);
+                    da[i] = d;
+                }
+                model.setStructArrayFixedLen(0, da);
+
+                final TK_Dimension[] all = model.getStructArrayFixedLen(0, new TK_Dimension[size]);
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(5 + i * 10, all[i].getX());
+                    Assert.assertEquals(6 + i * 10, all[i].getY());
+                    Assert.assertEquals(7 + i * 10, all[i].getWidth());
+                    Assert.assertEquals(8 + i * 10, all[i].getHeight());
+                    final TK_Dimension[] one = model.getStructArrayFixedLen(i, new TK_Dimension[1]);
+                    Assert.assertEquals(5 + i * 10, one[0].getX());
+                    Assert.assertEquals(6 + i * 10, one[0].getY());
+                    Assert.assertEquals(7 + i * 10, one[0].getWidth());
+                    Assert.assertEquals(8 + i * 10, one[0].getHeight());
+                }
+            }
+            {
+                for(int i=0; i<size; i++) {
+                    final TK_Dimension d = TK_Dimension.create();
+                    d.setX(1+i*10);
+                    d.setY(3+i*10);
+                    d.setWidth(5+i*10);
+                    d.setHeight(7+i*10);
+                    model.setStructArrayFixedLen(i, new TK_Dimension[] { d });
+                }
+
+                final TK_Dimension[] all = model.getStructArrayFixedLen(0, new TK_Dimension[size]);
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(1 + i * 10, all[i].getX());
+                    Assert.assertEquals(3 + i * 10, all[i].getY());
+                    Assert.assertEquals(5 + i * 10, all[i].getWidth());
+                    Assert.assertEquals(7 + i * 10, all[i].getHeight());
+                    final TK_Dimension[] one = model.getStructArrayFixedLen(i, new TK_Dimension[1]);
+                    Assert.assertEquals(1 + i * 10, one[0].getX());
+                    Assert.assertEquals(3 + i * 10, one[0].getY());
+                    Assert.assertEquals(5 + i * 10, one[0].getWidth());
+                    Assert.assertEquals(7 + i * 10, one[0].getHeight());
+                }
+            }
+        }
+
+        // field: structArrayOneElem
+        //        CType['TK_Dimension *', size [fixed false, lnx64 16], [array*1]], with array length of 1
+        {
+            {
+                final TK_Dimension d = TK_Dimension.create();
+                d.setX(1);
+                d.setY(2);
+                d.setWidth(3);
+                d.setHeight(4);
+                model.setStructArrayOneElem(d);
+            }
+            {
+                final TK_Dimension one = model.getStructArrayOneElem();
+                Assert.assertEquals(1, one.getX());
+                Assert.assertEquals(2, one.getY());
+                Assert.assertEquals(3, one.getWidth());
+                Assert.assertEquals(4, one.getHeight());
+            }
+        }
+
+        // field: structPointerCustomLen
+        //        CType['TK_Dimension *', size [fixed false, lnx64 8], [pointer*1]], with array length of getStructPointerCustomLenVal()
+        {
+            final int size = model.getStructPointerCustomLenVal();
+            {
+                final TK_Dimension[] all = model.getStructPointerCustomLen(0, new TK_Dimension[size]);
+                for(int i=0; i<size; i++) {
+                    final TK_Dimension d = all[i];
+                    d.setX(1+i*10);
+                    d.setY(2+i*10);
+                    d.setWidth(3+i*10);
+                    d.setHeight(4+i*10);
+                }
+            }
+            {
+                final TK_Dimension[] all = model.getStructPointerCustomLen(0, new TK_Dimension[size]);
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(1 + i * 10, all[i].getX());
+                    Assert.assertEquals(2 + i * 10, all[i].getY());
+                    Assert.assertEquals(3 + i * 10, all[i].getWidth());
+                    Assert.assertEquals(4 + i * 10, all[i].getHeight());
+                    final TK_Dimension[] one = model.getStructPointerCustomLen(i, new TK_Dimension[1]);
+                    Assert.assertEquals(1 + i * 10, one[0].getX());
+                    Assert.assertEquals(2 + i * 10, one[0].getY());
+                    Assert.assertEquals(3 + i * 10, one[0].getWidth());
+                    Assert.assertEquals(4 + i * 10, one[0].getHeight());
+                }
+            }
+        }
+
+        // field: structPointerOneElem
+        //        CType['TK_Dimension *', size [fixed false, lnx64 8], [pointer*1]], with array length of 1
+        {
+            {
+                final TK_Dimension d = model.getStructPointerOneElem();
+                d.setX(1);
+                d.setY(2);
+                d.setWidth(3);
+                d.setHeight(4);
+            }
+            {
+                final TK_Dimension one = model.getStructPointerOneElem();
+                Assert.assertEquals(1, one.getX());
+                Assert.assertEquals(2, one.getY());
+                Assert.assertEquals(3, one.getWidth());
+                Assert.assertEquals(4, one.getHeight());
+            }
+
+        }
+
+        final long surfaceContext = model.getCtx();
+        assertAPTR(0x123456789abcdef0L, surfaceContext);
+
+        model.setCtx(surfaceContext);
+        assertAPTR(surfaceContext, model.getCtx());
+
+        binding.destroyModelMutable(model);
     }
 }

@@ -117,7 +117,7 @@ public class StructAccessor {
     public final int getIntAt(int byteOffset, int nativeSizeInBytes) {
         switch(nativeSizeInBytes) {
             case 2:
-                return (int) bb.getShort(byteOffset) & 0x0000FFFF ;
+                return bb.getShort(byteOffset) & 0x0000FFFF ;
             case 4:
                 return bb.getInt(byteOffset);
             case 8:
@@ -137,7 +137,7 @@ public class StructAccessor {
                 bb.putInt(byteOffset, v);
                 break;
             case 8:
-                bb.putLong(byteOffset, (long)v & 0x00000000FFFFFFFFL );
+                bb.putLong(byteOffset, v & 0x00000000FFFFFFFFL );
                 break;
             default:
                 throw new InternalError("invalid nativeSizeInBytes "+nativeSizeInBytes);
@@ -178,7 +178,7 @@ public class StructAccessor {
     public final long getLongAt(int byteOffset, int nativeSizeInBytes) {
         switch(nativeSizeInBytes) {
             case 4:
-                return (long) bb.getInt(byteOffset) & 0x00000000FFFFFFFFL;
+                return bb.getInt(byteOffset) & 0x00000000FFFFFFFFL;
             case 8:
                 return bb.getLong(byteOffset);
             default:

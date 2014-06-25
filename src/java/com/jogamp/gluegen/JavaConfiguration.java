@@ -492,11 +492,21 @@ public class JavaConfiguration {
     return returnsString.contains(functionName);
   }
 
-  /** Provides a Java MessageFormat expression indicating the number
-      of elements in the returned array from the specified function
-      name. Indicates that the given return value, which must be a
-      pointer to a CompoundType, is actually an array of the
-      CompoundType rather than a pointer to a single object. */
+  /**
+   * Returns a MessageFormat string of the Java expression calculating
+   * the number of elements in the returned array from the specified function
+   * name. The literal <code>1</code> indicates a single object.
+   * <p>
+   * If symbol references a struct fields, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   * <p>
+   * In case of struct fields, this array length will also be used
+   * for the native C function, i.e. multiplied w/ <code>sizeof(C-Type)</code>
+   * and passed down to native code, <b>if</b> not overriden by
+   * either {@link #returnValueCapacity(String)} or {@link #returnValueLength(String)}!
+   * </p>
+   */
   public String returnedArrayLength(String functionName) {
     return returnedArrayLengths.get(functionName);
   }
@@ -623,18 +633,29 @@ public class JavaConfiguration {
     return forcedStructs;
   }
 
-  /** Returns a MessageFormat string of the C expression calculating
-      the capacity of the java.nio.ByteBuffer being returned from a
-      native method, or null if no expression has been specified. */
+  /**
+   * Returns a MessageFormat string of the C expression calculating
+   * the capacity of the java.nio.ByteBuffer being returned from a
+   * native method, or null if no expression has been specified.
+   * <p>
+   * If symbol references a struct fields, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   */
   public String returnValueCapacity(String functionName) {
     return returnValueCapacities.get(functionName);
   }
 
-  /** Returns a MessageFormat string of the C expression calculating
-      the length of the array being returned from a native method, or
-      null if no expression has been specified. */
-  public String returnValueLength(String functionName) {
-    return returnValueLengths.get(functionName);
+  /**
+   * Returns a MessageFormat string of the C expression calculating
+   * the length of the array being returned from a native method.
+   * <p>
+   * If symbol references a struct fields, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   */
+  public String returnValueLength(String symbol) {
+    return returnValueLengths.get(symbol);
   }
 
   /** Returns a List of Strings of expressions declaring temporary C
@@ -727,8 +748,21 @@ public class JavaConfiguration {
     }
   }
 
-  /** Returns true if this #define, function, struct, or field within
-      a struct should be ignored during glue code generation. */
+  /**
+   * Returns the canonical configuration name for a struct field name,
+   * i.e. 'struct-name'.'field-name'
+   */
+  public static String canonicalStructFieldSymbol(String structName, String fieldName) {
+      return structName+"."+fieldName;
+  }
+
+  /**
+   * Returns true if this #define, function, struct, or field within
+   * a struct should be ignored during glue code generation of interfaces and implementation.
+   * <p>
+   * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
+   * </p>
+   */
   public boolean shouldIgnoreInInterface(String symbol) {
     if(DEBUG_IGNORES) {
         dumpIgnoresOnce();
@@ -754,6 +788,13 @@ public class JavaConfiguration {
     return shouldIgnoreInImpl_Int(symbol);
   }
 
+  /**
+   * Returns true if this #define, function, struct, or field within
+   * a struct should be ignored during glue code generation of implementation only.
+   * <p>
+   * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
+   * </p>
+   */
   public boolean shouldIgnoreInImpl(String symbol) {
     return shouldIgnoreInImpl_Int(symbol);
   }
@@ -1195,7 +1236,6 @@ public class JavaConfiguration {
     }
   }
 
-  @SuppressWarnings("unchecked")
   protected void readExtendedIntfImplSymbols(StringTokenizer tok, String filename, int lineNo, boolean forInterface, boolean forImplementation, boolean onlyList) {
     File javaFile;
     BufferedReader javaReader;
@@ -1299,7 +1339,7 @@ public class JavaConfiguration {
     try {
       String containingStruct = tok.nextToken();
       String name = tok.nextToken();
-      ignores.add(Pattern.compile(containingStruct + " " + name));
+      ignores.add(Pattern.compile(containingStruct + "\\." + name));
     } catch (NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"IgnoreField\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);

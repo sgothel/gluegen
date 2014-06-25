@@ -87,9 +87,6 @@ public class StructLayout {
         } else {
           curOffset = SizeThunk.add(curOffset, sz);
         }
-        if( GlueGen.debug() ) {
-            System.err.printf("SL.%02d: o %03d, s %03d, t %s: %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), ft, f);
-        }
       } else if (ft.isCompound()) {
         final CompoundType ct = ft.asCompound();
         if(!ct.isLayouted()) {
@@ -102,9 +99,6 @@ public class StructLayout {
           maxSize = SizeThunk.max(maxSize, sz);
         } else {
           curOffset = SizeThunk.add(curOffset, sz);
-        }
-        if( GlueGen.debug() ) {
-            System.err.printf("SL.%02d: o %03d, s %03d, t %s{%d}: %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), ft, ct.getNumFields(), f);
         }
       } else if (ft.isArray()) {
         final ArrayType arrayType = ft.asArray();
@@ -122,9 +116,6 @@ public class StructLayout {
         curOffset = SizeThunk.align(curOffset, sz);
         f.setOffset(curOffset);
         curOffset = SizeThunk.add(curOffset, sz);
-        if( GlueGen.debug() ) {
-            System.err.printf("SL.%02d: o %03d, s %03d, t %s: %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), ft, f);
-        }
       } else {
         // FIXME
         String name = t.getName();
@@ -135,6 +126,9 @@ public class StructLayout {
                                    " " + f.getName() +
                                    " in type " + name +
                                    ") not implemented yet");
+      }
+      if( GlueGen.debug() ) {
+        System.err.printf("SL.%02d: o %03d, s %03d: %s, %s%n", (i+1), f.getOffset(dbgMD), ft.getSize(dbgMD), f, ft.getDebugString());
       }
     }
     if (t.isUnion()) {

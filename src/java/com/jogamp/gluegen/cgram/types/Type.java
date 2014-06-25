@@ -52,8 +52,8 @@ public abstract class Type implements Cloneable {
 
   private String name;
   private SizeThunk size;
-  private int    cvAttributes;
-  private int    typedefedCVAttributes;
+  private final int cvAttributes;
+  private int typedefedCVAttributes;
   private boolean hasTypedefName;
 
   protected Type(String name, SizeThunk size, int cvAttributes) {
@@ -75,16 +75,94 @@ public abstract class Type implements Cloneable {
   /** Returns the name of this type. The returned string is suitable
       for use as a type specifier. Does not include any const/volatile
       attributes. */
-  public String       getName()    { return getName(false); }
+  public final String getName() { return getName(false); }
 
   /** Returns the name of this type, optionally including
       const/volatile attributes. The returned string is suitable for
       use as a type specifier. */
-  public String       getName(boolean includeCVAttrs) {
+  public String getName(boolean includeCVAttrs) {
     if (!includeCVAttrs) {
       return name;
     }
     return getCVAttributesString() + name;
+  }
+
+  private void append(final StringBuilder sb, final String val, final boolean prepComma) {
+      if( prepComma ) {
+          sb.append(", ");
+      }
+      sb.append(val);
+  }
+  // For debugging
+  public String getDebugString() {
+    final StringBuilder sb = new StringBuilder();
+    boolean prepComma = false;
+    sb.append("CType[");
+    if( null != name ) {
+        append(sb, "'"+name+"'", prepComma); prepComma=true;
+    } else {
+        append(sb, "ANON", prepComma); prepComma=true;
+    }
+    if( hasTypedefName() ) {
+        sb.append(" (typedef)");
+    }
+    append(sb, "size ", prepComma); prepComma=true;
+    if( null != size ) {
+        final long mdSize;
+        {
+            long _mdSize = -1;
+            try {
+                _mdSize = size.computeSize(MachineDescription.StaticConfig.X86_64_UNIX.md);
+            } catch (Exception e) {}
+            mdSize = _mdSize;
+        }
+        sb.append("[fixed ").append(size.hasFixedNativeSize()).append(", lnx64 ").append(mdSize).append("]");
+    } else {
+        sb.append(" ZERO");
+    }
+    append(sb, "[", prepComma); prepComma=false;
+    if( isConst() ) {
+        append(sb, "const ", false);
+    }
+    if( isVolatile() ) {
+        append(sb, "volatile ", false);
+    }
+    if( isPointer() ) {
+        append(sb, "pointer*"+pointerDepth(), prepComma); prepComma=true;
+    }
+    if( isArray() ) {
+        append(sb, "array*"+arrayDimension(), prepComma); prepComma=true;
+    }
+    if( isBit() ) {
+        append(sb, "bit", prepComma); prepComma=true;
+    }
+    if( isCompound() ) {
+        sb.append("struct{").append(asCompound().getNumFields());
+        append(sb, "}", prepComma); prepComma=true;
+    }
+    if( isDouble() ) {
+        append(sb, "double", prepComma); prepComma=true;
+    }
+    if( isEnum() ) {
+        append(sb, "enum", prepComma); prepComma=true;
+    }
+    if( isFloat() ) {
+        append(sb, "float", prepComma); prepComma=true;
+    }
+    if( isFunction() ) {
+        append(sb, "function", prepComma); prepComma=true;
+    }
+    if( isFunctionPointer() ) {
+        append(sb, "funcPointer", prepComma); prepComma=true;
+    }
+    if( isInt() ) {
+        append(sb, "int", prepComma); prepComma=true;
+    }
+    if( isVoid() ) {
+        append(sb, "void", prepComma); prepComma=true;
+    }
+    sb.append("]]");
+    return sb.toString();
   }
 
   /** Set the name of this type; used for handling typedefs. */
@@ -267,6 +345,17 @@ public abstract class Type implements Cloneable {
       return 0;
     }
     return 1 + arrayType.getElementType().arrayDimension();
+  }
+
+  /**
+   * Helper method to returns the bottom-most element type of this type.
+   * <p>
+   * If this is a multidimensional array or pointer method returns the bottom-most element type,
+   * otherwise this.
+   * </p>
+   */
+  public Type getBaseElementType() {
+      return this;
   }
 
   /** Helper routine for list equality comparison */

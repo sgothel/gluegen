@@ -126,19 +126,16 @@ public class FunctionType extends Type implements Cloneable {
         return toString(null);
     }
 
-    public String toString(String functionName) {
+    public String toString(final String functionName) {
         return toString(functionName, false);
     }
 
-    public String toString(String functionName, boolean emitNativeTag) {
+    public String toString(final String functionName, final boolean emitNativeTag) {
         return toString(functionName, null, emitNativeTag, false);
     }
 
-    String toString(String functionName, String callingConvention, boolean emitNativeTag, boolean isPointer) {
-        StringBuilder res = new StringBuilder();
-        if(isConst()) {
-            res.append("const ");
-        }
+    String toString(final String functionName, final String callingConvention, final boolean emitNativeTag, final boolean isPointer) {
+        final StringBuilder res = new StringBuilder();
         res.append(getReturnType());
         res.append(" ");
         if (isPointer) {
@@ -167,17 +164,11 @@ public class FunctionType extends Type implements Cloneable {
             Type t = getArgumentType(i);
             if (t.isFunctionPointer()) {
                 Type targetType = t.asPointer().getTargetType();
-                if(targetType.isConst()) {
-                    res.append("const ");
-                }
                 FunctionType ft = targetType.asFunction();
                 res.append(ft.toString(getArgumentName(i), callingConvention, false, true));
             } else if (t.isArray()) {
                 res.append(t.asArray().toString(getArgumentName(i)));
             } else {
-                if(t.isConst()) {
-                    res.append("const ");
-                }
                 res.append(t);
                 String argumentName = getArgumentName(i);
                 if (argumentName != null) {
@@ -190,9 +181,6 @@ public class FunctionType extends Type implements Cloneable {
             }
         }
         res.append(")");
-        if (!isPointer) {
-            res.append(";");
-        }
         return res.toString();
     }
 

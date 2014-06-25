@@ -183,15 +183,23 @@ typedef struct {
     TK_Context ctx;
 } TK_ContextWrapper;
 
+struct _jobject;
+typedef struct _jobject *jobject;
+struct JNINativeInterface_;
+typedef const struct JNINativeInterface_ *JNIEnv;
+
+
 typedef struct tk_Surface {
     TK_Context ctx;
     TK_ContextWrapper ctxWrapper;
-    // const TK_Engine * engine;
     TK_Engine engine;
     TK_Dimension bounds;
     int32_t clipSize;
     TK_Dimension * clips;
     TK_Dimension * (MYAPIENTRY *getClip) (struct tk_Surface * ds, int idx);
+
+    jobject (MYAPIENTRY *GetComponent)(JNIEnv* env, void* platformInfo);
+
 } TK_Surface;
 
 typedef struct {
@@ -274,3 +282,71 @@ MYAPI void MYAPIENTRY intToRgba(int irgba, char rgbaSink[4]);
 MYAPI void MYAPIENTRY addInt(const int summands[2], int result[1]);
 MYAPI void MYAPIENTRY addByte(const char summands[2], char result[1]);
 
+typedef struct {
+    const int intxxArrayFixedLen[3];
+    
+    const int * intxxPointerCustomLen;
+    const int intxxPointerCustomLenVal;
+
+    const int32_t int32ArrayFixedLen[3];
+    const int32_t int32ArrayOneElem[1];
+    
+    const int32_t * int32PointerCustomLen;
+    const int32_t int32PointerCustomLenVal;
+
+    const int32_t * int32PointerOneElem;
+
+    const float mat4x4[4][4];
+
+    const TK_Dimension structArrayFixedLen[3];
+    const TK_Dimension structArrayOneElem[1];
+    
+    const TK_Dimension * structPointerCustomLen;
+    const int32_t structPointerCustomLenVal;
+    const TK_Dimension * structPointerOneElem;
+
+    const TK_Context ctx;
+
+    const char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
+    const char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
+    const char * modelNamePointerCustomLen;  /* 'Hello Pointer' len=13+1 */
+    const int modelNamePointerCustomLenVal;  /* 13+1 */
+
+} TK_ModelConst;
+
+typedef struct {
+    int intxxArrayFixedLen[3];
+    
+    int * intxxPointerCustomLen;
+    int intxxPointerCustomLenVal;
+
+    int32_t int32ArrayFixedLen[3];
+    int32_t int32ArrayOneElem[1];
+    
+    int32_t * int32PointerCustomLen;
+    int32_t int32PointerCustomLenVal;
+
+    int32_t * int32PointerOneElem;
+
+    float mat4x4[4][4];
+
+    TK_Dimension structArrayFixedLen[3];
+    TK_Dimension structArrayOneElem[1];
+    
+    TK_Dimension * structPointerCustomLen;
+    int32_t structPointerCustomLenVal;
+    TK_Dimension * structPointerOneElem;
+
+    TK_Context ctx;
+
+    char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
+    const char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
+    char * modelNamePointerCustomLen;  /* 'Hello Pointer' len=13+1 */
+    int modelNamePointerCustomLenVal;  /* 13+1 */
+
+} TK_ModelMutable;
+
+MYAPI TK_ModelConst * MYAPIENTRY createModelConst();
+MYAPI void MYAPIENTRY destroyModelConst(TK_ModelConst * s);
+MYAPI TK_ModelMutable * MYAPIENTRY createModelMutable();
+MYAPI void MYAPIENTRY destroyModelMutable(TK_ModelMutable * s);

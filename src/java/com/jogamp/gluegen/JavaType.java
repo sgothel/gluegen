@@ -60,7 +60,7 @@ public class JavaType {
   }
 
   private final Class<?> clazz; // Primitive types and other types representable as Class objects
-  private final String name;  // Types we're generating glue code for (i.e., C structs)
+  private final String structName;  // Types we're generating glue code for (i.e., C structs)
   private final Type   elementType; // Element type if this JavaType represents a C array
   private final C_PTR  primitivePointerType;
 
@@ -82,8 +82,8 @@ public class JavaType {
     JavaType t = (JavaType) arg;
     return (this == t ||
             (t.clazz == clazz &&
-             ((name == null ? t.name == null : name.equals(t.name)) ||
-              ((name != null) && (t.name != null) && (name.equals(t.name)))) &&
+             ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
+              ((structName != null) && (t.structName != null) && (structName.equals(t.structName)))) &&
              ((elementType == t.elementType) ||
               (elementType != null) && (t.elementType != null) && (elementType.equals(t.elementType))) &&
              (primitivePointerType == t.primitivePointerType)));
@@ -92,10 +92,10 @@ public class JavaType {
   @Override
   public int hashCode() {
     if (clazz == null) {
-      if (name == null) {
+      if (structName == null) {
         return 0;
       }
-      return name.hashCode();
+      return structName.hashCode();
     }
     return clazz.hashCode();
   }
@@ -245,7 +245,7 @@ public class JavaType {
     if (elementType != null) {
       return elementType.getName();
     }
-    return name;
+    return structName;
   }
 
   /**
@@ -261,11 +261,14 @@ public class JavaType {
     }
     if (elementType != null) {
       if(elementType.getName()==null) {
-           throw new RuntimeException("elementType.name is null: "+getDumpString());
+           throw new RuntimeException("elementType.name is null: "+getDebugString());
       }
       return "[" + descriptor(elementType.getName());
     }
-    return descriptor(name);
+    if( null != structName ) {
+        return descriptor(structName);
+    }
+    return "ANON_NIO";
   }
 
   /** Returns the String corresponding to the JNI type for this type,
@@ -432,7 +435,7 @@ public class JavaType {
   }
 
   public boolean isCompoundTypeWrapper() {
-    return (clazz == null && name != null && !isJNIEnv());
+    return (clazz == null && structName != null && !isJNIEnv());
   }
 
   public boolean isArrayOfCompoundTypeWrappers() {
@@ -473,12 +476,12 @@ public class JavaType {
   }
 
   public boolean isJNIEnv() {
-    return clazz == null && "JNIEnv".equals(name);
+    return clazz == null && "JNIEnv".equals(structName);
   }
 
   @Override
   public Object clone() {
-    return new JavaType(primitivePointerType, clazz, name, elementType);
+    return new JavaType(primitivePointerType, clazz, structName, elementType);
   }
 
   @Override
@@ -497,15 +500,26 @@ public class JavaType {
       sb.append(val);
   }
   // For debugging
-  public String getDumpString() {
+  public String getDebugString() {
     final StringBuilder sb = new StringBuilder();
-    sb.append("JavaType[");
+    sb.append("JType[");
     boolean prepComma = false;
+    {
+        final String javaTypeName = getName();
+        if( null != javaTypeName ) {
+            append(sb, javaTypeName, false);
+        } else {
+            append(sb, "ANON", false);
+        }
+        sb.append(" / ");
+        if( null != structName ) {
+            append(sb, "'"+structName+"'", prepComma); prepComma=true;
+        } else {
+            append(sb, "NIL", prepComma); prepComma=true;
+        }
+    }
     if( null != clazz ) {
         append(sb, "clazz = "+clazz.getName(), prepComma); prepComma=true;
-    }
-    if( null != name ) {
-        append(sb, "name = "+name, prepComma); prepComma=true;
     }
     if( null != elementType ) {
         append(sb, "elementType = "+elementType, prepComma); prepComma=true;
@@ -523,6 +537,15 @@ public class JavaType {
     if( isCompoundTypeWrapper() ) {
         append(sb, "compound", prepComma); prepComma=true;
     }
+    if( isArray() ) {
+        append(sb, "array", prepComma); prepComma=true;
+    }
+    if( isPrimitive() ) {
+        append(sb, "primitive", prepComma); prepComma=true;
+    }
+    if( isPrimitiveArray() ) {
+        append(sb, "primitiveArray", prepComma); prepComma=true;
+    }
     if( isNIOBuffer() ) {
         append(sb, "nioBuffer", prepComma); prepComma=true;
     }
@@ -532,7 +555,7 @@ public class JavaType {
     if( isCPrimitivePointerType() ) {
         append(sb, "C-Primitive-Pointer", prepComma); prepComma=true;
     }
-    sb.append("]]");
+    append(sb, "descriptor '"+getDescriptor()+"'", prepComma); prepComma=true;
     return sb.toString();
   }
 
@@ -543,15 +566,15 @@ public class JavaType {
   private JavaType(Class<?> clazz) {
     this.primitivePointerType = null;
     this.clazz = clazz;
-    this.name = null;
+    this.structName = null;
     this.elementType = null;
   }
 
   /** Constructs a type representing a named C struct. */
-  private JavaType(String name) {
+  private JavaType(String structName) {
     this.primitivePointerType = null;
     this.clazz = null;
-    this.name = name;
+    this.structName = structName;
     this.elementType = null;
   }
 
@@ -560,7 +583,7 @@ public class JavaType {
   private JavaType(C_PTR primitivePointerType) {
     this.primitivePointerType = primitivePointerType;
     this.clazz = null;
-    this.name = null;
+    this.structName = null;
     this.elementType = null;
   }
 
@@ -568,14 +591,15 @@ public class JavaType {
   private JavaType(Type elementType) {
     this.primitivePointerType = null;
     this.clazz = null;
-    this.name = null;
+    this.structName = null;
     this.elementType = elementType;
   }
 
+  /** clone only */
   private JavaType(C_PTR primitivePointerType, Class<?> clazz, String name, Type elementType) {
     this.primitivePointerType = primitivePointerType;
     this.clazz = clazz;
-    this.name = name;
+    this.structName = name;
     this.elementType = elementType;
   }
 

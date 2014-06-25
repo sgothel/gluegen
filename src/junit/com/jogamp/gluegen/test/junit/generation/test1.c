@@ -372,6 +372,7 @@ MYAPI TK_Surface * MYAPIENTRY createSurface() {
 
 MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface) {
     assert(NULL!=surface);
+    assert(NULL!=surface->clips);
     free(surface->clips);
     // free(surface->engine);
     free(surface);
@@ -578,3 +579,112 @@ MYAPI void MYAPIENTRY addByte(const char summands[2], char result[1]) {
     result[0] = summands[0] + summands[1];
 }
 
+MYAPI TK_ModelMutable * MYAPIENTRY createModelMutable() {
+    int i, j;
+    TK_ModelMutable * s = calloc(1, sizeof(TK_ModelMutable));
+
+    s->intxxArrayFixedLen[0]=1;
+    s->intxxArrayFixedLen[1]=2;
+    s->intxxArrayFixedLen[2]=3;
+    
+    s->intxxPointerCustomLen = calloc(3, sizeof(int));
+    s->intxxPointerCustomLen[0] = 11;
+    s->intxxPointerCustomLen[1] = 12;
+    s->intxxPointerCustomLen[2] = 13;
+    s->intxxPointerCustomLenVal=3;
+
+    s->int32ArrayFixedLen[0] = 21;
+    s->int32ArrayFixedLen[1] = 22;
+    s->int32ArrayFixedLen[2] = 23;
+
+    s->int32ArrayOneElem[0] = 30;
+    
+    s->int32PointerCustomLen = calloc(3, sizeof(int));
+    s->int32PointerCustomLen[0] = 31;
+    s->int32PointerCustomLen[1] = 32;
+    s->int32PointerCustomLen[2] = 33;
+    s->int32PointerCustomLenVal=3;
+
+    s->int32PointerOneElem = calloc(1, sizeof(int));
+    s->int32PointerOneElem[0] = 41;
+
+    for(i=0; i<4; i++) {
+        for(j=0; j<4; j++) {
+            s->mat4x4[i][j] = i*4 + j;
+        }
+    }
+
+    s->structArrayFixedLen[0].x      = 51;
+    s->structArrayFixedLen[0].y      = 52;
+    s->structArrayFixedLen[0].width  = 53;
+    s->structArrayFixedLen[0].height = 54;
+    s->structArrayFixedLen[1].x      = 61;
+    s->structArrayFixedLen[1].y      = 62;
+    s->structArrayFixedLen[1].width  = 63;
+    s->structArrayFixedLen[1].height = 64;
+    s->structArrayFixedLen[2].x      = 71;
+    s->structArrayFixedLen[2].y      = 72;
+    s->structArrayFixedLen[2].width  = 73;
+    s->structArrayFixedLen[2].height = 74;
+
+    s->structArrayOneElem[0].x      = 81;
+    s->structArrayOneElem[0].y      = 82;
+    s->structArrayOneElem[0].width  = 83;
+    s->structArrayOneElem[0].height = 84;
+
+    s->structPointerCustomLen = (TK_Dimension *) calloc(3, sizeof(TK_Dimension));
+    s->structPointerCustomLen[0].x      = 91;
+    s->structPointerCustomLen[0].y      = 92;
+    s->structPointerCustomLen[0].width  = 93;
+    s->structPointerCustomLen[0].height = 94;
+    s->structPointerCustomLen[1].x      = 101;
+    s->structPointerCustomLen[1].y      = 102;
+    s->structPointerCustomLen[1].width  = 103;
+    s->structPointerCustomLen[1].height = 104;
+    s->structPointerCustomLen[2].x      = 111;
+    s->structPointerCustomLen[2].y      = 112;
+    s->structPointerCustomLen[2].width  = 113;
+    s->structPointerCustomLen[2].height = 114;
+    s->structPointerCustomLenVal = 3;
+
+    s->structPointerOneElem = (TK_Dimension *) calloc(1, sizeof(TK_Dimension));
+    s->structPointerOneElem[0].x      = 121;
+    s->structPointerOneElem[0].y      = 122;
+    s->structPointerOneElem[0].width  = 123;
+    s->structPointerOneElem[0].height = 124;
+
+    s->ctx = (void *) 0x123456789abcdef0UL;
+
+    strncpy(s->modelNameArrayFixedLen, "Hello Array", sizeof(s->modelNameArrayFixedLen));
+
+    s->modelNamePointerCString = calloc(13+1, sizeof(char));
+    strncpy(s->modelNamePointerCString, "Hello CString", 13+1);
+
+    s->modelNamePointerCustomLen = calloc(13+1, sizeof(char));
+    strncpy(s->modelNamePointerCustomLen, "Hello Pointer", 13+1);
+    s->modelNamePointerCustomLenVal = 13+1;
+
+    return s;
+}
+
+MYAPI void MYAPIENTRY destroyModelMutable(TK_ModelMutable * s) {
+    assert(NULL!=s);
+    assert(NULL!=s->intxxPointerCustomLen);
+    assert(NULL!=s->int32PointerCustomLen);
+    assert(NULL!=s->int32PointerOneElem);
+    assert(NULL!=s->structPointerCustomLen);
+    free(s->intxxPointerCustomLen);
+    free(s->int32PointerCustomLen);
+    free(s->int32PointerOneElem);
+    free(s->structPointerCustomLen);
+    free(s->modelNamePointerCString);
+    free(s->modelNamePointerCustomLen);
+    free(s);
+}
+
+MYAPI TK_ModelConst * MYAPIENTRY createModelConst() {
+    return (TK_ModelConst *)createModelMutable();
+}
+MYAPI void MYAPIENTRY destroyModelConst(TK_ModelConst * s) {
+    destroyModelMutable((TK_ModelMutable *)s);
+}

@@ -659,21 +659,20 @@ public class JavaEmitter implements GlueEmitter {
                               (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
                               !cfg.useNIODirectOnly(binding.getName()),
                               machDescJava);
-              prepCEmitter(binding, cEmitter);
+              prepCEmitter(binding.getName(), binding.getJavaReturnType(), cEmitter);
               allEmitters.add(cEmitter);
           }
       }
   }
 
-  protected void prepCEmitter(MethodBinding binding, CMethodBindingEmitter cEmitter)
+  protected void prepCEmitter(String returnSizeLookupName, JavaType javaReturnType, CMethodBindingEmitter cEmitter)
   {
       // See whether we need an expression to help calculate the
       // length of any return type
-      JavaType javaReturnType = binding.getJavaReturnType();
       if (javaReturnType.isNIOBuffer() ||
           javaReturnType.isCompoundTypeWrapper()) {
         // See whether capacity has been specified
-        String capacity = cfg.returnValueCapacity(binding.getName());
+        final String capacity = cfg.returnValueCapacity(returnSizeLookupName);
         if (capacity != null) {
           cEmitter.setReturnValueCapacityExpression( new MessageFormat(capacity) );
         }
@@ -688,13 +687,13 @@ public class JavaEmitter implements GlueEmitter {
         }
 
         // See whether length has been specified
-        String len = cfg.returnValueLength(binding.getName());
+        final String len = cfg.returnValueLength(returnSizeLookupName);
         if (len != null) {
           cEmitter.setReturnValueLengthExpression( new MessageFormat(len) );
         }
       }
-      cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(binding.getName()));
-      cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(binding.getName()));
+      cEmitter.setTemporaryCVariableDeclarations(cfg.temporaryCVariableDeclarations(returnSizeLookupName));
+      cEmitter.setTemporaryCVariableAssignments(cfg.temporaryCVariableAssignments(returnSizeLookupName));
   }
 
   /**
@@ -827,32 +826,35 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public void emitStruct(CompoundType structType, String alternateName) throws Exception {
-    String name = structType.getName();
-    if (name == null && alternateName != null) {
-      name = alternateName;
+  public void emitStruct(final CompoundType structCType, final String alternateName) throws Exception {
+    final String structCTypeName;
+    {
+        String _name = structCType.getName();
+        if (_name == null && alternateName != null) {
+          _name = alternateName;
+        }
+        structCTypeName = _name;
     }
 
-    if (name == null) {
-        final String structName = structType.getStructName();
+    if (structCTypeName == null) {
+        final String structName = structCType.getStructName();
         if ( null != structName && cfg.shouldIgnoreInInterface(structName) ) {
             return;
         }
-
-        LOG.log(WARNING, "skipping emission of unnamed struct \"{0}\"", structType);
+        LOG.log(WARNING, "skipping emission of unnamed struct \"{0}\"", structCType);
         return;
     }
 
-    if (cfg.shouldIgnoreInInterface(name)) {
+    if (cfg.shouldIgnoreInInterface(structCTypeName)) {
       return;
     }
 
-    Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structType, 0));
-    JavaType containingType = typeToJavaType(containingCType, false, null);
-    if (!containingType.isCompoundTypeWrapper()) {
+    final Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structCType, 0));
+    final JavaType containingJType = typeToJavaType(containingCType, null);
+    if (!containingJType.isCompoundTypeWrapper()) {
       return;
     }
-    String containingTypeName = containingType.getName();
+    final String containingJTypeName = containingJType.getName();
 
     this.requiresStaticInitialization = false; // reset
 
@@ -874,23 +876,36 @@ public class JavaEmitter implements GlueEmitter {
     // which complies w/ Java types.
 
     boolean needsNativeCode = false;
+
     // Native code for calls through function pointers gets emitted
     // into the abstract base class; Java code which accesses fields
     // gets emitted into the concrete classes
-    for (int i = 0; i < structType.getNumFields(); i++) {
-      if (structType.getField(i).getType().isFunctionPointer()) {
-        needsNativeCode = true;
-        break;
+    for (int i = 0; i < structCType.getNumFields(); i++) {
+      final Field field = structCType.getField(i);
+      final Type fieldType = field.getType();
+
+      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, field.getName());
+
+      if (!cfg.shouldIgnoreInInterface(cfgFieldName0)) {
+
+        final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
+        final String fieldName = renamed==null ? field.getName() : renamed;
+        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, fieldName);
+
+        if ( fieldType.isFunctionPointer() || fieldType.isPointer() || requiresGetCStringLength(fieldType, cfgFieldName1) ) {
+            needsNativeCode = true;
+            break;
+        }
       }
     }
 
-    final String structClassPkg = cfg.packageForStruct(name);
+    final String structClassPkgName = cfg.packageForStruct(structCTypeName);
     final PrintWriter javaWriter;
     final PrintWriter jniWriter;
     try  {
         javaWriter = openFile(cfg.javaOutputDir() + File.separator +
-                              CodeGenUtils.packageAsPath(structClassPkg) +
-                              File.separator + containingTypeName + ".java", containingTypeName);
+                              CodeGenUtils.packageAsPath(structClassPkgName) +
+                              File.separator + containingJTypeName + ".java", containingJTypeName);
         if( null == javaWriter ) {
             // suppress output if openFile deliberately returns null.
             return;
@@ -901,9 +916,9 @@ public class JavaEmitter implements GlueEmitter {
             if (cfg.nativeOutputUsesJavaHierarchy()) {
                 nRoot += File.separator + CodeGenUtils.packageAsPath(cfg.packageName());
             }
-            jniWriter = openFile(nRoot + File.separator + containingTypeName + "_JNI.c", containingTypeName);
+            jniWriter = openFile(nRoot + File.separator + containingJTypeName + "_JNI.c", containingJTypeName);
             CodeGenUtils.emitAutogeneratedWarning(jniWriter, this);
-            emitCHeader(jniWriter, structClassPkg, containingTypeName);
+            emitCHeader(jniWriter, structClassPkgName, containingJTypeName);
         } else {
             jniWriter = null;
         }
@@ -912,7 +927,7 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     javaWriter.println();
-    javaWriter.println("package " + structClassPkg + ";");
+    javaWriter.println("package " + structClassPkgName + ";");
     javaWriter.println();
     javaWriter.println("import java.nio.*;");
     javaWriter.println();
@@ -929,13 +944,13 @@ public class JavaEmitter implements GlueEmitter {
       javaWriter.println(";");
     }
     javaWriter.println();
-    List<String> javadoc = cfg.javadocForClass(containingTypeName);
+    List<String> javadoc = cfg.javadocForClass(containingJTypeName);
     for (String doc : javadoc) {
       javaWriter.println(doc);
     }
-    javaWriter.print("public class " + containingTypeName + " ");
+    javaWriter.print("public class " + containingJTypeName + " ");
     boolean firstIteration = true;
-    List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingTypeName);
+    List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingJTypeName);
     for (String userInterface : userSpecifiedInterfaces) {
       if (firstIteration) {
         javaWriter.print("implements ");
@@ -951,85 +966,90 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println("  private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();");
     javaWriter.println();
     // generate all offset and size arrays
-    generateOffsetAndSizeArrays(javaWriter, "  ", containingTypeName, structType, null, null); /* w/o offset */
+    generateOffsetAndSizeArrays(javaWriter, "  ", containingJTypeName, structCType, null, null); /* w/o offset */
     if( GlueGen.debug() ) {
-        System.err.printf("SE.__: t %s: %s%n", structType, containingTypeName);
+        System.err.printf("SE.__: structCType %s%n", structCType.getDebugString());
+        System.err.printf("SE.__: contCTypeName %s%n", containingCType.getDebugString());
+        System.err.printf("SE.__: contJTypeName %s%n", containingJType.getDebugString());
     }
-    for (int i = 0; i < structType.getNumFields(); i++) {
-      final Field field = structType.getField(i);
+    for (int i = 0; i < structCType.getNumFields(); i++) {
+      final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
-
-      if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
-        final String renamed = cfg.getJavaSymbolRename(field.getName());
+      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, field.getName());
+      if ( !cfg.shouldIgnoreInInterface(cfgFieldName0) ) {
+        final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
         final String fieldName = null==renamed ? field.getName() : renamed;
+        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, fieldName);
         if (fieldType.isFunctionPointer()) {
           // no offset/size for function pointer ..
           if( GlueGen.debug() ) {
-            System.err.printf("SE.os.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "SKIP FuncPtr");
+            System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "SKIP FuncPtr");
           }
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate
           // a name?)
           if (fieldType.getName() == null) {
-            throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
-                                       field + "\" in type \"" + name + "\")");
+            throw new RuntimeException("Anonymous structs as fields not supported yet, field \"" +
+                                       cfgFieldName1 + "\", "+fieldType.getDebugString());
           }
           if( GlueGen.debug() ) {
-            System.err.printf("SE.os.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "compound");
+            System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "compound");
           }
           generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field, null);
         } else if (fieldType.isArray()) {
             final Type baseElementType = field.getType().asArray().getBaseElementType();
             if( GlueGen.debug() ) {
-                System.err.printf("SE.os.%02d: t %s: %s / %s - baseType %s (%s)%n", (i+1), fieldType, field, fieldName, baseElementType, "array");
+                System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "array");
+                System.err.printf("SE.os.%02d: baseType %s%n", (i+1), baseElementType.getDebugString());
             }
             generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field, null);
         } else {
           final JavaType externalJavaType;
           try {
-            externalJavaType = typeToJavaType(fieldType, false, machDescJava);
+            externalJavaType = typeToJavaType(fieldType, machDescJava);
           } catch (Exception e) {
-            System.err.println("Error occurred while creating accessor for field \"" +
-                               field.getName() + "\" in type \"" + name + "\"");
-            throw(e);
+            throw new RuntimeException("Error occurred while creating accessor for field \"" +
+                                       cfgFieldName1 + "\", "+fieldType.getDebugString(), e);
           }
           if( GlueGen.debug() ) {
-              System.err.printf("SE.os.%02d: t %s: %s / %s - javaType %s (%s)%n", (i+1), fieldType, field, fieldName, externalJavaType.getDumpString(), "MISC");
+              System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, fieldName, fieldType.getDebugString(), "MISC");
+              System.err.printf("SE.os.%02d: javaType %s%n", (i+1), externalJavaType.getDebugString());
           }
           if (externalJavaType.isPrimitive()) {
             // Primitive type
             generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
+            generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, null, null);
           } else if (externalJavaType.isCPrimitivePointerType()) {
-            // FIXME: Primitive Pointer type
-            generateOffsetAndSizeArrays(javaWriter, "// Skipped C-Primitive-Ptr-Type: ", fieldName, fieldType, field, externalJavaType.getDumpString());
+            if( requiresGetCStringLength(fieldType, cfgFieldName1) ) {
+                generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
+                generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, null, "// "+externalJavaType.getDebugString());
+            } else {
+                generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, field, "// "+externalJavaType.getDebugString());
+            }
           } else {
-            // FIXME ???
-            generateOffsetAndSizeArrays(javaWriter, "// Skipped Complicated Field: ", fieldName, fieldType, field, externalJavaType.getDumpString());
-            LOG.log(WARNING, "Complicated fields (field \"{0}\" of type \"{1}\") not implemented yet: {2}",
-                    new Object[]{field, name, externalJavaType.getDumpString()});
-            //          throw new RuntimeException("Complicated fields (field \"" + field + "\" of type \"" + t +
-            //                                     "\") not implemented yet");
+            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
+            generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, null, "// "+externalJavaType.getDebugString());
           }
         }
       } else if( GlueGen.debug() ) {
-        System.err.printf("SE.os.%02d: t %s: %s (IGNORED)%n", (i+1), fieldType, field);
+        System.err.printf("SE.os.%02d: %s, %s (IGNORED)%n", (i+1), field, fieldType.getDebugString());
       }
     }
     javaWriter.println();
     javaWriter.println("  public static int size() {");
-    javaWriter.println("    return "+containingTypeName+"_size[mdIdx];");
+    javaWriter.println("    return "+containingJTypeName+"_size[mdIdx];");
     javaWriter.println("  }");
     javaWriter.println();
-    javaWriter.println("  public static " + containingTypeName + " create() {");
+    javaWriter.println("  public static " + containingJTypeName + " create() {");
     javaWriter.println("    return create(Buffers.newDirectByteBuffer(size()));");
     javaWriter.println("  }");
     javaWriter.println();
-    javaWriter.println("  public static " + containingTypeName + " create(java.nio.ByteBuffer buf) {");
-    javaWriter.println("      return new " + containingTypeName + "(buf);");
+    javaWriter.println("  public static " + containingJTypeName + " create(java.nio.ByteBuffer buf) {");
+    javaWriter.println("      return new " + containingJTypeName + "(buf);");
     javaWriter.println("  }");
     javaWriter.println();
-    javaWriter.println("  " + containingTypeName + "(java.nio.ByteBuffer buf) {");
+    javaWriter.println("  " + containingJTypeName + "(java.nio.ByteBuffer buf) {");
     javaWriter.println("    accessor = new StructAccessor(buf);");
     javaWriter.println("  }");
     javaWriter.println();
@@ -1037,167 +1057,51 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println("    return accessor.getBuffer();");
     javaWriter.println("  }");
 
-    for (int i = 0; i < structType.getNumFields(); i++) {
-      final Field field = structType.getField(i);
+    Set<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
+
+    for (int i = 0; i < structCType.getNumFields(); i++) {
+      final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
 
-      if (!cfg.shouldIgnoreInInterface(name + " " + field.getName())) {
-        final String renamed = cfg.getJavaSymbolRename(field.getName());
+      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, field.getName());
+      if (!cfg.shouldIgnoreInInterface(cfgFieldName0)) {
+        final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
         final String fieldName = renamed==null ? field.getName() : renamed;
+        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, fieldName);
 
+        if( GlueGen.debug() ) {
+          System.err.printf("SE.ac.%02d: %s / %s, %s%n", (i+1), field, cfgFieldName1, fieldType.getDebugString());
+        }
         if (fieldType.isFunctionPointer()) {
-            if( GlueGen.debug() ) {
-              System.err.printf("SE.ac.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "funcPtr");
-            }
-            try {
-              // Emit method call and associated native code
-              final FunctionType   funcType     = fieldType.asPointer().getTargetType().asFunction();
-              final FunctionSymbol funcSym      = new FunctionSymbol(fieldName, funcType);
-              final MethodBinding  binding      = bindFunction(funcSym, containingType, containingCType, machDescJava);
-              binding.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
-              javaWriter.println();
-
-              // Emit public Java entry point for calling this function pointer
-              JavaMethodBindingEmitter emitter =
-                new JavaMethodBindingEmitter(binding,
-                                             javaWriter,
-                                             cfg.runtimeExceptionType(),
-                                             cfg.unsupportedExceptionType(),
-                                             true,
-                                             cfg.tagNativeBinding(),
-                                             false, // eraseBufferAndArrayTypes
-                                             true, // FIXME: should unify this with the general emission code
-                                             true, // FIXME: should unify this with the general emission code
-                                             false,
-                                             false, // FIXME: should unify this with the general emission code
-                                             false, // FIXME: should unify this with the general emission code
-                                             false, // FIXME: should unify this with the general emission code
-                                             false,
-                                             cfg);
-              emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
-              emitter.emit();
-
-              // Emit private native Java entry point for calling this function pointer
-              emitter =
-                new JavaMethodBindingEmitter(binding,
-                                             javaWriter,
-                                             cfg.runtimeExceptionType(),
-                                             cfg.unsupportedExceptionType(),
-                                             false,
-                                             cfg.tagNativeBinding(),
-                                             true,
-                                             true, // FIXME: should unify this with the general emission code
-                                             true, // FIXME: should unify this with the general emission code
-                                             true,
-                                             true, // FIXME: should unify this with the general emission code
-                                             false, // FIXME: should unify this with the general emission code
-                                             false, // FIXME: should unify this with the general emission code
-                                             false,
-                                             cfg);
-              emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
-              emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-              emitter.emit();
-
-              // Emit (private) C entry point for calling this function pointer
-              CMethodBindingEmitter cEmitter =
-                new CMethodBindingEmitter(binding,
-                                          jniWriter,
-                                          structClassPkg,
-                                          containingTypeName,
-                                          true, // FIXME: this is optional at this point
-                                          false,
-                                          true,
-                                          false, // FIXME: should unify this with the general emission code
-                                          machDescJava);
-              prepCEmitter(binding, cEmitter);
-              cEmitter.emit();
-            } catch (Exception e) {
-              System.err.println("While processing field " + field + " of type " + name + ":");
-              throw(e);
-            }
+            generateFunctionPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
+                                        containingCType, containingJType, i,
+                                        new FunctionSymbol(fieldName, fieldType.asPointer().getTargetType().asFunction()), cfgFieldName1);
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate a name?)
           if (fieldType.getName() == null) {
             throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
-                                       field + "\" in type \"" + name + "\")");
+                                       field + "\" in type \"" + structCTypeName + "\")");
           }
-          if( GlueGen.debug() ) {
-            System.err.printf("SE.ac.%02d: t %s: %s / %s (%s)%n", (i+1), fieldType, field, fieldName, "compound");
-          }
-
           javaWriter.println();
-          generateGetterSignature(javaWriter, false, fieldType.getName(), capitalizeString(fieldName));
+          generateGetterSignature(javaWriter, fieldType, false, fieldType.getName(), capitalizeString(fieldName), null, null);
           javaWriter.println(" {");
           javaWriter.println("    return " + fieldType.getName() + ".create( accessor.slice( " +
                            fieldName+"_offset[mdIdx], "+fieldName+"_size[mdIdx] ) );");
           javaWriter.println(" }");
 
-        } else if (fieldType.isArray()) {
-            final Type baseElementType = field.getType().asArray().getBaseElementType();
-            final JavaType paramType = typeToJavaType(baseElementType, false, machDescJava);
-
-            final String paramTypeName = paramType.getName();
-            final String capitalized = capitalizeString(fieldName);
-            if( GlueGen.debug() ) {
-                System.err.printf("SE.ac.%02d: t %s: %s / %s - baseType %s, paramType %s (%s)%n", (i+1), fieldType, field, fieldName, baseElementType, paramType.getDumpString(), "array");
-            }
-
-            // Setter
-            javaWriter.println();
-            generateSetterSignature(javaWriter, false, containingTypeName, capitalized, paramTypeName+"[]");
-            javaWriter.println(" {");
-            if(baseElementType.isPrimitive()) {
-                javaWriter.print  ("    accessor.set" + capitalizeString(paramTypeName) + "sAt(" + fieldName+"_offset[mdIdx], val);");
-                javaWriter.println("    return this;");
-            } else {
-                javaWriter.println("    final int elemSize = "+paramTypeName+".size();");
-                javaWriter.println("    final ByteBuffer destB = getBuffer();");
-                javaWriter.println("    int offset = "+fieldName+"_offset[mdIdx];");
-                javaWriter.println("    final int total = "+fieldType.asArray().getLength()+" * elemSize;");
-                javaWriter.println("    if( total > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"total \"+total+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * "+fieldType.asArray().getLength()+"\"); };");
-                javaWriter.println("    final int limes = offset + total;");
-                javaWriter.println("    if( limes >= destB.limit() ) { throw new IndexOutOfBoundsException(\"limes \"+limes+\" >= buffer.limit \"+destB.limit()+\", elemOff \"+offset+\", elemSize \"+elemSize+\" * "+fieldType.asArray().getLength()+"\"); };");
-                javaWriter.println("    for(int e=0; e<"+fieldType.asArray().getLength()+"; e++) {");
-                javaWriter.println("      final "+paramTypeName+" source = val[e];");
-                javaWriter.println("      final ByteBuffer sourceB = source.getBuffer();");
-                javaWriter.println("      for(int f=0; f<elemSize; f++) {");
-                javaWriter.println("        if( offset >= limes ) { throw new IndexOutOfBoundsException(\"elem-byte[\"+e+\"][\"+f+\"]: offset \"+offset+\" >= limes \"+limes+\", elemSize \"+elemSize+\" * "+fieldType.asArray().getLength()+"\"); };");
-                javaWriter.println("        destB.put(offset++, sourceB.get(f));");
-                javaWriter.println("      }");
-                javaWriter.println("    }");
-                javaWriter.println("    return this;");
-            }
-            javaWriter.println("  }");
-            javaWriter.println();
-            // Getter
-            generateGetterSignature(javaWriter, false, paramTypeName+"[]", capitalized);
-            javaWriter.println(" {");
-            if(baseElementType.isPrimitive()) {
-                javaWriter.print  ("    return accessor.get" + capitalizeString(paramTypeName) + "sAt(" + fieldName+"_offset[mdIdx], new " +paramTypeName+"["+fieldType.asArray().getLength()+"]);");
-            } else {
-                javaWriter.println("    final "+paramTypeName+"[] res = new "+paramTypeName+"["+fieldType.asArray().getLength()+"];");
-                javaWriter.println("    int offset = "+fieldName+"_offset[mdIdx];");
-                javaWriter.println("    final int elemSize = "+paramTypeName+".size();");
-                javaWriter.println("    for(int e=0; e<"+fieldType.asArray().getLength()+"; e++) {");
-                javaWriter.println("      res[e] = "+paramTypeName+".create(accessor.slice(offset, elemSize));");
-                javaWriter.println("      offset += elemSize;");
-                javaWriter.println("    }");
-                javaWriter.println("    return res;");
-            }
-            javaWriter.println(" }");
+        } else if ( fieldType.isArray() || fieldType.isPointer() ) {
+            generateArrayGetterSetterCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
+                                          containingCType, containingJType,
+                                          i, field, fieldName, cfgFieldName1);
         } else {
           final JavaType javaType;
-
           try {
-            javaType = typeToJavaType(fieldType, false, machDescJava);
+            javaType = typeToJavaType(fieldType, machDescJava);
           } catch (Exception e) {
             System.err.println("Error occurred while creating accessor for field \"" +
-                               field.getName() + "\" in type \"" + name + "\"");
+                               field.getName() + "\", "+fieldType.getDebugString());
             throw(e);
-          }
-          if( GlueGen.debug() ) {
-              System.err.printf("SE.ac.%02d: t %s: %s / %s - javaType %s (%s)%n", (i+1), fieldType, field, fieldName, javaType.getDumpString(), "MISC");
           }
           if (javaType.isPrimitive()) {
             // Primitive type
@@ -1213,26 +1117,27 @@ public class JavaEmitter implements GlueEmitter {
             final String sizeDenominator = fieldType.isPointer() ? "pointer" : javaTypeName ;
 
             if(GlueGen.debug()) {
-                System.err.println("Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getName(true)+", "+javaTypeName+", "+
-                                   ", fixedSize "+fieldTypeNativeSizeFixed+", opaque "+isOpaque(fieldType)+", isPointer "+fieldType.isPointer()+", isCompound "+fieldType.isCompound()+
-                                   ", sizeDenominator "+sizeDenominator);
+                System.err.println("Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getDebugString()+", "+javaTypeName+", "+
+                                   ", fixedSize "+fieldTypeNativeSizeFixed+", opaque "+isOpaque(fieldType)+", sizeDenominator "+sizeDenominator);
             }
 
-            javaWriter.println();
-            // Setter
-            generateSetterSignature(javaWriter, false, containingTypeName, capFieldName, javaTypeName);
-            javaWriter.println(" {");
-            if( fieldTypeNativeSizeFixed ) {
-                javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val);");
-            } else {
-                javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
+            if( !fieldType.isConst() ) {
+                // Setter
+                javaWriter.println();
+                generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capFieldName, null, javaTypeName, null, null);
+                javaWriter.println(" {");
+                if( fieldTypeNativeSizeFixed ) {
+                    javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val);");
+                } else {
+                    javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
+                }
+                javaWriter.println("    return this;");
+                javaWriter.println("  }");
             }
-            javaWriter.println("    return this;");
-            javaWriter.println("  }");
-            javaWriter.println();
 
             // Getter
-            generateGetterSignature(javaWriter, false, javaTypeName, capFieldName);
+            javaWriter.println();
+            generateGetterSignature(javaWriter, fieldType, false, javaTypeName, capFieldName, null, null);
             javaWriter.println(" {");
             javaWriter.print  ("    return ");
             if( fieldTypeNativeSizeFixed ) {
@@ -1241,30 +1146,31 @@ public class JavaEmitter implements GlueEmitter {
                 javaWriter.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
             }
             javaWriter.println("  }");
-          } else if (javaType.isCPrimitivePointerType()) {
-            // FIXME: Primitive Pointer type
+          } else {
             javaWriter.println();
-            javaWriter.println("  /** "+fieldName +": "+javaType.getDumpString()+" */");
+            javaWriter.println("  /** UNKNOWN: "+cfgFieldName1 +": "+fieldType.getDebugString()+", "+javaType.getDebugString()+" */");
           }
         }
       }
     }
-    emitCustomJavaCode(javaWriter, containingTypeName);
+    emitCustomJavaCode(javaWriter, containingJTypeName);
     if (needsNativeCode) {
         javaWriter.println();
-        emitJavaInitCode(javaWriter, containingTypeName);
+        emitJavaInitCode(javaWriter, containingJTypeName);
         javaWriter.println();
     }
     javaWriter.println("}");
     javaWriter.flush();
     javaWriter.close();
     if (needsNativeCode) {
-      emitCInitCode(jniWriter, structClassPkg, containingTypeName);
+      emitCInitCode(jniWriter, structClassPkgName, containingJTypeName);
       jniWriter.flush();
       jniWriter.close();
     }
     if( GlueGen.debug() ) {
-        System.err.printf("SE.XX: t %s: %s%n", structType, containingTypeName);
+        System.err.printf("SE.XX: structCType %s%n", structCType.getDebugString());
+        System.err.printf("SE.XX: contCTypeName %s%n", containingCType.getDebugString());
+        System.err.printf("SE.XX: contJTypeName %s%n", containingJType.getDebugString());
     }
   }
   @Override
@@ -1298,12 +1204,39 @@ public class JavaEmitter implements GlueEmitter {
   // Internals only below this point
   //
 
-  private void generateGetterSignature(PrintWriter writer, boolean abstractMethod, String returnTypeName, String capitalizedFieldName) {
-      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "()");
+  private void generateGetterSignature(final PrintWriter writer, final Type origFieldType, final boolean abstractMethod,
+                                       final String returnTypeName, final String capitalizedFieldName,
+                                       final String customArgs, final String arrayLengthExpr) {
+      writer.print("  /** Getter for native field: "+origFieldType.getDebugString());
+      if( null != arrayLengthExpr ) {
+          writer.print(", with array length of <code>"+arrayLengthExpr+"</code>");
+      }
+      writer.println(" */");
+      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
+      if( null != customArgs ) {
+          writer.print(customArgs);
+      }
+      writer.print(")");
   }
 
-  private void generateSetterSignature(PrintWriter writer, boolean abstractMethod, String returnTypeName, String capitalizedFieldName, String paramTypeName) {
-      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(" + paramTypeName + " val)");
+  private void generateSetterSignature(final PrintWriter writer, final Type origFieldType, final boolean abstractMethod,
+                                       final String returnTypeName, final String capitalizedFieldName,
+                                       final String customArgsPre, final String paramTypeName, final String customArgsPost,
+                                       final String arrayLengthExpr) {
+      writer.print("  /** Setter for native field: "+origFieldType.getDebugString());
+      if( null != arrayLengthExpr ) {
+          writer.print(", with array length of <code>"+arrayLengthExpr+"</code>");
+      }
+      writer.println(" */");
+      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(");
+      if( null != customArgsPre ) {
+          writer.print(customArgsPre+", ");
+      }
+      writer.print(paramTypeName + " val");
+      if( null != customArgsPost ) {
+          writer.print(", "+customArgsPost);
+      }
+      writer.print(")");
   }
 
   private void generateOffsetAndSizeArrays(PrintWriter writer, String prefix, String fieldName, Type fieldType, Field field, String postfix) {
@@ -1336,31 +1269,682 @@ public class JavaEmitter implements GlueEmitter {
       }
   }
 
-  private JavaType typeToJavaType(Type cType, boolean outgoingArgument, MachineDescription curMachDesc) {
-    // Recognize JNIEnv* case up front
-    PointerType opt = cType.asPointer();
-    if ((opt != null) &&
-        (opt.getTargetType().getName() != null) &&
-        (opt.getTargetType().getName().equals("JNIEnv"))) {
-      return JavaType.createForJNIEnv();
-    }
-    Type t = cType;
+  private void generateFunctionPointerCode(final Set<MethodBinding> methodBindingSet,
+          final PrintWriter javaWriter, final PrintWriter jniWriter,
+          final String structCTypeName, final String structClassPkgName,
+          final Type containingCType, final JavaType containingJType,
+          final int i, final FunctionSymbol funcSym, final String returnSizeLookupName) {
+      // Emit method call and associated native code
+      final MethodBinding  mb = bindFunction(funcSym, containingJType, containingCType, machDescJava);
+      mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
 
+      // JavaTypes representing C pointers in the initial
+      // MethodBinding have not been lowered yet to concrete types
+      final List<MethodBinding> bindings = expandMethodBinding(mb);
+
+      final boolean useNIOOnly = true;
+      final boolean useNIODirectOnly = true;
+
+      for (final MethodBinding binding : bindings) {
+          if(!methodBindingSet.add(binding)) {
+              // skip .. already exisiting binding ..
+              continue;
+          }
+          javaWriter.println();
+          // Emit public Java entry point for calling this function pointer
+          JavaMethodBindingEmitter emitter =
+                  new JavaMethodBindingEmitter(binding,
+                          javaWriter,
+                          cfg.runtimeExceptionType(),
+                          cfg.unsupportedExceptionType(),
+                          true,
+                          cfg.tagNativeBinding(),
+                          false, // eraseBufferAndArrayTypes
+                          useNIOOnly,
+                          useNIODirectOnly,
+                          false,
+                          false, // FIXME: should unify this with the general emission code
+                          false, // forIndirectBufferAndArrayImplementation
+                          false, // FIXME: should unify this with the general emission code
+                          false,
+                          cfg);
+          emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+          emitter.emit();
+
+          // Emit private native Java entry point for calling this function pointer
+          emitter =
+                  new JavaMethodBindingEmitter(binding,
+                          javaWriter,
+                          cfg.runtimeExceptionType(),
+                          cfg.unsupportedExceptionType(),
+                          false,
+                          cfg.tagNativeBinding(),
+                          true, // eraseBufferAndArrayTypes
+                          useNIOOnly,
+                          useNIODirectOnly,
+                          true,
+                          true, // FIXME: should unify this with the general emission code
+                          false, // forIndirectBufferAndArrayImplementation
+                          false, // FIXME: should unify this with the general emission code
+                          false,
+                          cfg);
+          emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+          emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+          emitter.emit();
+
+          // Emit (private) C entry point for calling this function pointer
+          CMethodBindingEmitter cEmitter =
+                  new CMethodBindingEmitter(binding,
+                          jniWriter,
+                          structClassPkgName,
+                          containingJType.getName(),
+                          true, // FIXME: this is optional at this point
+                          false,
+                          true,
+                          false, // forIndirectBufferAndArrayImplementation
+                          machDescJava);
+          cEmitter.setIsCStructFunctionPointer(true);
+          prepCEmitter(returnSizeLookupName, binding.getJavaReturnType(), cEmitter);
+          cEmitter.emit();
+      }
+  }
+
+  private void generateArrayPointerCode(final Set<MethodBinding> methodBindingSet,
+          final PrintWriter javaWriter, final PrintWriter jniWriter,
+          final String structCTypeName, final String structClassPkgName,
+          final Type containingCType, final JavaType containingJType,
+          final int i, final FunctionSymbol funcSym,
+          final String returnSizeLookupName, final String docArrayLenExpr, final String nativeArrayLenExpr) {
+      // Emit method call and associated native code
+      final MethodBinding  mb = bindFunction(funcSym, containingJType, containingCType, machDescJava);
+      mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
+
+      // JavaTypes representing C pointers in the initial
+      // MethodBinding have not been lowered yet to concrete types
+      final List<MethodBinding> bindings = expandMethodBinding(mb);
+
+      final boolean useNIOOnly = true;
+      final boolean useNIODirectOnly = true;
+
+      for (final MethodBinding binding : bindings) {
+          if(!methodBindingSet.add(binding)) {
+              // skip .. already exisiting binding ..
+              continue;
+          }
+          JavaMethodBindingEmitter emitter;
+
+          // Emit private native Java entry point for calling this function pointer
+          emitter =
+                  new JavaMethodBindingEmitter(binding,
+                          javaWriter,
+                          cfg.runtimeExceptionType(),
+                          cfg.unsupportedExceptionType(),
+                          false,
+                          cfg.tagNativeBinding(),
+                          true, // eraseBufferAndArrayTypes
+                          useNIOOnly,
+                          useNIODirectOnly,
+                          true,
+                          true, // FIXME: should unify this with the general emission code
+                          false, // forIndirectBufferAndArrayImplementation
+                          false, // FIXME: should unify this with the general emission code
+                          false,
+                          cfg);
+          if( null != docArrayLenExpr ) {
+              emitter.setReturnedArrayLengthExpression(docArrayLenExpr, true);
+          }
+          emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
+          emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
+          emitter.emit();
+
+          // Emit (private) C entry point for calling this function pointer
+          CMethodBindingEmitter cEmitter =
+                  new CMethodBindingEmitter(binding,
+                          jniWriter,
+                          structClassPkgName,
+                          containingJType.getName(),
+                          true, // FIXME: this is optional at this point
+                          false,
+                          true,
+                          false, // forIndirectBufferAndArrayImplementation
+                          machDescJava);
+          cEmitter.setIsCStructFunctionPointer(false);
+          final String lenExprSet;
+          if( null != nativeArrayLenExpr ) {
+              JavaType javaReturnType = binding.getJavaReturnType();
+              if (javaReturnType.isNIOBuffer() ||
+                      javaReturnType.isCompoundTypeWrapper()) {
+                  final Type retType = funcSym.getReturnType();
+                  final Type baseType = retType.getBaseElementType();
+                  lenExprSet = nativeArrayLenExpr+" * sizeof("+baseType.getName()+")";
+                  cEmitter.setReturnValueCapacityExpression( new MessageFormat(lenExprSet) );
+              } else if (javaReturnType.isArray() ||
+                      javaReturnType.isArrayOfCompoundTypeWrappers()) {
+                  lenExprSet = nativeArrayLenExpr;
+                  cEmitter.setReturnValueLengthExpression( new MessageFormat(lenExprSet) );
+              } else {
+                  lenExprSet = null;
+              }
+          } else {
+              lenExprSet = null;
+          }
+          prepCEmitter(returnSizeLookupName, binding.getJavaReturnType(), cEmitter);
+          cEmitter.emit();
+      }
+  }
+
+  private String getArrayArrayLengthExpr(final ArrayType type, final String returnSizeLookupName, final boolean hasFixedTypeLen[], final int[][] lengthRes) {
+      final int[] length = new int[type.arrayDimension()];
+      lengthRes[0] = length;
+      final StringBuilder lengthExpr = new StringBuilder();
+      hasFixedTypeLen[0] = true;
+      ArrayType typeIter = type;
+      for(int i=0; i<length.length; i++) {
+          if( null!=typeIter && typeIter.hasLength() ) {
+              length[i] = typeIter.getLength();
+              if( 0 < i ) {
+                  lengthExpr.append("*");
+              }
+              lengthExpr.append(length[i]);
+          } else {
+              length[i] = -1;
+              hasFixedTypeLen[0] = false;
+          }
+          if( null != typeIter ) {
+              typeIter = typeIter.getElementType().asArray();
+          }
+      }
+      final String cfgVal = cfg.returnedArrayLength(returnSizeLookupName);
+      if( null != cfgVal ) {
+          if( hasFixedTypeLen[0] ) {
+              System.err.println("WARNING: struct array field '"+returnSizeLookupName+"' of '"+type+"' length '"+Arrays.toString(length)+"' overwritten by cfg-expression: "+cfgVal);
+          }
+          return cfgVal;
+      }
+      if( hasFixedTypeLen[0] ) {
+          return lengthExpr.toString();
+      } else {
+          System.err.println("WARNING: struct array field '"+returnSizeLookupName+"' length '"+Arrays.toString(length)+"' without fixed- nor configured-size: "+type.getDebugString());
+          return null;
+      }
+  }
+  private String getPointerArrayLengthExpr(final PointerType type, final String returnSizeLookupName) {
+      final String cfgVal = cfg.returnedArrayLength(returnSizeLookupName);
+      if( null != cfgVal ) {
+          return cfgVal;
+      }
+      return null;
+  }
+
+  private static final String dummyFuncTypeName = "null *";
+  private static final Type int32Type = new IntType("int32_t", SizeThunk.INT32, false, CVAttributes.CONST);
+  // private static final Type int8Type = new IntType("char", SizeThunk.INT8, false, 0);
+  // private static final Type int8PtrType = new PointerType(SizeThunk.POINTER, int8Type, 0);
+  private static final String nativeArrayLengthArg = "arrayLength";
+  private static final String nativeArrayLengthONE = "1";
+  private static final String nativeArrayElemOffsetArg = "elem_offset";
+
+  private boolean requiresGetCStringLength(final Type fieldType, final String returnSizeLookupName) {
+      if( !cfg.returnsString(returnSizeLookupName) ) {
+          return false;
+      }
+      final PointerType pointerType = fieldType.asPointer();
+      if( null != pointerType ) {
+          return null == getPointerArrayLengthExpr(pointerType, returnSizeLookupName);
+      }
+      return false;
+  }
+
+  private void generateArrayGetterSetterCode(final Set<MethodBinding> methodBindingSet,
+                                             final PrintWriter javaWriter, final PrintWriter jniWriter,
+                                             final String structCTypeName, final String structClassPkgName,
+                                             final Type containingCType, final JavaType containingJType,
+                                             final int i, final Field field, final String fieldName, final String returnSizeLookupName) throws Exception {
+      final Type fieldType = field.getType();
+      final JavaType javaType;
+      try {
+        javaType = typeToJavaType(fieldType, machDescJava);
+      } catch (Exception e) {
+        throw new RuntimeException("Error occurred while creating array/pointer accessor for field \"" +
+                                   returnSizeLookupName + "\", "+fieldType.getDebugString(), e);
+      }
+      if( GlueGen.debug() ) {
+          System.err.printf("SE.ac.%02d: javaType  %s%n", (i+1), javaType.getDebugString());
+      }
+
+      //
+      // Collect all required information including considering Opaque types
+      //
+      final String containingJTypeName = containingJType.getName();
+      final boolean isOpaque = isOpaque(fieldType);
+      final boolean isString = cfg.returnsString(returnSizeLookupName); // FIXME: Allow custom Charset ? US-ASCII, UTF-8 or UTF-16 ?
+      final boolean useGetCStringLength;
+      final String arrayLengthExpr;
+      final int[] arrayLengths;
+      final boolean useFixedTypeLen[] = { false };
+      final boolean isPointer;
+      final boolean isPrimitive;
+      final boolean isConst;
+      final JavaType baseJElemType;
+      final String baseJElemTypeName;
+      final boolean hasSingleElement;
+      final String capitalFieldName;
+      final String baseJElemTypeNameC;
+      final String baseJElemTypeNameU;
+      final boolean isByteBuffer;
+      {
+          final Type baseCElemType;
+          final ArrayType arrayType = fieldType.asArray();
+          String _arrayLengthExpr = null;
+          if( isOpaque || javaType.isPrimitive() ) {
+              // Overridden by JavaConfiguration.typeInfo(..), i.e. Opaque!
+              // Emulating array w/ 1 element
+              isPrimitive = true;
+              _arrayLengthExpr = nativeArrayLengthONE;
+              arrayLengths = new int[] { 1 };
+              baseCElemType = null;
+              isPointer = false;
+              isConst = fieldType.isConst();
+              baseJElemType = null;
+              baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
+          } else {
+              if( null != arrayType ) {
+                  final int[][] lengthRes = new int[1][];
+                  _arrayLengthExpr = getArrayArrayLengthExpr(arrayType, returnSizeLookupName, useFixedTypeLen, lengthRes);
+                  arrayLengths = lengthRes[0];
+                  baseCElemType = arrayType.getBaseElementType();
+                  isPointer = false;
+              } else {
+                  final PointerType pointerType = fieldType.asPointer();
+                  _arrayLengthExpr = getPointerArrayLengthExpr(pointerType, returnSizeLookupName);
+                  arrayLengths = null;
+                  baseCElemType = pointerType.getBaseElementType();
+                  isPointer = true;
+                  if( 1 != pointerType.pointerDepth() ) {
+                      javaWriter.println();
+                      final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+returnSizeLookupName +": "+fieldType;
+                      javaWriter.println("  // "+msg);
+                      System.err.println("WARNING: "+msg);
+                      return;
+                  }
+              }
+              if( GlueGen.debug() ) {
+                  System.err.printf("SE.ac.%02d: baseCType %s%n", (i+1), baseCElemType.getDebugString());
+              }
+              isPrimitive = baseCElemType.isPrimitive();
+              isConst = baseCElemType.isConst();
+              try {
+                  baseJElemType = typeToJavaType(baseCElemType, machDescJava);
+              } catch (Exception e ) {
+                  throw new RuntimeException("Error occurred while creating array/pointer accessor for field \"" +
+                                              returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(), e);
+              }
+              baseJElemTypeName = baseJElemType.getName();
+
+              if( baseCElemType.isPrimitive() && !baseCElemType.getSize().hasFixedNativeSize() ) {
+                  javaWriter.println();
+                  final String msg = "SKIP primitive w/ platform dependent sized type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
+                  javaWriter.println("  // "+msg);
+                  System.err.println("WARNING: "+msg);
+                  return;
+              }
+          }
+          if( GlueGen.debug() ) {
+              System.err.printf("SE.ac.%02d: baseJElemType %s%n", (i+1), (null != baseJElemType ? baseJElemType.getDebugString() : null));
+          }
+          capitalFieldName = capitalizeString(fieldName);
+          baseJElemTypeNameC = capitalizeString(baseJElemTypeName);
+          baseJElemTypeNameU = baseJElemTypeName.toUpperCase();
+          isByteBuffer = "Byte".equals(baseJElemTypeNameC);
+          if( null == _arrayLengthExpr && isString && isPointer ) {
+              useGetCStringLength = true;
+              _arrayLengthExpr = "getCStringLengthImpl(pString)+1";
+              this.requiresStaticInitialization = true;
+              LOG.log(INFO, "StaticInit Trigger.3 \"{0}\"", returnSizeLookupName);
+          } else {
+              useGetCStringLength = false;
+          }
+          arrayLengthExpr = _arrayLengthExpr;
+          if( null == arrayLengthExpr ) {
+              javaWriter.println();
+              final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
+              javaWriter.println("  // "+msg);
+              System.err.println("WARNING: "+msg);
+              return;
+          }
+          boolean _hasSingleElement=false;
+          try {
+              _hasSingleElement = 1 ==Integer.parseInt(_arrayLengthExpr);
+          } catch (Exception e ) {}
+          hasSingleElement = _hasSingleElement;
+      }
+      if( GlueGen.debug() ) {
+          System.err.printf("SE.ac.%02d: baseJElemTypeName %s, array-lengths %s%n", (i+1), baseJElemTypeName, Arrays.toString(arrayLengths));
+          System.err.printf("SE.ac.%02d: arrayLengthExpr: %s, hasSingleElement %b, isByteBuffer %b, isString %b, isPointer %b, isPrimitive %b, isOpaque %b, isConst %b, useGetCStringLength %b%n",
+                  (i+1), arrayLengthExpr, hasSingleElement, isByteBuffer, isString, isPointer, isPrimitive, isOpaque, isConst, useGetCStringLength);
+      }
+
+      //
+      // Emit ..
+      //
+      if( !hasSingleElement && useFixedTypeLen[0] ) {
+          javaWriter.println();
+          generateGetterSignature(javaWriter, fieldType, false, "final int", capitalFieldName+"ArrayLength", null, arrayLengthExpr);
+          javaWriter.println(" {");
+          javaWriter.println("    return "+arrayLengthExpr+";");
+          javaWriter.println("  }");
+      }
+      if( !isConst ) {
+          // Setter
+          javaWriter.println();
+          if( isPrimitive ) {
+              // Setter Primitive
+              if( isPointer ) {
+                  // Setter Primitive Pointer
+                  final String msg = "SKIP setter for primitive-pointer type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
+                  javaWriter.println("  // "+msg);
+                  System.err.println("INFO: "+msg);
+              } else {
+                  // Setter Primitive Array
+                  if( hasSingleElement ) {
+                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capitalFieldName, null, baseJElemTypeName, null, arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val);");
+                      javaWriter.println("    return this;");
+                      javaWriter.println("  }");
+                  } else {
+                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capitalFieldName, "final int offset", baseJElemTypeName+"[]", null, arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                      javaWriter.println("    if( offset + val.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + val.length \"+val.length+\" > array-length \"+arrayLength); };");
+                      javaWriter.println("    final int elemSize = Buffers.SIZEOF_"+baseJElemTypeNameU+";");
+                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
+                      javaWriter.println("    final int bTotal = arrayLength * elemSize;");
+                      javaWriter.println("    if( bTotal > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"bTotal \"+bTotal+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
+                      javaWriter.println("    final int bLimes = bOffset + bTotal;");
+                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("    bOffset += elemSize * offset;");
+                      javaWriter.println("    accessor.set" + baseJElemTypeNameC + "sAt(bOffset, val);");
+                      javaWriter.println("    return this;");
+                      javaWriter.println("  }");
+                  }
+              }
+          } else {
+              // Setter Struct
+              if( isPointer ) {
+                  // Setter Struct Pointer
+                  final String msg = "SKIP setter for complex-pointer type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
+                  javaWriter.println("  // "+msg);
+                  System.err.println("INFO: "+msg);
+              } else {
+                  // Setter Struct Array
+                  if( hasSingleElement ) {
+                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capitalFieldName, null, baseJElemTypeName, null, arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
+                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
+                      javaWriter.println("    if( elemSize > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"elemSize \"+elemSize+\" > size \"+"+fieldName+"_size[mdIdx]); };");
+                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
+                      javaWriter.println("    final int bLimes = bOffset + elemSize;");
+                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize); };");
+                      javaWriter.println("    final ByteBuffer sourceB = val.getBuffer();");
+                      javaWriter.println("    for(int f=0; f<elemSize; f++) {");
+                      javaWriter.println("      if( bOffset >= bLimes ) { throw new IndexOutOfBoundsException(\"elem-byte[0][\"+f+\"]: bOffset \"+bOffset+\" >= bLimes \"+bLimes+\", elemSize \"+elemSize); };");
+                      javaWriter.println("      destB.put(bOffset++, sourceB.get(f));");
+                      javaWriter.println("    }");
+                      javaWriter.println("    return this;");
+                      javaWriter.println("  }");
+                  } else {
+                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capitalFieldName, "final int offset", baseJElemTypeName+"[]", null, arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                      javaWriter.println("    if( offset + val.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + val.length \"+val.length+\" > array-length \"+arrayLength); };");
+                      javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
+                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
+                      javaWriter.println("    final int bTotal = arrayLength * elemSize;");
+                      javaWriter.println("    if( bTotal > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"bTotal \"+bTotal+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
+                      javaWriter.println("    final int bLimes = bOffset + bTotal;");
+                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("    bOffset += elemSize * offset;");
+                      javaWriter.println("    for(int index=0; index<val.length; index++) {");
+                      javaWriter.println("      final ByteBuffer sourceB = val[index].getBuffer();");
+                      javaWriter.println("      for(int f=0; f<elemSize; f++) {");
+                      javaWriter.println("        if( bOffset >= bLimes ) { throw new IndexOutOfBoundsException(\"elem-byte[\"+(offset+index)+\"][\"+f+\"]: bOffset \"+bOffset+\" >= bLimes \"+bLimes+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("        destB.put(bOffset++, sourceB.get(f));");
+                      javaWriter.println("      }");
+                      javaWriter.println("    }");
+                      javaWriter.println("    return this;");
+                      javaWriter.println("  }");
+                      javaWriter.println();
+                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capitalFieldName, "final int index", baseJElemTypeName, null, arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                      javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
+                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
+                      javaWriter.println("    final int bTotal = arrayLength * elemSize;");
+                      javaWriter.println("    if( bTotal > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"bTotal \"+bTotal+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
+                      javaWriter.println("    final int bLimes = bOffset + bTotal;");
+                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("    bOffset += elemSize * index;");
+                      javaWriter.println("    final ByteBuffer sourceB = val.getBuffer();");
+                      javaWriter.println("    for(int f=0; f<elemSize; f++) {");
+                      javaWriter.println("      if( bOffset >= bLimes ) { throw new IndexOutOfBoundsException(\"elem-byte[\"+index+\"][\"+f+\"]: bOffset \"+bOffset+\" >= bLimes \"+bLimes+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
+                      javaWriter.println("      destB.put(bOffset++, sourceB.get(f));");
+                      javaWriter.println("    }");
+                      javaWriter.println("    return this;");
+                      javaWriter.println("  }");
+                  }
+              }
+          }
+      }
+      // Getter
+      javaWriter.println();
+      if( isPrimitive ) {
+          // Getter Primitive
+          if( isPointer ) {
+              // Getter Primitive Pointer
+              final FunctionType ft = new FunctionType(dummyFuncTypeName, SizeThunk.POINTER, fieldType, 0);
+              ft.addArgument(containingCType.getCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
+                             CMethodBindingEmitter.cThisArgumentName());
+              ft.addArgument(int32Type, nativeArrayLengthArg);
+              final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
+              jniWriter.println();
+              jniWriter.print("static "+fs.toString());
+              jniWriter.println("{");
+              jniWriter.println("  return "+CMethodBindingEmitter.cThisArgumentName()+"->"+field.getName()+";");
+              jniWriter.println("}");
+              jniWriter.println();
+              generateArrayPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
+                                       containingCType, containingJType, i, fs, returnSizeLookupName, arrayLengthExpr, nativeArrayLengthArg);
+              javaWriter.println();
+              generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeNameC+"Buffer", capitalFieldName, null, arrayLengthExpr);
+              javaWriter.println(" {");
+              if( useGetCStringLength ) {
+                  javaWriter.println("    final int arrayLength = get"+capitalFieldName+"ArrayLength();");
+              } else {
+                  javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+              }
+              javaWriter.println("    final ByteBuffer _res = get"+capitalFieldName+"0(getBuffer(), arrayLength);");
+              javaWriter.println("    if (_res == null) return null;");
+              javaWriter.print("    return Buffers.nativeOrder(_res)");
+              if( !isByteBuffer ) {
+                  javaWriter.print(".as"+baseJElemTypeNameC+"Buffer()");
+              }
+              javaWriter.println(";");
+              javaWriter.println("  }");
+              if( isString && isByteBuffer ) {
+                  javaWriter.println();
+                  generateGetterSignature(javaWriter, fieldType, false, "String", capitalFieldName+"AsString", null, arrayLengthExpr);
+                  javaWriter.println(" {");
+                  if( useGetCStringLength ) {
+                      javaWriter.println("    final int arrayLength = get"+capitalFieldName+"ArrayLength();");
+                  } else {
+                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                  }
+                  javaWriter.println("    final ByteBuffer bb = get"+capitalFieldName+"0(getBuffer(), arrayLength);");
+                  javaWriter.println("    if (bb == null) return null;");
+                  javaWriter.println("    final byte[] ba = new byte[arrayLength];");
+                  javaWriter.println("    int i = -1;");
+                  javaWriter.println("    while( ++i < arrayLength ) {");
+                  javaWriter.println("      ba[i] = bb.get(i);");
+                  javaWriter.println("      if( (byte)0 == ba[i] ) break;");
+                  javaWriter.println("    }");
+                  javaWriter.println("    return new String(ba, 0, i);");
+                  javaWriter.println("  }");
+              }
+              if( useGetCStringLength ) {
+                  javaWriter.println();
+                  generateGetterSignature(javaWriter, fieldType, false, "final int", capitalFieldName+"ArrayLength", null, arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.println("    final long pString = PointerBuffer.wrap( accessor.slice(" + fieldName+"_offset[mdIdx],  PointerBuffer.ELEMENT_SIZE) ).get(0);");
+                  javaWriter.println("    return "+arrayLengthExpr+";");
+                  javaWriter.println("  }");
+              }
+          } else {
+              // Getter Primitive Array
+              if( hasSingleElement ) {
+                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx]);");
+                  javaWriter.println("  }");
+                  javaWriter.println();
+              } else {
+                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeNameC+"Buffer", capitalFieldName, null, arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.print("    return accessor.slice(" + fieldName+"_offset[mdIdx],  Buffers.SIZEOF_"+baseJElemTypeNameU+" * "+arrayLengthExpr+")");
+                  if( !isByteBuffer ) {
+                      javaWriter.print(".as"+baseJElemTypeNameC+"Buffer()");
+                  }
+                  javaWriter.println(";");
+                  javaWriter.println("  }");
+                  javaWriter.println();
+                  if( isString && isByteBuffer ) {
+                      generateGetterSignature(javaWriter, fieldType, false, "String", capitalFieldName+"AsString", null, arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    final int offset = " + fieldName+"_offset[mdIdx];");
+                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                      javaWriter.println("    final ByteBuffer bb = getBuffer();");
+                      javaWriter.println("    final byte[] ba = new byte[arrayLength];");
+                      javaWriter.println("    int i = -1;");
+                      javaWriter.println("    while( ++i < arrayLength ) {");
+                      javaWriter.println("      ba[i] = bb.get(offset+i);");
+                      javaWriter.println("      if( (byte)0 == ba[i] ) break;");
+                      javaWriter.println("    }");
+                      javaWriter.println("    return new String(ba, 0, i);");
+                      javaWriter.println("  }");
+                  } else {
+                      generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
+                      javaWriter.println(" {");
+                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                      javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
+                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "sAt(" + fieldName+"_offset[mdIdx] + (Buffers.SIZEOF_"+baseJElemTypeNameU+" * offset), result);");
+                      javaWriter.println("  }");
+                      javaWriter.println();
+                  }
+              }
+          }
+      } else {
+          // Getter Struct
+          if( isPointer ) {
+              // Getter Struct Pointer
+              final FunctionType ft = new FunctionType(dummyFuncTypeName, SizeThunk.POINTER, fieldType, 0);
+              ft.addArgument(containingCType.getCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
+                             CMethodBindingEmitter.cThisArgumentName());
+              ft.addArgument(int32Type, nativeArrayElemOffsetArg);
+              final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
+              jniWriter.println();
+              jniWriter.print("static "+fs.toString());
+              jniWriter.println("{");
+              jniWriter.println("  return "+CMethodBindingEmitter.cThisArgumentName()+"->"+field.getName()+"+"+nativeArrayElemOffsetArg+";");
+              jniWriter.println("}");
+              jniWriter.println();
+              generateArrayPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
+                                       containingCType, containingJType, i, fs, returnSizeLookupName, arrayLengthExpr, nativeArrayLengthONE);
+              javaWriter.println();
+              if( hasSingleElement ) {
+                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.println("    final ByteBuffer source = getBuffer();");
+                  javaWriter.println("    final ByteBuffer _res = get"+capitalFieldName+"0(source, 0);");
+                  javaWriter.println("    if (_res == null) return null;");
+                  javaWriter.println("    return "+baseJElemTypeName+".create(_res);");
+                  javaWriter.println("  }");
+              } else {
+                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                  javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
+                  javaWriter.println("    final ByteBuffer source = getBuffer();");
+                  javaWriter.println("    for(int index=0; index<result.length; index++) {");
+                  javaWriter.println("      final ByteBuffer _res = get"+capitalFieldName+"0(source, offset+index);");
+                  javaWriter.println("      if (_res == null) return null;");
+                  javaWriter.println("      result[index] = "+baseJElemTypeName+".create(_res);");
+                  javaWriter.println("    }");
+                  javaWriter.println("    return result;");
+                  javaWriter.println("  }");
+              }
+          } else {
+              // Getter Struct Array
+              if( hasSingleElement ) {
+                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.println("    return "+baseJElemTypeName+".create(accessor.slice("+fieldName+"_offset[mdIdx], "+baseJElemTypeName+".size()));");
+                  javaWriter.println("  }");
+              } else {
+                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
+                  javaWriter.println(" {");
+                  javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                  javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
+                  javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
+                  javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx] + ( elemSize * offset );");
+                  javaWriter.println("    for(int index=0; index<result.length; index++) {");
+                  javaWriter.println("      result[index] = "+baseJElemTypeName+".create(accessor.slice(bOffset, elemSize));");
+                  javaWriter.println("      bOffset += elemSize;");
+                  javaWriter.println("    }");
+                  javaWriter.println("    return result;");
+                  javaWriter.println("  }");
+              }
+          }
+      }
+  }
+
+  private static final boolean DEBUG_TYPEC2JAVA = false;
+  private JavaType typeToJavaType(final Type cType, final MachineDescription curMachDesc) {
+      final JavaType jt = typeToJavaTypeImpl(cType, curMachDesc);
+      if( DEBUG_TYPEC2JAVA ) {
+          System.err.println("typeToJavaType: "+cType.getDebugString()+" -> "+jt.getDebugString());
+      }
+      return jt;
+  }
+  private boolean isJNIEnvPointer(final Type cType) {
+    final PointerType opt = cType.asPointer();
+    return (opt != null) &&
+           (opt.getTargetType().getName() != null) &&
+           (opt.getTargetType().getName().equals("JNIEnv"));
+  }
+  private JavaType typeToJavaTypeImpl(final Type cType, final MachineDescription curMachDesc) {
+    // Recognize JNIEnv* case up front
+    if( isJNIEnvPointer(cType) ) {
+        return JavaType.createForJNIEnv();
+    }
     // Opaque specifications override automatic conversions
     // in case the identity is being used .. not if ptr-ptr
-    TypeInfo info = cfg.typeInfo(t, typedefDictionary);
+    final TypeInfo info = cfg.typeInfo(cType, typedefDictionary);
     if (info != null) {
       boolean isPointerPointer = false;
-      if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
+      if (cType.pointerDepth() > 0 || cType.arrayDimension() > 0) {
         Type targetType; // target type
-        if (t.isPointer()) {
+        if (cType.isPointer()) {
           // t is <type>*, we need to get <type>
-          targetType = t.asPointer().getTargetType();
+          targetType = cType.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = t.asArray().getBaseElementType();
+          targetType = cType.asArray().getBaseElementType();
         }
-        if (t.pointerDepth() == 2 || t.arrayDimension() == 2) {
+        if (cType.pointerDepth() == 2 || cType.arrayDimension() == 2) {
           // Get the target type of the target type (targetType was computer earlier
           // as to be a pointer to the target type, so now we need to get its
           // target type)
@@ -1369,7 +1953,9 @@ public class JavaEmitter implements GlueEmitter {
 
             // t is<type>**, targetType is <type>*, we need to get <type>
             Type bottomType = targetType.asPointer().getTargetType();
-            LOG.log(INFO, "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr", new Object[]{t, targetType, bottomType});
+            if( GlueGen.debug() ) {
+                LOG.log(INFO, "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr", new Object[]{cType.getDebugString(), targetType, bottomType});
+            }
           }
         }
       }
@@ -1378,35 +1964,35 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
 
-    if (t.isInt() || t.isEnum()) {
-      switch ((int) t.getSize(curMachDesc)) {
+    if (cType.isInt() || cType.isEnum()) {
+      switch ((int) cType.getSize(curMachDesc)) {
        case 1:  return javaType(Byte.TYPE);
        case 2:  return javaType(Short.TYPE);
        case 4:  return javaType(Integer.TYPE);
        case 8:  return javaType(Long.TYPE);
        default: throw new RuntimeException("Unknown integer type of size " +
-                                           t.getSize(curMachDesc) + " and name " + t.getName());
+                                           cType.getSize(curMachDesc) + " and name " + cType.getName());
       }
-    } else if (t.isFloat()) {
+    } else if (cType.isFloat()) {
       return javaType(Float.TYPE);
-    } else if (t.isDouble()) {
+    } else if (cType.isDouble()) {
       return javaType(Double.TYPE);
-    } else if (t.isVoid()) {
+    } else if (cType.isVoid()) {
       return javaType(Void.TYPE);
-    } else if (t.pointerDepth() > 0 || t.arrayDimension() > 0) {
+    } else if (cType.pointerDepth() > 0 || cType.arrayDimension() > 0) {
         Type targetType; // target type
-        if (t.isPointer()) {
+        if (cType.isPointer()) {
           // t is <type>*, we need to get <type>
-          targetType = t.asPointer().getTargetType();
+          targetType = cType.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = t.asArray().getBaseElementType();
+          targetType = cType.asArray().getBaseElementType();
         }
 
         // Handle Types of form pointer-to-type or array-of-type, like
         // char* or int[]; these are expanded out into Java primitive
         // arrays, NIO buffers, or both in expandMethodBinding
-        if (t.pointerDepth() == 1 || t.arrayDimension() == 1) {
+        if (cType.pointerDepth() == 1 || cType.arrayDimension() == 1) {
           if (targetType.isVoid()) {
             return JavaType.createForCVoidPointer();
           } else if (targetType.isInt()) {
@@ -1421,39 +2007,39 @@ public class JavaEmitter implements GlueEmitter {
               case 4:  return JavaType.createForCInt32Pointer();
               case 8:  return JavaType.createForCInt64Pointer();
               default: throw new RuntimeException("Unknown integer array type of size " +
-                                                  t.getSize(curMachDesc) + " and name " + t.getName());
+                                                  cType.getSize(curMachDesc) + " and name " + cType.getName()+", "+cType.getDebugString());
             }
           } else if (targetType.isFloat()) {
             return JavaType.createForCFloatPointer();
           } else if (targetType.isDouble()) {
             return JavaType.createForCDoublePointer();
           } else if (targetType.isCompound()) {
-            if (t.isArray()) { // FIXME: Compound and Compound-Arrays
+            if (cType.isArray()) { // FIXME: Compound and Compound-Arrays
               return JavaType.createForCArray(targetType);
             }
             // Special cases for known JNI types (in particular for converting jawt.h)
-            if (t.getName() != null &&
-                t.getName().equals("jobject")) {
+            if (cType.getName() != null &&
+                cType.getName().equals("jobject")) {
               return javaType(java.lang.Object.class);
             }
             String name = targetType.getName();
             if (name == null) {
               // Try containing pointer type for any typedefs
-              name = t.getName();
+              name = cType.getName();
               if (name == null) {
-                throw new RuntimeException("Couldn't find a proper type name for pointer type " + t);
+                throw new RuntimeException("Couldn't find a proper type name for pointer type " + cType.getDebugString());
               }
             }
 
             return JavaType.createForCStruct(cfg.renameJavaType(name));
           } else {
             throw new RuntimeException("Don't know how to convert pointer/array type \"" +
-                                       t + "\"");
+                                       cType.getDebugString() + "\"");
           }
         }
         // Handle Types of form pointer-to-pointer-to-type or
         // array-of-arrays-of-type, like char** or int[][]
-        else if (t.pointerDepth() == 2 || t.arrayDimension() == 2) {
+        else if (cType.pointerDepth() == 2 || cType.arrayDimension() == 2) {
           // Get the target type of the target type (targetType was computer earlier
           // as to be a pointer to the target type, so now we need to get its
           // target type)
@@ -1461,11 +2047,21 @@ public class JavaEmitter implements GlueEmitter {
           if (targetType.isPointer()) {
             // t is<type>**, targetType is <type>*, we need to get <type>
             bottomType = targetType.asPointer().getTargetType();
+            if( GlueGen.debug() ) {
+                LOG.log(INFO, "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2}", new Object[]{cType.getDebugString(), targetType, bottomType});
+            }
             return JavaType.forNIOPointerBufferClass();
-          } else {
+          } else if(targetType.isArray()) {
             // t is<type>[][], targetType is <type>[], we need to get <type>
             bottomType = targetType.asArray().getBaseElementType();
-            LOG.log(WARNING, "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2} -> Unhandled!", new Object[]{t, targetType, bottomType});
+            if( GlueGen.debug() ) {
+                LOG.log(INFO, "typeToJavaType(ptr-ptr.array): {0}, targetType: {1}, bottomType: {2}", new Object[]{cType.getDebugString(), targetType, bottomType});
+            }
+          } else {
+            bottomType = targetType;
+            if( GlueGen.debug() ) {
+                LOG.log(INFO, "typeToJavaType(ptr-ptr.primitive): {0}, targetType: {1}, bottomType: {2}", new Object[]{cType.getDebugString(), targetType, bottomType});
+            }
           }
 
           // Warning: The below code is not backed up by an implementation,
@@ -1479,14 +2075,14 @@ public class JavaEmitter implements GlueEmitter {
                 case 4: return javaType(ArrayTypes.intBufferArrayClass);
                 case 8: return javaType(ArrayTypes.longBufferArrayClass);
                 default: throw new RuntimeException("Unknown two-dimensional integer array type of element size " +
-                                                    bottomType.getSize(curMachDesc) + " and name " + bottomType.getName());
+                                                    bottomType.getSize(curMachDesc) + " and name " + bottomType.getName()+", "+bottomType.getDebugString());
               }
             } else if (bottomType.isFloat()) {
               return javaType(ArrayTypes.floatBufferArrayClass);
             } else if (bottomType.isDouble()) {
               return javaType(ArrayTypes.doubleBufferArrayClass);
             } else {
-              throw new RuntimeException("Unexpected primitive type " + bottomType.getName() +
+              throw new RuntimeException("Unexpected primitive type " + bottomType.getDebugString() +
                                          " in two-dimensional array");
             }
           } else if (bottomType.isVoid()) {
@@ -1497,7 +2093,7 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.createForCArray(bottomType);
           } else {
             throw new RuntimeException(
-              "Could not convert C type \"" + t + "\" " +
+              "Could not convert C type \"" + cType.getDebugString() + "\" " +
               "to appropriate Java type; need to add more support for " +
               "depth=2 pointer/array types [debug info: targetType=\"" +
               targetType + "\"]");
@@ -1505,23 +2101,23 @@ public class JavaEmitter implements GlueEmitter {
         } else {
           // can't handle this type of pointer/array argument
           throw new RuntimeException(
-            "Could not convert C pointer/array \"" + t + "\" to " +
+            "Could not convert C pointer/array \"" + cType.getDebugString() + "\" to " +
             "appropriate Java type; types with pointer/array depth " +
             "greater than 2 are not yet supported [debug info: " +
-            "pointerDepth=" + t.pointerDepth() + " arrayDimension=" +
-            t.arrayDimension() + " targetType=\"" + targetType + "\"]");
+            "pointerDepth=" + cType.pointerDepth() + " arrayDimension=" +
+            cType.arrayDimension() + " targetType=\"" + targetType + "\"]");
         }
 
-    } else if(t.isCompound() ) { // FIXME: Compound and Compound-Arrays
-        final String name = t.getName();
+    } else if(cType.isCompound() ) { // FIXME: Compound and Compound-Arrays
+        final String name = cType.getName();
         if (name == null) {
-          throw new RuntimeException("Couldn't find a proper type name for pointer type " + t);
+          throw new RuntimeException("Couldn't find a proper type name for pointer type " + cType.getDebugString());
         }
         return JavaType.createForCStruct(cfg.renameJavaType(name));
     } else {
         throw new RuntimeException(
-          "Could not convert C type \"" + t + "\" (class " +
-          t.getClass().getName() + ") to appropriate Java type");
+          "Could not convert C type \"" + cType.getDebugString() + "\" (class " +
+          cType.getClass().getName() + ") to appropriate Java type");
     }
   }
 
@@ -1897,6 +2493,10 @@ public class JavaEmitter implements GlueEmitter {
       cWriter.println("    return _initClazzAccess(env);");
       cWriter.println("}");
       cWriter.println();
+      cWriter.println("JNIEXPORT jint JNICALL "+JavaEmitter.getJNIMethodNamePrefix(packageName, className)+"_getCStringLengthImpl(JNIEnv *env, jclass _unused, jlong pString) {");
+      cWriter.println("    return 0 != pString ? strlen((const char*)(intptr_t)pString) : 0;");
+      cWriter.println("}");
+      cWriter.println();
     }
   }
 
@@ -1904,6 +2504,9 @@ public class JavaEmitter implements GlueEmitter {
     if( null != jWriter && requiresStaticInitialization(className) ) {
         jWriter.println();
         jWriter.println("  private static native boolean initializeImpl();");
+        jWriter.println();
+        jWriter.println();
+        jWriter.println("  private static native int getCStringLengthImpl(final long pString);");
         jWriter.println();
         if( !cfg.manualStaticInitCall(className) ) {
             jWriter.println(staticClassInitCallJavaCode);
@@ -1958,7 +2561,7 @@ public class JavaEmitter implements GlueEmitter {
       }
       binding.setJavaReturnType(javaType(java.lang.String.class));
     } else {
-      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), false, curMachDesc));
+      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), curMachDesc));
     }
 
     // System.out.println("bindFunction(1) "+binding.getJavaReturnType());
@@ -1969,7 +2572,7 @@ public class JavaEmitter implements GlueEmitter {
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       Type cArgType = sym.getArgumentType(i);
-      JavaType mappedType = typeToJavaType(cArgType, true, curMachDesc);
+      JavaType mappedType = typeToJavaType(cArgType, curMachDesc);
       // System.out.println("C arg type -> \"" + cArgType + "\"" );
       // System.out.println("      Java -> \"" + mappedType + "\"" );
 
@@ -2147,5 +2750,4 @@ public class JavaEmitter implements GlueEmitter {
   private final String capitalizeString(String string) {
       return Character.toUpperCase(string.charAt(0)) + string.substring(1);
   }
-
 }
