@@ -1532,6 +1532,8 @@ public class JavaEmitter implements GlueEmitter {
       final String baseJElemTypeNameC;
       final String baseJElemTypeNameU;
       final boolean isByteBuffer;
+      final boolean baseCElemNativeSizeFixed;
+      final String baseCElemSizeDenominator;
       {
           final Type baseCElemType;
           final ArrayType arrayType = fieldType.asArray();
@@ -1547,6 +1549,8 @@ public class JavaEmitter implements GlueEmitter {
               isConst = fieldType.isConst();
               baseJElemType = null;
               baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
+              baseCElemNativeSizeFixed = false;
+              baseCElemSizeDenominator = fieldType.isPointer() ? "pointer" : baseJElemTypeName ;
           } else {
               if( null != arrayType ) {
                   final int[][] lengthRes = new int[1][];
@@ -1580,8 +1584,10 @@ public class JavaEmitter implements GlueEmitter {
                                               returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(), e);
               }
               baseJElemTypeName = baseJElemType.getName();
+              baseCElemNativeSizeFixed = baseCElemType.isPrimitive() ? baseCElemType.getSize().hasFixedNativeSize() : true;
+              baseCElemSizeDenominator = baseCElemType.isPointer() ? "pointer" : baseJElemTypeName ;
 
-              if( baseCElemType.isPrimitive() && !baseCElemType.getSize().hasFixedNativeSize() ) {
+              if( !baseCElemNativeSizeFixed ) {
                   javaWriter.println();
                   final String msg = "SKIP primitive w/ platform dependent sized type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
                   javaWriter.println("  // "+msg);
@@ -1620,8 +1626,10 @@ public class JavaEmitter implements GlueEmitter {
       }
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: baseJElemTypeName %s, array-lengths %s%n", (i+1), baseJElemTypeName, Arrays.toString(arrayLengths));
-          System.err.printf("SE.ac.%02d: arrayLengthExpr: %s, hasSingleElement %b, isByteBuffer %b, isString %b, isPointer %b, isPrimitive %b, isOpaque %b, isConst %b, useGetCStringLength %b%n",
-                  (i+1), arrayLengthExpr, hasSingleElement, isByteBuffer, isString, isPointer, isPrimitive, isOpaque, isConst, useGetCStringLength);
+          System.err.printf("SE.ac.%02d: arrayLengthExpr: %s, hasSingleElement %b, isByteBuffer %b, isString %b, isPointer %b, isPrimitive %b, isOpaque %b, baseCElemNativeSizeFixed %b, baseCElemSizeDenominator %s, isConst %b, useGetCStringLength %b%n",
+                  (i+1), arrayLengthExpr, hasSingleElement, isByteBuffer, isString, isPointer, isPrimitive, isOpaque,
+                  baseCElemNativeSizeFixed, baseCElemSizeDenominator,
+                  isConst, useGetCStringLength);
       }
 
       //
@@ -1649,7 +1657,11 @@ public class JavaEmitter implements GlueEmitter {
                   if( hasSingleElement ) {
                       generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, capitalFieldName, null, baseJElemTypeName, null, arrayLengthExpr);
                       javaWriter.println(" {");
-                      javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val);");
+                      if( baseCElemNativeSizeFixed ) {
+                          javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val);");
+                      } else {
+                          javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+baseCElemSizeDenominator+"SizeInBytes());");
+                      }
                       javaWriter.println("    return this;");
                       javaWriter.println("  }");
                   } else {
@@ -1808,7 +1820,11 @@ public class JavaEmitter implements GlueEmitter {
               if( hasSingleElement ) {
                   generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
                   javaWriter.println(" {");
-                  javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx]);");
+                  if( baseCElemNativeSizeFixed ) {
+                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx]);");
+                  } else {
+                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+baseCElemSizeDenominator+"SizeInBytes());");
+                  }
                   javaWriter.println("  }");
                   javaWriter.println();
               } else {
