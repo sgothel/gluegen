@@ -1025,7 +1025,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         writer.println("  return JVMUtil_NewDirectByteBufferCopy(env, &_res, "+returnSizeOf+");");
       } else if (javaReturnType.isNIOBuffer() || javaReturnType.isCompoundTypeWrapper()) {
         writer.println("  if (NULL == _res) return NULL;");
-        writer.print("  return (*env)->NewDirectByteBuffer(env, _res, ");
+        writer.print("  return (*env)->NewDirectByteBuffer(env, (void *)_res, ");
 
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
@@ -1071,7 +1071,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           pointerType = retType.asArray().getBaseElementType();
         }
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
-                       ", (*env)->NewDirectByteBuffer(env, _res[" + arrayIdx + "], sizeof(" + pointerType.getName() + ")));");
+                       ", (*env)->NewDirectByteBuffer(env, (void *)_res[" + arrayIdx + "], sizeof(" + pointerType.getName() + ")));");
         writer.println("  }");
         writer.println("  return " + arrayRes + ";");
       } else if (javaReturnType.isArray()) {
