@@ -183,12 +183,6 @@ typedef struct {
     TK_Context ctx;
 } TK_ContextWrapper;
 
-struct _jobject;
-typedef struct _jobject *jobject;
-struct JNINativeInterface_;
-typedef const struct JNINativeInterface_ *JNIEnv;
-
-
 typedef struct tk_Surface {
     TK_Context ctx;
     TK_ContextWrapper ctxWrapper;
@@ -197,9 +191,6 @@ typedef struct tk_Surface {
     int32_t clipSize;
     TK_Dimension * clips;
     TK_Dimension * (MYAPIENTRY *getClip) (struct tk_Surface * ds, int idx);
-
-    jobject (MYAPIENTRY *GetComponent)(JNIEnv* env, void* platformInfo);
-
 } TK_Surface;
 
 typedef struct {
