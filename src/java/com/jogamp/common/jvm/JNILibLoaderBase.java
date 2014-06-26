@@ -205,45 +205,6 @@ public class JNILibLoaderBase {
   }
 
   /**
-   * Loads and adds a JAR file's native library to the TempJarCache.<br>
-   * The native library JAR file's URI is derived as follows:
-   * <ul>
-   *   <li> [1] <code>GLProfile.class</code> -> </li>
-   *   <li> [2] <code>http://lala/</code> -> </li>
-   *   <li> [4] <code>http://lala/'nativeJarBaseName'-'os.and.arch'.jar</code> </li>
-   * </ul>
-   * Where:
-   * <ul>
-   *   <li> [1] is the <code>classFromJavaJar</code></li>
-   *   <li> [2] is it's <i>URI path</i></li>
-   *   <li> [4] is the derived native JAR filename</li>
-   * </ul>
-   *
-   * @param classFromJavaJar GLProfile
-   * @param nativeJarBasename jogl-all
-   * @return true if the native JAR file loaded successful or were loaded already, false in case of an error
-   */
-  public static final boolean addNativeJarLibs(Class<?> classFromJavaJar, String nativeJarBasename) {
-    if(TempJarCache.isInitialized()) {
-        final StringBuilder msg = new StringBuilder();
-        try {
-            final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), classFromJavaJar.getClassLoader());
-            final String jarName = JarUtil.getJarBasename(classJarURI);
-            return addNativeJarLibsImpl(classFromJavaJar, classJarURI, jarName, nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar", msg);
-        } catch (Exception e0) {
-            // IllegalArgumentException, IOException
-            System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
-            if(DEBUG) {
-                e0.printStackTrace();
-            }
-        }
-    } else if(DEBUG) {
-        System.err.println("JNILibLoaderBase: addNativeJarLibs1: disabled due to uninitialized TempJarCache");
-    }
-    return false;
-  }
-
-  /**
    * Loads and adds a JAR file's native library to the TempJarCache,
    * calling {@link JNILibLoaderBase#addNativeJarLibs(Class[], String, String[])}
    * with default JOGL deployment configuration:

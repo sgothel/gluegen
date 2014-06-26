@@ -215,21 +215,6 @@ public class TestTempJarCache extends JunitTracer {
     }
 
     @Test
-    public void testTempJarCache03AddNativeJarLibs() throws IOException {
-        if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
-        final String libBaseName = "gluegen-rt";
-
-        JNILibLoaderBase.addNativeJarLibs(TempJarCache.class, libBaseName);
-        Assert.assertTrue(JNILibLoaderBase.isLoaded(libBaseName));
-
-        String libFullPath = TempJarCache.findLibrary(libBaseName);
-        Assert.assertNotNull(libFullPath);
-        Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));
-        File f = new File(libFullPath);
-        Assert.assertTrue(f.exists());
-    }
-
-    @Test
     public void testTempJarCache04aSameClassLoader() throws IOException {
         assertTempFileCachesIndividualInstances(true, TempJarCache.getTempFileCache(), TempJarCache.getTempFileCache());
 
