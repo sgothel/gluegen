@@ -258,14 +258,13 @@ public class Buffers {
     }
 
     /**
-     * Slices a ByteBuffer <i>or</i> a primitive float array to a FloatBuffer at the given position with the given size
-     * in float-space.
+     * Slices a ByteBuffer <i>or</i> a FloatBuffer to a FloatBuffer
+     * at the given position with the given size in float-space.
      * <p>
-     * The returned sliced buffer's start position is not necessarily zero,
-     * but the float position within the host ByteBuffer.
+     * The returned sliced buffer's start position is always zero.
      * </p>
      * <p>
-     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's starting position. Hence
+     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's {@link FloatBuffer#position() start position}. Hence
      * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
      * </p>
      * <p>
@@ -275,14 +274,13 @@ public class Buffers {
      * This bug is resolved at least in Android 3.2.
      * </p>
      *
-     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer or <code>null</code>.
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer.
      *            Buffer's position is ignored and floatPos is being used.
-     * @param backing source float array or <code>null</code>
-     * @param floatPos {@link Buffers#SIZEOF_FLOAT} position
+     * @param floatStartPos {@link Buffers#SIZEOF_FLOAT} position
      * @param floatSize {@link Buffers#SIZEOF_FLOAT} size
      * @return FloatBuffer w/ native byte order as given ByteBuffer
      */
-    public static final FloatBuffer slice2Float(Buffer buf, float[] backing, int floatPos, int floatSize) {
+    public static final FloatBuffer slice2Float(Buffer buf, int floatStartPos, int floatSize) {
         final int pos;
         final int limit;
         if(null != buf) {
@@ -296,15 +294,13 @@ public class Buffers {
         try {
             if(buf instanceof ByteBuffer) {
                 ByteBuffer bb = (ByteBuffer) buf;
-                bb.position( floatPos * Buffers.SIZEOF_FLOAT );
-                bb.limit( (floatPos + floatSize) * Buffers.SIZEOF_FLOAT );
+                bb.position( floatStartPos * Buffers.SIZEOF_FLOAT );
+                bb.limit( (floatStartPos + floatSize) * Buffers.SIZEOF_FLOAT );
                 res = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
-            } else if(null != backing) {
-                res = FloatBuffer.wrap(backing, floatPos, floatSize);
             } else if(buf instanceof FloatBuffer) {
                 FloatBuffer fb = (FloatBuffer) buf;
-                fb.position( floatPos );
-                fb.limit( floatPos + floatSize );
+                fb.position( floatStartPos );
+                fb.limit( floatStartPos + floatSize );
                 res = fb.slice(); // slice and duplicate may change byte order
             } else {
                 throw new InternalError("Buffer not ByteBuffer, nor FloarBuffer, nor backing array given");
@@ -316,6 +312,31 @@ public class Buffers {
         }
         res.mark();
         return res;
+    }
+
+    /**
+     * Slices a primitive float backing array to a FloatBuffer at the given position with the given size
+     * in float-space by {@link FloatBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * Due to {@link FloatBuffer#wrap(float[], int, int) wrapping} the backing array,
+     * the returned sliced buffer's {@link FloatBuffer#position() start position} equals
+     * the given <code>floatStartPos</code> within the given backing array
+     * while it's {@link FloatBuffer#arrayOffset() array-offset} is zero.
+     * This has the advantage of being able to dismiss the {@link FloatBuffer#arrayOffset() array-offset}
+     * in user code, while only being required to consider it's {@link FloatBuffer#position() position}.
+     * </p>
+     * <p>
+     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's {@link FloatBuffer#position() start position}. Hence
+     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
+     * </p>
+     *
+     * @param backing source float array
+     * @param floatStartPos {@link Buffers#SIZEOF_FLOAT} position
+     * @param floatSize {@link Buffers#SIZEOF_FLOAT} size
+     * @return FloatBuffer w/ native byte order as given ByteBuffer
+     */
+    public static final FloatBuffer slice2Float(float[] backing, int floatStartPos, int floatSize) {
+        return (FloatBuffer) FloatBuffer.wrap(backing, floatStartPos, floatSize).mark();
     }
 
 
@@ -462,7 +483,7 @@ public class Buffers {
             return 0;
         }
         if (buf instanceof Buffer) {
-            int pos = ((Buffer) buf).position();
+            final int pos = ((Buffer) buf).position();
             if (buf instanceof ByteBuffer) {
                 return pos;
             } else if (buf instanceof FloatBuffer) {
@@ -516,7 +537,7 @@ public class Buffers {
             return 0;
         }
         if (buf instanceof Buffer) {
-            int pos = ((Buffer) buf).position();
+            final int pos = ((Buffer) buf).position();
             if (buf instanceof ByteBuffer) {
                 return (((ByteBuffer) buf).arrayOffset() + pos);
             } else if (buf instanceof FloatBuffer) {
@@ -725,7 +746,7 @@ public class Buffers {
             throw new IllegalArgumentException("payload ("+len+") greater than remaining dest bytes [len "+dest.length+", offset "+doffset+"]");
         }
         for(int i=0; i<len; i++) {
-            dest[doffset+i] = (double) source[soffset+i];
+            dest[doffset+i] = source[soffset+i];
         }
         return dest;
     }
@@ -744,7 +765,7 @@ public class Buffers {
             throw new IllegalArgumentException("payload ("+source.remaining()+") is greater than remaining dest bytes: "+dest.remaining());
         }
         while (source.hasRemaining()) {
-            dest.put((double) source.get());
+            dest.put(source.get());
         }
         return dest;
     }
@@ -779,15 +800,15 @@ public class Buffers {
         if (dest instanceof ByteBuffer) {
             return (B) ((ByteBuffer) dest).put(v);
         } else if (dest instanceof ShortBuffer) {
-            return (B) ((ShortBuffer) dest).put((short) v);
+            return (B) ((ShortBuffer) dest).put(v);
         } else if (dest instanceof IntBuffer) {
-            return (B) ((IntBuffer) dest).put((int) v);
+            return (B) ((IntBuffer) dest).put(v);
         } else if (dest instanceof FloatBuffer) {
-            return (B) ((FloatBuffer) dest).put((float) v);
+            return (B) ((FloatBuffer) dest).put(v);
         } else if (dest instanceof LongBuffer) {
-            return (B) ((LongBuffer) dest).put((long) v);
+            return (B) ((LongBuffer) dest).put(v);
         } else if (dest instanceof DoubleBuffer) {
-            return (B) ((DoubleBuffer) dest).put((double) v);
+            return (B) ((DoubleBuffer) dest).put(v);
         } else if (dest instanceof CharBuffer) {
             return (B) ((CharBuffer) dest).put((char) v);
         } else {
@@ -800,13 +821,13 @@ public class Buffers {
         if (dest instanceof ShortBuffer) {
             return (B) ((ShortBuffer) dest).put(v);
         } else if (dest instanceof IntBuffer) {
-            return (B) ((IntBuffer) dest).put((int) v);
+            return (B) ((IntBuffer) dest).put(v);
         } else if (dest instanceof FloatBuffer) {
-            return (B) ((FloatBuffer) dest).put((float) v);
+            return (B) ((FloatBuffer) dest).put(v);
         } else if (dest instanceof LongBuffer) {
-            return (B) ((LongBuffer) dest).put((long) v);
+            return (B) ((LongBuffer) dest).put(v);
         } else if (dest instanceof DoubleBuffer) {
-            return (B) ((DoubleBuffer) dest).put((double) v);
+            return (B) ((DoubleBuffer) dest).put(v);
         } else {
             throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
         }
@@ -817,11 +838,11 @@ public class Buffers {
         if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put(v);
         } else if (dest instanceof FloatBuffer) {
-            return (B) ((FloatBuffer) dest).put((float) v);
+            return (B) ((FloatBuffer) dest).put(v);
         } else if (dest instanceof LongBuffer) {
-            return (B) ((LongBuffer) dest).put((long) v);
+            return (B) ((LongBuffer) dest).put(v);
         } else if (dest instanceof DoubleBuffer) {
-            return (B) ((DoubleBuffer) dest).put((double) v);
+            return (B) ((DoubleBuffer) dest).put(v);
         } else {
             throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
         }
@@ -832,7 +853,7 @@ public class Buffers {
         if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put(v);
         } else if (dest instanceof DoubleBuffer) {
-            return (B) ((DoubleBuffer) dest).put((double) v);
+            return (B) ((DoubleBuffer) dest).put(v);
 /* TODO FixedPoint required
         } else if (dest instanceof IntBuffer) {
             return (B) ((IntBuffer) dest).put(FixedPoint.toFixed(v));
