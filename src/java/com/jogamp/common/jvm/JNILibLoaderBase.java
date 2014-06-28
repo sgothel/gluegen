@@ -232,7 +232,7 @@ public class JNILibLoaderBase {
             return addNativeJarLibsImpl(classFromJavaJar, classJarURI, jarName, nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar", msg);
         } catch (Exception e0) {
             // IllegalArgumentException, IOException
-            System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
+            System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
             if(DEBUG) {
                 e0.printStackTrace();
             }
@@ -374,7 +374,7 @@ public class JNILibLoaderBase {
             }
         } catch (Exception e0) {
             // IllegalArgumentException, IOException
-            System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
+            System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
             if(DEBUG) {
                 e0.printStackTrace();
             }

@@ -77,7 +77,7 @@ public class TestElfReader01 extends JunitTracer {
             try {
                 eh = ElfHeader.read(in);
             } catch (Exception e) {
-                System.err.println("Probably not an ELF file - or not in current format: (catched) "+e.getMessage());
+                System.err.println("Probably not an ELF file - or not in current format: (caught) "+e.getMessage());
                 e.printStackTrace();
                 return;
             }

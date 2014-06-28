@@ -203,7 +203,7 @@ public class Platform extends PlatformPropsImpl {
                         JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null, null );
                     } catch (Exception e0) {
                         // IllegalArgumentException, IOException
-                        System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
+                        System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
                     }
                 }
                 DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);

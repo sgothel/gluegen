@@ -131,7 +131,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             if( f.exists() ) {
                 return f;
             }
-        } catch (IOException e) { if(DEBUG) { System.err.println("Catched "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
+        } catch (IOException e) { if(DEBUG) { System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
         return null;
     }
 

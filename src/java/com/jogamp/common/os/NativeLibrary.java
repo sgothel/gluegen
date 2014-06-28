@@ -209,7 +209,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             return new NativeLibrary(res, path, global);
         } else if( DEBUG ) {
             if( null != t ) {
-                System.err.println("NativeLibrary.open: Catched "+t.getClass().getSimpleName()+": "+t.getMessage());
+                System.err.println("NativeLibrary.open: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
             }
             String errstr;
             try {

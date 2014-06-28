@@ -68,7 +68,7 @@ public abstract class TaskBase implements Runnable {
     }
 
     protected final String getExceptionOutIntro() {
-        return catchExceptions ? "A catched" : "An uncatched";
+        return catchExceptions ? "A caught" : "An uncaught";
     }
     protected final void printSourceTrace() {
         if( null != sourceStack && null != exceptionOut ) {
@@ -151,7 +151,7 @@ public abstract class TaskBase implements Runnable {
     public final boolean hasWaiter() { return null != syncObject; }
 
     /**
-     * @return A thrown exception while execution of the user action, if any and if catched
+     * @return A thrown exception while execution of the user action, if any and if caught
      * @see #RunnableTask(Runnable, Object, boolean)
      */
     public final Throwable getThrowable() { return runnableException; }

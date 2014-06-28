@@ -558,7 +558,7 @@ public class IOUtil {
                 f = new File( decodeFromURI( specificURI.getPath() ) ); // validates uri, uses decoded uri.getPath() and normalizes it
             } catch(Exception iae) {
                 if( DEBUG ) {
-                    System.err.println("Catched "+iae.getClass().getSimpleName()+": new File("+decodeFromURI( specificURI.getPath() )+") failed: "+iae.getMessage());
+                    System.err.println("Caught "+iae.getClass().getSimpleName()+": new File("+decodeFromURI( specificURI.getPath() )+") failed: "+iae.getMessage());
                     iae.printStackTrace();
                 }
                 f = null;
@@ -585,7 +585,7 @@ public class IOUtil {
                             System.err.println("IOUtil.toURL.1b: fUri "+fUri+PlatformPropsImpl.NEWLINE+
                                                "\t, fUrl "+fUrl);
                         } catch (Exception ee) {
-                            System.err.println("Catched "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
+                            System.err.println("Caught "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
                             ee.printStackTrace();
                         }
                     }
@@ -614,7 +614,7 @@ public class IOUtil {
                     }
                 } catch (Exception mue) {
                     if( DEBUG ) {
-                        System.err.println("Catched "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
+                        System.err.println("Caught "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
                         mue.printStackTrace();
                     }
                 }
@@ -626,7 +626,7 @@ public class IOUtil {
                 mode = 3;
             } catch (Exception e) {
                 if( DEBUG ) {
-                    System.err.println("Catched "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
+                    System.err.println("Caught "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -750,7 +750,7 @@ public class IOUtil {
                 return AssetURLContext.createURL(resourcePath, cl).openConnection();
             } catch (IOException ioe) {
                 if(DEBUG) {
-                    System.err.println("IOUtil: Catched Exception:");
+                    System.err.println("IOUtil: Caught Exception:");
                     ioe.printStackTrace();
                 }
                 return null;
@@ -760,7 +760,7 @@ public class IOUtil {
                 return AssetURLContext.resolve(resourcePath, cl);
             } catch (IOException ioe) {
                 if(DEBUG) {
-                    System.err.println("IOUtil: Catched Exception:");
+                    System.err.println("IOUtil: Caught Exception:");
                     ioe.printStackTrace();
                 }
             }
@@ -1164,7 +1164,7 @@ public class IOUtil {
             } catch (Throwable t) {
                 res = -2;
                 if(DEBUG) {
-                    System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: Catched "+t.getClass().getSimpleName()+": "+t.getMessage());
+                    System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
                     // t.printStackTrace();
                 }
             }
@@ -1425,7 +1425,7 @@ public class IOUtil {
                 if(throwRuntimeException) {
                     throw new RuntimeException(e);
                 } else if(DEBUG) {
-                    System.err.println("Catched Exception: ");
+                    System.err.println("Caught Exception: ");
                     e.printStackTrace();
                 }
             }

@@ -410,7 +410,7 @@ public abstract class PlatformPropsImpl {
             res = eh;
         } catch(Throwable t) {
             if(DEBUG) {
-                System.err.println("Catched: "+t.getMessage());
+                System.err.println("Caught: "+t.getMessage());
                 t.printStackTrace();
             }
         } finally {
