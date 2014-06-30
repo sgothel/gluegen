@@ -200,7 +200,7 @@ public class Platform extends PlatformPropsImpl {
                 // load GluegenRT native library
                 if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
                     try {
-                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null, null );
+                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null);
                     } catch (Exception e0) {
                         // IllegalArgumentException, IOException
                         System.err.println("Catched "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
