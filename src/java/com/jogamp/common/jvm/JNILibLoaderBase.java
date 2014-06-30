@@ -304,9 +304,8 @@ public class JNILibLoaderBase {
    */
 
   public static boolean addNativeJarLibs(Class<?>[] classesFromJavaJars, String singleJarMarker) {
-    final StringBuilder msg = new StringBuilder();
-
     if(DEBUG) {
+        final StringBuilder msg = new StringBuilder();
         msg.append("JNILibLoaderBase: addNativeJarLibs(\n");
         msg.append("  classesFromJavaJars   = ").append(Arrays.asList(classesFromJavaJars)).append("\n");
         msg.append("  singleJarMarker       = ").append(singleJarMarker).append("\n");
@@ -316,14 +315,14 @@ public class JNILibLoaderBase {
 
     boolean ok = false;
     if (TempJarCache.isInitialized()) {
-        ok = addNativeJarLibsWhenInitialized(classesFromJavaJars, singleJarMarker, msg);
+        ok = addNativeJarLibsWhenInitialized(classesFromJavaJars, singleJarMarker);
     } else if(DEBUG) {
         System.err.println("JNILibLoaderBase: addNativeJarLibs0: disabled due to uninitialized TempJarCache");
     }
     return ok;
   }
 
-  private static boolean addNativeJarLibsWhenInitialized(Class<?>[] classesFromJavaJars, String singleJarMarker, final StringBuilder msg) {
+  private static boolean addNativeJarLibsWhenInitialized(Class<?>[] classesFromJavaJars, String singleJarMarker) {
       boolean ok;
       int count = 0;
       try {
