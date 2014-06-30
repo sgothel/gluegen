@@ -330,13 +330,13 @@ public class JNILibLoaderBase {
           ok = true;
             
           for (int i = 0; i < classesFromJavaJars.length; ++i) {
-              Class<?> c = classesFromJavaJars[i];
+              final Class<?> c = classesFromJavaJars[i];
               if (c == null) {
                   continue;
               }
                 
-              final ClassLoader cl = classesFromJavaJars[i].getClassLoader();
-              final URI classJarURI = JarUtil.getJarURI(classesFromJavaJars[i].getName(), cl);
+              final ClassLoader cl = c.getClassLoader();
+              final URI classJarURI = JarUtil.getJarURI(c.getName(), cl);
               final String jarName = JarUtil.getJarBasename(classJarURI);
                 
               if (jarName == null) {
@@ -362,7 +362,7 @@ public class JNILibLoaderBase {
     
               final String nativeJarBasename = String.format("%s-natives-%s.jar", jarBasename, PlatformPropsImpl.os_and_arch);
                 
-              ok = JNILibLoaderBase.addNativeJarLibsImpl(classesFromJavaJars[i], classJarURI, jarName, nativeJarBasename);
+              ok = JNILibLoaderBase.addNativeJarLibsImpl(c, classJarURI, jarName, nativeJarBasename);
               if (ok) { 
                   count++; 
               }
