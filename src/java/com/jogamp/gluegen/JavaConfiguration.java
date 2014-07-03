@@ -180,7 +180,7 @@ public class JavaConfiguration {
   /** Reads the configuration file.
       @param filename path to file that should be read
   */
-  public final void read(String filename) throws  IOException {
+  public final void read(final String filename) throws  IOException {
     read(filename, null);
   }
 
@@ -190,18 +190,18 @@ public class JavaConfiguration {
       @param linePrefix if not null, treat each line read as if it were
       prefixed with the specified string.
   */
-  protected final void read(String filename, String linePrefix) throws IOException {
-    File file = new File(filename);
+  protected final void read(final String filename, final String linePrefix) throws IOException {
+    final File file = new File(filename);
     BufferedReader reader = null;
     try {
       reader = new BufferedReader(new FileReader(file));
     }
-    catch (FileNotFoundException fnfe) {
+    catch (final FileNotFoundException fnfe) {
       throw new RuntimeException("Could not read file \"" + file + "\"", fnfe);
     }
     int lineNo = 0;
     String line = null;
-    boolean hasPrefix = linePrefix != null && linePrefix.length() > 0;
+    final boolean hasPrefix = linePrefix != null && linePrefix.length() > 0;
     try {
       ++nestedReads;
       while ((line = reader.readLine()) != null) {
@@ -215,10 +215,10 @@ public class JavaConfiguration {
           continue;
         }
 
-        StringTokenizer tok = new StringTokenizer(line);
+        final StringTokenizer tok = new StringTokenizer(line);
         if (tok.hasMoreTokens()) {
           // always reset delimiters in case of CustomJavaCode, etc.
-          String cmd = tok.nextToken(" \t\n\r\f");
+          final String cmd = tok.nextToken(" \t\n\r\f");
 
           dispatch(cmd, tok, file, filename, lineNo);
         }
@@ -268,7 +268,7 @@ public class JavaConfiguration {
     }
   }
 
-  public void setOutputRootDir(String s) { outputRootDir=s; }
+  public void setOutputRootDir(final String s) { outputRootDir=s; }
 
     /** Returns the package name parsed from the configuration file. */
     public String packageName() {
@@ -320,8 +320,8 @@ public class JavaConfiguration {
     }
 
     /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
-    public MethodAccess accessControl(String methodName) {
-        MethodAccess ret = accessControl.get(methodName);
+    public MethodAccess accessControl(final String methodName) {
+        final MethodAccess ret = accessControl.get(methodName);
         if (ret != null) {
             return ret;
         }
@@ -355,13 +355,13 @@ public class JavaConfiguration {
   /** If this type should be considered opaque, returns the TypeInfo
       describing the replacement type. Returns null if this type
       should not be considered opaque. */
-  public TypeInfo typeInfo(Type type, TypeDictionary typedefDictionary) {
+  public TypeInfo typeInfo(Type type, final TypeDictionary typedefDictionary) {
     // Because typedefs of pointer types can show up at any point,
     // walk the pointer chain looking for a typedef name that is in
     // the TypeInfo map.
     if (DEBUG_TYPE_INFO)
       System.err.println("Incoming type = " + type);
-    int pointerDepth = type.pointerDepth();
+    final int pointerDepth = type.pointerDepth();
     for (int i = 0; i <= pointerDepth; i++) {
       String name = type.getName();
       if (DEBUG_TYPE_INFO) {
@@ -369,7 +369,7 @@ public class JavaConfiguration {
         System.err.println(" Name = " + name);
       }
       if (name != null) {
-        TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
+        final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
         if (info != null) {
           if (DEBUG_TYPE_INFO) {
             System.err.println(" info.name=" + info.name() + ", name=" + name +
@@ -384,7 +384,7 @@ public class JavaConfiguration {
         // Try struct name as well
         name = type.asCompound().getStructName();
         if (name != null) {
-          TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
+          final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
           if (info != null) {
             if (DEBUG_TYPE_INFO) {
               System.err.println(" info.name=" + info.name() + ", name=" + name +
@@ -397,15 +397,15 @@ public class JavaConfiguration {
       }
 
       // Try all typedef names that map to this type
-      Set<Entry<String, Type>> entrySet = typedefDictionary.entrySet();
-      for (Map.Entry<String, Type> entry : entrySet) {
+      final Set<Entry<String, Type>> entrySet = typedefDictionary.entrySet();
+      for (final Map.Entry<String, Type> entry : entrySet) {
         // "eq" equality is OK to use here since all types have been canonicalized
         if (entry.getValue() == type) {
           name = entry.getKey();
           if (DEBUG_TYPE_INFO) {
             System.err.println("Looking under typedef name " + name);
           }
-          TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
+          final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
           if (info != null) {
             if (DEBUG_TYPE_INFO) {
               System.err.println(" info.name=" + info.name() + ", name=" + name +
@@ -426,7 +426,7 @@ public class JavaConfiguration {
   }
 
   // Helper functions for above
-  private TypeInfo closestTypeInfo(String name, int pointerDepth) {
+  private TypeInfo closestTypeInfo(final String name, final int pointerDepth) {
     TypeInfo info = typeInfoMap.get(name);
     TypeInfo closest = null;
     while (info != null) {
@@ -443,7 +443,7 @@ public class JavaConfiguration {
   }
 
   // Promotes a TypeInfo to a higher pointer type (if necessary)
-  private TypeInfo promoteTypeInfo(TypeInfo info, int numPointersStripped) {
+  private TypeInfo promoteTypeInfo(final TypeInfo info, final int numPointersStripped) {
     int diff = numPointersStripped - info.pointerDepth();
     if (diff == 0) {
       return info;
@@ -456,7 +456,7 @@ public class JavaConfiguration {
     }
 
     Class<?> c = info.javaType().getJavaClass();
-    int pd = info.pointerDepth();
+    final int pd = info.pointerDepth();
 
     // Handle single-pointer stripping for types compatible with C
     // integral and floating-point types specially so we end up
@@ -488,7 +488,7 @@ public class JavaConfiguration {
   /** Indicates whether the given function (which returns a
       <code>char*</code> in C) should be translated as returning a
       <code>java.lang.String</code>. */
-  public boolean returnsString(String functionName) {
+  public boolean returnsString(final String functionName) {
     return returnsString.contains(functionName);
   }
 
@@ -507,7 +507,7 @@ public class JavaConfiguration {
    * either {@link #returnValueCapacity(String)} or {@link #returnValueLength(String)}!
    * </p>
    */
-  public String returnedArrayLength(String functionName) {
+  public String returnedArrayLength(final String functionName) {
     return returnedArrayLengths.get(functionName);
   }
 
@@ -515,23 +515,23 @@ public class JavaConfiguration {
       arguments that should be converted to <code>String</code>s. Returns null if there are no
       such hints for the given function name. */
 
-  public List<Integer> stringArguments(String functionName) {
+  public List<Integer> stringArguments(final String functionName) {
     return argumentsAreString.get(functionName);
   }
 
   public boolean isForceUsingNIOOnly4All() { return forceUseNIOOnly4All; }
 
-  public void addUseNIOOnly(String fname ) {
+  public void addUseNIOOnly(final String fname ) {
       useNIOOnly.add(fname);
   }
   /** Returns true if the given function should only create a java.nio
       variant, and no array variants, for <code>void*</code> and other
       C primitive pointers. NIO only still allows usage of array backed not direct Buffers. */
-  public boolean useNIOOnly(String functionName) {
+  public boolean useNIOOnly(final String functionName) {
     return useNIODirectOnly(functionName) || forceUseNIOOnly4All || useNIOOnly.contains(functionName);
   }
 
-  public void addUseNIODirectOnly(String fname ) {
+  public void addUseNIODirectOnly(final String fname ) {
       useNIODirectOnly.add(fname);
   }
   /** Returns true if the given function should only create a java.nio
@@ -539,13 +539,13 @@ public class JavaConfiguration {
       C primitive pointers. NIO direct only does only allow direct Buffers.
       Implies useNIOOnly !
    */
-  public boolean useNIODirectOnly(String functionName) {
+  public boolean useNIODirectOnly(final String functionName) {
     return forceUseNIODirectOnly4All || useNIODirectOnly.contains(functionName);
   }
 
   /** Returns true if the glue code for the given function will be
       manually implemented by the end user. */
-  public boolean manuallyImplement(String functionName) {
+  public boolean manuallyImplement(final String functionName) {
     return manuallyImplement.contains(functionName);
   }
 
@@ -554,7 +554,7 @@ public class JavaConfiguration {
    * for the given class will be manually implemented by the end user
    * as requested via configuration directive <code>ManualStaticInitCall 'class-name'</code>.
    */
-  public boolean manualStaticInitCall(String clazzName) {
+  public boolean manualStaticInitCall(final String clazzName) {
     return manualStaticInitCall.contains(clazzName);
   }
 
@@ -571,7 +571,7 @@ public class JavaConfiguration {
    * to call <code>initializeImpl()</code>, see {@link #manualStaticInitCall(String)}.
    * </p>
    */
-  public boolean forceStaticInitCode(String clazzName) {
+  public boolean forceStaticInitCode(final String clazzName) {
     return forceStaticInitCode.contains(clazzName);
   }
 
@@ -579,7 +579,7 @@ public class JavaConfiguration {
       the given Java type name (not fully-qualified, only the class
       name); returns either null or an empty list if there is no
       custom code for the class. */
-  public List<String> customJavaCodeForClass(String className) {
+  public List<String> customJavaCodeForClass(final String className) {
     List<String> res = customJavaCode.get(className);
     if (res == null) {
       res = new ArrayList<String>();
@@ -588,7 +588,7 @@ public class JavaConfiguration {
     return res;
   }
 
-  public List<String> javadocForMethod(String methodName) {
+  public List<String> javadocForMethod(final String methodName) {
     List<String> res = methodJavadoc.get(methodName);
     if (res == null) {
       res = new ArrayList<String>();
@@ -601,7 +601,7 @@ public class JavaConfiguration {
       the given Java type name (not fully-qualified, only the class
       name); returns either null or an empty list if there is no
       Javadoc documentation for the class. */
-  public List<String> javadocForClass(String className) {
+  public List<String> javadocForClass(final String className) {
     List<String> res = classJavadoc.get(className);
     if (res == null) {
       res = new ArrayList<String>();
@@ -613,7 +613,7 @@ public class JavaConfiguration {
   /** Returns the package into which to place the glue code for
       accessing the specified struct. Defaults to emitting into the
       regular package (i.e., the result of {@link #packageName}). */
-  public String packageForStruct(String structName) {
+  public String packageForStruct(final String structName) {
     String res = structPackages.get(structName);
     if (res == null) {
       res = packageName;
@@ -642,7 +642,7 @@ public class JavaConfiguration {
    * it describes field's array-length or element-count referenced by a pointer.
    * </p>
    */
-  public String returnValueCapacity(String functionName) {
+  public String returnValueCapacity(final String functionName) {
     return returnValueCapacities.get(functionName);
   }
 
@@ -654,27 +654,27 @@ public class JavaConfiguration {
    * it describes field's array-length or element-count referenced by a pointer.
    * </p>
    */
-  public String returnValueLength(String symbol) {
+  public String returnValueLength(final String symbol) {
     return returnValueLengths.get(symbol);
   }
 
   /** Returns a List of Strings of expressions declaring temporary C
       variables in the glue code for the specified function. */
-  public List<String> temporaryCVariableDeclarations(String functionName) {
+  public List<String> temporaryCVariableDeclarations(final String functionName) {
     return temporaryCVariableDeclarations.get(functionName);
   }
 
   /** Returns a List of Strings of expressions containing assignments
       to temporary C variables in the glue code for the specified
       function. */
-  public List<String> temporaryCVariableAssignments(String functionName) {
+  public List<String> temporaryCVariableAssignments(final String functionName) {
     return temporaryCVariableAssignments.get(functionName);
   }
 
   /** Returns a List of Strings indicating the interfaces the passed
       interface should declare it extends. May return null or a list
       of zero length if there are none. */
-  public List<String> extendedInterfaces(String interfaceName) {
+  public List<String> extendedInterfaces(final String interfaceName) {
     List<String> res = extendedInterfaces.get(interfaceName);
     if (res == null) {
       res = new ArrayList<String>();
@@ -686,7 +686,7 @@ public class JavaConfiguration {
   /** Returns a List of Strings indicating the interfaces the passed
       class should declare it implements. May return null or a list
       of zero length if there are none. */
-  public List<String> implementedInterfaces(String className) {
+  public List<String> implementedInterfaces(final String className) {
     List<String> res = implementedInterfaces.get(className);
     if (res == null) {
       res = new ArrayList<String>();
@@ -698,7 +698,7 @@ public class JavaConfiguration {
   /** Returns a List of Strings indicating the interfaces the passed
       class should declare it implements. May return null or a list
       of zero length if there are none. */
-  public String extendedParentClass(String className) {
+  public String extendedParentClass(final String className) {
     return parentClass.get(className);
   }
 
@@ -712,15 +712,15 @@ public class JavaConfiguration {
 
   public void dumpIgnores() {
     System.err.println("Extended Intf: ");
-    for (String str : extendedIntfSymbolsIgnore) {
+    for (final String str : extendedIntfSymbolsIgnore) {
         System.err.println("\t"+str);
     }
     System.err.println("Extended Impl: ");
-    for (String str : extendedImplSymbolsIgnore) {
+    for (final String str : extendedImplSymbolsIgnore) {
         System.err.println("\t"+str);
     }
     System.err.println("Ignores (All): ");
-    for (Pattern pattern : ignores) {
+    for (final Pattern pattern : ignores) {
         System.err.println("\t"+pattern);
     }
   }
@@ -735,13 +735,13 @@ public class JavaConfiguration {
 
   public void dumpRenames() {
     System.err.println("Symbol Renames: ");
-    for (String key : javaSymbolRenames.keySet()) {
+    for (final String key : javaSymbolRenames.keySet()) {
         System.err.println("\t"+key+" -> "+javaSymbolRenames.get(key));
     }
 
     System.err.println("Symbol Aliasing (through renaming): ");
-    for(String newName : javaSymbolRenames.values()) {
-        Set<String> origNames = javaRenamedSymbols.get(newName);
+    for(final String newName : javaSymbolRenames.values()) {
+        final Set<String> origNames = javaRenamedSymbols.get(newName);
         if(null!=origNames) {
             System.err.println("\t"+newName+" <- "+origNames);
         }
@@ -752,7 +752,7 @@ public class JavaConfiguration {
    * Returns the canonical configuration name for a struct field name,
    * i.e. 'struct-name'.'field-name'
    */
-  public static String canonicalStructFieldSymbol(String structName, String fieldName) {
+  public static String canonicalStructFieldSymbol(final String structName, final String fieldName) {
       return structName+"."+fieldName;
   }
 
@@ -763,7 +763,7 @@ public class JavaConfiguration {
    * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
    * </p>
    */
-  public boolean shouldIgnoreInInterface(String symbol) {
+  public boolean shouldIgnoreInInterface(final String symbol) {
     if(DEBUG_IGNORES) {
         dumpIgnoresOnce();
     }
@@ -795,11 +795,11 @@ public class JavaConfiguration {
    * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
    * </p>
    */
-  public boolean shouldIgnoreInImpl(String symbol) {
+  public boolean shouldIgnoreInImpl(final String symbol) {
     return shouldIgnoreInImpl_Int(symbol);
   }
 
-  private boolean shouldIgnoreInImpl_Int(String symbol) {
+  private boolean shouldIgnoreInImpl_Int(final String symbol) {
 
     if(DEBUG_IGNORES) {
       dumpIgnoresOnce();
@@ -826,8 +826,8 @@ public class JavaConfiguration {
 
     // Ok, the slow case. We need to check the entire table, in case the table
     // contains an regular expression that matches the symbol.
-    for (Pattern regexp : ignores) {
-      Matcher matcher = regexp.matcher(symbol);
+    for (final Pattern regexp : ignores) {
+      final Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
         if(DEBUG_IGNORES) {
             System.err.println("Ignore Impl RegEx: "+symbol);
@@ -840,8 +840,8 @@ public class JavaConfiguration {
     if (ignoreNots.size() > 0) {
       // Ok, the slow case. We need to check the entire table, in case the table
       // contains an regular expression that matches the symbol.
-      for (Pattern regexp : ignoreNots) {
-        Matcher matcher = regexp.matcher(symbol);
+      for (final Pattern regexp : ignoreNots) {
+        final Matcher matcher = regexp.matcher(symbol);
         if (!matcher.matches()) {
           // Special case as this is most often likely to be the case.
           // Unignores are not used very often.
@@ -853,8 +853,8 @@ public class JavaConfiguration {
           }
 
           boolean unignoreFound = false;
-          for (Pattern unignoreRegexp : unignores) {
-            Matcher unignoreMatcher = unignoreRegexp.matcher(symbol);
+          for (final Pattern unignoreRegexp : unignores) {
+            final Matcher unignoreMatcher = unignoreRegexp.matcher(symbol);
             if (unignoreMatcher.matches()) {
               unignoreFound = true;
               break;
@@ -876,11 +876,11 @@ public class JavaConfiguration {
   /** Returns true if this function should be given a body which
       throws a run-time exception with an "unimplemented" message
       during glue code generation. */
-  public boolean isUnimplemented(String symbol) {
+  public boolean isUnimplemented(final String symbol) {
     // Ok, the slow case. We need to check the entire table, in case the table
     // contains an regular expression that matches the symbol.
-    for (Pattern regexp : unimplemented) {
-      Matcher matcher = regexp.matcher(symbol);
+    for (final Pattern regexp : unimplemented) {
+      final Matcher matcher = regexp.matcher(symbol);
       if (matcher.matches()) {
         return true;
       }
@@ -893,8 +893,8 @@ public class JavaConfiguration {
       name of a Java wrapper class for a C struct, or the name
       unchanged if no RenameJavaType directive was specified for this
       type. */
-  public String renameJavaType(String javaTypeName) {
-    String rename = javaTypeRenames.get(javaTypeName);
+  public String renameJavaType(final String javaTypeName) {
+    final String rename = javaTypeRenames.get(javaTypeName);
     if (rename != null) {
       return rename;
     }
@@ -906,7 +906,7 @@ public class JavaConfiguration {
       constant. If a function, it still calls the originally-named C
       function under the hood. Returns null if this symbol has not
       been explicitly renamed. */
-  public String getJavaSymbolRename(String origName) {
+  public String getJavaSymbolRename(final String origName) {
     if(DEBUG_RENAMES) {
         dumpRenamesOnce();
     }
@@ -914,16 +914,16 @@ public class JavaConfiguration {
   }
 
   /** Returns a set of replaced names to the given <code>aliasedName</code>. */
-  public Set<String> getRenamedJavaSymbols(String aliasedName) {
+  public Set<String> getRenamedJavaSymbols(final String aliasedName) {
     return javaRenamedSymbols.get(aliasedName);
   }
 
   /** Programmatically adds a rename directive for the given symbol. */
-  public void addJavaSymbolRename(String origName, String newName) {
+  public void addJavaSymbolRename(final String origName, final String newName) {
     if(DEBUG_RENAMES) {
         System.err.print("\tRename "+origName+" -> "+newName);
     }
-    String prevValue = javaSymbolRenames.put(origName, newName);
+    final String prevValue = javaSymbolRenames.put(origName, newName);
     if(null != prevValue && !prevValue.equals(newName)) {
         throw new RuntimeException("Rename-Override Attampt: "+origName+" -> "+newName+
                                    ", but "+origName+" -> "+prevValue+" already exist. Run in 'debug' mode to analyze!");
@@ -958,9 +958,9 @@ public class JavaConfiguration {
   /** Returns a list of Strings which should be emitted as a prologue
       to the body for the Java-side glue code for the given method.
       Returns null if no prologue was specified. */
-  public List<String> javaPrologueForMethod(MethodBinding binding,
-                                                boolean forImplementingMethodCall,
-                                                boolean eraseBufferAndArrayTypes) {
+  public List<String> javaPrologueForMethod(final MethodBinding binding,
+                                                final boolean forImplementingMethodCall,
+                                                final boolean eraseBufferAndArrayTypes) {
     List<String> res = javaPrologues.get(binding.getName());
     if (res == null) {
       // Try again with method name and descriptor
@@ -972,9 +972,9 @@ public class JavaConfiguration {
   /** Returns a list of Strings which should be emitted as an epilogue
       to the body for the Java-side glue code for the given method.
       Returns null if no epilogue was specified. */
-  public List<String> javaEpilogueForMethod(MethodBinding binding,
-                                                boolean forImplementingMethodCall,
-                                                boolean eraseBufferAndArrayTypes) {
+  public List<String> javaEpilogueForMethod(final MethodBinding binding,
+                                                final boolean forImplementingMethodCall,
+                                                final boolean eraseBufferAndArrayTypes) {
     List<String> res = javaEpilogues.get(binding.getName());
     if (res == null) {
       // Try again with method name and descriptor
@@ -987,7 +987,7 @@ public class JavaConfiguration {
   // Internals only below this point
   //
 
-  protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
+  protected void dispatch(final String cmd, final StringTokenizer tok, final File file, final String filename, final int lineNo) throws IOException {
     //System.err.println("read cmd = [" + cmd + "]");
     if (cmd.equalsIgnoreCase("Package")) {
       packageName = readString("package", tok, filename, lineNo);
@@ -1004,14 +1004,14 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("NativeOutputDir")) {
       nativeOutputDir = readString("NativeOutputDir", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("HierarchicalNativeOutput")) {
-      String tmp = readString("HierarchicalNativeOutput", tok, filename, lineNo);
+      final String tmp = readString("HierarchicalNativeOutput", tok, filename, lineNo);
       nativeOutputUsesJavaHierarchy = Boolean.valueOf(tmp).booleanValue();
     } else if (cmd.equalsIgnoreCase("TagNativeBinding")) {
       tagNativeBinding = readBoolean("TagNativeBinding", tok, filename, lineNo).booleanValue();
     } else if (cmd.equalsIgnoreCase("Style")) {
         try{
           emissionStyle = EmissionStyle.valueOf(readString("Style", tok, filename, lineNo));
-        }catch(IllegalArgumentException ex) {
+        }catch(final IllegalArgumentException ex) {
             LOG.log(WARNING, "Error parsing \"style\" command at line {0} in file \"{1}\"", new Object[]{lineNo, filename});
         }
     } else if (cmd.equalsIgnoreCase("AccessControl")) {
@@ -1073,14 +1073,14 @@ public class JavaConfiguration {
       // Warning: make sure delimiters are reset at the top of this loop
       // because readClassJavadoc changes them.
     } else if (cmd.equalsIgnoreCase("NIOOnly")) {
-      String funcName = readString("NIOOnly", tok, filename, lineNo);
+      final String funcName = readString("NIOOnly", tok, filename, lineNo);
       if(funcName.equals("__ALL__")) {
           forceUseNIOOnly4All=true;
       } else {
           addUseNIOOnly( funcName );
       }
     } else if (cmd.equalsIgnoreCase("NIODirectOnly")) {
-      String funcName = readString("NIODirectOnly", tok, filename, lineNo);
+      final String funcName = readString("NIODirectOnly", tok, filename, lineNo);
       if(funcName.equals("__ALL__")) {
           forceUseNIODirectOnly4All=true;
       } else {
@@ -1149,25 +1149,25 @@ public class JavaConfiguration {
     }
   }
 
-  protected String readString(String cmd, StringTokenizer tok, String filename, int lineNo) {
+  protected String readString(final String cmd, final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       return tok.nextToken();
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"" + cmd + "\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
 
-  protected Boolean readBoolean(String cmd, StringTokenizer tok, String filename, int lineNo) {
+  protected Boolean readBoolean(final String cmd, final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       return Boolean.valueOf(tok.nextToken());
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"" + cmd + "\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected boolean value", e);
     }
   }
 
-  protected Class<?> stringToPrimitiveType(String type) throws ClassNotFoundException {
+  protected Class<?> stringToPrimitiveType(final String type) throws ClassNotFoundException {
     if (type.equals("boolean")) return Boolean.TYPE;
     if (type.equals("byte"))    return Byte.TYPE;
     if (type.equals("char"))    return Character.TYPE;
@@ -1179,21 +1179,21 @@ public class JavaConfiguration {
     throw new RuntimeException("Only primitive types are supported here");
   }
 
-    protected void readAccessControl(StringTokenizer tok, String filename, int lineNo) {
+    protected void readAccessControl(final StringTokenizer tok, final String filename, final int lineNo) {
         try {
-            String methodName = tok.nextToken();
-            String style = tok.nextToken();
-            MethodAccess access = MethodAccess.valueOf(style.toUpperCase());
+            final String methodName = tok.nextToken();
+            final String style = tok.nextToken();
+            final MethodAccess access = MethodAccess.valueOf(style.toUpperCase());
             accessControl.put(methodName, access);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException("Error parsing \"AccessControl\" command at line " + lineNo
                     + " in file \"" + filename + "\"", e);
         }
     }
 
-  protected void readOpaque(StringTokenizer tok, String filename, int lineNo) {
+  protected void readOpaque(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      JavaType javaType = JavaType.createForClass(stringToPrimitiveType(tok.nextToken()));
+      final JavaType javaType = JavaType.createForClass(stringToPrimitiveType(tok.nextToken()));
       String cType = null;
       while (tok.hasMoreTokens()) {
         if (cType == null) {
@@ -1206,55 +1206,55 @@ public class JavaConfiguration {
         throw new RuntimeException("No C type for \"Opaque\" command at line " + lineNo +
           " in file \"" + filename + "\"");
       }
-      TypeInfo info = parseTypeInfo(cType, javaType);
+      final TypeInfo info = parseTypeInfo(cType, javaType);
       addTypeInfo(info);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException("Error parsing \"Opaque\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readReturnsString(StringTokenizer tok, String filename, int lineNo) {
+  protected void readReturnsString(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String name = tok.nextToken();
+      final String name = tok.nextToken();
       returnsString.add(name);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ReturnsString\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readReturnedArrayLength(StringTokenizer tok, String filename, int lineNo) {
+  protected void readReturnedArrayLength(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String functionName = tok.nextToken();
+      final String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       returnedArrayLengths.put(functionName, restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ReturnedArrayLength\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readExtendedIntfImplSymbols(StringTokenizer tok, String filename, int lineNo, boolean forInterface, boolean forImplementation, boolean onlyList) {
+  protected void readExtendedIntfImplSymbols(final StringTokenizer tok, final String filename, final int lineNo, final boolean forInterface, final boolean forImplementation, final boolean onlyList) {
     File javaFile;
     BufferedReader javaReader;
     try {
       javaFile  = new File(tok.nextToken());
       javaReader = new BufferedReader(new FileReader(javaFile));
-    } catch (FileNotFoundException e) {
+    } catch (final FileNotFoundException e) {
       throw new RuntimeException(e);
     }
 
-    JavaLexer lexer = new JavaLexer(javaReader);
+    final JavaLexer lexer = new JavaLexer(javaReader);
     lexer.setFilename(javaFile.getName());
 
-    JavaParser parser = new JavaParser(lexer);
+    final JavaParser parser = new JavaParser(lexer);
     parser.setFilename(javaFile.getName());
 
     try {
         parser.compilationUnit();
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(e);
     }
 
@@ -1281,22 +1281,22 @@ public class JavaConfiguration {
     }
   }
 
-  protected void readIgnore(StringTokenizer tok, String filename, int lineNo) {
+  protected void readIgnore(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String regex = tok.nextToken();
-      Pattern pattern = Pattern.compile(regex);
+      final String regex = tok.nextToken();
+      final Pattern pattern = Pattern.compile(regex);
       ignores.add(pattern);
       ignoreMap.put(regex, pattern);
       //System.err.println("IGNORING " + regex + " / " + ignores.get(regex));
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Ignore\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readUnignore(StringTokenizer tok, String filename, int lineNo) {
+  protected void readUnignore(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String regex = tok.nextToken();
+      final String regex = tok.nextToken();
       Pattern pattern = ignoreMap.get(regex);
       ignoreMap.remove(regex);
       ignores.remove(pattern);
@@ -1308,129 +1308,129 @@ public class JavaConfiguration {
       unignores.add(pattern);
 
       //System.err.println("UN-IGNORING " + regex + " / " + ignores.get(regex));
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Unignore\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readIgnoreNot(StringTokenizer tok, String filename, int lineNo) {
+  protected void readIgnoreNot(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String regex = tok.nextToken();
+      final String regex = tok.nextToken();
       ignoreNots.add(Pattern.compile(regex));
       //System.err.println("IGNORING NEGATION OF " + regex + " / " + ignores.get(regex));
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"IgnoreNot\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readUnimplemented(StringTokenizer tok, String filename, int lineNo) {
+  protected void readUnimplemented(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String regex = tok.nextToken();
+      final String regex = tok.nextToken();
       unimplemented.add(Pattern.compile(regex));
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Unimplemented\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readIgnoreField(StringTokenizer tok, String filename, int lineNo) {
+  protected void readIgnoreField(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String containingStruct = tok.nextToken();
-      String name = tok.nextToken();
+      final String containingStruct = tok.nextToken();
+      final String name = tok.nextToken();
       ignores.add(Pattern.compile(containingStruct + "\\." + name));
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"IgnoreField\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readManuallyImplement(StringTokenizer tok, String filename, int lineNo) {
+  protected void readManuallyImplement(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String name = tok.nextToken();
+      final String name = tok.nextToken();
       manuallyImplement.add(name);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ManuallyImplement\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
-  protected void readManualStaticInitCall(StringTokenizer tok, String filename, int lineNo) {
+  protected void readManualStaticInitCall(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String name = tok.nextToken();
+      final String name = tok.nextToken();
       manualStaticInitCall.add(name);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ManualStaticInitCall\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
-  protected void readForceStaticInitCode(StringTokenizer tok, String filename, int lineNo) {
+  protected void readForceStaticInitCode(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String name = tok.nextToken();
+      final String name = tok.nextToken();
       forceStaticInitCode.add(name);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ForceStaticInitCode\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readCustomJavaCode(StringTokenizer tok, String filename, int lineNo) {
+  protected void readCustomJavaCode(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String tokenClassName = tok.nextToken();
+      final String tokenClassName = tok.nextToken();
       try {
-          String restOfLine = tok.nextToken("\n\r\f");
+          final String restOfLine = tok.nextToken("\n\r\f");
           addCustomJavaCode(tokenClassName, restOfLine);
-      } catch (NoSuchElementException e) {
+      } catch (final NoSuchElementException e) {
           addCustomJavaCode(tokenClassName, "");
       }
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"CustomJavaCode\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void addCustomJavaCode(String className, String code) {
-    List<String> codeList = customJavaCodeForClass(className);
+  protected void addCustomJavaCode(final String className, final String code) {
+    final List<String> codeList = customJavaCodeForClass(className);
     codeList.add(code);
   }
 
-  protected void readCustomCCode(StringTokenizer tok, String filename, int lineNo) {
+  protected void readCustomCCode(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String restOfLine = tok.nextToken("\n\r\f");
+      final String restOfLine = tok.nextToken("\n\r\f");
       customCCode.add(restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       customCCode.add("");
     }
   }
 
-  protected void readMethodJavadoc(StringTokenizer tok, String filename, int lineNo) {
+  protected void readMethodJavadoc(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String tokenClassName = tok.nextToken();
-      String restOfLine = tok.nextToken("\n\r\f");
+      final String tokenClassName = tok.nextToken();
+      final String restOfLine = tok.nextToken("\n\r\f");
       addMethodJavadoc(tokenClassName, restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"MethodJavadoc\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
-  protected void addMethodJavadoc(String methodName, String code) {
-    List<String> codeList = javadocForMethod(methodName);
+  protected void addMethodJavadoc(final String methodName, final String code) {
+    final List<String> codeList = javadocForMethod(methodName);
     codeList.add(code);
   }
 
-  protected void readClassJavadoc(StringTokenizer tok, String filename, int lineNo) {
+  protected void readClassJavadoc(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String tokenClassName = tok.nextToken();
-      String restOfLine = tok.nextToken("\n\r\f");
+      final String tokenClassName = tok.nextToken();
+      final String restOfLine = tok.nextToken("\n\r\f");
       addClassJavadoc(tokenClassName, restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ClassJavadoc\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void addClassJavadoc(String className, String code) {
-    List<String> codeList = javadocForClass(className);
+  protected void addClassJavadoc(final String className, final String code) {
+    final List<String> codeList = javadocForClass(className);
     codeList.add(code);
   }
 
@@ -1463,12 +1463,12 @@ public class JavaConfiguration {
    * </pre>
    *
    */
-  protected void readArgumentIsString(StringTokenizer tok, String filename, int lineNo) {
+  protected void readArgumentIsString(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String methodName = tok.nextToken();
-      ArrayList<Integer> argIndices = new ArrayList<Integer>(2);
+      final String methodName = tok.nextToken();
+      final ArrayList<Integer> argIndices = new ArrayList<Integer>(2);
       while (tok.hasMoreTokens()) {
-        Integer idx = Integer.valueOf(tok.nextToken());
+        final Integer idx = Integer.valueOf(tok.nextToken());
         argIndices.add(idx);
       }
 
@@ -1478,51 +1478,51 @@ public class JavaConfiguration {
         throw new RuntimeException("ERROR: Error parsing \"ArgumentIsString\" command at line " + lineNo +
           " in file \"" + filename + "\": directive requires specification of at least 1 index");
       }
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException(
         "Error parsing \"ArgumentIsString\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readStructPackage(StringTokenizer tok, String filename, int lineNo) {
+  protected void readStructPackage(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String struct = tok.nextToken();
-      String pkg = tok.nextToken();
+      final String struct = tok.nextToken();
+      final String pkg = tok.nextToken();
       structPackages.put(struct, pkg);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"StructPackage\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readReturnValueCapacity(StringTokenizer tok, String filename, int lineNo) {
+  protected void readReturnValueCapacity(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String functionName = tok.nextToken();
+      final String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       returnValueCapacities.put(functionName, restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ReturnValueCapacity\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readReturnValueLength(StringTokenizer tok, String filename, int lineNo) {
+  protected void readReturnValueLength(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String functionName = tok.nextToken();
+      final String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       returnValueLengths.put(functionName, restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ReturnValueLength\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readTemporaryCVariableDeclaration(StringTokenizer tok, String filename, int lineNo) {
+  protected void readTemporaryCVariableDeclaration(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String functionName = tok.nextToken();
+      final String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       List<String> list = temporaryCVariableDeclarations.get(functionName);
@@ -1531,15 +1531,15 @@ public class JavaConfiguration {
         temporaryCVariableDeclarations.put(functionName, list);
       }
       list.add(restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"TemporaryCVariableDeclaration\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readTemporaryCVariableAssignment(StringTokenizer tok, String filename, int lineNo) {
+  protected void readTemporaryCVariableAssignment(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String functionName = tok.nextToken();
+      final String functionName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       List<String> list = temporaryCVariableAssignments.get(functionName);
@@ -1548,117 +1548,117 @@ public class JavaConfiguration {
         temporaryCVariableAssignments.put(functionName, list);
       }
       list.add(restOfLine);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"TemporaryCVariableAssignment\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void doInclude(StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
+  protected void doInclude(final StringTokenizer tok, final File file, final String filename, final int lineNo) throws IOException {
     try {
-      String includedFilename = tok.nextToken();
+      final String includedFilename = tok.nextToken();
       File includedFile = new File(includedFilename);
       if (!includedFile.isAbsolute()) {
         includedFile = new File(file.getParentFile(), includedFilename);
       }
       read(includedFile.getAbsolutePath());
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Include\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void doIncludeAs(StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
+  protected void doIncludeAs(final StringTokenizer tok, final File file, final String filename, final int lineNo) throws IOException {
     try {
-      StringBuilder linePrefix = new StringBuilder(128);
+      final StringBuilder linePrefix = new StringBuilder(128);
       while (tok.countTokens() > 1)
       {
         linePrefix.append(tok.nextToken());
         linePrefix.append(" ");
       }
       // last token is filename
-      String includedFilename = tok.nextToken();
+      final String includedFilename = tok.nextToken();
       File includedFile = new File(includedFilename);
       if (!includedFile.isAbsolute()) {
         includedFile = new File(file.getParentFile(), includedFilename);
       }
       read(includedFile.getAbsolutePath(), linePrefix.toString());
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"IncludeAs\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected void readExtend(StringTokenizer tok, String filename, int lineNo) {
+  protected void readExtend(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String interfaceName = tok.nextToken();
-      List<String> intfs = extendedInterfaces(interfaceName);
+      final String interfaceName = tok.nextToken();
+      final List<String> intfs = extendedInterfaces(interfaceName);
       intfs.add(tok.nextToken());
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Extends\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
 
-  protected void readImplements(StringTokenizer tok, String filename, int lineNo) {
+  protected void readImplements(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String tokenClassName = tok.nextToken();
-      List<String> intfs = implementedInterfaces(tokenClassName);
+      final String tokenClassName = tok.nextToken();
+      final List<String> intfs = implementedInterfaces(tokenClassName);
       intfs.add(tok.nextToken());
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"Implements\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
 
-  protected void readParentClass(StringTokenizer tok, String filename, int lineNo) {
+  protected void readParentClass(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String tokenClassName = tok.nextToken();
+      final String tokenClassName = tok.nextToken();
       parentClass.put(tokenClassName, tok.nextToken());
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ParentClass\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
 
-  protected void readRenameJavaType(StringTokenizer tok, String filename, int lineNo) {
+  protected void readRenameJavaType(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String fromName = tok.nextToken();
-      String toName   = tok.nextToken();
+      final String fromName = tok.nextToken();
+      final String toName   = tok.nextToken();
       javaTypeRenames.put(fromName, toName);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"RenameJavaType\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
 
-  protected void readRenameJavaSymbol(StringTokenizer tok, String filename, int lineNo) {
+  protected void readRenameJavaSymbol(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      String fromName = tok.nextToken();
-      String toName   = tok.nextToken();
+      final String fromName = tok.nextToken();
+      final String toName   = tok.nextToken();
       addJavaSymbolRename(fromName, toName);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"RenameJavaSymbol\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }
 
-  protected void readJavaPrologueOrEpilogue(StringTokenizer tok, String filename, int lineNo, boolean prologue) {
+  protected void readJavaPrologueOrEpilogue(final StringTokenizer tok, final String filename, final int lineNo, final boolean prologue) {
     try {
       String methodName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       if (startsWithDescriptor(restOfLine)) {
         // Assume it starts with signature for disambiguation
-        int spaceIdx = restOfLine.indexOf(' ');
+        final int spaceIdx = restOfLine.indexOf(' ');
         if (spaceIdx > 0) {
-          String descriptor = restOfLine.substring(0, spaceIdx);
+          final String descriptor = restOfLine.substring(0, spaceIdx);
           restOfLine = restOfLine.substring(spaceIdx + 1, restOfLine.length());
           methodName = methodName + descriptor;
         }
       }
       addJavaPrologueOrEpilogue(methodName, restOfLine, prologue);
-    } catch (NoSuchElementException e) {
+    } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"" +
                                  (prologue ? "JavaPrologue" : "JavaEpilogue") +
                                  "\" command at line " + lineNo +
@@ -1666,8 +1666,8 @@ public class JavaConfiguration {
     }
   }
 
-  protected void addJavaPrologueOrEpilogue(String methodName, String code, boolean prologue) {
-    Map<String, List<String>> codes = (prologue ? javaPrologues : javaEpilogues);
+  protected void addJavaPrologueOrEpilogue(final String methodName, final String code, final boolean prologue) {
+    final Map<String, List<String>> codes = (prologue ? javaPrologues : javaEpilogues);
     List<String> data = codes.get(methodName);
     if (data == null) {
       data = new ArrayList<String>();
@@ -1676,10 +1676,10 @@ public class JavaConfiguration {
     data.add(code);
   }
 
-  protected void readRangeCheck(StringTokenizer tok, String filename, int lineNo, boolean inBytes) {
+  protected void readRangeCheck(final StringTokenizer tok, final String filename, final int lineNo, final boolean inBytes) {
     try {
-      String functionName = tok.nextToken();
-      int argNum = Integer.parseInt(tok.nextToken());
+      final String functionName = tok.nextToken();
+      final int argNum = Integer.parseInt(tok.nextToken());
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
       // Construct a JavaPrologue for this
@@ -1688,13 +1688,13 @@ public class JavaConfiguration {
                                 (inBytes ? "Bytes" : "") +
                                 "({" + argNum + "}, " + restOfLine + ");",
                                 true);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException("Error parsing \"RangeCheck" + (inBytes ? "Bytes" : "") + "\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
 
-  protected static TypeInfo parseTypeInfo(String cType, JavaType javaType) {
+  protected static TypeInfo parseTypeInfo(final String cType, final JavaType javaType) {
     String typeName = null;
     int pointerDepth = 0;
     int idx = 0;
@@ -1714,7 +1714,7 @@ public class JavaConfiguration {
     return new TypeInfo(typeName, pointerDepth, javaType);
   }
 
-  protected void addTypeInfo(TypeInfo info) {
+  protected void addTypeInfo(final TypeInfo info) {
     TypeInfo tmp = typeInfoMap.get(info.name());
     if (tmp == null) {
       typeInfoMap.put(info.name(), info);
@@ -1726,10 +1726,10 @@ public class JavaConfiguration {
     tmp.setNext(info);
   }
 
-  private static int nextIndexAfterType(String s, int idx) {
-    int len = s.length();
+  private static int nextIndexAfterType(final String s, int idx) {
+    final int len = s.length();
     while (idx < len) {
-      char c = s.charAt(idx);
+      final char c = s.charAt(idx);
 
       if (Character.isJavaIdentifierStart(c) ||
           Character.isJavaIdentifierPart(c) ||
@@ -1744,8 +1744,8 @@ public class JavaConfiguration {
     return -1;
   }
 
-  private static int nextIndexAfterDescriptor(String s, int idx) {
-    char c = s.charAt(idx);
+  private static int nextIndexAfterDescriptor(final String s, final int idx) {
+    final char c = s.charAt(idx);
     switch (c) {
       case 'B':
       case 'C':
@@ -1763,12 +1763,12 @@ public class JavaConfiguration {
     return -1;
   }
 
-  protected static boolean startsWithDescriptor(String s) {
+  protected static boolean startsWithDescriptor(final String s) {
     // Try to see whether the String s starts with a valid Java
     // descriptor.
 
     int idx = 0;
-    int len = s.length();
+    final int len = s.length();
     while ((idx < len) && s.charAt(idx) == ' ') {
       ++idx;
     }
@@ -1776,7 +1776,7 @@ public class JavaConfiguration {
     if (idx >= len) return false;
     if (s.charAt(idx++) != '(')  return false;
     while (idx < len) {
-      int nextIdx = nextIndexAfterDescriptor(s, idx);
+      final int nextIdx = nextIndexAfterDescriptor(s, idx);
       if (nextIdx < 0) {
         return false;
       }
@@ -1786,7 +1786,7 @@ public class JavaConfiguration {
       }
       idx = nextIdx;
     }
-    int nextIdx = nextIndexAfterDescriptor(s, idx + 1);
+    final int nextIdx = nextIndexAfterDescriptor(s, idx + 1);
     if (nextIdx < 0) {
       return false;
     }

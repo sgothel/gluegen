@@ -42,7 +42,7 @@ public class RunnableTask extends TaskBase {
      * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
      * @param runnable the {@link Runnable} to execute.
      */
-    public static void invoke(boolean waitUntilDone, Runnable runnable) {
+    public static void invoke(final boolean waitUntilDone, final Runnable runnable) {
         Throwable throwable = null;
         final Object sync = new Object();
         final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
@@ -51,7 +51,7 @@ public class RunnableTask extends TaskBase {
             if( waitUntilDone ) {
                 try {
                     sync.wait();
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -85,7 +85,7 @@ public class RunnableTask extends TaskBase {
                     if( waitUntilDone ) {
                         try {
                             sync.wait();
-                        } catch (InterruptedException ie) {
+                        } catch (final InterruptedException ie) {
                             throwable = ie;
                         }
                         if(null==throwable) {
@@ -114,7 +114,7 @@ public class RunnableTask extends TaskBase {
      *                        otherwise the exception is thrown.
      * @param exceptionOut If not <code>null</code>, exceptions are written to this {@link PrintStream}.
      */
-    public RunnableTask(Runnable runnable, Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
+    public RunnableTask(final Runnable runnable, final Object syncObject, final boolean catchExceptions, final PrintStream exceptionOut) {
         super(syncObject, catchExceptions, exceptionOut);
         this.runnable = runnable ;
     }
@@ -131,7 +131,7 @@ public class RunnableTask extends TaskBase {
         if(null == syncObject) {
             try {
                 runnable.run();
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 runnableException = t;
                 if(null != exceptionOut) {
                     exceptionOut.println("RunnableTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -148,7 +148,7 @@ public class RunnableTask extends TaskBase {
             synchronized (syncObject) {
                 try {
                     runnable.run();
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     runnableException = t;
                     if(null != exceptionOut) {
                         exceptionOut.println("RunnableTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());

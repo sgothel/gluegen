@@ -53,7 +53,7 @@ public class URIQueryProps {
 
    private final HashMap<String, String> properties = new HashMap<String, String>();
 
-   private URIQueryProps(char querySeparator) {
+   private URIQueryProps(final char querySeparator) {
        query_separator = String.valueOf(querySeparator);
    }
 
@@ -72,7 +72,7 @@ public class URIQueryProps {
                needsSep = true;
            }
        }
-       Iterator<Entry<String, String>> entries = properties.entrySet().iterator();
+       final Iterator<Entry<String, String>> entries = properties.entrySet().iterator();
        while(entries.hasNext()) {
            if(needsSep) {
                sb.append(query_separator);
@@ -87,7 +87,7 @@ public class URIQueryProps {
        return sb.toString();
    }
 
-   public final URI appendQuery(URI base) throws URISyntaxException {
+   public final URI appendQuery(final URI base) throws URISyntaxException {
        return new URI(base.getScheme(),
                       base.getRawUserInfo(), base.getHost(), base.getPort(),
                       base.getRawPath(), appendQuery(base.getRawQuery()), base.getRawFragment());
@@ -100,7 +100,7 @@ public class URIQueryProps {
     * @return
     * @throws IllegalArgumentException if <code>querySeparator</code> is illegal, i.e. neither <i>;</i> nor <i>&</i>
     */
-   public static final URIQueryProps create(URI uri, char querySeparator) throws IllegalArgumentException {
+   public static final URIQueryProps create(final URI uri, final char querySeparator) throws IllegalArgumentException {
        if( ';' != querySeparator && '&' != querySeparator ) {
            throw new IllegalArgumentException("querySeparator is invalid: "+querySeparator);
        }
@@ -109,7 +109,7 @@ public class URIQueryProps {
        final int q_l = null != q ? q.length() : -1;
        int q_e = -1;
        while(q_e < q_l) {
-           int q_b = q_e + 1; // next term
+           final int q_b = q_e + 1; // next term
            q_e = q.indexOf(querySeparator, q_b);
            if(0 == q_e) {
                // single separator

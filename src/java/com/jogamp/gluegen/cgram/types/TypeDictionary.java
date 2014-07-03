@@ -46,10 +46,10 @@ import java.util.*;
 
 public class TypeDictionary {
   /** Mapping from type name to type.*/
-  private HashMap<String, Type> map = new HashMap<String, Type>();
+  private final HashMap<String, Type> map = new HashMap<String, Type>();
 
   /** Reverse mapping; created lazily from the regular map */
-  private HashMap<Set<Type>, String> reverseMap = new HashMap<Set<Type>, String>();
+  private final HashMap<Set<Type>, String> reverseMap = new HashMap<Set<Type>, String>();
 
   /** Has a type been added/removed since the last time the reverse map was
    * calculated? */
@@ -60,14 +60,14 @@ public class TypeDictionary {
    * @param name the name to which the type is defined
    * @param type the type that can be referred to by the specified name.
    */
-  public Type put(String name, Type type) {
+  public Type put(final String name, final Type type) {
     reverseMapOutOfDate = true;
     return map.put(name, type);
   }
 
   /** Get the type corresponding to the given name. Returns null if no type
    * was found corresponding to the given name. */
-  public Type get(String name) {
+  public Type get(final String name) {
     return map.get(name);
   }
 
@@ -87,7 +87,7 @@ public class TypeDictionary {
 //  }
 
   /** Remove the mapping from the specified name to its associated type.*/
-  public Type remove(String name) {
+  public Type remove(final String name) {
     reverseMapOutOfDate = true;
     return map.remove(name);
   }
@@ -103,11 +103,11 @@ public class TypeDictionary {
     return map.entrySet();
   }
 
-  public boolean containsKey(String key) {
+  public boolean containsKey(final String key) {
     return map.containsKey(key);
   }
 
-  public boolean containsValue(Type value) {
+  public boolean containsValue(final Type value) {
     return map.containsValue(value);
   }
 

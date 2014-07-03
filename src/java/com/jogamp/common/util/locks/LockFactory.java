@@ -39,7 +39,7 @@ public class LockFactory {
 
         public final int id;
 
-        ImplType(int id){
+        ImplType(final int id){
             this.id = id;
         }
     }
@@ -54,7 +54,7 @@ public class LockFactory {
         return new RecursiveThreadGroupLockImpl01Unfairish();
     }
 
-    public static RecursiveLock createRecursiveLock(ImplType t, boolean fair) {
+    public static RecursiveLock createRecursiveLock(final ImplType t, final boolean fair) {
         switch(t) {
             case Int01:
                 return fair ? new RecursiveLockImpl01CompleteFair() : new RecursiveLockImpl01Unfairish();

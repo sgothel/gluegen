@@ -44,27 +44,27 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   private static native long LoadLibraryW(java.lang.String lpLibFileName);
 
   @Override
-  public final long openLibraryLocal(String libraryName, boolean debug) throws SecurityException {
+  public final long openLibraryLocal(final String libraryName, final boolean debug) throws SecurityException {
     // How does that work under Windows ?
     // Don't know .. so it's an alias for the time being
     return openLibraryGlobal(libraryName, debug);
   }
 
   @Override
-  public final long openLibraryGlobal(String libraryName, boolean debug) throws SecurityException {
+  public final long openLibraryGlobal(final String libraryName, final boolean debug) throws SecurityException {
     SecurityUtil.checkLinkPermission(libraryName);
     final long handle = LoadLibraryW(libraryName);
     if( 0 != handle ) {
         incrLibRefCount(handle, libraryName);
     } else if ( DEBUG || debug ) {
-        int err = GetLastError();
+        final int err = GetLastError();
         System.err.println("LoadLibraryW \""+libraryName+"\" failed, error code: 0x"+Integer.toHexString(err)+", "+err);
     }
     return handle;
   }
 
   @Override
-  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
+  public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {
     SecurityUtil.checkAllLinkPermission();
     if(DEBUG_LOOKUP) {
         System.err.println("lookupSymbolGlobal: Not supported on Windows");
@@ -74,7 +74,7 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   }
 
   @Override
-  public final long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException {
+  public final long lookupSymbol(final long libraryHandle, final String symbolName) throws IllegalArgumentException {
     if( null == getLibRef( libraryHandle ) ) {
         throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
     }
@@ -97,7 +97,7 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   }
 
   @Override
-  public final void closeLibrary(long libraryHandle) throws IllegalArgumentException {
+  public final void closeLibrary(final long libraryHandle) throws IllegalArgumentException {
     if( null == decrLibRefCount( libraryHandle ) ) {
         throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
     }

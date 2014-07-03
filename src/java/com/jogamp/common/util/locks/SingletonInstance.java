@@ -37,11 +37,11 @@ public abstract class SingletonInstance implements Lock {
 
     protected static final boolean DEBUG = true;
 
-    public static SingletonInstance createFileLock(long poll_ms, String lockFileBasename) {
+    public static SingletonInstance createFileLock(final long poll_ms, final String lockFileBasename) {
         return new SingletonInstanceFileLock(poll_ms, lockFileBasename);
     }
 
-    public static SingletonInstance createFileLock(long poll_ms, File lockFile) {
+    public static SingletonInstance createFileLock(final long poll_ms, final File lockFile) {
         return new SingletonInstanceFileLock(poll_ms, lockFile);
     }
 
@@ -58,11 +58,11 @@ public abstract class SingletonInstance implements Lock {
      * @param pollPeriod
      * @param portNumber to be used for this single instance server socket.
      */
-    public static SingletonInstance createServerSocket(long poll_ms, int portNumber) {
+    public static SingletonInstance createServerSocket(final long poll_ms, final int portNumber) {
         return new SingletonInstanceServerSocket(poll_ms, portNumber);
     }
 
-    protected SingletonInstance(long poll_ms) {
+    protected SingletonInstance(final long poll_ms) {
         this.poll_ms = Math.max(10, poll_ms);
     }
 
@@ -79,7 +79,7 @@ public abstract class SingletonInstance implements Lock {
                     return;
                 }
             } while ( true ) ;
-        } catch ( RuntimeException ie ) {
+        } catch ( final RuntimeException ie ) {
             throw new  RuntimeException(ie);
         }
     }
@@ -109,7 +109,7 @@ public abstract class SingletonInstance implements Lock {
                 maxwait -= System.currentTimeMillis()-t1;
                 i++;
             } while ( 0 < maxwait ) ;
-        } catch ( InterruptedException ie ) {
+        } catch ( final InterruptedException ie ) {
             final long t2 = System.currentTimeMillis();
             throw new RuntimeException(infoPrefix(t2)+" EEE (1) "+getName()+" - couldn't get lock within "+(t2-t0)+" ms, "+i+" attempts", ie);
         }
@@ -139,7 +139,7 @@ public abstract class SingletonInstance implements Lock {
         return locked;
     }
 
-    protected String infoPrefix(long currentMillis) {
+    protected String infoPrefix(final long currentMillis) {
         return "SLOCK [T "+Thread.currentThread().getName()+" @ "+currentMillis+" ms";
     }
     protected String infoPrefix() {

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -44,38 +44,38 @@ import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 
 /**
- * Applet: Provoke AccessControlException while writing to file! 
+ * Applet: Provoke AccessControlException while writing to file!
  */
 @SuppressWarnings("serial")
 public class Applet01 extends Applet {
     static final String java_io_tmpdir_propkey = "java.io.tmpdir";
     static final String java_home_propkey = "java.home";
     static final String os_name_propkey = "os.name";
-    
+
     static final String tfilename = "test.bin" ;
-    static final MachineDescription machine = Platform.getMachineDescription(); 
+    static final MachineDescription machine = Platform.getMachineDescription();
     static final int tsz = machine.pageSizeInBytes();
-    
+
     static final boolean usesSecurityManager;
-    
+
     static {
         if( null == System.getSecurityManager() ) {
             usesSecurityManager = false;
             System.err.println("No SecurityManager Installed");
         } else {
             usesSecurityManager = true;
-            System.err.println("SecurityManager Already Installed");            
+            System.err.println("SecurityManager Already Installed");
         }
     }
-    
-    static void testPropImpl(String propKey, boolean isSecure) {
+
+    static void testPropImpl(final String propKey, boolean isSecure) {
         isSecure |= !usesSecurityManager;
-        
+
         Exception se0 = null;
         try {
-            String p0 = System.getProperty(propKey);
+            final String p0 = System.getProperty(propKey);
             System.err.println(propKey+": "+p0);
-        } catch (AccessControlException e) {
+        } catch (final AccessControlException e) {
             se0 = e;
             if( !isSecure ) {
                 System.err.println("Expected exception for insecure property <"+propKey+">");
@@ -95,15 +95,15 @@ public class Applet01 extends Applet {
             }
         }
     }
-    
+
     static void testTempDirImpl(boolean isSecure) {
         isSecure |= !usesSecurityManager;
-        
+
         Exception se0 = null;
         try {
-            File tmp = IOUtil.getTempDir(true);
+            final File tmp = IOUtil.getTempDir(true);
             System.err.println("Temp: "+tmp);
-        } catch (AccessControlException e) {
+        } catch (final AccessControlException e) {
             se0 = e;
             if( !isSecure ) {
                 System.err.println("Expected exception for insecure temp dir");
@@ -124,12 +124,12 @@ public class Applet01 extends Applet {
         }
     }
 
-    private void testWriteFile() {    
+    private void testWriteFile() {
         AccessControlException sec01 = null;
         try {
-            File tmp = IOUtil.getTempDir(true);
+            final File tmp = IOUtil.getTempDir(true);
             System.err.println("Temp: "+tmp);
-            byte[] orig = new byte[tsz];
+            final byte[] orig = new byte[tsz];
             final File tfile = new File(tmp, tfilename);
             final OutputStream tout = new BufferedOutputStream(new FileOutputStream(tfile));
             for(int i=0; i<tsz; i++) {
@@ -138,9 +138,9 @@ public class Applet01 extends Applet {
                 tout.write(b);
             }
             tout.close();
-        } catch (IOException ioe) {
+        } catch (final IOException ioe) {
             ioe.printStackTrace();
-        } catch (AccessControlException ace) {
+        } catch (final AccessControlException ace) {
             // GOOD!
             sec01 = ace;
             System.err.println("Expected:"+ace.getMessage());
@@ -153,13 +153,13 @@ public class Applet01 extends Applet {
             if( null == sec01 ) {
                 throw new Error("SecurityException not thrown on writing to temp");
             }
-        }        
+        }
     }
-    
-    private void testOpenLibrary(boolean global) {
+
+    private void testOpenLibrary(final boolean global) {
         final ClassLoader cl = getClass().getClassLoader();
         System.err.println("CL "+cl);
-        
+
         String libBaseName = null;
         final Class<?> clazz = this.getClass();
         URL libURL = clazz.getResource("/libtest1.so");
@@ -172,19 +172,19 @@ public class Applet01 extends Applet {
             }
         }
         System.err.println("Untrusted Library (URL): "+libURL);
-        
+
         String libDir1 = null;
         if( null != libURL ) {
             try {
                 libDir1 = JarUtil.getJarSubURI(libURL.toURI()).getPath();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
             if( null != libDir1 ) {
                 System.err.println("libDir1.1: "+libDir1);
                 try {
                     libDir1= IOUtil.getParentOf(libDir1);
-                } catch (URISyntaxException e) {
+                } catch (final URISyntaxException e) {
                     e.printStackTrace();
                 }
                 System.err.println("libDir1.2: "+libDir1);
@@ -194,9 +194,9 @@ public class Applet01 extends Applet {
         final String absLib = libDir1 + "natives/" + libBaseName;
         Exception sec01 = null;
         try {
-            NativeLibrary nlib = NativeLibrary.open(absLib, cl);
+            final NativeLibrary nlib = NativeLibrary.open(absLib, cl);
             System.err.println("NativeLibrary: "+nlib);
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             sec01 = e;
             if( usesSecurityManager ) {
                 System.err.println("Expected exception for loading native library");
@@ -204,7 +204,7 @@ public class Applet01 extends Applet {
             } else {
                 System.err.println("Unexpected exception for loading native library");
                 sec01.printStackTrace();
-            }            
+            }
         }
         if( !usesSecurityManager ) {
             if( null != sec01 ) {
@@ -216,14 +216,14 @@ public class Applet01 extends Applet {
             }
         }
     }
-    
+
     public void init() {
-        
+
     }
 
     public void start() {
         Platform.initSingleton();
-        
+
         {
             testPropImpl(os_name_propkey, true);
         }
@@ -240,15 +240,15 @@ public class Applet01 extends Applet {
             testTempDirImpl(false);
         }
         System.err.println("temp0: OK");
-                
-        testWriteFile();    
+
+        testWriteFile();
         System.err.println("writeFile: OK");
-        
+
         testOpenLibrary(true);
         System.err.println("lib0: OK");
     }
-    
+
     public void stop() {
-        
+
     }
 }

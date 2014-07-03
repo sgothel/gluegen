@@ -83,7 +83,7 @@ public class JarUtil {
      * @throws SecurityException if the security manager doesn't have the setFactory
      * permission
      */
-    public static void setResolver(Resolver r) throws IllegalArgumentException, IllegalStateException, SecurityException {
+    public static void setResolver(final Resolver r) throws IllegalArgumentException, IllegalStateException, SecurityException {
         if(r == null) {
             throw new IllegalArgumentException("Null Resolver passed");
         }
@@ -113,10 +113,10 @@ public class JarUtil {
      * @return true if the class is loaded from a Jar file, otherwise false.
      * @see {@link #getJarURI(String, ClassLoader)}
      */
-    public static boolean hasJarURI(String clazzBinName, ClassLoader cl) {
+    public static boolean hasJarURI(final String clazzBinName, final ClassLoader cl) {
         try {
             return null != getJarURI(clazzBinName, cl);
-        } catch (Exception e) { /* ignore */ }
+        } catch (final Exception e) { /* ignore */ }
         return false;
     }
 
@@ -136,7 +136,7 @@ public class JarUtil {
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URI getJarURI(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+    public static URI getJarURI(final String clazzBinName, final ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
         if(null == clazzBinName || null == cl) {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
@@ -187,7 +187,7 @@ public class JarUtil {
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting or is null
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static String getJarBasename(URI classJarURI) throws IllegalArgumentException {
+    public static String getJarBasename(final URI classJarURI) throws IllegalArgumentException {
         if(null == classJarURI) {
             throw new IllegalArgumentException("URI is null");
         }
@@ -246,7 +246,7 @@ public class JarUtil {
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static String getJarBasename(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+    public static String getJarBasename(final String clazzBinName, final ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
         return getJarBasename( getJarURI(clazzBinName, cl) );
     }
 
@@ -264,7 +264,7 @@ public class JarUtil {
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URI getJarSubURI(URI classJarURI) throws IllegalArgumentException, URISyntaxException {
+    public static URI getJarSubURI(final URI classJarURI) throws IllegalArgumentException, URISyntaxException {
         if(null == classJarURI) {
             throw new IllegalArgumentException("URI is null");
         }
@@ -277,7 +277,7 @@ public class JarUtil {
         // to
         //   file:/some/path/gluegen-rt.jar
         final String uriS0 = classJarURI.getSchemeSpecificPart();
-        int idx = uriS0.lastIndexOf(IOUtil.JAR_SCHEME_SEPARATOR);
+        final int idx = uriS0.lastIndexOf(IOUtil.JAR_SCHEME_SEPARATOR);
         final String uriS1;
         if (0 <= idx) {
             uriS1 = uriS0.substring(0, idx); // exclude '!/'
@@ -303,7 +303,7 @@ public class JarUtil {
      * @return <code>/com/jogamp/common/GlueGenVersion.class</code>
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static String getJarEntry(URI classJarURI) {
+    public static String getJarEntry(final URI classJarURI) {
         if(null == classJarURI) {
             throw new IllegalArgumentException("URI is null");
         }
@@ -345,7 +345,7 @@ public class JarUtil {
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URI getJarSubURI(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+    public static URI getJarSubURI(final String clazzBinName, final ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
         return getJarSubURI( getJarURI(clazzBinName, cl) );
     }
 
@@ -365,7 +365,7 @@ public class JarUtil {
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
      */
-    public static URI getJarFileURI(String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+    public static URI getJarFileURI(final String clazzBinName, final ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
         if(null == clazzBinName || null == cl) {
             throw new IllegalArgumentException("null arguments: clazzBinName "+clazzBinName+", cl "+cl);
         }
@@ -383,7 +383,7 @@ public class JarUtil {
      * @throws URISyntaxException
      * @throws IllegalArgumentException null arguments
      */
-    public static URI getJarFileURI(URI baseUri, String jarFileName) throws IllegalArgumentException, URISyntaxException {
+    public static URI getJarFileURI(final URI baseUri, final String jarFileName) throws IllegalArgumentException, URISyntaxException {
         if(null == baseUri || null == jarFileName) {
             throw new IllegalArgumentException("null arguments: baseURI "+baseUri+", jarFileName "+jarFileName);
         }
@@ -396,7 +396,7 @@ public class JarUtil {
      * @throws IllegalArgumentException null arguments
      * @throws URISyntaxException
      */
-    public static URI getJarFileURI(URI jarSubUri) throws IllegalArgumentException, URISyntaxException {
+    public static URI getJarFileURI(final URI jarSubUri) throws IllegalArgumentException, URISyntaxException {
         if(null == jarSubUri) {
             throw new IllegalArgumentException("jarSubURI is null");
         }
@@ -409,7 +409,7 @@ public class JarUtil {
      * @throws IllegalArgumentException null arguments
      * @throws URISyntaxException
      */
-    public static URI getJarFileURI(String jarSubUriS) throws IllegalArgumentException, URISyntaxException {
+    public static URI getJarFileURI(final String jarSubUriS) throws IllegalArgumentException, URISyntaxException {
         if(null == jarSubUriS) {
             throw new IllegalArgumentException("jarSubURIS is null");
         }
@@ -423,7 +423,7 @@ public class JarUtil {
      * @throws IllegalArgumentException null arguments
      * @throws URISyntaxException
      */
-    public static URI getJarEntryURI(URI jarFileURI, String jarEntry) throws IllegalArgumentException, URISyntaxException {
+    public static URI getJarEntryURI(final URI jarFileURI, final String jarEntry) throws IllegalArgumentException, URISyntaxException {
         if(null == jarEntry) {
             throw new IllegalArgumentException("jarEntry is null");
         }
@@ -439,7 +439,7 @@ public class JarUtil {
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link #getJarFileURI(String, ClassLoader)}
      */
-    public static JarFile getJarFile(String clazzBinName, ClassLoader cl) throws IOException, IllegalArgumentException, URISyntaxException {
+    public static JarFile getJarFile(final String clazzBinName, final ClassLoader cl) throws IOException, IllegalArgumentException, URISyntaxException {
         return getJarFile( getJarFileURI(clazzBinName, cl) );
     }
 
@@ -450,7 +450,7 @@ public class JarUtil {
      * @throws IOException if the Jar file could not been found
      * @throws URISyntaxException
      */
-    public static JarFile getJarFile(URI jarFileURI) throws IOException, IllegalArgumentException, URISyntaxException {
+    public static JarFile getJarFile(final URI jarFileURI) throws IOException, IllegalArgumentException, URISyntaxException {
         if(null == jarFileURI) {
             throw new IllegalArgumentException("null jarFileURI");
         }
@@ -464,8 +464,8 @@ public class JarUtil {
         // final URL jarFileURL = jarFileURI.toURL(); // doesn't work due to encoded path even w/ file schema!
         final URLConnection urlc = jarFileURL.openConnection();
         if(urlc instanceof JarURLConnection) {
-            JarURLConnection jarConnection = (JarURLConnection)jarFileURL.openConnection();
-            JarFile jarFile = jarConnection.getJarFile();
+            final JarURLConnection jarConnection = (JarURLConnection)jarFileURL.openConnection();
+            final JarFile jarFile = jarConnection.getJarFile();
             if(DEBUG) {
                 System.err.println("getJarFile res: "+jarFile.getName());
             }
@@ -509,7 +509,7 @@ public class JarUtil {
      * @throws IOException
      * @throws URISyntaxException
      */
-    public static URI getRelativeOf(Class<?> classFromJavaJar, String cutOffInclSubDir, String relResPath) throws IllegalArgumentException, IOException, URISyntaxException {
+    public static URI getRelativeOf(final Class<?> classFromJavaJar, final String cutOffInclSubDir, final String relResPath) throws IllegalArgumentException, IOException, URISyntaxException {
         final ClassLoader cl = classFromJavaJar.getClassLoader();
         final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), cl);
         if( DEBUG ) {
@@ -546,7 +546,7 @@ public class JarUtil {
     /**
      * Return a map from native-lib-base-name to entry-name.
      */
-    public static Map<String, String> getNativeLibNames(JarFile jarFile) {
+    public static Map<String, String> getNativeLibNames(final JarFile jarFile) {
         if (DEBUG) {
             System.err.println("JarUtil: getNativeLibNames: "+jarFile);
         }
@@ -602,11 +602,11 @@ public class JarUtil {
      * @return
      * @throws IOException
      */
-    public static final int extract(File dest, Map<String, String> nativeLibMap,
-                                    JarFile jarFile,
-                                    String nativeLibraryPath,
-                                    boolean extractNativeLibraries,
-                                    boolean extractClassFiles, boolean extractOtherFiles) throws IOException {
+    public static final int extract(final File dest, final Map<String, String> nativeLibMap,
+                                    final JarFile jarFile,
+                                    final String nativeLibraryPath,
+                                    final boolean extractNativeLibraries,
+                                    final boolean extractClassFiles, final boolean extractOtherFiles) throws IOException {
 
         if (DEBUG) {
             System.err.println("JarUtil: extract: "+jarFile.getName()+" -> "+dest+
@@ -616,10 +616,10 @@ public class JarUtil {
         }
         int num = 0;
 
-        Enumeration<JarEntry> entries = jarFile.entries();
+        final Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-            String entryName = entry.getName();
+            final JarEntry entry = entries.nextElement();
+            final String entryName = entry.getName();
 
             // Match entries with correct prefix and suffix (ignoring case)
             final String libBaseName = NativeLibrary.isValidNativeLibraryName(entryName, false);
@@ -637,7 +637,7 @@ public class JarUtil {
                     try {
                         nativeLibraryPathS = IOUtil.slashify(nativeLibraryPath, false /* startWithSlash */, true /* endWithSlash */);
                         dirnameS = IOUtil.getDirname(entryName);
-                    } catch (URISyntaxException e) {
+                    } catch (final URISyntaxException e) {
                         throw new IOException(e);
                     }
                     if( !nativeLibraryPathS.equals(dirnameS) ) {
@@ -721,7 +721,7 @@ public class JarUtil {
      *   <li>Bug 865: Safari >= 6.1 [OSX]: May employ xattr on 'com.apple.quarantine' on 'PluginProcess.app'</li>
      * </ul>
      */
-    private final static void fixNativeLibAttribs(File file) {
+    private final static void fixNativeLibAttribs(final File file) {
         // We tolerate UnsatisfiedLinkError (and derived) to solve the chicken and egg problem
         // of loading gluegen's native library.
         // On Safari(OSX), Bug 865, we simply hope the destination folder is executable.
@@ -732,7 +732,7 @@ public class JarUtil {
                 if( DEBUG ) {
                     System.err.println("JarUtil.fixNativeLibAttribs: "+fileAbsPath+" - OK");
                 }
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 if( DEBUG ) {
                     System.err.println("JarUtil.fixNativeLibAttribs: "+fileAbsPath+" - "+t.getClass().getSimpleName()+": "+t.getMessage());
                 }
@@ -749,7 +749,7 @@ public class JarUtil {
                                         getCodeSource().getCertificates();
        </pre>
      */
-    public static final void validateCertificates(Certificate[] rootCerts, JarFile jarFile)
+    public static final void validateCertificates(final Certificate[] rootCerts, final JarFile jarFile)
             throws IOException, SecurityException {
 
         if (DEBUG) {
@@ -760,8 +760,8 @@ public class JarUtil {
             throw new IllegalArgumentException("Null certificates passed");
         }
 
-        byte[] buf = new byte[1024];
-        Enumeration<JarEntry> entries = jarFile.entries();
+        final byte[] buf = new byte[1024];
+        final Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()) {
             final JarEntry entry = entries.nextElement();
             if( ! entry.isDirectory() && ! entry.getName().startsWith("META-INF/") ) {
@@ -775,8 +775,8 @@ public class JarUtil {
      * Check the certificates with the ones in the jar file
      * (all must match).
      */
-    private static final void validateCertificate(Certificate[] rootCerts,
-            JarFile jar, JarEntry entry, byte[] buf) throws IOException, SecurityException {
+    private static final void validateCertificate(final Certificate[] rootCerts,
+            final JarFile jar, final JarEntry entry, final byte[] buf) throws IOException, SecurityException {
 
         if (DEBUG) {
             System.err.println("JarUtil: validate JarEntry : " + entry.getName());
@@ -785,7 +785,7 @@ public class JarUtil {
         // API states that we must read all of the data from the entry's
         // InputStream in order to be able to get its certificates
 
-        InputStream is = jar.getInputStream(entry);
+        final InputStream is = jar.getInputStream(entry);
         try {
             while (is.read(buf) > 0) { }
         } finally {

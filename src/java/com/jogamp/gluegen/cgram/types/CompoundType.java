@@ -55,12 +55,12 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   private boolean computedHashcode;
   private int     hashcode;
 
-  CompoundType(String name, SizeThunk size, int cvAttributes, String structName) {
+  CompoundType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
     super(name, size, cvAttributes);
     this.structName = structName;
   }
 
-  public static CompoundType create(String name, SizeThunk size, CompoundTypeKind kind, int cvAttributes) {
+  public static CompoundType create(final String name, final SizeThunk size, final CompoundTypeKind kind, final int cvAttributes) {
     switch (kind) {
       case STRUCT:
           return new StructType(name, size, cvAttributes);
@@ -73,7 +73,7 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
 
   @Override
   public Object clone() {
-    CompoundType n = (CompoundType) super.clone();
+    final CompoundType n = (CompoundType) super.clone();
     if(null!=this.fields) {
         n.fields = new ArrayList<Field>(this.fields);
     }
@@ -99,12 +99,12 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == this) return true;
     if (arg == null || !(arg instanceof CompoundType)) {
       return false;
     }
-    CompoundType t = (CompoundType) arg;
+    final CompoundType t = (CompoundType) arg;
     return super.equals(arg) &&
         ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
          (structName != null && structName.equals(t.structName))) &&
@@ -119,12 +119,12 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
 
   /** Sets the struct name of this CompoundType, i.e. the "foo" in the
       construct "struct foo { ... };". */
-  public void setStructName(String structName) {
+  public void setStructName(final String structName) {
     this.structName = structName;
   }
 
   @Override
-  public void setSize(SizeThunk size) {
+  public void setSize(final SizeThunk size) {
     super.setSize(size);
   }
 
@@ -132,7 +132,7 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   public CompoundType asCompound() { return this; }
 
   ArrayList<Field> getFields() { return fields; }
-  void setFields(ArrayList<Field> fields) { this.fields = fields; }
+  void setFields(final ArrayList<Field> fields) { this.fields = fields; }
 
   /** Returns the number of fields in this type. */
   public int   getNumFields() {
@@ -140,12 +140,12 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   }
 
   /** Returns the <i>i</i>th field of this type. */
-  public Field getField(int i) {
+  public Field getField(final int i) {
     return fields.get(i);
   }
 
   /** Adds a field to this type. */
-  public void addField(Field f) {
+  public void addField(final Field f) {
     if (bodyParsed) {
       throw new RuntimeException("Body of this CompoundType has already been parsed; should not be adding more fields");
     }
@@ -168,7 +168,7 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
 
   @Override
   public String toString() {
-    String cvAttributesString = getCVAttributesString();
+    final String cvAttributesString = getCVAttributesString();
     if (getName() != null) {
       return cvAttributesString + getName();
     } else if (getStructName() != null) {
@@ -179,16 +179,16 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   }
 
   @Override
-  public void visit(TypeVisitor arg) {
+  public void visit(final TypeVisitor arg) {
     if (visiting) {
       return;
     }
     try {
       visiting = true;
       super.visit(arg);
-      int n = getNumFields();
+      final int n = getNumFields();
       for (int i = 0; i < n; i++) {
-        Field f = getField(i);
+        final Field f = getField(i);
         f.getType().visit(arg);
       }
     } finally {
@@ -206,10 +206,10 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
 
     try {
       visiting = true;
-      String kind = (isStruct() ? "struct {" : "union {");
-      StringBuilder res = new StringBuilder();
+      final String kind = (isStruct() ? "struct {" : "union {");
+      final StringBuilder res = new StringBuilder();
       res.append(kind);
-      int n = getNumFields();
+      final int n = getNumFields();
       for (int i = 0; i < n; i++) {
         res.append(" ");
         res.append(getField(i));

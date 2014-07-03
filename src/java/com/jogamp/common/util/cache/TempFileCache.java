@@ -79,7 +79,7 @@ public class TempFileCache {
             try {
                 _tmpBaseDir = new File(IOUtil.getTempDir(true /* executable */), tmpDirPrefix);
                 _tmpBaseDir = IOUtil.testDir(_tmpBaseDir, true /* create */, false /* executable */); // executable already checked
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 System.err.println("Warning: Caught Exception while retrieving executable temp base directory:");
                 ex.printStackTrace();
                 staticInitError = true;
@@ -94,7 +94,7 @@ public class TempFileCache {
             if(!staticInitError) {
                 try {
                     initTmpRoot();
-                } catch (Exception ex) {
+                } catch (final Exception ex) {
                     System.err.println("Warning: Caught Exception due to initializing TmpRoot:");
                     ex.printStackTrace();
                     staticInitError = true;
@@ -200,7 +200,7 @@ public class TempFileCache {
 
         if (tmpRootPropValue == null) {
             // Create ${tmpbase}/jlnNNNN.tmp then lock the file
-            File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
+            final File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
             if (DEBUG) {
                 System.err.println("TempFileCache: tmpFile = " + tmpFile.getAbsolutePath());
             }
@@ -209,12 +209,12 @@ public class TempFileCache {
             final FileLock tmpLock = tmpChannel.lock();
 
             // Strip off the ".tmp" to get the name of the tmprootdir
-            String tmpFileName = tmpFile.getAbsolutePath();
-            String tmpRootName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
+            final String tmpFileName = tmpFile.getAbsolutePath();
+            final String tmpRootName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
 
             // create ${tmpbase}/jlnNNNN.lck then lock the file
-            String lckFileName = tmpRootName + ".lck";
-            File lckFile = new File(lckFileName);
+            final String lckFileName = tmpRootName + ".lck";
+            final File lckFile = new File(lckFileName);
             if (DEBUG) {
                 System.err.println("TempFileCache: lckFile = " + lckFile.getAbsolutePath());
             }
@@ -248,7 +248,7 @@ public class TempFileCache {
                         tmpLock.release();
                         lckOut.close();
                         lckLock.release();
-                    } catch (IOException ex) {
+                    } catch (final IOException ex) {
                         // Do nothing
                     }
                 }
@@ -262,7 +262,7 @@ public class TempFileCache {
             }
 
             // Start a new Reaper thread to do stuff...
-            Thread reaperThread = new Thread() {
+            final Thread reaperThread = new Thread() {
                 /* @Override */
                 @Override
                 public void run() {
@@ -286,10 +286,10 @@ public class TempFileCache {
 
         // enumerate list of jnl*.lck files, ignore our own jlnNNNN file
         final String ourLockFile = tmpRootPropValue + ".lck";
-        FilenameFilter lckFilter = new FilenameFilter() {
+        final FilenameFilter lckFilter = new FilenameFilter() {
             /* @Override */
             @Override
-            public boolean accept(File dir, String name) {
+            public boolean accept(final File dir, final String name) {
                 return name.endsWith(".lck") && !name.equals(ourLockFile);
             }
         };
@@ -299,16 +299,16 @@ public class TempFileCache {
         // (which should always succeed unless there is a problem). If we can
         // get the lock on both files, then it must be an old installation, and
         // we will delete it.
-        String[] fileNames = tmpBaseDir.list(lckFilter);
+        final String[] fileNames = tmpBaseDir.list(lckFilter);
         if (fileNames != null) {
             for (int i = 0; i < fileNames.length; i++) {
-                String lckFileName = fileNames[i];
-                String tmpDirName = lckFileName.substring(0, lckFileName.lastIndexOf(".lck"));
-                String tmpFileName = tmpDirName + ".tmp";
+                final String lckFileName = fileNames[i];
+                final String tmpDirName = lckFileName.substring(0, lckFileName.lastIndexOf(".lck"));
+                final String tmpFileName = tmpDirName + ".tmp";
 
-                File lckFile = new File(tmpBaseDir, lckFileName);
-                File tmpFile = new File(tmpBaseDir, tmpFileName);
-                File tmpDir = new File(tmpBaseDir, tmpDirName);
+                final File lckFile = new File(tmpBaseDir, lckFileName);
+                final File tmpFile = new File(tmpBaseDir, tmpFileName);
+                final File tmpDir = new File(tmpBaseDir, tmpDirName);
 
                 if (lckFile.exists() && tmpFile.exists() && tmpDir.isDirectory()) {
                     FileOutputStream tmpOut = null;
@@ -319,7 +319,7 @@ public class TempFileCache {
                         tmpOut = new FileOutputStream(tmpFile);
                         tmpChannel = tmpOut.getChannel();
                         tmpLock = tmpChannel.tryLock();
-                    } catch (Exception ex) {
+                    } catch (final Exception ex) {
                         // Ignore exceptions
                         if (DEBUG) {
                             ex.printStackTrace();
@@ -335,7 +335,7 @@ public class TempFileCache {
                             lckOut = new FileOutputStream(lckFile);
                             lckChannel = lckOut.getChannel();
                             lckLock = lckChannel.tryLock();
-                        } catch (Exception ex) {
+                        } catch (final Exception ex) {
                             if (DEBUG) {
                                 ex.printStackTrace();
                             }
@@ -355,12 +355,12 @@ public class TempFileCache {
                             // occasional 0-byte .lck or .tmp file left around
                             try {
                                 lckOut.close();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                             }
                             lckFile.delete();
                             try {
                                 tmpOut.close();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                             }
                             tmpFile.delete();
                         } else {
@@ -373,7 +373,7 @@ public class TempFileCache {
                                 // on the *.tmp file
                                 tmpOut.close();
                                 tmpLock.release();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                                 if (DEBUG) {
                                     ex.printStackTrace();
                                 }
@@ -393,14 +393,14 @@ public class TempFileCache {
      * Remove the specified file or directory. If "path" is a directory, then
      * recursively remove all entries, then remove the directory itself.
      */
-    private static void removeAll(File path) {
+    private static void removeAll(final File path) {
         if (DEBUG) {
             System.err.println("TempFileCache: removeAll(" + path + ")");
         }
 
         if (path.isDirectory()) {
             // Recursively remove all files/directories in this directory
-            File[] list = path.listFiles();
+            final File[] list = path.listFiles();
             if (list != null) {
                 for (int i = 0; i < list.length; i++) {
                     removeAll(list[i]);
@@ -419,7 +419,7 @@ public class TempFileCache {
         if(!staticInitError) {
             try {
                 createTmpDir();
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 ex.printStackTrace();
                 initError = true;
             }
@@ -439,7 +439,7 @@ public class TempFileCache {
         if(!staticInitError) {
             try {
                 removeAll(individualTmpDir);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 ex.printStackTrace();
             }
         }
@@ -525,9 +525,9 @@ public class TempFileCache {
      * We avoid deleteOnExit, because it doesn't work reliably.
      */
     private void createTmpDir() throws IOException {
-        File tmpFile = File.createTempFile("jln", ".tmp", tmpRootDir);
-        String tmpFileName = tmpFile.getAbsolutePath();
-        String tmpDirName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
+        final File tmpFile = File.createTempFile("jln", ".tmp", tmpRootDir);
+        final String tmpFileName = tmpFile.getAbsolutePath();
+        final String tmpDirName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
         individualTmpDir = new File(tmpDirName);
         if (!individualTmpDir.mkdir()) {
             throw new IOException("Cannot create " + individualTmpDir);

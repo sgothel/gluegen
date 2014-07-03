@@ -89,7 +89,7 @@ public class JNILibLoaderBase {
 
   private static class DefaultAction implements LoaderAction {
     @Override
-    public boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
+    public boolean loadLibrary(final String libname, final boolean ignoreError, final ClassLoader cl) {
       boolean res = true;
       if(!isLoaded(libname)) {
           try {
@@ -98,7 +98,7 @@ public class JNILibLoaderBase {
             if(DEBUG) {
                 System.err.println("JNILibLoaderBase: loaded "+libname);
             }
-          } catch (UnsatisfiedLinkError e) {
+          } catch (final UnsatisfiedLinkError e) {
             res = false;
             if(DEBUG) {
                 e.printStackTrace();
@@ -112,7 +112,7 @@ public class JNILibLoaderBase {
     }
 
     @Override
-    public void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl) {
+    public void loadLibrary(final String libname, final String[] preload, final boolean preloadIgnoreError, final ClassLoader cl) {
       if(!isLoaded(libname)) {
           if (null!=preload) {
             for (int i=0; i<preload.length; i++) {
@@ -127,11 +127,11 @@ public class JNILibLoaderBase {
   private static final HashSet<String> loaded = new HashSet<String>();
   private static LoaderAction loaderAction = new DefaultAction();
 
-  public static boolean isLoaded(String libName) {
+  public static boolean isLoaded(final String libName) {
     return loaded.contains(libName);
   }
 
-  public static void addLoaded(String libName) {
+  public static void addLoaded(final String libName) {
     loaded.add(libName);
     if(DEBUG) {
         System.err.println("JNILibLoaderBase: Loaded Native Library: "+libName);
@@ -146,7 +146,7 @@ public class JNILibLoaderBase {
     setLoadingAction(new DefaultAction());
   }
 
-  public static synchronized void setLoadingAction(LoaderAction action) {
+  public static synchronized void setLoadingAction(final LoaderAction action) {
     loaderAction = action;
   }
 
@@ -162,7 +162,7 @@ public class JNILibLoaderBase {
    * @throws SecurityException
    * @throws URISyntaxException
    */
-  /* pp */ static final boolean addNativeJarLibsImpl(Class<?> classFromJavaJar, URI classJarURI, String jarBasename, String nativeJarBasename, StringBuilder msg)
+  /* pp */ static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final URI classJarURI, final String jarBasename, final String nativeJarBasename, final StringBuilder msg)
     throws IOException, SecurityException, URISyntaxException
   {
     msg.setLength(0); // reset
@@ -223,14 +223,14 @@ public class JNILibLoaderBase {
    * @param nativeJarBasename jogl-all
    * @return true if the native JAR file loaded successful or were loaded already, false in case of an error
    */
-  public static final boolean addNativeJarLibs(Class<?> classFromJavaJar, String nativeJarBasename) {
+  public static final boolean addNativeJarLibs(final Class<?> classFromJavaJar, final String nativeJarBasename) {
     if(TempJarCache.isInitialized()) {
         final StringBuilder msg = new StringBuilder();
         try {
             final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), classFromJavaJar.getClassLoader());
             final String jarName = JarUtil.getJarBasename(classJarURI);
             return addNativeJarLibsImpl(classFromJavaJar, classJarURI, jarName, nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar", msg);
-        } catch (Exception e0) {
+        } catch (final Exception e0) {
             // IllegalArgumentException, IOException
             System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
             if(DEBUG) {
@@ -345,7 +345,7 @@ public class JNILibLoaderBase {
    * @return true if either the 'all-in-one' native JAR or all native JARs loaded successful or were loaded already,
    *         false in case of an error
    */
-  public static boolean addNativeJarLibs(Class<?>[] classesFromJavaJars, String singleJarMarker, String[] stripBasenameSuffixes) {
+  public static boolean addNativeJarLibs(final Class<?>[] classesFromJavaJars, final String singleJarMarker, final String[] stripBasenameSuffixes) {
     if(DEBUG) {
         System.err.println("JNILibLoaderBase: addNativeJarLibs0(classesFromJavaJars "+Arrays.asList(classesFromJavaJars)+", singleJarMarker "+singleJarMarker+", stripBasenameSuffixes "+(null!=stripBasenameSuffixes?Arrays.asList(stripBasenameSuffixes):"none"));
     }
@@ -372,7 +372,7 @@ public class JNILibLoaderBase {
                     }
                 }
             }
-        } catch (Exception e0) {
+        } catch (final Exception e0) {
             // IllegalArgumentException, IOException
             System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
             if(DEBUG) {
@@ -389,10 +389,10 @@ public class JNILibLoaderBase {
     return ok;
   }
 
-  private static final String stripName(String name, String[] suffixes) {
+  private static final String stripName(final String name, final String[] suffixes) {
       if(null != suffixes) {
           for(int i=0; i<suffixes.length && null != suffixes[i]; i++) {
-              int idx = name.indexOf(suffixes[i]);
+              final int idx = name.indexOf(suffixes[i]);
               if(0 < idx) {
                   return name.substring(0, idx);
               }
@@ -409,7 +409,7 @@ public class JNILibLoaderBase {
    * @param cl optional ClassLoader, used to locate the library
    * @return true if library loaded successful
    */
-  protected static synchronized boolean loadLibrary(String libname, boolean ignoreError, ClassLoader cl) {
+  protected static synchronized boolean loadLibrary(final String libname, final boolean ignoreError, final ClassLoader cl) {
       if (loaderAction != null) {
           return loaderAction.loadLibrary(libname, ignoreError, cl);
       }
@@ -425,7 +425,7 @@ public class JNILibLoaderBase {
    * @param preloadIgnoreError if true, errors during loading the preload-libraries should be ignored
    * @param cl optional ClassLoader, used to locate the library
    */
-  protected static synchronized void loadLibrary(String libname, String[] preload, boolean preloadIgnoreError, ClassLoader cl) {
+  protected static synchronized void loadLibrary(final String libname, final String[] preload, final boolean preloadIgnoreError, final ClassLoader cl) {
       if (loaderAction != null) {
           loaderAction.loadLibrary(libname, preload, preloadIgnoreError, cl);
       }
@@ -442,7 +442,7 @@ public class JNILibLoaderBase {
         @Override
         public Method run() {
             // FIXME: remove
-            final boolean usingJNLPAppletLauncher = Debug.getBooleanProperty(sunAppletLauncherProperty, true);
+            final boolean usingJNLPAppletLauncher = PropertyAccess.getBooleanProperty(sunAppletLauncherProperty, true);
 
             Class<?> launcherClass = null;
             Method loadLibraryMethod = null;
@@ -450,18 +450,18 @@ public class JNILibLoaderBase {
             if (usingJNLPAppletLauncher) {
                 try {
                   launcherClass = Class.forName(sunAppletLauncherClassName);
-                } catch (ClassNotFoundException cnfe) {
+                } catch (final ClassNotFoundException cnfe) {
                   // oops .. look like JNLPAppletLauncher doesn't exist, despite property
                   // this may happen if a previous applet was using JNLPAppletLauncher in the same JVM
                   System.err.println("JNILibLoaderBase: <"+sunAppletLauncherClassName+"> not found, despite enabled property <"+sunAppletLauncherProperty+">, JNLPAppletLauncher was probably used before");
                   System.setProperty(sunAppletLauncherProperty, Boolean.FALSE.toString());
-                } catch (LinkageError le) {
+                } catch (final LinkageError le) {
                     throw le;
                 }
                 if(null != launcherClass) {
                    try {
                       loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-                   } catch (NoSuchMethodException ex) {
+                   } catch (final NoSuchMethodException ex) {
                         if(DEBUG) {
                             ex.printStackTrace();
                         }
@@ -470,16 +470,16 @@ public class JNILibLoaderBase {
                 }
             }
             if(null==launcherClass) {
-                String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false);
+                final String launcherClassName = PropertyAccess.getProperty("jnlp.launcher.class", false);
                 if(null!=launcherClassName) {
                     try {
                         launcherClass = Class.forName(launcherClassName);
                         loadLibraryMethod = launcherClass.getDeclaredMethod("loadLibrary", new Class[] { String.class });
-                    } catch (ClassNotFoundException ex) {
+                    } catch (final ClassNotFoundException ex) {
                         if(DEBUG) {
                             ex.printStackTrace();
                         }
-                    } catch (NoSuchMethodException ex) {
+                    } catch (final NoSuchMethodException ex) {
                         if(DEBUG) {
                             ex.printStackTrace();
                         }
@@ -492,7 +492,7 @@ public class JNILibLoaderBase {
     customLoadLibraryMethod = loadLibraryMethod;
   }
 
-  private static void loadLibraryInternal(String libraryName, ClassLoader cl) {
+  private static void loadLibraryInternal(final String libraryName, final ClassLoader cl) {
       // Note: special-casing JAWT which is built in to the JDK
       int mode = 0; // 1 - custom, 2 - System.load( TempJarCache ), 3 - System.loadLibrary( name ), 4 - System.load( enumLibNames )
       if (null!=customLoadLibraryMethod && !libraryName.equals("jawt")) {
@@ -503,7 +503,7 @@ public class JNILibLoaderBase {
           try {
               customLoadLibraryMethod.invoke(null, new Object[] { libraryName });
               mode = 1;
-          } catch (Exception e) {
+          } catch (final Exception e) {
               Throwable t = e;
               if (t instanceof InvocationTargetException) {
                   t = ((InvocationTargetException) t).getTargetException();
@@ -536,21 +536,21 @@ public class JNILibLoaderBase {
               try {
                   System.loadLibrary(libraryName);
                   mode = 3;
-              } catch (UnsatisfiedLinkError ex1) {
+              } catch (final UnsatisfiedLinkError ex1) {
                   if(DEBUG) {
                       System.err.println("ERROR (retry w/ enumLibPath) - "+ex1.getMessage());
                   }
-                  List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, true, cl);
+                  final List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, true, cl);
                   // Iterate down these and see which one if any we can actually find.
-                  for (Iterator<String> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
-                      String path = iter.next();
+                  for (final Iterator<String> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
+                      final String path = iter.next();
                       if (DEBUG) {
                           System.err.println("JNILibLoaderBase: System.load("+path+") - mode 4");
                       }
                       try {
                           System.load(path);
                           mode = 4;
-                      } catch (UnsatisfiedLinkError ex2) {
+                      } catch (final UnsatisfiedLinkError ex2) {
                           if(DEBUG) {
                               System.err.println("n/a - "+ex2.getMessage());
                           }

@@ -36,11 +36,11 @@ import com.jogamp.common.util.Bitstream;
 class IOUtils {
     static final long MAX_INT_VALUE = ( Integer.MAX_VALUE & 0xffffffffL ) ;
 
-    static String toHexString(int i) { return "0x"+Integer.toHexString(i); }
+    static String toHexString(final int i) { return "0x"+Integer.toHexString(i); }
 
-    static String toHexString(long i) { return "0x"+Long.toHexString(i); }
+    static String toHexString(final long i) { return "0x"+Long.toHexString(i); }
 
-    static int shortToInt(short s) {
+    static int shortToInt(final short s) {
         return s & 0x0000ffff;
     }
 
@@ -57,7 +57,7 @@ class IOUtils {
         in.readFully(out, offset, len);
     }
 
-    static void seek(final RandomAccessFile in, long newPos) throws IOException {
+    static void seek(final RandomAccessFile in, final long newPos) throws IOException {
         in.seek(newPos);
     }
 
@@ -83,7 +83,7 @@ class IOUtils {
      * @return the parsed string
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
-    static String getString(final byte[] sb, final int offset, final int remaining, int[] offset_post) throws IndexOutOfBoundsException {
+    static String getString(final byte[] sb, final int offset, final int remaining, final int[] offset_post) throws IndexOutOfBoundsException {
         Bitstream.checkBounds(sb, offset, remaining);
         int strlen = 0;
         for(; strlen < remaining && sb[strlen + offset] != 0; strlen++) { }
@@ -102,7 +102,7 @@ class IOUtils {
      * @return the number of parsed strings
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
-    static int getStringCount(final byte[] sb, int offset, final int remaining) throws IndexOutOfBoundsException {
+    static int getStringCount(final byte[] sb, final int offset, final int remaining) throws IndexOutOfBoundsException {
         Bitstream.checkBounds(sb, offset, remaining);
         int strnum=0;
         for(int i=0; i < remaining; i++) {
@@ -120,7 +120,7 @@ class IOUtils {
      * @return the parsed strings
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      */
-    public static String[] getStrings(final byte[] sb, int offset, final int remaining) throws IndexOutOfBoundsException  {
+    public static String[] getStrings(final byte[] sb, final int offset, final int remaining) throws IndexOutOfBoundsException  {
         final int strnum = getStringCount(sb, offset, remaining);
         // System.err.println("XXX: strnum "+strnum+", sb_off "+sb_off+", sb_len "+sb_len);
 

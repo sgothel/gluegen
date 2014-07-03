@@ -100,10 +100,10 @@ public class NativeTaglet implements Taglet
    *
    * @param tagletMap the map to register this tag to.
    */
-  public static void register(Map tagletMap)
+  public static void register(final Map tagletMap)
   {
-    NativeTaglet tag = new NativeTaglet();
-    Taglet t = (Taglet) tagletMap.get(tag.getName());
+    final NativeTaglet tag = new NativeTaglet();
+    final Taglet t = (Taglet) tagletMap.get(tag.getName());
     if (t != null)
       {
         tagletMap.remove(tag.getName());
@@ -118,7 +118,7 @@ public class NativeTaglet implements Taglet
    * @param tag the <code>Tag</code> representation of this custom tag.
    */
   @Override
-  public String toString(Tag tag)
+  public String toString(final Tag tag)
   {
     String text= tag.text().trim();
     if(mapping== null)
@@ -132,14 +132,14 @@ public class NativeTaglet implements Taglet
               {
                 url = new URL(System.getProperty("nativetaglet.mapping","file:native-taglet.properties"));
               }
-            catch (MalformedURLException e)
+            catch (final MalformedURLException e)
               {
                 url = new URL("file:"+System.getProperty("nativetaglet.mapping","file:native-taglet.properties"));
               }
             in= url.openStream();
             mapping.load(in);
           }
-        catch (Exception e)
+        catch (final Exception e)
           {
             System.err.println("[NATIVE TAGLET] Could not read mapping file");
             System.err.println("-->");
@@ -149,7 +149,7 @@ public class NativeTaglet implements Taglet
           }
         finally
           {
-            if(in!=null) try{ in.close(); }catch(Exception ignore){}
+            if(in!=null) try{ in.close(); }catch(final Exception ignore){}
           }
       }
 
@@ -160,8 +160,8 @@ public class NativeTaglet implements Taglet
         if (url == null) {
           // Try iterating the keySet seeing if we can find a partial match
           // In the OpenGL spec this handles the case of glVertex -> glVertex3f
-          for(Iterator i= mapping.keySet().iterator(); i.hasNext();) {
-            String name= (String) i.next();
+          for(final Iterator i= mapping.keySet().iterator(); i.hasNext();) {
+            final String name= (String) i.next();
             if (hasOpenGLSuffix(text, name)) {
               url = mapping.getProperty(name);
               break;
@@ -194,13 +194,13 @@ public class NativeTaglet implements Taglet
     "usv",
     "uiv"
   };
-  private static boolean hasOpenGLSuffix(String name,
-                                         String baseName) {
+  private static boolean hasOpenGLSuffix(final String name,
+                                         final String baseName) {
     if (!name.startsWith(baseName)) {
       return false;
     }
     for (int i = 0; i < openGLSuffixes.length; i++) {
-      String suffix = openGLSuffixes[i];
+      final String suffix = openGLSuffixes[i];
       if (name.endsWith(suffix)) {
         // First see whether it's a simple concatenation
         if (name.equals(baseName + suffix)) {
@@ -209,13 +209,13 @@ public class NativeTaglet implements Taglet
         // Now chop prefix and suffix off and see whether the
         // resulting is a number
         try {
-          String tmp = name.substring(baseName.length(),
+          final String tmp = name.substring(baseName.length(),
                                       name.length() - suffix.length());
           if (tmp.length() == 1 &&
               Character.isDigit(tmp.charAt(0))) {
             return true;
           }
-        } catch (IndexOutOfBoundsException e) {
+        } catch (final IndexOutOfBoundsException e) {
         }
       }
     }
@@ -230,7 +230,7 @@ public class NativeTaglet implements Taglet
    * @param tags the array of <code>Tag</code>s representing of this custom tag.
    */
   @Override
-  public String toString(Tag[] tags)
+  public String toString(final Tag[] tags)
   {
     return null;
   }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.common.nio;
 
 import java.io.IOException;
@@ -41,7 +41,7 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBuffersFloatDoubleConversion extends JunitTracer {
 
-    public static boolean cmpFloatArray(float[] d1, int d1_offset, float[] d2, int d2_offset, int len) {
+    public static boolean cmpFloatArray(final float[] d1, final int d1_offset, final float[] d2, final int d2_offset, final int len) {
         if( d1.length - d1_offset < len) {
             throw new RuntimeException("d1 too small len "+len+" > "+d1.length+" - "+d1_offset);
         }
@@ -55,7 +55,7 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         return ok;
     }
 
-    public static boolean cmpDoubleArray(double[] d1, int d1_offset, double[] d2, int d2_offset, int len) {
+    public static boolean cmpDoubleArray(final double[] d1, final int d1_offset, final double[] d2, final int d2_offset, final int len) {
         if( d1.length - d1_offset < len) {
             throw new RuntimeException("d1 too small len "+len+" > "+d1.length+" - "+d1_offset);
         }
@@ -69,7 +69,7 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         return ok;
     }
 
-    public static void incrFloatArray(float[] data, int offset, int len) {
+    public static void incrFloatArray(final float[] data, final int offset, final int len) {
         if( data.length - offset < len) {
             throw new RuntimeException("data too small len "+len+" > "+data.length+" - "+offset);
         }
@@ -78,7 +78,7 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         }
     }
 
-    public static void incrDoubleArray(double[] data, int offset, int len) {
+    public static void incrDoubleArray(final double[] data, final int offset, final int len) {
         if( data.length - offset < len) {
             throw new RuntimeException("data too small len "+len+" > "+data.length+" - "+offset);
         }
@@ -87,7 +87,7 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         }
     }
 
-    public static void setFloatArray(float[] data, int offset, int len) {
+    public static void setFloatArray(final float[] data, final int offset, final int len) {
         if( data.length - offset < len) {
             throw new RuntimeException("data too small len "+len+" > "+data.length+" - "+offset);
         }
@@ -96,7 +96,7 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         }
     }
 
-    public static void setDoubleArray(double[] data, int offset, int len) {
+    public static void setDoubleArray(final double[] data, final int offset, final int len) {
         if( data.length - offset < len) {
             throw new RuntimeException("data too small len "+len+" > "+data.length+" - "+offset);
         }
@@ -105,8 +105,8 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         }
     }
 
-    public static void doItDoubleArray01(double[] data, int offset, int len) {
-        float[] f_data = Buffers.getFloatArray(data, offset, null, 0, len);
+    public static void doItDoubleArray01(final double[] data, final int offset, final int len) {
+        final float[] f_data = Buffers.getFloatArray(data, offset, null, 0, len);
         incrFloatArray(f_data, 0, len);
         Buffers.getDoubleArray(f_data, 0, data, offset, len);
     }
@@ -117,23 +117,23 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         final int len = 20;
 
         // reference 1
-        float[] fa_ref = new float[100];
+        final float[] fa_ref = new float[100];
         setFloatArray(fa_ref, offset, len);
         incrFloatArray(fa_ref, offset, len);
 
         // reference 2
-        double[] da_ref = new double[100];
+        final double[] da_ref = new double[100];
         setDoubleArray(da_ref, offset, len);
         incrDoubleArray(da_ref, offset, len);
 
         // test 1: forth and back .. double -> float -> double
         {
-            double[] da1 = new double[100];
+            final double[] da1 = new double[100];
             setDoubleArray(da1, offset, len);
             incrDoubleArray(da1, offset, len);
 
             // conv_forth: double[offset..len] -> float[0..len]
-            float[] f_da1 = Buffers.getFloatArray(da1, offset, null, 0, len);
+            final float[] f_da1 = Buffers.getFloatArray(da1, offset, null, 0, len);
             Assert.assertTrue(cmpFloatArray(fa_ref, offset, f_da1, 0, len));
 
             // conv_back: float[0..len] -> double[offset..len]
@@ -143,7 +143,7 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
 
         // test 2: forth, incr, back .. double -> float -> incr -> double
         {
-            double[] da1 = new double[100];
+            final double[] da1 = new double[100];
             setDoubleArray(da1, offset, len);
 
             doItDoubleArray01(da1, offset, len);
@@ -151,8 +151,8 @@ public class TestBuffersFloatDoubleConversion extends JunitTracer {
         }
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestBuffersFloatDoubleConversion.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestBuffersFloatDoubleConversion.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

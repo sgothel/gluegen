@@ -82,7 +82,7 @@ public class AndroidVersion {
      * </pre>
      * </p>
      */
-    private static final CPUType getCPUTypeImpl(String cpuABI) {
+    private static final CPUType getCPUTypeImpl(final String cpuABI) {
         if( null == cpuABI ) {
             return null;
         } else if( cpuABI.equals("armeabi-v7a") ) {
@@ -98,7 +98,7 @@ public class AndroidVersion {
             return null;
         }
     }
-    private static final ABIType getABITypeImpl(final CPUType cpuType, String cpuABI) {
+    private static final ABIType getABITypeImpl(final CPUType cpuType, final String cpuABI) {
         if( null == cpuType || null == cpuABI ) {
             return null;
         } else if( CPUFamily.ARM  != cpuType.family ) {
@@ -122,7 +122,7 @@ public class AndroidVersion {
             abvObject = abvClass.newInstance();
             abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
             abvcObject = abvcClass.newInstance();
-        } catch (Exception e) { /* n/a */ }
+        } catch (final Exception e) { /* n/a */ }
         isAvailable = null != abObject && null != abvObject && null != abvcObject;
         if(isAvailable) {
             CPU_ABI = getString(abClass, abObject, "CPU_ABI", true);
@@ -149,38 +149,38 @@ public class AndroidVersion {
         ABI_TYPE2 = getABITypeImpl(CPU_TYPE2, CPU_ABI2);
     }
 
-    private static final IntObjectHashMap getVersionCodes(Class<?> cls, Object obj) {
+    private static final IntObjectHashMap getVersionCodes(final Class<?> cls, final Object obj) {
         final Field[] fields = cls.getFields();
-        IntObjectHashMap map = new IntObjectHashMap( 3 * fields.length / 2, 0.75f );
+        final IntObjectHashMap map = new IntObjectHashMap( 3 * fields.length / 2, 0.75f );
         for(int i=0; i<fields.length; i++) {
             try {
                 final int version = fields[i].getInt(obj);
                 final String version_name = fields[i].getName();
                 // System.err.println(i+": "+version+": "+version_name);
                 map.put(new Integer(version), version_name);
-            } catch (Exception e) { e.printStackTrace(); /* n/a */ }
+            } catch (final Exception e) { e.printStackTrace(); /* n/a */ }
         }
         return map;
     }
 
-    private static final String getString(Class<?> cls, Object obj, String name, boolean lowerCase) {
+    private static final String getString(final Class<?> cls, final Object obj, final String name, final boolean lowerCase) {
         try {
-            Field f = cls.getField(name);
+            final Field f = cls.getField(name);
             final String s = (String) f.get(obj);
             if( lowerCase && null != s ) {
                 return s.toLowerCase();
             } else {
                 return s;
             }
-        } catch (Exception e) { e.printStackTrace(); /* n/a */ }
+        } catch (final Exception e) { e.printStackTrace(); /* n/a */ }
         return null;
     }
 
-    private static final int getInt(Class<?> cls, Object obj, String name) {
+    private static final int getInt(final Class<?> cls, final Object obj, final String name) {
         try {
-            Field f = cls.getField(name);
+            final Field f = cls.getField(name);
             return f.getInt(obj);
-        } catch (Exception e) { e.printStackTrace(); /* n/a */ }
+        } catch (final Exception e) { e.printStackTrace(); /* n/a */ }
         return -1;
     }
 

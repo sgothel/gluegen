@@ -22,12 +22,12 @@ import com.jogamp.common.net.AssetURLConnection;
 public class AssetURLStreamHandler extends URLStreamHandler {
     AssetURLContext ctx;
 
-    public AssetURLStreamHandler(AssetURLContext ctx) {
+    public AssetURLStreamHandler(final AssetURLContext ctx) {
         this.ctx = ctx;
     }
 
     @Override
-    protected URLConnection openConnection(URL u) throws IOException {
+    protected URLConnection openConnection(final URL u) throws IOException {
         final AssetURLConnection c = new AssetURLConnection(u, ctx);
         c.connect();
         return c;

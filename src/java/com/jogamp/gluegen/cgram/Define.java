@@ -43,10 +43,10 @@ package com.jogamp.gluegen.cgram;
     in string form.) */
 
 public class Define {
-  private String name;
-  private String value;
+  private final String name;
+  private final String value;
 
-  public Define(String name, String value) {
+  public Define(final String name, final String value) {
     this.name = name;
     this.value = value;
   }

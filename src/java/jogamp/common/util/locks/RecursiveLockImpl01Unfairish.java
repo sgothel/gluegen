@@ -72,11 +72,11 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
             return getExclusiveOwnerThread();
         }
         @Override
-        public boolean isOwner(Thread t) {
+        public boolean isOwner(final Thread t) {
             return getExclusiveOwnerThread()==t;
         }
         @Override
-        public final void setOwner(Thread t) {
+        public final void setOwner(final Thread t) {
             setExclusiveOwnerThread(t);
         }
         @Override
@@ -84,8 +84,8 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
             return lockedStack;
         }
         @Override
-        public final void setLockedStack(Throwable s) {
-            List<Throwable> ls = LockDebugUtil.getRecursiveLockTrace();
+        public final void setLockedStack(final Throwable s) {
+            final List<Throwable> ls = LockDebugUtil.getRecursiveLockTrace();
             if(s==null) {
                 ls.remove(lockedStack);
             } else {
@@ -96,9 +96,9 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
         @Override
         public final int getHoldCount() { return holdCount; }
         @Override
-        public void incrHoldCount(Thread t) { holdCount++; }
+        public void incrHoldCount(final Thread t) { holdCount++; }
         @Override
-        public void decrHoldCount(Thread t) { holdCount--; }
+        public void decrHoldCount(final Thread t) { holdCount--; }
 
         @Override
         public final int getQSz() { return qsz; }
@@ -117,7 +117,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
 
     protected final Sync sync;
 
-    public RecursiveLockImpl01Unfairish(Sync sync) {
+    public RecursiveLockImpl01Unfairish(final Sync sync) {
         this.sync = sync;
     }
 
@@ -144,7 +144,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     }
 
     @Override
-    public final boolean isOwner(Thread thread) {
+    public final boolean isOwner(final Thread thread) {
         synchronized(sync) {
             return sync.isOwner(thread);
         }
@@ -197,7 +197,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
                     }
                     throw new RuntimeException("Waited "+TIMEOUT+"ms for: "+toString()+" - "+threadName(Thread.currentThread()));
                 }
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException("Interrupted", e);
             }
         }
@@ -270,7 +270,7 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     }
 
     @Override
-    public void unlock(Runnable taskAfterUnlockBeforeNotify) {
+    public void unlock(final Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             validateLocked();
             final Thread cur = Thread.currentThread();
@@ -315,6 +315,6 @@ public class RecursiveLockImpl01Unfairish implements RecursiveLock {
     /* package */ final String syncName() {
         return "<"+Integer.toHexString(this.hashCode())+", "+Integer.toHexString(sync.hashCode())+">";
     }
-    /* package */ final String threadName(Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
+    /* package */ final String threadName(final Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
 }
 

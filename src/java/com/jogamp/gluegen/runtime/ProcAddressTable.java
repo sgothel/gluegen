@@ -105,7 +105,7 @@ public abstract class ProcAddressTable {
         this(new One2OneResolver());
     }
 
-    public ProcAddressTable(FunctionAddressResolver resolver) {
+    public ProcAddressTable(final FunctionAddressResolver resolver) {
         this.resolver = resolver;
     }
 
@@ -118,7 +118,7 @@ public abstract class ProcAddressTable {
      * </p>
      * @throws SecurityException if user is not granted access for all libraries.
      */
-    public void reset(DynamicLookupHelper lookup) throws SecurityException, RuntimeException {
+    public void reset(final DynamicLookupHelper lookup) throws SecurityException, RuntimeException {
         SecurityUtil.checkAllLinkPermission();
 
         if(null==lookup) {
@@ -179,7 +179,7 @@ public abstract class ProcAddressTable {
             if (DEBUG) {
                 getDebugOutStream().println("  " + addressField.getName() + " -> 0x" + Long.toHexString(newProcAddress));
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException("Can not get proc address for method \""
                     + funcName + "\": Couldn't set value of field \"" + addressField, e);
         }
@@ -192,7 +192,7 @@ public abstract class ProcAddressTable {
     private final Field fieldForFunction(final String name) throws IllegalArgumentException {
         try {
             return getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
-        } catch (NoSuchFieldException ex) {
+        } catch (final NoSuchFieldException ex) {
             throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
         }
     }
@@ -213,14 +213,14 @@ public abstract class ProcAddressTable {
                     final Field addressField = ProcAddressTable.this.getClass().getDeclaredField(PROCADDRESS_VAR_PREFIX + name);
                     addressField.setAccessible(true); // we need to read the protected value!
                     return addressField;
-                } catch (NoSuchFieldException ex) {
+                } catch (final NoSuchFieldException ex) {
                     throw new IllegalArgumentException(getClass().getName() +" has no entry for the function '"+name+"'.", ex);
                 }
             }
         } );
     }
 
-    private final boolean isAddressField(String fieldName) {
+    private final boolean isAddressField(final String fieldName) {
         return fieldName.startsWith(PROCADDRESS_VAR_PREFIX);
     }
 
@@ -231,7 +231,7 @@ public abstract class ProcAddressTable {
                 try {
                     out = new PrintStream(new BufferedOutputStream(new FileOutputStream(DEBUG_PREFIX + File.separatorChar
                             + "procaddresstable-" + (++debugNum) + ".txt")));
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                     out = System.err;
                 }
@@ -256,9 +256,9 @@ public abstract class ProcAddressTable {
                     map.put(fieldToFunctionName(addressFieldName), (Long)fields[i].get(this));
                 }
             }
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             throw new RuntimeException(ex);
-        } catch (IllegalAccessException ex) {
+        } catch (final IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
 
@@ -268,10 +268,10 @@ public abstract class ProcAddressTable {
     /**
      * Returns true only if non null function pointer to this function exists.
      */
-    public final boolean isFunctionAvailable(String functionName) {
+    public final boolean isFunctionAvailable(final String functionName) {
         try{
             return isFunctionAvailableImpl(functionName);
-        } catch (IllegalArgumentException ex) {
+        } catch (final IllegalArgumentException ex) {
             return false;
         }
     }
@@ -286,11 +286,11 @@ public abstract class ProcAddressTable {
      *
      * @throws IllegalArgumentException if this function is not in this table.
      */
-    protected boolean isFunctionAvailableImpl(String functionName) throws IllegalArgumentException {
+    protected boolean isFunctionAvailableImpl(final String functionName) throws IllegalArgumentException {
         final Field addressField = fieldForFunctionInSec(functionName);
         try {
             return 0 != addressField.getLong(this);
-        } catch (IllegalAccessException ex) {
+        } catch (final IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -310,12 +310,12 @@ public abstract class ProcAddressTable {
      * @throws IllegalArgumentException if this function is not in this table.
      * @throws SecurityException if user is not granted access for all libraries.
      */
-    public long getAddressFor(String functionName) throws SecurityException, IllegalArgumentException {
+    public long getAddressFor(final String functionName) throws SecurityException, IllegalArgumentException {
         SecurityUtil.checkAllLinkPermission();
         final Field addressField = fieldForFunctionInSec(functionName);
         try {
             return addressField.getLong(this);
-        } catch (IllegalAccessException ex) {
+        } catch (final IllegalAccessException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -324,11 +324,11 @@ public abstract class ProcAddressTable {
      * Returns all functions pointing to null.
      */
     public final Set<String> getNullPointerFunctions() {
-        Map<String, Long> table = toMap();
-        Set<String> nullPointers = new LinkedHashSet<String>();
-        for (Iterator<Map.Entry<String, Long>> it = table.entrySet().iterator(); it.hasNext();) {
-            Map.Entry<String, Long> entry = it.next();
-            long address = entry.getValue().longValue();
+        final Map<String, Long> table = toMap();
+        final Set<String> nullPointers = new LinkedHashSet<String>();
+        for (final Iterator<Map.Entry<String, Long>> it = table.entrySet().iterator(); it.hasNext();) {
+            final Map.Entry<String, Long> entry = it.next();
+            final long address = entry.getValue().longValue();
             if(address == 0) {
                 nullPointers.add(entry.getKey());
             }
@@ -343,7 +343,7 @@ public abstract class ProcAddressTable {
 
     private static class One2OneResolver implements FunctionAddressResolver {
         @Override
-        public long resolve(String name, DynamicLookupHelper lookup) {
+        public long resolve(final String name, final DynamicLookupHelper lookup) {
             return lookup.dynamicLookupFunction(name);
         }
     }

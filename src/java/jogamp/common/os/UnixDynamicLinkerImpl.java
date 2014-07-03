@@ -49,7 +49,7 @@ import com.jogamp.common.util.SecurityUtil;
   /** Interface to C language function: <br> <code> void *  dlsym(void * , const char * ); </code>    */
   protected static native long dlsym(long arg0, java.lang.String arg1);
 
-  protected final long openLibraryImpl(String pathname, int dlSymFlags, boolean debug) throws SecurityException {
+  protected final long openLibraryImpl(final String pathname, final int dlSymFlags, final boolean debug) throws SecurityException {
     SecurityUtil.checkLinkPermission(pathname);
     final long handle = dlopen(pathname, dlSymFlags);
     if( 0 != handle ) {
@@ -60,7 +60,7 @@ import com.jogamp.common.util.SecurityUtil;
     return handle;
   }
 
-  protected final long lookupSymbolGlobalImpl(long dlSymGlobalFlag, String symbolName) throws SecurityException {
+  protected final long lookupSymbolGlobalImpl(final long dlSymGlobalFlag, final String symbolName) throws SecurityException {
     SecurityUtil.checkAllLinkPermission();
     final long addr = dlsym(dlSymGlobalFlag, symbolName);
     if(DEBUG_LOOKUP) {
@@ -70,7 +70,7 @@ import com.jogamp.common.util.SecurityUtil;
   }
 
   @Override
-  public final long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException {
+  public final long lookupSymbol(final long libraryHandle, final String symbolName) throws IllegalArgumentException {
     if( null == getLibRef( libraryHandle ) ) {
         throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
     }
@@ -82,7 +82,7 @@ import com.jogamp.common.util.SecurityUtil;
   }
 
   @Override
-  public final void closeLibrary(long libraryHandle) throws IllegalArgumentException {
+  public final void closeLibrary(final long libraryHandle) throws IllegalArgumentException {
     if( null == decrLibRefCount( libraryHandle ) ) {
         throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
     }

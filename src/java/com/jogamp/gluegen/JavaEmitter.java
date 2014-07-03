@@ -91,7 +91,7 @@ public class JavaEmitter implements GlueEmitter {
 
       public final String getJavaName() { return javaName; }
 
-      MethodAccess(String javaName) {
+      MethodAccess(final String javaName) {
           this.javaName = javaName;
       }
       private final String javaName;
@@ -106,7 +106,7 @@ public class JavaEmitter implements GlueEmitter {
   protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
 
   @Override
-  public void readConfigurationFile(String filename) throws Exception {
+  public void readConfigurationFile(final String filename) throws Exception {
     cfg = createConfig();
     cfg.read(filename);
   }
@@ -116,7 +116,7 @@ public class JavaEmitter implements GlueEmitter {
     private List<ConstantDefinition> constants;
 
     @Override
-    public void filterSymbols(List<ConstantDefinition> constants, List<FunctionSymbol> functions) {
+    public void filterSymbols(final List<ConstantDefinition> constants, final List<FunctionSymbol> functions) {
       this.constants = constants;
       doWork();
     }
@@ -132,9 +132,9 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     private void doWork() {
-      List<ConstantDefinition> newConstants = new ArrayList<ConstantDefinition>();
-      JavaConfiguration cfg = getConfig();
-      for (ConstantDefinition def : constants) {
+      final List<ConstantDefinition> newConstants = new ArrayList<ConstantDefinition>();
+      final JavaConfiguration cfg = getConfig();
+      for (final ConstantDefinition def : constants) {
         def.rename(cfg.getJavaSymbolRename(def.getName()));
         newConstants.add(def);
       }
@@ -143,17 +143,17 @@ public class JavaEmitter implements GlueEmitter {
   }
 
     @Override
-    public void beginEmission(GlueEmitterControls controls) throws IOException {
+    public void beginEmission(final GlueEmitterControls controls) throws IOException {
 
         // Request emission of any structs requested
-        for (String structs : cfg.forcedStructs()) {
+        for (final String structs : cfg.forcedStructs()) {
             controls.forceStructEmission(structs);
         }
 
         if (!cfg.structsOnly()) {
             try {
                 openWriters();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException("Unable to open files for writing", e);
             }
             emitAllFileHeaders();
@@ -170,7 +170,7 @@ public class JavaEmitter implements GlueEmitter {
 
             try {
                 closeWriters();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 throw new RuntimeException("Unable to close open files", e);
             }
         }
@@ -183,7 +183,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  protected static int getJavaRadix(String name, String value)  {
+  protected static int getJavaRadix(final String name, final String value)  {
     // FIXME: need to handle when type specifier is in last char (e.g.,
     // "1.0d or 2759L", because parseXXX() methods don't allow the type
     // specifier character in the string.
@@ -213,12 +213,12 @@ public class JavaEmitter implements GlueEmitter {
       //System.err.println("parsing " + value + " as long w/ radix " + radix);
       Long.parseLong(parseValue, radix);
       return radix;
-    } catch (NumberFormatException e) {
+    } catch (final NumberFormatException e) {
       try {
         // see if it's a double or float
         Double.parseDouble(value);
         return 10;
-      } catch (NumberFormatException e2) {
+      } catch (final NumberFormatException e2) {
         throw new RuntimeException(
           "Cannot emit define \""+name+"\": value \""+value+
           "\" cannot be assigned to a int, long, float, or double", e2);
@@ -226,22 +226,22 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  protected static Object getJavaValue(String name, String value) {
+  protected static Object getJavaValue(final String name, final String value) {
 
     // "calculates" the result type of a simple expression
     // example: (2+3)-(2.0f-3.0) -> Double
     // example: (1 << 2) -> Integer
 
-    Scanner scanner = new Scanner(value).useDelimiter("[+-/*/></(/)]");
+    final Scanner scanner = new Scanner(value).useDelimiter("[+-/*/></(/)]");
 
     Object resultType = null;
 
     while (scanner.hasNext()) {
 
-        String t = scanner.next().trim();
+        final String t = scanner.next().trim();
 
         if(0<t.length()) {
-            Object type = getJavaValue2(name, t);
+            final Object type = getJavaValue2(name, t);
 
             //fast path
             if(type instanceof Double)
@@ -272,12 +272,12 @@ public class JavaEmitter implements GlueEmitter {
     return resultType;
   }
 
-  private static Object getJavaValue2(String name, String value) {
+  private static Object getJavaValue2(final String name, final String value) {
     // FIXME: need to handle when type specifier is in last char (e.g.,
     // "1.0d or 2759L", because parseXXX() methods don't allow the type
     // specifier character in the string.
     //
-    char lastChar = value.charAt(value.length()-1);
+    final char lastChar = value.charAt(value.length()-1);
 
     try {
       // see if it's a long or int
@@ -302,24 +302,24 @@ public class JavaEmitter implements GlueEmitter {
       }
 
       //System.err.println("parsing " + value + " as long w/ radix " + radix);
-      long longVal = Long.parseLong(parseValue, radix);
+      final long longVal = Long.parseLong(parseValue, radix);
       // if constant is small enough, store it as an int instead of a long
       if (longVal > Integer.MIN_VALUE && longVal < Integer.MAX_VALUE) {
         return (int)longVal;
       }
       return longVal;
 
-    } catch (NumberFormatException e) {
+    } catch (final NumberFormatException e) {
       try {
         // see if it's a double or float
-        double dVal = Double.parseDouble(value);
-        double absVal = Math.abs(dVal);
+        final double dVal = Double.parseDouble(value);
+        final double absVal = Math.abs(dVal);
         // if constant is small enough, store it as a float instead of a double
         if (absVal < Float.MIN_VALUE || absVal > Float.MAX_VALUE) {
             return new Double(dVal);
         }
         return new Float((float) dVal);
-      } catch (NumberFormatException e2) {
+      } catch (final NumberFormatException e2) {
         throw new RuntimeException(
           "Cannot emit define \""+name+"\": value \""+value+
           "\" cannot be assigned to a int, long, float, or double", e2);
@@ -328,12 +328,12 @@ public class JavaEmitter implements GlueEmitter {
   }
 
 
-  protected static String getJavaType(String name, String value) {
-    Object oval = getJavaValue(name, value);
+  protected static String getJavaType(final String name, final String value) {
+    final Object oval = getJavaValue(name, value);
     return getJavaType(name, oval);
   }
 
-  protected static String getJavaType(String name, Object oval) {
+  protected static String getJavaType(final String name, final Object oval) {
     if(oval instanceof Integer) {
         return "int";
     } else if(oval instanceof Long) {
@@ -350,7 +350,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   /** Mangle a class, package or function name for JNI usage, i.e. replace all '.' w/ '_' */
-  protected static String jniMangle(String name) {
+  protected static String jniMangle(final String name) {
     return name.replaceAll("_", "_1").replace('.', '_');
   }
   /** Returns the JNI method prefix consisting our of mangled package- and class-name */
@@ -359,7 +359,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public void emitDefine(ConstantDefinition def, String optionalComment) throws Exception  {
+  public void emitDefine(final ConstantDefinition def, final String optionalComment) throws Exception  {
 
     if (cfg.allStatic() || cfg.emitInterface()) {
       // TODO: Some defines (e.g., GL_DOUBLE_EXT in gl.h) are defined in terms
@@ -371,11 +371,11 @@ public class JavaEmitter implements GlueEmitter {
       // currently only emits only numeric defines -- if it handled #define'd
       // objects it would make a bigger difference.
 
-      String name = def.getName();
+      final String name = def.getName();
       String value = def.getValue();
 
       if (!cfg.shouldIgnoreInInterface(name)) {
-        String type = getJavaType(name, value);
+        final String type = getJavaType(name, value);
         if (optionalComment != null && optionalComment.length() != 0) {
           javaWriter().println("  /** " + optionalComment + " */");
         }
@@ -398,9 +398,9 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public void beginFunctions(TypeDictionary typedefDictionary,
-                             TypeDictionary structDictionary,
-                             Map<Type, Type> canonMap) throws Exception {
+  public void beginFunctions(final TypeDictionary typedefDictionary,
+                             final TypeDictionary structDictionary,
+                             final Map<Type, Type> canonMap) throws Exception {
 
     this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
@@ -412,7 +412,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public Iterator<FunctionSymbol> emitFunctions(List<FunctionSymbol> originalCFunctions) throws Exception {
+  public Iterator<FunctionSymbol> emitFunctions(final List<FunctionSymbol> originalCFunctions) throws Exception {
 
     // Sometimes headers will have the same function prototype twice, once
     // with the argument names and once without. We'll remember the signatures
@@ -421,8 +421,8 @@ public class JavaEmitter implements GlueEmitter {
     // Note: this code assumes that on the equals() method in FunctionSymbol
     // only considers function name and argument types (i.e., it does not
     // consider argument *names*) when comparing FunctionSymbols for equality
-    Set<FunctionSymbol> funcsToBindSet = new HashSet<FunctionSymbol>(100);
-    for (FunctionSymbol cFunc : originalCFunctions) {
+    final Set<FunctionSymbol> funcsToBindSet = new HashSet<FunctionSymbol>(100);
+    for (final FunctionSymbol cFunc : originalCFunctions) {
       if (!funcsToBindSet.contains(cFunc)) {
         funcsToBindSet.add(cFunc);
       }
@@ -430,19 +430,19 @@ public class JavaEmitter implements GlueEmitter {
 
     //    validateFunctionsToBind(funcsToBindSet);
 
-    ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet);
+    final ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet);
     // sort functions to make them easier to find in native code
     Collections.sort(funcsToBind, new Comparator<FunctionSymbol>() {
             @Override
-            public int compare(FunctionSymbol o1, FunctionSymbol o2) {
+            public int compare(final FunctionSymbol o1, final FunctionSymbol o2) {
                 return o1.getName().compareTo(o2.getName());
             }
         });
 
     // Bind all the C funcs to Java methods
-    HashSet<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
-    ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
-    for (FunctionSymbol cFunc : funcsToBind) {
+    final HashSet<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
+    final ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
+    for (final FunctionSymbol cFunc : funcsToBind) {
       // Check to see whether this function should be ignored
       if (!cfg.shouldIgnoreInImpl(cFunc.getName())) {
           methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
@@ -451,13 +451,13 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     // Emit all the methods
-    for (FunctionEmitter emitter : methodBindingEmitters) {
+    for (final FunctionEmitter emitter : methodBindingEmitters) {
       try {
         if (!emitter.isInterface() || !cfg.shouldIgnoreInInterface(emitter.getName())) {
             emitter.emit();
             emitter.getDefaultOutput().println(); // put newline after method body
         }
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new RuntimeException(
             "Error while emitting binding for \"" + emitter.getName() + "\"", e);
       }
@@ -506,7 +506,7 @@ public class JavaEmitter implements GlueEmitter {
    * native code because it doesn't need any processing of the
    * outgoing arguments).
    */
-  protected void generatePublicEmitters(MethodBinding binding, List<FunctionEmitter> allEmitters, boolean signatureOnly) {
+  protected void generatePublicEmitters(final MethodBinding binding, final List<FunctionEmitter> allEmitters, final boolean signatureOnly) {
       if (cfg.manuallyImplement(binding.getName()) && !signatureOnly) {
           // We only generate signatures for manually-implemented methods;
           // user provides the implementation
@@ -563,7 +563,7 @@ public class JavaEmitter implements GlueEmitter {
           default: break; // package-private adds no modifiers
       }
       if (cfg.allStatic()) {
-          emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+          emitter.addModifier(FunctionEmitter.STATIC);
       }
       if (!isUnimplemented && !needsBody && !signatureOnly) {
           emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
@@ -583,8 +583,8 @@ public class JavaEmitter implements GlueEmitter {
    * many emitters which would lead to compilation errors from
    * creating duplicated methods / functions.
    */
-  protected void generatePrivateEmitters(MethodBinding binding,
-                                         List<FunctionEmitter> allEmitters) {
+  protected void generatePrivateEmitters(final MethodBinding binding,
+                                         final List<FunctionEmitter> allEmitters) {
       if (cfg.manuallyImplement(binding.getName())) {
           // Don't produce emitters for the implementation class
           return;
@@ -634,7 +634,7 @@ public class JavaEmitter implements GlueEmitter {
                               cfg);
               emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
               if (cfg.allStatic()) {
-                  emitter.addModifier(JavaMethodBindingEmitter.STATIC);
+                  emitter.addModifier(FunctionEmitter.STATIC);
               }
               emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
               emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
@@ -665,7 +665,7 @@ public class JavaEmitter implements GlueEmitter {
       }
   }
 
-  protected void prepCEmitter(String returnSizeLookupName, JavaType javaReturnType, CMethodBindingEmitter cEmitter)
+  protected void prepCEmitter(final String returnSizeLookupName, final JavaType javaReturnType, final CMethodBindingEmitter cEmitter)
   {
       // See whether we need an expression to help calculate the
       // length of any return type
@@ -700,19 +700,19 @@ public class JavaEmitter implements GlueEmitter {
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
-  protected List<? extends FunctionEmitter> generateMethodBindingEmitters(Set<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
+  protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
 
-    ArrayList<FunctionEmitter> allEmitters = new ArrayList<FunctionEmitter>();
+    final ArrayList<FunctionEmitter> allEmitters = new ArrayList<FunctionEmitter>();
 
     try {
       // Get Java binding for the function
-      MethodBinding mb = bindFunction(sym, null, null, machDescJava);
+      final MethodBinding mb = bindFunction(sym, null, null, machDescJava);
 
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
-      List<MethodBinding> bindings = expandMethodBinding(mb);
+      final List<MethodBinding> bindings = expandMethodBinding(mb);
 
-      for (MethodBinding binding : bindings) {
+      for (final MethodBinding binding : bindings) {
 
         if(!methodBindingSet.add(binding)) {
             // skip .. already exisiting binding ..
@@ -780,7 +780,7 @@ public class JavaEmitter implements GlueEmitter {
           generatePrivateEmitters(binding, allEmitters);
         }
       } // end iteration over expanded bindings
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException("Error while generating bindings for \"" + sym + "\"", e);
     }
 
@@ -811,16 +811,16 @@ public class JavaEmitter implements GlueEmitter {
   @Override
   public void beginStructLayout() throws Exception {}
   @Override
-  public void layoutStruct(CompoundType t) throws Exception {
+  public void layoutStruct(final CompoundType t) throws Exception {
     getLayout().layout(t);
   }
   @Override
   public void endStructLayout() throws Exception {}
 
   @Override
-  public void beginStructs(TypeDictionary typedefDictionary,
-                           TypeDictionary structDictionary,
-                           Map<Type, Type> canonMap) throws Exception {
+  public void beginStructs(final TypeDictionary typedefDictionary,
+                           final TypeDictionary structDictionary,
+                           final Map<Type, Type> canonMap) throws Exception {
     this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
   }
@@ -922,7 +922,7 @@ public class JavaEmitter implements GlueEmitter {
         } else {
             jniWriter = null;
         }
-    } catch(Exception e)   {
+    } catch(final Exception e)   {
         throw new RuntimeException("Unable to open files for emission of struct class", e);
     }
 
@@ -937,21 +937,21 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println("import " + Buffers.class.getPackage().getName() + ".*;");
     javaWriter.println("import " + MachineDescriptionRuntime.class.getName() + ";");
     javaWriter.println();
-    List<String> imports = cfg.imports();
-    for (String str : imports) {
+    final List<String> imports = cfg.imports();
+    for (final String str : imports) {
       javaWriter.print("import ");
       javaWriter.print(str);
       javaWriter.println(";");
     }
     javaWriter.println();
-    List<String> javadoc = cfg.javadocForClass(containingJTypeName);
-    for (String doc : javadoc) {
+    final List<String> javadoc = cfg.javadocForClass(containingJTypeName);
+    for (final String doc : javadoc) {
       javaWriter.println(doc);
     }
     javaWriter.print("public class " + containingJTypeName + " ");
     boolean firstIteration = true;
-    List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingJTypeName);
-    for (String userInterface : userSpecifiedInterfaces) {
+    final List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingJTypeName);
+    for (final String userInterface : userSpecifiedInterfaces) {
       if (firstIteration) {
         javaWriter.print("implements ");
       }
@@ -1008,7 +1008,7 @@ public class JavaEmitter implements GlueEmitter {
           final JavaType externalJavaType;
           try {
             externalJavaType = typeToJavaType(fieldType, machDescJava);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             throw new RuntimeException("Error occurred while creating accessor for field \"" +
                                        cfgFieldName1 + "\", "+fieldType.getDebugString(), e);
           }
@@ -1057,7 +1057,7 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println("    return accessor.getBuffer();");
     javaWriter.println("  }");
 
-    Set<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
+    final Set<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
 
     for (int i = 0; i < structCType.getNumFields(); i++) {
       final Field field = structCType.getField(i);
@@ -1098,7 +1098,7 @@ public class JavaEmitter implements GlueEmitter {
           final JavaType javaType;
           try {
             javaType = typeToJavaType(fieldType, machDescJava);
-          } catch (Exception e) {
+          } catch (final Exception e) {
             System.err.println("Error occurred while creating accessor for field \"" +
                                field.getName() + "\", "+fieldType.getDebugString());
             throw(e);
@@ -1176,13 +1176,13 @@ public class JavaEmitter implements GlueEmitter {
   @Override
   public void endStructs() throws Exception {}
 
-  public static int addStrings2Buffer(StringBuilder buf, String sep, String first, Collection<String> col) {
+  public static int addStrings2Buffer(StringBuilder buf, final String sep, final String first, final Collection<String> col) {
     int num = 0;
     if(null==buf) {
         buf = new StringBuilder();
     }
 
-    Iterator<String> iter = col.iterator();
+    final Iterator<String> iter = col.iterator();
     if(null!=first) {
         buf.append(first);
         if( iter.hasNext() ) {
@@ -1239,7 +1239,7 @@ public class JavaEmitter implements GlueEmitter {
       writer.print(")");
   }
 
-  private void generateOffsetAndSizeArrays(PrintWriter writer, String prefix, String fieldName, Type fieldType, Field field, String postfix) {
+  private void generateOffsetAndSizeArrays(final PrintWriter writer, final String prefix, final String fieldName, final Type fieldType, final Field field, final String postfix) {
       if(null != field) {
           writer.print(prefix+"private static final int[] "+fieldName+"_offset = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
@@ -1333,7 +1333,7 @@ public class JavaEmitter implements GlueEmitter {
           emitter.emit();
 
           // Emit (private) C entry point for calling this function pointer
-          CMethodBindingEmitter cEmitter =
+          final CMethodBindingEmitter cEmitter =
                   new CMethodBindingEmitter(binding,
                           jniWriter,
                           structClassPkgName,
@@ -1398,7 +1398,7 @@ public class JavaEmitter implements GlueEmitter {
           emitter.emit();
 
           // Emit (private) C entry point for calling this function pointer
-          CMethodBindingEmitter cEmitter =
+          final CMethodBindingEmitter cEmitter =
                   new CMethodBindingEmitter(binding,
                           jniWriter,
                           structClassPkgName,
@@ -1411,7 +1411,7 @@ public class JavaEmitter implements GlueEmitter {
           cEmitter.setIsCStructFunctionPointer(false);
           final String lenExprSet;
           if( null != nativeArrayLenExpr ) {
-              JavaType javaReturnType = binding.getJavaReturnType();
+              final JavaType javaReturnType = binding.getJavaReturnType();
               if (javaReturnType.isNIOBuffer() ||
                       javaReturnType.isCompoundTypeWrapper()) {
                   final Type retType = funcSym.getReturnType();
@@ -1504,7 +1504,7 @@ public class JavaEmitter implements GlueEmitter {
       final JavaType javaType;
       try {
         javaType = typeToJavaType(fieldType, machDescJava);
-      } catch (Exception e) {
+      } catch (final Exception e) {
         throw new RuntimeException("Error occurred while creating array/pointer accessor for field \"" +
                                    returnSizeLookupName + "\", "+fieldType.getDebugString(), e);
       }
@@ -1579,7 +1579,7 @@ public class JavaEmitter implements GlueEmitter {
               isConst = baseCElemType.isConst();
               try {
                   baseJElemType = typeToJavaType(baseCElemType, machDescJava);
-              } catch (Exception e ) {
+              } catch (final Exception e ) {
                   throw new RuntimeException("Error occurred while creating array/pointer accessor for field \"" +
                                               returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(), e);
               }
@@ -1621,7 +1621,7 @@ public class JavaEmitter implements GlueEmitter {
           boolean _hasSingleElement=false;
           try {
               _hasSingleElement = 1 ==Integer.parseInt(_arrayLengthExpr);
-          } catch (Exception e ) {}
+          } catch (final Exception e ) {}
           hasSingleElement = _hasSingleElement;
       }
       if( GlueGen.debug() ) {
@@ -1968,7 +1968,7 @@ public class JavaEmitter implements GlueEmitter {
             isPointerPointer = true;
 
             // t is<type>**, targetType is <type>*, we need to get <type>
-            Type bottomType = targetType.asPointer().getTargetType();
+            final Type bottomType = targetType.asPointer().getTargetType();
             if( GlueGen.debug() ) {
                 LOG.log(INFO, "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr", new Object[]{cType.getDebugString(), targetType, bottomType});
             }
@@ -2137,7 +2137,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  private static boolean isIntegerType(Class<?> c) {
+  private static boolean isIntegerType(final Class<?> c) {
     return ((c == Byte.TYPE) ||
             (c == Short.TYPE) ||
             (c == Character.TYPE) ||
@@ -2158,7 +2158,7 @@ public class JavaEmitter implements GlueEmitter {
    * @return a {@link PrintWriter} instance to write the class source file or <code>null</code> to suppress output!
    * @throws IOException
    */
-  protected PrintWriter openFile(String filename, String simpleClassName) throws IOException {
+  protected PrintWriter openFile(final String filename, final String simpleClassName) throws IOException {
     //System.out.println("Trying to open: " + filename);
     final File file = new File(filename);
     final String parentDir = file.getParent();
@@ -2168,14 +2168,14 @@ public class JavaEmitter implements GlueEmitter {
     return new PrintWriter(new BufferedWriter(new FileWriter(file)));
   }
 
-  private boolean isOpaque(Type type) {
+  private boolean isOpaque(final Type type) {
     return (cfg.typeInfo(type, typedefDictionary) != null);
   }
 
-  private String compatiblePrimitiveJavaTypeName(Type fieldType,
-                                                 JavaType javaType,
-                                                 MachineDescription curMachDesc) {
-    Class<?> c = javaType.getJavaClass();
+  private String compatiblePrimitiveJavaTypeName(final Type fieldType,
+                                                 final JavaType javaType,
+                                                 final MachineDescription curMachDesc) {
+    final Class<?> c = javaType.getJavaClass();
     if (!isIntegerType(c)) {
       // FIXME
       throw new RuntimeException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.): type: "+fieldType+", javaType "+javaType+", javaClass "+c);
@@ -2250,7 +2250,7 @@ public class JavaEmitter implements GlueEmitter {
     return cWriter;
   }
 
-  private void closeWriter(PrintWriter writer) throws IOException {
+  private void closeWriter(final PrintWriter writer) throws IOException {
     writer.flush();
     writer.close();
   }
@@ -2298,14 +2298,14 @@ public class JavaEmitter implements GlueEmitter {
    * Emit all the strings specified in the "CustomJavaCode" parameters of
    * the configuration file.
    */
-  protected void emitCustomJavaCode(PrintWriter writer, String className) throws Exception  {
-    List<String> code = cfg.customJavaCodeForClass(className);
+  protected void emitCustomJavaCode(final PrintWriter writer, final String className) throws Exception  {
+    final List<String> code = cfg.customJavaCodeForClass(className);
     if (code.isEmpty())
       return;
 
     writer.println();
     writer.println("  // --- Begin CustomJavaCode .cfg declarations");
-    for (String line : code) {
+    for (final String line : code) {
       writer.println(line);
     }
     writer.println("  // ---- End CustomJavaCode .cfg declarations");
@@ -2317,7 +2317,7 @@ public class JavaEmitter implements GlueEmitter {
    */
   protected void emitAllFileHeaders() throws IOException {
     try {
-        List<String> imports = new ArrayList<String>(cfg.imports());
+        final List<String> imports = new ArrayList<String>(cfg.imports());
         imports.add(cfg.gluegenRuntimePackage()+".*");
         imports.add(DynamicLookupHelper.class.getPackage().getName()+".*");
         imports.add(Buffers.class.getPackage().getName()+".*");
@@ -2336,11 +2336,11 @@ public class JavaEmitter implements GlueEmitter {
         userSpecifiedInterfaces.toArray(interfaces);
 
         final List<String> intfDocs = cfg.javadocForClass(cfg.className());
-        CodeGenUtils.EmissionCallback docEmitter =
+        final CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
             @Override
-            public void emit(PrintWriter w) {
-              for (Iterator<String> iter = intfDocs.iterator(); iter.hasNext(); ) {
+            public void emit(final PrintWriter w) {
+              for (final Iterator<String> iter = intfDocs.iterator(); iter.hasNext(); ) {
                 w.println(iter.next());
               }
             }
@@ -2367,11 +2367,11 @@ public class JavaEmitter implements GlueEmitter {
 
       if (!cfg.allStatic() && cfg.emitImpl()) {
         final List<String> implDocs = cfg.javadocForClass(cfg.implClassName());
-        CodeGenUtils.EmissionCallback docEmitter =
+        final CodeGenUtils.EmissionCallback docEmitter =
           new CodeGenUtils.EmissionCallback() {
             @Override
-            public void emit(PrintWriter w) {
-              for (Iterator<String> iter = implDocs.iterator(); iter.hasNext(); ) {
+            public void emit(final PrintWriter w) {
+              for (final Iterator<String> iter = implDocs.iterator(); iter.hasNext(); ) {
                 w.println(iter.next());
               }
             }
@@ -2412,7 +2412,7 @@ public class JavaEmitter implements GlueEmitter {
       if (cfg.emitImpl()) {
         emitCHeader(cWriter(), getImplPackageName(), cfg.implClassName());
       }
-    } catch (Exception e) {
+    } catch (final Exception e) {
       throw new RuntimeException(
         "Error emitting all file headers: cfg.allStatic()=" + cfg.allStatic() +
         " cfg.emitImpl()=" + cfg.emitImpl() + " cfg.emitInterface()=" + cfg.emitInterface(),
@@ -2421,7 +2421,7 @@ public class JavaEmitter implements GlueEmitter {
 
   }
 
-  protected void emitCHeader(PrintWriter cWriter, String packageName, String className) {
+  protected void emitCHeader(final PrintWriter cWriter, final String packageName, final String className) {
     cWriter.println("#include <jni.h>");
     cWriter.println("#include <stdlib.h>");
     cWriter.println("#include <string.h>");
@@ -2433,7 +2433,7 @@ public class JavaEmitter implements GlueEmitter {
       cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity); /* forward decl. */");
       cWriter.println();
     }
-    for (String code : cfg.customCCode()) {
+    for (final String code : cfg.customCCode()) {
       cWriter.println(code);
     }
     cWriter.println();
@@ -2502,7 +2502,7 @@ public class JavaEmitter implements GlueEmitter {
          "  }\n"+
          "\n";
 
-  protected void emitCInitCode(PrintWriter cWriter, String packageName, String className) {
+  protected void emitCInitCode(final PrintWriter cWriter, final String packageName, final String className) {
     if ( requiresStaticInitialization(className) ) {
       cWriter.println(staticClassInitCodeCCode);
       cWriter.println("JNIEXPORT jboolean JNICALL "+JavaEmitter.getJNIMethodNamePrefix(packageName, className)+"_initializeImpl(JNIEnv *env, jclass _unused) {");
@@ -2516,7 +2516,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  protected void emitJavaInitCode(PrintWriter jWriter, String className) {
+  protected void emitJavaInitCode(final PrintWriter jWriter, final String className) {
     if( null != jWriter && requiresStaticInitialization(className) ) {
         jWriter.println();
         jWriter.println("  private static native boolean initializeImpl();");
@@ -2545,7 +2545,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  private JavaType javaType(Class<?> c) {
+  private JavaType javaType(final Class<?> c) {
     return JavaType.createForClass(c);
   }
 
@@ -2555,19 +2555,19 @@ public class JavaEmitter implements GlueEmitter {
       potentially representing C pointers rather than true Java types)
       and must be lowered to concrete Java types before creating
       emitters for them. */
-  private MethodBinding bindFunction(FunctionSymbol sym,
-                                     JavaType containingType,
-                                     Type containingCType,
-                                     MachineDescription curMachDesc) {
+  private MethodBinding bindFunction(final FunctionSymbol sym,
+                                     final JavaType containingType,
+                                     final Type containingCType,
+                                     final MachineDescription curMachDesc) {
 
-    MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
+    final MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
 
     binding.renameMethodName(cfg.getJavaSymbolRename(sym.getName()));
 
     // System.out.println("bindFunction(0) "+sym.getReturnType());
 
     if (cfg.returnsString(binding.getName())) {
-      PointerType prt = sym.getReturnType().asPointer();
+      final PointerType prt = sym.getReturnType().asPointer();
       if (prt == null ||
           prt.getTargetType().asInt() == null ||
           prt.getTargetType().getSize(curMachDesc) != 1) {
@@ -2584,10 +2584,10 @@ public class JavaEmitter implements GlueEmitter {
 
     // List of the indices of the arguments in this function that should be
     // converted from byte[] or short[] to String
-    List<Integer> stringArgIndices = cfg.stringArguments(binding.getName());
+    final List<Integer> stringArgIndices = cfg.stringArguments(binding.getName());
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
-      Type cArgType = sym.getArgumentType(i);
+      final Type cArgType = sym.getArgumentType(i);
       JavaType mappedType = typeToJavaType(cArgType, curMachDesc);
       // System.out.println("C arg type -> \"" + cArgType + "\"" );
       // System.out.println("      Java -> \"" + mappedType + "\"" );
@@ -2628,16 +2628,16 @@ public class JavaEmitter implements GlueEmitter {
     return binding;
   }
 
-  private MethodBinding lowerMethodBindingPointerTypes(MethodBinding inputBinding,
-                                                       boolean convertToArrays,
-                                                       boolean[] canProduceArrayVariant) {
+  private MethodBinding lowerMethodBindingPointerTypes(final MethodBinding inputBinding,
+                                                       final boolean convertToArrays,
+                                                       final boolean[] canProduceArrayVariant) {
     MethodBinding result = inputBinding;
     boolean arrayPossible = false;
 
     // System.out.println("lowerMethodBindingPointerTypes(0): "+result);
 
     for (int i = 0; i < inputBinding.getNumArguments(); i++) {
-      JavaType t = inputBinding.getJavaArgumentType(i);
+      final JavaType t = inputBinding.getJavaArgumentType(i);
       if (t.isCPrimitivePointerType()) {
         if (t.isCVoidPointerType()) {
           // These are always bound to java.nio.Buffer
@@ -2693,7 +2693,7 @@ public class JavaEmitter implements GlueEmitter {
     // System.out.println("lowerMethodBindingPointerTypes(1): "+result);
 
     // Always return primitive pointer types as NIO buffers
-    JavaType t = result.getJavaReturnType();
+    final JavaType t = result.getJavaReturnType();
     if (t.isCPrimitivePointerType()) {
       if (t.isCVoidPointerType()) {
         result = result.replaceJavaArgumentType(-1, JavaType.forNIOByteBufferClass());
@@ -2726,12 +2726,12 @@ public class JavaEmitter implements GlueEmitter {
   // Expands a MethodBinding containing C primitive pointer types into
   // multiple variants taking Java primitive arrays and NIO buffers, subject
   // to the per-function "NIO only" rule in the configuration file
-  protected List<MethodBinding> expandMethodBinding(MethodBinding binding) {
+  protected List<MethodBinding> expandMethodBinding(final MethodBinding binding) {
 
-    List<MethodBinding> result = new ArrayList<MethodBinding>();
+    final List<MethodBinding> result = new ArrayList<MethodBinding>();
     // Indicates whether it is possible to produce an array variant
     // Prevents e.g. char* -> String conversions from emitting two entry points
-    boolean[] canProduceArrayVariant = new boolean[1];
+    final boolean[] canProduceArrayVariant = new boolean[1];
 
     if (binding.signatureUsesCPrimitivePointers() ||
         binding.signatureUsesCVoidPointers() ||
@@ -2751,8 +2751,8 @@ public class JavaEmitter implements GlueEmitter {
     return result;
   }
 
-  private Type canonicalize(Type t) {
-    Type res = canonMap.get(t);
+  private Type canonicalize(final Type t) {
+    final Type res = canonMap.get(t);
     if (res != null) {
       return res;
     }
@@ -2763,7 +2763,7 @@ public class JavaEmitter implements GlueEmitter {
   /**
    * Converts first letter to upper case.
    */
-  private final String capitalizeString(String string) {
+  private final String capitalizeString(final String string) {
       return Character.toUpperCase(string.charAt(0)) + string.substring(1);
   }
 }

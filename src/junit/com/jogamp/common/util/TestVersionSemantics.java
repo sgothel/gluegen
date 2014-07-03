@@ -93,8 +93,8 @@ public class TestVersionSemantics extends JunitTracer {
                                          curVersion.getClass(), currentCL, curVersionNumber, excludes);
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestVersionSemantics.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestVersionSemantics.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

@@ -78,7 +78,7 @@ public class MethodBinding {
    * argument, including the java return type and java argument
    * types. It's safe to modify this binding after construction.
    */
-  public MethodBinding(MethodBinding bindingToCopy) {
+  public MethodBinding(final MethodBinding bindingToCopy) {
     this.sym = bindingToCopy.sym;
 
     this.renamedMethodName                = bindingToCopy.renamedMethodName;
@@ -102,26 +102,26 @@ public class MethodBinding {
   }
 
   /** Constructor for calling a C function. */
-  public MethodBinding(FunctionSymbol sym) {
+  public MethodBinding(final FunctionSymbol sym) {
     this.sym = sym;
     this.aliasedNames = new HashSet<String>();
   }
 
   /** Constructor for calling a function pointer contained in a
       struct. */
-  public MethodBinding(FunctionSymbol sym, JavaType containingType, Type containingCType) {
+  public MethodBinding(final FunctionSymbol sym, final JavaType containingType, final Type containingCType) {
     this.sym = sym;
     this.containingType = containingType;
     this.containingCType = containingCType;
     this.aliasedNames = new HashSet<String>();
   }
 
-    public void setJavaReturnType(JavaType type) {
+    public void setJavaReturnType(final JavaType type) {
         javaReturnType = type;
         computedSignatureProperties = false;
     }
 
-    public void addJavaArgumentType(JavaType type) {
+    public void addJavaArgumentType(final JavaType type) {
         if (javaArgumentTypes == null) {
             javaArgumentTypes = new ArrayList<JavaType>();
         }
@@ -137,7 +137,7 @@ public class MethodBinding {
         return sym.getNumArguments();
     }
 
-    public JavaType getJavaArgumentType(int i) {
+    public JavaType getJavaArgumentType(final int i) {
         return javaArgumentTypes.get(i);
     }
 
@@ -145,7 +145,7 @@ public class MethodBinding {
         return sym.getReturnType();
     }
 
-    public Type getCArgumentType(int i) {
+    public Type getCArgumentType(final int i) {
         return sym.getArgumentType(i);
     }
 
@@ -158,7 +158,7 @@ public class MethodBinding {
     position. Note that it is currently not guaranteed that there
     are no namespace clashes with these fabricated argument
     names. */
-    public String getArgumentName(int i) {
+    public String getArgumentName(final int i) {
         final String ret = sym.getArgumentName(i);
         if ( null != ret ) {
             return ret;
@@ -179,14 +179,14 @@ public class MethodBinding {
     }
 
     /** Supports renaming C function in Java binding. */
-    public void renameMethodName(String name) {
+    public void renameMethodName(final String name) {
         if (null != name) {
             renamedMethodName = name;
             aliasedNames.add(sym.getName());
         }
     }
 
-    public void addAliasedName(String name) {
+    public void addAliasedName(final String name) {
         aliasedNames.add(name);
     }
 
@@ -197,9 +197,9 @@ public class MethodBinding {
   /** Creates a new MethodBinding replacing the specified Java
       argument type with a new argument type. If argumentNumber is
       less than 0 then replaces the return type. */
-  public MethodBinding replaceJavaArgumentType(int argumentNumber, JavaType newArgType) {
+  public MethodBinding replaceJavaArgumentType(final int argumentNumber, final JavaType newArgType) {
 
-    MethodBinding binding = new MethodBinding(this);
+    final MethodBinding binding = new MethodBinding(this);
     binding.javaArgumentTypes = null;
     if (argumentNumber < 0) {
       binding.setJavaReturnType(newArgType);
@@ -364,7 +364,7 @@ public class MethodBinding {
       signatureUsesNIO = true;
     }
 
-    Type cRetType = sym.getReturnType();
+    final Type cRetType = sym.getReturnType();
     if (cRetType.isArray()) {
       // Needs checking of array lengths
       signatureUsesCArrays = true;
@@ -382,8 +382,8 @@ public class MethodBinding {
     }
 
     for (int i = 0; i < getNumArguments(); i++) {
-      JavaType javaArgType = getJavaArgumentType(i);
-      Type cArgType = getCArgumentType(i);
+      final JavaType javaArgType = getJavaArgumentType(i);
+      final Type cArgType = getCArgumentType(i);
       if (javaArgType.isCompoundTypeWrapper()) {
         // Needs unwrapping of accessors
         signatureUsesCompoundTypeWrappers = true;
@@ -469,7 +469,7 @@ public class MethodBinding {
   public void findThisPointer() {
     clearThisPointer();
     for (int i = 0; i < getNumArguments(); i++) {
-      JavaType arg = getJavaArgumentType(i);
+      final JavaType arg = getJavaArgumentType(i);
       if (arg.equals(containingType)) {
         thisPointerIndex = i;
         break;
@@ -488,11 +488,11 @@ public class MethodBinding {
 
   /** Indicates whether the <i>i</i>th argument to this MethodBinding
       is actually a "this" pointer. */
-  public boolean isArgumentThisPointer(int i) {
+  public boolean isArgumentThisPointer(final int i) {
     return (thisPointerIndex == i);
   }
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(final Object obj) {
     if (obj == this) {
       return true;
     }
@@ -501,7 +501,7 @@ public class MethodBinding {
       return false;
     }
 
-    MethodBinding other = (MethodBinding)obj;
+    final MethodBinding other = (MethodBinding)obj;
     if ( !getName().equals(other.getName()) ||
          !sym.getType().equals(other.sym.getType()) ) { return false; }
     if (!(javaReturnType.equals(other.getJavaReturnType()))) { return false; }
@@ -515,8 +515,8 @@ public class MethodBinding {
     }
 
     for (int i = 0; i < javaArgumentTypes.size(); ++i) {
-      Object typeThis = javaArgumentTypes.get(i);
-      Object typeOther = other.getJavaArgumentType(i);
+      final Object typeThis = javaArgumentTypes.get(i);
+      final Object typeOther = other.getJavaArgumentType(i);
       if (!(typeThis.equals(typeOther))) {
         return false;
       }
@@ -527,7 +527,7 @@ public class MethodBinding {
 
   @Override
   public int hashCode() {
-    StringBuilder buf = new StringBuilder(200);
+    final StringBuilder buf = new StringBuilder(200);
     buf.append(getName());
     buf.append(sym.getType().getName(true));
     buf.append(getJavaReturnType().getName());
@@ -536,7 +536,7 @@ public class MethodBinding {
     }
 
     for (int i = 0; i < getNumArguments(); i++) {
-      JavaType type = getJavaArgumentType(i);
+      final JavaType type = getJavaArgumentType(i);
       if (type.isVoid()) {
         // Make sure this is the only param to the method; if it isn't,
         // there's something wrong with our parsing of the headers.
@@ -552,14 +552,14 @@ public class MethodBinding {
   /** Returns the signature of this binding. */
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder(200);
+    final StringBuilder buf = new StringBuilder(200);
     buf.append(getJavaReturnType().getName());
     buf.append(' ');
     buf.append(getName());
     buf.append('(');
     boolean needComma = false;
     for (int i = 0; i < getNumArguments(); i++) {
-      JavaType type = getJavaArgumentType(i);
+      final JavaType type = getJavaArgumentType(i);
       if (type.isVoid()) {
         // Make sure this is the only param to the method; if it isn't,
         // there's something wrong with our parsing of the headers.
@@ -588,9 +588,9 @@ public class MethodBinding {
       internal format) of this MethodBinding as it will be
       emitted. This is used to disambiguate between overloadings when
       manually specifying prologue and epilogue code, for example. */
-  public String getDescriptor(boolean forImplementingMethodCall,
-                              boolean eraseBufferAndArrayTypes) {
-    StringBuilder buf = new StringBuilder();
+  public String getDescriptor(final boolean forImplementingMethodCall,
+                              final boolean eraseBufferAndArrayTypes) {
+    final StringBuilder buf = new StringBuilder();
 
     buf.append('(');
 
@@ -600,7 +600,7 @@ public class MethodBinding {
     }
 
     for (int i = 0; i < getNumArguments(); i++) {
-      JavaType type = getJavaArgumentType(i);
+      final JavaType type = getJavaArgumentType(i);
       if (type.isVoid()) {
         // Make sure this is the only param to the method; if it isn't,
         // there's something wrong with our parsing of the headers.
@@ -643,7 +643,7 @@ public class MethodBinding {
     return buf.toString();
   }
 
-  protected String erasedTypeDescriptor(JavaType type, boolean eraseBufferAndArrayTypes, boolean skipBuffers) {
+  protected String erasedTypeDescriptor(final JavaType type, final boolean eraseBufferAndArrayTypes, final boolean skipBuffers) {
     if (eraseBufferAndArrayTypes) {
       if (type.isNIOBuffer() ||
           type.isPrimitiveArray()) {

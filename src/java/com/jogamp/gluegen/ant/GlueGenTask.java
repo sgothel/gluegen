@@ -92,7 +92,7 @@ public class GlueGenTask extends Task
      * <p>The {@link org.apache.tools.ant.types.CommandlineJava} that is used
      * to execute {@link com.jogamp.gluegen.GlueGen}.</p>
      */
-    private CommandlineJava gluegenCommandline;
+    private final CommandlineJava gluegenCommandline;
 
     // =========================================================================
     /**
@@ -128,7 +128,7 @@ public class GlueGenTask extends Task
     /**
      * <p>The {@link org.apache.tools.ant.types.FileSet} of includes.</p>
      */
-    private FileSet includeSet = new FileSet();
+    private final FileSet includeSet = new FileSet();
 
     /**
      * <p>Because a {@link org.apache.tools.ant.types.FileSet} will include
@@ -143,7 +143,7 @@ public class GlueGenTask extends Task
      * fashions.</p>
      */
     // FIXME:  rename to listXXXX
-    private List<AbstractFileSet> setOfIncludeSets = new LinkedList<AbstractFileSet>();
+    private final List<AbstractFileSet> setOfIncludeSets = new LinkedList<AbstractFileSet>();
 
     /**
      * <p>Comma separated list of literal directories to include.  This is to get around the
@@ -175,7 +175,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Set the debug flag (optional).  This is called by ANT.</p>
      */
-    public void setDebug(boolean debug)
+    public void setDebug(final boolean debug)
     {
         log( ("Setting debug flag: " + debug), Project.MSG_VERBOSE);
         this.debug=debug;
@@ -184,7 +184,7 @@ public class GlueGenTask extends Task
     /**
      * <p>Set the dumpCPP flag (optional).  This is called by ANT.</p>
      */
-    public void setDumpCPP(boolean dumpCPP)
+    public void setDumpCPP(final boolean dumpCPP)
     {
         log( ("Setting dumpCPP flag: " + dumpCPP), Project.MSG_VERBOSE);
         this.dumpCPP=dumpCPP;
@@ -195,7 +195,7 @@ public class GlueGenTask extends Task
      *
      * @param  outputRootDir the optional output root dir
      */
-    public void setOutputRootDir(String outputRootDir)
+    public void setOutputRootDir(final String outputRootDir)
     {
         log( ("Setting output root dir: " + outputRootDir), Project.MSG_VERBOSE);
         this.outputRootDir=outputRootDir;
@@ -206,7 +206,7 @@ public class GlueGenTask extends Task
      *
      * @param  emitter the name of the emitter class
      */
-    public void setEmitter(String emitter)
+    public void setEmitter(final String emitter)
     {
         log( ("Setting emitter class name to: " + emitter), Project.MSG_VERBOSE);
         this.emitter = emitter;
@@ -217,7 +217,7 @@ public class GlueGenTask extends Task
      *
      * @param  configuration the name of the configuration file
      */
-    public void setConfig(String configuration)
+    public void setConfig(final String configuration)
     {
         log( ("Setting configuration file name to: " + configuration),
               Project.MSG_VERBOSE);
@@ -229,7 +229,7 @@ public class GlueGenTask extends Task
      *
      * @param  sourceFile the name of the source file
      */
-    public void setSrc(String sourceFile)
+    public void setSrc(final String sourceFile)
     {
         log( ("Setting source file name to: " + sourceFile), Project.MSG_VERBOSE);
         this.sourceFile = sourceFile;
@@ -241,7 +241,7 @@ public class GlueGenTask extends Task
      *
      * @param  commaSeparatedIncludes the comma separated directories to include
      */
-    public void setLiteralInclude(String commaSeparatedIncludes)
+    public void setLiteralInclude(final String commaSeparatedIncludes)
     {
         this.literalIncludes = commaSeparatedIncludes.trim();
     }
@@ -276,7 +276,7 @@ public class GlueGenTask extends Task
      *
      * @param  includes the string containing the include patterns
      */
-    public void setIncludes(String includes)
+    public void setIncludes(final String includes)
     {
         usedIncludeSet = true;
         includeSet.setIncludes(includes);
@@ -312,7 +312,7 @@ public class GlueGenTask extends Task
      *
      * @param  includes the string containing the exclude patterns
      */
-    public void setExcludes(String excludes)
+    public void setExcludes(final String excludes)
     {
         usedIncludeSet = true;
         includeSet.setExcludes(excludes);
@@ -327,7 +327,7 @@ public class GlueGenTask extends Task
      * @throws BuildException if the specified <code>Reference</code> is not
      *         either a <code>FileSet</code> or <code>DirSet</code>
      */
-public void setIncludeRefid(Reference reference) {
+public void setIncludeRefid(final Reference reference) {
 	// ensure that the referenced object is either a FileSet or DirSet
 	final Object referencedObject = reference.getReferencedObject(getProject());
 	if (referencedObject instanceof FileSet) {
@@ -348,7 +348,7 @@ public void setIncludeRefid(Reference reference) {
      *
      * @param  dirset the <code>DirSet</code> to be added
      */
-    public void addDirset(DirSet dirset)
+    public void addDirset(final DirSet dirset)
     {
         setOfIncludeSets.add(dirset);
     }
@@ -426,7 +426,7 @@ public void setIncludeRefid(Reference reference) {
      * @return <code>true</code> if the string is valid.  <code>false</code>
      *         otherwise.
      */
-    private boolean isValid(String string)
+    private boolean isValid(final String string)
     {
         // check for null
         if(string == null)
@@ -486,12 +486,12 @@ public void setIncludeRefid(Reference reference) {
         // iterate over all include sets and add their directories to the
         // list of included directories.
         final List<String> includedDirectories = new LinkedList<String>();
-        for (Iterator<AbstractFileSet> includes = setOfIncludeSets.iterator(); includes.hasNext();)
+        for (final Iterator<AbstractFileSet> includes = setOfIncludeSets.iterator(); includes.hasNext();)
         {
             // get the included set and based on its type add the directories
             // to includedDirectories
-        	AbstractFileSet include = includes.next();
-        	DirectoryScanner directoryScanner = include.getDirectoryScanner(getProject());
+        	final AbstractFileSet include = includes.next();
+        	final DirectoryScanner directoryScanner = include.getDirectoryScanner(getProject());
         	final String[] directoryDirs = directoryScanner.getIncludedDirectories();
 
             // add the directoryDirs to the includedDirectories
@@ -515,9 +515,9 @@ public void setIncludeRefid(Reference reference) {
         }
 
         // add the included directories to the command
-        for(Iterator<String> includes=includedDirectories.iterator(); includes.hasNext(); )
+        for(final Iterator<String> includes=includedDirectories.iterator(); includes.hasNext(); )
         {
-        	String directory = includes.next();
+        	final String directory = includes.next();
             gluegenCommandline.createArgument().setValue("-I" + directory);
         }
 
@@ -530,11 +530,11 @@ public void setIncludeRefid(Reference reference) {
      *
      * @throws BuildException
      */
-    private int execute(String[] command)
+    private int execute(final String[] command)
         throws BuildException
     {
         // create the object that will perform the command execution
-        Execute execute = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
+        final Execute execute = new Execute(new LogStreamHandler(this, Project.MSG_INFO,
                                                            Project.MSG_WARN),
                                       null);
 
@@ -547,7 +547,7 @@ public void setIncludeRefid(Reference reference) {
         try
         {
             return execute.execute();
-        } catch(IOException ioe)
+        } catch(final IOException ioe)
         {
             throw new BuildException(ioe, location);
         }

@@ -88,13 +88,13 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
                 @Override
                 @SuppressWarnings("unchecked")
                 public EntryCM run() {
-                    EntryCM r = new EntryCM();
+                    final EntryCM r = new EntryCM();
                     r.c = (Constructor<Entry>)
                             ReflectionUtil.getConstructor(Entry.class,
                                                           new Class[] { keyClazz, valueClazz, Entry.class } );
                     try {
                         r.m1 = valueClazz.getDeclaredMethod("equals", Object.class);
-                    } catch (NoSuchMethodException ex) {
+                    } catch (final NoSuchMethodException ex) {
                         throw new JogampRuntimeException("Class "+valueClazz+" doesn't support equals(Object)");
                     }
                     return r;
@@ -111,11 +111,11 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         this(16, 0.75f);
     }
 
-    public /*name*/IntIntHashMap/*name*/(int initialCapacity) {
+    public /*name*/IntIntHashMap/*name*/(final int initialCapacity) {
         this(initialCapacity, 0.75f);
     }
 
-    public /*name*/IntIntHashMap/*name*/(int initialCapacity, float loadFactor) {
+    public /*name*/IntIntHashMap/*name*/(final int initialCapacity, final float loadFactor) {
         if (initialCapacity > 1 << 30) {
             throw new IllegalArgumentException("initialCapacity is too large.");
         }
@@ -135,9 +135,9 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         this.mask = capacity - 1;
     }
 
-    private /*name*/IntIntHashMap/*name*/(float loadFactor, int table_size, int size,
-                                          int mask, int capacity, int threshold,
-                                          /*value*/int/*value*/ keyNotFoundValue) {
+    private /*name*/IntIntHashMap/*name*/(final float loadFactor, final int table_size, final int size,
+                                          final int mask, final int capacity, final int threshold,
+                                          final /*value*/int/*value*/ keyNotFoundValue) {
         this.loadFactor = loadFactor;
         this.table = new Entry[table_size];
         this.size = size;
@@ -157,7 +157,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
      */
     @Override
     public Object clone() {
-        /*name*/IntIntHashMap/*name*/ n =
+        final /*name*/IntIntHashMap/*name*/ n =
                 new /*name*/IntIntHashMap/*name*/(loadFactor, table.length, size,
                                                   mask, capacity, threshold,
                                                   keyNotFoundValue);
@@ -187,8 +187,8 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         return n;
     }
 
-    public boolean containsValue(/*value*/int/*value*/ value) {
-        Entry[] t = this.table;
+    public boolean containsValue(final /*value*/int/*value*/ value) {
+        final Entry[] t = this.table;
         for (int i = t.length; i-- > 0;) {
             for (Entry e = t[i]; e != null; e = e.next) {
                 if( isPrimitive ) {
@@ -207,7 +207,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
     }
 
 //    @SuppressWarnings(value="cast")
-    public boolean containsKey(/*key*/int/*key*/ key) {
+    public boolean containsKey(final /*key*/int/*key*/ key) {
         final Entry[] t = this.table;
         final int index = /*keyHash*/key/*keyHash*/ & mask;
         for (Entry e = t[index]; e != null; e = e.next) {
@@ -223,7 +223,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
      * or {@link #getKeyNotFoundValue} if this map contains no mapping for the key.
      */
 //    @SuppressWarnings(value="cast")
-    public /*value*/int/*value*/ get(/*key*/int/*key*/ key) {
+    public /*value*/int/*value*/ get(final /*key*/int/*key*/ key) {
         final Entry[] t = this.table;
         final int index = /*keyHash*/key/*keyHash*/ & mask;
         for (Entry e = t[index]; e != null; e = e.next) {
@@ -239,7 +239,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
      * the previous value will be returned (otherwise {@link #getKeyNotFoundValue}).
      */
 //    @SuppressWarnings(value="cast")
-    public /*value*/int/*value*/ put(/*key*/int/*key*/ key, /*value*/int/*value*/ value) {
+    public /*value*/int/*value*/ put(final /*key*/int/*key*/ key, final /*value*/int/*value*/ value) {
         final Entry[] t = this.table;
         final int index = /*keyHash*/key/*keyHash*/ & mask;
         // Check if key already exists.
@@ -247,7 +247,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
             if (e.key != key) {
                 continue;
             }
-            /*value*/int/*value*/ oldValue = e.value;
+            final /*value*/int/*value*/ oldValue = e.value;
             e.value = value;
             return oldValue;
         }
@@ -263,7 +263,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
                 if (e != null) {
                     t[j] = null;
                     do {
-                        Entry next = e.next;
+                        final Entry next = e.next;
                         final int index2 = /*keyHash*/e.key/*keyHash*/ & newMask;
                         e.next = newTable[index2];
                         newTable[index2] = e;
@@ -282,7 +282,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
     /**
      * Copies all of the mappings from the specified map to this map.
      */
-    public void putAll(/*name*/IntIntHashMap/*name*/ source) {
+    public void putAll(final /*name*/IntIntHashMap/*name*/ source) {
         final Iterator<Entry> itr = source.iterator();
         while(itr.hasNext()) {
             final Entry e = itr.next();
@@ -295,14 +295,14 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
      * Returns the previously mapped value or {@link #getKeyNotFoundValue} if no such mapping exists.
      */
 //    @SuppressWarnings(value="cast")
-    public /*value*/int/*value*/ remove(/*key*/int/*key*/ key) {
+    public /*value*/int/*value*/ remove(final /*key*/int/*key*/ key) {
         final Entry[] t = this.table;
         final int index = /*keyHash*/key/*keyHash*/ & mask;
         Entry prev = t[index];
         Entry e = prev;
 
         while (e != null) {
-            Entry next = e.next;
+            final Entry next = e.next;
             if (e.key == key) {
                 size--;
                 if (prev == e) {
@@ -358,8 +358,8 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
      * @see #get
      * @see #put
      */
-    public /*value*/int/*value*/ setKeyNotFoundValue(/*value*/int/*value*/ newKeyNotFoundValue) {
-        /*value*/int/*value*/ t = keyNotFoundValue;
+    public /*value*/int/*value*/ setKeyNotFoundValue(final /*value*/int/*value*/ newKeyNotFoundValue) {
+        final /*value*/int/*value*/ t = keyNotFoundValue;
         keyNotFoundValue = newKeyNotFoundValue;
         return t;
     }
@@ -382,7 +382,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
             sb = new StringBuilder();
         }
         sb.append("{");
-        Iterator<Entry> itr = iterator();
+        final Iterator<Entry> itr = iterator();
         while(itr.hasNext()) {
             itr.next().toString(sb);
             if(itr.hasNext()) {
@@ -405,7 +405,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         private int index;
         private Entry next;
 
-        private EntryIterator(Entry[] entries){
+        private EntryIterator(final Entry[] entries){
             this.entries = entries;
             // load next
             next();
@@ -424,7 +424,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
                 next = current.next;
             }else{
                 while(index < entries.length) {
-                    Entry e = entries[index++];
+                    final Entry e = entries[index++];
                     if(e != null) {
                         next = e;
                         return current;
@@ -453,7 +453,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
         private Entry next;
 
-        Entry(/*key*/int/*key*/ k, /*value*/int/*value*/ v, Entry n) {
+        Entry(final /*key*/int/*key*/ k, final /*value*/int/*value*/ v, final Entry n) {
             key = k;
             value = v;
             next = n;
@@ -476,7 +476,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         /**
          * Sets the value for this entry.
          */
-        public void setValue(/*value*/int/*value*/ value) {
+        public void setValue(final /*value*/int/*value*/ value) {
             this.value = value;
         }
 
@@ -499,14 +499,14 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
     }
 
-    private static Method getCloneMethod(Object obj) {
+    private static Method getCloneMethod(final Object obj) {
         final Class<?> clazz = obj.getClass();
         return AccessController.doPrivileged(new PrivilegedAction<Method>() {
                 @Override
                 public Method run() {
                     try {
                         return clazz.getDeclaredMethod("clone");
-                    } catch (NoSuchMethodException ex) {
+                    } catch (final NoSuchMethodException ex) {
                         throw new JogampRuntimeException("Class "+clazz+" doesn't support clone()", ex);
                     }
                 } } );

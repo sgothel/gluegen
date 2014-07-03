@@ -54,7 +54,7 @@ public class EnumType extends IntType implements Cloneable {
         String name;
         long value;
 
-        Enum(String name, long value) {
+        Enum(final String name, final long value) {
             this.name = name;
             this.value = value;
         }
@@ -70,24 +70,24 @@ public class EnumType extends IntType implements Cloneable {
 
     private ArrayList<Enum> enums;
 
-    public EnumType(String name) {
+    public EnumType(final String name) {
         super(name, SizeThunk.LONG, false, CVAttributes.CONST);
         this.underlyingType = new IntType(name, SizeThunk.LONG, false, CVAttributes.CONST);
     }
 
-    public EnumType(String name, SizeThunk enumSizeInBytes) {
+    public EnumType(final String name, final SizeThunk enumSizeInBytes) {
         super(name, enumSizeInBytes, false, CVAttributes.CONST);
         this.underlyingType = new IntType(name, enumSizeInBytes, false, CVAttributes.CONST);
     }
 
-    protected EnumType(String name, IntType underlyingType, int cvAttributes) {
+    protected EnumType(final String name, final IntType underlyingType, final int cvAttributes) {
         super(name, underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
         this.underlyingType = underlyingType;
     }
 
     @Override
     public Object clone() {
-        EnumType n = (EnumType) super.clone();
+        final EnumType n = (EnumType) super.clone();
         if(null!=this.underlyingType) {
             n.underlyingType = (IntType) this.underlyingType.clone();
         }
@@ -98,14 +98,14 @@ public class EnumType extends IntType implements Cloneable {
     }
 
     @Override
-    public boolean equals(Object arg) {
+    public boolean equals(final Object arg) {
         if (arg == this) {
             return true;
         }
         if (arg == null || (!(arg instanceof EnumType))) {
             return false;
         }
-        EnumType t = (EnumType) arg;
+        final EnumType t = (EnumType) arg;
         return (super.equals(arg)
                 && underlyingType.equals(t.underlyingType)
                 && listsEqual(enums, t.enums));
@@ -116,7 +116,7 @@ public class EnumType extends IntType implements Cloneable {
         return this;
     }
 
-    public void addEnum(String name, long val) {
+    public void addEnum(final String name, final long val) {
         if (enums == null) {
             enums = new ArrayList<Enum>();
         }
@@ -129,19 +129,19 @@ public class EnumType extends IntType implements Cloneable {
     }
 
     /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) name */
-    public String getEnumName(int i) {
+    public String getEnumName(final int i) {
         return (enums.get(i)).getName();
     }
 
     /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) value */
-    public long getEnumValue(int i) {
+    public long getEnumValue(final int i) {
         return (enums.get(i)).getValue();
     }
 
     /** Fetch the value of the enumerate with the given name. */
-    public long getEnumValue(String name) {
+    public long getEnumValue(final String name) {
         for (int i = 0; i < enums.size(); ++i) {
-            Enum n = (enums.get(i));
+            final Enum n = (enums.get(i));
             if (n.getName().equals(name)) {
                 return n.getValue();
             }
@@ -152,7 +152,7 @@ public class EnumType extends IntType implements Cloneable {
     }
 
     /** Does this enum type contain an enumerate with the given name? */
-    public boolean containsEnumerate(String name) {
+    public boolean containsEnumerate(final String name) {
         for (int i = 0; i < enums.size(); ++i) {
             if ((enums.get(i)).getName().equals(name)) {
                 return true;
@@ -164,9 +164,9 @@ public class EnumType extends IntType implements Cloneable {
     /** Remove the enumerate with the given name. Returns true if it was found
      * and removed; false if it was not found.
      */
-    public boolean removeEnumerate(String name) {
+    public boolean removeEnumerate(final String name) {
         for (int i = 0; i < enums.size(); ++i) {
-            Enum e = enums.get(i);
+            final Enum e = enums.get(i);
             if (e.getName().equals(name)) {
                 enums.remove(e);
                 return true;
@@ -176,14 +176,14 @@ public class EnumType extends IntType implements Cloneable {
     }
 
     @Override
-    public void visit(TypeVisitor arg) {
+    public void visit(final TypeVisitor arg) {
         super.visit(arg);
         underlyingType.visit(arg);
     }
 
     @Override
-    Type newCVVariant(int cvAttributes) {
-        EnumType t = new EnumType(getName(), underlyingType, cvAttributes);
+    Type newCVVariant(final int cvAttributes) {
+        final EnumType t = new EnumType(getName(), underlyingType, cvAttributes);
         t.enums = enums;
         return t;
     }

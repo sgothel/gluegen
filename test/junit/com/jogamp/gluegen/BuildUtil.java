@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.JavaEmitter;
@@ -44,12 +44,12 @@ import static java.lang.System.*;
 public final class BuildUtil {
 
     private static final Project project;
-    
+
     public static final String gluegenRoot;
     public static final String path;
     public static final String testOutput;
     public static final String rootrel_build;
-    
+
     static {
 
         out.println(" - - - System info - - - ");
@@ -65,11 +65,11 @@ public final class BuildUtil {
 
         // setup paths
         try {
-            File executionRoot = new File(BuildUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI());
+            final File executionRoot = new File(BuildUtil.class.getProtectionDomain().getCodeSource().getLocation().toURI());
             out.println("execution root: " + executionRoot);
             gluegenRoot = executionRoot.getParentFile().getParentFile().getParentFile().getParentFile().toString();
             out.println("gluegen project root: " + gluegenRoot);
-        } catch (URISyntaxException ex) {
+        } catch (final URISyntaxException ex) {
             throw new RuntimeException("can not determine gluegen root", ex);
         }
 
@@ -88,7 +88,7 @@ public final class BuildUtil {
         passSystemProperty(project, "gluegen-cpptasks.file");
         passSystemProperty(project, "os.arch");
 
-        DefaultLogger logger = new DefaultLogger();
+        final DefaultLogger logger = new DefaultLogger();
         logger.setErrorPrintStream(out);
         logger.setOutputPrintStream(out);
         logger.setMessageOutputLevel(Project.MSG_WARN);
@@ -96,7 +96,7 @@ public final class BuildUtil {
 
         project.init();
 
-        File buildFile = new File(path, "build.xml");
+        final File buildFile = new File(path, "build.xml");
         if(!buildFile.exists()) {
             throw new RuntimeException("buildfile "+buildFile+" does not exist");
         }
@@ -104,8 +104,8 @@ public final class BuildUtil {
         ProjectHelper.configureProject(project, buildFile);
     }
 
-    public static Project passSystemProperty(Project p, String name) {
-        String tmp = System.getProperty(name);
+    public static Project passSystemProperty(final Project p, final String name) {
+        final String tmp = System.getProperty(name);
         if(null!=tmp && tmp.length()>0) {
             p.setProperty(name, tmp);
         }
@@ -138,15 +138,15 @@ public final class BuildUtil {
         out.println("done");
     }
 
-    public static void generate(String bindingName) {
+    public static void generate(final String bindingName) {
         generate(bindingName, JavaEmitter.class.getName());
 //        generate(bindingName, DebugEmitter.class.getName());
     }
 
-    public static void generate(String bindingName, String emitter) {
+    public static void generate(final String bindingName, final String emitter) {
         generate(bindingName, bindingName, emitter);
     }
-    public static void generate(String bindingName, String header, String emitter) {
+    public static void generate(final String bindingName, final String header, final String emitter) {
 
         out.println("generate binding to '" + bindingName+"' using '"+emitter+"'");
 
@@ -159,10 +159,10 @@ public final class BuildUtil {
         out.println("done");
     }
 
-    public static void deleteDirectory(File path) {
+    public static void deleteDirectory(final File path) {
         if(path.exists()) {
 
-            File[] files = path.listFiles();
+            final File[] files = path.listFiles();
             for (int i = 0; i < files.length; i++) {
                 if (files[i].isDirectory()) {
                     deleteDirectory(files[i]);
@@ -170,7 +170,7 @@ public final class BuildUtil {
                     files[i].delete();
                 }
             }
-            
+
             path.delete();
         }
     }

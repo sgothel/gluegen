@@ -56,7 +56,7 @@ public abstract class Type implements Cloneable {
   private int typedefedCVAttributes;
   private boolean hasTypedefName;
 
-  protected Type(String name, SizeThunk size, int cvAttributes) {
+  protected Type(final String name, final SizeThunk size, final int cvAttributes) {
     setName(name);
     this.size = size;
     this.cvAttributes = cvAttributes;
@@ -67,7 +67,7 @@ public abstract class Type implements Cloneable {
   public Object clone() {
     try {
         return super.clone();
-    } catch (CloneNotSupportedException ex) {
+    } catch (final CloneNotSupportedException ex) {
         throw new InternalError();
     }
   }
@@ -80,7 +80,7 @@ public abstract class Type implements Cloneable {
   /** Returns the name of this type, optionally including
       const/volatile attributes. The returned string is suitable for
       use as a type specifier. */
-  public String getName(boolean includeCVAttrs) {
+  public String getName(final boolean includeCVAttrs) {
     if (!includeCVAttrs) {
       return name;
     }
@@ -113,7 +113,7 @@ public abstract class Type implements Cloneable {
             long _mdSize = -1;
             try {
                 _mdSize = size.computeSize(MachineDescription.StaticConfig.X86_64_UNIX.md);
-            } catch (Exception e) {}
+            } catch (final Exception e) {}
             mdSize = _mdSize;
         }
         sb.append("[fixed ").append(size.hasFixedNativeSize()).append(", lnx64 ").append(mdSize).append("]");
@@ -166,7 +166,7 @@ public abstract class Type implements Cloneable {
   }
 
   /** Set the name of this type; used for handling typedefs. */
-  public void         setName(String name) {
+  public void         setName(final String name) {
     if (name == null) {
       this.name = name;
     } else {
@@ -181,15 +181,15 @@ public abstract class Type implements Cloneable {
   /** SizeThunk which computes size of this type in bytes. */
   public SizeThunk    getSize()    { return size; }
   /** Size of this type in bytes according to the given MachineDescription. */
-  public long         getSize(MachineDescription machDesc) {
-    SizeThunk thunk = getSize();
+  public long         getSize(final MachineDescription machDesc) {
+    final SizeThunk thunk = getSize();
     if (thunk == null) {
       throw new RuntimeException("No size set for type \"" + getName() + "\"");
     }
     return thunk.computeSize(machDesc);
   }
   /** Set the size of this type; only available for CompoundTypes. */
-  void                setSize(SizeThunk size) { this.size = size; }
+  void                setSize(final SizeThunk size) { this.size = size; }
 
   /** Casts this to a BitType or returns null if not a BitType. */
   public BitType      asBit()      { return null; }
@@ -255,7 +255,7 @@ public abstract class Type implements Cloneable {
     }
 
     if (cvAttributes != 0)  {
-      String nameWithAttribs = name + cvAttributes;
+      final String nameWithAttribs = name + cvAttributes;
       return nameWithAttribs.hashCode();
     }
     return name.hashCode();
@@ -265,7 +265,7 @@ public abstract class Type implements Cloneable {
    * Equality test for Types.
    */
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == this) {
       return true;
     }
@@ -289,7 +289,7 @@ public abstract class Type implements Cloneable {
 
   /** Visit this type and all of the component types of this one; for
       example, the return type and argument types of a FunctionType. */
-  public void visit(TypeVisitor visitor) {
+  public void visit(final TypeVisitor visitor) {
     visitor.visitType(this);
   }
 
@@ -308,7 +308,7 @@ public abstract class Type implements Cloneable {
 
   /** Return a variant of this type matching the given const/volatile
       attributes. May return this object if the attributes match. */
-  public final Type getCVVariant(int cvAttributes) {
+  public final Type getCVVariant(final int cvAttributes) {
     if (this.cvAttributes == cvAttributes) {
       return this;
     }
@@ -329,7 +329,7 @@ public abstract class Type implements Cloneable {
       type represents (i.e., "void **" returns 2). Returns 0 if this
       type is not a pointer type. */
   public int pointerDepth() {
-    PointerType pt = asPointer();
+    final PointerType pt = asPointer();
     if (pt == null) {
       return 0;
     }
@@ -340,7 +340,7 @@ public abstract class Type implements Cloneable {
       type represents (i.e., "char[][]" returns 2). Returns 0 if this
       type is not an array type. */
   public int arrayDimension() {
-    ArrayType arrayType = asArray();
+    final ArrayType arrayType = asArray();
     if (arrayType == null) {
       return 0;
     }
@@ -359,7 +359,7 @@ public abstract class Type implements Cloneable {
   }
 
   /** Helper routine for list equality comparison */
-  static <C> boolean listsEqual(List<C> a, List<C> b) {
+  static <C> boolean listsEqual(final List<C> a, final List<C> b) {
     return ((a == null && b == null) || (a != null && b != null && a.equals(b)));
   }
 }

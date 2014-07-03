@@ -60,7 +60,7 @@ public class GlueGen implements GlueEmitterControls {
         Logging.init();
     }
 
-    private List<String> forcedStructNames = new ArrayList<String>();
+    private final List<String> forcedStructNames = new ArrayList<String>();
     private PCPP preprocessor;
 
     // State for SymbolFilters
@@ -72,20 +72,20 @@ public class GlueGen implements GlueEmitterControls {
     public static boolean debug() { return debug; }
 
     @Override
-    public void forceStructEmission(String typedefName) {
+    public void forceStructEmission(final String typedefName) {
         forcedStructNames.add(typedefName);
     }
 
     @Override
-    public String findHeaderFile(String headerFileName) {
+    public String findHeaderFile(final String headerFileName) {
         return preprocessor.findFile(headerFileName);
     }
 
     @Override
-    public void runSymbolFilter(SymbolFilter filter) {
+    public void runSymbolFilter(final SymbolFilter filter) {
         filter.filterSymbols(constants, functions);
-        List<ConstantDefinition> newConstants = filter.getConstants();
-        List<FunctionSymbol> newFunctions = filter.getFunctions();
+        final List<ConstantDefinition> newConstants = filter.getConstants();
+        final List<FunctionSymbol> newFunctions = filter.getFunctions();
         if (newConstants != null) {
             constants = newConstants;
         }
@@ -96,11 +96,11 @@ public class GlueGen implements GlueEmitterControls {
 
 
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, Class<?> emitterClass, List<String> includePaths, List<String> cfgFiles, String outputRootDir, boolean copyPCPPOutput2Stderr) {
+    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyPCPPOutput2Stderr) {
 
         try {
-            File out = File.createTempFile("PCPPTemp", ".pcpp");
-            FileOutputStream outStream = new FileOutputStream(out);
+            final File out = File.createTempFile("PCPPTemp", ".pcpp");
+            final FileOutputStream outStream = new FileOutputStream(out);
 
             if(debug) {
                 System.err.println("PCPP output at (persistent): " + out.getAbsolutePath());
@@ -116,14 +116,14 @@ public class GlueGen implements GlueEmitterControls {
             outStream.flush();
             outStream.close();
 
-            FileInputStream inStream = new FileInputStream(out);
-            DataInputStream dis = new DataInputStream(inStream);
+            final FileInputStream inStream = new FileInputStream(out);
+            final DataInputStream dis = new DataInputStream(inStream);
 
-            GnuCLexer lexer = new GnuCLexer(dis);
+            final GnuCLexer lexer = new GnuCLexer(dis);
             lexer.setTokenObjectClass(CToken.class.getName());
             lexer.initialize();
             // Parse the input expression.
-            GnuCParser parser = new GnuCParser(lexer);
+            final GnuCParser parser = new GnuCParser(lexer);
 
             // set AST node type to TNode or get nasty cast class errors
             parser.setASTNodeClass(TNode.class.getName());
@@ -132,17 +132,17 @@ public class GlueGen implements GlueEmitterControls {
             // invoke parser
             try {
                 parser.translationUnit();
-            } catch (RecognitionException e) {
+            } catch (final RecognitionException e) {
                 throw new RuntimeException("Fatal IO error", e);
-            } catch (TokenStreamException e) {
+            } catch (final TokenStreamException e) {
                 throw new RuntimeException("Fatal IO error", e);
             }
 
-            HeaderParser headerParser = new HeaderParser();
+            final HeaderParser headerParser = new HeaderParser();
             headerParser.setDebug(debug);
-            TypeDictionary td = new TypeDictionary();
+            final TypeDictionary td = new TypeDictionary();
             headerParser.setTypedefDictionary(td);
-            TypeDictionary sd = new TypeDictionary();
+            final TypeDictionary sd = new TypeDictionary();
             headerParser.setStructDictionary(sd);
             // set AST node type to TNode or get nasty cast class errors
             headerParser.setASTNodeClass(TNode.class.getName());
@@ -168,19 +168,19 @@ public class GlueGen implements GlueEmitterControls {
             } else {
                 try {
                     emit = (GlueEmitter) emitterClass.newInstance();
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     throw new RuntimeException("Exception occurred while instantiating emitter class.", e);
                 }
             }
 
-            for (String config : cfgFiles) {
+            for (final String config : cfgFiles) {
                 emit.readConfigurationFile(config);
             }
 
             if (null != outputRootDir && outputRootDir.trim().length() > 0) {
                 if (emit instanceof JavaEmitter) {
                     // FIXME: hack to interfere with the *Configuration setting via commandlines
-                    JavaEmitter jemit = (JavaEmitter) emit;
+                    final JavaEmitter jemit = (JavaEmitter) emit;
                     if (null != jemit.getConfig()) {
                         jemit.getConfig().setOutputRootDir(outputRootDir);
                     }
@@ -190,20 +190,20 @@ public class GlueGen implements GlueEmitterControls {
             // Repackage the enum and #define statements from the parser into a common format
             // so that SymbolFilters can operate upon both identically
             constants = new ArrayList<ConstantDefinition>();
-            for (EnumType enumeration : headerParser.getEnums()) {
+            for (final EnumType enumeration : headerParser.getEnums()) {
                 String enumName = enumeration.getName();
                 if (enumName.equals("<anonymous>")) {
                     enumName = null;
                 }
                 // iterate over all values in the enumeration
                 for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
-                    String enumElementName = enumeration.getEnumName(i);
-                    String value = String.valueOf(enumeration.getEnumValue(i));
+                    final String enumElementName = enumeration.getEnumName(i);
+                    final String value = String.valueOf(enumeration.getEnumValue(i));
                     constants.add(new ConstantDefinition(enumElementName, value, true, enumName));
                 }
             }
-            for (Object elem : lexer.getDefines()) {
-                Define def = (Define) elem;
+            for (final Object elem : lexer.getDefines()) {
+                final Define def = (Define) elem;
                 constants.add(new ConstantDefinition(def.getName(), def.getValue(), false, null));
             }
 
@@ -213,16 +213,16 @@ public class GlueGen implements GlueEmitterControls {
             emit.beginEmission(this);
 
             emit.beginDefines();
-            Set<String> emittedDefines = new HashSet<String>(100);
+            final Set<String> emittedDefines = new HashSet<String>(100);
             // emit java equivalent of enum { ... } statements
-            StringBuilder comment = new StringBuilder();
-            for (ConstantDefinition def : constants) {
+            final StringBuilder comment = new StringBuilder();
+            for (final ConstantDefinition def : constants) {
                 if (!emittedDefines.contains(def.getName())) {
                     emittedDefines.add(def.getName());
-                    Set<String> aliases = def.getAliases();
+                    final Set<String> aliases = def.getAliases();
                     if (aliases != null) {
                         comment.append("Alias for: <code>");
-                        for (String alias : aliases) {
+                        for (final String alias : aliases) {
                             comment.append(" ").append(alias);
                         }
                         comment.append("</code>");
@@ -248,8 +248,8 @@ public class GlueGen implements GlueEmitterControls {
 
             // Iterate through the functions finding structs that are referenced in
             // the function signatures; these will be remembered for later emission
-            ReferencedStructs referencedStructs = new ReferencedStructs();
-            for (FunctionSymbol sym : functions) {
+            final ReferencedStructs referencedStructs = new ReferencedStructs();
+            for (final FunctionSymbol sym : functions) {
                 // FIXME: this doesn't take into account the possibility that some of
                 // the functions we send to emitMethodBindings() might not actually be
                 // emitted (e.g., if an Ignore directive in the JavaEmitter causes it
@@ -260,8 +260,8 @@ public class GlueGen implements GlueEmitterControls {
             // Normally only referenced types will be emitted. The user can force a
             // type to be emitted via a .cfg file directive. Those directives are
             // processed here.
-            for (String name : forcedStructNames) {
-                Type type = td.get(name);
+            for (final String name : forcedStructNames) {
+                final Type type = td.get(name);
                 if (type == null) {
                     err.println("WARNING: during forced struct emission: struct \"" + name + "\" not found");
                 } else if (!type.isCompound()) {
@@ -273,13 +273,13 @@ public class GlueGen implements GlueEmitterControls {
 
             // Lay out structs
             emit.beginStructLayout();
-            for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
-                Type t = iter.next();
+            for (final Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
+                final Type t = iter.next();
                 if (t.isCompound()) {
                     emit.layoutStruct(t.asCompound());
                 } else if (t.isPointer()) {
-                    PointerType p = t.asPointer();
-                    CompoundType c = p.getTargetType().asCompound();
+                    final PointerType p = t.asPointer();
+                    final CompoundType c = p.getTargetType().asCompound();
                     emit.layoutStruct(c);
                 }
             }
@@ -287,13 +287,13 @@ public class GlueGen implements GlueEmitterControls {
 
             // Emit structs
             emit.beginStructs(td, sd, headerParser.getCanonMap());
-            for (Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
-                Type t = iter.next();
+            for (final Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
+                final Type t = iter.next();
                 if (t.isCompound()) {
                     emit.emitStruct(t.asCompound(), null);
                 } else if (t.isPointer()) {
-                    PointerType p = t.asPointer();
-                    CompoundType c = p.getTargetType().asCompound();
+                    final PointerType p = t.asPointer();
+                    final CompoundType c = p.getTargetType().asCompound();
                     assert p.hasTypedefedName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
                     emit.emitStruct(c, p.getName());
                 }
@@ -308,12 +308,12 @@ public class GlueGen implements GlueEmitterControls {
             // end emission of glue code
             emit.endEmission();
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new RuntimeException("Exception occurred while generating glue code.", e);
         }
     }
 
-    public static void main(String... args) {
+    public static void main(final String... args) {
 
         if (args.length == 0) {
             System.err.println(GlueGenVersion.getInstance());
@@ -324,15 +324,15 @@ public class GlueGen implements GlueEmitterControls {
         String filename = null;
         String emitterFQN = null;
         String outputRootDir = null;
-        List<String> cfgFiles = new ArrayList<String>();
+        final List<String> cfgFiles = new ArrayList<String>();
         boolean copyCPPOutput2Stderr = false;
 
-        List<String> includePaths = new ArrayList<String>();
+        final List<String> includePaths = new ArrayList<String>();
         for (int i = 0; i < args.length; i++) {
             if (i < args.length - 1) {
-                String arg = args[i];
+                final String arg = args[i];
                 if (arg.startsWith("-I")) {
-                    String[] paths = arg.substring(2).split(getProperty("path.separator"));
+                    final String[] paths = arg.substring(2).split(getProperty("path.separator"));
                     includePaths.addAll(Arrays.asList(paths));
                 } else if (arg.startsWith("-O")) {
                     outputRootDir = arg.substring(2);
@@ -348,7 +348,7 @@ public class GlueGen implements GlueEmitterControls {
                     usage();
                 }
             } else {
-                String arg = args[i];
+                final String arg = args[i];
                 if (arg.equals("-")) {
                     reader = new InputStreamReader(in);
                     filename = "standard input";
@@ -359,7 +359,7 @@ public class GlueGen implements GlueEmitterControls {
                     filename = arg;
                     try {
                         reader = new BufferedReader(new FileReader(filename));
-                    } catch (FileNotFoundException ex) {
+                    } catch (final FileNotFoundException ex) {
                         throw new RuntimeException("input file not found", ex);
                     }
                 }
@@ -367,9 +367,9 @@ public class GlueGen implements GlueEmitterControls {
         }
 
         try {
-            Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
+            final Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
             new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, copyCPPOutput2Stderr);
-        } catch (ClassNotFoundException ex) {
+        } catch (final ClassNotFoundException ex) {
             throw new RuntimeException("specified emitter class was not in the classpath", ex);
         }
 

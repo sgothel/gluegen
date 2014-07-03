@@ -41,7 +41,7 @@ import com.jogamp.common.util.LongObjectHashMap;
   private final LongObjectHashMap libHandle2Name = new LongObjectHashMap( 16 /* initialCapacity */ );
 
   protected static final class LibRef {
-      public LibRef(String name) {
+      public LibRef(final String name) {
           this.name = name;
           this.refCount = 1;
       }
@@ -57,11 +57,11 @@ import com.jogamp.common.util.LongObjectHashMap;
       private int refCount;
   }
 
-  protected final synchronized LibRef getLibRef(long handle) {
+  protected final synchronized LibRef getLibRef(final long handle) {
       return (LibRef) libHandle2Name.get(handle);
   }
 
-  protected final synchronized LibRef incrLibRefCount(long handle, String libName) {
+  protected final synchronized LibRef incrLibRefCount(final long handle, final String libName) {
       LibRef libRef = getLibRef(handle);
       if( null == libRef ) {
           libRef = new LibRef(libName);
@@ -75,8 +75,8 @@ import com.jogamp.common.util.LongObjectHashMap;
       return libRef;
   }
 
-  protected final synchronized LibRef decrLibRefCount(long handle) {
-      LibRef libRef = getLibRef(handle);
+  protected final synchronized LibRef decrLibRefCount(final long handle) {
+      final LibRef libRef = getLibRef(handle);
       if( null != libRef ) {
           if( 0 == libRef.decrRefCount() ) {
               libHandle2Name.remove(handle);

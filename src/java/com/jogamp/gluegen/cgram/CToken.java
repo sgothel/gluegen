@@ -9,7 +9,7 @@ public class CToken extends antlr.CommonToken {
     return source;
   }
 
-  public void setSource(String src)
+  public void setSource(final String src)
   {
     source = src;
   }
@@ -19,7 +19,7 @@ public class CToken extends antlr.CommonToken {
     return tokenNumber;
   }
 
-  public void setTokenNumber(int i)
+  public void setTokenNumber(final int i)
   {
     tokenNumber = i;
   }

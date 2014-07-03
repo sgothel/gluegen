@@ -40,19 +40,19 @@ public class JogampRuntimeException extends RuntimeException {
 
   /** Constructs a JogampRuntimeException object with the specified detail
       message. */
-  public JogampRuntimeException(String message) {
+  public JogampRuntimeException(final String message) {
     super(message);
   }
 
   /** Constructs a JogampRuntimeException object with the specified detail
       message and root cause. */
-  public JogampRuntimeException(String message, Throwable cause) {
+  public JogampRuntimeException(final String message, final Throwable cause) {
     super(message, cause);
   }
 
   /** Constructs a JogampRuntimeException object with the specified root
       cause. */
-  public JogampRuntimeException(Throwable cause) {
+  public JogampRuntimeException(final Throwable cause) {
     super(cause);
   }
 }

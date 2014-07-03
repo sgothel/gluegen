@@ -59,12 +59,12 @@ public class PropertyAccess {
    * @param prefix New prefix to be registered as trusted.
    * @throws AccessControlException as thrown by {@link SecurityUtil#checkAllPermissions()}.
    */
-  protected static final void addTrustedPrefix(String prefix) throws AccessControlException {
+  protected static final void addTrustedPrefix(final String prefix) throws AccessControlException {
       SecurityUtil.checkAllPermissions();
       trustedPrefixes.add(prefix);
   }
 
-  public static final boolean isTrusted(String propertyKey) {
+  public static final boolean isTrusted(final String propertyKey) {
       final int dot1 = propertyKey.indexOf('.');
       if(0<=dot1) {
           return trustedPrefixes.contains(propertyKey.substring(0,  dot1+1)) || trusted.contains(propertyKey);
@@ -74,26 +74,26 @@ public class PropertyAccess {
   }
 
   /** @see #getProperty(String, boolean) */
-  public static final int getIntProperty(final String property, final boolean jnlpAlias, int defaultValue) {
+  public static final int getIntProperty(final String property, final boolean jnlpAlias, final int defaultValue) {
     int i=defaultValue;
     try {
         final String sv = PropertyAccess.getProperty(property, jnlpAlias);
         if(null!=sv) {
             i = Integer.parseInt(sv);
         }
-    } catch (NumberFormatException nfe) {}
+    } catch (final NumberFormatException nfe) {}
     return i;
   }
 
   /** @see #getProperty(String, boolean) */
-  public static final long getLongProperty(final String property, final boolean jnlpAlias, long defaultValue) {
+  public static final long getLongProperty(final String property, final boolean jnlpAlias, final long defaultValue) {
     long l=defaultValue;
     try {
         final String sv = PropertyAccess.getProperty(property, jnlpAlias);
         if(null!=sv) {
             l = Long.parseLong(sv);
         }
-    } catch (NumberFormatException nfe) {}
+    } catch (final NumberFormatException nfe) {}
     return l;
   }
 
@@ -103,7 +103,7 @@ public class PropertyAccess {
   }
 
   /** @see #getProperty(String, boolean) */
-  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, boolean defaultValue) {
+  public static final boolean getBooleanProperty(final String property, final boolean jnlpAlias, final boolean defaultValue) {
     final String valueS = PropertyAccess.getProperty(property, jnlpAlias);
     if(null != valueS) {
         return Boolean.valueOf(valueS).booleanValue();
@@ -164,7 +164,7 @@ public class PropertyAccess {
   }
 
   /** See {@link #getProperty(String, boolean)}, additionally allows a <code>defaultValue</code> if property value is <code>null</code>. */
-  public static final String getProperty(final String propertyKey, final boolean jnlpAlias, String defaultValue)
+  public static final String getProperty(final String propertyKey, final boolean jnlpAlias, final String defaultValue)
       throws SecurityException, NullPointerException, IllegalArgumentException {
     final String s = PropertyAccess.getProperty(propertyKey, jnlpAlias);
     if( null != s ) {
@@ -180,7 +180,7 @@ public class PropertyAccess {
         public String run() {
           try {
               return System.getProperty(propertyKey);
-          } catch (SecurityException se) {
+          } catch (final SecurityException se) {
               throw new SecurityException("Could not access trusted property '"+propertyKey+"'", se);
           }
         }

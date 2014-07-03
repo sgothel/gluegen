@@ -50,7 +50,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
      * @param growSize grow size if {@link #position()} is reached, maybe <code>0</code>
      *        in which case an {@link IndexOutOfBoundsException} is thrown.
      */
-    public /*name*/FloatStack/*name*/(int initialSize, int growSize) {
+    public /*name*/FloatStack/*name*/(final int initialSize, final int growSize) {
         this.position = 0;
         this.growSize = growSize;
         this.buffer = new /*value*/float/*value*/[initialSize];
@@ -63,7 +63,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
     public final int position() { return position; }
 
     @Override
-    public final void position(int newPosition) throws IndexOutOfBoundsException {
+    public final void position(final int newPosition) throws IndexOutOfBoundsException {
         if( 0 > position || position >= buffer.length ) {
             throw new IndexOutOfBoundsException("Invalid new position "+newPosition+", "+this.toString());
         }
@@ -77,7 +77,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
     public final int getGrowSize() { return growSize; }
 
     @Override
-    public final void setGrowSize(int newGrowSize) { growSize = newGrowSize; }
+    public final void setGrowSize(final int newGrowSize) { growSize = newGrowSize; }
 
     @Override
     public final String toString() {
@@ -86,12 +86,12 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
 
     public final /*value*/float/*value*/[] buffer() { return buffer; }
 
-    private final void growIfNecessary(int length) throws IndexOutOfBoundsException {
+    private final void growIfNecessary(final int length) throws IndexOutOfBoundsException {
         if( position + length > buffer.length ) {
             if( 0 >= growSize ) {
                 throw new IndexOutOfBoundsException("Out of fixed stack size: "+this);
             }
-            /*value*/float/*value*/[] newBuffer =
+            final /*value*/float/*value*/[] newBuffer =
                     new /*value*/float/*value*/[buffer.length + growSize];
             System.arraycopy(buffer, 0, newBuffer, 0, position);
             buffer = newBuffer;
@@ -108,7 +108,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
      * @throws IndexOutOfBoundsException if stack cannot grow due to zero grow-size or offset+length exceeds src.
      */
     public final /*value*/float/*value*/[]
-                    putOnTop(/*value*/float/*value*/[] src, int srcOffset, int length) throws IndexOutOfBoundsException {
+                    putOnTop(final /*value*/float/*value*/[] src, final int srcOffset, final int length) throws IndexOutOfBoundsException {
         growIfNecessary(length);
         System.arraycopy(src, srcOffset, buffer, position, length);
         position += length;
@@ -125,7 +125,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
      * @throws BufferUnderflowException if <code>src</code> FloatBuffer has less remaining elements than <code>length</code>.
      */
     public final /*value2*/FloatBuffer/*value2*/
-                        putOnTop(/*value2*/FloatBuffer/*value2*/ src, int length) throws IndexOutOfBoundsException, BufferUnderflowException  {
+                        putOnTop(final /*value2*/FloatBuffer/*value2*/ src, final int length) throws IndexOutOfBoundsException, BufferUnderflowException  {
         growIfNecessary(length);
         src.get(buffer, position, length);
         position += length;
@@ -142,7 +142,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
      * @throws IndexOutOfBoundsException if stack or <code>dest</code> has less elements than <code>length</code>.
      */
     public final /*value*/float/*value*/[]
-                        getFromTop(/*value*/float/*value*/[] dest, int destOffset, int length) throws IndexOutOfBoundsException {
+                        getFromTop(final /*value*/float/*value*/[] dest, final int destOffset, final int length) throws IndexOutOfBoundsException {
         System.arraycopy(buffer, position-length, dest, destOffset, length);
         position -= length;
         return dest;
@@ -158,7 +158,7 @@ public class /*name*/FloatStack/*name*/ implements PrimitiveStack {
      * @throws BufferOverflowException if <code>src</code> FloatBuffer has less remaining elements than <code>length</code>.
      */
     public final /*value2*/FloatBuffer/*value2*/
-                        getFromTop(/*value2*/FloatBuffer/*value2*/ dest, int length) throws IndexOutOfBoundsException, BufferOverflowException  {
+                        getFromTop(final /*value2*/FloatBuffer/*value2*/ dest, final int length) throws IndexOutOfBoundsException, BufferOverflowException  {
         dest.put(buffer, position-length, length);
         position -= length;
         return dest;

@@ -48,16 +48,16 @@ import com.jogamp.common.os.MachineDescription;
     32-bit and 64-bit) from the same internal representation of the
     various types involved. */
 public abstract class SizeThunk implements Cloneable {
-  private boolean fixedNativeSize;
+  private final boolean fixedNativeSize;
 
   // Private constructor because there are only a few of these
-  private SizeThunk(boolean fixedNativeSize) { this.fixedNativeSize = fixedNativeSize; }
+  private SizeThunk(final boolean fixedNativeSize) { this.fixedNativeSize = fixedNativeSize; }
 
   @Override
   public Object clone() {
     try {
         return super.clone();
-    } catch (CloneNotSupportedException ex) {
+    } catch (final CloneNotSupportedException ex) {
         throw new InternalError();
     }
   }
@@ -69,99 +69,99 @@ public abstract class SizeThunk implements Cloneable {
 
   public static final SizeThunk INT8 = new SizeThunk(true) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.int8SizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.int8AlignmentInBytes();
       }
     };
 
   public static final SizeThunk INT16 = new SizeThunk(true) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.int16SizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.int16AlignmentInBytes();
       }
     };
 
   public static final SizeThunk INT32 = new SizeThunk(true) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.int32SizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.int32AlignmentInBytes();
       }
     };
 
   public static final SizeThunk INTxx = new SizeThunk(false) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.intSizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.intAlignmentInBytes();
       }
     };
 
   public static final SizeThunk LONG = new SizeThunk(false) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.longSizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.longAlignmentInBytes();
       }
     };
 
   public static final SizeThunk INT64 = new SizeThunk(true) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.int64SizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.int64AlignmentInBytes();
       }
     };
 
   public static final SizeThunk FLOAT = new SizeThunk(true) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.floatSizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.floatAlignmentInBytes();
       }
     };
 
   public static final SizeThunk DOUBLE = new SizeThunk(true) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.doubleSizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.doubleAlignmentInBytes();
       }
     };
 
   public static final SizeThunk POINTER = new SizeThunk(false) {
       @Override
-      public long computeSize(MachineDescription machDesc) {
+      public long computeSize(final MachineDescription machDesc) {
         return machDesc.pointerSizeInBytes();
       }
       @Override
-      public long computeAlignment(MachineDescription machDesc) {
+      public long computeAlignment(final MachineDescription machDesc) {
         return machDesc.pointerAlignmentInBytes();
       }
     };
@@ -172,11 +172,11 @@ public abstract class SizeThunk implements Cloneable {
                               final SizeThunk thunk2) {
     return new SizeThunk(false) {
         @Override
-        public long computeSize(MachineDescription machDesc) {
+        public long computeSize(final MachineDescription machDesc) {
           return thunk1.computeSize(machDesc) + thunk2.computeSize(machDesc);
         }
         @Override
-        public long computeAlignment(MachineDescription machDesc) {
+        public long computeAlignment(final MachineDescription machDesc) {
           final long thunk1A = thunk1.computeAlignment(machDesc);
           final long thunk2A = thunk2.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
@@ -188,11 +188,11 @@ public abstract class SizeThunk implements Cloneable {
                               final SizeThunk thunk2) {
     return new SizeThunk(false) {
         @Override
-        public long computeSize(MachineDescription machDesc) {
+        public long computeSize(final MachineDescription machDesc) {
           return thunk1.computeSize(machDesc) * thunk2.computeSize(machDesc);
         }
         @Override
-        public long computeAlignment(MachineDescription machDesc) {
+        public long computeAlignment(final MachineDescription machDesc) {
           final long thunk1A = thunk1.computeAlignment(machDesc);
           final long thunk2A = thunk2.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
@@ -204,7 +204,7 @@ public abstract class SizeThunk implements Cloneable {
                                 final SizeThunk alignmentThunk) {
     return new SizeThunk(false) {
         @Override
-        public long computeSize(MachineDescription machDesc) {
+        public long computeSize(final MachineDescription machDesc) {
           // x % 2n == x & (2n - 1)
           // remainder = net_size & ( alignment - 1 )
           // padding = alignment - remainder ;
@@ -219,7 +219,7 @@ public abstract class SizeThunk implements Cloneable {
         }
 
         @Override
-        public long computeAlignment(MachineDescription machDesc) {
+        public long computeAlignment(final MachineDescription machDesc) {
           final long thunk1A = offsetThunk.computeAlignment(machDesc);
           final long thunk2A = alignmentThunk.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
@@ -231,11 +231,11 @@ public abstract class SizeThunk implements Cloneable {
                               final SizeThunk thunk2) {
     return new SizeThunk(false) {
         @Override
-        public long computeSize(MachineDescription machDesc) {
+        public long computeSize(final MachineDescription machDesc) {
           return Math.max(thunk1.computeSize(machDesc), thunk2.computeSize(machDesc));
         }
         @Override
-        public long computeAlignment(MachineDescription machDesc) {
+        public long computeAlignment(final MachineDescription machDesc) {
           final long thunk1A = thunk1.computeAlignment(machDesc);
           final long thunk2A = thunk2.computeAlignment(machDesc);
           return ( thunk1A > thunk2A ) ? thunk1A : thunk2A ;
@@ -246,11 +246,11 @@ public abstract class SizeThunk implements Cloneable {
   public static SizeThunk constant(final int constant) {
     return new SizeThunk(false) {
         @Override
-        public long computeSize(MachineDescription machDesc) {
+        public long computeSize(final MachineDescription machDesc) {
           return constant;
         }
         @Override
-        public long computeAlignment(MachineDescription machDesc) {
+        public long computeAlignment(final MachineDescription machDesc) {
           return 1; // no alignment for constants
         }
       };

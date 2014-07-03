@@ -87,7 +87,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final void dump(PrintStream stream, String prefix) {
+    public final void dump(final PrintStream stream, final String prefix) {
         stream.println(prefix+" "+toString()+" {");
         for(int i=0; i<capacityPlusOne; i++) {
             stream.println("\t["+i+"]: "+array[i]);
@@ -116,7 +116,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
      * @throws IllegalArgumentException if <code>copyFrom</code> is <code>null</code>
      */
     @SuppressWarnings("unchecked")
-    public LFRingbuffer(T[] copyFrom) throws IllegalArgumentException {
+    public LFRingbuffer(final T[] copyFrom) throws IllegalArgumentException {
         capacityPlusOne = copyFrom.length + 1;
         array = (T[]) newArray(copyFrom.getClass(), capacityPlusOne);
         resetImpl(true, copyFrom);
@@ -139,9 +139,9 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
      * @param arrayType the array type of the created empty internal array.
      * @param capacity the initial net capacity of the ring buffer
      */
-    public LFRingbuffer(Class<? extends T[]> arrayType, int capacity) {
+    public LFRingbuffer(final Class<? extends T[]> arrayType, final int capacity) {
         capacityPlusOne = capacity+1;
-        array = (T[]) newArray(arrayType, capacityPlusOne);
+        array = newArray(arrayType, capacityPlusOne);
         resetImpl(false, null /* empty, nothing to copy */ );
     }
 
@@ -162,11 +162,11 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final void resetFull(T[] copyFrom) throws IllegalArgumentException {
+    public final void resetFull(final T[] copyFrom) throws IllegalArgumentException {
         resetImpl(true, copyFrom);
     }
 
-    private final void resetImpl(boolean full, T[] copyFrom) throws IllegalArgumentException {
+    private final void resetImpl(final boolean full, final T[] copyFrom) throws IllegalArgumentException {
         synchronized ( syncGlobal ) {
             if( null != copyFrom ) {
                 if( copyFrom.length != capacityPlusOne-1 ) {
@@ -210,7 +210,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     public final T get() {
         try {
             return getImpl(false, false);
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+        } catch (final InterruptedException ie) { throw new RuntimeException(ie); }
     }
 
     /**
@@ -228,14 +228,14 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     public final T peek() {
         try {
             return getImpl(false, true);
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+        } catch (final InterruptedException ie) { throw new RuntimeException(ie); }
     }
     @Override
     public final T peekBlocking() throws InterruptedException {
         return getImpl(true, true);
     }
 
-    private final T getImpl(boolean blocking, boolean peek) throws InterruptedException {
+    private final T getImpl(final boolean blocking, final boolean peek) throws InterruptedException {
         int localReadPos = readPos;
         if( localReadPos == writePos ) {
             if( blocking ) {
@@ -268,10 +268,10 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
      * </p>
      */
     @Override
-    public final boolean put(T e) {
+    public final boolean put(final T e) {
         try {
             return putImpl(e, false, false);
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+        } catch (final InterruptedException ie) { throw new RuntimeException(ie); }
     }
 
     /**
@@ -281,7 +281,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
      * </p>
      */
     @Override
-    public final void putBlocking(T e) throws InterruptedException {
+    public final void putBlocking(final T e) throws InterruptedException {
         if( !putImpl(e, false, true) ) {
             throw new InternalError("Blocking put failed: "+this);
         }
@@ -294,11 +294,11 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
      * </p>
      */
     @Override
-    public final boolean putSame(boolean blocking) throws InterruptedException {
+    public final boolean putSame(final boolean blocking) throws InterruptedException {
         return putImpl(null, true, blocking);
     }
 
-    private final boolean putImpl(T e, boolean sameRef, boolean blocking) throws InterruptedException {
+    private final boolean putImpl(final T e, final boolean sameRef, final boolean blocking) throws InterruptedException {
         int localWritePos = writePos;
         localWritePos = (localWritePos + 1) % capacityPlusOne;
         if( localWritePos == readPos ) {
@@ -325,7 +325,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
 
 
     @Override
-    public final void waitForFreeSlots(int count) throws InterruptedException {
+    public final void waitForFreeSlots(final int count) throws InterruptedException {
         synchronized ( syncRead ) {
             if( capacityPlusOne - 1 - size < count ) {
                 while( capacityPlusOne - 1 - size < count ) {
@@ -361,7 +361,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
             final int growAmount = newElements.length;
             final int newCapacity = capacityPlusOne + growAmount;
             final T[] oldArray = array;
-            final T[] newArray = (T[]) newArray(arrayTypeInternal, newCapacity);
+            final T[] newArray = newArray(arrayTypeInternal, newCapacity);
 
             // writePos == readPos
             writePos += growAmount; // warp writePos to the end of the new data location
@@ -401,7 +401,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
 
             final int newCapacity = capacityPlusOne + growAmount;
             final T[] oldArray = array;
-            final T[] newArray = (T[]) newArray(arrayTypeInternal, newCapacity);
+            final T[] newArray = newArray(arrayTypeInternal, newCapacity);
 
             // writePos == readPos - 1
             readPos = ( writePos + 1 + growAmount ) % newCapacity; // warp readPos to the end of the new data location
@@ -420,7 +420,7 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T[] newArray(Class<? extends T[]> arrayType, int length) {
+    private static <T> T[] newArray(final Class<? extends T[]> arrayType, final int length) {
         return ((Object)arrayType == (Object)Object[].class)
             ? (T[]) new Object[length]
             : (T[]) Array.newInstance(arrayType.getComponentType(), length);

@@ -60,7 +60,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
      * @param elementSize the target element size in bytes.
      * @param capacity the target capacity in elements of size <code>elementSize</code>.
      */
-    protected AbstractBuffer(Buffer buffer, int elementSize, int capacity) {
+    protected AbstractBuffer(final Buffer buffer, final int elementSize, final int capacity) {
         this.buffer = buffer;
         this.elementSize = elementSize;
         this.capacity = capacity;
@@ -89,7 +89,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     }
 
     @Override
-    public final B position(int newPos) {
+    public final B position(final int newPos) {
         if (0 > newPos || newPos >= capacity) {
             throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
                                                 "My capacity is "+capacity()+".");

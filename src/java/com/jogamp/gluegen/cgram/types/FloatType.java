@@ -43,12 +43,12 @@ package com.jogamp.gluegen.cgram.types;
 /** Represents a single-word floating-point type (C type "float".) */
 
 public class FloatType extends PrimitiveType implements Cloneable {
-  public FloatType(String name, SizeThunk size, int cvAttributes) {
+  public FloatType(final String name, final SizeThunk size, final int cvAttributes) {
     super(name, size, cvAttributes);
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == this) {
       return true;
     }
@@ -62,7 +62,7 @@ public class FloatType extends PrimitiveType implements Cloneable {
   public FloatType asFloat() { return this; }
 
   @Override
-  Type newCVVariant(int cvAttributes) {
+  Type newCVVariant(final int cvAttributes) {
     return new FloatType(getName(), getSize(), cvAttributes);
   }
 }

@@ -50,24 +50,24 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   private final int length;
   private String computedName;
 
-  public ArrayType(Type elementType, SizeThunk sizeInBytes, int length, int cvAttributes) {
+  public ArrayType(final Type elementType, final SizeThunk sizeInBytes, final int length, final int cvAttributes) {
     super(elementType.getName() + " *", sizeInBytes, cvAttributes);
     this.elementType = elementType;
     this.length      = length;
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == this) return true;
     if (arg == null || (!(arg instanceof ArrayType))) {
       return false;
     }
-    ArrayType t = (ArrayType) arg;
+    final ArrayType t = (ArrayType) arg;
     return (super.equals(arg) && elementType.equals(t.elementType) && (length == t.length));
   }
 
   @Override
-  public String getName(boolean includeCVAttrs) {
+  public String getName(final boolean includeCVAttrs) {
     // Lazy computation of name due to lazy setting of compound type
     // names during parsing
     // Note: don't think cvAttributes can be set for array types (unlike pointer types)
@@ -97,7 +97,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   /** Recompute the size of this array if necessary. This needs to be
       done when the base element type is a compound type after layouting. */
   void recomputeSize() {
-    ArrayType arrayElementType = getElementType().asArray();
+    final ArrayType arrayElementType = getElementType().asArray();
     if (arrayElementType != null) {
       arrayElementType.recomputeSize();
     }
@@ -109,8 +109,8 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
     return toString(null);
   }
 
-  public String toString(String variableName) {
-    StringBuilder buf = new StringBuilder();
+  public String toString(final String variableName) {
+    final StringBuilder buf = new StringBuilder();
     if(elementType.isConst()) {
         buf.append("const ");
     }
@@ -126,13 +126,13 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   }
 
   @Override
-  public void visit(TypeVisitor arg) {
+  public void visit(final TypeVisitor arg) {
     super.visit(arg);
     elementType.visit(arg);
   }
 
   @Override
-  Type newCVVariant(int cvAttributes) {
+  Type newCVVariant(final int cvAttributes) {
     return new ArrayType(elementType, getSize(), length, cvAttributes);
   }
 }

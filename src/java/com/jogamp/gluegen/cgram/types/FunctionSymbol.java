@@ -53,10 +53,10 @@ package com.jogamp.gluegen.cgram.types;
  **/
 public class FunctionSymbol {
 
-    private String name;
-    private FunctionType type;
+    private final String name;
+    private final FunctionType type;
 
-    public FunctionSymbol(String name, FunctionType type) {
+    public FunctionSymbol(final String name, final FunctionType type) {
         this.name = name;
         this.type = type;
     }
@@ -82,18 +82,18 @@ public class FunctionSymbol {
 
     /** Returns the name of the <i>i</i>th argument. May return null if
     no argument names were available during parsing. */
-    public String getArgumentName(int i) {
+    public String getArgumentName(final int i) {
         return type.getArgumentName(i);
     }
 
     /** Returns the type of the <i>i</i>th argument. */
-    public Type getArgumentType(int i) {
+    public Type getArgumentType(final int i) {
         return type.getArgumentType(i);
     }
 
     /** Add an argument's name and type. Use null for unknown argument
     names. */
-    public void addArgument(Type argumentType, String argumentName) {
+    public void addArgument(final Type argumentType, final String argumentName) {
         type.addArgument(argumentType, argumentName);
     }
 
@@ -103,7 +103,7 @@ public class FunctionSymbol {
     }
 
     /** Helper routine for emitting native javadoc tags */
-    public String toString(boolean emitNativeTag) {
+    public String toString(final boolean emitNativeTag) {
         return getType().toString(getName(), emitNativeTag);
     }
 
@@ -116,7 +116,7 @@ public class FunctionSymbol {
     }
 
     @Override
-    public boolean equals(Object arg) {
+    public boolean equals(final Object arg) {
         if (arg == this) {
             return true;
         }
@@ -138,7 +138,7 @@ public class FunctionSymbol {
      * Compares the function type as well, since {@link #equals(Object)}
      * and {@link #hashCode()} won't.
      */
-    public boolean isCompletelyEqual(Object arg) {
+    public boolean isCompletelyEqual(final Object arg) {
         if( !this.equals(arg) ) {
             return false;
         }

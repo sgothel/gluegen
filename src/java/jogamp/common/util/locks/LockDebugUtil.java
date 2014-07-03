@@ -64,13 +64,13 @@ public class LockDebugUtil {
         }
     }
 
-    public static void dumpRecursiveLockTrace(PrintStream out) {
+    public static void dumpRecursiveLockTrace(final PrintStream out) {
         if(Lock.DEBUG) {
-            List<Throwable> ls = getRecursiveLockTrace();
+            final List<Throwable> ls = getRecursiveLockTrace();
             if(null!=ls && ls.size()>0) {
                 int j=0;
                 out.println("TLSLockedStacks: locks "+ls.size());
-                for(Iterator<Throwable> i=ls.iterator(); i.hasNext(); j++) {
+                for(final Iterator<Throwable> i=ls.iterator(); i.hasNext(); j++) {
                     out.print(j+": ");
                     i.next().printStackTrace(out);
                 }

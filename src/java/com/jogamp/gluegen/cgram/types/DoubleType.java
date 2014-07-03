@@ -42,12 +42,12 @@ package com.jogamp.gluegen.cgram.types;
 /** Represents a double-word floating-point type (C type "double".) */
 public class DoubleType extends PrimitiveType implements Cloneable {
 
-    public DoubleType(String name, SizeThunk size, int cvAttributes) {
+    public DoubleType(final String name, final SizeThunk size, final int cvAttributes) {
         super(name, size, cvAttributes);
     }
 
     @Override
-    public boolean equals(Object arg) {
+    public boolean equals(final Object arg) {
         if (arg == this) {
             return true;
         }
@@ -63,7 +63,7 @@ public class DoubleType extends PrimitiveType implements Cloneable {
     }
 
     @Override
-    Type newCVVariant(int cvAttributes) {
+    Type newCVVariant(final int cvAttributes) {
         return new DoubleType(getName(), getSize(), cvAttributes);
     }
 }

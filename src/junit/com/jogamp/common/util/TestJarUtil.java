@@ -77,18 +77,18 @@ public class TestJarUtil extends JunitTracer {
     }
 
     static class TestClassLoader extends URLClassLoader {
-        public TestClassLoader(URL[] urls) {
+        public TestClassLoader(final URL[] urls) {
             super(urls);
         }
-        public TestClassLoader(URL[] urls, ClassLoader parent) {
+        public TestClassLoader(final URL[] urls, final ClassLoader parent) {
             super(urls, parent);
         }
     }
 
-    void validateJarFile(JarFile jarFile) throws IllegalArgumentException, IOException {
+    void validateJarFile(final JarFile jarFile) throws IllegalArgumentException, IOException {
         Assert.assertNotNull(jarFile);
         Assert.assertTrue("jarFile has zero entries: "+jarFile, jarFile.size()>0);
-        Enumeration<JarEntry> entries = jarFile.entries();
+        final Enumeration<JarEntry> entries = jarFile.entries();
         System.err.println("Entries of "+jarFile.getName()+": ");
         int i = 0;
         while(entries.hasMoreElements()) {
@@ -97,34 +97,34 @@ public class TestJarUtil extends JunitTracer {
         }
     }
 
-    void validateJarFileURL(URI jarFileURI) throws IllegalArgumentException, IOException, URISyntaxException {
+    void validateJarFileURL(final URI jarFileURI) throws IllegalArgumentException, IOException, URISyntaxException {
         Assert.assertNotNull(jarFileURI);
         final URL jarFileURL = IOUtil.toURL(jarFileURI);
-        URLConnection aURLc = jarFileURL.openConnection();
+        final URLConnection aURLc = jarFileURL.openConnection();
         Assert.assertTrue("jarFileURI/URL has zero content: "+jarFileURL, aURLc.getContentLength()>0);
         System.err.println("URLConnection: "+aURLc);
         Assert.assertTrue("Not a JarURLConnection: "+aURLc, (aURLc instanceof JarURLConnection) );
-        JarURLConnection jURLc = (JarURLConnection) aURLc;
-        JarFile jarFile = jURLc.getJarFile();
+        final JarURLConnection jURLc = (JarURLConnection) aURLc;
+        final JarFile jarFile = jURLc.getJarFile();
         validateJarFile(jarFile);
     }
 
-    void validateJarUtil(String expJarName, String clazzBinName, ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
-        String jarName= JarUtil.getJarBasename(clazzBinName, cl);
+    void validateJarUtil(final String expJarName, final String clazzBinName, final ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
+        final String jarName= JarUtil.getJarBasename(clazzBinName, cl);
         Assert.assertNotNull(jarName);
         Assert.assertEquals(expJarName, jarName);
 
-        URI jarSubURI = JarUtil.getJarSubURI(clazzBinName, cl);
+        final URI jarSubURI = JarUtil.getJarSubURI(clazzBinName, cl);
         Assert.assertNotNull(jarSubURI);
         final URL jarSubURL= IOUtil.toURL(jarSubURI);
-        URLConnection urlConn = jarSubURL.openConnection();
+        final URLConnection urlConn = jarSubURL.openConnection();
         Assert.assertTrue("jarSubURL has zero content: "+jarSubURL, urlConn.getContentLength()>0);
         System.err.println("URLConnection of jarSubURL: "+urlConn);
 
-        URI jarFileURL = JarUtil.getJarFileURI(clazzBinName, cl);
+        final URI jarFileURL = JarUtil.getJarFileURI(clazzBinName, cl);
         validateJarFileURL(jarFileURL);
 
-        JarFile jarFile = JarUtil.getJarFile(clazzBinName, cl);
+        final JarFile jarFile = JarUtil.getJarFile(clazzBinName, cl);
         validateJarFile(jarFile);
     }
 
@@ -202,8 +202,8 @@ public class TestJarUtil extends JunitTracer {
             }
 
             /** Override normal method to return un-resolvable URL. */
-            public URL getResource(String name) {
-                URL url = super.getResource(name);
+            public URL getResource(final String name) {
+                final URL url = super.getResource(name);
                 if(url == null)
                     return(null);
                 URL urlReturn = null;
@@ -212,11 +212,11 @@ public class TestJarUtil extends JunitTracer {
                     urlReturn = new URL("bundleresource", "4.fwk1990213994", 1, url.getFile(),
                         new URLStreamHandler() {
                             @Override
-                            protected URLConnection openConnection(URL u) throws IOException {
+                            protected URLConnection openConnection(final URL u) throws IOException {
                                 return null;
                             }
                         });
-                } catch(MalformedURLException e) {
+                } catch(final MalformedURLException e) {
                     // shouldn't happen, since I create the URL correctly above
                     Assert.assertTrue(false);
                 }
@@ -228,11 +228,11 @@ public class TestJarUtil extends JunitTracer {
          * opaque bundle data inside its custom classloader to find the stored JAR path; we do it here
          * by simply retrieving the JAR name from where we left it at the end of the URL. */
         JarUtil.setResolver( new JarUtil.Resolver() {
-            public URL resolve( URL url ) {
+            public URL resolve( final URL url ) {
                 if( url.getProtocol().equals("bundleresource") ) {
                     try {
                         return new URL( IOUtil.JAR_SCHEME, "", url.getFile() );
-                    } catch(MalformedURLException e) {
+                    } catch(final MalformedURLException e) {
                         return url;
                     }
                 } else {
@@ -254,8 +254,8 @@ public class TestJarUtil extends JunitTracer {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestJarUtil.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestJarUtil.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

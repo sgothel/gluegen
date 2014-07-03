@@ -15,8 +15,8 @@ public class TNodeFactory extends ASTFactory {
 
         /** Create a new AST node from type and text */
         @Override
-        public AST create(int ttype, String text) {
-                AST ast = new TNode();
+        public AST create(final int ttype, final String text) {
+                final AST ast = new TNode();
                 ast.setType(ttype);
                 ast.setText(text);
                 return ast;
@@ -24,8 +24,8 @@ public class TNodeFactory extends ASTFactory {
 
         /** Create a new AST node from an existing AST node */
         @Override
-        public AST create(AST ast) {
-                AST newast = new TNode();
+        public AST create(final AST ast) {
+                final AST newast = new TNode();
                 newast.setType(ast.getType());
                 newast.setText(ast.getText());
                 return newast;

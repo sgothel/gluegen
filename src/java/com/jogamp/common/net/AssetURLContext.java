@@ -59,7 +59,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
      * @return
      * @throws MalformedURLException
      */
-    public static URL createURL(String path, ClassLoader cl) throws MalformedURLException {
+    public static URL createURL(final String path, final ClassLoader cl) throws MalformedURLException {
         return new URL(null, path.startsWith(asset_protocol_prefix) ? path : asset_protocol_prefix + path, createHandler(cl));
     }
 
@@ -75,7 +75,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
      * @return
      * @throws MalformedURLException
      */
-    public static URL createURL(String path) throws MalformedURLException {
+    public static URL createURL(final String path) throws MalformedURLException {
         return new URL(path.startsWith(asset_protocol_prefix) ? path : asset_protocol_prefix + path);
     }
 
@@ -94,7 +94,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
      *
      * @return true if successful, otherwise false
      */
-    public static boolean registerHandler(ClassLoader cl) {
+    public static boolean registerHandler(final ClassLoader cl) {
         final GenericURLStreamHandlerFactory f = GenericURLStreamHandlerFactory.register();
         if( null != f ) {
             f.setHandler(asset_protocol, createHandler(cl));
@@ -141,11 +141,11 @@ public abstract class AssetURLContext implements PiggybackURLContext {
      * </p>
      **/
     @Override
-    public URLConnection resolve(String path) throws IOException {
+    public URLConnection resolve(final String path) throws IOException {
         return resolve(path, getClassLoader());
     }
 
-    public static URLConnection resolve(String path, ClassLoader cl) throws IOException {
+    public static URLConnection resolve(String path, final ClassLoader cl) throws IOException {
         URL url = null;
         URLConnection conn = null;
         int type = -1;
@@ -155,7 +155,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
         }
         try {
             path = IOUtil.cleanPathString(path);
-        } catch (URISyntaxException uriEx) {
+        } catch (final URISyntaxException uriEx) {
             throw new IOException(uriEx);
         }
 
@@ -164,7 +164,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
             url = new URL(path);
             conn = open(url);
             type = null != conn ? 1 : -1;
-        } catch(MalformedURLException e1) { if(DEBUG) { System.err.println("ERR(0): "+e1.getMessage()); } }
+        } catch(final MalformedURLException e1) { if(DEBUG) { System.err.println("ERR(0): "+e1.getMessage()); } }
 
         if(null == conn && null != cl) {
             // lookup via ClassLoader .. cleanup leading '/'
@@ -183,13 +183,13 @@ public abstract class AssetURLContext implements PiggybackURLContext {
         if(null == conn) {
             // lookup as File
             try {
-                File file = new File(path);
+                final File file = new File(path);
                 if(file.exists()) {
                     url = IOUtil.toURISimple(file).toURL();
                     conn = open(url);
                     type = null != conn ? 3 : -1;
                 }
-            } catch (Throwable e) { if(DEBUG) { System.err.println("ERR(1): "+e.getMessage()); } }
+            } catch (final Throwable e) { if(DEBUG) { System.err.println("ERR(1): "+e.getMessage()); } }
         }
 
         if(DEBUG) {
@@ -201,7 +201,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
         return conn;
     }
 
-    private static URLConnection open(URL url) {
+    private static URLConnection open(final URL url) {
         if(null==url) {
             return null;
         }
@@ -209,7 +209,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
             final URLConnection c = url.openConnection();
             c.connect(); // redundant
             return c;
-        } catch (IOException ioe) { if(DEBUG) { System.err.println("ERR: "+ioe.getMessage()); } }
+        } catch (final IOException ioe) { if(DEBUG) { System.err.println("ERR: "+ioe.getMessage()); } }
         return null;
     }
 

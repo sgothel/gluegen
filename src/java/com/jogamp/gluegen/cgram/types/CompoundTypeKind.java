@@ -35,7 +35,7 @@ public enum CompoundTypeKind {
 
   public final int id;
 
-  CompoundTypeKind(int id){
+  CompoundTypeKind(final int id){
         this.id = id;
   }
 }

@@ -43,12 +43,12 @@ package com.jogamp.gluegen;
 /** Utility class for handling Opaque directives for JavaEmitter. */
 
 public class TypeInfo {
-  private String   name;
-  private int      pointerDepth;
-  private JavaType javaType;
+  private final String   name;
+  private final int      pointerDepth;
+  private final JavaType javaType;
   private TypeInfo next;
 
-  public TypeInfo(String name, int pointerDepth, JavaType javaType) {
+  public TypeInfo(final String name, final int pointerDepth, final JavaType javaType) {
     this.name = name;
     this.pointerDepth = pointerDepth;
     this.javaType = javaType;
@@ -57,12 +57,12 @@ public class TypeInfo {
   public String   name()                 { return name; }
   public int      pointerDepth()         { return pointerDepth; }
   public JavaType javaType()             { return javaType; }
-  public void     setNext(TypeInfo info) { this.next = info; }
+  public void     setNext(final TypeInfo info) { this.next = info; }
   public TypeInfo next()                 { return next; }
 
   @Override
   public String toString() {
-    StringBuilder buf = new StringBuilder("TypeInfo: ");
+    final StringBuilder buf = new StringBuilder("TypeInfo: ");
     buf.append(name);
     buf.append(" pointerDepth ");
     buf.append(pointerDepth);

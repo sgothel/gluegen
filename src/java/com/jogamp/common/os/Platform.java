@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.util.JarUtil;
+import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -62,7 +63,7 @@ public class Platform extends PlatformPropsImpl {
 
         public final int id;
 
-        OSType(int id){
+        OSType(final int id){
             this.id = id;
         }
     }
@@ -85,7 +86,7 @@ public class Platform extends PlatformPropsImpl {
 
         public final int id;
 
-        CPUFamily(int id){
+        CPUFamily(final int id){
             this.id = id;
         }
     }
@@ -121,7 +122,7 @@ public class Platform extends PlatformPropsImpl {
         public final int id;
         public final CPUFamily family;
 
-        CPUType(CPUFamily type, int id){
+        CPUType(final CPUFamily type, final int id){
             this.family = type;
             this.id = id;
         }
@@ -138,7 +139,7 @@ public class Platform extends PlatformPropsImpl {
 
         public final int id;
 
-        ABIType(int id){
+        ABIType(final int id){
             this.id = id;
         }
     }
@@ -189,19 +190,19 @@ public class Platform extends PlatformPropsImpl {
                     URI _platformClassJarURI = null;
                     try {
                         _platformClassJarURI = JarUtil.getJarURI(Platform.class.getName(), cl);
-                    } catch (Exception e) { }
+                    } catch (final Exception e) { }
                     platformClassJarURI = _platformClassJarURI;
                 }
                 _isRunningFromJarURL[0] = null != platformClassJarURI;
 
                 _USE_TEMP_JAR_CACHE[0] = ( OS_TYPE != OSType.ANDROID ) && ( null != platformClassJarURI ) &&
-                                         Debug.getBooleanProperty(useTempJarCachePropName, true, true);
+                                         PropertyAccess.getBooleanProperty(useTempJarCachePropName, true, true);
 
                 // load GluegenRT native library
                 if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
                     try {
                         JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null, null );
-                    } catch (Exception e0) {
+                    } catch (final Exception e0) {
                         // IllegalArgumentException, IOException
                         System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
                     }
@@ -212,12 +213,12 @@ public class Platform extends PlatformPropsImpl {
                 JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
 
                 // AWT Headless determination
-                if( !Debug.getBooleanProperty("java.awt.headless", true) &&
+                if( !PropertyAccess.getBooleanProperty("java.awt.headless", true) &&
                     ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.ComponentClass, cl) &&
                     ReflectionUtil.isClassAvailable(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, cl) ) {
                     try {
                         _AWT_AVAILABLE[0] = false == ((Boolean)ReflectionUtil.callStaticMethod(ReflectionUtil.AWTNames.GraphicsEnvironmentClass, ReflectionUtil.AWTNames.isHeadlessMethod, null, null, cl)).booleanValue();
-                    } catch (Throwable t) { }
+                    } catch (final Throwable t) { }
                 }
                 return null;
             } } );
@@ -227,11 +228,11 @@ public class Platform extends PlatformPropsImpl {
 
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {
-            MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
+            final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
             md = smd.md;
             System.err.println("Warning: Using static MachineDescription: "+smd);
         } else {
-            MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
+            final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
             if(!md.compatible(smd.md)) {
                 throw new RuntimeException("Incompatible MachineDescriptions:"+PlatformPropsImpl.NEWLINE+
                                            " Static "+smd+PlatformPropsImpl.NEWLINE+
@@ -476,7 +477,7 @@ public class Platform extends PlatformPropsImpl {
         final long nsPeriod = nsDuration / splitInLoops;
         final long t0_ns = System.nanoTime();
         for(int i=splitInLoops; i>0; i--) {
-            try { TimeUnit.NANOSECONDS.sleep(nsPeriod); } catch (InterruptedException e) { }
+            try { TimeUnit.NANOSECONDS.sleep(nsPeriod); } catch (final InterruptedException e) { }
         }
         return  ( ( System.nanoTime() - t0_ns ) - nsDuration ) / splitInLoops;
     }

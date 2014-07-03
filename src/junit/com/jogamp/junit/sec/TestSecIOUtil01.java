@@ -69,14 +69,14 @@ public class TestSecIOUtil01 extends JunitTracer {
         Platform.initSingleton();
     }
 
-    static void testPropImpl01(String propKey, boolean isSecure) {
+    static void testPropImpl01(final String propKey, boolean isSecure) {
         isSecure |= !usesSecurityManager;
 
         Exception se0 = null;
         try {
-            String p0 = System.getProperty(propKey);
+            final String p0 = System.getProperty(propKey);
             System.err.println(propKey+": "+p0);
-        } catch (AccessControlException e) {
+        } catch (final AccessControlException e) {
             se0 = e;
             if( !isSecure ) {
                 System.err.println("Expected exception for insecure property <"+propKey+">");
@@ -113,9 +113,9 @@ public class TestSecIOUtil01 extends JunitTracer {
 
         Exception se0 = null;
         try {
-            File tmp = IOUtil.getTempDir(true);
+            final File tmp = IOUtil.getTempDir(true);
             System.err.println("Temp: "+tmp);
-        } catch (AccessControlException e) {
+        } catch (final AccessControlException e) {
             se0 = e;
             if( !isSecure ) {
                 System.err.println("Expected exception for insecure temp dir");
@@ -137,7 +137,7 @@ public class TestSecIOUtil01 extends JunitTracer {
         testTempDirImpl(false);
     }
 
-    private NativeLibrary openLibraryImpl(boolean global) {
+    private NativeLibrary openLibraryImpl(final boolean global) {
         final ClassLoader cl = getClass().getClassLoader();
         System.err.println("CL "+cl);
 
@@ -158,14 +158,14 @@ public class TestSecIOUtil01 extends JunitTracer {
         if( null != libURL ) {
             try {
                 libDir1 = JarUtil.getJarSubURI(libURL.toURI()).getPath();
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
             }
             if( null != libDir1 ) {
                 System.err.println("libDir1.1: "+libDir1);
                 try {
                     libDir1= IOUtil.getParentOf(libDir1);
-                } catch (URISyntaxException e) {
+                } catch (final URISyntaxException e) {
                     e.printStackTrace();
                 }
                 System.err.println("libDir1.2: "+libDir1);
@@ -178,7 +178,7 @@ public class TestSecIOUtil01 extends JunitTracer {
         try {
             nlib = NativeLibrary.open(absLib, cl);
             System.err.println("NativeLibrary: "+nlib);
-        } catch (SecurityException e) {
+        } catch (final SecurityException e) {
             se0 = e;
             if( usesSecurityManager ) {
                 System.err.println("Expected exception for loading native library");
@@ -197,16 +197,16 @@ public class TestSecIOUtil01 extends JunitTracer {
     }
 
     public void testOpenLibrary() {
-        NativeLibrary nlib = openLibraryImpl(true);
+        final NativeLibrary nlib = openLibraryImpl(true);
         if( null != nlib ) {
             nlib.close();
         }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         TestSecIOUtil01.setup();
 
-        TestSecIOUtil01 aa = new TestSecIOUtil01();
+        final TestSecIOUtil01 aa = new TestSecIOUtil01();
         aa.testProp00_Temp();
         aa.testProp01_Temp();
         aa.testProp02_Temp();

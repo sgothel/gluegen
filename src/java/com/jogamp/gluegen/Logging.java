@@ -55,7 +55,7 @@ public class Logging {
             level = Level.WARNING;
         }
 
-        ConsoleHandler handler = new ConsoleHandler() {
+        final ConsoleHandler handler = new ConsoleHandler() {
             @Override
             public java.util.logging.Formatter getFormatter() {
                 return new PlainLogFormatter();
@@ -64,7 +64,7 @@ public class Logging {
         handler.setFormatter(new PlainLogFormatter());
         handler.setLevel(level);
 
-        Logger rootPackageLogger = Logger.getLogger(packageName);
+        final Logger rootPackageLogger = Logger.getLogger(packageName);
         rootPackageLogger.setUseParentHandlers(false);
         rootPackageLogger.setLevel(level);
         rootPackageLogger.addHandler(handler);
@@ -77,8 +77,8 @@ public class Logging {
     private static class PlainLogFormatter extends Formatter {
 
         @Override
-        public String format(LogRecord record) {
-            StringBuilder sb = new StringBuilder(128);
+        public String format(final LogRecord record) {
+            final StringBuilder sb = new StringBuilder(128);
             sb.append("[").append(record.getLevel()).append(' ').append(record.getSourceClassName()).append("]: ");
             sb.append(formatMessage(record)).append("\n");
             return sb.toString();

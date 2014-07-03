@@ -41,33 +41,33 @@ package com.jogamp.gluegen.cgram.types;
 
 public class IntType extends PrimitiveType implements Cloneable {
 
-    private boolean unsigned;
+    private final boolean unsigned;
     private boolean typedefedUnsigned;
 
-    public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes) {
+    public IntType(final String name, final SizeThunk size, final boolean unsigned, final int cvAttributes) {
         this(name, size, unsigned, cvAttributes, false);
     }
 
-    public IntType(String name, SizeThunk size, boolean unsigned, int cvAttributes, boolean typedefedUnsigned) {
+    public IntType(final String name, final SizeThunk size, final boolean unsigned, final int cvAttributes, final boolean typedefedUnsigned) {
         super(name, size, cvAttributes);
         this.unsigned = unsigned;
         this.typedefedUnsigned = typedefedUnsigned;
     }
 
     @Override
-    public boolean equals(Object arg) {
+    public boolean equals(final Object arg) {
         if (arg == this) {
             return true;
         }
         if (arg == null || (!(arg instanceof IntType))) {
             return false;
         }
-        IntType t = (IntType) arg;
+        final IntType t = (IntType) arg;
         return (super.equals(arg) && (unsigned == t.unsigned));
     }
 
     @Override
-    public void setName(String name) {
+    public void setName(final String name) {
         super.setName(name);
         typedefedUnsigned = unsigned;
     }
@@ -93,7 +93,7 @@ public class IntType extends PrimitiveType implements Cloneable {
     }
 
     @Override
-    Type newCVVariant(int cvAttributes) {
+    Type newCVVariant(final int cvAttributes) {
         return new IntType(getName(), getSize(), isUnsigned(), cvAttributes, typedefedUnsigned);
     }
 }

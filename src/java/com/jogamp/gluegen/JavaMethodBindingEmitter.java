@@ -100,21 +100,21 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   // Only present to provide more clear comments
   private final JavaConfiguration cfg;
 
-  public JavaMethodBindingEmitter(MethodBinding binding,
-                                  PrintWriter output,
-                                  String runtimeExceptionType,
-                                  String unsupportedExceptionType,
-                                  boolean emitBody,
-                                  boolean tagNativeBinding,
-                                  boolean eraseBufferAndArrayTypes,
-                                  boolean useNIOOnly,
-                                  boolean useNIODirectOnly,
-                                  boolean forImplementingMethodCall,
-                                  boolean forDirectBufferImplementation,
-                                  boolean forIndirectBufferAndArrayImplementation,
-                                  boolean isUnimplemented,
-                                  boolean isInterface,
-                                  JavaConfiguration configuration) {
+  public JavaMethodBindingEmitter(final MethodBinding binding,
+                                  final PrintWriter output,
+                                  final String runtimeExceptionType,
+                                  final String unsupportedExceptionType,
+                                  final boolean emitBody,
+                                  final boolean tagNativeBinding,
+                                  final boolean eraseBufferAndArrayTypes,
+                                  final boolean useNIOOnly,
+                                  final boolean useNIODirectOnly,
+                                  final boolean forImplementingMethodCall,
+                                  final boolean forDirectBufferImplementation,
+                                  final boolean forIndirectBufferAndArrayImplementation,
+                                  final boolean isUnimplemented,
+                                  final boolean isInterface,
+                                  final JavaConfiguration configuration) {
     super(output, isInterface);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
@@ -136,7 +136,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     cfg = configuration;
   }
 
-  public JavaMethodBindingEmitter(JavaMethodBindingEmitter arg) {
+  public JavaMethodBindingEmitter(final JavaMethodBindingEmitter arg) {
     super(arg);
     binding                       = arg.binding;
     runtimeExceptionType          = arg.runtimeExceptionType;
@@ -168,7 +168,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return binding.getName();
   }
 
-  protected String getArgumentName(int i) {
+  protected String getArgumentName(final int i) {
     return binding.getArgumentName(i);
   }
 
@@ -190,11 +190,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       number of elements of the returned array. The parameters to the
       MessageFormat expression are the names of the incoming Java
       arguments. */
-  public void setReturnedArrayLengthExpression(String expr) {
+  public void setReturnedArrayLengthExpression(final String expr) {
     returnedArrayLengthExpression = expr;
     returnedArrayLengthExpressionOnlyForComments = false;
   }
-  protected void setReturnedArrayLengthExpression(String expr, boolean onlyForComments) {
+  protected void setReturnedArrayLengthExpression(final String expr, final boolean onlyForComments) {
     returnedArrayLengthExpression = expr;
     returnedArrayLengthExpressionOnlyForComments = onlyForComments;
   }
@@ -206,12 +206,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   /** Sets the manually-generated prologue code for this emitter. */
-  public void setPrologue(List<String> prologue) {
+  public void setPrologue(final List<String> prologue) {
     this.prologue = prologue;
   }
 
   /** Sets the manually-generated epilogue code for this emitter. */
-  public void setEpilogue(List<String> epilogue) {
+  public void setEpilogue(final List<String> epilogue) {
     this.epilogue = epilogue;
   }
 
@@ -223,36 +223,36 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   /** Accessor for subclasses. */
-  public void setEmitBody(boolean emitBody) {
+  public void setEmitBody(final boolean emitBody) {
     this.emitBody = emitBody;
   }
 
   /** Accessor for subclasses. */
-  public void setEraseBufferAndArrayTypes(boolean erase) {
+  public void setEraseBufferAndArrayTypes(final boolean erase) {
     this.eraseBufferAndArrayTypes = erase;
   }
 
   /** Accessor for subclasses. */
-  public void setForImplementingMethodCall(boolean impl) {
+  public void setForImplementingMethodCall(final boolean impl) {
     this.forImplementingMethodCall = impl;
   }
 
   /** Accessor for subclasses. */
-  public void setForDirectBufferImplementation(boolean direct) {
+  public void setForDirectBufferImplementation(final boolean direct) {
     this.forDirectBufferImplementation = direct;
   }
 
   /** Accessor for subclasses. */
-  public void setForIndirectBufferAndArrayImplementation(boolean indirect) {
+  public void setForIndirectBufferAndArrayImplementation(final boolean indirect) {
     this.forIndirectBufferAndArrayImplementation = indirect;
   }
 
   @Override
-  protected void emitReturnType(PrintWriter writer)  {
+  protected void emitReturnType(final PrintWriter writer)  {
     writer.print(getReturnTypeString(false));
   }
 
-  protected String erasedTypeString(JavaType type, boolean skipBuffers) {
+  protected String erasedTypeString(final JavaType type, final boolean skipBuffers) {
     if (eraseBufferAndArrayTypes) {
       if (type.isNIOBuffer()) {
         if (!skipBuffers) {
@@ -292,7 +292,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     if( null == name ) {
         throw new IllegalArgumentException("null type name: "+type.getDebugString());
     }
-    int index = name.lastIndexOf('.')+1; // always >= 0
+    final int index = name.lastIndexOf('.')+1; // always >= 0
     name = name.substring(index);
 
     if (type.isArrayOfCompoundTypeWrappers()) {
@@ -302,7 +302,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return name;
   }
 
-  protected String getReturnTypeString(boolean skipArray) {
+  protected String getReturnTypeString(final boolean skipArray) {
     // The first arm of the "if" clause is used by the glue code
     // generation for arrays of compound type wrappers
     if (skipArray ||
@@ -321,7 +321,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   @Override
-  protected void emitName(PrintWriter writer)  {
+  protected void emitName(final PrintWriter writer)  {
     if (forImplementingMethodCall) {
       writer.print(getImplMethodName());
     } else {
@@ -330,7 +330,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   @Override
-  protected int emitArguments(PrintWriter writer) {
+  protected int emitArguments(final PrintWriter writer) {
     boolean needComma = false;
     int numEmitted = 0;
 
@@ -343,7 +343,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
 
     for (int i = 0; i < binding.getNumArguments(); i++) {
-      JavaType type = binding.getJavaArgumentType(i);
+      final JavaType type = binding.getJavaArgumentType(i);
       if (type.isVoid()) {
         // Make sure this is the only param to the method; if it isn't,
         // there's something wrong with our parsing of the headers.
@@ -399,36 +399,36 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return binding.getName() + ( useNIODirectOnly ? "0" : "1" );
   }
 
-  protected String byteOffsetArgName(int i) {
+  protected String byteOffsetArgName(final int i) {
     return byteOffsetArgName(getArgumentName(i));
   }
 
-  protected static String byteOffsetArgName(String s) {
+  protected static String byteOffsetArgName(final String s) {
     return s + "_byte_offset";
   }
 
-  protected String isNIOArgName(int i) {
+  protected String isNIOArgName(final int i) {
     return isNIOArgName(binding.getArgumentName(i));
   }
 
-  protected String isNIOArgName(String s) {
+  protected String isNIOArgName(final String s) {
     return s + "_is_direct";
   }
 
-  protected String byteOffsetArrayArgName(int i) {
+  protected String byteOffsetArrayArgName(final int i) {
     return getArgumentName(i) + "_byte_offset_array";
   }
 
-  protected String offsetArgName(int i) {
+  protected String offsetArgName(final int i) {
     return getArgumentName(i) + "_offset";
   }
 
   @Override
-  protected void emitBody(PrintWriter writer)  {
+  protected void emitBody(final PrintWriter writer)  {
     if (!emitBody) {
       writer.println(';');
     } else {
-      MethodBinding mBinding = getBinding();
+      final MethodBinding mBinding = getBinding();
       writer.println("  {");
       writer.println();
       if (isUnimplemented) {
@@ -443,14 +443,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  protected void emitPrologueOrEpilogue(List<String> code, PrintWriter writer) {
+  protected void emitPrologueOrEpilogue(final List<String> code, final PrintWriter writer) {
     if (code != null) {
-      String[] argumentNames = argumentNameArray();
-      for (String str : code) {
+      final String[] argumentNames = argumentNameArray();
+      for (final String str : code) {
         try {
-            MessageFormat fmt = new MessageFormat(str);
+            final MessageFormat fmt = new MessageFormat(str);
             writer.println("    " + fmt.format(argumentNames));
-        } catch (IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
             // (Poorly) handle case where prologue / epilogue contains blocks of code with braces
             writer.println("    " + str);
         }
@@ -458,19 +458,19 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
+  protected void emitPreCallSetup(final MethodBinding binding, final PrintWriter writer) {
     emitArrayLengthAndNIOBufferChecks(binding, writer);
     emitCompoundArrayCopies(binding, writer);
   }
 
-  protected void emitArrayLengthAndNIOBufferChecks(MethodBinding binding, PrintWriter writer) {
+  protected void emitArrayLengthAndNIOBufferChecks(final MethodBinding binding, final PrintWriter writer) {
       // Check lengths of any incoming arrays if necessary
       for (int i = 0; i < binding.getNumArguments(); i++) {
           final Type type = binding.getCArgumentType(i);
           final JavaType javaType = binding.getJavaArgumentType(i);
           if ( type.isArray() ) { // FIXME: Compound and Compound-Arrays
               // Simply add a range check upfront
-              ArrayType arrayType = type.asArray();
+              final ArrayType arrayType = type.asArray();
               if (javaType.isNIOBuffer()) {
                   writer.println("    if ( Buffers.remainingElem("+getArgumentName(i)+") < " + arrayType.getLength() + ")");
               } else {
@@ -496,8 +496,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
               }
           } else if (javaType.isNIOBufferArray()) {
               // All buffers passed down in an array of NIO buffers must be direct
-              String argName = getArgumentName(i);
-              String arrayName = byteOffsetArrayArgName(i);
+              final String argName = getArgumentName(i);
+              final String arrayName = byteOffsetArrayArgName(i);
               writer.println("    final int[] " + arrayName + " = new int[" + argName + ".length];");
               // Check direct buffer properties of all buffers within
               writer.println("    if (" + argName + " != null) {");
@@ -513,8 +513,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
               writer.println("      }");
               writer.println("    }");
           } else if (javaType.isPrimitiveArray()) {
-              String argName = getArgumentName(i);
-              String offsetArg = offsetArgName(i);
+              final String argName = getArgumentName(i);
+              final String offsetArg = offsetArgName(i);
               writer.println("    if(" + argName + " != null && " + argName + ".length <= " + offsetArg + ")");
               writer.print  ("      throw new " + getRuntimeExceptionType());
               writer.println("(\"array offset argument \\\"" + offsetArg + "\\\" (\" + " + offsetArg +
@@ -523,16 +523,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
   }
 
-  protected void emitCompoundArrayCopies(MethodBinding binding, PrintWriter writer) {
+  protected void emitCompoundArrayCopies(final MethodBinding binding, final PrintWriter writer) {
     // If the method binding uses outgoing arrays of compound type
     // wrappers, we need to generate a temporary copy of this array
     // into a ByteBuffer[] for processing by the native code
     if (binding.signatureUsesArraysOfCompoundTypeWrappers()) {
       for (int i = 0; i < binding.getNumArguments(); i++) {
-        JavaType javaType = binding.getJavaArgumentType(i);
+        final JavaType javaType = binding.getJavaArgumentType(i);
         if (javaType.isArrayOfCompoundTypeWrappers()) {
-          String argName = getArgumentName(i);
-          String tempArrayName = argName + COMPOUND_ARRAY_SUFFIX;
+          final String argName = getArgumentName(i);
+          final String tempArrayName = argName + COMPOUND_ARRAY_SUFFIX;
           writer.println("    final ByteBuffer[] " + tempArrayName + " = new ByteBuffer[" + argName + ".length];");
           writer.println("    for (int _ctr = 0; _ctr < + " + argName + ".length; _ctr++) {");
           writer.println("      " + javaType.getName() + " _tmp = " + argName + "[_ctr];");
@@ -543,7 +543,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  protected void emitCall(MethodBinding binding, PrintWriter writer) {
+  protected void emitCall(final MethodBinding binding, final PrintWriter writer) {
     writer.print(getImplMethodName());
     writer.print("(");
     emitCallArguments(binding, writer);
@@ -551,9 +551,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
 
-  protected void emitReturnVariableSetupAndCall(MethodBinding binding, PrintWriter writer) {
+  protected void emitReturnVariableSetupAndCall(final MethodBinding binding, final PrintWriter writer) {
     writer.print("    ");
-    JavaType returnType = binding.getJavaReturnType();
+    final JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
 
     if (!returnType.isVoid()) {
@@ -592,7 +592,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  protected int emitCallArguments(MethodBinding binding, PrintWriter writer) {
+  protected int emitCallArguments(final MethodBinding binding, final PrintWriter writer) {
     boolean needComma = false;
     int numArgsEmitted = 0;
 
@@ -604,7 +604,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       ++numArgsEmitted;
     }
     for (int i = 0; i < binding.getNumArguments(); i++) {
-      JavaType type = binding.getJavaArgumentType(i);
+      final JavaType type = binding.getJavaArgumentType(i);
       if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         // Don't need to expose these at the Java level
         continue;
@@ -699,15 +699,15 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return numArgsEmitted;
   }
 
-  protected void emitPostCallCleanup(MethodBinding binding, PrintWriter writer) {
+  protected void emitPostCallCleanup(final MethodBinding binding, final PrintWriter writer) {
     if (binding.signatureUsesArraysOfCompoundTypeWrappers()) {
       // For each such array, we need to take the ByteBuffer[] that
       // came back from the C method invocation and wrap the
       // ByteBuffers back into the wrapper types
       for (int i = 0; i < binding.getNumArguments(); i++) {
-        JavaType javaArgType = binding.getJavaArgumentType(i);
+        final JavaType javaArgType = binding.getJavaArgumentType(i);
         if ( javaArgType.isArrayOfCompoundTypeWrappers() && !isBaseTypeConst(javaArgType.getElementCType()) ) {
-          String argName = binding.getArgumentName(i);
+          final String argName = binding.getArgumentName(i);
           writer.println("    for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
           writer.println("      if ((" + argName + "[_ctr] == null && " + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr] == null) ||");
           writer.println("          (" + argName + "[_ctr] != null && " + argName + "[_ctr].getBuffer() == " + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr])) {");
@@ -725,8 +725,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  protected void emitCallResultReturn(MethodBinding binding, PrintWriter writer) {
-    JavaType returnType = binding.getJavaReturnType();
+  protected void emitCallResultReturn(final MethodBinding binding, final PrintWriter writer) {
+    final JavaType returnType = binding.getJavaReturnType();
 
     if (returnType.isCompoundTypeWrapper()) {
       // Details are handled in JavaEmitter's struct handling!
@@ -749,7 +749,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         } else if (getBinding().getCReturnType().pointerDepth() == 1 && returnType.isNIOLongBuffer()) {
           writer.println("    return _res.asLongBuffer();");
         } else {
-          String returnTypeName = returnType.getName().substring("java.nio.".length());
+          final String returnTypeName = returnType.getName().substring("java.nio.".length());
           writer.println("    return _res.as" + returnTypeName + "();");
         }
       } else {
@@ -770,7 +770,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   protected String[] argumentNameArray() {
-    String[] argumentNames = new String[binding.getNumArguments()];
+    final String[] argumentNames = new String[binding.getNumArguments()];
     for (int i = 0; i < binding.getNumArguments(); i++) {
       argumentNames[i] = getArgumentName(i);
       if (binding.getJavaArgumentType(i).isPrimitiveArray()) {
@@ -793,7 +793,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       final StringBuilder sb = new StringBuilder();
       final String methodName = binding.getName();
       final List<String> methodDocs = cfg.javadocForMethod(methodName);
-      for (Iterator<String> iter = methodDocs.iterator(); iter.hasNext(); ) {
+      for (final Iterator<String> iter = methodDocs.iterator(); iter.hasNext(); ) {
         sb.append(JavaConfiguration.NEWLINE).append(getBaseIndentString()).append(iter.next());
       }
       if( methodDocs.size() > 0 ) {
@@ -813,7 +813,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
    */
   protected class DefaultCommentEmitter implements CommentEmitter {
     @Override
-    public void emit(FunctionEmitter emitter, PrintWriter writer) {
+    public void emit(final FunctionEmitter emitter, final PrintWriter writer) {
       emitBeginning(emitter, writer);
       emitBindingCSignature(((JavaMethodBindingEmitter)emitter).getBinding(), writer);
       final String arrayLengthExpr = getReturnedArrayLengthComment();
@@ -822,28 +822,28 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
       emitEnding(emitter, writer);
     }
-    protected void emitBeginning(FunctionEmitter emitter, PrintWriter writer) {
+    protected void emitBeginning(final FunctionEmitter emitter, final PrintWriter writer) {
       writer.print("Entry point to C language function: ");
     }
-    protected void emitBindingCSignature(MethodBinding binding, PrintWriter writer) {
+    protected void emitBindingCSignature(final MethodBinding binding, final PrintWriter writer) {
       writer.print("<code> ");
       writer.print(binding.getCSymbol().toString(tagNativeBinding));
       writer.print(" </code> ");
     }
-    protected void emitEnding(FunctionEmitter emitter, PrintWriter writer) {
+    protected void emitEnding(final FunctionEmitter emitter, final PrintWriter writer) {
       // If argument type is a named enum, then emit a comment detailing the
       // acceptable values of that enum.
       // If we're emitting a direct buffer variant only, then declare
       // that the NIO buffer arguments must be direct.
-      MethodBinding binding = ((JavaMethodBindingEmitter)emitter).getBinding();
+      final MethodBinding binding = ((JavaMethodBindingEmitter)emitter).getBinding();
       for (int i = 0; i < binding.getNumArguments(); i++) {
-        Type type = binding.getCArgumentType(i);
-        JavaType javaType = binding.getJavaArgumentType(i);
+        final Type type = binding.getCArgumentType(i);
+        final JavaType javaType = binding.getJavaArgumentType(i);
         // don't emit param comments for anonymous enums, since we can't
         // distinguish between the values found within multiple anonymous
         // enums in the same C translation unit.
         if (type.isEnum() && !HeaderParser.ANONYMOUS_ENUM_NAME.equals(type.getName())) {
-          EnumType enumType = (EnumType)type;
+          final EnumType enumType = (EnumType)type;
           writer.println();
           writer.print(emitter.getBaseIndentString());
           writer.print("    ");
@@ -874,7 +874,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     protected class InterfaceCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
 
         @Override
-        protected void emitBeginning(FunctionEmitter emitter, PrintWriter writer) {
+        protected void emitBeginning(final FunctionEmitter emitter, final PrintWriter writer) {
             writer.print("Interface to C language function: <br> ");
         }
     }

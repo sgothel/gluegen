@@ -17,9 +17,9 @@ public abstract class AssetURLConnectionBase extends JunitTracer {
     /** In gluegen-rt.jar */
     protected static final String test_asset_rt_url      = "asset:gluegen/info.txt";
     protected static final String test_asset_rt_entry    = "gluegen/info.txt";
-    
+
     protected static final String test_asset_rt2_url     = "asset:/gluegen/info.txt";
-    
+
     /** In gluegen.test.jar */
     protected static final String test_asset_test1_url   = "asset:gluegen-test/info.txt";
     protected static final String test_asset_test1_entry = "gluegen-test/info.txt";
@@ -36,7 +36,7 @@ public abstract class AssetURLConnectionBase extends JunitTracer {
     protected static final String test_asset_test4b_url  = "asset:/com/jogamp/common/net/data2/RelativeData2.txt";
     protected static final String test_asset_test4_entry = "com/jogamp/common/net/data2/RelativeData2.txt";
 
-    protected static void testAssetConnection(URLConnection c, String entry_name) throws IOException {
+    protected static void testAssetConnection(final URLConnection c, final String entry_name) throws IOException {
         Assert.assertNotNull(c);
         if(c instanceof AssetURLConnection) {
             final AssetURLConnection ac = (AssetURLConnection) c;
@@ -49,7 +49,7 @@ public abstract class AssetURLConnectionBase extends JunitTracer {
                 Assert.assertEquals(entry_name, jc.getEntryName());
             }
         }
-        
+
         final BufferedReader reader = new BufferedReader(new InputStreamReader(c.getInputStream()));
         try {
             String line = null;
@@ -61,5 +61,5 @@ public abstract class AssetURLConnectionBase extends JunitTracer {
         } finally {
             IOUtil.close(reader, false);
         }
-    }   
+    }
 }

@@ -44,11 +44,11 @@ import com.jogamp.common.os.MachineDescription;
 /** Represents a field in a struct or union. */
 
 public class Field {
-  private String    name;
-  private Type      type;
+  private final String    name;
+  private final Type      type;
   private SizeThunk offset;
 
-  public Field(String name, Type type, SizeThunk offset) {
+  public Field(final String name, final Type type, final SizeThunk offset) {
     this.name = name;
     this.type = type;
     this.offset = offset;
@@ -60,12 +60,12 @@ public class Field {
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == null || (!(arg instanceof Field))) {
       return false;
     }
 
-    Field f = (Field) arg;
+    final Field f = (Field) arg;
     // Note: don't know how to examine offset any more since it's
     // implemented in terms of code and they're not canonicalized
     return (((name != null && name.equals(f.name)) ||
@@ -84,10 +84,10 @@ public class Field {
 
   /** Offset, in bytes, of this field in the containing data structure
       given the specified MachineDescription. */
-  public long    getOffset(MachineDescription machDesc) { return offset.computeSize(machDesc); }
+  public long    getOffset(final MachineDescription machDesc) { return offset.computeSize(machDesc); }
 
   /** Sets the offset of this field in the containing data structure. */
-  public void    setOffset(SizeThunk offset) { this.offset = offset; }
+  public void    setOffset(final SizeThunk offset) { this.offset = offset; }
 
   @Override
   public String toString() {
@@ -99,7 +99,7 @@ public class Field {
       }
       return "" + getType() + " " + getName() + ";";
     } else {
-      FunctionType ft = getType().asPointer().getTargetType().asFunction();
+      final FunctionType ft = getType().asPointer().getTargetType().asFunction();
       // FIXME: pick up calling convention?
       return ft.toString(getName(), null, false, true) + ";";
     }

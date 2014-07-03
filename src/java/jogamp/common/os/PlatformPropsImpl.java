@@ -106,7 +106,7 @@ public abstract class PlatformPropsImpl {
                usOff = 1;
            }
            if( 0 < usIdx ) {
-               final String buildS = Platform.JAVA_VERSION.substring(usIdx+usOff);
+               final String buildS = PlatformPropsImpl.JAVA_VERSION.substring(usIdx+usOff);
                final VersionNumber update = new VersionNumber(buildS);
                JAVA_VERSION_UPDATE = update.getMajor();
            } else {
@@ -251,7 +251,7 @@ public abstract class PlatformPropsImpl {
             Class.forName("java.nio.LongBuffer");
             Class.forName("java.nio.DoubleBuffer");
             return true;
-        } catch(ClassNotFoundException ex) {
+        } catch(final ClassNotFoundException ex) {
             // continue with Java SE check
         }
 
@@ -259,9 +259,9 @@ public abstract class PlatformPropsImpl {
     }
 
     private static final boolean queryIsLittleEndianImpl() {
-        ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
-        IntBuffer tst_i = tst_b.asIntBuffer();
-        ShortBuffer tst_s = tst_b.asShortBuffer();
+        final ByteBuffer tst_b = Buffers.newDirectByteBuffer(Buffers.SIZEOF_INT); // 32bit in native order
+        final IntBuffer tst_i = tst_b.asIntBuffer();
+        final ShortBuffer tst_s = tst_b.asShortBuffer();
         tst_i.put(0, 0x0A0B0C0D);
         return 0x0C0D == tst_s.get(0);
     }
@@ -356,7 +356,7 @@ public abstract class PlatformPropsImpl {
                     if( null != file ) {
                         res = queryABITypeImpl(file, cpuType, abiType);
                     }
-                } catch(Throwable t) {
+                } catch(final Throwable t) {
                     if(DEBUG) {
                         t.printStackTrace();
                     }
@@ -408,7 +408,7 @@ public abstract class PlatformPropsImpl {
                 abiType[0] = ABIType.GENERIC_ABI;
             }
             res = eh;
-        } catch(Throwable t) {
+        } catch(final Throwable t) {
             if(DEBUG) {
                 System.err.println("Caught: "+t.getMessage());
                 t.printStackTrace();
@@ -417,7 +417,7 @@ public abstract class PlatformPropsImpl {
             if(null != in) {
                 try {
                     in.close();
-                } catch (IOException e) { }
+                } catch (final IOException e) { }
             }
         }
         if(DEBUG) {
@@ -428,7 +428,7 @@ public abstract class PlatformPropsImpl {
     private static boolean checkFileReadAccess(final File file) {
         try {
             return file.isFile() && file.canRead();
-        } catch (Throwable t) { }
+        } catch (final Throwable t) { }
         return false;
     }
     private static File findSysLib(final String libName) {

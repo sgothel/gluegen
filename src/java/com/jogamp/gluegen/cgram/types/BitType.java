@@ -43,11 +43,11 @@ package com.jogamp.gluegen.cgram.types;
 /** Represents a bitfield in a struct. */
 
 public class BitType extends IntType implements Cloneable {
-  private IntType underlyingType;
-  private int sizeInBits;
-  private int offset;
+  private final IntType underlyingType;
+  private final int sizeInBits;
+  private final int offset;
 
-  public BitType(IntType underlyingType, int sizeInBits, int lsbOffset, int cvAttributes) {
+  public BitType(final IntType underlyingType, final int sizeInBits, final int lsbOffset, final int cvAttributes) {
     super(underlyingType.getName(), underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
     this.underlyingType = underlyingType;
     this.sizeInBits = sizeInBits;
@@ -55,12 +55,12 @@ public class BitType extends IntType implements Cloneable {
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == this) return true;
     if (arg == null || (!(arg instanceof BitType))) {
       return false;
     }
-    BitType t = (BitType) arg;
+    final BitType t = (BitType) arg;
     return (super.equals(arg) && underlyingType.equals(t.underlyingType) &&
             (sizeInBits == t.sizeInBits) && (offset == t.offset));
   }
@@ -80,13 +80,13 @@ public class BitType extends IntType implements Cloneable {
   }
 
   @Override
-  public void visit(TypeVisitor arg) {
+  public void visit(final TypeVisitor arg) {
     super.visit(arg);
     underlyingType.visit(arg);
   }
 
   @Override
-  Type newCVVariant(int cvAttributes) {
+  Type newCVVariant(final int cvAttributes) {
     return new BitType(underlyingType, sizeInBits, offset, cvAttributes);
   }
 }

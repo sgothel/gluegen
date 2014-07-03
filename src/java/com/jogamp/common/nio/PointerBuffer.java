@@ -57,17 +57,17 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** no backup array, use for direct usage only */
-    static PointerBuffer create(ByteBuffer bb) {
+    static PointerBuffer create(final ByteBuffer bb) {
         return Platform.is32Bit() ? new PointerBuffer( bb.asIntBuffer() ) : new PointerBuffer( bb.asLongBuffer() );
     }
 
     /** supports backup array */
-    PointerBuffer(IntBuffer b) {
+    PointerBuffer(final IntBuffer b) {
         super(b, ELEMENT_SIZE, b.capacity());
     }
 
     /** supports backup array */
-    PointerBuffer(LongBuffer b) {
+    PointerBuffer(final LongBuffer b) {
         super(b, ELEMENT_SIZE, b.capacity());
     }
 
@@ -79,7 +79,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** Returns a non direct PointerBuffer in native order, having a backup array */
-    public static PointerBuffer allocate(int size) {
+    public static PointerBuffer allocate(final int size) {
         if (Platform.is32Bit()) {
             return new PointerBuffer(IntBuffer.wrap(new int[size]));
         } else {
@@ -88,11 +88,11 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     }
 
     /** Returns a direct PointerBuffer in native order, w/o backup array */
-    public static PointerBuffer allocateDirect(int size) {
+    public static PointerBuffer allocateDirect(final int size) {
         return create(Buffers.newDirectByteBuffer(ELEMENT_SIZE * size));
     }
 
-    public static PointerBuffer wrap(ByteBuffer src) {
+    public static PointerBuffer wrap(final ByteBuffer src) {
         return create(src);
     }
 
@@ -118,7 +118,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
      * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code>
      * to this buffer and increment the position by <code>capacity-position</code>. */
     @Override
-    public final PointerBuffer put(PointerBuffer src) {
+    public final PointerBuffer put(final PointerBuffer src) {
         if (remaining() < src.remaining()) {
             throw new IndexOutOfBoundsException();
         }
@@ -132,7 +132,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
                  final long addr = src.get();
                  put(addr);
                  if( null != src.dataMap) {
-                     Buffer bb = (Buffer) src.dataMap.get(addr);
+                     final Buffer bb = (Buffer) src.dataMap.get(addr);
                      if(null!=bb) {
                          validateDataMap();
                          dataMap.put(addr, bb);
@@ -150,19 +150,19 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     /** Relative get method. Get the pointer value at the current position and increment the position by one. */
     @Override
     public final long get() {
-        long r = get(position);
+        final long r = get(position);
         position++;
         return r;
     }
 
     /** Absolute get method. Get the pointer value at the given index */
     @Override
-    public final long get(int idx) {
+    public final long get(final int idx) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
         if (Platform.is32Bit()) {
-            return (long) ((IntBuffer) buffer).get(idx)  & 0x00000000FFFFFFFFL;
+            return ((IntBuffer) buffer).get(idx)  & 0x00000000FFFFFFFFL;
         } else {
             return ((LongBuffer) buffer).get(idx);
         }
@@ -172,7 +172,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
      * Relative bulk get method. Copy the pointer values <code> [ position .. position+length [</code>
      * to the destination array <code> [ dest[offset] .. dest[offset+length] [ </code>
      * and increment the position by <code>length</code>. */
-    public final PointerBuffer get(long[] dest, int offset, int length) {
+    public final PointerBuffer get(final long[] dest, int offset, int length) {
         if (dest.length<offset+length) {
             throw new IndexOutOfBoundsException();
         }
@@ -188,7 +188,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
 
     /** Absolute put method. Put the pointer value at the given index */
     @Override
-    public final PointerBuffer put(int idx, long v) {
+    public final PointerBuffer put(final int idx, final long v) {
         if (0 > idx || idx >= capacity) {
             throw new IndexOutOfBoundsException();
         }
@@ -202,7 +202,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
 
     /** Relative put method. Put the pointer value at the current position and increment the position by one. */
     @Override
-    public final PointerBuffer put(long value) {
+    public final PointerBuffer put(final long value) {
         put(position, value);
         position++;
         return this;
@@ -211,7 +211,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     /**
      * Relative bulk put method. Put the pointer values <code> [ src[offset] .. src[offset+length] [</code>
      * at the current position and increment the position by <code>length</code>. */
-    public final PointerBuffer put(long[] src, int offset, int length) {
+    public final PointerBuffer put(final long[] src, int offset, int length) {
         if (src.length<offset+length) {
             throw new IndexOutOfBoundsException();
         }
@@ -231,15 +231,15 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
 
         @throws IllegalArgumentException if bb is null or not a direct buffer
      */
-    public final PointerBuffer referenceBuffer(int index, Buffer bb) {
+    public final PointerBuffer referenceBuffer(final int index, final Buffer bb) {
         if(null==bb) {
             throw new IllegalArgumentException("Buffer is null");
         }
         if(!Buffers.isDirect(bb)) {
             throw new IllegalArgumentException("Buffer is not direct");
         }
-        long mask = Platform.is32Bit() ?  0x00000000FFFFFFFFL : 0xFFFFFFFFFFFFFFFFL ;
-        long bbAddr = getDirectBufferAddressImpl(bb) & mask;
+        final long mask = Platform.is32Bit() ?  0x00000000FFFFFFFFL : 0xFFFFFFFFFFFFFFFFL ;
+        final long bbAddr = getDirectBufferAddressImpl(bb) & mask;
         if(0==bbAddr) {
             throw new RuntimeException("Couldn't determine native address of given Buffer: "+bb);
         }
@@ -252,22 +252,22 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     /** Put the address of the given direct Buffer at the end
         of this pointer array.
         Adding a reference of the given direct Buffer to this object. */
-    public final PointerBuffer referenceBuffer(Buffer bb) {
+    public final PointerBuffer referenceBuffer(final Buffer bb) {
         referenceBuffer(position, bb);
         position++;
         return this;
     }
 
-    public final Buffer getReferencedBuffer(int index) {
+    public final Buffer getReferencedBuffer(final int index) {
         if(null != dataMap) {
-            long addr = get(index);
+            final long addr = get(index);
             return (Buffer) dataMap.get(addr);
         }
         return null;
     }
 
     public final Buffer getReferencedBuffer() {
-        Buffer bb = getReferencedBuffer(position);
+        final Buffer bb = getReferencedBuffer(position);
         position++;
         return bb;
     }

@@ -14,7 +14,7 @@ class LineObject {
     super();
   }
 
-  public LineObject( LineObject lobj )
+  public LineObject( final LineObject lobj )
   {
     parent = lobj.getParent();
     source = lobj.getSource();
@@ -25,12 +25,12 @@ class LineObject {
     treatAsC = lobj.getTreatAsC();
   }
 
-  public LineObject( String src)
+  public LineObject( final String src)
   {
     source = src;
   }
 
-  public void setSource(String src)
+  public void setSource(final String src)
   {
     source = src;
   }
@@ -40,7 +40,7 @@ class LineObject {
     return source;
   }
 
-  public void setParent(LineObject par)
+  public void setParent(final LineObject par)
   {
     parent = par;
   }
@@ -50,7 +50,7 @@ class LineObject {
     return parent;
   }
 
-  public void setLine(int l)
+  public void setLine(final int l)
   {
     line = l;
   }
@@ -65,7 +65,7 @@ class LineObject {
     line++;
   }
 
-  public void setEnteringFile(boolean v)
+  public void setEnteringFile(final boolean v)
   {
     enteringFile = v;
   }
@@ -75,7 +75,7 @@ class LineObject {
     return enteringFile;
   }
 
-  public void setReturningToFile(boolean v)
+  public void setReturningToFile(final boolean v)
   {
     returningToFile = v;
   }
@@ -85,7 +85,7 @@ class LineObject {
     return returningToFile;
   }
 
-  public void setSystemHeader(boolean v)
+  public void setSystemHeader(final boolean v)
   {
     systemHeader = v;
   }
@@ -95,7 +95,7 @@ class LineObject {
     return systemHeader;
   }
 
-  public void setTreatAsC(boolean v)
+  public void setTreatAsC(final boolean v)
   {
     treatAsC = v;
   }

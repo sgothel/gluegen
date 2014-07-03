@@ -59,7 +59,7 @@ public class BitstreamData {
     public static final String[] testStringsLSB_revByte = new String[] { "01111011", "11110101", "01010011", "01111111" };
     public static final String testStringLSB_revByte = testStringsLSB_revByte[0]+testStringsLSB_revByte[1]+testStringsLSB_revByte[2]+testStringsLSB_revByte[3];
 
-    public static final void dumpData(String prefix, byte[] data, int offset, int len) {
+    public static final void dumpData(final String prefix, final byte[] data, final int offset, final int len) {
         for(int i=0; i<len; ) {
             System.err.printf("%s: %03d: ", prefix, i);
             for(int j=0; j<8 && i<len; j++, i++) {
@@ -69,7 +69,7 @@ public class BitstreamData {
             System.err.println("");
         }
     }
-    public static final void dumpData(String prefix, ByteBuffer data, int offset, int len) {
+    public static final void dumpData(final String prefix, final ByteBuffer data, final int offset, final int len) {
         for(int i=0; i<len; ) {
             System.err.printf("%s: %03d: ", prefix, i);
             for(int j=0; j<8 && i<len; j++, i++) {
@@ -80,14 +80,14 @@ public class BitstreamData {
         }
     }
 
-    public static String toHexString(int v) {
+    public static String toHexString(final int v) {
         return "0x"+Integer.toHexString(v);
     }
-    public static String toHexString(long v) {
+    public static String toHexString(final long v) {
         return "0x"+Long.toHexString(v);
     }
     public static final String strZeroPadding=  "0000000000000000000000000000000000000000000000000000000000000000"; // 64
-    public static String toBinaryString(int v, int bitCount) {
+    public static String toBinaryString(final int v, final int bitCount) {
         if( 0 == bitCount ) {
             return "";
         }
@@ -95,7 +95,7 @@ public class BitstreamData {
         final String s0 = Integer.toBinaryString( mask & v );
         return strZeroPadding.substring(0, bitCount-s0.length())+s0;
     }
-    public static String toBinaryString(long v, int bitCount) {
+    public static String toBinaryString(final long v, final int bitCount) {
         if( 0 == bitCount ) {
             return "";
         }
@@ -103,15 +103,15 @@ public class BitstreamData {
         final String s0 = Long.toBinaryString( mask & v );
         return strZeroPadding.substring(0, bitCount-s0.length())+s0;
     }
-    public static String toHexBinaryString(long v, int bitCount) {
+    public static String toHexBinaryString(final long v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
         return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
-    public static String toHexBinaryString(int v, int bitCount) {
+    public static String toHexBinaryString(final int v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
         return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
-    public static String toHexBinaryString(short v, int bitCount) {
+    public static String toHexBinaryString(final short v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
         return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }

@@ -22,7 +22,7 @@ public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
      *
      * @return the previous set <code>handler</code>, or null if none was set.
      */
-    public synchronized final URLStreamHandler setHandler(String protocol, URLStreamHandler handler) {
+    public synchronized final URLStreamHandler setHandler(final String protocol, final URLStreamHandler handler) {
         return protocolHandlers.put(protocol, handler);
     }
 
@@ -30,12 +30,12 @@ public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
      * Returns the <code>protocol</code> handler previously set via {@link #setHandler(String, URLStreamHandler)},
      * or null if none was set.
      */
-    public synchronized final URLStreamHandler getHandler(String protocol) {
+    public synchronized final URLStreamHandler getHandler(final String protocol) {
         return protocolHandlers.get(protocol);
     }
 
     @Override
-    public synchronized final URLStreamHandler createURLStreamHandler(String protocol) {
+    public synchronized final URLStreamHandler createURLStreamHandler(final String protocol) {
         return getHandler(protocol);
     }
 
@@ -52,11 +52,11 @@ public class GenericURLStreamHandlerFactory implements URLStreamHandlerFactory {
                 @Override
                 public GenericURLStreamHandlerFactory run() {
                     boolean ok = false;
-                    GenericURLStreamHandlerFactory f = new GenericURLStreamHandlerFactory();
+                    final GenericURLStreamHandlerFactory f = new GenericURLStreamHandlerFactory();
                     try {
                         URL.setURLStreamHandlerFactory(f);
                         ok = true;
-                    } catch (Throwable e) {
+                    } catch (final Throwable e) {
                         System.err.println("GenericURLStreamHandlerFactory: Setting URLStreamHandlerFactory failed: "+e.getMessage());
                     }
                     return ok ? f : null;

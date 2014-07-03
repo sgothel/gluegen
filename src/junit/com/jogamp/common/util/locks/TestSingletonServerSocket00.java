@@ -60,22 +60,22 @@ public class TestSingletonServerSocket00 {
     @Test
     public void test2ndInstanceLockTimeout() {
         Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
-        SingletonInstance instanceTwo = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+        final SingletonInstance instanceTwo = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
         Assert.assertFalse("Could lock 2nd instance: "+instanceTwo.getName(), instanceTwo.tryLock(1000)); // 10x
         System.gc(); // force cleanup
         singletonInstance.unlock();
     }
 
-    private Thread startLockUnlockOffThread(int i) {
+    private Thread startLockUnlockOffThread(final int i) {
         final Thread t = new Thread(new Runnable() {
             public void run() {
-                SingletonInstance myLock = SingletonInstance.createServerSocket(10, SINGLE_INSTANCE_LOCK_PORT);
+                final SingletonInstance myLock = SingletonInstance.createServerSocket(10, SINGLE_INSTANCE_LOCK_PORT);
                 System.err.println(Thread.currentThread().getName()+" LOCK try ..");
                 Assert.assertTrue(Thread.currentThread().getName()+" - Could not lock instance: "+myLock.getName(), myLock.tryLock(1000));
                 System.err.println(Thread.currentThread().getName()+" LOCK ON");
                 try {
                     Thread.sleep(300);
-                } catch (InterruptedException e) { }
+                } catch (final InterruptedException e) { }
                 myLock.unlock();
                 System.err.println(Thread.currentThread().getName()+" LOCK OFF");
             }
@@ -87,8 +87,8 @@ public class TestSingletonServerSocket00 {
     @Test
     public void testOffthreadLockUnlock() throws InterruptedException {
         Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
-        Thread t1 = startLockUnlockOffThread(1);
-        Thread t2 = startLockUnlockOffThread(2);
+        final Thread t1 = startLockUnlockOffThread(1);
+        final Thread t2 = startLockUnlockOffThread(2);
         Thread.sleep(300);
         System.gc(); // force cleanup
         singletonInstance.unlock();
@@ -97,8 +97,8 @@ public class TestSingletonServerSocket00 {
         }
     }
 
-    public static void main(String args[]) throws IOException, InterruptedException {
-        String tstname = TestSingletonServerSocket00.class.getName();
+    public static void main(final String args[]) throws IOException, InterruptedException {
+        final String tstname = TestSingletonServerSocket00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

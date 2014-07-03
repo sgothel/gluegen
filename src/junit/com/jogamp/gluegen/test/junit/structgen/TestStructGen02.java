@@ -31,7 +31,7 @@ public class TestStructGen02 extends JunitTracer {
         pos.setY(0.6f);
         pos.setZ(0.7f);
 
-        Pixel pixel2 = Pixel.create(pixel.getBuffer());
+        final Pixel pixel2 = Pixel.create(pixel.getBuffer());
         final Col4f color2 = pixel2.getColor();
         Assert.assertEquals(color.getR(), color2.getR(), 0.0001f);
         Assert.assertEquals(color.getG(), color2.getG(), 0.0001f);
@@ -43,8 +43,8 @@ public class TestStructGen02 extends JunitTracer {
         Assert.assertEquals(pos.getZ(), pos2.getZ(), 0.0001f);
     }
 
-    public static void main(String args[]) {
-        String tstname = TestStructGen02.class.getName();
+    public static void main(final String args[]) {
+        final String tstname = TestStructGen02.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

@@ -41,11 +41,11 @@ public class SingletonInstanceFileLock extends SingletonInstance {
     static {
         String s = null;
         try {
-            File tmpFile = File.createTempFile("TEST", "tst");
-            String absTmpFile = tmpFile.getCanonicalPath();
+            final File tmpFile = File.createTempFile("TEST", "tst");
+            final String absTmpFile = tmpFile.getCanonicalPath();
             tmpFile.delete();
             s = absTmpFile.substring(0, absTmpFile.lastIndexOf(File.separator));
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             ex.printStackTrace();
         }
         temp_file_path = s;
@@ -55,17 +55,17 @@ public class SingletonInstanceFileLock extends SingletonInstance {
         return temp_file_path;
     }
 
-    public static String getCanonicalTempLockFilePath(String basename) {
+    public static String getCanonicalTempLockFilePath(final String basename) {
         return getCanonicalTempPath() + File.separator + basename;
     }
 
-    public SingletonInstanceFileLock(long poll_ms, String lockFileBasename) {
+    public SingletonInstanceFileLock(final long poll_ms, final String lockFileBasename) {
         super(poll_ms);
         file = new File ( getCanonicalTempLockFilePath ( lockFileBasename ) );
         setupFileCleanup();
     }
 
-    public SingletonInstanceFileLock(long poll_ms, File lockFile) {
+    public SingletonInstanceFileLock(final long poll_ms, final File lockFile) {
         super(poll_ms);
         file = lockFile ;
         setupFileCleanup();
@@ -96,7 +96,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
             if (fileLock != null) {
                 return true;
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println(infoPrefix()+" III "+getName()+" - Unable to create and/or lock file");
             e.printStackTrace();
         }
@@ -118,7 +118,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
                 file.delete();
             }
             return true;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock file");
             e.printStackTrace();
         } finally {

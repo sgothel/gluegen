@@ -68,8 +68,8 @@ public class TestSingletonServerSocket02 {
         Thread.sleep(3000);
     }
 
-    public static void main(String args[]) throws IOException, InterruptedException {
-        String tstname = TestSingletonServerSocket02.class.getName();
+    public static void main(final String args[]) throws IOException, InterruptedException {
+        final String tstname = TestSingletonServerSocket02.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

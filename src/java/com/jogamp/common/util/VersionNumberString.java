@@ -44,7 +44,7 @@ public class VersionNumberString extends VersionNumber {
 
     protected final String strVal;
 
-    protected VersionNumberString(int majorRev, int minorRev, int subMinorRev, int strEnd, short _state, String versionString) {
+    protected VersionNumberString(final int majorRev, final int minorRev, final int subMinorRev, final int strEnd, final short _state, final String versionString) {
         super(majorRev, minorRev, subMinorRev, strEnd, _state);
         strVal = versionString;
     }
@@ -52,7 +52,7 @@ public class VersionNumberString extends VersionNumber {
     /**
      * See {@link VersionNumber#VersionNumber(int, int, int)}.
      */
-    public VersionNumberString(int majorRev, int minorRev, int subMinorRev, String versionString) {
+    public VersionNumberString(final int majorRev, final int minorRev, final int subMinorRev, final String versionString) {
         this(majorRev, minorRev, subMinorRev, -1, (short)(HAS_MAJOR | HAS_MINOR | HAS_SUB), versionString);
     }
 

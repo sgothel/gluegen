@@ -76,30 +76,30 @@ public class StructAccessorTest {
     public void validateGeneratedStructs() throws IOException, NoSuchMethodException, ClassNotFoundException, IllegalAccessException, InvocationTargetException {
 
         // compile testcase
-        String source = gluegenRoot + "/test/junit/com/jogamp/gluegen/StructValidator.java";
+        final String source = gluegenRoot + "/test/junit/com/jogamp/gluegen/StructValidator.java";
         compile(new File(source), testOutput + "/build/classes");
 
         // invoke test
-        Class<?> test = Class.forName("com.jogamp.gluegen.StructValidator");
+        final Class<?> test = Class.forName("com.jogamp.gluegen.StructValidator");
         test.getDeclaredMethod("validate").invoke(null);
     }
 
-    private void compile(File file, String dest) throws IOException {
+    private void compile(final File file, final String dest) throws IOException {
         compile(new File[] {file}, dest);
     }
 
     // yeah, java 6 has even a compiler api...
-    private void compile(File[] files, String destination) throws IOException {
+    private void compile(final File[] files, final String destination) throws IOException {
 
         out.println("compiling files:\n    " + Arrays.asList(files));
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<JavaFileObject>();
-        StandardJavaFileManager fileManager = compiler.getStandardFileManager(collector, null, null);
+        final JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        final DiagnosticCollector<JavaFileObject> collector = new DiagnosticCollector<JavaFileObject>();
+        final StandardJavaFileManager fileManager = compiler.getStandardFileManager(collector, null, null);
 
-        Iterable<? extends JavaFileObject> fileObj = fileManager.getJavaFileObjects(files);
+        final Iterable<? extends JavaFileObject> fileObj = fileManager.getJavaFileObjects(files);
 
-        boolean success = compiler.getTask( new OutputStreamWriter(out),
+        final boolean success = compiler.getTask( new OutputStreamWriter(out),
                                             fileManager,
                                             collector,
                                             Arrays.asList("-d", destination/*, "-verbose"*/),
@@ -108,9 +108,9 @@ public class StructAccessorTest {
 
         fileManager.close();
 
-        List<Diagnostic<? extends JavaFileObject>> list = collector.getDiagnostics();
+        final List<Diagnostic<? extends JavaFileObject>> list = collector.getDiagnostics();
         if(!list.isEmpty() || !success) {
-            for (Diagnostic<? extends JavaFileObject> d : list) {
+            for (final Diagnostic<? extends JavaFileObject> d : list) {
                 out.println("Error on line "+ d.getLineNumber());
                 out.println("Compiler Message:\n"+d.getMessage(Locale.ENGLISH));
             }

@@ -62,7 +62,7 @@ public class TestBitstream02 extends JunitTracer {
         test01Int8BitsAlignedImpl(Byte.MAX_VALUE);
         test01Int8BitsAlignedImpl((byte)0xff);
     }
-    void test01Int8BitsAlignedImpl(byte val8) throws IOException {
+    void test01Int8BitsAlignedImpl(final byte val8) throws IOException {
         // Test with buffer defined value
         final ByteBuffer bb = ByteBuffer.allocate(Buffers.SIZEOF_BYTE);
         System.err.println("XXX Test01Int8BitsAligned: value "+val8+", "+toHexBinaryString(val8, 8));
@@ -105,7 +105,7 @@ public class TestBitstream02 extends JunitTracer {
         test02Int8BitsUnalignedImpl(preBits, Byte.MAX_VALUE);
         test02Int8BitsUnalignedImpl(preBits, (byte)0xff);
     }
-    void test02Int8BitsUnalignedImpl(int preBits, byte val8) throws IOException {
+    void test02Int8BitsUnalignedImpl(final int preBits, final byte val8) throws IOException {
         final int preBytes = ( preBits + 7 ) >>> 3;
         final int byteCount = preBytes + Buffers.SIZEOF_BYTE;
         final ByteBuffer bb = ByteBuffer.allocate(byteCount);
@@ -125,8 +125,8 @@ public class TestBitstream02 extends JunitTracer {
         Assert.assertEquals(val8, r8);
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestBitstream02.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestBitstream02.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

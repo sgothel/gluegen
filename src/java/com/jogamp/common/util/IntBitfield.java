@@ -50,7 +50,7 @@ public class IntBitfield {
     /**
      * @param bitCount
      */
-    public IntBitfield(long bitCount) {
+    public IntBitfield(final long bitCount) {
         final int units = (int) Math.max(1L, ( bitCount + 7L ) >>> UNIT_SHIFT_L);
         this.storage = new int[units];
         this.bitsCountL = (long)units << UNIT_SHIFT_L ;
@@ -60,19 +60,19 @@ public class IntBitfield {
     /**
      * @param bitCount
      */
-    public IntBitfield(int bitCount) {
+    public IntBitfield(final int bitCount) {
         final int units = Math.max(1, ( bitCount + 7 ) >>> UNIT_SHIFT_I);
         this.storage = new int[units];
         this.bitsCountI = units << UNIT_SHIFT_I;
         this.bitsCountL = bitsCountI;
     }
 
-    private final void check(long bitnum) {
+    private final void check(final long bitnum) {
         if( 0 > bitnum || bitnum >= bitsCountL ) {
             throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(bitsCountL-1)+"], but is "+bitnum);
         }
     }
-    private final void check(int bitnum) {
+    private final void check(final int bitnum) {
         if( 0 > bitnum || bitnum >= bitsCountI ) {
             throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(bitsCountI-1)+"], but is "+bitnum);
         }
@@ -82,7 +82,7 @@ public class IntBitfield {
     public final long capacity() { return bitsCountL; }
 
     /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
-    public final boolean get(long bitnum) {
+    public final boolean get(final long bitnum) {
         check(bitnum);
         final int u = (int) ( bitnum >>> UNIT_SHIFT_L );
         final int b = (int) ( bitnum - ( (long)u << UNIT_SHIFT_L ) );
@@ -90,7 +90,7 @@ public class IntBitfield {
     }
 
     /** Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>. */
-    public final boolean get(int bitnum) {
+    public final boolean get(final int bitnum) {
         check(bitnum);
         final int u = bitnum >>> UNIT_SHIFT_I;
         final int b = bitnum - ( u << UNIT_SHIFT_I );
@@ -101,7 +101,7 @@ public class IntBitfield {
      * Set or clear the bit at position <code>bitnum</code> according to <code>bit</code>
      * and return the previous value.
      */
-    public final boolean put(long bitnum, boolean bit) {
+    public final boolean put(final long bitnum, final boolean bit) {
         check(bitnum);
         final int u = (int) ( bitnum >>> UNIT_SHIFT_L );
         final int b = (int) ( bitnum - ( (long)u << UNIT_SHIFT_L ) );
@@ -121,7 +121,7 @@ public class IntBitfield {
      * Set or clear the bit at position <code>bitnum</code> according to <code>bit</code>
      * and return the previous value.
      */
-    public final boolean put(int bitnum, boolean bit) {
+    public final boolean put(final int bitnum, final boolean bit) {
         check(bitnum);
         final int u = bitnum >>> UNIT_SHIFT_I;
         final int b = bitnum - ( u << UNIT_SHIFT_I );

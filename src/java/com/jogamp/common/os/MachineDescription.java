@@ -64,7 +64,7 @@ public class MachineDescription {
 
       public final Platform.CPUType cpu;
 
-      ID(Platform.CPUType cpu){
+      ID(final Platform.CPUType cpu){
           this.cpu = cpu;
       }
   }
@@ -106,7 +106,7 @@ public class MachineDescription {
       public final ID id;
       public final MachineDescription md;
 
-      StaticConfig(ID id, boolean littleEndian, int[] sizes, int[] alignments) {
+      StaticConfig(final ID id, final boolean littleEndian, final int[] sizes, final int[] alignments) {
           this.id = id;
           int i=0, j=0;
           this.md = new MachineDescription(false, littleEndian,
@@ -174,27 +174,27 @@ public class MachineDescription {
   final private int ldoubleAlignmentInBytes;
   final private int pointerAlignmentInBytes;
 
-  public MachineDescription(boolean runtimeValidated,
-                            boolean littleEndian,
+  public MachineDescription(final boolean runtimeValidated,
+                            final boolean littleEndian,
 
-                            int intSizeInBytes,
-                            int longSizeInBytes,
-                            int floatSizeInBytes,
-                            int doubleSizeInBytes,
-                            int ldoubleSizeInBytes,
-                            int pointerSizeInBytes,
-                            int pageSizeInBytes,
+                            final int intSizeInBytes,
+                            final int longSizeInBytes,
+                            final int floatSizeInBytes,
+                            final int doubleSizeInBytes,
+                            final int ldoubleSizeInBytes,
+                            final int pointerSizeInBytes,
+                            final int pageSizeInBytes,
 
-                            int int8AlignmentInBytes,
-                            int int16AlignmentInBytes,
-                            int int32AlignmentInBytes,
-                            int int64AlignmentInBytes,
-                            int intAlignmentInBytes,
-                            int longAlignmentInBytes,
-                            int floatAlignmentInBytes,
-                            int doubleAlignmentInBytes,
-                            int ldoubleAlignmentInBytes,
-                            int pointerAlignmentInBytes) {
+                            final int int8AlignmentInBytes,
+                            final int int16AlignmentInBytes,
+                            final int int32AlignmentInBytes,
+                            final int int64AlignmentInBytes,
+                            final int intAlignmentInBytes,
+                            final int longAlignmentInBytes,
+                            final int floatAlignmentInBytes,
+                            final int doubleAlignmentInBytes,
+                            final int ldoubleAlignmentInBytes,
+                            final int pointerAlignmentInBytes) {
     this.runtimeValidated = runtimeValidated;
     this.littleEndian = littleEndian;
 
@@ -273,14 +273,14 @@ public class MachineDescription {
   /**
    * @return number of pages required for size in bytes
    */
-  public int pageCount(int size) {
+  public int pageCount(final int size) {
     return ( size + ( pageSizeInBytes - 1) ) / pageSizeInBytes ; // integer arithmetic
   }
 
   /**
    * @return page aligned size in bytes
    */
-  public int pageAlignedSize(int size) {
+  public int pageAlignedSize(final int size) {
     return pageCount(size) * pageSizeInBytes;
   }
 
@@ -292,7 +292,7 @@ public class MachineDescription {
    *          otherwise <code>false</code>.
    */
   @Override
-  public final boolean equals(Object obj) {
+  public final boolean equals(final Object obj) {
       if (this == obj) { return true; }
       if ( !(obj instanceof MachineDescription) ) { return false; }
       final MachineDescription md = (MachineDescription) obj;
@@ -308,7 +308,7 @@ public class MachineDescription {
    * @return  <code>true</code> if the two MachineDescription are equal;
    *          otherwise <code>false</code>.
    */
-  public final boolean compatible(MachineDescription md) {
+  public final boolean compatible(final MachineDescription md) {
       return littleEndian == md.littleEndian &&
 
              intSizeInBytes == md.intSizeInBytes &&

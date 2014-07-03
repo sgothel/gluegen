@@ -64,13 +64,13 @@ public class Test1p2LoadJNIAndImplLib extends BaseClass {
 
 
     @SuppressWarnings("unused")
-    public static void main(String args[]) throws Exception {
+    public static void main(final String args[]) throws Exception {
         if( true ) {
             chapter01TestLoadLibrary();
-            Test1p2LoadJNIAndImplLib tst = new Test1p2LoadJNIAndImplLib();
+            final Test1p2LoadJNIAndImplLib tst = new Test1p2LoadJNIAndImplLib();
             tst.chapter02TestClassExist();
         } else {
-            String tstname = Test1p2LoadJNIAndImplLib.class.getName();
+            final String tstname = Test1p2LoadJNIAndImplLib.class.getName();
             org.junit.runner.JUnitCore.main(tstname);
         }
     }

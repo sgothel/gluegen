@@ -46,7 +46,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
      * @param args the {@link Function} arguments
      * @return the {@link Function} return value
      */
-    public static <U,V> U invoke(boolean waitUntilDone, Function<U,V> func, V... args) {
+    public static <U,V> U invoke(final boolean waitUntilDone, final Function<U,V> func, final V... args) {
         Throwable throwable = null;
         final Object sync = new Object();
         final FunctionTask<U,V> rt = new FunctionTask<U,V>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
@@ -56,7 +56,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
             if( waitUntilDone ) {
                 try {
                     sync.wait();
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     throwable = ie;
                 }
                 if(null==throwable) {
@@ -82,7 +82,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
      *                        otherwise the exception is thrown.
      * @param exceptionOut If not <code>null</code>, exceptions are written to this {@link PrintStream}.
      */
-    public FunctionTask(Function<R,A> runnable, Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
+    public FunctionTask(final Function<R,A> runnable, final Object syncObject, final boolean catchExceptions, final PrintStream exceptionOut) {
         super(syncObject, catchExceptions, exceptionOut);
         this.runnable = runnable ;
         result = null;
@@ -98,7 +98,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
      * Sets the arguments for {@link #run()}.
      * They will be cleared after calling {@link #run()} or {@link #eval(Object...)}.
      */
-    public final void setArgs(A... args) {
+    public final void setArgs(final A... args) {
         this.args = args;
     }
 
@@ -132,7 +132,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
         if(null == syncObject) {
             try {
                 this.result = runnable.eval(args);
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 runnableException = t;
                 if(null != exceptionOut) {
                     exceptionOut.println("FunctionTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -149,7 +149,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
             synchronized (syncObject) {
                 try {
                     this.result = runnable.eval(args);
-                } catch (Throwable t) {
+                } catch (final Throwable t) {
                     runnableException = t;
                     if(null != exceptionOut) {
                         exceptionOut.println("FunctionTask.run(): "+getExceptionOutIntro()+" exception occured on thread "+Thread.currentThread().getName()+": "+toString());
@@ -168,7 +168,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     }
 
     @Override
-    public final R eval(A... args) {
+    public final R eval(final A... args) {
         this.args = args;
         run();
         final R res = result;

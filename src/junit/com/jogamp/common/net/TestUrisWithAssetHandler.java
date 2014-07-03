@@ -23,7 +23,7 @@ public class TestUrisWithAssetHandler extends JunitTracer {
             Assert.assertTrue("GenericURLStreamHandlerFactory.register() failed", AssetURLContext.registerHandler(TestUrisWithAssetHandler.class.getClassLoader()));
             Assert.assertNotNull(AssetURLContext.getRegisteredHandler());
             System.err.println("******* Asset URL Stream Handler Registration: POST");
-        } catch (Exception e) {
+        } catch (final Exception e) {
             setTestSupported(false);
             throw e;
         }
@@ -43,8 +43,8 @@ public class TestUrisWithAssetHandler extends JunitTracer {
         showURX("asset:jar:file:/web1/file1.jar!/rootDir/dummyParent/../file1.txt");
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestUrisWithAssetHandler.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestUrisWithAssetHandler.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

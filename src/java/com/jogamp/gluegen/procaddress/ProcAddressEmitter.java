@@ -78,7 +78,7 @@ public class ProcAddressEmitter extends JavaEmitter {
     protected String tableClassName;
 
     @Override
-    public void beginFunctions(TypeDictionary typedefDictionary, TypeDictionary structDictionary, Map<Type, Type>  canonMap) throws Exception {
+    public void beginFunctions(final TypeDictionary typedefDictionary, final TypeDictionary structDictionary, final Map<Type, Type>  canonMap) throws Exception {
         this.typedefDictionary = typedefDictionary;
 
         if (getProcAddressConfig().emitProcAddressTable()) {
@@ -96,7 +96,7 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
 
     @Override
-    public void beginStructs(TypeDictionary typedefDictionary, TypeDictionary structDictionary, Map<Type, Type>  canonMap) throws Exception {
+    public void beginStructs(final TypeDictionary typedefDictionary, final TypeDictionary structDictionary, final Map<Type, Type>  canonMap) throws Exception {
         super.beginStructs(typedefDictionary, structDictionary, canonMap);
     }
 
@@ -114,11 +114,11 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
 
     @Override
-    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(Set<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
+    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
         return generateMethodBindingEmittersImpl(methodBindingSet, sym);
     }
 
-    protected boolean needsModifiedEmitters(FunctionSymbol sym) {
+    protected boolean needsModifiedEmitters(final FunctionSymbol sym) {
         if (!needsProcAddressWrapper(sym) || getConfig().isUnimplemented(getAliasedSymName(sym))) {
             return false;
         }
@@ -126,8 +126,8 @@ public class ProcAddressEmitter extends JavaEmitter {
         return true;
     }
 
-    private List<? extends FunctionEmitter> generateMethodBindingEmittersImpl(Set<MethodBinding> methodBindingSet, FunctionSymbol sym) throws Exception {
-        List<? extends FunctionEmitter> defaultEmitters = super.generateMethodBindingEmitters(methodBindingSet, sym);
+    private List<? extends FunctionEmitter> generateMethodBindingEmittersImpl(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
+        final List<? extends FunctionEmitter> defaultEmitters = super.generateMethodBindingEmitters(methodBindingSet, sym);
 
         // if the superclass didn't generate any bindings for the symbol, let's
         // honor that (for example, the superclass might have caught an Ignore
@@ -142,7 +142,7 @@ public class ProcAddressEmitter extends JavaEmitter {
             return defaultEmitters;
         }
 
-        ArrayList<FunctionEmitter> modifiedEmitters = new ArrayList<FunctionEmitter>(defaultEmitters.size());
+        final ArrayList<FunctionEmitter> modifiedEmitters = new ArrayList<FunctionEmitter>(defaultEmitters.size());
 
         if (needsProcAddressWrapper(sym)) {
             if (getProcAddressConfig().emitProcAddressTable()) {
@@ -150,7 +150,7 @@ public class ProcAddressEmitter extends JavaEmitter {
                 emitProcAddressTableEntryForString(getAliasedSymName(sym));
             }
         }
-        for (FunctionEmitter emitter : defaultEmitters) {
+        for (final FunctionEmitter emitter : defaultEmitters) {
             if (emitter instanceof JavaMethodBindingEmitter) {
                 generateModifiedEmitters((JavaMethodBindingEmitter)emitter, modifiedEmitters);
             } else if (emitter instanceof CMethodBindingEmitter) {
@@ -171,7 +171,7 @@ public class ProcAddressEmitter extends JavaEmitter {
      * "PFNGLFUNCNAMEPROC". This returns a valid string regardless of
      * whether or not the typedef is actually defined.
      */
-    protected String getFunctionPointerTypedefName(FunctionSymbol sym) {
+    protected String getFunctionPointerTypedefName(final FunctionSymbol sym) {
         return getProcAddressConfig().convertToFunctionPointerName(sym.getName());
     }
 
@@ -180,7 +180,7 @@ public class ProcAddressEmitter extends JavaEmitter {
     //
 
   /** If 'native', enforce 'private native' modifiers. */
-  protected void fixSecurityModifiers(JavaMethodBindingEmitter javaEmitter) {
+  protected void fixSecurityModifiers(final JavaMethodBindingEmitter javaEmitter) {
     if(  javaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
         !javaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) )
     {
@@ -192,9 +192,9 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
   }
 
-  protected void generateModifiedEmitters(JavaMethodBindingEmitter baseJavaEmitter, List<FunctionEmitter> emitters) {
+  protected void generateModifiedEmitters(final JavaMethodBindingEmitter baseJavaEmitter, final List<FunctionEmitter> emitters) {
         // See whether we need a proc address entry for this one
-        boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
+        final boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
 
         // If this emitter doesn't have a body (i.e., is a direct native
         // call with no intervening argument processing), we need to force
@@ -238,13 +238,13 @@ public class ProcAddressEmitter extends JavaEmitter {
         }
     }
 
-    protected void generateModifiedEmitters(CMethodBindingEmitter baseCEmitter, List<FunctionEmitter> emitters) {
+    protected void generateModifiedEmitters(final CMethodBindingEmitter baseCEmitter, final List<FunctionEmitter> emitters) {
 
-        FunctionSymbol cSymbol = baseCEmitter.getBinding().getCSymbol();
+        final FunctionSymbol cSymbol = baseCEmitter.getBinding().getCSymbol();
 
         // See whether we need a proc address entry for this one
-        boolean callThroughProcAddress = needsProcAddressWrapper(cSymbol);
-        boolean forceProcAddress = getProcAddressConfig().forceProcAddressGen(cSymbol.getName());
+        final boolean callThroughProcAddress = needsProcAddressWrapper(cSymbol);
+        final boolean forceProcAddress = getProcAddressConfig().forceProcAddressGen(cSymbol.getName());
 
         String forcedCallingConvention = null;
         if (forceProcAddress) {
@@ -257,17 +257,17 @@ public class ProcAddressEmitter extends JavaEmitter {
         // The C-side JNI binding for this particular function will have an
         // extra final argument, which is the address (the OpenGL procedure
         // address) of the function it needs to call
-        ProcAddressCMethodBindingEmitter res = new ProcAddressCMethodBindingEmitter(
+        final ProcAddressCMethodBindingEmitter res = new ProcAddressCMethodBindingEmitter(
                 baseCEmitter, callThroughProcAddress, forceProcAddress, forcedCallingConvention, this);
 
-        MessageFormat exp = baseCEmitter.getReturnValueCapacityExpression();
+        final MessageFormat exp = baseCEmitter.getReturnValueCapacityExpression();
         if (exp != null) {
             res.setReturnValueCapacityExpression(exp);
         }
         emitters.add(res);
     }
 
-    private String getAliasedSymName(FunctionSymbol sym) {
+    private String getAliasedSymName(final FunctionSymbol sym) {
         String symName = getConfig().getJavaSymbolRename(sym.getName());
         if (null == symName) {
             symName = sym.getName();
@@ -275,14 +275,14 @@ public class ProcAddressEmitter extends JavaEmitter {
         return symName;
     }
 
-    protected boolean needsProcAddressWrapper(FunctionSymbol sym) {
-        String symName = getAliasedSymName(sym);
+    protected boolean needsProcAddressWrapper(final FunctionSymbol sym) {
+        final String symName = getAliasedSymName(sym);
 
-        ProcAddressConfiguration config = getProcAddressConfig();
+        final ProcAddressConfiguration config = getProcAddressConfig();
 
         // We should only generate code to call through a function pointer
         // if the symbol has an associated function pointer typedef.
-        String funcPointerTypedefName = getFunctionPointerTypedefName(sym);
+        final String funcPointerTypedefName = getFunctionPointerTypedefName(sym);
         boolean shouldWrap = typedefDictionary.containsKey(funcPointerTypedefName);
         //System.err.println(funcPointerTypedefName + " defined: " + shouldWrap);
 
@@ -319,7 +319,7 @@ public class ProcAddressEmitter extends JavaEmitter {
 
         tableWriter.println("package " + implPackageName + ";");
         tableWriter.println();
-        for (String imporT : getConfig().imports()) {
+        for (final String imporT : getConfig().imports()) {
             tableWriter.println("import " + imporT + ";");
         }
         tableWriter.println("import " + ProcAddressTable.class.getName() + ";");
@@ -333,7 +333,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         tableWriter.println(tableClassAccess.getJavaName() + " final class " + tableClassName + " extends "+ ProcAddressTable.class.getSimpleName() + " {");
         tableWriter.println();
 
-        for (String string : getProcAddressConfig().getForceProcAddressGen()) {
+        for (final String string : getProcAddressConfig().getForceProcAddressGen()) {
             emitProcAddressTableEntryForString(string);
         }
 
@@ -351,7 +351,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         tableWriter.close();
     }
 
-    protected void emitProcAddressTableEntryForString(String str) {
+    protected void emitProcAddressTableEntryForString(final String str) {
         // Deal gracefully with forced proc address generation in the face
         // of having the function pointer typedef in the header file too
         if (emittedTableEntries.contains(str)) {

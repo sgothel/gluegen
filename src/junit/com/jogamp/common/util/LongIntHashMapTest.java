@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 /**
  * Created on Sunday, March 28 2010 21:01
  */
@@ -62,7 +62,7 @@ public class LongIntHashMapTest {
         iterations = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 20 : 10000;
         pairs = new LongIntUniqueRndValues(iterations);
     }
-    
+
     /**
      * Test of put method, of class LongIntHashMap.
      */
@@ -86,13 +86,13 @@ public class LongIntHashMapTest {
 
         assertEquals(map.size(), intmap.size());
 
-        for (Entry<Long, Integer> entry : map.entrySet()) {
+        for (final Entry<Long, Integer> entry : map.entrySet()) {
             assertTrue(intmap.containsKey(entry.getKey()));
             assertTrue(intmap.containsValue(entry.getValue()));
         }
 
         int i = 0;
-        for (Entry<Long, Integer> entry : map.entrySet()) {
+        for (final Entry<Long, Integer> entry : map.entrySet()) {
             assertEquals((int)entry.getValue(), intmap.remove(entry.getKey()));
             assertEquals(map.size() - i - 1, intmap.size());
             i++;
@@ -109,13 +109,13 @@ public class LongIntHashMapTest {
             map.put(pairs.keys[i], pairs.values[i]);
         }
 
-        Iterator<LongIntHashMap.Entry> iterator = map.iterator();
+        final Iterator<LongIntHashMap.Entry> iterator = map.iterator();
         assertNotNull(iterator);
         assertTrue(iterator.hasNext());
 
         int n = 0;
         while (iterator.hasNext()) {
-            LongIntHashMap.Entry entry = (LongIntHashMap.Entry)iterator.next();
+            final LongIntHashMap.Entry entry = iterator.next();
             assertNotNull(entry);
             n++;
         }
@@ -131,7 +131,7 @@ public class LongIntHashMapTest {
         benchmark(false);
     }
 
-    void benchmark(boolean warmup) {
+    void benchmark(final boolean warmup) {
 
         // simple benchmark
         final LongIntHashMap intmap      = new LongIntHashMap(1024);
@@ -145,7 +145,7 @@ public class LongIntHashMapTest {
         for (int i = 0; i < iterations; i++) {
             intmap.put(pairs.keys[i], pairs.values[i]);
         }
-        long intmapPutTime = (nanoTime() - time);
+        final long intmapPutTime = (nanoTime() - time);
         out.println("   iimap: " + intmapPutTime/1000000.0f+"ms");
 
 
@@ -153,7 +153,7 @@ public class LongIntHashMapTest {
         for (int i = 0; i < iterations; i++) {
             map.put(pairs.keys[i], pairs.values[i]);
         }
-        long mapPutTime = (nanoTime() - time);
+        final long mapPutTime = (nanoTime() - time);
         out.println("   map:   " + mapPutTime/1000000.0f+"ms");
 
 
@@ -163,14 +163,14 @@ public class LongIntHashMapTest {
         for (int i = 0; i < iterations; i++) {
             intmap.get(pairs.keys[i]);
         }
-        long intmapGetTime = (nanoTime() - time);
+        final long intmapGetTime = (nanoTime() - time);
         out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
         time = nanoTime();
         for (int i = 0; i < iterations; i++) {
             map.get(pairs.keys[i]);
         }
-        long mapGetTime = (nanoTime() - time);
+        final long mapGetTime = (nanoTime() - time);
         out.println("   map:   " + mapGetTime/1000000.0f+"ms");
 
 
@@ -181,7 +181,7 @@ public class LongIntHashMapTest {
             intmap.remove(pairs.keys[i]);
         }
         assertEquals(0, intmap.size());
-        long intmapRemoveTime = (nanoTime() - time);
+        final long intmapRemoveTime = (nanoTime() - time);
         out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
 
         time = nanoTime();
@@ -189,7 +189,7 @@ public class LongIntHashMapTest {
             map.remove(pairs.keys[i]);
         }
         assertEquals(0, map.size());
-        long mapRemoveTime = (nanoTime() - time);
+        final long mapRemoveTime = (nanoTime() - time);
         out.println("   map:   " + mapRemoveTime/1000000.0f+"ms");
 
         if(!warmup) {
@@ -202,7 +202,7 @@ public class LongIntHashMapTest {
         }
     }
 
-    public static void main(String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException {
         org.junit.runner.JUnitCore.main(LongIntHashMapTest.class.getName());
     }
 

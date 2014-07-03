@@ -174,13 +174,13 @@ public class SectionHeader {
     /** Public access to the raw elf section header */
     public final Shdr d;
 
-    private int idx;
+    private final int idx;
     private String name;
 
-    SectionHeader(byte[] buf, int offset, int length, int sectionIdx) {
+    SectionHeader(final byte[] buf, final int offset, final int length, final int sectionIdx) {
         this( ByteBuffer.wrap(buf, 0, buf.length), sectionIdx );
     }
-    SectionHeader(java.nio.ByteBuffer buf, int idx) {
+    SectionHeader(final java.nio.ByteBuffer buf, final int idx) {
         d = Shdr.create(buf);
         this.idx = idx;
         name = null;
@@ -231,7 +231,7 @@ public class SectionHeader {
      * @throws IOException if read error occurs
      * @throws IllegalArgumentException if section offset or size mismatch including size &gt; {@link Integer#MAX_VALUE}
      */
-    public Section readSection(RandomAccessFile in) throws IOException, IllegalArgumentException {
+    public Section readSection(final RandomAccessFile in) throws IOException, IllegalArgumentException {
         final int s_size = long2Int(d.getSh_size());
         if( 0 == s_size || 0 > s_size ) {
             throw new IllegalArgumentException("Shdr["+idx+"] has invalid int size: "+d.getSh_size()+" -> "+s_size);
@@ -251,7 +251,7 @@ public class SectionHeader {
      * @throws IllegalArgumentException if section offset or size mismatch including size &gt; {@link Integer#MAX_VALUE}
      * @throws IllegalArgumentException if requested read length is &gt; section size
      */
-    public Section readSection(RandomAccessFile in, byte[] b, int b_off, int r_len) throws IOException, IllegalArgumentException {
+    public Section readSection(final RandomAccessFile in, final byte[] b, final int b_off, final int r_len) throws IOException, IllegalArgumentException {
         final int s_size = long2Int(d.getSh_size());
         if( 0 == s_size || 0 > s_size ) {
             throw new IllegalArgumentException("Shdr["+idx+"] has invalid int size: "+d.getSh_size()+" -> "+s_size);
@@ -262,7 +262,7 @@ public class SectionHeader {
         return readSectionImpl(in, b, b_off, r_len);
     }
 
-    Section readSectionImpl(RandomAccessFile in, byte[] b, int b_off, int r_len) throws IOException, IllegalArgumentException {
+    Section readSectionImpl(final RandomAccessFile in, final byte[] b, final int b_off, final int r_len) throws IOException, IllegalArgumentException {
         final long s_off = d.getSh_offset();
         seek(in, s_off);
         readBytes(in, b, b_off, r_len);

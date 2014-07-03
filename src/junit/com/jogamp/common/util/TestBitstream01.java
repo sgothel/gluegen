@@ -55,7 +55,7 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBitstream01 extends JunitTracer {
 
-    Bitstream<ByteBuffer> getTestStream(final boolean msbFirst, int preBits, final int skipBits, final int postBits) throws IOException {
+    Bitstream<ByteBuffer> getTestStream(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) throws IOException {
         final int byteCount = ( preBits + skipBits + postBits + 7 ) / 8;
         final ByteBuffer bbTest = ByteBuffer.allocate(byteCount);
         final Bitstream.ByteBufferStream bbsTest = new Bitstream.ByteBufferStream(bbTest);
@@ -75,7 +75,7 @@ public class TestBitstream01 extends JunitTracer {
         return bsTest;
     }
 
-    String getTestStreamResultAsString(final boolean msbFirst, int preBits, final int skipBits, final int postBits) {
+    String getTestStreamResultAsString(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) {
         final String pre, post;
         if( msbFirst ) {
             pre = testStringMSB.substring(0, preBits);
@@ -149,7 +149,7 @@ public class TestBitstream01 extends JunitTracer {
         return sbRead.toString();
     }
 
-    void testLinearBitsImpl(final boolean msbFirst, int preBits, int skipBits, final int postBits) throws IOException {
+    void testLinearBitsImpl(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) throws IOException {
         final int totalBits = preBits+skipBits+postBits;
         System.err.println("XXX TestLinearBits: msbFirst "+msbFirst+", preBits "+preBits+", skipBits "+skipBits+", postBits "+postBits+", totalBits "+totalBits);
 
@@ -254,7 +254,7 @@ public class TestBitstream01 extends JunitTracer {
         testBulkBitsImpl(msbFirst, 16, 11,  5);
     }
 
-    void testBulkBitsImpl(final boolean msbFirst, int preBits, final int skipBits, final int postBits) throws IOException {
+    void testBulkBitsImpl(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) throws IOException {
         final int totalBits = preBits+skipBits+postBits;
         System.err.println("XXX TestBulkBits: msbFirst "+msbFirst+", preBits "+preBits+", skipBits "+skipBits+", postBits "+postBits+", totalBits "+totalBits);
 
@@ -324,18 +324,18 @@ public class TestBitstream01 extends JunitTracer {
 
         try {
             bsTest.readBit(false);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Assert.assertNotNull(e);
         }
         try {
             bsTest.writeBit(false, 1);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             Assert.assertNotNull(e);
         }
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestBitstream01.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestBitstream01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

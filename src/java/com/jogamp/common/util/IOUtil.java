@@ -98,7 +98,7 @@ public class IOUtil {
         try {
             _fosCtor = ReflectionUtil.getConstructor("java.io.FileOutputStream", new Class<?>[] { File.class }, true, IOUtil.class.getClassLoader());
             _t = null;
-        } catch (Throwable t) {
+        } catch (final Throwable t) {
             _fosCtor = null;
             _t = t;
         }
@@ -126,11 +126,11 @@ public class IOUtil {
      * @return
      * @throws IOException
      */
-    public static int copyURLConn2File(URLConnection conn, File outFile) throws IOException {
+    public static int copyURLConn2File(final URLConnection conn, final File outFile) throws IOException {
         conn.connect();  // redundant
 
         int totalNumBytes = 0;
-        InputStream in = new BufferedInputStream(conn.getInputStream());
+        final InputStream in = new BufferedInputStream(conn.getInputStream());
         try {
             totalNumBytes = copyStream2File(in, outFile, conn.getContentLength());
         } finally {
@@ -149,8 +149,8 @@ public class IOUtil {
      * @return
      * @throws IOException
      */
-    public static int copyStream2File(InputStream in, File outFile, int totalNumBytes) throws IOException {
-        OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
+    public static int copyStream2File(final InputStream in, final File outFile, int totalNumBytes) throws IOException {
+        final OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
         try {
             totalNumBytes = copyStream2Stream(in, out, totalNumBytes);
         } finally {
@@ -169,7 +169,7 @@ public class IOUtil {
      * @return
      * @throws IOException
      */
-    public static int copyStream2Stream(InputStream in, OutputStream out, int totalNumBytes) throws IOException {
+    public static int copyStream2Stream(final InputStream in, final OutputStream out, final int totalNumBytes) throws IOException {
         return copyStream2Stream(Platform.getMachineDescription().pageSizeInBytes(), in, out, totalNumBytes);
     }
 
@@ -184,7 +184,7 @@ public class IOUtil {
      * @return
      * @throws IOException
      */
-    public static int copyStream2Stream(int bufferSize, InputStream in, OutputStream out, int totalNumBytes) throws IOException {
+    public static int copyStream2Stream(final int bufferSize, final InputStream in, final OutputStream out, final int totalNumBytes) throws IOException {
         final byte[] buf = new byte[bufferSize];
         int numBytes = 0;
         while (true) {
@@ -238,7 +238,7 @@ public class IOUtil {
      *
      * @param stream input stream, which will be wrapped into a BufferedInputStream, if not already done.
      */
-    public static ByteBuffer copyStream2ByteBuffer(InputStream stream) throws IOException {
+    public static ByteBuffer copyStream2ByteBuffer(final InputStream stream) throws IOException {
         return copyStream2ByteBuffer(stream, -1);
     }
 
@@ -259,7 +259,7 @@ public class IOUtil {
         }
         final MachineDescription machine = Platform.getMachineDescription();
         ByteBuffer data = Buffers.newDirectByteBuffer( machine.pageAlignedSize( initialCapacity ) );
-        byte[] chunk = new byte[machine.pageSizeInBytes()];
+        final byte[] chunk = new byte[machine.pageSizeInBytes()];
         int chunk2Read = Math.min(machine.pageSizeInBytes(), avail);
         int numRead = 0;
         do {
@@ -296,7 +296,7 @@ public class IOUtil {
      * @return
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String slashify(String path, boolean startWithSlash, boolean endWithSlash) throws URISyntaxException {
+    public static String slashify(final String path, final boolean startWithSlash, final boolean endWithSlash) throws URISyntaxException {
         String p = path.replace('\\', '/'); // unify file separator
         if (startWithSlash && !p.startsWith("/")) {
             p = "/" + p;
@@ -312,7 +312,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
      */
-    public static URI toURISimple(File file) throws URISyntaxException {
+    public static URI toURISimple(final File file) throws URISyntaxException {
         return new URI(FILE_SCHEME, null, slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */), null);
     }
 
@@ -321,7 +321,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
      */
-    public static URI toURISimple(String protocol, String path, boolean isDirectory) throws URISyntaxException {
+    public static URI toURISimple(final String protocol, final String path, final boolean isDirectory) throws URISyntaxException {
         return new URI(protocol, null, slashify(new File(path).getAbsolutePath(), true /* startWithSlash */, isDirectory /* endWithSlash */), null);
     }
 
@@ -336,7 +336,7 @@ public class IOUtil {
      * @throws NullPointerException if file is null
      */
 
-    public static String getFileSuffix(File file) {
+    public static String getFileSuffix(final File file) {
         return getFileSuffix(file.getName());
     }
 
@@ -350,14 +350,14 @@ public class IOUtil {
      * @return lowercase suffix of the file name
      * @throws NullPointerException if filename is null
      */
-    public static String getFileSuffix(String filename) {
-        int lastDot = filename.lastIndexOf('.');
+    public static String getFileSuffix(final String filename) {
+        final int lastDot = filename.lastIndexOf('.');
         if (lastDot < 0) {
             return null;
         }
         return toLowerCase(filename.substring(lastDot + 1));
     }
-    private static String toLowerCase(String arg) {
+    private static String toLowerCase(final String arg) {
         if (arg == null) {
             return null;
         }
@@ -373,7 +373,7 @@ public class IOUtil {
      *                     the class {@link java.io.FileOutputStream} is not accessible or
      *                     the user does not have sufficient rights to access the local filesystem.
      */
-    public static FileOutputStream getFileOutputStream(File file, boolean allowOverwrite) throws IOException {
+    public static FileOutputStream getFileOutputStream(final File file, final boolean allowOverwrite) throws IOException {
         final Constructor<?> fosCtor = getFOSCtor();
         if(null == fosCtor) {
             throw new IOException("Cannot open file (" + file + ") for writing, FileOutputStream feature not available.");
@@ -383,12 +383,12 @@ public class IOUtil {
         }
         try {
             return (FileOutputStream) fosCtor.newInstance(new Object[] { file });
-        } catch (Exception e) {
+        } catch (final Exception e) {
             throw new IOException("error opening " + file + " for write. ", e);
         }
     }
 
-    public static String getClassFileName(String clazzBinName) {
+    public static String getClassFileName(final String clazzBinName) {
         // or return clazzBinName.replace('.', File.separatorChar) + ".class"; ?
         return clazzBinName.replace('.', '/') + ".class";
     }
@@ -399,7 +399,7 @@ public class IOUtil {
      * @return jar:file:/usr/local/projects/JOGL/gluegen/build-x86_64/gluegen-rt.jar!/com/jogamp/common/util/cache/TempJarCache.class
      * @throws IOException if the jar file could not been found by the ClassLoader
      */
-    public static URL getClassURL(String clazzBinName, ClassLoader cl) throws IOException {
+    public static URL getClassURL(final String clazzBinName, final ClassLoader cl) throws IOException {
         final URL url = cl.getResource(getClassFileName(clazzBinName));
         if(null == url) {
             throw new IOException("Cannot not find: "+clazzBinName);
@@ -413,7 +413,7 @@ public class IOUtil {
      */
     public static String getBasename(String fname) throws URISyntaxException {
         fname = slashify(fname, false /* startWithSlash */, false /* endWithSlash */);
-        int lios = fname.lastIndexOf('/');  // strip off dirname
+        final int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
             fname = fname.substring(lios+1);
         }
@@ -426,7 +426,7 @@ public class IOUtil {
      */
     public static String getDirname(String fname) throws URISyntaxException {
         fname = slashify(fname, false /* startWithSlash */, false /* endWithSlash */);
-        int lios = fname.lastIndexOf('/');  // strip off dirname
+        final int lios = fname.lastIndexOf('/');  // strip off dirname
         if(lios>=0) {
             fname = fname.substring(0, lios+1);
         }
@@ -445,11 +445,11 @@ public class IOUtil {
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
      * @throws URISyntaxException
      */
-    public static URI getURIDirname(URI uri) throws IllegalArgumentException, URISyntaxException {
+    public static URI getURIDirname(final URI uri) throws IllegalArgumentException, URISyntaxException {
         if(null == uri) {
             throw new IllegalArgumentException("URI is null");
         }
-        String uriS = uri.toString();
+        final String uriS = uri.toString();
         if( DEBUG ) {
             System.err.println("getURIDirname "+uri+", extForm: "+uriS);
         }
@@ -556,7 +556,7 @@ public class IOUtil {
             File f;
             try {
                 f = new File( decodeFromURI( specificURI.getPath() ) ); // validates uri, uses decoded uri.getPath() and normalizes it
-            } catch(Exception iae) {
+            } catch(final Exception iae) {
                 if( DEBUG ) {
                     System.err.println("Caught "+iae.getClass().getSimpleName()+": new File("+decodeFromURI( specificURI.getPath() )+") failed: "+iae.getMessage());
                     iae.printStackTrace();
@@ -584,7 +584,7 @@ public class IOUtil {
                             final URL fUrl = fUri.toURL();
                             System.err.println("IOUtil.toURL.1b: fUri "+fUri+PlatformPropsImpl.NEWLINE+
                                                "\t, fUrl "+fUrl);
-                        } catch (Exception ee) {
+                        } catch (final Exception ee) {
                             System.err.println("Caught "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
                             ee.printStackTrace();
                         }
@@ -612,7 +612,7 @@ public class IOUtil {
                         url = new URL(urlS);
                         mode = 2;
                     }
-                } catch (Exception mue) {
+                } catch (final Exception mue) {
                     if( DEBUG ) {
                         System.err.println("Caught "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
                         mue.printStackTrace();
@@ -624,7 +624,7 @@ public class IOUtil {
             try {
                 url = uri.toURL();
                 mode = 3;
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 if( DEBUG ) {
                     System.err.println("Caught "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
                     e.printStackTrace();
@@ -662,7 +662,7 @@ public class IOUtil {
          * @param contextCL class instance to {@link #resolve(int)} {@link #resourcePaths}.
          * @param resourcePaths array of strings denominating multiple resource paths. None shall be null.
          */
-        public ClassResources(Class<?> contextCL, String[] resourcePaths) {
+        public ClassResources(final Class<?> contextCL, final String[] resourcePaths) {
             for(int i=resourcePaths.length-1; i>=0; i--) {
                 if( null == resourcePaths[i] ) {
                     throw new IllegalArgumentException("resourcePath["+i+"] is null");
@@ -676,7 +676,7 @@ public class IOUtil {
          * Resolving one of the {@link #resourcePaths} indexed by <code>uriIndex</code> using {@link #contextCL} and {@link IOUtil#getResource(Class, String)}.
          * @throws ArrayIndexOutOfBoundsException if <code>uriIndex</code> is < 0 or >= {@link #resourceCount()}.
          */
-        public URLConnection resolve(int uriIndex) throws ArrayIndexOutOfBoundsException {
+        public URLConnection resolve(final int uriIndex) throws ArrayIndexOutOfBoundsException {
             return getResource(contextCL, resourcePaths[uriIndex]);
         }
     }
@@ -698,11 +698,11 @@ public class IOUtil {
      * @see ClassLoader#getResource(String)
      * @see ClassLoader#getSystemResource(String)
      */
-    public static URLConnection getResource(Class<?> context, String resourcePath) {
+    public static URLConnection getResource(final Class<?> context, final String resourcePath) {
         if(null == resourcePath) {
             return null;
         }
-        ClassLoader contextCL = (null!=context)?context.getClassLoader():IOUtil.class.getClassLoader();
+        final ClassLoader contextCL = (null!=context)?context.getClassLoader():IOUtil.class.getClassLoader();
         URLConnection conn = null;
         if(null != context) {
             // scoping the path within the class's package
@@ -738,7 +738,7 @@ public class IOUtil {
      * @see URL#URL(String)
      * @see File#File(String)
      */
-    public static URLConnection getResource(String resourcePath, ClassLoader cl) {
+    public static URLConnection getResource(final String resourcePath, final ClassLoader cl) {
         if(null == resourcePath) {
             return null;
         }
@@ -748,7 +748,7 @@ public class IOUtil {
         if(resourcePath.startsWith(AssetURLContext.asset_protocol_prefix)) {
             try {
                 return AssetURLContext.createURL(resourcePath, cl).openConnection();
-            } catch (IOException ioe) {
+            } catch (final IOException ioe) {
                 if(DEBUG) {
                     System.err.println("IOUtil: Caught Exception:");
                     ioe.printStackTrace();
@@ -758,7 +758,7 @@ public class IOUtil {
         } else {
             try {
                 return AssetURLContext.resolve(resourcePath, cl);
-            } catch (IOException ioe) {
+            } catch (final IOException ioe) {
                 if(DEBUG) {
                     System.err.println("IOUtil: Caught Exception:");
                     ioe.printStackTrace();
@@ -775,7 +775,7 @@ public class IOUtil {
      * @param relativeFile denotes a relative file to the baseLocation
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static String getRelativeOf(File baseLocation, String relativeFile) throws URISyntaxException {
+    public static String getRelativeOf(final File baseLocation, final String relativeFile) throws URISyntaxException {
         if(null == relativeFile) {
             return null;
         }
@@ -793,7 +793,7 @@ public class IOUtil {
      * @return parent of path
      * @throws URISyntaxException if path is empty or has no parent directory available
      */
-    public static String getParentOf(String path) throws URISyntaxException {
+    public static String getParentOf(final String path) throws URISyntaxException {
         final int pl = null!=path ? path.length() : 0;
         if(pl == 0) {
             throw new IllegalArgumentException("path is empty <"+path+">");
@@ -850,7 +850,7 @@ public class IOUtil {
      * @param relativePath denotes a relative file to the baseLocation's parent directory
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
-    public static URI getRelativeOf(URI baseURI, String relativePath) throws URISyntaxException {
+    public static URI getRelativeOf(final URI baseURI, final String relativePath) throws URISyntaxException {
         return compose(baseURI.getScheme(), baseURI.getSchemeSpecificPart(), relativePath, baseURI.getFragment());
     }
 
@@ -858,10 +858,10 @@ public class IOUtil {
      * Wraps {@link #getRelativeOf(URI, String)} for convenience.
      * @throws IOException
      */
-    public static URL getRelativeOf(URL baseURL, String relativePath) throws IOException {
+    public static URL getRelativeOf(final URL baseURL, final String relativePath) throws IOException {
         try {
             return getRelativeOf(baseURL.toURI(), relativePath).toURL();
-        } catch (URISyntaxException e) {
+        } catch (final URISyntaxException e) {
             throw new IOException(e);
         }
     }
@@ -883,7 +883,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      * @see #encodeToURI(String)
      */
-    public static URI compose(String scheme, String schemeSpecificPart, String relativePath, String fragment) throws URISyntaxException {
+    public static URI compose(final String scheme, String schemeSpecificPart, final String relativePath, final String fragment) throws URISyntaxException {
         // cut off optional query in scheme-specific-part
         final String query;
         final int queryI = schemeSpecificPart.lastIndexOf('?');
@@ -912,7 +912,7 @@ public class IOUtil {
      *   <li>SPACE -> %20</li>
      * </ul>
      */
-    public static String encodeToURI(String s) {
+    public static String encodeToURI(final String s) {
         return patternSpaceRaw.matcher(s).replaceAll("%20");
     }
 
@@ -922,7 +922,7 @@ public class IOUtil {
      *   <li>%20 -> SPACE</li>
      * </ul>
      */
-    public static String decodeFromURI(String s) {
+    public static String decodeFromURI(final String s) {
         return patternSpaceEnc.matcher(s).replaceAll(" ");
     }
 
@@ -1019,14 +1019,14 @@ public class IOUtil {
     /**
      * Returns the connected URLConnection, or null if not url is not available
      */
-    public static URLConnection openURL(URL url) {
+    public static URLConnection openURL(final URL url) {
         return openURL(url, ".");
     }
 
     /**
      * Returns the connected URLConnection, or null if not url is not available
      */
-    public static URLConnection openURL(URL url, String dbgmsg) {
+    public static URLConnection openURL(final URL url, final String dbgmsg) {
         if(null!=url) {
             try {
                 final URLConnection c = url.openConnection();
@@ -1035,7 +1035,7 @@ public class IOUtil {
                     System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - true");
                 }
                 return c;
-            } catch (IOException ioe) {
+            } catch (final IOException ioe) {
                 if(DEBUG) {
                     System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - false - "+ioe.getClass().getSimpleName()+": "+ioe.getMessage());
                     ioe.printStackTrace();
@@ -1092,7 +1092,7 @@ public class IOUtil {
      * @param shallBeWritable
      * @return
      */
-    public static boolean testFile(File file, boolean shallBeDir, boolean shallBeWritable) {
+    public static boolean testFile(final File file, final boolean shallBeDir, final boolean shallBeWritable) {
         if (!file.exists()) {
             if(DEBUG) {
                 System.err.println("IOUtil.testFile: <"+file.getAbsolutePath()+">: does not exist");
@@ -1126,7 +1126,7 @@ public class IOUtil {
      * @throws SecurityException if file creation and process execution is not allowed within the current security context
      * @param dir
      */
-    public static boolean testDirExec(File dir)
+    public static boolean testDirExec(final File dir)
             throws SecurityException
     {
         if (!testFile(dir, true, true)) {
@@ -1145,9 +1145,9 @@ public class IOUtil {
         File exetst;
         try {
             exetst = File.createTempFile("jogamp_exe_tst", getShellSuffix(), dir);
-        } catch (SecurityException se) {
+        } catch (final SecurityException se) {
             throw se; // fwd Security exception
-        } catch (IOException e) {
+        } catch (final IOException e) {
             if(DEBUG) {
                 e.printStackTrace();
             }
@@ -1156,12 +1156,12 @@ public class IOUtil {
         int res = -1;
         if(exetst.setExecutable(true /* exec */, true /* ownerOnly */)) {
             try {
-                Process pr = Runtime.getRuntime().exec(exetst.getCanonicalPath());
+                final Process pr = Runtime.getRuntime().exec(exetst.getCanonicalPath());
                 pr.waitFor() ;
                 res = pr.exitValue();
-            } catch (SecurityException se) {
+            } catch (final SecurityException se) {
                 throw se; // fwd Security exception
-            } catch (Throwable t) {
+            } catch (final Throwable t) {
                 res = -2;
                 if(DEBUG) {
                     System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
@@ -1176,7 +1176,7 @@ public class IOUtil {
         return 0 == res;
     }
 
-    private static File testDirImpl(File dir, boolean create, boolean executable, String dbgMsg)
+    private static File testDirImpl(final File dir, final boolean create, final boolean executable, final String dbgMsg)
             throws SecurityException
     {
         final File res;
@@ -1214,7 +1214,7 @@ public class IOUtil {
         return testDirImpl(dir, create, executable, "testDir");
     }
 
-    private static boolean isStringSet(String s) { return null != s && 0 < s.length(); }
+    private static boolean isStringSet(final String s) { return null != s && 0 < s.length(); }
 
     /**
      * This methods finds [and creates] an available temporary sub-directory:
@@ -1240,7 +1240,7 @@ public class IOUtil {
      * @return a temporary directory, writable by this user
      * @throws SecurityException
      */
-    private static File getSubTempDir(File tmpRoot, String tmpSubDirPrefix, boolean executable, String dbgMsg)
+    private static File getSubTempDir(final File tmpRoot, final String tmpSubDirPrefix, final boolean executable, final String dbgMsg)
         throws SecurityException
     {
        File tmpBaseDir = null;
@@ -1411,17 +1411,17 @@ public class IOUtil {
      * @throws IOException
      * @throws SecurityException
      */
-    public static File createTempFile(String prefix, String suffix, boolean executable)
+    public static File createTempFile(final String prefix, final String suffix, final boolean executable)
         throws IllegalArgumentException, IOException, SecurityException
     {
         return File.createTempFile( prefix, suffix, getTempDir(executable) );
     }
 
-    public static void close(Closeable stream, boolean throwRuntimeException) throws RuntimeException {
+    public static void close(final Closeable stream, final boolean throwRuntimeException) throws RuntimeException {
         if(null != stream) {
             try {
                 stream.close();
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 if(throwRuntimeException) {
                     throw new RuntimeException(e);
                 } else if(DEBUG) {

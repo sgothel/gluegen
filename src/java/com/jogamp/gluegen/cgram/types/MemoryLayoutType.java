@@ -30,7 +30,7 @@ package com.jogamp.gluegen.cgram.types;
 public abstract class MemoryLayoutType extends Type {
   private boolean isLayouted;
 
-  protected MemoryLayoutType(String name, SizeThunk size, int cvAttributes) {
+  protected MemoryLayoutType(final String name, final SizeThunk size, final int cvAttributes) {
       super(name, size, cvAttributes);
       isLayouted = false;
   }

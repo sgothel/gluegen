@@ -43,7 +43,7 @@ import com.jogamp.common.util.locks.RecursiveLock;
 public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
 
     private static class WaitingThread {
-        WaitingThread(Thread t) {
+        WaitingThread(final Thread t) {
             thread = t;
             signaledByUnlock = false;
         }
@@ -59,11 +59,11 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         private final Thread getOwner() {
             return getExclusiveOwnerThread();
         }
-        private final void setOwner(Thread t) {
+        private final void setOwner(final Thread t) {
             setExclusiveOwnerThread(t);
         }
-        private final void setLockedStack(Throwable s) {
-            List<Throwable> ls = LockDebugUtil.getRecursiveLockTrace();
+        private final void setLockedStack(final Throwable s) {
+            final List<Throwable> ls = LockDebugUtil.getRecursiveLockTrace();
             if(s==null) {
                 ls.remove(lockedStack);
             } else {
@@ -78,7 +78,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
         /** stack trace of the lock, only used if DEBUG */
         private Throwable lockedStack = null;
     }
-    private Sync sync = new Sync();
+    private final Sync sync = new Sync();
 
     public RecursiveLockImpl01CompleteFair() {
     }
@@ -102,7 +102,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
     }
 
     @Override
-    public final boolean isOwner(Thread thread) {
+    public final boolean isOwner(final Thread thread) {
         synchronized(sync) {
             return sync.getOwner() == thread ;
         }
@@ -155,7 +155,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                     }
                     throw new RuntimeException("Waited "+TIMEOUT+"ms for: "+toString()+" - "+threadName(Thread.currentThread()));
                 }
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException("Interrupted", e);
             }
         }
@@ -187,14 +187,14 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                 }
 
                 // enqueue at the start
-                WaitingThread wCur = new WaitingThread(cur);
+                final WaitingThread wCur = new WaitingThread(cur);
                 sync.queue.add(0, wCur);
                 do {
                     final long t0 = System.currentTimeMillis();
                     try {
                         sync.wait(timeout);
                         timeout -= System.currentTimeMillis() - t0;
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         if( !wCur.signaledByUnlock ) {
                             sync.queue.remove(wCur); // O(n)
                             throw e; // propagate interruption not send by unlock
@@ -255,7 +255,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
     }
 
     @Override
-    public final void unlock(Runnable taskAfterUnlockBeforeNotify) {
+    public final void unlock(final Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             validateLocked();
             final Thread cur = Thread.currentThread();
@@ -314,6 +314,6 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
     private final String syncName() {
         return "<"+Integer.toHexString(this.hashCode())+", "+Integer.toHexString(sync.hashCode())+">";
     }
-    private final String threadName(Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
+    private final String threadName(final Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
 }
 

@@ -44,7 +44,7 @@ public class AWTEDTExecutor implements RunnableExecutor {
     private AWTEDTExecutor() {}
 
     @Override
-    public void invoke(boolean wait, Runnable r) {
+    public void invoke(final boolean wait, final Runnable r) {
         if(EventQueue.isDispatchThread()) {
             r.run();
         } else {
@@ -54,9 +54,9 @@ public class AWTEDTExecutor implements RunnableExecutor {
             } else {
                 EventQueue.invokeLater(r);
             }
-          } catch (InvocationTargetException e) {
+          } catch (final InvocationTargetException e) {
             throw new RuntimeException(e.getTargetException());
-          } catch (InterruptedException e) {
+          } catch (final InterruptedException e) {
             throw new RuntimeException(e);
           }
         }
@@ -83,7 +83,7 @@ public class AWTEDTExecutor implements RunnableExecutor {
      * @param r the {@link Runnable} to be executed.
      * @return <code>true</code> if the {@link Runnable} has been issued for execution, otherwise <code>false</code>
      */
-    public boolean invoke(Object treeLock, boolean allowOnNonEDT, boolean wait, Runnable r) {
+    public boolean invoke(final Object treeLock, final boolean allowOnNonEDT, final boolean wait, final Runnable r) {
         if( EventQueue.isDispatchThread() ) {
             r.run();
             return true;
@@ -94,9 +94,9 @@ public class AWTEDTExecutor implements RunnableExecutor {
                 } else {
                     EventQueue.invokeLater(r);
                 }
-            } catch (InvocationTargetException e) {
+            } catch (final InvocationTargetException e) {
                 throw new RuntimeException(e.getTargetException());
-            } catch (InterruptedException e) {
+            } catch (final InterruptedException e) {
                 throw new RuntimeException(e);
             }
             return true;

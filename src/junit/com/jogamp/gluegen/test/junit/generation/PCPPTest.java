@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.os.AndroidVersion;
@@ -60,18 +60,18 @@ public class PCPPTest extends JunitTracer {
             setTestSupported(false);
         }
     }
-    
+
     @Test
     public void pcppMacroDefinitionTest() throws FileNotFoundException, IOException {
-        PCPP pp = new PCPP(Collections.<String>emptyList(), false, false);
-        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        final PCPP pp = new PCPP(Collections.<String>emptyList(), false, false);
+        final ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
 
-        String filename = "pcpptest.h";
-        String filepath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation/" + filename ;
+        final String filename = "pcpptest.h";
+        final String filepath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation/" + filename ;
         pp.run(new BufferedReader(new FileReader(filepath)), filename);
 
-        String expected =   "# 1 \"pcpptest.h\""+
+        final String expected =   "# 1 \"pcpptest.h\""+
                             "# define CL_SCHAR_MIN (-127-1)"+
                             "# define __YES__ 1"+
                             "# 16 \"pcpptest.h\""+
@@ -99,7 +99,7 @@ public class PCPPTest extends JunitTracer {
 
 
         output.flush();
-        String result = output.toString();
+        final String result = output.toString();
         output.close();
 
         System.err.println("Expected: ");
@@ -117,12 +117,12 @@ public class PCPPTest extends JunitTracer {
 
     }
 
-    private String killWhitespace(String a) {
+    private String killWhitespace(final String a) {
         return a.replaceAll("\\p{javaWhitespace}+", "");
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = PCPPTest.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = PCPPTest.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

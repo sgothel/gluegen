@@ -60,7 +60,7 @@ public class TestBitstream04 extends JunitTracer {
         test01Int32BitsImpl(ByteOrder.BIG_ENDIAN);
         test01Int32BitsImpl(ByteOrder.LITTLE_ENDIAN);
     }
-    void test01Int32BitsImpl(ByteOrder byteOrder) throws IOException {
+    void test01Int32BitsImpl(final ByteOrder byteOrder) throws IOException {
         test01Int32BitsAlignedImpl(byteOrder, 0, 0);
         test01Int32BitsAlignedImpl(byteOrder, 1, 1);
         test01Int32BitsAlignedImpl(byteOrder, -1, -1);
@@ -70,7 +70,7 @@ public class TestBitstream04 extends JunitTracer {
         test01Int32BitsAlignedImpl(byteOrder, Integer.MAX_VALUE, Integer.MAX_VALUE);
         test01Int32BitsAlignedImpl(byteOrder, 0xffffffff, -1);
     }
-    void test01Int32BitsAlignedImpl(ByteOrder byteOrder, int val32, int expUInt32Int) throws IOException {
+    void test01Int32BitsAlignedImpl(final ByteOrder byteOrder, final int val32, final int expUInt32Int) throws IOException {
         // Test with buffer defined value
         final ByteBuffer bb = ByteBuffer.allocate(Buffers.SIZEOF_INT);
         if( null != byteOrder ) {
@@ -120,7 +120,7 @@ public class TestBitstream04 extends JunitTracer {
         test02Int32BitsUnalignedImpl(ByteOrder.BIG_ENDIAN);
         test02Int32BitsUnalignedImpl(ByteOrder.LITTLE_ENDIAN);
     }
-    void test02Int32BitsUnalignedImpl(ByteOrder byteOrder) throws IOException {
+    void test02Int32BitsUnalignedImpl(final ByteOrder byteOrder) throws IOException {
         test02Int32BitsUnalignedImpl(byteOrder, 0);
         test02Int32BitsUnalignedImpl(byteOrder, 1);
         test02Int32BitsUnalignedImpl(byteOrder, 7);
@@ -129,7 +129,7 @@ public class TestBitstream04 extends JunitTracer {
         test02Int32BitsUnalignedImpl(byteOrder, 24);
         test02Int32BitsUnalignedImpl(byteOrder, 25);
     }
-    void test02Int32BitsUnalignedImpl(ByteOrder byteOrder, final int preBits) throws IOException {
+    void test02Int32BitsUnalignedImpl(final ByteOrder byteOrder, final int preBits) throws IOException {
         test02Int32BitsUnalignedImpl(byteOrder, preBits, 0, 0);
         test02Int32BitsUnalignedImpl(byteOrder, preBits, 1, 1);
         test02Int32BitsUnalignedImpl(byteOrder, preBits, -1, -1);
@@ -139,7 +139,7 @@ public class TestBitstream04 extends JunitTracer {
         test02Int32BitsUnalignedImpl(byteOrder, preBits, Integer.MAX_VALUE, Integer.MAX_VALUE);
         test02Int32BitsUnalignedImpl(byteOrder, preBits, 0xffffffff, -1);
     }
-    void test02Int32BitsUnalignedImpl(ByteOrder byteOrder, int preBits, int val32, int expUInt32Int) throws IOException {
+    void test02Int32BitsUnalignedImpl(final ByteOrder byteOrder, final int preBits, final int val32, final int expUInt32Int) throws IOException {
         final int preBytes = ( preBits + 7 ) >>> 3;
         final int byteCount = preBytes + Buffers.SIZEOF_INT;
         final ByteBuffer bb = ByteBuffer.allocate(byteCount);
@@ -171,8 +171,8 @@ public class TestBitstream04 extends JunitTracer {
         Assert.assertEquals(expUInt32Int, uint32_i);
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestBitstream04.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestBitstream04.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

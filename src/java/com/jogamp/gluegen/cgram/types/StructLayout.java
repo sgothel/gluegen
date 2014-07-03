@@ -53,11 +53,11 @@ import com.jogamp.gluegen.GlueGen;
 public class StructLayout {
   private final int baseOffset;
 
-  protected StructLayout(int baseOffset) {
+  protected StructLayout(final int baseOffset) {
     this.baseOffset = baseOffset;
   }
 
-  public void layout(CompoundType t) {
+  public void layout(final CompoundType t) {
     /**
      * - 1) align offset for the new data type,
      * - 2) add the aligned size of the new data type
@@ -103,7 +103,7 @@ public class StructLayout {
       } else if (ft.isArray()) {
         final ArrayType arrayType = ft.asArray();
         if(!arrayType.isLayouted()) {
-            CompoundType compoundElementType = arrayType.getBaseElementType().asCompound();
+            final CompoundType compoundElementType = arrayType.getBaseElementType().asCompound();
             if (compoundElementType != null) {
               if(!compoundElementType.isLayouted()) {
                   StructLayout.layout(0, compoundElementType);
@@ -144,11 +144,11 @@ public class StructLayout {
     t.setLayouted();
   }
 
-  public static StructLayout create(int baseOffset) {
+  public static StructLayout create(final int baseOffset) {
       return new StructLayout(baseOffset);
   }
 
-  public static void layout(int baseOffset, CompoundType t) {
+  public static void layout(final int baseOffset, final CompoundType t) {
       create(baseOffset).layout(t);
   }
 }

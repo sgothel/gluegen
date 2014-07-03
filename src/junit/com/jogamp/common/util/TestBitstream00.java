@@ -55,8 +55,8 @@ public class TestBitstream00 extends JunitTracer {
 
     @Test
     public void test00ShowByteOrder() {
-        int i_ff = 0xff;
-        byte b_ff = (byte)i_ff;
+        final int i_ff = 0xff;
+        final byte b_ff = (byte)i_ff;
         System.err.println("i_ff "+i_ff+", "+toHexBinaryString(i_ff, 8));
         System.err.println("b_ff "+b_ff+", "+toHexBinaryString(0xff & b_ff, 8));
 
@@ -69,7 +69,7 @@ public class TestBitstream00 extends JunitTracer {
         dumpData("tstLSB.pbyte", testBytesLSB_revByte, 0, testBytesLSB_revByte.length);
         dumpData("tstLSB.whole", testBytesLSB, 0, testBytesLSB.length);
     }
-    void showOrderImpl(ByteOrder byteOrder) {
+    void showOrderImpl(final ByteOrder byteOrder) {
         final ByteBuffer bb_long = ByteBuffer.allocate(Buffers.SIZEOF_LONG);
         if( null != byteOrder ) {
             bb_long.order(byteOrder);
@@ -129,8 +129,8 @@ public class TestBitstream00 extends JunitTracer {
         }
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestBitstream00.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestBitstream00.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

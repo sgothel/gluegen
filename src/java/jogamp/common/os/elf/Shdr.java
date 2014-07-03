@@ -3,10 +3,6 @@
 
 package jogamp.common.os.elf;
 
-import java.nio.*;
-
-import com.jogamp.gluegen.runtime.*;
-import com.jogamp.common.os.*;
 import com.jogamp.common.nio.*;
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -37,11 +33,11 @@ public class Shdr {
     return create(Buffers.newDirectByteBuffer(size()));
   }
 
-  public static Shdr create(java.nio.ByteBuffer buf) {
+  public static Shdr create(final java.nio.ByteBuffer buf) {
       return new Shdr(buf);
   }
 
-  Shdr(java.nio.ByteBuffer buf) {
+  Shdr(final java.nio.ByteBuffer buf) {
     accessor = new StructAccessor(buf);
   }
 
@@ -49,7 +45,7 @@ public class Shdr {
     return accessor.getBuffer();
   }
 
-  public Shdr setSh_name(int val) {
+  public Shdr setSh_name(final int val) {
     accessor.setIntAt(sh_name_offset[mdIdx], val);
     return this;
   }
@@ -58,7 +54,7 @@ public class Shdr {
     return accessor.getIntAt(sh_name_offset[mdIdx]);
   }
 
-  public Shdr setSh_type(int val) {
+  public Shdr setSh_type(final int val) {
     accessor.setIntAt(sh_type_offset[mdIdx], val);
     return this;
   }
@@ -67,7 +63,7 @@ public class Shdr {
     return accessor.getIntAt(sh_type_offset[mdIdx]);
   }
 
-  public Shdr setSh_flags(long val) {
+  public Shdr setSh_flags(final long val) {
     accessor.setLongAt(sh_flags_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -76,7 +72,7 @@ public class Shdr {
     return accessor.getLongAt(sh_flags_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Shdr setSh_addr(long val) {
+  public Shdr setSh_addr(final long val) {
     accessor.setLongAt(sh_addr_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -85,7 +81,7 @@ public class Shdr {
     return accessor.getLongAt(sh_addr_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Shdr setSh_offset(long val) {
+  public Shdr setSh_offset(final long val) {
     accessor.setLongAt(sh_offset_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -94,7 +90,7 @@ public class Shdr {
     return accessor.getLongAt(sh_offset_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Shdr setSh_size(long val) {
+  public Shdr setSh_size(final long val) {
     accessor.setLongAt(sh_size_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -103,7 +99,7 @@ public class Shdr {
     return accessor.getLongAt(sh_size_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Shdr setSh_link(int val) {
+  public Shdr setSh_link(final int val) {
     accessor.setIntAt(sh_link_offset[mdIdx], val);
     return this;
   }
@@ -112,7 +108,7 @@ public class Shdr {
     return accessor.getIntAt(sh_link_offset[mdIdx]);
   }
 
-  public Shdr setSh_info(int val) {
+  public Shdr setSh_info(final int val) {
     accessor.setIntAt(sh_info_offset[mdIdx], val);
     return this;
   }
@@ -121,7 +117,7 @@ public class Shdr {
     return accessor.getIntAt(sh_info_offset[mdIdx]);
   }
 
-  public Shdr setSh_addralign(long val) {
+  public Shdr setSh_addralign(final long val) {
     accessor.setLongAt(sh_addralign_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -130,7 +126,7 @@ public class Shdr {
     return accessor.getLongAt(sh_addralign_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Shdr setSh_entsize(long val) {
+  public Shdr setSh_entsize(final long val) {
     accessor.setLongAt(sh_entsize_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }

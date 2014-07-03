@@ -63,7 +63,7 @@ public final class ReflectionUtil {
     static {
         Debug.initSingleton();
         DEBUG = Debug.debug("ReflectionUtil");
-        DEBUG_STATS_FORNAME = Debug.isPropertyDefined("jogamp.debug.ReflectionUtil.forNameStats", true);
+        DEBUG_STATS_FORNAME = PropertyAccess.isPropertyDefined("jogamp.debug.ReflectionUtil.forNameStats", true);
         if(DEBUG_STATS_FORNAME) {
             forNameLock = new Object();
             forNameStats = new HashMap<String, ClassNameLookup>();
@@ -81,7 +81,7 @@ public final class ReflectionUtil {
     private static final Class<?>[] zeroTypes = new Class[0];
 
     private static class ClassNameLookup {
-        public ClassNameLookup(String name) {
+        public ClassNameLookup(final String name) {
             this.name = name;
             this.nanoCosts = 0;
             this.count = 0;
@@ -111,7 +111,7 @@ public final class ReflectionUtil {
                 sb.append(String.format("ReflectionUtil.forName: %8.3f ms, %03d invoc%n", forNameNanoCosts/1e6, forNameCount));
                 final Set<Entry<String, ClassNameLookup>> entries = forNameStats.entrySet();
                 int entryNum = 0;
-                for(Iterator<Entry<String, ClassNameLookup>> iter = entries.iterator(); iter.hasNext(); entryNum++) {
+                for(final Iterator<Entry<String, ClassNameLookup>> iter = entries.iterator(); iter.hasNext(); entryNum++) {
                     final Entry<String, ClassNameLookup> entry = iter.next();
                     sb.append(String.format("ReflectionUtil.forName[%03d]: %s%n", entryNum, entry.getValue()));
                 }
@@ -120,7 +120,7 @@ public final class ReflectionUtil {
         return sb;
     }
 
-    private static Class<?> getClassImpl(String clazzName, boolean initializeClazz, ClassLoader cl) throws ClassNotFoundException {
+    private static Class<?> getClassImpl(final String clazzName, final boolean initializeClazz, final ClassLoader cl) throws ClassNotFoundException {
         if(DEBUG_STATS_FORNAME) {
             final long t0 = System.nanoTime();
             final Class<?> res = Class.forName(clazzName, initializeClazz, cl);
@@ -151,10 +151,10 @@ public final class ReflectionUtil {
     /**
      * Returns true only if the class could be loaded.
      */
-    public static final boolean isClassAvailable(String clazzName, ClassLoader cl) {
+    public static final boolean isClassAvailable(final String clazzName, final ClassLoader cl) {
         try {
             return null != getClassImpl(clazzName, false, cl);
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             return false;
         }
     }
@@ -163,11 +163,11 @@ public final class ReflectionUtil {
      * Loads and returns the class or null.
      * @see Class#forName(java.lang.String, boolean, java.lang.ClassLoader)
      */
-    public static final Class<?> getClass(String clazzName, boolean initializeClazz, ClassLoader cl)
+    public static final Class<?> getClass(final String clazzName, final boolean initializeClazz, final ClassLoader cl)
         throws JogampRuntimeException {
         try {
             return getClassImpl(clazzName, initializeClazz, cl);
-        } catch (ClassNotFoundException e) {
+        } catch (final ClassNotFoundException e) {
             throw new JogampRuntimeException(clazzName + " not available", e);
         }
     }
@@ -176,17 +176,17 @@ public final class ReflectionUtil {
      * @param initializeClazz TODO
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor<?> getConstructor(String clazzName, Class<?>[] cstrArgTypes, boolean initializeClazz, ClassLoader cl)
+    public static final Constructor<?> getConstructor(final String clazzName, final Class<?>[] cstrArgTypes, final boolean initializeClazz, final ClassLoader cl)
         throws JogampRuntimeException {
         try {
             return getConstructor(getClassImpl(clazzName, initializeClazz, cl), cstrArgTypes);
-        } catch (ClassNotFoundException ex) {
+        } catch (final ClassNotFoundException ex) {
             throw new JogampRuntimeException(clazzName + " not available", ex);
         }
     }
 
-    static final String asString(Class<?>[] argTypes) {
-        StringBuilder args = new StringBuilder();
+    static final String asString(final Class<?>[] argTypes) {
+        final StringBuilder args = new StringBuilder();
         boolean coma = false;
         if(null != argTypes) {
             for (int i = 0; i < argTypes.length; i++) {
@@ -213,7 +213,7 @@ public final class ReflectionUtil {
      *
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    public static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes)
+    public static final Constructor<?> getConstructor(final Class<?> clazz, Class<?> ... cstrArgTypes)
         throws JogampRuntimeException {
         if(null == cstrArgTypes) {
             cstrArgTypes = zeroTypes;
@@ -221,7 +221,7 @@ public final class ReflectionUtil {
         Constructor<?> cstr = null;
         try {
             cstr = clazz.getDeclaredConstructor(cstrArgTypes);
-        } catch (NoSuchMethodException ex) {
+        } catch (final NoSuchMethodException ex) {
             // ok, cont. w/ 'isAssignableFrom()' validation
         }
         if(null == cstr) {
@@ -248,7 +248,7 @@ public final class ReflectionUtil {
         return cstr;
     }
 
-  public static final Constructor<?> getConstructor(String clazzName, ClassLoader cl)
+  public static final Constructor<?> getConstructor(final String clazzName, final ClassLoader cl)
         throws JogampRuntimeException {
     return getConstructor(clazzName, null, true, cl);
   }
@@ -256,12 +256,12 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs)
+  public static final Object createInstance(final Constructor<?> cstr, final Object ... cstrArgs)
       throws JogampRuntimeException, RuntimeException
   {
     try {
         return cstr.newInstance(cstrArgs);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Throwable t = e;
       if (t instanceof InvocationTargetException) {
         t = ((InvocationTargetException) t).getTargetException();
@@ -279,13 +279,13 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs)
+  public static final Object createInstance(final Class<?> clazz, final Class<?>[] cstrArgTypes, final Object ... cstrArgs)
       throws JogampRuntimeException, RuntimeException
   {
     return createInstance(getConstructor(clazz, cstrArgTypes), cstrArgs);
   }
 
-  public static final Object createInstance(Class<?> clazz, Object ... cstrArgs)
+  public static final Object createInstance(final Class<?> clazz, final Object ... cstrArgs)
       throws JogampRuntimeException, RuntimeException
   {
     Class<?>[] cstrArgTypes = null;
@@ -298,17 +298,17 @@ public final class ReflectionUtil {
     return createInstance(clazz, cstrArgTypes, cstrArgs);
   }
 
-  public static final Object createInstance(String clazzName, Class<?>[] cstrArgTypes, Object[] cstrArgs, ClassLoader cl)
+  public static final Object createInstance(final String clazzName, final Class<?>[] cstrArgTypes, final Object[] cstrArgs, final ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     try {
         return createInstance(getClassImpl(clazzName, true, cl), cstrArgTypes, cstrArgs);
-    } catch (ClassNotFoundException ex) {
+    } catch (final ClassNotFoundException ex) {
         throw new JogampRuntimeException(clazzName + " not available", ex);
     }
   }
 
-  public static final Object createInstance(String clazzName, Object[] cstrArgs, ClassLoader cl)
+  public static final Object createInstance(final String clazzName, final Object[] cstrArgs, final ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     Class<?>[] cstrArgTypes = null;
@@ -321,16 +321,16 @@ public final class ReflectionUtil {
     return createInstance(clazzName, cstrArgTypes, cstrArgs, cl);
   }
 
-  public static final Object createInstance(String clazzName, ClassLoader cl)
+  public static final Object createInstance(final String clazzName, final ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     return createInstance(clazzName, null, null, cl);
   }
 
-  public static final boolean instanceOf(Object obj, String clazzName) {
+  public static final boolean instanceOf(final Object obj, final String clazzName) {
     return instanceOf(obj.getClass(), clazzName);
   }
-  public static final boolean instanceOf(Class<?> clazz, String clazzName) {
+  public static final boolean instanceOf(Class<?> clazz, final String clazzName) {
     do {
         if(clazz.getName().equals(clazzName)) {
             return true;
@@ -340,14 +340,14 @@ public final class ReflectionUtil {
     return false;
   }
 
-  public static final boolean implementationOf(Object obj, String faceName) {
+  public static final boolean implementationOf(final Object obj, final String faceName) {
     return implementationOf(obj.getClass(), faceName);
   }
-  public static final boolean implementationOf(Class<?> clazz, String faceName) {
+  public static final boolean implementationOf(Class<?> clazz, final String faceName) {
     do {
-        Class<?>[] clazzes = clazz.getInterfaces();
+        final Class<?>[] clazzes = clazz.getInterfaces();
         for(int i=clazzes.length-1; i>=0; i--) {
-            Class<?> face = clazzes[i];
+            final Class<?> face = clazzes[i];
             if(face.getName().equals(faceName)) {
                 return true;
             }
@@ -357,27 +357,27 @@ public final class ReflectionUtil {
     return false;
   }
 
-  public static boolean isAWTComponent(Object target) {
+  public static boolean isAWTComponent(final Object target) {
       return instanceOf(target, AWTNames.ComponentClass);
   }
 
-  public static boolean isAWTComponent(Class<?> clazz) {
+  public static boolean isAWTComponent(final Class<?> clazz) {
       return instanceOf(clazz, AWTNames.ComponentClass);
   }
 
   /**
    * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Method getMethod(Class<?> clazz, String methodName, Class<?> ... argTypes)
+  public static final Method getMethod(final Class<?> clazz, final String methodName, final Class<?> ... argTypes)
       throws JogampRuntimeException, RuntimeException
   {
     Throwable t = null;
     Method m = null;
     try {
         m = clazz.getDeclaredMethod(methodName, argTypes);
-    } catch (NoClassDefFoundError ex0) {
+    } catch (final NoClassDefFoundError ex0) {
         t = ex0;
-    } catch (NoSuchMethodException ex1) {
+    } catch (final NoSuchMethodException ex1) {
         t = ex1;
     }
     if(null != t) {
@@ -389,12 +389,12 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the Method can not be found.
    */
-  public static final Method getMethod(String clazzName, String methodName, Class<?>[] argTypes, ClassLoader cl)
+  public static final Method getMethod(final String clazzName, final String methodName, final Class<?>[] argTypes, final ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     try {
         return getMethod(getClassImpl(clazzName, true, cl), methodName, argTypes);
-    } catch (ClassNotFoundException ex) {
+    } catch (final ClassNotFoundException ex) {
         throw new JogampRuntimeException(clazzName + " not available", ex);
     }
   }
@@ -407,12 +407,12 @@ public final class ReflectionUtil {
    * @throws JogampRuntimeException if call fails
    * @throws RuntimeException if call fails
    */
-  public static final Object callMethod(Object instance, Method method, Object ... args)
+  public static final Object callMethod(final Object instance, final Method method, final Object ... args)
       throws JogampRuntimeException, RuntimeException
   {
     try {
         return method.invoke(instance, args);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Throwable t = e;
       if (t instanceof InvocationTargetException) {
         t = ((InvocationTargetException) t).getTargetException();
@@ -430,7 +430,7 @@ public final class ReflectionUtil {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object callStaticMethod(String clazzName, String methodName, Class<?>[] argTypes, Object[] args, ClassLoader cl)
+  public static final Object callStaticMethod(final String clazzName, final String methodName, final Class<?>[] argTypes, final Object[] args, final ClassLoader cl)
       throws JogampRuntimeException, RuntimeException
   {
     return callMethod(null, getMethod(clazzName, methodName, argTypes, cl), args);
@@ -441,10 +441,10 @@ public final class ReflectionUtil {
     Method m = null;
 
     /** Check {@link #available()} before using instance. */
-    public MethodAccessor(Class<?> clazz, String methodName, Class<?> ... argTypes) {
+    public MethodAccessor(final Class<?> clazz, final String methodName, final Class<?> ... argTypes) {
         try {
             m = ReflectionUtil.getMethod(clazz, methodName, argTypes);
-        } catch (JogampRuntimeException jre) { /* method n/a */ }
+        } catch (final JogampRuntimeException jre) { /* method n/a */ }
     }
 
     /** Returns true if method is available, otherwise false. */
@@ -456,7 +456,7 @@ public final class ReflectionUtil {
      * Check {@link #available()} before calling to avoid throwing a JogampRuntimeException.
      * @throws JogampRuntimeException if method is not available
      */
-    public Object callMethod(Object instance, Object ... args) {
+    public Object callMethod(final Object instance, final Object ... args) {
         if(null == m) {
             throw new JogampRuntimeException("Method not available. Instance: "+instance);
         }

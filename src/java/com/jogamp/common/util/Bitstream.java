@@ -595,7 +595,7 @@ public class Bitstream<T> {
      * Default behavior for I/O methods is not to throw an {@link IOException}, but to return {@link #EOS}.
      * </p>
      */
-    public final void setThrowIOExceptionOnEOF(boolean enable) {
+    public final void setThrowIOExceptionOnEOF(final boolean enable) {
         throwIOExceptionOnEOF = enable;
     }
 

@@ -75,7 +75,7 @@ public class Debug extends PropertyAccess {
     return debugAll;
   }
 
-  public static final boolean debug(String subcomponent) {
+  public static final boolean debug(final String subcomponent) {
     return debugAll() || isPropertyDefined("jogamp.debug." + subcomponent, true);
   }
 }

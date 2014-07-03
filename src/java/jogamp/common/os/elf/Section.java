@@ -33,7 +33,7 @@ public class Section {
     public int offset;
     public int length;
 
-    Section(SectionHeader sh, byte[] data, int offset, int length) {
+    Section(final SectionHeader sh, final byte[] data, final int offset, final int length) {
         this.sh = sh;
         this.data = data;
         this.offset = offset;

@@ -41,7 +41,7 @@ package com.jogamp.gluegen.cgram.types;
 
 public abstract class PrimitiveType extends Type implements Cloneable {
 
-    protected PrimitiveType(String name, SizeThunk size, int cvAttributes) {
+    protected PrimitiveType(final String name, final SizeThunk size, final int cvAttributes) {
         super(name, size, cvAttributes);
     }
 

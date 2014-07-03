@@ -123,7 +123,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private final boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
-  private NativeLibrary(long libraryHandle, String libraryPath, boolean global) {
+  private NativeLibrary(final long libraryHandle, final String libraryPath, final boolean global) {
     this.libraryHandle = libraryHandle;
     this.libraryPath   = libraryPath;
     this.global        = global;
@@ -141,7 +141,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
       used to help find the library in the case of e.g. Java Web Start. */
-  public static final NativeLibrary open(String libName, ClassLoader loader) {
+  public static final NativeLibrary open(final String libName, final ClassLoader loader) {
     return open(libName, libName, libName, true, loader, true);
   }
 
@@ -149,7 +149,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
       used to help find the library in the case of e.g. Java Web Start. */
-  public static final NativeLibrary open(String libName, ClassLoader loader, boolean global) {
+  public static final NativeLibrary open(final String libName, final ClassLoader loader, final boolean global) {
     return open(libName, libName, libName, true, loader, global);
   }
 
@@ -168,27 +168,27 @@ public final class NativeLibrary implements DynamicLookupHelper {
       dynamic loading facility is used correctly the version number
       will be irrelevant.
   */
-  public static final NativeLibrary open(String windowsLibName,
-                                         String unixLibName,
-                                         String macOSXLibName,
-                                         boolean searchSystemPathFirst,
-                                         ClassLoader loader) {
+  public static final NativeLibrary open(final String windowsLibName,
+                                         final String unixLibName,
+                                         final String macOSXLibName,
+                                         final boolean searchSystemPathFirst,
+                                         final ClassLoader loader) {
     return open(windowsLibName, unixLibName, macOSXLibName, searchSystemPathFirst, loader, true);
   }
 
-  public static final NativeLibrary open(String windowsLibName,
-                                         String unixLibName,
-                                         String macOSXLibName,
-                                         boolean searchSystemPathFirst,
-                                         ClassLoader loader, boolean global) {
-    List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
+  public static final NativeLibrary open(final String windowsLibName,
+                                         final String unixLibName,
+                                         final String macOSXLibName,
+                                         final boolean searchSystemPathFirst,
+                                         final ClassLoader loader, final boolean global) {
+    final List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                        unixLibName,
                                                        macOSXLibName,
                                                        searchSystemPathFirst,
                                                        loader);
     Platform.initSingleton(); // loads native gluegen-rt library
     // Iterate down these and see which one if any we can actually find.
-    for (Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
+    for (final Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
         final String path = iter.next();
         if (DEBUG) {
             System.err.println("NativeLibrary.open(global "+global+"): Trying to load " + path);
@@ -201,7 +201,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             } else {
                 res = dynLink.openLibraryLocal(path, DEBUG);
             }
-        } catch (Throwable t1) {
+        } catch (final Throwable t1) {
             t = t1;
             res = 0;
         }
@@ -214,7 +214,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             String errstr;
             try {
                 errstr = dynLink.getLastError();
-            } catch (Throwable t2) { errstr=null; }
+            } catch (final Throwable t2) { errstr=null; }
             System.err.println("NativeLibrary.open: Last error "+errstr);
             if( null != t ) {
                 t.printStackTrace();
@@ -233,7 +233,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   @Override
-  public final long dynamicLookupFunction(String funcName) {
+  public final long dynamicLookupFunction(final String funcName) {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library is not open");
     }
@@ -241,7 +241,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   @Override
-  public final boolean isFunctionAvailable(String funcName) {
+  public final boolean isFunctionAvailable(final String funcName) {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library is not open");
     }
@@ -249,12 +249,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   /** Looks up the given function name in all loaded libraries. */
-  public static final long dynamicLookupFunctionGlobal(String funcName) {
+  public static final long dynamicLookupFunctionGlobal(final String funcName) {
     return dynLink.lookupSymbolGlobal(funcName);
   }
 
   /** Looks up the given function name in all loaded libraries. */
-  public static final boolean isFunctionAvailableGlobal(String funcName) {
+  public static final boolean isFunctionAvailableGlobal(final String funcName) {
     return 0 != dynLink.lookupSymbolGlobal(funcName);
   }
 
@@ -279,7 +279,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library already closed");
     }
-    long handle = libraryHandle;
+    final long handle = libraryHandle;
     libraryHandle = 0;
     dynLink.closeLibrary(handle);
     if (DEBUG) {
@@ -297,11 +297,11 @@ public final class NativeLibrary implements DynamicLookupHelper {
    *
    * @return basename of libName w/o path, ie. /usr/lib/libDrinkBeer.so -> DrinkBeer on Unix systems, but null on Windows.
    */
-  public static final String isValidNativeLibraryName(String libName, boolean isLowerCaseAlready) {
+  public static final String isValidNativeLibraryName(final String libName, final boolean isLowerCaseAlready) {
     final String libBaseName;
     try {
         libBaseName = IOUtil.getBasename(libName);
-    } catch (URISyntaxException uriEx) {
+    } catch (final URISyntaxException uriEx) {
         throw new IllegalArgumentException(uriEx);
     }
     final String libBaseNameLC = isLowerCaseAlready ? libBaseName : libBaseName.toLowerCase();
@@ -331,20 +331,20 @@ public final class NativeLibrary implements DynamicLookupHelper {
                                                    final String macOSXLibName,
                                                    final boolean searchSystemPathFirst,
                                                    final ClassLoader loader) {
-    List<String> paths = new ArrayList<String>();
-    String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
+    final List<String> paths = new ArrayList<String>();
+    final String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
     if (libName == null) {
       return paths;
     }
 
     // Allow user's full path specification to override our building of paths
-    File file = new File(libName);
+    final File file = new File(libName);
     if (file.isAbsolute()) {
         paths.add(libName);
         return paths;
     }
 
-    String[] baseNames = buildNames(libName);
+    final String[] baseNames = buildNames(libName);
 
     if (searchSystemPathFirst) {
       // Add just the library names to use the OS's search algorithm
@@ -402,7 +402,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
 
     // Add current working directory
-    String userDir =
+    final String userDir =
       AccessController.doPrivileged(new PrivilegedAction<String>() {
           @Override
           public String run() {
@@ -430,9 +430,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
 
-  private static final String selectName(String windowsLibName,
-                                   String unixLibName,
-                                   String macOSXLibName) {
+  private static final String selectName(final String windowsLibName,
+                                   final String unixLibName,
+                                   final String macOSXLibName) {
     switch (PlatformPropsImpl.OS_TYPE) {
       case WINDOWS:
         return windowsLibName;
@@ -452,14 +452,14 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
   }
 
-  private static final String[] buildNames(String libName) {
+  private static final String[] buildNames(final String libName) {
       // If the library name already has the prefix / suffix added
       // (principally because we want to force a version number on Unix
       // operating systems) then just return the library name.
       final String libBaseNameLC;
       try {
           libBaseNameLC = IOUtil.getBasename(libName).toLowerCase();
-      } catch (URISyntaxException uriEx) {
+      } catch (final URISyntaxException uriEx) {
           throw new IllegalArgumentException(uriEx);
       }
 
@@ -485,7 +485,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
               for (int i = suffixIdx + suffixes[0].length();
                       i < libName.length();
                       i++) {
-                  char c = libName.charAt(i);
+                  final char c = libName.charAt(i);
                   if (!(c == '.' || (c >= '0' && c <= '9'))) {
                       ok = false;
                       break;
@@ -497,7 +497,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
           }
       }
 
-      String[] res = new String[prefixes.length * suffixes.length +
+      final String[] res = new String[prefixes.length * suffixes.length +
                                 ( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
       int idx = 0;
       for (int i = 0; i < prefixes.length; i++) {
@@ -512,7 +512,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       return res;
   }
 
-  private static final void addPaths(String path, String[] baseNames, List<String> paths) {
+  private static final void addPaths(final String path, final String[] baseNames, final List<String> paths) {
     for (int j = 0; j < baseNames.length; j++) {
       paths.add(path + File.separator + baseNames[j]);
     }
@@ -532,7 +532,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
               findLibraryMethod = ClassLoader.class.getDeclaredMethod("findLibrary",
                                                                       new Class[] { String.class });
               findLibraryMethod.setAccessible(true);
-            } catch (Exception e) {
+            } catch (final Exception e) {
               // Fail silently disabling this functionality
             }
             initializedFindLibraryMethod = true;
@@ -547,12 +547,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
             public String run() {
               try {
                 return (String) findLibraryMethod.invoke(loader, new Object[] { libName });
-              } catch (Exception e) {
+              } catch (final Exception e) {
                 throw new RuntimeException(e);
               }
             }
           });
-      } catch (Exception e) {
+      } catch (final Exception e) {
         if (DEBUG) {
           e.printStackTrace();
         }

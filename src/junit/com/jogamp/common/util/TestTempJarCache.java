@@ -59,15 +59,15 @@ public class TestTempJarCache extends JunitTracer {
     static TempFileCache fileCache;
 
     static class TestClassLoader extends URLClassLoader {
-        public TestClassLoader(URL[] urls) {
+        public TestClassLoader(final URL[] urls) {
             super(urls);
         }
-        public TestClassLoader(URL[] urls, ClassLoader parent) {
+        public TestClassLoader(final URL[] urls, final ClassLoader parent) {
             super(urls, parent);
         }
     }
 
-    static void assertTempFileCachesIndividualInstances(boolean shallBeSame, TempFileCache fileCache2, TempFileCache fileCache3) {
+    static void assertTempFileCachesIndividualInstances(final boolean shallBeSame, final TempFileCache fileCache2, final TempFileCache fileCache3) {
         Assert.assertTrue(fileCache2.getTempDir().exists());
         Assert.assertTrue(fileCache2.getTempDir().isDirectory());
         Assert.assertTrue(fileCache3.getTempDir().exists());
@@ -83,30 +83,30 @@ public class TestTempJarCache extends JunitTracer {
         }
         // also verify with diff classloader/reflection method,
         // to proof that methodology is valid!
-        ClassLoader cl = fileCache2.getClass().getClassLoader();
+        final ClassLoader cl = fileCache2.getClass().getClassLoader();
         assertTempFileCachesIndividualInstances(shallBeSame, fileCache2, cl, fileCache3, cl);
     }
 
-    static void assertTempFileCachesIndividualInstances(boolean shallBeSame, Object fileCache2, ClassLoader cl2, Object fileCache3, ClassLoader cl3) {
-        Class<?> fileCacheClazz2 = ReflectionUtil.getClass(TempFileCache.class.getName(), false, cl2);
-        Class<?> fileCacheClazz3 = ReflectionUtil.getClass(TempFileCache.class.getName(), false, cl3);
+    static void assertTempFileCachesIndividualInstances(final boolean shallBeSame, final Object fileCache2, final ClassLoader cl2, final Object fileCache3, final ClassLoader cl3) {
+        final Class<?> fileCacheClazz2 = ReflectionUtil.getClass(TempFileCache.class.getName(), false, cl2);
+        final Class<?> fileCacheClazz3 = ReflectionUtil.getClass(TempFileCache.class.getName(), false, cl3);
 
-        Method fc2GetBaseDir = ReflectionUtil.getMethod(fileCacheClazz2 , "getBaseDir");
-        Method fc3GetBaseDir = ReflectionUtil.getMethod(fileCacheClazz3 , "getBaseDir");
-        Object baseDir2 = ReflectionUtil.callMethod(fileCache2, fc2GetBaseDir);
-        Object baseDir3 = ReflectionUtil.callMethod(fileCache3, fc3GetBaseDir);
+        final Method fc2GetBaseDir = ReflectionUtil.getMethod(fileCacheClazz2 , "getBaseDir");
+        final Method fc3GetBaseDir = ReflectionUtil.getMethod(fileCacheClazz3 , "getBaseDir");
+        final Object baseDir2 = ReflectionUtil.callMethod(fileCache2, fc2GetBaseDir);
+        final Object baseDir3 = ReflectionUtil.callMethod(fileCache3, fc3GetBaseDir);
         Assert.assertEquals(baseDir2, baseDir3);
 
-        Method fc2GetRootDir = ReflectionUtil.getMethod(fileCacheClazz2 , "getRootDir");
-        Method fc3GetRootDir = ReflectionUtil.getMethod(fileCacheClazz3 , "getRootDir");
-        Object rootDir2 = ReflectionUtil.callMethod(fileCache2, fc2GetRootDir);
-        Object rootDir3 = ReflectionUtil.callMethod(fileCache3, fc3GetRootDir);
+        final Method fc2GetRootDir = ReflectionUtil.getMethod(fileCacheClazz2 , "getRootDir");
+        final Method fc3GetRootDir = ReflectionUtil.getMethod(fileCacheClazz3 , "getRootDir");
+        final Object rootDir2 = ReflectionUtil.callMethod(fileCache2, fc2GetRootDir);
+        final Object rootDir3 = ReflectionUtil.callMethod(fileCache3, fc3GetRootDir);
         Assert.assertEquals(rootDir2, rootDir3);
 
-        Method fc2GetTempDir = ReflectionUtil.getMethod(fileCacheClazz2 , "getTempDir");
-        Method fc3GetTempDir = ReflectionUtil.getMethod(fileCacheClazz3 , "getTempDir");
-        Object tempDir2 = ReflectionUtil.callMethod(fileCache2, fc2GetTempDir);
-        Object tempDir3 = ReflectionUtil.callMethod(fileCache3, fc3GetTempDir);
+        final Method fc2GetTempDir = ReflectionUtil.getMethod(fileCacheClazz2 , "getTempDir");
+        final Method fc3GetTempDir = ReflectionUtil.getMethod(fileCacheClazz3 , "getTempDir");
+        final Object tempDir2 = ReflectionUtil.callMethod(fileCache2, fc2GetTempDir);
+        final Object tempDir3 = ReflectionUtil.callMethod(fileCache3, fc3GetTempDir);
 
         if(shallBeSame) {
             Assert.assertTrue("file caches are not equal", tempDir2.equals(tempDir3));
@@ -135,8 +135,8 @@ public class TestTempJarCache extends JunitTracer {
 
     @Test
     public void testTempFileCache02Instances() throws IOException {
-        TempFileCache fileCache2 = new TempFileCache();
-        TempFileCache fileCache3 = new TempFileCache();
+        final TempFileCache fileCache2 = new TempFileCache();
+        final TempFileCache fileCache3 = new TempFileCache();
 
         assertTempFileCachesIndividualInstances(false, fileCache2, fileCache3);
     }
@@ -144,7 +144,7 @@ public class TestTempJarCache extends JunitTracer {
     @Test
     public void testJarUtil01a() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
-        JarFile jarFile = JarUtil.getJarFile(GlueGenVersion.class.getName(), this.getClass().getClassLoader());
+        final JarFile jarFile = JarUtil.getJarFile(GlueGenVersion.class.getName(), this.getClass().getClassLoader());
         Assert.assertNotNull(jarFile);
         JarUtil.extract(fileCache.getTempDir(), null, jarFile, null, false, true, true);
         File f = new File(fileCache.getTempDir(), "META-INF/MANIFEST.MF");
@@ -204,13 +204,13 @@ public class TestTempJarCache extends JunitTracer {
         URI jarUriRoot = JarUtil.getJarSubURI(TempJarCache.class.getName(), cl);
         jarUriRoot = IOUtil.getURIDirname(jarUriRoot);
 
-        URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
+        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot, nativeJarName);
 
         TempJarCache.addNativeLibs(TempJarCache.class, nativeJarURI, null /* nativeLibraryPath */);
-        String libFullPath = TempJarCache.findLibrary(libBaseName);
+        final String libFullPath = TempJarCache.findLibrary(libBaseName);
         Assert.assertNotNull(libFullPath);
         Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));
-        File f = new File(libFullPath);
+        final File f = new File(libFullPath);
         Assert.assertTrue(f.exists());
     }
 
@@ -222,10 +222,10 @@ public class TestTempJarCache extends JunitTracer {
         JNILibLoaderBase.addNativeJarLibs(TempJarCache.class, libBaseName);
         Assert.assertTrue(JNILibLoaderBase.isLoaded(libBaseName));
 
-        String libFullPath = TempJarCache.findLibrary(libBaseName);
+        final String libFullPath = TempJarCache.findLibrary(libBaseName);
         Assert.assertNotNull(libFullPath);
         Assert.assertEquals(libBaseName, NativeLibrary.isValidNativeLibraryName(libFullPath, true));
-        File f = new File(libFullPath);
+        final File f = new File(libFullPath);
         Assert.assertTrue(f.exists());
     }
 
@@ -233,19 +233,19 @@ public class TestTempJarCache extends JunitTracer {
     public void testTempJarCache04aSameClassLoader() throws IOException {
         assertTempFileCachesIndividualInstances(true, TempJarCache.getTempFileCache(), TempJarCache.getTempFileCache());
 
-        ClassLoader cl = getClass().getClassLoader();
-        TempFileCache fileCache2 = (TempFileCache) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl);
-        TempFileCache fileCache3 = (TempFileCache) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl);
+        final ClassLoader cl = getClass().getClassLoader();
+        final TempFileCache fileCache2 = (TempFileCache) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl);
+        final TempFileCache fileCache3 = (TempFileCache) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl);
         assertTempFileCachesIndividualInstances(true, fileCache2, fileCache3);
     }
 
     @Test
     public void testTempJarCache04bDiffClassLoader() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
-        URL[] urls = new URL[] { JarUtil.getJarFileURI(TempJarCache.class.getName(), getClass().getClassLoader()).toURL() };
+        final URL[] urls = new URL[] { JarUtil.getJarFileURI(TempJarCache.class.getName(), getClass().getClassLoader()).toURL() };
         System.err.println("url: "+urls[0]);
-        ClassLoader cl2 = new TestClassLoader(urls, null);
-        ClassLoader cl3 = new TestClassLoader(urls, null);
+        final ClassLoader cl2 = new TestClassLoader(urls, null);
+        final ClassLoader cl3 = new TestClassLoader(urls, null);
 
         Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl2)
                            ).booleanValue());
@@ -260,14 +260,14 @@ public class TestTempJarCache extends JunitTracer {
         Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl3)
                            ).booleanValue());
 
-        Object fileCache2 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl2);
-        Object fileCache3 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl3);
+        final Object fileCache2 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl2);
+        final Object fileCache3 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl3);
 
         assertTempFileCachesIndividualInstances(false, fileCache2, cl2, fileCache3, cl3);
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestTempJarCache.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestTempJarCache.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

@@ -48,20 +48,20 @@ public class ConcatenatingReader extends FilterReader {
     // Any leftover characters go here
     private char[] curBuf;
     private int    curPos;
-    private BufferedReader reader;
+    private final BufferedReader reader;
     private static String newline = System.getProperty("line.separator");
 
     /** This class requires that the input reader be a BufferedReader so
         it can do line-oriented operations. */
-    public ConcatenatingReader(BufferedReader in) {
+    public ConcatenatingReader(final BufferedReader in) {
         super(in);
         this.reader = in;
     }
 
     @Override
     public int read() throws IOException {
-        char[] tmp = new char[1];
-        int num = read(tmp, 0, 1);
+        final char[] tmp = new char[1];
+        final int num = read(tmp, 0, 1);
         if (num < 0)
             return -1;
         return tmp[0];
@@ -74,7 +74,7 @@ public class ConcatenatingReader extends FilterReader {
     }
 
     @Override
-    public void mark(int readAheadLimit) throws IOException {
+    public void mark(final int readAheadLimit) throws IOException {
         throw new IOException("mark/reset not supported");
     }
 
@@ -91,7 +91,7 @@ public class ConcatenatingReader extends FilterReader {
     }
 
     @Override
-    public int read(char[] cbuf, int off, int len) throws IOException {
+    public int read(final char[] cbuf, int off, int len) throws IOException {
         if (curBuf == null) {
             nextLine();
         }
@@ -121,9 +121,9 @@ public class ConcatenatingReader extends FilterReader {
         long numSkipped = 0;
 
         while (n > 0) {
-            int intN = (int) n;
-            char[] tmp = new char[intN];
-            int numRead = read(tmp, 0, intN);
+            final int intN = (int) n;
+            final char[] tmp = new char[intN];
+            final int numRead = read(tmp, 0, intN);
             n -= numRead;
             numSkipped += numRead;
             if (numRead < intN)
@@ -133,7 +133,7 @@ public class ConcatenatingReader extends FilterReader {
     }
 
     private void nextLine() throws IOException {
-        String cur = reader.readLine();
+        final String cur = reader.readLine();
         if (cur == null) {
             curBuf = null;
             return;
@@ -148,7 +148,7 @@ public class ConcatenatingReader extends FilterReader {
             --numChars;
             needNewline = false;
         }
-        char[] buf = new char[numChars + (needNewline ? newline.length() : 0)];
+        final char[] buf = new char[numChars + (needNewline ? newline.length() : 0)];
         cur.getChars(0, numChars, buf, 0);
         if (needNewline) {
             newline.getChars(0, newline.length(), buf, numChars);

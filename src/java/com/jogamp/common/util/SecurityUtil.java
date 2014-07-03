@@ -56,7 +56,7 @@ public class SecurityUtil {
                 try {
                     insecPD.implies(allPermissions);
                     _hasAllPermissions = true;
-                } catch( SecurityException ace ) {
+                } catch( final SecurityException ace ) {
                     _hasAllPermissions = false;
                 }
                 hasAllPermissions = _hasAllPermissions;
@@ -92,11 +92,11 @@ public class SecurityUtil {
      * or the installed {@link SecurityManager}'s <code>checkPermission(perm)</code>
      * passes. Otherwise method returns <code>false</code>.
      */
-    public static final boolean hasPermission(Permission perm) {
+    public static final boolean hasPermission(final Permission perm) {
         try {
             checkPermission(perm);
             return true;
-        } catch( SecurityException ace ) {
+        } catch( final SecurityException ace ) {
             return false;
         }
     }
@@ -113,7 +113,7 @@ public class SecurityUtil {
      * Throws an {@link SecurityException} if an installed {@link SecurityManager}
      * does not permit the requested {@link Permission}.
      */
-    public static final void checkPermission(Permission perm) throws SecurityException {
+    public static final void checkPermission(final Permission perm) throws SecurityException {
         if( null != securityManager ) {
             securityManager.checkPermission(perm);
         }
@@ -124,11 +124,11 @@ public class SecurityUtil {
      * or the installed {@link SecurityManager}'s <code>checkLink(libName)</code>
      * passes. Otherwise method returns <code>false</code>.
      */
-    public static final boolean hasLinkPermission(String libName) {
+    public static final boolean hasLinkPermission(final String libName) {
         try {
             checkLinkPermission(libName);
             return true;
-        } catch( SecurityException ace ) {
+        } catch( final SecurityException ace ) {
             return false;
         }
     }
@@ -137,7 +137,7 @@ public class SecurityUtil {
      * Throws an {@link SecurityException} if an installed {@link SecurityManager}
      * does not permit to dynamically link the given libName.
      */
-    public static final void checkLinkPermission(String libName) throws SecurityException {
+    public static final void checkLinkPermission(final String libName) throws SecurityException {
         if( null != securityManager ) {
             securityManager.checkLink(libName);
         }
@@ -166,7 +166,7 @@ public class SecurityUtil {
         return (null != certs && certs.length>0) ? certs : null;
     }
 
-    public static final boolean equals(Certificate[] a, Certificate[] b) {
+    public static final boolean equals(final Certificate[] a, final Certificate[] b) {
         if(a == b) {
             return true;
         }

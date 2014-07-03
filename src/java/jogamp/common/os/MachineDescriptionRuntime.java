@@ -131,11 +131,11 @@ public class MachineDescriptionRuntime {
   private static MachineDescription getRuntimeImpl() {
         try {
             Platform.initSingleton(); // loads native gluegen-rt library
-        } catch (UnsatisfiedLinkError err) {
+        } catch (final UnsatisfiedLinkError err) {
             return null;
         }
 
-        int pointerSizeInBytes = getPointerSizeInBytesImpl();
+        final int pointerSizeInBytes = getPointerSizeInBytesImpl();
         switch(pointerSizeInBytes) {
             case 4:
             case 8:

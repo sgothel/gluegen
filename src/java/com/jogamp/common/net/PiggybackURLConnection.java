@@ -24,7 +24,7 @@ public abstract class PiggybackURLConnection<I extends PiggybackURLContext> exte
      * @param url the specific URL for this instance
      * @param context the piggyback context, defining state independent code and constants
      */
-    protected PiggybackURLConnection(URL url, I context) {
+    protected PiggybackURLConnection(final URL url, final I context) {
         super(url);
         this.context = context;
     }

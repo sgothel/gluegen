@@ -53,8 +53,8 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     protected String getProcAddressTableExpr;
     protected ProcAddressEmitter emitter;
 
-    public ProcAddressJavaMethodBindingEmitter(JavaMethodBindingEmitter methodToWrap, boolean callThroughProcAddress,
-            String getProcAddressTableExpr, boolean changeNameAndArguments, ProcAddressEmitter emitter) {
+    public ProcAddressJavaMethodBindingEmitter(final JavaMethodBindingEmitter methodToWrap, final boolean callThroughProcAddress,
+            final String getProcAddressTableExpr, final boolean changeNameAndArguments, final ProcAddressEmitter emitter) {
 
         super(methodToWrap);
 
@@ -74,14 +74,14 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
         }
     }
 
-    public ProcAddressJavaMethodBindingEmitter(ProcAddressJavaMethodBindingEmitter methodToWrap) {
+    public ProcAddressJavaMethodBindingEmitter(final ProcAddressJavaMethodBindingEmitter methodToWrap) {
         this(methodToWrap, methodToWrap.callThroughProcAddress, methodToWrap.getProcAddressTableExpr,
                 methodToWrap.changeNameAndArguments, methodToWrap.emitter);
     }
 
     @Override
     public String getName() {
-        String res = super.getName();
+        final String res = super.getName();
         if (changeNameAndArguments) {
             return ProcAddressEmitter.WRAP_PREFIX + res;
         }
@@ -89,7 +89,7 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected int emitArguments(PrintWriter writer) {
+    protected int emitArguments(final PrintWriter writer) {
         int numEmitted = super.emitArguments(writer);
         if (callThroughProcAddress) {
             if (changeNameAndArguments) {
@@ -107,7 +107,7 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
 
     @Override
     protected String getImplMethodName() {
-        String name = super.getImplMethodName();
+        final String name = super.getImplMethodName();
         if (callThroughProcAddress) {
             return ProcAddressEmitter.WRAP_PREFIX + name;
         }
@@ -115,11 +115,11 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected void emitPreCallSetup(MethodBinding binding, PrintWriter writer) {
+    protected void emitPreCallSetup(final MethodBinding binding, final PrintWriter writer) {
         super.emitPreCallSetup(binding, writer);
 
         if (callThroughProcAddress) {
-            String procAddressVariable = ProcAddressEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
+            final String procAddressVariable = ProcAddressEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
             writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
             writer.println("    if (__addr_ == 0) {");
             writer.format("      throw new %s(String.format(\"Method \\\"%%s\\\" not available\", \"%s\"));%n",
@@ -129,7 +129,7 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected int emitCallArguments(MethodBinding binding, PrintWriter writer) {
+    protected int emitCallArguments(final MethodBinding binding, final PrintWriter writer) {
         int numEmitted = super.emitCallArguments(binding, writer);
         if (callThroughProcAddress) {
             if (numEmitted > 0) {
@@ -146,7 +146,7 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     public class WrappedMethodCommentEmitter extends JavaMethodBindingEmitter.DefaultCommentEmitter {
 
         @Override
-        protected void emitBeginning(FunctionEmitter methodEmitter, PrintWriter writer) {
+        protected void emitBeginning(final FunctionEmitter methodEmitter, final PrintWriter writer) {
             writer.print("Entry point (through function pointer) to C language function: <br> ");
         }
     }

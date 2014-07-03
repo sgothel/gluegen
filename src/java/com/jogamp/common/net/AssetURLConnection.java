@@ -71,7 +71,7 @@ import java.net.URL;
  */
 public class AssetURLConnection extends PiggybackURLConnection<AssetURLContext> {
 
-    public AssetURLConnection(URL url, AssetURLContext implHelper) {
+    public AssetURLConnection(final URL url, final AssetURLContext implHelper) {
         super(url, implHelper);
     }
 

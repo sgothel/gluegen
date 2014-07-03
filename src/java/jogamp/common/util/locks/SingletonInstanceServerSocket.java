@@ -40,30 +40,30 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
     private final Server singletonServer;
     private final String fullName;
 
-    public SingletonInstanceServerSocket(long poll_ms, int portNumber) {
+    public SingletonInstanceServerSocket(final long poll_ms, final int portNumber) {
         super(poll_ms);
 
         // Gather the local InetAddress, loopback is prioritized
         InetAddress ilh = null;
         try {
             ilh = InetAddress.getByName(null); // loopback
-        } catch (UnknownHostException e1) { }
+        } catch (final UnknownHostException e1) { }
         if(null == ilh) {
             try {
                 ilh = InetAddress.getByName("localhost");
                 if(null!=ilh && !ilh.isLoopbackAddress()) { ilh = null; }
-            } catch (UnknownHostException e1) { }
+            } catch (final UnknownHostException e1) { }
         }
         if(null == ilh) {
             try {
                 ilh = InetAddress.getByAddress(new byte[] { 127, 0, 0, 1 } );
                 if(null!=ilh && !ilh.isLoopbackAddress()) { ilh = null; }
-            } catch (UnknownHostException e) { }
+            } catch (final UnknownHostException e) { }
         }
         if(null == ilh) {
             try {
                 ilh = InetAddress.getLocalHost();
-            } catch (UnknownHostException e) { }
+            } catch (final UnknownHostException e) { }
         }
         if(null == ilh) {
             throw new RuntimeException(infoPrefix()+" EEE Could not determine local InetAddress");
@@ -97,11 +97,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
         }
 
         // check if other JVM's locked the server socket ..
-        Socket clientSocket = singletonServer.connect();
+        final Socket clientSocket = singletonServer.connect();
         if(null != clientSocket) {
             try {
                 clientSocket.close();
-            } catch (IOException e) { }
+            } catch (final IOException e) { }
             return false;
         }
 
@@ -124,11 +124,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        private volatile boolean shallQuit = false;
        private volatile boolean alive = false;
 
-       private Object syncOnStartStop = new Object();
+       private final Object syncOnStartStop = new Object();
        private ServerSocket serverSocket = null;
        private Thread serverThread = null;  // allowing kill() to force-stop last server-thread
 
-       public Server(InetAddress localInetAddress, int portNumber) {
+       public Server(final InetAddress localInetAddress, final int portNumber) {
            this.localInetAddress = localInetAddress;
            this.portNumber = portNumber;
        }
@@ -145,11 +145,11 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                serverThread.start();
                try {
                    syncOnStartStop.wait();
-               } catch (InterruptedException ie) {
+               } catch (final InterruptedException ie) {
                    ie.printStackTrace();
                }
            }
-           boolean ok = isBound();
+           final boolean ok = isBound();
            if(!ok) {
                shutdown();
            }
@@ -164,7 +164,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                connect();
                try {
                    syncOnStartStop.wait();
-               } catch (InterruptedException ie) {
+               } catch (final InterruptedException ie) {
                    ie.printStackTrace();
                }
            }
@@ -188,14 +188,14 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            if(null != serverThread) {
                try {
                    serverThread.stop();
-               } catch(Throwable t) { }
+               } catch(final Throwable t) { }
            }
            if(null != serverSocket) {
                try {
                    final ServerSocket ss = serverSocket;
                    serverSocket = null;
                    ss.close();
-               } catch (Throwable t) { }
+               } catch (final Throwable t) { }
            }
        }
 
@@ -208,7 +208,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        public final Socket connect() {
            try {
                return new Socket(localInetAddress, portNumber);
-           } catch (Exception e) { }
+           } catch (final Exception e) { }
            return null;
        }
 
@@ -227,7 +227,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    serverSocket = new ServerSocket(portNumber, 1, localInetAddress);
                    serverSocket.setReuseAddress(true); // reuse same port w/ subsequent instance, i.e. overcome TO state when JVM crashed
                    alive = true;
-               } catch (IOException e) {
+               } catch (final IOException e) {
                     System.err.println(infoPrefix()+" III - Unable to install ServerSocket: "+e.getMessage());
                     shallQuit = true;
                } finally {
@@ -239,7 +239,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                try {
                    final Socket clientSocket = serverSocket.accept();
                    clientSocket.close();
-               } catch (IOException ioe) {
+               } catch (final IOException ioe) {
                    System.err.println(infoPrefix()+" EEE - Exception during accept: " + ioe.getMessage());
                }
            }
@@ -249,7 +249,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                    if(null != serverSocket) {
                        serverSocket.close();
                    }
-               } catch (IOException e) {
+               } catch (final IOException e) {
                    System.err.println(infoPrefix()+" EEE - Exception during close: " + e.getMessage());
                } finally {
                    serverSocket = null;

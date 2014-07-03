@@ -8,10 +8,10 @@ import java.util.Enumeration;
 public class CSymbolTable {
 
   /** holds list of scopes */
-  private Vector<String> scopeStack;
+  private final Vector<String> scopeStack;
 
   /** table where all defined names are mapped to TNode tree nodes */
-  private Hashtable<String, TNode> symTable;
+  private final Hashtable<String, TNode> symTable;
 
   public CSymbolTable()  {
     scopeStack = new Vector<String>(10);
@@ -21,7 +21,7 @@ public class CSymbolTable {
 
   /** push a new scope onto the scope stack.
     */
-  public void pushScope(String s) {
+  public void pushScope(final String s) {
       //System.out.println("push scope:" + s);
     scopeStack.addElement(s);
   }
@@ -30,7 +30,7 @@ public class CSymbolTable {
     */
   public void popScope() {
       //System.out.println("pop scope");
-    int size = scopeStack.size();
+    final int size = scopeStack.size();
     if(size > 0)
       scopeStack.removeElementAt(size - 1);
   }
@@ -38,9 +38,9 @@ public class CSymbolTable {
   /** return the current scope as a string
    */
   public String currentScopeAsString() {
-      StringBuilder buf = new StringBuilder(100);
+      final StringBuilder buf = new StringBuilder(100);
       boolean first = true;
-      Enumeration<String> e = scopeStack.elements();
+      final Enumeration<String> e = scopeStack.elements();
       while(e.hasMoreElements()) {
         if(first)
           first = false;
@@ -54,15 +54,15 @@ public class CSymbolTable {
   /** given a name for a type, append it with the
     current scope.
     */
-  public String addCurrentScopeToName(String name) {
-    String currScope = currentScopeAsString();
+  public String addCurrentScopeToName(final String name) {
+    final String currScope = currentScopeAsString();
     return addScopeToName(currScope, name);
   }
 
   /** given a name for a type, append it with the
     given scope.  MBZ
     */
-  public String addScopeToName(String scope, String name) {
+  public String addScopeToName(final String scope, final String name) {
     if(scope == null || scope.length() > 0)
       return scope + "::" + name;
     else
@@ -70,8 +70,8 @@ public class CSymbolTable {
   }
 
   /** remove one level of scope from name MBZ*/
-  public String removeOneLevelScope(String scopeName) {
-    int index = scopeName.lastIndexOf("::");
+  public String removeOneLevelScope(final String scopeName) {
+    final int index = scopeName.lastIndexOf("::");
     if (index > 0) {
       return scopeName.substring(0,index);
     }
@@ -83,13 +83,13 @@ public class CSymbolTable {
 
   /** add a node to the table with it's key as
     the current scope and the name */
-  public TNode add(String name, TNode node) {
+  public TNode add(final String name, final TNode node) {
     return symTable.put(addCurrentScopeToName(name),node);
   }
 
 
   /** lookup a fully scoped name in the symbol table */
-  public TNode lookupScopedName(String scopedName) {
+  public TNode lookupScopedName(final String scopedName) {
     return symTable.get(scopedName);
   }
 
@@ -97,7 +97,7 @@ public class CSymbolTable {
     the current scope.
     MBZ -- if not found, pop scopes and look again
     */
-  public TNode lookupNameInCurrentScope(String name) {
+  public TNode lookupNameInCurrentScope(final String name) {
     String scope = currentScopeAsString();
     String scopedName;
     TNode tnode = null;
@@ -116,11 +116,11 @@ public class CSymbolTable {
   /** convert this table to a string */
   @Override
   public String toString() {
-    StringBuilder buff = new StringBuilder(300);
+    final StringBuilder buff = new StringBuilder(300);
     buff.append("CSymbolTable { \nCurrentScope: " + currentScopeAsString() +
                 "\nDefinedSymbols:\n");
-    Enumeration<String> ke = symTable.keys();
-    Enumeration<TNode> ve = symTable.elements();
+    final Enumeration<String> ke = symTable.keys();
+    final Enumeration<TNode> ve = symTable.elements();
     while(ke.hasMoreElements()) {
       buff.append(ke.nextElement().toString());
       buff.append(" (").append(TNode.getNameForType(ve.nextElement().getType())).append(")\n");

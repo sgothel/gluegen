@@ -61,10 +61,10 @@ public class ProcAddressConfiguration extends JavaConfiguration {
     // This is needed only on Windows. Ideally we would modify the
     // HeaderParser and PCPP to automatically pick up the calling
     // convention from the headers
-    private Map<String, String> localProcAddressCallingConventionMap = new HashMap<String, String>();
+    private final Map<String, String> localProcAddressCallingConventionMap = new HashMap<String, String>();
 
     @Override
-    protected void dispatch(String cmd, StringTokenizer tok, File file, String filename, int lineNo) throws IOException {
+    protected void dispatch(final String cmd, final StringTokenizer tok, final File file, final String filename, final int lineNo) throws IOException {
         if (cmd.equalsIgnoreCase("EmitProcAddressTable")) {
             emitProcAddressTable = readBoolean("EmitProcAddressTable", tok, filename, lineNo).booleanValue();
         } else if (cmd.equalsIgnoreCase("ProcAddressTablePackage")) {
@@ -72,10 +72,10 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         } else if (cmd.equalsIgnoreCase("ProcAddressTableClassName")) {
             tableClassName = readString("ProcAddressTableClassName", tok, filename, lineNo);
         } else if (cmd.equalsIgnoreCase("SkipProcAddressGen")) {
-            String sym = readString("SkipProcAddressGen", tok, filename, lineNo);
+            final String sym = readString("SkipProcAddressGen", tok, filename, lineNo);
             skipProcAddressGen.add(sym);
         } else if (cmd.equalsIgnoreCase("ForceProcAddressGen")) {
-            String funcName = readString("ForceProcAddressGen", tok, filename, lineNo);
+            final String funcName = readString("ForceProcAddressGen", tok, filename, lineNo);
             if (funcName.equals("__ALL__")) {
                 forceProcAddressGen4All = true;
             } else {
@@ -92,24 +92,24 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         }
     }
 
-    protected String readGetProcAddressTableExpr(StringTokenizer tok, String filename, int lineNo) {
+    protected String readGetProcAddressTableExpr(final StringTokenizer tok, final String filename, final int lineNo) {
         try {
-            String restOfLine = tok.nextToken("\n\r\f");
+            final String restOfLine = tok.nextToken("\n\r\f");
             return restOfLine.trim();
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             throw new RuntimeException("Error parsing \"GetProcAddressTableExpr\" command at line " + lineNo
                     + " in file \"" + filename + "\"", e);
         }
     }
 
-    protected void setProcAddressNameExpr(String expr) {
+    protected void setProcAddressNameExpr(final String expr) {
         // Parse this into something allowing us to map from a function
         // name to the typedef'ed function pointer name
-        List<String> tokens = new ArrayList<String>();
-        StringTokenizer tok1 = new StringTokenizer(expr);
+        final List<String> tokens = new ArrayList<String>();
+        final StringTokenizer tok1 = new StringTokenizer(expr);
         while (tok1.hasMoreTokens()) {
-            String sstr = tok1.nextToken();
-            StringTokenizer tok2 = new StringTokenizer(sstr, "$()", true);
+            final String sstr = tok1.nextToken();
+            final StringTokenizer tok2 = new StringTokenizer(sstr, "$()", true);
             while (tok2.hasMoreTokens()) {
                 tokens.add(tok2.nextToken());
             }
@@ -122,40 +122,40 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         }
     }
 
-    protected void readProcAddressNameExpr(StringTokenizer tok, String filename, int lineNo) {
+    protected void readProcAddressNameExpr(final StringTokenizer tok, final String filename, final int lineNo) {
         try {
             String restOfLine = tok.nextToken("\n\r\f");
             restOfLine = restOfLine.trim();
             setProcAddressNameExpr(restOfLine);
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             throw new RuntimeException("Error parsing \"ProcAddressNameExpr\" command at line " + lineNo
                     + " in file \"" + filename + "\"", e);
         }
     }
 
-    protected void readLocalProcAddressCallingConvention(StringTokenizer tok, String filename, int lineNo) throws IOException {
+    protected void readLocalProcAddressCallingConvention(final StringTokenizer tok, final String filename, final int lineNo) throws IOException {
         try {
-            String functionName = tok.nextToken();
-            String callingConvention = tok.nextToken();
+            final String functionName = tok.nextToken();
+            final String callingConvention = tok.nextToken();
             if (functionName.equals("__ALL__")) {
                 localProcAddressCallingConvention4All = callingConvention;
             } else {
                 localProcAddressCallingConventionMap.put(functionName, callingConvention);
             }
-        } catch (NoSuchElementException e) {
+        } catch (final NoSuchElementException e) {
             throw new RuntimeException("Error parsing \"LocalProcAddressCallingConvention\" command at line " + lineNo
                     + " in file \"" + filename + "\"", e);
         }
     }
 
-    private static ConvNode makeConverter(Iterator<String> iter) {
-        List<ConvNode> result = new ArrayList<ConvNode>();
+    private static ConvNode makeConverter(final Iterator<String> iter) {
+        final List<ConvNode> result = new ArrayList<ConvNode>();
 
         while (iter.hasNext()) {
-            String str = iter.next();
+            final String str = iter.next();
             if (str.equals("$")) {
-                String command = iter.next();
-                String openParen = iter.next();
+                final String command = iter.next();
+                final String openParen = iter.next();
                 if (!openParen.equals("(")) {
                     throw new NoSuchElementException("Expected \"(\"");
                 }
@@ -191,15 +191,15 @@ public class ProcAddressConfiguration extends JavaConfiguration {
 
     static class FormatNode extends ConvNode {
 
-        private MessageFormat msgFmt;
+        private final MessageFormat msgFmt;
 
-        FormatNode(String fmt) {
+        FormatNode(final String fmt) {
             msgFmt = new MessageFormat(fmt);
         }
 
         @Override
-        String convert(String funcName) {
-            StringBuffer buf = new StringBuffer();
+        String convert(final String funcName) {
+            final StringBuffer buf = new StringBuffer();
             msgFmt.format(new Object[]{funcName}, buf, null);
             return buf.toString();
         }
@@ -207,30 +207,30 @@ public class ProcAddressConfiguration extends JavaConfiguration {
 
     static class ConstStringNode extends ConvNode {
 
-        private String str;
+        private final String str;
 
-        ConstStringNode(String str) {
+        ConstStringNode(final String str) {
             this.str = str;
         }
 
         @Override
-        String convert(String funcName) {
+        String convert(final String funcName) {
             return str;
         }
     }
 
     static class ConcatNode extends ConvNode {
 
-        private List<ConvNode> children;
+        private final List<ConvNode> children;
 
-        ConcatNode(List<ConvNode> children) {
+        ConcatNode(final List<ConvNode> children) {
             this.children = children;
         }
 
         @Override
-        String convert(String funcName) {
-            StringBuilder res = new StringBuilder();
-            for (ConvNode node : children) {
+        String convert(final String funcName) {
+            final StringBuilder res = new StringBuilder();
+            for (final ConvNode node : children) {
                 res.append(node.convert(funcName));
             }
             return res.toString();
@@ -239,16 +239,16 @@ public class ProcAddressConfiguration extends JavaConfiguration {
 
     static class CaseNode extends ConvNode {
 
-        private boolean upperCase;
-        private ConvNode child;
+        private final boolean upperCase;
+        private final ConvNode child;
 
-        CaseNode(boolean upperCase, ConvNode child) {
+        CaseNode(final boolean upperCase, final ConvNode child) {
             this.upperCase = upperCase;
             this.child = child;
         }
 
         @Override
-        public String convert(String funcName) {
+        public String convert(final String funcName) {
             if (upperCase) {
                 return child.convert(funcName).toUpperCase();
             } else {
@@ -269,7 +269,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         return tableClassName;
     }
 
-    public boolean skipProcAddressGen(String name) {
+    public boolean skipProcAddressGen(final String name) {
         return skipProcAddressGen.contains(name);
     }
 
@@ -288,27 +288,27 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         return getProcAddressTableExpr;
     }
 
-    public String convertToFunctionPointerName(String funcName) {
+    public String convertToFunctionPointerName(final String funcName) {
         if (procAddressNameConverter == null) {
             throw new RuntimeException("ProcAddressNameExpr was not defined in .cfg file");
         }
         return procAddressNameConverter.convert(funcName);
     }
 
-    public boolean forceProcAddressGen(String funcName) {
+    public boolean forceProcAddressGen(final String funcName) {
         return forceProcAddressGen4All || forceProcAddressGenSet.contains(funcName);
     }
 
-    public void addForceProcAddressGen(String funcName) {
+    public void addForceProcAddressGen(final String funcName) {
         forceProcAddressGen.add(funcName);
         forceProcAddressGenSet.add(funcName);
     }
 
-    public void addLocalProcAddressCallingConvention(String funcName, String callingConvention) {
+    public void addLocalProcAddressCallingConvention(final String funcName, final String callingConvention) {
         localProcAddressCallingConventionMap.put(funcName, callingConvention);
     }
 
-    public String getLocalProcAddressCallingConvention(String funcName) {
+    public String getLocalProcAddressCallingConvention(final String funcName) {
         if (isLocalProcAddressCallingConvention4All()) {
             return getLocalProcAddressCallingConvention4All();
         }

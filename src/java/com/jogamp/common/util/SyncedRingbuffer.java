@@ -63,7 +63,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final void dump(PrintStream stream, String prefix) {
+    public final void dump(final PrintStream stream, final String prefix) {
         stream.println(prefix+" "+toString()+" {");
         for(int i=0; i<capacity; i++) {
             stream.println("\t["+i+"]: "+array[i]);
@@ -92,7 +92,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * @throws IllegalArgumentException if <code>copyFrom</code> is <code>null</code>
      */
     @SuppressWarnings("unchecked")
-    public SyncedRingbuffer(T[] copyFrom) throws IllegalArgumentException {
+    public SyncedRingbuffer(final T[] copyFrom) throws IllegalArgumentException {
         capacity = copyFrom.length;
         array = (T[]) newArray(copyFrom.getClass(), capacity);
         resetImpl(true, copyFrom);
@@ -115,9 +115,9 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * @param arrayType the array type of the created empty internal array.
      * @param capacity the initial net capacity of the ring buffer
      */
-    public SyncedRingbuffer(Class<? extends T[]> arrayType, int capacity) {
+    public SyncedRingbuffer(final Class<? extends T[]> arrayType, final int capacity) {
         this.capacity = capacity;
-        this.array = (T[]) newArray(arrayType, capacity);
+        this.array = newArray(arrayType, capacity);
         resetImpl(false, null /* empty, nothing to copy */ );
     }
 
@@ -144,11 +144,11 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final void resetFull(T[] copyFrom) throws IllegalArgumentException {
+    public final void resetFull(final T[] copyFrom) throws IllegalArgumentException {
         resetImpl(true, copyFrom);
     }
 
-    private final void resetImpl(boolean full, T[] copyFrom) throws IllegalArgumentException {
+    private final void resetImpl(final boolean full, final T[] copyFrom) throws IllegalArgumentException {
         synchronized ( syncGlobal ) {
             if( null != copyFrom ) {
                 if( copyFrom.length != capacity() ) {
@@ -202,7 +202,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     public final T get() {
         try {
             return getImpl(false, false);
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+        } catch (final InterruptedException ie) { throw new RuntimeException(ie); }
     }
 
     /**
@@ -220,14 +220,14 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     public final T peek() {
         try {
             return getImpl(false, true);
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+        } catch (final InterruptedException ie) { throw new RuntimeException(ie); }
     }
     @Override
     public final T peekBlocking() throws InterruptedException {
         return getImpl(true, true);
     }
 
-    private final T getImpl(boolean blocking, boolean peek) throws InterruptedException {
+    private final T getImpl(final boolean blocking, final boolean peek) throws InterruptedException {
         synchronized( syncGlobal ) {
             if( 0 == size ) {
                 if( blocking ) {
@@ -257,10 +257,10 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * </p>
      */
     @Override
-    public final boolean put(T e) {
+    public final boolean put(final T e) {
         try {
             return putImpl(e, false, false);
-        } catch (InterruptedException ie) { throw new RuntimeException(ie); }
+        } catch (final InterruptedException ie) { throw new RuntimeException(ie); }
     }
 
     /**
@@ -270,7 +270,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * </p>
      */
     @Override
-    public final void putBlocking(T e) throws InterruptedException {
+    public final void putBlocking(final T e) throws InterruptedException {
         if( !putImpl(e, false, true) ) {
             throw new InternalError("Blocking put failed: "+this);
         }
@@ -283,11 +283,11 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
      * </p>
      */
     @Override
-    public final boolean putSame(boolean blocking) throws InterruptedException {
+    public final boolean putSame(final boolean blocking) throws InterruptedException {
         return putImpl(null, true, blocking);
     }
 
-    private final boolean putImpl(T e, boolean sameRef, boolean blocking) throws InterruptedException {
+    private final boolean putImpl(final T e, final boolean sameRef, final boolean blocking) throws InterruptedException {
         synchronized( syncGlobal ) {
             if( capacity == size ) {
                 if( blocking ) {
@@ -310,7 +310,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final void waitForFreeSlots(int count) throws InterruptedException {
+    public final void waitForFreeSlots(final int count) throws InterruptedException {
         synchronized ( syncGlobal ) {
             if( capacity - size < count ) {
                 while( capacity - size < count ) {
@@ -344,7 +344,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
             final int growAmount = newElements.length;
             final int newCapacity = capacity + growAmount;
             final T[] oldArray = array;
-            final T[] newArray = (T[]) newArray(arrayTypeInternal, newCapacity);
+            final T[] newArray = newArray(arrayTypeInternal, newCapacity);
 
             // writePos == readPos
             writePos += growAmount; // warp writePos to the end of the new data location
@@ -383,7 +383,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
 
             final int newCapacity = capacity + growAmount;
             final T[] oldArray = array;
-            final T[] newArray = (T[]) newArray(arrayTypeInternal, newCapacity);
+            final T[] newArray = newArray(arrayTypeInternal, newCapacity);
 
             // writePos == readPos
             readPos += growAmount; // warp readPos to the end of the new data location
@@ -402,7 +402,7 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T[] newArray(Class<? extends T[]> arrayType, int length) {
+    private static <T> T[] newArray(final Class<? extends T[]> arrayType, final int length) {
         return ((Object)arrayType == (Object)Object[].class)
             ? (T[]) new Object[length]
             : (T[]) Array.newInstance(arrayType.getComponentType(), length);

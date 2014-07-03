@@ -44,14 +44,14 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             holdCountAdditionOwner = 0;
         }
         @Override
-        public final void incrHoldCount(Thread t) {
+        public final void incrHoldCount(final Thread t) {
             super.incrHoldCount(t);
             if(!isOriginalOwner(t)) {
                 holdCountAdditionOwner++;
             }
         }
         @Override
-        public final void decrHoldCount(Thread t) {
+        public final void decrHoldCount(final Thread t) {
             super.decrHoldCount(t);
             if(!isOriginalOwner(t)) {
                 holdCountAdditionOwner--;
@@ -61,11 +61,11 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             return holdCountAdditionOwner;
         }
 
-        public final boolean isOriginalOwner(Thread t) {
+        public final boolean isOriginalOwner(final Thread t) {
             return super.isOwner(t);
         }
         @Override
-        public final boolean isOwner(Thread t) {
+        public final boolean isOwner(final Thread t) {
             if(getExclusiveOwnerThread()==t) {
                 return true;
             }
@@ -80,7 +80,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
         public final int getAddOwnerCount() {
             return threadNum;
         }
-        public final void addOwner(Thread t) throws IllegalArgumentException {
+        public final void addOwner(final Thread t) throws IllegalArgumentException {
             if(null == threads) {
                 if(threadNum>0) {
                     throw new InternalError("XXX");
@@ -106,7 +106,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             threadNum=0;
         }
 
-        public final void removeOwner(Thread t) throws IllegalArgumentException {
+        public final void removeOwner(final Thread t) throws IllegalArgumentException {
             for (int i = 0 ; i < threadNum ; i++) {
                 if (threads[i] == t) {
                     threadNum--;
@@ -119,7 +119,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
         }
 
         String addOwnerToString() {
-            StringBuilder sb = new StringBuilder();
+            final StringBuilder sb = new StringBuilder();
             for(int i=0; i<threadNum; i++) {
                 if(i>0) {
                     sb.append(", ");
@@ -145,14 +145,14 @@ public class RecursiveThreadGroupLockImpl01Unfairish
     }
 
     @Override
-    public final boolean isOriginalOwner(Thread thread) {
+    public final boolean isOriginalOwner(final Thread thread) {
         synchronized(sync) {
             return ((ThreadGroupSync)sync).isOriginalOwner(thread) ;
         }
     }
 
     @Override
-    public final void addOwner(Thread t) throws RuntimeException, IllegalArgumentException {
+    public final void addOwner(final Thread t) throws RuntimeException, IllegalArgumentException {
         validateLocked();
         final Thread cur = Thread.currentThread();
         final ThreadGroupSync tgSync = (ThreadGroupSync)sync;
@@ -166,7 +166,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
     }
 
     @Override
-    public final void unlock(Runnable taskAfterUnlockBeforeNotify) {
+    public final void unlock(final Runnable taskAfterUnlockBeforeNotify) {
         synchronized(sync) {
             final Thread cur = Thread.currentThread();
             final ThreadGroupSync tgSync = (ThreadGroupSync)sync;
@@ -182,7 +182,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
                         while ( tgSync.getAdditionalOwnerHoldCount() > 0 ) {
                             try {
                                 sync.wait();
-                            } catch (InterruptedException e) {
+                            } catch (final InterruptedException e) {
                                 // regular wake up!
                             }
                         }
@@ -205,7 +205,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
     }
 
     @Override
-    public final void removeOwner(Thread t) throws RuntimeException, IllegalArgumentException {
+    public final void removeOwner(final Thread t) throws RuntimeException, IllegalArgumentException {
         validateLocked();
         ((ThreadGroupSync)sync).removeOwner(t);
     }

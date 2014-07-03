@@ -20,12 +20,12 @@ public class TestStructGen01 extends JunitTracer {
 
     @Test
     public void test01() {
-        RenderingConfig config = RenderingConfig.create();
-        Vec3f dir = config.getCamera().getDir();
+        final RenderingConfig config = RenderingConfig.create();
+        final Vec3f dir = config.getCamera().getDir();
         dir.setX(0.5f);
         dir.setY(0.6f);
         dir.setZ(0.7f);
-        Vec3f dir2 = Vec3f.create(dir.getBuffer());
+        final Vec3f dir2 = Vec3f.create(dir.getBuffer());
         Assert.assertEquals(dir.getX(), dir2.getX(), 0.0001f);
         Assert.assertEquals(dir.getY(), dir2.getY(), 0.0001f);
         Assert.assertEquals(dir.getZ(), dir2.getZ(), 0.0001f);
@@ -33,9 +33,9 @@ public class TestStructGen01 extends JunitTracer {
 
     @Test
     public void test02() {
-        Camera cam = Camera.create();
-        Vec3f cam_dir = cam.getDir();
-        Vec3f cam_orig = cam.getOrig();
+        final Camera cam = Camera.create();
+        final Vec3f cam_dir = cam.getDir();
+        final Vec3f cam_orig = cam.getOrig();
         cam_dir.setX(1);
         cam_dir.setY(2);
         cam_dir.setZ(3);
@@ -44,8 +44,8 @@ public class TestStructGen01 extends JunitTracer {
         cam_orig.setZ(2);
     }
 
-    public static void main(String args[]) {
-        String tstname = TestStructGen01.class.getName();
+    public static void main(final String args[]) {
+        final String tstname = TestStructGen01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

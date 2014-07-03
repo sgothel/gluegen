@@ -42,17 +42,17 @@ public final class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   private static final int RTLD_GLOBAL   = 0x00008;
 
   @Override
-  public final long openLibraryLocal(String pathname, boolean debug) throws SecurityException {
+  public final long openLibraryLocal(final String pathname, final boolean debug) throws SecurityException {
     return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_LOCAL, debug);
   }
 
   @Override
-  public final long openLibraryGlobal(String pathname, boolean debug) throws SecurityException {
+  public final long openLibraryGlobal(final String pathname, final boolean debug) throws SecurityException {
     return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_GLOBAL, debug);
   }
 
   @Override
-  public final long lookupSymbolGlobal(String symbolName) throws SecurityException {
+  public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {
     return this.lookupSymbolGlobalImpl(RTLD_DEFAULT, symbolName);
   }
 

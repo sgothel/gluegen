@@ -29,16 +29,16 @@ package com.jogamp.gluegen.cgram.types;
 
 public class UnionType extends CompoundType {
 
-  public UnionType(String name, SizeThunk size, int cvAttributes) {
+  public UnionType(final String name, final SizeThunk size, final int cvAttributes) {
       this(name, size, cvAttributes, null);
   }
 
-  UnionType(String name, SizeThunk size, int cvAttributes, String structName) {
+  UnionType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
     super (name, size, cvAttributes, structName);
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == null || !(arg instanceof UnionType)) {
       return false;
     }
@@ -51,8 +51,8 @@ public class UnionType extends CompoundType {
   public final boolean isUnion()  { return true; }
 
   @Override
-  Type newCVVariant(int cvAttributes) {
-    UnionType t = new UnionType(getName(), getSize(), cvAttributes, getStructName());
+  Type newCVVariant(final int cvAttributes) {
+    final UnionType t = new UnionType(getName(), getSize(), cvAttributes, getStructName());
     t.setFields(getFields());
     return t;
   }

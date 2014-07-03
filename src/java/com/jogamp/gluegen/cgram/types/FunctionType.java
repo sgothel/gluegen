@@ -49,14 +49,14 @@ public class FunctionType extends Type implements Cloneable {
     private ArrayList<Type> argumentTypes;
     private ArrayList<String> argumentNames;
 
-    public FunctionType(String name, SizeThunk size, Type returnType, int cvAttributes) {
+    public FunctionType(final String name, final SizeThunk size, final Type returnType, final int cvAttributes) {
         super(name, size, cvAttributes);
         this.returnType = returnType;
     }
 
     @Override
     public Object clone() {
-        FunctionType n = (FunctionType) super.clone();
+        final FunctionType n = (FunctionType) super.clone();
         if(null!=this.argumentTypes) {
             n.argumentTypes = new ArrayList<Type>(this.argumentTypes);
         }
@@ -67,14 +67,14 @@ public class FunctionType extends Type implements Cloneable {
     }
 
     @Override
-    public boolean equals(Object arg) {
+    public boolean equals(final Object arg) {
         if (arg == this) {
             return true;
         }
         if (arg == null || (!(arg instanceof FunctionType))) {
             return false;
         }
-        FunctionType t = (FunctionType) arg;
+        final FunctionType t = (FunctionType) arg;
         return (super.equals(arg)
                 && returnType.equals(t.returnType)
                 && listsEqual(argumentTypes, t.argumentTypes));
@@ -96,19 +96,19 @@ public class FunctionType extends Type implements Cloneable {
 
     /** Returns the name of the <i>i</i>th argument. May return null if
     no argument names were available during parsing. */
-    public String getArgumentName(int i) {
+    public String getArgumentName(final int i) {
         return argumentNames.get(i);
     }
 
     /** Returns the type of the <i>i</i>th argument. */
-    public Type getArgumentType(int i) {
+    public Type getArgumentType(final int i) {
         return argumentTypes.get(i);
     }
 
     /**
      * Add an argument's name and type. Use null for unknown argument names.
      */
-    public void addArgument(Type argumentType, String argumentName) {
+    public void addArgument(final Type argumentType, final String argumentName) {
         if (argumentTypes == null) {
             argumentTypes = new ArrayList<Type>();
             argumentNames = new ArrayList<String>();
@@ -117,7 +117,7 @@ public class FunctionType extends Type implements Cloneable {
         argumentNames.add(argumentName);
     }
 
-    public void setArgumentName(int i, String name) {
+    public void setArgumentName(final int i, final String name) {
         argumentNames.set(i, name);
     }
 
@@ -159,18 +159,18 @@ public class FunctionType extends Type implements Cloneable {
             res.append(")");
         }
         res.append("(");
-        int n = getNumArguments();
+        final int n = getNumArguments();
         for (int i = 0; i < n; i++) {
-            Type t = getArgumentType(i);
+            final Type t = getArgumentType(i);
             if (t.isFunctionPointer()) {
-                Type targetType = t.asPointer().getTargetType();
-                FunctionType ft = targetType.asFunction();
+                final Type targetType = t.asPointer().getTargetType();
+                final FunctionType ft = targetType.asFunction();
                 res.append(ft.toString(getArgumentName(i), callingConvention, false, true));
             } else if (t.isArray()) {
                 res.append(t.asArray().toString(getArgumentName(i)));
             } else {
                 res.append(t);
-                String argumentName = getArgumentName(i);
+                final String argumentName = getArgumentName(i);
                 if (argumentName != null) {
                     res.append(" ");
                     res.append(argumentName);
@@ -185,17 +185,17 @@ public class FunctionType extends Type implements Cloneable {
     }
 
     @Override
-    public void visit(TypeVisitor arg) {
+    public void visit(final TypeVisitor arg) {
         super.visit(arg);
         returnType.visit(arg);
-        int n = getNumArguments();
+        final int n = getNumArguments();
         for (int i = 0; i < n; i++) {
             getArgumentType(i).visit(arg);
         }
     }
 
     @Override
-    Type newCVVariant(int cvAttributes) {
+    Type newCVVariant(final int cvAttributes) {
         // Functions don't have const/volatile attributes
         return this;
     }

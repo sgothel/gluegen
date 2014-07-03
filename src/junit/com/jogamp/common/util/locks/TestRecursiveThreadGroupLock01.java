@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,12 +20,12 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
- 
+
 package com.jogamp.common.util.locks;
 
 import java.io.IOException;
@@ -43,16 +43,16 @@ import org.junit.runners.MethodSorters;
 public class TestRecursiveThreadGroupLock01 extends JunitTracer {
 
     public enum YieldMode {
-        NONE(0), YIELD(1), SLEEP(2); 
-        
+        NONE(0), YIELD(1), SLEEP(2);
+
         public final int id;
 
-        YieldMode(int id){
+        YieldMode(final int id){
             this.id = id;
         }
-    }    
-    
-    static void yield(YieldMode mode) {
+    }
+
+    static void yield(final YieldMode mode) {
         switch(mode) {
             case YIELD:
                 Thread.yield();
@@ -60,7 +60,7 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
             case SLEEP:
                 try {
                     Thread.sleep(10);
-                } catch (InterruptedException ie) {
+                } catch (final InterruptedException ie) {
                     ie.printStackTrace();
                 }
                 break;
@@ -72,8 +72,8 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
 
     static class LockedObject {
         static final boolean DEBUG = false;
-        
-        private RecursiveThreadGroupLock locker; // post
+
+        private final RecursiveThreadGroupLock locker; // post
         private volatile int slaveCounter;
 
         public LockedObject() {
@@ -81,7 +81,7 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
             slaveCounter = 0;
         }
 
-        public final void masterAction(String tab, String name, Thread[] slaves, int loops, int mark, final YieldMode yieldMode) {
+        public final void masterAction(final String tab, final String name, final Thread[] slaves, final int loops, final int mark, final YieldMode yieldMode) {
             locker.lock();
             if(DEBUG) {
                 System.err.println(tab+"<"+name+" c "+slaveCounter);
@@ -107,12 +107,12 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
             }
         }
 
-        public final void slaveAction(String tab, String name, int loops, int mark, YieldMode yieldMode) {
+        public final void slaveAction(final String tab, final String name, int loops, final int mark, final YieldMode yieldMode) {
             if(slaveCounter>=mark) {
                 if(DEBUG) {
                     System.err.println(tab+"["+name+" c "+slaveCounter+" - NOP]");
                 }
-                return;                
+                return;
             }
             locker.lock();
             if(DEBUG) {
@@ -141,7 +141,7 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
         public final boolean isLocked() {
             return locker.isLocked();
         }
-        
+
     }
 
     interface LockedObjectRunner extends Runnable {
@@ -163,7 +163,7 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
         YieldMode yieldMode;
 
         /** master constructor */
-        public LockedObjectRunner1(String tab, String name, LockedObject lo, Thread[] slaves, int loops, int mark, YieldMode yieldMode) {
+        public LockedObjectRunner1(final String tab, final String name, final LockedObject lo, final Thread[] slaves, final int loops, final int mark, final YieldMode yieldMode) {
             this.tab = tab;
             this.name = name;
             this.lo = lo;
@@ -178,7 +178,7 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
         }
 
         /** slave constructor */
-        public LockedObjectRunner1(String tab, String name, LockedObject lo, int loops, int mark, YieldMode yieldMode) {
+        public LockedObjectRunner1(final String tab, final String name, final LockedObject lo, final int loops, final int mark, final YieldMode yieldMode) {
             this.tab = tab;
             this.name = name;
             this.lo = lo;
@@ -191,7 +191,7 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
             Assert.assertTrue(mark>loops);
             Assert.assertTrue(loops*loops>mark);
         }
-        
+
         public final void stop() {
             shouldStop = true;
         }
@@ -202,18 +202,18 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
         public final boolean isStopped() {
             return stopped;
         }
-        
+
         public void waitUntilStopped() {
             synchronized(this) {
                 while(!stopped) {
                     try {
                         this.wait();
-                    } catch (InterruptedException e) {
+                    } catch (final InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }
-            
+
         }
 
         public void run() {
@@ -232,28 +232,28 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
         }
     }
 
-    protected long testLockedObjectImpl(LockFactory.ImplType implType, boolean fair, 
-                                        int slaveThreadNum, int concurrentThreadNum, 
-                                        int loops, int mark, YieldMode yieldMode) throws InterruptedException {
+    protected long testLockedObjectImpl(final LockFactory.ImplType implType, final boolean fair,
+                                        final int slaveThreadNum, final int concurrentThreadNum,
+                                        final int loops, final int mark, final YieldMode yieldMode) throws InterruptedException {
         final long t0 = System.currentTimeMillis();
-        LockedObject lo = new LockedObject();
-        LockedObjectRunner[] concurrentRunners = new LockedObjectRunner[concurrentThreadNum];
-        LockedObjectRunner[] slaveRunners = new LockedObjectRunner[slaveThreadNum];
-        Thread[] concurrentThreads = new Thread[concurrentThreadNum];
-        Thread[] slaveThreads = new Thread[slaveThreadNum];
-        Thread[] noCoOwnerThreads = new Thread[0];
+        final LockedObject lo = new LockedObject();
+        final LockedObjectRunner[] concurrentRunners = new LockedObjectRunner[concurrentThreadNum];
+        final LockedObjectRunner[] slaveRunners = new LockedObjectRunner[slaveThreadNum];
+        final Thread[] concurrentThreads = new Thread[concurrentThreadNum];
+        final Thread[] slaveThreads = new Thread[slaveThreadNum];
+        final Thread[] noCoOwnerThreads = new Thread[0];
         int i;
 
         for(i=0; i<slaveThreadNum; i++) {
             slaveRunners[i] = new LockedObjectRunner1("    ", "s"+i, lo, loops, mark, yieldMode);
-            String name = "ActionThread-Slaves-"+i+"_of_"+slaveThreadNum;
+            final String name = "ActionThread-Slaves-"+i+"_of_"+slaveThreadNum;
             slaveThreads[i] = new Thread( slaveRunners[i], name );
         }
         for(i=0; i<concurrentThreadNum; i++) {
             String name;
             if(i==0) {
                 concurrentRunners[i] = new LockedObjectRunner1("", "M0", lo, slaveThreads, loops, mark, yieldMode);
-                name = "ActionThread-Master-"+i+"_of_"+concurrentThreadNum;            
+                name = "ActionThread-Master-"+i+"_of_"+concurrentThreadNum;
             } else {
                 concurrentRunners[i] = new LockedObjectRunner1("  ", "O"+i, lo, noCoOwnerThreads, loops, mark, yieldMode);
                 name = "ActionThread-Others-"+i+"_of_"+concurrentThreadNum;
@@ -276,45 +276,45 @@ public class TestRecursiveThreadGroupLock01 extends JunitTracer {
         }
         Assert.assertEquals(0, lo.locker.getHoldCount());
         Assert.assertEquals(false, lo.locker.isLocked());
-        
+
         final long dt = System.currentTimeMillis()-t0;
-        
+
         System.err.println();
         final String fair_S = fair ? "fair  " : "unfair" ;
-        System.err.printf("---- TestRecursiveLock01.testLockedObjectThreading: i %5s, %s, threads %2d, loops-outter %6d, loops-inner %6d, yield %5s - dt %6d ms", 
+        System.err.printf("---- TestRecursiveLock01.testLockedObjectThreading: i %5s, %s, threads %2d, loops-outter %6d, loops-inner %6d, yield %5s - dt %6d ms",
                 implType, fair_S, concurrentThreadNum, loops, mark, yieldMode, dt);
         System.err.println();
         return dt;
     }
-    
+
     @Test
     public void testTwoThreadsInGroup() throws InterruptedException {
-        LockFactory.ImplType t = LockFactory.ImplType.Int02ThreadGroup; 
-        boolean fair=true;
-        int coOwnerThreadNum=2;
-        int threadNum=5; 
-        int loops=1000; 
-        int mark=10000; 
-        YieldMode yieldMode=YieldMode.YIELD;
-        
+        final LockFactory.ImplType t = LockFactory.ImplType.Int02ThreadGroup;
+        final boolean fair=true;
+        final int coOwnerThreadNum=2;
+        final int threadNum=5;
+        int loops=1000;
+        int mark=10000;
+        final YieldMode yieldMode=YieldMode.YIELD;
+
         if( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) {
             loops=5; mark=10;
         }
-        
+
         testLockedObjectImpl(t, fair, coOwnerThreadNum, threadNum, loops, mark, yieldMode);
     }
 
-    public static void main(String args[]) throws IOException, InterruptedException {
-        String tstname = TestRecursiveThreadGroupLock01.class.getName();
+    public static void main(final String args[]) throws IOException, InterruptedException {
+        final String tstname = TestRecursiveThreadGroupLock01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
-        
+
         /**
         BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println("Press enter to continue");
-        System.err.println(stdin.readLine()); 
+        System.err.println(stdin.readLine());
         TestRecursiveLock01 t = new TestRecursiveLock01();
         t.testLockedObjectThreading5x1000x10000N_Int01_Unfair();
-        
+
         t.testLockedObjectThreading5x1000x10000N_Int01_Fair();
         t.testLockedObjectThreading5x1000x10000N_Java5_Fair();
         t.testLockedObjectThreading5x1000x10000N_Int01_Unfair();

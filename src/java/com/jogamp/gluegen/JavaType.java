@@ -75,11 +75,11 @@ public class JavaType {
   private static JavaType nioByteBufferArrayType;
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if ((arg == null) || (!(arg instanceof JavaType))) {
       return false;
     }
-    JavaType t = (JavaType) arg;
+    final JavaType t = (JavaType) arg;
     return (this == t ||
             (t.clazz == clazz &&
              ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
@@ -111,21 +111,21 @@ public class JavaType {
       can be used to represent arrays of primitive values or Strings;
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
-  public static JavaType createForClass(Class<?> clazz) {
+  public static JavaType createForClass(final Class<?> clazz) {
     return new JavaType(clazz);
   }
 
   /** Creates a JavaType corresponding to the specified C CompoundType
       name; for example, if "Foo" is supplied, then this JavaType
       represents a "Foo *" by way of a StructAccessor. */
-  public static JavaType createForCStruct(String name) {
+  public static JavaType createForCStruct(final String name) {
     return new JavaType(name);
   }
 
   /** Creates a JavaType corresponding to an array of the given
       element type. This is used to represent arrays of "Foo **" which
       should be mapped to Foo[] in Java. */
-  public static JavaType createForCArray(Type elementType) {
+  public static JavaType createForCArray(final Type elementType) {
     return new JavaType(elementType);
   }
 
@@ -218,7 +218,7 @@ public class JavaType {
 
   public static JavaType forNIOByteBufferArrayClass() {
     if (nioByteBufferArrayType == null) {
-      ByteBuffer[] tmp = new ByteBuffer[0];
+      final ByteBuffer[] tmp = new ByteBuffer[0];
       nioByteBufferArrayType = createForClass(tmp.getClass());
     }
     return nioByteBufferArrayType;
@@ -307,7 +307,7 @@ public class JavaType {
         return "jobjectArray /*elements are String*/";
       }
 
-      Class<?> elementType = clazz.getComponentType();
+      final Class<?> elementType = clazz.getComponentType();
 
       if (isNIOBufferArray()) {
         return "jobjectArray /*elements are " + elementType.getName() + "*/";
@@ -563,7 +563,7 @@ public class JavaType {
    * Constructs a representation for a type corresponding to the given Class
    * argument.
    */
-  private JavaType(Class<?> clazz) {
+  private JavaType(final Class<?> clazz) {
     this.primitivePointerType = null;
     this.clazz = clazz;
     this.structName = null;
@@ -571,7 +571,7 @@ public class JavaType {
   }
 
   /** Constructs a type representing a named C struct. */
-  private JavaType(String structName) {
+  private JavaType(final String structName) {
     this.primitivePointerType = null;
     this.clazz = null;
     this.structName = structName;
@@ -580,7 +580,7 @@ public class JavaType {
 
   /** Constructs a type representing a pointer to a C primitive
       (integer, floating-point, or void pointer) type. */
-  private JavaType(C_PTR primitivePointerType) {
+  private JavaType(final C_PTR primitivePointerType) {
     this.primitivePointerType = primitivePointerType;
     this.clazz = null;
     this.structName = null;
@@ -588,7 +588,7 @@ public class JavaType {
   }
 
   /** Constructs a type representing an array of C pointers. */
-  private JavaType(Type elementType) {
+  private JavaType(final Type elementType) {
     this.primitivePointerType = null;
     this.clazz = null;
     this.structName = null;
@@ -596,7 +596,7 @@ public class JavaType {
   }
 
   /** clone only */
-  private JavaType(C_PTR primitivePointerType, Class<?> clazz, String name, Type elementType) {
+  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String name, final Type elementType) {
     this.primitivePointerType = primitivePointerType;
     this.clazz = clazz;
     this.structName = name;
@@ -604,7 +604,7 @@ public class JavaType {
   }
 
   private String arrayName(Class<?> clazz) {
-    StringBuilder buf = new StringBuilder();
+    final StringBuilder buf = new StringBuilder();
     int arrayCount = 0;
     while (clazz.isArray()) {
       ++arrayCount;
@@ -618,7 +618,7 @@ public class JavaType {
   }
 
   private String arrayDescriptor(Class<?> clazz) {
-    StringBuilder buf = new StringBuilder();
+    final StringBuilder buf = new StringBuilder();
     while (clazz.isArray()) {
       buf.append("[");
       clazz = clazz.getComponentType();
@@ -627,7 +627,7 @@ public class JavaType {
     return buf.toString();
   }
 
-  private String descriptor(Class<?> clazz) {
+  private String descriptor(final Class<?> clazz) {
     if (clazz.isPrimitive()) {
       if (clazz == Boolean.TYPE) return "Z";
       if (clazz == Byte.TYPE)    return "B";
@@ -645,7 +645,7 @@ public class JavaType {
     return descriptor(clazz.getName());
   }
 
-  private String descriptor(String referenceTypeName) {
+  private String descriptor(final String referenceTypeName) {
     return "L" + referenceTypeName.replace('.', '/') + ";";
   }
 }

@@ -36,7 +36,7 @@ public class GlueGenVersion extends JogampVersion {
 
     protected static volatile GlueGenVersion jogampCommonVersionInfo;
 
-    protected GlueGenVersion(String packageName, Manifest mf) {
+    protected GlueGenVersion(final String packageName, final Manifest mf) {
         super(packageName, mf);
     }
 
@@ -59,7 +59,7 @@ public class GlueGenVersion extends JogampVersion {
         return jogampCommonVersionInfo;
     }
 
-    public static void main(String args[]) {
+    public static void main(final String args[]) {
         System.err.println(VersionUtil.getPlatformInfo());
         System.err.println(GlueGenVersion.getInstance());
     }

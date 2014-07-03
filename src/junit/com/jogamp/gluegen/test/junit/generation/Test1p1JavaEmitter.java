@@ -148,8 +148,8 @@ public class Test1p1JavaEmitter extends BaseClass {
         chapter13TestStructArrayModelMutable(new Bindingtest1p1Impl());
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = Test1p1JavaEmitter.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = Test1p1JavaEmitter.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

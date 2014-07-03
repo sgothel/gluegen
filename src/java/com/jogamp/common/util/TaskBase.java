@@ -42,7 +42,7 @@ public abstract class TaskBase implements Runnable {
 
     static {
         Debug.initSingleton();
-        TRACE_SOURCE = Debug.isPropertyDefined("jogamp.debug.TaskBase.TraceSource", true);
+        TRACE_SOURCE = PropertyAccess.isPropertyDefined("jogamp.debug.TaskBase.TraceSource", true);
     }
 
     protected final Object syncObject;
@@ -56,7 +56,7 @@ public abstract class TaskBase implements Runnable {
     protected volatile long tExecuted;
     protected volatile boolean isFlushed;
 
-    protected TaskBase(Object syncObject, boolean catchExceptions, PrintStream exceptionOut) {
+    protected TaskBase(final Object syncObject, final boolean catchExceptions, final PrintStream exceptionOut) {
         this.syncObject = syncObject;
         this.catchExceptions = catchExceptions;
         this.exceptionOut = exceptionOut;
@@ -88,7 +88,7 @@ public abstract class TaskBase implements Runnable {
      * Attach a custom object to this task.
      * Useful to piggybag further information, ie tag a task final.
      */
-    public final void setAttachment(Object o) {
+    public final void setAttachment(final Object o) {
         attachment = o;
     }
 
@@ -113,7 +113,7 @@ public abstract class TaskBase implements Runnable {
      * @see #isFlushed()
      * @see #isInQueue()
      */
-    public final void flush(Throwable t) {
+    public final void flush(final Throwable t) {
         if(!isExecuted() && hasWaiter()) {
             runnableException = t;
             synchronized (syncObject) {

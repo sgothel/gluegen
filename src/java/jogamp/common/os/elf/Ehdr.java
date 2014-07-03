@@ -3,10 +3,6 @@
 
 package jogamp.common.os.elf;
 
-import java.nio.*;
-
-import com.jogamp.gluegen.runtime.*;
-import com.jogamp.common.os.*;
 import com.jogamp.common.nio.*;
 import jogamp.common.os.MachineDescriptionRuntime;
 
@@ -41,11 +37,11 @@ public class Ehdr {
     return create(Buffers.newDirectByteBuffer(size()));
   }
 
-  public static Ehdr create(java.nio.ByteBuffer buf) {
+  public static Ehdr create(final java.nio.ByteBuffer buf) {
       return new Ehdr(buf);
   }
 
-  Ehdr(java.nio.ByteBuffer buf) {
+  Ehdr(final java.nio.ByteBuffer buf) {
     accessor = new StructAccessor(buf);
   }
 
@@ -53,14 +49,14 @@ public class Ehdr {
     return accessor.getBuffer();
   }
 
-  public Ehdr setE_ident(byte[] val) {
+  public Ehdr setE_ident(final byte[] val) {
     accessor.setBytesAt(e_ident_offset[mdIdx], val);    return this;
   }
 
   public byte[] getE_ident() {
     return accessor.getBytesAt(e_ident_offset[mdIdx], new byte[16]); }
 
-  public Ehdr setE_type(short val) {
+  public Ehdr setE_type(final short val) {
     accessor.setShortAt(e_type_offset[mdIdx], val);
     return this;
   }
@@ -69,7 +65,7 @@ public class Ehdr {
     return accessor.getShortAt(e_type_offset[mdIdx]);
   }
 
-  public Ehdr setE_machine(short val) {
+  public Ehdr setE_machine(final short val) {
     accessor.setShortAt(e_machine_offset[mdIdx], val);
     return this;
   }
@@ -78,7 +74,7 @@ public class Ehdr {
     return accessor.getShortAt(e_machine_offset[mdIdx]);
   }
 
-  public Ehdr setE_version(int val) {
+  public Ehdr setE_version(final int val) {
     accessor.setIntAt(e_version_offset[mdIdx], val);
     return this;
   }
@@ -87,7 +83,7 @@ public class Ehdr {
     return accessor.getIntAt(e_version_offset[mdIdx]);
   }
 
-  public Ehdr setE_entry(long val) {
+  public Ehdr setE_entry(final long val) {
     accessor.setLongAt(e_entry_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -96,7 +92,7 @@ public class Ehdr {
     return accessor.getLongAt(e_entry_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Ehdr setE_phoff(long val) {
+  public Ehdr setE_phoff(final long val) {
     accessor.setLongAt(e_phoff_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -105,7 +101,7 @@ public class Ehdr {
     return accessor.getLongAt(e_phoff_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Ehdr setE_shoff(long val) {
+  public Ehdr setE_shoff(final long val) {
     accessor.setLongAt(e_shoff_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
     return this;
   }
@@ -114,7 +110,7 @@ public class Ehdr {
     return accessor.getLongAt(e_shoff_offset[mdIdx], MachineDescriptionRuntime.getStatic().md.longSizeInBytes());
   }
 
-  public Ehdr setE_flags(int val) {
+  public Ehdr setE_flags(final int val) {
     accessor.setIntAt(e_flags_offset[mdIdx], val);
     return this;
   }
@@ -123,7 +119,7 @@ public class Ehdr {
     return accessor.getIntAt(e_flags_offset[mdIdx]);
   }
 
-  public Ehdr setE_ehsize(short val) {
+  public Ehdr setE_ehsize(final short val) {
     accessor.setShortAt(e_ehsize_offset[mdIdx], val);
     return this;
   }
@@ -132,7 +128,7 @@ public class Ehdr {
     return accessor.getShortAt(e_ehsize_offset[mdIdx]);
   }
 
-  public Ehdr setE_phentsize(short val) {
+  public Ehdr setE_phentsize(final short val) {
     accessor.setShortAt(e_phentsize_offset[mdIdx], val);
     return this;
   }
@@ -141,7 +137,7 @@ public class Ehdr {
     return accessor.getShortAt(e_phentsize_offset[mdIdx]);
   }
 
-  public Ehdr setE_phnum(short val) {
+  public Ehdr setE_phnum(final short val) {
     accessor.setShortAt(e_phnum_offset[mdIdx], val);
     return this;
   }
@@ -150,7 +146,7 @@ public class Ehdr {
     return accessor.getShortAt(e_phnum_offset[mdIdx]);
   }
 
-  public Ehdr setE_shentsize(short val) {
+  public Ehdr setE_shentsize(final short val) {
     accessor.setShortAt(e_shentsize_offset[mdIdx], val);
     return this;
   }
@@ -159,7 +155,7 @@ public class Ehdr {
     return accessor.getShortAt(e_shentsize_offset[mdIdx]);
   }
 
-  public Ehdr setE_shnum(short val) {
+  public Ehdr setE_shnum(final short val) {
     accessor.setShortAt(e_shnum_offset[mdIdx], val);
     return this;
   }
@@ -168,7 +164,7 @@ public class Ehdr {
     return accessor.getShortAt(e_shnum_offset[mdIdx]);
   }
 
-  public Ehdr setE_shstrndx(short val) {
+  public Ehdr setE_shstrndx(final short val) {
     accessor.setShortAt(e_shstrndx_offset[mdIdx], val);
     return this;
   }

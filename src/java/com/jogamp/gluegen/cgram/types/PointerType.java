@@ -45,13 +45,13 @@ public class PointerType extends Type implements Cloneable {
     private String computedName;
     private boolean hasTypedefedName;
 
-    public PointerType(SizeThunk size, Type targetType, int cvAttributes) {
+    public PointerType(final SizeThunk size, final Type targetType, final int cvAttributes) {
         // can pass null for the final name parameter because the PointerType's getName()
         // completely replaces superclass behavior
         this(size, targetType, cvAttributes, false, null);
     }
 
-    private PointerType(SizeThunk size, Type targetType, int cvAttributes, boolean hasTypedefedName, String typedefedName) {
+    private PointerType(final SizeThunk size, final Type targetType, final int cvAttributes, final boolean hasTypedefedName, final String typedefedName) {
         super(targetType.getName() + " *", size, cvAttributes);
         this.hasTypedefedName = false;
         this.targetType = targetType;
@@ -66,14 +66,14 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public boolean equals(Object arg) {
+    public boolean equals(final Object arg) {
         if (arg == this) {
             return true;
         }
         if (arg == null || (!(arg instanceof PointerType))) {
             return false;
         }
-        PointerType t = (PointerType) arg;
+        final PointerType t = (PointerType) arg;
         // Note we ignore the name of this type (which might be a typedef
         // name) for comparison purposes because this is what allows
         // e.g. a newly-fabricated type "PIXELFORMATDESCRIPTOR *" to be
@@ -84,13 +84,13 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public void setName(String name) {
+    public void setName(final String name) {
         super.setName(name);
         hasTypedefedName = true;
     }
 
     @Override
-    public String getName(boolean includeCVAttrs) {
+    public String getName(final boolean includeCVAttrs) {
         if (hasTypedefedName) {
             return super.getName(includeCVAttrs);
         } else {
@@ -150,7 +150,7 @@ public class PointerType extends Type implements Cloneable {
     /** For use only when printing function pointers. Calling convention
     string (i.e., "__stdcall") is optional and is generally only
     needed on Windows. */
-    public String toString(String functionName, String callingConvention) {
+    public String toString(final String functionName, final String callingConvention) {
         if (!targetType.isFunction()) {
             throw new RuntimeException("<Internal error or misuse> This method is only for use when printing function pointers");
         }
@@ -158,13 +158,13 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public void visit(TypeVisitor arg) {
+    public void visit(final TypeVisitor arg) {
         super.visit(arg);
         targetType.visit(arg);
     }
 
     @Override
-    Type newCVVariant(int cvAttributes) {
+    Type newCVVariant(final int cvAttributes) {
         return new PointerType(getSize(), targetType, cvAttributes, hasTypedefedName, (hasTypedefedName ? getName() : null));
     }
 }

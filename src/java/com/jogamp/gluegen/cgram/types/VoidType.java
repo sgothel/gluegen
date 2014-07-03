@@ -41,11 +41,11 @@ package com.jogamp.gluegen.cgram.types;
 
 public class VoidType extends Type implements Cloneable {
 
-    public VoidType(int cvAttributes) {
+    public VoidType(final int cvAttributes) {
         this("void", cvAttributes);
     }
 
-    private VoidType(String name, int cvAttributes) {
+    private VoidType(final String name, final int cvAttributes) {
         super(name, null, cvAttributes);
     }
 
@@ -55,7 +55,7 @@ public class VoidType extends Type implements Cloneable {
     }
 
     @Override
-    Type newCVVariant(int cvAttributes) {
+    Type newCVVariant(final int cvAttributes) {
         return new VoidType(getName(), cvAttributes);
     }
 }

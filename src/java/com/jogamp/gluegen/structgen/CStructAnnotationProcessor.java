@@ -92,7 +92,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
 
     static {
         Debug.initSingleton();
-        DEBUG = Debug.isPropertyDefined("jogamp.gluegen.structgen.debug", true);
+        DEBUG = PropertyAccess.isPropertyDefined("jogamp.gluegen.structgen.debug", true);
     }
 
     private static final String STRUCTGENOUTPUT_OPTION = "structgen.output";
@@ -107,7 +107,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
 
 
     @Override
-    public void init(ProcessingEnvironment processingEnv) {
+    public void init(final ProcessingEnvironment processingEnv) {
         super.init(processingEnv);
 
         filer = processingEnv.getFiler();
@@ -118,7 +118,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
         outputPath = outputPath == null ? STRUCTGENOUTPUT : outputPath;
     }
 
-    private File locateSource(String packageName, String relativeName) {
+    private File locateSource(final String packageName, final String relativeName) {
         try {
             if( DEBUG ) {
                 System.err.println("CStruct.locateSource.0: p "+packageName+", r "+relativeName);
@@ -131,28 +131,28 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             if( f.exists() ) {
                 return f;
             }
-        } catch (IOException e) { if(DEBUG) { System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
+        } catch (final IOException e) { if(DEBUG) { System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
         return null;
     }
 
     @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment env) {
+    public boolean process(final Set<? extends TypeElement> annotations, final RoundEnvironment env) {
         final String user_dir = System.getProperty("user.dir");
 
         final Set<? extends Element> cStructsElements = env.getElementsAnnotatedWith(CStructs.class);
-        for (Element structsElement : cStructsElements) {
+        for (final Element structsElement : cStructsElements) {
             final String packageName = eltUtils.getPackageOf(structsElement).toString();
             final CStructs cstructs = structsElement.getAnnotation(CStructs.class);
             if( null != cstructs ) {
                 final CStruct[] cstructArray = cstructs.value();
-                for(CStruct cstruct : cstructArray) {
+                for(final CStruct cstruct : cstructArray) {
                     processCStruct(cstruct, structsElement, packageName, user_dir);
                 }
             }
         }
 
         final Set<? extends Element> cStructElements = env.getElementsAnnotatedWith(CStruct.class);
-        for (Element structElement : cStructElements) {
+        for (final Element structElement : cStructElements) {
             final String packageName = eltUtils.getPackageOf(structElement).toString();
             final CStruct cstruct = structElement.getAnnotation(CStruct.class);
             if( null != cstruct ) {
@@ -205,12 +205,12 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", headerParent "+headerParent+", rootOut "+rootOut);
 
             generateStructBinding(element, struct, isPackageOrType, rootOut, packageName, headerFile, headerParent);
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             throw new RuntimeException("IOException while processing!", ex);
         }
     }
 
-    private void generateStructBinding(Element element, CStruct struct, boolean isPackageOrType, String rootOut, String pakage, File header, String headerParent) throws IOException {
+    private void generateStructBinding(final Element element, final CStruct struct, final boolean isPackageOrType, final String rootOut, final String pakage, final File header, final String headerParent) throws IOException {
         final String declaredType = element.asType().toString();
         final boolean useStructName = !struct.name().equals(DEFAULT);
         final String structName = useStructName ? struct.name() : declaredType;
@@ -260,7 +260,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
         final String filename = header.getPath();
         try {
             reader = new BufferedReader(new FileReader(filename));
-        } catch (FileNotFoundException ex) {
+        } catch (final FileNotFoundException ex) {
             throw new RuntimeException("input file not found", ex);
         }
         new GlueGen().run(reader, filename, AnnotationProcessorJavaStructEmitter.class,
@@ -273,7 +273,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
     public static class AnnotationProcessorJavaStructEmitter extends JavaEmitter {
 
         @Override
-        protected PrintWriter openFile(String filename, String simpleClassName) throws IOException {
+        protected PrintWriter openFile(final String filename, final String simpleClassName) throws IOException {
 
             if( generatedStructs.contains(simpleClassName) ) {
                 System.err.println("skipping -> " + simpleClassName);

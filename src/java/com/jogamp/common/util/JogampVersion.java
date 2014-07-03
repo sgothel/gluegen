@@ -47,15 +47,15 @@ public class JogampVersion {
     /** See {@link #getImplementationCommit()} */
     public static final Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
 
-    private String packageName;
-    private Manifest mf;
-    private int hash;
-    private Attributes mainAttributes;
-    private Set<?>/*<Attributes.Name>*/ mainAttributeNames;
+    private final String packageName;
+    private final Manifest mf;
+    private final int hash;
+    private final Attributes mainAttributes;
+    private final Set<?>/*<Attributes.Name>*/ mainAttributeNames;
 
     private final String androidPackageVersionName;
 
-    protected JogampVersion(String packageName, Manifest mf) {
+    protected JogampVersion(final String packageName, final Manifest mf) {
         this.packageName = packageName;
         this.mf = ( null != mf ) ? mf : new Manifest();
         this.hash = this.mf.hashCode();
@@ -70,7 +70,7 @@ public class JogampVersion {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public final boolean equals(final Object o) {
         if (o instanceof JogampVersion) {
             return mf.equals(((JogampVersion) o).getManifest());
         }
@@ -85,17 +85,17 @@ public class JogampVersion {
         return packageName;
     }
 
-    public final String getAttribute(Attributes.Name attributeName) {
+    public final String getAttribute(final Attributes.Name attributeName) {
         return (null != attributeName) ? (String) mainAttributes.get(attributeName) : null;
     }
 
-    public final String getAttribute(String attributeName) {
+    public final String getAttribute(final String attributeName) {
         return getAttribute(getAttributeName(attributeName));
     }
 
-    public final Attributes.Name getAttributeName(String attributeName) {
-        for (Iterator<?> iter = mainAttributeNames.iterator(); iter.hasNext();) {
-            Attributes.Name an = (Attributes.Name) iter.next();
+    public final Attributes.Name getAttributeName(final String attributeName) {
+        for (final Iterator<?> iter = mainAttributeNames.iterator(); iter.hasNext();) {
+            final Attributes.Name an = (Attributes.Name) iter.next();
             if (an.toString().equals(attributeName)) {
                 return an;
             }
@@ -121,21 +121,21 @@ public class JogampVersion {
      * Returns the implementation build number, e.g. <code>2.0-b456-20130328</code>.
      */
     public final String getImplementationBuild() {
-        return this.getAttribute(GlueGenVersion.IMPLEMENTATION_BUILD);
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_BUILD);
     }
 
     /**
      * Returns the SCM branch name
      */
     public final String getImplementationBranch() {
-        return this.getAttribute(GlueGenVersion.IMPLEMENTATION_BRANCH);
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_BRANCH);
     }
 
     /**
      * Returns the SCM version of the last commit, e.g. git's sha1
      */
     public final String getImplementationCommit() {
-        return this.getAttribute(GlueGenVersion.IMPLEMENTATION_COMMIT);
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_COMMIT);
     }
 
     public final String getImplementationTitle() {
@@ -181,7 +181,7 @@ public class JogampVersion {
         return this.getAttribute(Attributes.Name.SPECIFICATION_VERSION);
     }
 
-    public final StringBuilder getFullManifestInfo(StringBuilder sb) {
+    public final StringBuilder getFullManifestInfo(final StringBuilder sb) {
         return VersionUtil.getFullManifestInfo(getManifest(), sb);
     }
 
@@ -189,7 +189,7 @@ public class JogampVersion {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        String nl = Platform.getNewline();
+        final String nl = Platform.getNewline();
         sb.append("Package: ").append(getPackageName()).append(nl);
         sb.append("Extension Name: ").append(getExtensionName()).append(nl);
         sb.append("Specification Title: ").append(getSpecificationTitle()).append(nl);

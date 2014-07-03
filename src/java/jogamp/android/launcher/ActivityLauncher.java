@@ -48,7 +48,7 @@ public class ActivityLauncher extends Activity {
    Object activityObject  = null;
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        Log.d(TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
 
@@ -57,7 +57,7 @@ public class ActivityLauncher extends Activity {
        data.setSystemProperties();
        dataSet = true;
 
-       ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getSysPackages(), data.getUsrPackages(), null);
+       final ClassLoader cl = ClassLoaderUtil.createClassLoader(this, data.getSysPackages(), data.getUsrPackages(), null);
        if(null != cl) {
            try {
                activityClazz = Class.forName(data.getActivityName(), true, cl);
@@ -72,7 +72,7 @@ public class ActivityLauncher extends Activity {
                mSetRootActivity = activityClazz.getMethod("setRootActivity", Activity.class);
                activityObject = createInstance(activityClazz, null);
                Log.d(TAG, "Activity Object "+activityObject);
-           } catch (Exception e) {
+           } catch (final Exception e) {
                Log.d(TAG, "error: "+e, e);
                throw new RuntimeException(e);
            }
@@ -81,7 +81,7 @@ public class ActivityLauncher extends Activity {
        if( null == mOnCreate || null == mOnDestroy || null == mOnPause ||
            null == mOnRestart || null == mOnResume ||
            null == mSetRootActivity ) {
-           RuntimeException e = new RuntimeException("XXX - incomplete method set");
+           final RuntimeException e = new RuntimeException("XXX - incomplete method set");
            Log.d(TAG, "error: "+e, e);
            throw e;
        }
@@ -172,18 +172,18 @@ public class ActivityLauncher extends Activity {
   /**
    * @throws JogampRuntimeException if the instance can not be created.
    */
-  public static final Object createInstance(Class<?> clazz, Class<?>[] cstrArgTypes, Object ... cstrArgs)
+  public static final Object createInstance(final Class<?> clazz, final Class<?>[] cstrArgTypes, final Object ... cstrArgs)
       throws RuntimeException
   {
     return createInstance(getConstructor(clazz, cstrArgTypes), cstrArgs);
   }
 
-  public static final Object createInstance(Constructor<?> cstr, Object ... cstrArgs)
+  public static final Object createInstance(final Constructor<?> cstr, final Object ... cstrArgs)
       throws RuntimeException
   {
     try {
         return cstr.newInstance(cstrArgs);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Throwable t = e;
       if (t instanceof InvocationTargetException) {
         t = ((InvocationTargetException) t).getTargetException();
@@ -201,22 +201,22 @@ public class ActivityLauncher extends Activity {
     /**
      * @throws JogampRuntimeException if the constructor can not be delivered.
      */
-    protected static final Constructor<?> getConstructor(Class<?> clazz, Class<?> ... cstrArgTypes)
+    protected static final Constructor<?> getConstructor(final Class<?> clazz, Class<?> ... cstrArgTypes)
         throws RuntimeException {
         try {
             if(null == cstrArgTypes) {
                 cstrArgTypes = zeroTypes;
             }
             return clazz.getDeclaredConstructor(cstrArgTypes);
-        } catch (NoSuchMethodException ex) {
+        } catch (final NoSuchMethodException ex) {
             throw new RuntimeException("Constructor: '" + clazz + "(" + asString(cstrArgTypes) + ")' not found", ex);
         }
     }
 
     protected static final Class<?>[] zeroTypes = new Class[0];
 
-    protected static final String asString(Class<?>[] argTypes) {
-        StringBuilder args = new StringBuilder();
+    protected static final String asString(final Class<?>[] argTypes) {
+        final StringBuilder args = new StringBuilder();
         boolean coma = false;
         if(null != argTypes) {
             for (int i = 0; i < argTypes.length; i++) {
@@ -230,12 +230,12 @@ public class ActivityLauncher extends Activity {
         return args.toString();
     }
 
-  protected static final Object callMethod(Object instance, Method method, Object ... args)
+  protected static final Object callMethod(final Object instance, final Method method, final Object ... args)
       throws RuntimeException
   {
     try {
         return method.invoke(instance, args);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       Throwable t = e;
       if (t instanceof InvocationTargetException) {
         t = ((InvocationTargetException) t).getTargetException();

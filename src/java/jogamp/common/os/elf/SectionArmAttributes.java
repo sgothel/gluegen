@@ -48,7 +48,7 @@ public class SectionArmAttributes extends Section {
      * Returns true if value is either {@link #ABI_VFP_ARGS_IS_VFP_VARIANT} or {@link #ABI_VFP_ARGS_IS_BOTH_BASE_AND_VFP_VARIANT}
      * @param v ULEB128 Value from {@link Tag#ABI_VFP_args} attribute
      */
-    public static final boolean abiVFPArgsAcceptsVFPVariant(byte v) {
+    public static final boolean abiVFPArgsAcceptsVFPVariant(final byte v) {
         return ABI_VFP_ARGS_IS_VFP_VARIANT == v || ABI_VFP_ARGS_IS_BOTH_BASE_AND_VFP_VARIANT == v;
     }
 
@@ -113,7 +113,7 @@ public class SectionArmAttributes extends Section {
             return null;
         }
 
-        Tag(int id, Type type){
+        Tag(final int id, final Type type){
             this.id = id;
             this.type = type;
         }
@@ -123,7 +123,7 @@ public class SectionArmAttributes extends Section {
         public final Tag tag;
         private final Object value;
 
-        Attribute(Tag tag, Object value) {
+        Attribute(final Tag tag, final Object value) {
             this.tag = tag;
             this.value = value;
         }
@@ -158,7 +158,7 @@ public class SectionArmAttributes extends Section {
         public final String vendor;
         public final List<Attribute> attributes;
 
-        VendorAttributes(String vendor, List<Attribute> attributes) {
+        VendorAttributes(final String vendor, final List<Attribute> attributes) {
             this.vendor = vendor;
             this.attributes = attributes;
         }
@@ -170,7 +170,7 @@ public class SectionArmAttributes extends Section {
     }
     public final List<VendorAttributes> vendorAttributesList;
 
-    SectionArmAttributes(SectionHeader sh, byte[] data, int offset, int length) throws IndexOutOfBoundsException, IllegalArgumentException {
+    SectionArmAttributes(final SectionHeader sh, final byte[] data, final int offset, final int length) throws IndexOutOfBoundsException, IllegalArgumentException {
         super(sh, data, offset, length);
         this.vendorAttributesList = parse(data, offset, length);
     }
@@ -180,7 +180,7 @@ public class SectionArmAttributes extends Section {
         return "SectionArmAttributes["+super.toSubString()+", "+vendorAttributesList.toString()+"]";
     }
 
-    public final Attribute get(Tag tag) {
+    public final Attribute get(final Tag tag) {
         for(int i=0; i<vendorAttributesList.size(); i++) {
             final List<Attribute> attributes = vendorAttributesList.get(i).attributes;
             for(int j=0; j<attributes.size(); j++) {
@@ -193,11 +193,11 @@ public class SectionArmAttributes extends Section {
         return null;
     }
 
-    public final List<Attribute> get(String vendor) {
+    public final List<Attribute> get(final String vendor) {
         return get(vendorAttributesList, vendor);
     }
 
-    static final List<Attribute> get(final List<VendorAttributes> vendorAttributesList, String vendor) {
+    static final List<Attribute> get(final List<VendorAttributes> vendorAttributesList, final String vendor) {
         for(int i=0; i<vendorAttributesList.size(); i++) {
             final VendorAttributes vas = vendorAttributesList.get(i);
             if( vas.vendor.equals(vendor) ) {
@@ -232,7 +232,7 @@ public class SectionArmAttributes extends Section {
 
             final String vendor;
             {
-                int[] i_post = new int[] { 0 };
+                final int[] i_post = new int[] { 0 };
                 vendor = getString(in, i, secLen - 4, i_post);
                 i = i_post[0];
             }
@@ -240,7 +240,7 @@ public class SectionArmAttributes extends Section {
             final List<Attribute> attributes = new ArrayList<Attribute>();
 
             while(i < secLen) {
-                int[] i_post = new int[] { 0 };
+                final int[] i_post = new int[] { 0 };
                 parseSub(in, i, secLen - i, i_post, attributes);
                 i = i_post[0];
             }
@@ -268,7 +268,7 @@ public class SectionArmAttributes extends Section {
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
-    static void parseSub(final byte[] in, final int offset, final int remaining, int[] offset_post, List<Attribute> attributes) throws IndexOutOfBoundsException, IllegalArgumentException {
+    static void parseSub(final byte[] in, final int offset, final int remaining, final int[] offset_post, final List<Attribute> attributes) throws IndexOutOfBoundsException, IllegalArgumentException {
         Bitstream.checkBounds(in, offset, remaining);
 
         // Starts w/ sub-section Tag
@@ -299,7 +299,7 @@ public class SectionArmAttributes extends Section {
                 switch(tag.type) {
                     case NTBS:
                         {
-                            int[] i_post = new int[] { 0 };
+                            final int[] i_post = new int[] { 0 };
                             final String value = getString(in, i, subSecLen + offset - i, i_post);
                             attributes.add(new Attribute(tag, value));
                             i = i_post[0];

@@ -28,6 +28,8 @@
 package jogamp.common.os.android;
 
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.VersionUtil;
@@ -42,7 +44,7 @@ public class GluegenVersionActivity extends Activity {
    TextView tv = null;
 
    @Override
-   public void onCreate(Bundle savedInstanceState) {
+   public void onCreate(final Bundle savedInstanceState) {
        Log.d(MD.TAG, "onCreate - S");
        super.onCreate(savedInstanceState);
        StaticContext.init(this.getApplicationContext());
@@ -54,7 +56,7 @@ public class GluegenVersionActivity extends Activity {
        scroller.addView(tv);
        setContentView(scroller);
 
-       tv.setText(VersionUtil.getPlatformInfo()+Platform.NEWLINE+GlueGenVersion.getInstance()+Platform.NEWLINE+Platform.NEWLINE);
+       tv.setText(VersionUtil.getPlatformInfo()+PlatformPropsImpl.NEWLINE+GlueGenVersion.getInstance()+PlatformPropsImpl.NEWLINE+PlatformPropsImpl.NEWLINE);
        Log.d(MD.TAG, "onCreate - X");
    }
 
@@ -63,7 +65,7 @@ public class GluegenVersionActivity extends Activity {
      Log.d(MD.TAG, "onStart - S");
      super.onStart();
      if(null != tv) {
-         tv.append("> started"+Platform.NEWLINE);
+         tv.append("> started"+PlatformPropsImpl.NEWLINE);
      }
      Log.d(MD.TAG, "onStart - X");
    }
@@ -73,7 +75,7 @@ public class GluegenVersionActivity extends Activity {
      Log.d(MD.TAG, "onRestart - S");
      super.onRestart();
      if(null != tv) {
-         tv.append("> restarted"+Platform.NEWLINE);
+         tv.append("> restarted"+PlatformPropsImpl.NEWLINE);
      }
      Log.d(MD.TAG, "onRestart - X");
    }
@@ -82,7 +84,7 @@ public class GluegenVersionActivity extends Activity {
    public void onResume() {
      Log.d(MD.TAG, "onResume - S");
      if(null != tv) {
-         tv.append("> resumed"+Platform.NEWLINE);
+         tv.append("> resumed"+PlatformPropsImpl.NEWLINE);
      }
      super.onResume();
      Log.d(MD.TAG, "onResume - X");
@@ -92,7 +94,7 @@ public class GluegenVersionActivity extends Activity {
    public void onPause() {
      Log.d(MD.TAG, "onPause - S");
      if(null != tv) {
-         tv.append("> paused"+Platform.NEWLINE);
+         tv.append("> paused"+PlatformPropsImpl.NEWLINE);
      }
      super.onPause();
      // Log.d(MD.TAG, "onPause - x");
@@ -104,7 +106,7 @@ public class GluegenVersionActivity extends Activity {
    public void onStop() {
      Log.d(MD.TAG, "onStop - S");
      if(null != tv) {
-         tv.append("> stopped"+Platform.NEWLINE);
+         tv.append("> stopped"+PlatformPropsImpl.NEWLINE);
      }
      super.onStop();
      Log.d(MD.TAG, "onStop - X");
@@ -114,7 +116,7 @@ public class GluegenVersionActivity extends Activity {
    public void onDestroy() {
      Log.d(MD.TAG, "onDestroy - S");
      if(null != tv) {
-         tv.append("> destroyed"+Platform.NEWLINE);
+         tv.append("> destroyed"+PlatformPropsImpl.NEWLINE);
      }
      Log.d(MD.TAG, "onDestroy - x");
      StaticContext.clear();

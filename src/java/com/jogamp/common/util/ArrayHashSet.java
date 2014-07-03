@@ -76,12 +76,12 @@ public class ArrayHashSet<E>
         data = new ArrayList<E>();
     }
 
-    public ArrayHashSet(int initialCapacity) {
+    public ArrayHashSet(final int initialCapacity) {
         map  = new HashMap<E,E>(initialCapacity);
         data = new ArrayList<E>(initialCapacity);
     }
 
-    public ArrayHashSet(int initialCapacity, float loadFactor) {
+    public ArrayHashSet(final int initialCapacity, final float loadFactor) {
         map  = new HashMap<E,E>(initialCapacity, loadFactor);
         data = new ArrayList<E>(initialCapacity);
     }
@@ -130,7 +130,7 @@ public class ArrayHashSet<E>
      *         otherwise false (already contained).
      */
     @Override
-    public final boolean add(E element) {
+    public final boolean add(final E element) {
         final boolean exists = map.containsKey(element);
         if(!exists) {
             if(null != map.put(element, element)) {
@@ -153,7 +153,7 @@ public class ArrayHashSet<E>
      *         otherwise false (not contained).
      */
     @Override
-    public final boolean remove(Object element) {
+    public final boolean remove(final Object element) {
         if ( null != map.remove(element) ) {
             if ( ! data.remove(element) ) {
                 throw new InternalError("Couldn't remove prev mapped element: "+element);
@@ -172,9 +172,9 @@ public class ArrayHashSet<E>
      *         otherwise false (completely container).
      */
     @Override
-    public final boolean addAll(Collection<? extends E> c) {
+    public final boolean addAll(final Collection<? extends E> c) {
         boolean mod = false;
-        for (E o : c) {
+        for (final E o : c) {
             mod |= add(o);
         }
         return mod;
@@ -189,7 +189,7 @@ public class ArrayHashSet<E>
      *         otherwise false.
      */
     @Override
-    public final boolean contains(Object element) {
+    public final boolean contains(final Object element) {
         return map.containsKey(element);
     }
 
@@ -202,8 +202,8 @@ public class ArrayHashSet<E>
      *         otherwise false.
      */
     @Override
-    public final boolean containsAll(Collection<?> c) {
-        for (Object o : c) {
+    public final boolean containsAll(final Collection<?> c) {
+        for (final Object o : c) {
             if (!this.contains(o)) {
                 return false;
             }
@@ -220,9 +220,9 @@ public class ArrayHashSet<E>
      *         otherwise false.
      */
     @Override
-    public final boolean removeAll(Collection<?> c) {
+    public final boolean removeAll(final Collection<?> c) {
         boolean mod = false;
-        for (Object o : c) {
+        for (final Object o : c) {
             mod |= this.remove(o);
         }
         return mod;
@@ -238,9 +238,9 @@ public class ArrayHashSet<E>
      *         otherwise false.
      */
     @Override
-    public final boolean retainAll(Collection<?> c) {
+    public final boolean retainAll(final Collection<?> c) {
         boolean mod = false;
-        for (Object o : c) {
+        for (final Object o : c) {
             if (!c.contains(o)) {
                 mod |= this.remove(o);
             }
@@ -255,7 +255,7 @@ public class ArrayHashSet<E>
      * Performance: arrayHashSet(1)
      */
     @Override
-    public final boolean equals(Object arrayHashSet) {
+    public final boolean equals(final Object arrayHashSet) {
         if ( !(arrayHashSet instanceof ArrayHashSet) ) {
             return false;
         }
@@ -294,7 +294,7 @@ public class ArrayHashSet<E>
     }
 
     @Override
-    public final <T> T[] toArray(T[] a) {
+    public final <T> T[] toArray(final T[] a) {
         return data.toArray(a);
     }
 
@@ -303,12 +303,12 @@ public class ArrayHashSet<E>
     //
 
     @Override
-    public final E get(int index) {
+    public final E get(final int index) {
         return data.get(index);
     }
 
     @Override
-    public final int indexOf(Object element) {
+    public final int indexOf(final Object element) {
         return data.indexOf(element);
     }
 
@@ -320,7 +320,7 @@ public class ArrayHashSet<E>
      * @throws IllegalArgumentException if the given element was already contained
      */
     @Override
-    public final void add(int index, E element) {
+    public final void add(final int index, final E element) {
         if ( map.containsKey(element) ) {
             throw new IllegalArgumentException("Element "+element+" is already contained");
         }
@@ -334,7 +334,7 @@ public class ArrayHashSet<E>
      * @throws UnsupportedOperationException
      */
     @Override
-    public final boolean addAll(int index, Collection<? extends E> c) {
+    public final boolean addAll(final int index, final Collection<? extends E> c) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
@@ -342,7 +342,7 @@ public class ArrayHashSet<E>
      * @throws UnsupportedOperationException
      */
     @Override
-    public final E set(int index, E element) {
+    public final E set(final int index, final E element) {
         final E old = remove(index);
         if(null!=old) {
             add(index, element);
@@ -358,7 +358,7 @@ public class ArrayHashSet<E>
      * @return the removed object
      */
     @Override
-    public final E remove(int index) {
+    public final E remove(final int index) {
         final E o = get(index);
         if( null!=o && remove(o) ) {
             return o;
@@ -374,7 +374,7 @@ public class ArrayHashSet<E>
      * @return index of element, or -1 if not found
      */
     @Override
-    public final int lastIndexOf(Object o) {
+    public final int lastIndexOf(final Object o) {
         return indexOf(o);
     }
 
@@ -384,12 +384,12 @@ public class ArrayHashSet<E>
     }
 
     @Override
-    public final ListIterator<E> listIterator(int index) {
+    public final ListIterator<E> listIterator(final int index) {
         return data.listIterator(index);
     }
 
     @Override
-    public final List<E> subList(int fromIndex, int toIndex) {
+    public final List<E> subList(final int fromIndex, final int toIndex) {
         return data.subList(fromIndex, toIndex);
     }
 
@@ -413,7 +413,7 @@ public class ArrayHashSet<E>
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or null if not contained
      */
-    public final E get(Object key) {
+    public final E get(final Object key) {
         return map.get(key);
     }
 
@@ -427,7 +427,7 @@ public class ArrayHashSet<E>
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or add the given <code>key</code> and return it.
      */
-    public final E getOrAdd(E key) {
+    public final E getOrAdd(final E key) {
         final E identity = get(key);
         if(null == identity) {
             // object not contained yet, add it
@@ -451,7 +451,7 @@ public class ArrayHashSet<E>
      * @return true if the given element is contained by this list using slow equals operation,
      *         otherwise false.
      */
-    public final boolean containsSafe(Object element) {
+    public final boolean containsSafe(final Object element) {
         return data.contains(element);
     }
 

@@ -48,10 +48,10 @@ import com.jogamp.gluegen.cgram.types.*;
 public class DebugEmitter implements GlueEmitter {
 
   @Override
-  public void readConfigurationFile(String filename) {}
+  public void readConfigurationFile(final String filename) {}
 
   @Override
-  public void beginEmission(GlueEmitterControls controls) {
+  public void beginEmission(final GlueEmitterControls controls) {
     System.out.println("----- BEGIN EMISSION OF GLUE CODE -----");
   }
 
@@ -64,9 +64,9 @@ public class DebugEmitter implements GlueEmitter {
   public void beginDefines() {}
 
   @Override
-  public void emitDefine(ConstantDefinition def, String optionalComment) {
-    String name = def.getName();
-    String value = def.getValue();
+  public void emitDefine(final ConstantDefinition def, final String optionalComment) {
+    final String name = def.getName();
+    final String value = def.getValue();
     System.out.println("#define " + name + " " + value +
                        (optionalComment != null ? ("// " + optionalComment) : ""));
   }
@@ -74,24 +74,24 @@ public class DebugEmitter implements GlueEmitter {
   public void endDefines() {}
 
   @Override
-  public void beginFunctions(TypeDictionary typedefDictionary,
-                             TypeDictionary structDictionary,
-                             Map<Type, Type> canonMap) {
-    Set<String> keys = typedefDictionary.keySet();
-    for (String key: keys) {
-      Type value = typedefDictionary.get(key);
+  public void beginFunctions(final TypeDictionary typedefDictionary,
+                             final TypeDictionary structDictionary,
+                             final Map<Type, Type> canonMap) {
+    final Set<String> keys = typedefDictionary.keySet();
+    for (final String key: keys) {
+      final Type value = typedefDictionary.get(key);
       System.out.println("typedef " + value + " " + key + ";");
     }
   }
 
   @Override
-  public Iterator<FunctionSymbol> emitFunctions(List<FunctionSymbol> originalCFunctions) throws Exception {
-    for (FunctionSymbol sym : originalCFunctions) {
+  public Iterator<FunctionSymbol> emitFunctions(final List<FunctionSymbol> originalCFunctions) throws Exception {
+    for (final FunctionSymbol sym : originalCFunctions) {
       emitSingleFunction(sym);
     }
     return originalCFunctions.iterator();
   }
-  public void emitSingleFunction(FunctionSymbol sym) {
+  public void emitSingleFunction(final FunctionSymbol sym) {
     System.out.println(sym);
     System.out.println(" -> " + sym.toString());
   }
@@ -101,16 +101,16 @@ public class DebugEmitter implements GlueEmitter {
   @Override
   public void beginStructLayout() throws Exception {}
   @Override
-  public void layoutStruct(CompoundType t) throws Exception {}
+  public void layoutStruct(final CompoundType t) throws Exception {}
   @Override
   public void endStructLayout() throws Exception {}
 
   @Override
-  public void beginStructs(TypeDictionary typedefDictionary, TypeDictionary structDictionary, Map<Type, Type> canonMap) {
+  public void beginStructs(final TypeDictionary typedefDictionary, final TypeDictionary structDictionary, final Map<Type, Type> canonMap) {
   }
 
   @Override
-  public void emitStruct(CompoundType t, String alternateName) {
+  public void emitStruct(final CompoundType t, final String alternateName) {
     String name = t.getName();
     if (name == null && alternateName != null) {
       name = alternateName;

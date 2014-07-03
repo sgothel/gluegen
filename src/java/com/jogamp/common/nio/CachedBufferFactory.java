@@ -75,7 +75,7 @@ public class CachedBufferFactory {
         this(DEFAULT_ALLOCATION_SIZE, DEFAULT_ALLOCATION_SIZE);
     }
 
-    private CachedBufferFactory(int initialSize, int allocationSize) {
+    private CachedBufferFactory(final int initialSize, final int allocationSize) {
         currentBuffer = Buffers.newDirectByteBuffer(initialSize);
         ALLOCATION_SIZE = allocationSize;
     }
@@ -93,7 +93,7 @@ public class CachedBufferFactory {
      * Creates a factory with the specified initial size. The allocation size is set to
      * {@link #DEFAULT_ALLOCATION_SIZE}.
      */
-    public static CachedBufferFactory create(int initialSize) {
+    public static CachedBufferFactory create(final int initialSize) {
         return new CachedBufferFactory(initialSize, DEFAULT_ALLOCATION_SIZE);
     }
 
@@ -103,14 +103,14 @@ public class CachedBufferFactory {
      * @param fixed Creates a fixed size factory which will handle overflows (initial size)
      * with RuntimeExceptions.
      */
-    public static CachedBufferFactory create(int initialSize, boolean fixed) {
+    public static CachedBufferFactory create(final int initialSize, final boolean fixed) {
         return new CachedBufferFactory(initialSize, fixed?-1:DEFAULT_ALLOCATION_SIZE);
     }
 
     /**
      * Creates a factory with the specified initial size and allocation size.
      */
-    public static CachedBufferFactory create(int initialSize, int allocationSize) {
+    public static CachedBufferFactory create(final int initialSize, final int allocationSize) {
         return new CachedBufferFactory(initialSize, allocationSize);
     }
 
@@ -125,21 +125,21 @@ public class CachedBufferFactory {
     /**
      * Synchronized version of {@link #create(int)}.
      */
-    public static CachedBufferFactory createSynchronized(int initialSize) {
+    public static CachedBufferFactory createSynchronized(final int initialSize) {
         return new SynchronizedCachedBufferFactory(initialSize, DEFAULT_ALLOCATION_SIZE);
     }
 
     /**
      * Synchronized version of {@link #create(int, boolean)}.
      */
-    public static CachedBufferFactory createSynchronized(int initialSize, boolean fixed) {
+    public static CachedBufferFactory createSynchronized(final int initialSize, final boolean fixed) {
         return new SynchronizedCachedBufferFactory(initialSize, fixed?-1:DEFAULT_ALLOCATION_SIZE);
     }
 
     /**
      * Synchronized version of {@link #create(int, int)}.
      */
-    public static CachedBufferFactory createSynchronized(int initialSize, int allocationSize) {
+    public static CachedBufferFactory createSynchronized(final int initialSize, final int allocationSize) {
         return new CachedBufferFactory(initialSize, allocationSize);
     }
 
@@ -174,7 +174,7 @@ public class CachedBufferFactory {
             currentBuffer = null;
         }
     }
-    public ByteBuffer newDirectByteBuffer(int size) {
+    public ByteBuffer newDirectByteBuffer(final int size) {
 
         // if large enough... just create it
         if (size > currentBuffer.capacity()) {
@@ -189,123 +189,123 @@ public class CachedBufferFactory {
         }
 
         currentBuffer.limit(currentBuffer.position() + size);
-        ByteBuffer result = currentBuffer.slice().order(currentBuffer.order());
+        final ByteBuffer result = currentBuffer.slice().order(currentBuffer.order());
         currentBuffer.position(currentBuffer.limit());
         currentBuffer.limit(currentBuffer.capacity());
         return result;
     }
 
 
-    public ByteBuffer newDirectByteBuffer(byte[] values, int offset, int lenght) {
+    public ByteBuffer newDirectByteBuffer(final byte[] values, final int offset, final int lenght) {
         return (ByteBuffer)newDirectByteBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public ByteBuffer newDirectByteBuffer(byte[] values, int offset) {
+    public ByteBuffer newDirectByteBuffer(final byte[] values, final int offset) {
         return newDirectByteBuffer(values, offset, values.length-offset);
     }
 
-    public ByteBuffer newDirectByteBuffer(byte[] values) {
+    public ByteBuffer newDirectByteBuffer(final byte[] values) {
         return newDirectByteBuffer(values, 0);
     }
 
-    public DoubleBuffer newDirectDoubleBuffer(int numElements) {
+    public DoubleBuffer newDirectDoubleBuffer(final int numElements) {
         return newDirectByteBuffer(numElements * Buffers.SIZEOF_DOUBLE).asDoubleBuffer();
     }
 
-    public DoubleBuffer newDirectDoubleBuffer(double[] values, int offset, int lenght) {
+    public DoubleBuffer newDirectDoubleBuffer(final double[] values, final int offset, final int lenght) {
         return (DoubleBuffer)newDirectDoubleBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public DoubleBuffer newDirectDoubleBuffer(double[] values, int offset) {
+    public DoubleBuffer newDirectDoubleBuffer(final double[] values, final int offset) {
         return newDirectDoubleBuffer(values, offset, values.length - offset);
     }
 
-    public DoubleBuffer newDirectDoubleBuffer(double[] values) {
+    public DoubleBuffer newDirectDoubleBuffer(final double[] values) {
         return newDirectDoubleBuffer(values, 0);
     }
 
-    public FloatBuffer newDirectFloatBuffer(int numElements) {
+    public FloatBuffer newDirectFloatBuffer(final int numElements) {
         return newDirectByteBuffer(numElements * Buffers.SIZEOF_FLOAT).asFloatBuffer();
     }
 
-    public FloatBuffer newDirectFloatBuffer(float[] values, int offset, int lenght) {
+    public FloatBuffer newDirectFloatBuffer(final float[] values, final int offset, final int lenght) {
         return (FloatBuffer)newDirectFloatBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public FloatBuffer newDirectFloatBuffer(float[] values, int offset) {
+    public FloatBuffer newDirectFloatBuffer(final float[] values, final int offset) {
         return newDirectFloatBuffer(values, offset, values.length - offset);
     }
 
-    public FloatBuffer newDirectFloatBuffer(float[] values) {
+    public FloatBuffer newDirectFloatBuffer(final float[] values) {
         return newDirectFloatBuffer(values, 0);
     }
 
-    public IntBuffer newDirectIntBuffer(int numElements) {
+    public IntBuffer newDirectIntBuffer(final int numElements) {
         return newDirectByteBuffer(numElements * Buffers.SIZEOF_INT).asIntBuffer();
     }
 
-    public IntBuffer newDirectIntBuffer(int[] values, int offset, int lenght) {
+    public IntBuffer newDirectIntBuffer(final int[] values, final int offset, final int lenght) {
         return (IntBuffer)newDirectIntBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public IntBuffer newDirectIntBuffer(int[] values, int offset) {
+    public IntBuffer newDirectIntBuffer(final int[] values, final int offset) {
         return newDirectIntBuffer(values, offset, values.length - offset);
     }
 
-    public IntBuffer newDirectIntBuffer(int[] values) {
+    public IntBuffer newDirectIntBuffer(final int[] values) {
         return newDirectIntBuffer(values, 0);
     }
 
-    public LongBuffer newDirectLongBuffer(int numElements) {
+    public LongBuffer newDirectLongBuffer(final int numElements) {
         return newDirectByteBuffer(numElements * Buffers.SIZEOF_LONG).asLongBuffer();
     }
 
-    public LongBuffer newDirectLongBuffer(long[] values, int offset, int lenght) {
+    public LongBuffer newDirectLongBuffer(final long[] values, final int offset, final int lenght) {
         return (LongBuffer)newDirectLongBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public LongBuffer newDirectLongBuffer(long[] values, int offset) {
+    public LongBuffer newDirectLongBuffer(final long[] values, final int offset) {
         return newDirectLongBuffer(values, offset, values.length - offset);
     }
 
-    public LongBuffer newDirectLongBuffer(long[] values) {
+    public LongBuffer newDirectLongBuffer(final long[] values) {
         return newDirectLongBuffer(values, 0);
     }
 
-    public ShortBuffer newDirectShortBuffer(int numElements) {
+    public ShortBuffer newDirectShortBuffer(final int numElements) {
         return newDirectByteBuffer(numElements * Buffers.SIZEOF_SHORT).asShortBuffer();
     }
 
-    public ShortBuffer newDirectShortBuffer(short[] values, int offset, int lenght) {
+    public ShortBuffer newDirectShortBuffer(final short[] values, final int offset, final int lenght) {
         return (ShortBuffer)newDirectShortBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public ShortBuffer newDirectShortBuffer(short[] values, int offset) {
+    public ShortBuffer newDirectShortBuffer(final short[] values, final int offset) {
         return newDirectShortBuffer(values, offset, values.length - offset);
     }
 
-    public ShortBuffer newDirectShortBuffer(short[] values) {
+    public ShortBuffer newDirectShortBuffer(final short[] values) {
         return newDirectShortBuffer(values, 0);
     }
 
-    public CharBuffer newDirectCharBuffer(int numElements) {
+    public CharBuffer newDirectCharBuffer(final int numElements) {
         return newDirectByteBuffer(numElements * Buffers.SIZEOF_SHORT).asCharBuffer();
     }
 
-    public CharBuffer newDirectCharBuffer(char[] values, int offset, int lenght) {
+    public CharBuffer newDirectCharBuffer(final char[] values, final int offset, final int lenght) {
         return (CharBuffer)newDirectCharBuffer(lenght).put(values, offset, lenght).rewind();
     }
 
-    public CharBuffer newDirectCharBuffer(char[] values, int offset) {
+    public CharBuffer newDirectCharBuffer(final char[] values, final int offset) {
         return newDirectCharBuffer(values, offset, values.length - offset);
     }
 
-    public CharBuffer newDirectCharBuffer(char[] values) {
+    public CharBuffer newDirectCharBuffer(final char[] values) {
         return newDirectCharBuffer(values, 0);
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(final Object obj) {
         if (obj == null) {
             return false;
         }
@@ -335,12 +335,12 @@ public class CachedBufferFactory {
             super();
         }
 
-        private SynchronizedCachedBufferFactory(int size, int step) {
+        private SynchronizedCachedBufferFactory(final int size, final int step) {
             super(size, step);
         }
 
         @Override
-        public synchronized ByteBuffer newDirectByteBuffer(int size) {
+        public synchronized ByteBuffer newDirectByteBuffer(final int size) {
             return super.newDirectByteBuffer(size);
         }
 

@@ -186,8 +186,8 @@ public class TestIOUtilURIHandling extends JunitTracer {
         final String string = "Hallo Welt öä";
         System.err.println("sp1 "+string);
         {
-            String sp2 = IOUtil.encodeToURI(string);
-            String sp3 = IOUtil.encodeToURI(sp2);
+            final String sp2 = IOUtil.encodeToURI(string);
+            final String sp3 = IOUtil.encodeToURI(sp2);
             System.err.println("sp2 "+sp2);
             System.err.println("sp3 "+sp3);
         }
@@ -315,7 +315,7 @@ public class TestIOUtilURIHandling extends JunitTracer {
         }
     }
 
-    static void testURI2URL(String testname, String[][] uriSArray) throws IOException, URISyntaxException {
+    static void testURI2URL(final String testname, final String[][] uriSArray) throws IOException, URISyntaxException {
         boolean ok = true;
         for(int i=0; i<uriSArray.length; i++) {
             final String[] uriSPair = uriSArray[i];
@@ -328,7 +328,7 @@ public class TestIOUtilURIHandling extends JunitTracer {
         Assert.assertTrue("One or more errors occured see stderr above", ok);
     }
 
-    static boolean testURI2URL(String uriSource, String uriExpected) throws IOException, URISyntaxException {
+    static boolean testURI2URL(final String uriSource, final String uriExpected) throws IOException, URISyntaxException {
         showURX(uriSource);
         final URI uri0 = new URI(uriSource);
         System.err.println("uri.string: "+uri0.toString());
@@ -346,7 +346,7 @@ public class TestIOUtilURIHandling extends JunitTracer {
         URLConnection con = null;
         try {
             con = actualUrl.openConnection();
-        } catch (Throwable _t) {
+        } catch (final Throwable _t) {
             t = _t;
         }
         if( null != t ) {
@@ -359,7 +359,7 @@ public class TestIOUtilURIHandling extends JunitTracer {
         return ok;
     }
 
-    static void testFile2URI(String testname, String[][] uriSArray) throws IOException, URISyntaxException {
+    static void testFile2URI(final String testname, final String[][] uriSArray) throws IOException, URISyntaxException {
         boolean ok = true;
         for(int i=0; i<uriSArray.length; i++) {
             final String[] uriSPair = uriSArray[i];
@@ -374,7 +374,7 @@ public class TestIOUtilURIHandling extends JunitTracer {
         Assert.assertTrue("One or more errors occured see stderr above", ok);
     }
 
-    static boolean testFile2URI(String fileSource, String uriEncExpected, String uriDecExpected, String fileExpected) throws IOException, URISyntaxException {
+    static boolean testFile2URI(final String fileSource, final String uriEncExpected, final String uriDecExpected, final String fileExpected) throws IOException, URISyntaxException {
         final File file = new File(fileSource);
         {
             final URI uri0 = file.toURI();
@@ -405,7 +405,7 @@ public class TestIOUtilURIHandling extends JunitTracer {
         URLConnection con = null;
         try {
             con = actualUrl.openConnection();
-        } catch (Throwable _t) {
+        } catch (final Throwable _t) {
             t = _t;
         }
         if( null != t ) {
@@ -418,8 +418,8 @@ public class TestIOUtilURIHandling extends JunitTracer {
         return ok;
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestIOUtilURIHandling.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestIOUtilURIHandling.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

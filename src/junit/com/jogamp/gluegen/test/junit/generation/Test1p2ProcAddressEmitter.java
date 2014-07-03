@@ -166,8 +166,8 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
         dynamicLookupHelper = null;
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = Test1p2ProcAddressEmitter.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = Test1p2ProcAddressEmitter.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

@@ -3,14 +3,14 @@
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice, this list of
  *       conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright notice, this list
  *       of conditions and the following disclaimer in the documentation and/or other materials
  *       provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
@@ -20,7 +20,7 @@
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+ *
  * The views and conclusions contained in the software and documentation are those of the
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
@@ -40,33 +40,33 @@ import android.util.Log;
 
 public class ClassLoaderUtil {
    private static final String TAG = "JogampClassLoader";
-   
+
    private static HashMap<String, ClassLoader> cachedClassLoader = new HashMap<String, ClassLoader>();
-   
+
    // location where optimized dex files will be written
    private static final String dexPathName= "jogampDex";
-   private static File dexPath = null; 
-   
-   private static LauncherTempFileCache tmpFileCache = null;     
-   
+   private static File dexPath = null;
+
+   private static LauncherTempFileCache tmpFileCache = null;
+
    private static final String PATH_SEP = "/";
    private static final String ELEM_SEP = ":";
-   
-   private static synchronized void init(Context ctx) {
+
+   private static synchronized void init(final Context ctx) {
        if(null == tmpFileCache) {
            if(!LauncherTempFileCache.initSingleton(ctx)) {
                throw new InternalError("TempFileCache initialization error");
            }
            tmpFileCache = new LauncherTempFileCache();
            if(!tmpFileCache.isValid()) {
-               throw new InternalError("TempFileCache instantiation error");                
-           }           
+               throw new InternalError("TempFileCache instantiation error");
+           }
            dexPath = new File(tmpFileCache.getTempDir(), dexPathName);
            Log.d(TAG, "jogamp dexPath: " + dexPath.getAbsolutePath());
            dexPath.mkdir();
-       }       
+       }
    }
-   
+
    /**
     * @param ctx
     * @param cachedPackageName list of package names w/ native libraries for which a ClassLoader shall be cached, i.e. persistence.
@@ -75,11 +75,11 @@ public class ClassLoaderUtil {
     * @param userAPKNames optional non-cached user APKs
     * @return
     */
-   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> cachedPackageName, 
-                                                            List<String> userPackageNames, List<String> userAPKNames) {       
-       return createClassLoader(ctx, cachedPackageName, userPackageNames, userAPKNames, null); 
+   public static synchronized ClassLoader createClassLoader(final Context ctx, final List<String> cachedPackageName,
+                                                            final List<String> userPackageNames, final List<String> userAPKNames) {
+       return createClassLoader(ctx, cachedPackageName, userPackageNames, userAPKNames, null);
    }
-   
+
    /**
     * @param ctx
     * @param cachedPackageNames list of package names w/ native libraries for which a ClassLoader shall be cached, i.e. persistence.
@@ -89,11 +89,11 @@ public class ClassLoaderUtil {
     * @param parent
     * @return
     */
-   public static synchronized ClassLoader createClassLoader(Context ctx, List<String> cachedPackageNames, 
-                                                            List<String> userPackageNames, List<String> userAPKNames, 
-                                                            ClassLoader parent) {
+   public static synchronized ClassLoader createClassLoader(final Context ctx, final List<String> cachedPackageNames,
+                                                            final List<String> userPackageNames, final List<String> userAPKNames,
+                                                            final ClassLoader parent) {
        init(ctx);
-       
+
        final String cacheKey = cachedPackageNames.toString();
        ClassLoader clCached = cachedClassLoader.get(cacheKey);
        if( null == clCached ) {
@@ -101,12 +101,12 @@ public class ClassLoaderUtil {
            cachedClassLoader.put(cacheKey, clCached);
            Log.d(TAG, "NEW cached-CL: cachedPackageNames: "+cacheKey);
        } else {
-           Log.d(TAG, "REUSE cached-CL: cachedPackageNames: "+cacheKey);           
+           Log.d(TAG, "REUSE cached-CL: cachedPackageNames: "+cacheKey);
        }
-       
-       return createClassLoaderImpl(ctx, userPackageNames, false, userAPKNames, clCached); 
+
+       return createClassLoaderImpl(ctx, userPackageNames, false, userAPKNames, clCached);
    }
-   
+
    /**
     * @param ctx
     * @param packageNames list of package names
@@ -115,33 +115,33 @@ public class ClassLoaderUtil {
     * @param parent
     * @return
     */
-   private static synchronized ClassLoader createClassLoaderImpl(Context ctx, List<String> packageNames, boolean addLibPath, 
-                                                                 List<String> apkNames, ClassLoader parent) {
-       
+   private static synchronized ClassLoader createClassLoaderImpl(final Context ctx, final List<String> packageNames, final boolean addLibPath,
+                                                                 final List<String> apkNames, final ClassLoader parent) {
+
        final ApplicationInfo appInfoLauncher= ctx.getApplicationInfo();
        final String appDirLauncher = new File(appInfoLauncher.dataDir).getParent();
        final String libSubDef = "lib";
        Log.d(TAG, "S: userPackageNames: "+packageNames+"; Launcher: appDir "+appDirLauncher+", dataDir: "+appInfoLauncher.dataDir+", nativeLibraryDir "+appInfoLauncher.nativeLibraryDir);
-       
+
        final StringBuilder apks = new StringBuilder();
        final StringBuilder libs = new StringBuilder();
        int apkCount = 0;
        String lastUserPackageName = null; // the very last one reflects the Activity
-       
+
        if( null != packageNames ) {
-           for(Iterator<String> i=packageNames.iterator(); i.hasNext(); ) {
+           for(final Iterator<String> i=packageNames.iterator(); i.hasNext(); ) {
                lastUserPackageName = i.next();
-               
+
                String userAPK = null;
                String nativeLibraryDir=null;
                try {
                    final PackageManager pm = ctx.getPackageManager();
                    final ApplicationInfo appInfo = pm.getApplicationInfo(lastUserPackageName, 0);
-                   final String appDir = new File(appInfoLauncher.dataDir).getParent();                   
+                   final String appDir = new File(appInfoLauncher.dataDir).getParent();
                    userAPK = appInfo.sourceDir;
                    nativeLibraryDir = appInfo.nativeLibraryDir;
                    Log.d(TAG, "S: userPackage: "+lastUserPackageName+", apk "+userAPK+", appDir "+appDir+", dataDir: "+appInfo.dataDir+", nativeLibraryDir "+nativeLibraryDir);
-               } catch (PackageManager.NameNotFoundException e) {
+               } catch (final PackageManager.NameNotFoundException e) {
                    Log.d(TAG, "error: "+e, e);
                }
                if(null != userAPK) {
@@ -173,10 +173,10 @@ public class ClassLoaderUtil {
            }
        }
        final int userAPKCount = apkCount;
-       
+
        if( null != apkNames ) {
-           for(Iterator<String> i=apkNames.iterator(); i.hasNext(); ) {
-               String userAPK = i.next();
+           for(final Iterator<String> i=apkNames.iterator(); i.hasNext(); ) {
+               final String userAPK = i.next();
                if(apkCount>0) {
                    apks.append(ELEM_SEP);
                }
@@ -189,13 +189,13 @@ public class ClassLoaderUtil {
                return null;
            }
        }
-       
+
        // return new TraceDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
        return new AssetDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
    }
-   
+
    /***
-    * 
+    *
    public boolean setAPKClassLoader(String activityPackageName, ClassLoader classLoader)
    {
        try {
@@ -212,9 +212,9 @@ public class ClassLoaderUtil {
            Field mClassLoader = getField(apkClass, "mClassLoader");
 
            mClassLoader.set(apk, classLoader);
-           
+
            Log.d(TAG, "setAPKClassLoader: OK");
-           
+
            return true;
        } catch (IllegalArgumentException e) {
            e.printStackTrace();
@@ -238,6 +238,6 @@ public class ClassLoaderUtil {
        }
        return null;
    }
-   */   
+   */
 
 }

@@ -40,6 +40,8 @@ import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 public class VersionUtil {
 
     public static final String SEPERATOR = "-----------------------------------------------------------------------------------------------------";
@@ -68,7 +70,7 @@ public class VersionUtil {
         Platform.getMachineDescription().toString(sb).append(Platform.getNewline());
 
         // JVM/JRE
-        sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(" (").append(Platform.getJavaVersionNumber()).append("u").append(Platform.JAVA_VERSION_UPDATE).append("), VM: ").append(Platform.getJavaVMName());
+        sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(" (").append(Platform.getJavaVersionNumber()).append("u").append(PlatformPropsImpl.JAVA_VERSION_UPDATE).append("), VM: ").append(Platform.getJavaVMName());
         sb.append(", Runtime: ").append(Platform.getJavaRuntimeName()).append(Platform.getNewline());
         sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL());
         sb.append(", JavaSE: ").append(Platform.isJavaSE());
@@ -94,7 +96,7 @@ public class VersionUtil {
      * @param extension The value of the 'Extension-Name' jar-manifest attribute; used to identify the manifest.
      * @return the requested manifest or null when not found.
      */
-    public static Manifest getManifest(ClassLoader cl, String extension) {
+    public static Manifest getManifest(final ClassLoader cl, final String extension) {
         return getManifest(cl, new String[] { extension } );
     }
 
@@ -106,10 +108,10 @@ public class VersionUtil {
      *                   Matching is applied in decreasing order, i.e. first element is favored over the second, etc.
      * @return the requested manifest or null when not found.
      */
-    public static Manifest getManifest(ClassLoader cl, String[] extensions) {
+    public static Manifest getManifest(final ClassLoader cl, final String[] extensions) {
         final Manifest[] extManifests = new Manifest[extensions.length];
         try {
-            Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");
+            final Enumeration<URL> resources = cl.getResources("META-INF/MANIFEST.MF");
             while (resources.hasMoreElements()) {
                 final InputStream is = resources.nextElement().openStream();
                 final Manifest manifest;
@@ -118,7 +120,7 @@ public class VersionUtil {
                 } finally {
                     IOUtil.close(is, false);
                 }
-                Attributes attributes = manifest.getMainAttributes();
+                final Attributes attributes = manifest.getMainAttributes();
                 if(attributes != null) {
                     for(int i=0; i < extensions.length && null == extManifests[i]; i++) {
                         final String extension = extensions[i];
@@ -131,7 +133,7 @@ public class VersionUtil {
                     }
                 }
             }
-        } catch (IOException ex) {
+        } catch (final IOException ex) {
             throw new RuntimeException("Unable to read manifest.", ex);
         }
         for(int i=1; i<extManifests.length; i++) {
@@ -142,7 +144,7 @@ public class VersionUtil {
         return null;
     }
 
-    public static StringBuilder getFullManifestInfo(Manifest mf, StringBuilder sb) {
+    public static StringBuilder getFullManifestInfo(final Manifest mf, StringBuilder sb) {
         if(null==mf) {
             return sb;
         }
@@ -151,11 +153,11 @@ public class VersionUtil {
             sb = new StringBuilder();
         }
 
-        Attributes attr = mf.getMainAttributes();
-        Set<Object> keys = attr.keySet();
-        for(Iterator<Object> iter=keys.iterator(); iter.hasNext(); ) {
-            Attributes.Name key = (Attributes.Name) iter.next();
-            String val = attr.getValue(key);
+        final Attributes attr = mf.getMainAttributes();
+        final Set<Object> keys = attr.keySet();
+        for(final Iterator<Object> iter=keys.iterator(); iter.hasNext(); ) {
+            final Attributes.Name key = (Attributes.Name) iter.next();
+            final String val = attr.getValue(key);
             sb.append(" ");
             sb.append(key);
             sb.append(" = ");

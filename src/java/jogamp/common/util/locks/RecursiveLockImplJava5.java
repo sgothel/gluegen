@@ -10,7 +10,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
     volatile Thread owner = null;
     ReentrantLock lock;
 
-    public RecursiveLockImplJava5(boolean fair) {
+    public RecursiveLockImplJava5(final boolean fair) {
         lock = new ReentrantLock(fair);
     }
 
@@ -20,14 +20,14 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
             if(!tryLock(TIMEOUT)) {
                 throw new RuntimeException("Waited "+TIMEOUT+"ms for: "+threadName(owner)+" - "+threadName(Thread.currentThread())+", with count "+getHoldCount()+", lock: "+this);
             }
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
             throw new RuntimeException("Interrupted", e);
         }
         owner = Thread.currentThread();
     }
 
     @Override
-    public boolean tryLock(long timeout) throws InterruptedException {
+    public boolean tryLock(final long timeout) throws InterruptedException {
         if(lock.tryLock(timeout, TimeUnit.MILLISECONDS)) {
             owner = Thread.currentThread();
             return true;
@@ -41,7 +41,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
     }
 
     @Override
-    public void unlock(Runnable taskAfterUnlockBeforeNotify) {
+    public void unlock(final Runnable taskAfterUnlockBeforeNotify) {
         validateLocked();
         owner = null;
         if(null!=taskAfterUnlockBeforeNotify) {
@@ -66,7 +66,7 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
     }
 
     @Override
-    public boolean isOwner(Thread thread) {
+    public boolean isOwner(final Thread thread) {
         return lock.isLocked() && owner == thread;
     }
 
@@ -91,5 +91,5 @@ public class RecursiveLockImplJava5 implements RecursiveLock {
         return lock.getQueueLength();
     }
 
-    private String threadName(Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
+    private String threadName(final Thread t) { return null!=t ? "<"+t.getName()+">" : "<NULL>" ; }
 }

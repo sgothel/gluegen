@@ -39,18 +39,18 @@ import java.util.*;
     via a #define statement or through an enum definition. */
 public class ConstantDefinition {
 
-    private String origName;
-    private HashSet<String> aliasedNames;
+    private final String origName;
+    private final HashSet<String> aliasedNames;
     private String name;
-    private String value;
-    private boolean isEnum;
-    private String enumName;
+    private final String value;
+    private final boolean isEnum;
+    private final String enumName;
     private Set<String> aliases;
 
-    public ConstantDefinition(String name,
-                              String value,
-                              boolean isEnum,
-                              String enumName) {
+    public ConstantDefinition(final String name,
+                              final String value,
+                              final boolean isEnum,
+                              final String enumName) {
         this.origName = name;
         this.name = name;
         this.value = value;
@@ -59,13 +59,13 @@ public class ConstantDefinition {
         this.aliasedNames=new HashSet<String>();
     }
 
-    public boolean equals(ConstantDefinition other) {
+    public boolean equals(final ConstantDefinition other) {
         return (equals(name, other.name) &&
                 equals(value, other.value) &&
                 equals(enumName, other.enumName));
     }
 
-    private boolean equals(String s1, String s2) {
+    private boolean equals(final String s1, final String s2) {
         if (s1 == null || s2 == null) {
             if (s1 == null && s2 == null) {
                 return true;
@@ -82,14 +82,14 @@ public class ConstantDefinition {
     }
 
     /** Supports renaming in Java binding. */
-    public void rename(String name) {
+    public void rename(final String name) {
       if(null!=name) {
           this.name = name;
           aliasedNames.add(origName);
       }
     }
 
-    public void addAliasedName(String name) {
+    public void addAliasedName(final String name) {
         aliasedNames.add(name);
     }
     public Collection<String> getAliasedNames() {
@@ -115,7 +115,7 @@ public class ConstantDefinition {
         return aliases;
     }
 
-    public void addAlias(String alias) {
+    public void addAlias(final String alias) {
         if (aliases == null) {
             aliases = new LinkedHashSet<String>();
         }

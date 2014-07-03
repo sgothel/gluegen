@@ -29,16 +29,16 @@ package com.jogamp.gluegen.cgram.types;
 
 public class StructType extends CompoundType {
 
-  public StructType(String name, SizeThunk size, int cvAttributes) {
+  public StructType(final String name, final SizeThunk size, final int cvAttributes) {
       this(name, size, cvAttributes, null);
   }
 
-  StructType(String name, SizeThunk size, int cvAttributes, String structName) {
+  StructType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
     super (name, size, cvAttributes, structName);
   }
 
   @Override
-  public boolean equals(Object arg) {
+  public boolean equals(final Object arg) {
     if (arg == null || !(arg instanceof StructType)) {
       return false;
     }
@@ -51,8 +51,8 @@ public class StructType extends CompoundType {
   public final boolean isUnion()  { return false; }
 
   @Override
-  Type newCVVariant(int cvAttributes) {
-    StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName());
+  Type newCVVariant(final int cvAttributes) {
+    final StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName());
     t.setFields(getFields());
     return t;
   }

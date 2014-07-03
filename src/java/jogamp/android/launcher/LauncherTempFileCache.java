@@ -42,14 +42,14 @@ public class LauncherTempFileCache {
     // Lifecycle: For all JVMs, ClassLoader and times.
     private static final String tmpSubDir = "jogamp";
     private static final String tmpDirPrefix = "file_cache";
-    
+
     // Get the value of the tmproot system property
     // Lifecycle: For all JVMs and ClassLoader
     /* package */ static final String tmpRootPropName = "jnlp.jogamp.tmp.cache.root";
 
     // Flag indicating that we got a fatal error in the static initializer.
     private static boolean staticInitError = false;
-    
+
     private static File tmpBaseDir;
 
     // String representing the name of the temp root directory relative to the
@@ -66,26 +66,26 @@ public class LauncherTempFileCache {
     private boolean initError = false;
 
     private File individualTmpDir;
-    
+
     /**
      * Documented way to kick off static initialization
      * @return true is static initialization was successful
      */
-    public static synchronized boolean initSingleton(Context ctx) {
+    public static synchronized boolean initSingleton(final Context ctx) {
         if(null == tmpRootDir && !staticInitError) {
             // Create / initialize the temp root directory, starting the Reaper
             // thread to reclaim old installations if necessary. If we get an
             // exception, set an error code.
             try {
                 initTmpRoot(ctx);
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 ex.printStackTrace();
                 staticInitError = true;
             }
         }
-        return !staticInitError;        
+        return !staticInitError;
     }
-    
+
     /**
      * This method is called by the static initializer to create / initialize
      * the temp root directory that will hold the temp directories for this
@@ -136,7 +136,7 @@ public class LauncherTempFileCache {
      *
      *     6. Start the Reaper thread to cleanup old installations.
      */
-    private static void initTmpRoot(Context ctx) throws IOException {
+    private static void initTmpRoot(final Context ctx) throws IOException {
         if (DEBUG) {
             System.err.println("TempFileCache: Static Initialization ----------------------------------------------");
             System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(LauncherTempFileCache.class.getClassLoader().hashCode()));
@@ -165,7 +165,7 @@ public class LauncherTempFileCache {
                 tmpRootDir = new File(tmpBaseDir, tmpRootPropValue);
                 if (DEBUG) {
                     System.err.println("TempFileCache: Trying tmpRootDir = " + tmpRootDir.getAbsolutePath());
-                }                
+                }
                 if (tmpRootDir.isDirectory()) {
                     if (!tmpRootDir.canWrite()) {
                         throw new IOException("Temp root directory is not writable: " + tmpRootDir.getAbsolutePath());
@@ -177,9 +177,9 @@ public class LauncherTempFileCache {
                     tmpRootPropValue = null;
                     tmpRootDir = null;
                     System.clearProperty(tmpRootPropName);
-                }                
+                }
             }
-            
+
             if (tmpRootPropValue == null) {
                 // Create the tmpbase directory if it doesn't already exist
                 tmpBaseDir.mkdirs();
@@ -188,7 +188,7 @@ public class LauncherTempFileCache {
                 }
 
                 // Create ${tmpbase}/jlnNNNN.tmp then lock the file
-                File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
+                final File tmpFile = File.createTempFile("jln", ".tmp", tmpBaseDir);
                 if (DEBUG) {
                     System.err.println("TempFileCache: tmpFile = " + tmpFile.getAbsolutePath());
                 }
@@ -197,12 +197,12 @@ public class LauncherTempFileCache {
                 final FileLock tmpLock = tmpChannel.lock();
 
                 // Strip off the ".tmp" to get the name of the tmprootdir
-                String tmpFileName = tmpFile.getAbsolutePath();
-                String tmpRootName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
+                final String tmpFileName = tmpFile.getAbsolutePath();
+                final String tmpRootName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
 
                 // create ${tmpbase}/jlnNNNN.lck then lock the file
-                String lckFileName = tmpRootName + ".lck";
-                File lckFile = new File(lckFileName);
+                final String lckFileName = tmpRootName + ".lck";
+                final File lckFile = new File(lckFileName);
                 if (DEBUG) {
                     System.err.println("TempFileCache: lckFile = " + lckFile.getAbsolutePath());
                 }
@@ -235,7 +235,7 @@ public class LauncherTempFileCache {
                             tmpLock.release();
                             lckOut.close();
                             lckLock.release();
-                        } catch (IOException ex) {
+                        } catch (final IOException ex) {
                             // Do nothing
                         }
                     }
@@ -249,7 +249,7 @@ public class LauncherTempFileCache {
                 }
 
                 // Start a new Reaper thread to do stuff...
-                Thread reaperThread = new Thread() {
+                final Thread reaperThread = new Thread() {
                     /* @Override */
                     public void run() {
                         deleteOldTempDirs();
@@ -276,9 +276,9 @@ public class LauncherTempFileCache {
 
         // enumerate list of jnl*.lck files, ignore our own jlnNNNN file
         final String ourLockFile = tmpRootPropValue + ".lck";
-        FilenameFilter lckFilter = new FilenameFilter() {
+        final FilenameFilter lckFilter = new FilenameFilter() {
             /* @Override */
-            public boolean accept(File dir, String name) {
+            public boolean accept(final File dir, final String name) {
                 return name.endsWith(".lck") && !name.equals(ourLockFile);
             }
         };
@@ -288,16 +288,16 @@ public class LauncherTempFileCache {
         // (which should always succeed unless there is a problem). If we can
         // get the lock on both files, then it must be an old installation, and
         // we will delete it.
-        String[] fileNames = tmpBaseDir.list(lckFilter);
+        final String[] fileNames = tmpBaseDir.list(lckFilter);
         if (fileNames != null) {
             for (int i = 0; i < fileNames.length; i++) {
-                String lckFileName = fileNames[i];
-                String tmpDirName = lckFileName.substring(0, lckFileName.lastIndexOf(".lck"));
-                String tmpFileName = tmpDirName + ".tmp";
+                final String lckFileName = fileNames[i];
+                final String tmpDirName = lckFileName.substring(0, lckFileName.lastIndexOf(".lck"));
+                final String tmpFileName = tmpDirName + ".tmp";
 
-                File lckFile = new File(tmpBaseDir, lckFileName);
-                File tmpFile = new File(tmpBaseDir, tmpFileName);
-                File tmpDir = new File(tmpBaseDir, tmpDirName);
+                final File lckFile = new File(tmpBaseDir, lckFileName);
+                final File tmpFile = new File(tmpBaseDir, tmpFileName);
+                final File tmpDir = new File(tmpBaseDir, tmpDirName);
 
                 if (lckFile.exists() && tmpFile.exists() && tmpDir.isDirectory()) {
                     FileOutputStream tmpOut = null;
@@ -308,7 +308,7 @@ public class LauncherTempFileCache {
                         tmpOut = new FileOutputStream(tmpFile);
                         tmpChannel = tmpOut.getChannel();
                         tmpLock = tmpChannel.tryLock();
-                    } catch (Exception ex) {
+                    } catch (final Exception ex) {
                         // Ignore exceptions
                         if (DEBUG) {
                             ex.printStackTrace();
@@ -324,7 +324,7 @@ public class LauncherTempFileCache {
                             lckOut = new FileOutputStream(lckFile);
                             lckChannel = lckOut.getChannel();
                             lckLock = lckChannel.tryLock();
-                        } catch (Exception ex) {
+                        } catch (final Exception ex) {
                             if (DEBUG) {
                                 ex.printStackTrace();
                             }
@@ -344,12 +344,12 @@ public class LauncherTempFileCache {
                             // occasional 0-byte .lck or .tmp file left around
                             try {
                                 lckOut.close();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                             }
                             lckFile.delete();
                             try {
                                 tmpOut.close();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                             }
                             tmpFile.delete();
                         } else {
@@ -362,7 +362,7 @@ public class LauncherTempFileCache {
                                 // on the *.tmp file
                                 tmpOut.close();
                                 tmpLock.release();
-                            } catch (IOException ex) {
+                            } catch (final IOException ex) {
                                 if (DEBUG) {
                                     ex.printStackTrace();
                                 }
@@ -382,14 +382,14 @@ public class LauncherTempFileCache {
      * Remove the specified file or directory. If "path" is a directory, then
      * recursively remove all entries, then remove the directory itself.
      */
-    private static void removeAll(File path) {
+    private static void removeAll(final File path) {
         if (DEBUG) {
             System.err.println("TempFileCache: removeAll(" + path + ")");
         }
 
         if (path.isDirectory()) {
             // Recursively remove all files/directories in this directory
-            File[] list = path.listFiles();
+            final File[] list = path.listFiles();
             if (list != null) {
                 for (int i = 0; i < list.length; i++) {
                     removeAll(list[i]);
@@ -405,10 +405,10 @@ public class LauncherTempFileCache {
             System.err.println("TempFileCache: new TempFileCache() --------------------- (static ok: "+(!staticInitError)+")");
             System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(LauncherTempFileCache.class.getClassLoader().hashCode())+", this 0x"+Integer.toHexString(hashCode()));
         }
-        if(!staticInitError) { 
+        if(!staticInitError) {
             try {
                 createTmpDir();
-            } catch (Exception ex) {
+            } catch (final Exception ex) {
                 ex.printStackTrace();
                 initError = true;
             }
@@ -416,23 +416,23 @@ public class LauncherTempFileCache {
         if (DEBUG) {
             System.err.println("tempDir: "+individualTmpDir+" (ok: "+(!initError)+")");
             System.err.println("----------------------------------------------------------");
-        }        
+        }
     }
-    
+
     /**
      * @return true is static and object initialization was successful
      */
     public boolean isValid() { return !staticInitError && !initError; }
-    
+
     /**
-     * Base temp directory used by TempFileCache. 
+     * Base temp directory used by TempFileCache.
      * Lifecycle: For all JVMs, ClassLoader and times.
-     * 
+     *
      * This is set to:
      *
      * ${java.io.tmpdir}/<tmpDirPrefix>
      *
-     * 
+     *
      * @return
      */
     public File getBaseDir() { return tmpBaseDir; }
@@ -445,16 +445,16 @@ public class LauncherTempFileCache {
      *
      * <tmpBaseDir>/<tmpRootPropValue>
      *
-     * Use Case: Per ClassLoader files, eg. native libraries. 
+     * Use Case: Per ClassLoader files, eg. native libraries.
      *
      * Old temp directories are cleaned up the next time a JVM is launched that
      * uses TempFileCache.
      *
-     * 
+     *
      * @return
      */
     public File getRootDir() { return tmpRootDir; }
-    
+
     /**
      * Temporary directory for individual files (eg. native libraries of one ClassLoader instance).
      * The directory name is:
@@ -466,12 +466,12 @@ public class LauncherTempFileCache {
      * where jlnMMMMM is the unique filename created by File.createTempFile()
      * without the ".tmp" extension.
      *
-     * 
+     *
      * @return
      */
     public File getTempDir() { return individualTmpDir; }
-    
-    
+
+
     /**
      * Create the temp directory in tmpRootDir. To do this, we create a temp
      * file with a ".tmp" extension, and then create a directory of the
@@ -480,9 +480,9 @@ public class LauncherTempFileCache {
      * We avoid deleteOnExit, because it doesn't work reliably.
      */
     private void createTmpDir() throws IOException {
-        File tmpFile = File.createTempFile("jln", ".tmp", tmpRootDir);
-        String tmpFileName = tmpFile.getAbsolutePath();
-        String tmpDirName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
+        final File tmpFile = File.createTempFile("jln", ".tmp", tmpRootDir);
+        final String tmpFileName = tmpFile.getAbsolutePath();
+        final String tmpDirName = tmpFileName.substring(0, tmpFileName.lastIndexOf(".tmp"));
         individualTmpDir = new File(tmpDirName);
         if (!individualTmpDir.mkdir()) {
             throw new IOException("Cannot create " + individualTmpDir);

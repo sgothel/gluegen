@@ -72,7 +72,7 @@ public class VersionNumber implements Comparable<Object> {
      * </p>
      * @param delim the delimiter, e.g. "."
      */
-    public static java.util.regex.Pattern getVersionNumberPattern(String delim) {
+    public static java.util.regex.Pattern getVersionNumberPattern(final String delim) {
         return java.util.regex.Pattern.compile("\\D*(\\d+)[^\\"+delim+"\\s]*(?:\\"+delim+"\\D*(\\d+)[^\\"+delim+"\\s]*(?:\\"+delim+"\\D*(\\d+))?)?");
     }
 
@@ -102,7 +102,7 @@ public class VersionNumber implements Comparable<Object> {
     protected final static short HAS_MINOR = 1 << 1 ;
     protected final static short HAS_SUB   = 1 << 2 ;
 
-    protected VersionNumber(int majorRev, int minorRev, int subMinorRev, int _strEnd, short _state) {
+    protected VersionNumber(final int majorRev, final int minorRev, final int subMinorRev, final int _strEnd, final short _state) {
         major = majorRev;
         minor = minorRev;
         sub   = subMinorRev;
@@ -116,7 +116,7 @@ public class VersionNumber implements Comparable<Object> {
      * @see #hasMinor()
      * @see #hasSub()
      */
-    public VersionNumber(int majorRev, int minorRev, int subMinorRev) {
+    public VersionNumber(final int majorRev, final int minorRev, final int subMinorRev) {
         this(majorRev, minorRev, subMinorRev, -1, (short)(HAS_MAJOR | HAS_MINOR | HAS_SUB));
     }
 
@@ -197,7 +197,7 @@ public class VersionNumber implements Comparable<Object> {
                     }
                 }
             }
-        } catch (Exception e) { }
+        } catch (final Exception e) { }
 
         major = val[0];
         minor = val[1];
@@ -233,7 +233,7 @@ public class VersionNumber implements Comparable<Object> {
     }
 
     @Override
-    public final boolean equals(Object o) {
+    public final boolean equals(final Object o) {
         if ( o instanceof VersionNumber ) {
             return 0 == compareTo( (VersionNumber) o );
         }
@@ -241,15 +241,15 @@ public class VersionNumber implements Comparable<Object> {
     }
 
     @Override
-    public final int compareTo(Object o) {
+    public final int compareTo(final Object o) {
         if ( ! ( o instanceof VersionNumber ) ) {
-            Class<?> c = (null != o) ? o.getClass() : null ;
+            final Class<?> c = (null != o) ? o.getClass() : null ;
             throw new ClassCastException("Not a VersionNumber object: " + c);
         }
         return compareTo( (VersionNumber) o );
     }
 
-    public final int compareTo(VersionNumber vo) {
+    public final int compareTo(final VersionNumber vo) {
         if (major > vo.major) {
             return 1;
         } else if (major < vo.major) {

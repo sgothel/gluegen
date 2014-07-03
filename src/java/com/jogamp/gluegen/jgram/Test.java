@@ -10,7 +10,7 @@ import java.util.Set;
 class Test {
 
 	static boolean showTree = false;
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
 		// Use a try/catch block for parser exceptions
 		try {
 			// if we have at least one command-line argument
@@ -30,7 +30,7 @@ class Test {
 				System.err.println("Usage: java com.jogamp.gluegen.jgram.Test [-showtree] "+
                                    "<directory or file name>");
 		}
-		catch(Exception e) {
+		catch(final Exception e) {
 			System.err.println("exception: "+e);
 			e.printStackTrace(System.err);   // so we can get stack trace
 		}
@@ -39,11 +39,11 @@ class Test {
 
 	// This method decides what action to take based on the type of
 	//   file we are looking at
-	public static void doFile(File f)
+	public static void doFile(final File f)
 							  throws Exception {
 		// If this is a directory, walk each file/dir in that directory
 		if (f.isDirectory()) {
-			String files[] = f.list();
+			final String files[] = f.list();
 			for(int i=0; i < files.length; i++)
 				doFile(new File(f, files[i]));
 		}
@@ -58,15 +58,15 @@ class Test {
 	}
 
 	// Here's where we do the real work...
-	public static void parseFile(String f, Reader r)
+	public static void parseFile(final String f, final Reader r)
 								 throws Exception {
 		try {
 			// Create a scanner that reads from the input stream passed to us
-			JavaLexer lexer = new JavaLexer(r);
+			final JavaLexer lexer = new JavaLexer(r);
 			lexer.setFilename(f);
 
 			// Create a parser that reads from the scanner
-			JavaParser parser = new JavaParser(lexer);
+			final JavaParser parser = new JavaParser(lexer);
 			parser.setFilename(f);
 
 			// start parsing at the compilationUnit rule
@@ -74,21 +74,21 @@ class Test {
 
             Set<String> set = parser.getParsedEnumNames();
             System.out.println("Enums");
-            for(Iterator<String> iter = set.iterator(); iter.hasNext(); ) {
-                String s = iter.next();
+            for(final Iterator<String> iter = set.iterator(); iter.hasNext(); ) {
+                final String s = iter.next();
                 System.out.println(s);
             }
             System.out.println("Functions");
             set = parser.getParsedFunctionNames();
-            for(Iterator<String> iter = set.iterator(); iter.hasNext(); ) {
-                String s = iter.next();
+            for(final Iterator<String> iter = set.iterator(); iter.hasNext(); ) {
+                final String s = iter.next();
                 System.out.println(s);
             }
 
 			// do something with the tree
 			//doTreeAction(f, parser.getAST(), parser.getTokenNames());
 		}
-		catch (Exception e) {
+		catch (final Exception e) {
 			System.err.println("parser exception: "+e);
 			e.printStackTrace();   // so we can get stack trace
 		}

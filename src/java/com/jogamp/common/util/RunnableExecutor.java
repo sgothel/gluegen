@@ -43,7 +43,7 @@ public interface RunnableExecutor {
         private CurrentThreadExecutor() {}
 
         @Override
-        public void invoke(boolean wait, Runnable r) {
+        public void invoke(final boolean wait, final Runnable r) {
             r.run();
         }
     }

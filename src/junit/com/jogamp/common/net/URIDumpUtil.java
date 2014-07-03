@@ -6,14 +6,14 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 public class URIDumpUtil {
-    public static void showURX(String urx) throws MalformedURLException, URISyntaxException {
+    public static void showURX(final String urx) throws MalformedURLException, URISyntaxException {
         System.err.println("XXXXXX "+urx);
         showURL(new URL(urx));
         showURI(new URI(urx));
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
     }
 
-    public static void showURL(URL url) {
+    public static void showURL(final URL url) {
         System.err.println("YYYYYY URL "+url);
         System.err.println("protocol: "+url.getProtocol());
         System.err.println("auth:     "+url.getAuthority());
@@ -22,7 +22,7 @@ public class URIDumpUtil {
         System.err.println("file:     "+url.getFile() + " ( path " + url.getPath() + ", query " + url.getQuery() + " ) " );
         System.err.println("ref:      "+url.getRef());
     }
-    public static void showURI(URI uri) {
+    public static void showURI(final URI uri) {
         System.err.println("ZZZZZZ URI "+uri);
         // 1 [scheme:]scheme-specific-part[#fragment]
         System.err.println("1 scheme:      "+uri.getScheme());

@@ -58,7 +58,7 @@ public class AndroidUtils {
      *         via {@link jogamp.common.os.android.StaticContext#init(android.content.Context) StaticContext.init(..)},
      *         otherwise the found package version code of <code>packageName</code> is returned.
      */
-    public static final int getPackageInfoVersionCode(String packageName) {
+    public static final int getPackageInfoVersionCode(final String packageName) {
         if(null != androidGetPackageInfoVersionCodeMethod) {
             return ((Integer) ReflectionUtil.callMethod(null, androidGetPackageInfoVersionCodeMethod, packageName)).intValue();
         }
@@ -70,7 +70,7 @@ public class AndroidUtils {
      *         via {@link jogamp.common.os.android.StaticContext#init(android.content.Context) StaticContext.init(..)},
      *         otherwise the found package version name of <code>packageName</code> is returned.
      */
-    public static final String getPackageInfoVersionName(String packageName) {
+    public static final String getPackageInfoVersionName(final String packageName) {
         if(null != androidGetPackageInfoVersionNameMethod) {
             return (String) ReflectionUtil.callMethod(null, androidGetPackageInfoVersionNameMethod, packageName);
         }

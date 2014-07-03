@@ -39,15 +39,15 @@ public class TestIOUtilURICompose extends JunitTracer {
         testURLCompositioning(file1URL, new URL("asset:jar:file:/web1/file1.jar!/rootDir/dummyParent/../file1.txt"));
     }
 
-    static void testURNCompositioning(String urn) throws MalformedURLException, URISyntaxException {
+    static void testURNCompositioning(final String urn) throws MalformedURLException, URISyntaxException {
         testURICompositioning( new URI(urn) );
         testURLCompositioning( new URL(urn) );
     }
 
-    static void testURICompositioning(URI uri) throws MalformedURLException, URISyntaxException {
+    static void testURICompositioning(final URI uri) throws MalformedURLException, URISyntaxException {
         testURICompositioning(uri, uri);
     }
-    static void testURICompositioning(URI refURI, URI uri1) throws MalformedURLException, URISyntaxException {
+    static void testURICompositioning(final URI refURI, final URI uri1) throws MalformedURLException, URISyntaxException {
         final String scheme = uri1.getScheme();
         final String ssp = uri1.getRawSchemeSpecificPart();
         final String fragment = uri1.getRawFragment();
@@ -62,10 +62,10 @@ public class TestIOUtilURICompose extends JunitTracer {
         Assert.assertEquals(refURI, uri2);
     }
 
-    static void testURLCompositioning(URL url) throws MalformedURLException, URISyntaxException {
+    static void testURLCompositioning(final URL url) throws MalformedURLException, URISyntaxException {
         testURLCompositioning(url, url);
     }
-    static void testURLCompositioning(URL refURL, URL url1) throws MalformedURLException, URISyntaxException {
+    static void testURLCompositioning(final URL refURL, final URL url1) throws MalformedURLException, URISyntaxException {
         final URI uri1 = url1.toURI();
         final String scheme = uri1.getScheme();
         final String ssp = uri1.getRawSchemeSpecificPart();
@@ -85,8 +85,8 @@ public class TestIOUtilURICompose extends JunitTracer {
         Assert.assertTrue(refURL.sameFile(uri2.toURL()));
     }
 
-    public static void main(String args[]) throws IOException {
-        String tstname = TestIOUtilURICompose.class.getName();
+    public static void main(final String args[]) throws IOException {
+        final String tstname = TestIOUtilURICompose.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

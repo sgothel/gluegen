@@ -358,7 +358,7 @@ public class ElfHeader {
     public static final short EM_MICROBLAZE = 189;
     public static final short EM_CUDA = 190;
 
-    public static final boolean isIdentityValid(byte[] ident) {
+    public static final boolean isIdentityValid(final byte[] ident) {
         return ELFMAG0 == ident[0] &&
                ELFMAG1 == ident[1] &&
                ELFMAG2 == ident[2] &&
@@ -381,7 +381,7 @@ public class ElfHeader {
      * @throws IOException if reading from the given input stream fails or less then ELF Header size bytes
      * @throws IllegalArgumentException if the given input stream does not represent an ELF Header
      */
-    public static ElfHeader read(RandomAccessFile in) throws IOException, IllegalArgumentException {
+    public static ElfHeader read(final RandomAccessFile in) throws IOException, IllegalArgumentException {
         final int eh_sz = Ehdr.size();
         final byte[] buf = new byte[eh_sz];
         readBytes (in, buf, 0, eh_sz);
@@ -394,7 +394,7 @@ public class ElfHeader {
      * @throws IllegalArgumentException if the given buffer does not represent an ELF Header
      * @throws IOException
      */
-    ElfHeader(java.nio.ByteBuffer buf, RandomAccessFile in) throws IllegalArgumentException, IOException {
+    ElfHeader(final java.nio.ByteBuffer buf, final RandomAccessFile in) throws IllegalArgumentException, IOException {
         d = Ehdr.create(buf);
         if( !isIdentityValid(d.getE_ident()) ) {
             throw new IllegalArgumentException("Buffer is not an ELF Header");
@@ -530,7 +530,7 @@ public class ElfHeader {
     }
 
     /** Returns the 1st occurence of matching SectionHeader {@link SectionHeader#getType() type}, or null if not exists. */
-    public final SectionHeader getSectionHeader(int type) {
+    public final SectionHeader getSectionHeader(final int type) {
         for(int i=0; i<sht.length; i++) {
             final SectionHeader sh = sht[i];
             if( sh.getType() == type ) {
@@ -541,7 +541,7 @@ public class ElfHeader {
     }
 
     /** Returns the 1st occurence of matching SectionHeader {@link SectionHeader#getName() name}, or null if not exists. */
-    public final SectionHeader getSectionHeader(String name) {
+    public final SectionHeader getSectionHeader(final String name) {
         for(int i=0; i<sht.length; i++) {
             final SectionHeader sh = sht[i];
             if( sh.getName().equals(name) ) {
@@ -589,7 +589,7 @@ public class ElfHeader {
                ", abi[os "+getOSABI()+", vers "+getOSABIVersion()+"], flags["+toHexString(getFlags())+armFlagsS+"], type "+getType()+", sh-num "+sht.length+"]";
     }
 
-    final SectionHeader[] readSectionHeaderTable(RandomAccessFile in) throws IOException, IllegalArgumentException {
+    final SectionHeader[] readSectionHeaderTable(final RandomAccessFile in) throws IOException, IllegalArgumentException {
         // positioning
         {
             final long off = d.getE_shoff(); // absolute offset
@@ -607,7 +607,7 @@ public class ElfHeader {
             // Read 1st table 1st and use it's sh_size
             final byte[] buf0 = new byte[size];
             readBytes(in, buf0, 0, size);
-            SectionHeader sh0 = new SectionHeader(buf0, 0, size, 0);
+            final SectionHeader sh0 = new SectionHeader(buf0, 0, size, 0);
             num = (int) sh0.d.getSh_size();
             if( 0 >= num ) {
                 throw new IllegalArgumentException("EHdr sh_num == 0 and 1st SHdr size == 0");

@@ -54,12 +54,12 @@ public class JVMUtil {
     private static final boolean DEBUG = Debug.debug("JVMUtil");
 
     static {
-        ByteBuffer buffer = Buffers.newDirectByteBuffer(64);
+        final ByteBuffer buffer = Buffers.newDirectByteBuffer(64);
         if( ! initialize(buffer) ) {
             throw new RuntimeException("Failed to initialize the JVMUtil "+Thread.currentThread().getName());
         }
         if(DEBUG) {
-            Exception e = new Exception("JVMUtil.initSingleton() .. initialized "+Thread.currentThread().getName());
+            final Exception e = new Exception("JVMUtil.initSingleton() .. initialized "+Thread.currentThread().getName());
             e.printStackTrace();
         }
     }

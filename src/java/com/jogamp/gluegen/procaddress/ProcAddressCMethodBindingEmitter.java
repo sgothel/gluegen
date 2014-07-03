@@ -55,8 +55,8 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
   private static final String procAddressJavaTypeName = JavaType.createForClass(Long.TYPE).jniTypeName();
   private ProcAddressEmitter emitter;
 
-  public ProcAddressCMethodBindingEmitter(CMethodBindingEmitter methodToWrap, final boolean callThroughProcAddress,
-                          boolean needsLocalTypedef, String localTypedefCallingConvention, ProcAddressEmitter emitter) {
+  public ProcAddressCMethodBindingEmitter(final CMethodBindingEmitter methodToWrap, final boolean callThroughProcAddress,
+                          final boolean needsLocalTypedef, final String localTypedefCallingConvention, final ProcAddressEmitter emitter) {
 
         super(
                 new MethodBinding(methodToWrap.getBinding()) {
@@ -97,7 +97,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected int emitArguments(PrintWriter writer) {
+    protected int emitArguments(final PrintWriter writer) {
         int numEmitted = super.emitArguments(writer);
         if (callThroughProcAddress) {
             if (numEmitted > 0) {
@@ -112,11 +112,11 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected void emitBodyVariableDeclarations(PrintWriter writer) {
+    protected void emitBodyVariableDeclarations(final PrintWriter writer) {
         if (callThroughProcAddress) {
             // create variable for the function pointer with the right type, and set
             // it to the value of the passed-in proc address
-            FunctionSymbol cSym = getBinding().getCSymbol();
+            final FunctionSymbol cSym = getBinding().getCSymbol();
             String funcPointerTypedefName =
                     emitter.getFunctionPointerTypedefName(cSym);
 
@@ -124,7 +124,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 // We (probably) didn't get a typedef for this function
                 // pointer type in the header file; the user requested that we
                 // forcibly generate one. Here we force the emission of one.
-                PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
+                final PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
                 // Just for safety, emit this name slightly differently than
                 // the mangling would otherwise produce
                 funcPointerTypedefName = "_local_" + funcPointerTypedefName;
@@ -145,18 +145,18 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected void emitBodyVariablePreCallSetup(PrintWriter writer) {
+    protected void emitBodyVariablePreCallSetup(final PrintWriter writer) {
         super.emitBodyVariablePreCallSetup(writer);
 
         if (callThroughProcAddress) {
             // set the function pointer to the value of the passed-in procAddress
-            FunctionSymbol cSym = getBinding().getCSymbol();
+            final FunctionSymbol cSym = getBinding().getCSymbol();
             String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
             if (needsLocalTypedef) {
                 funcPointerTypedefName = "_local_" + funcPointerTypedefName;
             }
 
-            String ptrVarName = "ptr_" + cSym.getName();
+            final String ptrVarName = "ptr_" + cSym.getName();
 
             writer.print("  ");
             writer.print(ptrVarName);
@@ -169,7 +169,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected void emitBodyCallCFunction(PrintWriter writer) {
+    protected void emitBodyCallCFunction(final PrintWriter writer) {
         if (!callThroughProcAddress) {
             super.emitBodyCallCFunction(writer);
         } else {
@@ -178,12 +178,12 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
             // WARNING: this code assumes that the return type has already been
             // typedef-resolved.
-            Type cReturnType = binding.getCReturnType();
+            final Type cReturnType = binding.getCReturnType();
 
             if (!cReturnType.isVoid()) {
                 writer.print("_res = ");
             }
-            MethodBinding mBinding = getBinding();
+            final MethodBinding mBinding = getBinding();
             if (mBinding.hasContainingType()) {
                 // FIXME: this can and should be handled and unified with the
                 // associated code in the CMethodBindingEmitter
@@ -201,8 +201,8 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected String jniMangle(MethodBinding binding) {
-        StringBuilder buf = new StringBuilder(super.jniMangle(binding));
+    protected String jniMangle(final MethodBinding binding) {
+        final StringBuilder buf = new StringBuilder(super.jniMangle(binding));
         if (callThroughProcAddress) {
             jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
         }

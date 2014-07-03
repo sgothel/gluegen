@@ -56,11 +56,11 @@ public class TempJarCache {
     public enum LoadState {
         LOOKED_UP, LOADED;
 
-        public boolean compliesWith(LoadState o2) {
+        public boolean compliesWith(final LoadState o2) {
             return null != o2 ? compareTo(o2) >= 0 : false;
         }
     }
-    private static boolean testLoadState(LoadState has, LoadState exp) {
+    private static boolean testLoadState(final LoadState has, final LoadState exp) {
         if(null == has) {
             return null == exp;
         }
@@ -182,7 +182,7 @@ public class TempJarCache {
         return tmpFileCache;
     }
 
-    public synchronized static boolean checkNativeLibs(URI jarURI, LoadState exp) throws IOException {
+    public synchronized static boolean checkNativeLibs(final URI jarURI, final LoadState exp) throws IOException {
         checkInitialized();
         if(null == jarURI) {
             throw new IllegalArgumentException("jarURI is null");
@@ -190,7 +190,7 @@ public class TempJarCache {
         return testLoadState(nativeLibJars.get(jarURI), exp);
     }
 
-    public synchronized static boolean checkClasses(URI jarURI, LoadState exp) throws IOException {
+    public synchronized static boolean checkClasses(final URI jarURI, final LoadState exp) throws IOException {
         checkInitialized();
         if(null == jarURI) {
             throw new IllegalArgumentException("jarURI is null");
@@ -198,7 +198,7 @@ public class TempJarCache {
         return testLoadState(classFileJars.get(jarURI), exp);
     }
 
-    public synchronized static boolean checkResources(URI jarURI, LoadState exp) throws IOException {
+    public synchronized static boolean checkResources(final URI jarURI, final LoadState exp) throws IOException {
         checkInitialized();
         if(null == jarURI) {
             throw new IllegalArgumentException("jarURI is null");
@@ -218,7 +218,7 @@ public class TempJarCache {
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      */
-    public synchronized static final boolean addNativeLibs(Class<?> certClass, URI jarURI, String nativeLibraryPath) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final boolean addNativeLibs(final Class<?> certClass, final URI jarURI, final String nativeLibraryPath) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         checkInitialized();
         final LoadState nativeLibJarsLS = nativeLibJars.get(jarURI);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) {
@@ -253,7 +253,7 @@ public class TempJarCache {
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      */
-    public synchronized static final void addClasses(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final void addClasses(final Class<?> certClass, final URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         checkInitialized();
         final LoadState classFileJarsLS = classFileJars.get(jarURI);
         if( !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ) {
@@ -282,7 +282,7 @@ public class TempJarCache {
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      */
-    public synchronized static final void addResources(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final void addResources(final Class<?> certClass, final URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         checkInitialized();
         final LoadState resourceFileJarsLS = resourceFileJars.get(jarURI);
         if( !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) {
@@ -314,7 +314,7 @@ public class TempJarCache {
      * @throws URISyntaxException
      * @throws IllegalArgumentException
      */
-    public synchronized static final void addAll(Class<?> certClass, URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
+    public synchronized static final void addAll(final Class<?> certClass, final URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
         checkInitialized();
         if(null == jarURI) {
             throw new IllegalArgumentException("jarURI is null");
@@ -366,7 +366,7 @@ public class TempJarCache {
         }
     }
 
-    public synchronized static final String findLibrary(String libName) {
+    public synchronized static final String findLibrary(final String libName) {
         checkInitialized();
         // try with mapped library basename first
         String path = nativeLibMap.get(libName);
@@ -398,7 +398,7 @@ public class TempJarCache {
     } */
 
     /** Similar to {@link ClassLoader#getResource(String)}. */
-    public synchronized static final String findResource(String name) {
+    public synchronized static final String findResource(final String name) {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
@@ -408,7 +408,7 @@ public class TempJarCache {
     }
 
     /** Similar to {@link ClassLoader#getResource(String)}. */
-    public synchronized static final URI getResource(String name) throws URISyntaxException {
+    public synchronized static final URI getResource(final String name) throws URISyntaxException {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
@@ -417,7 +417,7 @@ public class TempJarCache {
         return null;
     }
 
-    private static void validateCertificates(Class<?> certClass, JarFile jarFile) throws IOException, SecurityException {
+    private static void validateCertificates(final Class<?> certClass, final JarFile jarFile) throws IOException, SecurityException {
         if(null == certClass) {
             throw new IllegalArgumentException("certClass is null");
         }
