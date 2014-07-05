@@ -156,99 +156,75 @@ public class JNILibLoaderBase {
    * @param classJarURI
    * @param jarBasename jar basename w/ suffix
    * @param nativeJarBasename native jar basename w/ suffix
-   * @param msg
    * @return
    * @throws IOException
    * @throws SecurityException
    * @throws URISyntaxException
    */
-  /* pp */ static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final URI classJarURI, final String jarBasename, final String nativeJarBasename, final StringBuilder msg)
+  private static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final URI classJarURI, final String jarBasename, final String nativeJarBasename)
     throws IOException, SecurityException, URISyntaxException
   {
-    msg.setLength(0); // reset
-    msg.append("addNativeJarLibsImpl(classFromJavaJar ").append(classFromJavaJar).append(", classJarURI ").append(classJarURI)
-       .append(", nativeJarBaseName ").append(nativeJarBasename).append("): ");
-    boolean ok = false;
-    if(TempJarCache.isInitialized()) {
-        final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
-        if(null == jarSubURI) {
-            throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);
-        }
-        final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
-        msg.append("[ ").append(jarSubURI.toString()).append(" -> ").append(jarUriRoot_s).append(" ] + ");
+    if (DEBUG) {
+        final StringBuilder msg = new StringBuilder();
+        msg.append("JNILibLoaderBase: addNativeJarLibsImpl(\n");
+        msg.append("  classFromJavaJar  = ").append(classFromJavaJar).append("\n");
+        msg.append("  classJarURI       = ").append(classJarURI).append("\n");
+        msg.append("  jarBasename       = ").append(jarBasename).append("\n");
+        msg.append("  nativeJarBasename = ").append(nativeJarBasename).append("\n");
+        msg.append(")");
+        System.err.println(msg.toString());
+    }
 
-        final String nativeLibraryPath = "natives/"+PlatformPropsImpl.os_and_arch+"/";
-        final ClassLoader cl = classFromJavaJar.getClassLoader();
-        final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
-        if( null != nativeLibraryURI ) {
-            // We probably have one big-fat jar file, containing java classes
-            // and all native platform libraries under 'natives/os.and.arch'!
-            final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+jarBasename);
-            if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
-                ok = true;
-                msg.append(jarBasename).append(" -> fat: ").append(nativeJarURI);
+    boolean ok = false;
+
+    final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
+    if (null == jarSubURI) {
+        throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);
+    }
+
+    final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+
+    if (DEBUG) {
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: initial: %s -> %s\n", jarSubURI, jarUriRoot_s);
+    }
+
+    final String nativeLibraryPath = String.format("natives/%s/", PlatformPropsImpl.os_and_arch);
+    final ClassLoader cl = classFromJavaJar.getClassLoader();
+    final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
+    if (null != nativeLibraryURI) {
+        // We probably have one big-fat jar file, containing java classes
+        // and all native platform libraries under 'natives/os.and.arch'!
+        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+jarBasename);
+        if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
+            ok = true;
+            if (DEBUG) {
+                System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: fat: %s -> %s\n", jarBasename, nativeJarURI);
             }
         }
-        if( !ok ) {
-            // We assume one slim native jar file per 'os.and.arch'!
-            final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarBasename);
-            msg.append(nativeJarBasename).append(" -> slim: ").append(nativeJarURI);
-            ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, null /* nativeLibraryPath */);
-        }
-    } else {
-        msg.append("TempJarCache n/a");
     }
-    if(DEBUG) {
-        System.err.println(msg.toString()+" - OK "+ok);
+    if (!ok) {
+        // We assume one slim native jar file per 'os.and.arch'!
+        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarBasename);
+
+        if (DEBUG) {
+            System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: slim: %s -> %s\n", nativeJarBasename, nativeJarURI);
+        }
+
+        ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, null /* nativeLibraryPath */);
+    }
+
+    if (DEBUG) {
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ok: %b\n", ok);
     }
     return ok;
   }
 
   /**
-   * Loads and adds a JAR file's native library to the TempJarCache.<br>
-   * The native library JAR file's URI is derived as follows:
-   * <ul>
-   *   <li> [1] <code>GLProfile.class</code> -> </li>
-   *   <li> [2] <code>http://lala/</code> -> </li>
-   *   <li> [4] <code>http://lala/'nativeJarBaseName'-'os.and.arch'.jar</code> </li>
-   * </ul>
-   * Where:
-   * <ul>
-   *   <li> [1] is the <code>classFromJavaJar</code></li>
-   *   <li> [2] is it's <i>URI path</i></li>
-   *   <li> [4] is the derived native JAR filename</li>
-   * </ul>
-   *
-   * @param classFromJavaJar GLProfile
-   * @param nativeJarBasename jogl-all
-   * @return true if the native JAR file loaded successful or were loaded already, false in case of an error
-   */
-  public static final boolean addNativeJarLibs(final Class<?> classFromJavaJar, final String nativeJarBasename) {
-    if(TempJarCache.isInitialized()) {
-        final StringBuilder msg = new StringBuilder();
-        try {
-            final URI classJarURI = JarUtil.getJarURI(classFromJavaJar.getName(), classFromJavaJar.getClassLoader());
-            final String jarName = JarUtil.getJarBasename(classJarURI);
-            return addNativeJarLibsImpl(classFromJavaJar, classJarURI, jarName, nativeJarBasename+"-natives-"+PlatformPropsImpl.os_and_arch+".jar", msg);
-        } catch (final Exception e0) {
-            // IllegalArgumentException, IOException
-            System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
-            if(DEBUG) {
-                e0.printStackTrace();
-            }
-        }
-    } else if(DEBUG) {
-        System.err.println("JNILibLoaderBase: addNativeJarLibs1: disabled due to uninitialized TempJarCache");
-    }
-    return false;
-  }
-
-  /**
    * Loads and adds a JAR file's native library to the TempJarCache,
-   * calling {@link JNILibLoaderBase#addNativeJarLibs(Class[], String, String[])}
+   * calling {@link JNILibLoaderBase#addNativeJarLibs(Class[], String)}
    * with default JOGL deployment configuration:
    * <pre>
-        return JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
+        return JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all");
    * </pre>
    * If <code>Class1.class</code> is contained in a JAR file which name includes <code>singleJarMarker</code> <i>-all</i>,
    * implementation will attempt to resolve the native JAR file as follows:
@@ -262,10 +238,10 @@ public class JNILibLoaderBase {
    *   <li>..</li>
    * </ul>
    */
+
   public static final boolean addNativeJarLibsJoglCfg(final Class<?>[] classesFromJavaJars) {
-      return addNativeJarLibs(classesFromJavaJars, "-all", joglDeployCfg);
+      return addNativeJarLibs(classesFromJavaJars, "-all");
   }
-  private static final String[] joglDeployCfg = new String[] { "-noawt", "-mobile", "-core", "-android" };
 
   /**
    * Loads and adds a JAR file's native library to the TempJarCache.<br>
@@ -286,20 +262,18 @@ public class JNILibLoaderBase {
    * <p>
    * Generic description:
    * <pre>
-       final ClassLoader cl = GLProfile.class.getClassLoader();
-       final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
        final Class<?>[] classesFromJavaJars = new Class<?>[] { Class1.class, Class2.class };
-       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-suff1", "-suff2" } );
+       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all");
    * </pre>
    * If <code>Class1.class</code> is contained in a JAR file which name includes <code>singleJarMarker</code>, here <i>-all</i>,
    * implementation will attempt to resolve the native JAR file as follows:
    * <ul>
-   *   <li><i>ClassJar-all</i>[-suff1,-suff2]?.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>ClassJar-all</i>.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
    * </ul>
    * Otherwise the native JAR files will be resolved for each class's JAR file:
    * <ul>
-   *   <li><i>Class1Jar</i>[-suff1,-suff2]?.jar to <i>Class1Jar</i>-natives-<i>os.and.arch</i>.jar</li>
-   *   <li><i>Class2Jar</i>[-suff1,-suff2]?.jar to <i>Class2Jar</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>Class1Jar</i>.jar to <i>Class1Jar</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>Class2Jar</i>.jar to <i>Class2Jar</i>-natives-<i>os.and.arch</i>.jar</li>
    * </ul>
    * </p>
    * <p>
@@ -311,94 +285,112 @@ public class JNILibLoaderBase {
         // only: jocl.jar -> jocl-natives-<i>os.and.arch</i>.jar
         addNativeJarLibs(new Class<?>[] { JOCLJNILibLoader.class }, null, null );
    * </pre>
-   *
-   * Newt Only:
-   * <pre>
-       // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar, jogl-all-android.jar] -> jogl-all-natives-<i>os.and.arch</i>.jar
-       // or:     nativewindow-core.jar                                                         -> nativewindow-natives-<i>os.and.arch</i>.jar,
-       //         newt-core.jar                                                                 -> newt-natives-<i>os.and.arch</i>.jar
-       JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { NWJNILibLoader.class, NEWTJNILibLoader.class }, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
-   * </pre>
    * </p>
    * <p>
    * JOGL:
    * <pre>
        final ClassLoader cl = GLProfile.class.getClassLoader();
-       // either: [jogl-all.jar, jogl-all-noawt.jar, jogl-all-mobile.jar, jogl-all-android.jar] -> jogl-all-natives-<i>os.and.arch</i>.jar
-       // or:     nativewindow-core.jar                                                         -> nativewindow-natives-<i>os.and.arch</i>.jar,
-       //         jogl-core.jar                                                                 -> jogl-natives-<i>os.and.arch</i>.jar,
-       //        (newt-core.jar                                                                 -> newt-natives-<i>os.and.arch</i>.jar)? (if available)
+       // jogl-all.jar         -> jogl-all-natives-<i>os.and.arch</i>.jar
+       // jogl-all-noawt.jar   -> jogl-all-noawt-natives-<i>os.and.arch</i>.jar
+       // jogl-all-mobile.jar  -> jogl-all-mobile-natives-<i>os.and.arch</i>.jar
+       // jogl-all-android.jar -> jogl-all-android-natives-<i>os.and.arch</i>.jar
+       // nativewindow.jar     -> nativewindow-natives-<i>os.and.arch</i>.jar
+       // jogl.jar             -> jogl-natives-<i>os.and.arch</i>.jar
+       // newt.jar             -> newt-natives-<i>os.and.arch</i>.jar (if available)
        final String newtFactoryClassName = "com.jogamp.newt.NewtFactory";
        final Class<?>[] classesFromJavaJars = new Class<?>[] { NWJNILibLoader.class, GLProfile.class, null };
        if( ReflectionUtil.isClassAvailable(newtFactoryClassName, cl) ) {
            classesFromJavaJars[2] = ReflectionUtil.getClass(newtFactoryClassName, false, cl);
        }
-       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all", new String[] { "-noawt", "-mobile", "-core", "-android" } );
+       JNILibLoaderBase.addNativeJarLibs(classesFromJavaJars, "-all");
    * </pre>
    * </p>
    *
    * @param classesFromJavaJars For each given Class, load the native library JAR.
    * @param singleJarMarker Optional string marker like "-all" to identify the single 'all-in-one' JAR file
    *                        after which processing of the class array shall stop.
-   * @param stripBasenameSuffixes Optional substrings to be stripped of the <i>base URI</i>
    *
    * @return true if either the 'all-in-one' native JAR or all native JARs loaded successful or were loaded already,
    *         false in case of an error
    */
-  public static boolean addNativeJarLibs(final Class<?>[] classesFromJavaJars, final String singleJarMarker, final String[] stripBasenameSuffixes) {
+  public static boolean addNativeJarLibs(final Class<?>[] classesFromJavaJars, final String singleJarMarker) {
     if(DEBUG) {
-        System.err.println("JNILibLoaderBase: addNativeJarLibs0(classesFromJavaJars "+Arrays.asList(classesFromJavaJars)+", singleJarMarker "+singleJarMarker+", stripBasenameSuffixes "+(null!=stripBasenameSuffixes?Arrays.asList(stripBasenameSuffixes):"none"));
-    }
-    boolean ok = false;
-    if(TempJarCache.isInitialized()) {
         final StringBuilder msg = new StringBuilder();
-        int count = 0;
-        try {
-            boolean done = false;
-            ok = true;
-            for(int i=0; !done && ok && i<classesFromJavaJars.length && null!=classesFromJavaJars[i]; i++) {
-                final ClassLoader cl = classesFromJavaJars[i].getClassLoader();
-                final URI classJarURI = JarUtil.getJarURI(classesFromJavaJars[i].getName(), cl);
-                final String jarName = JarUtil.getJarBasename(classJarURI);
-                ok = null != jarName;
-                if(ok) {
-                    final String jarBasename = jarName.substring(0, jarName.indexOf(".jar")); // ".jar" already validated w/ JarUtil.getJarBasename(..)
-                    final String nativeJarBasename = stripName(jarBasename, stripBasenameSuffixes)+"-natives-"+PlatformPropsImpl.os_and_arch+".jar";
-                    done = null != singleJarMarker && jarBasename.indexOf(singleJarMarker) >= 0; // done if single-jar ('all' variant)
-                    ok = JNILibLoaderBase.addNativeJarLibsImpl(classesFromJavaJars[i], classJarURI, jarName, nativeJarBasename, msg);
-                    if(ok) { count++; }
-                    if(DEBUG && done) {
-                        System.err.println("JNILibLoaderBase: addNativeJarLibs0: end after all-in-one JAR: "+jarBasename);
-                    }
-                }
-            }
-        } catch (final Exception e0) {
-            // IllegalArgumentException, IOException
-            System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while "+msg.toString());
-            if(DEBUG) {
-                e0.printStackTrace();
-            }
-            ok = false;
-        }
-        if(DEBUG) {
-            System.err.println("JNILibLoaderBase: addNativeJarLibs0(..) done, count "+count+", ok "+ok);
-        }
+        msg.append("JNILibLoaderBase: addNativeJarLibs(\n");
+        msg.append("  classesFromJavaJars   = ").append(Arrays.asList(classesFromJavaJars)).append("\n");
+        msg.append("  singleJarMarker       = ").append(singleJarMarker).append("\n");
+        msg.append(")");
+        System.err.println(msg.toString());
+    }
+
+    boolean ok = false;
+    if (TempJarCache.isInitialized()) {
+        ok = addNativeJarLibsWhenInitialized(classesFromJavaJars, singleJarMarker);
     } else if(DEBUG) {
         System.err.println("JNILibLoaderBase: addNativeJarLibs0: disabled due to uninitialized TempJarCache");
     }
     return ok;
   }
 
-  private static final String stripName(final String name, final String[] suffixes) {
-      if(null != suffixes) {
-          for(int i=0; i<suffixes.length && null != suffixes[i]; i++) {
-              final int idx = name.indexOf(suffixes[i]);
-              if(0 < idx) {
-                  return name.substring(0, idx);
+  private static boolean addNativeJarLibsWhenInitialized(final Class<?>[] classesFromJavaJars, final String singleJarMarker) {
+      boolean ok;
+      int count = 0;
+      try {
+          boolean done = false;
+          ok = true;
+
+          for (int i = 0; i < classesFromJavaJars.length; ++i) {
+              final Class<?> c = classesFromJavaJars[i];
+              if (c == null) {
+                  continue;
+              }
+
+              final ClassLoader cl = c.getClassLoader();
+              final URI classJarURI = JarUtil.getJarURI(c.getName(), cl);
+              final String jarName = JarUtil.getJarBasename(classJarURI);
+
+              if (jarName == null) {
+                  continue;
+              }
+
+              final String jarBasename = jarName.substring(0, jarName.indexOf(".jar"));
+
+              if(DEBUG) {
+                  System.err.printf("JNILibLoaderBase: jarBasename: %s\n", jarBasename);
+              }
+
+              /**
+               * If a jar marker was specified, and the basename contains the
+               * marker, we're done.
+               */
+
+              if (singleJarMarker != null) {
+                  if (jarBasename.indexOf(singleJarMarker) >= 0) {
+                      done = true;
+                  }
+              }
+
+              final String nativeJarBasename = String.format("%s-natives-%s.jar", jarBasename, PlatformPropsImpl.os_and_arch);
+
+              ok = JNILibLoaderBase.addNativeJarLibsImpl(c, classJarURI, jarName, nativeJarBasename);
+              if (ok) {
+                  count++;
+              }
+              if (DEBUG && done) {
+                  System.err.printf("JNILibLoaderBase: addNativeJarLibs0: done: %s\n", jarBasename);
               }
           }
+      } catch (final Exception x) {
+          System.err.printf("JNILibLoaderBase: Caught %s: %s\n", x.getClass().getSimpleName(), x.getMessage());
+          if(DEBUG) {
+              x.printStackTrace();
+          }
+          ok = false;
       }
-      return name;
+      if(DEBUG) {
+          System.err.printf("JNILibLoaderBase: addNativeJarLibsWhenInitialized: count %d, ok %b\n", count, ok);
+      }
+      return ok;
   }
 
   /**

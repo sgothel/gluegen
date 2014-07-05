@@ -40,7 +40,6 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
-import jogamp.common.Debug;
 import jogamp.common.jvm.JVMUtil;
 import jogamp.common.os.MachineDescriptionRuntime;
 import jogamp.common.os.PlatformPropsImpl;
@@ -201,7 +200,7 @@ public class Platform extends PlatformPropsImpl {
                 // load GluegenRT native library
                 if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
                     try {
-                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null, null );
+                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null);
                     } catch (final Exception e0) {
                         // IllegalArgumentException, IOException
                         System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");
