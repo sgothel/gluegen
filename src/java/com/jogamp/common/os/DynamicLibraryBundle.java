@@ -251,7 +251,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return null;
     }
 
-    private final void loadLibraries() {
+    final void loadLibraries() {
         int i;
         toolLibLoadedNumber = 0;
         final ClassLoader cl = info.getClass().getClassLoader();

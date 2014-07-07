@@ -451,7 +451,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         public final /*key*/int/*key*/ key;
         public /*value*/int/*value*/ value;
 
-        private Entry next;
+        Entry next;
 
         Entry(final /*key*/int/*key*/ k, final /*value*/int/*value*/ v, final Entry n) {
             key = k;
