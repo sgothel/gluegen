@@ -48,20 +48,12 @@ public class TypeDictionary {
   /** Mapping from type name to type.*/
   private final HashMap<String, Type> map = new HashMap<String, Type>();
 
-  /** Reverse mapping; created lazily from the regular map */
-  private final HashMap<Set<Type>, String> reverseMap = new HashMap<Set<Type>, String>();
-
-  /** Has a type been added/removed since the last time the reverse map was
-   * calculated? */
-  private boolean reverseMapOutOfDate = false;
-
   /**
    * Create a mapping from a type to its name.
    * @param name the name to which the type is defined
    * @param type the type that can be referred to by the specified name.
    */
   public Type put(final String name, final Type type) {
-    reverseMapOutOfDate = true;
     return map.put(name, type);
   }
 
@@ -88,7 +80,6 @@ public class TypeDictionary {
 
   /** Remove the mapping from the specified name to its associated type.*/
   public Type remove(final String name) {
-    reverseMapOutOfDate = true;
     return map.remove(name);
   }
 
