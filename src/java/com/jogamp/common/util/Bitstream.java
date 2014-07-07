@@ -1414,6 +1414,7 @@ public class Bitstream<T> {
         }
     }
 
+    @Override
     public String toString() {
         return String.format("Bitstream[%s]", toStringImpl());
     }

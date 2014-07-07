@@ -75,7 +75,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
     private static final Constructor</*name*/IntIntHashMap/*name*/.Entry> entryConstructor;
     private static final Method equalsMethod;
 
-    static class EntryCM { EntryCM() { c = null; m1 = null; } Constructor<Entry> c; Method m1; };
+    static class EntryCM { EntryCM() { c = null; m1 = null; } Constructor<Entry> c; Method m1; }
 
     static {
         final Class<?> valueClazz = /*value*/int/*value*/.class;

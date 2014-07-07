@@ -81,7 +81,7 @@ public class JavaEmitter implements GlueEmitter {
    * (InterfaceAndImpl), only the interface (InterfaceOnly), or only
    * the implementation (ImplOnly).
    */
-  public enum EmissionStyle {AllStatic, InterfaceAndImpl, InterfaceOnly, ImplOnly};
+  public enum EmissionStyle {AllStatic, InterfaceAndImpl, InterfaceOnly, ImplOnly}
 
   /**
    * Access control for emitted Java methods.

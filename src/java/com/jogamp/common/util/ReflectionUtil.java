@@ -89,6 +89,7 @@ public final class ReflectionUtil {
         public final String name;
         public long nanoCosts;
         public int count;
+        @Override
         public String toString() {
             return String.format("%8.3f ms, %03d invoc, %s", nanoCosts/1e6, count, name);
         }

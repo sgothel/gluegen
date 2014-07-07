@@ -28,15 +28,14 @@
 
 package com.jogamp.common.util;
 
-import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.os.Platform;
-
 import java.util.Iterator;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
 import jogamp.common.os.AndroidUtils;
+
+import com.jogamp.common.os.Platform;
 
 public class JogampVersion {
 
