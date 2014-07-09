@@ -122,12 +122,6 @@ public abstract class TaskBase implements Runnable {
             }
         }
     }
-    /**
-     * @deprecated Use {@link #flush(Throwable)}.
-     */
-    public final void flush() {
-        this.flush(null);
-    }
 
     /**
      * @return !{@link #isExecuted()} && !{@link #isFlushed()}

@@ -122,9 +122,6 @@ public class SyncedRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final T[] getInternalArray() { return array; }
-
-    @Override
     public final int capacity() { return capacity; }
 
     /**

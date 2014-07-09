@@ -51,18 +51,6 @@ public interface Ringbuffer<T> {
     /** Debug functionality - Dumps the contents of the internal array. */
     public void dump(PrintStream stream, String prefix);
 
-    /**
-     * Returns the internal array as-is, i.e. w/o a copy.
-     * <p>
-     * The layout and size of the internal array is implementation dependent.
-     * </p>
-     * <p>
-     * Users shall not modify or rely on the returned array.
-     * </p>
-     * @deprecated This method should not be required
-     */
-    public T[] getInternalArray();
-
     /** Returns the net capacity of this ring buffer. */
     public int capacity();
 

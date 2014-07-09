@@ -146,9 +146,6 @@ public class LFRingbuffer<T> implements Ringbuffer<T> {
     }
 
     @Override
-    public final T[] getInternalArray() { return array; }
-
-    @Override
     public final int capacity() { return capacityPlusOne-1; }
 
     @Override
