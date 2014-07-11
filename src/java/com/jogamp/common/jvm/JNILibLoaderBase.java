@@ -161,16 +161,18 @@ public class JNILibLoaderBase {
    * @throws SecurityException
    * @throws URISyntaxException
    */
-  private static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final URI classJarURI, final String jarBasename, final String nativeJarBasename)
+  private static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final URI classJarURI,
+                                                    final String jarBasename, final String nativeJarBasename)
     throws IOException, SecurityException, URISyntaxException
   {
     if (DEBUG) {
         final StringBuilder msg = new StringBuilder();
-        msg.append("JNILibLoaderBase: addNativeJarLibsImpl(\n");
-        msg.append("  classFromJavaJar  = ").append(classFromJavaJar).append("\n");
-        msg.append("  classJarURI       = ").append(classJarURI).append("\n");
-        msg.append("  jarBasename       = ").append(jarBasename).append("\n");
-        msg.append("  nativeJarBasename = ").append(nativeJarBasename).append("\n");
+        msg.append("JNILibLoaderBase: addNativeJarLibsImpl(").append(PlatformPropsImpl.NEWLINE);
+        msg.append("  classFromJavaJar  = ").append(classFromJavaJar).append(PlatformPropsImpl.NEWLINE);
+        msg.append("  classJarURI       = ").append(classJarURI).append(PlatformPropsImpl.NEWLINE);
+        msg.append("  jarBasename       = ").append(jarBasename).append(PlatformPropsImpl.NEWLINE);
+        msg.append("  os.and.arch       = ").append(PlatformPropsImpl.os_and_arch).append(PlatformPropsImpl.NEWLINE);
+        msg.append("  nativeJarBasename = ").append(nativeJarBasename).append(PlatformPropsImpl.NEWLINE);
         msg.append(")");
         System.err.println(msg.toString());
     }
@@ -185,10 +187,13 @@ public class JNILibLoaderBase {
     final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
 
     if (DEBUG) {
-        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: initial: %s -> %s\n", jarSubURI, jarUriRoot_s);
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: initial: %s -> %s%n", jarSubURI, jarUriRoot_s);
     }
 
     final String nativeLibraryPath = String.format("natives/%s/", PlatformPropsImpl.os_and_arch);
+    if (DEBUG) {
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: nativeLibraryPath: %s%n", nativeLibraryPath);
+    }
     final ClassLoader cl = classFromJavaJar.getClassLoader();
     final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
     if (null != nativeLibraryURI) {
@@ -207,14 +212,14 @@ public class JNILibLoaderBase {
         final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarBasename);
 
         if (DEBUG) {
-            System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: slim: %s -> %s\n", nativeJarBasename, nativeJarURI);
+            System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: module: %s -> %s%n", nativeJarBasename, nativeJarURI);
         }
 
         ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, null /* nativeLibraryPath */);
     }
 
     if (DEBUG) {
-        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ok: %b\n", ok);
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ok: %b%n", ok);
     }
     return ok;
   }
@@ -229,12 +234,12 @@ public class JNILibLoaderBase {
    * If <code>Class1.class</code> is contained in a JAR file which name includes <code>singleJarMarker</code> <i>-all</i>,
    * implementation will attempt to resolve the native JAR file as follows:
    * <ul>
-   *   <li><i>ClassJar-all</i>[-noawt,-mobile,-android]?.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>ClassJar-all</i>.jar to <i>ClassJar-all</i>-natives-<i>os.and.arch</i>.jar</li>
    * </ul>
    * Otherwise the native JAR files will be resolved for each class's JAR file:
    * <ul>
-   *   <li><i>ClassJar1</i>[-noawt,-mobile,-core,-android]?.jar to <i>ClassJar1</i>-natives-<i>os.and.arch</i>.jar</li>
-   *   <li><i>ClassJar2</i>[-noawt,-mobile,-core,-android]?.jar to <i>ClassJar2</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>ClassJar1</i>.jar to <i>ClassJar1</i>-natives-<i>os.and.arch</i>.jar</li>
+   *   <li><i>ClassJar2</i>.jar to <i>ClassJar2</i>-natives-<i>os.and.arch</i>.jar</li>
    *   <li>..</li>
    * </ul>
    */
@@ -316,23 +321,23 @@ public class JNILibLoaderBase {
   public static boolean addNativeJarLibs(final Class<?>[] classesFromJavaJars, final String singleJarMarker) {
     if(DEBUG) {
         final StringBuilder msg = new StringBuilder();
-        msg.append("JNILibLoaderBase: addNativeJarLibs(\n");
-        msg.append("  classesFromJavaJars   = ").append(Arrays.asList(classesFromJavaJars)).append("\n");
-        msg.append("  singleJarMarker       = ").append(singleJarMarker).append("\n");
+        msg.append("JNILibLoaderBase: addNativeJarLibs(").append(PlatformPropsImpl.NEWLINE);
+        msg.append("  classesFromJavaJars   = ").append(Arrays.asList(classesFromJavaJars)).append(PlatformPropsImpl.NEWLINE);
+        msg.append("  singleJarMarker       = ").append(singleJarMarker).append(PlatformPropsImpl.NEWLINE);
         msg.append(")");
         System.err.println(msg.toString());
     }
 
     boolean ok = false;
     if (TempJarCache.isInitialized()) {
-        ok = addNativeJarLibsWhenInitialized(classesFromJavaJars, singleJarMarker);
+        ok = addNativeJarLibsWithTempJarCache(classesFromJavaJars, singleJarMarker);
     } else if(DEBUG) {
         System.err.println("JNILibLoaderBase: addNativeJarLibs0: disabled due to uninitialized TempJarCache");
     }
     return ok;
   }
 
-  private static boolean addNativeJarLibsWhenInitialized(final Class<?>[] classesFromJavaJars, final String singleJarMarker) {
+  private static boolean addNativeJarLibsWithTempJarCache(final Class<?>[] classesFromJavaJars, final String singleJarMarker) {
       boolean ok;
       int count = 0;
       try {
@@ -356,7 +361,7 @@ public class JNILibLoaderBase {
               final String jarBasename = jarName.substring(0, jarName.indexOf(".jar"));
 
               if(DEBUG) {
-                  System.err.printf("JNILibLoaderBase: jarBasename: %s\n", jarBasename);
+                  System.err.printf("JNILibLoaderBase: jarBasename: %s%n", jarBasename);
               }
 
               /**
@@ -377,18 +382,18 @@ public class JNILibLoaderBase {
                   count++;
               }
               if (DEBUG && done) {
-                  System.err.printf("JNILibLoaderBase: addNativeJarLibs0: done: %s\n", jarBasename);
+                  System.err.printf("JNILibLoaderBase: addNativeJarLibs0: done: %s%n", jarBasename);
               }
           }
       } catch (final Exception x) {
-          System.err.printf("JNILibLoaderBase: Caught %s: %s\n", x.getClass().getSimpleName(), x.getMessage());
+          System.err.printf("JNILibLoaderBase: Caught %s: %s%n", x.getClass().getSimpleName(), x.getMessage());
           if(DEBUG) {
               x.printStackTrace();
           }
           ok = false;
       }
       if(DEBUG) {
-          System.err.printf("JNILibLoaderBase: addNativeJarLibsWhenInitialized: count %d, ok %b\n", count, ok);
+          System.err.printf("JNILibLoaderBase: addNativeJarLibsWhenInitialized: count %d, ok %b%n", count, ok);
       }
       return ok;
   }
