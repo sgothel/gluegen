@@ -11,7 +11,7 @@ Implementation-Commit: @SCM_COMMIT@
 Implementation-Vendor: JogAmp Community
 Implementation-Vendor-Id: com.jogamp
 Implementation-URL: http://jogamp.org/
-Extension-Name: com.jogamp.common
+Extension-Name: jogamp.nativetag.common
 Trusted-Library: true
 Permissions: all-permissions
 Application-Library-Allowable-Codebase: *

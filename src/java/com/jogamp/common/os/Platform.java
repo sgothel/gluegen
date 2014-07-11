@@ -200,7 +200,7 @@ public class Platform extends PlatformPropsImpl {
                 // load GluegenRT native library
                 if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
                     try {
-                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { Platform.class }, null);
+                        JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.common.Debug.class }, null);
                     } catch (final Exception e0) {
                         // IllegalArgumentException, IOException
                         System.err.println("Caught "+e0.getClass().getSimpleName()+": "+e0.getMessage()+", while JNILibLoaderBase.addNativeJarLibs(..)");

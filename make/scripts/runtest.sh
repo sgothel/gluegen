@@ -48,6 +48,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djava.io.tmpdir=/run/tmp"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
+#D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader"
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
@@ -57,7 +58,8 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
-    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
+    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
     libspath="$builddir"/test/build/natives
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes

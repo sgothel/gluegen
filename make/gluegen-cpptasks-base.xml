@@ -177,6 +177,10 @@
     <echo message="os.version=${os.version}" />
     <echo message="os.arch=${os.arch}" />
 
+    <property name="nativejartag.package"    value="jogamp.nativetag" /> 
+    <property name="nativejartag.prefix"     value="jogamp/nativetag" /> 
+    <echo message="nativejartag.prefix = ${nativejartag.prefix}" />
+
     <!-- NOTE: the value of the debug attribute will not be overridden if already set externally -->
     <property name="c.compiler.debug"     value="false" /> 
     <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
@@ -707,7 +711,19 @@
   </target>
 
   <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.refine,gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
-    <echo message="os and arch: ${os.and.arch}" />
+    <propertyregex property="os.and.arch.dot"
+                   input="${os.and.arch}"
+                   regexp="-"
+                   replace="."
+                   global="true" />
+    <propertyregex property="os.and.arch.slash"
+                   input="${os.and.arch}"
+                   regexp="-"
+                   replace="/"
+                   global="true" />
+    <echo message="os and arch:       ${os.and.arch}" />
+    <echo message="os and arch.dot:   ${os.and.arch.dot}" />
+    <echo message="os and arch.slash: ${os.and.arch.slash}" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.custom,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
@@ -1539,4 +1555,50 @@
         </exec>
       </sequential>
     </macrodef>
+
+    <macrodef name="native.tag.jar">
+      <attribute name="objdir" />
+      <attribute name="nativejarfile" />
+      <attribute name="manifestfile" />
+      <attribute name="module" />
+      <attribute name="includelibs" />
+      <attribute name="excludelibs" default="" />
+      <sequential>
+
+      <var name="nativejarfile.basename" unset="true"/>
+      <var name="nativejarfile.tmpdir" unset="true"/>
+      <var name="nativejarfile.tmpdir.natives" unset="true"/>
+      <basename property="nativejarfile.basename" file="@{nativejarfile}"/>
+      <property name="nativejarfile.tmpdir" value="@{objdir}/${nativejarfile.basename}.d" />
+      <property name="nativejarfile.tmpdir.natives" value="${nativejarfile.tmpdir}/jar" />
+      <!-- In case we like to switch to a natives subfolder 'natives/${os.and.arch}' use the following -->
+      <!-- property name="nativejarfile.tmpdir.natives" value="${nativejarfile.tmpdir}/jar/natives/${os.and.arch}" /-->
+
+      <mkdir dir="${nativejarfile.tmpdir}/java" />
+      <mkdir dir="${nativejarfile.tmpdir.natives}" />
+      <copy todir="${nativejarfile.tmpdir.natives}">
+        <fileset dir="@{objdir}"
+                 includes="@{includelibs}"
+                 excludes="@{excludelibs}"/>
+      </copy>
+      <echo message='package ${nativejartag.package}.@{module}.${os.and.arch.dot}; public final class TAG { }' file="${nativejarfile.tmpdir}/java/${nativejartag.prefix}/@{module}/${os.and.arch.slash}/TAG.java"/>
+      <javac destdir="${nativejarfile.tmpdir}/jar"
+           includes="${nativejartag.prefix}/@{module}/**"
+           includeAntRuntime="false"
+           encoding="UTF-8"
+           source="${target.sourcelevel}" 
+           target="${target.targetlevel}" 
+           bootclasspath="${target.rt.jar}">
+        <src path="${nativejarfile.tmpdir}/java" />
+      </javac>
+      <jar destfile="@{nativejarfile}" manifest="@{manifestfile}" filesonly="true">
+        <fileset dir="${nativejarfile.tmpdir}/jar">
+            <include name="**" />
+        </fileset>
+      </jar>
+      <delete includeEmptyDirs="true">
+        <fileset dir="${nativejarfile.tmpdir}" />
+      </delete>
+      </sequential>
+    </macrodef>  
 </project>
