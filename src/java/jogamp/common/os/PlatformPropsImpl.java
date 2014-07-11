@@ -510,74 +510,85 @@ public abstract class PlatformPropsImpl {
      *   <li>windows-amd64</li>
      *   <li>windows-i586</li>
      * </ul>
-     * @return
+     * @return The <i>os.and.arch</i> value.
      */
     public static final String getOSAndArch(final OSType osType, final CPUType cpuType, final ABIType abiType) {
-        String _os_and_arch;
+        final String os_;
+        final String _and_arch_tmp, _and_arch_final;
 
         switch( cpuType ) {
             case X86_32:
-                _os_and_arch = "i586";
+                _and_arch_tmp = "i586";
                 break;
             case ARM:
             case ARMv5:
             case ARMv6:
             case ARMv7:
-                _os_and_arch = "armv6"; // TODO: sync with gluegen-cpptasks-base.xml
+                if( ABIType.EABI_GNU_ARMHF == abiType ) {
+                    _and_arch_tmp = "armv6hf" ; // TODO: sync with gluegen-cpptasks-base.xml
+                } else {
+                    _and_arch_tmp = "armv6";    // TODO: sync with gluegen-cpptasks-base.xml
+                }
                 break;
             case SPARC_32:
-                _os_and_arch = "sparc";
+                _and_arch_tmp = "sparc";
                 break;
             case PPC:
-                _os_and_arch = "ppc"; // TODO: sync with gluegen-cpptasks-base.xml
+                _and_arch_tmp = "ppc";          // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             case X86_64:
-                _os_and_arch = "amd64";
+                _and_arch_tmp = "amd64";
                 break;
             case IA64:
-                _os_and_arch = "ia64";
+                _and_arch_tmp = "ia64";
                 break;
             case SPARCV9_64:
-                _os_and_arch = "sparcv9";
+                _and_arch_tmp = "sparcv9";
                 break;
             case PA_RISC2_0:
-                _os_and_arch = "risc2.0"; // TODO: sync with gluegen-cpptasks-base.xml
+                _and_arch_tmp = "risc2.0";      // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             default:
                 throw new InternalError("Complete case block");
         }
-        if( ABIType.EABI_GNU_ARMHF == abiType ) {
-            _os_and_arch = _os_and_arch + "hf" ;
-        }
+
         switch( osType ) {
             case ANDROID:
-              _os_and_arch = "android-" + _os_and_arch;
+              os_ = "android";
+              _and_arch_final = _and_arch_tmp;
               break;
             case MACOS:
-              _os_and_arch = "macosx-universal";
+              os_ = "macosx";
+              _and_arch_final = "universal";
               break;
             case WINDOWS:
-              _os_and_arch = "windows-" + _os_and_arch;
+              os_ = "windows";
+              _and_arch_final = _and_arch_tmp;
               break;
             case OPENKODE:
-              _os_and_arch = "openkode-" + _os_and_arch; // TODO: think about that
+              os_ = "openkode";             // TODO: think about that
+              _and_arch_final = _and_arch_tmp;
               break;
             case LINUX:
-              _os_and_arch = "linux-" + _os_and_arch;
+              os_ = "linux";
+              _and_arch_final = _and_arch_tmp;
               break;
             case FREEBSD:
-              _os_and_arch = "freebsd-" + _os_and_arch;
+              os_ = "freebsd";
+              _and_arch_final = _and_arch_tmp;
               break;
             case SUNOS:
-              _os_and_arch = "solaris-" + _os_and_arch;
+              os_ = "solaris";
+              _and_arch_final = _and_arch_tmp;
               break;
             case HPUX:
-              _os_and_arch = "hpux-hppa";  // TODO: really only hppa ?
+              os_ = "hpux";
+              _and_arch_final = "hppa";     // TODO: really only hppa ?
               break;
             default:
               throw new InternalError("Complete case block");
         }
-        return _os_and_arch;
+        return os_ + "-" + _and_arch_final;
     }
 
 }
