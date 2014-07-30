@@ -45,6 +45,8 @@
       <compilerarg value="-march=armv6" />
       <compilerarg value="-marm" /> 
       <compilerarg value="-mfloat-abi=hard" />
+      <compilerarg value="-include"/>
+      <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <linker id="linker.cfg.linux.armv6" name="gcc">

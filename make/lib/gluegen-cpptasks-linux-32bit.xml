@@ -22,6 +22,8 @@
     <compiler id="compiler.cfg.linux" name="gcc">
       <compilerarg value="-m32" />
       <compilerarg value="-Wall" />
+      <compilerarg value="-include"/>
+      <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
       <defineset>
         <define name="LINUX" />
       </defineset>

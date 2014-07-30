@@ -929,6 +929,8 @@
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
+      <compilerarg value="-include"/>
+      <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <compiler id="compiler.cfg.linux.x86" name="${gcc.compat.compiler}">
@@ -940,6 +942,8 @@
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
+      <compilerarg value="-include"/>
+      <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <compiler id="compiler.cfg.linux.amd64" name="${gcc.compat.compiler}">
@@ -952,6 +956,8 @@
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
+      <compilerarg value="-include"/>
+      <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <!-- Using default compiler settings - utilize:
@@ -967,6 +973,8 @@
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
       <compilerarg value="-fpic" /> 
+      <compilerarg value="-include"/>
+      <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <compiler id="compiler.cfg.android" name="${gcc.compat.compiler}">
