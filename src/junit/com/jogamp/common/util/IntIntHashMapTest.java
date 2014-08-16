@@ -35,10 +35,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map.Entry;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.junit.util.JunitTracer;
 
 import static org.junit.Assert.*;
 import static java.lang.System.*;
@@ -52,7 +54,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class IntIntHashMapTest {
+public class IntIntHashMapTest extends JunitTracer {
 
     private static int iterations;
     private static IntIntUniqueRndValues pairs;

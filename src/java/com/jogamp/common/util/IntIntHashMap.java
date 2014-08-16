@@ -162,18 +162,19 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
                                                   mask, capacity, threshold,
                                                   keyNotFoundValue);
 
+        final ArrayList<Entry> entries = new ArrayList<Entry>();
         for(int i=table.length-1; i>=0; i--) {
             // single linked list -> ArrayList
-            final ArrayList<Entry> entries = new ArrayList<Entry>();
             Entry se = table[i];
             while(null != se) {
                 entries.add(se);
                 se = se.next;
             }
             // clone ArrayList -> single linked list (bwd)
+            final int count = entries.size();
             Entry de_next = null;
-            for(int j=entries.size()-1; j>=0; j--) {
-                se = entries.get(j);
+            for(int j=count-1; j>=0; j--) {
+                se = entries.remove(j);
                 if( isPrimitive ) {
                     de_next = new Entry(se.key, se.value, de_next);
                 } else {
