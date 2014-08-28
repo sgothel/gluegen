@@ -66,33 +66,27 @@
 
     <property name="gluegen.build.number" value="manual"/>
     <property name="gluegen.build.id"     value="${version.timestamp}"/>
-
-    <exec dir="${project.root}" executable="git" logError="false" failonerror="false" failifexecutionfails="false"
-          outputproperty="gluegen.build.branch.raw" resultproperty="gluegen.build.branch.ret">
-          <arg value="symbolic-ref"/>
-          <arg value="-q"/>
-          <arg value="--short"/>
-          <arg value="HEAD"/>
+    <mkdir dir="${build}" />
+    <exec dir="." executable="git" logError="true" failonerror="false" failifexecutionfails="false"
+              output="${build}/localbranch.raw">
+        <arg line="branch --no-color"/>
     </exec>
-    <condition property="gluegen.build.branch" value="${gluegen.build.branch.raw}" else="manual">
-      <not> <isfailure code="${gluegen.build.branch.ret}"/> </not>
-    </condition>
-
-    <exec dir="${project.root}" executable="git" logError="false" failonerror="false" failifexecutionfails="false"
-          outputproperty="gluegen.build.commit.raw" resultproperty="gluegen.build.commit.ret">
-          <arg value="rev-parse"/>
-          <arg value="HEAD"/>
+    <exec dir="." executable="sed" logError="true" failonerror="false" failifexecutionfails="false"
+              outputproperty="gluegen.build.branch">
+        <arg line="-e '/^[^*]/d' -e 's/* \(.*\)/\1/' '${build}/localbranch.raw'"/>
     </exec>
-    <condition property="gluegen.build.commit" value="${gluegen.build.commit.raw}" else="manual">
-      <not> <isfailure code="${gluegen.build.commit.ret}"/> </not>
-    </condition>
+    <property name="gluegen.build.branch" value="manual"/> <!-- fallback -->
+    <exec dir="${project.root}" executable="git" logError="true" failonerror="false" failifexecutionfails="false"
+              outputproperty="gluegen.build.commit">
+        <arg line="rev-parse HEAD"/>
+    </exec>
+    <property name="gluegen.build.commit" value="manual"/> <!-- fallback -->
 
     <property name="gluegen.version" value="${jogamp.version.base}-b${gluegen.build.number}-${version.timestamp}" />
 
     <property name="stub.includes.dir" value="stub_includes" /> <!-- NOTE:  this MUST be relative for FileSet -->
 
     <!-- The generated source directories. -->
-    <mkdir dir="${build}" />
     <property name="src.generated"          value="${build}/gensrc" />
     <property name="src.generated.java"     value="${src.generated}/java" />
     <property name="src.generated.c"        value="${src.generated}/native" />
