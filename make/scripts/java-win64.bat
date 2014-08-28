@@ -1,8 +1,8 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.7.0_45_x64
-set JAVA_HOME=c:\jdk1.7.0_45_x64
-set ANT_PATH=C:\apache-ant-1.8.2
+set J2RE_HOME=c:\jre1.7.0_67_x64
+set JAVA_HOME=c:\jdk1.7.0_67_x64
+set ANT_PATH=C:\apache-ant-1.9.4
 
 set BLD_DIR=..\%BLD_SUB%
 REM set LIB_DIR=..\%BLD_SUB%\obj;..\%BLD_SUB%\test\build\natives
@@ -14,7 +14,7 @@ set CP_ALL=.;lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;l
 
 echo CP_ALL %CP_ALL%
 
-set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary"
+set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogamp.debug=all"
 

@@ -1,8 +1,8 @@
 
 set BLD_SUB=build-win32
-set J2RE_HOME=c:\jre1.7.0_45_x32
-set JAVA_HOME=c:\jdk1.7.0_45_x32
-set ANT_PATH=C:\apache-ant-1.8.2
+set J2RE_HOME=c:\jre1.7.0_67_x32
+set JAVA_HOME=c:\jdk1.7.0_67_x32
+set ANT_PATH=C:\apache-ant-1.9.4
 
 set BLD_DIR=..\%BLD_SUB%
 REM set LIB_DIR=..\%BLD_SUB%\obj;..\%BLD_SUB%\test\build\natives
