@@ -1,13 +1,13 @@
 https://github.com/sgothel/semantic-versioning
   forked from https://github.com/jeluard/semantic-versioning
 
-0.9.25-SNAPSHOT
+0.9.27-SNAPSHOT
 
-commit 9ec2e5329780214d317b026f7c0b086972a94a5c
-Author: Sven Gothel <sgothel@jausoft.com>
-Date:   Wed May 14 01:04:14 2014 +0200
+commit 9cdb6bbf6d3248a65aa78ced08211d609c356f91
+Author: Julien Eluard <jeluard@users.noreply.github.com>
+Date:   Thu Aug 28 01:19:08 2014 -0300
 
-    Dump: Add dumpFullStats(..) producing diff stat per-class w/ diff-type-count and dump all diffs separated by diff-type
+    Update README.md
 
 branch jogamp
 
