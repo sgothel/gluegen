@@ -53,7 +53,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
-#D_ARGS="-Djogamp.debug.IOUtil"
+D_ARGS="-Djogamp.debug.IOUtil"
 #D_ARGS="-Djogamp.debug.Bitstream"
 #D_ARGS="-Djogamp.debug=all"
 
@@ -92,7 +92,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestFloatStack01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIntegerStack01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestArrayHashSet01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
@@ -100,7 +100,7 @@ onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtilURICompose 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtilURIHandling 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*

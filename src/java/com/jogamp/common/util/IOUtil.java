@@ -34,9 +34,11 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FilePermission;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -1056,10 +1058,17 @@ public class IOUtil {
               return ".sh";
         }
     }
+    private static String getShellCode() {
+        switch(PlatformPropsImpl.OS_TYPE) {
+            case WINDOWS:
+              return "echo off"+PlatformPropsImpl.NEWLINE;
+            default:
+              return null;
+        }
+    }
 
     private static boolean getOSHasNoexecFS() {
         switch(PlatformPropsImpl.OS_TYPE) {
-            case WINDOWS:
             case OPENKODE:
               return false;
 
@@ -1114,6 +1123,52 @@ public class IOUtil {
         return true;
     }
 
+    public static class StreamMonitor implements Runnable {
+        private final InputStream[] istreams;
+        private final PrintStream ostream;
+        private final String prefix;
+        public StreamMonitor(final InputStream[] streams, final PrintStream ostream, final String prefix) {
+            this.istreams = streams;
+            this.ostream = ostream;
+            this.prefix = prefix;
+            new Thread(this, "StreamMonitor-"+Thread.currentThread().getName()).start();
+        }
+        @Override
+        public void run()
+        {
+            final byte[] buffer = new byte[4096];
+            try {
+                int numRead;
+                do {
+                    numRead = 0;
+                    for(int i=0; i<istreams.length; i++) {
+                        final int numReadI = istreams[i].read(buffer);
+                        if (numReadI > 0) {
+                            if( null != ostream ) {
+                                if( null != prefix ) {
+                                    ostream.write(prefix.getBytes());
+                                }
+                                ostream.write(buffer, 0, numReadI);
+                            }
+                            numRead += numReadI;
+                        }
+                    }
+                    if( null != ostream ) {
+                        ostream.flush();
+                    }
+                } while (numRead >= 0);
+            }
+            catch (final IOException e) {
+                for(int i=0; i<istreams.length; i++) {
+                    try {
+                        istreams[i].close();
+                    } catch (final IOException e2) { }
+                }
+                // Should allow clean exit when process shuts down
+            }
+        }
+    }
+
     /**
      * Returns true if the given {@code dir}
      * <ol>
@@ -1142,6 +1197,7 @@ public class IOUtil {
             return true;
         }
 
+        final long t0 = DEBUG ? System.currentTimeMillis() : 0;
         File exetst;
         try {
             exetst = File.createTempFile("jogamp_exe_tst", getShellSuffix(), dir);
@@ -1153,10 +1209,24 @@ public class IOUtil {
             }
             return false;
         }
+        final long t1 = DEBUG ? System.currentTimeMillis() : 0;
         int res = -1;
         if(exetst.setExecutable(true /* exec */, true /* ownerOnly */)) {
+            final String shellCode = getShellCode();
             try {
+                if( isStringSet(shellCode) ) {
+                    final FileWriter fout = new FileWriter(exetst);
+                    fout.write(shellCode);
+                    fout.close();
+                }
                 final Process pr = Runtime.getRuntime().exec(exetst.getCanonicalPath());
+                /**
+                 * Disable StreamMonitor, which throttles exec-test performance a lot!
+                 *
+                 * if( isStringSet(shellCode) ) {
+                    new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
+                   }
+                 */
                 pr.waitFor() ;
                 res = pr.exitValue();
             } catch (final SecurityException se) {
@@ -1169,9 +1239,11 @@ public class IOUtil {
                 }
             }
         }
+        final long t2 = DEBUG ? System.currentTimeMillis() : 0;
         exetst.delete();
-        if(DEBUG) {
+        if( DEBUG) {
             System.err.println("IOUtil.testDirExec(): <"+dir.getAbsolutePath()+">: res "+res);
+            System.err.println("IOUtil.testDirExec(): total "+(t2-t0)+"ms, create "+(t1-t0)+"ms, execute "+(t2-t1)+"ms");
         }
         return 0 == res;
     }
@@ -1253,6 +1325,14 @@ public class IOUtil {
        return tmpBaseDir;
     }
 
+    private static File getFile(final String fname) {
+        if( isStringSet(fname) ) {
+            return new File(fname);
+        } else {
+            return null;
+        }
+
+    }
     /**
      * Returns a platform independent writable directory for temporary files
      * consisting of the platform's {@code temp-root} + {@link #tmpSubDir},
@@ -1295,82 +1375,102 @@ public class IOUtil {
                         }
                     }
 
-                    final String java_io_tmpdir = PropertyAccess.getProperty(java_io_tmpdir_propkey, false);
-                    final String user_temp; // only if diff than java_io_tmpdir
+                    final File java_io_tmpdir = getFile( PropertyAccess.getProperty(java_io_tmpdir_propkey, false) );
+                    if(DEBUG) {
+                        System.err.println("IOUtil.getTempRoot(): tempX1 <"+java_io_tmpdir+">, used "+(null!=java_io_tmpdir));
+                    }
+
+                    final File user_tmpdir; // only if diff than java_io_tmpdir
                     {
-                        String _user_temp = System.getenv("TMPDIR");
-                        if( !isStringSet(_user_temp) ) {
-                            _user_temp = System.getenv("TEMP");
+                        String __user_tmpdir = System.getenv("TMPDIR");
+                        if( !isStringSet(__user_tmpdir) ) {
+                            __user_tmpdir = System.getenv("TEMP");
                         }
-                        if( isStringSet(_user_temp) && !_user_temp.equals(java_io_tmpdir) ) {
-                            user_temp = _user_temp;
+                        final File _user_tmpdir = getFile(__user_tmpdir);
+                        if( null != _user_tmpdir && !_user_tmpdir.equals(java_io_tmpdir) ) {
+                            user_tmpdir = _user_tmpdir;
                         } else {
-                            user_temp = null;
+                            user_tmpdir = null;
+                        }
+                        if(DEBUG) {
+                            System.err.println("IOUtil.getTempRoot(): tempX3 <"+_user_tmpdir+">, used "+(null!=user_tmpdir));
                         }
                     }
-                    final String user_home = PropertyAccess.getProperty(user_home_propkey, false);
 
-                    final String xdg_cache_home;
+                    final File user_home = getFile( PropertyAccess.getProperty(user_home_propkey, false) );
+                    if(DEBUG) {
+                        System.err.println("IOUtil.getTempRoot(): tempX4 <"+user_home+">, used "+(null!=user_home));
+                    }
+
+                    final File xdg_cache_home;
                     {
-                        String _xdg_cache_home;
+                        String __xdg_cache_home;
                         if( getOSHasFreeDesktopXDG() ) {
-                            _xdg_cache_home = System.getenv(XDG_CACHE_HOME_envkey);
-                            if( !isStringSet(_xdg_cache_home) && isStringSet(user_home) ) {
-                                _xdg_cache_home = user_home + File.separator + ".cache" ; // default
+                            __xdg_cache_home = System.getenv(XDG_CACHE_HOME_envkey);
+                            if( !isStringSet(__xdg_cache_home) && null != user_home ) {
+                                __xdg_cache_home = user_home.getAbsolutePath() + File.separator + ".cache" ; // default
                             }
                         } else {
-                            _xdg_cache_home = null;
+                            __xdg_cache_home = null;
                         }
-                        xdg_cache_home = _xdg_cache_home;
+                        final File _xdg_cache_home = getFile(__xdg_cache_home);
+                        if( null != _xdg_cache_home && !_xdg_cache_home.equals(java_io_tmpdir) ) {
+                            xdg_cache_home = _xdg_cache_home;
+                        } else {
+                            xdg_cache_home = null;
+                        }
+                        if(DEBUG) {
+                            System.err.println("IOUtil.getTempRoot(): tempX2 <"+_xdg_cache_home+">, used "+(null!=xdg_cache_home));
+                        }
                     }
 
                     // 1) java.io.tmpdir/jogamp
-                    if( null == tempRootExec && isStringSet(java_io_tmpdir) ) {
+                    if( null == tempRootExec && null != java_io_tmpdir ) {
                         if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
                             // Bug 865: Safari >= 6.1 [OSX] May employ xattr on 'com.apple.quarantine' on 'PluginProcess.app'
                             // We attempt to fix this issue _after_ gluegen native lib is loaded, see JarUtil.fixNativeLibAttribs(File).
-                            tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */, "tempX1");
+                            tempRootExec = getSubTempDir(java_io_tmpdir, tmpSubDir, false /* executable */, "tempX1");
                         } else {
-                            tempRootExec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, true /* executable */, "tempX1");
+                            tempRootExec = getSubTempDir(java_io_tmpdir, tmpSubDir, true /* executable */, "tempX1");
                         }
                     }
 
                     // 2) $XDG_CACHE_HOME/jogamp
-                    if(null == tempRootExec && isStringSet(xdg_cache_home)) {
-                        tempRootExec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, true /* executable */, "tempX2");
+                    if( null == tempRootExec && null != xdg_cache_home ) {
+                        tempRootExec = getSubTempDir(xdg_cache_home, tmpSubDir, true /* executable */, "tempX2");
                     }
 
                     // 3) $TMPDIR/jogamp
-                    if(null == tempRootExec && isStringSet(user_temp)) {
-                        tempRootExec = getSubTempDir(new File(user_temp), tmpSubDir, true /* executable */, "tempX3");
+                    if( null == tempRootExec && null != user_tmpdir ) {
+                        tempRootExec = getSubTempDir(user_tmpdir, tmpSubDir, true /* executable */, "tempX3");
                     }
 
                     // 4) $HOME/.jogamp
-                    if(null == tempRootExec && isStringSet(user_home)) {
-                        tempRootExec = getSubTempDir(new File(user_home), "." + tmpSubDir, true /* executable */, "tempX4");
+                    if( null == tempRootExec && null != user_home ) {
+                        tempRootExec = getSubTempDir(user_home, "." + tmpSubDir, true /* executable */, "tempX4");
                     }
 
-                    if(null != tempRootExec) {
+                    if( null != tempRootExec ) {
                         tempRootNoexec = tempRootExec;
                     } else {
                         // 1) java.io.tmpdir/jogamp
-                        if( null == tempRootNoexec && isStringSet(java_io_tmpdir) ) {
-                            tempRootNoexec = getSubTempDir(new File(java_io_tmpdir), tmpSubDir, false /* executable */, "temp01");
+                        if( null == tempRootNoexec && null != java_io_tmpdir ) {
+                            tempRootNoexec = getSubTempDir(java_io_tmpdir, tmpSubDir, false /* executable */, "temp01");
                         }
 
                         // 2) $XDG_CACHE_HOME/jogamp
-                        if(null == tempRootNoexec && isStringSet(xdg_cache_home)) {
-                            tempRootNoexec = getSubTempDir(new File(xdg_cache_home), tmpSubDir, false /* executable */, "temp02");
+                        if( null == tempRootNoexec && null != xdg_cache_home ) {
+                            tempRootNoexec = getSubTempDir(xdg_cache_home, tmpSubDir, false /* executable */, "temp02");
                         }
 
                         // 3) $TMPDIR/jogamp
-                        if(null == tempRootNoexec && isStringSet(user_temp)) {
-                            tempRootNoexec = getSubTempDir(new File(user_temp), tmpSubDir, false /* executable */, "temp03");
+                        if( null == tempRootNoexec && null != user_tmpdir ) {
+                            tempRootNoexec = getSubTempDir(user_tmpdir, tmpSubDir, false /* executable */, "temp03");
                         }
 
                         // 4) $HOME/.jogamp
-                        if(null == tempRootNoexec && isStringSet(user_home)) {
-                            tempRootNoexec = getSubTempDir(new File(user_home), "." + tmpSubDir, false /* executable */, "temp04");
+                        if( null == tempRootNoexec && null != user_home ) {
+                            tempRootNoexec = getSubTempDir(user_home, "." + tmpSubDir, false /* executable */, "temp04");
                         }
                     }
 
