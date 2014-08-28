@@ -82,7 +82,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
@@ -100,7 +100,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtilURICompose 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtilURIHandling 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
