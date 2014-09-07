@@ -28,7 +28,7 @@ public class TestUri01 extends JunitTracer {
             final String vanilla = "XXX ! # $ & ' ( ) * + , / : ; = ? @ [ ]";
             final Uri.Encoded escaped = Uri.Encoded.cast("XXX%20!%20%23%20%24%20%26%20%27%20%28%20%29%20%2A%20%2B%20%2C%20/%20%3A%20%3B%20%3D%20%3F%20%40%20%5B%20%5D");
             System.err.println("vanilla "+vanilla);
-            final Uri.Encoded esc1 = new Uri.Encoded(vanilla, Uri.PATH_MIN_LEGAL);
+            final Uri.Encoded esc1 = new Uri.Encoded(vanilla, Uri.PATH_LEGAL);
             System.err.println("esc1 "+esc1);
             Assert.assertEquals(escaped, esc1);
 
@@ -40,7 +40,7 @@ public class TestUri01 extends JunitTracer {
             final String vanilla = "/XXX R!# R$&'()*+,/:;=?z@y[x]";
             final Uri.Encoded escaped = Uri.Encoded.cast("/XXX%20R!%23%20R%24%26%27%28%29%2A%2B%2C/%3A%3B%3D%3Fz%40y%5Bx%5D");
             System.err.println("vanilla "+vanilla);
-            final Uri.Encoded esc1 = new Uri.Encoded(vanilla, Uri.PATH_MIN_LEGAL);
+            final Uri.Encoded esc1 = new Uri.Encoded(vanilla, Uri.PATH_LEGAL);
             System.err.println("esc1 "+esc1);
             Assert.assertEquals(escaped, esc1);
 
@@ -63,9 +63,9 @@ public class TestUri01 extends JunitTracer {
     public void test01URIEscapeCommonChars() throws IOException, URISyntaxException {
         {
             final String vanilla = "/XXX \"%-.<>\\^_`{|}~";
-            final Uri.Encoded escaped = Uri.Encoded.cast("/XXX%20%22%25-.%3C%3E%5C%5E_%60%7B%7C%7D%7E");
+            final Uri.Encoded escaped = Uri.Encoded.cast("/XXX%20%22%25-.%3C%3E%5C%5E_%60%7B%7C%7D~");
             System.err.println("vanilla "+vanilla);
-            final Uri.Encoded esc1 = new Uri.Encoded(vanilla, Uri.PATH_MIN_LEGAL);
+            final Uri.Encoded esc1 = new Uri.Encoded(vanilla, Uri.PATH_LEGAL);
             System.err.println("esc1 "+esc1);
             Assert.assertEquals(escaped, esc1);
 

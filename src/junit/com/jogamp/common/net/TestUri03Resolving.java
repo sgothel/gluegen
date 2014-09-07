@@ -2,7 +2,6 @@ package com.jogamp.common.net;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -146,7 +145,7 @@ public class TestUri03Resolving extends JunitTracer {
                       "C:\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar"},
 
         new String[] {"\\\\filehost\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar",
-                      "file:////filehost/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar",
+                      "file://filehost/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar",
                       "\\\\filehost\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar"},
 
         new String[] {"C:/gluegen/A$/B^/C~/D#/E[/F]/gluegen-rt.jar",
@@ -167,71 +166,51 @@ public class TestUri03Resolving extends JunitTracer {
         System.err.println("file.path.dec "+file.getPath());
         System.err.println("file.path.abs "+file.getAbsolutePath());
         System.err.println("file.path.can "+file.getCanonicalPath());
-        final URI uri0 = file.toURI();
-        System.err.println("uri0.string: "+uri0.toString());
-        System.err.println("uri0.path  : "+uri0.getPath());
-        System.err.println("uri0.ascii : "+uri0.toASCIIString());
+        final Uri uri0 = Uri.valueOf(file);
+        URIDumpUtil.showUri(uri0);
+        URIDumpUtil.showReencodedURIOfUri(uri0);
+
         boolean ok = true;
-        {
-            final URI uri1 = Uri.valueOf(file).toURI();
-            final boolean equalString= uri0.toString().equals(uri1.toString());
-            final boolean equalPath = uri0.getPath().equals(uri1.getPath());
-            final boolean equalASCII= uri0.toASCIIString().equals(uri1.toASCIIString());
-            System.err.println("uri1.string: "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
-            System.err.println("uri1.path  : "+uri1.getPath()+" - "+(equalPath?"OK":"ERROR"));
-            System.err.println("uri1.ascii : "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
-            ok = equalString && equalPath && equalASCII && ok;
-        }
         {
             final String s2 = IOUtil.slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */);
             System.err.println("uri2.slashify: "+s2);
-            {
-                final URI uri1 = new URI(IOUtil.FILE_SCHEME, null, s2, null);
-                final boolean equalString= uri0.toString().equals(uri1.toString());
-                final boolean equalPath = uri0.getPath().equals(uri1.getPath());
-                final boolean equalASCII= uri0.toASCIIString().equals(uri1.toASCIIString());
-                System.err.println("uri2.string: "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
-                System.err.println("uri2.path  : "+uri1.getPath()+" - "+(equalPath?"OK":"ERROR"));
-                System.err.println("uri2.ascii : "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
-                ok = equalString && equalPath && equalASCII && ok;
-            }
-            final URI uri1 = new URI(IOUtil.FILE_SCHEME, null, s2, null);
-            final boolean equalString= uri0.toString().equals(uri1.toString());
-            final boolean equalPath = uri0.getPath().equals(uri1.getPath());
-            final boolean equalASCII= uri0.toASCIIString().equals(uri1.toASCIIString());
-            System.err.println("uri2.string: "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
-            System.err.println("uri2.path  : "+uri1.getPath()+" - "+(equalPath?"OK":"ERROR"));
-            System.err.println("uri2.ascii : "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
-            ok = equalString && equalPath && equalASCII && ok;
+            final Uri uri1 = Uri.create(IOUtil.FILE_SCHEME, null, s2, null);
+            final boolean equalEncoded= uri0.getEncoded().equals(uri1.getEncoded());
+            final boolean equalPath = uri0.path.decode().equals(uri1.path.decode());
+            final boolean equalASCII= uri0.toASCIIString().equals(uri1.toASCIIString().get());
+            System.err.println("uri2.enc   : "+uri1.getEncoded()+" - "+(equalEncoded?"OK":"ERROR"));
+            System.err.println("uri2.pathD : "+uri1.path.decode()+" - "+(equalPath?"OK":"ERROR"));
+            System.err.println("uri2.asciiE: "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
+            ok = equalEncoded && equalPath && equalASCII && ok;
         }
         {
             final String s2 = "/"+string;
             System.err.println("uri3.orig: "+s2);
-            final URI uri1 = new URI(IOUtil.FILE_SCHEME, s2, null);
+            final Uri uri1 = Uri.create(IOUtil.FILE_SCHEME, s2, null);
             final String rString = "file:/Hallo%20Welt%20öä";
             final String rPath = s2;
             final String rASCII = "file:/Hallo%20Welt%20%C3%B6%C3%A4";
-            final boolean equalString= rString.equals(uri1.toString());
-            final boolean equalPath = rPath.equals(uri1.getPath());
-            final boolean equalASCII= rASCII.equals(uri1.toASCIIString());
-            System.err.println("uri3.string: "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
-            System.err.println("uri3.path  : "+uri1.getPath()+" - "+(equalPath?"OK":"ERROR"));
-            System.err.println("uri3.ascii : "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
-            ok = equalString && equalPath && equalASCII && ok;
+            final boolean equalEncoded = rString.equals(uri1.toString());
+            final boolean equalPath = rPath.equals(uri1.path.decode());
+            final boolean equalASCII= rASCII.equals(uri1.toASCIIString().get());
+            System.err.println("uri3.enc   : "+uri1.toString()+" - "+(equalEncoded?"OK":"ERROR"));
+            System.err.println("uri3.pathD : "+uri1.path.decode()+" - "+(equalPath?"OK":"ERROR"));
+            System.err.println("uri3.asciiE: "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
+            ok = equalEncoded && equalPath && equalASCII && ok;
         }
         {
             final String s2 = "//lala.org/"+string;
             System.err.println("uri4.orig: "+s2);
-            final URI uri1 = new URI(IOUtil.HTTP_SCHEME, s2, null);
+            final Uri uri1 = Uri.create(IOUtil.HTTP_SCHEME, s2, null);
             final String rString = "http://lala.org/Hallo%20Welt%20öä";
             final String rPath = "/"+string;
             final String rASCII = "http://lala.org/Hallo%20Welt%20%C3%B6%C3%A4";
             final boolean equalString= rString.equals(uri1.toString());
-            final boolean equalPath = rPath.equals(uri1.getPath());
-            final boolean equalASCII= rASCII.equals(uri1.toASCIIString());
-            System.err.println("uri4.string: "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
-            System.err.println("uri4.path  : "+uri1.getPath()+" - "+(equalPath?"OK":"ERROR"));
-            System.err.println("uri4.ascii : "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
+            final boolean equalPath = rPath.equals(uri1.path.decode());
+            final boolean equalASCII= rASCII.equals(uri1.toASCIIString().get());
+            System.err.println("uri4.enc   : "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
+            System.err.println("uri4.pathD : "+uri1.path.decode()+" - "+(equalPath?"OK":"ERROR"));
+            System.err.println("uri4.asciiE: "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
             ok = equalString && equalPath && equalASCII && ok;
         }
         Assert.assertTrue("One or more errors occured see stderr above", ok);

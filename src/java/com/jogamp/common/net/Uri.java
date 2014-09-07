@@ -292,6 +292,7 @@ public class Uri {
 
         public boolean isASCII() { return false; }
 
+        /** Returns the encoded String */
         public final String get() { return s; }
 
         /**
@@ -315,6 +316,12 @@ public class Uri {
         // Basic Object / Identity
         //
 
+        /**
+         * {@inheritDoc}
+         * <p>
+         * Returns the encoded String, same as {@link #get()}.
+         * </p>
+         */
         @Override
         public final String toString() { return s; }
 
@@ -366,9 +373,9 @@ public class Uri {
         public Encoded concat(final Encoded encoded) { return new Encoded(s.concat(encoded.s)); }
 
         /** See {@link String#substring(int)}. */
-        public final String substring(final int start) { return s.substring(start); }
+        public final Encoded substring(final int start) { return new Encoded(s.substring(start)); }
         /** See {@link String#substring(int, int)}. */
-        public final String substring(final int start, final int end) { return s.substring(start, end); }
+        public final Encoded substring(final int start, final int end) { return new Encoded(s.substring(start, end)); }
 
         /** See {@link String#indexOf(int)}. */
         public final int indexOf(final int ch) { return s.indexOf(ch); }
@@ -864,28 +871,19 @@ public class Uri {
         if( !reencode) {
             return new Uri(new Encoded(uri.toString()));
         }
-        System.err.println("Uri.createByURI(reencode):");
-        System.err.println("       source: "+uri.toString());
         final Uri recomposedUri;
         if( uri.isOpaque()) {
             // opaque, without host validation
-            System.err.println("  opaq source: ssp: "+uri.getSchemeSpecificPart());
-            System.err.println("  opaq source: frg: "+uri.getFragment());
             recomposedUri = Uri.create(uri.getScheme(), uri.getSchemeSpecificPart(), uri.getFragment());
         } else if( null != uri.getHost() ) {
             // with host validation
-            System.err.println("  host source: ssp: "+uri.getSchemeSpecificPart());
-            System.err.println("  host source: frg: "+uri.getFragment());
             recomposedUri = Uri.create(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
                                        uri.getPath(), uri.getQuery(), uri.getFragment());
         } else {
             // without host validation
-            System.err.println("       source: ssp: "+uri.getSchemeSpecificPart());
-            System.err.println("       source: frg: "+uri.getFragment());
             recomposedUri = Uri.create(uri.getScheme(), uri.getAuthority(),
                                        uri.getPath(), uri.getQuery(), uri.getFragment());
         }
-        System.err.println("       result: "+recomposedUri.toString());
         return recomposedUri;
     }
 
@@ -919,8 +917,8 @@ public class Uri {
 
     private int hash;
 
-    /** Plain {@code scheme}, {@code null} if undefined. */
-    public final String scheme;
+    /** Encoded {@code scheme}, {@code null} if undefined. */
+    public final Encoded scheme;
 
     /** Encoded {@code scheme-specific-part}, never {@code null}. */
     public final Encoded schemeSpecificPart;
@@ -970,7 +968,7 @@ public class Uri {
 
     /** Returns true, if this instance is a {@code file} {@code scheme}, otherwise false. */
     public final boolean isFileScheme() {
-        return IOUtil.FILE_SCHEME.equals( scheme );
+        return IOUtil.FILE_SCHEME.equals( scheme.get() );
     }
 
     /**
@@ -1134,7 +1132,7 @@ public class Uri {
                 if (0 > idx) {
                     throw new URISyntaxException(input.get(), "missing jar separator");
                 }
-                sb.append( schemeSpecificPart.substring(0, idx) ); // exclude '!/'
+                sb.append( schemeSpecificPart.get().substring(0, idx) ); // exclude '!/'
             } else {
                 sb.append( schemeSpecificPart.get() );
             }
@@ -1184,7 +1182,7 @@ public class Uri {
                 if( e <  pl - 1 ) {
                     // path is file or has a query
                     try {
-                        return new Uri(new Encoded( scheme+IOUtil.SCHEME_SEPARATOR+schemeSpecificPart.substring(0, e+1) ));
+                        return new Uri( new Encoded( scheme.get()+IOUtil.SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, e+1) ) );
                     } catch (final URISyntaxException ue) {
                         // not complete, hence removed authority, or even root folder -> return null
                     }
@@ -1193,7 +1191,7 @@ public class Uri {
                 final int p = schemeSpecificPart.lastIndexOf("/", e-1);
                 if( p > 0 ) {
                     try {
-                        return new Uri(new Encoded( scheme+IOUtil.SCHEME_SEPARATOR+schemeSpecificPart.substring(0, p+1) ));
+                        return new Uri( new Encoded( scheme.get()+IOUtil.SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, p+1) ) );
                     } catch (final URISyntaxException ue) {
                         // not complete, hence removed authority, or even root folder -> return null
                     }
@@ -1256,7 +1254,7 @@ public class Uri {
         return compose(scheme, schemeSpecificPart, relativePath, fragment);
     }
 
-    static Uri compose(final String scheme, final Encoded schemeSpecificPart, final Encoded relativePath, final Encoded fragment) throws URISyntaxException {
+    static Uri compose(final Encoded scheme, final Encoded schemeSpecificPart, final Encoded relativePath, final Encoded fragment) throws URISyntaxException {
         String schemeSpecificPartS = schemeSpecificPart.get();
 
         // cut off optional query in scheme-specific-part
@@ -1276,7 +1274,7 @@ public class Uri {
         }
         schemeSpecificPartS = IOUtil.cleanPathString( schemeSpecificPartS );
         final StringBuilder uri = new StringBuilder();
-        uri.append(scheme);
+        uri.append(scheme.get());
         uri.append(':');
         uri.append(schemeSpecificPartS);
         if ( null != query ) {
@@ -1430,16 +1428,16 @@ public class Uri {
         while ( ( index = first.indexOf('%', previndex) ) != -1 &&
                 second.indexOf('%', previndex) == index
               ) {
-            if( !first.substring(previndex, index).equals( second.substring(previndex, index) ) ) {
+            if( !first.get().substring(previndex, index).equals( second.get().substring(previndex, index) ) ) {
                 return false;
             }
-            if( !first.substring(index + 1, index + 3).equalsIgnoreCase( second.substring(index + 1, index + 3) ) ) {
+            if( !first.get().substring(index + 1, index + 3).equalsIgnoreCase( second.get().substring(index + 1, index + 3) ) ) {
                 return false;
             }
             index += 3;
             previndex = index;
         }
-        return first.substring(previndex).equals( second.substring(previndex) );
+        return first.get().substring(previndex).equals( second.get().substring(previndex) );
     }
 
     /*
@@ -1450,7 +1448,7 @@ public class Uri {
     private String getHashString() {
         final StringBuilder result = new StringBuilder();
         if (scheme != null) {
-            result.append(scheme.toLowerCase());
+            result.append(scheme.get().toLowerCase());
             result.append(IOUtil.SCHEME_SEPARATOR);
         }
         if (opaque) {
@@ -1531,7 +1529,7 @@ public class Uri {
            ) {
             // the characters up to the first ':' comprise the scheme
             absolute = true;
-            scheme = temp.substring(0, indexSchemeSep);
+            scheme = new Encoded( temp.substring(0, indexSchemeSep) );
             if (scheme.length() == 0) {
                 failExpecting(input, "scheme", indexSchemeSep);
             }
@@ -1696,13 +1694,13 @@ public class Uri {
         }
     }
 
-    private static void validateScheme(final Encoded uri, final String scheme, final int index) throws URISyntaxException {
+    private static void validateScheme(final Encoded uri, final Encoded scheme, final int index) throws URISyntaxException {
         // first char needs to be an alpha char
         final char ch = scheme.charAt(0);
         if ( !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) ) {
             fail(uri, "invalid scheme", index);
         }
-        final int errIdx = validateAlphaNum(scheme, "+-.");
+        final int errIdx = validateAlphaNum(scheme.get(), "+-.");
         if( 0 <= errIdx ) {
             fail(uri, "invalid scheme", index+errIdx);
         }

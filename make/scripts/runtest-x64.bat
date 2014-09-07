@@ -10,6 +10,6 @@ REM scripts\java-win64.bat com.jogamp.common.net.TestUrisWithAssetHandler
 REM scripts\java-win64.bat com.jogamp.common.net.TestURIQueryProps
 REM scripts\java-win64.bat com.jogamp.common.net.TestUri01
 REM scripts\java-win64.bat com.jogamp.common.net.TestUri02Composing
-REM scripts\java-win64.bat com.jogamp.common.net.TestUri03Resolving
-scripts\java-win64.bat com.jogamp.common.net.TestUri99LaunchOnReservedCharPathBug908
+scripts\java-win64.bat com.jogamp.common.net.TestUri03Resolving
+REM scripts\java-win64.bat com.jogamp.common.net.TestUri99LaunchOnReservedCharPathBug908
 
