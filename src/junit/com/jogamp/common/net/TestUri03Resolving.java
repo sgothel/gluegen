@@ -72,31 +72,30 @@ public class TestUri03Resolving extends JunitTracer {
     };
 
     public static final String[][] uriFileSArrayWindows = new String[][] {
-        new String[] {"file:/C:/gluegen/build-x86_64/gluegen-rt.jar"},
         new String[] {"file:/C%3A/gluegen/build-x86_64/gluegen-rt.jar"},
 
-        new String[] {"file:/C:/gluegen/"+'\u0394'+"/gluegen-rt.jar"},
+        new String[] {"file:/C%3A/gluegen/"+'\u0394'+"/gluegen-rt.jar"},
 
-        new String[] {"file:/C:/gluegen/build-x86_64%20lala/gluegen-rt.jar"},
+        new String[] {"file:/C%3A/gluegen/build-x86_64%20lala/gluegen-rt.jar"},
 
-        new String[] {"file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar"},
+        new String[] {"file:/C%3A/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar"},
 
-        new String[] {"jar:file:/C:/gluegen/build-x86_64/gluegen-rt.jar!/"},
+        new String[] {"jar:file:/C%3A/gluegen/build-x86_64/gluegen-rt.jar!/"},
 
-        new String[] {"jar:file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/"},
+        new String[] {"jar:file:/C%3A/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/"},
 
-        new String[] {"jar:file:/C:/gluegen/build-x86_64/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
+        new String[] {"jar:file:/C%3A/gluegen/build-x86_64/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
 
-        new String[] {"jar:file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
+        new String[] {"jar:file:/C%3A/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
         new String[] {"jar:file:/C%3A/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
 
-        new String[] {"jar:file:///C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
+        new String[] {"jar:file:///C%3A/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
 
         new String[] {"jar:file://filehost/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar!/com/jogamp/common/os/Platform.class"},
 
-        new String[] {"jar:file:/C:/gluegen/R%23/gluegen-rt.jar!/"},
+        new String[] {"jar:file:/C%3A/gluegen/R%23/gluegen-rt.jar!/"},
 
-        new String[] {"jar:file:/C:/gluegen/"+'\u0394'+"/gluegen-rt.jar!/"},
+        new String[] {"jar:file:/C%3A/gluegen/"+'\u0394'+"/gluegen-rt.jar!/"},
     };
 
     public static final String[][] fileSArrayUnix = new String[][] {
@@ -117,11 +116,11 @@ public class TestUri03Resolving extends JunitTracer {
                       "/gluegen/build-x86_64 öä lala/gluegen-rt.jar"},
 
         new String[] {"/gluegen/A$/B^/C~/D#/E[/F]/gluegen-rt.jar",
-                      "file:/gluegen/A%24/B%5E/C%7E/D%23/E%5B/F%5D/gluegen-rt.jar",
+                      "file:/gluegen/A%24/B%5E/C~/D%23/E%5B/F%5D/gluegen-rt.jar",
                       "/gluegen/A$/B^/C~/D#/E[/F]/gluegen-rt.jar" },
 
         new String[] {"/gluegen/$/^/~/#/[/]/gluegen-rt.jar",
-                      "file:/gluegen/%24/%5E/%7E/%23/%5B/%5D/gluegen-rt.jar",
+                      "file:/gluegen/%24/%5E/~/%23/%5B/%5D/gluegen-rt.jar",
                       "/gluegen/$/^/~/#/[/]/gluegen-rt.jar" },
     };
 
@@ -151,11 +150,11 @@ public class TestUri03Resolving extends JunitTracer {
                       "\\\\filehost\\gluegen\\build-x86_64 öä lala\\gluegen-rt.jar"},
 
         new String[] {"C:/gluegen/A$/B^/C~/D#/E[/F]/gluegen-rt.jar",
-                      "file:/C%3A/gluegen/A%24/B%5E/C%7E/D%23/E%5B/F%5D/gluegen-rt.jar",
+                      "file:/C%3A/gluegen/A%24/B%5E/C~/D%23/E%5B/F%5D/gluegen-rt.jar",
                       "C:\\gluegen\\A$\\B^\\C~\\D#\\E[\\F]\\gluegen-rt.jar" },
 
         new String[] {"C:/gluegen/$/^/~/#/[/]/gluegen-rt.jar",
-                      "file:/C%3A/gluegen/%24/%5E/%7E/%23/%5B/%5D/gluegen-rt.jar",
+                      "file:/C%3A/gluegen/%24/%5E/~/%23/%5B/%5D/gluegen-rt.jar",
                       "C:\\gluegen\\$\\^\\~\\#\\[\\]\\gluegen-rt.jar" },
     };
 

@@ -168,9 +168,11 @@ public class Uri {
      * {@value} + {@code alphanum}
      * </p>
      */
-    public static final String UNRESERVED = "_-.~"; // Harmony: "_-!.~\'()*"
+    public static final String UNRESERVED = "_-.~";
+    // Harmony: _ - ! . ~ ' ( ) *
 
     private static final String punct = ",;:$&+=";
+    // Harmony: , ; : $ & + =
 
     /**
      * RFC 3986 section 2.2 Reserved Characters (January 2005)
@@ -178,11 +180,14 @@ public class Uri {
      * {@value} + {@code alphanum}
      * </p>
      */
-    public static final String RESERVED = punct + "!*\'()@/?#[]"; // Harmony: punct + "?/[]@";
+    public static final String RESERVED = punct + "!*\'()@/?#[]";
+    // Harmony: , ; : $ & + = ? / [ ] @
 
-    public static final String RESERVED_2 = punct + "!*\'()@/?[]"; // Harmony: punct + "?/[]@";
+    public static final String RESERVED_2 = punct + "!*\'()@/?[]";
+    // Harmony: , ; : $ & + = ? / [ ] @
 
     // Bug 908, issues w/ windows file path char: $ ^ ~ # [ ]
+    // Windows invalid File characters: * ? " < > |
 
     /**
      * Valid charset for RFC 2396 {@code authority}'s {@code user-info},
@@ -192,6 +197,7 @@ public class Uri {
      * </p>
      */
     public static final String USERINFO_LEGAL = UNRESERVED + punct;
+    // Harmony: someLegal = unreserved + punct -> _ - ! . ~ ' ( ) * , ; : $ & + =
 
     /**
      * Valid charset for RFC 2396 {@code authority},
@@ -209,20 +215,8 @@ public class Uri {
      * {@value} + {@code alphanum}
      * </p>
      */
-    public static final String PATH_LEGAL = "/!" + USERINFO_LEGAL;
-    // @ is reserved; Harmony: "/@" + SOME_LEGAL, '!' is re-added, Harmony had it in UNRESERVED
-
-    /**
-     * Reduced valid charset for RFC 2396 {@code path},
-     * additional to legal {@code alphanum} characters.
-     * <p>
-     * Excluding special native filesystem characters to be encoded.
-     * </p>
-     * <p>
-     * {@value} + {@code alphanum}
-     * </p>
-     */
-    public static final String PATH_MIN_LEGAL = "/!_-."; // "/!" + ( unreserved - '~' )
+    public static final String PATH_LEGAL = "/!" + UNRESERVED; // no RESERVED chars but '!',  to allow JAR Uris;
+    // Harmony: "/@" + unreserved + punct -> / @ _ - ! . ~ \ ' ( ) * , ; : $ & + =
 
     /**
      * Valid charset for RFC 2396 {@code query},
@@ -232,6 +226,7 @@ public class Uri {
      * </p>
      */
     public static final String QUERY_LEGAL = UNRESERVED + RESERVED_2 + "\\\"";
+    // Harmony: unreserved + reserved + "\\\""
 
     /**
      * Valid charset for RFC 2396 {@code scheme-specific-part},
@@ -241,6 +236,7 @@ public class Uri {
      * </p>
      */
     public static final String SSP_LEGAL = QUERY_LEGAL;
+    // Harmony: unreserved + reserved
 
     /**
      * Valid charset for RFC 2396 {@code fragment},
@@ -250,6 +246,7 @@ public class Uri {
      * </p>
      */
     public static final String FRAG_LEGAL = UNRESERVED + RESERVED;
+    // Harmony: unreserved + reserved
 
     /**
      * Immutable RFC3986 encoded string.
@@ -651,13 +648,6 @@ public class Uri {
             throw new URISyntaxException(path, "path doesn't start with '/'");
         }
 
-        final boolean extendedPath;
-        if( emptyString(query) || emptyString(fragment) ) {
-            extendedPath = true;
-        } else {
-            extendedPath = false;
-        }
-
         final StringBuilder uri = new StringBuilder();
         if ( !emptyString(scheme) ) {
             uri.append(scheme);
@@ -691,7 +681,7 @@ public class Uri {
 
         if ( !emptyString(path) ) {
             // QUOTE ILLEGAL CHARS
-            uri.append(encode(path, extendedPath ? PATH_MIN_LEGAL : PATH_LEGAL));
+            uri.append(encode(path, PATH_LEGAL));
         }
 
         if ( !emptyString(query) ) {
@@ -759,13 +749,6 @@ public class Uri {
             throw new URISyntaxException(path, "path doesn't start with '/'");
         }
 
-        final boolean extendedPath;
-        if( emptyString(query) || emptyString(fragment) ) {
-            extendedPath = true;
-        } else {
-            extendedPath = false;
-        }
-
         final StringBuilder uri = new StringBuilder();
         if ( !emptyString(scheme) ) {
             uri.append(scheme);
@@ -779,7 +762,7 @@ public class Uri {
 
         if ( !emptyString(path) ) {
             // QUOTE ILLEGAL CHARS
-            uri.append(encode(path, extendedPath ? PATH_MIN_LEGAL : PATH_LEGAL));
+            uri.append(encode(path, PATH_LEGAL));
         }
         if ( !emptyString(query) ) {
             // QUOTE ILLEGAL CHARS
@@ -834,7 +817,7 @@ public class Uri {
         uri.append(IOUtil.SCHEME_SEPARATOR);
 
         // QUOTE ILLEGAL CHARS
-        uri.append(encode(path, PATH_MIN_LEGAL));
+        uri.append(encode(path, PATH_LEGAL));
 
         return new Uri(new Encoded(uri.toString()), false);
     }
