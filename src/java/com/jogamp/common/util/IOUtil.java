@@ -204,7 +204,6 @@ public class IOUtil {
      * Copy the specified input stream to a byte array, which is being returned.
      */
     public static byte[] copyStream2ByteArray(InputStream stream) throws IOException {
-        // FIXME: Shall enforce a BufferedInputStream ?
         if( !(stream instanceof BufferedInputStream) ) {
             stream = new BufferedInputStream(stream);
         }
@@ -495,149 +494,17 @@ public class IOUtil {
     }
 
     /**
-     * Converts an {@link URI} to an {@link URL} while using a non encoded path.
-     * <p>
-     * A <i>file scheme</i> path, i.e. path following <code>file:</code>, is converted as follows:<br/>
-     * <code><br/>
-            File file = new File( {@link #decodeFromURI(String) decodeFromURI}( specificURI.getPath() ) );<br/>
-            String uriFilePath = {@link #encodeFilePathToURI(String) encodeFilePathToURI}( file.getPath() );<br/>
-     * </code><br/>
-     * above conversion results in a decoded <i>file path</i> appropriate to be used by subsequent file i/o operations (JarFile, zip, ..).
-     * </p>
-     * <p>
-     * Otherwise the default {@link URL} translation {@link URI#toURL()} is being used.
-     * </p>
-     * <p>
-     * The following cases are considered:
-     * <ul>
-     *   <li><i>file schema</i> is converted via <code>new File(uri).getPath()</code>.</li>
-     *   <li><i>jar scheme</i>
-     *   <ul>
-     *     <li>sub-protocol <i>file scheme</i> is being converted as above, other schema are preserved</li>
-     *     <li>JAR entry is preserved.</li>
-     *   </ul></li>
-     * </ul>
-     * </p>
-     * <p>
-     * Note that a given {@link URI#getAuthority() authority} for <i>file scheme</i>s is preserved to support window's shares.
-     * </p>
-     * <p>
-     * Tested w/ unit test <code>com.jogamp.common.util.TestIOUtilURIHandling</code>
-     * </p>
+     * Simply returns {@link URI#toURL()}.
      * @param uri
      * @return
      * @throws IOException
      * @throws IllegalArgumentException
      * @throws URISyntaxException
+     *
+     * @deprecated Useless
      */
     public static URL toURL(final URI uri) throws IOException, IllegalArgumentException, URISyntaxException {
-        URL url = null;
-        final String uriSchema = uri.getScheme();
-        final boolean isJar = IOUtil.JAR_SCHEME.equals(uriSchema);
-        final URI specificURI = isJar ? JarUtil.getJarSubURI(uri) : uri;
-        final boolean hasJarSubURI = specificURI != uri;
-        final String authorityS;
-        {
-            final String authority = specificURI.getAuthority();
-            authorityS = ( null == authority ) ? "" : "//"+authority;
-        }
-
-        if( DEBUG ) {
-            System.err.println("IOUtil.toURL.0: isJAR "+isJar+", hasSubURI "+hasJarSubURI+PlatformPropsImpl.NEWLINE+
-                               "\t, uri "+uri+PlatformPropsImpl.NEWLINE+
-                               "\t str -> "+specificURI.toString()+PlatformPropsImpl.NEWLINE+
-                               "\t ascii -> "+specificURI.toASCIIString()+PlatformPropsImpl.NEWLINE+
-                               "\t ssp -> "+specificURI.getSchemeSpecificPart()+PlatformPropsImpl.NEWLINE+
-                               "\t frag -> "+specificURI.getFragment()+PlatformPropsImpl.NEWLINE+
-                               "\t auth -> "+authorityS+PlatformPropsImpl.NEWLINE+ /* "//user-info@host:port" */
-                               "\t path -> "+specificURI.getPath()+PlatformPropsImpl.NEWLINE+
-                               "\t path.decoded -> "+decodeFromURI( specificURI.getPath() ) );
-        }
-        int mode = 0;
-        if( IOUtil.FILE_SCHEME.equals( specificURI.getScheme() ) ) {
-            File f;
-            try {
-                f = new File( decodeFromURI( specificURI.getPath() ) ); // validates uri, uses decoded uri.getPath() and normalizes it
-            } catch(final Exception iae) {
-                if( DEBUG ) {
-                    System.err.println("Caught "+iae.getClass().getSimpleName()+": new File("+decodeFromURI( specificURI.getPath() )+") failed: "+iae.getMessage());
-                    iae.printStackTrace();
-                }
-                f = null;
-            }
-            if( null != f ) {
-                String urlS = null;
-                try {
-                    final String fPath = f.getPath();
-                    final String fPathUriS = encodeFilePathToURI(fPath);
-                    /**
-                     * Below 'url = f.toURI().toURL()' Doesn't work, since it uses encoded path,
-                     * but we need the decoded path due to subsequent file access.
-                     *   URI:       jar:file:/C:/gluegen/build-x86_64%20%c3%b6%c3%a4%20lala/gluegen-rt.jar!/
-                     *   File:      file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar
-                     *   URI:  fUri file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar
-                     *   URL:  fUrl file:/C:/gluegen/build-x86_64%20öä%20lala/gluegen-rt.jar
-                     *
-                     * Goal:        file:/C:/gluegen/build-x86_64 öä lala/gluegen-rt.jar!/
-                     */
-                    if(DEBUG) {
-                        try {
-                            final URI fUri = f.toURI();
-                            final URL fUrl = fUri.toURL();
-                            System.err.println("IOUtil.toURL.1b: fUri "+fUri+PlatformPropsImpl.NEWLINE+
-                                               "\t, fUrl "+fUrl);
-                        } catch (final Exception ee) {
-                            System.err.println("Caught "+ee.getClass().getSimpleName()+": f.toURI().toURL() failed: "+ee.getMessage());
-                            ee.printStackTrace();
-                        }
-                    }
-                    if( !hasJarSubURI ) {
-                        urlS = IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+authorityS+fPathUriS;
-                        if( DEBUG ) {
-                            System.err.println("IOUtil.toURL.1: authorityS "+authorityS+", fPath "+fPath+PlatformPropsImpl.NEWLINE+
-                                               "\t -> "+fPathUriS+PlatformPropsImpl.NEWLINE+
-                                               "\t -> "+urlS);
-                        }
-                        url = new URL(urlS);
-                        mode = 1;
-                    } else {
-                        final String jarEntry = JarUtil.getJarEntry(uri);
-                        final String post = isJar ? IOUtil.JAR_SCHEME_SEPARATOR + jarEntry : "";
-                        urlS = uriSchema+IOUtil.SCHEME_SEPARATOR+IOUtil.FILE_SCHEME+IOUtil.SCHEME_SEPARATOR+authorityS+fPathUriS+post;
-                        if( DEBUG ) {
-                            System.err.println("IOUtil.toURL.2: authorityS "+authorityS+", fPath "+fPath+PlatformPropsImpl.NEWLINE+
-                                               "\t -> "+fPathUriS+PlatformPropsImpl.NEWLINE+
-                                               "\t, jarEntry "+jarEntry+PlatformPropsImpl.NEWLINE+
-                                               "\t, post "+post+PlatformPropsImpl.NEWLINE+
-                                               "\t -> "+urlS);
-                        }
-                        url = new URL(urlS);
-                        mode = 2;
-                    }
-                } catch (final Exception mue) {
-                    if( DEBUG ) {
-                        System.err.println("Caught "+mue.getClass().getSimpleName()+": new URL("+urlS+") failed: "+mue.getMessage());
-                        mue.printStackTrace();
-                    }
-                }
-            }
-        }
-        if( null == url ) {
-            try {
-                url = uri.toURL();
-                mode = 3;
-            } catch (final Exception e) {
-                if( DEBUG ) {
-                    System.err.println("Caught "+e.getClass().getSimpleName()+": "+uri+".toURL() failed: "+e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        }
-        if( DEBUG ) {
-            System.err.println("IOUtil.toURL.X: mode "+mode+", "+uri+PlatformPropsImpl.NEWLINE+
-                               "\t -> "+url);
-        }
-        return url;
+        return uri.toURL();
     }
 
     /***
@@ -849,15 +716,16 @@ public class IOUtil {
      * </p>
      *
      * @param baseURI denotes a URI to a directory ending w/ '/', or a file. In the latter case the file's directory is being used.
-     * @param relativePath denotes a relative file to the baseLocation's parent directory
+     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static URI getRelativeOf(final URI baseURI, final String relativePath) throws URISyntaxException {
-        return compose(baseURI.getScheme(), baseURI.getSchemeSpecificPart(), relativePath, baseURI.getFragment());
+        return compose(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), relativePath, baseURI.getRawFragment());
     }
 
     /**
      * Wraps {@link #getRelativeOf(URI, String)} for convenience.
+     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
      * @throws IOException
      */
     public static URL getRelativeOf(final URL baseURL, final String relativePath) throws IOException {
@@ -902,7 +770,19 @@ public class IOUtil {
             schemeSpecificPart = schemeSpecificPart + relativePath;
         }
         schemeSpecificPart = cleanPathString( schemeSpecificPart );
-        return new URI(scheme, null == query ? schemeSpecificPart : schemeSpecificPart + "?" + query, fragment);
+        final StringBuilder uri = new StringBuilder();
+        uri.append(scheme);
+        uri.append(':');
+        uri.append(schemeSpecificPart);
+        if ( null != query ) {
+            uri.append('?');
+            uri.append(query);
+        }
+        if ( null != fragment ) {
+            uri.append('#');
+            uri.append(fragment);
+        }
+        return new URI(uri.toString());
     }
 
     private static final Pattern patternSpaceRaw = Pattern.compile(" ");
@@ -913,9 +793,10 @@ public class IOUtil {
      * <ul>
      *   <li>SPACE -> %20</li>
      * </ul>
+     * @deprecated Useless
      */
-    public static String encodeToURI(final String s) {
-        return patternSpaceRaw.matcher(s).replaceAll("%20");
+    public static String encodeToURI(final String vanilla) {
+        return patternSpaceRaw.matcher(vanilla).replaceAll("%20"); // Uri TODO: Uri.encode(vanilla, Uri.PATH_MIN_LEGAL);
     }
 
     /**
@@ -923,9 +804,10 @@ public class IOUtil {
      * <ul>
      *   <li>%20 -> SPACE</li>
      * </ul>
+     * @deprecated Use {@link #decodeURIIfFilePath(URI)}
      */
-    public static String decodeFromURI(final String s) {
-        return patternSpaceEnc.matcher(s).replaceAll(" ");
+    public static String decodeFromURI(final String encodedUri) {
+        return patternSpaceEnc.matcher(encodedUri).replaceAll(" "); // Uri TODO: Uri.decode(encoded);
     }
 
     private static final Pattern patternSingleBS = Pattern.compile("\\\\{1}");
@@ -934,7 +816,7 @@ public class IOUtil {
     /**
      * Encodes file path characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
      * <p>
-     * Implementation processes the <code>filePath</code> if {@link File#separatorChar} <code> != '/'</code>
+     * Implementation processes the <code>filePath</code> if {@link File#separatorChar} <code> == '\\'</code>
      * as follows:
      * <ul>
      *   <li>backslash -> slash</li>
@@ -951,9 +833,10 @@ public class IOUtil {
      * See Bug 857 - http://jogamp.org/bugzilla/show_bug.cgi?id=857
      * </p>
      * @see #encodeToURI(String)
+     * @deprecated Useless
      */
     public static String encodeFilePathToURI(final String filePath) {
-        if( !File.separator.equals("/") ) {
+        if( File.separator.equals("\\") ) {
             final String r = patternSingleBS.matcher(filePath).replaceAll("/");
             if( !r.startsWith("/") ) {
                 return "/" + r;
@@ -965,23 +848,25 @@ public class IOUtil {
     }
 
     /**
-     * Decodes uri-file path characters complying w/ RFC 2396 to native file-path.
+     * Completes decoding uri-file path characters complying w/ RFC 2396 to native file-path.
      * <p>
      * Implementation decodes the space-encoding <code>path={@link #decodeFromURI(String) decodeFromURI}(uriPath)</code>.
      * </p>
      * <p>
-     * Then it processes the <code>path</code> if {@link File#separatorChar} <code> != '/'</code>
+     * Then it processes the <code>path</code> if {@link File#separatorChar} <code> == '\\'</code>
      * as follows:
      * <ul>
      *   <li>slash -> backslash</li>
-     *   <li>drop a starting single backslash</li>
+     *   <li>drop a starting single backslash, preserving windows UNC</li>
      * </ul>
      * </p>
+     * @param encodedUriPath URI encoded path
      * @see #decodeFromURI(String)
+     * @deprecated Use {@link #decodeURIIfFilePath(URI)}
      */
-    public static String decodeURIToFilePath(final String uriPath) {
-        final String path = IOUtil.decodeFromURI(uriPath);
-        if( !File.separator.equals("/") ) {
+    public static String decodeURIToFilePath(final String encodedUriPath) {
+        final String path = patternSpaceEnc.matcher(encodedUriPath).replaceAll(" "); // Uri TODO: Uri.decode(encoded);
+        if( File.separator.equals("\\") ) {
             final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
             if( r.startsWith("\\") && !r.startsWith("\\\\") ) { // '\\\\' denotes UNC hostname, which shall not be cut-off
                 return r.substring(1);
@@ -994,7 +879,14 @@ public class IOUtil {
 
     /**
      * If <code>uri</code> is a <i>file scheme</i>,
-     * implementation returns the decoded <i>[ "//"+{@link URI#getAuthority()} ] + {@link URI#getPath()}</i> via {@link #decodeURIToFilePath(String)}.
+     * implementation completes space-decoding <i>[ "//"+{@link URI#getAuthority()} ] + {@link URI#getPath()}</i>.<br>
+     * Then it processes the <code>path</code> if {@link File#separatorChar} <code> == '\\'</code>
+     * as follows:
+     * <ul>
+     *   <li>slash -> backslash</li>
+     *   <li>drop a starting single backslash, preserving windows UNC</li>
+     * </ul>
+     * </p>
      * <p>
      * Otherwise it returns the {@link URI#toASCIIString()} encoded URI.
      * </p>
@@ -1012,7 +904,16 @@ public class IOUtil {
                 } else {
                     authorityS = "//"+authority;
                 }
-                return decodeURIToFilePath(authorityS+uri.getPath());
+                final String path = patternSpaceEnc.matcher(authorityS+uri.getPath()).replaceAll(" "); // Uri TODO: Uri.decode(encoded);
+                if( File.separator.equals("\\") ) {
+                    final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
+                    if( r.startsWith("\\") && !r.startsWith("\\\\") ) { // '\\\\' denotes UNC hostname, which shall not be cut-off
+                        return r.substring(1);
+                    } else {
+                        return r;
+                    }
+                }
+                return path;
             }
         }
         return uri.toASCIIString();
@@ -1307,7 +1208,7 @@ public class IOUtil {
      * </p>
      * @param tmpRoot
      * @param executable
-     * @param dbgMsg TODO
+     * @param dbgMsg
      * @param tmpDirPrefix
      * @return a temporary directory, writable by this user
      * @throws SecurityException

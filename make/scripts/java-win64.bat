@@ -14,7 +14,8 @@ set CP_ALL=.;lib\junit.jar;%ANT_PATH%\lib\ant.jar;%ANT_PATH%\lib\ant-junit.jar;l
 
 echo CP_ALL %CP_ALL%
 
-set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.IOUtil"
+set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.JNILibLoader" "-Djogamp.debug.TempFileCache" "-Djogamp.debug.JarUtil" "-Djogamp.debug.TempJarCache"
+REM set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogamp.debug=all"
 
