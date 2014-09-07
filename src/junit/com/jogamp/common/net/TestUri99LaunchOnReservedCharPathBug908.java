@@ -71,7 +71,7 @@ import com.jogamp.junit.util.MiscUtils;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestNetIOURIReservedCharsBug908 extends JunitTracer {
+public class TestUri99LaunchOnReservedCharPathBug908 extends JunitTracer {
     static class TestClassLoader extends URLClassLoader {
         public TestClassLoader(final URL[] urls) {
             super(urls);
@@ -163,7 +163,7 @@ public class TestNetIOURIReservedCharsBug908 extends JunitTracer {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestNetIOURIReservedCharsBug908.class.getName();
+        final String tstname = TestUri99LaunchOnReservedCharPathBug908.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 

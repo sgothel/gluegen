@@ -23,15 +23,15 @@ public abstract class AssetURLConnectionBase extends JunitTracer {
     /** In gluegen.test.jar */
     protected static final String test_asset_test1_url   = "asset:gluegen-test/info.txt";
     protected static final String test_asset_test1_entry = "gluegen-test/info.txt";
-    protected static final String test_asset_test2_rel   = "data/AssetURLConnectionTest.txt";
+    protected static final Uri.Encoded test_asset_test2_rel   = Uri.Encoded.cast("data/AssetURLConnectionTest.txt");
     protected static final String test_asset_test2a_url  = "asset:com/jogamp/common/net/data/AssetURLConnectionTest.txt";
     protected static final String test_asset_test2b_url  = "asset:/com/jogamp/common/net/data/AssetURLConnectionTest.txt";
     protected static final String test_asset_test2_entry = "com/jogamp/common/net/data/AssetURLConnectionTest.txt";
-    protected static final String test_asset_test3_rel   = "RelativeData.txt";
+    protected static final Uri.Encoded test_asset_test3_rel   = Uri.Encoded.cast("RelativeData.txt");
     protected static final String test_asset_test3a_url  = "asset:com/jogamp/common/net/data/RelativeData.txt";
     protected static final String test_asset_test3b_url  = "asset:/com/jogamp/common/net/data/RelativeData.txt";
     protected static final String test_asset_test3_entry = "com/jogamp/common/net/data/RelativeData.txt";
-    protected static final String test_asset_test4_rel   = "../data2/RelativeData2.txt";
+    protected static final Uri.Encoded test_asset_test4_rel   = Uri.Encoded.cast("../data2/RelativeData2.txt");
     protected static final String test_asset_test4a_url  = "asset:com/jogamp/common/net/data2/RelativeData2.txt";
     protected static final String test_asset_test4b_url  = "asset:/com/jogamp/common/net/data2/RelativeData2.txt";
     protected static final String test_asset_test4_entry = "com/jogamp/common/net/data2/RelativeData2.txt";

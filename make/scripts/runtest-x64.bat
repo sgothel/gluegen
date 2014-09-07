@@ -6,10 +6,10 @@ REM scripts\java-win64.bat com.jogamp.common.util.TestTempJarCache
 REM scripts\java-win64.bat com.jogamp.common.os.TestElfReader01
 
 REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtil01
-REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtilURICompose
-REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtilURIHandling
 REM scripts\java-win64.bat com.jogamp.common.net.TestUrisWithAssetHandler
 REM scripts\java-win64.bat com.jogamp.common.net.TestURIQueryProps
-scripts\java-win64.bat com.jogamp.common.net.TestNetIOURIReservedCharsBug908
-REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtilURIHandling
+REM scripts\java-win64.bat com.jogamp.common.net.TestUri01
+REM scripts\java-win64.bat com.jogamp.common.net.TestUri02Composing
+REM scripts\java-win64.bat com.jogamp.common.net.TestUri03Resolving
+scripts\java-win64.bat com.jogamp.common.net.TestUri99LaunchOnReservedCharPathBug908
 

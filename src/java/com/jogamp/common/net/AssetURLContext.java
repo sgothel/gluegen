@@ -185,7 +185,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
             try {
                 final File file = new File(path);
                 if(file.exists()) {
-                    url = IOUtil.toURISimple(file).toURL();
+                    url = Uri.valueOf(file).toURL();
                     conn = open(url);
                     type = null != conn ? 3 : -1;
                 }

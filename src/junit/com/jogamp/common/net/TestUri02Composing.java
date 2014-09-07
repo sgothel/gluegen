@@ -1,22 +1,34 @@
-package com.jogamp.common.util;
+package com.jogamp.common.net;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.junit.util.JunitTracer;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestIOUtilURICompose extends JunitTracer {
+public class TestUri02Composing extends JunitTracer {
+
+    @BeforeClass
+    public static void assetRegistration() throws Exception {
+        try {
+            System.err.println("******* Asset URL Stream Handler Registration: PRE");
+            Assert.assertTrue("GenericURLStreamHandlerFactory.register() failed", AssetURLContext.registerHandler(AssetURLConnectionRegisteredTest.class.getClassLoader()));
+            Assert.assertNotNull(AssetURLContext.getRegisteredHandler());
+            System.err.println("******* Asset URL Stream Handler Registration: POST");
+        } catch (final Exception e) {
+            setTestSupported(false);
+            throw e;
+        }
+    }
 
     @Test
     public void test01URLCompositioning() throws IOException, URISyntaxException {
@@ -28,10 +40,10 @@ public class TestIOUtilURICompose extends JunitTracer {
         testURNCompositioning("http://domain.com/web1/index.html?lala=23&lili=24#anchor");
         testURNCompositioning("http://domain.com:1234/web1/index.html?lala=23&lili=24#anchor");
 
-        final URI file1URI = new URI("asset:jar:file:/web1/file1.jar!/rootDir/file1.txt");
+        final Uri file1URI = Uri.cast("asset:jar:file:/web1/file1.jar!/rootDir/file1.txt");
         testURICompositioning(file1URI);
-        testURICompositioning(file1URI, new URI("asset:jar:file:/web1/file1.jar!/rootDir/./file1.txt"));
-        testURICompositioning(file1URI, new URI("asset:jar:file:/web1/file1.jar!/rootDir/dummyParent/../file1.txt"));
+        testUriCompositioning(file1URI, Uri.cast("asset:jar:file:/web1/file1.jar!/rootDir/./file1.txt"));
+        testUriCompositioning(file1URI, Uri.cast("asset:jar:file:/web1/file1.jar!/rootDir/dummyParent/../file1.txt"));
 
         final URL file1URL = new URL("asset:jar:file:/web1/file1.jar!/rootDir/file1.txt");
         testURLCompositioning(file1URL);
@@ -40,20 +52,16 @@ public class TestIOUtilURICompose extends JunitTracer {
     }
 
     static void testURNCompositioning(final String urn) throws MalformedURLException, URISyntaxException {
-        testURICompositioning( new URI(urn) );
+        testURICompositioning( Uri.cast(urn) );
         testURLCompositioning( new URL(urn) );
     }
 
-    static void testURICompositioning(final URI uri) throws MalformedURLException, URISyntaxException {
-        testURICompositioning(uri, uri);
+    static void testURICompositioning(final Uri uri) throws MalformedURLException, URISyntaxException {
+        testUriCompositioning(uri, uri);
     }
-    static void testURICompositioning(final URI refURI, final URI uri1) throws MalformedURLException, URISyntaxException {
-        final String scheme = uri1.getScheme();
-        final String ssp = uri1.getRawSchemeSpecificPart();
-        final String fragment = uri1.getRawFragment();
-
-        System.err.println("scheme <"+scheme+">, ssp <"+ssp+">, fragment <"+fragment+">");
-        final URI uri2 = IOUtil.compose(scheme, ssp, null, fragment);
+    static void testUriCompositioning(final Uri refURI, final Uri uri1) throws MalformedURLException, URISyntaxException {
+        System.err.println("scheme <"+uri1.scheme+">, ssp <"+uri1.schemeSpecificPart+">, fragment <"+uri1.fragment+">");
+        final Uri uri2 = Uri.compose(uri1.scheme, uri1.schemeSpecificPart, null, uri1.fragment);
 
         System.err.println("URL-equals: "+refURI.equals(uri2));
         System.err.println("URL-ref   : <"+refURI+">");
@@ -66,13 +74,9 @@ public class TestIOUtilURICompose extends JunitTracer {
         testURLCompositioning(url, url);
     }
     static void testURLCompositioning(final URL refURL, final URL url1) throws MalformedURLException, URISyntaxException {
-        final URI uri1 = url1.toURI();
-        final String scheme = uri1.getScheme();
-        final String ssp = uri1.getRawSchemeSpecificPart();
-        final String fragment = uri1.getRawFragment();
-
-        System.err.println("scheme <"+scheme+">, ssp <"+ssp+">, fragment <"+fragment+">");
-        final URI uri2 = IOUtil.compose(scheme, ssp, null, fragment);
+        final Uri uri1 = Uri.valueOf(url1);
+        System.err.println("scheme <"+uri1.scheme+">, ssp <"+uri1.schemeSpecificPart+">, fragment <"+uri1.fragment+">");
+        final Uri uri2 = Uri.compose(uri1.scheme, uri1.schemeSpecificPart, null, uri1.fragment);
 
         System.err.println("URL-equals(1): "+refURL.toURI().equals(uri2));
         System.err.println("URL-equals(2): "+refURL.equals(uri2.toURL()));
@@ -80,13 +84,13 @@ public class TestIOUtilURICompose extends JunitTracer {
         System.err.println("URL-ref   : <"+refURL+">");
         System.err.println("URL-orig  : <"+url1+">");
         System.err.println("URL-comp  : <"+uri2+">");
-        Assert.assertEquals(refURL.toURI(), uri2);
+        Assert.assertEquals(Uri.valueOf(refURL), uri2);
         Assert.assertEquals(refURL, uri2.toURL());
         Assert.assertTrue(refURL.sameFile(uri2.toURL()));
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestIOUtilURICompose.class.getName();
+        final String tstname = TestUri02Composing.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

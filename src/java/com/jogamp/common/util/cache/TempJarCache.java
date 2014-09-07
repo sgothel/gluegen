@@ -38,6 +38,7 @@ import java.util.jar.JarFile;
 
 import jogamp.common.Debug;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
@@ -412,7 +413,7 @@ public class TempJarCache {
         checkInitialized();
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
-            return IOUtil.toURISimple(f);
+            return Uri.valueOf(f).toURI();
         }
         return null;
     }

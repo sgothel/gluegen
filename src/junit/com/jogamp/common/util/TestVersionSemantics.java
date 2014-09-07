@@ -67,8 +67,8 @@ import com.jogamp.junit.util.VersionSemanticsUtil;
 public class TestVersionSemantics extends JunitTracer {
     static final String jarFile = "gluegen-rt.jar";
     static final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
-    // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+    // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
     static final DiffCriteria diffCriteria = new SimpleDiffCriteria();
     // static final DiffCriteria diffCriteria = new PublicDiffCriteria();

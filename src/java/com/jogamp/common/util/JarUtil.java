@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 
@@ -263,6 +264,7 @@ public class JarUtil {
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting or is null
      * @throws URISyntaxException if the URI could not be translated into a RFC 2396 URI
      * @see {@link IOUtil#getClassURL(String, ClassLoader)}
+     * @deprecated Use {@link Uri#getContainedUri()} and validate it's scheme, etc.
      */
     public static URI getJarSubURI(final URI classJarURI) throws IllegalArgumentException, URISyntaxException {
         if(null == classJarURI) {

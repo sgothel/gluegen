@@ -29,7 +29,6 @@
 package com.jogamp.common.util;
 
 import java.io.File;
-
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -45,7 +44,6 @@ import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.GlueGenVersion;
-import com.jogamp.common.jvm.JNILibLoaderBase;
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;

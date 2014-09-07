@@ -52,6 +52,7 @@ import jogamp.common.os.AndroidUtils;
 import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.net.AssetURLContext;
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
@@ -61,6 +62,10 @@ public class IOUtil {
 
     /** {@value} */
     public static final String SCHEME_SEPARATOR = ":";
+    /** {@value} */
+    public static final char SCHEME_SEPARATOR_CHAR = ':';
+    /** {@value} */
+    public static final char FRAGMENT_SEPARATOR = '#';
     /** {@value} */
     public static final String FILE_SCHEME = "file";
     /** {@value} */
@@ -289,6 +294,9 @@ public class IOUtil {
      *
      */
 
+    private static final Pattern patternSingleBS = Pattern.compile("\\\\{1}");
+    private static final Pattern patternSingleFS = Pattern.compile("/{1}");
+
     /**
      *
      * @param path
@@ -298,7 +306,7 @@ public class IOUtil {
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static String slashify(final String path, final boolean startWithSlash, final boolean endWithSlash) throws URISyntaxException {
-        String p = path.replace('\\', '/'); // unify file separator
+        String p = patternSingleBS.matcher(path).replaceAll("/");
         if (startWithSlash && !p.startsWith("/")) {
             p = "/" + p;
         }
@@ -306,24 +314,6 @@ public class IOUtil {
             p = p + "/";
         }
         return cleanPathString(p);
-    }
-
-    /**
-     * Using the simple conversion via File -> URI, assuming proper characters.
-     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
-     * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
-     */
-    public static URI toURISimple(final File file) throws URISyntaxException {
-        return new URI(FILE_SCHEME, null, slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */), null);
-    }
-
-    /**
-     * Using the simple conversion via File -> URI, assuming proper characters.
-     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
-     * @throws URISyntaxException if the resulting string does not comply w/ an RFC 2396 URI
-     */
-    public static URI toURISimple(final String protocol, final String path, final boolean isDirectory) throws URISyntaxException {
-        return new URI(protocol, null, slashify(new File(path).getAbsolutePath(), true /* startWithSlash */, isDirectory /* endWithSlash */), null);
     }
 
     /**
@@ -445,6 +435,7 @@ public class IOUtil {
      * @return "<i>protocol</i>:/some/path/"
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
      * @throws URISyntaxException
+     * @deprecated Use {@link Uri#getDirectory()}
      */
     public static URI getURIDirname(final URI uri) throws IllegalArgumentException, URISyntaxException {
         if(null == uri) {
@@ -468,6 +459,7 @@ public class IOUtil {
      * @return "<i>protocol</i>:/some/path/"
      * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
      * @throws URISyntaxException
+     * @deprecated Use {@link Uri#getDirectory()}
      */
     public static String getURIDirname(String uriS) throws IllegalArgumentException, URISyntaxException {
         if(null == uriS) {
@@ -488,23 +480,9 @@ public class IOUtil {
         uriS = uriS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'
 
         if( DEBUG ) {
-            System.err.println("getJarURIDirname res: "+uriS);
+            System.err.println("getURIDirname res: "+uriS);
         }
         return uriS;
-    }
-
-    /**
-     * Simply returns {@link URI#toURL()}.
-     * @param uri
-     * @return
-     * @throws IOException
-     * @throws IllegalArgumentException
-     * @throws URISyntaxException
-     *
-     * @deprecated Useless
-     */
-    public static URL toURL(final URI uri) throws IOException, IllegalArgumentException, URISyntaxException {
-        return uri.toURL();
     }
 
     /***
@@ -705,177 +683,7 @@ public class IOUtil {
         return path;
     }
 
-    /**
-     * Generates a URI for the <i>relativePath</i> relative to the <i>baseURI</i>,
-     * hence the result is a absolute location.
-     * <p>
-     * Impl. operates on the <i>scheme-specific-part</i>, and hence is sub-protocol savvy.
-     * </p>
-     * <p>
-     * In case <i>baseURI</i> is not a path ending w/ '/', it's a assumed to be a file and it's parent is being used.
-     * </p>
-     *
-     * @param baseURI denotes a URI to a directory ending w/ '/', or a file. In the latter case the file's directory is being used.
-     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
-     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
-     */
-    public static URI getRelativeOf(final URI baseURI, final String relativePath) throws URISyntaxException {
-        return compose(baseURI.getScheme(), baseURI.getRawSchemeSpecificPart(), relativePath, baseURI.getRawFragment());
-    }
-
-    /**
-     * Wraps {@link #getRelativeOf(URI, String)} for convenience.
-     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
-     * @throws IOException
-     */
-    public static URL getRelativeOf(final URL baseURL, final String relativePath) throws IOException {
-        try {
-            return getRelativeOf(baseURL.toURI(), relativePath).toURL();
-        } catch (final URISyntaxException e) {
-            throw new IOException(e);
-        }
-    }
-
-    /**
-     * Generates a URI for the <i>relativePath</i> relative to the <i>schemeSpecificPart</i>,
-     * hence the result is a absolute location.
-     * <p>
-     * <i>schemeSpecificPart</i>'s query, if exist is split to <i>path</i> and <i>query</i>.
-     * </p>
-     * <p>
-     * In case <i>path</i> is not a path ending w/ '/', it's a assumed to be a file and it's parent is being used.
-     * </p>
-     *
-     * @param scheme scheme of the resulting URI
-     * @param schemeSpecificPart may include a query, which is separated while processing (URI encoded)
-     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
-     * @param fragment the URI fragment (URI encoded)
-     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
-     * @see #encodeToURI(String)
-     */
-    public static URI compose(final String scheme, String schemeSpecificPart, final String relativePath, final String fragment) throws URISyntaxException {
-        // cut off optional query in scheme-specific-part
-        final String query;
-        final int queryI = schemeSpecificPart.lastIndexOf('?');
-        if( queryI >= 0 ) {
-            query = schemeSpecificPart.substring(queryI+1);
-            schemeSpecificPart = schemeSpecificPart.substring(0, queryI);
-        } else {
-            query = null;
-        }
-        if( null != relativePath ) {
-            if( !schemeSpecificPart.endsWith("/") ) {
-                schemeSpecificPart = getParentOf(schemeSpecificPart);
-            }
-            schemeSpecificPart = schemeSpecificPart + relativePath;
-        }
-        schemeSpecificPart = cleanPathString( schemeSpecificPart );
-        final StringBuilder uri = new StringBuilder();
-        uri.append(scheme);
-        uri.append(':');
-        uri.append(schemeSpecificPart);
-        if ( null != query ) {
-            uri.append('?');
-            uri.append(query);
-        }
-        if ( null != fragment ) {
-            uri.append('#');
-            uri.append(fragment);
-        }
-        return new URI(uri.toString());
-    }
-
-    private static final Pattern patternSpaceRaw = Pattern.compile(" ");
-    private static final Pattern patternSpaceEnc = Pattern.compile("%20");
-
-    /**
-     * Escapes characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
-     * <ul>
-     *   <li>SPACE -> %20</li>
-     * </ul>
-     * @deprecated Useless
-     */
-    public static String encodeToURI(final String vanilla) {
-        return patternSpaceRaw.matcher(vanilla).replaceAll("%20"); // Uri TODO: Uri.encode(vanilla, Uri.PATH_MIN_LEGAL);
-    }
-
-    /**
-     * Reverses escaping of characters as performed via {@link #encodeToURI(String)}.
-     * <ul>
-     *   <li>%20 -> SPACE</li>
-     * </ul>
-     * @deprecated Use {@link #decodeURIIfFilePath(URI)}
-     */
-    public static String decodeFromURI(final String encodedUri) {
-        return patternSpaceEnc.matcher(encodedUri).replaceAll(" "); // Uri TODO: Uri.decode(encoded);
-    }
-
-    private static final Pattern patternSingleBS = Pattern.compile("\\\\{1}");
-    private static final Pattern patternSingleFS = Pattern.compile("/{1}");
-
-    /**
-     * Encodes file path characters not complying w/ RFC 2396 and the {@link URI#URI(String)} ctor.
-     * <p>
-     * Implementation processes the <code>filePath</code> if {@link File#separatorChar} <code> == '\\'</code>
-     * as follows:
-     * <ul>
-     *   <li>backslash -> slash</li>
-     *   <li>ensure starting with slash</li>
-     * </ul>
-     * </p>
-     * <p>
-     * Note that this method does not perform <i>space</i> encoding,
-     * which can be utilized via {@link #encodeToURI(String)}.
-     * </p>
-     * <p>
-     * Even though Oracle's JarURLStreamHandler can handle backslashes and
-     * erroneous URIs w/ e.g. Windows file 'syntax', other may not (Netbeans).<br>
-     * See Bug 857 - http://jogamp.org/bugzilla/show_bug.cgi?id=857
-     * </p>
-     * @see #encodeToURI(String)
-     * @deprecated Useless
-     */
-    public static String encodeFilePathToURI(final String filePath) {
-        if( File.separator.equals("\\") ) {
-            final String r = patternSingleBS.matcher(filePath).replaceAll("/");
-            if( !r.startsWith("/") ) {
-                return "/" + r;
-            } else {
-                return r;
-            }
-        }
-        return filePath;
-    }
-
-    /**
-     * Completes decoding uri-file path characters complying w/ RFC 2396 to native file-path.
-     * <p>
-     * Implementation decodes the space-encoding <code>path={@link #decodeFromURI(String) decodeFromURI}(uriPath)</code>.
-     * </p>
-     * <p>
-     * Then it processes the <code>path</code> if {@link File#separatorChar} <code> == '\\'</code>
-     * as follows:
-     * <ul>
-     *   <li>slash -> backslash</li>
-     *   <li>drop a starting single backslash, preserving windows UNC</li>
-     * </ul>
-     * </p>
-     * @param encodedUriPath URI encoded path
-     * @see #decodeFromURI(String)
-     * @deprecated Use {@link #decodeURIIfFilePath(URI)}
-     */
-    public static String decodeURIToFilePath(final String encodedUriPath) {
-        final String path = patternSpaceEnc.matcher(encodedUriPath).replaceAll(" "); // Uri TODO: Uri.decode(encoded);
-        if( File.separator.equals("\\") ) {
-            final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
-            if( r.startsWith("\\") && !r.startsWith("\\\\") ) { // '\\\\' denotes UNC hostname, which shall not be cut-off
-                return r.substring(1);
-            } else {
-                return r;
-            }
-        }
-        return path;
-    }
+    public static final Pattern patternSpaceEnc = Pattern.compile("%20");
 
     /**
      * If <code>uri</code> is a <i>file scheme</i>,
@@ -890,9 +698,7 @@ public class IOUtil {
      * <p>
      * Otherwise it returns the {@link URI#toASCIIString()} encoded URI.
      * </p>
-     *
-     * @see #decodeFromURI(String)
-     * @see #decodeURIToFilePath(String)
+     * @deprecated Use {@link Uri#getNativeFilePath()}.
      */
     public static String decodeURIIfFilePath(final URI uri) {
         if( IOUtil.FILE_SCHEME.equals( uri.getScheme() ) ) {
