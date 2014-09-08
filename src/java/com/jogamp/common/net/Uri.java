@@ -276,6 +276,8 @@ public class Uri {
     /** {@value} */
     public static final char SCHEME_SEPARATOR = ':';
     /** {@value} */
+    public static final char QUERY_SEPARATOR = '?';
+    /** {@value} */
     public static final char FRAGMENT_SEPARATOR = '#';
     /** {@value} */
     public static final String FILE_SCHEME = "file";
@@ -735,7 +737,7 @@ public class Uri {
         }
 
         if ( !emptyString(query) ) {
-            uri.append('?');
+            uri.append(QUERY_SEPARATOR);
             // QUOTE ILLEGAL CHARS
             uri.append(encode(query, QUERY_LEGAL));
         }
@@ -816,7 +818,7 @@ public class Uri {
         }
         if ( !emptyString(query) ) {
             // QUOTE ILLEGAL CHARS
-            uri.append('?');
+            uri.append(QUERY_SEPARATOR);
             uri.append(encode(query, QUERY_LEGAL));
         }
         if ( !emptyString(fragment) ) {
@@ -1255,6 +1257,27 @@ public class Uri {
         }
     }
 
+    /**
+     * Returns a new Uri instance w/ the given new query {@code newQuery}.
+     *
+     * @throws URISyntaxException if this Uri is {@link #opaque}
+     *             or if the new string {@code uri} doesn't fit to the
+     *             specification RFC2396 and RFC3986 or could not be parsed correctly.
+     */
+    public final Uri getNewQuery(final String newQuery) throws URISyntaxException {
+        if( opaque ) {
+            throw new URISyntaxException(input.decode(), "Opaque Uri cannot permute by query");
+        } else if( null != host ) {
+            // with host validation
+            return Uri.create(decode(scheme), decode(userInfo), decode(host), port,
+                              decode(path), newQuery, decode(fragment));
+        } else {
+            // without host validation
+            return Uri.create(decode(scheme), decode(authority),
+                              decode(path), newQuery, decode(fragment));
+        }
+    }
+
     /// NEW START
 
     /**
@@ -1317,7 +1340,7 @@ public class Uri {
 
         // cut off optional query in scheme-specific-part
         final String query;
-        final int queryI = schemeSpecificPartS.lastIndexOf('?');
+        final int queryI = schemeSpecificPartS.lastIndexOf(QUERY_SEPARATOR);
         if( queryI >= 0 ) {
             query = schemeSpecificPartS.substring(queryI+1);
             schemeSpecificPartS = schemeSpecificPartS.substring(0, queryI);
@@ -1336,11 +1359,11 @@ public class Uri {
         uri.append(':');
         uri.append(schemeSpecificPartS);
         if ( null != query ) {
-            uri.append('?');
+            uri.append(QUERY_SEPARATOR);
             uri.append(query);
         }
         if ( null != fragment ) {
-            uri.append('#');
+            uri.append(FRAGMENT_SEPARATOR);
             uri.append(fragment.get());
         }
         return Uri.cast(uri.toString());
@@ -1532,7 +1555,7 @@ public class Uri {
             }
 
             if (query != null) {
-                result.append('?');
+                result.append(QUERY_SEPARATOR);
                 result.append(query.get());
             }
         }
@@ -1577,7 +1600,7 @@ public class Uri {
         final int indexSchemeSep = temp.indexOf(SCHEME_SEPARATOR);
         index = indexSchemeSep;
         final int indexSSP = temp.indexOf('/');
-        final int indexQuerySep = temp.indexOf('?');
+        final int indexQuerySep = temp.indexOf(QUERY_SEPARATOR);
 
         String sspTemp; // may get modified due to error correction
 
@@ -1610,7 +1633,7 @@ public class Uri {
 
             // Query
             temp = sspTemp;
-            index = temp.indexOf('?');
+            index = temp.indexOf(QUERY_SEPARATOR);
             if (index != -1) {
                 query = new Encoded( temp.substring(index + 1) );
                 temp = temp.substring(0, index);

@@ -536,20 +536,6 @@ public class IOUtil {
     }
 
     /**
-     * Wraps {@link #getRelativeOf(URI, String)} for convenience.
-     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
-     * @throws IOException
-     * @deprecated Use {@link Uri#getRelativeOf(com.jogamp.common.net.Uri.Encoded)}.
-     */
-    public static URL getRelativeOf(final URL baseURL, final String relativePath) throws IOException {
-        try {
-            return Uri.valueOf(baseURL).getRelativeOf(Uri.Encoded.cast(relativePath)).toURL();
-        } catch (final URISyntaxException e) {
-            throw new IOException(e);
-        }
-    }
-
-    /**
      * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
      *
      * @param baseLocation denotes a directory
@@ -620,30 +606,17 @@ public class IOUtil {
     public static final Pattern patternSpaceEnc = Pattern.compile("%20");
 
     /**
-     * If <code>uri</code> is a <i>file scheme</i>,
-     * implementation completes space-decoding <i>[ "//"+{@link URI#getAuthority()} ] + {@link URI#getPath()}</i>.<br>
-     * Then it processes the <code>path</code> if {@link File#separatorChar} <code> == '\\'</code>
-     * as follows:
-     * <ul>
-     *   <li>slash -> backslash</li>
-     *   <li>drop a starting single backslash, preserving windows UNC</li>
-     * </ul>
-     * </p>
+     * If <code>uri</code> is a <i>file scheme</i>
+     * implementation returns {@link Uri#toFile()}.{@link File#getPath()}.
      * <p>
      * Otherwise it returns the {@link URI#toASCIIString()} encoded URI.
      * </p>
-     * @deprecated Use {@link Uri#toFile()}
      */
-    public static String decodeURIIfFilePath(final java.net.URI uri) {
-        try {
-            final File file = Uri.valueOf(uri).toFile();
-            if( null != file ) {
-                return file.getPath();
-            } else {
-                return uri.toASCIIString();
-            }
-        } catch (final URISyntaxException e) {
-            throw new RuntimeException(e);
+    public static String getUriFilePathOrASCII(final Uri uri) {
+        if( uri.isFileScheme() ) {
+            return uri.toFile().getPath();
+        } else {
+            return uri.toASCIIString().get();
         }
     }
 

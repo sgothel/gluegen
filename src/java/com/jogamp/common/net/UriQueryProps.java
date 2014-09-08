@@ -27,7 +27,6 @@
  */
 package com.jogamp.common.net;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -44,8 +43,12 @@ import java.util.Map.Entry;
  *  w/ authority: [user-info@]host[:port]
  *  Note: 'path' starts w/ fwd slash
  * </pre>
+ * <p>
+ * Since 2.3.0 renamed from {@code URIQueryProps} to {@code UriQueryProps},
+ * and using {@link Uri} instead of {@link java.net.URI}.
+ * </p>
  */
-public class URIQueryProps {
+public class UriQueryProps {
    private static final String QMARK = "?";
    private static final char ASSIG = '=';
    private static final String EMPTY = "";
@@ -53,7 +56,7 @@ public class URIQueryProps {
 
    private final HashMap<String, String> properties = new HashMap<String, String>();
 
-   private URIQueryProps(final char querySeparator) {
+   private UriQueryProps(final char querySeparator) {
        query_separator = String.valueOf(querySeparator);
    }
 
@@ -64,8 +67,8 @@ public class URIQueryProps {
        boolean needsSep = false;
        final StringBuilder sb = new StringBuilder();
        if ( null != baseQuery ) {
-           if( !baseQuery.startsWith(QMARK) ) {
-               baseQuery = baseQuery.substring(1);
+           if( baseQuery.startsWith(QMARK) ) {
+               baseQuery = baseQuery.substring(1); // cut off '?'
            }
            sb.append(baseQuery);
            if( !baseQuery.endsWith(query_separator) ) {
@@ -87,10 +90,8 @@ public class URIQueryProps {
        return sb.toString();
    }
 
-   public final URI appendQuery(final URI base) throws URISyntaxException {
-       return new URI(base.getScheme(),
-                      base.getRawUserInfo(), base.getHost(), base.getPort(),
-                      base.getRawPath(), appendQuery(base.getRawQuery()), base.getRawFragment());
+   public final Uri appendQuery(final Uri base) throws URISyntaxException {
+       return base.getNewQuery( appendQuery( Uri.decode(base.query) ) );
    }
 
    /**
@@ -100,12 +101,12 @@ public class URIQueryProps {
     * @return
     * @throws IllegalArgumentException if <code>querySeparator</code> is illegal, i.e. neither <i>;</i> nor <i>&</i>
     */
-   public static final URIQueryProps create(final URI uri, final char querySeparator) throws IllegalArgumentException {
+   public static final UriQueryProps create(final Uri uri, final char querySeparator) throws IllegalArgumentException {
        if( ';' != querySeparator && '&' != querySeparator ) {
            throw new IllegalArgumentException("querySeparator is invalid: "+querySeparator);
        }
-       final URIQueryProps data = new URIQueryProps(querySeparator);
-       final String q = uri.getQuery();
+       final UriQueryProps data = new UriQueryProps(querySeparator);
+       final String q = Uri.decode(uri.query);
        final int q_l = null != q ? q.length() : -1;
        int q_e = -1;
        while(q_e < q_l) {
