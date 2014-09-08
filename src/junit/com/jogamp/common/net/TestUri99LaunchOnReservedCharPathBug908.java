@@ -42,7 +42,6 @@ import org.junit.runners.MethodSorters;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.junit.util.JunitTracer;
@@ -84,16 +83,16 @@ public class TestUri99LaunchOnReservedCharPathBug908 extends JunitTracer {
 
     @Test
     public void test00TempJarCacheSimplePath() throws IOException, IllegalArgumentException, URISyntaxException {
-        testTempJarCacheOddJarPathImpl("simpletons/", "simpletons/");
+        testTempJarCacheOddJarPathImpl("simpletons/");
     }
 
     @Test
     public void test01TempJarCacheOddPath() throws IOException, IllegalArgumentException, URISyntaxException {
         // Bug 908, issues w/ windows file path char: $ ^ ~ # [ ]
-        testTempJarCacheOddJarPathImpl("A$-B^-C~-D#-E]-F[-öä/",
+        testTempJarCacheOddJarPathImpl("A$-B^-C~-D#-E]-F[-öä/");
                                     // "A$-B%5E-C~-D#-E]-F[-%C3%B6%C3%A4/");    <- Firefox URI encoding! '#' -> [1]
                                     //   "A$-B%5E-C~-D%23-E]-F[-%C3%B6%C3%A4/"); <- '[' ']' -> [2]
-                                    "A$-B%5E-C~-D%23-E%5D-F%5B-%C3%B6%C3%A4/");
+                                    // "A$-B%5E-C~-D%23-E%5D-F%5B-%C3%B6%C3%A4/");
         /**
          * [1] '#'
             java.lang.IllegalArgumentException: URI has a fragment component
@@ -111,34 +110,35 @@ public class TestUri99LaunchOnReservedCharPathBug908 extends JunitTracer {
          */
 
     }
-    private void testTempJarCacheOddJarPathImpl(final String subPathUTF, final String subPathEncoded) throws IOException, IllegalArgumentException, URISyntaxException {
+    private void testTempJarCacheOddJarPathImpl(final String subPathUTF) throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
 
+        final Uri.Encoded subPathEncoded = new Uri.Encoded(subPathUTF, Uri.PATH_LEGAL);
         final String reservedCharPathUnencoded = "test/build/"+getClass().getSimpleName()+"/"+getTestMethodName()+"/"+subPathUTF;
-        final String reservedCharPathEncoded = "test/build/"+getClass().getSimpleName()+"/"+getTestMethodName()+"/"+subPathEncoded;
+        final Uri.Encoded reservedCharPathEncoded = Uri.Encoded.cast("test/build/"+getClass().getSimpleName()+"/"+getTestMethodName()+"/").concat(subPathEncoded);
 
         System.err.println("0 Unencoded:             "+reservedCharPathUnencoded);
         System.err.println("0 Encoded:               "+reservedCharPathEncoded);
 
         // jar:file:/dir1/dir2/gluegen-rt.jar!/
-        final URI jarFileURI = JarUtil.getJarFileURI(Platform.class.getName(), getClass().getClassLoader());
+        final Uri jarFileURI = JarUtil.getJarFileUri(Platform.class.getName(), getClass().getClassLoader());
         System.err.println("1 jarFileURI:            "+jarFileURI.toString());
         // gluegen-rt.jar
-        final String jarBasename = JarUtil.getJarBasename(jarFileURI);
+        final Uri.Encoded jarBasename = JarUtil.getJarBasename(jarFileURI);
         System.err.println("2 jarBasename:           "+jarBasename);
 
         // file:/dir1/build/gluegen-rt.jar
-        final URI fileURI = JarUtil.getJarSubURI(jarFileURI);
+        final Uri fileURI = jarFileURI.getContainedUri();
         System.err.println("3 fileURI:               "+fileURI.toString());
         // file:/dir1/build/
-        final URI fileFolderURI = new URI(IOUtil.getParentOf(fileURI.toString()));
+        final Uri fileFolderURI = fileURI.getParent();
         System.err.println("4 fileFolderURI:         "+fileFolderURI.toString());
         // file:/dir1/build/test/build/A$-B^-C~-D#-E]-F[/
-        final URI fileNewFolderURI = new URI(fileFolderURI.toString()+reservedCharPathEncoded);
+        final Uri fileNewFolderURI = fileFolderURI.concat(reservedCharPathEncoded);
         System.err.println("5 fileNewFolderURI:      "+fileNewFolderURI.toString());
 
-        final File srcFolder = new File(fileFolderURI);
-        final File dstFolder = new File(fileNewFolderURI);
+        final File srcFolder = fileFolderURI.toFile();
+        final File dstFolder = fileNewFolderURI.toFile();
         System.err.println("6 srcFolder:             "+srcFolder.toString());
         System.err.println("7 dstFolder:             "+dstFolder.toString());
         try {

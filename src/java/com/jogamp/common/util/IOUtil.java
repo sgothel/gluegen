@@ -40,7 +40,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -59,23 +58,6 @@ import com.jogamp.common.os.Platform;
 
 public class IOUtil {
     public static final boolean DEBUG = Debug.debug("IOUtil");
-
-    /** {@value} */
-    public static final String SCHEME_SEPARATOR = ":";
-    /** {@value} */
-    public static final char SCHEME_SEPARATOR_CHAR = ':';
-    /** {@value} */
-    public static final char FRAGMENT_SEPARATOR = '#';
-    /** {@value} */
-    public static final String FILE_SCHEME = "file";
-    /** {@value} */
-    public static final String HTTP_SCHEME = "http";
-    /** {@value} */
-    public static final String HTTPS_SCHEME = "https";
-    /** {@value} */
-    public static final String JAR_SCHEME = "jar";
-    /** A JAR subprotocol is separeted from the JAR entry w/ this separator {@value}. Even if no class is specified '!/' must follow!. */
-    public static final char JAR_SCHEME_SEPARATOR = '!';
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
     private static final String java_io_tmpdir_propkey = "java.io.tmpdir";
@@ -295,7 +277,6 @@ public class IOUtil {
      */
 
     private static final Pattern patternSingleBS = Pattern.compile("\\\\{1}");
-    private static final Pattern patternSingleFS = Pattern.compile("/{1}");
 
     /**
      *
@@ -422,67 +403,6 @@ public class IOUtil {
             fname = fname.substring(0, lios+1);
         }
         return fname;
-    }
-
-    /**
-     * The URI's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
-     * parent dirname URI <code><i>protocol</i>:/some/path/</code> will be returned.
-     * <p>
-     * <i>protocol</i> may be "file", "http", etc..
-     * </p>
-     *
-     * @param uri "<i>protocol</i>:/some/path/gluegen-rt.jar"
-     * @return "<i>protocol</i>:/some/path/"
-     * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
-     * @throws URISyntaxException
-     * @deprecated Use {@link Uri#getDirectory()}
-     */
-    public static URI getURIDirname(final URI uri) throws IllegalArgumentException, URISyntaxException {
-        if(null == uri) {
-            throw new IllegalArgumentException("URI is null");
-        }
-        final String uriS = uri.toString();
-        if( DEBUG ) {
-            System.err.println("getURIDirname "+uri+", extForm: "+uriS);
-        }
-        return new URI( getURIDirname(uriS) );
-    }
-
-    /**
-     * The URI's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
-     * parent dirname URI <code><i>protocol</i>:/some/path/</code> will be returned.
-     * <p>
-     * <i>protocol</i> may be "file", "http", etc..
-     * </p>
-     *
-     * @param uri "<i>protocol</i>:/some/path/gluegen-rt.jar" (URI encoded)
-     * @return "<i>protocol</i>:/some/path/"
-     * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
-     * @throws URISyntaxException
-     * @deprecated Use {@link Uri#getDirectory()}
-     */
-    public static String getURIDirname(String uriS) throws IllegalArgumentException, URISyntaxException {
-        if(null == uriS) {
-            throw new IllegalArgumentException("uriS is null");
-        }
-        // from
-        //   file:/some/path/gluegen-rt.jar  _or_ rsrc:gluegen-rt.jar
-        // to
-        //   file:/some/path/                _or_ rsrc:
-        int idx = uriS.lastIndexOf('/');
-        if(0 > idx) {
-            // no abs-path, check for protocol terminator ':'
-            idx = uriS.lastIndexOf(':');
-            if(0 > idx) {
-                throw new IllegalArgumentException("URI does not contain protocol terminator ':', in <"+uriS+">");
-            }
-        }
-        uriS = uriS.substring(0, idx+1); // exclude jar name, include terminal '/' or ':'
-
-        if( DEBUG ) {
-            System.err.println("getURIDirname res: "+uriS);
-        }
-        return uriS;
     }
 
     /***
@@ -616,6 +536,20 @@ public class IOUtil {
     }
 
     /**
+     * Wraps {@link #getRelativeOf(URI, String)} for convenience.
+     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
+     * @throws IOException
+     * @deprecated Use {@link Uri#getRelativeOf(com.jogamp.common.net.Uri.Encoded)}.
+     */
+    public static URL getRelativeOf(final URL baseURL, final String relativePath) throws IOException {
+        try {
+            return Uri.valueOf(baseURL).getRelativeOf(Uri.Encoded.cast(relativePath)).toURL();
+        } catch (final URISyntaxException e) {
+            throw new IOException(e);
+        }
+    }
+
+    /**
      * Generates a path for the 'relativeFile' relative to the 'baseLocation'.
      *
      * @param baseLocation denotes a directory
@@ -698,31 +632,19 @@ public class IOUtil {
      * <p>
      * Otherwise it returns the {@link URI#toASCIIString()} encoded URI.
      * </p>
-     * @deprecated Use {@link Uri#getNativeFilePath()}.
+     * @deprecated Use {@link Uri#toFile()}
      */
-    public static String decodeURIIfFilePath(final URI uri) {
-        if( IOUtil.FILE_SCHEME.equals( uri.getScheme() ) ) {
-            final String authorityS;
-            {
-                final String authority = uri.getAuthority();
-                if( null == authority ) {
-                    authorityS = "";
-                } else {
-                    authorityS = "//"+authority;
-                }
-                final String path = patternSpaceEnc.matcher(authorityS+uri.getPath()).replaceAll(" "); // Uri TODO: Uri.decode(encoded);
-                if( File.separator.equals("\\") ) {
-                    final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
-                    if( r.startsWith("\\") && !r.startsWith("\\\\") ) { // '\\\\' denotes UNC hostname, which shall not be cut-off
-                        return r.substring(1);
-                    } else {
-                        return r;
-                    }
-                }
-                return path;
+    public static String decodeURIIfFilePath(final java.net.URI uri) {
+        try {
+            final File file = Uri.valueOf(uri).toFile();
+            if( null != file ) {
+                return file.getPath();
+            } else {
+                return uri.toASCIIString();
             }
+        } catch (final URISyntaxException e) {
+            throw new RuntimeException(e);
         }
-        return uri.toASCIIString();
     }
 
     /**

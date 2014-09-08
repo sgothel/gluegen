@@ -154,6 +154,7 @@ A.1) The GlueGen source tree contains code from The Apache Software Foundation
    Or within this repository: doc/licenses/Apache.LICENSE-2.0
 
    Files:
-    src/java/com/jogamp/common/net/Uri.java
+    - src/java/com/jogamp/common/net/Uri.java 
+      (derived from java.net.URI.Helper and heavily modified)
 
 

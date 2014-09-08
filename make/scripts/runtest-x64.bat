@@ -6,6 +6,7 @@ REM scripts\java-win64.bat com.jogamp.common.util.TestTempJarCache
 REM scripts\java-win64.bat com.jogamp.common.os.TestElfReader01
 
 REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtil01
+REM scripts\java-win64.bat com.jogamp.common.util.TestJarUtil
 REM scripts\java-win64.bat com.jogamp.common.net.TestUrisWithAssetHandler
 REM scripts\java-win64.bat com.jogamp.common.net.TestURIQueryProps
 REM scripts\java-win64.bat com.jogamp.common.net.TestUri01

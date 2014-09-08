@@ -4,16 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.net.URLConnection;
-
-import jogamp.common.os.PlatformPropsImpl;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.net.URIDumpUtil;
-import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.IOUtil;
 import com.jogamp.junit.util.JunitTracer;
 
 import org.junit.FixMethodOrder;
@@ -23,7 +19,66 @@ import org.junit.runners.MethodSorters;
 public class TestUri01 extends JunitTracer {
 
     @Test
-    public void test00URIEscapeSpecialChars() throws IOException, URISyntaxException {
+    public void test00BasicCoding() throws IOException, URISyntaxException {
+        final String string = "Hallo Welt öä";
+        System.err.println("sp1 "+string);
+        final File file = new File(string);
+        System.err.println("file "+file);
+        System.err.println("file.path.dec "+file.getPath());
+        System.err.println("file.path.abs "+file.getAbsolutePath());
+        System.err.println("file.path.can "+file.getCanonicalPath());
+        final Uri uri0 = Uri.valueOf(file);
+        URIDumpUtil.showUri(uri0);
+        URIDumpUtil.showReencodedURIOfUri(uri0);
+
+        boolean ok = true;
+        {
+            final String s2 = IOUtil.slashify(file.getAbsolutePath(), true /* startWithSlash */, file.isDirectory() /* endWithSlash */);
+            System.err.println("uri2.slashify: "+s2);
+            final Uri uri1 = Uri.create(Uri.FILE_SCHEME, null, s2, null);
+            final boolean equalEncoded= uri0.getEncoded().equals(uri1.getEncoded());
+            final boolean equalPath = uri0.path.decode().equals(uri1.path.decode());
+            final boolean equalASCII= uri0.toASCIIString().equals(uri1.toASCIIString().get());
+            System.err.println("uri2.enc   : "+uri1.getEncoded()+" - "+(equalEncoded?"OK":"ERROR"));
+            System.err.println("uri2.pathD : "+uri1.path.decode()+" - "+(equalPath?"OK":"ERROR"));
+            System.err.println("uri2.asciiE: "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
+            ok = equalEncoded && equalPath && equalASCII && ok;
+        }
+        {
+            final String s2 = "/"+string;
+            System.err.println("uri3.orig: "+s2);
+            final Uri uri1 = Uri.create(Uri.FILE_SCHEME, s2, null);
+            final String rString = "file:/Hallo%20Welt%20öä";
+            final String rPath = s2;
+            final String rASCII = "file:/Hallo%20Welt%20%C3%B6%C3%A4";
+            final boolean equalEncoded = rString.equals(uri1.toString());
+            final boolean equalPath = rPath.equals(uri1.path.decode());
+            final boolean equalASCII= rASCII.equals(uri1.toASCIIString().get());
+            System.err.println("uri3.enc   : "+uri1.toString()+" - "+(equalEncoded?"OK":"ERROR"));
+            System.err.println("uri3.pathD : "+uri1.path.decode()+" - "+(equalPath?"OK":"ERROR"));
+            System.err.println("uri3.asciiE: "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
+            ok = equalEncoded && equalPath && equalASCII && ok;
+        }
+        {
+            final String s2 = "//lala.org/"+string;
+            System.err.println("uri4.orig: "+s2);
+            final Uri uri1 = Uri.create(Uri.HTTP_SCHEME, s2, null);
+            final String rString = "http://lala.org/Hallo%20Welt%20öä";
+            final String rPath = "/"+string;
+            final String rASCII = "http://lala.org/Hallo%20Welt%20%C3%B6%C3%A4";
+            final boolean equalString= rString.equals(uri1.toString());
+            final boolean equalPath = rPath.equals(uri1.path.decode());
+            final boolean equalASCII= rASCII.equals(uri1.toASCIIString().get());
+            System.err.println("uri4.enc   : "+uri1.toString()+" - "+(equalString?"OK":"ERROR"));
+            System.err.println("uri4.pathD : "+uri1.path.decode()+" - "+(equalPath?"OK":"ERROR"));
+            System.err.println("uri4.asciiE: "+uri1.toASCIIString()+" - "+(equalASCII?"OK":"ERROR"));
+            ok = equalString && equalPath && equalASCII && ok;
+        }
+        Assert.assertTrue("One or more errors occured see stderr above", ok);
+    }
+
+    @Test
+    public void test02URIEscapeSpecialChars() throws IOException, URISyntaxException {
         {
             final String vanilla = "XXX ! # $ & ' ( ) * + , / : ; = ? @ [ ]";
             final Uri.Encoded escaped = Uri.Encoded.cast("XXX%20!%20%23%20%24%20%26%20%27%20%28%20%29%20%2A%20%2B%20%2C%20/%20%3A%20%3B%20%3D%20%3F%20%40%20%5B%20%5D");
@@ -60,7 +115,7 @@ public class TestUri01 extends JunitTracer {
         }
     }
     @Test
-    public void test01URIEscapeCommonChars() throws IOException, URISyntaxException {
+    public void test03URIEscapeCommonChars() throws IOException, URISyntaxException {
         {
             final String vanilla = "/XXX \"%-.<>\\^_`{|}~";
             final Uri.Encoded escaped = Uri.Encoded.cast("/XXX%20%22%25-.%3C%3E%5C%5E_%60%7B%7C%7D~");
@@ -95,16 +150,16 @@ public class TestUri01 extends JunitTracer {
         URIDumpUtil.showURI(uri3);
 
         System.err.println("URI -> Uri (keep encoding):");
-        final Uri uri4 = Uri.valueOf(uri3, false);
+        final Uri uri4 = Uri.valueOf(uri3);
         URIDumpUtil.showUri(uri4);
 
         System.err.println("URI -> Uri (re-encode):");
-        final Uri uri5 = Uri.valueOf(uri3, true);
+        final Uri uri5 = Uri.valueOf(uri3);
         URIDumpUtil.showUri(uri5);
     }
 
     @Test
-    public void test03EqualsAndHashCode() throws IOException, URISyntaxException {
+    public void test04EqualsAndHashCode() throws IOException, URISyntaxException {
         {
             final Uri uri0 = Uri.cast("http://localhost/test01.html#tag01");
             final Uri uri1 = Uri.create("http", null, "localhost", -1, "/test01.html", null, "tag01");
@@ -155,7 +210,7 @@ public class TestUri01 extends JunitTracer {
     }
 
     @Test
-    public void test04ContainedUri() throws IOException, URISyntaxException {
+    public void test05Contained() throws IOException, URISyntaxException {
         {
             final Uri input = Uri.cast("http://localhost/test01.html#tag01");
             final Uri contained = input.getContainedUri();
@@ -185,7 +240,7 @@ public class TestUri01 extends JunitTracer {
     }
 
     @Test
-    public void test05ParentUri() throws IOException, URISyntaxException {
+    public void test06ParentAndDir() throws IOException, URISyntaxException {
         {
             final Uri input = Uri.cast("http://localhost/");
             final Uri parent = input.getParent();
@@ -193,167 +248,58 @@ public class TestUri01 extends JunitTracer {
         }
         {
             final Uri input     = Uri.cast("jar:http://localhost/test01.jar!/com/Lala.class");
-            final Uri expected1 = Uri.cast("jar:http://localhost/test01.jar!/com/");
-            final Uri expected2 = Uri.cast("jar:http://localhost/test01.jar!/");
-            final Uri expected3 = Uri.cast("jar:http://localhost/");
+            final Uri expParen1 = Uri.cast("jar:http://localhost/test01.jar!/com/");
+            final Uri expFolde1 = expParen1;
+            final Uri expParen2 = Uri.cast("jar:http://localhost/test01.jar!/");
+            final Uri expFolde2 = expParen1; // is folder already
+            final Uri expParen3 = Uri.cast("jar:http://localhost/");
+            final Uri expFolde3 = expParen2; // is folder already
+            Assert.assertNotEquals(input, expParen1);
+            Assert.assertNotEquals(expParen1, expParen2);
+            Assert.assertNotEquals(expParen1, expParen3);
+
             final Uri parent1 = input.getParent();
+            final Uri folder1 = input.getDirectory();
             final Uri parent2 = parent1.getParent();
+            final Uri folder2 = parent1.getDirectory();
             final Uri parent3 = parent2.getParent();
-            Assert.assertEquals(expected1, parent1);
-            Assert.assertEquals(expected1.hashCode(), parent1.hashCode());
-            Assert.assertEquals(expected2, parent2);
-            Assert.assertEquals(expected2.hashCode(), parent2.hashCode());
-            Assert.assertEquals(expected3, parent3);
-            Assert.assertEquals(expected3.hashCode(), parent3.hashCode());
+            final Uri folder3 = parent2.getDirectory();
+
+            Assert.assertEquals(expParen1, parent1);
+            Assert.assertEquals(expParen1.hashCode(), parent1.hashCode());
+            Assert.assertEquals(expFolde1, folder1);
+
+            Assert.assertEquals(expParen2, parent2);
+            Assert.assertEquals(expParen2.hashCode(), parent2.hashCode());
+            Assert.assertEquals(expFolde2, folder2);
+
+            Assert.assertEquals(expParen3, parent3);
+            Assert.assertEquals(expParen3.hashCode(), parent3.hashCode());
+            Assert.assertEquals(expFolde3, folder3);
+
         }
         {
             final Uri input     = Uri.cast("http://localhost/dir/test01.jar?lala=01#frag01");
-            final Uri expected1 = Uri.cast("http://localhost/dir/");
-            final Uri expected2 = Uri.cast("http://localhost/");
+            final Uri expParen1 = Uri.cast("http://localhost/dir/");
+            final Uri expFolde1 = expParen1;
+            final Uri expParen2 = Uri.cast("http://localhost/");
+            final Uri expFolde2 = expParen1; // is folder already
+            Assert.assertNotEquals(input, expParen1);
+            Assert.assertNotEquals(expParen1, expParen2);
+
             final Uri parent1 = input.getParent();
+            final Uri folder1 = input.getDirectory();
             final Uri parent2 = parent1.getParent();
-            Assert.assertEquals(expected1, parent1);
-            Assert.assertEquals(expected1.hashCode(), parent1.hashCode());
-            Assert.assertEquals(expected2, parent2);
-            Assert.assertEquals(expected2.hashCode(), parent2.hashCode());
+            final Uri folder2 = parent1.getDirectory();
+
+            Assert.assertEquals(expParen1, parent1);
+            Assert.assertEquals(expParen1.hashCode(), parent1.hashCode());
+            Assert.assertEquals(expFolde1, folder1);
+
+            Assert.assertEquals(expParen2, parent2);
+            Assert.assertEquals(expParen2.hashCode(), parent2.hashCode());
+            Assert.assertEquals(expFolde2, folder2);
         }
-    }
-
-    @Test
-    public void test10HttpUri2URL() throws IOException, URISyntaxException {
-        testUri2URL(getSimpleTestName("."), TestUri03Resolving.uriHttpSArray);
-    }
-
-    @Test
-    public void test20FileUnixUri2URL() throws IOException, URISyntaxException {
-        testUri2URL(getSimpleTestName("."), TestUri03Resolving.uriFileSArrayUnix);
-    }
-
-    @Test
-    public void test21FileWindowsUri2URL() throws IOException, URISyntaxException {
-        testUri2URL(getSimpleTestName("."), TestUri03Resolving.uriFileSArrayWindows);
-    }
-
-    @Test
-    public void test30FileUnixUri2URL() throws IOException, URISyntaxException {
-        if( Platform.OSType.WINDOWS != PlatformPropsImpl.OS_TYPE ) {
-            testFile2Uri(getSimpleTestName("."), TestUri03Resolving.fileSArrayUnix);
-        }
-    }
-
-    @Test
-    public void test31FileWindowsUri2URL() throws IOException, URISyntaxException {
-        if( Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE ) {
-            testFile2Uri(getSimpleTestName("."), TestUri03Resolving.fileSArrayWindows);
-        }
-    }
-
-    static void testUri2URL(final String testname, final String[][] uriSArray) throws IOException, URISyntaxException {
-        boolean ok = true;
-        for(int i=0; i<uriSArray.length; i++) {
-            final String[] uriSPair = uriSArray[i];
-            final String uriSource = uriSPair[0];
-            System.err.println("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS "+testname+": "+(i+1)+"/"+uriSArray.length);
-            ok = testUri2URL(Uri.Encoded.cast(uriSource)) && ok;
-            System.err.println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE "+testname+": "+(i+1)+"/"+uriSArray.length);
-        }
-        Assert.assertTrue("One or more errors occured see stderr above", ok);
-    }
-
-    static boolean testUri2URL(final Uri.Encoded uriSource) throws IOException, URISyntaxException {
-        System.err.println("uriSource   : "+uriSource);
-        final Uri uri0 = new Uri(uriSource);
-        URIDumpUtil.showUri(uri0);
-
-        final URI actualURI = uri0.toURI();
-        URIDumpUtil.showURI(actualURI);
-        final Uri.Encoded actualURIStr = Uri.Encoded.cast(actualURI.toString());
-
-        final URL actualURL = uri0.toURL();
-        URIDumpUtil.showURL(actualURL);
-        final Uri.Encoded actualURLStr = Uri.Encoded.cast(actualURL.toExternalForm());
-
-        System.err.println("expected_URX: "+uriSource);
-
-        final boolean equalsURI = uriSource.equals(actualURIStr);
-        System.err.println("actual   URI: "+actualURIStr+" - "+(equalsURI?"OK":"ERROR"));
-        final boolean equalsURL = uriSource.equals(actualURLStr);
-        System.err.println("actual   URL: "+actualURLStr+" - "+(equalsURL?"OK":"ERROR"));
-        URIDumpUtil.showReencodedURIOfUri(uri0);
-        URIDumpUtil.showReencodedUriOfURI(actualURI);
-
-        final boolean ok = equalsURL && equalsURI;
-
-        // now test open ..
-        Throwable t = null;
-        URLConnection con = null;
-        try {
-            con = actualURL.openConnection();
-        } catch (final Throwable _t) {
-            t = _t;
-        }
-        if( null != t ) {
-            System.err.println("XXX: "+t.getClass().getName()+": "+t.getMessage());
-            t.printStackTrace();
-        } else {
-            System.err.println("XXX: No openConnection() failure");
-            System.err.println("XXX: "+con);
-        }
-        return ok;
-    }
-
-    static void testFile2Uri(final String testname, final String[][] uriSArray) throws IOException, URISyntaxException {
-        boolean ok = true;
-        for(int i=0; i<uriSArray.length; i++) {
-            final String[] uriSPair = uriSArray[i];
-            final String uriSource = uriSPair[0];
-            final String uriEncExpected= uriSPair[1];
-            final String fileExpected= uriSPair[2];
-            System.err.println("SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS "+testname+": "+(i+1)+"/"+uriSArray.length);
-            ok = testFile2Uri(uriSource, Uri.Encoded.cast(uriEncExpected), fileExpected) && ok;
-            System.err.println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE "+testname+": "+(i+1)+"/"+uriSArray.length);
-        }
-        Assert.assertTrue("One or more errors occured see stderr above", ok);
-    }
-
-    static boolean testFile2Uri(final String fileSource, final Uri.Encoded uriEncExpected, final String fileExpected) throws IOException, URISyntaxException {
-        System.err.println("fileSource:         "+fileSource);
-        final File file = new File(fileSource);
-        System.err.println("file:               "+file.getAbsolutePath());
-        final Uri uri1 = Uri.valueOf(file);
-        System.err.println("uri1.string:        "+uri1.toString());
-        URIDumpUtil.showUri(uri1);
-        URIDumpUtil.showURL(uri1.toURL());
-        URIDumpUtil.showReencodedURIOfUri(uri1);
-
-        final URL actualUrl = uri1.toURL();
-        final String actualFileS = uri1.getNativeFilePath();
-        final boolean equalsFilePath = fileExpected.equals(actualFileS);
-        System.err.println("expected_path:      "+fileExpected);
-        System.err.println("actual___file-path: "+actualFileS+" - "+(equalsFilePath?"OK":"ERROR"));
-        final boolean equalsEncUri = uriEncExpected.equals(uri1.input);
-        System.err.println("expected__encUri:   "+uriEncExpected);
-        System.err.println("actual_______Uri:   "+uri1.input+" - "+(equalsEncUri?"OK":"ERROR"));
-        final boolean ok = equalsEncUri && equalsFilePath;
-
-        System.err.println("actual_______URL:   "+actualUrl.toExternalForm());
-
-        // now test open ..
-        Throwable t = null;
-        URLConnection con = null;
-        try {
-            con = actualUrl.openConnection();
-        } catch (final Throwable _t) {
-            t = _t;
-        }
-        if( null != t ) {
-            System.err.println("XXX: "+t.getClass().getName()+": "+t.getMessage());
-            t.printStackTrace();
-        } else {
-            System.err.println("XXX: No openConnection() failure");
-            System.err.println("XXX: "+con);
-        }
-        return ok;
     }
 
     public static void main(final String args[]) throws IOException {

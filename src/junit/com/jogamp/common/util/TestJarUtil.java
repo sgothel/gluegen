@@ -30,7 +30,6 @@ package com.jogamp.common.util;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -46,6 +45,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.GlueGenVersion;
+import com.jogamp.common.net.URIDumpUtil;
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
@@ -97,7 +98,7 @@ public class TestJarUtil extends JunitTracer {
         }
     }
 
-    void validateJarFileURL(final URI jarFileURI) throws IllegalArgumentException, IOException, URISyntaxException {
+    void validateJarFileURL(final Uri jarFileURI) throws IllegalArgumentException, IOException, URISyntaxException {
         Assert.assertNotNull(jarFileURI);
         final URL jarFileURL = jarFileURI.toURL();
         final URLConnection aURLc = jarFileURL.openConnection();
@@ -110,18 +111,27 @@ public class TestJarUtil extends JunitTracer {
     }
 
     void validateJarUtil(final String expJarName, final String clazzBinName, final ClassLoader cl) throws IllegalArgumentException, IOException, URISyntaxException {
-        final String jarName= JarUtil.getJarBasename(clazzBinName, cl);
+        final Uri.Encoded expJarNameE = Uri.Encoded.cast(expJarName);
+        final Uri.Encoded jarName= JarUtil.getJarBasename(clazzBinName, cl);
         Assert.assertNotNull(jarName);
-        Assert.assertEquals(expJarName, jarName);
+        Assert.assertEquals(expJarNameE, jarName);
 
-        final URI jarSubURI = JarUtil.getJarSubURI(clazzBinName, cl);
-        Assert.assertNotNull(jarSubURI);
-        final URL jarSubURL= jarSubURI.toURL();
+        final Uri jarUri = JarUtil.getJarUri(clazzBinName, cl);
+        Assert.assertNotNull(jarUri);
+        System.err.println("1 - jarUri:");
+        URIDumpUtil.showUri(jarUri);
+
+        final Uri jarSubUri = jarUri.getContainedUri();
+        Assert.assertNotNull(jarSubUri);
+        System.err.println("2 - jarSubUri:");
+        URIDumpUtil.showUri(jarSubUri);
+
+        final URL jarSubURL= jarSubUri.toURL();
         final URLConnection urlConn = jarSubURL.openConnection();
         Assert.assertTrue("jarSubURL has zero content: "+jarSubURL, urlConn.getContentLength()>0);
         System.err.println("URLConnection of jarSubURL: "+urlConn);
 
-        final URI jarFileURL = JarUtil.getJarFileURI(clazzBinName, cl);
+        final Uri jarFileURL = JarUtil.getJarFileUri(clazzBinName, cl);
         validateJarFileURL(jarFileURL);
 
         final JarFile jarFile = JarUtil.getJarFile(clazzBinName, cl);
@@ -146,10 +156,10 @@ public class TestJarUtil extends JunitTracer {
         final ClassLoader rootCL = this.getClass().getClassLoader();
 
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURI("ClassInJar0", rootCL));
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileUri("ClassInJar0", rootCL));
 
         // Fetch and load the contained "ClassInJar1.jar"
-        final URL ClassInJar1_jarFileURL = JarUtil.getJarFileURI(TempJarCache.getResource("ClassInJar1.jar")).toURL();
+        final URL ClassInJar1_jarFileURL = JarUtil.getJarFileUri(TempJarCache.getResourceUri("ClassInJar1.jar")).toURL();
         final ClassLoader cl = new URLClassLoader(new URL[] { ClassInJar1_jarFileURL }, rootCL);
         Assert.assertNotNull(cl);
         validateJarUtil("ClassInJar1.jar", "ClassInJar1", cl);
@@ -167,10 +177,10 @@ public class TestJarUtil extends JunitTracer {
         final ClassLoader rootCL = this.getClass().getClassLoader();
 
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURI("ClassInJar0", rootCL));
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileUri("ClassInJar0", rootCL));
 
         // Fetch and load the contained "ClassInJar1.jar"
-        final URL ClassInJar2_jarFileURL = JarUtil.getJarFileURI(TempJarCache.getResource("sub/ClassInJar2.jar")).toURL();
+        final URL ClassInJar2_jarFileURL = JarUtil.getJarFileUri(TempJarCache.getResourceUri("sub/ClassInJar2.jar")).toURL();
         final ClassLoader cl = new URLClassLoader(new URL[] { ClassInJar2_jarFileURL }, rootCL);
         Assert.assertNotNull(cl);
         validateJarUtil("ClassInJar2.jar", "ClassInJar2", cl);
@@ -231,7 +241,7 @@ public class TestJarUtil extends JunitTracer {
             public URL resolve( final URL url ) {
                 if( url.getProtocol().equals("bundleresource") ) {
                     try {
-                        return new URL( IOUtil.JAR_SCHEME, "", url.getFile() );
+                        return new URL( Uri.JAR_SCHEME, "", url.getFile() );
                     } catch(final MalformedURLException e) {
                         return url;
                     }
@@ -244,10 +254,10 @@ public class TestJarUtil extends JunitTracer {
         final ClassLoader rootCL = new CustomClassLoader();
 
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
-        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileURI("ClassInJar0", rootCL));
+        TempJarCache.addAll(GlueGenVersion.class, JarUtil.getJarFileUri("ClassInJar0", rootCL));
 
         // Fetch and load the contained "ClassInJar1.jar"
-        final URL ClassInJar2_jarFileURL = JarUtil.getJarFileURI(TempJarCache.getResource("sub/ClassInJar2.jar")).toURL();
+        final URL ClassInJar2_jarFileURL = JarUtil.getJarFileUri(TempJarCache.getResourceUri("sub/ClassInJar2.jar")).toURL();
         final ClassLoader cl = new URLClassLoader(new URL[] { ClassInJar2_jarFileURL }, rootCL);
         Assert.assertNotNull(cl);
         validateJarUtil("ClassInJar2.jar", "ClassInJar2", cl);

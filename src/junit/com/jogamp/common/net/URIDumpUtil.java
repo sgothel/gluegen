@@ -52,7 +52,7 @@ public class URIDumpUtil {
 
         System.err.println("0.0.0 string:      "+uri.toString());
         System.err.println("0.0.0 ascii :      "+uri.toASCIIString());
-        System.err.println("0.0.0 native-file: "+uri.getNativeFilePath());
+        System.err.println("0.0.0 native-file: "+uri.toFile());
         System.err.println("0.0.0 contained:   "+uri.getContainedUri());
 
         System.err.println("1.0.0 scheme:      "+uri.scheme);
@@ -73,7 +73,7 @@ public class URIDumpUtil {
      * @throws URISyntaxException
      */
     public static void showReencodedURIOfUri(final Uri uri) throws URISyntaxException {
-        final URI recomposedURI = uri.toURI(true);
+        final URI recomposedURI = uri.toURIReencoded();
         showURI("YYYYYY Recomposed URI "+recomposedURI+", isOpaque "+recomposedURI.isOpaque()+", isAbs "+recomposedURI.isAbsolute(), recomposedURI);
         final String recomposedURIStr = recomposedURI.toString();
         final boolean equalsRecompURI = uri.input.equals(recomposedURIStr);
@@ -88,7 +88,7 @@ public class URIDumpUtil {
      * @throws URISyntaxException
      */
     public static void showReencodedUriOfURI(final URI uri) throws URISyntaxException {
-        final Uri recomposedUri = Uri.valueOf(uri, true);
+        final Uri recomposedUri = Uri.valueOf(uri);
         showUri("ZZZZZZ Recomposed Uri "+recomposedUri+", isOpaque "+recomposedUri.opaque+", isAbs "+recomposedUri.absolute+", hasAuth "+recomposedUri.hasAuthority, recomposedUri);
         final String recomposedUriStr = recomposedUri.toString();
         final boolean equalsRecompUri = uri.toString().equals(recomposedUriStr);

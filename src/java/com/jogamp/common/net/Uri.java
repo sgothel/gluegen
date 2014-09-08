@@ -1,8 +1,9 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2014 JogAmp Community. All rights reserved.
+ * Copyright 2006, 2010 The Apache Software Foundation.
  *
  * This code is derived from the Apache Harmony project's {@code class java.net.URI.Helper},
- * copyright 2006, 2010 The Apache Software Foundation (http://www.apache.org/).
+ * and has been heavily modified for GlueGen/JogAmp.
  *
  * Licensed to the Apache Software Foundation (ASF) under one or more
  * contributor license agreements.  See the LICENSE.txt file distributed with
@@ -24,13 +25,14 @@ package com.jogamp.common.net;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.StringTokenizer;
 import java.util.regex.Pattern;
 
+import jogamp.common.Debug;
+
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.PropertyAccess;
 
 /**
  * This class implements an immutable Uri as defined by <a href="https://tools.ietf.org/html/rfc2396">RFC 2396</a>.
@@ -156,6 +158,29 @@ import com.jogamp.common.util.IOUtil;
  * @since 2.2.1
  */
 public class Uri {
+    private static final boolean DEBUG;
+    private static final boolean DEBUG_SHOWFIX;
+
+    static {
+        Debug.initSingleton();
+        DEBUG = IOUtil.DEBUG || Debug.debug("Uri");
+        DEBUG_SHOWFIX = PropertyAccess.isPropertyDefined("jogamp.debug.Uri.ShowFix", true);
+    }
+
+    /**
+     * Usually used to fix a path from a previously contained and opaque Uri,
+     * i.e. {@link #getContainedUri()}.
+     * <p>
+     * Such an opaque Uri w/ erroneous encoding may have been injected via
+     * {@link #valueOf(URI)} and {@link #valueOf(URL)} where the given URL or URI was opaque!
+     * </p>
+     * <p>
+     * This remedies issues when dealing w/ java URI/URL opaque sources,
+     * which do not comply to the spec, i.e. containe un-encoded chars, e.g. ':', '$', ..
+     * </p>
+     */
+    private static final int PARSE_HINT_FIX_PATH = 1 << 0;
+
     private static final String DIGITS = "0123456789ABCDEF";
 
     private static final String ENCODING = "UTF8";
@@ -248,12 +273,25 @@ public class Uri {
     public static final String FRAG_LEGAL = UNRESERVED + RESERVED;
     // Harmony: unreserved + reserved
 
+    /** {@value} */
+    public static final char SCHEME_SEPARATOR = ':';
+    /** {@value} */
+    public static final char FRAGMENT_SEPARATOR = '#';
+    /** {@value} */
+    public static final String FILE_SCHEME = "file";
+    /** {@value} */
+    public static final String HTTP_SCHEME = "http";
+    /** {@value} */
+    public static final String HTTPS_SCHEME = "https";
+    /** {@value} */
+    public static final String JAR_SCHEME = "jar";
+    /** A JAR sub-protocol is separated from the JAR entry w/ this separator {@value}. Even if no class is specified '!/' must follow!. */
+    public static final char JAR_SCHEME_SEPARATOR = '!';
+
     /**
      * Immutable RFC3986 encoded string.
      */
     public static class Encoded implements Comparable<Encoded>, CharSequence {
-        public static final Encoded EMPTY = new Encoded("");
-
         private final String s;
 
         /**
@@ -394,6 +432,11 @@ public class Uri {
         public int lastIndexOf(final String str) { return s.lastIndexOf(str); }
         /** See {@link String#lastIndexOf(String, int)}. */
         public int lastIndexOf(final String str, final int fromIndex) { return s.lastIndexOf(str, fromIndex); }
+
+        /** See {@link String#startsWith(String, int)} */
+        public boolean startsWith(final String prefix, final int toffset) { return s.startsWith(prefix, toffset); }
+        /** See {@link String#endsWith(String)} */
+        public boolean endsWith(final String suffix) { return s.endsWith(suffix); }
 
         /** See {@link String#equalsIgnoreCase(String)}. */
         public final boolean equalsIgnoreCase(final Encoded anotherEncoded) { return s.equalsIgnoreCase(anotherEncoded.s); }
@@ -609,18 +652,18 @@ public class Uri {
         final StringBuilder uri = new StringBuilder();
         if ( !emptyString(scheme) ) {
             uri.append(scheme);
-            uri.append(IOUtil.SCHEME_SEPARATOR);
+            uri.append(SCHEME_SEPARATOR);
         }
         if ( !emptyString(ssp) ) {
             // QUOTE ILLEGAL CHARACTERS
             uri.append(encode(ssp, SSP_LEGAL));
         }
         if ( !emptyString(fragment) ) {
-            uri.append(IOUtil.FRAGMENT_SEPARATOR);
+            uri.append(FRAGMENT_SEPARATOR);
             // QUOTE ILLEGAL CHARACTERS
             uri.append(encode(fragment, FRAG_LEGAL));
         }
-        return new Uri(new Encoded(uri.toString()), false);
+        return new Uri(new Encoded(uri.toString()), false, 0);
     }
 
     /**
@@ -658,7 +701,7 @@ public class Uri {
         final StringBuilder uri = new StringBuilder();
         if ( !emptyString(scheme) ) {
             uri.append(scheme);
-            uri.append(IOUtil.SCHEME_SEPARATOR);
+            uri.append(SCHEME_SEPARATOR);
         }
 
         if ( !emptyString(userinfo) || !emptyString(host) || port != -1) {
@@ -674,7 +717,7 @@ public class Uri {
         if ( !emptyString(host) ) {
             // check for ipv6 addresses that hasn't been enclosed
             // in square brackets
-            if (host.indexOf(IOUtil.SCHEME_SEPARATOR) != -1 && host.indexOf(']') == -1
+            if (host.indexOf(SCHEME_SEPARATOR) != -1 && host.indexOf(']') == -1
                     && host.indexOf('[') == -1) {
                 host = "[" + host + "]";
             }
@@ -682,7 +725,7 @@ public class Uri {
         }
 
         if ( port != -1 ) {
-            uri.append(IOUtil.SCHEME_SEPARATOR);
+            uri.append(SCHEME_SEPARATOR);
             uri.append(port);
         }
 
@@ -699,10 +742,10 @@ public class Uri {
 
         if ( !emptyString(fragment) ) {
             // QUOTE ILLEGAL CHARS
-            uri.append(IOUtil.FRAGMENT_SEPARATOR);
+            uri.append(FRAGMENT_SEPARATOR);
             uri.append(encode(fragment, FRAG_LEGAL));
         }
-        return new Uri(new Encoded(uri.toString()), true);
+        return new Uri(new Encoded(uri.toString()), true, 0);
     }
 
     /**
@@ -759,7 +802,7 @@ public class Uri {
         final StringBuilder uri = new StringBuilder();
         if ( !emptyString(scheme) ) {
             uri.append(scheme);
-            uri.append(IOUtil.SCHEME_SEPARATOR);
+            uri.append(SCHEME_SEPARATOR);
         }
         if ( !emptyString(authority) ) {
             uri.append("//");
@@ -778,10 +821,10 @@ public class Uri {
         }
         if ( !emptyString(fragment) ) {
             // QUOTE ILLEGAL CHARS
-            uri.append(IOUtil.FRAGMENT_SEPARATOR);
+            uri.append(FRAGMENT_SEPARATOR);
             uri.append(encode(fragment, FRAG_LEGAL));
         }
-        return new Uri(new Encoded(uri.toString()), false);
+        return new Uri(new Encoded(uri.toString()), false, 0);
     }
 
     /**
@@ -820,13 +863,13 @@ public class Uri {
         }
 
         final StringBuilder uri = new StringBuilder();
-        uri.append(IOUtil.FILE_SCHEME);
-        uri.append(IOUtil.SCHEME_SEPARATOR);
+        uri.append(FILE_SCHEME);
+        uri.append(SCHEME_SEPARATOR);
 
         // QUOTE ILLEGAL CHARS
         uri.append(encode(path, PATH_LEGAL));
 
-        return new Uri(new Encoded(uri.toString()), false);
+        return new Uri(new Encoded(uri.toString()), false, 0);
     }
 
     /**
@@ -852,45 +895,41 @@ public class Uri {
     /**
      * Creates a new Uri instance using the given URI instance.
      * <p>
-     * If {@code reencode} is {@code true}, decomposes and decoded parts of the given URI
-     * and reconstruct a new encoded Uri instance, re-encoding will be performed.
+     * Re-encoding will be performed if the given URI is {@link URI#isOpaque() not opaque}.
      * </p>
      * <p>
-     * If {@code reencode} is {@code false}, the encoded {@link URI#toString()} is being used for the new Uri instance,
-     * i.e. no re-encoding will be performed.
+     * See {@link #PARSE_HINT_FIX_PATH} for issues of injecting opaque URLs.
      * </p>
      *
      * @param uri A given URI instance
-     * @param reencode flag whether re-encoding shall be performed
-     *
      * @throws URISyntaxException
      *             if the temporary created string doesn't fit to the
      *             specification RFC2396 or could not be parsed correctly.
      */
-    public static Uri valueOf(final URI uri, final boolean reencode) throws URISyntaxException {
-        if( !reencode) {
-            return new Uri(new Encoded(uri.toString()));
-        }
-        final Uri recomposedUri;
+    public static Uri valueOf(final java.net.URI uri) throws URISyntaxException {
         if( uri.isOpaque()) {
-            // opaque, without host validation
-            recomposedUri = Uri.create(uri.getScheme(), uri.getSchemeSpecificPart(), uri.getFragment());
+            // opaque, without host validation.
+            // Note: This may induce encoding errors of authority and path, see {@link #PARSE_HINT_FIX_PATH}
+            return new Uri(new Encoded( uri.toString() ), false, 0);
         } else if( null != uri.getHost() ) {
             // with host validation
-            recomposedUri = Uri.create(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
-                                       uri.getPath(), uri.getQuery(), uri.getFragment());
+            return Uri.create(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
+                              uri.getPath(), uri.getQuery(), uri.getFragment());
         } else {
             // without host validation
-            recomposedUri = Uri.create(uri.getScheme(), uri.getAuthority(),
-                                       uri.getPath(), uri.getQuery(), uri.getFragment());
+            return Uri.create(uri.getScheme(), uri.getAuthority(),
+                              uri.getPath(), uri.getQuery(), uri.getFragment());
         }
-        return recomposedUri;
     }
 
     /**
-     * Creates a new Uri instance using the given URL instance.
+     * Creates a new Uri instance using the given URL instance,
+     * convenient wrapper for {@link #valueOf(URI)} and {@link URL#toURI()}.
      * <p>
-     * No re-encoding will be performed.
+     * Re-encoding will be performed if the given URL is {@link URI#isOpaque() not opaque}, see {@link #valueOf(URI)}.
+     * </p>
+     * <p>
+     * See {@link #PARSE_HINT_FIX_PATH} for issues of injecting opaque URLs.
      * </p>
      *
      * @param url A given URL instance
@@ -899,8 +938,8 @@ public class Uri {
      *             if the temporary created string doesn't fit to the
      *             specification RFC2396 or could not be parsed correctly.
      */
-    public static Uri valueOf(final URL url) throws URISyntaxException {
-        return new Uri(new Encoded(url.toString()));
+    public static Uri valueOf(final java.net.URL url) throws URISyntaxException {
+        return valueOf(url.toURI());
     }
 
     //
@@ -963,12 +1002,12 @@ public class Uri {
      *             specification RFC2396 and RFC3986 or could not be parsed correctly.
      */
     public Uri(final Encoded uri) throws URISyntaxException {
-        this(uri, false);
+        this(uri, false, 0);
     }
 
     /** Returns true, if this instance is a {@code file} {@code scheme}, otherwise false. */
     public final boolean isFileScheme() {
-        return IOUtil.FILE_SCHEME.equals( scheme.get() );
+        return FILE_SCHEME.equals( scheme.get() );
     }
 
     /**
@@ -1001,11 +1040,12 @@ public class Uri {
     /**
      * Returns a new {@link URI} instance using the encoded {@link #input} string, {@code new URI(uri.input)},
      * i.e. no re-encoding will be performed.
-     * @see #toURI(boolean)
+     * @see #toURIReencoded(boolean)
+     * @see #valueOf(URI)
      */
-    public final URI toURI() {
+    public final java.net.URI toURI() {
         try {
-            return new URI(input.get());
+            return new java.net.URI(input.get());
         } catch (final URISyntaxException e) {
             throw new Error(e); // Can't happen
         }
@@ -1014,35 +1054,29 @@ public class Uri {
     /**
      * Returns a new {@link URI} instance based upon this instance.
      * <p>
-     * If {@code reencode} is {@code true}, all Uri parts of this instance will be decoded
+     * All Uri parts of this instance will be decoded
      * and encoded by the URI constructor, i.e. re-encoding will be performed.
-     * </p>
-     * <p>
-     * If {@code reencode} is {@code false}, this instance encoded {@link #input} string is being used, see {@link #toURI()},
-     * i.e. no re-encoding will be performed.
      * </p>
      *
      * @throws URISyntaxException
      *             if the given string {@code uri} doesn't fit to the
      *             specification RFC2396 or could not be parsed correctly.
-     * @see #valueOf(URI, boolean)
+     * @see #toURI()
+     * @see #valueOf(URI)
      */
-    public final URI toURI(final boolean reencode) throws URISyntaxException {
-        if( !reencode ) {
-            return toURI();
-        }
-        final URI recomposedURI;
+    public final java.net.URI toURIReencoded() throws URISyntaxException {
+        final java.net.URI recomposedURI;
         if( opaque ) {
             // opaque, without host validation
-            recomposedURI = new URI(decode(scheme), decode(schemeSpecificPart), decode(fragment));
+            recomposedURI = new java.net.URI(decode(scheme), decode(schemeSpecificPart), decode(fragment));
         } else if( null != host ) {
             // with host validation
-            recomposedURI = new URI(decode(scheme), decode(userInfo), decode(host), port,
-                                    decode(path), decode(query), decode(fragment));
+            recomposedURI = new java.net.URI(decode(scheme), decode(userInfo), decode(host), port,
+                                             decode(path), decode(query), decode(fragment));
         } else {
             // without host validation
-            recomposedURI = new URI(decode(scheme), decode(authority),
-                                    decode(path), decode(query), decode(fragment));
+            recomposedURI = new java.net.URI(decode(scheme), decode(authority),
+                                             decode(path), decode(query), decode(fragment));
         }
         return recomposedURI;
     }
@@ -1055,11 +1089,11 @@ public class Uri {
      *             if an error occurs while creating the URL or no protocol
      *             handler could be found.
      */
-    public final URL toURL() throws MalformedURLException {
+    public final java.net.URL toURL() throws MalformedURLException {
         if (!absolute) {
             throw new IllegalArgumentException("Cannot convert relative Uri: "+input);
         }
-        return new URL(input.get());
+        return new java.net.URL(input.get());
     }
 
     /**
@@ -1071,11 +1105,12 @@ public class Uri {
      *   <li>slash -> backslash</li>
      *   <li>drop a starting single backslash, preserving windows UNC</li>
      * </ul>
+     * and returns the resulting new {@link File} instance.
      * <p>
      * Otherwise implementation returns {@code null}.
      * </p>
      */
-    public final String getNativeFilePath() {
+    public final File toFile() {
         if( isFileScheme() ) {
             final String authorityS;
             if( null == authority ) {
@@ -1083,17 +1118,16 @@ public class Uri {
             } else {
                 authorityS = "//"+authority.decode();
             }
-            // return IOUtil.decodeURIToFilePath(authorityS + path);
             final String path = authorityS+this.path.decode();
             if( File.separator.equals("\\") ) {
                 final String r = patternSingleFS.matcher(path).replaceAll("\\\\");
                 if( r.startsWith("\\") && !r.startsWith("\\\\") ) { // '\\\\' denotes UNC hostname, which shall not be cut-off
-                    return r.substring(1);
+                    return new File(r.substring(1));
                 } else {
-                    return r;
+                    return new File(r);
                 }
             }
-            return path;
+            return new File(path);
         }
         return null;
     }
@@ -1127,8 +1161,8 @@ public class Uri {
         if( !emptyString(schemeSpecificPart) ) {
             final StringBuilder sb = new StringBuilder();
 
-            if( scheme.equals(IOUtil.JAR_SCHEME) ) {
-                final int idx = schemeSpecificPart.lastIndexOf(IOUtil.JAR_SCHEME_SEPARATOR);
+            if( scheme.equals(JAR_SCHEME) ) {
+                final int idx = schemeSpecificPart.lastIndexOf(JAR_SCHEME_SEPARATOR);
                 if (0 > idx) {
                     throw new URISyntaxException(input.get(), "missing jar separator");
                 }
@@ -1137,16 +1171,20 @@ public class Uri {
                 sb.append( schemeSpecificPart.get() );
             }
             if ( !emptyString(fragment) ) {
-                sb.append(IOUtil.FRAGMENT_SEPARATOR);
+                sb.append(FRAGMENT_SEPARATOR);
                 sb.append(fragment);
             }
             try {
-                final Uri res = new Uri(new Encoded(sb.toString()), false);
+                final int parseHints = opaque ? PARSE_HINT_FIX_PATH : 0;
+                final Uri res = new Uri(new Encoded(sb.toString()), false, parseHints);
                 if( null != res.scheme ) {
                     return res;
                 }
             } catch(final URISyntaxException e) {
                 // OK, does not contain uri
+                if( DEBUG ) {
+                    e.printStackTrace();
+                }
             }
         }
         return null;
@@ -1160,7 +1198,7 @@ public class Uri {
      * Method is {@code jar-file-entry} aware, i.e. will return the parent entry if exists.
      * </p>
      * <p>
-     * If this Uri does not contain any path separator, method returns {@code null}.
+     * If this Uri does not contain any path separator, or a parent folder Uri cannot be found, method returns {@code null}.
      * </p>
      * <pre>
      * Example-1:
@@ -1182,7 +1220,7 @@ public class Uri {
                 if( e <  pl - 1 ) {
                     // path is file or has a query
                     try {
-                        return new Uri( new Encoded( scheme.get()+IOUtil.SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, e+1) ) );
+                        return new Uri( new Encoded( scheme.get()+SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, e+1) ) );
                     } catch (final URISyntaxException ue) {
                         // not complete, hence removed authority, or even root folder -> return null
                     }
@@ -1191,7 +1229,7 @@ public class Uri {
                 final int p = schemeSpecificPart.lastIndexOf("/", e-1);
                 if( p > 0 ) {
                     try {
-                        return new Uri( new Encoded( scheme.get()+IOUtil.SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, p+1) ) );
+                        return new Uri( new Encoded( scheme.get()+SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, p+1) ) );
                     } catch (final URISyntaxException ue) {
                         // not complete, hence removed authority, or even root folder -> return null
                     }
@@ -1199,6 +1237,22 @@ public class Uri {
             }
         }
         return null;
+    }
+
+    /**
+     * Concatenates the given encoded string to the {@link #getEncoded() encoded uri}
+     * of this instance and returns {@link #Uri(Encoded) a new Uri instance} with the result.
+     *
+     * @throws URISyntaxException
+     *             if the concatenated string {@code uri} doesn't fit to the
+     *             specification RFC2396 and RFC3986 or could not be parsed correctly.
+     */
+    public final Uri concat(final Uri.Encoded suffix) throws URISyntaxException {
+        if( null == suffix ) {
+            return this;
+        } else {
+            return new Uri( input.concat(suffix) );
+        }
     }
 
     /// NEW START
@@ -1232,7 +1286,11 @@ public class Uri {
         }
         try {
             return Uri.cast(uriS.substring(0, idx+1)); // exclude jar name, include terminal '/' or ':'
-        } catch (final URISyntaxException ue) {}
+        } catch (final URISyntaxException ue) {
+            if( DEBUG ) {
+                ue.printStackTrace();
+            }
+        }
         return null;
     }
 
@@ -1449,7 +1507,7 @@ public class Uri {
         final StringBuilder result = new StringBuilder();
         if (scheme != null) {
             result.append(scheme.get().toLowerCase());
-            result.append(IOUtil.SCHEME_SEPARATOR);
+            result.append(SCHEME_SEPARATOR);
         }
         if (opaque) {
             result.append(schemeSpecificPart.get());
@@ -1460,11 +1518,11 @@ public class Uri {
                     result.append(authority.get());
                 } else {
                     if (userInfo != null) {
-                        result.append(userInfo.get() + "@"); //$NON-NLS-1$
+                        result.append(userInfo.get() + "@");
                     }
                     result.append(host.get().toLowerCase());
                     if (port != -1) {
-                        result.append(IOUtil.SCHEME_SEPARATOR + port);
+                        result.append(SCHEME_SEPARATOR + port);
                     }
                 }
             }
@@ -1480,7 +1538,7 @@ public class Uri {
         }
 
         if (fragment != null) {
-            result.append(IOUtil.FRAGMENT_SEPARATOR);
+            result.append(FRAGMENT_SEPARATOR);
             result.append(fragment.get());
         }
         return convertHexToLowerCase(result.toString());
@@ -1490,21 +1548,20 @@ public class Uri {
      *
      * @param input
      * @param expectServer
+     * @param parseHints TODO
      * @throws URISyntaxException
      */
-    private Uri(final Encoded input, final boolean expectServer) throws URISyntaxException {
+    private Uri(final Encoded input, final boolean expectServer, final int parseHints) throws URISyntaxException {
         if( emptyString(input) ) {
             throw new URISyntaxException(input.get(), "empty input");
         }
-        this.input = input;
-
         String temp = input.get();
         int index;
         // parse into Fragment, Scheme, and SchemeSpecificPart
         // then parse SchemeSpecificPart if necessary
 
         // Fragment
-        index = temp.indexOf(IOUtil.FRAGMENT_SEPARATOR);
+        index = temp.indexOf(FRAGMENT_SEPARATOR);
         if (index != -1) {
             // remove the fragment from the end
             fragment = new Encoded( temp.substring(index + 1) );
@@ -1514,12 +1571,15 @@ public class Uri {
             fragment = null;
         }
 
+        String inputTemp = input.get(); // may get modified due to error correction
+
         // Scheme and SchemeSpecificPart
-        final int indexSchemeSep = temp.indexOf(IOUtil.SCHEME_SEPARATOR);
+        final int indexSchemeSep = temp.indexOf(SCHEME_SEPARATOR);
         index = indexSchemeSep;
         final int indexSSP = temp.indexOf('/');
         final int indexQuerySep = temp.indexOf('?');
-        final String schemeSpecificPartS;
+
+        String sspTemp; // may get modified due to error correction
 
         // if a '/' or '?' occurs before the first ':' the uri has no
         // specified scheme, and is therefore not absolute
@@ -1534,24 +1594,22 @@ public class Uri {
                 failExpecting(input, "scheme", indexSchemeSep);
             }
             validateScheme(input, scheme, 0);
-            schemeSpecificPartS = temp.substring(indexSchemeSep + 1);
-            schemeSpecificPart = new Encoded( schemeSpecificPartS );
-            if (schemeSpecificPart.length() == 0) {
+            sspTemp = temp.substring(indexSchemeSep + 1);
+            if (sspTemp.length() == 0) {
                 failExpecting(input, "scheme-specific-part", indexSchemeSep);
             }
         } else {
             absolute = false;
             scheme = null;
-            schemeSpecificPartS = temp;
-            schemeSpecificPart = new Encoded( schemeSpecificPartS );
+            sspTemp = temp;
         }
 
-        if ( scheme == null ||  schemeSpecificPartS.length() > 0 && schemeSpecificPartS.charAt(0) == '/' ) {
+        if ( scheme == null ||  sspTemp.length() > 0 && sspTemp.charAt(0) == '/' ) {
             // Uri is hierarchical, not opaque
             opaque = false;
 
             // Query
-            temp = schemeSpecificPartS;
+            temp = sspTemp;
             index = temp.indexOf('?');
             if (index != -1) {
                 query = new Encoded( temp.substring(index + 1) );
@@ -1561,19 +1619,24 @@ public class Uri {
                 query = null;
             }
 
+            String pathTemp; // may get modified due to error correction
+            final int indexPathInSSP;
+
             // Authority and Path
             if (temp.startsWith("//")) {
                 index = temp.indexOf('/', 2);
                 final String authorityS;
                 if (index != -1) {
                     authorityS = temp.substring(2, index);
-                    path = new Encoded( temp.substring(index) );
+                    pathTemp = temp.substring(index);
+                    indexPathInSSP = index;
                 } else {
                     authorityS = temp.substring(2);
                     if (authorityS.length() == 0 && query == null && fragment == null) {
                         failExpecting(input, "authority, path [, query, fragment]", index);
                     }
-                    path = Encoded.EMPTY;
+                    pathTemp = "";
+                    indexPathInSSP = -1;
                     // nothing left, so path is empty
                     // (not null, path should never be null if hierarchical/non-opaque)
                 }
@@ -1584,26 +1647,67 @@ public class Uri {
                     validateAuthority(input, authority, indexSchemeSep + 3);
                 }
             } else { // no authority specified
-                path = new Encoded( temp );
+                pathTemp = temp;
+                indexPathInSSP = 0;
                 authority = null;
             }
 
-            int pathIndex = 0;
+            int indexPath = 0; // in input
             if (indexSSP > -1) {
-                pathIndex += indexSSP;
+                indexPath += indexSSP;
             }
-            if (index > -1) {
-                pathIndex += index;
+            if (indexPathInSSP > -1) {
+                indexPath += indexPathInSSP;
             }
-            validatePath(input, path, pathIndex);
+
+            final int pathErrIdx = validateEncoded(pathTemp, PATH_LEGAL);
+            if( 0 <= pathErrIdx ) {
+                // Perform error correction on PATH if requested!
+                if( 0 != ( parseHints & PARSE_HINT_FIX_PATH ) ) {
+                    if( DEBUG_SHOWFIX ) {
+                        System.err.println("Uri FIX_FILEPATH: input at index "+(indexPath+pathErrIdx)+": "+inputTemp);
+                        System.err.println("Uri FIX_FILEPATH: ssp at index   "+(indexPathInSSP+pathErrIdx)+": "+sspTemp);
+                        System.err.println("Uri FIX_FILEPATH: path  at index "+pathErrIdx+": "+pathTemp);
+                    }
+                    final int pathTempOldLen = pathTemp.length();
+                    pathTemp = encode( decode( pathTemp ), PATH_LEGAL); // re-encode, and hope for the best!
+                    validatePath(input, pathTemp, indexPath); // re-validate!
+                    {
+                        // Patch SSP + INPUT !
+                        final StringBuilder sb = new StringBuilder();
+                        if( indexPathInSSP > 0 ) {
+                            sb.append( sspTemp.substring(0, indexPathInSSP) );
+                        }
+                        sb.append( pathTemp ).append( sspTemp.substring( indexPathInSSP + pathTempOldLen ) );
+                        sspTemp = sb.toString(); // update
+
+                        sb.setLength(0);
+                        if( indexPath > 0 ) {
+                            sb.append( inputTemp.substring(0, indexPath) );
+                        }
+                        sb.append( pathTemp ).append( inputTemp.substring( indexPath + pathTempOldLen ) );
+                        inputTemp = sb.toString(); // update
+                    }
+                    if( DEBUG_SHOWFIX ) {
+                        System.err.println("Uri FIX_FILEPATH: result          : "+pathTemp);
+                        System.err.println("Uri FIX_FILEPATH: ssp after       : "+sspTemp);
+                        System.err.println("Uri FIX_FILEPATH: input after     : "+inputTemp);
+                    }
+                } else {
+                    fail(input, "invalid path", indexPath+pathErrIdx);
+                }
+            }
+            path = new Encoded( pathTemp );
         } else {
             // Uri is not hierarchical, Uri is opaque
             opaque = true;
             query = null;
             path = null;
             authority = null;
-            validateSsp(input, schemeSpecificPart, indexSchemeSep + 1);
+            validateSsp(input, sspTemp, indexSchemeSep + 1);
         }
+        schemeSpecificPart = new Encoded( sspTemp );
+        this.input = inputTemp == input.get() ? input : new Encoded( inputTemp );
 
         /**
          * determine the host, port and userinfo if the authority parses
@@ -1635,7 +1739,7 @@ public class Uri {
                 hostindex = index + 1;
             }
 
-            index = temp.lastIndexOf(IOUtil.SCHEME_SEPARATOR);
+            index = temp.lastIndexOf(SCHEME_SEPARATOR);
             final int endindex = temp.indexOf(']');
 
             if (index != -1 && endindex < index) {
@@ -1706,7 +1810,7 @@ public class Uri {
         }
     }
 
-    private static void validateSsp(final Encoded uri, final Encoded ssp, final int index) throws URISyntaxException {
+    private static void validateSsp(final Encoded uri, final String ssp, final int index) throws URISyntaxException {
         final int errIdx = validateEncoded(ssp, SSP_LEGAL);
         if( 0 <= errIdx ) {
             fail(uri, "invalid scheme-specific-part", index+errIdx);
@@ -1714,13 +1818,13 @@ public class Uri {
     }
 
     private static void validateAuthority(final Encoded uri, final Encoded authority, final int index) throws URISyntaxException {
-        final int errIdx = validateEncoded(authority, AUTHORITY_LEGAL);
+        final int errIdx = validateEncoded(authority.get(), AUTHORITY_LEGAL);
         if( 0 <= errIdx ) {
             fail(uri, "invalid authority", index+errIdx);
         }
     }
 
-    private static void validatePath(final Encoded uri, final Encoded path, final int index) throws URISyntaxException {
+    private static void validatePath(final Encoded uri, final String path, final int index) throws URISyntaxException {
         final int errIdx = validateEncoded(path, PATH_LEGAL);
         if( 0 <= errIdx ) {
             fail(uri, "invalid path", index+errIdx);
@@ -1728,14 +1832,14 @@ public class Uri {
     }
 
     private static void validateQuery(final Encoded uri, final Encoded query, final int index) throws URISyntaxException {
-        final int errIdx = validateEncoded(query, QUERY_LEGAL);
+        final int errIdx = validateEncoded(query.get(), QUERY_LEGAL);
         if( 0 <= errIdx ) {
             fail(uri, "invalid query", index+errIdx);
         }
     }
 
     private static void validateFragment(final Encoded uri, final Encoded fragment, final int index) throws URISyntaxException {
-        final int errIdx = validateEncoded(fragment, FRAG_LEGAL);
+        final int errIdx = validateEncoded(fragment.get(), FRAG_LEGAL);
         if( 0 <= errIdx ) {
             fail(uri, "invalid fragment", index+errIdx);
         }
@@ -1802,10 +1906,10 @@ public class Uri {
             return false;
         }
         String label = null;
-        final StringTokenizer st = new StringTokenizer(hostS, "."); //$NON-NLS-1$
+        final StringTokenizer st = new StringTokenizer(hostS, ".");
         while (st.hasMoreTokens()) {
             label = st.nextToken();
-            if (label.startsWith("-") || label.endsWith("-")) { //$NON-NLS-1$ //$NON-NLS-2$
+            if (label.startsWith("-") || label.endsWith("-")) {
                 return false;
             }
         }
@@ -1854,7 +1958,7 @@ public class Uri {
         boolean doubleColon = false;
         int numberOfColons = 0;
         int numberOfPeriods = 0;
-        String word = ""; //$NON-NLS-1$
+        String word = "";
         char c = 0;
         char prevChar = 0;
         int offset = 0; // offset for [] ip addresses
@@ -1876,8 +1980,8 @@ public class Uri {
                     if (ipv6Address.charAt(length - 1) != ']') {
                         return false; // must have a close ]
                     }
-                    if ((ipv6Address.charAt(1) == IOUtil.SCHEME_SEPARATOR_CHAR)
-                            && (ipv6Address.charAt(2) != IOUtil.SCHEME_SEPARATOR_CHAR)) {
+                    if ((ipv6Address.charAt(1) == SCHEME_SEPARATOR)
+                            && (ipv6Address.charAt(2) != SCHEME_SEPARATOR)) {
                         return false;
                     }
                     offset = 1;
@@ -1913,14 +2017,14 @@ public class Uri {
                     // with
                     // an IPv4 ending, otherwise 7 :'s is bad
                     if (numberOfColons == 7
-                            && ipv6Address.charAt(0 + offset) != IOUtil.SCHEME_SEPARATOR_CHAR
-                            && ipv6Address.charAt(1 + offset) != IOUtil.SCHEME_SEPARATOR_CHAR) {
+                            && ipv6Address.charAt(0 + offset) != SCHEME_SEPARATOR
+                            && ipv6Address.charAt(1 + offset) != SCHEME_SEPARATOR) {
                         return false;
                     }
-                    word = ""; //$NON-NLS-1$
+                    word = "";
                     break;
 
-                case IOUtil.SCHEME_SEPARATOR_CHAR:
+                case SCHEME_SEPARATOR:
                     numberOfColons++;
                     if (numberOfColons > 7) {
                         return false;
@@ -1928,13 +2032,13 @@ public class Uri {
                     if (numberOfPeriods > 0) {
                         return false;
                     }
-                    if (prevChar == IOUtil.SCHEME_SEPARATOR_CHAR) {
+                    if (prevChar == SCHEME_SEPARATOR) {
                         if (doubleColon) {
                             return false;
                         }
                         doubleColon = true;
                     }
-                    word = ""; //$NON-NLS-1$
+                    word = "";
                     break;
 
                 default:
@@ -1963,8 +2067,8 @@ public class Uri {
             // If we have an empty word at the end, it means we ended in
             // either a : or a .
             // If we did not end in :: then this is invalid
-            if (word == "" && ipv6Address.charAt(length - 1 - offset) != IOUtil.SCHEME_SEPARATOR_CHAR //$NON-NLS-1$
-                    && ipv6Address.charAt(length - 2 - offset) != IOUtil.SCHEME_SEPARATOR_CHAR) {
+            if (word == "" && ipv6Address.charAt(length - 1 - offset) != SCHEME_SEPARATOR
+                    && ipv6Address.charAt(length - 2 - offset) != SCHEME_SEPARATOR) {
                 return false;
             }
         }
@@ -2005,7 +2109,7 @@ public class Uri {
      *            {@code java.lang.String} the characters allowed in the String
      *            s
      */
-    private static int validateEncoded(final Encoded encoded, final String legal) {
+    private static int validateEncoded(final String encoded, final String legal) {
         for (int i = 0; i < encoded.length();) {
             final char ch = encoded.charAt(i);
             if (ch == '%') {
