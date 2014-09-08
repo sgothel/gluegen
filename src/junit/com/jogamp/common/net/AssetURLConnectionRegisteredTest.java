@@ -1,7 +1,6 @@
 package com.jogamp.common.net;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -48,12 +47,12 @@ public class AssetURLConnectionRegisteredTest extends AssetURLConnectionBase {
         Assert.assertEquals(test_asset_test2a_url, urlConn0.getURL().toExternalForm());
         testAssetConnection(urlConn0, test_asset_test2_entry);
 
-        final URI uri1 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test3_rel);
+        final Uri uri1 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test3_rel);
         Assert.assertNotNull(uri1);
         Assert.assertEquals(test_asset_test3a_url, uri1.toString());
         testAssetConnection(uri1.toURL().openConnection(), test_asset_test3_entry);
 
-        final URI uri2 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test4_rel);
+        final Uri uri2 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test4_rel);
         Assert.assertNotNull(uri2);
         Assert.assertEquals(test_asset_test4a_url, uri2.toString());
         testAssetConnection(uri2.toURL().openConnection(), test_asset_test4_entry);
@@ -66,12 +65,12 @@ public class AssetURLConnectionRegisteredTest extends AssetURLConnectionBase {
         Assert.assertEquals(test_asset_test2b_url, urlConn0.getURL().toExternalForm());
         testAssetConnection(urlConn0, test_asset_test2_entry);
 
-        final URI uri1 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test3_rel);
+        final Uri uri1 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test3_rel);
         Assert.assertNotNull(uri1);
         Assert.assertEquals(test_asset_test3b_url, uri1.toString());
         testAssetConnection(uri1.toURL().openConnection(), test_asset_test3_entry);
 
-        final URI uri2 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test4_rel);
+        final Uri uri2 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test4_rel);
         Assert.assertNotNull(uri2);
         Assert.assertEquals(test_asset_test4b_url, uri2.toString());
         testAssetConnection(uri2.toURL().openConnection(), test_asset_test4_entry);

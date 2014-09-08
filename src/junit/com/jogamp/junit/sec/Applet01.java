@@ -34,14 +34,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.AccessControlException;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.JarUtil;
 
 /**
  * Applet: Provoke AccessControlException while writing to file!
@@ -156,64 +155,64 @@ public class Applet01 extends Applet {
         }
     }
 
-    private void testOpenLibrary(final boolean global) {
+    private void testOpenLibrary(final boolean global) throws URISyntaxException {
         final ClassLoader cl = getClass().getClassLoader();
         System.err.println("CL "+cl);
 
         String libBaseName = null;
         final Class<?> clazz = this.getClass();
-        URL libURL = clazz.getResource("/libtest1.so");
-        if( null != libURL ) {
+        Uri libUri = null;
+        try {
+            libUri = Uri.valueOf(clazz.getResource("/libtest1.so"));
+        } catch (final URISyntaxException e2) {
+            // not found .. OK
+        }
+        if( null != libUri ) {
             libBaseName = "libtest1.so";
         } else {
-            libURL = clazz.getResource("/test1.dll");
-            if( null != libURL ) {
-                libBaseName = "test1.dll";
-            }
-        }
-        System.err.println("Untrusted Library (URL): "+libURL);
-
-        String libDir1 = null;
-        if( null != libURL ) {
             try {
-                libDir1 = JarUtil.getJarSubURI(libURL.toURI()).getPath();
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-            if( null != libDir1 ) {
-                System.err.println("libDir1.1: "+libDir1);
-                try {
-                    libDir1= IOUtil.getParentOf(libDir1);
-                } catch (final URISyntaxException e) {
-                    e.printStackTrace();
+                libUri = Uri.valueOf(clazz.getResource("/test1.dll"));
+                if( null != libUri ) {
+                    libBaseName = "test1.dll";
                 }
-                System.err.println("libDir1.2: "+libDir1);
+            } catch (final URISyntaxException e) {
+                // not found
             }
         }
-        System.err.println("Untrusted Library Dir1 (abs): "+libDir1);
-        final String absLib = libDir1 + "natives/" + libBaseName;
-        Exception sec01 = null;
-        try {
-            final NativeLibrary nlib = NativeLibrary.open(absLib, cl);
-            System.err.println("NativeLibrary: "+nlib);
-        } catch (final SecurityException e) {
-            sec01 = e;
-            if( usesSecurityManager ) {
-                System.err.println("Expected exception for loading native library");
-                System.err.println("Message: "+sec01.getMessage());
+        System.err.println("Untrusted Library (URL): "+libUri);
+
+        if( null != libUri ) {
+            Uri libDir1 = libUri.getContainedUri();
+            System.err.println("libDir1.1: "+libDir1);
+            libDir1= libDir1.getParent();
+            System.err.println("libDir1.2: "+libDir1);
+            System.err.println("Untrusted Library Dir1 (abs): "+libDir1);
+            final Uri absLib = libDir1.concat(Uri.Encoded.cast("natives/" + libBaseName));
+            Exception sec01 = null;
+            try {
+                final NativeLibrary nlib = NativeLibrary.open(absLib.toFile().getPath(), cl);
+                System.err.println("NativeLibrary: "+nlib);
+            } catch (final SecurityException e) {
+                sec01 = e;
+                if( usesSecurityManager ) {
+                    System.err.println("Expected exception for loading native library");
+                    System.err.println("Message: "+sec01.getMessage());
+                } else {
+                    System.err.println("Unexpected exception for loading native library");
+                    sec01.printStackTrace();
+                }
+            }
+            if( !usesSecurityManager ) {
+                if( null != sec01 ) {
+                    throw new Error("SecurityException thrown on loading native library", sec01);
+                }
             } else {
-                System.err.println("Unexpected exception for loading native library");
-                sec01.printStackTrace();
-            }
-        }
-        if( !usesSecurityManager ) {
-            if( null != sec01 ) {
-                throw new Error("SecurityException thrown on loading native library", sec01);
+                if( null == sec01 ) {
+                    throw new Error("SecurityException not thrown on loading native library");
+                }
             }
         } else {
-            if( null == sec01 ) {
-                throw new Error("SecurityException not thrown on loading native library");
-            }
+            System.err.println("No library found");
         }
     }
 
@@ -244,7 +243,11 @@ public class Applet01 extends Applet {
         testWriteFile();
         System.err.println("writeFile: OK");
 
-        testOpenLibrary(true);
+        try {
+            testOpenLibrary(true);
+        } catch (final URISyntaxException e) {
+            e.printStackTrace();
+        }
         System.err.println("lib0: OK");
     }
 

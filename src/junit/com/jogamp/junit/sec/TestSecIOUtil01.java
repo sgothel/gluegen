@@ -29,7 +29,6 @@
 package com.jogamp.junit.sec;
 
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.AccessControlException;
 import java.io.File;
 import java.io.IOException;
@@ -38,10 +37,10 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.common.util.JarUtil;
 import com.jogamp.junit.util.JunitTracer;
 
 import org.junit.FixMethodOrder;
@@ -137,73 +136,75 @@ public class TestSecIOUtil01 extends JunitTracer {
         testTempDirImpl(false);
     }
 
-    private NativeLibrary openLibraryImpl(final boolean global) {
+    private NativeLibrary openLibraryImpl(final boolean global) throws URISyntaxException {
         final ClassLoader cl = getClass().getClassLoader();
         System.err.println("CL "+cl);
 
         String libBaseName = null;
         final Class<?> clazz = this.getClass();
-        URL libURL = clazz.getResource("/libtest1.so");
-        if( null != libURL ) {
+        Uri libUri = null;
+        try {
+            libUri = Uri.valueOf(clazz.getResource("/libtest1.so"));
+        } catch (final URISyntaxException e2) {
+            // not found .. OK
+        }
+        if( null != libUri ) {
             libBaseName = "libtest1.so";
         } else {
-            libURL = clazz.getResource("/test1.dll");
-            if( null != libURL ) {
-                libBaseName = "test1.dll";
-            }
-        }
-        System.err.println("Untrusted Library (URL): "+libURL);
-
-        String libDir1 = null;
-        if( null != libURL ) {
             try {
-                libDir1 = JarUtil.getJarSubURI(libURL.toURI()).getPath();
-            } catch (final Exception e) {
-                e.printStackTrace();
-            }
-            if( null != libDir1 ) {
-                System.err.println("libDir1.1: "+libDir1);
-                try {
-                    libDir1= IOUtil.getParentOf(libDir1);
-                } catch (final URISyntaxException e) {
-                    e.printStackTrace();
+                libUri = Uri.valueOf(clazz.getResource("/test1.dll"));
+                if( null != libUri ) {
+                    libBaseName = "test1.dll";
                 }
-                System.err.println("libDir1.2: "+libDir1);
+            } catch (final URISyntaxException e) {
+                // not found
             }
         }
-        System.err.println("Untrusted Library Dir1 (abs): "+libDir1);
-        final String absLib = libDir1 + "natives/" + libBaseName;
-        Exception se0 = null;
-        NativeLibrary nlib = null;
-        try {
-            nlib = NativeLibrary.open(absLib, cl);
-            System.err.println("NativeLibrary: "+nlib);
-        } catch (final SecurityException e) {
-            se0 = e;
-            if( usesSecurityManager ) {
-                System.err.println("Expected exception for loading native library");
-                System.err.println("Message: "+se0.getMessage());
+        System.err.println("Untrusted Library (URL): "+libUri);
+
+        if( null != libUri ) {
+            Uri libDir1 = libUri.getContainedUri();
+            System.err.println("libDir1.1: "+libDir1);
+            libDir1= libDir1.getParent();
+            System.err.println("libDir1.2: "+libDir1);
+            System.err.println("Untrusted Library Dir1 (abs): "+libDir1);
+            final Uri absLib = libDir1.concat(Uri.Encoded.cast("natives/" + libBaseName));
+            Exception se0 = null;
+            NativeLibrary nlib = null;
+            try {
+                nlib = NativeLibrary.open(absLib.toFile().getPath(), cl);
+                System.err.println("NativeLibrary: "+nlib);
+            } catch (final SecurityException e) {
+                se0 = e;
+                if( usesSecurityManager ) {
+                    System.err.println("Expected exception for loading native library");
+                    System.err.println("Message: "+se0.getMessage());
+                } else {
+                    System.err.println("Unexpected exception for loading native library");
+                    se0.printStackTrace();
+                }
+            }
+            if( !usesSecurityManager ) {
+                Assert.assertNull("SecurityException thrown on loading native library", se0);
             } else {
-                System.err.println("Unexpected exception for loading native library");
-                se0.printStackTrace();
+                Assert.assertNotNull("SecurityException not thrown on loading native library", se0);
             }
-        }
-        if( !usesSecurityManager ) {
-            Assert.assertNull("SecurityException thrown on loading native library", se0);
+            return nlib;
         } else {
-            Assert.assertNotNull("SecurityException not thrown on loading native library", se0);
+            System.err.println("No library found");
+            return null;
         }
-        return nlib;
+
     }
 
-    public void testOpenLibrary() {
+    public void testOpenLibrary() throws URISyntaxException {
         final NativeLibrary nlib = openLibraryImpl(true);
         if( null != nlib ) {
             nlib.close();
         }
     }
 
-    public static void main(final String args[]) throws IOException {
+    public static void main(final String args[]) throws IOException, URISyntaxException {
         TestSecIOUtil01.setup();
 
         final TestSecIOUtil01 aa = new TestSecIOUtil01();

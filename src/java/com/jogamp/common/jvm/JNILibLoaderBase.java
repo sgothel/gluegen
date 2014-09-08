@@ -42,7 +42,6 @@ package com.jogamp.common.jvm;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.AccessController;
@@ -52,8 +51,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.cache.TempJarCache;
@@ -155,7 +154,7 @@ public class JNILibLoaderBase {
   /**
    *
    * @param classFromJavaJar
-   * @param classJarURI
+   * @param classJarUri
    * @param jarBasename jar basename w/ suffix
    * @param nativeJarBasename native jar basename w/ suffix
    * @return
@@ -163,15 +162,15 @@ public class JNILibLoaderBase {
    * @throws SecurityException
    * @throws URISyntaxException
    */
-  private static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final URI classJarURI,
-                                                    final String jarBasename, final String nativeJarBasename)
+  private static final boolean addNativeJarLibsImpl(final Class<?> classFromJavaJar, final Uri classJarUri,
+                                                    final Uri.Encoded jarBasename, final Uri.Encoded nativeJarBasename)
     throws IOException, SecurityException, URISyntaxException
   {
     if (DEBUG) {
         final StringBuilder msg = new StringBuilder();
         msg.append("JNILibLoaderBase: addNativeJarLibsImpl(").append(PlatformPropsImpl.NEWLINE);
         msg.append("  classFromJavaJar  = ").append(classFromJavaJar).append(PlatformPropsImpl.NEWLINE);
-        msg.append("  classJarURI       = ").append(classJarURI).append(PlatformPropsImpl.NEWLINE);
+        msg.append("  classJarURI       = ").append(classJarUri).append(PlatformPropsImpl.NEWLINE);
         msg.append("  jarBasename       = ").append(jarBasename).append(PlatformPropsImpl.NEWLINE);
         msg.append("  os.and.arch       = ").append(PlatformPropsImpl.os_and_arch).append(PlatformPropsImpl.NEWLINE);
         msg.append("  nativeJarBasename = ").append(nativeJarBasename).append(PlatformPropsImpl.NEWLINE);
@@ -181,15 +180,15 @@ public class JNILibLoaderBase {
 
     boolean ok = false;
 
-    final URI jarSubURI = JarUtil.getJarSubURI( classJarURI );
+    final Uri jarSubURI = classJarUri.getContainedUri();
     if (null == jarSubURI) {
-        throw new IllegalArgumentException("JarSubURI is null of: "+classJarURI);
+        throw new IllegalArgumentException("JarSubURI is null of: "+classJarUri);
     }
 
-    final String jarUriRoot_s = IOUtil.getURIDirname( jarSubURI.toString() );
+    final Uri jarSubUriRoot = jarSubURI.getDirectory();
 
     if (DEBUG) {
-        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: initial: %s -> %s%n", jarSubURI, jarUriRoot_s);
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: initial: %s -> %s%n", jarSubURI, jarSubUriRoot);
     }
 
     final String nativeLibraryPath = String.format("natives/%s/", PlatformPropsImpl.os_and_arch);
@@ -201,7 +200,7 @@ public class JNILibLoaderBase {
     if (null != nativeLibraryURI) {
         // We probably have one big-fat jar file, containing java classes
         // and all native platform libraries under 'natives/os.and.arch'!
-        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+jarBasename);
+        final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(jarBasename) );
         try {
             if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
                 ok = true;
@@ -218,7 +217,7 @@ public class JNILibLoaderBase {
     }
     if (!ok) {
         // We assume one slim native jar file per 'os.and.arch'!
-        final URI nativeJarURI = JarUtil.getJarFileURI(jarUriRoot_s+nativeJarBasename);
+        final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(nativeJarBasename) );
 
         if (DEBUG) {
             System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: module: %s -> %s%n", nativeJarBasename, nativeJarURI);
@@ -247,13 +246,13 @@ public class JNILibLoaderBase {
             }
         }
         final String os_and_arch_dot = PlatformPropsImpl.os_and_arch.replace('-', '.');
-        final String nativeJarTagClassName = nativeJarTagPackage + "." + moduleName + "." + os_and_arch_dot + ".TAG" ; // TODO: sync with gluegen-cpptasks-base.xml
+        final String nativeJarTagClassName = nativeJarTagPackage + "." + moduleName + "." + os_and_arch_dot + ".TAG"; // TODO: sync with gluegen-cpptasks-base.xml
         try {
             if(DEBUG) {
                 System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ClassLoader/TAG: Locating module %s, os.and.arch %s: %s%n",
                         moduleName, os_and_arch_dot, nativeJarTagClassName);
             }
-            final URI nativeJarTagClassJarURI = JarUtil.getJarURI(nativeJarTagClassName, cl);
+            final Uri nativeJarTagClassJarURI = JarUtil.getJarUri(nativeJarTagClassName, cl);
             if (DEBUG) {
                 System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ClassLoader/TAG: %s -> %s%n", nativeJarTagClassName, nativeJarTagClassJarURI);
             }
@@ -399,14 +398,14 @@ public class JNILibLoaderBase {
               }
 
               final ClassLoader cl = c.getClassLoader();
-              final URI classJarURI = JarUtil.getJarURI(c.getName(), cl);
-              final String jarName = JarUtil.getJarBasename(classJarURI);
+              final Uri classJarURI = JarUtil.getJarUri(c.getName(), cl);
+              final Uri.Encoded jarName = JarUtil.getJarBasename(classJarURI);
 
               if (jarName == null) {
                   continue;
               }
 
-              final String jarBasename = jarName.substring(0, jarName.indexOf(".jar"));
+              final Uri.Encoded jarBasename = jarName.substring(0, jarName.indexOf(".jar"));
 
               if(DEBUG) {
                   System.err.printf("JNILibLoaderBase: jarBasename: %s%n", jarBasename);
@@ -423,7 +422,8 @@ public class JNILibLoaderBase {
                   }
               }
 
-              final String nativeJarBasename = String.format("%s-natives-%s.jar", jarBasename, PlatformPropsImpl.os_and_arch);
+              final Uri.Encoded nativeJarBasename =
+                      Uri.Encoded.cast( String.format("%s-natives-%s.jar", jarBasename.get(), PlatformPropsImpl.os_and_arch) );
 
               ok = JNILibLoaderBase.addNativeJarLibsImpl(c, classJarURI, jarName, nativeJarBasename);
               if (ok) {

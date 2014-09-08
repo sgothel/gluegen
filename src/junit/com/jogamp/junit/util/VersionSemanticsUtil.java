@@ -29,7 +29,6 @@ package com.jogamp.junit.util;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,7 +39,7 @@ import org.semver.Comparer;
 import org.semver.Delta;
 import org.semver.Dumper;
 
-import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.VersionNumberString;
 
@@ -54,12 +53,10 @@ public class VersionSemanticsUtil {
                                        throws IllegalArgumentException, IOException, URISyntaxException
     {
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
-        final URI currentJarURI = JarUtil.getJarSubURI(currentJarClazz.getName(), currentJarCL);
-        final String currentJarLocS = IOUtil.decodeURIIfFilePath(currentJarURI);
-        final File currentJar = new File(currentJarLocS);
+        final Uri currentJarUri = JarUtil.getJarUri(currentJarClazz.getName(), currentJarCL).getContainedUri();
         testVersion(diffCriteria, expectedCompatibilityType,
                     previousJar, preVersionNumber,
-                    currentJar, curVersionNumber,
+                    currentJarUri.toFile(), curVersionNumber,
                     excludesRegExp);
     }
 

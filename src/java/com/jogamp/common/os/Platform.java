@@ -28,12 +28,12 @@
 
 package com.jogamp.common.os;
 
-import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
@@ -184,11 +184,11 @@ public class Platform extends PlatformPropsImpl {
 
                 final ClassLoader cl = Platform.class.getClassLoader();
 
-                final URI platformClassJarURI;
+                final Uri platformClassJarURI;
                 {
-                    URI _platformClassJarURI = null;
+                    Uri _platformClassJarURI = null;
                     try {
-                        _platformClassJarURI = JarUtil.getJarURI(Platform.class.getName(), cl);
+                        _platformClassJarURI = JarUtil.getJarUri(Platform.class.getName(), cl);
                     } catch (final Exception e) { }
                     platformClassJarURI = _platformClassJarURI;
                 }

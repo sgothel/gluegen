@@ -1,7 +1,6 @@
 package com.jogamp.common.net;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -39,14 +38,14 @@ public class AssetURLConnectionUnregisteredTest extends AssetURLConnectionBase {
 
     @Test
     public void assetUnregisteredIOUtilGetResourceRel0_RT() throws IOException, URISyntaxException {
-        final URLConnection urlConn0 = IOUtil.getResource(this.getClass(), test_asset_test2_rel);
+        final URLConnection urlConn0 = IOUtil.getResource(this.getClass(), test_asset_test2_rel.get());
         testAssetConnection(urlConn0, test_asset_test2_entry);
 
-        final URI uri1 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test3_rel);
+        final Uri uri1 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test3_rel);
         Assert.assertNotNull(uri1); // JARFile URL ..
         testAssetConnection(uri1.toURL().openConnection(), test_asset_test3_entry);
 
-        final URI uri2 = IOUtil.getRelativeOf(urlConn0.getURL().toURI(), test_asset_test4_rel);
+        final Uri uri2 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test4_rel);
         Assert.assertNotNull(uri2);
         testAssetConnection(uri2.toURL().openConnection(), test_asset_test4_entry);
     }
