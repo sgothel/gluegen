@@ -63,14 +63,14 @@ public class UriQueryProps {
    public final Map<String, String> getProperties() { return properties; }
    public final char getQuerySeparator() { return query_separator.charAt(0); }
 
-   public final String appendQuery(String baseQuery) {
+   public final Uri.Encoded appendQuery(Uri.Encoded baseQuery) {
        boolean needsSep = false;
        final StringBuilder sb = new StringBuilder();
        if ( null != baseQuery ) {
            if( baseQuery.startsWith(QMARK) ) {
                baseQuery = baseQuery.substring(1); // cut off '?'
            }
-           sb.append(baseQuery);
+           sb.append(baseQuery.get());
            if( !baseQuery.endsWith(query_separator) ) {
                needsSep = true;
            }
@@ -87,11 +87,11 @@ public class UriQueryProps {
            }
            needsSep = true;
        }
-       return sb.toString();
+       return new Uri.Encoded(sb.toString(), Uri.QUERY_LEGAL);
    }
 
    public final Uri appendQuery(final Uri base) throws URISyntaxException {
-       return base.getNewQuery( appendQuery( Uri.decode(base.query) ) );
+       return base.getNewQuery( appendQuery( base.query ) );
    }
 
    /**

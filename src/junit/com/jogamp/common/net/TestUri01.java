@@ -220,6 +220,8 @@ public class TestUri01 extends JunitTracer {
             final Uri input     = Uri.cast("jar:http://localhost/test01.jar!/com/jogamp/Lala.class#tag01");
             final Uri expected  = Uri.cast("http://localhost/test01.jar#tag01");
             final Uri contained = input.getContainedUri();
+            URIDumpUtil.showUri(input);
+            URIDumpUtil.showUri(contained);
             Assert.assertEquals(expected, contained);
             Assert.assertEquals(expected.hashCode(), contained.hashCode());
         }
@@ -227,6 +229,8 @@ public class TestUri01 extends JunitTracer {
             final Uri input     = Uri.cast("jar:file://localhost/test01.jar!/");
             final Uri expected  = Uri.cast("file://localhost/test01.jar");
             final Uri contained = input.getContainedUri();
+            URIDumpUtil.showUri(input);
+            URIDumpUtil.showUri(contained);
             Assert.assertEquals(expected, contained);
             Assert.assertEquals(expected.hashCode(), contained.hashCode());
         }
@@ -234,71 +238,191 @@ public class TestUri01 extends JunitTracer {
             final Uri input     = Uri.cast("sftp:http://localhost/test01.jar?lala=01#tag01");
             final Uri expected  = Uri.cast("http://localhost/test01.jar?lala=01#tag01");
             final Uri contained = input.getContainedUri();
+            URIDumpUtil.showUri(input);
+            URIDumpUtil.showUri(contained);
             Assert.assertEquals(expected, contained);
             Assert.assertEquals(expected.hashCode(), contained.hashCode());
         }
     }
 
     @Test
-    public void test06ParentAndDir() throws IOException, URISyntaxException {
+    public void test08NormalizedHierarchy() throws IOException, URISyntaxException {
+        {
+            final Uri input    = Uri.cast("http://localhost/dummy/../");
+            final Uri expected = Uri.cast("http://localhost/");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("http://localhost/test/dummy/../text.txt");
+            final Uri expected = Uri.cast("http://localhost/test/text.txt");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("http://localhost/test/dummy/../text.txt?lala=01&lili=02#frag01");
+            final Uri expected = Uri.cast("http://localhost/test/text.txt?lala=01&lili=02#frag01");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+    }
+
+    @Test
+    public void test09NormalizedOpaque() throws IOException, URISyntaxException {
+        {
+            final Uri input    = Uri.cast("jar:http://localhost/dummy/../abc.jar!/");
+            final Uri expected = Uri.cast("jar:http://localhost/abc.jar!/");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("jar:http://localhost/test/dummy/../abc.jar!/");
+            final Uri expected = Uri.cast("jar:http://localhost/test/abc.jar!/");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("jar:http://localhost/test/dummy/../abc.jar!/a/b/C.class");
+            final Uri expected = Uri.cast("jar:http://localhost/test/abc.jar!/a/b/C.class");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("jar:http://localhost/test/dummy/../abc.jar!/a/b/C.class?lala=01&lili=02#frag01");
+            final Uri expected = Uri.cast("jar:http://localhost/test/abc.jar!/a/b/C.class?lala=01&lili=02#frag01");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+    }
+
+    @Test
+    public void test10ParentAndDirHierarchy() throws IOException, URISyntaxException {
         {
             final Uri input = Uri.cast("http://localhost/");
+            URIDumpUtil.showUri(input);
+            final Uri directory = input.getDirectory();
+            Assert.assertEquals(input, directory);
             final Uri parent = input.getParent();
             Assert.assertNull(parent);
         }
         {
-            final Uri input     = Uri.cast("jar:http://localhost/test01.jar!/com/Lala.class");
-            final Uri expParen1 = Uri.cast("jar:http://localhost/test01.jar!/com/");
+            final Uri input    = Uri.cast("http://localhost/dummy/../test/");
+            final Uri expectedD = Uri.cast("http://localhost/test/");
+            final Uri expectedP = Uri.cast("http://localhost/");
+            URIDumpUtil.showUri(input);
+            final Uri directory = input.getDirectory();
+            Assert.assertEquals(expectedD, directory);
+            final Uri parent = input.getParent();
+            Assert.assertEquals(expectedP, parent);
+        }
+        {
+            final Uri input    = Uri.cast("http://localhost/dummy/../test/dummy/../");
+            final Uri expectedD = Uri.cast("http://localhost/test/");
+            final Uri expectedP = Uri.cast("http://localhost/");
+            URIDumpUtil.showUri(input);
+            final Uri directory = input.getDirectory();
+            Assert.assertEquals(expectedD, directory);
+            final Uri parent = input.getParent();
+            Assert.assertEquals(expectedP, parent);
+        }
+        {
+            final Uri input     = Uri.cast("http://localhost/dir/test01.jar?lala=01#frag01");
+            final Uri expParen1 = Uri.cast("http://localhost/dir/?lala=01#frag01");
             final Uri expFolde1 = expParen1;
-            final Uri expParen2 = Uri.cast("jar:http://localhost/test01.jar!/");
+            final Uri expParen2 = Uri.cast("http://localhost/?lala=01#frag01");
             final Uri expFolde2 = expParen1; // is folder already
-            final Uri expParen3 = Uri.cast("jar:http://localhost/");
+            final Uri expParen3 = null;
+            final Uri expFolde3 = expParen2;
+            Assert.assertNotEquals(input, expParen1);
+            Assert.assertNotEquals(expParen1, expParen2);
+            Assert.assertNotEquals(expParen1, expParen3);
+            URIDumpUtil.showUri(input);
+
+            final Uri parent1 = input.getParent();
+            Assert.assertEquals(expParen1, parent1);
+            Assert.assertEquals(expParen1.hashCode(), parent1.hashCode());
+            final Uri folder1 = input.getDirectory();
+            Assert.assertEquals(expFolde1, folder1);
+
+            final Uri parent2 = parent1.getParent();
+            Assert.assertEquals(expParen2, parent2);
+            Assert.assertEquals(expParen2.hashCode(), parent2.hashCode());
+            final Uri folder2 = parent1.getDirectory();
+            Assert.assertEquals(expFolde2, folder2);
+
+            final Uri parent3 = parent2.getParent();
+            Assert.assertEquals(expParen3, parent3); // NULL!
+            final Uri folder3 = parent2.getDirectory();
+            Assert.assertEquals(expFolde3, folder3); // NULL!
+        }
+    }
+
+    @Test
+    public void test11ParentAndDirOpaque() throws IOException, URISyntaxException {
+        {
+            final Uri input = Uri.cast("jar:http://localhost/test.jar!/");
+            URIDumpUtil.showUri(input);
+            final Uri directory = input.getDirectory();
+            Assert.assertEquals(input, directory);
+            final Uri parent = input.getParent();
+            Assert.assertNull(parent);
+        }
+        {
+            final Uri input    = Uri.cast("jar:http://localhost/dummy/../test/test.jar!/");
+            final Uri expectedD = Uri.cast("jar:http://localhost/test/test.jar!/");
+            final Uri expectedP = null;
+            URIDumpUtil.showUri(input);
+            final Uri directory = input.getDirectory();
+            Assert.assertEquals(expectedD, directory);
+            final Uri parent = input.getParent();
+            Assert.assertEquals(expectedP, parent);
+        }
+        {
+            final Uri input    = Uri.cast("jar:http://localhost/dummy/../test/dummy/../test.jar!/a/b/C.class");
+            final Uri expectedD = Uri.cast("jar:http://localhost/test/test.jar!/a/b/");
+            final Uri expectedP = Uri.cast("jar:http://localhost/test/test.jar!/a/b/");
+            URIDumpUtil.showUri(input);
+            final Uri directory = input.getDirectory();
+            Assert.assertEquals(expectedD, directory);
+            final Uri parent = input.getParent();
+            Assert.assertEquals(expectedP, parent);
+        }
+        {
+            final Uri input     = Uri.cast("jar:http://localhost/test01.jar!/com/Lala.class?lala=01#frag01");
+            final Uri expParen1 = Uri.cast("jar:http://localhost/test01.jar!/com/?lala=01#frag01");
+            final Uri expFolde1 = expParen1;
+            final Uri expParen2 = Uri.cast("jar:http://localhost/test01.jar!/?lala=01#frag01");
+            final Uri expFolde2 = expParen1; // is folder already
+            final Uri expParen3 = null;
             final Uri expFolde3 = expParen2; // is folder already
             Assert.assertNotEquals(input, expParen1);
             Assert.assertNotEquals(expParen1, expParen2);
             Assert.assertNotEquals(expParen1, expParen3);
+            URIDumpUtil.showUri(input);
 
             final Uri parent1 = input.getParent();
+            Assert.assertEquals(expParen1, parent1);
+            Assert.assertEquals(expParen1.hashCode(), parent1.hashCode());
             final Uri folder1 = input.getDirectory();
+            Assert.assertEquals(expFolde1, folder1);
+
             final Uri parent2 = parent1.getParent();
+            Assert.assertEquals(expParen2, parent2);
+            Assert.assertEquals(expParen2.hashCode(), parent2.hashCode());
             final Uri folder2 = parent1.getDirectory();
+            Assert.assertEquals(expFolde2, folder2);
+
             final Uri parent3 = parent2.getParent();
+            Assert.assertEquals(expParen3, parent3); // NULL
             final Uri folder3 = parent2.getDirectory();
-
-            Assert.assertEquals(expParen1, parent1);
-            Assert.assertEquals(expParen1.hashCode(), parent1.hashCode());
-            Assert.assertEquals(expFolde1, folder1);
-
-            Assert.assertEquals(expParen2, parent2);
-            Assert.assertEquals(expParen2.hashCode(), parent2.hashCode());
-            Assert.assertEquals(expFolde2, folder2);
-
-            Assert.assertEquals(expParen3, parent3);
-            Assert.assertEquals(expParen3.hashCode(), parent3.hashCode());
             Assert.assertEquals(expFolde3, folder3);
-
-        }
-        {
-            final Uri input     = Uri.cast("http://localhost/dir/test01.jar?lala=01#frag01");
-            final Uri expParen1 = Uri.cast("http://localhost/dir/");
-            final Uri expFolde1 = expParen1;
-            final Uri expParen2 = Uri.cast("http://localhost/");
-            final Uri expFolde2 = expParen1; // is folder already
-            Assert.assertNotEquals(input, expParen1);
-            Assert.assertNotEquals(expParen1, expParen2);
-
-            final Uri parent1 = input.getParent();
-            final Uri folder1 = input.getDirectory();
-            final Uri parent2 = parent1.getParent();
-            final Uri folder2 = parent1.getDirectory();
-
-            Assert.assertEquals(expParen1, parent1);
-            Assert.assertEquals(expParen1.hashCode(), parent1.hashCode());
-            Assert.assertEquals(expFolde1, folder1);
-
-            Assert.assertEquals(expParen2, parent2);
-            Assert.assertEquals(expParen2.hashCode(), parent2.hashCode());
-            Assert.assertEquals(expFolde2, folder2);
         }
     }
 

@@ -435,6 +435,8 @@ public class Uri {
         /** See {@link String#lastIndexOf(String, int)}. */
         public int lastIndexOf(final String str, final int fromIndex) { return s.lastIndexOf(str, fromIndex); }
 
+        /** See {@link String#startsWith(String)} */
+        public boolean startsWith(final String prefix) { return s.startsWith(prefix); }
         /** See {@link String#startsWith(String, int)} */
         public boolean startsWith(final String prefix, final int toffset) { return s.startsWith(prefix, toffset); }
         /** See {@link String#endsWith(String)} */
@@ -631,13 +633,16 @@ public class Uri {
     }
 
     /**
-     * Creates a new Uri instance using the given arguments.
+     * Creates a new Uri instance using the given unencoded arguments.
      * <p>
-     * This constructor first creates a temporary Uri string from the given components. This
+     * This constructor first creates a temporary Uri string from the given unencoded components. This
      * string will be parsed later on to create the Uri instance.
      * </p>
      * <p>
      * {@code [scheme:]scheme-specific-part[#fragment]}
+     * </p>
+     * <p>
+     * {@code host} and {@code port} <i>may</i> be undefined or invalid within {@code scheme-specific-part}.
      * </p>
      *
      * @param scheme the unencoded scheme part of the Uri.
@@ -669,19 +674,66 @@ public class Uri {
     }
 
     /**
-     * Creates a new Uri instance using the given arguments.
+     * Creates a new Uri instance using the given encoded arguments.
      * <p>
-     * This constructor first creates a temporary Uri string from the given components. This
+     * This constructor first creates a temporary Uri string from the given encoded components. This
+     * string will be parsed later on to create the Uri instance.
+     * </p>
+     * <p>
+     * The given encoded components are taken as-is, i.e. no re-encoding will be performed!
+     * However, Uri parsing will re-evaluate encoding of the resulting components.
+     * </p>
+     * <p>
+     * {@code [scheme:]scheme-specific-part[#fragment]}
+     * </p>
+     * <p>
+     * {@code host} and {@code port} <i>may</i> be undefined or invalid within {@code scheme-specific-part}.
+     * </p>
+     *
+     * @param scheme the encoded scheme part of the Uri.
+     * @param ssp the encoded scheme-specific-part of the Uri.
+     * @param fragment the encoded fragment part of the Uri.
+     * @throws URISyntaxException
+     *             if the temporary created string doesn't fit to the
+     *             specification RFC2396 or could not be parsed correctly.
+     */
+    public static Uri create(final Encoded scheme, final Encoded ssp, final Encoded fragment) throws URISyntaxException {
+        if ( emptyString(scheme) && emptyString(ssp) && emptyString(fragment) ) {
+            throw new URISyntaxException("", "all empty parts");
+        }
+        final StringBuilder uri = new StringBuilder();
+        if ( !emptyString(scheme) ) {
+            uri.append(scheme);
+            uri.append(SCHEME_SEPARATOR);
+        }
+        if ( !emptyString(ssp) ) {
+            uri.append(ssp.get());
+        }
+        if ( !emptyString(fragment) ) {
+            uri.append(FRAGMENT_SEPARATOR);
+            uri.append(fragment.get());
+        }
+        return new Uri(new Encoded(uri.toString()), false, 0);
+    }
+
+    /**
+     * Creates a new Uri instance using the given unencoded arguments.
+     * <p>
+     * This constructor first creates a temporary Uri string from the given unencoded components. This
      * string will be parsed later on to create the Uri instance.
      * </p>
      * <p>
      * {@code [scheme:][user-info@]host[:port][path][?query][#fragment]}
      * </p>
+     * <p>
+     * {@code host} and {@code port} <i>must</i> be defined and valid, if any {@code authority} components are defined,
+     * i.e. {@code user-info}, {@code host} or {@code port}.
+     * </p>
      *
      * @param scheme the unencoded scheme part of the Uri.
-     * @param userinfo the unencoded user information of the Uri for authentication and authorization.
-     * @param host the unencoded host name of the Uri.
-     * @param port the port number of the Uri.
+     * @param userinfo the unencoded user information of the Uri for authentication and authorization, {@code null} for undefined.
+     * @param host the unencoded host name of the Uri, {@code null} for undefined.
+     * @param port the port number of the Uri, -1 for undefined.
      * @param path the unencoded path to the resource on the host.
      * @param query the unencoded query part of the Uri to specify parameters for the resource.
      * @param fragment the unencoded fragment part of the Uri.
@@ -751,13 +803,96 @@ public class Uri {
     }
 
     /**
-     * Creates a new Uri instance using the given arguments.
+     * Creates a new Uri instance using the given encoded arguments.
      * <p>
-     * This constructor first creates a temporary Uri string from the given components. This
+     * This constructor first creates a temporary Uri string from the given encoded components. This
+     * string will be parsed later on to create the Uri instance.
+     * </p>
+     * <p>
+     * The given encoded components are taken as-is, i.e. no re-encoding will be performed!
+     * However, Uri parsing will re-evaluate encoding of the resulting components.
+     * </p>
+     * <p>
+     * {@code [scheme:][user-info@]host[:port][path][?query][#fragment]}
+     * </p>
+     * <p>
+     * {@code host} and {@code port} <i>must</i> be defined and valid, if any {@code authority} components are defined,
+     * i.e. {@code user-info}, {@code host} or {@code port}.
+     * </p>
+     *
+     * @param scheme the encoded scheme part of the Uri.
+     * @param userinfo the encoded user information of the Uri for authentication and authorization, {@code null} for undefined.
+     * @param host the encoded host name of the Uri, {@code null} for undefined.
+     * @param port the port number of the Uri, -1 for undefined.
+     * @param path the encoded path to the resource on the host.
+     * @param query the encoded query part of the Uri to specify parameters for the resource.
+     * @param fragment the encoded fragment part of the Uri.
+     * @throws URISyntaxException
+     *             if the temporary created string doesn't fit to the
+     *             specification RFC2396 or could not be parsed correctly.
+     */
+    public static Uri create (final Encoded scheme, final Encoded userinfo, final Encoded host, final int port,
+                              final Encoded path, final Encoded query, final Encoded fragment) throws URISyntaxException {
+        if ( emptyString(scheme) && emptyString(userinfo) && emptyString(host) && emptyString(path) &&
+             emptyString(query)  && emptyString(fragment) ) {
+            throw new URISyntaxException("", "all empty parts");
+        }
+
+        if ( !emptyString(scheme) && !emptyString(path) && path.length() > 0 && path.charAt(0) != '/') {
+            throw new URISyntaxException(path.get(), "path doesn't start with '/'");
+        }
+
+        final StringBuilder uri = new StringBuilder();
+        if ( !emptyString(scheme) ) {
+            uri.append(scheme);
+            uri.append(SCHEME_SEPARATOR);
+        }
+
+        if ( !emptyString(userinfo) || !emptyString(host) || port != -1) {
+            uri.append("//");
+        }
+
+        if ( !emptyString(userinfo) ) {
+            uri.append(userinfo.get());
+            uri.append('@');
+        }
+
+        if ( !emptyString(host) ) {
+            uri.append(host.get());
+        }
+
+        if ( port != -1 ) {
+            uri.append(SCHEME_SEPARATOR);
+            uri.append(port);
+        }
+
+        if ( !emptyString(path) ) {
+            uri.append(path.get());
+        }
+
+        if ( !emptyString(query) ) {
+            uri.append(QUERY_SEPARATOR);
+            uri.append(query.get());
+        }
+
+        if ( !emptyString(fragment) ) {
+            uri.append(FRAGMENT_SEPARATOR);
+            uri.append(fragment.get());
+        }
+        return new Uri(new Encoded(uri.toString()), true, 0);
+    }
+
+    /**
+     * Creates a new Uri instance using the given unencoded arguments.
+     * <p>
+     * This constructor first creates a temporary Uri string from the given unencoded components. This
      * string will be parsed later on to create the Uri instance.
      * </p>
      * <p>
      * {@code [scheme:]host[path][#fragment]}
+     * </p>
+     * <p>
+     * {@code host} <i>must</i> be valid, if defined.
      * </p>
      *
      * @param scheme the unencoded scheme part of the Uri.
@@ -773,13 +908,45 @@ public class Uri {
     }
 
     /**
-     * Creates a new Uri instance using the given arguments.
+     * Creates a new Uri instance using the given encoded arguments.
      * <p>
-     * This constructor first creates a temporary Uri string from the given components. This
+     * This constructor first creates a temporary Uri string from the given encoded components. This
+     * string will be parsed later on to create the Uri instance.
+     * </p>
+     * <p>
+     * The given encoded components are taken as-is, i.e. no re-encoding will be performed!
+     * However, Uri parsing will re-evaluate encoding of the resulting components.
+     * </p>
+     * <p>
+     * {@code [scheme:]host[path][#fragment]}
+     * </p>
+     * <p>
+     * {@code host} <i>must</i> be valid, if defined.
+     * </p>
+     *
+     * @param scheme the encoded scheme part of the Uri.
+     * @param host the encoded host name of the Uri.
+     * @param path the encoded path to the resource on the host.
+     * @param fragment the encoded fragment part of the Uri.
+     * @throws URISyntaxException
+     *             if the temporary created string doesn't fit to the
+     *             specification RFC2396 or could not be parsed correctly.
+     */
+    public static Uri create(final Encoded scheme, final Encoded host, final Encoded path, final Encoded fragment) throws URISyntaxException {
+        return create(scheme, null, host, -1, path, null, fragment);
+    }
+
+    /**
+     * Creates a new Uri instance using the given unencoded arguments.
+     * <p>
+     * This constructor first creates a temporary Uri string from the given unencoded components. This
      * string will be parsed later on to create the Uri instance.
      * </p>
      * <p>
      * {@code [scheme:][//authority][path][?query][#fragment]}
+     * </p>
+     * <p>
+     * {@code host} and {@code port} <i>may</i> be undefined or invalid, in the optional {@code authority}.
      * </p>
      *
      * @param scheme the unencoded scheme part of the Uri.
@@ -830,6 +997,66 @@ public class Uri {
     }
 
     /**
+     * Creates a new Uri instance using the given encoded arguments.
+     * <p>
+     * This constructor first creates a temporary Uri string from the given encoded encoded components. This
+     * string will be parsed later on to create the Uri instance.
+     * </p>
+     * <p>
+     * The given encoded components are taken as-is, i.e. no re-encoding will be performed!
+     * However, Uri parsing will re-evaluate encoding of the resulting components.
+     * </p>
+     * <p>
+     * {@code [scheme:][//authority][path][?query][#fragment]}
+     * </p>
+     * <p>
+     * {@code host} and {@code port} <i>may</i> be undefined or invalid, in the optional {@code authority}.
+     * </p>
+     *
+     * @param scheme the encoded scheme part of the Uri.
+     * @param authority the encoded authority part of the Uri.
+     * @param path the encoded path to the resource on the host.
+     * @param query the encoded query part of the Uri to specify parameters for the resource.
+     * @param fragment the encoded fragment part of the Uri.
+     *
+     * @throws URISyntaxException
+     *             if the temporary created string doesn't fit to the
+     *             specification RFC2396 or could not be parsed correctly.
+     */
+    public static Uri create(final Encoded scheme, final Encoded authority, final Encoded path, final Encoded query, final Encoded fragment) throws URISyntaxException {
+        if ( emptyString(scheme) && emptyString(authority) && emptyString(path) &&
+             emptyString(query)  && emptyString(fragment) ) {
+            throw new URISyntaxException("", "all empty parts");
+        }
+        if ( !emptyString(scheme) && !emptyString(path) && path.length() > 0 && path.charAt(0) != '/') {
+            throw new URISyntaxException(path.get(), "path doesn't start with '/'");
+        }
+
+        final StringBuilder uri = new StringBuilder();
+        if ( !emptyString(scheme) ) {
+            uri.append(scheme);
+            uri.append(SCHEME_SEPARATOR);
+        }
+        if ( !emptyString(authority) ) {
+            uri.append("//");
+            uri.append(authority.get());
+        }
+
+        if ( !emptyString(path) ) {
+            uri.append(path.get());
+        }
+        if ( !emptyString(query) ) {
+            uri.append(QUERY_SEPARATOR);
+            uri.append(query.get());
+        }
+        if ( !emptyString(fragment) ) {
+            uri.append(FRAGMENT_SEPARATOR);
+            uri.append(fragment.get());
+        }
+        return new Uri(new Encoded(uri.toString()), false, 0);
+    }
+
+    /**
      * Casts the given encoded String to a {@link Encoded#cast(String) new Encoded instance}
      * used to create the resulting Uri instance via {@link #Uri(Encoded)}.
      * <p>
@@ -851,7 +1078,7 @@ public class Uri {
      * {@code file:path}
      * </p>
      *
-     * @param path the path of the {@code file} {@code schema}.
+     * @param path the unencoded path of the {@code file} {@code schema}.
      * @throws URISyntaxException
      *             if the temporary created string doesn't fit to the
      *             specification RFC2396 or could not be parsed correctly.
@@ -913,13 +1140,9 @@ public class Uri {
             // opaque, without host validation.
             // Note: This may induce encoding errors of authority and path, see {@link #PARSE_HINT_FIX_PATH}
             return new Uri(new Encoded( uri.toString() ), false, 0);
-        } else if( null != uri.getHost() ) {
-            // with host validation
-            return Uri.create(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
-                              uri.getPath(), uri.getQuery(), uri.getFragment());
         } else {
-            // without host validation
-            return Uri.create(uri.getScheme(), uri.getAuthority(),
+            // with host validation if authority is defined
+            return Uri.create(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(),
                               uri.getPath(), uri.getQuery(), uri.getFragment());
         }
     }
@@ -1113,7 +1336,7 @@ public class Uri {
      * </p>
      */
     public final File toFile() {
-        if( isFileScheme() ) {
+        if( isFileScheme() && !emptyString(path) ) {
             final String authorityS;
             if( null == authority ) {
                 authorityS = "";
@@ -1154,10 +1377,10 @@ public class Uri {
      *     Returned Uri:  <code><i>scheme2</i>:/some/path/gluegen-rt.jar#fragment</code>
      *
      * Example 3:
-     *     This instance: <code>scheme1:<i>scheme2</i>:/some/path/gluegen-rt.jar?lala=01#fragment</code>
+     *     This instance: <code>scheme1:<i>scheme2</i>:/some/path/gluegen-rt.jar!/?lala=01#fragment</code>
      *     Returned Uri:  <code><i>scheme2</i>:/some/path/gluegen-rt.jar?lala=01#fragment</code>
      * </pre>
-     * @throws URISyntaxException
+     * @throws URISyntaxException if this Uri is a container Uri and does not comply with the container spec, i.e. a JAR Uri
      */
     public final Uri getContainedUri() throws URISyntaxException {
         if( !emptyString(schemeSpecificPart) ) {
@@ -1185,6 +1408,7 @@ public class Uri {
             } catch(final URISyntaxException e) {
                 // OK, does not contain uri
                 if( DEBUG ) {
+                    System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage());
                     e.printStackTrace();
                 }
             }
@@ -1192,53 +1416,250 @@ public class Uri {
         return null;
     }
 
+    private static final boolean cutoffLastPathSegementImpl(final StringBuilder pathBuf,
+                                                            final boolean cutoffFile,
+                                                            final boolean cutoffDir,
+                                                            final Encoded appendPath) throws URISyntaxException {
+        final boolean cleaned;
+        {// clean-up existing path
+            final String pathS = pathBuf.toString();
+            if( 0 > pathS.indexOf("/") && emptyString(appendPath) ) {
+                return false; // nothing to cut-off
+            }
+            pathBuf.setLength(0);
+            pathBuf.append( IOUtil.cleanPathString( pathS ) );
+            cleaned = pathBuf.length() != pathS.length();
+        }
 
-    /**
-     * Return a new Uri instance representing the parent path of this Uri,
-     * while cutting of optional {@code query} and {@code fragment} parts.
-     * <p>
-     * Method is {@code jar-file-entry} aware, i.e. will return the parent entry if exists.
-     * </p>
-     * <p>
-     * If this Uri does not contain any path separator, or a parent folder Uri cannot be found, method returns {@code null}.
-     * </p>
-     * <pre>
-     * Example-1:
-     *     This instance  : <code>jar:http://some/path/gluegen-rt.jar!/com/jogamp/common/GlueGenVersion.class</code>
-     *     Returned Uri #1: <code>jar:http://some/path/gluegen-rt.jar!/com/jogamp/common/</code>
-     *     Returned Uri #2: <code>jar:http://some/path/gluegen-rt.jar!/com/jogamp/</code>
-     *
-     * Example-2:
-     *     This instance  : <code>http://some/path/gluegen-rt.jar</code>
-     *     Returned Uri #1: <code>http://some/path/</code>
-     *     Returned Uri #2: <code>http://some/</code>
-     * </pre>
-     */
-    public final Uri getParent() {
-        final int pl = null!=schemeSpecificPart? schemeSpecificPart.length() : 0;
-        if(pl != 0) {
-            final int e = schemeSpecificPart.lastIndexOf("/");
-            if( e > 0 ) { // 0 == e: no path
-                if( e <  pl - 1 ) {
-                    // path is file or has a query
-                    try {
-                        return new Uri( new Encoded( scheme.get()+SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, e+1) ) );
-                    } catch (final URISyntaxException ue) {
-                        // not complete, hence removed authority, or even root folder -> return null
-                    }
-                }
-                // path is a directory ..
-                final int p = schemeSpecificPart.lastIndexOf("/", e-1);
-                if( p > 0 ) {
-                    try {
-                        return new Uri( new Encoded( scheme.get()+SCHEME_SEPARATOR+schemeSpecificPart.get().substring(0, p+1) ) );
-                    } catch (final URISyntaxException ue) {
-                        // not complete, hence removed authority, or even root folder -> return null
-                    }
-                }
+        {// cut-off file or last dir-segment
+            final String pathS = pathBuf.toString();
+            final int jarSepIdx = pathS.lastIndexOf(JAR_SCHEME_SEPARATOR);
+            final int e = pathS.lastIndexOf("/");
+            if( 0 > jarSepIdx || e - 1 > jarSepIdx ) { // stop at jar-separator '!/', if exist
+                if( cutoffFile && e < pathS.length() - 1 ) {
+                    // cut-off file
+                    pathBuf.setLength(0);
+                    pathBuf.append( pathS.substring(0, e+1) );
+                } else if( cutoffDir ) {
+                    // cut-off dir-segment
+                    final int p = pathS.lastIndexOf("/", e-1);
+                    if( p >= 0 ) {
+                        pathBuf.setLength(0);
+                        pathBuf.append( pathS.substring(0, p+1) );
+                    } // else keep
+                } // else keep
+            }
+            final boolean cutoff = pathBuf.length() != pathS.length();
+            if( !cutoff && ( cutoffDir || !cleaned ) && emptyString(appendPath) ) {
+                return false; // no modifications!
             }
         }
-        return null;
+        if( !emptyString(appendPath) ) {
+            pathBuf.append(appendPath.get());
+            // 2nd round of cleaning!
+            final String pathS = pathBuf.toString();
+            pathBuf.setLength(0);
+            pathBuf.append( IOUtil.cleanPathString( pathS ) );
+        }
+        return true; // continue processing w/ buffer
+    }
+    private final Uri cutoffLastPathSegementImpl(final boolean cutoffFile, final boolean cutoffDir, final Encoded appendPath) throws URISyntaxException {
+        if( opaque ) {
+            if( emptyString(schemeSpecificPart) ) {
+                 // nothing to cut-off
+                if( !emptyString(appendPath) )  {
+                    return Uri.create(scheme, appendPath, fragment);
+                } else {
+                    return null;
+                }
+            }
+            final StringBuilder sspBuf = new StringBuilder(); // without path!
+
+            // save optional query in scheme-specific-part
+            final Encoded queryTemp;
+            final int queryI = schemeSpecificPart.lastIndexOf(QUERY_SEPARATOR);
+            if( queryI >= 0 ) {
+                queryTemp = schemeSpecificPart.substring(queryI+1);
+                sspBuf.append( schemeSpecificPart.substring(0, queryI).get() );
+            } else {
+                queryTemp = null;
+                sspBuf.append( schemeSpecificPart.get() );
+            }
+
+            if( !cutoffLastPathSegementImpl(sspBuf, cutoffFile, cutoffDir, appendPath) ) {
+                return null; // no modifications
+            }
+
+            if ( !emptyString(queryTemp)  ) {
+                sspBuf.append(QUERY_SEPARATOR);
+                sspBuf.append( queryTemp.get() );
+            }
+
+            // without host validation if authority is defined
+            return Uri.create(scheme, new Encoded(sspBuf.toString()), fragment);
+        } else {
+            if( emptyString(path) ) {
+                return null; // nothing to cut-off
+            }
+            final StringBuilder pathBuf = new StringBuilder();
+            pathBuf.append( path.get() );
+
+            if( !cutoffLastPathSegementImpl(pathBuf, cutoffFile, cutoffDir, appendPath) ) {
+                return null; // no modifications
+            }
+
+            // with host validation if authority is defined
+            return Uri.create(scheme, userInfo, host, port, new Encoded(pathBuf.toString()), query, fragment);
+        }
+    }
+
+    /**
+     * {@link IOUtil#cleanPathString(String) Normalizes} this Uri's path and return the
+     * {@link IOUtil#cleanPathString(String) normalized} form if it differs, otherwise {@code this} instance.
+     * <p>
+     * <pre>
+     * Example-1:
+     *     This instance  : <code>jar:http://some/path/../gluegen-rt.jar!/com/Test.class?arg=1#frag</code>
+     *     Normalized     : <code>jar:http://some/gluegen-rt.jar!/com/Test.class?arg=1#frag</code>
+     *
+     * Example-2:
+     *     This instance  : <code>http://some/path/../gluegen-rt.jar?arg=1#frag</code>
+     *     Normalized     : <code>http://some/gluegen-rt.jar?arg=1#frag</code>
+     * </pre>
+     * </p>
+     */
+    public final Uri getNormalized() {
+        try {
+            final Uri res = cutoffLastPathSegementImpl(false, false, null);
+            return null != res ? res : this;
+        } catch (final URISyntaxException e) {
+            if( DEBUG ) {
+                System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage());
+                e.printStackTrace();
+            }
+            return this;
+        }
+    }
+
+    /**
+     * Returns this Uri's directory Uri.
+     * <p>
+     * This Uri path will be {@link IOUtil#cleanPathString(String) normalized} before returning the directory.
+     * </p>
+     * <p>
+     * If this Uri's directory cannot be found, or already denotes a directory, method returns {@code this} instance.
+     * </p>
+     * <p>
+     * <pre>
+     * Example-1:
+     *     this-uri: http:/some/path/gluegen-rt.jar?arg=1#frag
+     *     result:   http:/some/path/?arg=1#frag
+     *
+     * Example-2:
+     *     this-uri: file:/some/path/
+     *     result:   file:/some/path/
+     *
+     * Example-3:
+     *     this-uri: file:/some/path/lala/lili/../../hello.txt
+     *     result:   file:/some/path/
+     * </pre>
+     * </p>
+     * @throws URISyntaxException if the new string {@code uri} doesn't fit to the
+     *                            specification RFC2396 and RFC3986 or could not be parsed correctly.
+     */
+    public Uri getDirectory() {
+        try {
+            final Uri res = cutoffLastPathSegementImpl(true, false, null);
+            return null != res ? res : this;
+        } catch (final URISyntaxException e) {
+            if( DEBUG ) {
+                System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage());
+                e.printStackTrace();
+            }
+            return this;
+        }
+    }
+
+    /**
+     * Returns this Uri's parent directory Uri..
+     * <p>
+     * This Uri path will be {@link IOUtil#cleanPathString(String) normalized} before traversing up one directory.
+     * </p>
+     * <p>
+     * If a parent folder cannot be found, method returns {@code null}.
+     * </p>
+     * <p>
+     * <pre>
+     * Example-1:
+     *     This instance  : <code>jar:http://some/path/gluegen-rt.jar!/com/Test.class?arg=1#frag</code>
+     *     Returned Uri #1: <code>jar:http://some/path/gluegen-rt.jar!/com/?arg=1#frag</code>
+     *     Returned Uri #2: <code>jar:http://some/path/gluegen-rt.jar!/?arg=1#frag</code>
+     *     Returned Uri #3: <code>null</code>
+     *
+     * Example-2:
+     *     This instance  : <code>http://some/path/gluegen-rt.jar?arg=1#frag</code>
+     *     Returned Uri #1: <code>http://some/path/?arg=1#frag</code>
+     *     Returned Uri #2: <code>http://some/?arg=1#frag</code>
+     *     Returned Uri #2: <code>null</code>
+     *
+     * Example-3:
+     *     This instance  : <code>http://some/path/../gluegen-rt.jar?arg=1#frag</code>
+     *     Returned Uri #1: <code>http://some/?arg=1#frag</code>
+     *     Returned Uri #2: <code>null</code>
+     * </pre>
+     * </p>
+     */
+    public final Uri getParent() {
+        try {
+            return cutoffLastPathSegementImpl(true, true, null);
+        } catch (final URISyntaxException e) {
+            if( DEBUG ) {
+                System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage());
+                e.printStackTrace();
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Returns a new Uri appending the given {@code appendPath}
+     * to this instance's {@link #getDirectory() directory}.
+     * <p>
+     * If {@code appendPath} is empty, method behaves like {@link #getNormalized()}.
+     * </p>
+     * <p>
+     * This resulting path will be {@link IOUtil#cleanPathString(String) normalized}.
+     * </p>
+     * <p>
+     * <pre>
+     * Example-1:
+     *     append: null
+     *     this-uri: http:/some/path/gluegen-rt.jar
+     *     result:   http:/some/path/gluegen-rt.jar
+     *
+     * Example-2:
+     *     append: test.txt
+     *     this-uri: file:/some/path/gluegen-rt.jar
+     *     result:   file:/some/path/test.txt
+     *
+     * Example-3:
+     *     append: test.txt
+     *     this-uri: file:/some/path/lala/lili/../../hello.txt
+     *     result:   file:/some/path/test.txt
+     * </pre>
+     * </p>
+     *
+     * @param appendPath denotes a relative path to be appended to this Uri's directory
+     * @throws URISyntaxException
+     *             if the resulting {@code uri} doesn't fit to the
+     *             specification RFC2396 and RFC3986 or could not be parsed correctly.
+     */
+    public Uri getRelativeOf(final Encoded appendPath) throws URISyntaxException {
+        if( emptyString(appendPath) ) {
+            return getNormalized();
+        } else {
+            return cutoffLastPathSegementImpl(true, false, appendPath);
+        }
     }
 
     /**
@@ -1249,7 +1670,7 @@ public class Uri {
      *             if the concatenated string {@code uri} doesn't fit to the
      *             specification RFC2396 and RFC3986 or could not be parsed correctly.
      */
-    public final Uri concat(final Uri.Encoded suffix) throws URISyntaxException {
+    public final Uri concat(final Encoded suffix) throws URISyntaxException {
         if( null == suffix ) {
             return this;
         } else {
@@ -1264,112 +1685,14 @@ public class Uri {
      *             or if the new string {@code uri} doesn't fit to the
      *             specification RFC2396 and RFC3986 or could not be parsed correctly.
      */
-    public final Uri getNewQuery(final String newQuery) throws URISyntaxException {
+    public final Uri getNewQuery(final Encoded newQuery) throws URISyntaxException {
         if( opaque ) {
             throw new URISyntaxException(input.decode(), "Opaque Uri cannot permute by query");
-        } else if( null != host ) {
-            // with host validation
-            return Uri.create(decode(scheme), decode(userInfo), decode(host), port,
-                              decode(path), newQuery, decode(fragment));
         } else {
-            // without host validation
-            return Uri.create(decode(scheme), decode(authority),
-                              decode(path), newQuery, decode(fragment));
+            // with host validation if authority is defined
+            return Uri.create(scheme, userInfo, host, port, path, newQuery, fragment);
         }
     }
-
-    /// NEW START
-
-    /**
-     * The URI's <code><i>protocol</i>:/some/path/gluegen-rt.jar</code>
-     * parent dirname URI <code><i>protocol</i>:/some/path/</code> will be returned,
-     * or {@code null} if not applicable.
-     * <p>
-     * <i>protocol</i> may be "file", "http", etc..
-     * </p>
-     *
-     * @return "<i>protocol</i>:/some/path/"
-     * @throws IllegalArgumentException if the URI doesn't match the expected formatting, or is null
-     * @throws URISyntaxException
-     */
-    public Uri getDirectory() throws URISyntaxException {
-        final String uriS = input.get();
-
-        // from
-        //   file:/some/path/gluegen-rt.jar  _or_ rsrc:gluegen-rt.jar
-        // to
-        //   file:/some/path/                _or_ rsrc:
-        int idx = uriS.lastIndexOf('/');
-        if(0 > idx) {
-            // no abs-path, check for protocol terminator ':'
-            idx = uriS.lastIndexOf(':');
-            if(0 > idx) {
-                throw new URISyntaxException(input.get(), "no scheme terminator ':'");
-            }
-        }
-        try {
-            return Uri.cast(uriS.substring(0, idx+1)); // exclude jar name, include terminal '/' or ':'
-        } catch (final URISyntaxException ue) {
-            if( DEBUG ) {
-                ue.printStackTrace();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Generates a URI for the <i>relativePath</i> relative to the <i>baseURI</i>,
-     * hence the result is a absolute location.
-     * <p>
-     * Impl. operates on the <i>scheme-specific-part</i>, and hence is sub-protocol savvy.
-     * </p>
-     * <p>
-     * In case <i>baseURI</i> is not a path ending w/ '/', it's a assumed to be a file and it's parent is being used.
-     * </p>
-     *
-     * @param baseURI denotes a URI to a directory ending w/ '/', or a file. In the latter case the file's directory is being used.
-     * @param relativePath denotes a relative file to the baseLocation's parent directory (URI encoded)
-     * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
-     */
-    public Uri getRelativeOf(final Encoded relativePath) throws URISyntaxException {
-        return compose(scheme, schemeSpecificPart, relativePath, fragment);
-    }
-
-    static Uri compose(final Encoded scheme, final Encoded schemeSpecificPart, final Encoded relativePath, final Encoded fragment) throws URISyntaxException {
-        String schemeSpecificPartS = schemeSpecificPart.get();
-
-        // cut off optional query in scheme-specific-part
-        final String query;
-        final int queryI = schemeSpecificPartS.lastIndexOf(QUERY_SEPARATOR);
-        if( queryI >= 0 ) {
-            query = schemeSpecificPartS.substring(queryI+1);
-            schemeSpecificPartS = schemeSpecificPartS.substring(0, queryI);
-        } else {
-            query = null;
-        }
-        if( null != relativePath ) {
-            if( !schemeSpecificPartS.endsWith("/") ) {
-                schemeSpecificPartS = IOUtil.getParentOf(schemeSpecificPartS);
-            }
-            schemeSpecificPartS = schemeSpecificPartS + relativePath.get();
-        }
-        schemeSpecificPartS = IOUtil.cleanPathString( schemeSpecificPartS );
-        final StringBuilder uri = new StringBuilder();
-        uri.append(scheme.get());
-        uri.append(':');
-        uri.append(schemeSpecificPartS);
-        if ( null != query ) {
-            uri.append(QUERY_SEPARATOR);
-            uri.append(query);
-        }
-        if ( null != fragment ) {
-            uri.append(FRAGMENT_SEPARATOR);
-            uri.append(fragment.get());
-        }
-        return Uri.cast(uri.toString());
-    }
-
-    /// NEW END
 
     /**
      * {@inheritDoc}

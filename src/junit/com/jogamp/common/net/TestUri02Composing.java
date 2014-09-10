@@ -61,7 +61,7 @@ public class TestUri02Composing extends JunitTracer {
     }
     static void testUriCompositioning(final Uri refURI, final Uri uri1) throws MalformedURLException, URISyntaxException {
         System.err.println("scheme <"+uri1.scheme+">, ssp <"+uri1.schemeSpecificPart+">, fragment <"+uri1.fragment+">");
-        final Uri uri2 = Uri.compose(uri1.scheme, uri1.schemeSpecificPart, null, uri1.fragment);
+        final Uri uri2 = uri1.getRelativeOf(null);
 
         System.err.println("URL-equals: "+refURI.equals(uri2));
         System.err.println("URL-ref   : <"+refURI+">");
@@ -76,7 +76,7 @@ public class TestUri02Composing extends JunitTracer {
     static void testURLCompositioning(final URL refURL, final URL url1) throws MalformedURLException, URISyntaxException {
         final Uri uri1 = Uri.valueOf(url1);
         System.err.println("scheme <"+uri1.scheme+">, ssp <"+uri1.schemeSpecificPart+">, fragment <"+uri1.fragment+">");
-        final Uri uri2 = Uri.compose(uri1.scheme, uri1.schemeSpecificPart, null, uri1.fragment);
+        final Uri uri2 = uri1.getRelativeOf(null);
 
         System.err.println("URL-equals(1): "+refURL.toURI().equals(uri2));
         System.err.println("URL-equals(2): "+refURL.equals(uri2.toURL()));
