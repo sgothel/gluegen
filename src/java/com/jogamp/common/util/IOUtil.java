@@ -1120,7 +1120,9 @@ public class IOUtil {
                     fout.write(shellCode);
                     fout.close();
                 }
-                final Process pr = Runtime.getRuntime().exec(exetst.getCanonicalPath());
+                // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
+                // and hence splitting up command by spaces!
+                final Process pr = Runtime.getRuntime().exec(new String[] { exetst.getCanonicalPath() } );
                 /**
                  * Disable StreamMonitor, which throttles exec-test performance a lot!
                  *
@@ -1385,7 +1387,8 @@ public class IOUtil {
         }
         final File r = executable ? tempRootExec : tempRootNoexec ;
         if(null == r) {
-            throw new RuntimeException("Could not determine a temporary directory");
+            final String exe_s = executable ? "executable " : "";
+            throw new RuntimeException("Could not determine a temporary "+exe_s+"directory");
         }
         final FilePermission fp = new FilePermission(r.getAbsolutePath(), "read,write,delete");
         SecurityUtil.checkPermission(fp);
