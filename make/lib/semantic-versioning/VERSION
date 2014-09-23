@@ -1,13 +1,29 @@
 https://github.com/sgothel/semantic-versioning
   forked from https://github.com/jeluard/semantic-versioning
 
-0.9.27-SNAPSHOT
+0.9.30-SNAPSHOT
 
-commit 9cdb6bbf6d3248a65aa78ced08211d609c356f91
-Author: Julien Eluard <jeluard@users.noreply.github.com>
-Date:   Thu Aug 28 01:19:08 2014 -0300
+commit 616f566cfe60638eb97823e1f63cf203161502da
+Author: Sven Gothel <sgothel@jausoft.com>
+Date:   Wed Sep 24 01:08:38 2014 +0200
 
-    Update README.md
+    Fix jardiff's Tools.isAccessChange(..): Differentiate between Class, Field and Method and apply all rules of the Java Language Specification
+    
+    Class, Field and Methods have different binary backward compatibility rules
+    as specified in the Java Language Specification, Java SE 7 Edition:
+      - http://docs.oracle.com/javase/specs/jls/se7/html/jls-13.html
+    
+    For Field 'volatile' the Java Language Specification, first edition has been used:
+      - http://www.wsu.edu/UNIX_Systems/java/langspec-1.0/13.doc.html#45194
+    
+    For each type separate method have been created, i.e. Tools.is<Type>AccessChange().
+    Each new method has the rules referenced and partially copied into the method
+    for better documentation.
+    
+    The now deprecated method Tools.isAccessChange(..) calls Tools.isClassAccessChange(..)
+    and shall be removed.
+    
+    Unit test ToolsTest has been expanded for each type and its rules.
 
 branch jogamp
 
