@@ -108,7 +108,7 @@ public class IOUtil {
 
     /**
      * Copy the specified URL resource to the specified output file. The total
-     * number of bytes written is returned. Both streams are closed upon completion.
+     * number of bytes written is returned.
      *
      * @param conn the open URLConnection
      * @param outFile the destination
@@ -130,7 +130,7 @@ public class IOUtil {
 
     /**
      * Copy the specified input stream to the specified output file. The total
-     * number of bytes written is returned. Both streams are closed upon completion.
+     * number of bytes written is returned.
      *
      * @param in the source
      * @param outFile the destination
@@ -957,14 +957,14 @@ public class IOUtil {
      * a dot is being prepended to {@link #tmpSubDir}, i.e.: {@code /home/user/.jogamp_0000/}.
      * </p>
      * @param executable true if the user intents to launch executables from the temporary directory, otherwise false.
-     * @throws RuntimeException if no temporary directory could be determined
+     * @throws IOException if no temporary directory could be determined
      * @throws SecurityException if access to <code>java.io.tmpdir</code> is not allowed within the current security context
      *
      * @see PropertyAccess#getProperty(String, boolean)
      * @see Context#getDir(String, int)
      */
     public static File getTempDir(final boolean executable)
-        throws SecurityException, RuntimeException
+        throws SecurityException, IOException
     {
         if(!tempRootSet) { // volatile: ok
             synchronized(IOUtil.class) {
@@ -1089,7 +1089,7 @@ public class IOUtil {
         final File r = executable ? tempRootExec : tempRootNoexec ;
         if(null == r) {
             final String exe_s = executable ? "executable " : "";
-            throw new RuntimeException("Could not determine a temporary "+exe_s+"directory");
+            throw new IOException("Could not determine a temporary "+exe_s+"directory");
         }
         final FilePermission fp = new FilePermission(r.getAbsolutePath(), "read,write,delete");
         SecurityUtil.checkPermission(fp);
@@ -1113,7 +1113,7 @@ public class IOUtil {
      * @param executable true if the temporary root folder needs to hold executable files, otherwise false.
      * @return
      * @throws IllegalArgumentException
-     * @throws IOException
+     * @throws IOException if no temporary directory could be determined or temp file could not be created
      * @throws SecurityException
      */
     public static File createTempFile(final String prefix, final String suffix, final boolean executable)
@@ -1135,5 +1135,30 @@ public class IOUtil {
                 }
             }
         }
+    }
+
+    /**
+     * Helper to simplify closing {@link Closeable}s.
+     *
+     * @param stream the {@link Closeable} instance to close
+     * @param saveOneIfFree cache for one {@link IOException} to store, if not already used (excess)
+     * @param dumpExcess dump the excess {@link IOException} on this {@link PrintStream}
+     * @return the excess {@link IOException} or {@code null}.
+     */
+    public static IOException close(final Closeable stream, final IOException[] saveOneIfFree, final PrintStream dumpExcess) {
+        try {
+            stream.close();
+        } catch(final IOException e) {
+            if( null == saveOneIfFree[0] ) {
+                saveOneIfFree[0] = e;
+            } else {
+                if( null != dumpExcess ) {
+                    dumpExcess.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage());
+                    e.printStackTrace(dumpExcess);
+                }
+                return e;
+            }
+        }
+        return null;
     }
 }
