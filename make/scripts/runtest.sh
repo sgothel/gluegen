@@ -56,7 +56,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.IOUtil"
-#D_ARGS="-Djogamp.debug.ByteBufferInputStream"
+D_ARGS="-Djogamp.debug.ByteBufferInputStream"
 #D_ARGS="-Djogamp.debug.Bitstream"
 #D_ARGS="-Djogamp.debug=all"
 
@@ -123,7 +123,8 @@ function onetest() {
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
-onetest com.jogamp.common.nio.TestByteBufferInputStream 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.nio.TestByteBufferInputStream 2>&1 | tee -a $LOG
+onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG

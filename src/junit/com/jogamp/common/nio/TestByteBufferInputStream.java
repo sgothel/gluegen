@@ -228,7 +228,7 @@ public class TestByteBufferInputStream extends JunitTracer {
                     default:         fis.close();
                                      throw new InternalError("XX: "+srcType);
                 }
-                final MappedByteBufferInputStream mis = MappedByteBufferInputStream.create(fis.getChannel(), FileChannel.MapMode.READ_ONLY, cmode);
+                final MappedByteBufferInputStream mis = new MappedByteBufferInputStream(fis.getChannel(), FileChannel.MapMode.READ_ONLY, cmode);
                 Assert.assertEquals(expSize, mis.remaining());
                 Assert.assertEquals(expSize, mis.length());
                 Assert.assertEquals(0, mis.position());
