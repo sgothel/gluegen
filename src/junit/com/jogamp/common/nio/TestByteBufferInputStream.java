@@ -73,9 +73,7 @@ public class TestByteBufferInputStream extends JunitTracer {
     /** {@value} */
     static final int oneGiB = 1 << 30;
     /** {@value} */
-    static final int twoGiB = Integer.MAX_VALUE;
-    /** {@value} */
-    static final long fourGiB = 4L << 30L;
+    static final long twoPlusGiB = ( 2L << 30 ) + halfMiB;
 
     static final String fileHalfMiB = "./testHalfMiB.bin" ;
     static final String fileOneMiB = "./testOneMiB.bin" ;
@@ -83,8 +81,7 @@ public class TestByteBufferInputStream extends JunitTracer {
     static final String fileHunMiB = "./testHunMiB.bin" ;
     static final String fileHalfGiB = "./testHalfGiB.bin" ;
     static final String fileOneGiB = "./testOneGiB.bin" ;
-    static final String fileTwoGiB = "./testTwoGiB.bin" ;
-    static final String fileFourGiB = "./testFourGiB.bin" ;
+    static final String fileTwoPlusGiB = "./testTwoPlusGiB.bin" ;
     static final String fileOut = "./testOut.bin" ;
 
     static final String printPrecision = "%8.3f";
@@ -103,8 +100,7 @@ public class TestByteBufferInputStream extends JunitTracer {
         setup(fileHunMiB, hunMiB);
         setup(fileHalfGiB, halfGiB);
         setup(fileOneGiB, oneGiB);
-        setup(fileTwoGiB, twoGiB);
-        setup(fileFourGiB, fourGiB);
+        setup(fileTwoPlusGiB, twoPlusGiB);
     }
     static void setup(final String fname, final long size) throws IOException {
         final File file = new File(fname);
@@ -121,8 +117,7 @@ public class TestByteBufferInputStream extends JunitTracer {
         cleanup(fileHunMiB);
         cleanup(fileHalfGiB);
         cleanup(fileOneGiB);
-        cleanup(fileTwoGiB);
-        cleanup(fileFourGiB);
+        cleanup(fileTwoPlusGiB);
         cleanup(fileOut);
     }
     static void cleanup(final String fname) {
@@ -132,9 +127,9 @@ public class TestByteBufferInputStream extends JunitTracer {
 
     @Test
     public void test01MixedIntSize() throws IOException {
-        testCopyIntSize1Impl(fileHalfMiB, halfMiB);
+        // testCopyIntSize1Impl(fileHalfMiB, halfMiB);
 
-        testCopyIntSize1Impl(fileOneMiB, oneMiB);
+        // testCopyIntSize1Impl(fileOneMiB, oneMiB);
 
         testCopyIntSize1Impl(fileTenMiB, tenMiB);
 
@@ -143,8 +138,6 @@ public class TestByteBufferInputStream extends JunitTracer {
         testCopyIntSize1Impl(fileHalfGiB, halfGiB);
 
         testCopyIntSize1Impl(fileOneGiB, oneGiB);
-
-        // testCopyIntSize1Impl(fileTwoGiB, twoGiB);
     }
 
     static enum SrcType { COPY, MMAP1, MMAP2_NONE, MMAP2_SOFT, MMAP2_HARD };
@@ -152,22 +145,19 @@ public class TestByteBufferInputStream extends JunitTracer {
     @Test
     public void test11MMapFlushNone() throws IOException {
         testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileOneGiB, oneGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileTwoGiB, twoGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileFourGiB, fourGiB);
+        testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileTwoPlusGiB, twoPlusGiB);
     }
 
     @Test
     public void test12MMapFlushSoft() throws IOException {
         testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileOneGiB, oneGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileTwoGiB, twoGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileFourGiB, fourGiB);
+        testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileTwoPlusGiB, twoPlusGiB);
     }
 
     @Test
     public void test13MMapFlushHard() throws IOException {
         testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileOneGiB, oneGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileTwoGiB, twoGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileFourGiB, fourGiB);
+        testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileTwoPlusGiB, twoPlusGiB);
     }
 
     void testCopyIntSize1Impl(final String testFileName, final long expSize) throws IOException {
@@ -238,26 +228,32 @@ public class TestByteBufferInputStream extends JunitTracer {
                     default:         fis.close();
                                      throw new InternalError("XX: "+srcType);
                 }
-                final MappedByteBufferInputStream mis = MappedByteBufferInputStream.create(fis.getChannel(), cmode);
+                final MappedByteBufferInputStream mis = MappedByteBufferInputStream.create(fis.getChannel(), FileChannel.MapMode.READ_ONLY, cmode);
                 Assert.assertEquals(expSize, mis.remaining());
                 Assert.assertEquals(expSize, mis.length());
                 Assert.assertEquals(0, mis.position());
                 bis = mis;
             }
         } catch (final IOException e) {
-            ioe[0] = e;
+            if( e.getCause() instanceof OutOfMemoryError ) {
+                oome = (OutOfMemoryError) e.getCause(); // oops
+            } else {
+                ioe[0] = e;
+            }
         } catch (final OutOfMemoryError m) {
-            oome = m; // oops :)
+            oome = m; // oops
         }
+        IOException ioe2 = null;
         try {
             if( null != ioe[0] || null != oome ) {
                 if( null != oome ) {
-                    System.err.printf("%s: mode %-5s, bufferSize %9d: OutOfMemoryError %s%n",
+                    System.err.printf("%s: mode %-5s, bufferSize %9d: OutOfMemoryError.1 %s%n",
                                       prefix, srcType.toString(), bufferSize, oome.getMessage());
-                    return false;
+                    oome.printStackTrace();
                 } else {
                     Assert.assertNull(ioe[0]);
                 }
+                return false;
             }
             Assert.assertEquals(expSizeI, bis.available());
 
@@ -292,6 +288,14 @@ public class TestByteBufferInputStream extends JunitTracer {
                 Thread.sleep(500);
             } catch (final InterruptedException e) { }
             dumpMem(prefix+" gc'ed ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
+        } catch( final IOException e ) {
+            if( e.getCause() instanceof OutOfMemoryError ) {
+                oome = (OutOfMemoryError) e.getCause(); // oops
+            } else {
+                ioe2 = e;
+            }
+        } catch (final OutOfMemoryError m) {
+            oome = m; // oops
         } finally {
             if( null != fic ) {
                 fic.close();
@@ -299,11 +303,24 @@ public class TestByteBufferInputStream extends JunitTracer {
             if( null != fis ) {
                 fis.close();
             }
-            bis.close();
+            if( null != bis ) {
+                bis.close();
+            }
             System.err.printf("%s: mode %-5s, bufferSize %9d: END%n", prefix, srcType.toString(), bufferSize);
             System.err.println();
         }
-        return true;
+        if( null != ioe2 || null != oome ) {
+            if( null != oome ) {
+                System.err.printf("%s: mode %-5s, bufferSize %9d: OutOfMemoryError.2 %s%n",
+                        prefix, srcType.toString(), bufferSize, oome.getMessage());
+                oome.printStackTrace();
+            } else {
+                Assert.assertNull(ioe2);
+            }
+            return false;
+        } else {
+            return true;
+        }
     }
 
     static void dumpMem(final String pre,

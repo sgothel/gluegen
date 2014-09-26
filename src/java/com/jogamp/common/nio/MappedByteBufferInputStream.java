@@ -56,6 +56,13 @@ public class MappedByteBufferInputStream extends InputStream {
          * Keep all previous lazily cached buffer slices alive, useful for hopping readers,
          * i.e. random access via {@link MappedByteBufferInputStream#position(long) position(p)}
          * or {@link MappedByteBufferInputStream#reset() reset()}.
+         * <p>
+         * Note that without flushing, the platform may fail memory mapping
+         * due to virtual address space exhaustion.<br>
+         * In such case an {@link OutOfMemoryError} may be thrown directly,
+         * or encapsulated as the {@link IOException#getCause() the cause}
+         * of a thrown {@link IOException}.
+         * </p>
          */
         FLUSH_NONE,
         /**
