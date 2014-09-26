@@ -111,6 +111,17 @@ public class Applet01 extends Applet {
                 System.err.println("Unexpected exception for secure temp dir");
                 se0.printStackTrace();
             }
+        } catch (final SecurityException e) {
+            se0 = e;
+            if( !isSecure ) {
+                System.err.println("Expected exception for insecure temp dir (2)");
+                System.err.println("Message: "+se0.getMessage());
+            } else {
+                System.err.println("Unexpected exception for secure temp dir (2)");
+                se0.printStackTrace();
+            }
+        } catch (final IOException e) {
+            throw new RuntimeException(e); // oops
         }
         if( isSecure ) {
             if( null != se0 ) {
