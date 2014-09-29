@@ -84,15 +84,15 @@ public class TestByteBufferInputStream extends JunitTracer {
     static final String fileTwoPlusGiB = "./testTwoPlusGiB.bin" ;
     static final String fileOut = "./testOut.bin" ;
 
-    static final String printPrecision = "%8.3f";
-    static final double mib = 1024.0*1024.0;
+    public static final String PrintPrecision = "%8.3f";
+    public static final double MIB = 1024.0*1024.0;
 
 
     @BeforeClass
     public static void setup() throws IOException {
         final Runtime runtime = Runtime.getRuntime();
-        System.err.printf("Total Memory : "+printPrecision+" MiB%n", runtime.totalMemory() / mib);
-        System.err.printf("Max Memory   : "+printPrecision+" MiB%n", runtime.maxMemory() / mib);
+        System.err.printf("Total Memory : "+PrintPrecision+" MiB%n", runtime.totalMemory() / MIB);
+        System.err.printf("Max Memory   : "+PrintPrecision+" MiB%n", runtime.maxMemory() / MIB);
 
         setup(fileHalfMiB, halfMiB);
         setup(fileOneMiB, oneMiB);
@@ -189,7 +189,7 @@ public class TestByteBufferInputStream extends JunitTracer {
         final long[] usedMem1 = { 0 };
         final long[] freeMem1 = { 0 };
 
-        final String prefix = "test #"+iter+" "+String.format(printPrecision+" MiB", expSize/mib);
+        final String prefix = "test #"+iter+" "+String.format(PrintPrecision+" MiB", expSize/MIB);
         System.err.printf("%s: mode %-5s, bufferSize %9d: BEGIN%n", prefix, srcType.toString(), bufferSize);
         dumpMem(prefix+" before", runtime, -1, -1, usedMem0, freeMem0 );
 
@@ -323,17 +323,17 @@ public class TestByteBufferInputStream extends JunitTracer {
         }
     }
 
-    static void dumpMem(final String pre,
-                        final Runtime runtime, final long usedMem0,
-                        final long freeMem0, final long[] usedMemN,
-                        final long[] freeMemN )
+    public static void dumpMem(final String pre,
+                               final Runtime runtime, final long usedMem0,
+                               final long freeMem0, final long[] usedMemN,
+                               final long[] freeMemN )
     {
         usedMemN[0] = runtime.totalMemory() - runtime.freeMemory();
         freeMemN[0] = runtime.freeMemory();
 
-        System.err.printf("%s Used Memory  : "+printPrecision, pre, usedMemN[0] / mib);
+        System.err.printf("%s Used Memory  : "+PrintPrecision, pre, usedMemN[0] / MIB);
         if( 0 < usedMem0 ) {
-            System.err.printf(", delta "+printPrecision, (usedMemN[0]-usedMem0) / mib);
+            System.err.printf(", delta "+PrintPrecision, (usedMemN[0]-usedMem0) / MIB);
         }
         System.err.println(" MiB");
         /**

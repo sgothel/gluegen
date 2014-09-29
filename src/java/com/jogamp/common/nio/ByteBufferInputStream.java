@@ -126,10 +126,14 @@ public class ByteBufferInputStream extends InputStream {
     public final int read(final byte[] b, final int off, final int len) {
         if (b == null) {
             throw new NullPointerException();
-        } else if (off < 0 || len < 0 || len > b.length - off) {
+        } else if( off < 0 ||
+                   len < 0 ||
+                   off > b.length ||
+                   off + len > b.length ||
+                   off + len < 0
+                 ) {
             throw new IndexOutOfBoundsException("offset "+off+", length "+len+", b.length "+b.length);
-        }
-        if ( 0 == len ) {
+        } else if ( 0 == len ) {
             return 0;
         }
         final int totalRem = buf.remaining();
@@ -152,8 +156,7 @@ public class ByteBufferInputStream extends InputStream {
             throw new NullPointerException();
         } else if (len < 0 || len > b.remaining()) {
             throw new IndexOutOfBoundsException("length "+len+", b "+b);
-        }
-        if ( 0 == len ) {
+        } else if ( 0 == len ) {
             return 0;
         }
         final int remaining = buf.remaining();

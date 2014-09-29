@@ -34,7 +34,6 @@ import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 import java.security.AccessController;
@@ -45,11 +44,15 @@ import jogamp.common.Debug;
 import com.jogamp.common.os.Platform;
 
 /**
- * An {@link InputStream} implementation based on an underlying {@link MappedByteBuffer}
- * supporting {@link #markSupported() mark}.
+ * An {@link InputStream} implementation based on an underlying {@link FileChannel}'s memory mapped {@link ByteBuffer},
+ * {@link #markSupported() supporting} {@link #mark(int) mark} and {@link #reset()}.
  * <p>
- * Intended to be utilized with a {@link MappedByteBuffer memory-mapped} {@link FileChannel#map(MapMode, long, long) FileChannel}
- * beyond its size limitation of {@link Integer#MAX_VALUE}.<br>
+ * Implementation allows full memory mapped {@link ByteBuffer} coverage via {@link FileChannel#map(MapMode, long, long) FileChannel}
+ * beyond its size limitation of {@link Integer#MAX_VALUE} utilizing an array of {@link ByteBuffer} slices.<br>
+ * </p>
+ * <p>
+ * Implementation further allows full random access via {@link #position()} and {@link #position(long)}
+ * and accessing the memory mapped {@link ByteBuffer} slices directly via {@link #currentSlice()} and {@link #nextSlice()}.
  * </p>
  * @since 2.3.0
  */
@@ -150,7 +153,7 @@ public class MappedByteBufferInputStream extends InputStream {
     private FileResizeOp fileResizeOp = NoFileResize;
 
     private int sliceCount;
-    ByteBuffer[] slices;
+    private ByteBuffer[] slices;
     private WeakReference<ByteBuffer>[] slices2GC;
     private long totalSize;
 
@@ -162,10 +165,10 @@ public class MappedByteBufferInputStream extends InputStream {
     private boolean hasCleaner;
     private CacheMode cmode;
 
-    int currSlice;
+    private int sliceIdx;
     private long mark;
 
-    public final void dbgDump(final String prefix, final PrintStream out) {
+    final void dbgDump(final String prefix, final PrintStream out) {
         long fcSz = 0, pos = 0, rem = 0;
         try {
             fcSz = fc.size();
@@ -184,12 +187,12 @@ public class MappedByteBufferInputStream extends InputStream {
         out.println(prefix+" refCount "+refCount+", fcSize "+fcSz+", totalSize "+totalSize);
         out.println(prefix+" position "+pos+", remaining "+rem);
         out.println(prefix+" mmode "+mmode+", cmode "+cmode+", fileResizeOp "+fileResizeOp);
-        out.println(prefix+" slice "+currSlice+" / "+sliceCount+" ("+sliceCount2+")");
+        out.println(prefix+" slice "+sliceIdx+" / "+sliceCount+" ("+sliceCount2+")");
         out.println(prefix+" sliceShift "+sliceShift+" -> "+(1L << sliceShift));
     }
 
     MappedByteBufferInputStream(final FileChannel fc, final FileChannel.MapMode mmode, final CacheMode cmode,
-                                final int sliceShift, final long totalSize, final int currSlice) throws IOException {
+                                final int sliceShift, final long totalSize, final int currSliceIdx) throws IOException {
         this.sliceShift = sliceShift;
         this.fc = fc;
         this.mmode = mmode;
@@ -207,16 +210,16 @@ public class MappedByteBufferInputStream extends InputStream {
         this.hasCleaner = false;
         this.cmode = cmode;
 
-        this.currSlice = currSlice;
+        this.sliceIdx = currSliceIdx;
         this.mark = -1;
 
-        slice(currSlice).position(0);
+        currentSlice().position(0);
     }
 
     /**
      * Creates a new instance using the given {@link FileChannel}.
      * <p>
-     * The {@link MappedByteBuffer} slices will be mapped lazily at first usage.
+     * The {@link ByteBuffer} slices will be mapped lazily at first usage.
      * </p>
      * @param fileChannel the file channel to be mapped lazily.
      * @param mmode the map mode, default is {@link FileChannel.MapMode#READ_ONLY}.
@@ -235,7 +238,7 @@ public class MappedByteBufferInputStream extends InputStream {
      * Creates a new instance using the given {@link FileChannel},
      * given mapping-mode, given cache-mode and the {@link #DEFAULT_SLICE_SHIFT}.
      * <p>
-     * The {@link MappedByteBuffer} slices will be mapped lazily at first usage.
+     * The {@link ByteBuffer} slices will be mapped lazily at first usage.
      * </p>
      * @param fileChannel the file channel to be used.
      * @param mmode the map mode, default is {@link FileChannel.MapMode#READ_ONLY}.
@@ -251,7 +254,7 @@ public class MappedByteBufferInputStream extends InputStream {
      * {@link FileChannel.MapMode#READ_ONLY read-only} mapping mode, {@link CacheMode#FLUSH_PRE_SOFT}
      * and the {@link #DEFAULT_SLICE_SHIFT}.
      * <p>
-     * The {@link MappedByteBuffer} slices will be mapped {@link FileChannel.MapMode#READ_ONLY} lazily at first usage.
+     * The {@link ByteBuffer} slices will be mapped {@link FileChannel.MapMode#READ_ONLY} lazily at first usage.
      * </p>
      * @param fileChannel the file channel to be used.
      * @throws IOException
@@ -279,11 +282,13 @@ public class MappedByteBufferInputStream extends InputStream {
                 }
                 fc.close();
                 mark = -1;
-                currSlice = -1;
+                sliceIdx = -1;
                 super.close();
             }
         }
     }
+
+    final FileChannel.MapMode getMapMode() { return mmode; }
 
     /**
      * @param fileResizeOp the new {@link FileResizeOp}.
@@ -345,7 +350,7 @@ public class MappedByteBufferInputStream extends InputStream {
             sliceCount = 0;
             totalSize = 0;
             mark = -1;
-            currSlice = 0;
+            sliceIdx = 0;
         } else {
             final long prePosition = position();
 
@@ -353,7 +358,7 @@ public class MappedByteBufferInputStream extends InputStream {
             final int newSliceCount = (int)( ( newTotalSize + ( sliceSize - 1 ) ) / sliceSize );
             @SuppressWarnings("unchecked")
             final WeakReference<ByteBuffer>[] newSlices2GC = new WeakReference[ newSliceCount ];
-            final MappedByteBuffer[] newSlices = new MappedByteBuffer[ newSliceCount ];
+            final ByteBuffer[] newSlices = new ByteBuffer[ newSliceCount ];
             final int copySliceCount = Math.min(newSliceCount, sliceCount-1); // drop last (resize)
             if( 0 < copySliceCount ) {
                 System.arraycopy(slices2GC, 0, newSlices2GC, 0, copySliceCount);
@@ -399,46 +404,64 @@ public class MappedByteBufferInputStream extends InputStream {
     public final synchronized MappedByteBufferOutputStream getOutputStream(final FileResizeOp fileResizeOp)
             throws IllegalStateException, IOException
     {
-        if( FileChannel.MapMode.READ_ONLY == mmode ) {
-            throw new IOException("FileChannel map-mode is read-only");
-        }
         checkOpen();
-        setFileResizeOp(fileResizeOp);
+        final MappedByteBufferOutputStream res = new MappedByteBufferOutputStream(this, fileResizeOp);
         refCount++;
-        this.fileResizeOp = null != fileResizeOp ? fileResizeOp : NoFileResize;
-        return new MappedByteBufferOutputStream(this);
+        return res;
     }
 
-    final synchronized ByteBuffer slice(final int i) throws IOException {
-        if ( null != slices[i] ) {
-            return slices[i];
+    /**
+     * Return the mapped {@link ByteBuffer} slice at the current {@link #position()}.
+     * <p>
+     * Due to the nature of using sliced buffers mapping the whole region,
+     * user has to determine whether the returned buffer covers the desired region
+     * and may fetch the {@link #nextSlice()} until satisfied.<br>
+     * It is also possible to repeat this operation after reposition the stream via {@link #position(long)}
+     * or {@link #skip(long)} to a position within the next block, similar to {@link #nextSlice()}.
+     * </p>
+     * @throws IOException if a buffer slice operation failed.
+     */
+    public final synchronized ByteBuffer currentSlice() throws IOException {
+        if ( null != slices[sliceIdx] ) {
+            return slices[sliceIdx];
         } else {
             if( CacheMode.FLUSH_PRE_SOFT == cmode ) {
-                final WeakReference<ByteBuffer> ref = slices2GC[i];
+                final WeakReference<ByteBuffer> ref = slices2GC[sliceIdx];
                 if( null != ref ) {
                     final ByteBuffer mbb = ref.get();
-                    slices2GC[i] = null;
+                    slices2GC[sliceIdx] = null;
                     if( null != mbb ) {
-                        slices[i] = mbb;
+                        slices[sliceIdx] = mbb;
                         return mbb;
                     }
                 }
             }
-            final long pos = (long)i << sliceShift;
-            slices[i] = fc.map(mmode, pos, Math.min(1L << sliceShift, totalSize - pos));
-            return slices[i];
+            final long pos = (long)sliceIdx << sliceShift;
+            slices[sliceIdx] = fc.map(mmode, pos, Math.min(1L << sliceShift, totalSize - pos));
+            return slices[sliceIdx];
         }
     }
-    final synchronized boolean nextSlice() throws IOException {
-        if ( currSlice < sliceCount - 1 ) {
+
+    /**
+     * Return the <i>next</i> mapped {@link ByteBuffer} slice from the current {@link #position()},
+     * implicitly setting {@link #position(long)} to the start of the returned <i>next</i> slice,
+     * see {@link #currentSlice()}.
+     * <p>
+     * If no subsequent slice is available, {@code null} is being returned.
+     * </p>
+     * @throws IOException if a buffer slice operation failed.
+     */
+    public final synchronized ByteBuffer nextSlice() throws IOException {
+        if ( sliceIdx < sliceCount - 1 ) {
             if( CacheMode.FLUSH_NONE != cmode ) {
-                flushSlice(currSlice);
+                flushSlice(sliceIdx);
             }
-            currSlice++;
-            slice( currSlice ).position( 0 );
-            return true;
+            sliceIdx++;
+            final ByteBuffer slice = currentSlice();
+            slice.position( 0 );
+            return slice;
         } else {
-            return false;
+            return null;
         }
     }
 
@@ -573,7 +596,7 @@ public class MappedByteBufferInputStream extends InputStream {
     // @Override
     public final synchronized long position() throws IOException {
         if( 0 < refCount ) {
-            return ( (long)currSlice << sliceShift ) + slice( currSlice ).position();
+            return ( (long)sliceIdx << sliceShift ) + currentSlice().position();
         } else {
             return 0;
         }
@@ -594,9 +617,9 @@ public class MappedByteBufferInputStream extends InputStream {
         if ( totalSize < newPosition || 0 > newPosition ) {
             throw new IllegalArgumentException("new position "+newPosition+" not within [0.."+totalSize+"]");
         }
-        final int preSlice = currSlice;
+        final int preSlice = sliceIdx;
         positionImpl( newPosition );
-        if( CacheMode.FLUSH_NONE != cmode && preSlice != currSlice) {
+        if( CacheMode.FLUSH_NONE != cmode && preSlice != sliceIdx) {
             flushSlice(preSlice);
         }
         return this;
@@ -604,12 +627,12 @@ public class MappedByteBufferInputStream extends InputStream {
     private final synchronized void positionImpl( final long newPosition ) throws IOException {
         if ( totalSize == newPosition ) {
             // EOF, pos == maxPos + 1
-            currSlice = Math.max(0, sliceCount - 1); // handle zero size
-            final ByteBuffer s = slice( currSlice );
+            sliceIdx = Math.max(0, sliceCount - 1); // handle zero size
+            final ByteBuffer s = currentSlice();
             s.position( s.capacity() );
         } else {
-            currSlice = (int)( newPosition >>> sliceShift );
-            slice( currSlice ).position( (int)( newPosition - ( (long)currSlice << sliceShift ) ) );
+            sliceIdx = (int)( newPosition >>> sliceShift );
+            currentSlice().position( (int)( newPosition - ( (long)sliceIdx << sliceShift ) ) );
         }
     }
 
@@ -670,12 +693,13 @@ public class MappedByteBufferInputStream extends InputStream {
     @Override
     public final synchronized int read() throws IOException {
         checkOpen();
-        if ( ! slice( currSlice ).hasRemaining() ) {
-            if ( !nextSlice() ) {
+        ByteBuffer slice = currentSlice();
+        if ( !slice.hasRemaining() ) {
+            if ( null == ( slice = nextSlice() ) ) {
                 return -1;
             }
         }
-        return slices[ currSlice ].get() & 0xFF;
+        return slice.get() & 0xFF;
     }
 
     @Override
@@ -683,10 +707,14 @@ public class MappedByteBufferInputStream extends InputStream {
         checkOpen();
         if (b == null) {
             throw new NullPointerException();
-        } else if (off < 0 || len < 0 || len > b.length - off) {
+        } else if( off < 0 ||
+                   len < 0 ||
+                   off > b.length ||
+                   off + len > b.length ||
+                   off + len < 0
+                 ) {
             throw new IndexOutOfBoundsException("offset "+off+", length "+len+", b.length "+b.length);
-        }
-        if ( 0 == len ) {
+        } else if ( 0 == len ) {
             return 0;
         }
         final long totalRem = remaining();
@@ -696,15 +724,73 @@ public class MappedByteBufferInputStream extends InputStream {
         final int maxLen = (int)Math.min( totalRem, len );
         int read = 0;
         while( read < maxLen ) {
-            int currRem = slice( currSlice ).remaining();
+            ByteBuffer slice = currentSlice();
+            int currRem = slice.remaining();
             if ( 0 == currRem ) {
-                if ( !nextSlice() ) {
-                    throw new InternalError("XX");
+                if ( null == ( slice = nextSlice() ) ) {
+                    throw new InternalError("Unexpected EOT");
                 }
-                currRem = slice( currSlice ).remaining();
+                currRem = slice.remaining();
             }
-            slices[ currSlice ].get( b, off + read, Math.min( maxLen - read, currRem ) );
-            read += Math.min( maxLen - read, currRem );
+            final int currLen = Math.min( maxLen - read, currRem );
+            slice.get( b, off + read, currLen );
+            read += currLen;
+        }
+        return maxLen;
+    }
+
+    /**
+     * Perform similar to {@link #read(byte[], int, int)}
+     * with {@link ByteBuffer} instead of byte array.
+     * @param b the {@link ByteBuffer} sink, data is written at current {@link ByteBuffer#position()}
+     * @param len the number of bytes to read
+     * @return the number of bytes read, -1 for EOS
+     * @throws IOException if a buffer slice operation failed or stream has been {@link #close() closed}.
+     */
+    // @Override
+    public final synchronized int read(final ByteBuffer b, final int len) throws IOException {
+        checkOpen();
+        if (b == null) {
+            throw new NullPointerException();
+        } else if (len < 0 || len > b.remaining()) {
+            throw new IndexOutOfBoundsException("length "+len+", b "+b);
+        } else if ( 0 == len ) {
+            return 0;
+        }
+        final long totalRem = remaining();
+        if ( 0 == totalRem ) {
+            return -1;
+        }
+        final int maxLen = (int)Math.min( totalRem, len );
+        int read = 0;
+        while( read < maxLen ) {
+            ByteBuffer slice = currentSlice();
+            int currRem = slice.remaining();
+            if ( 0 == currRem ) {
+                if ( null == ( slice = nextSlice() ) ) {
+                    throw new InternalError("Unexpected EOT");
+                }
+                currRem = slice.remaining();
+            }
+            final int currLen = Math.min( maxLen - read, currRem );
+            if( slice.hasArray() && b.hasArray() ) {
+                System.arraycopy(slice.array(), slice.arrayOffset() + slice.position(),
+                                 b.array(), b.arrayOffset() + b.position(),
+                                 currLen);
+                slice.position( slice.position() + currLen );
+                b.position( b.position() + currLen );
+            } else if( currLen == currRem ) {
+                b.put(slice);
+            } else {
+                final int _limit = slice.limit();
+                slice.limit(currLen);
+                try {
+                    b.put(slice);
+                } finally {
+                    slice.limit(_limit);
+                }
+            }
+            read += currLen;
         }
         return maxLen;
     }
