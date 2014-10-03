@@ -100,74 +100,107 @@ public class TestByteBufferCopyStream extends JunitTracer {
         Assert.assertEquals(0, mos.position());
         Assert.assertEquals(0, mos.remaining());
 
-        mos.write(mis, mis.remaining());
+        OutOfMemoryError oome = null;
+        IOException ioe = null;
 
-        Assert.assertEquals(size, input.length());
-        Assert.assertEquals(size, output.length());
-        Assert.assertEquals(size, mis.length());
-        Assert.assertEquals(size, mos.length());
-        Assert.assertEquals(size, mis.position());
-        Assert.assertEquals(size, mos.position());
-        Assert.assertEquals(0, mis.remaining());
-        Assert.assertEquals(0, mos.remaining());
-
-        mos.close();
-        mis.close();
-        input.close();
-        output.close();
-        srcFile.delete();
-        dstFile.delete();
-        TestByteBufferInputStream.dumpMem(prefix+" after ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
-        System.gc();
         try {
-            Thread.sleep(500);
-        } catch (final InterruptedException e) { }
-        TestByteBufferInputStream.dumpMem(prefix+" gc'ed ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
+            mos.write(mis, mis.remaining());
+
+            Assert.assertEquals(size, input.length());
+            Assert.assertEquals(size, output.length());
+            Assert.assertEquals(size, mis.length());
+            Assert.assertEquals(size, mos.length());
+            Assert.assertEquals(size, mis.position());
+            Assert.assertEquals(size, mos.position());
+            Assert.assertEquals(0, mis.remaining());
+            Assert.assertEquals(0, mos.remaining());
+
+        } catch (final IOException e) {
+            if( e.getCause() instanceof OutOfMemoryError ) {
+                oome = (OutOfMemoryError) e.getCause(); // oops
+            } else {
+                ioe = e;
+            }
+        } catch (final OutOfMemoryError m) {
+            oome = m; // oops
+        } finally {
+            mos.close();
+            mis.close();
+            input.close();
+            output.close();
+            srcFile.delete();
+            dstFile.delete();
+            TestByteBufferInputStream.dumpMem(prefix+" after ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
+            System.gc();
+            try {
+                Thread.sleep(500);
+            } catch (final InterruptedException e) { }
+            TestByteBufferInputStream.dumpMem(prefix+" gc'ed ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
+        }
+        if( null != ioe || null != oome ) {
+            if( null != oome ) {
+                System.err.printf("%s: OutOfMemoryError.2 %s%n", prefix, oome.getMessage());
+                oome.printStackTrace();
+            } else {
+                Assert.assertNull(ioe);
+            }
+        }
     }
+
+    /** {@value} */
+    static final long halfMiB = 1L << 19;
+    /** {@value} */
+    static final long oneGiB = 1L << 30;
+    /** {@value} */
+    static final long onePlusGiB = oneGiB + halfMiB;
+    /** {@value} */
+    static final long twoGiB = ( 2L << 30 );
+    /** {@value} */
+    static final long twoPlusGiB = twoGiB + halfMiB;
 
     @Test
     public void test00() throws IOException {
         final int srcSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
         final int dstSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
-        final long size = 3L * ( 1L << 30 ); // 3 GiB
-        testImpl("./testIn.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, srcSliceShift,
-                 "./testOut.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, dstSliceShift );
+        final long size = twoPlusGiB;
+        testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, srcSliceShift,
+                 getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, dstSliceShift );
     }
 
     @Test
     public void test01() throws IOException {
         final int srcSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
         final int dstSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
-        final long size = 3L * ( 1L << 30 ); // 3 GiB
-        testImpl("./testIn.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
-                 "./testOut.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
+        final long size = twoPlusGiB;
+        testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
+                 getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     @Test
     public void test02() throws IOException {
         final int srcSliceShift = 28; // 256M bytes per slice
         final int dstSliceShift = 28; // 256M bytes per slice
-        final long size = 3L * ( 1L << 30 ); // 3 GiB
-        testImpl("./testIn.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
-                 "./testOut.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
+        final long size = onePlusGiB;
+        testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
+                 getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     @Test
     public void test11() throws IOException {
         final int srcSliceShift = 28; // 256M bytes per slice
         final int dstSliceShift = 27; // 128M bytes per slice
-        final long size = 3L * ( 1L << 30 ); // 3 GiB
-        testImpl("./testIn.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
-                 "./testOut.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
+        final long size = onePlusGiB;
+        testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
+                 getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     @Test
     public void test12() throws IOException {
         final int srcSliceShift = 27; // 128M bytes per slice
         final int dstSliceShift = 28; // 256M bytes per slice
-        final long size = 3L * ( 1L << 30 ); // 3 GiB
-        testImpl("./testIn.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
-                 "./testOut.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
+        final long size = onePlusGiB;
+        testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
+                 getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     public static void main(final String args[]) throws IOException {

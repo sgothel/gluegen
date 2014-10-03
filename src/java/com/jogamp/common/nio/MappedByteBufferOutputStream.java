@@ -79,6 +79,19 @@ public class MappedByteBufferOutputStream extends OutputStream {
     }
 
     /**
+     * See {@link MappedByteBufferInputStream#setSynchronous(boolean)}.
+     */
+    public final synchronized void setSynchronous(final boolean s) {
+        parent.setSynchronous(s);
+    }
+    /**
+     * See {@link MappedByteBufferInputStream#getSynchronous()}.
+     */
+    public final synchronized boolean getSynchronous() {
+        return parent.getSynchronous();
+    }
+
+    /**
      * See {@link MappedByteBufferInputStream#setLength(long)}.
      */
     public final synchronized void setLength(final long newTotalSize) throws IOException {
@@ -129,7 +142,15 @@ public class MappedByteBufferOutputStream extends OutputStream {
 
     @Override
     public final synchronized void flush() throws IOException {
-        parent.flush();
+        parent.flush( true /* metaData */);
+    }
+
+    /**
+     * See {@link MappedByteBufferInputStream#flush(boolean)}.
+     */
+    // @Override
+    public final synchronized void flush(final boolean metaData) throws IOException {
+        parent.flush(metaData);
     }
 
     @Override
@@ -156,6 +177,11 @@ public class MappedByteBufferOutputStream extends OutputStream {
             }
         }
         slice.put( (byte)(b & 0xFF) );
+
+        // sync last buffer (happens only in synchronous mode)
+        if( null != slice ) {
+            parent.syncSlice(slice);
+        }
     }
 
     @Override
@@ -178,8 +204,9 @@ public class MappedByteBufferOutputStream extends OutputStream {
             parent.setLength( parent.length() + len - totalRem );
         }
         int written = 0;
+        ByteBuffer slice = null;
         while( written < len ) {
-            ByteBuffer slice = parent.currentSlice();
+            slice = parent.currentSlice();
             int currRem = slice.remaining();
             if ( 0 == currRem ) {
                 if ( null == ( slice = parent.nextSlice() ) ) {
@@ -196,6 +223,10 @@ public class MappedByteBufferOutputStream extends OutputStream {
             final int currLen = Math.min( len - written, currRem );
             slice.put( b, off + written, currLen );
             written += currLen;
+        }
+        // sync last buffer (happens only in synchronous mode)
+        if( null != slice ) {
+            parent.syncSlice(slice);
         }
     }
 
@@ -221,8 +252,9 @@ public class MappedByteBufferOutputStream extends OutputStream {
             parent.setLength( parent.length() + len - totalRem );
         }
         int written = 0;
+        ByteBuffer slice = null;
         while( written < len ) {
-            ByteBuffer slice = parent.currentSlice();
+            slice = parent.currentSlice();
             int currRem = slice.remaining();
             if ( 0 == currRem ) {
                 if ( null == ( slice = parent.nextSlice() ) ) {
@@ -257,6 +289,10 @@ public class MappedByteBufferOutputStream extends OutputStream {
             }
             written += currLen;
         }
+        // sync last buffer (happens only in synchronous mode)
+        if( null != slice ) {
+            parent.syncSlice(slice);
+        }
     }
 
     /**
@@ -285,8 +321,9 @@ public class MappedByteBufferOutputStream extends OutputStream {
             parent.setLength( parent.length() + len - totalRem );
         }
         long written = 0;
+        ByteBuffer slice = null;
         while( written < len ) {
-            ByteBuffer slice = parent.currentSlice();
+            slice = parent.currentSlice();
             int currRem = slice.remaining();
             if ( 0 == currRem ) {
                 if ( null == ( slice = parent.nextSlice() ) ) {
@@ -305,6 +342,10 @@ public class MappedByteBufferOutputStream extends OutputStream {
                 throw new InternalError("Unexpected InputStream EOT"); // 'end-of-tape'
             }
             written += currLen;
+        }
+        // sync last buffer (happens only in synchronous mode)
+        if( null != slice ) {
+            parent.syncSlice(slice);
         }
     }
 }

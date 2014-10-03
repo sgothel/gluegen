@@ -38,6 +38,7 @@ import java.io.OutputStream;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -60,6 +61,7 @@ public class TestIOUtil01 extends JunitTracer {
     @BeforeClass
     public static void setup() throws IOException {
         final File tfile = new File(tfilename);
+        tfile.deleteOnExit();
         final OutputStream tout = new BufferedOutputStream(new FileOutputStream(tfile));
         for(int i=0; i<tsz; i++) {
             final byte b = (byte) (i%256);
@@ -67,6 +69,12 @@ public class TestIOUtil01 extends JunitTracer {
             tout.write(b);
         }
         tout.close();
+    }
+
+    @AfterClass
+    public static void cleanup() {
+        final File tfile = new File(tfilename);
+        tfile.delete();
     }
 
     @Test
@@ -109,21 +117,26 @@ public class TestIOUtil01 extends JunitTracer {
         Assert.assertNotNull(urlConn1);
 
         final File file2 = new File(tfilename2);
-        IOUtil.copyURLConn2File(urlConn1, file2);
-        final URLConnection urlConn2 = IOUtil.getResource(this.getClass(), tfilename2);
-        Assert.assertNotNull(urlConn2);
-
-        final BufferedInputStream bis = new BufferedInputStream( urlConn2.getInputStream() );
-        final ByteBuffer bb;
+        file2.deleteOnExit();
         try {
-            bb = IOUtil.copyStream2ByteBuffer( bis );
+            IOUtil.copyURLConn2File(urlConn1, file2);
+            final URLConnection urlConn2 = IOUtil.getResource(this.getClass(), tfilename2);
+            Assert.assertNotNull(urlConn2);
+
+            final BufferedInputStream bis = new BufferedInputStream( urlConn2.getInputStream() );
+            final ByteBuffer bb;
+            try {
+                bb = IOUtil.copyStream2ByteBuffer( bis );
+            } finally {
+                IOUtil.close(bis, false);
+            }
+            Assert.assertEquals("Byte number not equal orig vs buffer", orig.length, bb.limit());
+            int i;
+            for(i=tsz-1; i>=0 && orig[i]==bb.get(i); i--) ;
+            Assert.assertTrue("Bytes not equal orig vs array", 0>i);
         } finally {
-            IOUtil.close(bis, false);
+            file2.delete();
         }
-        Assert.assertEquals("Byte number not equal orig vs buffer", orig.length, bb.limit());
-        int i;
-        for(i=tsz-1; i>=0 && orig[i]==bb.get(i); i--) ;
-        Assert.assertTrue("Bytes not equal orig vs array", 0>i);
     }
 
     public static void main(final String args[]) throws IOException {

@@ -14,5 +14,5 @@ REM scripts\java-win64.bat com.jogamp.common.net.TestUri02Composing
 REM scripts\java-win64.bat com.jogamp.common.net.TestUri03Resolving
 REM scripts\java-win64.bat com.jogamp.common.net.TestUri99LaunchOnReservedCharPathBug908
 
-REM scripts\java-win32.bat com.jogamp.common.nio.TestByteBufferInputStream
-scripts\java-win32.bat com.jogamp.common.nio.TestByteBufferOutputStream
+REM scripts\java-win64.bat com.jogamp.common.nio.TestByteBufferInputStream
+scripts\java-win64.bat com.jogamp.common.nio.TestByteBufferOutputStream
