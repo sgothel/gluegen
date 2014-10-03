@@ -34,13 +34,13 @@ import java.io.IOException;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestIteratorIndexCORE extends SingletonTestCase {
+public class TestIteratorIndexCORE extends SingletonJunitCase {
 
     static int elems = 10;
     static int loop = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 20 : 9999999;

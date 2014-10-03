@@ -1,6 +1,6 @@
 package com.jogamp.gluegen.test.junit.structgen;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -9,7 +9,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestStructGen02 extends SingletonTestCase {
+public class TestStructGen02 extends SingletonJunitCase {
 
     @BeforeClass
     public static void init() {

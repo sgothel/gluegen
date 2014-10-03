@@ -32,35 +32,37 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.SingletonJunitCase;
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSingletonServerSocket00 {
-    // public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
-    public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
-    public static final long SINGLE_INSTANCE_LOCK_TO   = 3*60*1000; // wait up to 3 min
-    public static final long SINGLE_INSTANCE_LOCK_POLL =       100; // poll every 100ms
+    public static final long SINGLE_INSTANCE_LOCK_TO   = SingletonJunitCase.SINGLE_INSTANCE_LOCK_TO;
+
+    public static final long SINGLE_INSTANCE_LOCK_POLL = 100; // poll every 100ms
+
     private static volatile SingletonInstance singletonInstance;
 
     @BeforeClass
     public static void oneTimeSetUp() {
         // one-time initialization code
-        singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+        singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL,
+                                                                 SingletonJunitCase.SINGLE_INSTANCE_LOCK_PORT);
     }
 
     @Test
-    public void testLockUnlock() {
+    public void test01_LockUnlock() {
         Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
         System.gc(); // force cleanup
         singletonInstance.unlock();
     }
 
     @Test
-    public void test2ndInstanceLockTimeout() {
+    public void test02_2ndInstanceLockTimeout() {
         Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
-        final SingletonInstance instanceTwo = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+        final SingletonInstance instanceTwo = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SingletonJunitCase.SINGLE_INSTANCE_LOCK_PORT);
         Assert.assertFalse("Could lock 2nd instance: "+instanceTwo.getName(), instanceTwo.tryLock(1000)); // 10x
         System.gc(); // force cleanup
         singletonInstance.unlock();
@@ -69,7 +71,7 @@ public class TestSingletonServerSocket00 {
     private Thread startLockUnlockOffThread(final int i) {
         final Thread t = new Thread(new Runnable() {
             public void run() {
-                final SingletonInstance myLock = SingletonInstance.createServerSocket(10, SINGLE_INSTANCE_LOCK_PORT);
+                final SingletonInstance myLock = SingletonInstance.createServerSocket(10, SingletonJunitCase.SINGLE_INSTANCE_LOCK_PORT);
                 System.err.println(Thread.currentThread().getName()+" LOCK try ..");
                 Assert.assertTrue(Thread.currentThread().getName()+" - Could not lock instance: "+myLock.getName(), myLock.tryLock(1000));
                 System.err.println(Thread.currentThread().getName()+" LOCK ON");

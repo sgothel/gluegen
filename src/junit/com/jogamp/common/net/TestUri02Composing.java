@@ -9,13 +9,13 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestUri02Composing extends SingletonTestCase {
+public class TestUri02Composing extends SingletonJunitCase {
 
     @BeforeClass
     public static void assetRegistration() throws Exception {

@@ -33,13 +33,13 @@ import org.junit.Test;
 
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPlatform01 extends SingletonTestCase {
+public class TestPlatform01 extends SingletonJunitCase {
 
     @Test
     public void testInfo00()  {

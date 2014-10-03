@@ -36,36 +36,40 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public abstract class SingletonTestCase extends JunitTracer {
+public abstract class SingletonJunitCase extends JunitTracer {
     public static final String SINGLE_INSTANCE_LOCK_FILE = "SingletonTestCase.lock";
     public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
 
     public static final long SINGLE_INSTANCE_LOCK_TO   = 12*60*1000; // wait up to 12 mins
     public static final long SINGLE_INSTANCE_LOCK_POLL =       1000; // poll every 1s
 
-    private static volatile SingletonInstance singletonInstance;
+    private static SingletonInstance singletonInstance = null; // system wide lock via port locking
+    private static final Object singletonSync = new Object();  // classloader wide lock
 
-    private static final synchronized void initSingletonInstance() {
-        if( null == singletonInstance )  {
-            // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
-            singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+    @BeforeClass
+    public static final void oneTimeSetUpSingleton() {
+        // one-time initialization code
+        synchronized( singletonSync ) {
+            if( null == singletonInstance )  {
+                System.err.println("++++ Test Singleton.ctor()");
+                // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
+                singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+            }
+            System.err.println("++++ Test Singleton.lock()");
             if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
                 throw new RuntimeException("Fatal: Could not lock single instance: "+singletonInstance.getName());
             }
         }
     }
 
-    @BeforeClass
-    public static final void oneTimeSetUpSingleton() {
-        // one-time initialization code
-        initSingletonInstance();
-    }
-
     @AfterClass
     public static final void oneTimeTearDownSingleton() {
         // one-time cleanup code
-        System.gc(); // force cleanup
-        singletonInstance.unlock();
+        synchronized( singletonSync ) {
+            System.gc(); // force cleanup
+            System.err.println("++++ Test Singleton.unlock()");
+            singletonInstance.unlock();
+        }
     }
 }
 

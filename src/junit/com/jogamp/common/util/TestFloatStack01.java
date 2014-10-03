@@ -35,13 +35,13 @@ import java.util.Arrays;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class /*testname*/TestFloatStack01/*testname*/ extends SingletonTestCase {
+public class /*testname*/TestFloatStack01/*testname*/ extends SingletonJunitCase {
 
     static final boolean equals(final /*value*/float/*value*/[] b, final int bOffset,
                                 final /*value*/float/*value*/[] stack, final int stackOffset, final int length) {

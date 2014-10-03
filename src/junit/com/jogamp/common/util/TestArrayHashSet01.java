@@ -34,13 +34,13 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestArrayHashSet01 extends SingletonTestCase {
+public class TestArrayHashSet01 extends SingletonJunitCase {
 
     public static class Dummy {
         int i1, i2, i3;

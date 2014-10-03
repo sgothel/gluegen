@@ -16,13 +16,13 @@ import jogamp.common.os.elf.SectionHeader;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform.OSType;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestElfReader01 extends SingletonTestCase {
+public class TestElfReader01 extends SingletonJunitCase {
     public static String GNU_LINUX_SELF_EXE = "/proc/self/exe";
     public static String ARM_HF_EXE = "tst-exe-armhf";
     public static String ARM_SF_EXE = "tst-exe-arm";

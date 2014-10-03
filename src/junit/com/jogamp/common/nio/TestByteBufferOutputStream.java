@@ -35,7 +35,7 @@ import java.nio.channels.FileChannel;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -44,7 +44,7 @@ import org.junit.runners.MethodSorters;
  * Testing {@link MappedByteBufferInputStream} and {@link MappedByteBufferOutputStream} editing functionality.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestByteBufferOutputStream extends SingletonTestCase {
+public class TestByteBufferOutputStream extends SingletonJunitCase {
 
     static void testImpl(final String fname,
                          final byte[] payLoad, final long payLoadOffset, final long postPayLoadFiller,

@@ -51,10 +51,10 @@ import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestTempJarCache extends SingletonTestCase {
+public class TestTempJarCache extends SingletonJunitCase {
     static TempFileCache fileCache;
 
     static class TestClassLoader extends URLClassLoader {

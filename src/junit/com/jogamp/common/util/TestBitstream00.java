@@ -42,7 +42,7 @@ import com.jogamp.common.os.Platform;
 
 import static com.jogamp.common.util.BitstreamData.*;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -51,7 +51,7 @@ import org.junit.runners.MethodSorters;
  * Test basic bit operations for {@link Bitstream}
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBitstream00 extends SingletonTestCase {
+public class TestBitstream00 extends SingletonJunitCase {
 
     @Test
     public void test00ShowByteOrder() {

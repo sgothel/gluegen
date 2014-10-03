@@ -34,7 +34,7 @@ import java.nio.ByteBuffer;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 import static com.jogamp.common.util.BitstreamData.*;
 
 import org.junit.FixMethodOrder;
@@ -53,7 +53,7 @@ import org.junit.runners.MethodSorters;
  * </ul>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBitstream01 extends SingletonTestCase {
+public class TestBitstream01 extends SingletonJunitCase {
 
     Bitstream<ByteBuffer> getTestStream(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) throws IOException {
         final int byteCount = ( preBits + skipBits + postBits + 7 ) / 8;

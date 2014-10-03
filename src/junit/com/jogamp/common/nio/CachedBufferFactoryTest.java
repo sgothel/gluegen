@@ -42,7 +42,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import static java.lang.System.*;
 import static org.junit.Assert.*;
@@ -55,7 +55,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class CachedBufferFactoryTest extends SingletonTestCase {
+public class CachedBufferFactoryTest extends SingletonJunitCase {
 
     private final int BUFFERCOUNT = 120;
 

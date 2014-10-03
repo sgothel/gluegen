@@ -33,13 +33,13 @@ import org.junit.Assert;
 
 import org.junit.Test;
 
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBuffersFloatDoubleConversion extends SingletonTestCase {
+public class TestBuffersFloatDoubleConversion extends SingletonJunitCase {
 
     public static boolean cmpFloatArray(final float[] d1, final int d1_offset, final float[] d2, final int d2_offset, final int len) {
         if( d1.length - d1_offset < len) {

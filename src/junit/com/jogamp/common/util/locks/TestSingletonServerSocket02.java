@@ -33,31 +33,13 @@ import org.junit.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.SingletonJunitCase;
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSingletonServerSocket02 {
-    // public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
-    public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
-    public static final long SINGLE_INSTANCE_LOCK_TO   = 3*60*1000; // wait up to 3 min
-    public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
-    private static volatile SingletonInstance singletonInstance;
-
-    @BeforeClass
-    public static void oneTimeSetUp() {
-        // one-time initialization code
-        singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
-        Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
-    }
-
-    @AfterClass
-    public static void oneTimeTearDown() {
-        System.gc(); // force cleanup
-        singletonInstance.unlock();
-    }
-
+public class TestSingletonServerSocket02 extends SingletonJunitCase {
     @Test
     public void dummy() throws InterruptedException {
         // make junit happy
@@ -65,7 +47,7 @@ public class TestSingletonServerSocket02 {
 
     // @Test(timeout=10) // Only enable manually to test timeout behavior
     public void testTimeout() throws InterruptedException {
-        Thread.sleep(3000);
+        Thread.sleep(SingletonJunitCase.SINGLE_INSTANCE_LOCK_TO+3000);
     }
 
     public static void main(final String args[]) throws IOException, InterruptedException {

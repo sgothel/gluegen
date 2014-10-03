@@ -10,13 +10,13 @@ import org.junit.Test;
 
 import com.jogamp.common.net.URIDumpUtil;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestUri01 extends SingletonTestCase {
+public class TestUri01 extends SingletonJunitCase {
 
     @Test
     public void test00BasicCoding() throws IOException, URISyntaxException {

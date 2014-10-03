@@ -34,13 +34,13 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestRecursiveThreadGroupLock01 extends SingletonTestCase {
+public class TestRecursiveThreadGroupLock01 extends SingletonJunitCase {
 
     public enum YieldMode {
         NONE(0), YIELD(1), SLEEP(2);

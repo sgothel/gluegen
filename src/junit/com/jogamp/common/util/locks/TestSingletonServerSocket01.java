@@ -32,27 +32,24 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.SingletonJunitCase;
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestSingletonServerSocket01 {
-    // public static final String SINGLE_INSTANCE_LOCK_FILE = "UITestCase.lock";
-    public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
-    public static final long SINGLE_INSTANCE_LOCK_TO   = 3*60*1000; // wait up to 3 min
-    public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
     private static volatile SingletonInstance singletonInstance;
 
     @BeforeClass
     public static void oneTimeSetUp() {
         // one-time initialization code
-        singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+        singletonInstance = SingletonInstance.createServerSocket(SingletonJunitCase.SINGLE_INSTANCE_LOCK_POLL, SingletonJunitCase.SINGLE_INSTANCE_LOCK_PORT);
     }
 
     @Test
     public void testJVMShutdown() {
-        Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO));
+        Assert.assertTrue("Could not lock single instance: "+singletonInstance.getName(), singletonInstance.tryLock(SingletonJunitCase.SINGLE_INSTANCE_LOCK_TO));
         singletonInstance.unlock();
     }
 

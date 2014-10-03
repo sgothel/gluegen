@@ -41,13 +41,13 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.junit.util.SingletonTestCase;
+import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSecIOUtil01 extends SingletonTestCase {
+public class TestSecIOUtil01 extends SingletonJunitCase {
     static final String java_io_tmpdir_propkey = "java.io.tmpdir";
     static final String java_home_propkey = "java.home";
     static final String os_name_propkey = "os.name";
