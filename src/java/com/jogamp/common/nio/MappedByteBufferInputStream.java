@@ -82,9 +82,6 @@ public class MappedByteBufferInputStream extends InputStream {
          * while preserving a {@link WeakReference} to allow its resurrection if not yet
          * {@link System#gc() garbage collected}.
          * </p>
-         * <p>
-         * This is the default.
-         * </p>
          */
         FLUSH_PRE_SOFT,
         /**
@@ -95,6 +92,9 @@ public class MappedByteBufferInputStream extends InputStream {
          * implementation attempts to hard flush the mapped buffer
          * using a {@code sun.misc.Cleaner} by reflection.
          * In case such method does not exist nor works, implementation falls back to {@link #FLUSH_PRE_SOFT}.
+         * </p>
+         * <p>
+         * This is the default.
          * </p>
          */
         FLUSH_PRE_HARD
@@ -246,7 +246,7 @@ public class MappedByteBufferInputStream extends InputStream {
      * </p>
      * @param fileChannel the file channel to be mapped lazily.
      * @param mmode the map mode, default is {@link FileChannel.MapMode#READ_ONLY}.
-     * @param cmode the caching mode, default is {@link CacheMode#FLUSH_PRE_SOFT}.
+     * @param cmode the caching mode, default is {@link CacheMode#FLUSH_PRE_HARD}.
      * @param sliceShift the pow2 slice size, default is {@link #DEFAULT_SLICE_SHIFT}.
      * @throws IOException
      */
@@ -265,7 +265,7 @@ public class MappedByteBufferInputStream extends InputStream {
      * </p>
      * @param fileChannel the file channel to be used.
      * @param mmode the map mode, default is {@link FileChannel.MapMode#READ_ONLY}.
-     * @param cmode the caching mode, default is {@link CacheMode#FLUSH_PRE_SOFT}.
+     * @param cmode the caching mode, default is {@link CacheMode#FLUSH_PRE_HARD}.
      * @throws IOException
      */
     public MappedByteBufferInputStream(final FileChannel fileChannel, final FileChannel.MapMode mmode, final CacheMode cmode) throws IOException {
@@ -274,7 +274,7 @@ public class MappedByteBufferInputStream extends InputStream {
 
     /**
      * Creates a new instance using the given {@link FileChannel},
-     * {@link FileChannel.MapMode#READ_ONLY read-only} mapping mode, {@link CacheMode#FLUSH_PRE_SOFT}
+     * {@link FileChannel.MapMode#READ_ONLY read-only} mapping mode, {@link CacheMode#FLUSH_PRE_HARD}
      * and the {@link #DEFAULT_SLICE_SHIFT}.
      * <p>
      * The {@link ByteBuffer} slices will be mapped {@link FileChannel.MapMode#READ_ONLY} lazily at first usage.
@@ -283,7 +283,7 @@ public class MappedByteBufferInputStream extends InputStream {
      * @throws IOException
      */
     public MappedByteBufferInputStream(final FileChannel fileChannel) throws IOException {
-        this(fileChannel, FileChannel.MapMode.READ_ONLY, CacheMode.FLUSH_PRE_SOFT, DEFAULT_SLICE_SHIFT);
+        this(fileChannel, FileChannel.MapMode.READ_ONLY, CacheMode.FLUSH_PRE_HARD, DEFAULT_SLICE_SHIFT);
     }
 
     /**
