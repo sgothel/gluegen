@@ -150,6 +150,14 @@ public class TestByteBufferCopyStream extends JunitTracer {
     /** {@value} */
     static final long halfMiB = 1L << 19;
     /** {@value} */
+    static final long quaterGiB = 1L << 28;
+    /** {@value} */
+    static final long quaterPlusGiB = quaterGiB + halfMiB;
+    /** {@value} */
+    static final long halfGiB = 1L << 29;
+    /** {@value} */
+    static final long halfPlusGiB = halfGiB + halfMiB;
+    /** {@value} */
     static final long oneGiB = 1L << 30;
     /** {@value} */
     static final long onePlusGiB = oneGiB + halfMiB;
@@ -157,6 +165,9 @@ public class TestByteBufferCopyStream extends JunitTracer {
     static final long twoGiB = ( 2L << 30 );
     /** {@value} */
     static final long twoPlusGiB = twoGiB + halfMiB;
+
+    /** {@value} */
+    static final long lala = ( 1L << 27 );
 
     @Test
     public void test00() throws IOException {
@@ -178,27 +189,27 @@ public class TestByteBufferCopyStream extends JunitTracer {
 
     @Test
     public void test02() throws IOException {
-        final int srcSliceShift = 28; // 256M bytes per slice
-        final int dstSliceShift = 28; // 256M bytes per slice
-        final long size = onePlusGiB;
+        final int srcSliceShift = 27; // 125M bytes per slice
+        final int dstSliceShift = 27; // 125M bytes per slice
+        final long size = halfPlusGiB;
         testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
                  getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     @Test
     public void test11() throws IOException {
-        final int srcSliceShift = 28; // 256M bytes per slice
-        final int dstSliceShift = 27; // 128M bytes per slice
-        final long size = onePlusGiB;
+        final int srcSliceShift = 26; //  64M bytes per slice
+        final int dstSliceShift = 25; //  32M bytes per slice
+        final long size = quaterPlusGiB;
         testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
                  getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     @Test
     public void test12() throws IOException {
-        final int srcSliceShift = 27; // 128M bytes per slice
-        final int dstSliceShift = 28; // 256M bytes per slice
-        final long size = onePlusGiB;
+        final int srcSliceShift = 25; //  32M bytes per slice
+        final int dstSliceShift = 26; //  64M bytes per slice
+        final long size = quaterPlusGiB;
         testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
                  getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }

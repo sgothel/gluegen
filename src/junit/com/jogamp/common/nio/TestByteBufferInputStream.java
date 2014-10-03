@@ -137,7 +137,7 @@ public class TestByteBufferInputStream extends JunitTracer {
 
         testCopyIntSize1Impl(fileHalfGiB, halfGiB);
 
-        testCopyIntSize1Impl(fileOneGiB, oneGiB);
+        // testCopyIntSize1Impl(fileOneGiB, oneGiB);
     }
 
     static enum SrcType { COPY, MMAP1, MMAP2_NONE, MMAP2_SOFT, MMAP2_HARD };
@@ -161,18 +161,10 @@ public class TestByteBufferInputStream extends JunitTracer {
     }
 
     void testCopyIntSize1Impl(final String testFileName, final long expSize) throws IOException {
-        testCopyIntSize1Impl(SrcType.COPY, buffer__8KiB, testFileName, expSize);
-        testCopyIntSize1Impl(SrcType.COPY,       hunMiB, testFileName, expSize);
-        testCopyIntSize1Impl(SrcType.MMAP1,           0, testFileName, expSize);
-        testCopyIntSize1Impl(SrcType.MMAP2_SOFT,           0, testFileName, expSize);
-        System.err.println();
-    }
-    void testCopyIntSize1Impl(final SrcType srcType, final int reqBufferSize, final String testFileName, final long expSize) throws IOException {
-        if( testCopyIntSize1Impl2(0, srcType, reqBufferSize, testFileName, expSize) ) {
-            if( testCopyIntSize1Impl2(1, srcType, reqBufferSize, testFileName, expSize) ) {
-                // testCopyIntSize1Impl2(2, srcType, reqBufferSize, testFileName, expSize);
-            }
-        }
+        testCopyIntSize1Impl2(0, SrcType.COPY, buffer__8KiB, testFileName, expSize);
+        testCopyIntSize1Impl2(0, SrcType.COPY,       hunMiB, testFileName, expSize);
+        testCopyIntSize1Impl2(0, SrcType.MMAP1,           0, testFileName, expSize);
+        testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT,           0, testFileName, expSize);
         System.err.println();
     }
     boolean testCopyIntSize1Impl2(final int iter, final SrcType srcType, final int reqBufferSize, final String testFileName, final long expSize) throws IOException {
