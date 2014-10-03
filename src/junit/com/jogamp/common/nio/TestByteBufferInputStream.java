@@ -143,20 +143,20 @@ public class TestByteBufferInputStream extends JunitTracer {
     static enum SrcType { COPY, MMAP1, MMAP2_NONE, MMAP2_SOFT, MMAP2_HARD };
 
     @Test
-    public void test11MMapFlushNone() throws IOException {
+    public void test11MMap1GiBFlushNone() throws IOException {
         testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileOneGiB, oneGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileTwoPlusGiB, twoPlusGiB);
+        // testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileTwoPlusGiB, twoPlusGiB);
     }
 
     @Test
-    public void test12MMapFlushSoft() throws IOException {
+    public void test12MMap1GiBFlushSoft() throws IOException {
         testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileOneGiB, oneGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileTwoPlusGiB, twoPlusGiB);
+        // testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileTwoPlusGiB, twoPlusGiB);
     }
 
     @Test
-    public void test13MMapFlushHard() throws IOException {
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileOneGiB, oneGiB);
+    public void test13MMap2GiBFlushHard() throws IOException {
+        // testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileOneGiB, oneGiB);
         testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileTwoPlusGiB, twoPlusGiB);
     }
 
