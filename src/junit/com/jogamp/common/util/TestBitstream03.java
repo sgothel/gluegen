@@ -36,7 +36,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import static com.jogamp.common.util.BitstreamData.*;
 
@@ -52,7 +52,7 @@ import org.junit.runners.MethodSorters;
  * </ul>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestBitstream03 extends JunitTracer {
+public class TestBitstream03 extends SingletonTestCase {
 
     @Test
     public void test01Int16BitsAligned() throws IOException {

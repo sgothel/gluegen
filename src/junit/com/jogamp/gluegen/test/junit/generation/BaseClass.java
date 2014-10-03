@@ -32,7 +32,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -50,7 +50,7 @@ import org.junit.Assert;
  * @author Michael Bien
  * @author Sven Gothel
  */
-public class BaseClass extends JunitTracer {
+public class BaseClass extends SingletonTestCase {
 
     /**
      * Verifies the existence and creation of the generated class.

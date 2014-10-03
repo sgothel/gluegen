@@ -33,13 +33,13 @@ import java.io.IOException;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestVersionNumber extends JunitTracer {
+public class TestVersionNumber extends SingletonTestCase {
 
     @Test
     public void test01() {

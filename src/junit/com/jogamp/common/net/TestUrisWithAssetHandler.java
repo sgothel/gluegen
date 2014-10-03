@@ -11,10 +11,10 @@ import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestUrisWithAssetHandler extends JunitTracer {
+public class TestUrisWithAssetHandler extends SingletonTestCase {
 
     @BeforeClass
     public static void assetRegistration() throws Exception {

@@ -14,13 +14,13 @@ import org.junit.Test;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestUri03Resolving extends JunitTracer {
+public class TestUri03Resolving extends SingletonTestCase {
 
     // Bug 908, issues w/ windows file path char: $ ^ ~ # [ ]
 

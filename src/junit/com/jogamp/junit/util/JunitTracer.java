@@ -28,6 +28,10 @@
 
 package com.jogamp.junit.util;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -41,11 +45,15 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public abstract class JunitTracer {
-    @Rule public TestName _unitTestName = new TestName();
+    @Rule public final TestName _unitTestName = new TestName();
 
     static volatile boolean testSupported = true;
 
-    public static void setTestSupported(final boolean v) {
+    public static final boolean isTestSupported() {
+        return testSupported;
+    }
+
+    public static final void setTestSupported(final boolean v) {
         System.err.println("setTestSupported: "+v);
         testSupported = v;
     }
@@ -63,18 +71,18 @@ public abstract class JunitTracer {
     }
 
     @BeforeClass
-    public static void oneTimeSetUp() {
+    public static final void oneTimeSetUpBase() {
         // one-time initialization code
     }
 
     @AfterClass
-    public static void oneTimeTearDown() {
+    public static final void oneTimeTearDownBase() {
         // one-time cleanup code
         System.gc(); // force cleanup
     }
 
     @Before
-    public void setUp() {
+    public final void setUpBase() {
         System.err.print("++++ TestCase.setUp: "+getFullTestName(" - "));
         if(!testSupported) {
             System.err.println(" - "+unsupportedTestMsg);
@@ -84,10 +92,18 @@ public abstract class JunitTracer {
     }
 
     @After
-    public void tearDown() {
+    public final void tearDownBase() {
         System.err.println("++++ TestCase.tearDown: "+getFullTestName(" - "));
     }
 
     static final String unsupportedTestMsg = "Test not supported on this platform.";
+
+    public static final void waitForKey(final String preMessage) {
+        final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
+        System.err.println(preMessage+"> Press enter to continue");
+        try {
+            System.err.println(stdin.readLine());
+        } catch (final IOException e) { e.printStackTrace(); }
+    }
 }
 

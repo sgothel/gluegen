@@ -51,13 +51,13 @@ import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.util.cache.TempCacheReg;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestJarUtil extends JunitTracer {
+public class TestJarUtil extends SingletonTestCase {
     static TempFileCache fileCache;
 
     @BeforeClass

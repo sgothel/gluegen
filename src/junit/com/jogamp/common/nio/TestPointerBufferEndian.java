@@ -6,7 +6,7 @@ import java.io.IOException;
 import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.os.*;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -17,7 +17,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPointerBufferEndian extends JunitTracer {
+public class TestPointerBufferEndian extends SingletonTestCase {
 
     protected void testImpl (final boolean direct) {
         final MachineDescription machine = Platform.getMachineDescription();

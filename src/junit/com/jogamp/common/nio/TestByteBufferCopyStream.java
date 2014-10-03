@@ -35,7 +35,7 @@ import java.nio.channels.FileChannel;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -45,7 +45,7 @@ import org.junit.runners.MethodSorters;
  * direct stream to stream copy via mapped buffers.
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestByteBufferCopyStream extends JunitTracer {
+public class TestByteBufferCopyStream extends SingletonTestCase {
 
     static void testImpl(final String srcFileName, final long size,
                          final MappedByteBufferInputStream.CacheMode srcCacheMode, final int srcSliceShift,

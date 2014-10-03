@@ -44,7 +44,7 @@ import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.ReflectionUtil;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 import com.jogamp.junit.util.MiscUtils;
 
 /**
@@ -70,7 +70,7 @@ import com.jogamp.junit.util.MiscUtils;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestUri99LaunchOnReservedCharPathBug908 extends JunitTracer {
+public class TestUri99LaunchOnReservedCharPathBug908 extends SingletonTestCase {
     static class TestClassLoader extends URLClassLoader {
         public TestClassLoader(final URL[] urls) {
             super(urls);

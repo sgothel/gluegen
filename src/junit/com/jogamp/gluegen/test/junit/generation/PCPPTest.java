@@ -30,7 +30,7 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.gluegen.pcpp.PCPP;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -51,7 +51,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PCPPTest extends JunitTracer {
+public class PCPPTest extends SingletonTestCase {
 
     @BeforeClass
     public static void init() {

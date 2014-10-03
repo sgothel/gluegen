@@ -10,9 +10,9 @@ import org.junit.Assert;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
-public abstract class AssetURLConnectionBase extends JunitTracer {
+public abstract class AssetURLConnectionBase extends SingletonTestCase {
 
     /** In gluegen-rt.jar */
     protected static final String test_asset_rt_url      = "asset:gluegen/info.txt";

@@ -42,7 +42,7 @@ import org.semver.Delta;
 
 import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.VersionNumberString;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 import com.jogamp.junit.util.VersionSemanticsUtil;
 
 /**
@@ -64,7 +64,7 @@ import com.jogamp.junit.util.VersionSemanticsUtil;
  * @throws URISyntaxException
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestVersionSemantics extends JunitTracer {
+public class TestVersionSemantics extends SingletonTestCase {
     static final String jarFile = "gluegen-rt.jar";
     static final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
     static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;

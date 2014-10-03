@@ -45,13 +45,13 @@ import org.junit.Test;
 
 import com.jogamp.common.os.MachineDescription;
 import com.jogamp.common.os.Platform;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestIOUtil01 extends JunitTracer {
+public class TestIOUtil01 extends SingletonTestCase {
 
     static final MachineDescription machine = Platform.getMachineDescription();
     static final int tsz = machine.pageSizeInBytes() + machine.pageSizeInBytes() / 2 ;

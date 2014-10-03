@@ -42,7 +42,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jogamp.common.util.IOUtil;
-import com.jogamp.junit.util.JunitTracer;
+import com.jogamp.junit.util.SingletonTestCase;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
@@ -56,7 +56,7 @@ import org.junit.runners.MethodSorters;
  * </p>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestByteBufferInputStream extends JunitTracer {
+public class TestByteBufferInputStream extends SingletonTestCase {
     /** {@value} */
     static final int buffer__8KiB = 1 << 13;
 

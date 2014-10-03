@@ -26,69 +26,46 @@
  * or implied, of JogAmp Community.
  */
 
-/*
- * Created on Sunday, July 04 2010 20:00
- */
-package com.jogamp.common.nio;
+package com.jogamp.junit.util;
 
-import java.nio.IntBuffer;
-import org.junit.Test;
+import com.jogamp.common.util.locks.SingletonInstance;
 
-import com.jogamp.junit.util.SingletonTestCase;
-
-import static org.junit.Assert.*;
-
-/**
- * @author Michael Bien
- */
+import org.junit.BeforeClass;
+import org.junit.AfterClass;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class BuffersTest extends SingletonTestCase {
+public abstract class SingletonTestCase extends JunitTracer {
+    public static final String SINGLE_INSTANCE_LOCK_FILE = "SingletonTestCase.lock";
+    public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
 
-    @Test
-    public void slice() {
+    public static final long SINGLE_INSTANCE_LOCK_TO   = 6*60*1000; // wait up to 6 mins
+    public static final long SINGLE_INSTANCE_LOCK_POLL =      1000; // poll every 1s
 
-        final IntBuffer buffer = Buffers.newDirectIntBuffer(6);
-        buffer.put(new int[]{1,2,3,4,5,6}).rewind();
+    private static volatile SingletonInstance singletonInstance;
 
-        final IntBuffer threefour = Buffers.slice(buffer, 2, 2);
-
-        assertEquals(3, threefour.get(0));
-        assertEquals(4, threefour.get(1));
-        assertEquals(2, threefour.capacity());
-
-        assertEquals(0, buffer.position());
-        assertEquals(6, buffer.limit());
-
-        final IntBuffer fourfivesix = Buffers.slice(buffer, 3, 3);
-
-        assertEquals(4, fourfivesix.get(0));
-        assertEquals(5, fourfivesix.get(1));
-        assertEquals(6, fourfivesix.get(2));
-        assertEquals(3, fourfivesix.capacity());
-
-        assertEquals(0, buffer.position());
-        assertEquals(6, buffer.limit());
-
-        final IntBuffer onetwothree = Buffers.slice(buffer, 0, 3);
-
-        assertEquals(1, onetwothree.get(0));
-        assertEquals(2, onetwothree.get(1));
-        assertEquals(3, onetwothree.get(2));
-        assertEquals(3, onetwothree.capacity());
-
-        assertEquals(0, buffer.position());
-        assertEquals(6, buffer.limit());
-
-        // is it really sliced?
-        buffer.put(2, 42);
-
-        assertEquals(42, buffer.get(2));
-        assertEquals(42, onetwothree.get(2));
-
-
+    private static final synchronized void initSingletonInstance() {
+        if( null == singletonInstance )  {
+            // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
+            singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+            if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
+                throw new RuntimeException("Fatal: Could not lock single instance: "+singletonInstance.getName());
+            }
+        }
     }
 
+    @BeforeClass
+    public static final void oneTimeSetUpSingleton() {
+        // one-time initialization code
+        initSingletonInstance();
+    }
+
+    @AfterClass
+    public static final void oneTimeTearDownSingleton() {
+        // one-time cleanup code
+        System.gc(); // force cleanup
+        singletonInstance.unlock();
+    }
 }
+
