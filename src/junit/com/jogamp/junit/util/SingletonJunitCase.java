@@ -40,7 +40,7 @@ public abstract class SingletonJunitCase extends JunitTracer {
     public static final String SINGLE_INSTANCE_LOCK_FILE = "SingletonTestCase.lock";
     public static final int SINGLE_INSTANCE_LOCK_PORT = 59999;
 
-    public static final long SINGLE_INSTANCE_LOCK_TO   = 12*60*1000; // wait up to 12 mins
+    public static final long SINGLE_INSTANCE_LOCK_TO   = 15*60*1000; // wait up to 15 mins
     public static final long SINGLE_INSTANCE_LOCK_POLL =        500; // poll every 500 ms
 
     private static SingletonInstance singletonInstance = null; // system wide lock via port locking
@@ -70,8 +70,8 @@ public abstract class SingletonJunitCase extends JunitTracer {
             System.err.println("++++ Test Singleton.unlock()");
             singletonInstance.unlock();
             try {
-                // 3 s sleep, allowing other instances to pick-up socket
-                Thread.sleep(3 * 2 * SINGLE_INSTANCE_LOCK_POLL);
+                // allowing other JVM instances to pick-up socket
+                Thread.sleep( SINGLE_INSTANCE_LOCK_POLL );
             } catch (final InterruptedException e) { }
         }
     }

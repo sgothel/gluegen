@@ -29,9 +29,6 @@ package com.jogamp.common.util.locks;
 
 import java.io.IOException;
 
-import org.junit.Assert;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
