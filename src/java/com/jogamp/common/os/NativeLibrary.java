@@ -56,6 +56,7 @@ import jogamp.common.os.PlatformPropsImpl;
 import jogamp.common.os.PosixDynamicLinkerImpl;
 import jogamp.common.os.WindowsDynamicLinkerImpl;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
@@ -284,7 +285,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     dynLink.closeLibrary(handle);
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): Successfully closed " + this);
-      Thread.dumpStack();
+      ExceptionUtils.dumpStack(System.err);
     }
   }
 

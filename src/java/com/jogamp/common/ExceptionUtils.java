@@ -33,28 +33,37 @@ import java.io.PrintStream;
  * @since 2.3.0
  */
 public class ExceptionUtils {
-    public static void dumpStackTrace(final PrintStream out, final int skip, final int depth) {
-        dumpStackTrace(out, new Exception(""), skip+1, depth);
+    public static void dumpStack(final PrintStream out) {
+        dumpStack(out, 0, -1);
     }
-    public static void dumpStackTrace(final PrintStream out, final Throwable t, final int skip, final int depth) {
-        dumpStackTrace(out, t.getStackTrace(), skip, depth);
+    public static void dumpStack(final PrintStream out, final int skip, final int depth) {
+        dumpStack(out, new Exception(""), skip+1, depth);
     }
-    public static void dumpStackTrace(final PrintStream out, final StackTraceElement[] stack, final int skip, final int depth) {
+    public static void dumpStack(final PrintStream out, final Throwable t, final int skip, final int depth) {
+        dumpStack(out, t.getStackTrace(), skip, depth);
+    }
+    public static void dumpStack(final PrintStream out, final StackTraceElement[] stack, final int skip, final int depth) {
         if( null == stack ) {
             return;
         }
-        final int maxDepth = Math.min(depth+skip, stack.length);
+        final int maxDepth;
+        if( 0 > depth ) {
+            maxDepth = stack.length;
+        } else {
+            maxDepth = Math.min(depth+skip, stack.length);
+        }
         for(int i=skip; i<maxDepth; i++) {
             out.println("    ["+i+"]: "+stack[i]);
         }
     }
 
     /**
-     * Dumps a Throwable in a decorating message including the current thread name, and stack trace.
+     * Dumps a {@link Throwable} in a decorating message including the current thread name,
+     * and its {@link #dumpStack(PrintStream, StackTraceElement[], int, int) stack trace}.
      */
     public static void dumpThrowable(final String additionalDescr, final Throwable t) {
         System.err.println("Caught "+additionalDescr+" "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
-        t.printStackTrace();
+        dumpStack(System.err, t.getStackTrace(), 0, -1);
     }
 
 }

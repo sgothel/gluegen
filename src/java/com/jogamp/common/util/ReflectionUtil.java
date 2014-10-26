@@ -48,6 +48,7 @@ import java.util.Set;
 
 import jogamp.common.Debug;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.JogampRuntimeException;
 
 public final class ReflectionUtil {
@@ -140,7 +141,7 @@ public final class ReflectionUtil {
                 System.err.printf("ReflectionUtil.getClassImpl.%03d: %8.3f ms, init %b, [%s]@ Thread %s%n",
                         forNameCount, nanoCosts/1e6, initializeClazz, cnl.toString(), Thread.currentThread().getName());
                 if(DEBUG) {
-                    Thread.dumpStack();
+                    ExceptionUtils.dumpStack(System.err);
                 }
             }
             return res;
