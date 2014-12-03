@@ -34,7 +34,7 @@ import java.io.PrintStream;
  */
 public class ExceptionUtils {
     public static void dumpStack(final PrintStream out) {
-        dumpStack(out, 0, -1);
+        dumpStack(out, 1, -1);
     }
     public static void dumpStack(final PrintStream out, final int skip, final int depth) {
         dumpStack(out, new Exception(""), skip+1, depth);
