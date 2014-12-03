@@ -48,44 +48,67 @@ import org.junit.runners.MethodSorters;
  *  <li>{@link Bitstream#mark(int)}</li>
  *  <li>{@link Bitstream#reset()}</li>
  *  <li>{@link Bitstream#flush()}</li>
- *  <li>{@link Bitstream#readBits31(boolean, int)}</li>
- *  <li>{@link Bitstream#writeBits31(boolean, int, int)}</li>
+ *  <li>{@link Bitstream#readBits31(int)}</li>
+ *  <li>{@link Bitstream#writeBits31(int, int)}</li>
  * </ul>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestBitstream01 extends SingletonJunitCase {
 
-    Bitstream<ByteBuffer> getTestStream(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) throws IOException {
-        final int byteCount = ( preBits + skipBits + postBits + 7 ) / 8;
+    Bitstream<ByteBuffer> getTestStream(final boolean msbFirstData, final boolean msbFirstWrite,
+                                        final int preBits, final int skipBits, final int postBits) throws IOException {
+        final int bitCount = preBits+skipBits+postBits;
+        final int byteCount = ( bitCount + 7 ) / 8;
         final ByteBuffer bbTest = ByteBuffer.allocate(byteCount);
         final Bitstream.ByteBufferStream bbsTest = new Bitstream.ByteBufferStream(bbTest);
         final Bitstream<ByteBuffer> bsTest = new Bitstream<ByteBuffer>(bbsTest, true /* outputMode */);
         final String sTest0;
-        if( msbFirst ) {
+        if( msbFirstData ) {
             sTest0 = testStringMSB.substring(0, preBits+skipBits+postBits);
         } else {
             sTest0 = testStringLSB.substring(0, preBits+skipBits+postBits);
         }
-        for(int i=0; i<preBits+skipBits+postBits; i++) {
-            final int bit = Integer.valueOf(sTest0.substring(i, i+1));
-            bsTest.writeBit(msbFirst, bit);
+        if( msbFirstData == msbFirstWrite ) {
+            for(int i=0; i<bitCount; i++) {
+                final int bit = Integer.valueOf(sTest0.substring(i, i+1));
+                bsTest.writeBit(msbFirstWrite, bit);
+            }
+        } else {
+            for(int i=bitCount-1; i >= 0; i--) {
+                final int bit = Integer.valueOf(sTest0.substring(i, i+1));
+                bsTest.writeBit(msbFirstWrite, bit);
+            }
         }
+        System.err.printf("TestData: msbFirst[data %b, write %b], bits[pre %d, skip %d, post %d = %d]: <%s>%n",
+                msbFirstData, msbFirstWrite, preBits, skipBits, postBits, bitCount, sTest0);
         Assert.assertEquals(preBits+skipBits+postBits, bsTest.position());
         bsTest.setStream(bsTest.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
+        dumpData("TestData: ", bsTest.getSubStream(), 0, bsTest.getSubStream().limit());
         return bsTest;
     }
 
-    String getTestStreamResultAsString(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) {
+    String getTestStreamResultAsString(final boolean msbFirstData, final boolean msbFirstAssemble,
+                                       final int preBits, final int skipBits, final int postBits) {
         final String pre, post;
-        if( msbFirst ) {
-            pre = testStringMSB.substring(0, preBits);
-            post = testStringMSB.substring(preBits+skipBits, preBits+skipBits+postBits);
+        if( msbFirstData ) {
+            if( msbFirstAssemble ) {
+                pre = testStringMSB.substring(0, preBits);
+                post = testStringMSB.substring(preBits+skipBits, preBits+skipBits+postBits);
+            } else {
+                pre = testStringMSB.substring(postBits+skipBits, preBits+skipBits+postBits);
+                post = testStringMSB.substring(0, postBits);
+            }
         } else {
-            pre = testStringLSB.substring(0, preBits);
-            post = testStringLSB.substring(preBits+skipBits, preBits+skipBits+postBits);
+            if( msbFirstAssemble ) {
+                pre = testStringLSB.substring(0, preBits);
+                post = testStringLSB.substring(preBits+skipBits, preBits+skipBits+postBits);
+            } else {
+                pre = testStringMSB.substring(postBits+skipBits, preBits+skipBits+postBits);
+                post = testStringMSB.substring(0, postBits);
+            }
         }
-        final String r = pre + post;
-        System.err.println("Test: <"+pre+"> + <"+post+"> = <"+r+">");
+        final String r = msbFirstAssemble ? pre + post : post + pre;
+        System.err.println("ResultExp: <"+pre+"> + <"+post+"> = <"+r+">");
         return r;
     }
 
@@ -155,9 +178,8 @@ public class TestBitstream01 extends SingletonJunitCase {
 
         // prepare bitstream
         System.err.println("Prepare bitstream");
-        final Bitstream<ByteBuffer> bsTest = getTestStream(msbFirst, preBits, skipBits, postBits);
-        dumpData("Test", bsTest.getSubStream(), 0, bsTest.getSubStream().limit());
-        final String sTest = getTestStreamResultAsString(msbFirst, preBits, skipBits, postBits);
+        final Bitstream<ByteBuffer> bsTest = getTestStream(msbFirst, msbFirst, preBits, skipBits, postBits);
+        final String sTest = getTestStreamResultAsString(msbFirst, true, preBits, skipBits, postBits);
 
         // init copy-bitstream
         final int byteCount = ( totalBits + 7 ) / 8;
@@ -219,50 +241,48 @@ public class TestBitstream01 extends SingletonJunitCase {
     }
 
     @Test
-    public void test03BulkBitsMSBFirst() throws IOException {
-        testBulkBitsImpl(true);
+    public void test03BulkBits() throws IOException {
+        testBulkBitsImpl(0,  0,  1);
+        testBulkBitsImpl(0,  0,  3);
+        testBulkBitsImpl(0,  0,  8);
+        testBulkBitsImpl(0,  0,  10);
+        testBulkBitsImpl(0,  0,  30);
+        testBulkBitsImpl(0,  0,  31);
+
+        testBulkBitsImpl(3,  0,  3);
+        testBulkBitsImpl(8,  0,  3);
+        testBulkBitsImpl(9,  0,  3);
+        testBulkBitsImpl(5,  0,  6);
+        testBulkBitsImpl(5,  0,  8);
+
+        testBulkBitsImpl(0,  1,  1);
+        testBulkBitsImpl(3,  6,  4);
+
+        testBulkBitsImpl(0,  1,  3);
+        testBulkBitsImpl(0,  2,  8);
+        testBulkBitsImpl(0,  8,  10);
+        testBulkBitsImpl(0,  12, 20);
+        testBulkBitsImpl(0,  23, 9);
+        testBulkBitsImpl(0,  1,  31);
+
+        testBulkBitsImpl(1,  1,  1);
+        testBulkBitsImpl(2,  1,  3);
+        testBulkBitsImpl(7,  2,  8);
+        testBulkBitsImpl(8,  8,  8);
+        testBulkBitsImpl(15, 12, 5);
+        testBulkBitsImpl(16, 11, 5);
+        testBulkBitsImpl(5,  6,  5);
+        testBulkBitsImpl(5,  6,  8);
     }
-    @Test
-    public void test04BulkBitsLSBFirst() throws IOException {
-        testBulkBitsImpl(false);
-    }
-    void testBulkBitsImpl(final boolean msbFirst) throws IOException {
-        testBulkBitsImpl(msbFirst,  0,  0,  1);
-        testBulkBitsImpl(msbFirst,  0,  0,  3);
-        testBulkBitsImpl(msbFirst,  0,  0,  8);
-        testBulkBitsImpl(msbFirst,  0,  0, 10);
-        testBulkBitsImpl(msbFirst,  0,  0, 30);
-        testBulkBitsImpl(msbFirst,  0,  0, 31);
 
-        testBulkBitsImpl(msbFirst,  3,  0,  3);
-        testBulkBitsImpl(msbFirst,  8,  0,  3);
-        testBulkBitsImpl(msbFirst,  9,  0,  3);
-
-        testBulkBitsImpl(msbFirst,  0,  1,  1);
-        testBulkBitsImpl(msbFirst,  0,  1,  3);
-        testBulkBitsImpl(msbFirst,  0,  2,  8);
-        testBulkBitsImpl(msbFirst,  0,  8, 10);
-        testBulkBitsImpl(msbFirst,  0, 12, 20);
-        testBulkBitsImpl(msbFirst,  0, 23,  9);
-        testBulkBitsImpl(msbFirst,  0,  1, 31);
-
-        testBulkBitsImpl(msbFirst,  1,  1,  1);
-        testBulkBitsImpl(msbFirst,  2,  1,  3);
-        testBulkBitsImpl(msbFirst,  7,  2,  8);
-        testBulkBitsImpl(msbFirst,  8,  8,  8);
-        testBulkBitsImpl(msbFirst, 15, 12,  5);
-        testBulkBitsImpl(msbFirst, 16, 11,  5);
-    }
-
-    void testBulkBitsImpl(final boolean msbFirst, final int preBits, final int skipBits, final int postBits) throws IOException {
+    void testBulkBitsImpl(final int preBits, final int skipBits, final int postBits) throws IOException {
         final int totalBits = preBits+skipBits+postBits;
-        System.err.println("XXX TestBulkBits: msbFirst "+msbFirst+", preBits "+preBits+", skipBits "+skipBits+", postBits "+postBits+", totalBits "+totalBits);
+        System.err.println("XXX TestBulkBits: preBits "+preBits+", skipBits "+skipBits+", postBits "+postBits+", totalBits "+totalBits);
 
         // prepare bitstream
         System.err.println("Prepare bitstream");
-        final Bitstream<ByteBuffer> bsTest = getTestStream(msbFirst, preBits, skipBits, postBits);
-        dumpData("Test", bsTest.getSubStream(), 0, bsTest.getSubStream().limit());
-        final String sTest = getTestStreamResultAsString(msbFirst, preBits, skipBits, postBits);
+        final Bitstream<ByteBuffer> bsTest = getTestStream(true, false, preBits, skipBits, postBits);
+        final String sTest = getTestStreamResultAsString(true, false, preBits, skipBits, postBits);
 
         // init copy-bitstream
         final int byteCount = ( totalBits + 7 ) / 8;
@@ -273,18 +293,18 @@ public class TestBitstream01 extends SingletonJunitCase {
         // read-bitstream .. and copy bits while reading
         System.err.println("Reading bitstream: "+bsTest);
         {
-            final int readBitsPre = bsTest.readBits31(msbFirst, preBits);
-            Assert.assertEquals(readBitsPre, bsCopy.writeBits31(msbFirst, preBits, readBitsPre));
+            final int readBitsPre = bsTest.readBits31(preBits);
+            Assert.assertEquals(readBitsPre, bsCopy.writeBits31(preBits, readBitsPre));
 
             final int skippedReadBits = (int) bsTest.skip(skipBits);
             final int skippedBitsCopy = (int) bsCopy.skip(skipBits);
 
-            final int readBitsPost = bsTest.readBits31(msbFirst, postBits);
-            Assert.assertEquals(readBitsPost, bsCopy.writeBits31(msbFirst, postBits, readBitsPost));
-            final String sReadPre = toBinaryString(readBitsPre, preBits);
-            final String sReadPost = toBinaryString(readBitsPost, postBits);
-            final String sRead = sReadPre + sReadPost;
-            System.err.println("Read.Test: <"+sReadPre+"> + <"+sReadPost+"> = <"+sRead+">");
+            final int readBitsPost = bsTest.readBits31(postBits);
+            Assert.assertEquals(readBitsPost, bsCopy.writeBits31(postBits, readBitsPost));
+            final String sReadPreLo = toBinaryString(readBitsPre, preBits);
+            final String sReadPostHi = toBinaryString(readBitsPost, postBits);
+            final String sRead = sReadPostHi + sReadPreLo;
+            System.err.println("Read.Test: <"+sReadPreLo+"> + <"+sReadPostHi+"> = <"+sRead+">");
 
             Assert.assertEquals(skipBits, skippedReadBits);
             Assert.assertEquals(sTest, sRead);
@@ -298,15 +318,15 @@ public class TestBitstream01 extends SingletonJunitCase {
         System.err.println("Reading copy-bitstream: "+bsCopy);
         Assert.assertEquals(0, bsCopy.position());
         {
-            final int copyBitsPre = bsCopy.readBits31(msbFirst, preBits);
+            final int copyBitsPre = bsCopy.readBits31(preBits);
 
             final int skippedCopyBits = (int) bsCopy.skip(skipBits);
 
-            final int copyBitsPost = bsCopy.readBits31(msbFirst, postBits);
-            final String sCopyPre = toBinaryString(copyBitsPre, preBits);
-            final String sCopyPost = toBinaryString(copyBitsPost, postBits);
-            final String sCopy = sCopyPre + sCopyPost;
-            System.err.println("Copy.Test: <"+sCopyPre+"> + <"+sCopyPost+"> = <"+sCopy+">");
+            final int copyBitsPost = bsCopy.readBits31(postBits);
+            final String sCopyPreLo = toBinaryString(copyBitsPre, preBits);
+            final String sCopyPostHi = toBinaryString(copyBitsPost, postBits);
+            final String sCopy = sCopyPostHi + sCopyPreLo;
+            System.err.println("Copy.Test: <"+sCopyPreLo+"> + <"+sCopyPostHi+"> = <"+sCopy+">");
 
             Assert.assertEquals(skipBits, skippedCopyBits);
             Assert.assertEquals(sTest, sCopy);
@@ -317,7 +337,7 @@ public class TestBitstream01 extends SingletonJunitCase {
     @Test
     public void test05ErrorHandling() throws IOException {
         // prepare bitstream
-        final Bitstream<ByteBuffer> bsTest = getTestStream(false, 0, 0, 0);
+        final Bitstream<ByteBuffer> bsTest = getTestStream(false, false, 0, 0, 0);
         System.err.println("01a: "+bsTest);
         bsTest.close();
         System.err.println("01b: "+bsTest);

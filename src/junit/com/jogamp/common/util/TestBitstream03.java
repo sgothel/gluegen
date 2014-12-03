@@ -47,8 +47,8 @@ import org.junit.runners.MethodSorters;
  * Test {@link Bitstream} w/ int16 read/write access w/ semantics
  * as well as with aligned and unaligned access.
  * <ul>
- *  <li>{@link Bitstream#readUInt16(boolean, boolean)}</li>
- *  <li>{@link Bitstream#writeInt16(boolean, boolean, short)}</li>
+ *  <li>{@link Bitstream#readUInt16(boolean)}</li>
+ *  <li>{@link Bitstream#writeInt16(boolean, short)}</li>
  * </ul>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -78,21 +78,23 @@ public class TestBitstream03 extends SingletonJunitCase {
         final boolean bigEndian = ByteOrder.BIG_ENDIAN == bb.order();
         System.err.println("XXX Test01Int16BitsAligned: byteOrder "+byteOrder+" (bigEndian "+bigEndian+"), value "+val16+", "+toHexBinaryString(val16, 16));
         bb.putShort(0, val16);
+        dumpData("TestData.1: ", bb, 0, 2);
 
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, false /* outputMode */);
         {
-            final short r16 = (short) bs.readUInt16(true /* msbFirst */, bigEndian);
+            final short r16 = (short) bs.readUInt16(bigEndian);
             System.err.println("Read16.1 "+r16+", "+toHexBinaryString(r16, 16));
             Assert.assertEquals(val16, r16);
         }
 
         // Test with written bitstream value
         bs.setStream(bs.getSubStream(), true /* outputMode */);
-        bs.writeInt16(true /* msbFirst */, bigEndian, val16);
+        bs.writeInt16(bigEndian, val16);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
+        dumpData("TestData.2: ", bb, 0, 2);
         {
-            final short r16 = (short) bs.readUInt16(true /* msbFirst */, bigEndian);
+            final short r16 = (short) bs.readUInt16(bigEndian);
             System.err.println("Read16.2 "+r16+", "+toHexBinaryString(r16, 16));
             Assert.assertEquals(val16, r16);
         }
@@ -135,12 +137,13 @@ public class TestBitstream03 extends SingletonJunitCase {
         // Test with written bitstream value
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, true /* outputMode */);
-        bs.writeBits31(true /* msbFirst */, preBits, 0);
-        bs.writeInt16(true /* msbFirst */, bigEndian, val16);
+        bs.writeBits31(preBits, 0);
+        bs.writeInt16(bigEndian, val16);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
+        dumpData("TestData.1: ", bb, 0, byteCount);
 
-        final int rPre = (short) bs.readBits31(true /* msbFirst */, preBits);
-        final short r16 = (short) bs.readUInt16(true /* msbFirst */, bigEndian);
+        final int rPre = (short) bs.readBits31(preBits);
+        final short r16 = (short) bs.readUInt16(bigEndian);
         System.err.println("ReadPre "+rPre+", "+toBinaryString(rPre, preBits));
         System.err.println("Read16 "+r16+", "+toHexBinaryString(r16, 16));
         Assert.assertEquals(val16, r16);

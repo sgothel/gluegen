@@ -71,17 +71,17 @@ public class TestBitstream02 extends SingletonJunitCase {
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, false /* outputMode */);
         {
-            final byte r8 = (byte) bs.readUInt8(true /* msbFirst */);
+            final byte r8 = (byte) bs.readUInt8();
             System.err.println("Read8.1 "+r8+", "+toHexBinaryString(r8, 8));
             Assert.assertEquals(val8, r8);
         }
 
         // Test with written bitstream value
         bs.setStream(bs.getSubStream(), true /* outputMode */);
-        bs.writeInt8(true /* msbFirst */, val8);
+        bs.writeInt8(val8);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
         {
-            final byte r8 = (byte) bs.readUInt8(true /* msbFirst */);
+            final byte r8 = (byte) bs.readUInt8();
             System.err.println("Read8.2 "+r8+", "+toHexBinaryString(r8, 8));
             Assert.assertEquals(val8, r8);
         }
@@ -114,12 +114,12 @@ public class TestBitstream02 extends SingletonJunitCase {
         // Test with written bitstream value
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, true /* outputMode */);
-        bs.writeBits31(true /* msbFirst */, preBits, 0);
-        bs.writeInt8(true /* msbFirst */, val8);
+        bs.writeBits31(preBits, 0);
+        bs.writeInt8(val8);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
 
-        final int rPre = (short) bs.readBits31(true /* msbFirst */, preBits);
-        final byte r8 = (byte) bs.readUInt8(true /* msbFirst */);
+        final int rPre = (short) bs.readBits31(preBits);
+        final byte r8 = (byte) bs.readUInt8();
         System.err.println("ReadPre "+rPre+", "+toBinaryString(rPre, preBits));
         System.err.println("Read8 "+r8+", "+toHexBinaryString(r8, 8));
         Assert.assertEquals(val8, r8);

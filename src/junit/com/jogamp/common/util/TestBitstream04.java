@@ -47,8 +47,8 @@ import org.junit.runners.MethodSorters;
  * Test {@link Bitstream} w/ int32 read/write access w/ semantics
  * as well as with aligned and unaligned access.
  * <ul>
- *  <li>{@link Bitstream#readUInt32(boolean, boolean)}</li>
- *  <li>{@link Bitstream#writeInt32(boolean, boolean, int)}</li>
+ *  <li>{@link Bitstream#readUInt32(boolean)}</li>
+ *  <li>{@link Bitstream#writeInt32(boolean, int)}</li>
  * </ul>
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
@@ -82,11 +82,12 @@ public class TestBitstream04 extends SingletonJunitCase {
         System.err.println("XXX Test01Int32BitsAligned: "+val32+", "+val32_hs);
 
         bb.putInt(0, val32);
+        dumpData("TestData.1: ", bb, 0, 4);
 
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, false /* outputMode */);
         {
-            final long uint32_l = bs.readUInt32(true /* msbFirst */, bigEndian);
+            final long uint32_l = bs.readUInt32(bigEndian);
             final int int32_l = (int)uint32_l;
             final String uint32_l_hs = toHexString(uint32_l);
             final int uint32_i = Bitstream.uint32LongToInt(uint32_l);
@@ -99,10 +100,11 @@ public class TestBitstream04 extends SingletonJunitCase {
 
         // Test with written bitstream value
         bs.setStream(bs.getSubStream(), true /* outputMode */);
-        bs.writeInt32(true /* msbFirst */, bigEndian, val32);
+        bs.writeInt32(bigEndian, val32);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
+        dumpData("TestData.2: ", bb, 0, 4);
         {
-            final long uint32_l = bs.readUInt32(true /* msbFirst */, bigEndian);
+            final long uint32_l = bs.readUInt32(bigEndian);
             final int int32_l = (int)uint32_l;
             final String uint32_l_hs = toHexString(uint32_l);
             final int uint32_i = Bitstream.uint32LongToInt(uint32_l);
@@ -154,12 +156,12 @@ public class TestBitstream04 extends SingletonJunitCase {
         // Test with written bitstream value
         final Bitstream.ByteBufferStream bbs = new Bitstream.ByteBufferStream(bb);
         final Bitstream<ByteBuffer> bs = new Bitstream<ByteBuffer>(bbs, true /* outputMode */);
-        bs.writeBits31(true /* msbFirst */, preBits, 0);
-        bs.writeInt32(true /* msbFirst */, bigEndian, val32);
+        bs.writeBits31(preBits, 0);
+        bs.writeInt32(bigEndian, val32);
         bs.setStream(bs.getSubStream(), false /* outputMode */); // switch to input-mode, implies flush()
 
-        final int rPre = bs.readBits31(true /* msbFirst */, preBits);
-        final long uint32_l = bs.readUInt32(true /* msbFirst */, bigEndian);
+        final int rPre = bs.readBits31(preBits);
+        final long uint32_l = bs.readUInt32(bigEndian);
         final int int32_l = (int)uint32_l;
         final String uint32_l_hs = toHexString(uint32_l);
         final int uint32_i = Bitstream.uint32LongToInt(uint32_l);
