@@ -2311,6 +2311,23 @@ public class JavaEmitter implements GlueEmitter {
     writer.println("  // ---- End CustomJavaCode .cfg declarations");
   }
 
+  public String[] getClassAccessModifiers(final String classFQName) {
+      String[] accessModifiers;
+      final MethodAccess acc = cfg.accessControl(classFQName);
+      if( PUBLIC_ABSTRACT == acc ) {
+          accessModifiers = new String[] { PUBLIC.getJavaName(), PUBLIC_ABSTRACT.getJavaName() };
+      } else if( PACKAGE_PRIVATE == acc ) {
+          accessModifiers = new String[] { PACKAGE_PRIVATE.getJavaName() };
+      } else if( PRIVATE == acc ) {
+          throw new IllegalArgumentException("Class access "+classFQName+" cannot be private");
+      } else if( PROTECTED == acc ) {
+          accessModifiers = new String[] { PROTECTED.getJavaName() };
+      } else { // default PUBLIC
+          accessModifiers = new String[] { PUBLIC.getJavaName() };
+      }
+      return accessModifiers;
+  }
+
   /**
    * Write out any header information for the output files (class declaration
    * and opening brace, import statements, etc).
@@ -2346,13 +2363,7 @@ public class JavaEmitter implements GlueEmitter {
             }
           };
 
-        String[] accessModifiers = null;
-        if(cfg.accessControl(cfg.className()) == PUBLIC_ABSTRACT) {
-            accessModifiers = new String[] { "public", "abstract" };
-        } else {
-            accessModifiers = new String[] { "public" };
-        }
-
+        final String[] accessModifiers = getClassAccessModifiers(cfg.className());
         CodeGenUtils.emitJavaHeaders(
           javaWriter,
           cfg.packageName(),
@@ -2390,13 +2401,7 @@ public class JavaEmitter implements GlueEmitter {
           interfaces[userSpecifiedInterfaces.size()] = cfg.className();
         }
 
-        String[] accessModifiers = null;
-        if(cfg.accessControl(cfg.implClassName()) == PUBLIC_ABSTRACT) {
-            accessModifiers = new String[] { "public", "abstract" };
-        } else {
-            accessModifiers = new String[] { "public" };
-        }
-
+        final String[] accessModifiers = getClassAccessModifiers(cfg.implClassName());
         CodeGenUtils.emitJavaHeaders(
           javaImplWriter,
           cfg.implPackageName(),

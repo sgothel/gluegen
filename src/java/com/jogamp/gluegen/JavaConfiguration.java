@@ -319,9 +319,12 @@ public class JavaConfiguration {
         return emissionStyle;
     }
 
-    /** Returns the access control for the emitted Java method. Returns one of JavaEmitter.ACC_PUBLIC, JavaEmitter.ACC_PROTECTED, JavaEmitter.ACC_PRIVATE, or JavaEmitter.ACC_PACKAGE_PRIVATE. */
-    public MethodAccess accessControl(final String methodName) {
-        final MethodAccess ret = accessControl.get(methodName);
+    /**
+     * Returns the access control for the given method-name
+     * or fully qualified class-name.
+     */
+    public MethodAccess accessControl(final String name) {
+        final MethodAccess ret = accessControl.get(name);
         if (ret != null) {
             return ret;
         }

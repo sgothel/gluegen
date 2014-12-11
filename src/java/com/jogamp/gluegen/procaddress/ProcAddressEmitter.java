@@ -307,8 +307,8 @@ public class ProcAddressEmitter extends JavaEmitter {
         if (implPackageName == null) {
             implPackageName = getImplPackageName();
         }
-        final String fullTableClassName = implPackageName + "." + tableClassName;
-        final MethodAccess tableClassAccess = cfg.accessControl(fullTableClassName);
+        final String tableClassFQN = implPackageName + "." + tableClassName;
+        final String[] accessModifiers = getClassAccessModifiers(tableClassFQN);
 
         final String jImplRoot = getJavaOutputDir() + File.separator + CodeGenUtils.packageAsPath(implPackageName);
 
@@ -330,7 +330,11 @@ public class ProcAddressEmitter extends JavaEmitter {
         tableWriter.println(" * This table is a cache of pointers to the dynamically-linkable C library.");
         tableWriter.println(" * @see " + ProcAddressTable.class.getSimpleName());
         tableWriter.println(" */");
-        tableWriter.println(tableClassAccess.getJavaName() + " final class " + tableClassName + " extends "+ ProcAddressTable.class.getSimpleName() + " {");
+        for (int i = 0; accessModifiers != null && i < accessModifiers.length; ++i) {
+            tableWriter.print(accessModifiers[i]);
+            tableWriter.print(' ');
+        }
+        tableWriter.println("final class " + tableClassName + " extends "+ ProcAddressTable.class.getSimpleName() + " {");
         tableWriter.println();
 
         for (final String string : getProcAddressConfig().getForceProcAddressGen()) {
