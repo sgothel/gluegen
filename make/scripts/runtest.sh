@@ -81,7 +81,7 @@ function onetest() {
     echo
 }
 #
-#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -106,13 +106,11 @@ function onetest() {
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
-
-onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
-
+#onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUriQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUri01 2>&1 | tee -a $LOG

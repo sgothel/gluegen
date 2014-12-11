@@ -1,4 +1,4 @@
-REM scripts\java-win64.bat com.jogamp.common.GlueGenVersion 
+scripts\java-win64.bat com.jogamp.common.GlueGenVersion 
 REM scripts\java-win64.bat com.jogamp.common.util.TestVersionInfo
 REM scripts\java-win64.bat com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter
 REM scripts\java-win64.bat com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter
@@ -15,4 +15,4 @@ REM scripts\java-win64.bat com.jogamp.common.net.TestUri03Resolving
 REM scripts\java-win64.bat com.jogamp.common.net.TestUri99LaunchOnReservedCharPathBug908
 
 REM scripts\java-win64.bat com.jogamp.common.nio.TestByteBufferInputStream
-scripts\java-win64.bat com.jogamp.common.nio.TestByteBufferOutputStream
+REM scripts\java-win64.bat com.jogamp.common.nio.TestByteBufferOutputStream

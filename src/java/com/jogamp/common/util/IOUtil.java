@@ -668,6 +668,14 @@ public class IOUtil {
               return null;
         }
     }
+    private static String[] getShellCommandArgs(final String scriptFile) {
+        switch(PlatformPropsImpl.OS_TYPE) {
+            case WINDOWS:
+              return new String[] { "cmd", "/c", scriptFile };
+            default:
+              return new String[] { scriptFile };
+        }
+    }
 
     private static boolean getOSHasNoexecFS() {
         switch(PlatformPropsImpl.OS_TYPE) {
@@ -823,7 +831,7 @@ public class IOUtil {
                 }
                 // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                 // and hence splitting up command by spaces!
-                final Process pr = Runtime.getRuntime().exec(new String[] { exetst.getCanonicalPath() } );
+                final Process pr = Runtime.getRuntime().exec( getShellCommandArgs( exetst.getCanonicalPath() ) );
                 /**
                  * Disable StreamMonitor, which throttles exec-test performance a lot!
                  *
