@@ -58,7 +58,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.IOUtil"
 #D_ARGS="-Djogamp.debug.ByteBufferInputStream"
 #D_ARGS="-Djogamp.debug.Bitstream"
-#D_ARGS="-Djogamp.debug=all"
+D_ARGS="-Djogamp.debug=all"
 
 function onetest() {
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
