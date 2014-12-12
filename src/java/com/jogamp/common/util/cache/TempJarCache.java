@@ -101,7 +101,9 @@ public class TempJarCache {
                         resourceFileJars = new HashMap<URI, LoadState>();
                     }
                     if(DEBUG) {
-                        System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tmpFileCache.getTempDir());
+                        final File tempDir = null != tmpFileCache ? tmpFileCache.getTempDir() : null;
+                        final String tempDirAbsPath = null != tempDir ? tempDir.getAbsolutePath() : null;
+                        System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tempDirAbsPath);
                     }
                     isInit = true;
                 }

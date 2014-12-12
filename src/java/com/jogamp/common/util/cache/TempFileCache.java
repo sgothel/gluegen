@@ -87,8 +87,11 @@ public class TempFileCache {
             tmpBaseDir = _tmpBaseDir;
 
             if (DEBUG) {
+                final String tmpBaseDirAbsPath = null != tmpBaseDir ? tmpBaseDir.getAbsolutePath() : null;
                 System.err.println("TempFileCache: Static Initialization ---------------------------------------------- OK: "+(!staticInitError));
-                System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+", tempBaseDir "+tmpBaseDir.getAbsolutePath());
+                System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+
+                        ", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+
+                        ", tempBaseDir "+tmpBaseDirAbsPath);
             }
 
             if(!staticInitError) {
