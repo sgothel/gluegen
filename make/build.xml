@@ -59,6 +59,7 @@
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
     <property name="src.antlr" value="${project.root}/src/antlr" />
+
     <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="javadoc.root.path"    location="${build}/javadoc" />
     <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
@@ -138,6 +139,7 @@
 
     <!-- property name="java.part.awt" value="com/jogamp/common/util/awt/** jogamp/common/awt/**"/-->
     <property name="java.part.awt" value="com/jogamp/common/util/awt/**"/>
+    <property name="java.part.nonjava" value="com/jogamp/common/util/bin/*" />
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
 
@@ -717,6 +719,13 @@
       <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen.classpath" />
     </javac>
+
+    <!-- make non-java code available in classpath -->
+    <copy todir="${classes}">
+        <fileset dir="${src.java}"
+                 includes="${java.part.nonjava}"
+                 excludes="**/*.java"/>
+    </copy>
 
     <!-- Compile gluegen (compile time).
 
