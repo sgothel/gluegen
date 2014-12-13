@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -951,15 +952,19 @@ public class IOUtil {
         return null;
     }
 
-    private static String getShellSuffix() {
+    private static String getExeTestFileSuffix() {
         switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
-              return ".bat";
+              if( Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family ) {
+                  return ".exe";
+              } else {
+                  return ".bat";
+              }
             default:
               return ".sh";
         }
     }
-    private static String getShellCode() {
+    private static String getExeTestShellCode() {
         switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
               return "echo off"+PlatformPropsImpl.NEWLINE;
@@ -967,7 +972,71 @@ public class IOUtil {
               return null;
         }
     }
+    private static String[] getExeTestCommandArgs(final String scriptFile) {
+        switch(PlatformPropsImpl.OS_TYPE) {
+            case WINDOWS:
+            //   return new String[] { "cmd", "/c", scriptFile };
+            default:
+              return new String[] { scriptFile };
+        }
+    }
+    private static final byte[] getBytesFromRelFile(final byte[] res, final String fname, final int size) throws IOException {
+        final URLConnection con = IOUtil.getResource(IOUtil.class, fname);
+        final InputStream in = con.getInputStream();
+        int numBytes = 0;
+        try {
+            while (true) {
+                final int remBytes = size - numBytes;
+                int count;
+                if ( 0 >= remBytes || (count = in.read(res, numBytes, remBytes)) == -1 ) {
+                    break;
+                }
+                numBytes += count;
+            }
+        } finally {
+            in.close();
+        }
+        if( size != numBytes ) {
+            throw new IOException("Got "+numBytes+" bytes != expected "+size);
+        }
+        return res;
+    }
+    private static final Object exeTestBytesLock = new Object();
+    private static WeakReference<byte[]> exeTestBytesRef = null;
 
+    private static void fillExeTestFile(final File exefile) throws IOException {
+        if( Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
+            Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family
+          ) {
+            final int codeSize = 268;
+            final byte[] code;
+            synchronized ( exeTestBytesLock ) {
+                byte[] _code;
+                if( null == exeTestBytesRef || null == ( _code = exeTestBytesRef.get() ) ) {
+                    code = getBytesFromRelFile(new byte[512], "bin/exe-windows-i586-268b.bin", codeSize);
+                    exeTestBytesRef = new WeakReference<byte[]>(code);
+                } else {
+                    code = _code;
+                }
+            }
+            final OutputStream out = new FileOutputStream(exefile);
+            try {
+                out.write(code, 0, codeSize);
+            } finally {
+                out.close();
+            }
+        } else {
+            final String shellCode = getExeTestShellCode();
+            if( isStringSet(shellCode) ) {
+                final FileWriter fout = new FileWriter(exefile);
+                try {
+                    fout.write(shellCode);
+                } finally {
+                    fout.close();
+                }
+            }
+        }
+    }
     private static boolean getOSHasNoexecFS() {
         switch(PlatformPropsImpl.OS_TYPE) {
             case OPENKODE:
@@ -1099,9 +1168,9 @@ public class IOUtil {
         }
 
         final long t0 = DEBUG ? System.currentTimeMillis() : 0;
-        File exetst;
+        final File exeTestFile;
         try {
-            exetst = File.createTempFile("jogamp_exe_tst", getShellSuffix(), dir);
+            exeTestFile = File.createTempFile("jogamp_exe_tst", getExeTestFileSuffix(), dir);
         } catch (final SecurityException se) {
             throw se; // fwd Security exception
         } catch (final IOException e) {
@@ -1112,17 +1181,13 @@ public class IOUtil {
         }
         final long t1 = DEBUG ? System.currentTimeMillis() : 0;
         int res = -1;
-        if(exetst.setExecutable(true /* exec */, true /* ownerOnly */)) {
-            final String shellCode = getShellCode();
+        if(exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */)) {
             try {
-                if( isStringSet(shellCode) ) {
-                    final FileWriter fout = new FileWriter(exetst);
-                    fout.write(shellCode);
-                    fout.close();
-                }
+                fillExeTestFile(exeTestFile);
+
                 // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                 // and hence splitting up command by spaces!
-                final Process pr = Runtime.getRuntime().exec(new String[] { exetst.getCanonicalPath() } );
+                final Process pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ) );
                 /**
                  * Disable StreamMonitor, which throttles exec-test performance a lot!
                  *
@@ -1137,18 +1202,19 @@ public class IOUtil {
             } catch (final Throwable t) {
                 res = -2;
                 if(DEBUG) {
-                    System.err.println("IOUtil.testDirExec: <"+exetst.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
-                    // t.printStackTrace();
+                    System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
+                    t.printStackTrace();
                 }
             }
         }
+        final boolean ok = 0 == res;
         final long t2 = DEBUG ? System.currentTimeMillis() : 0;
-        exetst.delete();
+        exeTestFile.delete();
         if( DEBUG) {
-            System.err.println("IOUtil.testDirExec(): <"+dir.getAbsolutePath()+">: res "+res);
+            System.err.println("IOUtil.testDirExec(): <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
             System.err.println("IOUtil.testDirExec(): total "+(t2-t0)+"ms, create "+(t1-t0)+"ms, execute "+(t2-t1)+"ms");
         }
-        return 0 == res;
+        return ok;
     }
 
     private static File testDirImpl(final File dir, final boolean create, final boolean executable, final String dbgMsg)
