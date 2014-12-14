@@ -1,21 +1,21 @@
-#! /bin/bash
+#!/bin/sh
 
 SDIR=`dirname $0`
 RDIR=$SDIR/../../..
 
-function check_arm_elf_sub() {
+check_arm_elf_sub() {
 
   echo $1
   echo
   readelf -A $1
 }
-function check_arm_elf() {
+check_arm_elf() {
 
   echo "============================================================"
   check_arm_elf_sub $1
   echo "============================================================"
 }
-function check_jogl_arm_elf() {
+check_jogl_arm_elf() {
   echo "============================================================"
   echo JOGL $1
   echo "------------------------------------------------------------"
