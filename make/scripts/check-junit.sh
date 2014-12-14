@@ -1,9 +1,9 @@
-#! /bin/bash
+#!/bin/sh
 
 builddir=$1
 shift
 
-function checkresult() {
+checkresult() {
     resdir=$1
     shift
     if [ -e $builddir/test/$resdir ] ; then
