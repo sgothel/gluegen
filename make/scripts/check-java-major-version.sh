@@ -1,13 +1,13 @@
-#! /bin/bash
+#!/bin/sh
 
 TDIR=`pwd`
 
-function dump_version() {
+dump_version() {
     echo -n "$1: "
     javap -v $1 | grep 'major version'
 }
 
-function dump_versions() {
+dump_versions() {
     cd $1
     #dump_version jogamp.common.Debug
     javap -v `find . -name '*.class'` | grep -e '^Classfile' -e 'major version'
@@ -17,7 +17,7 @@ function dump_versions() {
     cd $TDIR
 }
 
-function do_it() {
+do_it() {
     dump_versions $1/classes
     dump_versions $1/test/build/classes
 }
