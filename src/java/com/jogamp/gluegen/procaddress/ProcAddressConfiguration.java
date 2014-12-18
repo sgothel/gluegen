@@ -82,7 +82,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
                 addForceProcAddressGen(funcName);
             }
         } else if (cmd.equalsIgnoreCase("GetProcAddressTableExpr")) {
-            getProcAddressTableExpr = readGetProcAddressTableExpr(tok, filename, lineNo);
+            setProcAddressTableExpr( readGetProcAddressTableExpr(tok, filename, lineNo) );
         } else if (cmd.equalsIgnoreCase("ProcAddressNameExpr")) {
             readProcAddressNameExpr(tok, filename, lineNo);
         } else if (cmd.equalsIgnoreCase("LocalProcAddressCallingConvention")) {
@@ -286,6 +286,9 @@ public class ProcAddressConfiguration extends JavaConfiguration {
             throw new RuntimeException("GetProcAddressTableExpr was not defined in .cfg file");
         }
         return getProcAddressTableExpr;
+    }
+    protected void setProcAddressTableExpr(final String s) {
+        getProcAddressTableExpr = s;
     }
 
     public String convertToFunctionPointerName(final String funcName) {
