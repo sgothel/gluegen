@@ -200,16 +200,10 @@ public abstract class PlatformPropsImpl {
                 }
                 ABI_TYPE = ehAbiType;
             } else {
-                // default
-                if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM || null == AndroidVersion.CPU_TYPE2 ) {
-                    ARCH = AndroidVersion.CPU_ABI;
-                    CPU_ARCH = AndroidVersion.CPU_TYPE;
-                    ABI_TYPE = AndroidVersion.ABI_TYPE;
-                } else {
-                    ARCH = AndroidVersion.CPU_ABI2;
-                    CPU_ARCH = AndroidVersion.CPU_TYPE2;
-                    ABI_TYPE = AndroidVersion.ABI_TYPE2;
-                }
+                //default
+                ARCH = AndroidVersion.CPU_ABI;
+                CPU_ARCH = AndroidVersion.CPU_TYPE;
+                ABI_TYPE = AndroidVersion.ABI_TYPE;
             }
             ARCH_lower  = ARCH;
         } else {
@@ -502,6 +496,7 @@ public abstract class PlatformPropsImpl {
      *   <li>linux-armv6</li>
      *   <li>linux-armv6hf</li>
      *   <li>android-armv6</li>
+     *   <li>android-x86</li>
      *   <li>macosx-universal</li>
      *   <li>solaris-sparc</li>
      *   <li>solaris-sparcv9</li>

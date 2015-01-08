@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+    This is an example of how to add custom compiler/linker 
+    arguments for a crosscompiler.
+
+    You can use such files with setting the property 'gluegen-cpptasks.file', ie:
+
+        -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml
+
+    In case you want to compile for 32bit on a 64bit machine,
+    you might also need to set the 'os.arch' to 'x86'.
+    Example: gluegen/make/make.gluegen.all.linux-x86.sh
+      -->
+
+<project name="GlueGen-cpptasks-android-x86" basedir="." >
+
+<!-- Set OS and ARCH for crosscompilation compiler configuration -->
+<target name="gluegen.cpptasks.detect.os.custom">
+    <property name="gluegen.cpptasks.detected.os"     value="true" /> 
+    <property name="isUnix"                           value="true" /> 
+    <property name="isAndroid"                        value="true" /> 
+    <property name="isAndroidX86"                     value="true" /> 
+    <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
+    <property name="isCrosscompilation"               value="true" />
+    <property name="android.abi"                      value="x86" />
+    <property name="isAbiEabiGnuArmel"                value="true" />
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-x86' done"/>
+</target>
+
+<import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
+
+<target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
+    <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
+    <compiler id="compiler.cfg.android" name="gcc">
+      <compilerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+      <!-- The default search dirs for 'gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin will not find
+        subprograms properly (see gcc -print-search-dirs). Not sure if this is a bug in the NDK
+        or not. Need to explicitly indicate where subprograms are with -B.
+        NOTE: This is not necessary if using '$TARGET_TRIPLE-gcc' from $NDK_TOOLCHAIN_ROOT/bin. -->
+      <compilerarg value="-B${env.NDK_TOOLCHAIN_ROOT}/libexec/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" />
+
+      <compilerarg value="-ffunction-sections" />
+      <compilerarg value="-funwind-tables" />
+      <compilerarg value="-fno-stack-protector" />
+      <compilerarg value="-fpic" /> 
+
+      <compilerarg value="-mtune=atom" />
+      <compilerarg value="-mssse3" /> 
+      <compilerarg value="-mfpmath=sse" />
+      <compilerarg value="-mlong-double-80" />
+
+      <compilerarg value="-g" if="c.compiler.use-debug" />
+      <compilerarg value="-O0" if="c.compiler.use-debug" />
+      <compilerarg value="-Os" unless="c.compiler.use-debug" /> 
+      <!--<compilerarg value="-O2" /> -->
+
+      <compilerarg value="-fomit-frame-pointer" /> 
+      <compilerarg value="-fno-strict-aliasing" /> 
+      <compilerarg value="-finline-limit=64" /> 
+      <compilerarg value="-Wa,--noexecstack" /> 
+      <includepath path="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/include" /> <!-- for stdarg.h -->
+      <defineset>
+        <define name="__unix__" />
+        <define name="ANDROID" />
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
+        <define name="DEBUG"    if="c.compiler.use-debug"/>        
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+      </defineset>
+    </compiler>
+
+    <linker id="linker.cfg.android" name="gcc">
+         <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+         <linkerarg value="-fpic" /> 
+         <linkerarg value="-fno-use-linker-plugin" /> 
+
+         <linkerarg value="-mtune=atom" />
+         <linkerarg value="-mssse3" />
+         <linkerarg value="-mfpmath=sse" /> 
+
+         <linkerarg value="-nostdlib" />
+         <linkerarg value="-Bdynamic" />
+         <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" />
+         <linkerarg value="-Wl,-z,nocopyreloc" />
+
+         <linkerarg value="--demangle" /> 
+         <linkerarg value="--gc-sections" /> 
+         <linkerarg value="--no-undefined" /> 
+         <linkerarg value="-static-libgcc"/>
+         <!-- The gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin needs to be told
+           where to find libgcc as the default location (gcc -print-search-dirs)
+           is not correct. Not sure if this is a bug in the NDK or not. We also
+           enforce that libgcc is linked after source files but before other shared
+           libraries. -->
+         <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" libs="gcc" />
+         <libset libs="c,m,dl" />
+    </linker>
+
+</target>
+
+<target name="gluegen.cpptasks.declare.compiler" depends="setup.java.home.dir">
+  <echo message="Custom forced Linux.x86 cross compile android" />
+  <property name="compiler.cfg.id.base"          value="compiler.cfg.android" /> 
+  <property name="linker.cfg.id.base"            value="linker.cfg.android" /> 
+  <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
+  <property name="java.includes.dir.platform"    value="${java.includes.dir}/linux" />
+</target>
+
+<target name="declare.linux.android">
+      <echo message="android.x86" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
+      <property name="linker.cfg.id"                        value="linker.cfg.android" />
+</target>
+
+</project>
+
+
