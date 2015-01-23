@@ -60,10 +60,19 @@ public class ExceptionUtils {
     /**
      * Dumps a {@link Throwable} in a decorating message including the current thread name,
      * and its {@link #dumpStack(PrintStream, StackTraceElement[], int, int) stack trace}.
+     * <p>
+     * Implementation will iterate through all {@link Throwable#getCause() causes}.
+     * </p>
      */
     public static void dumpThrowable(final String additionalDescr, final Throwable t) {
         System.err.println("Caught "+additionalDescr+" "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
         dumpStack(System.err, t.getStackTrace(), 0, -1);
+        int causeDepth = 1;
+        for( Throwable cause = t.getCause(); null != cause; cause = cause.getCause() ) {
+            System.err.println("Caused["+causeDepth+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
+            dumpStack(System.err, cause.getStackTrace(), 0, -1);
+            causeDepth++;
+        }
     }
 
 }
