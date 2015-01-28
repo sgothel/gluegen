@@ -28,7 +28,14 @@
 
 package jogamp.android.launcher;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -46,6 +53,7 @@ public class ClassLoaderUtil {
    // location where optimized dex files will be written
    private static final String dexPathName= "jogampDex";
    private static File dexPath = null;
+   private static boolean needsAPKCopy;
 
    private static LauncherTempFileCache tmpFileCache = null;
 
@@ -64,6 +72,9 @@ public class ClassLoaderUtil {
            dexPath = new File(tmpFileCache.getTempDir(), dexPathName);
            Log.d(TAG, "jogamp dexPath: " + dexPath.getAbsolutePath());
            dexPath.mkdir();
+
+           needsAPKCopy = android.os.Build.VERSION.SDK_INT >= 21; // >= LOLLIPOP
+           Log.d(TAG, "jogamp Android SDK "+android.os.Build.VERSION.SDK_INT+", needsAPKCopy "+needsAPKCopy);
        }
    }
 
@@ -151,6 +162,18 @@ public class ClassLoaderUtil {
                            libs.append(ELEM_SEP);
                        }
                    }
+                   if( needsAPKCopy ) {
+                       final File src = new File(userAPK);
+                       userAPK = dexPath + "/" + lastUserPackageName + "-1.apk";
+                       final File dst = new File(userAPK);
+                       try {
+                           copyFile(src, dst);
+                       } catch (final IOException e) {
+                           Log.d(TAG, "error copying <"+src+"> -> <"+dst+">: "+e, e);
+                           return null;
+                       }
+                       Log.d(TAG, "APK["+apkCount+"] copied: <"+src+"> -> <"+dst+">");
+                   }
                    apks.append(userAPK);
                    Log.d(TAG, "APK["+apkCount+"] found: <"+lastUserPackageName+"> -> <"+userAPK+">");
                    Log.d(TAG, "APK["+apkCount+"] apks: <"+apks.toString()+">");
@@ -193,6 +216,31 @@ public class ClassLoaderUtil {
        // return new TraceDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
        return new AssetDexClassLoader(apks.toString(), dexPath.getAbsolutePath(), libs.toString(), parent);
    }
+
+   private static int copyFile(final File src, final File dst) throws IOException {
+       int totalBytes = 0;
+       final InputStream in = new BufferedInputStream(new FileInputStream(src));
+       try {
+           final OutputStream out = new BufferedOutputStream(new FileOutputStream(dst));
+           try {
+               final byte[] buf = new byte[bufferSize];
+               while (true) {
+                   int count;
+                   if ((count = in.read(buf)) == -1) {
+                       break;
+                   }
+                   out.write(buf, 0, count);
+                   totalBytes += count;
+               }
+           } finally {
+               out.close();
+           }
+       } finally {
+           in.close();
+       }
+       return totalBytes;
+   }
+   private static final int bufferSize = 4096;
 
    /***
     *
