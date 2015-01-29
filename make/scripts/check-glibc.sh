@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 BDIR=$1
 shift
@@ -6,8 +6,7 @@ shift
 SDIR=`dirname $0`
 RDIR=$SDIR/../../..
 
-function check_glibc() {
-
+check_glibc() {
   echo "------------------------------------------------------------"
   echo $1 via objdump
   echo

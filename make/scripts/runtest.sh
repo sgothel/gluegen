@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 builddir="$1"
 shift
@@ -60,7 +60,7 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.Bitstream"
 D_ARGS="-Djogamp.debug=all"
 
-function onetest() {
+onetest() {
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
     USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar

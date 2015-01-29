@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 export HOST_UID=jogamp
 # jogamp02 - 10.1.0.122

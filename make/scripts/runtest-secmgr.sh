@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 TDIR=`pwd`
 SDIR=`dirname $0` #scripts
@@ -71,7 +71,7 @@ echo "grant codeBase \"file:$BDIR/*\" {" > $SPFILE
 echo "   permission java.security.AllPermission;" >> $SPFILE
 echo "};" >> $SPFILE
 
-function onetest() {
+onetest() {
     CLASSPATH=lib/junit.jar:$ANT_JARS:$RDIR/make/lib/TestJarsInJar.jar:$BDIR/gluegen-rt.jar:$BDIR/test/build/gluegen-test.jar
     libspath=$BDIR/test/build/natives
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH

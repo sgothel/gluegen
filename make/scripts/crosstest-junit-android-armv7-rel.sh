@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/sh
 
 export HOST_UID=sven
 export HOST_IP=192.168.0.52

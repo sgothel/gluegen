@@ -1,10 +1,10 @@
-#! /bin/bash
+#!/bin/sh
 
 SDIR=`dirname $0`
 XDIR=$SDIR/../../make/lib/toolchain
 RDIR=$SDIR/../../..
 
-function check_glibc() {
+check_glibc() {
   OBJDUMP=$1/bin/objdump
 
   echo "------------------------------------------------------------"
