@@ -13,49 +13,63 @@
     #define RTLD_DEFAULT   ((void *) 0)
 #endif
 
-/*   Java->C glue code:
- *   Java package: jogamp.common.os.UnixDynamicLinkerImpl
- *    Java method: int dlclose(long arg0)
- *     C function: int dlclose(void * );
+// #define DEBUG_DLOPEN 1
+
+#ifdef DEBUG_DLOPEN
+    typedef void *(*DLOPEN_FPTR_TYPE)(const char *filename, int flag); 
+    #define VERBOSE_ON 1
+#endif
+
+// #define VERBOSE_ON 1
+
+#ifdef VERBOSE_ON
+    #ifdef ANDROID
+        #include <android/log.h>
+        #define  DBG_PRINT(...)  __android_log_print(ANDROID_LOG_DEBUG, "JogAmp", __VA_ARGS__)
+    #else
+        #define  DBG_PRINT(...) fprintf(stderr, __VA_ARGS__); fflush(stderr)
+    #endif
+#else
+        #define  DBG_PRINT(...)
+#endif
+
+/*
+ * Class:     jogamp_common_os_UnixDynamicLinkerImpl
+ * Method:    dlclose
+ * Signature: (J)I
  */
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_UnixDynamicLinkerImpl_dlclose__J(JNIEnv *env, jclass _unused, jlong arg0) {
+Java_jogamp_common_os_UnixDynamicLinkerImpl_dlclose(JNIEnv *env, jclass _unused, jlong arg0) {
   int _res;
   _res = dlclose((void *) (intptr_t) arg0);
   return _res;
 }
 
 
-/*   Java->C glue code:
- *   Java package: jogamp.common.os.UnixDynamicLinkerImpl
- *    Java method: java.lang.String dlerror()
- *     C function: char *  dlerror(void);
+/*
+ * Class:     jogamp_common_os_UnixDynamicLinkerImpl
+ * Method:    dlerror
+ * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL 
-Java_jogamp_common_os_UnixDynamicLinkerImpl_dlerror__(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_UnixDynamicLinkerImpl_dlerror(JNIEnv *env, jclass _unused) {
   char *  _res;
   _res = dlerror();
   if (_res == NULL) return NULL;  return (*env)->NewStringUTF(env, _res);
 }
 
-// #define DEBUG_DLOPEN 1
-
-#ifdef DEBUG_DLOPEN
-    typedef void *(*DLOPEN_FPTR_TYPE)(const char *filename, int flag); 
-#endif
-
-/*   Java->C glue code:
- *   Java package: jogamp.common.os.UnixDynamicLinkerImpl
- *    Java method: long dlopen(java.lang.String arg0, int arg1)
- *     C function: void *  dlopen(const char * , int);
+/*
+ * Class:     jogamp_common_os_UnixDynamicLinkerImpl
+ * Method:    dlopen
+ * Signature: (Ljava/lang/String;I)J
  */
 JNIEXPORT jlong JNICALL 
-Java_jogamp_common_os_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv *env, jclass _unused, jstring arg0, jint arg1) {
+Java_jogamp_common_os_UnixDynamicLinkerImpl_dlopen(JNIEnv *env, jclass _unused, jstring arg0, jint arg1) {
   const char* _UTF8arg0 = NULL;
   void *  _res;
 #ifdef DEBUG_DLOPEN
   DLOPEN_FPTR_TYPE dlopenFunc = NULL;
-  fprintf(stderr, "XXX dlopen.0\n");
+  DBG_PRINT("XXX dlopen.0\n");
 #endif
 
   if (arg0 != NULL) {
@@ -70,9 +84,9 @@ Java_jogamp_common_os_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv 
   }
 #ifdef DEBUG_DLOPEN
   dlopenFunc = (DLOPEN_FPTR_TYPE) dlsym(RTLD_DEFAULT, "dlopen");
-  fprintf(stderr, "XXX dlopen.1: lib %s, dlopen-fptr %p %p (%d)\n", _UTF8arg0, dlopen, dlopenFunc, dlopen==dlopenFunc); fflush(stderr);
+  DBG_PRINT("XXX dlopen.1: lib %s, dlopen-fptr %p %p (%d)\n", _UTF8arg0, dlopen, dlopenFunc, dlopen==dlopenFunc);
   _res = dlopen((char *) _UTF8arg0, (int) arg1);
-  fprintf(stderr, "XXX dlopen.2: %p\n", _res); fflush(stderr);
+  DBG_PRINT("XXX dlopen.2: %p\n", _res);
 #else
   _res = dlopen((char *) _UTF8arg0, (int) arg1);
 #endif
@@ -80,19 +94,18 @@ Java_jogamp_common_os_UnixDynamicLinkerImpl_dlopen__Ljava_lang_String_2I(JNIEnv 
     (*env)->ReleaseStringUTFChars(env, arg0, _UTF8arg0);
   }
 #ifdef DEBUG_DLOPEN
-  fprintf(stderr, "XXX dlopen.X\n"); fflush(stderr);
+  DBG_PRINT("XXX dlopen.X\n");
 #endif
   return (jlong) (intptr_t) _res;
 }
 
-
-/*   Java->C glue code:
- *   Java package: jogamp.common.os.UnixDynamicLinkerImpl
- *    Java method: long dlsym(long arg0, java.lang.String arg1)
- *     C function: void *  dlsym(void * , const char * );
+/*
+ * Class:     jogamp_common_os_UnixDynamicLinkerImpl
+ * Method:    dlsym
+ * Signature: (JLjava/lang/String;)J
  */
 JNIEXPORT jlong JNICALL 
-Java_jogamp_common_os_UnixDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong arg0, jstring arg1) {
+Java_jogamp_common_os_UnixDynamicLinkerImpl_dlsym(JNIEnv *env, jclass _unused, jlong arg0, jstring arg1) {
   const char* _UTF8arg1 = NULL;
   void *  _res;
   if (arg1 != NULL) {
@@ -106,10 +119,11 @@ Java_jogamp_common_os_UnixDynamicLinkerImpl_dlsym__JLjava_lang_String_2(JNIEnv *
     }
   }
   _res = dlsym((void *) (intptr_t) arg0, (char *) _UTF8arg1);
+  DBG_PRINT("XXX dlsym: handle %p, symbol %s -> %p\n", (void *) (intptr_t) arg0, _UTF8arg1, _res);
+
   if (arg1 != NULL) {
     (*env)->ReleaseStringUTFChars(env, arg1, _UTF8arg1);
   }
   return (jlong) (intptr_t) _res;
 }
-
 

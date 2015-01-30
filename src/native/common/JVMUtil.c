@@ -43,6 +43,11 @@
 
 #include "jogamp_common_jvm_JVMUtil.h"
 
+/*
+ * Class:     jogamp_common_jvm_JVMUtil
+ * Method:    initialize
+ * Signature: (Ljava/nio/ByteBuffer;)Z
+ */
 JNIEXPORT jboolean JNICALL
 Java_jogamp_common_jvm_JVMUtil_initialize(JNIEnv *env, jclass _unused, jobject nioBuffer) {
   void * ptr = NULL;

@@ -24,7 +24,7 @@
  *     C function: BOOL FreeLibrary(HANDLE hLibModule);
  */
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_WindowsDynamicLinkerImpl_FreeLibrary__J(JNIEnv *env, jclass _unused, jlong hLibModule) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_FreeLibrary(JNIEnv *env, jclass _unused, jlong hLibModule) {
   BOOL _res;
   _res = FreeLibrary((HANDLE) (intptr_t) hLibModule);
   return _res;
@@ -37,7 +37,7 @@ Java_jogamp_common_os_WindowsDynamicLinkerImpl_FreeLibrary__J(JNIEnv *env, jclas
  *     C function: DWORD GetLastError(void);
  */
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetLastError__(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetLastError(JNIEnv *env, jclass _unused) {
   DWORD _res;
   _res = GetLastError();
   return _res;
@@ -50,7 +50,7 @@ Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetLastError__(JNIEnv *env, jclas
  *     C function: PROC GetProcAddressA(HANDLE hModule, LPCSTR lpProcName);
  */
 JNIEXPORT jlong JNICALL 
-Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetProcAddressA__JLjava_lang_String_2(JNIEnv *env, jclass _unused, jlong hModule, jstring lpProcName) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetProcAddressA(JNIEnv *env, jclass _unused, jlong hModule, jstring lpProcName) {
   const char* _strchars_lpProcName = NULL;
   PROC _res;
   if (lpProcName != NULL) {
@@ -75,7 +75,7 @@ Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetProcAddressA__JLjava_lang_Stri
  *     C function: HANDLE LoadLibraryW(LPCWSTR lpLibFileName);
  */
 JNIEXPORT jlong JNICALL 
-Java_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryW__Ljava_lang_String_2(JNIEnv *env, jclass _unused, jstring lpLibFileName) {
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryW(JNIEnv *env, jclass _unused, jstring lpLibFileName) {
   jchar* _strchars_lpLibFileName = NULL;
   HANDLE _res;
   if (lpLibFileName != NULL) {
