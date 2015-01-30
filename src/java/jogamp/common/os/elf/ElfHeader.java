@@ -349,8 +349,8 @@ public class ElfHeader {
     public static final short EM_L1OM = 180;
     public static final short EM_INTEL181 = 181;
     public static final short EM_INTEL182 = 182;
-    public static final short EM_res183 = 183;
-    public static final short EM_res184 = 184;
+    public static final short EM_AARCH64 = 183;
+    public static final short EM_ARM184 = 184;
     public static final short EM_AVR32 = 185;
     public static final short EM_STM8 = 186;
     public static final short EM_TILE64 = 187;
@@ -372,6 +372,7 @@ public class ElfHeader {
     public final SectionHeader[] sht;
 
     private final String string;
+    private final byte[] E_ident;
 
     /**
      * Note: The input stream shall stay untouch to be able to read sections!
@@ -396,7 +397,8 @@ public class ElfHeader {
      */
     ElfHeader(final java.nio.ByteBuffer buf, final RandomAccessFile in) throws IllegalArgumentException, IOException {
         d = Ehdr.create(buf);
-        if( !isIdentityValid(d.getE_ident()) ) {
+        E_ident = d.getE_ident(0, new byte[Ehdr.getE_identArrayLength()]);
+        if( !isIdentityValid(E_ident) ) {
             throw new IllegalArgumentException("Buffer is not an ELF Header");
         }
         sht = readSectionHeaderTable(in);
@@ -411,7 +413,7 @@ public class ElfHeader {
      * and 0 for {@link #ELFCLASSNONE}.
      */
     public final int getArchClassBits() {
-        switch( d.getE_ident()[EI_CLASS] ) {
+        switch( E_ident[EI_CLASS] ) {
             case ELFCLASS32: return 32;
             case ELFCLASS64: return 64;
             default: return 0;
@@ -423,22 +425,22 @@ public class ElfHeader {
      * {@link #ELFDATA2LSB}, {@link #ELFDATA2MSB} or {@link #ELFDATANONE};
      */
     public final byte getDataEncodingMode() {
-        return d.getE_ident()[EI_DATA];
+        return E_ident[EI_DATA];
     }
 
     /** Returns the ELF file version, should be {@link #EV_CURRENT}. */
     public final byte getVersion() {
-        return d.getE_ident()[EI_VERSION];
+        return E_ident[EI_VERSION];
     }
 
     /** Returns the operating system and ABI for this file, 3 == Linux. Note: Often not used. */
     public final byte getOSABI() {
-        return d.getE_ident()[EI_OSABI];
+        return E_ident[EI_OSABI];
     }
 
     /** Returns the version of the {@link #getOSABI() OSABI} for this file. */
     public final byte getOSABIVersion() {
-        return d.getE_ident()[EI_ABIVERSION];
+        return E_ident[EI_ABIVERSION];
     }
 
     /** Returns the object file type, e.g. {@link #ET_EXEC}, .. */
@@ -452,10 +454,17 @@ public class ElfHeader {
     }
 
     /**
-     * Returns true if {@link #getMachine() machine} is a 32 or 64 bit ARM CPU
+     * Returns true if {@link #getMachine() machine} is a 32 bit ARM CPU
      * of type {@link #EM_ARM}. */
     public final boolean isArm() {
         return getMachine() == EM_ARM;
+    }
+
+    /**
+     * Returns true if {@link #getMachine() machine} is a 64 bit AARCH64 ARM CPU
+     * of type {@link #EM_AARCH64}. */
+    public final boolean isAARCH64() {
+        return getMachine() == EM_AARCH64;
     }
 
     /**
