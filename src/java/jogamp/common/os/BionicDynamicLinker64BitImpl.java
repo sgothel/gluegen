@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2015 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,34 +28,36 @@
 package jogamp.common.os;
 
 /**
- * Bionic specialization of {@link UnixDynamicLinkerImpl}
+ * Bionic 64bit specialization of {@link UnixDynamicLinkerImpl}
  * utilizing Bionic's non POSIX flags and mode values.
  * <p>
  * Bionic is used on Android.
  * </p>
  */
-public final class BionicDynamicLinkerImpl extends UnixDynamicLinkerImpl {
-  private static final long RTLD_DEFAULT = 0xffffffffL;
-  //      static final long RTLD_NEXT    = 0xfffffffeL;
-
+public final class BionicDynamicLinker64BitImpl extends UnixDynamicLinkerImpl {
+  //      static final int RTLD_NOW      = 0x00002;
   private static final int RTLD_LAZY     = 0x00001;
-  //      static final int RTLD_NOW      = 0x00000;
+
   private static final int RTLD_LOCAL    = 0x00000;
-  private static final int RTLD_GLOBAL   = 0x00002;
+  private static final int RTLD_GLOBAL   = 0x00100;
+  //      static final int RTLD_NOLOAD   = 0x00004;
+
+  private static final long RTLD_DEFAULT = 0x00000000L;
+  //      static final long RTLD_NEXT    = -1L;
 
   @Override
-  public final long openLibraryLocal(final String pathname, final boolean debug) throws SecurityException {
-    return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_LOCAL, debug);
+  protected final long openLibraryLocalImpl(final String pathname) throws SecurityException {
+    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
   }
 
   @Override
-  public final long openLibraryGlobal(final String pathname, final boolean debug) throws SecurityException {
-    return this.openLibraryImpl(pathname, RTLD_LAZY | RTLD_GLOBAL, debug);
+  protected final long openLibraryGlobalImpl(final String pathname) throws SecurityException {
+    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
   }
 
   @Override
-  public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {
-    return this.lookupSymbolGlobalImpl(RTLD_DEFAULT, symbolName);
+  protected final long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException {
+    return dlsym(RTLD_DEFAULT, symbolName);
   }
 
 }

@@ -27,8 +27,6 @@
  */
 package jogamp.common.os;
 
-import com.jogamp.common.util.SecurityUtil;
-
 public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
 
   /** Interface to C language function: <br> <code> BOOL FreeLibrary(HANDLE hLibModule); </code>    */
@@ -44,28 +42,19 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   private static native long LoadLibraryW(java.lang.String lpLibFileName);
 
   @Override
-  public final long openLibraryLocal(final String libraryName, final boolean debug) throws SecurityException {
+  protected final long openLibraryLocalImpl(final String libraryName) throws SecurityException {
     // How does that work under Windows ?
-    // Don't know .. so it's an alias for the time being
-    return openLibraryGlobal(libraryName, debug);
+    // Don't know .. so it's an alias to global, for the time being
+    return LoadLibraryW(libraryName);
   }
 
   @Override
-  public final long openLibraryGlobal(final String libraryName, final boolean debug) throws SecurityException {
-    SecurityUtil.checkLinkPermission(libraryName);
-    final long handle = LoadLibraryW(libraryName);
-    if( 0 != handle ) {
-        incrLibRefCount(handle, libraryName);
-    } else if ( DEBUG || debug ) {
-        final int err = GetLastError();
-        System.err.println("LoadLibraryW \""+libraryName+"\" failed, error code: 0x"+Integer.toHexString(err)+", "+err);
-    }
-    return handle;
+  protected final long openLibraryGlobalImpl(final String libraryName) throws SecurityException {
+    return LoadLibraryW(libraryName);
   }
 
   @Override
-  public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {
-    SecurityUtil.checkAllLinkPermission();
+  protected final long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException {
     if(DEBUG_LOOKUP) {
         System.err.println("lookupSymbolGlobal: Not supported on Windows");
     }
@@ -73,34 +62,26 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
     return 0;
   }
 
+  private static final int symbolArgAlignment=4;  // 4 byte alignment of each argument
+  private static final int symbolMaxArguments=12; // experience ..
+
   @Override
-  public final long lookupSymbol(final long libraryHandle, final String symbolName) throws IllegalArgumentException {
-    if( null == getLibRef( libraryHandle ) ) {
-        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
-    }
+  protected final long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws IllegalArgumentException {
     String _symbolName = symbolName;
     long addr = GetProcAddressA(libraryHandle, _symbolName);
-    if(0==addr) {
+    if( 0 == addr ) {
         // __stdcall hack: try some @nn decorations,
         //                 the leading '_' must not be added (same with cdecl)
-        final int argAlignment=4;  // 4 byte alignment of each argument
-        final int maxArguments=12; // experience ..
-        for(int arg=0; 0==addr && arg<=maxArguments; arg++) {
-            _symbolName = symbolName+"@"+(arg*argAlignment);
+        for(int arg=0; 0==addr && arg<=symbolMaxArguments; arg++) {
+            _symbolName = symbolName+"@"+(arg*symbolArgAlignment);
             addr = GetProcAddressA(libraryHandle, _symbolName);
         }
-    }
-    if(DEBUG_LOOKUP) {
-        System.err.println("DynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> "+_symbolName+", 0x"+Long.toHexString(addr));
     }
     return addr;
   }
 
   @Override
-  public final void closeLibrary(final long libraryHandle) throws IllegalArgumentException {
-    if( null == decrLibRefCount( libraryHandle ) ) {
-        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
-    }
+  protected final void closeLibraryImpl(final long libraryHandle) throws IllegalArgumentException {
     FreeLibrary(libraryHandle);
   }
 

@@ -29,6 +29,7 @@ package jogamp.common.os;
 
 import com.jogamp.common.os.DynamicLinker;
 import com.jogamp.common.util.LongObjectHashMap;
+import com.jogamp.common.util.SecurityUtil;
 
 /* pp */ abstract class DynamicLinkerImpl implements DynamicLinker {
 
@@ -38,18 +39,134 @@ import com.jogamp.common.util.LongObjectHashMap;
   // ensuring no abuse via subclassing.
   //
 
-  private final LongObjectHashMap libHandle2Name = new LongObjectHashMap( 16 /* initialCapacity */ );
+  private final Object secSync = new Object();
+  private boolean allLinkPermissionGranted = false;
 
-  protected static final class LibRef {
-      public LibRef(final String name) {
+  /**
+   * @throws SecurityException if user is not granted global access
+   */
+  public final void claimAllLinkPermission() throws SecurityException {
+      synchronized( secSync ) {
+          allLinkPermissionGranted = true;
+      }
+  }
+
+  /**
+   * @throws SecurityException if user is not granted global access
+   */
+  public final void releaseAllLinkPermission() throws SecurityException {
+      synchronized( secSync ) {
+          allLinkPermissionGranted = false;
+      }
+  }
+
+  private final void checkLinkPermission(final String pathname) throws SecurityException {
+      synchronized( secSync ) {
+          if( !allLinkPermissionGranted ) {
+              SecurityUtil.checkLinkPermission(pathname);
+          }
+      }
+  }
+  private final void checkLinkPermission(final long libraryHandle) throws SecurityException {
+      synchronized( secSync ) {
+          if( !allLinkPermissionGranted ) {
+              final LibRef libRef = getLibRef( libraryHandle );
+              if( null == libRef ) {
+                  throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
+              }
+              SecurityUtil.checkLinkPermission(libRef.getName());
+          }
+      }
+  }
+
+  private final void checkAllLinkPermission() throws SecurityException {
+      synchronized( secSync ) {
+          if( !allLinkPermissionGranted ) {
+              SecurityUtil.checkAllLinkPermission();
+          }
+      }
+  }
+
+  @Override
+  public final long openLibraryGlobal(final String pathname, final boolean debug) throws SecurityException {
+    checkLinkPermission(pathname);
+    final long handle = openLibraryGlobalImpl(pathname);
+    if( 0 != handle ) {
+        final LibRef libRef = incrLibRefCount(handle, pathname);
+        if( DEBUG || debug ) {
+            System.err.println("DynamicLinkerImpl.openLibraryGlobal \""+pathname+"\": 0x"+Long.toHexString(handle)+" -> "+libRef+")");
+        }
+    } else if ( DEBUG || debug ) {
+        System.err.println("DynamicLinkerImpl.openLibraryGlobal \""+pathname+"\" failed, error: "+getLastError());
+    }
+    return handle;
+  }
+  protected abstract long openLibraryGlobalImpl(final String pathname) throws SecurityException;
+
+  @Override
+  public final long openLibraryLocal(final String pathname, final boolean debug) throws SecurityException {
+    checkLinkPermission(pathname);
+    final long handle = openLibraryLocalImpl(pathname);
+    if( 0 != handle ) {
+        final LibRef libRef = incrLibRefCount(handle, pathname);
+        if( DEBUG || debug ) {
+            System.err.println("DynamicLinkerImpl.openLibraryLocal \""+pathname+"\": 0x"+Long.toHexString(handle)+" -> "+libRef+")");
+        }
+    } else if ( DEBUG || debug ) {
+        System.err.println("DynamicLinkerImpl.openLibraryLocal \""+pathname+"\" failed, error: "+getLastError());
+    }
+    return handle;
+  }
+  protected abstract long openLibraryLocalImpl(final String pathname) throws SecurityException;
+
+  @Override
+  public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {
+    checkAllLinkPermission();
+    final long addr = lookupSymbolGlobalImpl(symbolName);
+    if(DEBUG_LOOKUP) {
+        System.err.println("DynamicLinkerImpl.lookupSymbolGlobal("+symbolName+") -> 0x"+Long.toHexString(addr));
+    }
+    return addr;
+  }
+  protected abstract long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException;
+
+  @Override
+  public final long lookupSymbol(final long libraryHandle, final String symbolName) throws SecurityException, IllegalArgumentException {
+    checkLinkPermission(libraryHandle);
+    final long addr = lookupSymbolLocalImpl(libraryHandle, symbolName);
+    if(DEBUG_LOOKUP) {
+        System.err.println("DynamicLinkerImpl.lookupSymbol(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> 0x"+Long.toHexString(addr));
+    }
+    return addr;
+  }
+  protected abstract long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws SecurityException;
+
+  @Override
+  public final void closeLibrary(final long libraryHandle, final boolean debug) throws SecurityException, IllegalArgumentException {
+    final LibRef libRef = decrLibRefCount( libraryHandle );
+    if( null == libRef ) {
+        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
+    }
+    checkLinkPermission(libRef.getName());
+    if( DEBUG || debug ) {
+        System.err.println("DynamicLinkerImpl.closeLibrary(0x"+Long.toHexString(libraryHandle)+" -> "+libRef+")");
+    }
+    closeLibraryImpl(libraryHandle);
+  }
+  protected abstract void closeLibraryImpl(final long libraryHandle) throws SecurityException;
+
+  private static final LongObjectHashMap libHandle2Name = new LongObjectHashMap( 16 /* initialCapacity */ );
+
+  static final class LibRef {
+      LibRef(final String name) {
           this.name = name;
           this.refCount = 1;
       }
-      public final int incrRefCount() { return ++refCount; }
-      public final int decrRefCount() { return --refCount; }
-      public final int getRefCount() { return refCount; }
+      final int incrRefCount() { return ++refCount; }
+      final int decrRefCount() { return --refCount; }
+      final int getRefCount() { return refCount; }
 
-      public final String getName() { return name; }
+      final String getName() { return name; }
       @Override
       public final String toString() { return "LibRef["+name+", refCount "+refCount+"]"; }
 
@@ -57,35 +174,40 @@ import com.jogamp.common.util.LongObjectHashMap;
       private int refCount;
   }
 
-  protected final synchronized LibRef getLibRef(final long handle) {
-      return (LibRef) libHandle2Name.get(handle);
+  private final LibRef getLibRef(final long handle) {
+      synchronized( libHandle2Name ) {
+          return (LibRef) libHandle2Name.get(handle);
+      }
   }
 
-  protected final synchronized LibRef incrLibRefCount(final long handle, final String libName) {
-      LibRef libRef = getLibRef(handle);
-      if( null == libRef ) {
-          libRef = new LibRef(libName);
-          libHandle2Name.put(handle, libRef);
-      } else {
-          libRef.incrRefCount();
-      }
-      if(DEBUG) {
-          System.err.println("DynamicLinkerImpl.incrLibRefCount 0x"+Long.toHexString(handle)+ " -> "+libRef+", libs loaded "+libHandle2Name.size());
-      }
-      return libRef;
-  }
-
-  protected final synchronized LibRef decrLibRefCount(final long handle) {
-      final LibRef libRef = getLibRef(handle);
-      if( null != libRef ) {
-          if( 0 == libRef.decrRefCount() ) {
-              libHandle2Name.remove(handle);
+  private final LibRef incrLibRefCount(final long handle, final String libName) {
+      synchronized( libHandle2Name ) {
+          LibRef libRef = getLibRef(handle);
+          if( null == libRef ) {
+              libRef = new LibRef(libName);
+              libHandle2Name.put(handle, libRef);
+          } else {
+              libRef.incrRefCount();
           }
+          if(DEBUG) {
+              System.err.println("DynamicLinkerImpl.incrLibRefCount 0x"+Long.toHexString(handle)+ " -> "+libRef+", libs loaded "+libHandle2Name.size());
+          }
+          return libRef;
       }
-      if(DEBUG) {
-          System.err.println("DynamicLinkerImpl.decrLibRefCount 0x"+Long.toHexString(handle)+ " -> "+libRef+", libs loaded "+libHandle2Name.size());
-      }
-      return libRef;
   }
 
+  private final LibRef decrLibRefCount(final long handle) {
+      synchronized( libHandle2Name ) {
+          final LibRef libRef = getLibRef(handle);
+          if( null != libRef ) {
+              if( 0 == libRef.decrRefCount() ) {
+                  libHandle2Name.remove(handle);
+              }
+          }
+          if(DEBUG) {
+              System.err.println("DynamicLinkerImpl.decrLibRefCount 0x"+Long.toHexString(handle)+ " -> "+libRef+", libs loaded "+libHandle2Name.size());
+          }
+          return libRef;
+      }
+  }
 }

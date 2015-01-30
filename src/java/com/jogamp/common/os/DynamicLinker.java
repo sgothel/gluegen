@@ -34,6 +34,16 @@ public interface DynamicLinker {
   public static final boolean DEBUG_LOOKUP = NativeLibrary.DEBUG_LOOKUP;
 
   /**
+   * @throws SecurityException if user is not granted global access
+   */
+  public void claimAllLinkPermission() throws SecurityException;
+
+  /**
+   * @throws SecurityException if user is not granted global access
+   */
+  public void releaseAllLinkPermission() throws SecurityException;
+
+  /**
    * If a {@link SecurityManager} is installed, user needs link permissions
    * for the named library.
    * <p>
@@ -80,8 +90,9 @@ public interface DynamicLinker {
    * @param symbolName global symbol name to lookup up system wide.
    * @return the library handle, maybe 0 if not found.
    * @throws IllegalArgumentException in case case <code>libraryHandle</code> is unknown.
+   * @throws SecurityException if user is not granted access for the given library handle
    */
-  public long lookupSymbol(long libraryHandle, String symbolName) throws IllegalArgumentException;
+  public long lookupSymbol(long libraryHandle, String symbolName) throws SecurityException, IllegalArgumentException;
 
   /**
    * Security checks are implicit by previous call of
@@ -89,9 +100,11 @@ public interface DynamicLinker {
    * retrieving the <code>librarHandle</code>.
    *
    * @param libraryHandle a library handle previously retrieved via {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}.
+   * @param debug set to true to enable debugging
    * @throws IllegalArgumentException in case case <code>libraryHandle</code> is unknown.
+   * @throws SecurityException if user is not granted access for the given library handle
    */
-  public void closeLibrary(long libraryHandle) throws IllegalArgumentException;
+  public void closeLibrary(long libraryHandle, boolean debug) throws SecurityException, IllegalArgumentException;
 
   /**
    * Returns a string containing the last error.

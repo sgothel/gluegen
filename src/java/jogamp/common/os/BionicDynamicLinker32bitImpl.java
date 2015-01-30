@@ -27,39 +27,37 @@
  */
 package jogamp.common.os;
 
-/* pp */ abstract class UnixDynamicLinkerImpl extends DynamicLinkerImpl {
+/**
+ * Bionic 32bit specialization of {@link UnixDynamicLinkerImpl}
+ * utilizing Bionic's non POSIX flags and mode values.
+ * <p>
+ * Bionic is used on Android.
+ * </p>
+ */
+public final class BionicDynamicLinker32bitImpl extends UnixDynamicLinkerImpl {
 
-  //
-  // Package private scope of class w/ protected native code access
-  // and sealed jogamp.common.* package definition
-  // ensuring no abuse via subclassing.
-  //
+  //      static final int RTLD_NOW      = 0x00000;
+  private static final int RTLD_LAZY     = 0x00001;
 
-  /** Interface to C language function: <br> <code> int dlclose(void * ); </code>    */
-  protected static native int dlclose(long arg0);
+  private static final int RTLD_LOCAL    = 0x00000;
+  private static final int RTLD_GLOBAL   = 0x00002;
+  //      static final int RTLD_NOLOAD   = 0x00004;
 
-  /** Interface to C language function: <br> <code> char *  dlerror(void); </code>    */
-  protected static native java.lang.String dlerror();
-
-  /** Interface to C language function: <br> <code> void *  dlopen(const char * , int); </code>    */
-  protected static native long dlopen(java.lang.String arg0, int arg1);
-
-  /** Interface to C language function: <br> <code> void *  dlsym(void * , const char * ); </code>    */
-  protected static native long dlsym(long arg0, java.lang.String arg1);
+  private static final long RTLD_DEFAULT = 0xffffffffL;
+  //      static final long RTLD_NEXT    = 0xfffffffeL;
 
   @Override
-  protected final long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws SecurityException {
-      return dlsym(libraryHandle, symbolName);
+  protected final long openLibraryLocalImpl(final String pathname) throws SecurityException {
+    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
   }
 
   @Override
-  protected final void closeLibraryImpl(final long libraryHandle) throws SecurityException {
-      dlclose(libraryHandle);
+  protected final long openLibraryGlobalImpl(final String pathname) throws SecurityException {
+    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
   }
 
-
   @Override
-  public final String getLastError() {
-      return dlerror();
+  protected final long lookupSymbolGlobalImpl(final String symbolName) throws SecurityException {
+    return dlsym(RTLD_DEFAULT, symbolName);
   }
 }

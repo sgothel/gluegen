@@ -50,7 +50,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
-import jogamp.common.os.BionicDynamicLinkerImpl;
+import jogamp.common.os.BionicDynamicLinker32bitImpl;
+import jogamp.common.os.BionicDynamicLinker64BitImpl;
 import jogamp.common.os.MacOSXDynamicLinkerImpl;
 import jogamp.common.os.PlatformPropsImpl;
 import jogamp.common.os.PosixDynamicLinkerImpl;
@@ -74,7 +75,6 @@ import com.jogamp.common.util.cache.TempJarCache;
     supporting code needed in the generated library. */
 
 public final class NativeLibrary implements DynamicLookupHelper {
-  private static final DynamicLinker dynLink;
   private static final String[] prefixes;
   private static final String[] suffixes;
 
@@ -82,19 +82,16 @@ public final class NativeLibrary implements DynamicLookupHelper {
     // Instantiate dynamic linker implementation
     switch (PlatformPropsImpl.OS_TYPE) {
       case WINDOWS:
-        dynLink = new WindowsDynamicLinkerImpl();
         prefixes = new String[] { "" };
         suffixes = new String[] { ".dll" };
         break;
 
       case MACOS:
-        dynLink = new MacOSXDynamicLinkerImpl();
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".dylib", ".jnilib" };
         break;
 
       case ANDROID:
-        dynLink = new BionicDynamicLinkerImpl();
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
         break;
@@ -106,12 +103,13 @@ public final class NativeLibrary implements DynamicLookupHelper {
       case OPENKODE:
       case LINUX: */
       default:
-        dynLink = new PosixDynamicLinkerImpl();
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
         break;
     }
   }
+
+  private final DynamicLinker dynLink;
 
   // Platform-specific representation for the handle to the open
   // library. This is an HMODULE on Windows and a void* (the result of
@@ -124,7 +122,8 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private final boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
-  private NativeLibrary(final long libraryHandle, final String libraryPath, final boolean global) {
+  private NativeLibrary(final DynamicLinker dynLink, final long libraryHandle, final String libraryPath, final boolean global) {
+    this.dynLink = dynLink;
     this.libraryHandle = libraryHandle;
     this.libraryPath   = libraryPath;
     this.global        = global;
@@ -135,22 +134,26 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
   @Override
   public final String toString() {
-    return "NativeLibrary[" + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
+    return "NativeLibrary[" + dynLink.getClass().getSimpleName() + ", " + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
   }
 
   /** Opens the given native library, assuming it has the same base
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
-      used to help find the library in the case of e.g. Java Web Start. */
-  public static final NativeLibrary open(final String libName, final ClassLoader loader) {
+      used to help find the library in the case of e.g. Java Web Start.
+   * @throws SecurityException if user is not granted access for the named library.
+   */
+  public static final NativeLibrary open(final String libName, final ClassLoader loader) throws SecurityException {
     return open(libName, libName, libName, true, loader, true);
   }
 
   /** Opens the given native library, assuming it has the same base
       name on all platforms, looking first in the system's search
       path, and in the context of the specified ClassLoader, which is
-      used to help find the library in the case of e.g. Java Web Start. */
-  public static final NativeLibrary open(final String libName, final ClassLoader loader, final boolean global) {
+      used to help find the library in the case of e.g. Java Web Start.
+   * @throws SecurityException if user is not granted access for the named library.
+   */
+  public static final NativeLibrary open(final String libName, final ClassLoader loader, final boolean global) throws SecurityException {
     return open(libName, libName, libName, true, loader, global);
   }
 
@@ -168,26 +171,54 @@ public final class NativeLibrary implements DynamicLookupHelper {
       ending in .so, for example .so.0), and in general if this
       dynamic loading facility is used correctly the version number
       will be irrelevant.
-  */
+   * @throws SecurityException if user is not granted access for the named library.
+   */
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader) {
+                                         final ClassLoader loader) throws SecurityException {
     return open(windowsLibName, unixLibName, macOSXLibName, searchSystemPathFirst, loader, true);
   }
 
+  /**
+   * @throws SecurityException if user is not granted access for the named library.
+   */
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader, final boolean global) {
+                                         final ClassLoader loader, final boolean global) throws SecurityException {
     final List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                        unixLibName,
                                                        macOSXLibName,
                                                        searchSystemPathFirst,
                                                        loader);
     Platform.initSingleton(); // loads native gluegen-rt library
+
+    final DynamicLinker dynLink;
+    switch (PlatformPropsImpl.OS_TYPE) {
+      case WINDOWS:
+        dynLink = new WindowsDynamicLinkerImpl();
+        break;
+
+      case MACOS:
+        dynLink = new MacOSXDynamicLinkerImpl();
+        break;
+
+      case ANDROID:
+        if( PlatformPropsImpl.CPU_ARCH.is32Bit ) {
+            dynLink = new BionicDynamicLinker32bitImpl();
+        } else {
+            dynLink = new BionicDynamicLinker64BitImpl();
+        }
+        break;
+
+      default:
+        dynLink = new PosixDynamicLinkerImpl();
+        break;
+    }
+
     // Iterate down these and see which one if any we can actually find.
     for (final Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
         final String path = iter.next();
@@ -207,7 +238,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             res = 0;
         }
         if ( 0 != res ) {
-            return new NativeLibrary(res, path, global);
+            return new NativeLibrary(dynLink, res, path, global);
         } else if( DEBUG ) {
             if( null != t ) {
                 System.err.println("NativeLibrary.open: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
@@ -234,7 +265,16 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   @Override
-  public final long dynamicLookupFunction(final String funcName) {
+  public final void claimAllLinkPermission() throws SecurityException {
+      dynLink.claimAllLinkPermission();
+  }
+  @Override
+  public final void releaseAllLinkPermission() throws SecurityException {
+      dynLink.releaseAllLinkPermission();
+  }
+
+  @Override
+  public final long dynamicLookupFunction(final String funcName) throws SecurityException {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library is not open");
     }
@@ -242,22 +282,21 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   @Override
-  public final boolean isFunctionAvailable(final String funcName) {
+  public final boolean isFunctionAvailable(final String funcName) throws SecurityException {
     if ( 0 == libraryHandle ) {
       throw new RuntimeException("Library is not open");
     }
     return 0 != dynLink.lookupSymbol(libraryHandle, funcName);
   }
 
-  /** Looks up the given function name in all loaded libraries. */
-  public static final long dynamicLookupFunctionGlobal(final String funcName) {
+  /** Looks up the given function name in all loaded libraries.
+   * @throws SecurityException if user is not granted access for the named library.
+   */
+  public final long dynamicLookupFunctionGlobal(final String funcName) throws SecurityException {
     return dynLink.lookupSymbolGlobal(funcName);
   }
 
-  /** Looks up the given function name in all loaded libraries. */
-  public static final boolean isFunctionAvailableGlobal(final String funcName) {
-    return 0 != dynLink.lookupSymbolGlobal(funcName);
-  }
+  /* pp */ final DynamicLinker getDynamicLinker() { return dynLink; }
 
   /** Retrieves the low-level library handle from this NativeLibrary
       object. On the Windows platform this is an HMODULE, and on Unix
@@ -272,8 +311,10 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   /** Closes this native library. Further lookup operations are not
-      allowed after calling this method. */
-  public final void close() {
+      allowed after calling this method.
+   * @throws SecurityException if user is not granted access for the named library.
+   */
+  public final void close() throws SecurityException {
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): closing " + this);
     }
@@ -282,7 +323,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
     final long handle = libraryHandle;
     libraryHandle = 0;
-    dynLink.closeLibrary(handle);
+    dynLink.closeLibrary(handle, DEBUG);
     if (DEBUG) {
       System.err.println("NativeLibrary.close(): Successfully closed " + this);
       ExceptionUtils.dumpStack(System.err);

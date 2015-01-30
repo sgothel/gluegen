@@ -62,6 +62,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     private final DynamicLibraryBundleInfo info;
 
     protected final List<NativeLibrary> nativeLibraries;
+    private final DynamicLinker dynLinkGlobal;
     private final List<List<String>> toolLibNames;
     private final List<String> glueLibNames;
     private final boolean[] toolLibLoaded;
@@ -118,11 +119,15 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             glueLibLoaded[i] = false;
         }
 
-        info.getLibLoaderExecutor().invoke(true, new Runnable() {
-                @Override
-                public void run() {
-                    loadLibraries();
-                } } ) ;
+        {
+            final DynamicLinker[] _dynLinkGlobal = { null };
+            info.getLibLoaderExecutor().invoke(true, new Runnable() {
+                    @Override
+                    public void run() {
+                        _dynLinkGlobal[0] = loadLibraries();
+                    } } ) ;
+            dynLinkGlobal = _dynLinkGlobal[0];
+        }
 
         toolGetProcAddressFuncNameList = info.getToolGetProcAddressFuncNameList();
         if( null != toolGetProcAddressFuncNameList ) {
@@ -184,7 +189,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
      * @see DynamicLibraryBundleInfo#getToolLibNames()
      */
     public final boolean isToolLibComplete() {
-        return toolGetProcAddressComplete && getToolLibNumber() == getToolLibLoadedNumber();
+        return toolGetProcAddressComplete && null != dynLinkGlobal && getToolLibNumber() == getToolLibLoadedNumber();
     }
 
     public final boolean isToolLibLoaded() {
@@ -241,7 +246,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return aptr;
     }
 
-    protected final NativeLibrary loadFirstAvailable(final List<String> libNames, final ClassLoader loader, final boolean global) {
+    protected static final NativeLibrary loadFirstAvailable(final List<String> libNames, final ClassLoader loader, final boolean global) {
         for (int i=0; i < libNames.size(); i++) {
             final NativeLibrary lib = NativeLibrary.open(libNames.get(i), loader, global);
             if (lib != null) {
@@ -251,11 +256,12 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return null;
     }
 
-    final void loadLibraries() {
+    final DynamicLinker loadLibraries() {
         int i;
         toolLibLoadedNumber = 0;
         final ClassLoader cl = info.getClass().getClassLoader();
         NativeLibrary lib = null;
+        DynamicLinker dynLinkGlobal = null;
 
         for (i=0; i < toolLibNames.size(); i++) {
             final List<String> libNames = toolLibNames.get(i);
@@ -266,6 +272,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                         System.err.println("Unable to load any Tool library of: "+libNames);
                     }
                 } else {
+                    if( null == dynLinkGlobal ) {
+                        dynLinkGlobal = lib.getDynamicLinker();
+                    }
                     nativeLibraries.add(lib);
                     toolLibLoaded[i]=true;
                     toolLibLoadedNumber++;
@@ -279,7 +288,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             if(DEBUG) {
                 System.err.println("No Tool libraries loaded");
             }
-            return;
+            return dynLinkGlobal;
         }
 
         glueLibLoadedNumber = 0;
@@ -304,6 +313,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                 glueLibLoadedNumber++;
             }
         }
+
+        return dynLinkGlobal;
     }
 
     private final long dynamicLookupFunctionOnLibs(final String funcName) {
@@ -318,7 +329,8 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
         if( info.shallLookupGlobal() ) {
             // Try a global symbol lookup first ..
-            addr = NativeLibrary.dynamicLookupFunctionGlobal(funcName);
+            // addr = NativeLibrary.dynamicLookupFunctionGlobal(funcName);
+            addr = dynLinkGlobal.lookupSymbolGlobal(funcName);
         }
         // Look up this function name in all known libraries
         for (int i=0; 0==addr && i < nativeLibraries.size(); i++) {
@@ -347,6 +359,20 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             return addr;
         }
         return 0;
+    }
+
+    @Override
+    public final void claimAllLinkPermission() throws SecurityException {
+        for (int i=0; i < nativeLibraries.size(); i++) {
+            final NativeLibrary lib = nativeLibraries.get(i);
+            nativeLibraries.get(i).claimAllLinkPermission();
+        }
+    }
+    @Override
+    public final void releaseAllLinkPermission() throws SecurityException {
+        for (int i=0; i < nativeLibraries.size(); i++) {
+            nativeLibraries.get(i).releaseAllLinkPermission();
+        }
     }
 
     @Override

@@ -119,8 +119,6 @@ public abstract class ProcAddressTable {
      * @throws SecurityException if user is not granted access for all libraries.
      */
     public void reset(final DynamicLookupHelper lookup) throws SecurityException, RuntimeException {
-        SecurityUtil.checkAllLinkPermission();
-
         if(null==lookup) {
             throw new RuntimeException("Passed null DynamicLookupHelper");
         }
@@ -137,13 +135,17 @@ public abstract class ProcAddressTable {
 
         // All at once - performance.
         AccessibleObject.setAccessible(fields, true);
-
-        for (int i = 0; i < fields.length; ++i) {
-            final String fieldName = fields[i].getName();
-            if ( isAddressField(fieldName) ) {
-                final String funcName = fieldToFunctionName(fieldName);
-                setEntry(fields[i], funcName, lookup);
+        lookup.claimAllLinkPermission();
+        try {
+            for (int i = 0; i < fields.length; ++i) {
+                final String fieldName = fields[i].getName();
+                if ( isAddressField(fieldName) ) {
+                    final String funcName = fieldToFunctionName(fieldName);
+                    setEntry(fields[i], funcName, lookup);
+                }
             }
+        } finally {
+            lookup.releaseAllLinkPermission();
         }
 
         if (DEBUG) {
