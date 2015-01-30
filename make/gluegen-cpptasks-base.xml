@@ -986,6 +986,8 @@
       <compilerarg value="-fPIC"/>
       <compilerarg value="-m64"/>
       <defineset>
+        <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
+
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
@@ -1015,6 +1017,9 @@
 
     <compiler id="compiler.cfg.linux.aarch64" name="${gcc.compat.compiler}">
       <defineset>
+        <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
+        <define name="__aarch64__" />  <!-- default pre-defined macro for armv8-a, 64bit -->
+
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
@@ -1104,6 +1109,8 @@
       <!-- compilerarg value="-xarch=amd64" / --> 
       <!-- compilerarg value="-xcache=64/64/2:1024/64/16" / --> 
       <defineset> 
+        <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
+
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -1170,6 +1177,8 @@
       <compilerarg value="-O0" if="c.compiler.use-debug"/> 
       <compilerarg value="-O2" unless="c.compiler.use-debug"/>
       <defineset>
+        <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
+
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        

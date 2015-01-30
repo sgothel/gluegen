@@ -96,6 +96,7 @@
            enforce that libgcc is linked after source files but before other shared
            libraries. -->
          <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/armv7-a" libs="gcc" />
+         <!-- libset libs="c,m,dl,log" / -->
          <libset libs="c,m,dl" />
     </linker>
 

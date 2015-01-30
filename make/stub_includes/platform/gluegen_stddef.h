@@ -15,7 +15,7 @@
 #elif defined(_WIN32)
     typedef          __int32 ptrdiff_t;
     typedef unsigned __int32 size_t;
-#elif defined(__ia64__) || defined(__x86_64__)
+#elif defined(__LP64__) || defined(__ia64__) || defined(__x86_64__) || defined(__aarch64__)
     typedef             long ptrdiff_t;
     typedef unsigned    long size_t;
 #else

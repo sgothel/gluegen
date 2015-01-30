@@ -33,7 +33,7 @@
 
     typedef            __int32  intptr_t;
     typedef unsigned   __int32 uintptr_t;
-#elif defined(__ia64__) || defined(__x86_64__)
+#elif defined(__LP64__) || defined(__ia64__) || defined(__x86_64__) || defined(__aarch64__)
     typedef signed        char   int8_t;
     typedef unsigned      char  uint8_t;
     typedef signed       short  int16_t;

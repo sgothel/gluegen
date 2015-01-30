@@ -40,24 +40,38 @@
         NOTE: This is not necessary if using '$TARGET_TRIPLE-gcc' from $NDK_TOOLCHAIN_ROOT/bin. -->
       <compilerarg value="-B${env.NDK_TOOLCHAIN_ROOT}/libexec/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" />
 
+      <compilerarg value="-fpic" /> 
       <compilerarg value="-ffunction-sections" />
       <compilerarg value="-funwind-tables" />
       <compilerarg value="-fstack-protector" />
-      <compilerarg value="-fpic" /> 
+      <!-- compilerarg value="-no-canonical-prefixes" / --> <!-- will disallow creating shared library -->
+      <compilerarg value="-Wa,--noexecstack" /> 
 
       <compilerarg value="-march=armv6" />
       <compilerarg value="-mfloat-abi=softfp" />
       <compilerarg value="-marm" /> 
 
-      <compilerarg value="-g" if="c.compiler.use-debug" />
-      <compilerarg value="-O0" if="c.compiler.use-debug" />
-      <compilerarg value="-Os" unless="c.compiler.use-debug" /> 
-      <!--<compilerarg value="-O2" /> -->
+      <!-- Generic ARM Flags -->
+      <compilerarg value="-O2"                  unless="c.compiler.use-debug" /> 
+      <!-- compilerarg value="-g"                   unless="c.compiler.use-debug" /-->
+      <compilerarg value="-fomit-frame-pointer" unless="c.compiler.use-debug"/> 
+      <compilerarg value="-fstrict-aliasing"    unless="c.compiler.use-debug"/> 
+      <compilerarg value="-funswitch-loops"     unless="c.compiler.use-debug"/> 
+      <compilerarg value="-finline-limit=300"   unless="c.compiler.use-debug"/> 
 
-      <compilerarg value="-fomit-frame-pointer" /> 
-      <compilerarg value="-fno-strict-aliasing" /> 
-      <compilerarg value="-finline-limit=64" /> 
-      <compilerarg value="-Wa,--noexecstack" /> 
+      <!-- THUMB Flags ..
+      <compilerarg value="-Os"                  unless="c.compiler.use-debug" /> 
+      <compilerarg value="-g"                   unless="c.compiler.use-debug" />
+      <compilerarg value="-fomit-frame-pointer" unless="c.compiler.use-debug"/> 
+      <compilerarg value="-fno-strict-aliasing" unless="c.compiler.use-debug" /> 
+      <compilerarg value="-finline-limit=64"    unless="c.compiler.use-debug"/> 
+         -->
+
+      <compilerarg value="-O0"                     if="c.compiler.use-debug" />
+      <compilerarg value="-g"                      if="c.compiler.use-debug" />
+      <compilerarg value="-fno-omit-frame-pointer" if="c.compiler.use-debug" /> 
+      <compilerarg value="-fno-strict-aliasing"    if="c.compiler.use-debug" /> 
+
       <includepath path="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/include" /> <!-- for stdarg.h -->
       <defineset>
         <define name="__unix__" />
@@ -74,7 +88,14 @@
 
     <linker id="linker.cfg.android" name="gcc">
          <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+
          <linkerarg value="-fpic" /> 
+         <linkerarg value="-ffunction-sections" />
+         <linkerarg value="-funwind-tables" />
+         <linkerarg value="-fstack-protector" />
+         <!-- linkerarg value="-no-canonical-prefixes" / --> <!-- will disallow creating shared library -->
+         <linkerarg value="-Wa,--noexecstack" /> 
+
          <linkerarg value="-fno-use-linker-plugin" /> 
 
          <linkerarg value="-march=armv6" />
@@ -96,6 +117,7 @@
            enforce that libgcc is linked after source files but before other shared
            libraries. -->
          <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" libs="gcc" />
+         <!-- libset libs="c,m,dl,log" / -->
          <libset libs="c,m,dl" />
     </linker>
 
