@@ -103,6 +103,10 @@ public class Platform extends PlatformPropsImpl {
         ARMv6(     CPUFamily.ARM,     0x0002),
         /** ARM Cortex */
         ARMv7(     CPUFamily.ARM,     0x0004),
+        /** ARM64 default (64bit) */
+        ARM64(     CPUFamily.ARM,     0x0008),
+        /** ARM AArch64 (64bit) and AArch32 (32bit) */
+        ARMv8_A(   CPUFamily.ARM,     0x0010),
         /** PPC default */
         PPC(       CPUFamily.PPC,     0x0000),
         /** SPARC 32bit */
@@ -130,11 +134,13 @@ public class Platform extends PlatformPropsImpl {
     }
 
     public enum ABIType {
-        GENERIC_ABI    ( 0x0000 ),
+        GENERIC_ABI       ( 0x0000 ),
         /** ARM GNU-EABI ARMEL -mfloat-abi=softfp */
-        EABI_GNU_ARMEL ( 0x0001 ),
+        EABI_GNU_ARMEL    ( 0x0001 ),
         /** ARM GNU-EABI ARMHF -mfloat-abi=hard */
-        EABI_GNU_ARMHF ( 0x0002 );
+        EABI_GNU_ARMHF    ( 0x0002 ),
+        /** ARM EABI AARCH64 (64bit) */
+        EABI_AARCH64      ( 0x0003 );
 
         public final int id;
 
@@ -225,13 +231,12 @@ public class Platform extends PlatformPropsImpl {
         USE_TEMP_JAR_CACHE = _USE_TEMP_JAR_CACHE[0];
         AWT_AVAILABLE = _AWT_AVAILABLE[0];
 
+        final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
         MachineDescription md = MachineDescriptionRuntime.getRuntime();
         if(null == md) {
-            final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
             md = smd.md;
             System.err.println("Warning: Using static MachineDescription: "+smd);
         } else {
-            final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
             if(!md.compatible(smd.md)) {
                 throw new RuntimeException("Incompatible MachineDescriptions:"+PlatformPropsImpl.NEWLINE+
                                            " Static "+smd+PlatformPropsImpl.NEWLINE+

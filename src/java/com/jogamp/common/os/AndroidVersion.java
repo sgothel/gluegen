@@ -85,10 +85,16 @@ public class AndroidVersion {
     private static final CPUType getCPUTypeImpl(final String cpuABI) {
         if( null == cpuABI ) {
             return null;
+        } else if( cpuABI.equals("armv8-a")   ||
+                   cpuABI.equals("arm64-v8a") ) {
+            return CPUType.ARMv8_A;
+        } else if( cpuABI.equals("aarch64")   ||
+                   cpuABI.startsWith("arm64") ) {
+            return CPUType.ARM64;
         } else if( cpuABI.equals("armeabi-v7a") ) {
             return CPUType.ARMv7;
         } else if( cpuABI.equals("armeabi") ||
-                   cpuABI.startsWith("arm") ) { // last chance ..
+                   cpuABI.startsWith("arm") ) { // last 32bit chance ..
             return CPUType.ARM;
         } else if( cpuABI.equals("x86") ) {
             return CPUType.X86_32;
@@ -103,6 +109,9 @@ public class AndroidVersion {
             return null;
         } else if( CPUFamily.ARM  != cpuType.family ) {
             return ABIType.GENERIC_ABI;
+        } else if( CPUType.ARM64   == cpuType ||
+                   CPUType.ARMv8_A == cpuType ) {
+            return ABIType.EABI_AARCH64;
         }
         return ABIType.EABI_GNU_ARMEL; // FIXME: How will they name ABIType.EABI_GNU_ARMHF
     }

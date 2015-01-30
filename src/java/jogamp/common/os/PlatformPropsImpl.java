@@ -133,7 +133,11 @@ public abstract class PlatformPropsImpl {
         final String sARCH_lower = sARCH.toLowerCase();
         sCpuType = getCPUTypeImpl(sARCH_lower);
         if( DEBUG ) {
-            System.err.println("Platform.Soft: str "+sARCH+", cpuType "+sCpuType);
+            System.err.println("Platform.Soft: sARCH "+sARCH+", sCpuType "+sCpuType);
+            if( isAndroid ) {
+                System.err.println("Android: CPU_ABI1 str "+AndroidVersion.CPU_ABI+", CPU_TYPE "+AndroidVersion.CPU_TYPE+", ABI_TYPE "+AndroidVersion.ABI_TYPE);
+                System.err.println("Android: CPU_ABI2 str "+AndroidVersion.CPU_ABI2+", CPU_TYPE2 "+AndroidVersion.CPU_TYPE2+", ABI_TYPE2 "+AndroidVersion.ABI_TYPE2);
+            }
         }
 
         // Hard values, i.e. w/ probing binaries
@@ -146,59 +150,57 @@ public abstract class PlatformPropsImpl {
         //   We could use Elf Ehdr's machine value to determine the bit-size
         //   used for it's offset table!
         //   However, 'os.arch' should be a good guess for this task.
-        final CPUType ehCpuType;
-        final ABIType ehAbiType;
-        final boolean ehValid;
+        final CPUType elfCpuType;
+        final ABIType elfAbiType;
+        final boolean elfValid;
         {
             final CPUType[] _ehCpuType = { null };
             final ABIType[] _ehAbiType = { null };
             final ElfHeader eh = queryABITypeImpl(OS_TYPE, _ehCpuType, _ehAbiType);
             if( null != eh && null != _ehCpuType[0] && null != _ehAbiType[0] ) {
-                ehCpuType = _ehCpuType[0];
-                ehAbiType = _ehAbiType[0];
+                elfCpuType = _ehCpuType[0];
+                elfAbiType = _ehAbiType[0];
                 if( isAndroid ) {
-                    if( DEBUG ) {
-                        System.err.println("Android: CPU_ABI1 str "+AndroidVersion.CPU_ABI+", cpu "+AndroidVersion.CPU_TYPE+", abi "+AndroidVersion.ABI_TYPE);
-                        System.err.println("Android: CPU_ABI2 str "+AndroidVersion.CPU_ABI2+", cpu "+AndroidVersion.CPU_TYPE2+", abi "+AndroidVersion.ABI_TYPE2);
-                    }
                     final CPUFamily aCpuFamily1 = null != AndroidVersion.CPU_TYPE ? AndroidVersion.CPU_TYPE.family : null;
                     final CPUFamily aCpuFamily2 = null != AndroidVersion.CPU_TYPE2 ? AndroidVersion.CPU_TYPE2.family : null;
-                    if( ehCpuType.family != aCpuFamily1 && ehCpuType.family != aCpuFamily2 ) {
+                    if( elfCpuType.family != aCpuFamily1 && elfCpuType.family != aCpuFamily2 ) {
                         // Ooops !
-                        ehValid = false;
+                        elfValid = false;
                     } else {
-                        ehValid = true;
+                        elfValid = true;
                     }
                 } else {
-                    if( ehCpuType.family != sCpuType.family ) {
+                    if( elfCpuType.family != sCpuType.family ) {
                         // Ooops !
-                        ehValid = false;
+                        elfValid = false;
                     } else {
-                        ehValid = true;
+                        elfValid = true;
                     }
                 }
                 if( DEBUG ) {
-                    System.err.println("Platform.Elf: cpuType "+ehCpuType+", abiType "+ehAbiType+", valid "+ehValid);
+                    System.err.println("Platform.Elf: cpuType "+elfCpuType+", abiType "+elfAbiType+", valid "+elfValid);
                 }
             } else {
-                ehCpuType = null;
-                ehAbiType = null;
-                ehValid = false;
+                elfCpuType = null;
+                elfAbiType = null;
+                elfValid = false;
                 if( DEBUG ) {
                     System.err.println("Platform.Elf: n/a");
                 }
             }
         }
         if( isAndroid ) {
-            if( ehValid ) {
-                if( ehCpuType.family == AndroidVersion.CPU_TYPE.family ) {
+            if( elfValid ) {
+                if( elfCpuType.family == AndroidVersion.CPU_TYPE.family &&
+                    elfAbiType == AndroidVersion.ABI_TYPE )
+                {
                     ARCH = AndroidVersion.CPU_ABI;
                     CPU_ARCH = AndroidVersion.CPU_TYPE;
                 } else {
                     ARCH = AndroidVersion.CPU_ABI2;
                     CPU_ARCH = AndroidVersion.CPU_TYPE2;
                 }
-                ABI_TYPE = ehAbiType;
+                ABI_TYPE = elfAbiType;
             } else {
                 // default
                 if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM || null == AndroidVersion.CPU_TYPE2 ) {
@@ -215,15 +217,18 @@ public abstract class PlatformPropsImpl {
         } else {
             ARCH = sARCH;
             ARCH_lower = sARCH_lower;
-            if( ehValid && CPUFamily.ARM == ehCpuType.family ) {
+            if( elfValid && CPUFamily.ARM == elfCpuType.family ) {
                 // Use Elf for ARM
-                CPU_ARCH = ehCpuType;
-                ABI_TYPE = ehAbiType;
+                CPU_ARCH = elfCpuType;
+                ABI_TYPE = elfAbiType;
             } else {
                 // Otherwise trust detailed os.arch (?)
                 CPU_ARCH = sCpuType;
                 ABI_TYPE = ABIType.GENERIC_ABI;
             }
+        }
+        if( DEBUG ) {
+            System.err.println("Platform.Hard: ARCH "+ARCH+", CPU_ARCH "+CPU_ARCH+", ABI_TYPE "+ABI_TYPE+" - isAndroid "+isAndroid+", elfValid "+elfValid);
         }
         MachineDescriptionRuntime.notifyPropsInitialized();
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
@@ -288,6 +293,12 @@ public abstract class PlatformPropsImpl {
                    archLower.equals("armeabi") ||      // android
                    archLower.equals("armeabi-v7a") ) { // android
             return CPUType.ARMv7;
+        } else if( archLower.equals("aarch64") ||
+                   archLower.equals("arm64") ) {
+            return CPUType.ARM64;
+        } else if( archLower.equals("armv8-a") ||
+                   archLower.equals("arm64-v8a") ) {
+            return CPUType.ARMv8_A;
         } else if( archLower.equals("sparc") ) {
             return CPUType.SPARC_32;
         } else if( archLower.equals("sparcv9") ) {
@@ -389,11 +400,14 @@ public abstract class PlatformPropsImpl {
                         abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
                     }
                 }
-                cpuType[0] = CPUType.ARM; // lowest denominator, ok for us
+                cpuType[0] = CPUType.ARM; // lowest 32bit denominator, ok for us
                 abiType[0] = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
                 if(DEBUG) {
                     System.err.println("ELF: abiARM, abiVFPArgsAcceptsVFPVariant "+abiVFPArgsAcceptsVFPVariant);
                 }
+            } else if ( eh.isAARCH64() ) {
+                cpuType[0] = CPUType.ARM64;
+                abiType[0] = ABIType.EABI_AARCH64;
             } else if ( eh.isX86_64() ) {
                 cpuType[0] = CPUType.X86_64;
                 abiType[0] = ABIType.GENERIC_ABI;
@@ -529,6 +543,10 @@ public abstract class PlatformPropsImpl {
                 } else {
                     _and_arch_tmp = "armv6";    // TODO: sync with gluegen-cpptasks-base.xml
                 }
+                break;
+            case ARM64:
+            case ARMv8_A:
+                _and_arch_tmp = "aarch64";
                 break;
             case SPARC_32:
                 _and_arch_tmp = "sparc";

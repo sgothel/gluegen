@@ -46,29 +46,6 @@ import jogamp.common.os.PlatformPropsImpl;
  * For alignment and size see {@link com.jogamp.gluegen}
  */
 public class MachineDescription {
-  public enum ID {
-      /** {@link Platform.CPUType#ARM} EABI Little Endian */
-      ARMle_EABI(Platform.CPUType.ARM),
-      /** {@link Platform.CPUType#X86_32} Little Endian Unix */
-      X86_32_UNIX(Platform.CPUType.X86_32),
-      /** {@link Platform.CPUType#X86_64} Little Endian Unix */
-      X86_64_UNIX(Platform.CPUType.X86_64),
-      /** {@link Platform.CPUType#X86_32} Little Endian MacOS (Special case gcc4/OSX) */
-      X86_32_MACOS(Platform.CPUType.X86_32),
-      /** {@link Platform.CPUType#X86_64} Little Endian MacOS */
-      X86_32_WINDOWS(Platform.CPUType.X86_32),
-      /** {@link Platform.CPUType#X86_64} Little Endian Windows */
-      X86_64_WINDOWS(Platform.CPUType.X86_64),
-      /** {@link Platform.CPUType#SPARC_32} Big Endian Solaris */
-      SPARC_32_SUNOS(Platform.CPUType.SPARC_32);
-
-      public final Platform.CPUType cpu;
-
-      ID(final Platform.CPUType cpu){
-          this.cpu = cpu;
-      }
-  }
-
   /*                              arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
   private final static int[] size_armeabi         =  { 4,    4,     4,     8,      8,    4,   4096 };
   private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
@@ -88,26 +65,24 @@ public class MachineDescription {
   private final static int[] align_sparc_32_sunos =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
 
   public enum StaticConfig {
-      /** {@link MachineDescription.ID#ARMle_EABI } */
-      ARMle_EABI(ID.ARMle_EABI,         true,  size_armeabi,        align_armeabi),
-      /** {@link MachineDescription.ID#X86_32_UNIX } */
-      X86_32_UNIX(ID.X86_32_UNIX,       true,  size_x86_32_unix,    align_x86_32_unix),
-      /** {@link MachineDescription.ID#X86_64_UNIX } */
-      X86_64_UNIX(ID.X86_64_UNIX,       true,  size_x86_64_unix,    align_x86_64_unix),
-      /** {@link MachineDescription.ID#X86_32_MACOS } */
-      X86_32_MACOS(ID.X86_32_MACOS,     true,  size_x86_32_macos,   align_x86_32_macos),
-      /** {@link MachineDescription.ID#X86_32_WINDOWS } */
-      X86_32_WINDOWS(ID.X86_32_WINDOWS, true,  size_x86_32_windows, align_x86_32_windows),
-      /** {@link MachineDescription.ID#X86_64_WINDOWS } */
-      X86_64_WINDOWS(ID.X86_64_WINDOWS, true,  size_x86_64_windows, align_x86_64_windows),
-      /** {@link MachineDescription.ID#SPARC_32_SUNOS } */
-      SPARC_32_SUNOS(ID.SPARC_32_SUNOS, false, size_sparc_32_sunos, align_sparc_32_sunos);
+      /** {@link Platform.CPUType#ARM} EABI Little Endian */
+      ARMle_EABI(true,      size_armeabi,        align_armeabi),
+      /** {@link Platform.CPUType#X86_32} Little Endian Unix */
+      X86_32_UNIX(true,     size_x86_32_unix,    align_x86_32_unix),
+      /** {@link Platform.CPUType#X86_64} Little Endian Unix, {@link Platform.CPUType#ARM64} EABI Little Endian */
+      X86_64_UNIX(true,     size_x86_64_unix,    align_x86_64_unix),
+      /** {@link Platform.CPUType#X86_32} Little Endian MacOS (Special case gcc4/OSX) */
+      X86_32_MACOS(true,    size_x86_32_macos,   align_x86_32_macos),
+      /** {@link Platform.CPUType#X86_32} Little Endian Windows */
+      X86_32_WINDOWS(true,  size_x86_32_windows, align_x86_32_windows),
+      /** {@link Platform.CPUType#X86_64} Little Endian Windows */
+      X86_64_WINDOWS(true,  size_x86_64_windows, align_x86_64_windows),
+      /** {@link Platform.CPUType#SPARC_32} Big Endian Solaris */
+      SPARC_32_SUNOS(false, size_sparc_32_sunos, align_sparc_32_sunos);
 
-      public final ID id;
       public final MachineDescription md;
 
-      StaticConfig(final ID id, final boolean littleEndian, final int[] sizes, final int[] alignments) {
-          this.id = id;
+      StaticConfig(final boolean littleEndian, final int[] sizes, final int[] alignments) {
           int i=0, j=0;
           this.md = new MachineDescription(false, littleEndian,
                                            sizes[i++],

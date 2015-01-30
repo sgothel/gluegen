@@ -82,6 +82,8 @@ public class MachineDescriptionRuntime {
         case PPC:
             return true;
         case X86_64:
+        case ARM64:
+        case ARMv8_A:
         case IA64:
         case SPARCV9_64:
         case PA_RISC2_0:
@@ -107,7 +109,9 @@ public class MachineDescriptionRuntime {
           }
           return StaticConfig.X86_32_UNIX;
       } else {
-          if( osType == Platform.OSType.WINDOWS ) {
+          if( cpuType.getFamily() == Platform.CPUFamily.ARM && littleEndian) {
+              return StaticConfig.X86_64_UNIX;
+          } else if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_64_WINDOWS;
           }
           return StaticConfig.X86_64_UNIX;
