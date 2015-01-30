@@ -1084,7 +1084,7 @@ public class JavaEmitter implements GlueEmitter {
                                        field + "\" in type \"" + structCTypeName + "\")");
           }
           javaWriter.println();
-          generateGetterSignature(javaWriter, fieldType, false, fieldType.getName(), capitalizeString(fieldName), null, null);
+          generateGetterSignature(javaWriter, fieldType, false, false, fieldType.getName(), capitalizeString(fieldName), null, null);
           javaWriter.println(" {");
           javaWriter.println("    return " + fieldType.getName() + ".create( accessor.slice( " +
                            fieldName+"_offset[mdIdx], "+fieldName+"_size[mdIdx] ) );");
@@ -1137,7 +1137,7 @@ public class JavaEmitter implements GlueEmitter {
 
             // Getter
             javaWriter.println();
-            generateGetterSignature(javaWriter, fieldType, false, javaTypeName, capFieldName, null, null);
+            generateGetterSignature(javaWriter, fieldType, false, false, javaTypeName, capFieldName, null, null);
             javaWriter.println(" {");
             javaWriter.print  ("    return ");
             if( fieldTypeNativeSizeFixed ) {
@@ -1204,7 +1204,8 @@ public class JavaEmitter implements GlueEmitter {
   // Internals only below this point
   //
 
-  private void generateGetterSignature(final PrintWriter writer, final Type origFieldType, final boolean abstractMethod,
+  private void generateGetterSignature(final PrintWriter writer, final Type origFieldType,
+                                       final boolean staticMethod, final boolean abstractMethod,
                                        final String returnTypeName, final String capitalizedFieldName,
                                        final String customArgs, final String arrayLengthExpr) {
       writer.print("  /** Getter for native field: "+origFieldType.getDebugString());
@@ -1212,7 +1213,7 @@ public class JavaEmitter implements GlueEmitter {
           writer.print(", with array length of <code>"+arrayLengthExpr+"</code>");
       }
       writer.println(" */");
-      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
+      writer.print("  public " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
       if( null != customArgs ) {
           writer.print(customArgs);
       }
@@ -1520,6 +1521,7 @@ public class JavaEmitter implements GlueEmitter {
       final boolean isString = cfg.returnsString(returnSizeLookupName); // FIXME: Allow custom Charset ? US-ASCII, UTF-8 or UTF-16 ?
       final boolean useGetCStringLength;
       final String arrayLengthExpr;
+      final boolean arrayLengthExprIsConst;
       final int[] arrayLengths;
       final boolean useFixedTypeLen[] = { false };
       final boolean isPointer;
@@ -1538,11 +1540,13 @@ public class JavaEmitter implements GlueEmitter {
           final Type baseCElemType;
           final ArrayType arrayType = fieldType.asArray();
           String _arrayLengthExpr = null;
+          boolean _arrayLengthExprIsConst = false;
           if( isOpaque || javaType.isPrimitive() ) {
               // Overridden by JavaConfiguration.typeInfo(..), i.e. Opaque!
               // Emulating array w/ 1 element
               isPrimitive = true;
               _arrayLengthExpr = nativeArrayLengthONE;
+              _arrayLengthExprIsConst = true;
               arrayLengths = new int[] { 1 };
               baseCElemType = null;
               isPointer = false;
@@ -1555,12 +1559,14 @@ public class JavaEmitter implements GlueEmitter {
               if( null != arrayType ) {
                   final int[][] lengthRes = new int[1][];
                   _arrayLengthExpr = getArrayArrayLengthExpr(arrayType, returnSizeLookupName, useFixedTypeLen, lengthRes);
+                  _arrayLengthExprIsConst = true;
                   arrayLengths = lengthRes[0];
                   baseCElemType = arrayType.getBaseElementType();
                   isPointer = false;
               } else {
                   final PointerType pointerType = fieldType.asPointer();
                   _arrayLengthExpr = getPointerArrayLengthExpr(pointerType, returnSizeLookupName);
+                  _arrayLengthExprIsConst = false;
                   arrayLengths = null;
                   baseCElemType = pointerType.getBaseElementType();
                   isPointer = true;
@@ -1605,12 +1611,14 @@ public class JavaEmitter implements GlueEmitter {
           if( null == _arrayLengthExpr && isString && isPointer ) {
               useGetCStringLength = true;
               _arrayLengthExpr = "getCStringLengthImpl(pString)+1";
+              _arrayLengthExprIsConst = false;
               this.requiresStaticInitialization = true;
               LOG.log(INFO, "StaticInit Trigger.3 \"{0}\"", returnSizeLookupName);
           } else {
               useGetCStringLength = false;
           }
           arrayLengthExpr = _arrayLengthExpr;
+          arrayLengthExprIsConst = _arrayLengthExprIsConst;
           if( null == arrayLengthExpr ) {
               javaWriter.println();
               final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
@@ -1626,8 +1634,8 @@ public class JavaEmitter implements GlueEmitter {
       }
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: baseJElemTypeName %s, array-lengths %s%n", (i+1), baseJElemTypeName, Arrays.toString(arrayLengths));
-          System.err.printf("SE.ac.%02d: arrayLengthExpr: %s, hasSingleElement %b, isByteBuffer %b, isString %b, isPointer %b, isPrimitive %b, isOpaque %b, baseCElemNativeSizeFixed %b, baseCElemSizeDenominator %s, isConst %b, useGetCStringLength %b%n",
-                  (i+1), arrayLengthExpr, hasSingleElement, isByteBuffer, isString, isPointer, isPrimitive, isOpaque,
+          System.err.printf("SE.ac.%02d: arrayLengthExpr: %s (const %b), hasSingleElement %b, isByteBuffer %b, isString %b, isPointer %b, isPrimitive %b, isOpaque %b, baseCElemNativeSizeFixed %b, baseCElemSizeDenominator %s, isConst %b, useGetCStringLength %b%n",
+                  (i+1), arrayLengthExpr, arrayLengthExprIsConst, hasSingleElement, isByteBuffer, isString, isPointer, isPrimitive, isOpaque,
                   baseCElemNativeSizeFixed, baseCElemSizeDenominator,
                   isConst, useGetCStringLength);
       }
@@ -1637,7 +1645,7 @@ public class JavaEmitter implements GlueEmitter {
       //
       if( !hasSingleElement && useFixedTypeLen[0] ) {
           javaWriter.println();
-          generateGetterSignature(javaWriter, fieldType, false, "final int", capitalFieldName+"ArrayLength", null, arrayLengthExpr);
+          generateGetterSignature(javaWriter, fieldType, arrayLengthExprIsConst, false, "final int", capitalFieldName+"ArrayLength", null, arrayLengthExpr);
           javaWriter.println(" {");
           javaWriter.println("    return "+arrayLengthExpr+";");
           javaWriter.println("  }");
@@ -1772,7 +1780,7 @@ public class JavaEmitter implements GlueEmitter {
               generateArrayPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
                                        containingCType, containingJType, i, fs, returnSizeLookupName, arrayLengthExpr, nativeArrayLengthArg);
               javaWriter.println();
-              generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeNameC+"Buffer", capitalFieldName, null, arrayLengthExpr);
+              generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeNameC+"Buffer", capitalFieldName, null, arrayLengthExpr);
               javaWriter.println(" {");
               if( useGetCStringLength ) {
                   javaWriter.println("    final int arrayLength = get"+capitalFieldName+"ArrayLength();");
@@ -1789,7 +1797,7 @@ public class JavaEmitter implements GlueEmitter {
               javaWriter.println("  }");
               if( isString && isByteBuffer ) {
                   javaWriter.println();
-                  generateGetterSignature(javaWriter, fieldType, false, "String", capitalFieldName+"AsString", null, arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, "String", capitalFieldName+"AsString", null, arrayLengthExpr);
                   javaWriter.println(" {");
                   if( useGetCStringLength ) {
                       javaWriter.println("    final int arrayLength = get"+capitalFieldName+"ArrayLength();");
@@ -1809,7 +1817,7 @@ public class JavaEmitter implements GlueEmitter {
               }
               if( useGetCStringLength ) {
                   javaWriter.println();
-                  generateGetterSignature(javaWriter, fieldType, false, "final int", capitalFieldName+"ArrayLength", null, arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, "final int", capitalFieldName+"ArrayLength", null, arrayLengthExpr);
                   javaWriter.println(" {");
                   javaWriter.println("    final long pString = PointerBuffer.wrap( accessor.slice(" + fieldName+"_offset[mdIdx],  PointerBuffer.ELEMENT_SIZE) ).get(0);");
                   javaWriter.println("    return "+arrayLengthExpr+";");
@@ -1818,7 +1826,7 @@ public class JavaEmitter implements GlueEmitter {
           } else {
               // Getter Primitive Array
               if( hasSingleElement ) {
-                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
                   javaWriter.println(" {");
                   if( baseCElemNativeSizeFixed ) {
                       javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx]);");
@@ -1828,7 +1836,7 @@ public class JavaEmitter implements GlueEmitter {
                   javaWriter.println("  }");
                   javaWriter.println();
               } else {
-                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeNameC+"Buffer", capitalFieldName, null, arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeNameC+"Buffer", capitalFieldName, null, arrayLengthExpr);
                   javaWriter.println(" {");
                   javaWriter.print("    return accessor.slice(" + fieldName+"_offset[mdIdx],  Buffers.SIZEOF_"+baseJElemTypeNameU+" * "+arrayLengthExpr+")");
                   if( !isByteBuffer ) {
@@ -1838,7 +1846,7 @@ public class JavaEmitter implements GlueEmitter {
                   javaWriter.println("  }");
                   javaWriter.println();
                   if( isString && isByteBuffer ) {
-                      generateGetterSignature(javaWriter, fieldType, false, "String", capitalFieldName+"AsString", null, arrayLengthExpr);
+                      generateGetterSignature(javaWriter, fieldType, false, false, "String", capitalFieldName+"AsString", null, arrayLengthExpr);
                       javaWriter.println(" {");
                       javaWriter.println("    final int offset = " + fieldName+"_offset[mdIdx];");
                       javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
@@ -1852,7 +1860,7 @@ public class JavaEmitter implements GlueEmitter {
                       javaWriter.println("    return new String(ba, 0, i);");
                       javaWriter.println("  }");
                   } else {
-                      generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
+                      generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
                       javaWriter.println(" {");
                       javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
                       javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
@@ -1881,7 +1889,7 @@ public class JavaEmitter implements GlueEmitter {
                                        containingCType, containingJType, i, fs, returnSizeLookupName, arrayLengthExpr, nativeArrayLengthONE);
               javaWriter.println();
               if( hasSingleElement ) {
-                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
                   javaWriter.println(" {");
                   javaWriter.println("    final ByteBuffer source = getBuffer();");
                   javaWriter.println("    final ByteBuffer _res = get"+capitalFieldName+"0(source, 0);");
@@ -1889,7 +1897,7 @@ public class JavaEmitter implements GlueEmitter {
                   javaWriter.println("    return "+baseJElemTypeName+".create(_res);");
                   javaWriter.println("  }");
               } else {
-                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
                   javaWriter.println(" {");
                   javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
                   javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
@@ -1905,12 +1913,12 @@ public class JavaEmitter implements GlueEmitter {
           } else {
               // Getter Struct Array
               if( hasSingleElement ) {
-                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName, capitalFieldName, null, arrayLengthExpr);
                   javaWriter.println(" {");
                   javaWriter.println("    return "+baseJElemTypeName+".create(accessor.slice("+fieldName+"_offset[mdIdx], "+baseJElemTypeName+".size()));");
                   javaWriter.println("  }");
               } else {
-                  generateGetterSignature(javaWriter, fieldType, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
+                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName+"[]", capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
                   javaWriter.println(" {");
                   javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
                   javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
