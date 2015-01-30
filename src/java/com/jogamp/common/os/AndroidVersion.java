@@ -91,7 +91,8 @@ public class AndroidVersion {
         } else if( cpuABI.equals("aarch64")   ||
                    cpuABI.startsWith("arm64") ) {
             return CPUType.ARM64;
-        } else if( cpuABI.equals("armeabi-v7a") ) {
+        } else if( cpuABI.equals("armeabi-v7a") ||
+                   cpuABI.equals("armeabi-v7a-hard") ) {
             return CPUType.ARMv7;
         } else if( cpuABI.equals("armeabi") ||
                    cpuABI.startsWith("arm") ) { // last 32bit chance ..
@@ -107,13 +108,18 @@ public class AndroidVersion {
     private static final ABIType getABITypeImpl(final CPUType cpuType, final String cpuABI) {
         if( null == cpuType || null == cpuABI ) {
             return null;
-        } else if( CPUFamily.ARM  != cpuType.family ) {
+        } else if( CPUFamily.ARM == cpuType.family ) {
+            if( CPUType.ARM64   == cpuType ||
+                       CPUType.ARMv8_A == cpuType ) {
+                return ABIType.EABI_AARCH64;
+            } else if( cpuABI.equals("armeabi-v7a-hard") ) {
+                return ABIType.EABI_GNU_ARMHF;
+            } else {
+                return ABIType.EABI_GNU_ARMEL;
+            }
+        } else {
             return ABIType.GENERIC_ABI;
-        } else if( CPUType.ARM64   == cpuType ||
-                   CPUType.ARMv8_A == cpuType ) {
-            return ABIType.EABI_AARCH64;
         }
-        return ABIType.EABI_GNU_ARMEL; // FIXME: How will they name ABIType.EABI_GNU_ARMHF
     }
 
     static {

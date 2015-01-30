@@ -100,7 +100,7 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
   private PrintWriter cWriter;
-  private final MachineDescription machDescJava = MachineDescription.StaticConfig.X86_64_UNIX.md;
+  private final MachineDescription machDescJava = MachineDescription.StaticConfig.LP64_UNIX.md;
   private final MachineDescription.StaticConfig[] machDescTargetConfigs = MachineDescription.StaticConfig.values();
 
   protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());

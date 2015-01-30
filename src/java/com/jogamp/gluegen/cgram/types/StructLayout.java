@@ -69,7 +69,7 @@ public class StructLayout {
 
     final MachineDescription dbgMD;
     if( GlueGen.debug() ) {
-        dbgMD = MachineDescription.StaticConfig.X86_64_UNIX.md;
+        dbgMD = MachineDescription.StaticConfig.LP64_UNIX.md;
         System.err.printf("SL.__: o %03d, s %03d, t %s{%d}%n", curOffset.computeSize(dbgMD), 0, t, t.getNumFields());
     } else {
         dbgMD = null;

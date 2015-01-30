@@ -51,7 +51,7 @@ public class MachineDescription {
   private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
   private final static int[] size_x86_32_macos    =  { 4,    4,     4,     8,     16,    4,   4096 };
   private final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
-  private final static int[] size_x86_64_unix     =  { 4,    8,     4,     8,     16,    8,   4096 };
+  private final static int[] size_lp64_unix       =  { 4,    8,     4,     8,     16,    8,   4096 };
   private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
   private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
 
@@ -60,7 +60,7 @@ public class MachineDescription {
   private final static int[] align_x86_32_unix    =  { 1,   2,   4,   4,   4,    4,     4,     4,      4,   4 };
   private final static int[] align_x86_32_macos   =  { 1,   2,   4,   4,   4,    4,     4,     4,     16,   4 };
   private final static int[] align_x86_32_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,      4,   4 };
-  private final static int[] align_x86_64_unix    =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
+  private final static int[] align_lp64_unix      =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
   private final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
   private final static int[] align_sparc_32_sunos =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
 
@@ -69,8 +69,8 @@ public class MachineDescription {
       ARMle_EABI(true,      size_armeabi,        align_armeabi),
       /** {@link Platform.CPUType#X86_32} Little Endian Unix */
       X86_32_UNIX(true,     size_x86_32_unix,    align_x86_32_unix),
-      /** {@link Platform.CPUType#X86_64} Little Endian Unix, {@link Platform.CPUType#ARM64} EABI Little Endian */
-      X86_64_UNIX(true,     size_x86_64_unix,    align_x86_64_unix),
+      /** LP64 Unix, e.g.: {@link Platform.CPUType#X86_64} Little Endian Unix, {@link Platform.CPUType#ARM64} EABI Little Endian, ... */
+      LP64_UNIX(true,       size_lp64_unix,    align_lp64_unix),
       /** {@link Platform.CPUType#X86_32} Little Endian MacOS (Special case gcc4/OSX) */
       X86_32_MACOS(true,    size_x86_32_macos,   align_x86_32_macos),
       /** {@link Platform.CPUType#X86_32} Little Endian Windows */
@@ -136,7 +136,6 @@ public class MachineDescription {
   final private int ldoubleSizeInBytes;
   final private int pointerSizeInBytes;
   final private int pageSizeInBytes;
-  final private boolean is32Bit;
 
   final private int int8AlignmentInBytes;
   final private int int16AlignmentInBytes;
@@ -180,7 +179,6 @@ public class MachineDescription {
     this.ldoubleSizeInBytes = ldoubleSizeInBytes;
     this.pointerSizeInBytes = pointerSizeInBytes;
     this.pageSizeInBytes    = pageSizeInBytes;
-    this.is32Bit            = 4 == pointerSizeInBytes;
 
     this.int8AlignmentInBytes    = int8AlignmentInBytes;
     this.int16AlignmentInBytes   = int16AlignmentInBytes;
@@ -206,20 +204,6 @@ public class MachineDescription {
    */
   public final boolean isLittleEndian() {
       return littleEndian;
-  }
-
-  /**
-   * Returns true if this JVM/ARCH is 32bit.
-   */
-  public final boolean is32Bit() {
-    return is32Bit;
-  }
-
-  /**
-   * Returns true if this JVM/ARCH is 64bit.
-   */
-  public final  boolean is64Bit() {
-    return !is32Bit;
   }
 
   public final int intSizeInBytes()     { return intSizeInBytes;    }
@@ -292,7 +276,6 @@ public class MachineDescription {
              doubleSizeInBytes == md.doubleSizeInBytes &&
              ldoubleSizeInBytes == md.ldoubleSizeInBytes &&
              pointerSizeInBytes == md.pointerSizeInBytes &&
-             is32Bit == md.is32Bit &&
 
              int8AlignmentInBytes == md.int8AlignmentInBytes &&
              int16AlignmentInBytes == md.int16AlignmentInBytes &&
@@ -310,7 +293,7 @@ public class MachineDescription {
     if(null==sb) {
         sb = new StringBuilder();
     }
-    sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(is32Bit()).append(", primitive size / alignment:").append(PlatformPropsImpl.NEWLINE);
+    sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(4 == pointerAlignmentInBytes).append(", primitive size / alignment:").append(PlatformPropsImpl.NEWLINE);
     sb.append("  int8    ").append(int8SizeInBytes)   .append(" / ").append(int8AlignmentInBytes);
     sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes).append(Platform.getNewline());
     sb.append("  int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);

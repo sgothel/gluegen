@@ -112,7 +112,7 @@ public abstract class Type implements Cloneable {
         {
             long _mdSize = -1;
             try {
-                _mdSize = size.computeSize(MachineDescription.StaticConfig.X86_64_UNIX.md);
+                _mdSize = size.computeSize(MachineDescription.StaticConfig.LP64_UNIX.md);
             } catch (final Exception e) {}
             mdSize = _mdSize;
         }

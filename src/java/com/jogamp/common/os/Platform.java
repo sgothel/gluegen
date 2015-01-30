@@ -92,42 +92,44 @@ public class Platform extends PlatformPropsImpl {
 
     public enum CPUType {
         /** X86 32bit */
-        X86_32(    CPUFamily.X86,     0x0001),
+        X86_32(    CPUFamily.X86,     0x0001, true),
         /** X86 64bit */
-        X86_64(    CPUFamily.X86,     0x0002),
-        /** ARM default */
-        ARM(       CPUFamily.ARM,     0x0000),
+        X86_64(    CPUFamily.X86,     0x0002, false),
+        /** ARM 32bit default */
+        ARM(       CPUFamily.ARM,     0x0000, true),
         /** ARM7EJ, ARM9E, ARM10E, XScale */
-        ARMv5(     CPUFamily.ARM,     0x0001),
+        ARMv5(     CPUFamily.ARM,     0x0001, true),
         /** ARM11 */
-        ARMv6(     CPUFamily.ARM,     0x0002),
+        ARMv6(     CPUFamily.ARM,     0x0002, true),
         /** ARM Cortex */
-        ARMv7(     CPUFamily.ARM,     0x0004),
+        ARMv7(     CPUFamily.ARM,     0x0004, true),
         /** ARM64 default (64bit) */
-        ARM64(     CPUFamily.ARM,     0x0008),
-        /** ARM AArch64 (64bit) and AArch32 (32bit) */
-        ARMv8_A(   CPUFamily.ARM,     0x0010),
-        /** PPC default */
-        PPC(       CPUFamily.PPC,     0x0000),
+        ARM64(     CPUFamily.ARM,     0x0008, false),
+        /** ARM AArch64 (64bit) */
+        ARMv8_A(   CPUFamily.ARM,     0x0010, false),
+        /** PPC 32bit default */
+        PPC(       CPUFamily.PPC,     0x0000, true),
         /** SPARC 32bit */
-        SPARC_32(  CPUFamily.SPARC,   0x0001),
+        SPARC_32(  CPUFamily.SPARC,   0x0001, true),
         /** SPARC 64bit */
-        SPARCV9_64(CPUFamily.SPARC,   0x0002),
+        SPARCV9_64(CPUFamily.SPARC,   0x0002, false),
         /** MIPS 32bit */
-        MIPS_32(  CPUFamily.MIPS,     0x0001),
+        MIPS_32(  CPUFamily.MIPS,     0x0001, true),
         /** MIPS 64bit */
-        MIPS_64(  CPUFamily.MIPS,     0x0002),
-        /** Itanium default */
-        IA64(      CPUFamily.IA64,    0x0000),
-        /** PA_RISC2_0 */
-        PA_RISC2_0(CPUFamily.PA_RISC, 0x0001);
+        MIPS_64(  CPUFamily.MIPS,     0x0002, false),
+        /** Itanium 64bit default */
+        IA64(      CPUFamily.IA64,    0x0000, false),
+        /** PA_RISC2_0 64bit */
+        PA_RISC2_0(CPUFamily.PA_RISC, 0x0001, false);
 
         public final int id;
         public final CPUFamily family;
+        public final boolean is32Bit;
 
-        CPUType(final CPUFamily type, final int id){
+        CPUType(final CPUFamily type, final int id, final boolean is32Bit){
             this.family = type;
             this.id = id;
+            this.is32Bit = is32Bit;
         }
 
         public CPUFamily getFamily() { return family; }
@@ -169,8 +171,6 @@ public class Platform extends PlatformPropsImpl {
     //
 
     private static final MachineDescription machineDescription;
-
-    private static final boolean is32Bit;
 
     /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
     public static final boolean AWT_AVAILABLE;
@@ -244,7 +244,6 @@ public class Platform extends PlatformPropsImpl {
             }
         }
         machineDescription = md;
-        is32Bit = machineDescription.is32Bit();
     }
 
     private Platform() {}
@@ -340,6 +339,22 @@ public class Platform extends PlatformPropsImpl {
     }
 
     /**
+     * Returns true if this JVM/ARCH is 32bit.
+     * <p>Shortcut to {@link #getCPUType()}.{@link CPUType#is32Bit is32Bit}</p>
+     */
+    public static boolean is32Bit() {
+        return CPU_ARCH.is32Bit; // used very often
+    }
+
+    /**
+     * Returns true if this JVM/ARCH is 64bit.
+     * <p>Shortcut to !{@link #getCPUType()}.{@link CPUType#is32Bit is32Bit}</p>
+     */
+    public static boolean is64Bit() {
+        return !CPU_ARCH.is32Bit; // used very often
+    }
+
+    /**
      * Returns the ABI type.
      * <p>
      * In case of {@link CPUFamily#ARM}, the value is determined by parsing the <i>Elf Headers</i> of the running VM.
@@ -409,24 +424,6 @@ public class Platform extends PlatformPropsImpl {
      */
     public static String getNewline() {
         return NEWLINE;
-    }
-
-    /**
-     * Returns true if this JVM/ARCH is 32bit.
-     * <p>Shortcut to {@link #getMachineDescription()}.{@link MachineDescription#is32Bit() is32Bit()}</p>
-     */
-    public static boolean is32Bit() {
-        // return Platform.machineDescription.is32Bit();
-        return Platform.is32Bit; // used very often
-    }
-
-    /**
-     * Returns true if this JVM/ARCH is 64bit.
-     * <p>Shortcut to {@link #getMachineDescription()}.{@link MachineDescription#is32Bit() is64Bit()}</p>
-     */
-    public static boolean is64Bit() {
-        // return Platform.machineDescription.is64Bit();
-        return !Platform.is32Bit; // used very often
     }
 
     /**

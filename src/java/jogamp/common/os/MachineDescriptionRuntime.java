@@ -71,30 +71,8 @@ public class MachineDescriptionRuntime {
       }
   }
 
-  private static boolean isCPUArch32Bit(final Platform.CPUType cpuType) throws RuntimeException {
-    switch( cpuType ) {
-        case X86_32:
-        case ARM:
-        case ARMv5:
-        case ARMv6:
-        case ARMv7:
-        case SPARC_32:
-        case PPC:
-            return true;
-        case X86_64:
-        case ARM64:
-        case ARMv8_A:
-        case IA64:
-        case SPARCV9_64:
-        case PA_RISC2_0:
-            return false;
-        default:
-            throw new RuntimeException("Please port CPU detection (32/64 bit) to your platform (" + PlatformPropsImpl.OS_lower + "/" + PlatformPropsImpl.ARCH_lower + "("+PlatformPropsImpl.CPU_ARCH+"))");
-    }
-  }
-
   private static MachineDescription.StaticConfig get(final Platform.OSType osType, final Platform.CPUType cpuType, final boolean littleEndian) {
-      if( isCPUArch32Bit(cpuType) ) {
+      if( cpuType.is32Bit ) {
           if( cpuType.getFamily() == Platform.CPUFamily.ARM && littleEndian) {
               return StaticConfig.ARMle_EABI;
           } else if( osType == Platform.OSType.WINDOWS ) {
@@ -109,12 +87,12 @@ public class MachineDescriptionRuntime {
           }
           return StaticConfig.X86_32_UNIX;
       } else {
-          if( cpuType.getFamily() == Platform.CPUFamily.ARM && littleEndian) {
-              return StaticConfig.X86_64_UNIX;
-          } else if( osType == Platform.OSType.WINDOWS ) {
+          if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_64_WINDOWS;
+          } else {
+              // for all 64bit unix types (x86_64, aarch64, ..)
+              return StaticConfig.LP64_UNIX;
           }
-          return StaticConfig.X86_64_UNIX;
       }
   }
 
