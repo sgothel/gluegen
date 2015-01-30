@@ -1,0 +1,8 @@
+Retrieved from public sources as described in script below.
+
+++++
+
+cd /android-sdk-linux_x86/sources/android-21
+
+jar cvf android-java-src.zip android com javax/microedition/khronos
+

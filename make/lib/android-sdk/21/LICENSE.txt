@@ -1,0 +1,10 @@
+
+http://source.android.com/faqs.html#what-kind-of-open-source-project-is-android
+
+What kind of open-source project is Android?
+
+Google oversees the development of the core Android open-source platform, and works to create robust developer and user communities. For the most part the Android source code is licensed under the permissive Apache Software License 2.0, rather than a "copyleft" license. The main reason for this is because our most important goal is widespread adoption of the software, and we believe that the ASL2.0 license best achieves that goal.
+
++++
+
+See file NOTICE.txt in this folder !
