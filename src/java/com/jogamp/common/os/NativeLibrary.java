@@ -77,6 +77,7 @@ import com.jogamp.common.util.cache.TempJarCache;
 public final class NativeLibrary implements DynamicLookupHelper {
   private static final String[] prefixes;
   private static final String[] suffixes;
+  private static final boolean isOSX;
 
   static {
     // Instantiate dynamic linker implementation
@@ -84,19 +85,17 @@ public final class NativeLibrary implements DynamicLookupHelper {
       case WINDOWS:
         prefixes = new String[] { "" };
         suffixes = new String[] { ".dll" };
+        isOSX = false;
         break;
 
       case MACOS:
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".dylib", ".jnilib" };
-        break;
-
-      case ANDROID:
-        prefixes = new String[] { "lib" };
-        suffixes = new String[] { ".so" };
+        isOSX = true;
         break;
 
       /*
+      case ANDROID:
       case FREEBSD:
       case SUNOS:
       case HPUX:
@@ -105,6 +104,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       default:
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
+        isOSX = false;
         break;
     }
   }
@@ -461,7 +461,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
 
     // Add probable Mac OS X-specific paths
-    if (PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
+    if ( isOSX ) {
       // Add historical location
       addPaths("/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
       // Add current location
@@ -482,13 +482,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
       case MACOS:
         return macOSXLibName;
 
-      /*
-      case FREEBSD:
-      case DALVIK:
-      case SUNOS:
-      case HPUX:
-      case OPENKODE:
-      case LINUX: */
       default:
         return unixLibName;
     }
@@ -539,15 +532,14 @@ public final class NativeLibrary implements DynamicLookupHelper {
           }
       }
 
-      final String[] res = new String[prefixes.length * suffixes.length +
-                                ( PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS ? 1 : 0 )];
+      final String[] res = new String[prefixes.length * suffixes.length + ( isOSX ? 1 : 0 )];
       int idx = 0;
       for (int i = 0; i < prefixes.length; i++) {
           for (int j = 0; j < suffixes.length; j++) {
               res[idx++] = prefixes[i] + libName + suffixes[j];
           }
       }
-      if (PlatformPropsImpl.OS_TYPE == Platform.OSType.MACOS) {
+      if ( isOSX ) {
           // Plain library-base-name in Framework folder
           res[idx++] = libName;
       }

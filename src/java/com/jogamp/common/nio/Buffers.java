@@ -39,9 +39,15 @@
  */
 package com.jogamp.common.nio;
 
-import java.nio.*;
-
-import jogamp.common.os.PlatformPropsImpl;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 
 import com.jogamp.common.util.ValueConv;
 
@@ -445,30 +451,10 @@ public class Buffers {
         if (buf == null) {
             return true;
         }
-        if ( PlatformPropsImpl.JAVA_6 ) {
-            if (buf instanceof Buffer) {
-                return ((Buffer) buf).isDirect();
-            } else if (buf instanceof PointerBuffer) {
-                return ((PointerBuffer) buf).isDirect();
-            }
-        } else {
-            if (buf instanceof ByteBuffer) {
-                return ((ByteBuffer) buf).isDirect();
-            } else if (buf instanceof IntBuffer) {
-                return ((IntBuffer) buf).isDirect();
-            } else if (buf instanceof ShortBuffer) {
-                return ((ShortBuffer) buf).isDirect();
-            } else if (buf instanceof FloatBuffer) {
-                return ((FloatBuffer) buf).isDirect();
-            } else if (buf instanceof DoubleBuffer) {
-                return ((DoubleBuffer) buf).isDirect();
-            } else if (buf instanceof LongBuffer) {
-                return ((LongBuffer) buf).isDirect();
-            } else if (buf instanceof CharBuffer) {
-                return ((CharBuffer) buf).isDirect();
-            } else if (buf instanceof PointerBuffer) {
-                return ((PointerBuffer) buf).isDirect();
-            }
+        if (buf instanceof Buffer) {
+            return ((Buffer) buf).isDirect();
+        } else if (buf instanceof PointerBuffer) {
+            return ((PointerBuffer) buf).isDirect();
         }
         throw new IllegalArgumentException("Unexpected buffer type " + buf.getClass().getName());
     }
