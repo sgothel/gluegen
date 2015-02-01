@@ -428,7 +428,7 @@
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
 
-      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.os.Platform, com.jogamp.common.nio.PointerBuffer, jogamp.common.jvm.JVMUtil, com.jogamp.common.util.JarUtil, jogamp.common.os.MachineDescriptionRuntime" />
+      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.os.Platform, com.jogamp.common.nio.PointerBuffer, jogamp.common.jvm.JVMUtil, com.jogamp.common.util.JarUtil, jogamp.common.os.MachineDataInfoRuntime" />
       <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="jogamp.common.os.UnixDynamicLinkerImpl" />
       <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.common.os.WindowsDynamicLinkerImpl"/>
 

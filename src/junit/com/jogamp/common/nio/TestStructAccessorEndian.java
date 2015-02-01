@@ -10,7 +10,7 @@ import jogamp.common.os.PlatformPropsImpl;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -22,7 +22,7 @@ public class TestStructAccessorEndian extends SingletonJunitCase {
 
     @Test
     public void testStructAccessorEndian1 () {
-        final MachineDescription machine = Platform.getMachineDescription();
+        final MachineDataInfo machine = Platform.getMachineDataInfo();
         final int bitsPtr = machine.pointerSizeInBytes() * 8;
         final String bitsProp = System.getProperty("sun.arch.data.model");
         out.println("OS: <"+PlatformPropsImpl.OS+"> CPU: <"+PlatformPropsImpl.ARCH+"> Bits: <"+bitsPtr+"/"+bitsProp+">");

@@ -48,8 +48,9 @@ import static jogamp.common.os.elf.IOUtils.toHexString;
  * <p>
  * References:
  * <ul>
- *   <li>http://linux.die.net/man/5/elf</li>
  *   <li>http://www.sco.com/developers/gabi/latest/contents.html</li>
+ *   <li>https://en.wikipedia.org/wiki/Executable_and_Linkable_Format</li>
+ *   <li>http://linux.die.net/man/5/elf</li>
  *   <li>http://infocenter.arm.com/
  *   <ul>
  *      <li>ARM IHI 0044E, current through ABI release 2.09</li>

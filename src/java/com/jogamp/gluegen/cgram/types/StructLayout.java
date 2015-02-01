@@ -40,7 +40,7 @@
 
 package com.jogamp.gluegen.cgram.types;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.gluegen.GlueGen;
 
 /** Encapsulates algorithm for laying out data structures. Note that
@@ -67,9 +67,9 @@ public class StructLayout {
     SizeThunk curOffset = SizeThunk.constant(baseOffset);
     SizeThunk maxSize   = SizeThunk.constant(0);
 
-    final MachineDescription dbgMD;
+    final MachineDataInfo dbgMD;
     if( GlueGen.debug() ) {
-        dbgMD = MachineDescription.StaticConfig.LP64_UNIX.md;
+        dbgMD = MachineDataInfo.StaticConfig.LP64_UNIX.md;
         System.err.printf("SL.__: o %03d, s %03d, t %s{%d}%n", curOffset.computeSize(dbgMD), 0, t, t.getNumFields());
     } else {
         dbgMD = null;

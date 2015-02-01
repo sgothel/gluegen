@@ -32,9 +32,9 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 
 import jogamp.common.Debug;
-import jogamp.common.os.MachineDescriptionRuntime;
+import jogamp.common.os.MachineDataInfoRuntime;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform.ABIType;
 import com.jogamp.common.os.Platform.CPUType;
 import com.jogamp.common.os.Platform.OSType;
@@ -49,8 +49,9 @@ import static jogamp.common.os.elf.IOUtils.readBytes;
  * <p>
  * References:
  * <ul>
- *   <li>http://linux.die.net/man/5/elf</li>
  *   <li>http://www.sco.com/developers/gabi/latest/contents.html</li>
+ *   <li>https://en.wikipedia.org/wiki/Executable_and_Linkable_Format</li>
+ *   <li>http://linux.die.net/man/5/elf</li>
  *   <li>http://infocenter.arm.com/
  *   <ul>
  *      <li>ARM IHI 0044E, current through ABI release 2.09</li>
@@ -327,7 +328,7 @@ public class ElfHeaderPart1 {
     public final CPUType cpuType;
     public final ABIType abiType;
 
-    public final MachineDescription.StaticConfig machDesc;
+    public final MachineDataInfo.StaticConfig machDesc;
 
     /**
      * Note: The input stream shall stay untouch to be able to read sections!
@@ -387,15 +388,20 @@ public class ElfHeaderPart1 {
                 abiType = ABIType.GENERIC_ABI;
                 break;
             case EM_MIPS:
-                cpuName = "mips";
-                abiType = ABIType.GENERIC_ABI;
-                break;
-            case EM_MIPS_X:
-                cpuName = "mips-x";
+                 // Can be little-endian or big-endian and 32 or 64 bits
+                if( 64 == getArchClassBits() ) {
+                    cpuName = isLittleEndian() ? "mips64le" : "mips64";
+                } else {
+                    cpuName = isLittleEndian() ? "mipsle" : "mips";
+                }
                 abiType = ABIType.GENERIC_ABI;
                 break;
             case EM_MIPS_RS3_LE:
-                cpuName = "mips-rs3-le";
+                cpuName = "mipsle-rs3";  // FIXME: Only little-endian?
+                abiType = ABIType.GENERIC_ABI;
+                break;
+            case EM_MIPS_X:
+                cpuName = isLittleEndian() ? "mipsle-x" : "mips-x"; // Can be little-endian
                 abiType = ABIType.GENERIC_ABI;
                 break;
             case EM_PPC:
@@ -406,12 +412,15 @@ public class ElfHeaderPart1 {
                 cpuName = "ppc64";
                 abiType = ABIType.GENERIC_ABI;
                 break;
-            case EM_SH:  // Hitachi SuperH ?
+            case EM_SH:
+                cpuName = "superh";
+                abiType = ABIType.GENERIC_ABI;
+                break;
             default:
                 throw new IllegalArgumentException("CPUType and ABIType could not be determined");
         }
         cpuType = CPUType.query(cpuName.toLowerCase());
-        machDesc = MachineDescriptionRuntime.get(osType, cpuType, isLittleEndian());
+        machDesc = MachineDataInfoRuntime.guessStaticMachineDataInfo(osType, cpuType);
         if(DEBUG) {
             System.err.println("ELF-1: cpuName "+cpuName+" -> "+cpuType+", "+abiType+", machDesc "+machDesc.toShortString());
         }

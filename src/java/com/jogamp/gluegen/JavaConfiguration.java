@@ -54,7 +54,7 @@ import com.jogamp.gluegen.cgram.types.*;
 
 import java.util.logging.Logger;
 
-import jogamp.common.os.MachineDescriptionRuntime;
+import jogamp.common.os.MachineDataInfoRuntime;
 import static java.util.logging.Level.*;
 import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
@@ -166,7 +166,7 @@ public class JavaConfiguration {
     private final Map<String, String> structPackages = new HashMap<String, String>();
     private final List<String> customCCode = new ArrayList<String>();
     private final List<String> forcedStructs = new ArrayList<String>();
-    private final Map<String, String> structMachineDescriptorIndex = new HashMap<String, String>();
+    private final Map<String, String> structMachineDataInfoIndex = new HashMap<String, String>();
     private final Map<String, String> returnValueCapacities = new HashMap<String, String>();
     private final Map<String, String> returnValueLengths = new HashMap<String, String>();
     private final Map<String, List<String>> temporaryCVariableDeclarations = new HashMap<String, List<String>>();
@@ -650,12 +650,12 @@ public class JavaConfiguration {
    * <p>
    * If undefined, code generation uses the default expression:
    * <pre>
-   *     private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();
+   *     private static final int mdIdx = MachineDataInfoRuntime.getStatic().ordinal();
    * </pre>
    * </p>
    */
-  public String returnStructMachineDescriptorIndex(final String structName) {
-    return structMachineDescriptorIndex.get(structName);
+  public String returnStructMachineDataInfoIndex(final String structName) {
+    return structMachineDataInfoIndex.get(structName);
   }
 
   /**
@@ -1123,8 +1123,8 @@ public class JavaConfiguration {
       readTemporaryCVariableAssignment(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because TemporaryCVariableAssignment changes them.
-    } else if (cmd.equalsIgnoreCase("StructMachineDescriptorIndex")) {
-      readStructMachineDescriptorIndex(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("StructMachineDataInfoIndex")) {
+      readStructMachineDataInfoIndex(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because StructMachineDescriptorIndex changes them.
     } else if (cmd.equalsIgnoreCase("ReturnValueCapacity")) {
@@ -1525,14 +1525,14 @@ public class JavaConfiguration {
     }
   }
 
-  protected void readStructMachineDescriptorIndex(final StringTokenizer tok, final String filename, final int lineNo) {
+  protected void readStructMachineDataInfoIndex(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       final String structName = tok.nextToken();
       String restOfLine = tok.nextToken("\n\r\f");
       restOfLine = restOfLine.trim();
-      structMachineDescriptorIndex.put(structName, restOfLine);
+      structMachineDataInfoIndex.put(structName, restOfLine);
     } catch (final NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"StructMachineDescriptorIndex\" command at line " + lineNo +
+      throw new RuntimeException("Error parsing \"StructMachineDataInfoIndex\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }

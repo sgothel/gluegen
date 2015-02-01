@@ -54,7 +54,7 @@ import jogamp.common.os.PlatformPropsImpl;
 import com.jogamp.common.net.AssetURLContext;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.nio.Buffers;
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
@@ -160,14 +160,14 @@ public class IOUtil {
      * @throws IOException
      */
     public static int copyStream2Stream(final InputStream in, final OutputStream out, final int totalNumBytes) throws IOException {
-        return copyStream2Stream(Platform.getMachineDescription().pageSizeInBytes(), in, out, totalNumBytes);
+        return copyStream2Stream(Platform.getMachineDataInfo().pageSizeInBytes(), in, out, totalNumBytes);
     }
 
     /**
      * Copy the specified input stream to the specified output stream. The total
      * number of bytes written is returned.
      *
-     * @param bufferSize the intermediate buffer size, should be {@link MachineDescription#pageSizeInBytes()} for best performance.
+     * @param bufferSize the intermediate buffer size, should be {@link MachineDataInfo#pageSizeInBytes()} for best performance.
      * @param in the source
      * @param out the destination
      * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown
@@ -246,7 +246,7 @@ public class IOUtil {
         if( initialCapacity < avail ) {
             initialCapacity = avail;
         }
-        final MachineDescription machine = Platform.getMachineDescription();
+        final MachineDataInfo machine = Platform.getMachineDataInfo();
         ByteBuffer data = Buffers.newDirectByteBuffer( machine.pageAlignedSize( initialCapacity ) );
         final byte[] chunk = new byte[machine.pageSizeInBytes()];
         int chunk2Read = Math.min(machine.pageSizeInBytes(), avail);

@@ -42,7 +42,7 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.List;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 
 /** Models a C type. Primitive types include int, float, and
     double. All types have an associated name. Structs and unions are
@@ -112,7 +112,7 @@ public abstract class Type implements Cloneable {
         {
             long _mdSize = -1;
             try {
-                _mdSize = size.computeSize(MachineDescription.StaticConfig.LP64_UNIX.md);
+                _mdSize = size.computeSize(MachineDataInfo.StaticConfig.LP64_UNIX.md);
             } catch (final Exception e) {}
             mdSize = _mdSize;
         }
@@ -180,8 +180,8 @@ public abstract class Type implements Cloneable {
 
   /** SizeThunk which computes size of this type in bytes. */
   public SizeThunk    getSize()    { return size; }
-  /** Size of this type in bytes according to the given MachineDescription. */
-  public long         getSize(final MachineDescription machDesc) {
+  /** Size of this type in bytes according to the given MachineDataInfo. */
+  public long         getSize(final MachineDataInfo machDesc) {
     final SizeThunk thunk = getSize();
     if (thunk == null) {
       throw new RuntimeException("No size set for type \"" + getName() + "\"");

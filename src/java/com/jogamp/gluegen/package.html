@@ -60,13 +60,23 @@
   </ul>
   
   <h5>Simple alignment arithmetic</h5>
-  <blockquote>remainder = offset % alignment</blockquote>
-  since alignment is a multiple of 2 <code>-> x % 2n == x & (2n - 1)</code><br>   
-  <blockquote>remainder = offset & ( alignment - 1 )</blockquote>
+  Modulo operation, where the 2nd handles the case offset == alignment:
   <blockquote>
-   padding = (remainder > 0) ? alignment - remainder : 0 ;<br>
+    padding = ( alignment - ( offset % alignment ) ) % alignment ; <br>
+    aligned_offset = offset + padding ;
+  </blockquote>
+  Optimization utilizing alignment as a multiple of 2 <code>-> x % 2n == x & ( 2n - 1 )</code><br>
+  <blockquote>
+   remainder = offset & ( alignment - 1 ) ; <br>
+   padding = ( remainder > 0 ) ? alignment - remainder : 0 ;<br>
    aligned_offset = offset + padding ;   
   </blockquote>
+  Without branching, using the 2nd modulo operation for the case offset == alignment:
+  <blockquote>
+   padding = ( alignment - ( offset & ( alignment - 1 ) ) ) & ( alignment - 1 ) ;<br>
+   aligned_offset = offset + padding ;   
+  </blockquote>
+  See <code>com.jogamp.gluegen.cgram.types.SizeThunk.align(..)</code>.
   
   <h5>Type Size &amp; Alignment for x86, x86_64, armv6l-32bit-eabi and Window(mingw/mingw64)</h5>
   Runtime query is implemented as follows: 

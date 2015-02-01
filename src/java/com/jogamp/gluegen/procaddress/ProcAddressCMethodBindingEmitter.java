@@ -76,7 +76,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 methodToWrap.getIsJavaMethodStatic(),
                 true,
                 methodToWrap.forIndirectBufferAndArrayImplementation(),
-                methodToWrap.getMachineDescription()
+                methodToWrap.getMachineDataInfo()
         );
 
         if (methodToWrap.getReturnValueCapacityExpression() != null) {

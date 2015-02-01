@@ -41,7 +41,7 @@ import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.jvm.JVMUtil;
-import jogamp.common.os.MachineDescriptionRuntime;
+import jogamp.common.os.MachineDataInfoRuntime;
 import jogamp.common.os.PlatformPropsImpl;
 
 /**
@@ -50,7 +50,7 @@ import jogamp.common.os.PlatformPropsImpl;
  * Some field declarations and it's static initialization has been delegated
  * to it's super class {@link PlatformPropsImpl} to solve
  * static initialization interdependencies w/ the GlueGen native library loading
- * and it's derived information {@link #getMachineDescription()}, {@link #is32Bit()}, ..<br>
+ * and it's derived information {@link #getMachineDataInfo()}, {@link #is32Bit()}, ..<br>
  * This mechanism is preferred in this case to avoid synchronization and locking
  * and allow better performance accessing the mentioned fields/methods.
  * </p>
@@ -75,42 +75,51 @@ public class Platform extends PlatformPropsImpl {
         /** PA RISC */
         PA_RISC,
         /** Itanium */
-        IA64;
+        IA64,
+        /** Hitachi SuperH */
+        SuperH;
     }
 
     public enum CPUType {
-        /** X86 32bit */
-        X86_32(    CPUFamily.X86,     true),
-        /** X86 64bit */
-        X86_64(    CPUFamily.X86,     false),
-        /** ARM 32bit default */
+        /** ARM 32bit default, usually little endian */
         ARM(       CPUFamily.ARM,     true),
-        /** ARM7EJ, ARM9E, ARM10E, XScale */
+        /** ARM7EJ, ARM9E, ARM10E, XScale, usually little endian */
         ARMv5(     CPUFamily.ARM,     true),
-        /** ARM11 */
+        /** ARM11, usually little endian */
         ARMv6(     CPUFamily.ARM,     true),
-        /** ARM Cortex */
+        /** ARM Cortex, usually little endian */
         ARMv7(     CPUFamily.ARM,     true),
-        /** ARM64 default (64bit) */
-        ARM64(     CPUFamily.ARM,     false),
-        /** ARM AArch64 (64bit) */
-        ARMv8_A(   CPUFamily.ARM,     false),
-        /** PPC 32bit default */
+        // 4
+
+        /** X86 32bit, little endian */
+        X86_32(    CPUFamily.X86,     true),
+        /** PPC 32bit default, usually big endian */
         PPC(       CPUFamily.PPC,     true),
-        /** PPC 64bit default */
-        PPC64(     CPUFamily.PPC,     false),
-        /** SPARC 32bit */
-        SPARC_32(  CPUFamily.SPARC,   true),
-        /** SPARC 64bit */
-        SPARCV9_64(CPUFamily.SPARC,   false),
-        /** MIPS 32bit */
+        /** MIPS 32bit, big endian (mips) or little endian (mipsel) */
         MIPS_32(   CPUFamily.MIPS,    true),
-        /** MIPS 64bit */
+        /** Hitachi SuperH 32bit default, ??? endian */
+        SuperH(    CPUFamily.SuperH,  true),
+        /** SPARC 32bit, big endian */
+        SPARC_32(  CPUFamily.SPARC,   true),
+        // 9
+
+        /** ARM64 default (64bit), usually little endian */
+        ARM64(     CPUFamily.ARM,     false),
+        /** ARM AArch64 (64bit), usually little endian */
+        ARMv8_A(   CPUFamily.ARM,     false),
+        /** X86 64bit, little endian */
+        X86_64(    CPUFamily.X86,     false),
+        /** PPC 64bit default, usually big endian */
+        PPC64(     CPUFamily.PPC,     false),
+        /** MIPS 64bit, big endian (mips64) or little endian (mipsel64) ? */
         MIPS_64(   CPUFamily.MIPS,    false),
-        /** Itanium 64bit default */
+        /** Itanium 64bit default, little endian */
         IA64(      CPUFamily.IA64,    false),
-        /** PA_RISC2_0 64bit */
+        /** SPARC 64bit, big endian */
+        SPARCV9_64(CPUFamily.SPARC,   false),
+        /** PA_RISC2_0 64bit, ??? endian */
         PA_RISC2_0(CPUFamily.PA_RISC, false);
+        // 17
 
         public final CPUFamily family;
         public final boolean is32Bit;
@@ -186,8 +195,12 @@ public class Platform extends PlatformPropsImpl {
                 return PPC64;
             } else if( cpuABILower.startsWith("ppc") ) {
                 return PPC;
+            } else if( cpuABILower.startsWith("mips64") ) {
+                return MIPS_64;
             } else if( cpuABILower.startsWith("mips") ) {
                 return MIPS_32;
+            } else if( cpuABILower.startsWith("superh") ) {
+                return SuperH;
             } else {
                 throw new RuntimeException("Please port CPUType detection to your platform (CPU_ABI string '" + cpuABILower + "')");
             }
@@ -259,7 +272,7 @@ public class Platform extends PlatformPropsImpl {
     // post loading native lib:
     //
 
-    private static final MachineDescription machineDescription;
+    private static final MachineDataInfo machineDescription;
 
     /** <code>true</code> if AWT is available and not in headless mode, otherwise <code>false</code>. */
     public static final boolean AWT_AVAILABLE;
@@ -320,19 +333,11 @@ public class Platform extends PlatformPropsImpl {
         USE_TEMP_JAR_CACHE = _USE_TEMP_JAR_CACHE[0];
         AWT_AVAILABLE = _AWT_AVAILABLE[0];
 
-        final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
-        MachineDescription md = MachineDescriptionRuntime.getRuntime();
-        if(null == md) {
-            md = smd.md;
-            System.err.println("Warning: Using static MachineDescription: "+smd);
-        } else {
-            if(!md.compatible(smd.md)) {
-                throw new RuntimeException("Incompatible MachineDescriptions:"+PlatformPropsImpl.NEWLINE+
-                                           " Static "+smd+PlatformPropsImpl.NEWLINE+
-                                           " Runtime "+md);
-            }
-        }
-        machineDescription = md;
+        //
+        // Validate and setup MachineDataInfo.StaticConfig
+        //
+        MachineDataInfoRuntime.initialize();
+        machineDescription = MachineDataInfoRuntime.getRuntime();
     }
 
     private Platform() {}
@@ -496,9 +501,9 @@ public class Platform extends PlatformPropsImpl {
     }
 
     /**
-     * Returns the MachineDescription of the running machine.
+     * Returns the MachineDataInfo of the running machine.
      */
-    public static MachineDescription getMachineDescription() {
+    public static MachineDataInfo getMachineDataInfo() {
         return machineDescription;
     }
 

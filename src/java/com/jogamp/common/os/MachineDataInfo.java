@@ -43,48 +43,80 @@ package com.jogamp.common.os;
 import jogamp.common.os.PlatformPropsImpl;
 
 /**
- * For alignment and size see {@link com.jogamp.gluegen}
+ * Machine data description for alignment and size onle, see {@link com.jogamp.gluegen}.
+ * <p>
+ * {@code little-endian} / {@code big/endian} description is left,
+ * allowing re-using instances in {@link MachineDataInfo.StaticConfig StaticConfig}.
+ * Use {@link {@link PlatformPropsImpl#LITTLE_ENDIAN}.
+ * </p>
+ * <p>
+ * Further more, the value {@ MachineDataInfo#pageSizeInBytes} shall be ignored
+ * in {@link MachineDataInfo.StaticConfig StaticConfig}, see {@link MachineDataInfo#compatible(MachineDataInfo)}.
+ * </p>
  */
-public class MachineDescription {
+public class MachineDataInfo {
   /*                              arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
-  private final static int[] size_armeabi         =  { 4,    4,     4,     8,      8,    4,   4096 };
+  private final static int[] size_arm_mips_32     =  { 4,    4,     4,     8,      8,    4,   4096 };
   private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
   private final static int[] size_x86_32_macos    =  { 4,    4,     4,     8,     16,    4,   4096 };
+  private final static int[] size_ppc_32_unix     =  { 4,    4,     4,     8,     16,    4,   4096 };
+  private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
   private final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
   private final static int[] size_lp64_unix       =  { 4,    8,     4,     8,     16,    8,   4096 };
   private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
-  private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
 
   /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */
-  private final static int[] align_armeabi        =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
+  private final static int[] align_arm_mips_32    =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
   private final static int[] align_x86_32_unix    =  { 1,   2,   4,   4,   4,    4,     4,     4,      4,   4 };
   private final static int[] align_x86_32_macos   =  { 1,   2,   4,   4,   4,    4,     4,     4,     16,   4 };
+  private final static int[] align_ppc_32_unix    =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   4 };
+  private final static int[] align_sparc_32_sunos =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
   private final static int[] align_x86_32_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,      4,   4 };
   private final static int[] align_lp64_unix      =  { 1,   2,   4,   8,   4,    8,     4,     8,     16,   8 };
   private final static int[] align_x86_64_windows =  { 1,   2,   4,   8,   4,    4,     4,     8,     16,   8 };
-  private final static int[] align_sparc_32_sunos =  { 1,   2,   4,   8,   4,    4,     4,     8,      8,   4 };
 
+  /**
+   * Static enumeration of {@link MachineDataInfo} instances
+   * used for high performance data size and alignment lookups,
+   * e.g. for generated structures.
+   * <p>
+   * The value {@link MachineDataInfo#pageSizeInBytes} shall be ignored
+   * for static instances!
+   * </p>
+   * <p>
+   * If changing this table, you need to:
+   * <ul>
+   *   <li>Rebuild GlueGen.</li>
+   *   <li>Run ant {@code build.xml} target {@code generate.os.sources}.</li>
+   *   <li>Rebuild everything.</li>
+   * </ul>
+   * .. b/c the generated code for glued structures must reflect this change!
+   * </p>
+   */
   public enum StaticConfig {
-      /** {@link Platform.CPUType#ARM} EABI Little Endian */
-      ARMle_EABI(true,      size_armeabi,        align_armeabi),
-      /** {@link Platform.CPUType#X86_32} Little Endian Unix */
-      X86_32_UNIX(true,     size_x86_32_unix,    align_x86_32_unix),
-      /** LP64 Unix, e.g.: {@link Platform.CPUType#X86_64} Little Endian Unix, {@link Platform.CPUType#ARM64} EABI Little Endian, ... */
-      LP64_UNIX(true,       size_lp64_unix,    align_lp64_unix),
-      /** {@link Platform.CPUType#X86_32} Little Endian MacOS (Special case gcc4/OSX) */
-      X86_32_MACOS(true,    size_x86_32_macos,   align_x86_32_macos),
-      /** {@link Platform.CPUType#X86_32} Little Endian Windows */
-      X86_32_WINDOWS(true,  size_x86_32_windows, align_x86_32_windows),
-      /** {@link Platform.CPUType#X86_64} Little Endian Windows */
-      X86_64_WINDOWS(true,  size_x86_64_windows, align_x86_64_windows),
-      /** {@link Platform.CPUType#SPARC_32} Big Endian Solaris */
-      SPARC_32_SUNOS(false, size_sparc_32_sunos, align_sparc_32_sunos);
+      /** {@link Platform.CPUType#ARM} or {@link Platform.CPUType#MIPS_32} */
+      ARM_MIPS_32(     size_arm_mips_32,   align_arm_mips_32),
+      /** {@link Platform.CPUType#X86_32} Unix */
+      X86_32_UNIX(    size_x86_32_unix,    align_x86_32_unix),
+      /** {@link Platform.CPUType#X86_32} MacOS (Special case gcc4/OSX) */
+      X86_32_MACOS(   size_x86_32_macos,   align_x86_32_macos),
+      /** {@link Platform.CPUType#PPC} Unix */
+      PPC_32_UNIX(    size_ppc_32_unix,   align_ppc_32_unix),
+      /** {@link Platform.CPUType#SPARC_32} Solaris */
+      SPARC_32_SUNOS( size_sparc_32_sunos, align_sparc_32_sunos),
+      /** {@link Platform.CPUType#X86_32} Windows */
+      X86_32_WINDOWS( size_x86_32_windows, align_x86_32_windows),
+      /** LP64 Unix, e.g.: {@link Platform.CPUType#X86_64} Unix, {@link Platform.CPUType#ARM64} EABI, {@link Platform.CPUType#PPC64} Unix, .. */
+      LP64_UNIX(      size_lp64_unix,    align_lp64_unix),
+      /** {@link Platform.CPUType#X86_64} Windows */
+      X86_64_WINDOWS( size_x86_64_windows, align_x86_64_windows);
+      // 8
 
-      public final MachineDescription md;
+      public final MachineDataInfo md;
 
-      StaticConfig(final boolean littleEndian, final int[] sizes, final int[] alignments) {
+      StaticConfig(final int[] sizes, final int[] alignments) {
           int i=0, j=0;
-          this.md = new MachineDescription(false, littleEndian,
+          this.md = new MachineDataInfo(false,
                                            sizes[i++],
                                            sizes[i++],
                                            sizes[i++],
@@ -108,7 +140,7 @@ public class MachineDescription {
         if(null==sb) {
             sb = new StringBuilder();
         }
-        sb.append("MachineDescriptionStatic: ").append(this.name()).append("(").append(this.ordinal()).append("): ");
+        sb.append("MachineDataInfoStatic: ").append(this.name()).append("(").append(this.ordinal()).append("): ");
         md.toString(sb);
         return sb;
       }
@@ -119,12 +151,43 @@ public class MachineDescription {
       public String toString() {
         return toString(null).toString();
       }
+
+      /**
+       * Static's {@link MachineDataInfo} shall be unique by the
+       * {@link MachineDataInfo#compatible(MachineDataInfo) compatible} criteria.
+       */
+      public static final void validateUniqueMachineDataInfo() {
+          final StaticConfig[] scs = StaticConfig.values();
+          for(int i=scs.length-1; i>=0; i--) {
+              final StaticConfig a = scs[i];
+              for(int j=scs.length-1; j>=0; j--) {
+                  if( i != j ) {
+                      final StaticConfig b = scs[j];
+                      if( a.md.compatible(b.md) ) {
+                          // oops
+                          final String msg = "Duplicate/Compatible MachineDataInfo in StaticConfigs: Elements ["+i+": "+a.toShortString()+"] and ["+j+": "+b.toShortString()+"]";
+                          System.err.println(msg);
+                          System.err.println(a);
+                          System.err.println(b);
+                          throw new InternalError(msg);
+                      }
+                  }
+              }
+          }
+      }
+      public static final StaticConfig findCompatible(final MachineDataInfo md) {
+          final StaticConfig[] scs = StaticConfig.values();
+          for(int i=scs.length-1; i>=0; i--) {
+              final StaticConfig a = scs[i];
+              if( a.md.compatible(md) ) {
+                  return a;
+              }
+          }
+          return null;
+      }
   }
 
-
   final private boolean runtimeValidated;
-
-  final private boolean littleEndian;
 
   final private int int8SizeInBytes = 1;
   final private int int16SizeInBytes = 2;
@@ -150,8 +213,7 @@ public class MachineDescription {
   final private int ldoubleAlignmentInBytes;
   final private int pointerAlignmentInBytes;
 
-  public MachineDescription(final boolean runtimeValidated,
-                            final boolean littleEndian,
+  public MachineDataInfo(final boolean runtimeValidated,
 
                             final int intSizeInBytes,
                             final int longSizeInBytes,
@@ -172,7 +234,6 @@ public class MachineDescription {
                             final int ldoubleAlignmentInBytes,
                             final int pointerAlignmentInBytes) {
     this.runtimeValidated = runtimeValidated;
-    this.littleEndian = littleEndian;
 
     this.intSizeInBytes     = intSizeInBytes;
     this.longSizeInBytes    = longSizeInBytes;
@@ -199,13 +260,6 @@ public class MachineDescription {
    */
   public final boolean isRuntimeValidated() {
       return runtimeValidated;
-  }
-
-  /**
-   * Returns true only if this system uses little endian byte ordering.
-   */
-  public final boolean isLittleEndian() {
-      return littleEndian;
   }
 
   public final int intSizeInBytes()     { return intSizeInBytes;    }
@@ -247,32 +301,32 @@ public class MachineDescription {
 
   /**
    * Checks whether two size objects are equal. Two instances
-   * of <code>MachineDescription</code> are considered equal if all components
+   * of <code>MachineDataInfo</code> are considered equal if all components
    * match but {@link #runtimeValidated},  {@link #isRuntimeValidated()}.
-   * @return  <code>true</code> if the two MachineDescription are equal;
+   * @return  <code>true</code> if the two MachineDataInfo are equal;
    *          otherwise <code>false</code>.
    */
   @Override
   public final boolean equals(final Object obj) {
       if (this == obj) { return true; }
-      if ( !(obj instanceof MachineDescription) ) { return false; }
-      final MachineDescription md = (MachineDescription) obj;
+      if ( !(obj instanceof MachineDataInfo) ) { return false; }
+      final MachineDataInfo md = (MachineDataInfo) obj;
 
       return pageSizeInBytes == md.pageSizeInBytes &&
              compatible(md);
   }
 
   /**
-   * Checks whether two size objects are equal. Two instances
-   * of <code>MachineDescription</code> are considered equal if all components
+   * Checks whether two {@link MachineDataInfo} objects are equal.
+   * <p>
+   * Two {@link MachineDataInfo} instances are considered equal if all components
    * match but {@link #isRuntimeValidated()} and {@link #pageSizeInBytes()}.
-   * @return  <code>true</code> if the two MachineDescription are equal;
+   * </p>
+   * @return  <code>true</code> if the two {@link MachineDataInfo} are equal;
    *          otherwise <code>false</code>.
    */
-  public final boolean compatible(final MachineDescription md) {
-      return littleEndian == md.littleEndian &&
-
-             intSizeInBytes == md.intSizeInBytes &&
+  public final boolean compatible(final MachineDataInfo md) {
+      return intSizeInBytes == md.intSizeInBytes &&
              longSizeInBytes == md.longSizeInBytes &&
              floatSizeInBytes == md.floatSizeInBytes &&
              doubleSizeInBytes == md.doubleSizeInBytes &&
@@ -295,7 +349,7 @@ public class MachineDescription {
     if(null==sb) {
         sb = new StringBuilder();
     }
-    sb.append("MachineDescription: runtimeValidated ").append(isRuntimeValidated()).append(", littleEndian ").append(isLittleEndian()).append(", 32Bit ").append(4 == pointerAlignmentInBytes).append(", primitive size / alignment:").append(PlatformPropsImpl.NEWLINE);
+    sb.append("MachineDataInfo: runtimeValidated ").append(isRuntimeValidated()).append(", 32Bit ").append(4 == pointerAlignmentInBytes).append(", primitive size / alignment:").append(PlatformPropsImpl.NEWLINE);
     sb.append("  int8    ").append(int8SizeInBytes)   .append(" / ").append(int8AlignmentInBytes);
     sb.append(", int16   ").append(int16SizeInBytes)  .append(" / ").append(int16AlignmentInBytes).append(Platform.getNewline());
     sb.append("  int     ").append(intSizeInBytes)    .append(" / ").append(intAlignmentInBytes);

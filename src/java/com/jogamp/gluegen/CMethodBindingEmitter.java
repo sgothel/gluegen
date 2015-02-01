@@ -43,7 +43,7 @@ import java.util.*;
 import java.io.*;
 import java.text.MessageFormat;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.gluegen.cgram.types.*;
 
 import java.util.logging.Logger;
@@ -109,7 +109,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   protected static final String STRING_CHARS_PREFIX = "_strchars_";
 
   // We need this in order to compute sizes of certain types
-  protected MachineDescription machDesc;
+  protected MachineDataInfo machDesc;
 
   /**
    * Constructs an emitter for the specified binding, and sets a default
@@ -124,7 +124,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                final boolean isJavaMethodStatic,
                                final boolean forImplementingMethodCall,
                                final boolean forIndirectBufferAndArrayImplementation,
-                               final MachineDescription machDesc)
+                               final MachineDataInfo machDesc)
   {
     super(output, false);
 
@@ -289,7 +289,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   /**
    * Used for certain internal type size computations
    */
-  public final MachineDescription getMachineDescription() { return machDesc; }
+  public final MachineDataInfo getMachineDataInfo() { return machDesc; }
 
 
   @Override

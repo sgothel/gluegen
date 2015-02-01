@@ -43,7 +43,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -53,7 +53,7 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestIOUtil01 extends SingletonJunitCase {
 
-    static final MachineDescription machine = Platform.getMachineDescription();
+    static final MachineDataInfo machine = Platform.getMachineDataInfo();
     static final int tsz = machine.pageSizeInBytes() + machine.pageSizeInBytes() / 2 ;
     static final byte[] orig = new byte[tsz];
     static final String tfilename = "./test.bin" ;

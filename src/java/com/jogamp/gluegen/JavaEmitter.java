@@ -42,7 +42,7 @@ package com.jogamp.gluegen;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.DynamicLookupHelper;
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 
 import java.io.*;
 import java.util.*;
@@ -53,7 +53,7 @@ import com.jogamp.gluegen.cgram.types.*;
 import java.nio.Buffer;
 import java.util.logging.Logger;
 
-import jogamp.common.os.MachineDescriptionRuntime;
+import jogamp.common.os.MachineDataInfoRuntime;
 import static java.util.logging.Level.*;
 import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 
@@ -100,8 +100,8 @@ public class JavaEmitter implements GlueEmitter {
   private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
   private PrintWriter cWriter;
-  private final MachineDescription machDescJava = MachineDescription.StaticConfig.LP64_UNIX.md;
-  private final MachineDescription.StaticConfig[] machDescTargetConfigs = MachineDescription.StaticConfig.values();
+  private final MachineDataInfo machDescJava = MachineDataInfo.StaticConfig.LP64_UNIX.md;
+  private final MachineDataInfo.StaticConfig[] machDescTargetConfigs = MachineDataInfo.StaticConfig.values();
 
   protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
 
@@ -858,7 +858,7 @@ public class JavaEmitter implements GlueEmitter {
 
     this.requiresStaticInitialization = false; // reset
 
-    // machDescJava global MachineDescription is the one used to determine
+    // machDescJava global MachineDataInfo is the one used to determine
     // the sizes of the primitive types seen in the public API in Java.
     // For example, if a C long is an element of a struct, it is the size
     // of a Java int on a 32-bit machine but the size of a Java long
@@ -868,11 +868,11 @@ public class JavaEmitter implements GlueEmitter {
     // implementation on a 32-bit platform must downcast this to an
     // int and set only an int's worth of data in the struct.
     //
-    // The machDescTarget MachineDescription is the one used to determine how
+    // The machDescTarget MachineDataInfo is the one used to determine how
     // much data to set in or get from the struct and exactly from
     // where it comes.
     //
-    // Note that machDescJava MachineDescription is always 64bit unix,
+    // Note that machDescJava MachineDataInfo is always 64bit unix,
     // which complies w/ Java types.
 
     boolean needsNativeCode = false;
@@ -935,7 +935,7 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println("import " + cfg.gluegenRuntimePackage() + ".*;");
     javaWriter.println("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
     javaWriter.println("import " + Buffers.class.getPackage().getName() + ".*;");
-    javaWriter.println("import " + MachineDescriptionRuntime.class.getName() + ";");
+    javaWriter.println("import " + MachineDataInfoRuntime.class.getName() + ";");
     javaWriter.println();
     final List<String> imports = cfg.imports();
     for (final String str : imports) {
@@ -963,10 +963,10 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println();
     javaWriter.println("  StructAccessor accessor;");
     javaWriter.println();
-    final String cfgMachDescrIdxCode = cfg.returnStructMachineDescriptorIndex(containingJTypeName);
-    final String machDescrIdxCode = null != cfgMachDescrIdxCode ? cfgMachDescrIdxCode : "private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();";
+    final String cfgMachDescrIdxCode = cfg.returnStructMachineDataInfoIndex(containingJTypeName);
+    final String machDescrIdxCode = null != cfgMachDescrIdxCode ? cfgMachDescrIdxCode : "private static final int mdIdx = MachineDataInfoRuntime.getStatic().ordinal();";
     javaWriter.println("  "+machDescrIdxCode);
-    javaWriter.println("  private final MachineDescription md;");
+    javaWriter.println("  private final MachineDataInfo md;");
     javaWriter.println();
     // generate all offset and size arrays
     generateOffsetAndSizeArrays(javaWriter, "  ", containingJTypeName, structCType, null, null); /* w/o offset */
@@ -1058,7 +1058,7 @@ public class JavaEmitter implements GlueEmitter {
     }
     if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, containingJTypeName)) ) {
         javaWriter.println("  " + containingJTypeName + "(java.nio.ByteBuffer buf) {");
-        javaWriter.println("    md = MachineDescription.StaticConfig.values()[mdIdx].md;");
+        javaWriter.println("    md = MachineDataInfo.StaticConfig.values()[mdIdx].md;");
         javaWriter.println("    accessor = new StructAccessor(buf);");
         javaWriter.println("  }");
         javaWriter.println();
@@ -1948,7 +1948,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   private static final boolean DEBUG_TYPEC2JAVA = false;
-  private JavaType typeToJavaType(final Type cType, final MachineDescription curMachDesc) {
+  private JavaType typeToJavaType(final Type cType, final MachineDataInfo curMachDesc) {
       final JavaType jt = typeToJavaTypeImpl(cType, curMachDesc);
       if( DEBUG_TYPEC2JAVA ) {
           System.err.println("typeToJavaType: "+cType.getDebugString()+" -> "+jt.getDebugString());
@@ -1961,7 +1961,7 @@ public class JavaEmitter implements GlueEmitter {
            (opt.getTargetType().getName() != null) &&
            (opt.getTargetType().getName().equals("JNIEnv"));
   }
-  private JavaType typeToJavaTypeImpl(final Type cType, final MachineDescription curMachDesc) {
+  private JavaType typeToJavaTypeImpl(final Type cType, final MachineDataInfo curMachDesc) {
     // Recognize JNIEnv* case up front
     if( isJNIEnvPointer(cType) ) {
         return JavaType.createForJNIEnv();
@@ -2194,7 +2194,7 @@ public class JavaEmitter implements GlueEmitter {
 
   private String compatiblePrimitiveJavaTypeName(final Type fieldType,
                                                  final JavaType javaType,
-                                                 final MachineDescription curMachDesc) {
+                                                 final MachineDataInfo curMachDesc) {
     final Class<?> c = javaType.getJavaClass();
     if (!isIntegerType(c)) {
       // FIXME
@@ -2583,7 +2583,7 @@ public class JavaEmitter implements GlueEmitter {
   private MethodBinding bindFunction(final FunctionSymbol sym,
                                      final JavaType containingType,
                                      final Type containingCType,
-                                     final MachineDescription curMachDesc) {
+                                     final MachineDataInfo curMachDesc) {
 
     final MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
 

@@ -3,7 +3,7 @@
 
 #include <assert.h>
 
-#include "jogamp_common_os_MachineDescriptionRuntime.h"
+#include "jogamp_common_os_MachineDataInfoRuntime.h"
 
 #if defined(_WIN32)
     #include <windows.h>
@@ -14,12 +14,12 @@
 #include <gluegen_stdint.h>
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getPointerSizeInBytesImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getPointerSizeInBytesImpl(JNIEnv *env, jclass _unused) {
     return sizeof(void *);
 }
 
 JNIEXPORT jlong JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getPageSizeInBytesImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getPageSizeInBytesImpl(JNIEnv *env, jclass _unused) {
 #if defined(_WIN32)
     SYSTEM_INFO si;
     GetSystemInfo(&si);
@@ -84,77 +84,77 @@ typedef struct {
 #define ALIGNMENT(a, b) ( (a) - (b) )
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt8Impl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentInt8Impl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_int8 ), sizeof(int8_t));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt16Impl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentInt16Impl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_int16 ), sizeof(int16_t));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt32Impl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentInt32Impl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_int32 ), sizeof(int32_t));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentInt64Impl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentInt64Impl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_int64 ), sizeof(int64_t));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentIntImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentIntImpl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_int ), sizeof(int));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentLongImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentLongImpl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_long ), sizeof(long));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentPointerImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentPointerImpl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_pointer ), sizeof(void *));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentFloatImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentFloatImpl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_float ), sizeof(float));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentDoubleImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentDoubleImpl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_double ), sizeof(double));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getAlignmentLongDoubleImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getAlignmentLongDoubleImpl(JNIEnv *env, jclass _unused) {
     return ALIGNMENT(sizeof( struct_alignment_ldouble ), sizeof(long double));
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfIntImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getSizeOfIntImpl(JNIEnv *env, jclass _unused) {
     return sizeof(int);
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfLongImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getSizeOfLongImpl(JNIEnv *env, jclass _unused) {
     return sizeof(long);
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfFloatImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getSizeOfFloatImpl(JNIEnv *env, jclass _unused) {
     return sizeof(float);
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfDoubleImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getSizeOfDoubleImpl(JNIEnv *env, jclass _unused) {
     return sizeof(double);
 }
 
 JNIEXPORT jint JNICALL 
-Java_jogamp_common_os_MachineDescriptionRuntime_getSizeOfLongDoubleImpl(JNIEnv *env, jclass _unused) {
+Java_jogamp_common_os_MachineDataInfoRuntime_getSizeOfLongDoubleImpl(JNIEnv *env, jclass _unused) {
     return sizeof(long double);
 }
 

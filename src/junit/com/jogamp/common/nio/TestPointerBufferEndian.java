@@ -20,7 +20,7 @@ import org.junit.runners.MethodSorters;
 public class TestPointerBufferEndian extends SingletonJunitCase {
 
     protected void testImpl (final boolean direct) {
-        final MachineDescription machine = Platform.getMachineDescription();
+        final MachineDataInfo machine = Platform.getMachineDataInfo();
         final int bitsPtr = machine.pointerSizeInBytes() * 8;
         final String bitsProp = System.getProperty("sun.arch.data.model");
         out.println("OS: <"+PlatformPropsImpl.OS+"> CPU: <"+PlatformPropsImpl.ARCH+"> Bits: <"+bitsPtr+"/"+bitsProp+">");

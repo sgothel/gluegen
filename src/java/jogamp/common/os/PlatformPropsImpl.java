@@ -140,15 +140,6 @@ public abstract class PlatformPropsImpl {
         OS_TYPE = getOSTypeImpl(OS_lower, isAndroid);
 
         // Hard values, i.e. w/ probing binaries
-        //
-        // FIXME / HACK:
-        //   We use preCpuType for MachineDescriptionRuntime.getStatic()
-        //   until we have determined the final CPU_TYPE, etc.
-        //   MachineDescriptionRuntime gets notified via MachineDescriptionRuntime.notifyPropsInitialized() below.
-        //
-        //   We could use Elf Ehdr's machine value to determine the bit-size
-        //   used for it's offset table!
-        //   However, 'os.arch' should be a good guess for this task.
         final String elfCpuName;
         final CPUType elfCpuType;
         final ABIType elfABIType;
@@ -324,7 +315,7 @@ public abstract class PlatformPropsImpl {
         if( DEBUG ) {
             System.err.println("Platform.Hard: ARCH "+ARCH+", CPU_ARCH "+CPU_ARCH+", ABI_TYPE "+ABI_TYPE+" - strategy "+strategy+"(isAndroid "+isAndroid+", elfValid "+elfValid+")");
         }
-        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
+        os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE, LITTLE_ENDIAN);
     }
 
     protected PlatformPropsImpl() {}
@@ -504,20 +495,34 @@ public abstract class PlatformPropsImpl {
     public static void initSingleton() { }
 
     /**
-     * Returns the GlueGen common name for the given OSType and CPUType
-     * as implemented in the build system in 'gluegen-cpptasks-base.xml'.<br>
+     * Returns the GlueGen common name for the given
+     * {@link OSType}, {@link CPUType}, {@link ABIType} and {@code littleEndian}.
+     * <p>
+     * Consult 'gluegen/make/gluegen-cpptasks-base.xml' to complete/sync mapping!
+     * </p>
      *
-     * A list of currently supported <code>os.and.arch</code> strings:
+     * An excerpt of supported <code>os.and.arch</code> strings:
      * <ul>
+     *   <li>android-armv6</li>
+     *   <li>android-aarch64</li>
+     *   <li>linux-armv6</li>
+     *   <li>linux-armv6hf</li>
+     *   <li>linux-i586</li>
+     *   <li>linux-ppc</li>
+     *   <li>linux-mips</li>
+     *   <li>linux-mipsel</li>
+     *   <li>linux-superh</li>
+     *   <li>linux-sparc</li>
+     *   <li>linux-aarch64</li>
+     *   <li>linux-amd64</li>
+     *   <li>linux-ppc64</li>
+     *   <li>linux-mips64</li>
+     *   <li>linux-ia64</li>
+     *   <li>linux-sparcv9</li>
+     *   <li>linux-risc2.0</li>
      *   <li>freebsd-i586</li>
      *   <li>freebsd-amd64</li>
      *   <li>hpux-hppa</li>
-     *   <li>linux-amd64</li>
-     *   <li>linux-ia64</li>
-     *   <li>linux-i586</li>
-     *   <li>linux-armv6</li>
-     *   <li>linux-armv6hf</li>
-     *   <li>android-armv6</li>
      *   <li>macosx-universal</li>
      *   <li>solaris-sparc</li>
      *   <li>solaris-sparcv9</li>
@@ -528,39 +533,49 @@ public abstract class PlatformPropsImpl {
      * </ul>
      * @return The <i>os.and.arch</i> value.
      */
-    public static final String getOSAndArch(final OSType osType, final CPUType cpuType, final ABIType abiType) {
+    public static final String getOSAndArch(final OSType osType, final CPUType cpuType, final ABIType abiType, final boolean littleEndian) {
         final String os_;
         final String _and_arch_tmp, _and_arch_final;
 
         switch( cpuType ) {
-            case X86_32:
-                _and_arch_tmp = "i586";
-                break;
             case ARM:
             case ARMv5:
             case ARMv6:
             case ARMv7:
                 if( ABIType.EABI_GNU_ARMHF == abiType ) {
-                    _and_arch_tmp = "armv6hf" ; // TODO: sync with gluegen-cpptasks-base.xml
+                    _and_arch_tmp = "armv6hf";
                 } else {
-                    _and_arch_tmp = "armv6";    // TODO: sync with gluegen-cpptasks-base.xml
+                    _and_arch_tmp = "armv6";
                 }
                 break;
-            case ARM64:
-            case ARMv8_A:
-                _and_arch_tmp = "aarch64";
+            case X86_32:
+                _and_arch_tmp = "i586";
+                break;
+            case PPC:
+                _and_arch_tmp = "ppc";
+                break;
+            case MIPS_32:
+                _and_arch_tmp = littleEndian ? "mipsel" : "mips";
+                break;
+            case SuperH:
+                _and_arch_tmp = "superh";
                 break;
             case SPARC_32:
                 _and_arch_tmp = "sparc";
                 break;
-            case PPC64:
-                _and_arch_tmp = "ppc64";        // TODO: sync with gluegen-cpptasks-base.xml
-                break;
-            case PPC:
-                _and_arch_tmp = "ppc";          // TODO: sync with gluegen-cpptasks-base.xml
+
+            case ARM64:
+            case ARMv8_A:
+                _and_arch_tmp = "aarch64";
                 break;
             case X86_64:
                 _and_arch_tmp = "amd64";
+                break;
+            case PPC64:
+                _and_arch_tmp = "ppc64";
+                break;
+            case MIPS_64:
+                _and_arch_tmp = "mips64";
                 break;
             case IA64:
                 _and_arch_tmp = "ia64";
@@ -569,7 +584,7 @@ public abstract class PlatformPropsImpl {
                 _and_arch_tmp = "sparcv9";
                 break;
             case PA_RISC2_0:
-                _and_arch_tmp = "risc2.0";      // TODO: sync with gluegen-cpptasks-base.xml
+                _and_arch_tmp = "risc2.0";
                 break;
             default:
                 throw new InternalError("Unhandled CPUType: "+cpuType);

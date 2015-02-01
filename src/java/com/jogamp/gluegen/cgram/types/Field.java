@@ -39,7 +39,7 @@
 
 package com.jogamp.gluegen.cgram.types;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 
 /** Represents a field in a struct or union. */
 
@@ -83,8 +83,8 @@ public class Field {
   public SizeThunk getOffset() { return offset; }
 
   /** Offset, in bytes, of this field in the containing data structure
-      given the specified MachineDescription. */
-  public long    getOffset(final MachineDescription machDesc) { return offset.computeSize(machDesc); }
+      given the specified MachineDataInfo. */
+  public long    getOffset(final MachineDataInfo machDesc) { return offset.computeSize(machDesc); }
 
   /** Sets the offset of this field in the containing data structure. */
   public void    setOffset(final SizeThunk offset) { this.offset = offset; }

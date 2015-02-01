@@ -31,7 +31,7 @@ package com.jogamp.common.util;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -55,14 +55,14 @@ public class TestPlatform01 extends SingletonJunitCase {
         System.err.println("Java vendor[name/url]: "+Platform.getJavaVendor()+"/"+Platform.getJavaVendorURL());
         System.err.println("Java version, vm: "+Platform.getJavaVersion()+", "+Platform.getJavaVMName());
         System.err.println();
-        System.err.println("MD: "+Platform.getMachineDescription());
+        System.err.println("MD: "+Platform.getMachineDataInfo());
         System.err.println();
         System.err.println();
     }
 
     @Test
     public void testPageSize01()  {
-        final MachineDescription machine = Platform.getMachineDescription();
+        final MachineDataInfo machine = Platform.getMachineDataInfo();
         final int ps = machine.pageSizeInBytes();
         System.err.println("PageSize: "+ps);
         Assert.assertTrue("PageSize is 0", 0 < ps );

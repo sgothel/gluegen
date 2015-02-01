@@ -37,7 +37,7 @@ import java.net.URISyntaxException;
 import java.security.AccessControlException;
 
 import com.jogamp.common.net.Uri;
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
@@ -52,7 +52,7 @@ public class Applet01 extends Applet {
     static final String os_name_propkey = "os.name";
 
     static final String tfilename = "test.bin" ;
-    static final MachineDescription machine = Platform.getMachineDescription();
+    static final MachineDataInfo machine = Platform.getMachineDataInfo();
     static final int tsz = machine.pageSizeInBytes();
 
     static final boolean usesSecurityManager;

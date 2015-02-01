@@ -30,7 +30,7 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -41,7 +41,7 @@ import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.util.Arrays;
 
-import jogamp.common.os.MachineDescriptionRuntime;
+import jogamp.common.os.MachineDataInfoRuntime;
 
 import org.junit.Assert;
 
@@ -824,8 +824,8 @@ public class BaseClass extends SingletonJunitCase {
 
     public void chapter09TestCompoundAlignment(final Bindingtest1 binding) throws Exception {
 
-        final MachineDescription.StaticConfig smd = MachineDescriptionRuntime.getStatic();
-        final MachineDescription md = MachineDescriptionRuntime.getRuntime();
+        final MachineDataInfo.StaticConfig smd = MachineDataInfoRuntime.getStatic();
+        final MachineDataInfo md = MachineDataInfoRuntime.getRuntime();
 
         System.err.println("static  md: "+smd);
         System.err.println("runtime md: "+md);

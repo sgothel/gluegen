@@ -59,7 +59,7 @@ public class VersionUtil {
         // environment
         sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (").append(Platform.getOSVersionNumber()).append("), ");
         sb.append(Platform.getArchName()).append(" (").append(Platform.getCPUType()).append(", ").append(Platform.getABIType()).append("), ");
-        sb.append(Runtime.getRuntime().availableProcessors()).append(" cores");
+        sb.append(Runtime.getRuntime().availableProcessors()).append(" cores, ").append("littleEndian ").append(PlatformPropsImpl.LITTLE_ENDIAN);
         sb.append(Platform.getNewline());
         if( Platform.OSType.ANDROID == PlatformPropsImpl.OS_TYPE ) {
             sb.append("Platform: Android Version: ").append(AndroidVersion.CODENAME).append(", ");
@@ -67,7 +67,7 @@ public class VersionUtil {
             sb.append(Platform.getNewline());
         }
 
-        Platform.getMachineDescription().toString(sb).append(Platform.getNewline());
+        Platform.getMachineDataInfo().toString(sb).append(Platform.getNewline());
 
         // JVM/JRE
         sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(" (").append(Platform.getJavaVersionNumber()).append("u").append(PlatformPropsImpl.JAVA_VERSION_UPDATE).append("), VM: ").append(Platform.getJavaVMName());

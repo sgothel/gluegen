@@ -623,6 +623,8 @@
     <echo message="arch=${os.arch}" /> 
  </target>
 
+ <!-- Consult jogamp.common.os.PlatformPropsImpl.getOSAndArch(..) to complete/sync mapping! -->
+
   <target name="gluegen.cpptasks.detect.os.freebsd.x86" unless="gluegen.cpptasks.detected.os.2" if="isFreeBSDX86">
     <property name="os.and.arch" value="freebsd-i586" />
   </target>

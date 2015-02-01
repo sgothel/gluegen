@@ -28,76 +28,98 @@
 
 package jogamp.common.os;
 
-import com.jogamp.common.os.MachineDescription;
+import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
-import com.jogamp.common.os.MachineDescription.StaticConfig;
+import com.jogamp.common.os.MachineDataInfo.StaticConfig;
 
 /**
- * Runtime MachineDescription
+ * Runtime operations of {@link MachineDataInfo}.
  */
-public class MachineDescriptionRuntime {
+public class MachineDataInfoRuntime {
 
-  static volatile boolean smdHardQueried = false;
-  static MachineDescription.StaticConfig smdHard = null;
+  static volatile boolean initialized = false;
+  static volatile MachineDataInfo runtimeMD = null;
+  static volatile MachineDataInfo.StaticConfig staticMD = null;
 
-  static volatile boolean smdSoftQueried = false;
-  static MachineDescription.StaticConfig smdSoft = null;
+  public static void initialize() {
+      if( !initialized ) {
+          synchronized(MachineDataInfo.class) { // volatile dbl-checked-locking OK
+              if( !initialized ) {
+                  MachineDataInfo.StaticConfig.validateUniqueMachineDataInfo();
 
-  public static MachineDescription.StaticConfig getStatic() {
-      if(!smdHardQueried) {
-          synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
-              if(!smdHardQueried) {
-                  smdHard = get(PlatformPropsImpl.OS_TYPE, PlatformPropsImpl.CPU_ARCH, PlatformPropsImpl.LITTLE_ENDIAN);
-                  smdHardQueried=true;
-                  if( PlatformPropsImpl.DEBUG ) {
-                      System.err.println("MachineDescription.StaticConfig.getStatic_Hard(os "+PlatformPropsImpl.OS_TYPE+", CpuType "+PlatformPropsImpl.CPU_ARCH+", little "+PlatformPropsImpl.LITTLE_ENDIAN+"): "+smdHard.toShortString());
+                  final MachineDataInfo runtimeMD = getRuntimeImpl();
+                  final MachineDataInfo.StaticConfig staticMD = MachineDataInfo.StaticConfig.findCompatible(runtimeMD);
+                  if( null == staticMD ) {
+                      throw new RuntimeException("No compatible MachineDataInfo.StaticConfig for runtime:"+PlatformPropsImpl.NEWLINE+runtimeMD);
                   }
+                  if( !staticMD.md.compatible(runtimeMD) ) {
+                      throw new RuntimeException("Incompatible MachineDataInfo:"+PlatformPropsImpl.NEWLINE+
+                                                 " Static "+staticMD+PlatformPropsImpl.NEWLINE+
+                                                 " Runtime "+runtimeMD);
+                  }
+                  MachineDataInfoRuntime.runtimeMD = runtimeMD;
+                  MachineDataInfoRuntime.staticMD = staticMD;
+                  initialized=true;
+                  if( PlatformPropsImpl.DEBUG ) {
+                      System.err.println("MachineDataInfoRuntime.initialize():"+PlatformPropsImpl.NEWLINE+
+                                         " Static "+staticMD+PlatformPropsImpl.NEWLINE+
+                                         " Runtime "+runtimeMD);
+                  }
+                  return;
               }
           }
       }
-      return smdHard;
+      throw new InternalError("Already initialized");
+  }
+  public static MachineDataInfo.StaticConfig getStatic() {
+      if(!initialized) {
+          synchronized(MachineDataInfo.class) { // volatile dbl-checked-locking OK
+              if(!initialized) {
+                  throw new InternalError("Not set");
+              }
+          }
+      }
+      return staticMD;
+  }
+  public static MachineDataInfo getRuntime() {
+      if(!initialized) {
+          synchronized(MachineDataInfo.class) { // volatile dbl-checked-locking OK
+              if(!initialized) {
+                  throw new InternalError("Not set");
+              }
+          }
+      }
+      return runtimeMD;
   }
 
-  public static MachineDescription.StaticConfig get(final Platform.OSType osType, final Platform.CPUType cpuType, final boolean littleEndian) {
+  public static MachineDataInfo.StaticConfig guessStaticMachineDataInfo(final Platform.OSType osType, final Platform.CPUType cpuType) {
       if( cpuType.is32Bit ) {
-          if( cpuType.family == Platform.CPUFamily.ARM && littleEndian) {
-              return StaticConfig.ARMle_EABI;
-          } else if( osType == Platform.OSType.WINDOWS ) {
+          if( Platform.CPUFamily.ARM == cpuType.family ||
+              Platform.CPUType.MIPS_32 == cpuType ) {
+              return StaticConfig.ARM_MIPS_32;
+          } else if( Platform.OSType.WINDOWS == osType ) {
               return StaticConfig.X86_32_WINDOWS;
-          } else if( osType == Platform.OSType.MACOS ) {
+          } else if( Platform.OSType.MACOS == osType ) {
               return StaticConfig.X86_32_MACOS;
-          } else if ( osType == Platform.OSType.SUNOS ) {
-              if ( cpuType == Platform.CPUType.SPARC_32 ) {
-                  return StaticConfig.SPARC_32_SUNOS;
-              }
-              // TODO SPARCv9 description is missing
+          } else if ( Platform.OSType.SUNOS == osType &&
+                      Platform.CPUType.SPARC_32 == cpuType ) {
+              return StaticConfig.SPARC_32_SUNOS;
+          } else if ( Platform.CPUType.PPC == cpuType ) {
+              return StaticConfig.PPC_32_UNIX;
+          } else {
+              return StaticConfig.X86_32_UNIX;
           }
-          return StaticConfig.X86_32_UNIX;
       } else {
           if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_64_WINDOWS;
           } else {
-              // for all 64bit unix types (x86_64, aarch64, ..)
+              // for all 64bit unix types (x86_64, aarch64, sparcv9, ..)
               return StaticConfig.LP64_UNIX;
           }
       }
   }
 
-  static volatile boolean rmdQueried = false;
-  static MachineDescription rmd = null;
-
-  public static MachineDescription getRuntime() {
-        if(!rmdQueried) {
-            synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
-                if(!rmdQueried) {
-                    rmd = getRuntimeImpl();
-                    rmdQueried=true;
-                }
-            }
-        }
-        return rmd;
-  }
-  private static MachineDescription getRuntimeImpl() {
+  private static MachineDataInfo getRuntimeImpl() {
         try {
             Platform.initSingleton(); // loads native gluegen-rt library
         } catch (final UnsatisfiedLinkError err) {
@@ -120,8 +142,8 @@ public class MachineDescriptionRuntime {
 
         // size:      int, long, float, double, pointer, pageSize
         // alignment: int8, int16, int32, int64, int, long, float, double, pointer
-        return new MachineDescription(
-            true /* runtime validated */, PlatformPropsImpl.LITTLE_ENDIAN,
+        return new MachineDataInfo(
+            true /* runtime validated */,
 
             getSizeOfIntImpl(), getSizeOfLongImpl(),
             getSizeOfFloatImpl(), getSizeOfDoubleImpl(), getSizeOfLongDoubleImpl(),
