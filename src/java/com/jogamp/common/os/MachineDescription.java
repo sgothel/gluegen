@@ -104,7 +104,7 @@ public class MachineDescription {
                                            alignments[j++]);
       }
 
-      public StringBuilder toString(StringBuilder sb) {
+      public final StringBuilder toString(StringBuilder sb) {
         if(null==sb) {
             sb = new StringBuilder();
         }
@@ -112,7 +112,9 @@ public class MachineDescription {
         md.toString(sb);
         return sb;
       }
-
+      public final String toShortString() {
+          return this.name()+"("+this.ordinal()+")";
+      }
       @Override
       public String toString() {
         return toString(null).toString();

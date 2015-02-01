@@ -58,96 +58,185 @@ import jogamp.common.os.PlatformPropsImpl;
 public class Platform extends PlatformPropsImpl {
 
     public enum OSType {
-        LINUX(0), FREEBSD(1), ANDROID(2), MACOS(3), SUNOS(4), HPUX(5), WINDOWS(6), OPENKODE(7);
-
-        public final int id;
-
-        OSType(final int id){
-            this.id = id;
-        }
+        LINUX, FREEBSD, ANDROID, MACOS, SUNOS, HPUX, WINDOWS, OPENKODE;
     }
 
     public enum CPUFamily {
         /** AMD/Intel */
-        X86(    0x00000000),
+        X86,
         /** ARM */
-        ARM(    0x00010000),
+        ARM,
         /** Power PC */
-        PPC(    0x00020000),
+        PPC,
         /** SPARC */
-        SPARC(  0x00030000),
+        SPARC,
         /** Mips */
-        MIPS(   0x00040000),
+        MIPS,
         /** PA RISC */
-        PA_RISC(0xFFFF0000),
+        PA_RISC,
         /** Itanium */
-        IA64(   0xFFFF1000);
-
-        public final int id;
-
-        CPUFamily(final int id){
-            this.id = id;
-        }
+        IA64;
     }
 
     public enum CPUType {
         /** X86 32bit */
-        X86_32(    CPUFamily.X86,     0x0001, true),
+        X86_32(    CPUFamily.X86,     true),
         /** X86 64bit */
-        X86_64(    CPUFamily.X86,     0x0002, false),
+        X86_64(    CPUFamily.X86,     false),
         /** ARM 32bit default */
-        ARM(       CPUFamily.ARM,     0x0000, true),
+        ARM(       CPUFamily.ARM,     true),
         /** ARM7EJ, ARM9E, ARM10E, XScale */
-        ARMv5(     CPUFamily.ARM,     0x0001, true),
+        ARMv5(     CPUFamily.ARM,     true),
         /** ARM11 */
-        ARMv6(     CPUFamily.ARM,     0x0002, true),
+        ARMv6(     CPUFamily.ARM,     true),
         /** ARM Cortex */
-        ARMv7(     CPUFamily.ARM,     0x0004, true),
+        ARMv7(     CPUFamily.ARM,     true),
         /** ARM64 default (64bit) */
-        ARM64(     CPUFamily.ARM,     0x0008, false),
+        ARM64(     CPUFamily.ARM,     false),
         /** ARM AArch64 (64bit) */
-        ARMv8_A(   CPUFamily.ARM,     0x0010, false),
+        ARMv8_A(   CPUFamily.ARM,     false),
         /** PPC 32bit default */
-        PPC(       CPUFamily.PPC,     0x0000, true),
+        PPC(       CPUFamily.PPC,     true),
+        /** PPC 64bit default */
+        PPC64(     CPUFamily.PPC,     false),
         /** SPARC 32bit */
-        SPARC_32(  CPUFamily.SPARC,   0x0001, true),
+        SPARC_32(  CPUFamily.SPARC,   true),
         /** SPARC 64bit */
-        SPARCV9_64(CPUFamily.SPARC,   0x0002, false),
+        SPARCV9_64(CPUFamily.SPARC,   false),
         /** MIPS 32bit */
-        MIPS_32(  CPUFamily.MIPS,     0x0001, true),
+        MIPS_32(   CPUFamily.MIPS,    true),
         /** MIPS 64bit */
-        MIPS_64(  CPUFamily.MIPS,     0x0002, false),
+        MIPS_64(   CPUFamily.MIPS,    false),
         /** Itanium 64bit default */
-        IA64(      CPUFamily.IA64,    0x0000, false),
+        IA64(      CPUFamily.IA64,    false),
         /** PA_RISC2_0 64bit */
-        PA_RISC2_0(CPUFamily.PA_RISC, 0x0001, false);
+        PA_RISC2_0(CPUFamily.PA_RISC, false);
 
-        public final int id;
         public final CPUFamily family;
         public final boolean is32Bit;
 
-        CPUType(final CPUFamily type, final int id, final boolean is32Bit){
+        CPUType(final CPUFamily type, final boolean is32Bit){
             this.family = type;
-            this.id = id;
             this.is32Bit = is32Bit;
         }
 
-        public CPUFamily getFamily() { return family; }
+        /**
+         * Returns {@code true} if the given {@link CPUType} is compatible
+         * w/ this one, i.e. at least {@link #family} and {@link #is32Bit} is equal.
+         */
+        public final boolean isCompatible(final CPUType other) {
+            if( null == other ) {
+                return false;
+            } else if( other == this ) {
+                return true;
+            } else {
+                return this.family == other.family &&
+                       this.is32Bit == other.is32Bit;
+            }
+        }
+
+        public static final CPUType query(final String cpuABILower) {
+            if( null == cpuABILower ) {
+                throw new IllegalArgumentException("Null cpuABILower arg");
+            }
+            if(        cpuABILower.equals("x86")  ||
+                       cpuABILower.equals("i386") ||
+                       cpuABILower.equals("i486") ||
+                       cpuABILower.equals("i586") ||
+                       cpuABILower.equals("i686") ) {
+                return X86_32;
+            } else if( cpuABILower.equals("x86_64") ||
+                       cpuABILower.equals("amd64")  ) {
+                return X86_64;
+            } else if( cpuABILower.equals("ia64") ) {
+                return IA64;
+            } else if( cpuABILower.equals("aarch64") ) {
+                return ARM64;
+            } else if( cpuABILower.startsWith("arm") ) {
+                if(        cpuABILower.equals("armv8-a")   ||
+                           cpuABILower.equals("arm-v8-a") ||
+                           cpuABILower.equals("arm-8-a") ||
+                           cpuABILower.equals("arm64-v8a") ) {
+                    return ARMv8_A;
+                } else if( cpuABILower.startsWith("arm64") ) {
+                    return ARM64;
+                } else if( cpuABILower.startsWith("armv7") ||
+                           cpuABILower.startsWith("arm-v7") ||
+                           cpuABILower.startsWith("arm-7") ||
+                           cpuABILower.startsWith("armeabi-v7") ) {
+                    return ARMv7;
+                } else if( cpuABILower.startsWith("armv5") ||
+                           cpuABILower.startsWith("arm-v5") ||
+                           cpuABILower.startsWith("arm-5") ) {
+                    return ARMv5;
+                } else if( cpuABILower.startsWith("armv6") ||
+                           cpuABILower.startsWith("arm-v6") ||
+                           cpuABILower.startsWith("arm-6") ) {
+                    return ARMv6;
+                } else {
+                    return ARM;
+                }
+            } else if( cpuABILower.equals("sparcv9") ) {
+                return SPARCV9_64;
+            } else if( cpuABILower.equals("sparc") ) {
+                return SPARC_32;
+            } else if( cpuABILower.equals("pa_risc2.0") ) {
+                return PA_RISC2_0;
+            } else if( cpuABILower.startsWith("ppc64") ) {
+                return PPC64;
+            } else if( cpuABILower.startsWith("ppc") ) {
+                return PPC;
+            } else if( cpuABILower.startsWith("mips") ) {
+                return MIPS_32;
+            } else {
+                throw new RuntimeException("Please port CPUType detection to your platform (CPU_ABI string '" + cpuABILower + "')");
+            }
+        }
     }
 
     public enum ABIType {
-        GENERIC_ABI       ( 0x0000 ),
+        GENERIC_ABI       ( 0x00 ),
         /** ARM GNU-EABI ARMEL -mfloat-abi=softfp */
-        EABI_GNU_ARMEL    ( 0x0001 ),
+        EABI_GNU_ARMEL    ( 0x01 ),
         /** ARM GNU-EABI ARMHF -mfloat-abi=hard */
-        EABI_GNU_ARMHF    ( 0x0002 ),
+        EABI_GNU_ARMHF    ( 0x02 ),
         /** ARM EABI AARCH64 (64bit) */
-        EABI_AARCH64      ( 0x0003 );
+        EABI_AARCH64      ( 0x03 );
 
         public final int id;
 
         ABIType(final int id){
             this.id = id;
+        }
+
+        /**
+         * Returns {@code true} if the given {@link ABIType} is compatible
+         * w/ this one, i.e. they are equal.
+         */
+        public final boolean isCompatible(final ABIType other) {
+            if( null == other ) {
+                return false;
+            } else {
+                return other == this;
+            }
+        }
+
+        public static final ABIType query(final CPUType cpuType, final String cpuABILower) {
+            if( null == cpuType ) {
+                throw new IllegalArgumentException("Null cpuType");
+            } else if( null == cpuABILower ) {
+                throw new IllegalArgumentException("Null cpuABILower");
+            } else if( CPUFamily.ARM == cpuType.family ) {
+                if( !cpuType.is32Bit ) {
+                    return EABI_AARCH64;
+                } else if( cpuABILower.equals("armeabi-v7a-hard") ) {
+                    return EABI_GNU_ARMHF;
+                } else {
+                    return EABI_GNU_ARMEL;
+                }
+            } else {
+                return GENERIC_ABI;
+            }
         }
     }
 
@@ -261,26 +350,6 @@ public class Platform extends PlatformPropsImpl {
     public static void initSingleton() { }
 
     /**
-     * Returns true only if having {@link java.nio.LongBuffer} and {@link java.nio.DoubleBuffer} available.
-     */
-    public static boolean isJavaSE() {
-        return JAVA_SE;
-    }
-
-    /**
-     * Returns true only if being compatible w/ language level 6, e.g. JRE 1.6.
-     * <p>
-     * Implies {@link #isJavaSE()}.
-     * </p>
-     * <p>
-     * <i>Note</i>: We claim Android is compatible.
-     * </p>
-     */
-    public static boolean isJava6() {
-        return JAVA_6;
-    }
-
-    /**
      * Returns true if this machine is little endian, otherwise false.
      */
     public static boolean isLittleEndian() {
@@ -328,7 +397,7 @@ public class Platform extends PlatformPropsImpl {
      * Returns the CPU family.
      */
     public static CPUFamily getCPUFamily() {
-        return CPU_ARCH.getFamily();
+        return CPU_ARCH.family;
     }
 
     /**

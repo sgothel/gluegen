@@ -1,3 +1,30 @@
+/**
+ * Copyright 2013 JogAmp Community. All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
+ */
 package jogamp.common.os.elf;
 
 import static jogamp.common.os.elf.IOUtils.toHexString;
@@ -172,7 +199,7 @@ public class SectionArmAttributes extends Section {
 
     SectionArmAttributes(final SectionHeader sh, final byte[] data, final int offset, final int length) throws IndexOutOfBoundsException, IllegalArgumentException {
         super(sh, data, offset, length);
-        this.vendorAttributesList = parse(data, offset, length);
+        this.vendorAttributesList = parse(sh, data, offset, length);
     }
 
     @Override
@@ -208,6 +235,7 @@ public class SectionArmAttributes extends Section {
     }
 
     /**
+     * @param sh TODO
      * @param in byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
      * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
@@ -215,7 +243,7 @@ public class SectionArmAttributes extends Section {
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
-    static List<VendorAttributes> parse(final byte[] in, final int offset, final int remaining) throws IndexOutOfBoundsException, IllegalArgumentException {
+    static List<VendorAttributes> parse(final SectionHeader sh, final byte[] in, final int offset, final int remaining) throws IndexOutOfBoundsException, IllegalArgumentException {
         Bitstream.checkBounds(in, offset, remaining);
         int i = offset;
         if( FORMAT_VERSION_A != in[ i ] ) {
@@ -224,10 +252,11 @@ public class SectionArmAttributes extends Section {
         i++;
 
         final List<VendorAttributes> vendorAttributesList = new ArrayList<VendorAttributes>();
+        final boolean isBigEndian = sh.eh2.eh1.isBigEndian();
 
         while(i < remaining) {
             final int i_pre = i;
-            final int secLen = readUInt32(in, i); /* total section size: 4 + string + content, i.e. offset to next section */
+            final int secLen = readUInt32(isBigEndian, in, i); /* total section size: 4 + string + content, i.e. offset to next section */
             i+=4;
 
             final String vendor;
@@ -241,7 +270,7 @@ public class SectionArmAttributes extends Section {
 
             while(i < secLen) {
                 final int[] i_post = new int[] { 0 };
-                parseSub(in, i, secLen - i, i_post, attributes);
+                parseSub(isBigEndian, in, i, secLen - i, i_post, attributes);
                 i = i_post[0];
             }
 
@@ -261,6 +290,7 @@ public class SectionArmAttributes extends Section {
     }
 
     /**
+     * @param isBigEndian TODO
      * @param in byte source buffer to parse
      * @param offset offset within byte source buffer to start parsing
      * @param remaining remaining numbers of bytes to parse beginning w/ <code>sb_off</code>,
@@ -268,7 +298,10 @@ public class SectionArmAttributes extends Section {
      * @throws IndexOutOfBoundsException if <code>offset + remaining > sb.length</code>.
      * @throws IllegalArgumentException if section parsing failed, i.e. incompatible version or data.
      */
-    static void parseSub(final byte[] in, final int offset, final int remaining, final int[] offset_post, final List<Attribute> attributes) throws IndexOutOfBoundsException, IllegalArgumentException {
+    private static void parseSub(final boolean isBigEndian, final byte[] in, final int offset, final int remaining,
+                                 final int[] offset_post, final List<Attribute> attributes)
+            throws IndexOutOfBoundsException, IllegalArgumentException
+    {
         Bitstream.checkBounds(in, offset, remaining);
 
         // Starts w/ sub-section Tag
@@ -283,7 +316,7 @@ public class SectionArmAttributes extends Section {
             case File:
             case Section:
             case Symbol:
-                subSecLen = readUInt32(in, i);
+                subSecLen = readUInt32(isBigEndian, in, i);
                 i+=4;
                 break;
             default:

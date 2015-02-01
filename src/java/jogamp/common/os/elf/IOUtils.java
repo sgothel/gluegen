@@ -30,7 +30,6 @@ package jogamp.common.os.elf;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.Bitstream;
 
 class IOUtils {
@@ -61,17 +60,12 @@ class IOUtils {
         in.seek(newPos);
     }
 
-    static int readUInt32(final byte[] in, final int offset) {
-        final int v = Bitstream.uint32LongToInt(Bitstream.readUInt32(!Platform.isLittleEndian(), in, offset));
+    static int readUInt32(final boolean isBigEndian, final byte[] in, final int offset) {
+        final int v = Bitstream.uint32LongToInt(Bitstream.readUInt32(isBigEndian, in, offset));
         if( 0 > v ) {
             throw new IllegalArgumentException("Read uint32 value "+toHexString(v)+" > int32-max "+toHexString(MAX_INT_VALUE));
         }
         return v;
-        /** Need to fix endian for below path ..
-        checkBounds(in, offset, 4);
-        final byte[] uint = new byte[] { 0, 0, 0, 0, in[offset+0],  in[offset+1],  in[offset+2],  in[offset+3] };
-        final ByteBuffer b = ByteBuffer.wrap(uint, 0, 8).order(ByteOrder.nativeOrder());
-        return b.asLongBuffer().get(0); */
     }
 
     /**

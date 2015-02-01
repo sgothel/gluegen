@@ -11,9 +11,9 @@ import java.security.PrivilegedAction;
 import java.util.List;
 
 import jogamp.common.Debug;
-import jogamp.common.os.elf.ElfHeader;
+import jogamp.common.os.elf.ElfHeaderPart1;
+import jogamp.common.os.elf.ElfHeaderPart2;
 import jogamp.common.os.elf.SectionArmAttributes;
-import jogamp.common.os.elf.SectionHeader;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.AndroidVersion;
@@ -48,6 +48,13 @@ public abstract class PlatformPropsImpl {
         public static final VersionNumber Mavericks = new VersionNumber(10,9,0);
     }
 
+    /**
+     * Returns {@code true} if the given {@link CPUType}s and {@link ABIType}s are compatible.
+     */
+    public static final boolean isCompatible(final CPUType cpu1, final ABIType abi1, final CPUType cpu2, final ABIType abi2) {
+        return cpu1.isCompatible(cpu2) && abi1.isCompatible(abi2);
+    }
+
     //
     // static initialization order:
     //
@@ -72,13 +79,19 @@ public abstract class PlatformPropsImpl {
     public static final String JAVA_RUNTIME_NAME;
     /** True if having {@link java.nio.LongBuffer} and {@link java.nio.DoubleBuffer} available. */
     public static final boolean JAVA_SE;
-    /** True if being compatible w/ language level 6, e.g. JRE 1.6. Implies {@link #JAVA_SE}. <i>Note</i>: We claim Android is compatible. */
+    /**
+     * True only if being compatible w/ language level 6, e.g. JRE 1.6.
+     * <p>
+     * Implies {@link #isJavaSE()}.
+     * </p>
+     * <p>
+     * <i>Note</i>: We claim Android is compatible.
+     * </p>
+     */
     public static final boolean JAVA_6;
 
     public static final String NEWLINE;
     public static final boolean LITTLE_ENDIAN;
-
-    /* pp */ static final CPUType sCpuType;
 
     public static final CPUType CPU_ARCH;
     public static final ABIType ABI_TYPE;
@@ -126,111 +139,191 @@ public abstract class PlatformPropsImpl {
         OS_VERSION_NUMBER = new VersionNumber(OS_VERSION);
         OS_TYPE = getOSTypeImpl(OS_lower, isAndroid);
 
-        LITTLE_ENDIAN = queryIsLittleEndianImpl();
-
-        // Soft values, i.e. w/o probing binaries
-        final String sARCH = System.getProperty("os.arch");
-        final String sARCH_lower = sARCH.toLowerCase();
-        sCpuType = getCPUTypeImpl(sARCH_lower);
-        if( DEBUG ) {
-            System.err.println("Platform.Soft: sARCH "+sARCH+", sCpuType "+sCpuType);
-            if( isAndroid ) {
-                System.err.println("Android: CPU_ABI1 str "+AndroidVersion.CPU_ABI+", CPU_TYPE "+AndroidVersion.CPU_TYPE+", ABI_TYPE "+AndroidVersion.ABI_TYPE);
-                System.err.println("Android: CPU_ABI2 str "+AndroidVersion.CPU_ABI2+", CPU_TYPE2 "+AndroidVersion.CPU_TYPE2+", ABI_TYPE2 "+AndroidVersion.ABI_TYPE2);
-            }
-        }
-
         // Hard values, i.e. w/ probing binaries
         //
         // FIXME / HACK:
-        //   We use sCPUType for MachineDescriptionRuntime.getStatic()
+        //   We use preCpuType for MachineDescriptionRuntime.getStatic()
         //   until we have determined the final CPU_TYPE, etc.
         //   MachineDescriptionRuntime gets notified via MachineDescriptionRuntime.notifyPropsInitialized() below.
         //
         //   We could use Elf Ehdr's machine value to determine the bit-size
         //   used for it's offset table!
         //   However, 'os.arch' should be a good guess for this task.
+        final String elfCpuName;
         final CPUType elfCpuType;
-        final ABIType elfAbiType;
+        final ABIType elfABIType;
+        final int elfLittleEndian;
         final boolean elfValid;
         {
-            final CPUType[] _ehCpuType = { null };
-            final ABIType[] _ehAbiType = { null };
-            final ElfHeader eh = queryABITypeImpl(OS_TYPE, _ehCpuType, _ehAbiType);
-            if( null != eh && null != _ehCpuType[0] && null != _ehAbiType[0] ) {
-                elfCpuType = _ehCpuType[0];
-                elfAbiType = _ehAbiType[0];
-                if( isAndroid ) {
-                    final CPUFamily aCpuFamily1 = null != AndroidVersion.CPU_TYPE ? AndroidVersion.CPU_TYPE.family : null;
-                    final CPUFamily aCpuFamily2 = null != AndroidVersion.CPU_TYPE2 ? AndroidVersion.CPU_TYPE2.family : null;
-                    if( elfCpuType.family != aCpuFamily1 && elfCpuType.family != aCpuFamily2 ) {
-                        // Ooops !
-                        elfValid = false;
-                    } else {
-                        elfValid = true;
+            final String[] _elfCpuName = { null };
+            final CPUType[] _elfCpuType = { null };
+            final ABIType[] _elfAbiType = { null };
+            final int[] _elfLittleEndian = { 0 }; // 1 - little, 2 - big
+            final boolean[] _elfValid = { false };
+            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+                @Override
+                public Object run() {
+                    RandomAccessFile in = null;
+                    try {
+                        final File file = queryElfFile(OS_TYPE);
+                        if(DEBUG) {
+                            System.err.println("ELF-1: Using "+file);
+                        }
+                        in = new RandomAccessFile(file, "r");
+                        final ElfHeaderPart1 eh1 = readElfHeaderPart1(OS_TYPE, in);
+                        if(DEBUG) {
+                            System.err.println("ELF-1: Got "+eh1);
+                        }
+                        if( null != eh1 ) {
+                            final ElfHeaderPart2 eh2 = readElfHeaderPart2(eh1, in);
+                            if(DEBUG) {
+                                System.err.println("ELF-2: Got "+eh2);
+                            }
+                            if( null != eh2 ) {
+                                _elfCpuName[0] = eh2.cpuName;
+                                _elfCpuType[0] = eh2.cpuType;
+                                _elfAbiType[0] = eh2.abiType;
+                                if( eh1.isLittleEndian() ) {
+                                    _elfLittleEndian[0] = 1;
+                                } else if( eh1.isBigEndian() ) {
+                                    _elfLittleEndian[0] = 2;
+                                }
+                                _elfValid[0] = true;
+                            }
+                        }
+                    } catch (final Throwable t) {
+                        if(DEBUG) {
+                            t.printStackTrace();
+                        }
+                    } finally {
+                        if(null != in) {
+                            try {
+                                in.close();
+                            } catch (final IOException e) { }
+                        }
                     }
-                } else {
-                    if( elfCpuType.family != sCpuType.family ) {
-                        // Ooops !
-                        elfValid = false;
-                    } else {
-                        elfValid = true;
-                    }
-                }
-                if( DEBUG ) {
-                    System.err.println("Platform.Elf: cpuType "+elfCpuType+", abiType "+elfAbiType+", valid "+elfValid);
-                }
-            } else {
-                elfCpuType = null;
-                elfAbiType = null;
-                elfValid = false;
-                if( DEBUG ) {
-                    System.err.println("Platform.Elf: n/a");
-                }
+                    return null;
+                } });
+            elfCpuName = _elfCpuName[0];
+            elfCpuType = _elfCpuType[0];
+            elfABIType = _elfAbiType[0];
+            elfLittleEndian = _elfLittleEndian[0];
+            elfValid = _elfValid[0];
+            if( DEBUG ) {
+                System.err.println("Platform.Elf: valid "+elfValid+", elfCpuName "+elfCpuName+", cpuType "+elfCpuType+", abiType "+elfABIType+", elfLittleEndian "+elfLittleEndian);
             }
         }
+
+        // Determine endianess, favor ELF value
+        final boolean littleEndian = queryIsLittleEndianImpl();
+        if( elfValid ) {
+            switch( elfLittleEndian ) {
+                case 1:
+                    LITTLE_ENDIAN = true;
+                    break;
+                case 2:
+                    LITTLE_ENDIAN = false;
+                    break;
+                default:
+                    LITTLE_ENDIAN = littleEndian;
+                    break;
+            }
+        } else {
+            LITTLE_ENDIAN = littleEndian;
+        }
+        if( DEBUG ) {
+            System.err.println("Platform.Endian: test-little "+littleEndian+", elf[valid "+elfValid+", val "+elfLittleEndian+"] -> LITTLE_ENDIAN "+LITTLE_ENDIAN);
+        }
+
+        // Property values for comparison
+        // We might take the property values even if ELF values are available,
+        // since the latter only reflect the CPU/ABI version of the binary files!
+        final String propARCH = System.getProperty("os.arch");
+        final String propARCH_lower = propARCH.toLowerCase();
+        final CPUType propCpuType = CPUType.query(propARCH_lower);
+        final ABIType propABIType = ABIType.query(propCpuType, propARCH_lower);
+        if( DEBUG ) {
+            System.err.println("Platform.Property: ARCH "+propARCH+", CpuType "+propCpuType+", ABIType "+propABIType);
+        }
+
+        final int strategy;
         if( isAndroid ) {
+            if( DEBUG ) {
+                System.err.println("Android: CPU_ABI1 str "+AndroidVersion.CPU_ABI+", CPU_TYPE "+AndroidVersion.CPU_TYPE+", ABI_TYPE "+AndroidVersion.ABI_TYPE);
+                System.err.println("Android: CPU_ABI2 str "+AndroidVersion.CPU_ABI2+", CPU_TYPE2 "+AndroidVersion.CPU_TYPE2+", ABI_TYPE2 "+AndroidVersion.ABI_TYPE2);
+            }
             if( elfValid ) {
-                if( elfCpuType.family == AndroidVersion.CPU_TYPE.family &&
-                    elfAbiType == AndroidVersion.ABI_TYPE )
+                if( null != AndroidVersion.CPU_TYPE &&
+                    isCompatible(elfCpuType, elfABIType, AndroidVersion.CPU_TYPE, AndroidVersion.ABI_TYPE) )
                 {
+                    // ELF matches Android-1
                     ARCH = AndroidVersion.CPU_ABI;
+                    ARCH_lower = ARCH;
                     CPU_ARCH = AndroidVersion.CPU_TYPE;
-                } else {
+                    strategy = 110;
+                } else if( null != AndroidVersion.CPU_TYPE2 &&
+                           isCompatible(elfCpuType, elfABIType, AndroidVersion.CPU_TYPE2, AndroidVersion.ABI_TYPE2) )
+                {
+                    // ELF matches Android-2
                     ARCH = AndroidVersion.CPU_ABI2;
+                    ARCH_lower = ARCH;
                     CPU_ARCH = AndroidVersion.CPU_TYPE2;
+                    strategy = 111;
+                } else {
+                    // We assume our ELF data beats AndroidVersion info (correctness)
+                    ARCH = elfCpuType.toString();
+                    ARCH_lower = ARCH.toLowerCase();
+                    CPU_ARCH = elfCpuType;
+                    strategy = 112;
                 }
-                ABI_TYPE = elfAbiType;
+                ABI_TYPE = elfABIType;
             } else {
-                // default
-                if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM || null == AndroidVersion.CPU_TYPE2 ) {
+                if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM ||
+                    null == AndroidVersion.CPU_TYPE2 ) {
+                    // Favor Android-1: Either b/c ARM Family, or no Android-2
                     ARCH = AndroidVersion.CPU_ABI;
+                    ARCH_lower = ARCH;
                     CPU_ARCH = AndroidVersion.CPU_TYPE;
                     ABI_TYPE = AndroidVersion.ABI_TYPE;
+                    strategy = 120;
                 } else {
+                    // Last resort Android-2
                     ARCH = AndroidVersion.CPU_ABI2;
+                    ARCH_lower = ARCH;
                     CPU_ARCH = AndroidVersion.CPU_TYPE2;
                     ABI_TYPE = AndroidVersion.ABI_TYPE2;
+                    strategy = 121;
                 }
             }
-            ARCH_lower  = ARCH;
         } else {
-            ARCH = sARCH;
-            ARCH_lower = sARCH_lower;
-            if( elfValid && CPUFamily.ARM == elfCpuType.family ) {
-                // Use Elf for ARM
-                CPU_ARCH = elfCpuType;
-                ABI_TYPE = elfAbiType;
+            if( elfValid ) {
+                if( isCompatible(elfCpuType, elfABIType, propCpuType, propABIType) ) {
+                    // Use property ARCH, compatible w/ ELF
+                    ARCH = propARCH;
+                    ARCH_lower = propARCH_lower;
+                    CPU_ARCH = propCpuType;
+                    ABI_TYPE = propABIType;
+                    strategy = 210;
+                } else {
+                    // use ELF ARCH
+                    ARCH = elfCpuName;
+                    ARCH_lower = elfCpuName;
+                    CPU_ARCH = elfCpuType;
+                    ABI_TYPE = elfABIType;
+                    strategy = 211;
+                }
             } else {
-                // Otherwise trust detailed os.arch (?)
-                CPU_ARCH = sCpuType;
-                ABI_TYPE = ABIType.GENERIC_ABI;
+                // Last resort: properties
+                ARCH = propARCH;
+                ARCH_lower = propARCH_lower;
+                CPU_ARCH = propCpuType;
+                ABI_TYPE = propABIType;
+                strategy = 220;
             }
         }
         if( DEBUG ) {
-            System.err.println("Platform.Hard: ARCH "+ARCH+", CPU_ARCH "+CPU_ARCH+", ABI_TYPE "+ABI_TYPE+" - isAndroid "+isAndroid+", elfValid "+elfValid);
+            System.err.println("Platform.Hard: ARCH "+ARCH+", CPU_ARCH "+CPU_ARCH+", ABI_TYPE "+ABI_TYPE+" - strategy "+strategy+"(isAndroid "+isAndroid+", elfValid "+elfValid+")");
         }
-        MachineDescriptionRuntime.notifyPropsInitialized();
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE);
     }
 
@@ -271,49 +364,6 @@ public abstract class PlatformPropsImpl {
         return 0x0C0D == tst_s.get(0);
     }
 
-    private static final CPUType getCPUTypeImpl(final String archLower) {
-        if(        archLower.equals("x86")  ||         // jvm + android
-                   archLower.equals("i386") ||
-                   archLower.equals("i486") ||
-                   archLower.equals("i586") ||
-                   archLower.equals("i686") ) {
-            return CPUType.X86_32;
-        } else if( archLower.equals("x86_64") ||
-                   archLower.equals("amd64")  ) {
-            return CPUType.X86_64;
-        } else if( archLower.equals("ia64") ) {
-            return CPUType.IA64;
-        } else if( archLower.equals("arm") ) {
-            return CPUType.ARM;
-        } else if( archLower.equals("armv5l") ) {
-            return CPUType.ARMv5;
-        } else if( archLower.equals("armv6l") ) {
-            return CPUType.ARMv6;
-        } else if( archLower.equals("armv7l") ||
-                   archLower.equals("armeabi") ||      // android
-                   archLower.equals("armeabi-v7a") ) { // android
-            return CPUType.ARMv7;
-        } else if( archLower.equals("aarch64") ||
-                   archLower.equals("arm64") ) {
-            return CPUType.ARM64;
-        } else if( archLower.equals("armv8-a") ||
-                   archLower.equals("arm64-v8a") ) {
-            return CPUType.ARMv8_A;
-        } else if( archLower.equals("sparc") ) {
-            return CPUType.SPARC_32;
-        } else if( archLower.equals("sparcv9") ) {
-            return CPUType.SPARCV9_64;
-        } else if( archLower.equals("pa_risc2.0") ) {
-            return CPUType.PA_RISC2_0;
-        } else if( archLower.equals("ppc") ) {
-            return CPUType.PPC;
-        } else if( archLower.equals("mips") ) {        // android
-            return CPUType.MIPS_32;
-        } else {
-            throw new RuntimeException("Please port CPU detection to your platform (" + OS_lower + "/" + archLower + ")");
-        }
-    }
-
     @SuppressWarnings("unused")
     private static final boolean contains(final String data, final String[] search) {
         if(null != data && null != search) {
@@ -341,101 +391,53 @@ public abstract class PlatformPropsImpl {
      * Elf ARM Tags are read using {@link ElfHeader}, .. and {@link SectionArmAttributes#abiVFPArgsAcceptsVFPVariant(byte)}.
      * </p>
      */
-    private static final ElfHeader queryABITypeImpl(final OSType osType, final CPUType[] cpuType, final ABIType[] abiType) {
-        return AccessController.doPrivileged(new PrivilegedAction<ElfHeader>() {
-            @Override
-            public ElfHeader run() {
-                ElfHeader res = null;
-                try {
-                    File file = null;
-                    if( OSType.ANDROID == osType ) {
-                        file = new File(NativeLibrary.findLibrary("gluegen-rt", PlatformPropsImpl.class.getClassLoader()));
-                    } else {
-                        if( OSType.LINUX == osType ) {
-                            file = new File("/proc/self/exe");
-                            if( !checkFileReadAccess(file) ) {
-                                file = null;
-                            }
-                        }
-                        if( null == file ) {
-                            file = findSysLib("java");
-                        }
-                        if( null == file ) {
-                            file = findSysLib("jvm");
-                        }
-                    }
-                    if( null != file ) {
-                        res = queryABITypeImpl(file, cpuType, abiType);
-                    }
-                } catch(final Throwable t) {
-                    if(DEBUG) {
-                        t.printStackTrace();
-                    }
-                }
-                return res;
-            } } );
-    }
-    private static final ElfHeader queryABITypeImpl(final File file, final CPUType[] cpuType, final ABIType[] abiType) {
-        ElfHeader res = null;
-        RandomAccessFile in = null;
+    private static final File queryElfFile(final OSType osType) {
+        File file = null;
         try {
-            in = new RandomAccessFile(file, "r");
-            final ElfHeader eh = ElfHeader.read(in);
+            if( OSType.ANDROID == osType ) {
+                file = new File(NativeLibrary.findLibrary("gluegen-rt", PlatformPropsImpl.class.getClassLoader()));
+            } else {
+                if( OSType.LINUX == osType ) {
+                    file = new File("/proc/self/exe");
+                    if( !checkFileReadAccess(file) ) {
+                        file = null;
+                    }
+                }
+                if( null == file ) {
+                    file = findSysLib("java");
+                }
+                if( null == file ) {
+                    file = findSysLib("jvm");
+                }
+            }
+        } catch(final Throwable t) {
             if(DEBUG) {
-                System.err.println("ELF: Got HDR "+file+": "+eh);
+                t.printStackTrace();
             }
-            if( eh.isArm() ) {
-                boolean abiVFPArgsAcceptsVFPVariant = false;
-                final SectionHeader sh = eh.getSectionHeader(SectionHeader.SHT_ARM_ATTRIBUTES);
-                if( null != sh ) {
-                    if(DEBUG) {
-                        System.err.println("ELF: Got ARM Attribs Section Header: "+sh);
-                    }
-                    final SectionArmAttributes sArmAttrs = (SectionArmAttributes) sh.readSection(in);
-                    if(DEBUG) {
-                        System.err.println("ELF: Got ARM Attribs Section Block : "+sArmAttrs);
-                    }
-                    final SectionArmAttributes.Attribute abiVFPArgsAttr = sArmAttrs.get(SectionArmAttributes.Tag.ABI_VFP_args);
-                    if( null != abiVFPArgsAttr ) {
-                        abiVFPArgsAcceptsVFPVariant = SectionArmAttributes.abiVFPArgsAcceptsVFPVariant(abiVFPArgsAttr.getULEB128());
-                    }
-                }
-                cpuType[0] = CPUType.ARM; // lowest 32bit denominator, ok for us
-                abiType[0] = abiVFPArgsAcceptsVFPVariant ? ABIType.EABI_GNU_ARMHF : ABIType.EABI_GNU_ARMEL;
-                if(DEBUG) {
-                    System.err.println("ELF: abiARM, abiVFPArgsAcceptsVFPVariant "+abiVFPArgsAcceptsVFPVariant);
-                }
-            } else if ( eh.isAARCH64() ) {
-                cpuType[0] = CPUType.ARM64;
-                abiType[0] = ABIType.EABI_AARCH64;
-            } else if ( eh.isX86_64() ) {
-                cpuType[0] = CPUType.X86_64;
-                abiType[0] = ABIType.GENERIC_ABI;
-            } else if ( eh.isX86_32() ) {
-                cpuType[0] = CPUType.X86_32;
-                abiType[0] = ABIType.GENERIC_ABI;
-            } else if ( eh.isIA64() ) {
-                cpuType[0] = CPUType.IA64;
-                abiType[0] = ABIType.GENERIC_ABI;
-            } else if ( eh.isMips() ) {
-                cpuType[0] = CPUType.MIPS_32; // FIXME
-                abiType[0] = ABIType.GENERIC_ABI;
-            }
-            res = eh;
+        }
+        return file;
+    }
+    private static final ElfHeaderPart1 readElfHeaderPart1(final OSType osType, final RandomAccessFile in) {
+        ElfHeaderPart1 res = null;
+        try {
+            res = ElfHeaderPart1.read(osType, in);
         } catch(final Throwable t) {
             if(DEBUG) {
                 System.err.println("Caught: "+t.getMessage());
                 t.printStackTrace();
             }
-        } finally {
-            if(null != in) {
-                try {
-                    in.close();
-                } catch (final IOException e) { }
-            }
         }
-        if(DEBUG) {
-            System.err.println("ELF: res "+res+", cpuType "+cpuType[0]+", abiType "+abiType[0]);
+        return res;
+    }
+    private static final ElfHeaderPart2 readElfHeaderPart2(final ElfHeaderPart1 eh1, final RandomAccessFile in) {
+        ElfHeaderPart2 res = null;
+        try {
+            res = ElfHeaderPart2.read(eh1, in);
+        } catch(final Throwable t) {
+            if(DEBUG) {
+                System.err.println("Caught: "+t.getMessage());
+                t.printStackTrace();
+            }
         }
         return res;
     }
@@ -551,6 +553,9 @@ public abstract class PlatformPropsImpl {
             case SPARC_32:
                 _and_arch_tmp = "sparc";
                 break;
+            case PPC64:
+                _and_arch_tmp = "ppc64";        // TODO: sync with gluegen-cpptasks-base.xml
+                break;
             case PPC:
                 _and_arch_tmp = "ppc";          // TODO: sync with gluegen-cpptasks-base.xml
                 break;
@@ -567,7 +572,7 @@ public abstract class PlatformPropsImpl {
                 _and_arch_tmp = "risc2.0";      // TODO: sync with gluegen-cpptasks-base.xml
                 break;
             default:
-                throw new InternalError("Complete case block");
+                throw new InternalError("Unhandled CPUType: "+cpuType);
         }
 
         switch( osType ) {
@@ -604,7 +609,7 @@ public abstract class PlatformPropsImpl {
               _and_arch_final = "hppa";     // TODO: really only hppa ?
               break;
             default:
-              throw new InternalError("Complete case block");
+              throw new InternalError("Unhandled OSType: "+osType);
         }
         return os_ + "-" + _and_arch_final;
     }

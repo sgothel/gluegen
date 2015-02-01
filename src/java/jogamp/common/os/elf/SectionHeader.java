@@ -133,6 +133,12 @@ public class SectionHeader {
      * {@value}
      */
     public static final int SHT_ARM_ATTRIBUTES     = 0x70000003;
+
+    /**
+     * {@value}. FIXME: Same as {@link #SHT_ARM_ATTRIBUTES}, ok?
+     */
+    public static final int SHT_AARCH64_ATTRIBUTES = 0x70000003;
+
     /**
      * {@value}
      */
@@ -171,24 +177,28 @@ public class SectionHeader {
      */
     public static final short SHN_HIRESERVE = (short)0xffff;
 
+    /** Public access to the elf header */
+    public final ElfHeaderPart2 eh2;
+
     /** Public access to the raw elf section header */
-    public final Shdr d;
+    public final Shdr raw;
 
     private final int idx;
     private String name;
 
-    SectionHeader(final byte[] buf, final int offset, final int length, final int sectionIdx) {
-        this( ByteBuffer.wrap(buf, 0, buf.length), sectionIdx );
+    SectionHeader(final ElfHeaderPart2 eh, final byte[] buf, final int offset, final int length, final int sectionIdx) {
+        this( eh, ByteBuffer.wrap(buf, 0, buf.length), sectionIdx );
     }
-    SectionHeader(final java.nio.ByteBuffer buf, final int idx) {
-        d = Shdr.create(buf);
+    SectionHeader(final ElfHeaderPart2 eh, final java.nio.ByteBuffer buf, final int idx) {
+        this.eh2 = eh;
+        this.raw = Shdr.create(eh.eh1.machDesc.ordinal(), buf);
         this.idx = idx;
-        name = null;
+        this.name = null;
     }
 
     @Override
     public String toString() {
-        return "SectionHeader[idx "+idx+", name "+name+", type "+toHexString(getType())+", link "+d.getSh_link()+", info "+toHexString(d.getSh_info())+", flags "+toHexString(getFlags())+"]";
+        return "SectionHeader[idx "+idx+", name "+name+", type "+toHexString(getType())+", link "+raw.getSh_link()+", info "+toHexString(raw.getSh_info())+", flags "+toHexString(getFlags())+"]";
     }
 
     /**
@@ -206,17 +216,17 @@ public class SectionHeader {
 
     /** Returns the type of this section. */
     public int getType() {
-        return d.getSh_type();
+        return raw.getSh_type();
     }
 
     /** Returns the flags of this section. */
     public long getFlags() {
-        return d.getSh_flags();
+        return raw.getSh_flags();
     }
 
     /** Returns the size of this section. */
     public long getSize() {
-        return d.getSh_size();
+        return raw.getSh_size();
     }
 
     /** Returns this section name, maybe <code>null</code> if not read. */
@@ -232,9 +242,9 @@ public class SectionHeader {
      * @throws IllegalArgumentException if section offset or size mismatch including size &gt; {@link Integer#MAX_VALUE}
      */
     public Section readSection(final RandomAccessFile in) throws IOException, IllegalArgumentException {
-        final int s_size = long2Int(d.getSh_size());
+        final int s_size = long2Int(raw.getSh_size());
         if( 0 == s_size || 0 > s_size ) {
-            throw new IllegalArgumentException("Shdr["+idx+"] has invalid int size: "+d.getSh_size()+" -> "+s_size);
+            throw new IllegalArgumentException("Shdr["+idx+"] has invalid int size: "+raw.getSh_size()+" -> "+s_size);
         }
         final byte[] s_buf = new byte[s_size];
         return readSectionImpl(in, s_buf, 0, s_size);
@@ -252,9 +262,9 @@ public class SectionHeader {
      * @throws IllegalArgumentException if requested read length is &gt; section size
      */
     public Section readSection(final RandomAccessFile in, final byte[] b, final int b_off, final int r_len) throws IOException, IllegalArgumentException {
-        final int s_size = long2Int(d.getSh_size());
+        final int s_size = long2Int(raw.getSh_size());
         if( 0 == s_size || 0 > s_size ) {
-            throw new IllegalArgumentException("Shdr["+idx+"] has invalid int size: "+d.getSh_size()+" -> "+s_size);
+            throw new IllegalArgumentException("Shdr["+idx+"] has invalid int size: "+raw.getSh_size()+" -> "+s_size);
         }
         if( r_len > s_size ) {
             throw new IllegalArgumentException("Shdr["+idx+"] has only "+s_size+" bytes, while read request is of "+r_len+" bytes");
@@ -263,7 +273,7 @@ public class SectionHeader {
     }
 
     Section readSectionImpl(final RandomAccessFile in, final byte[] b, final int b_off, final int r_len) throws IOException, IllegalArgumentException {
-        final long s_off = d.getSh_offset();
+        final long s_off = raw.getSh_offset();
         seek(in, s_off);
         readBytes(in, b, b_off, r_len);
         if( SectionHeader.SHT_ARM_ATTRIBUTES == getType() ) {

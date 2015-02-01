@@ -963,7 +963,10 @@ public class JavaEmitter implements GlueEmitter {
     javaWriter.println();
     javaWriter.println("  StructAccessor accessor;");
     javaWriter.println();
-    javaWriter.println("  private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();");
+    final String cfgMachDescrIdxCode = cfg.returnStructMachineDescriptorIndex(containingJTypeName);
+    final String machDescrIdxCode = null != cfgMachDescrIdxCode ? cfgMachDescrIdxCode : "private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();";
+    javaWriter.println("  "+machDescrIdxCode);
+    javaWriter.println("  private final MachineDescription md;");
     javaWriter.println();
     // generate all offset and size arrays
     generateOffsetAndSizeArrays(javaWriter, "  ", containingJTypeName, structCType, null, null); /* w/o offset */
@@ -1037,22 +1040,29 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
     javaWriter.println();
-    javaWriter.println("  public static int size() {");
-    javaWriter.println("    return "+containingJTypeName+"_size[mdIdx];");
-    javaWriter.println("  }");
-    javaWriter.println();
-    javaWriter.println("  public static " + containingJTypeName + " create() {");
-    javaWriter.println("    return create(Buffers.newDirectByteBuffer(size()));");
-    javaWriter.println("  }");
-    javaWriter.println();
-    javaWriter.println("  public static " + containingJTypeName + " create(java.nio.ByteBuffer buf) {");
-    javaWriter.println("      return new " + containingJTypeName + "(buf);");
-    javaWriter.println("  }");
-    javaWriter.println();
-    javaWriter.println("  " + containingJTypeName + "(java.nio.ByteBuffer buf) {");
-    javaWriter.println("    accessor = new StructAccessor(buf);");
-    javaWriter.println("  }");
-    javaWriter.println();
+    if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, "size")) ) {
+        javaWriter.println("  public static int size() {");
+        javaWriter.println("    return "+containingJTypeName+"_size[mdIdx];");
+        javaWriter.println("  }");
+        javaWriter.println();
+    }
+    if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, "create")) ) {
+        javaWriter.println("  public static " + containingJTypeName + " create() {");
+        javaWriter.println("    return create(Buffers.newDirectByteBuffer(size()));");
+        javaWriter.println("  }");
+        javaWriter.println();
+        javaWriter.println("  public static " + containingJTypeName + " create(java.nio.ByteBuffer buf) {");
+        javaWriter.println("      return new " + containingJTypeName + "(buf);");
+        javaWriter.println("  }");
+        javaWriter.println();
+    }
+    if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, containingJTypeName)) ) {
+        javaWriter.println("  " + containingJTypeName + "(java.nio.ByteBuffer buf) {");
+        javaWriter.println("    md = MachineDescription.StaticConfig.values()[mdIdx].md;");
+        javaWriter.println("    accessor = new StructAccessor(buf);");
+        javaWriter.println("  }");
+        javaWriter.println();
+    }
     javaWriter.println("  public java.nio.ByteBuffer getBuffer() {");
     javaWriter.println("    return accessor.getBuffer();");
     javaWriter.println("  }");
@@ -1129,7 +1139,7 @@ public class JavaEmitter implements GlueEmitter {
                 if( fieldTypeNativeSizeFixed ) {
                     javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val);");
                 } else {
-                    javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
+                    javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, md."+sizeDenominator+"SizeInBytes());");
                 }
                 javaWriter.println("    return this;");
                 javaWriter.println("  }");
@@ -1143,7 +1153,7 @@ public class JavaEmitter implements GlueEmitter {
             if( fieldTypeNativeSizeFixed ) {
                 javaWriter.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx]);");
             } else {
-                javaWriter.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+sizeDenominator+"SizeInBytes());");
+                javaWriter.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], md."+sizeDenominator+"SizeInBytes());");
             }
             javaWriter.println("  }");
           } else {
@@ -1240,7 +1250,9 @@ public class JavaEmitter implements GlueEmitter {
       writer.print(")");
   }
 
-  private void generateOffsetAndSizeArrays(final PrintWriter writer, final String prefix, final String fieldName, final Type fieldType, final Field field, final String postfix) {
+  private void generateOffsetAndSizeArrays(final PrintWriter writer, final String prefix,
+                                           final String fieldName, final Type fieldType,
+                                           final Field field, final String postfix) {
       if(null != field) {
           writer.print(prefix+"private static final int[] "+fieldName+"_offset = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
@@ -1668,7 +1680,7 @@ public class JavaEmitter implements GlueEmitter {
                       if( baseCElemNativeSizeFixed ) {
                           javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val);");
                       } else {
-                          javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val, MachineDescriptionRuntime.getStatic().md."+baseCElemSizeDenominator+"SizeInBytes());");
+                          javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val, md."+baseCElemSizeDenominator+"SizeInBytes());");
                       }
                       javaWriter.println("    return this;");
                       javaWriter.println("  }");
@@ -1831,7 +1843,7 @@ public class JavaEmitter implements GlueEmitter {
                   if( baseCElemNativeSizeFixed ) {
                       javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx]);");
                   } else {
-                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], MachineDescriptionRuntime.getStatic().md."+baseCElemSizeDenominator+"SizeInBytes());");
+                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], md."+baseCElemSizeDenominator+"SizeInBytes());");
                   }
                   javaWriter.println("  }");
                   javaWriter.println();

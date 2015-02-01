@@ -42,6 +42,7 @@ package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.JavaEmitter.EmissionStyle;
 import com.jogamp.gluegen.JavaEmitter.MethodAccess;
+
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
@@ -53,6 +54,7 @@ import com.jogamp.gluegen.cgram.types.*;
 
 import java.util.logging.Logger;
 
+import jogamp.common.os.MachineDescriptionRuntime;
 import static java.util.logging.Level.*;
 import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
@@ -164,6 +166,7 @@ public class JavaConfiguration {
     private final Map<String, String> structPackages = new HashMap<String, String>();
     private final List<String> customCCode = new ArrayList<String>();
     private final List<String> forcedStructs = new ArrayList<String>();
+    private final Map<String, String> structMachineDescriptorIndex = new HashMap<String, String>();
     private final Map<String, String> returnValueCapacities = new HashMap<String, String>();
     private final Map<String, String> returnValueLengths = new HashMap<String, String>();
     private final Map<String, List<String>> temporaryCVariableDeclarations = new HashMap<String, List<String>>();
@@ -547,7 +550,12 @@ public class JavaConfiguration {
   }
 
   /** Returns true if the glue code for the given function will be
-      manually implemented by the end user. */
+      manually implemented by the end user.
+   * <p>
+   * If symbol references a struct field or method, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   */
   public boolean manuallyImplement(final String functionName) {
     return manuallyImplement.contains(functionName);
   }
@@ -634,6 +642,20 @@ public class JavaConfiguration {
       emission should be forced. */
   public List<String> forcedStructs() {
     return forcedStructs;
+  }
+
+  /**
+   * Returns a MessageFormat string of the Java code defining {@code mdIdx},
+   * i.e. the index of the static MachineDescriptor index for structs.
+   * <p>
+   * If undefined, code generation uses the default expression:
+   * <pre>
+   *     private static final int mdIdx = MachineDescriptionRuntime.getStatic().ordinal();
+   * </pre>
+   * </p>
+   */
+  public String returnStructMachineDescriptorIndex(final String structName) {
+    return structMachineDescriptorIndex.get(structName);
   }
 
   /**
@@ -1101,6 +1123,10 @@ public class JavaConfiguration {
       readTemporaryCVariableAssignment(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because TemporaryCVariableAssignment changes them.
+    } else if (cmd.equalsIgnoreCase("StructMachineDescriptorIndex")) {
+      readStructMachineDescriptorIndex(tok, filename, lineNo);
+      // Warning: make sure delimiters are reset at the top of this loop
+      // because StructMachineDescriptorIndex changes them.
     } else if (cmd.equalsIgnoreCase("ReturnValueCapacity")) {
       readReturnValueCapacity(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -1495,6 +1521,18 @@ public class JavaConfiguration {
       structPackages.put(struct, pkg);
     } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"StructPackage\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readStructMachineDescriptorIndex(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String structName = tok.nextToken();
+      String restOfLine = tok.nextToken("\n\r\f");
+      restOfLine = restOfLine.trim();
+      structMachineDescriptorIndex.put(structName, restOfLine);
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"StructMachineDescriptorIndex\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }

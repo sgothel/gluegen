@@ -15,6 +15,9 @@ typedef struct {
     uint16_t        e_type;
     uint16_t        e_machine;
     uint32_t        e_version;
+} Ehdr_p1;
+
+typedef struct {
     ElfN_Addr       e_entry;
     ElfN_Off        e_phoff;
     ElfN_Off        e_shoff;
@@ -25,7 +28,7 @@ typedef struct {
     uint16_t        e_shentsize;
     uint16_t        e_shnum;
     uint16_t        e_shstrndx;
-} Ehdr;
+} Ehdr_p2;
 
 typedef struct {
     uint32_t        sh_name;     

@@ -58,10 +58,10 @@ public class VersionUtil {
 
         // environment
         sb.append("Platform: ").append(Platform.getOSType()).append(" / ").append(Platform.getOSName()).append(' ').append(Platform.getOSVersion()).append(" (").append(Platform.getOSVersionNumber()).append("), ");
-        sb.append(Platform.getArchName()).append(" (arch), ").append(Platform.getABIType()).append(", ");
+        sb.append(Platform.getArchName()).append(" (").append(Platform.getCPUType()).append(", ").append(Platform.getABIType()).append("), ");
         sb.append(Runtime.getRuntime().availableProcessors()).append(" cores");
         sb.append(Platform.getNewline());
-        if( AndroidVersion.isAvailable) {
+        if( Platform.OSType.ANDROID == PlatformPropsImpl.OS_TYPE ) {
             sb.append("Platform: Android Version: ").append(AndroidVersion.CODENAME).append(", ");
             sb.append(AndroidVersion.RELEASE).append(" [").append(AndroidVersion.RELEASE).append("], SDK: ").append(AndroidVersion.SDK_INT).append(", ").append(AndroidVersion.SDK_NAME);
             sb.append(Platform.getNewline());
@@ -73,8 +73,8 @@ public class VersionUtil {
         sb.append("Platform: Java Version: ").append(Platform.getJavaVersion()).append(" (").append(Platform.getJavaVersionNumber()).append("u").append(PlatformPropsImpl.JAVA_VERSION_UPDATE).append("), VM: ").append(Platform.getJavaVMName());
         sb.append(", Runtime: ").append(Platform.getJavaRuntimeName()).append(Platform.getNewline());
         sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL());
-        sb.append(", JavaSE: ").append(Platform.isJavaSE());
-        sb.append(", Java6: ").append(Platform.isJava6());
+        sb.append(", JavaSE: ").append(PlatformPropsImpl.JAVA_SE);
+        sb.append(", Java6: ").append(PlatformPropsImpl.JAVA_6);
         sb.append(", AWT enabled: ").append(Platform.AWT_AVAILABLE);
         sb.append(Platform.getNewline()).append(SEPERATOR);
 

@@ -60,7 +60,7 @@ public class IntObjectHashMapTest extends SingletonJunitCase {
 
     @BeforeClass
     public static void init() {
-        iterations = ( Platform.getCPUType().getFamily() == Platform.CPUFamily.ARM ) ? 20 : 10000;
+        iterations = ( Platform.getCPUType().family == Platform.CPUFamily.ARM ) ? 20 : 10000;
         pairs = new IntIntObjUniqueRndValues(iterations);
     }
 

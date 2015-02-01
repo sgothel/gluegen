@@ -43,37 +43,24 @@ public class MachineDescriptionRuntime {
   static volatile boolean smdSoftQueried = false;
   static MachineDescription.StaticConfig smdSoft = null;
 
-  static volatile boolean smdHardEnabled = false;
-
-  /* pp */ static void notifyPropsInitialized() { smdHardEnabled = true; }
-
   public static MachineDescription.StaticConfig getStatic() {
-      if(!smdHardEnabled) {
-          if(!smdSoftQueried) {
-              synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
-                  if(!smdSoftQueried) {
-                      smdSoft = get(PlatformPropsImpl.OS_TYPE, PlatformPropsImpl.sCpuType, PlatformPropsImpl.LITTLE_ENDIAN);
-                      smdSoftQueried=true;
+      if(!smdHardQueried) {
+          synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
+              if(!smdHardQueried) {
+                  smdHard = get(PlatformPropsImpl.OS_TYPE, PlatformPropsImpl.CPU_ARCH, PlatformPropsImpl.LITTLE_ENDIAN);
+                  smdHardQueried=true;
+                  if( PlatformPropsImpl.DEBUG ) {
+                      System.err.println("MachineDescription.StaticConfig.getStatic_Hard(os "+PlatformPropsImpl.OS_TYPE+", CpuType "+PlatformPropsImpl.CPU_ARCH+", little "+PlatformPropsImpl.LITTLE_ENDIAN+"): "+smdHard.toShortString());
                   }
               }
           }
-          return smdSoft;
-      } else {
-          if(!smdHardQueried) {
-              synchronized(MachineDescription.class) { // volatile dbl-checked-locking OK
-                  if(!smdHardQueried) {
-                      smdHard = get(PlatformPropsImpl.OS_TYPE, PlatformPropsImpl.CPU_ARCH, PlatformPropsImpl.LITTLE_ENDIAN);
-                      smdHardQueried=true;
-                  }
-              }
-          }
-          return smdHard;
       }
+      return smdHard;
   }
 
-  private static MachineDescription.StaticConfig get(final Platform.OSType osType, final Platform.CPUType cpuType, final boolean littleEndian) {
+  public static MachineDescription.StaticConfig get(final Platform.OSType osType, final Platform.CPUType cpuType, final boolean littleEndian) {
       if( cpuType.is32Bit ) {
-          if( cpuType.getFamily() == Platform.CPUFamily.ARM && littleEndian) {
+          if( cpuType.family == Platform.CPUFamily.ARM && littleEndian) {
               return StaticConfig.ARMle_EABI;
           } else if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_32_WINDOWS;

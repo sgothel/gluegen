@@ -30,7 +30,6 @@ package com.jogamp.common.os;
 import java.lang.reflect.Field;
 
 import com.jogamp.common.os.Platform.ABIType;
-import com.jogamp.common.os.Platform.CPUFamily;
 import com.jogamp.common.os.Platform.CPUType;
 import com.jogamp.common.util.IntObjectHashMap;
 import com.jogamp.common.util.ReflectionUtil;
@@ -67,61 +66,6 @@ public class AndroidVersion {
     private static final String androidBuildVersion = "android.os.Build$VERSION";
     private static final String androidBuildVersionCodes = "android.os.Build$VERSION_CODES";
 
-    /**
-     * Returns {@link CPUType} for matching <code>cpuABI<code>,
-     * i.e. {@link #CPU_ABI} or {@link #CPU_ABI2},
-     * or <code>null</code> for no match.
-     * <p>
-     * FIXME: Where is a comprehensive list of known 'android.os.Build.CPU_ABI' and 'android.os.Build.CPU_ABI2' strings ?<br/>
-     * Fount this one: <code>http://www.kandroid.org/ndk/docs/CPU-ARCH-ABIS.html</code>
-     * <pre>
-     *  lib/armeabi/libfoo.so
-     *  lib/armeabi-v7a/libfoo.so
-     *  lib/x86/libfoo.so
-     *  lib/mips/libfoo.so
-     * </pre>
-     * </p>
-     */
-    private static final CPUType getCPUTypeImpl(final String cpuABI) {
-        if( null == cpuABI ) {
-            return null;
-        } else if( cpuABI.equals("armv8-a")   ||
-                   cpuABI.equals("arm64-v8a") ) {
-            return CPUType.ARMv8_A;
-        } else if( cpuABI.equals("aarch64")   ||
-                   cpuABI.startsWith("arm64") ) {
-            return CPUType.ARM64;
-        } else if( cpuABI.equals("armeabi-v7a") ||
-                   cpuABI.equals("armeabi-v7a-hard") ) {
-            return CPUType.ARMv7;
-        } else if( cpuABI.equals("armeabi") ||
-                   cpuABI.startsWith("arm") ) { // last 32bit chance ..
-            return CPUType.ARM;
-        } else if( cpuABI.equals("x86") ) {
-            return CPUType.X86_32;
-        } else if( cpuABI.equals("mips") ) {    // no 32bit vs 64bit identifier ?
-            return CPUType.MIPS_32;
-        } else {
-            return null;
-        }
-    }
-    private static final ABIType getABITypeImpl(final CPUType cpuType, final String cpuABI) {
-        if( null == cpuType || null == cpuABI ) {
-            return null;
-        } else if( CPUFamily.ARM == cpuType.family ) {
-            if( CPUType.ARM64   == cpuType ||
-                       CPUType.ARMv8_A == cpuType ) {
-                return ABIType.EABI_AARCH64;
-            } else if( cpuABI.equals("armeabi-v7a-hard") ) {
-                return ABIType.EABI_GNU_ARMHF;
-            } else {
-                return ABIType.EABI_GNU_ARMEL;
-            }
-        } else {
-            return ABIType.GENERIC_ABI;
-        }
-    }
-
     static {
         final ClassLoader cl = AndroidVersion.class.getClassLoader();
         Class<?> abClass = null;
@@ -138,7 +82,7 @@ public class AndroidVersion {
             abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
             abvcObject = abvcClass.newInstance();
         } catch (final Exception e) { /* n/a */ }
-        isAvailable = null != abObject && null != abvObject && null != abvcObject;
+        isAvailable = null != abObject && null != abvObject;
         if(isAvailable) {
             CPU_ABI = getString(abClass, abObject, "CPU_ABI", true);
             CPU_ABI2 = getString(abClass, abObject, "CPU_ABI2", true);
@@ -146,9 +90,36 @@ public class AndroidVersion {
             INCREMENTAL = getString(abvClass, abvObject, "INCREMENTAL", false);
             RELEASE = getString(abvClass, abvObject, "RELEASE", false);
             SDK_INT = getInt(abvClass, abvObject, "SDK_INT");
-            final IntObjectHashMap version_codes = getVersionCodes(abvcClass, abvcObject);
-            final String sdk_name = (String) version_codes.get(SDK_INT);
+            final String sdk_name;
+            if( null != abvcObject ) {
+                final IntObjectHashMap version_codes = getVersionCodes(abvcClass, abvcObject);
+                sdk_name = (String) version_codes.get(SDK_INT);
+            } else {
+                sdk_name = null;
+            }
             SDK_NAME = ( null != sdk_name ) ? sdk_name : "SDK_"+SDK_INT ;
+
+            /**
+             * <p>
+             * FIXME: Where is a comprehensive list of known 'android.os.Build.CPU_ABI' and 'android.os.Build.CPU_ABI2' strings ?<br/>
+             * Fount this one: <code>http://www.kandroid.org/ndk/docs/CPU-ARCH-ABIS.html</code>
+             * <pre>
+             *  lib/armeabi/libfoo.so
+             *  lib/armeabi-v7a/libfoo.so
+             *  lib/x86/libfoo.so
+             *  lib/mips/libfoo.so
+             * </pre>
+             * </p>
+             */
+            CPU_TYPE = Platform.CPUType.query(CPU_ABI);
+            ABI_TYPE = Platform.ABIType.query(CPU_TYPE, CPU_ABI);
+            if( null != CPU_ABI2 && CPU_ABI2.length() > 0 ) {
+                CPU_TYPE2 = Platform.CPUType.query(CPU_ABI2);
+                ABI_TYPE2 = Platform.ABIType.query(CPU_TYPE2, CPU_ABI2);
+            } else {
+                CPU_TYPE2 = null;
+                ABI_TYPE2 = null;
+            }
         } else {
             CPU_ABI = null;
             CPU_ABI2 = null;
@@ -157,11 +128,11 @@ public class AndroidVersion {
             RELEASE = null;
             SDK_INT = -1;
             SDK_NAME = null;
+            CPU_TYPE = null;
+            ABI_TYPE = null;
+            CPU_TYPE2 = null;
+            ABI_TYPE2 = null;
         }
-        CPU_TYPE = getCPUTypeImpl(CPU_ABI);
-        ABI_TYPE = getABITypeImpl(CPU_TYPE, CPU_ABI);
-        CPU_TYPE2 = getCPUTypeImpl(CPU_ABI2);
-        ABI_TYPE2 = getABITypeImpl(CPU_TYPE2, CPU_ABI2);
     }
 
     private static final IntObjectHashMap getVersionCodes(final Class<?> cls, final Object obj) {
