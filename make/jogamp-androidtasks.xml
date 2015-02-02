@@ -7,6 +7,22 @@
       </classpath>
     </taskdef>
 
+    <target name="test.regexp1" >
+        <property name="jarbasename" value="gluegen-rt-android" />
+        <propertyregex property="m.aapt.apkbasename0"
+              input="${jarbasename}"
+              regexp="(.*)(-android$)"
+              select="\1"
+              casesensitive="true" />
+        <condition property="m.aapt.apkbasename1" value="${m.aapt.apkbasename0}" else="${jarbasename}">
+            <not>
+                <equals arg1="${m.aapt.apkbasename0}" arg2="$${m.aapt.apkbasename0}" casesensitive="true" />
+            </not>
+        </condition>
+        <echo>val: ${jarbasename}</echo>
+        <echo>___: ${m.aapt.apkbasename0}</echo>
+        <echo>res: ${m.aapt.apkbasename1}</echo>
+    </target>
     <!---
         <aapt.signed 
             jarbuilddir="${build}"   // jar build location
@@ -51,27 +67,46 @@
       <attribute name="keystore.keypass" default="${android.keystore.keypass}" />
 
       <sequential>
-        <var name="m.aapt.android.abi.extstr" unset="true"/>
+        <var name="m.aapt.apkbasename0" unset="true"/>
+        <var name="m.aapt.apkbasename1" unset="true"/>
+        <var name="m.aapt.apkbasename" unset="true"/>
         <var name="m.aapt.build.apk" unset="true"/>
         <var name="m.aapt.dex.file" unset="true"/>
         <var name="m.aapt.unsigned.package.file.name" unset="true"/>
         <var name="m.aapt.signed.file.name" unset="true"/>
         <var name="m.aapt.release.file.name" unset="true"/>
         <var name="m.aapt.keystore.file" unset="true"/>
-
         <var name="m.aapt.java.encoding" unset="true"/>
 
-        <condition property="m.aapt.android.abi.extstr" value="-@{android.abi}" else="">
+        <!-- ${m.aapt.apkbasename}: 
+             if ( @{android.abi} != 'generic' ) {
+                ${m.aapt.apkbasename} := ( @{jarbasename} - ( optional postfix '-android' ) ) + ${os.and.arch} ;
+             } else {
+                ${m.aapt.apkbasename} := @{jarbasename} ;
+             }
+              regexp="(.*((\Q\-android\E){0}))(\Q\-android\E)?"
+          -->
+        <propertyregex property="m.aapt.apkbasename0"
+              input="@{jarbasename}"
+              regexp="(.*)(-android$)"
+              select="\1"
+              casesensitive="true" />
+        <condition property="m.aapt.apkbasename1" value="${m.aapt.apkbasename0}" else="@{jarbasename}">
+            <not>
+                <equals arg1="${m.aapt.apkbasename0}" arg2="$${m.aapt.apkbasename0}" casesensitive="true" />
+            </not>
+        </condition>
+        <condition property="m.aapt.apkbasename" value="${m.aapt.apkbasename1}-${os.and.arch}" else="@{jarbasename}">
             <not>
                 <equals arg1="@{android.abi}" arg2="generic" casesensitive="true" />
             </not>
         </condition>
 
-        <property name="m.aapt.build.apk" value="@{jarbuilddir}/@{jarbasename}${m.aapt.android.abi.extstr}.apk.d" />
+        <property name="m.aapt.build.apk" value="@{jarbuilddir}/${m.aapt.apkbasename}.apk.d" />
         <property name="m.aapt.dex.file" location="${m.aapt.build.apk}/image/classes.dex" />
-        <property name="m.aapt.unsigned.package.file.name" value="@{jarbuilddir}/@{jarbasename}${m.aapt.android.abi.extstr}-unsigned.apk" />
-        <property name="m.aapt.signed.file.name" value="${m.aapt.build.apk}/@{jarbasename}${m.aapt.android.abi.extstr}-signed-raw.apk" />
-        <property name="m.aapt.release.file.name" value="@{jarbuilddir}/@{jarbasename}${m.aapt.android.abi.extstr}.apk" />
+        <property name="m.aapt.unsigned.package.file.name" value="@{jarbuilddir}/${m.aapt.apkbasename}-unsigned.apk" />
+        <property name="m.aapt.signed.file.name" value="${m.aapt.build.apk}/${m.aapt.apkbasename}-signed-raw.apk" />
+        <property name="m.aapt.release.file.name" value="@{jarbuilddir}/${m.aapt.apkbasename}.apk" />
 
         <property name="m.aapt.java.encoding" value="UTF-8" />
 
@@ -105,7 +140,7 @@
         <copy file="@{androidmanifest.path}" tofile="${m.aapt.build.apk}/image/AndroidManifest.xml"/>
         <copy file="@{jarmanifest.path}" failonerror="false" tofile="${m.aapt.build.apk}/image/META-INF/MANIFEST.MF"/>
 
-        <echo>aapt.signed @{jarbasename}: generating Android R.java from the resources...</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: generating Android R.java from the resources...</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
             <!-- arg line="-v"/ -->
@@ -121,7 +156,7 @@
             <arg line="${m.aapt.build.apk}/temp/src"/>
         </exec>
 
-        <echo>aapt.signed @{jarbasename}: compiling R.java...</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: compiling R.java...</echo>
         <javac encoding="${m.aapt.java.encoding}"
             source="${target.sourcelevel}" 
             target="${target.targetlevel}" 
@@ -137,7 +172,7 @@
             </classpath>
         </javac>
 
-        <echo>aapt.signed @{jarbasename}: dex'ing</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: dex'ing</echo>
         <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="--dex"/>
             <arg line="--output=${m.aapt.dex.file}"/>
@@ -153,7 +188,7 @@
             <pathelement path="${env.ANDROID_HOME}/tools/lib/jarutils.jar" />
         </path>
 
-        <echo>aapt.signed @{jarbasename}: packaging</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: packaging</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
             <!--arg line="-v"/-->
@@ -182,7 +217,7 @@
             <arg line="${m.aapt.build.apk}/image/"/>
         </exec>
         
-        <echo>aapt.signed @{jarbasename}: gen temp keystore @{keystore.alias} @ ${m.aapt.build.apk}/debug.keystore</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: gen temp keystore @{keystore.alias} @ ${m.aapt.build.apk}/debug.keystore</echo>
         <exec dir="." executable="keytool" failonerror="true">
             <arg value="-genkey"/>
 
@@ -211,7 +246,7 @@
         </exec>
 
         <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
-        <echo>aapt.signed @{jarbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
         <!-- signjar
               sigalg="MD5withRSA"
               digestalg="SHA1"
@@ -246,7 +281,7 @@
             <arg value="@{keystore.alias}" />
         </exec>
 
-        <echo>aapt.signed @{jarbasename}: zip aligning</echo>
+        <echo>aapt.signed ${m.aapt.apkbasename}: zip aligning</echo>
         <exec dir="." executable="${env.ANDROID_HOME}/build-tools/${env.ANDROID_BUILD_TOOLS_VERSION}/zipalign" failonerror="true">
             <arg line="-v" />
             <arg value="-f" />

@@ -975,7 +975,7 @@
         <srcfiles dir= "."                includes="*.xml"/>
         <srcfiles dir= "${src.java}"      includes="**"/>
         <srcfiles dir= "${src.generated}" includes="**"/>
-        <mapper type="merge" to="${build}/gluegen-rt-android-${android.abi}.apk"/>
+        <mapper type="merge" to="${build}/gluegen-rt-${os.and.arch}.apk"/>
       </uptodate>
   </target>
 
