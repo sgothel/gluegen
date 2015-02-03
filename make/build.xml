@@ -1042,6 +1042,7 @@
              stylesheetfile="doc/javadoc/stylesheet.css">
         <classpath path="${classes}"/>
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+        <arg value="${javadoc.xarg1}"/>
     </javadoc>
     <copy todir="${javadoc.gluegen.path}/resources" overwrite="true">
         <fileset dir="doc/javadoc/resources" includes="*" />
