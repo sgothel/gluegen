@@ -231,7 +231,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     public final DynamicLibraryBundleInfo getBundleInfo() { return info; }
 
-    protected final long getToolGetProcAddressHandle() {
+    protected final long getToolGetProcAddressHandle() throws SecurityException {
         if(!isToolLibLoaded()) {
             return 0;
         }
@@ -246,7 +246,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return aptr;
     }
 
-    protected static final NativeLibrary loadFirstAvailable(final List<String> libNames, final ClassLoader loader, final boolean global) {
+    protected static final NativeLibrary loadFirstAvailable(final List<String> libNames, final ClassLoader loader, final boolean global) throws SecurityException {
         for (int i=0; i < libNames.size(); i++) {
             final NativeLibrary lib = NativeLibrary.open(libNames.get(i), loader, global);
             if (lib != null) {
@@ -256,7 +256,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return null;
     }
 
-    final DynamicLinker loadLibraries() {
+    final DynamicLinker loadLibraries() throws SecurityException {
         int i;
         toolLibLoadedNumber = 0;
         final ClassLoader cl = info.getClass().getClassLoader();
@@ -317,7 +317,12 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return dynLinkGlobal;
     }
 
-    private final long dynamicLookupFunctionOnLibs(final String funcName) {
+    /**
+     * @param funcName
+     * @return
+     * @throws SecurityException if user is not granted access for the library set.
+     */
+    private final long dynamicLookupFunctionOnLibs(final String funcName) throws SecurityException {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {
                 System.err.println("Lookup-Native: <" + funcName + "> ** FAILED ** Tool native library not loaded");
@@ -364,7 +369,6 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     @Override
     public final void claimAllLinkPermission() throws SecurityException {
         for (int i=0; i < nativeLibraries.size(); i++) {
-            final NativeLibrary lib = nativeLibraries.get(i);
             nativeLibraries.get(i).claimAllLinkPermission();
         }
     }
@@ -376,7 +380,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
 
     @Override
-    public final long dynamicLookupFunction(final String funcName) {
+    public final long dynamicLookupFunction(final String funcName) throws SecurityException {
         if(!isToolLibLoaded() || null==funcName) {
             if(DEBUG_LOOKUP && !isToolLibLoaded()) {
                 System.err.println("Lookup: <" + funcName + "> ** FAILED ** Tool native library not loaded");
@@ -404,7 +408,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
 
     @Override
-    public final boolean isFunctionAvailable(final String funcName) {
+    public final boolean isFunctionAvailable(final String funcName) throws SecurityException {
         return 0 != dynamicLookupFunction(funcName);
     }
 

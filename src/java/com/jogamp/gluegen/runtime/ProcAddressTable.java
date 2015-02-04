@@ -167,7 +167,6 @@ public abstract class ProcAddressTable {
      * @throws SecurityException if user is not granted access for all libraries.
      */
     public void initEntry(final String name, final DynamicLookupHelper lookup) throws SecurityException, IllegalArgumentException {
-        SecurityUtil.checkAllLinkPermission();
         final Field addressField = fieldForFunction(name);
         addressField.setAccessible(true);
         setEntry(addressField, name, lookup);
@@ -176,7 +175,7 @@ public abstract class ProcAddressTable {
     private final void setEntry(final Field addressField, final String funcName, final DynamicLookupHelper lookup) throws SecurityException {
         try {
             assert (addressField.getType() == Long.TYPE);
-            final long newProcAddress = resolver.resolve(funcName, lookup);
+            final long newProcAddress = resolver.resolve(funcName, lookup); // issues SecurityUtil.checkLinkPermission(String)
             addressField.setLong(this, newProcAddress);
             if (DEBUG) {
                 getDebugOutStream().println("  " + addressField.getName() + " -> 0x" + Long.toHexString(newProcAddress));
@@ -345,7 +344,7 @@ public abstract class ProcAddressTable {
 
     private static class One2OneResolver implements FunctionAddressResolver {
         @Override
-        public long resolve(final String name, final DynamicLookupHelper lookup) {
+        public long resolve(final String name, final DynamicLookupHelper lookup) throws SecurityException {
             return lookup.dynamicLookupFunction(name);
         }
     }
