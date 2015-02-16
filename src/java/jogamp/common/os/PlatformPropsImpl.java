@@ -269,9 +269,9 @@ public abstract class PlatformPropsImpl {
                 }
                 ABI_TYPE = elfABIType;
             } else {
-                if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM ||
+                if( AndroidVersion.CPU_TYPE.family == CPUFamily.ARM || AndroidVersion.CPU_TYPE.family == CPUFamily.X86 ||
                     null == AndroidVersion.CPU_TYPE2 ) {
-                    // Favor Android-1: Either b/c ARM Family, or no Android-2
+                    // Favor Android-1: Either b/c ARM or x86 Family, or no Android-2
                     ARCH = AndroidVersion.CPU_ABI;
                     ARCH_lower = ARCH;
                     CPU_ARCH = AndroidVersion.CPU_TYPE;
@@ -505,6 +505,7 @@ public abstract class PlatformPropsImpl {
      * <ul>
      *   <li>android-armv6</li>
      *   <li>android-aarch64</li>
+     *   <li>android-x86</li>
      *   <li>linux-armv6</li>
      *   <li>linux-armv6hf</li>
      *   <li>linux-i586</li>
