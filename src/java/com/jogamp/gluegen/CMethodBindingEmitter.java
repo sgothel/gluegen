@@ -989,7 +989,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       // Call through function pointer
       writer.print(CMethodBindingEmitter.cThisArgumentName() + "->");
     }
-    writer.print(binding.getCSymbol().getName());
+    writer.print(binding.getCSymbol().getOrigName()); // use original API name
     writer.print("(");
     emitBodyPassCArguments(writer);
     writer.println(");");

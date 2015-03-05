@@ -198,7 +198,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
             // call throught the run-time function pointer
             writer.print("(* ptr_");
-            writer.print(mBinding.getCSymbol().getName());
+            writer.print(mBinding.getCSymbol().getName()); // use renamed base-name
             writer.print(") ");
             writer.print("(");
             emitBodyPassCArguments(writer);

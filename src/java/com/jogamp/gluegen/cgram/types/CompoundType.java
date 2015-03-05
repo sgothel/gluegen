@@ -84,7 +84,10 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   public String getAliasedString() {
       return toString();
   }
-
+  @Override
+  public String getOrigName() {
+      return getName();
+  }
   /**
    * @param structName struct name of this CompoundType, i.e. the "foo" in the
                        construct {@code struct foo { int a, ... };} or {@code struct foo;} <i>even</i> for anonymous structs.

@@ -63,6 +63,9 @@ public interface AliasedSymbol {
     /**
      * Return all aliases for this symbol, i.e. original names, for this symbol.
      * <p>
+     * Inclusive {@link #getOrigName() original-name}, if {@link #rename(String) renamed},
+     * </p>
+     * <p>
      * Exclusive {@link #getName() current-name}.
      * </p>
      * <p>
@@ -71,8 +74,12 @@ public interface AliasedSymbol {
      */
     Set<String> getAliasedNames();
     /**
+     * Return the original-name as set at creation.
+     */
+    String getOrigName();
+    /**
      * Return the current-name, which is the last {@link #rename(String) renamed-name} if issued,
-     * or the original-name.
+     * or the {@link #getOrigName() original-name}.
      */
     String getName();
     /**
@@ -82,10 +89,12 @@ public interface AliasedSymbol {
     String getAliasedString();
 
     public static class AliasedSymbolImpl implements AliasedSymbol {
+        private final String origName;
         private final HashSet<String> aliasedNames;
         private String name;
 
         public AliasedSymbolImpl(final String origName) {
+            this.origName = origName;
             this.aliasedNames=new HashSet<String>();
             this.name = origName;
         }
@@ -110,6 +119,10 @@ public interface AliasedSymbol {
         @Override
         public Set<String> getAliasedNames() {
             return aliasedNames;
+        }
+        @Override
+        public String getOrigName() {
+            return origName;
         }
         @Override
         public String getName() {
@@ -141,6 +154,10 @@ public interface AliasedSymbol {
         @Override
         public Set<String> getAliasedNames() {
             return null;
+        }
+        @Override
+        public String getOrigName() {
+            return name;
         }
         @Override
         public String getName() {
