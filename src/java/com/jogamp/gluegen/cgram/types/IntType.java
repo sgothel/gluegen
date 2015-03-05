@@ -55,20 +55,36 @@ public class IntType extends PrimitiveType implements Cloneable {
     }
 
     @Override
-    public boolean equals(final Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof IntType))) {
-            return false;
-        }
-        final IntType t = (IntType) arg;
-        return (super.equals(arg) && (unsigned == t.unsigned));
+    protected int hashCodeImpl() {
+      // 31 * x == (x << 5) - x
+      final int hash = 31 + ( unsigned ? 1 : 0 );
+      return ((hash << 5) - hash) + ( typedefedUnsigned ? 1 : 0 );
     }
 
     @Override
-    public void setName(final String name) {
-        super.setName(name);
+    protected boolean equalsImpl(final Type arg) {
+        final IntType t = (IntType) arg;
+        return unsigned == t.unsigned &&
+               typedefedUnsigned == t.typedefedUnsigned;
+    }
+
+    @Override
+    protected int hashCodeSemanticsImpl() {
+      return hashCodeImpl();
+    }
+
+    @Override
+    protected boolean equalSemanticsImpl(final Type arg) {
+        final IntType t = (IntType) arg;
+        return relaxedEqSem ||
+               ( unsigned == t.unsigned &&
+                 typedefedUnsigned == t.typedefedUnsigned
+               );
+    }
+
+    @Override
+    public void setTypedefName(final String name) {
+        super.setTypedefName(name);
         typedefedUnsigned = unsigned;
     }
 
@@ -89,7 +105,7 @@ public class IntType extends PrimitiveType implements Cloneable {
 
     @Override
     public String toString() {
-        return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getName();
+        return getCVAttributesString() + ((isUnsigned() & (!typedefedUnsigned)) ? "unsigned " : "") + getCName();
     }
 
     @Override

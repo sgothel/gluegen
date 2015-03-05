@@ -80,6 +80,7 @@ public class BaseClass extends SingletonJunitCase {
           int i;
           final long context = 0;
           LongBuffer lb=null;
+          ByteBuffer bb=null;
           final IntBuffer ib=null;
           final long[] larray = null;
           final int larray_offset = 0;
@@ -89,10 +90,38 @@ public class BaseClass extends SingletonJunitCase {
           final int iarray_offset = 0;
           long result = 0;
           long l = result;
+          ShortBlob sb = null;
+          Int32Struct i32s = null;
+          AnonBlob ab = null;
+          PointerBuffer pb=null;
 
           {
-              final ByteBuffer bb = binding.createAPtrBlob();
-              PointerBuffer pb = safeByteBuffer2PointerBuffer(bb, 1);
+              l = binding.testXID(l);
+              l = binding.testXID_2(l);
+
+              bb = binding.testAnonBuffer(bb);
+
+              sb = binding.testShortBlob0(sb);
+              sb = binding.testShortBlob1(sb);
+              sb = binding.testShortBlob2(sb);
+              sb = binding.testShortBlob3(sb);
+              sb = binding.testShortBlob4(sb);
+
+              i32s = binding.testInt32Struct(i32s);
+
+              ab = binding.testCreateAnonBlob();
+              binding.testDestroyAnonBlob(ab);
+
+              l = binding.testCreateAnonBlob2();
+              binding.testDestroyAnonBlob2(l);
+
+              lb = binding.testFooPtr(larray, 0);
+              lb = binding.testFooPtr(lb);
+          }
+
+          {
+              bb = binding.createAPtrBlob();
+              pb = safeByteBuffer2PointerBuffer(bb, 1);
               long bb2A = binding.getAPtrAddress(bb);
               bb2A = bb2A - 0; // avoid warning
 
@@ -118,9 +147,6 @@ public class BaseClass extends SingletonJunitCase {
 
               binding.releaseAPtrBlob(bb);
           }
-
-          final ByteBuffer bb=null;
-          PointerBuffer pb=null;
 
           result = binding.arrayTestInt32(context, ib);
           result = binding.arrayTestInt32(context, iarray, iarray_offset);
@@ -629,6 +655,57 @@ public class BaseClass extends SingletonJunitCase {
                   Assert.assertTrue("Wrong result: 0x"+Long.toHexString(pb.get(i))+"+1 != 0x"+Long.toHexString(pb2.get(i)), (pb.get(i)+1)==pb2.get(i));
               }
           }
+
+          {
+              final long l0 = 0xAAFFEE;
+              final long l1 = binding.testXID(l0);
+              final long l2 = binding.testXID_2(l0);
+              Assert.assertEquals(l0, l1);
+              Assert.assertEquals(l0, l2);
+
+              final ByteBuffer bb = Buffers.newDirectByteBuffer(PointerBuffer.ELEMENT_SIZE);
+              for(int j=0; j<bb.limit(); j++) {
+                  bb.put(j, (byte)(0xAA+j));
+              }
+              final ByteBuffer bbOut = binding.testAnonBuffer(bb);
+              Assert.assertEquals(bb, bbOut);
+
+              final ShortBlob sb = ShortBlob.create();
+              sb.setB1((byte)0xAA);
+              sb.setB2((byte)0xEE);
+              final ShortBlob sb0 = binding.testShortBlob0(sb);
+              final ShortBlob sb1 = binding.testShortBlob1(sb);
+              final ShortBlob sb2 = binding.testShortBlob2(sb);
+              final ShortBlob sb3 = binding.testShortBlob3(sb);
+              final ShortBlob sb4 = binding.testShortBlob4(sb);
+              Assert.assertEquals(sb.getBuffer(), sb0.getBuffer());
+              Assert.assertEquals(sb.getBuffer(), sb1.getBuffer());
+              Assert.assertEquals(sb.getBuffer(), sb2.getBuffer());
+              Assert.assertEquals(sb.getBuffer(), sb3.getBuffer());
+              Assert.assertEquals(sb.getBuffer(), sb4.getBuffer());
+
+              final Int32Struct i32s = Int32Struct.create();
+              i32s.setB1((byte)0x02);
+              i32s.setB2((byte)0x12);
+              i32s.setB3((byte)0x22);
+              i32s.setB4((byte)0x32);
+              final Int32Struct i32s0 = binding.testInt32Struct(i32s);
+              Assert.assertEquals(i32s.getBuffer(), i32s0.getBuffer());
+
+              final AnonBlob ab = binding.testCreateAnonBlob();
+              binding.testDestroyAnonBlob(ab);
+
+              final long ab2 = binding.testCreateAnonBlob2();
+              binding.testDestroyAnonBlob2(ab2);
+
+              final long[] foo = new long[] { 0x1122334455667788L };
+              final LongBuffer fooLB = Buffers.newDirectLongBuffer(foo);
+              final LongBuffer foo1Out = binding.testFooPtr(fooLB);
+              Assert.assertEquals(fooLB, foo1Out);
+              final LongBuffer foo2Out = binding.testFooPtr(foo, 0);
+              Assert.assertEquals(fooLB, foo2Out);
+          }
+
     }
 
     public void chapter04TestPointerBuffer(final Bindingtest1 binding) throws Exception {
@@ -1123,14 +1200,14 @@ public class BaseClass extends SingletonJunitCase {
 
         Assert.assertEquals(3, model.getIntxxPointerCustomLenVal());
         Assert.assertEquals(3, model.getInt32PointerCustomLenVal());
-        Assert.assertEquals(3, model.getInt32ArrayFixedLenArrayLength());
-        Assert.assertEquals(3, model.getStructArrayFixedLenArrayLength());
+        Assert.assertEquals(3, TK_ModelConst.getInt32ArrayFixedLenArrayLength());
+        Assert.assertEquals(3, TK_ModelConst.getStructArrayFixedLenArrayLength());
         Assert.assertEquals(3, model.getStructPointerCustomLenVal());
 
         // field: int32ArrayFixedLen
         //        CType['int32_t *', size [fixed false, lnx64 12], [array*1]], with array length of 3
         {
-            final int size = model.getInt32ArrayFixedLenArrayLength();
+            final int size = TK_ModelConst.getInt32ArrayFixedLenArrayLength();
             final int[] all = model.getInt32ArrayFixedLen(0, new int[size]);
             final IntBuffer allB = model.getInt32ArrayFixedLen();
             Assert.assertEquals(size, allB.limit());
@@ -1170,7 +1247,7 @@ public class BaseClass extends SingletonJunitCase {
         // field: mat4x4
         //        CType['float * *', size [fixed false, lnx64 64], [array*2]], with array length of <code>4*4</code> */
         {
-            Assert.assertEquals(4*4, model.getMat4x4ArrayLength());
+            Assert.assertEquals(4*4, TK_ModelConst.getMat4x4ArrayLength());
             final FloatBuffer mat4x4 = model.getMat4x4();
             Assert.assertEquals(4*4, mat4x4.limit());
             for(int i=0; i<4; i++) {
@@ -1185,7 +1262,7 @@ public class BaseClass extends SingletonJunitCase {
         // field: structArrayFixedLen
         //        field: CType['TK_Dimension *', size [fixed false, lnx64 48], [array*1]], with array length of 3
         {
-            final int size = model.getStructArrayFixedLenArrayLength();
+            final int size = TK_ModelConst.getStructArrayFixedLenArrayLength();
             final TK_Dimension[] all = model.getStructArrayFixedLen(0, new TK_Dimension[size]);
             for(int i=0; i<size; i++) {
                 Assert.assertEquals(51 + i * 10, all[i].getX());
@@ -1236,7 +1313,7 @@ public class BaseClass extends SingletonJunitCase {
         assertAPTR(surfaceContext, model.getCtx());
 
         {
-            Assert.assertEquals(12, model.getModelNameArrayFixedLenArrayLength());
+            Assert.assertEquals(12, TK_ModelConst.getModelNameArrayFixedLenArrayLength());
 
             final ByteBuffer bb = model.getModelNameArrayFixedLen();
             Assert.assertEquals(12, bb.limit());
@@ -1296,14 +1373,14 @@ public class BaseClass extends SingletonJunitCase {
 
         Assert.assertEquals(3, model.getIntxxPointerCustomLenVal());
         Assert.assertEquals(3, model.getInt32PointerCustomLenVal());
-        Assert.assertEquals(3, model.getInt32ArrayFixedLenArrayLength());
-        Assert.assertEquals(3, model.getStructArrayFixedLenArrayLength());
+        Assert.assertEquals(3, TK_ModelMutable.getInt32ArrayFixedLenArrayLength());
+        Assert.assertEquals(3, TK_ModelMutable.getStructArrayFixedLenArrayLength());
         Assert.assertEquals(3, model.getStructPointerCustomLenVal());
 
         // field: int32ArrayFixedLen
         //        CType['int32_t *', size [fixed false, lnx64 12], [array*1]], with array length of 3
         {
-            final int size = model.getInt32ArrayFixedLenArrayLength();
+            final int size = TK_ModelMutable.getInt32ArrayFixedLenArrayLength();
             {
                 final int[] values = new int[] { 1, 2, 3 };
                 model.setInt32ArrayFixedLen(0, values);
@@ -1385,7 +1462,7 @@ public class BaseClass extends SingletonJunitCase {
             model.setMat4x4(2*4, new float[] { 31, 32, 33, 34 } );
             model.setMat4x4(3*4, new float[] { 41, 42, 43, 44 } );
 
-            Assert.assertEquals(4*4, model.getMat4x4ArrayLength());
+            Assert.assertEquals(4*4, TK_ModelMutable.getMat4x4ArrayLength());
             final FloatBuffer mat4x4 = model.getMat4x4();
             Assert.assertEquals(4*4, mat4x4.limit());
             for(int i=0; i<4; i++) {
@@ -1400,7 +1477,7 @@ public class BaseClass extends SingletonJunitCase {
         // field: structArrayFixedLen
         //        field: CType['TK_Dimension *', size [fixed false, lnx64 48], [array*1]], with array length of 3
         {
-            final int size = model.getStructArrayFixedLenArrayLength();
+            final int size = TK_ModelMutable.getStructArrayFixedLenArrayLength();
             {
                 for(int i=0; i<size; i++) {
                     final TK_Dimension d = TK_Dimension.create();

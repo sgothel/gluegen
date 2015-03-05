@@ -43,8 +43,10 @@ import com.jogamp.common.GlueGenVersion;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
 
 import antlr.*;
+
 import com.jogamp.gluegen.cgram.*;
 import com.jogamp.gluegen.cgram.types.*;
 import com.jogamp.gluegen.pcpp.*;
@@ -64,8 +66,8 @@ public class GlueGen implements GlueEmitterControls {
     private PCPP preprocessor;
 
     // State for SymbolFilters
-    private List<ConstantDefinition> constants;
-    private List<FunctionSymbol> functions;
+    private List<ConstantDefinition> allConstants;
+    private List<FunctionSymbol> allFunctions;
 
     private static boolean debug = false;
 
@@ -83,14 +85,14 @@ public class GlueGen implements GlueEmitterControls {
 
     @Override
     public void runSymbolFilter(final SymbolFilter filter) {
-        filter.filterSymbols(constants, functions);
+        filter.filterSymbols(allConstants, allFunctions);
         final List<ConstantDefinition> newConstants = filter.getConstants();
         final List<FunctionSymbol> newFunctions = filter.getFunctions();
         if (newConstants != null) {
-            constants = newConstants;
+            allConstants = newConstants;
         }
         if (newFunctions != null) {
-            functions = newFunctions;
+            allFunctions = newFunctions;
         }
     }
 
@@ -99,6 +101,25 @@ public class GlueGen implements GlueEmitterControls {
     public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyPCPPOutput2Stderr) {
 
         try {
+            if(debug) {
+                Logging.getLogger().setLevel(Level.ALL);
+            }
+            final GlueEmitter emit;
+            if (emitterClass == null) {
+                emit = new JavaEmitter();
+            } else {
+                try {
+                    emit = (GlueEmitter) emitterClass.newInstance();
+                } catch (final Exception e) {
+                    throw new RuntimeException("Exception occurred while instantiating emitter class.", e);
+                }
+            }
+
+            for (final String config : cfgFiles) {
+                emit.readConfigurationFile(config);
+            }
+            final JavaConfiguration cfg = emit.getConfiguration();
+
             final File out = File.createTempFile("PCPPTemp", ".pcpp");
             final FileOutputStream outStream = new FileOutputStream(out);
 
@@ -115,6 +136,9 @@ public class GlueGen implements GlueEmitterControls {
             preprocessor.run(reader, filename);
             outStream.flush();
             outStream.close();
+            if(debug) {
+                System.err.println("PCPP done");
+            }
 
             final FileInputStream inStream = new FileInputStream(out);
             final DataInputStream dis = new DataInputStream(inStream);
@@ -140,6 +164,7 @@ public class GlueGen implements GlueEmitterControls {
 
             final HeaderParser headerParser = new HeaderParser();
             headerParser.setDebug(debug);
+            headerParser.setJavaConfiguration(cfg);
             final TypeDictionary td = new TypeDictionary();
             headerParser.setTypedefDictionary(td);
             final TypeDictionary sd = new TypeDictionary();
@@ -162,21 +187,6 @@ public class GlueGen implements GlueEmitterControls {
             // generate glue code: the #defines to constants, the set of
             // typedefs, and the set of functions.
 
-            GlueEmitter emit = null;
-            if (emitterClass == null) {
-                emit = new JavaEmitter();
-            } else {
-                try {
-                    emit = (GlueEmitter) emitterClass.newInstance();
-                } catch (final Exception e) {
-                    throw new RuntimeException("Exception occurred while instantiating emitter class.", e);
-                }
-            }
-
-            for (final String config : cfgFiles) {
-                emit.readConfigurationFile(config);
-            }
-
             if (null != outputRootDir && outputRootDir.trim().length() > 0) {
                 if (emit instanceof JavaEmitter) {
                     // FIXME: hack to interfere with the *Configuration setting via commandlines
@@ -189,7 +199,7 @@ public class GlueGen implements GlueEmitterControls {
 
             // Repackage the enum and #define statements from the parser into a common format
             // so that SymbolFilters can operate upon both identically
-            constants = new ArrayList<ConstantDefinition>();
+            allConstants = new ArrayList<ConstantDefinition>();
             for (final EnumType enumeration : headerParser.getEnums()) {
                 String enumName = enumeration.getName();
                 if (enumName.equals("<anonymous>")) {
@@ -198,32 +208,56 @@ public class GlueGen implements GlueEmitterControls {
                 // iterate over all values in the enumeration
                 for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
                     final String enumElementName = enumeration.getEnumName(i);
-                    final String value = String.valueOf(enumeration.getEnumValue(i));
-                    constants.add(new ConstantDefinition(enumElementName, value, true, enumName));
+                    allConstants.add(new ConstantDefinition(enumElementName, enumeration.getEnumValue(i), enumName));
                 }
             }
             for (final Object elem : lexer.getDefines()) {
                 final Define def = (Define) elem;
-                constants.add(new ConstantDefinition(def.getName(), def.getValue(), false, null));
+                allConstants.add(new ConstantDefinition(def.getName(), def.getValue()));
             }
 
-            functions = headerParser.getParsedFunctions();
+            allFunctions = headerParser.getParsedFunctions();
 
-            // begin emission of glue code
+            // begin emission of glue code,
+            // incl. firing up 'runSymbolFilter(SymbolFilter)' calls, which:
+            //    - filters all ConstantDefinition
+            //    - filters all FunctionSymbol
             emit.beginEmission(this);
+
+            if( debug() ) {
+                int i=0;
+                System.err.println("Filtered Constants: "+allConstants.size());
+                for (final ConstantDefinition def : allConstants) {
+                    if( debug() ) {
+                        System.err.println("Filtered ["+i+"]: "+def.getAliasedString());
+                        i++;
+                    }
+                }
+                i=0;
+                System.err.println("Filtered Functions: "+allFunctions.size());
+                for (final FunctionSymbol cFunc : allFunctions) {
+                    System.err.println("Filtered ["+i+"]: "+cFunc.getAliasedString());
+                    i++;
+                }
+            }
 
             emit.beginDefines();
             final Set<String> emittedDefines = new HashSet<String>(100);
             // emit java equivalent of enum { ... } statements
             final StringBuilder comment = new StringBuilder();
-            for (final ConstantDefinition def : constants) {
+            for (final ConstantDefinition def : allConstants) {
                 if (!emittedDefines.contains(def.getName())) {
                     emittedDefines.add(def.getName());
-                    final Set<String> aliases = def.getAliases();
-                    if (aliases != null) {
+                    final Set<String> aliases = cfg.getAliasedDocNames(def);
+                    if (aliases != null && aliases.size() > 0 ) {
+                        int i=0;
                         comment.append("Alias for: <code>");
                         for (final String alias : aliases) {
-                            comment.append(" ").append(alias);
+                            if(0 < i) {
+                                comment.append("</code>, <code>");
+                            }
+                            comment.append(alias);
+                            i++;
                         }
                         comment.append("</code>");
                     }
@@ -249,7 +283,7 @@ public class GlueGen implements GlueEmitterControls {
             // Iterate through the functions finding structs that are referenced in
             // the function signatures; these will be remembered for later emission
             final ReferencedStructs referencedStructs = new ReferencedStructs();
-            for (final FunctionSymbol sym : functions) {
+            for (final FunctionSymbol sym : allFunctions) {
                 // FIXME: this doesn't take into account the possibility that some of
                 // the functions we send to emitMethodBindings() might not actually be
                 // emitted (e.g., if an Ignore directive in the JavaEmitter causes it
@@ -290,19 +324,20 @@ public class GlueGen implements GlueEmitterControls {
             for (final Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
                 final Type t = iter.next();
                 if (t.isCompound()) {
+                    assert t.hasTypedefName() && t.getName() == null : "ReferencedStructs incorrectly recorded compound type " + t;
                     emit.emitStruct(t.asCompound(), null);
                 } else if (t.isPointer()) {
                     final PointerType p = t.asPointer();
                     final CompoundType c = p.getTargetType().asCompound();
-                    assert p.hasTypedefedName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
-                    emit.emitStruct(c, p.getName());
+                    assert p.hasTypedefName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
+                    emit.emitStruct(c, p);
                 }
             }
             emit.endStructs();
 
             // emit java and C code to interface with the native functions
             emit.beginFunctions(td, sd, headerParser.getCanonMap());
-            emit.emitFunctions(functions);
+            emit.emitFunctions(allFunctions);
             emit.endFunctions();
 
             // end emission of glue code

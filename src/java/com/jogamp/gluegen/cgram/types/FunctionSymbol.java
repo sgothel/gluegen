@@ -38,6 +38,12 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
+import java.util.List;
+
+import com.jogamp.gluegen.cgram.types.AliasedSymbol.AliasedSymbolImpl;
+import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
+
 
 /**
  * Describes a function symbol, which includes the name and
@@ -51,18 +57,13 @@ package com.jogamp.gluegen.cgram.types;
  * Deep comparison can be performed via {@link #isCompletelyEqual(Object o)};
  * </p>
  **/
-public class FunctionSymbol {
+public class FunctionSymbol extends AliasedSymbolImpl implements AliasedSemanticSymbol {
 
-    private final String name;
     private final FunctionType type;
 
     public FunctionSymbol(final String name, final FunctionType type) {
-        this.name = name;
+        super(name);
         this.type = type;
-    }
-
-    public String getName() {
-        return name;
     }
 
     /** Returns the type of this function. Do not add arguments to it
@@ -109,10 +110,10 @@ public class FunctionSymbol {
 
     @Override
     public int hashCode() {
-        if (name == null) {
+        if (getName() == null) {
             return 0;
         }
-        return name.hashCode();
+        return getName().hashCode();
     }
 
     @Override
@@ -120,25 +121,54 @@ public class FunctionSymbol {
         if (arg == this) {
             return true;
         }
-
-        if (arg == null || (!(arg instanceof FunctionSymbol))) {
+        if ( !(arg instanceof FunctionSymbol) ) {
             return false;
         }
-
         final FunctionSymbol other = (FunctionSymbol) arg;
-
         if (getName() == null && other.getName() != null) {
             return false;
         }
-
         return getName().equals(other.getName());
+    }
+
+    @Override
+    public int hashCodeSemantics() {
+        return type.hashCodeSemantics();
+    }
+    @Override
+    public final boolean equalSemantics(final SemanticEqualityOp arg) {
+        if (arg == this) {
+            return true;
+        }
+        if ( !(arg instanceof FunctionSymbol) ) {
+            return false;
+        }
+        final FunctionSymbol other = (FunctionSymbol) arg;
+        return type.equalSemantics(other.type);
+    }
+
+
+    public static boolean containsExactly(final List<FunctionSymbol> l, final FunctionSymbol s) {
+        return exactIndexOf(l, s) >= 0;
+    }
+
+    public static int exactIndexOf(final List<FunctionSymbol> l, final FunctionSymbol s) {
+        final int size = l.size();
+        for (int i = 0; i < size; i++) {
+            final FunctionSymbol e = l.get(i);
+            if( null == s && null == e ||
+                s.equals( e ) && s.type.equals(e.type) ) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
      * Compares the function type as well, since {@link #equals(Object)}
      * and {@link #hashCode()} won't.
      */
-    public boolean isCompletelyEqual(final Object arg) {
+    public boolean exactlyEqual(final Object arg) {
         if( !this.equals(arg) ) {
             return false;
         }

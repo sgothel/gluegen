@@ -41,6 +41,9 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.*;
 
+import com.jogamp.gluegen.GlueGen;
+import com.jogamp.gluegen.JavaConfiguration;
+
 
 /** Utility class for recording names of typedefs and structs. */
 
@@ -61,6 +64,38 @@ public class TypeDictionary {
    * was found corresponding to the given name. */
   public Type get(final String name) {
     return map.get(name);
+  }
+
+  public List<Type> getEqualSemantics(final Type s, final JavaConfiguration cfg, final boolean skipOpaque) {
+      final List<Type> res = new ArrayList<Type>();
+      if( !skipOpaque || null == cfg.typeInfo(s) ) {
+          final Set<Map.Entry<String, Type>> entries = entrySet();
+          for(final Iterator<Map.Entry<String, Type>> iter = entries.iterator(); iter.hasNext(); ) {
+              final Map.Entry<String, Type> entry = iter.next();
+              final Type t = entry.getValue();
+              if( s.equalSemantics(t) ) {
+                  if( !skipOpaque || null == cfg.typeInfo(t) ) {
+                      if( GlueGen.debug() ) {
+                          System.err.println(" tls["+res.size()+"]: -> "+entry.getKey()+" -> "+t.getDebugString());
+                      }
+                      res.add(t);
+                  }
+              }
+          }
+      }
+      return res;
+  }
+  public Type getEqualSemantics1(final Type s, final JavaConfiguration cfg, final boolean skipOpaque) {
+      final List<Type> tls = getEqualSemantics(s, cfg, skipOpaque);
+      if( tls.size() > 0 ) {
+          final Type res = tls.get(0);
+          if( GlueGen.debug() ) {
+              System.err.println(" tls.0: "+res.getDebugString());
+          }
+          return res;
+      } else {
+          return null;
+      }
   }
 
   //this method is broken

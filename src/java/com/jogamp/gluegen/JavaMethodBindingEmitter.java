@@ -40,14 +40,17 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.cgram.HeaderParser;
+import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.ArrayType;
 import com.jogamp.gluegen.cgram.types.EnumType;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An emitter that emits only the interface for a Java<->C JNI binding.
@@ -97,9 +100,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   // represent an array of compound type wrappers
   private static final String COMPOUND_ARRAY_SUFFIX = "_buf_array_copy";
 
-  // Only present to provide more clear comments
-  private final JavaConfiguration cfg;
-
   public JavaMethodBindingEmitter(final MethodBinding binding,
                                   final PrintWriter output,
                                   final String runtimeExceptionType,
@@ -115,7 +115,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
                                   final boolean isUnimplemented,
                                   final boolean isInterface,
                                   final JavaConfiguration configuration) {
-    super(output, isInterface);
+    super(output, isInterface, configuration);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
     this.unsupportedExceptionType = unsupportedExceptionType;
@@ -133,7 +133,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     } else {
       setCommentEmitter(defaultInterfaceCommentEmitter);
     }
-    cfg = configuration;
   }
 
   public JavaMethodBindingEmitter(final JavaMethodBindingEmitter arg) {
@@ -154,7 +153,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     epilogue                      = arg.epilogue;
     returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
     returnedArrayLengthExpressionOnlyForComments = arg.returnedArrayLengthExpressionOnlyForComments;
-    cfg                           = arg.cfg;
   }
 
   public final MethodBinding getBinding() { return binding; }
@@ -166,6 +164,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   @Override
   public String getName() {
     return binding.getName();
+  }
+
+  @Override
+  public FunctionSymbol getCSymbol() {
+      return binding.getCSymbol();
   }
 
   protected String getArgumentName(final int i) {
@@ -812,6 +815,26 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
    * emitter java method.
    */
   protected class DefaultCommentEmitter implements CommentEmitter {
+    protected void emitAliasedDocNamesComment(final AliasedSymbol sym, final PrintWriter writer) {
+        writer.print(emitAliasedDocNamesComment(sym, new StringBuilder()).toString());
+    }
+    protected StringBuilder emitAliasedDocNamesComment(final AliasedSymbol sym, final StringBuilder sb) {
+      final Set<String> aliases = cfg.getAliasedDocNames(sym);
+      if (aliases != null && aliases.size() > 0 ) {
+          int i=0;
+          sb.append("Alias for: <code>");
+          for (final String alias : aliases) {
+              if(0 < i) {
+                  sb.append("</code>, <code>");
+              }
+              sb.append(alias);
+              i++;
+          }
+          sb.append("</code>");
+      }
+      return sb;
+    }
+
     @Override
     public void emit(final FunctionEmitter emitter, final PrintWriter writer) {
       emitBeginning(emitter, writer);
@@ -826,9 +849,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       writer.print("Entry point to C language function: ");
     }
     protected void emitBindingCSignature(final MethodBinding binding, final PrintWriter writer) {
-      writer.print("<code> ");
-      writer.print(binding.getCSymbol().toString(tagNativeBinding));
-      writer.print(" </code> ");
+      final FunctionSymbol funcSym = binding.getCSymbol();
+      writer.print("<code>");
+      writer.print(funcSym.toString(tagNativeBinding));
+      writer.print("</code><br>");
+      emitAliasedDocNamesComment(funcSym, writer);
     }
     protected void emitEnding(final FunctionEmitter emitter, final PrintWriter writer) {
       // If argument type is a named enum, then emit a comment detailing the

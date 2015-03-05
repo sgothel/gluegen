@@ -57,6 +57,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import com.jogamp.gluegen.Logging;
+
 import static java.util.logging.Level.*;
 
 /** A minimal pseudo-C-preprocessor designed in particular to preserve
@@ -65,7 +68,7 @@ import static java.util.logging.Level.*;
 
 public class PCPP {
 
-    private static final Logger LOG = Logger.getLogger(PCPP.class.getPackage().getName());
+    private final Logger LOG;
 
     /** Map containing the results of #define statements. We must
         evaluate certain very simple definitions (to properly handle
@@ -86,6 +89,7 @@ public class PCPP {
     private final boolean enableCopyOutput2Stderr;
 
     public PCPP(final List<String> includePaths, final boolean debug, final boolean copyOutput2Stderr) {
+        LOG = Logging.getLogger(PCPP.class.getPackage().getName());
         this.includePaths = includePaths;
         setOut(System.out);
         enableDebugPrint = debug;

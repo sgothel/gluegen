@@ -41,6 +41,8 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.*;
 
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
+
 /** Describes a function type, used to model both function
 declarations and (via PointerType) function pointers. */
 public class FunctionType extends Type implements Cloneable {
@@ -67,17 +69,31 @@ public class FunctionType extends Type implements Cloneable {
     }
 
     @Override
-    public boolean equals(final Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof FunctionType))) {
-            return false;
-        }
+    protected int hashCodeImpl() {
+        // 31 * x == (x << 5) - x
+        final int hash = returnType.hashCode();
+        return ((hash << 5) - hash) + TypeComparator.listsHashCode(argumentTypes);
+    }
+
+    @Override
+    protected boolean equalsImpl(final Type arg) {
         final FunctionType t = (FunctionType) arg;
-        return (super.equals(arg)
-                && returnType.equals(t.returnType)
-                && listsEqual(argumentTypes, t.argumentTypes));
+        return returnType.equals(t.returnType) &&
+               TypeComparator.listsEqual(argumentTypes, t.argumentTypes);
+    }
+
+    @Override
+    protected int hashCodeSemanticsImpl() {
+        // 31 * x == (x << 5) - x
+        final int hash = returnType.hashCodeSemantics();
+        return ((hash << 5) - hash) + TypeComparator.listsHashCodeSemantics(argumentTypes);
+    }
+
+    @Override
+    protected boolean equalSemanticsImpl(final Type arg) {
+        final FunctionType t = (FunctionType) arg;
+        return returnType.equalSemantics(t.returnType) &&
+               TypeComparator.listsEqualSemantics(argumentTypes, t.argumentTypes);
     }
 
     @Override
@@ -115,10 +131,12 @@ public class FunctionType extends Type implements Cloneable {
         }
         argumentTypes.add(argumentType);
         argumentNames.add(argumentName);
+        clearCache();
     }
 
     public void setArgumentName(final int i, final String name) {
         argumentNames.set(i, name);
+        clearCache();
     }
 
     @Override
@@ -136,7 +154,7 @@ public class FunctionType extends Type implements Cloneable {
 
     String toString(final String functionName, final String callingConvention, final boolean emitNativeTag, final boolean isPointer) {
         final StringBuilder res = new StringBuilder();
-        res.append(getReturnType());
+        res.append(getReturnType().getCName(true));
         res.append(" ");
         if (isPointer) {
             res.append("(");
@@ -169,7 +187,7 @@ public class FunctionType extends Type implements Cloneable {
             } else if (t.isArray()) {
                 res.append(t.asArray().toString(getArgumentName(i)));
             } else {
-                res.append(t);
+                res.append(t.getCName(true));
                 final String argumentName = getArgumentName(i);
                 if (argumentName != null) {
                     res.append(" ");

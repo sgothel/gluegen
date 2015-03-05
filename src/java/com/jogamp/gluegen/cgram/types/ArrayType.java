@@ -48,7 +48,6 @@ package com.jogamp.gluegen.cgram.types;
 public class ArrayType extends MemoryLayoutType implements Cloneable {
   private final Type elementType;
   private final int length;
-  private String computedName;
 
   public ArrayType(final Type elementType, final SizeThunk sizeInBytes, final int length, final int cvAttributes) {
     super(elementType.getName() + " *", sizeInBytes, cvAttributes);
@@ -57,24 +56,39 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   }
 
   @Override
-  public boolean equals(final Object arg) {
-    if (arg == this) return true;
-    if (arg == null || (!(arg instanceof ArrayType))) {
-      return false;
-    }
-    final ArrayType t = (ArrayType) arg;
-    return (super.equals(arg) && elementType.equals(t.elementType) && (length == t.length));
+  protected int hashCodeImpl() {
+    // 31 * x == (x << 5) - x
+    final int hash = elementType.hashCode();
+    return ((hash << 5) - hash) + length;
   }
 
   @Override
+  protected boolean equalsImpl(final Type arg) {
+    final ArrayType t = (ArrayType) arg;
+    return elementType.equals(t.elementType) &&
+           length == t.length;
+  }
+
+  @Override
+  protected int hashCodeSemanticsImpl() {
+    // 31 * x == (x << 5) - x
+    final int hash = elementType.hashCodeSemantics();
+    return ((hash << 5) - hash) + length;
+  }
+
+  @Override
+  protected boolean equalSemanticsImpl(final Type arg) {
+    final ArrayType t = (ArrayType) arg;
+    return elementType.equalSemantics(t.elementType) &&
+           length == t.length;
+  }
+
+  @Override
+  public boolean hasName() { return null != elementType.getName(); }
+
+  @Override
   public String getName(final boolean includeCVAttrs) {
-    // Lazy computation of name due to lazy setting of compound type
-    // names during parsing
-    // Note: don't think cvAttributes can be set for array types (unlike pointer types)
-    if (computedName == null) {
-      computedName = (elementType.getName() + " *").intern();
-    }
-    return computedName;
+    return elementType.getName() + " *";
   }
 
   @Override
@@ -114,7 +128,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
     if(elementType.isConst()) {
         buf.append("const ");
     }
-    buf.append(elementType.getName());
+    buf.append(elementType.getCName());
     if (variableName != null) {
       buf.append(" ");
       buf.append(variableName);

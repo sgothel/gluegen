@@ -42,72 +42,68 @@ package com.jogamp.gluegen.cgram.types;
 public class PointerType extends Type implements Cloneable {
 
     private final Type targetType;
-    private String computedName;
-    private boolean hasTypedefedName;
 
-    public PointerType(final SizeThunk size, final Type targetType, final int cvAttributes) {
+    public PointerType(final SizeThunk size, final Type targetType, final int cvAttributes, final String typedefedName) {
         // can pass null for the final name parameter because the PointerType's getName()
         // completely replaces superclass behavior
-        this(size, targetType, cvAttributes, false, null);
-    }
-
-    private PointerType(final SizeThunk size, final Type targetType, final int cvAttributes, final boolean hasTypedefedName, final String typedefedName) {
         super(targetType.getName() + " *", size, cvAttributes);
-        this.hasTypedefedName = false;
         this.targetType = targetType;
-        if (hasTypedefedName) {
-            setName(typedefedName);
+        if (null != typedefedName) {
+            setTypedefName(typedefedName);
         }
     }
 
     @Override
-    public int hashCode() {
-        return targetType.hashCode();
+    protected int hashCodeImpl() {
+      return targetType.hashCode();
     }
 
     @Override
-    public boolean equals(final Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof PointerType))) {
-            return false;
-        }
+    protected boolean equalsImpl(final Type arg) {
         final PointerType t = (PointerType) arg;
-        // Note we ignore the name of this type (which might be a typedef
-        // name) for comparison purposes because this is what allows
-        // e.g. a newly-fabricated type "PIXELFORMATDESCRIPTOR *" to be
-        // canonicalized to e.g. "LPPIXELFORMATDESCRIPTOR"
-        return ((getSize() == t.getSize())
-                && (getCVAttributes() == t.getCVAttributes())
-                && targetType.equals(t.targetType));
+        return targetType.equals(t.targetType);
     }
 
     @Override
-    public void setName(final String name) {
-        super.setName(name);
-        hasTypedefedName = true;
+    protected int hashCodeSemanticsImpl() {
+      return targetType.hashCodeSemantics();
+    }
+
+    @Override
+    protected boolean equalSemanticsImpl(final Type arg) {
+        final PointerType pt = (PointerType) arg;
+        return targetType.equalSemantics(pt.targetType);
+    }
+
+    @Override
+    public boolean hasName() {
+        if ( hasTypedefName() ) {
+            return super.hasName();
+        } else {
+            return targetType.hasName();
+        }
     }
 
     @Override
     public String getName(final boolean includeCVAttrs) {
-        if (hasTypedefedName) {
+        if ( hasTypedefName() ) {
             return super.getName(includeCVAttrs);
+        } else if (!includeCVAttrs) {
+            return targetType.getName(includeCVAttrs) + " *";
         } else {
-            // Lazy computation of name due to lazy setting of compound type
-            // names during parsing
-            if (computedName == null) {
-                computedName = (targetType.getName(includeCVAttrs) + " *").intern();
-            }
-            if (!includeCVAttrs) {
-                return computedName;
-            }
             return targetType.getName(includeCVAttrs) + " * " + getCVAttributesString();
         }
     }
 
-    public boolean hasTypedefedName() {
-        return hasTypedefedName;
+    @Override
+    public String getCName(final boolean includeCVAttrs) {
+        if ( hasTypedefName() ) {
+            return super.getCName(includeCVAttrs);
+        } else if (!includeCVAttrs) {
+            return targetType.getCName(includeCVAttrs) + " *";
+        } else {
+            return targetType.getCName(includeCVAttrs) + " * " + getCVAttributesString();
+        }
     }
 
     @Override
@@ -115,6 +111,7 @@ public class PointerType extends Type implements Cloneable {
         return this;
     }
 
+    @Override
     public Type getTargetType() {
         return targetType;
     }
@@ -137,13 +134,18 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     public String toString() {
-        if (hasTypedefedName) {
-            return super.getName(true);
+        if ( hasTypedefName() ) {
+            return super.getCName(true);
         } else {
-            if (!targetType.isFunction()) {
-                return targetType.toString() + " * " + getCVAttributesString();
-            }
-            return toString(null, null); // this is a pointer to an unnamed function
+            return toStringInt();
+        }
+    }
+    private String toStringInt() {
+        if (!targetType.isFunction()) {
+            return targetType.getCName(true) + " * " + getCVAttributesString();
+        } else {
+            // return toString(null, null); // this is a pointer to an unnamed function
+            return ((FunctionType) targetType).toString(null /* functionName */, null /* callingConvention */, false, true);
         }
     }
 
@@ -165,6 +167,6 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     Type newCVVariant(final int cvAttributes) {
-        return new PointerType(getSize(), targetType, cvAttributes, hasTypedefedName, (hasTypedefedName ? getName() : null));
+        return new PointerType(getSize(), targetType, cvAttributes, (hasTypedefName() ? getName() : null));
     }
 }

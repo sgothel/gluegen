@@ -39,6 +39,7 @@
 
 package com.jogamp.gluegen;
 
+import java.io.IOException;
 import java.util.*;
 
 import com.jogamp.gluegen.cgram.types.*;
@@ -46,9 +47,16 @@ import com.jogamp.gluegen.cgram.types.*;
 /** Debug emitter which prints the parsing results to standard output. */
 
 public class DebugEmitter implements GlueEmitter {
+  protected JavaConfiguration cfg;
 
   @Override
-  public void readConfigurationFile(final String filename) {}
+  public void readConfigurationFile(final String filename) throws IOException {
+      cfg = createConfig();
+      cfg.read(filename);
+  }
+
+  @Override
+  public JavaConfiguration getConfiguration() { return cfg; }
 
   @Override
   public void beginEmission(final GlueEmitterControls controls) {
@@ -110,10 +118,10 @@ public class DebugEmitter implements GlueEmitter {
   }
 
   @Override
-  public void emitStruct(final CompoundType t, final String alternateName) {
+  public void emitStruct(final CompoundType t, final Type typedefType) {
     String name = t.getName();
-    if (name == null && alternateName != null) {
-      name = alternateName;
+    if (name == null && typedefType != null) {
+      name = typedefType.getName();
     }
 
     System.out.println("Referenced type \"" + name + "\"");
@@ -121,4 +129,13 @@ public class DebugEmitter implements GlueEmitter {
 
   @Override
   public void endStructs() {}
+
+  /**
+   * Create the object that will read and store configuration information for
+   * this JavaEmitter.
+   */
+  protected JavaConfiguration createConfig() {
+    return new JavaConfiguration();
+  }
+
 }

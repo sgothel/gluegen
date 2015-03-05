@@ -36,6 +36,8 @@ public abstract class MemoryLayoutType extends Type {
   }
 
   public boolean isLayouted() { return isLayouted; }
-  public void setLayouted() { isLayouted = true; }
+  public void setLayouted() {
+      isLayouted = true;
+  }
 
 }

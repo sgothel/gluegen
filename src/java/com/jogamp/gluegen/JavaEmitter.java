@@ -49,6 +49,7 @@ import java.util.*;
 import java.text.MessageFormat;
 
 import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
 
 import java.nio.Buffer;
 import java.util.logging.Logger;
@@ -70,7 +71,6 @@ import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 public class JavaEmitter implements GlueEmitter {
 
   private StructLayout layout;
-  private TypeDictionary typedefDictionary;
   private Map<Type, Type> canonMap;
   protected JavaConfiguration cfg;
   private boolean requiresStaticInitialization = false;
@@ -103,7 +103,11 @@ public class JavaEmitter implements GlueEmitter {
   private final MachineDataInfo machDescJava = MachineDataInfo.StaticConfig.LP64_UNIX.md;
   private final MachineDataInfo.StaticConfig[] machDescTargetConfigs = MachineDataInfo.StaticConfig.values();
 
-  protected final static Logger LOG = Logger.getLogger(JavaEmitter.class.getPackage().getName());
+  protected final Logger LOG;
+
+  public JavaEmitter() {
+      LOG = Logging.getLogger(JavaEmitter.class.getPackage().getName());
+  }
 
   @Override
   public void readConfigurationFile(final String filename) throws Exception {
@@ -111,39 +115,83 @@ public class JavaEmitter implements GlueEmitter {
     cfg.read(filename);
   }
 
-  class ConstantRenamer implements SymbolFilter {
+  @Override
+  public JavaConfiguration getConfiguration() { return cfg; }
 
+  class ConstFuncRenamer implements SymbolFilter {
     private List<ConstantDefinition> constants;
-
-    @Override
-    public void filterSymbols(final List<ConstantDefinition> constants, final List<FunctionSymbol> functions) {
-      this.constants = constants;
-      doWork();
-    }
+    private List<FunctionSymbol> functions;
 
     @Override
     public List<ConstantDefinition> getConstants() {
       return constants;
     }
-
     @Override
     public List<FunctionSymbol> getFunctions() {
-      return null;
+      return functions;
     }
 
-    private void doWork() {
-      final List<ConstantDefinition> newConstants = new ArrayList<ConstantDefinition>();
-      final JavaConfiguration cfg = getConfig();
-      for (final ConstantDefinition def : constants) {
-        def.rename(cfg.getJavaSymbolRename(def.getName()));
-        newConstants.add(def);
-      }
-      constants = newConstants;
+    private <T extends AliasedSemanticSymbol> List<T> filterSymbolsInt(final List<T> inList, final List<T> outList) {
+        final JavaConfiguration cfg = getConfig();
+        final HashMap<String, T> symMap = new HashMap<String, T>(100);
+        for (final T sym : inList) {
+            final String origName = sym.getName();
+            final String newName = cfg.getJavaSymbolRename(origName);
+            if( null != newName ) {
+                // Alias Name
+                final T dupSym = symMap.get(newName);
+                if( null != dupSym ) {
+                    // Duplicate alias .. check and add aliased name
+                    sym.rename(newName); // only rename to allow 'equalSemantics' to not care ..
+                    if( !dupSym.equalSemantics(sym) ) {
+                        throw new RuntimeException(
+                                String.format("Duplicate Name (alias) w/ incompatible value:%n  have '%s',%n  this '%s'",
+                                        dupSym.getAliasedString(), sym.getAliasedString()));
+                    }
+                    dupSym.addAliasedName(origName);
+                } else {
+                    // No duplicate .. rename and add
+                    sym.rename(newName);
+                    symMap.put(newName, sym);
+                }
+            } else {
+                // Original Name
+                final T dupSym = symMap.get(origName);
+                if( null != dupSym ) {
+                    // Duplicate orig .. check and drop
+                    if( !dupSym.equalSemantics(sym) ) {
+                        throw new RuntimeException(
+                                String.format("Duplicate Name (orig) w/ incompatible value:%n  have '%s',%n  this '%s'",
+                                        dupSym.getAliasedString(), sym.getAliasedString()));
+                    }
+                } else {
+                    // No duplicate orig .. add
+                    symMap.put(origName, sym);
+                }
+            }
+        }
+        outList.addAll(symMap.values());
+        // sort constants to make them easier to find in native code
+        Collections.sort(outList, new Comparator<T>() {
+            @Override
+            public int compare(final T o1, final T o2) {
+                return o1.getName().compareTo(o2.getName());
+            }
+        });
+        return outList;
+    }
+
+    @Override
+    public void filterSymbols(final List<ConstantDefinition> inConstList, final List<FunctionSymbol> inFuncList) {
+        constants = filterSymbolsInt(inConstList, new ArrayList<ConstantDefinition>(100));
+        functions = filterSymbolsInt(inFuncList, new ArrayList<FunctionSymbol>(100));
     }
   }
 
     @Override
     public void beginEmission(final GlueEmitterControls controls) throws IOException {
+        // Handle renaming of constants and functions
+        controls.runSymbolFilter(new ConstFuncRenamer());
 
         // Request emission of any structs requested
         for (final String structs : cfg.forcedStructs()) {
@@ -157,9 +205,6 @@ public class JavaEmitter implements GlueEmitter {
                 throw new RuntimeException("Unable to open files for writing", e);
             }
             emitAllFileHeaders();
-
-            // Handle renaming of constants
-            controls.runSymbolFilter(new ConstantRenamer());
         }
     }
 
@@ -374,7 +419,7 @@ public class JavaEmitter implements GlueEmitter {
       final String name = def.getName();
       String value = def.getValue();
 
-      if (!cfg.shouldIgnoreInInterface(name)) {
+      if ( !cfg.shouldIgnoreInInterface(def) ) {
         final String type = getJavaType(name, value);
         if (optionalComment != null && optionalComment.length() != 0) {
           javaWriter().println("  /** " + optionalComment + " */");
@@ -402,7 +447,7 @@ public class JavaEmitter implements GlueEmitter {
                              final TypeDictionary structDictionary,
                              final Map<Type, Type> canonMap) throws Exception {
 
-    this.typedefDictionary = typedefDictionary;
+    // this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
     this.requiresStaticInitialization = false; // reset
 
@@ -412,55 +457,44 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public Iterator<FunctionSymbol> emitFunctions(final List<FunctionSymbol> originalCFunctions) throws Exception {
-
-    // Sometimes headers will have the same function prototype twice, once
-    // with the argument names and once without. We'll remember the signatures
-    // we've already processed we don't generate duplicate bindings.
-    //
-    // Note: this code assumes that on the equals() method in FunctionSymbol
-    // only considers function name and argument types (i.e., it does not
-    // consider argument *names*) when comparing FunctionSymbols for equality
-    final Set<FunctionSymbol> funcsToBindSet = new HashSet<FunctionSymbol>(100);
-    for (final FunctionSymbol cFunc : originalCFunctions) {
-      if (!funcsToBindSet.contains(cFunc)) {
-        funcsToBindSet.add(cFunc);
-      }
-    }
-
-    //    validateFunctionsToBind(funcsToBindSet);
-
-    final ArrayList<FunctionSymbol> funcsToBind = new ArrayList<FunctionSymbol>(funcsToBindSet);
-    // sort functions to make them easier to find in native code
-    Collections.sort(funcsToBind, new Comparator<FunctionSymbol>() {
-            @Override
-            public int compare(final FunctionSymbol o1, final FunctionSymbol o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
-
+  public Iterator<FunctionSymbol> emitFunctions(final List<FunctionSymbol> funcsToBind) throws Exception {
     // Bind all the C funcs to Java methods
     final HashSet<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
     final ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
-    for (final FunctionSymbol cFunc : funcsToBind) {
-      // Check to see whether this function should be ignored
-      if (!cfg.shouldIgnoreInImpl(cFunc.getName())) {
-          methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
-      }
+    {
+        int i=0;
+        for (final FunctionSymbol cFunc : funcsToBind) {
+          // Check to see whether this function should be ignored
+          if ( !cfg.shouldIgnoreInImpl(cFunc) ) {
+              methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
+              if( GlueGen.debug() ) {
+                  System.err.println("Non-Ignored Impl["+i+"]: "+cFunc.getAliasedString());
+                  i++;
+              }
+          }
 
+        }
     }
 
     // Emit all the methods
-    for (final FunctionEmitter emitter : methodBindingEmitters) {
-      try {
-        if (!emitter.isInterface() || !cfg.shouldIgnoreInInterface(emitter.getName())) {
-            emitter.emit();
-            emitter.getDefaultOutput().println(); // put newline after method body
+    {
+        int i=0;
+        for (final FunctionEmitter emitter : methodBindingEmitters) {
+          try {
+            final FunctionSymbol cFunc = emitter.getCSymbol();
+            if ( !emitter.isInterface() || !cfg.shouldIgnoreInInterface(cFunc) ) {
+                emitter.emit();
+                emitter.getDefaultOutput().println(); // put newline after method body
+                if( GlueGen.debug() ) {
+                    System.err.println("Non-Ignored Intf["+i+"]: "+cFunc.getAliasedString());
+                    i++;
+                }
+            }
+          } catch (final Exception e) {
+            throw new RuntimeException(
+                "Error while emitting binding for \"" + emitter.getName() + "\"", e);
+          }
         }
-      } catch (final Exception e) {
-        throw new RuntimeException(
-            "Error while emitting binding for \"" + emitter.getName() + "\"", e);
-      }
     }
 
     // Return the list of FunctionSymbols that we generated gluecode for
@@ -658,7 +692,7 @@ public class JavaEmitter implements GlueEmitter {
                               cfg.allStatic(),
                               (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
                               !cfg.useNIODirectOnly(binding.getName()),
-                              machDescJava);
+                              machDescJava, getConfiguration());
               prepCEmitter(binding.getName(), binding.getJavaReturnType(), cEmitter);
               allEmitters.add(cEmitter);
           }
@@ -821,40 +855,69 @@ public class JavaEmitter implements GlueEmitter {
   public void beginStructs(final TypeDictionary typedefDictionary,
                            final TypeDictionary structDictionary,
                            final Map<Type, Type> canonMap) throws Exception {
-    this.typedefDictionary = typedefDictionary;
+    // this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
   }
 
   @Override
-  public void emitStruct(final CompoundType structCType, final String alternateName) throws Exception {
-    final String structCTypeName;
+  public void emitStruct(final CompoundType structCType, final Type typedefed) throws Exception {
+    final String structCTypeName, typedefedName;
     {
-        String _name = structCType.getName();
-        if (_name == null && alternateName != null) {
-          _name = alternateName;
+        final String _name = structCType.getName();
+        if ( null == _name && null != typedefed && null != typedefed.getName() ) {
+            // use typedef'ed name
+            typedefedName = typedefed.getName();
+            structCTypeName = typedefedName;
+        } else {
+            // use actual struct type name
+            typedefedName = null;
+            structCTypeName = _name;
         }
-        structCTypeName = _name;
     }
-
-    if (structCTypeName == null) {
+    if ( null == structCTypeName ) {
         final String structName = structCType.getStructName();
         if ( null != structName && cfg.shouldIgnoreInInterface(structName) ) {
+            LOG.log(INFO, "skipping emission of unnamed ignored struct \"{0}\": {1}", new Object[] { structName, structCType.getDebugString() });
+            return;
+        } else {
+            final String d1 = null != typedefed ? typedefed.getDebugString() : null;
+            LOG.log(INFO, "skipping emission of unnamed struct {0}, typedef {1} ", new Object[] { structCType.getDebugString(), d1 });
             return;
         }
-        LOG.log(WARNING, "skipping emission of unnamed struct \"{0}\"", structCType);
+    }
+    if ( cfg.shouldIgnoreInInterface(structCTypeName) ) {
+        LOG.log(INFO, "skipping emission of ignored \"{0}\": {1}", new Object[] { structCTypeName, structCType.getDebugString() });
+        return;
+    }
+    if( null != typedefed && isOpaque(typedefed) ) {
+        LOG.log(INFO, "skipping emission of opaque typedef {0}, c-struct {1}", new Object[] { typedefed.getDebugString(), structCType.getDebugString() });
         return;
     }
 
-    if (cfg.shouldIgnoreInInterface(structCTypeName)) {
-      return;
-    }
-
-    final Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structCType, 0));
+    final Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structCType, 0, typedefedName));
     final JavaType containingJType = typeToJavaType(containingCType, null);
-    if (!containingJType.isCompoundTypeWrapper()) {
-      return;
+    if( containingJType.isOpaqued() ) {
+        LOG.log(INFO, "skipping emission of opaque {0}, {1}", new Object[] { containingJType.getDebugString(), structCType.getDebugString() });
+        return;
+    }
+    if( !containingJType.isCompoundTypeWrapper() ) {
+        LOG.log(WARNING, "skipping emission of non-compound {0}, {1}", new Object[] { containingJType.getDebugString(), structCType.getDebugString() });
+        return;
     }
     final String containingJTypeName = containingJType.getName();
+    LOG.log(INFO, "perform emission of \"{0}\" -> \"{1}\": {2}", new Object[] { structCTypeName, containingJTypeName, structCType.getDebugString()});
+    if( GlueGen.debug() ) {
+        if( null != typedefed ) {
+            LOG.log(INFO, "    typedefed {0}", typedefed.getDebugString());
+        } else {
+            LOG.log(INFO, "    typedefed NULL");
+        }
+        LOG.log(INFO, "    containingCType {0}", containingCType.getDebugString());
+        LOG.log(INFO, "    containingJType {0}", containingJType.getDebugString());
+    }
+    if( 0 == structCType.getNumFields() ) {
+        LOG.log(INFO, "emission of \"{0}\" with zero fields {1}", new Object[] { containingJTypeName, structCType.getDebugString() });
+    }
 
     this.requiresStaticInitialization = false; // reset
 
@@ -1355,7 +1418,7 @@ public class JavaEmitter implements GlueEmitter {
                           false,
                           true,
                           false, // forIndirectBufferAndArrayImplementation
-                          machDescJava);
+                          machDescJava, getConfiguration());
           cEmitter.setIsCStructFunctionPointer(true);
           prepCEmitter(returnSizeLookupName, binding.getJavaReturnType(), cEmitter);
           cEmitter.emit();
@@ -1420,7 +1483,7 @@ public class JavaEmitter implements GlueEmitter {
                           false,
                           true,
                           false, // forIndirectBufferAndArrayImplementation
-                          machDescJava);
+                          machDescJava, getConfiguration());
           cEmitter.setIsCStructFunctionPointer(false);
           final String lenExprSet;
           if( null != nativeArrayLenExpr ) {
@@ -1947,10 +2010,9 @@ public class JavaEmitter implements GlueEmitter {
       }
   }
 
-  private static final boolean DEBUG_TYPEC2JAVA = false;
   private JavaType typeToJavaType(final Type cType, final MachineDataInfo curMachDesc) {
       final JavaType jt = typeToJavaTypeImpl(cType, curMachDesc);
-      if( DEBUG_TYPEC2JAVA ) {
+      if( GlueGen.debug() ) {
           System.err.println("typeToJavaType: "+cType.getDebugString()+" -> "+jt.getDebugString());
       }
       return jt;
@@ -1968,7 +2030,7 @@ public class JavaEmitter implements GlueEmitter {
     }
     // Opaque specifications override automatic conversions
     // in case the identity is being used .. not if ptr-ptr
-    final TypeInfo info = cfg.typeInfo(cType, typedefDictionary);
+    final TypeInfo info = cfg.typeInfo(cType);
     if (info != null) {
       boolean isPointerPointer = false;
       if (cType.pointerDepth() > 0 || cType.arrayDimension() > 0) {
@@ -1986,16 +2048,15 @@ public class JavaEmitter implements GlueEmitter {
           // target type)
           if (targetType.isPointer()) {
             isPointerPointer = true;
-
-            // t is<type>**, targetType is <type>*, we need to get <type>
-            final Type bottomType = targetType.asPointer().getTargetType();
             if( GlueGen.debug() ) {
+                // t is<type>**, targetType is <type>*, we need to get <type>
+                final Type bottomType = targetType.asPointer().getTargetType();
                 LOG.log(INFO, "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr", new Object[]{cType.getDebugString(), targetType, bottomType});
             }
           }
         }
       }
-      if(!isPointerPointer) {
+      if( !isPointerPointer ) {
           return info.javaType();
       }
     }
@@ -2066,7 +2127,6 @@ public class JavaEmitter implements GlueEmitter {
                 throw new RuntimeException("Couldn't find a proper type name for pointer type " + cType.getDebugString());
               }
             }
-
             return JavaType.createForCStruct(cfg.renameJavaType(name));
           } else {
             throw new RuntimeException("Don't know how to convert pointer/array type \"" +
@@ -2189,7 +2249,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   private boolean isOpaque(final Type type) {
-    return (cfg.typeInfo(type, typedefDictionary) != null);
+    return (cfg.typeInfo(type) != null);
   }
 
   private String compatiblePrimitiveJavaTypeName(final Type fieldType,
@@ -2586,9 +2646,6 @@ public class JavaEmitter implements GlueEmitter {
                                      final MachineDataInfo curMachDesc) {
 
     final MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
-
-    binding.renameMethodName(cfg.getJavaSymbolRename(sym.getName()));
-
     // System.out.println("bindFunction(0) "+sym.getReturnType());
 
     if (cfg.returnsString(binding.getName())) {
@@ -2779,10 +2836,11 @@ public class JavaEmitter implements GlueEmitter {
   private Type canonicalize(final Type t) {
     final Type res = canonMap.get(t);
     if (res != null) {
-      return res;
+        return res;
+    } else {
+        canonMap.put(t, t);
+        return t;
     }
-    canonMap.put(t, t);
-    return t;
   }
 
   /**

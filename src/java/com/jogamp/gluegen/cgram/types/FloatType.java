@@ -48,18 +48,27 @@ public class FloatType extends PrimitiveType implements Cloneable {
   }
 
   @Override
-  public boolean equals(final Object arg) {
-    if (arg == this) {
-      return true;
-    }
-    if (arg == null || (!(arg instanceof FloatType))) {
-      return false;
-    }
-    return super.equals(arg);
+  public FloatType asFloat() { return this; }
+
+  @Override
+  protected int hashCodeImpl() {
+      return 0;
   }
 
   @Override
-  public FloatType asFloat() { return this; }
+  protected boolean equalsImpl(final Type t) {
+      return true;
+  }
+
+  @Override
+  protected int hashCodeSemanticsImpl() {
+      return 0;
+  }
+
+  @Override
+  protected boolean equalSemanticsImpl(final Type t) {
+      return true;
+  }
 
   @Override
   Type newCVVariant(final int cvAttributes) {

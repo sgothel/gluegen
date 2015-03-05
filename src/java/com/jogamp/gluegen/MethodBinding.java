@@ -44,7 +44,6 @@ import com.jogamp.gluegen.cgram.types.Type;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 
 /** Represents the binding of a C function to a Java method. Also used
@@ -54,8 +53,6 @@ import java.util.List;
 public class MethodBinding {
 
   private final FunctionSymbol sym;
-  private String         renamedMethodName;
-  private final HashSet<String> aliasedNames;
   private JavaType       javaReturnType;
   private List<JavaType> javaArgumentTypes;
   private boolean        computedSignatureProperties;
@@ -81,8 +78,6 @@ public class MethodBinding {
   public MethodBinding(final MethodBinding bindingToCopy) {
     this.sym = bindingToCopy.sym;
 
-    this.renamedMethodName                = bindingToCopy.renamedMethodName;
-    this.aliasedNames                     = new HashSet<String>(bindingToCopy.aliasedNames);
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
     this.javaReturnType                   = bindingToCopy.javaReturnType;
@@ -104,7 +99,6 @@ public class MethodBinding {
   /** Constructor for calling a C function. */
   public MethodBinding(final FunctionSymbol sym) {
     this.sym = sym;
-    this.aliasedNames = new HashSet<String>();
   }
 
   /** Constructor for calling a function pointer contained in a
@@ -113,7 +107,6 @@ public class MethodBinding {
     this.sym = sym;
     this.containingType = containingType;
     this.containingCType = containingCType;
-    this.aliasedNames = new HashSet<String>();
   }
 
     public void setJavaReturnType(final JavaType type) {
@@ -166,32 +159,11 @@ public class MethodBinding {
         return "arg" + i;
     }
 
-    public String getOrigName() {
-        return sym.getName();
-    }
-
-    public String getName() {
-        // Defaults to same as C symbol unless renamed
-        if (renamedMethodName != null) {
-            return renamedMethodName;
-        }
-        return sym.getName();
-    }
-
-    /** Supports renaming C function in Java binding. */
-    public void renameMethodName(final String name) {
-        if (null != name) {
-            renamedMethodName = name;
-            aliasedNames.add(sym.getName());
-        }
-    }
-
-    public void addAliasedName(final String name) {
-        aliasedNames.add(name);
-    }
-
     public Collection<String> getAliasedNames() {
-        return aliasedNames;
+        return sym.getAliasedNames();
+    }
+    public String getName() {
+        return sym.getName();
     }
 
   /** Creates a new MethodBinding replacing the specified Java

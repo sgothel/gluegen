@@ -8,6 +8,52 @@
 
 #define DEBUG 1
 
+MYAPI XID MYAPIENTRY testXID(XID v) {
+    return v;
+}
+MYAPI XID_2 MYAPIENTRY testXID_2(XID_2 v) {
+    return v;
+}
+MYAPI AnonBuffer MYAPIENTRY testAnonBuffer(AnonBuffer v) {
+    return v;
+}
+MYAPI const ShortBlob * MYAPIENTRY testShortBlob0(const ShortBlob *v) {
+    return v;
+}
+MYAPI LPShortBlob1 MYAPIENTRY testShortBlob1(LPShortBlob1 v) {
+    return v;
+}
+MYAPI LPShortBlob2 MYAPIENTRY testShortBlob2(LPShortBlob2 v) {
+    return v;
+}
+MYAPI LPShortBlob3 MYAPIENTRY testShortBlob3(LPShortBlob3 v) {
+    return v;
+}
+MYAPI LPShortBlob4 MYAPIENTRY testShortBlob4(LPShortBlob4 v) {
+    return v;
+}
+MYAPI struct Int32Struct * MYAPIENTRY testInt32Struct(struct Int32Struct * v) {
+    return v;
+}
+
+MYAPI AnonBlob MYAPIENTRY testCreateAnonBlob() {
+    return (AnonBlob) calloc(1, sizeof(char));
+}
+MYAPI void MYAPIENTRY testDestroyAnonBlob(AnonBlob v) {
+    free(v);
+}
+
+MYAPI struct _AnonBlob2 * MYAPIENTRY testCreateAnonBlob2() {
+    return (struct _AnonBlob2 *) calloc(1, sizeof(char));
+}
+MYAPI void MYAPIENTRY testDestroyAnonBlob2(struct _AnonBlob2 * v) {
+    free(v);
+}
+
+MYAPI foo_ptr MYAPIENTRY testFooPtr(foo_ptr v) {
+    return v;
+}
+
 MYAPI foo MYAPIENTRY nopTest() {
     return 42;
 }

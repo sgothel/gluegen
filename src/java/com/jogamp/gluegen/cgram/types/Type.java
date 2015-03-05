@@ -40,27 +40,45 @@
 
 package com.jogamp.gluegen.cgram.types;
 
-import java.util.List;
-
 import com.jogamp.common.os.MachineDataInfo;
+import com.jogamp.gluegen.GlueGen;
+import com.jogamp.gluegen.TypeConfig;
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 
 /** Models a C type. Primitive types include int, float, and
     double. All types have an associated name. Structs and unions are
     modeled as "compound" types -- composed of fields of primitive or
     other types. */
-public abstract class Type implements Cloneable {
-
+public abstract class Type implements Cloneable, SemanticEqualityOp {
+  public final boolean relaxedEqSem;
+  private final int cvAttributes;
   private String name;
   private SizeThunk size;
-  private final int cvAttributes;
   private int typedefedCVAttributes;
   private boolean hasTypedefName;
+  private boolean hasCachedHash;
+  private int cachedHash;
+  private boolean hasCachedSemanticHash;
+  private int cachedSemanticHash;
 
   protected Type(final String name, final SizeThunk size, final int cvAttributes) {
     setName(name);
-    this.size = size;
+    this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
     this.cvAttributes = cvAttributes;
-    hasTypedefName = false;
+    this.size = size;
+    this.typedefedCVAttributes = 0;
+    this.hasTypedefName = false;
+    this.hasCachedHash = false;
+    this.cachedHash = 0;
+    this.hasCachedSemanticHash = false;
+    this.cachedSemanticHash = 0;
+  }
+
+  protected final void clearCache() {
+    cachedHash = 0;
+    hasCachedHash = false;
+    cachedSemanticHash = 0;
+    hasCachedHash = false;
   }
 
   @Override
@@ -72,20 +90,46 @@ public abstract class Type implements Cloneable {
     }
   }
 
+  public final boolean isAnonymous() { return null == name; }
+
+  public boolean hasName() { return null != name; }
+
   /** Returns the name of this type. The returned string is suitable
-      for use as a type specifier. Does not include any const/volatile
+      for use as a type specifier for native C. Does not include any const/volatile
+      attributes. */
+  public final String getCName() { return getCName(false); }
+
+  /** Returns the name of this type, optionally including
+      const/volatile attributes. The returned string is suitable for
+      use as a type specifier for native C. */
+  public String getCName(final boolean includeCVAttrs) { return getName(includeCVAttrs); }
+
+  /** Returns the name of this type. The returned string is suitable
+      for use as a type specifier for Java. Does not include any const/volatile
       attributes. */
   public final String getName() { return getName(false); }
 
   /** Returns the name of this type, optionally including
       const/volatile attributes. The returned string is suitable for
-      use as a type specifier. */
+      use as a type specifier for Java. */
   public String getName(final boolean includeCVAttrs) {
     if (!includeCVAttrs) {
       return name;
     }
     return getCVAttributesString() + name;
   }
+
+  /**
+   * Returns a string representation of this type.
+   * The returned string is suitable for use as a type specifier for native C.
+   * It does contain an expanded description of structs/unions,
+   * hence may not be suitable for type declarations.
+   */
+  @Override
+  public String toString() {
+    return getCName(true);
+  }
+
 
   private void append(final StringBuilder sb, final String val, final boolean prepComma) {
       if( prepComma ) {
@@ -98,15 +142,30 @@ public abstract class Type implements Cloneable {
     final StringBuilder sb = new StringBuilder();
     boolean prepComma = false;
     sb.append("CType[");
-    if( null != name ) {
-        append(sb, "'"+name+"'", prepComma); prepComma=true;
-    } else {
-        append(sb, "ANON", prepComma); prepComma=true;
-    }
+    sb.append("(").append(getClass().getSimpleName()).append(") ");
     if( hasTypedefName() ) {
-        sb.append(" (typedef)");
+        sb.append("typedef ");
     }
-    append(sb, "size ", prepComma); prepComma=true;
+    if( null != name ) {
+        sb.append("'").append(name).append("'");
+    } else {
+        sb.append("ANON");
+    }
+    final Type targetType = getTargetType();
+    if( null != targetType && this != targetType ) {
+        sb.append(" -> ");
+        if (!targetType.isFunction()) {
+            sb.append(targetType.toString() + " * " + getCVAttributesString());
+        } else {
+            sb.append(((FunctionType) targetType).toString(null /* functionName */, null /* callingConvention */, false, true));
+        }
+    }
+    if( GlueGen.debug() ) {
+        // sb.append(", o=0x"+Integer.toHexString(objHash())+" h=0x"+Integer.toHexString(hashCode()));
+        sb.append(", o=0x"+Integer.toHexString(objHash()));
+    }
+    sb.append(", size ");
+    prepComma=true;
     if( null != size ) {
         final long mdSize;
         {
@@ -137,14 +196,17 @@ public abstract class Type implements Cloneable {
         append(sb, "bit", prepComma); prepComma=true;
     }
     if( isCompound() ) {
-        sb.append("struct{").append(asCompound().getNumFields());
+        sb.append("struct{").append(asCompound().getStructName()).append(": ").append(asCompound().getNumFields());
         append(sb, "}", prepComma); prepComma=true;
     }
     if( isDouble() ) {
         append(sb, "double", prepComma); prepComma=true;
     }
     if( isEnum() ) {
-        append(sb, "enum", prepComma); prepComma=true;
+        final EnumType eT = asEnum();
+        sb.append("enum ").append(" [").append(eT.getUnderlyingType()).append("] {").append(eT.getNumEnumerates()).append(": ");
+        eT.appendEnums(sb, false);
+        prepComma=true;
     }
     if( isFloat() ) {
         append(sb, "float", prepComma); prepComma=true;
@@ -164,18 +226,31 @@ public abstract class Type implements Cloneable {
     sb.append("]]");
     return sb.toString();
   }
+  private final int objHash() { return super.hashCode(); }
 
-  /** Set the name of this type; used for handling typedefs. */
-  public void         setName(final String name) {
+
+  protected final void setName(final String name) {
     if (name == null) {
       this.name = name;
     } else {
       this.name = name.intern();
     }
+    clearCache();
+  }
+
+  /** Set the name of this type; used for handling typedefs. */
+  public void setTypedefName(final String name) {
+    setName(name);
     // Capture the const/volatile attributes at the time of typedef so
     // we don't redundantly repeat them in the CV attributes string
     typedefedCVAttributes = cvAttributes;
     hasTypedefName = true;
+  }
+
+  /** Indicates whether {@link #setTypedefName(String)} has been called on this type,
+      indicating that it already has a typedef name. */
+  public final boolean hasTypedefName() {
+    return hasTypedefName;
   }
 
   /** SizeThunk which computes size of this type in bytes. */
@@ -189,7 +264,10 @@ public abstract class Type implements Cloneable {
     return thunk.computeSize(machDesc);
   }
   /** Set the size of this type; only available for CompoundTypes. */
-  void                setSize(final SizeThunk size) { this.size = size; }
+  void setSize(final SizeThunk size) {
+      this.size = size;
+      clearCache();
+  }
 
   /** Casts this to a BitType or returns null if not a BitType. */
   public BitType      asBit()      { return null; }
@@ -249,43 +327,92 @@ public abstract class Type implements Cloneable {
 
   /** Hashcode for Types. */
   @Override
-  public int hashCode() {
-    if (name == null) {
-      return 0;
+  public final int hashCode() {
+    if( !hasCachedHash ) {
+        // 31 * x == (x << 5) - x
+        int hash = 31 + ( hasTypedefName ? 1 : 0 );
+        hash = ((hash << 5) - hash) + ( null != size ? size.hashCode() : 0 );
+        hash = ((hash << 5) - hash) + cvAttributes;
+        hash = ((hash << 5) - hash) + ( null != name ? name.hashCode() : 0 );
+        if( !hasTypedefName ) {
+            hash = ((hash << 5) - hash) + hashCodeImpl();
+        }
+        cachedHash = hash;
+        hasCachedHash = true;
     }
-
-    if (cvAttributes != 0)  {
-      final String nameWithAttribs = name + cvAttributes;
-      return nameWithAttribs.hashCode();
-    }
-    return name.hashCode();
+    return cachedHash;
   }
+  protected abstract int hashCodeImpl();
 
   /**
-   * Equality test for Types.
+   * Equality test for Types inclusive its given {@link #getName() name}.
    */
   @Override
-  public boolean equals(final Object arg) {
+  public final boolean equals(final Object arg) {
     if (arg == this) {
-      return true;
+        return true;
+    } else  if ( !getClass().isInstance(arg) ) { // implies null == arg || !(arg instanceof Type)
+        return false;
+    } else {
+        final Type t = (Type)arg;
+        if( hasTypedefName == t.hasTypedefName &&
+            ( ( null != size && size.equals(t.size) ) ||
+              ( null == size && null == t.size )
+            ) &&
+            cvAttributes == t.cvAttributes &&
+            ( null == name ? null == t.name : name.equals(t.name) )
+          )
+        {
+            if( !hasTypedefName ) {
+                return equalsImpl(t);
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
-
-    if ( !(arg instanceof Type) ) {
-      return false;
-    }
-
-    final Type t = (Type)arg;
-    return size == t.size && cvAttributes == t.cvAttributes &&
-           ( null == name ? null == t.name : name.equals(t.name) ) ;
   }
+  protected abstract boolean equalsImpl(final Type t);
 
-  /** Returns a string representation of this type. This string is not
-      necessarily suitable for use as a type specifier; for example,
-      it will contain an expanded description of structs/unions. */
   @Override
-  public String toString() {
-    return getName(true);
+  public final int hashCodeSemantics() {
+    if( !hasCachedSemanticHash ) {
+        // 31 * x == (x << 5) - x
+        int hash = 31 + ( null != size ? size.hashCodeSemantics() : 0 );
+        if( !relaxedEqSem ) {
+            hash = ((hash << 5) - hash) + cvAttributes;
+        }
+        hash = ((hash << 5) - hash) + hashCodeSemanticsImpl();
+        cachedSemanticHash = hash;
+        hasCachedSemanticHash = true;
+    }
+    return cachedSemanticHash;
   }
+  protected abstract int hashCodeSemanticsImpl();
+
+  @Override
+  public final boolean equalSemantics(final SemanticEqualityOp arg) {
+    if (arg == this) {
+        return true;
+    } else  if ( !(arg instanceof Type) ||
+                 !getClass().isInstance(arg) ) { // implies null == arg
+        return false;
+    } else {
+        final Type t = (Type) arg;
+        if( ( ( null != size && size.equalSemantics(t.size) ) ||
+              ( null == size && null == t.size )
+            ) &&
+            ( relaxedEqSem || cvAttributes == t.cvAttributes )
+          )
+        {
+            return equalSemanticsImpl(t);
+        } else {
+            return false;
+        }
+    }
+  }
+  protected abstract boolean equalSemanticsImpl(final Type t);
 
   /** Visit this type and all of the component types of this one; for
       example, the return type and argument types of a FunctionType. */
@@ -318,12 +445,6 @@ public abstract class Type implements Cloneable {
   /** Create a new variant of this type matching the given
       const/volatile attributes. */
   abstract Type newCVVariant(int cvAttributes);
-
-  /** Indicates whether setName() has been called on this type,
-      indicating that it already has a typedef name. */
-  public boolean hasTypedefName() {
-    return hasTypedefName;
-  }
 
   /** Helper method for determining how many pointer indirections this
       type represents (i.e., "void **" returns 2). Returns 0 if this
@@ -358,8 +479,10 @@ public abstract class Type implements Cloneable {
       return this;
   }
 
-  /** Helper routine for list equality comparison */
-  static <C> boolean listsEqual(final List<C> a, final List<C> b) {
-    return ((a == null && b == null) || (a != null && b != null && a.equals(b)));
+  /**
+   * Helper method to returns the target type of this type, in case another type is being referenced.
+   */
+  public Type getTargetType() {
+      return this;
   }
 }

@@ -63,6 +63,7 @@ public class JavaType {
   private final String structName;  // Types we're generating glue code for (i.e., C structs)
   private final Type   elementType; // Element type if this JavaType represents a C array
   private final C_PTR  primitivePointerType;
+  private final boolean opaqued;
 
   private static JavaType nioBufferType;
   private static JavaType nioByteBufferType;
@@ -107,12 +108,20 @@ public class JavaType {
        return elementType;
   }
 
+  /** Creates a JavaType corresponding to the given opaque Java type. This
+      can be used to represent arrays of primitive values or Strings;
+      the emitters understand how to perform proper conversion from
+      the corresponding C type. */
+  public static JavaType createForOpaqueClass(final Class<?> clazz) {
+    return new JavaType(clazz, true);
+  }
+
   /** Creates a JavaType corresponding to the given Java type. This
       can be used to represent arrays of primitive values or Strings;
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
   public static JavaType createForClass(final Class<?> clazz) {
-    return new JavaType(clazz);
+    return new JavaType(clazz, false);
   }
 
   /** Creates a JavaType corresponding to the specified C CompoundType
@@ -336,6 +345,8 @@ public class JavaType {
     return "jobject";
   }
 
+  public boolean isOpaqued() { return opaqued; }
+
   public boolean isNIOBuffer() {
     return clazz != null && ( java.nio.Buffer.class.isAssignableFrom(clazz) ||
                               com.jogamp.common.nio.NativeBuffer.class.isAssignableFrom(clazz)) ;
@@ -528,34 +539,39 @@ public class JavaType {
         append(sb, "primitivePointerType = "+primitivePointerType, prepComma); prepComma=true;
     }
     append(sb, "is[", prepComma); prepComma=false;
-    if( isArray() ) {
-        append(sb, "array", prepComma); prepComma=true;
+    {
+        if( isOpaqued() ) {
+            append(sb, "opaque", prepComma); prepComma=true;
+        }
+        if( isArray() ) {
+            append(sb, "array", prepComma); prepComma=true;
+        }
+        if( isArrayOfCompoundTypeWrappers() ) {
+            append(sb, "compoundArray", prepComma); prepComma=true;
+        }
+        if( isCompoundTypeWrapper() ) {
+            append(sb, "compound", prepComma); prepComma=true;
+        }
+        if( isArray() ) {
+            append(sb, "array", prepComma); prepComma=true;
+        }
+        if( isPrimitive() ) {
+            append(sb, "primitive", prepComma); prepComma=true;
+        }
+        if( isPrimitiveArray() ) {
+            append(sb, "primitiveArray", prepComma); prepComma=true;
+        }
+        if( isNIOBuffer() ) {
+            append(sb, "nioBuffer", prepComma); prepComma=true;
+        }
+        if( isNIOBufferArray() ) {
+            append(sb, "nioBufferArray", prepComma); prepComma=true;
+        }
+        if( isCPrimitivePointerType() ) {
+            append(sb, "C-Primitive-Pointer", prepComma); prepComma=true;
+        }
     }
-    if( isArrayOfCompoundTypeWrappers() ) {
-        append(sb, "compoundArray", prepComma); prepComma=true;
-    }
-    if( isCompoundTypeWrapper() ) {
-        append(sb, "compound", prepComma); prepComma=true;
-    }
-    if( isArray() ) {
-        append(sb, "array", prepComma); prepComma=true;
-    }
-    if( isPrimitive() ) {
-        append(sb, "primitive", prepComma); prepComma=true;
-    }
-    if( isPrimitiveArray() ) {
-        append(sb, "primitiveArray", prepComma); prepComma=true;
-    }
-    if( isNIOBuffer() ) {
-        append(sb, "nioBuffer", prepComma); prepComma=true;
-    }
-    if( isNIOBufferArray() ) {
-        append(sb, "nioBufferArray", prepComma); prepComma=true;
-    }
-    if( isCPrimitivePointerType() ) {
-        append(sb, "C-Primitive-Pointer", prepComma); prepComma=true;
-    }
-    append(sb, "descriptor '"+getDescriptor()+"'", prepComma); prepComma=true;
+    append(sb, "], descriptor '"+getDescriptor()+"']", prepComma); prepComma=true;
     return sb.toString();
   }
 
@@ -563,11 +579,12 @@ public class JavaType {
    * Constructs a representation for a type corresponding to the given Class
    * argument.
    */
-  private JavaType(final Class<?> clazz) {
+  private JavaType(final Class<?> clazz, final boolean opaqued) {
     this.primitivePointerType = null;
     this.clazz = clazz;
     this.structName = null;
     this.elementType = null;
+    this.opaqued = opaqued;
   }
 
   /** Constructs a type representing a named C struct. */
@@ -576,6 +593,7 @@ public class JavaType {
     this.clazz = null;
     this.structName = structName;
     this.elementType = null;
+    this.opaqued = false;
   }
 
   /** Constructs a type representing a pointer to a C primitive
@@ -585,6 +603,7 @@ public class JavaType {
     this.clazz = null;
     this.structName = null;
     this.elementType = null;
+    this.opaqued = false;
   }
 
   /** Constructs a type representing an array of C pointers. */
@@ -593,6 +612,7 @@ public class JavaType {
     this.clazz = null;
     this.structName = null;
     this.elementType = elementType;
+    this.opaqued = false;
   }
 
   /** clone only */
@@ -601,6 +621,7 @@ public class JavaType {
     this.clazz = clazz;
     this.structName = name;
     this.elementType = elementType;
+    this.opaqued = false;
   }
 
   private String arrayName(Class<?> clazz) {

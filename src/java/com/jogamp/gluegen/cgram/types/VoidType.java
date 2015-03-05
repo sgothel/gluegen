@@ -58,4 +58,24 @@ public class VoidType extends Type implements Cloneable {
     Type newCVVariant(final int cvAttributes) {
         return new VoidType(getName(), cvAttributes);
     }
+
+    @Override
+    protected int hashCodeImpl() {
+        return 0;
+    }
+
+    @Override
+    protected boolean equalsImpl(final Type t) {
+        return true;
+    }
+
+    @Override
+    protected int hashCodeSemanticsImpl() {
+        return 0;
+    }
+
+    @Override
+    protected boolean equalSemanticsImpl(final Type t) {
+        return true;
+    }
 }

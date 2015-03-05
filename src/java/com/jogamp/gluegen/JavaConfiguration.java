@@ -46,7 +46,6 @@ import com.jogamp.gluegen.JavaEmitter.MethodAccess;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.regex.*;
 
 import com.jogamp.gluegen.jgram.*;
@@ -54,7 +53,6 @@ import com.jogamp.gluegen.cgram.types.*;
 
 import java.util.logging.Logger;
 
-import jogamp.common.os.MachineDataInfoRuntime;
 import static java.util.logging.Level.*;
 import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
@@ -73,7 +71,7 @@ public class JavaConfiguration {
     private String className;
     private String implClassName;
 
-    protected static final Logger LOG = Logger.getLogger(JavaConfiguration.class.getPackage().getName());
+    protected final Logger LOG;
 
     public static String NEWLINE = System.getProperty("line.separator");
 
@@ -106,6 +104,13 @@ public class JavaConfiguration {
      * the mapped C function. Defaults to false.
      */
     private boolean tagNativeBinding;
+
+    /**
+     * If true, {@link TypeConfig.SemanticEqualityOp#equalSemantics(TypeConfig.SemanticEqualityOp)}
+     * will attempt to perform a relaxed semantic equality test, e.g. skip the {@code const} and {@code volatile} qualifiers.
+     * Otherwise a full semantic equality test will be performed.
+     */
+    private boolean relaxedEqualSemanticsTest;
 
     /**
      * Style of code emission. Can emit everything into one class
@@ -179,6 +184,10 @@ public class JavaConfiguration {
     private final Map<String, Set<String>> javaRenamedSymbols = new HashMap<String, Set<String>>();
     private final Map<String, List<String>> javaPrologues = new HashMap<String, List<String>>();
     private final Map<String, List<String>> javaEpilogues = new HashMap<String, List<String>>();
+
+    public JavaConfiguration() {
+        LOG = Logging.getLogger(JavaConfiguration.class.getPackage().getName());
+    }
 
   /** Reads the configuration file.
       @param filename path to file that should be read
@@ -317,6 +326,15 @@ public class JavaConfiguration {
         return tagNativeBinding;
     }
 
+    /**
+     * Returns whether {@link TypeConfig.SemanticEqualityOp#equalSemantics(TypeConfig.SemanticEqualityOp)}
+     * shall attempt to perform a relaxed semantic equality test, e.g. skip the {@code const} and {@code volatile} qualifier
+     * - or not.
+     */
+    public boolean relaxedEqualSemanticsTest() {
+        return relaxedEqualSemanticsTest;
+    }
+
     /** Returns the code emission style (constants in JavaEmitter) parsed from the configuration file. */
     public EmissionStyle emissionStyle() {
         return emissionStyle;
@@ -361,12 +379,12 @@ public class JavaConfiguration {
   /** If this type should be considered opaque, returns the TypeInfo
       describing the replacement type. Returns null if this type
       should not be considered opaque. */
-  public TypeInfo typeInfo(Type type, final TypeDictionary typedefDictionary) {
+  public TypeInfo typeInfo(Type type) {
     // Because typedefs of pointer types can show up at any point,
     // walk the pointer chain looking for a typedef name that is in
     // the TypeInfo map.
     if (DEBUG_TYPE_INFO)
-      System.err.println("Incoming type = " + type);
+      System.err.println("Incoming type = " + type + ", " + type.getDebugString());
     final int pointerDepth = type.pointerDepth();
     for (int i = 0; i <= pointerDepth; i++) {
       String name = type.getName();
@@ -377,12 +395,13 @@ public class JavaConfiguration {
       if (name != null) {
         final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
         if (info != null) {
+          final TypeInfo res = promoteTypeInfo(info, i);
           if (DEBUG_TYPE_INFO) {
-            System.err.println(" info.name=" + info.name() + ", name=" + name +
+            System.err.println(" [1] info.name=" + info.name() + ", name=" + name +
                                ", info.pointerDepth=" + info.pointerDepth() +
-                               ", type.pointerDepth=" + type.pointerDepth());
+                               ", type.pointerDepth=" + type.pointerDepth() + " -> "+res);
           }
-          return promoteTypeInfo(info, i);
+          return res;
         }
       }
 
@@ -392,33 +411,13 @@ public class JavaConfiguration {
         if (name != null) {
           final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
           if (info != null) {
+            final TypeInfo res = promoteTypeInfo(info, i);
             if (DEBUG_TYPE_INFO) {
-              System.err.println(" info.name=" + info.name() + ", name=" + name +
+              System.err.println(" [2] info.name=" + info.name() + ", name=" + name +
                                  ", info.pointerDepth=" + info.pointerDepth() +
-                                 ", type.pointerDepth=" + type.pointerDepth());
+                                 ", type.pointerDepth=" + type.pointerDepth() + " -> "+res);
             }
-            return promoteTypeInfo(info, i);
-          }
-        }
-      }
-
-      // Try all typedef names that map to this type
-      final Set<Entry<String, Type>> entrySet = typedefDictionary.entrySet();
-      for (final Map.Entry<String, Type> entry : entrySet) {
-        // "eq" equality is OK to use here since all types have been canonicalized
-        if (entry.getValue() == type) {
-          name = entry.getKey();
-          if (DEBUG_TYPE_INFO) {
-            System.err.println("Looking under typedef name " + name);
-          }
-          final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
-          if (info != null) {
-            if (DEBUG_TYPE_INFO) {
-              System.err.println(" info.name=" + info.name() + ", name=" + name +
-                                 ", info.pointerDepth=" + info.pointerDepth() +
-                                 ", type.pointerDepth=" + type.pointerDepth());
-            }
-            return promoteTypeInfo(info, i);
+            return res;
           }
         }
       }
@@ -427,7 +426,9 @@ public class JavaConfiguration {
         type = type.asPointer().getTargetType();
       }
     }
-
+    if (DEBUG_TYPE_INFO) {
+      System.err.println(" [X] NULL");
+    }
     return null;
   }
 
@@ -782,120 +783,184 @@ public class JavaConfiguration {
   }
 
   /**
-   * Returns true if this #define, function, struct, or field within
-   * a struct should be ignored during glue code generation of interfaces and implementation.
+   * Returns true if the given struct, or field within a struct
+   * should be ignored during glue code generation of interfaces and implementation.
+   * For other types, use {@link #shouldIgnoreInInterface(AliasedSymbol)}.
+   * <p>
+   * This method only considers the {@link AliasedSymbol#getName() current-name}
+   * of the given symbol, i.e. does not test the {@link #getJavaSymbolRename(String) renamed-symbol}.
+   * </p>
    * <p>
    * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
    * </p>
+   * <p>
+   * Implementation calls {@link #shouldIgnoreInInterface(AliasedSymbol)}
+   * </p>
+   * @param symbol the symbolic name to check for exclusion
+   *
    */
-  public boolean shouldIgnoreInInterface(final String symbol) {
-    if(DEBUG_IGNORES) {
-        dumpIgnoresOnce();
-    }
-    // Simple case-1; the entire symbol (orig or renamed) is in the interface ignore table
-    final String renamedSymbol = getJavaSymbolRename(symbol);
-    if ( extendedIntfSymbolsIgnore.contains( symbol ) ||
-         extendedIntfSymbolsIgnore.contains( renamedSymbol ) ) {
-      if(DEBUG_IGNORES) {
-          System.err.println("Ignore Intf ignore : "+symbol);
+  public final boolean shouldIgnoreInInterface(final String symbol) {
+      return shouldIgnoreInInterface( new AliasedSymbol.NoneAliasedSymbol(symbol) );
+  }
+  /**
+   * Returns true if this aliased symbol should be ignored
+   * during glue code generation of interfaces and implementation.
+   * <p>
+   * Both, the {@link AliasedSymbol#getName() current-name}
+   * and all {@link AliasedSymbol#getAliasedNames() aliases} shall be considered.
+   * </p>
+   * <p>
+   * Implementation calls {@link #shouldIgnoreInInterface_Int(AliasedSymbol)}
+   * and overriding implementations shall ensure its being called as well!
+   * </p>
+   * @param symbol the symbolic aliased name to check for exclusion
+   */
+  public boolean shouldIgnoreInInterface(final AliasedSymbol symbol) {
+      return shouldIgnoreInInterface_Int(symbol);
+  }
+  private static boolean oneInSet(final Set<String> ignoreSymbols, final Set<String> symbols) {
+      if( null != ignoreSymbols && ignoreSymbols.size() > 0 &&
+          null != symbols && symbols.size() > 0 ) {
+          for(final String sym : symbols) {
+              if( ignoreSymbols.contains( sym ) ) {
+                  return true;
+              }
+          }
       }
-      return true;
-    }
-    // Simple case-2; the entire symbol (orig or renamed) is _not_ in the not-empty interface only table
-    if ( !extendedIntfSymbolsOnly.isEmpty() &&
-         !extendedIntfSymbolsOnly.contains( symbol ) &&
-         !extendedIntfSymbolsOnly.contains( renamedSymbol ) ) {
+      return false;
+  }
+  /** private static boolean allInSet(final Set<String> ignoreSymbols, final Set<String> symbols) {
+      if( null != ignoreSymbols && ignoreSymbols.size() > 0 &&
+          null != symbols && symbols.size() > 0 ) {
+          return ignoreSymbols.containsAll(symbols);
+      }
+      return false;
+  } */
+  private static boolean onePatternMatch(final Pattern ignoreRegexp, final Set<String> symbols) {
+      if( null != ignoreRegexp && null != symbols && symbols.size() > 0 ) {
+          for(final String sym : symbols) {
+              final Matcher matcher = ignoreRegexp.matcher(sym);
+              if (matcher.matches()) {
+                  return true;
+              }
+          }
+      }
+      return false;
+  }
+  protected final boolean shouldIgnoreInInterface_Int(final AliasedSymbol symbol) {
+      if(DEBUG_IGNORES) {
+          dumpIgnoresOnce();
+      }
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+
+      // Simple case-1; the symbol (orig or renamed) is in the interface ignore table
+      if ( extendedIntfSymbolsIgnore.contains( name ) ||
+           oneInSet(extendedIntfSymbolsIgnore, aliases)
+         )
+      {
           if(DEBUG_IGNORES) {
-              System.err.println("Ignore Intf !extended: " + symbol);
+              System.err.println("Ignore Intf ignore (one): "+symbol.getAliasedString());
           }
           return true;
-    }
-    return shouldIgnoreInImpl_Int(symbol);
+      }
+      // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
+      if ( !extendedIntfSymbolsOnly.isEmpty() &&
+           !extendedIntfSymbolsOnly.contains( name ) &&
+           !oneInSet(extendedIntfSymbolsOnly, aliases) ) {
+          if(DEBUG_IGNORES) {
+              System.err.println("Ignore Intf !extended (all): " + symbol.getAliasedString());
+          }
+          return true;
+      }
+      return shouldIgnoreInImpl_Int(symbol);
   }
 
   /**
-   * Returns true if this #define, function, struct, or field within
-   * a struct should be ignored during glue code generation of implementation only.
+   * Returns true if this aliased symbol should be ignored
+   * during glue code generation of implementation only.
    * <p>
-   * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
+   * Both, the {@link AliasedSymbol#getName() current-name}
+   * and all {@link AliasedSymbol#getAliasedNames() aliases} shall be considered.
    * </p>
+   * <p>
+   * Implementation calls {@link #shouldIgnoreInImpl_Int(AliasedSymbol)}
+   * and overriding implementations shall ensure its being called as well!
+   * </p>
+   * @param symbol the symbolic aliased name to check for exclusion
    */
-  public boolean shouldIgnoreInImpl(final String symbol) {
+  public boolean shouldIgnoreInImpl(final AliasedSymbol symbol) {
     return shouldIgnoreInImpl_Int(symbol);
   }
+  protected final boolean shouldIgnoreInImpl_Int(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
 
-  private boolean shouldIgnoreInImpl_Int(final String symbol) {
-
-    if(DEBUG_IGNORES) {
-      dumpIgnoresOnce();
-    }
-
-    // Simple case-1; the entire symbol (orig or renamed) is in the implementation ignore table
-    final String renamedSymbol = getJavaSymbolRename(symbol);
-    if ( extendedImplSymbolsIgnore.contains( symbol ) ||
-         extendedImplSymbolsIgnore.contains( renamedSymbol ) ) {
-      if(DEBUG_IGNORES) {
-          System.err.println("Ignore Impl ignore : "+symbol);
-      }
-      return true;
-    }
-    // Simple case-2; the entire symbol (orig or renamed) is _not_ in the not-empty implementation only table
-    if ( !extendedImplSymbolsOnly.isEmpty() &&
-         !extendedImplSymbolsOnly.contains( symbol ) &&
-         !extendedImplSymbolsOnly.contains( renamedSymbol ) ) {
+      // Simple case-1; the symbol (orig or renamed) is in the interface ignore table
+      if ( extendedImplSymbolsIgnore.contains( name ) ||
+           oneInSet(extendedImplSymbolsIgnore, aliases)
+         )
+      {
           if(DEBUG_IGNORES) {
-              System.err.println("Ignore Impl !extended: " + symbol);
+              System.err.println("Ignore Impl ignore (one): "+symbol.getAliasedString());
           }
           return true;
-    }
-
-    // Ok, the slow case. We need to check the entire table, in case the table
-    // contains an regular expression that matches the symbol.
-    for (final Pattern regexp : ignores) {
-      final Matcher matcher = regexp.matcher(symbol);
-      if (matcher.matches()) {
-        if(DEBUG_IGNORES) {
-            System.err.println("Ignore Impl RegEx: "+symbol);
-        }
-        return true;
       }
-    }
+      // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
+      if ( !extendedImplSymbolsOnly.isEmpty() &&
+           !extendedImplSymbolsOnly.contains( name ) &&
+           !oneInSet(extendedImplSymbolsOnly, aliases) ) {
+          if(DEBUG_IGNORES) {
+              System.err.println("Ignore Impl !extended (all): " + symbol.getAliasedString());
+          }
+          return true;
+      }
 
-    // Check negated ignore table if not empty
-    if (ignoreNots.size() > 0) {
       // Ok, the slow case. We need to check the entire table, in case the table
       // contains an regular expression that matches the symbol.
-      for (final Pattern regexp : ignoreNots) {
-        final Matcher matcher = regexp.matcher(symbol);
-        if (!matcher.matches()) {
-          // Special case as this is most often likely to be the case.
-          // Unignores are not used very often.
-          if(unignores.isEmpty()) {
-            if(DEBUG_IGNORES) {
-                System.err.println("Ignore Impl unignores==0: "+symbol);
-            }
-            return true;
+      for (final Pattern ignoreRegexp : ignores) {
+          final Matcher matcher = ignoreRegexp.matcher(name);
+          if ( matcher.matches() || onePatternMatch(ignoreRegexp, aliases) ) {
+              if(DEBUG_IGNORES) {
+                  System.err.println("Ignore Impl RegEx: "+symbol.getAliasedString());
+              }
+              return true;
           }
-
-          boolean unignoreFound = false;
-          for (final Pattern unignoreRegexp : unignores) {
-            final Matcher unignoreMatcher = unignoreRegexp.matcher(symbol);
-            if (unignoreMatcher.matches()) {
-              unignoreFound = true;
-              break;
-            }
-          }
-
-          if (!unignoreFound)
-            if(DEBUG_IGNORES) {
-                System.err.println("Ignore Impl !unignore: "+symbol);
-            }
-            return true;
-        }
       }
-    }
 
-    return false;
+      // Check negated ignore table if not empty
+      if (ignoreNots.size() > 0) {
+          // Ok, the slow case. We need to check the entire table, in case the table
+          // contains an regular expression that matches the symbol.
+          for (final Pattern ignoreNotRegexp : ignoreNots) {
+              final Matcher matcher = ignoreNotRegexp.matcher(name);
+              if ( !matcher.matches() && !onePatternMatch(ignoreNotRegexp, aliases) ) {
+                  // Special case as this is most often likely to be the case.
+                  // Unignores are not used very often.
+                  if(unignores.isEmpty()) {
+                      if(DEBUG_IGNORES) {
+                          System.err.println("Ignore Impl unignores==0: "+symbol.getAliasedString()+" -> "+name);
+                      }
+                      return true;
+                  }
+                  boolean unignoreFound = false;
+                  for (final Pattern unignoreRegexp : unignores) {
+                      final Matcher unignoreMatcher = unignoreRegexp.matcher(name);
+                      if ( unignoreMatcher.matches() || onePatternMatch(unignoreRegexp, aliases) ) {
+                          unignoreFound = true;
+                          break;
+                      }
+                  }
+
+                  if (!unignoreFound)
+                      if(DEBUG_IGNORES) {
+                          System.err.println("Ignore Impl !unignore: "+symbol.getAliasedString()+" -> "+name);
+                      }
+                  return true;
+              }
+          }
+      }
+      return false;
   }
 
   /** Returns true if this function should be given a body which
@@ -912,6 +977,19 @@ public class JavaConfiguration {
     }
 
     return false;
+  }
+
+  /**
+   * Return a set of aliased-name for comment in docs.
+   * <p>
+   * This is usually {@link AliasedSymbol#addAliasedName(String)},
+   * however an implementation may choose otherwise.
+   * </p>
+   * @param symbol the aliased symbol to retrieve the aliases
+   * @return set of aliased-names or {@code null}.
+   */
+  public Set<String> getAliasedDocNames(final AliasedSymbol symbol) {
+      return symbol.getAliasedNames();
   }
 
   /** Returns a replacement name for this type, which should be the
@@ -1033,6 +1111,9 @@ public class JavaConfiguration {
       nativeOutputUsesJavaHierarchy = Boolean.valueOf(tmp).booleanValue();
     } else if (cmd.equalsIgnoreCase("TagNativeBinding")) {
       tagNativeBinding = readBoolean("TagNativeBinding", tok, filename, lineNo).booleanValue();
+    } else if (cmd.equalsIgnoreCase("RelaxedEqualSemanticsTest")) {
+      relaxedEqualSemanticsTest = readBoolean("RelaxedEqualSemanticsTest", tok, filename, lineNo).booleanValue();
+      TypeConfig.setRelaxedEqualSemanticsTest(relaxedEqualSemanticsTest); // propagate ..
     } else if (cmd.equalsIgnoreCase("Style")) {
         try{
           emissionStyle = EmissionStyle.valueOf(readString("Style", tok, filename, lineNo));
@@ -1222,7 +1303,7 @@ public class JavaConfiguration {
 
   protected void readOpaque(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      final JavaType javaType = JavaType.createForClass(stringToPrimitiveType(tok.nextToken()));
+      final JavaType javaType = JavaType.createForOpaqueClass(stringToPrimitiveType(tok.nextToken()));
       String cType = null;
       while (tok.hasMoreTokens()) {
         if (cType == null) {
@@ -1755,6 +1836,16 @@ public class JavaConfiguration {
     return new TypeInfo(typeName, pointerDepth, javaType);
   }
 
+  public TypeInfo addTypeInfo(final String alias, final Type superType) {
+      final TypeInfo superInfo = typeInfo(superType);
+      if( null != superInfo ) {
+          final TypeInfo res = new TypeInfo(alias, superInfo.pointerDepth(), superInfo.javaType());
+          addTypeInfo(res);
+          return res;
+      } else {
+          return null;
+      }
+  }
   protected void addTypeInfo(final TypeInfo info) {
     TypeInfo tmp = typeInfoMap.get(info.name());
     if (tmp == null) {

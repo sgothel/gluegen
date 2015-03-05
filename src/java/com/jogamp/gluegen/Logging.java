@@ -33,6 +33,7 @@ package com.jogamp.gluegen;
 
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
@@ -41,11 +42,13 @@ import com.jogamp.common.util.PropertyAccess;
 
 /**
  *
- * @author Michael Bien
+ * @author Michael Bien, et.al.
  */
 public class Logging {
 
-    static void init() {
+    final static Logger rootPackageLogger;
+
+    static {
         final String packageName = Logging.class.getPackage().getName();
         final String property = PropertyAccess.getProperty(packageName+".level", true);
         Level level;
@@ -64,10 +67,33 @@ public class Logging {
         handler.setFormatter(new PlainLogFormatter());
         handler.setLevel(level);
 
-        final Logger rootPackageLogger = Logger.getLogger(packageName);
+        rootPackageLogger = Logger.getLogger(packageName);
         rootPackageLogger.setUseParentHandlers(false);
         rootPackageLogger.setLevel(level);
         rootPackageLogger.addHandler(handler);
+    }
+
+    /** provokes static initialization */
+    static void init() { }
+
+    /** Returns the <i>root package logger</i>. */
+    public static Logger getLogger() {
+        return rootPackageLogger;
+    }
+    /** Returns the demanded logger, while aligning its log-level to the root logger's level. */
+    public static synchronized Logger getLogger(final String name) {
+        final Logger l = Logger.getLogger(name);
+        alignLevel(l);
+        return l;
+    }
+    /** Align log-level of given logger to the root logger's level. */
+    public static void alignLevel(final Logger l) {
+        final Level level = rootPackageLogger.getLevel();
+        l.setLevel(level);
+        final Handler[] hs = l.getHandlers();
+        for(final Handler h:hs) {
+            h.setLevel(level);
+        }
     }
 
     /**

@@ -40,6 +40,8 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
+
 /** Represents a bitfield in a struct. */
 
 public class BitType extends IntType implements Cloneable {
@@ -55,14 +57,35 @@ public class BitType extends IntType implements Cloneable {
   }
 
   @Override
-  public boolean equals(final Object arg) {
-    if (arg == this) return true;
-    if (arg == null || (!(arg instanceof BitType))) {
-      return false;
-    }
-    final BitType t = (BitType) arg;
-    return (super.equals(arg) && underlyingType.equals(t.underlyingType) &&
-            (sizeInBits == t.sizeInBits) && (offset == t.offset));
+  protected int hashCodeImpl() {
+      // 31 * x == (x << 5) - x
+      int hash = underlyingType.hashCode();
+      hash = ((hash << 5) - hash) + sizeInBits;
+      return ((hash << 5) - hash) + offset;
+  }
+
+  @Override
+  protected boolean equalsImpl(final Type arg) {
+      final BitType t = (BitType) arg;
+      return underlyingType.equals(t.underlyingType) &&
+             sizeInBits == t.sizeInBits &&
+             offset == t.offset;
+  }
+
+  @Override
+  protected int hashCodeSemanticsImpl() {
+      // 31 * x == (x << 5) - x
+      int hash = underlyingType.hashCodeSemantics();
+      hash = ((hash << 5) - hash) + sizeInBits;
+      return ((hash << 5) - hash) + offset;
+  }
+
+  @Override
+  protected boolean equalSemanticsImpl(final Type arg) {
+      final BitType t = (BitType) arg;
+      return underlyingType.equalSemantics(t.underlyingType) &&
+              sizeInBits == t.sizeInBits &&
+              offset == t.offset;
   }
 
   @Override

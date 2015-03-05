@@ -51,12 +51,13 @@ import java.util.logging.Logger;
 /** Emits the C-side component of the Java<->C JNI binding. */
 public class CMethodBindingEmitter extends FunctionEmitter {
 
-  protected static final Logger LOG = Logger.getLogger(CMethodBindingEmitter.class.getPackage().getName());
   protected static final CommentEmitter defaultCommentEmitter = new DefaultCommentEmitter();
 
   protected static final String arrayResLength = "_array_res_length";
   protected static final String arrayRes       = "_array_res";
   protected static final String arrayIdx       = "_array_idx";
+
+  protected final Logger LOG;
 
   protected MethodBinding binding;
 
@@ -124,9 +125,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                final boolean isJavaMethodStatic,
                                final boolean forImplementingMethodCall,
                                final boolean forIndirectBufferAndArrayImplementation,
-                               final MachineDataInfo machDesc)
+                               final MachineDataInfo machDesc,
+                               final JavaConfiguration configuration)
   {
-    super(output, false);
+    super(output, false, configuration);
+    LOG = Logging.getLogger(CMethodBindingEmitter.class.getPackage().getName());
 
     assert(binding != null);
     assert(javaClassName != null);
@@ -150,6 +153,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   @Override
   public String getName() {
     return binding.getName();
+  }
+
+  @Override
+  public FunctionSymbol getCSymbol() {
+      return binding.getCSymbol();
   }
 
   /**
@@ -451,7 +459,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     if (!cReturnType.isVoid()) {
       writer.print("  ");
       // Note we must respect const/volatile for return argument
-      writer.print(binding.getCSymbol().getReturnType().getName(true));
+      writer.print(binding.getCSymbol().getReturnType().getCName(true));
       writer.println(" _res;");
       if (javaReturnType.isNIOByteBufferArray() ||
           javaReturnType.isArrayOfCompoundTypeWrappers()) {
@@ -569,7 +577,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         writer.println("  if ( NULL != " + javaArgName + " ) {");
 
         final Type cArgType = binding.getCArgumentType(i);
-        String cArgTypeName = cArgType.getName();
+        String cArgTypeName = cArgType.getCName();
 
         final String convName = pointerConversionArgumentName(javaArgName);
 
@@ -654,7 +662,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           emitMalloc(
             writer,
             convName+"_copy",
-            cArgElementType.getName(),
+            cArgElementType.getCName(),
             isBaseTypeConst(cArgType),
             arrayLenName,
             "Could not allocate buffer for copying data in argument \\\""+javaArgName+"\\\"");
@@ -692,7 +700,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                in the method binding. */
             emitGetDirectBufferAddress(writer,
                                        "_tmpObj",
-                                       cArgElementType.getName(),
+                                       cArgElementType.getCName(),
                                        convName + "_copy[_copyIndex]",
                                        true,
                                        "_offsetHandle[_copyIndex]", true);
@@ -702,7 +710,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // offset argument
             emitGetDirectBufferAddress(writer,
                                        "_tmpObj",
-                                       cArgElementType.getName(),
+                                       cArgElementType.getCName(),
                                        "("+convName + "_copy + _copyIndex)",
                                        false /* !receivingIsPtrPtr -> linear layout -> use memcpy */,
                                        null, true);
@@ -719,13 +727,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             emitMalloc(
                        writer,
                        convName+"_copy[_copyIndex]",
-                       cArgElementType2.getName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
+                       cArgElementType2.getCName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
                        isBaseTypeConst(cArgType),
                        "(*env)->GetArrayLength(env, _tmpObj)",
                        "Could not allocate buffer during copying of data in argument \\\""+javaArgName+"\\\"");
             // FIXME: copy the data (use matched Get/ReleasePrimitiveArrayCritical() calls)
             if (true) {
-                throw new RuntimeException("Cannot yet handle type \"" + cArgType.getName() +
+                throw new RuntimeException("Cannot yet handle type \"" + cArgType.getCName() +
                               "\"; need to add support for copying ptr-to-ptr-to-primitiveType subarrays");
             }
 
@@ -804,7 +812,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               writer.println("      _tmpObj = (*env)->GetObjectArrayElement(env, " + javaArgName + ", _copyIndex);");
               emitReturnDirectBufferAddress(writer,
                                           "_tmpObj",
-                                          cArgType.asArray().getBaseElementType().getName(),
+                                          cArgType.asArray().getBaseElementType().getCName(),
                                           "("+convName + "_copy + _copyIndex)",
                                           false /* receivingIsPtrPtr */,
                                           null);
@@ -855,7 +863,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               writer.println(");");
             } else {
               if (true) throw new RuntimeException(
-                "Cannot yet handle type \"" + cArgType.getName() +
+                "Cannot yet handle type \"" + cArgType.getCName() +
                 "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays");
             }
             writer.println("    }");
@@ -927,7 +935,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           }
         }
 
-        writer.print(cArgType.getName());
+        writer.print(cArgType.getCName());
         writer.print(") ");
         if (cArgType.isPointer() && javaArgType.isPrimitive()) {
           writer.print("(intptr_t) ");
@@ -1020,7 +1028,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         if (returnValueCapacityExpression != null) {
             returnSizeOf = returnValueCapacityExpression.format(argumentNameArray());
         } else {
-            returnSizeOf = "sizeof(" + cReturnType.getName() + ")";
+            returnSizeOf = "sizeof(" + cReturnType.getCName() + ")";
         }
         writer.println("  return JVMUtil_NewDirectByteBufferCopy(env, &_res, "+returnSizeOf+");");
       } else if (javaReturnType.isNIOBuffer() || javaReturnType.isCompoundTypeWrapper()) {
@@ -1029,27 +1037,66 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
-          writer.print( returnValueCapacityExpression.format( argumentNameArray() ) );
+          writer.println( returnValueCapacityExpression.format( argumentNameArray() ) + ");");
         } else {
-          if (cReturnType.isPointer() &&
-              cReturnType.asPointer().getTargetType().isCompound()) {
-            if (cReturnType.asPointer().getTargetType().getSize() == null) {
-              throw new RuntimeException(
-                "Error emitting code for compound return type "+
-                "for function \"" + binding + "\": " +
-                "Structs to be emitted should have been laid out by this point " +
-                "(type " + cReturnType.asPointer().getTargetType().getName() + " / " +
-                cReturnType.asPointer().getTargetType() + " was not) for "+binding
-              );
+          final Type cReturnTargetType = cReturnType.isPointer() ? cReturnType.getTargetType() : null;
+          int mode = 0;
+          if ( 1 == cReturnType.pointerDepth() && null != cReturnTargetType ) {
+            if( cReturnTargetType.isCompound() ) {
+                if( !cReturnTargetType.isAnonymous() &&
+                    cReturnTargetType.asCompound().getNumFields() > 0 )
+                {
+                    // fully declared non-anonymous struct pointer: pass content
+                    if ( cReturnTargetType.getSize() == null ) {
+                      throw new RuntimeException(
+                        "Error emitting code for compound return type "+
+                        "for function \"" + binding + "\": " +
+                        "Structs to be emitted should have been laid out by this point " +
+                        "(type " + cReturnTargetType.getCName() + " / " +
+                        cReturnTargetType.getDebugString() + " was not) for "+binding
+                      );
+                    }
+                    writer.println("sizeof(" + cReturnTargetType.getCName() + ") );");
+                    mode = 10;
+                } else if( cReturnTargetType.asCompound().getNumFields() == 0 ) {
+                    // anonymous struct pointer: pass pointer
+                    writer.println("sizeof(" + cReturnType.getCName() + ") );");
+                    mode = 11;
+                }
+            }
+            if( 0 == mode ) {
+                if( cReturnTargetType.isPrimitive() ) {
+                    // primitive pointer: pass primitive
+                    writer.println("sizeof(" + cReturnTargetType.getCName() + ") );");
+                    mode = 20;
+                } else if( cReturnTargetType.isVoid() ) {
+                    // void pointer: pass pointer
+                    writer.println("sizeof(" + cReturnType.getCName() + ") );");
+                    mode = 21;
+                }
             }
           }
-          writer.print("sizeof(" + cReturnType.getName() + ")");
-          LOG.warning(
-            "No capacity specified for java.nio.Buffer return " +
-            "value for function \"" + binding.getName() + "\"" +
-            " assuming size of equivalent C return type (sizeof(" + cReturnType.getName() + ")): " + binding);
+          if( 0 == mode ) {
+            if( null != cfg.typeInfo(cReturnType) ) {
+                // Opaque
+                writer.println("sizeof(" + cReturnType.getCName()  + ") );");
+                mode = 88;
+            } else {
+                final String wmsg = "Assumed return size of equivalent C return type";
+                writer.println("sizeof(" + cReturnType.getCName()  + ") ); // WARNING: "+wmsg);
+                mode = 99;
+                LOG.warning(
+                  "No capacity specified for java.nio.Buffer return " +
+                  "value for function \"" + binding.getName() + "\". " + wmsg + " (sizeof(" + cReturnType.getCName() + ")): " + binding);
+            }
+          }
+          writer.println("  /** ");
+          writer.println("   * mode: "+mode);
+          writer.println("   * cReturnType: "+cReturnType.getDebugString());
+          writer.println("   * cReturnTargetType: "+cReturnTargetType.getDebugString());
+          writer.println("   * javaReturnType: "+javaReturnType.getDebugString());
+          writer.println("   */");
         }
-        writer.println(");");
       } else if (javaReturnType.isString()) {
         writer.println("  if (NULL == _res) return NULL;");
         writer.println("  return (*env)->NewStringUTF(env, _res);");
@@ -1071,7 +1118,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           pointerType = retType.asArray().getBaseElementType();
         }
         writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
-                       ", (*env)->NewDirectByteBuffer(env, (void *)_res[" + arrayIdx + "], sizeof(" + pointerType.getName() + ")));");
+                       ", (*env)->NewDirectByteBuffer(env, (void *)_res[" + arrayIdx + "], sizeof(" + pointerType.getCName() + ")));");
         writer.println("  }");
         writer.println("  return " + arrayRes + ";");
       } else if (javaReturnType.isArray()) {
@@ -1386,33 +1433,34 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     // Note that we don't need to obey const/volatile for outgoing arguments
     //
     if (javaType.isNIOBuffer()) {
-      ptrTypeString = cType.getName();
+      // primitive NIO object
+      ptrTypeString = cType.getCName();
     } else if (javaType.isArray() || javaType.isArrayOfCompoundTypeWrappers()) {
       needsDataCopy = javaArgTypeNeedsDataCopy(javaType);
       if (javaType.isPrimitiveArray() ||
           javaType.isNIOBufferArray() ||
           javaType.isArrayOfCompoundTypeWrappers()) {
-        ptrTypeString = cType.getName();
+        ptrTypeString = cType.getCName();
       } else if (!javaType.isStringArray()) {
         final Class<?> elementType = javaType.getJavaClass().getComponentType();
         if (elementType.isArray()) {
           final Class<?> subElementType = elementType.getComponentType();
           if (subElementType.isPrimitive()) {
             // type is pointer to pointer to primitive
-            ptrTypeString = cType.getName();
+            ptrTypeString = cType.getCName();
           } else {
             // type is pointer to pointer of some type we don't support (maybe
             // it's an array of pointers to structs?)
-            throw new RuntimeException("Unsupported pointer type: \"" + cType.getName() + "\"");
+            throw new RuntimeException("Unsupported pointer type: \"" + cType.getCName() + "\"");
           }
         } else {
           // type is pointer to pointer of some type we don't support (maybe
           // it's an array of pointers to structs?)
-          throw new RuntimeException("Unsupported pointer type: \"" + cType.getName() + "\"");
+          throw new RuntimeException("Unsupported pointer type: \"" + cType.getCName() + "\"");
         }
       }
     } else {
-      ptrTypeString = cType.getName();
+      ptrTypeString = cType.getCName();
     }
 
     writer.print("  ");
@@ -1434,7 +1482,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         String cElementTypeName = "char *";
         final PointerType cPtrType = cType.asPointer();
         if (cPtrType != null) {
-            cElementTypeName = cPtrType.getTargetType().asPointer().getName();
+            cElementTypeName = cPtrType.getTargetType().asPointer().getCName();
         }
         if (isBaseTypeConst(cType)) {
             writer.print("const ");
@@ -1470,9 +1518,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
     final String cVariableType;
     if( !cType.isPointer() && type.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
-        cVariableType = cType.getName()+" *";
+        cVariableType = cType.getCName()+" *";
     } else {
-        cVariableType = cType.getName();
+        cVariableType = cType.getCName();
     }
     emitGetDirectBufferAddress(writer,
                                incomingArgumentName,

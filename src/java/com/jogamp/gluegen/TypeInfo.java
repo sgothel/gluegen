@@ -66,7 +66,7 @@ public class TypeInfo {
     buf.append(name);
     buf.append(" pointerDepth ");
     buf.append(pointerDepth);
-    buf.append(" JavaType " + javaType);
+    buf.append(" JavaType " + javaType.getDebugString());
     return buf.toString();
   }
 }

@@ -50,6 +50,7 @@ import com.jogamp.gluegen.cgram.types.*;
 public interface GlueEmitter {
 
   public void readConfigurationFile(String filename) throws Exception;
+  public JavaConfiguration getConfiguration();
 
   /**
    * Begin the emission of glue code. This might include opening files,
@@ -91,11 +92,11 @@ public interface GlueEmitter {
   public void beginStructs(TypeDictionary typedefDictionary,
                            TypeDictionary structDictionary,
                            Map<Type, Type> canonMap) throws Exception;
-  /** Emit glue code for the given CompoundType. alternateName is
+  /** Emit glue code for the given CompoundType. typedefType is
       provided when the CompoundType (e.g. "struct foo_t") has not
       been typedefed to anything but the type of "pointer to struct
       foo_t" has (e.g. "typedef struct foo_t {} *Foo"); in this case
-      alternateName would be set to Foo. */
-  public void emitStruct(CompoundType t, String alternateName) throws Exception;
+      typedefType would be set to pointer type Foo. */
+  public void emitStruct(CompoundType t, Type typedefType) throws Exception;
   public void endStructs() throws Exception;
 }

@@ -28,8 +28,77 @@
 
 typedef int Bool;
 typedef uint64_t foo;
+typedef foo * foo_ptr;
 typedef void * APtr1Type;
 typedef intptr_t APtr2Type;
+
+typedef void * XID;        // Opaque
+typedef XID    XID_2;      // Opaque, due to XID
+typedef void * AnonBuffer; // Non Opaque
+
+typedef XID    XID_2;                 // Duplicate w/ compatible type (ignored)
+// typedef int    XID_2;              // Duplicate w/ incompatible type ERROR
+
+#define DEFINE_01 1234
+#define DEFINE_01 1234                // Duplicate w/ same value (ignored)
+// #define DEFINE_01 1235             // Duplicate w/ diff value ERROR
+#define DEFINE_01_EXT 1234            // Renamed Duplicate w/ same value (ignored)
+// #define DEFINE_01_EXT 1235         // Renamed Duplicate w/ diff value ERROR
+
+#define DEFINE_02 ( (int ) 3 )
+// #define DEFINE_02 ( (int ) 3 )     // Duplicate w/ same value ERROR (PCPP redefine)
+// #define DEFINE_02 ( (int) 3 )      // Duplicate w/ diff value ERROR (PCPP redefine, then GlueGen)
+
+enum Lala { LI=1, LU, LO };            
+// enum Lala { LI=1, LU, LO };        // Duplicate w/ same value (ignored, ERROR in native compilation)
+// enum Lala { LI=1, LU=3, LO };      // Duplicate w/ diff value ERROR
+// enum Lala { LI=1, LU, LO, LERROR }; // Duplicate w/ diff value ERROR
+
+typedef enum { MI=1, MU, MO } Momo;
+// typedef enum { MI=1, MU, MO } Momo; // Duplicate w/ same value (ignored, ERROR in native compilation)
+// typedef enum { MI=1, MU=3, MO } Momo; // Duplicate w/ diff value ERROR
+// typedef enum { MI=1, MU, MO, MERR } Momo; // Duplicate w/ diff value ERROR
+
+typedef struct _ShortBlob {
+    uint8_t b1;
+    uint8_t b2;
+} ShortBlob, ShortBlob2, *LPShortBlob1; // Aliased to 'ShortBlob'
+typedef ShortBlob2 * LPShortBlob2; // Aliased to 'ShortBlob'
+typedef ShortBlob  * LPShortBlob3; // Aliased to 'ShortBlob'
+typedef LPShortBlob1 LPShortBlob4; // Aliased to 'ShortBlob'
+
+struct Int32Struct {
+    uint8_t b1;
+    uint8_t b2;
+    uint8_t b3;
+    uint8_t b4;
+};
+
+typedef struct _AnonBlob * AnonBlob; // Anonymous-Struct, Non Opaque
+
+struct _AnonBlob2; // opaque: struct _AnonBlob2*
+
+MYAPI XID MYAPIENTRY testXID(XID v);
+MYAPI XID MYAPIENTRY testXID(XID_2 v);      // duplicate: shall be dropped
+// MYAPI XID MYAPIENTRY testXID(int v);     // duplicate w/ diff value ERROR
+MYAPI XID MYAPIENTRY testXID_EXT(XID v);    // renamed duplicate w/ compat value: shall be dropped
+// MYAPI XID MYAPIENTRY testXID_EXT(int v); // renamed duplicate w/ diff value ERROR
+MYAPI XID_2 MYAPIENTRY testXID_2(XID_2 v);
+MYAPI AnonBuffer MYAPIENTRY testAnonBuffer(AnonBuffer v);
+MYAPI const ShortBlob * MYAPIENTRY testShortBlob0(const ShortBlob *v);
+MYAPI LPShortBlob1 MYAPIENTRY testShortBlob1(LPShortBlob1 v);
+MYAPI LPShortBlob2 MYAPIENTRY testShortBlob2(LPShortBlob2 v);
+MYAPI LPShortBlob3 MYAPIENTRY testShortBlob3(LPShortBlob3 v);
+MYAPI LPShortBlob4 MYAPIENTRY testShortBlob4(LPShortBlob4 v);
+MYAPI struct Int32Struct * MYAPIENTRY testInt32Struct(struct Int32Struct * v);
+
+MYAPI AnonBlob MYAPIENTRY testCreateAnonBlob();
+MYAPI void MYAPIENTRY testDestroyAnonBlob(AnonBlob v);
+
+MYAPI struct _AnonBlob2 * MYAPIENTRY testCreateAnonBlob2();
+MYAPI void MYAPIENTRY testDestroyAnonBlob2(struct _AnonBlob2 * v);
+
+MYAPI foo_ptr MYAPIENTRY testFooPtr(foo_ptr v);
 
 /** Returns 42 */
 MYAPI foo MYAPIENTRY nopTest();
@@ -131,7 +200,7 @@ MYAPI int MYAPIENTRY intArrayCopy(int * dest, const int * src, int num);
 /** Increases the elements by 1, and returns the sum 
 MYAPI int MYAPIENTRY intArrayWrite(int *  *  ints, int num); */
 
-typedef struct __MYAPIConfig * MYAPIConfig;
+typedef struct __MYAPIConfig * MYAPIConfig; // anonymous-struct opaque
 
 /** Returns the passed MYAPIConfig incremented by 1 */
 MYAPI MYAPIConfig  MYAPIENTRY typeTestAnonSingle(const MYAPIConfig a);
@@ -172,7 +241,7 @@ typedef struct {
     int32_t height;
 } TK_Dimension;
 
-typedef struct _TK_Context * TK_Context; // anonymous
+typedef struct _TK_Context * TK_Context; // anonymous-struct opaque
 
 typedef struct {
     TK_Context ctx;

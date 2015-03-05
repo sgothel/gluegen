@@ -42,6 +42,8 @@ package com.jogamp.gluegen.cgram.types;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
+
 
 /** Describes enumerated types. Enumerations are like ints except that
 they have a set of named values. */
@@ -49,10 +51,9 @@ public class EnumType extends IntType implements Cloneable {
 
     private IntType underlyingType;
 
-    private static class Enum {
-
-        String name;
-        long value;
+    private static class Enum implements TypeComparator.SemanticEqualityOp {
+        final String name;
+        final long value;
 
         Enum(final String name, final long value) {
             this.name = name;
@@ -66,6 +67,37 @@ public class EnumType extends IntType implements Cloneable {
         long getValue() {
             return value;
         }
+
+        @Override
+        public int hashCode() {
+            // 31 * x == (x << 5) - x
+            final int hash = name.hashCode();
+            return ((hash << 5) - hash) + (int)(value ^ (value >>> 32));
+        }
+
+        @Override
+        public boolean equals(final Object arg) {
+            if (arg == this) {
+                return true;
+            } else if ( !(arg instanceof Enum) ) {
+                return false;
+            }
+            final Enum t = (Enum) arg;
+            return name.equals(t.name) &&
+                   value == t.value;
+        }
+
+        @Override
+        public int hashCodeSemantics() {
+            return hashCode();
+        }
+
+        @Override
+        public boolean equalSemantics(final SemanticEqualityOp arg) {
+            return equals(arg);
+        }
+
+        public String toString() { return name+" = "+value; }
     }
 
     private ArrayList<Enum> enums;
@@ -98,17 +130,31 @@ public class EnumType extends IntType implements Cloneable {
     }
 
     @Override
-    public boolean equals(final Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof EnumType))) {
-            return false;
-        }
+    protected int hashCodeImpl() {
+      // 31 * x == (x << 5) - x
+      final int hash = underlyingType.hashCode();
+      return ((hash << 5) - hash) + TypeComparator.listsHashCode(enums);
+    }
+
+    @Override
+    protected boolean equalsImpl(final Type arg) {
         final EnumType t = (EnumType) arg;
-        return (super.equals(arg)
-                && underlyingType.equals(t.underlyingType)
-                && listsEqual(enums, t.enums));
+        return underlyingType.equals(t.underlyingType) &&
+               TypeComparator.listsEqual(enums, t.enums);
+    }
+
+    @Override
+    protected int hashCodeSemanticsImpl() {
+      // 31 * x == (x << 5) - x
+      final int hash = underlyingType.hashCodeSemantics();
+      return ((hash << 5) - hash) + TypeComparator.listsHashCodeSemantics(enums);
+    }
+
+    @Override
+    protected boolean equalSemanticsImpl(final Type arg) {
+        final EnumType t = (EnumType) arg;
+        return underlyingType.equalSemantics(t.underlyingType) &&
+               TypeComparator.listsEqualSemantics(enums, t.enums);
     }
 
     @Override
@@ -116,11 +162,14 @@ public class EnumType extends IntType implements Cloneable {
         return this;
     }
 
+    public Type getUnderlyingType() { return this.underlyingType; }
+
     public void addEnum(final String name, final long val) {
         if (enums == null) {
             enums = new ArrayList<Enum>();
         }
         enums.add(new Enum(name, val));
+        clearCache();
     }
 
     /** Number of enumerates defined in this enum. */
@@ -169,10 +218,22 @@ public class EnumType extends IntType implements Cloneable {
             final Enum e = enums.get(i);
             if (e.getName().equals(name)) {
                 enums.remove(e);
+                clearCache();
                 return true;
             }
         }
         return false;
+    }
+
+    public StringBuilder appendEnums(final StringBuilder sb, final boolean cr) {
+        for(int i=0; i<enums.size(); i++) {
+            sb.append(enums.get(i)).append(", ");
+            if( cr ) {
+                sb.append(String.format("%n"));
+            }
+        }
+        sb.append("}");
+        return sb;
     }
 
     @Override

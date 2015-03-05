@@ -46,29 +46,67 @@ import java.util.*;
     and unions. The boolean type accessors indicate how the type is
     really defined. */
 
-public abstract class CompoundType extends MemoryLayoutType implements Cloneable {
+public abstract class CompoundType extends MemoryLayoutType implements Cloneable, AliasedSymbol {
   // The name "foo" in the construct "struct foo { ... }";
-  private String structName;
+  private final String structName;
   private ArrayList<Field> fields;
   private boolean visiting;
   private boolean bodyParsed;
-  private boolean computedHashcode;
-  private int     hashcode;
-
+  /**
+   *
+   * @param name
+   * @param size
+   * @param cvAttributes
+   * @param structName
+   */
   CompoundType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
     super(name, size, cvAttributes);
     this.structName = structName;
   }
 
-  public static CompoundType create(final String name, final SizeThunk size, final CompoundTypeKind kind, final int cvAttributes) {
+  @Override
+  public void rename(final String newName) {
+      throw new UnsupportedOperationException();
+  }
+  @Override
+  public void addAliasedName(final String origName) {
+      throw new UnsupportedOperationException();
+  }
+  @Override
+  public boolean hasAliases() {
+      return false;
+  }
+  @Override
+  public Set<String> getAliasedNames() {
+      return null;
+  }
+  @Override
+  public String getAliasedString() {
+      return toString();
+  }
+
+  /**
+   * @param structName struct name of this CompoundType, i.e. the "foo" in the
+                       construct {@code struct foo { int a, ... };} or {@code struct foo;} <i>even</i> for anonymous structs.
+   * @param size
+   * @param kind
+   * @param cvAttributes
+   * @return
+   */
+  public static CompoundType create(final String structName, final SizeThunk size, final CompoundTypeKind kind, final int cvAttributes)
+  {
+    final CompoundType res;
     switch (kind) {
       case STRUCT:
-          return new StructType(name, size, cvAttributes);
+          res = new StructType(null, size, cvAttributes, structName);
+          break;
       case UNION:
-          return new UnionType(name, size, cvAttributes);
+          res = new UnionType(null, size, cvAttributes, structName);
+          break;
       default:
           throw new RuntimeException("OO relation "+kind+" / Compount not yet supported");
     }
+    return res;
   }
 
   @Override
@@ -81,46 +119,37 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   }
 
   @Override
-  public int hashCode() {
-    if (computedHashcode) {
-      return hashcode;
-    }
-
-    if (structName != null) {
-      hashcode = structName.hashCode();
-    } else if (getName() != null) {
-      hashcode = getName().hashCode();
-    } else {
-      hashcode = 0;
-    }
-
-    computedHashcode = true;
-    return hashcode;
+  protected int hashCodeImpl() {
+      // 31 * x == (x << 5) - x
+      final int hash = 31 + ( null != structName ? structName.hashCode() : 0 );
+      return ((hash << 5) - hash) + TypeComparator.listsHashCode(fields);
   }
 
   @Override
-  public boolean equals(final Object arg) {
-    if (arg == this) return true;
-    if (arg == null || !(arg instanceof CompoundType)) {
-      return false;
-    }
-    final CompoundType t = (CompoundType) arg;
-    return super.equals(arg) &&
-        ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
-         (structName != null && structName.equals(t.structName))) &&
-        listsEqual(fields, t.fields);
+  protected boolean equalsImpl(final Type arg) {
+    final CompoundType ct = (CompoundType) arg;
+    return ( (structName == null ? ct.structName == null : structName.equals(ct.structName)) ||
+             (structName != null && structName.equals(ct.structName))
+           ) &&
+           TypeComparator.listsEqual(fields, ct.fields);
+  }
+
+  @Override
+  protected int hashCodeSemanticsImpl() {
+      // 31 * x == (x << 5) - x
+      return TypeComparator.listsHashCodeSemantics(fields);
+  }
+
+  @Override
+  protected boolean equalSemanticsImpl(final Type arg) {
+    final CompoundType ct = (CompoundType) arg;
+    return TypeComparator.listsEqualSemantics(fields, ct.fields);
   }
 
   /** Returns the struct name of this CompoundType, i.e. the "foo" in
       the construct "struct foo { ... };". */
   public String getStructName() {
     return structName;
-  }
-
-  /** Sets the struct name of this CompoundType, i.e. the "foo" in the
-      construct "struct foo { ... };". */
-  public void setStructName(final String structName) {
-    this.structName = structName;
   }
 
   @Override
@@ -131,8 +160,17 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   @Override
   public CompoundType asCompound() { return this; }
 
+  @Override
+  public String getCName(final boolean includeCVAttrs) {
+      if( hasTypedefName() ) {
+          return getName(includeCVAttrs);
+      } else {
+          return (isStruct() ? "struct " : "union ")+getName(includeCVAttrs);
+      }
+  }
+
   ArrayList<Field> getFields() { return fields; }
-  void setFields(final ArrayList<Field> fields) { this.fields = fields; }
+  void setFields(final ArrayList<Field> fields) { this.fields = fields; clearCache(); }
 
   /** Returns the number of fields in this type. */
   public int   getNumFields() {
@@ -147,18 +185,42 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   /** Adds a field to this type. */
   public void addField(final Field f) {
     if (bodyParsed) {
-      throw new RuntimeException("Body of this CompoundType has already been parsed; should not be adding more fields");
+      throw new IllegalStateException("Body of this CompoundType has been already closed");
     }
     if (fields == null) {
       fields = new ArrayList<Field>();
     }
     fields.add(f);
+    clearCache();
   }
 
-  /** Indicates to this CompoundType that its body has been parsed and
-      that no more {@link #addField} operations will be made. */
-  public void setBodyParsed() {
+  /**
+   * Indicates to this CompoundType that its body has been parsed and
+   * that no more {@link #addField} operations will be made.
+   * <p>
+   * If {@code evalStructTypeName} is {@code true}, {@link #evalStructTypeName()} is performed.
+   * </p>
+   * @throws IllegalStateException If called twice.
+   */
+  public void setBodyParsed(final boolean evalStructTypeName) throws IllegalStateException {
+    if (bodyParsed) {
+        throw new IllegalStateException("Body of this CompoundType has been already closed");
+    }
     bodyParsed = true;
+    if( evalStructTypeName ) {
+        evalStructTypeName();
+    }
+  }
+  public boolean isBodyParsed() { return bodyParsed; }
+  /**
+   * {@link #getName() name} is set to {@link #getStructName() struct-name},
+   * which promotes this instance for emission by its struct-name.
+   */
+  public Type evalStructTypeName() {
+      if( null == getName() ) {
+          setName(structName);
+      }
+      return this;
   }
 
   /** Indicates whether this type was declared as a struct. */
@@ -169,8 +231,9 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   @Override
   public String toString() {
     final String cvAttributesString = getCVAttributesString();
-    if (getName() != null) {
-      return cvAttributesString + getName();
+    final String cname = getCName();
+    if ( null != cname ) {
+      return cvAttributesString + cname;
     } else if (getStructName() != null) {
       return cvAttributesString + "struct " + getStructName();
     } else {

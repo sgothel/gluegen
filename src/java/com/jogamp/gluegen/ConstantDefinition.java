@@ -33,39 +33,124 @@
 
 package com.jogamp.gluegen;
 
-import java.util.*;
+import com.jogamp.gluegen.cgram.types.AliasedSymbol.AliasedSymbolImpl;
+import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 
 /** Represents the definition of a constant which was provided either
     via a #define statement or through an enum definition. */
-public class ConstantDefinition {
-
-    private final String origName;
-    private final HashSet<String> aliasedNames;
-    private String name;
-    private final String value;
+public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSemanticSymbol {
+    private final boolean relaxedEqSem;
+    private final String sValue;
+    private final long iValue;
+    private final boolean hasIntValue;
     private final boolean isEnum;
     private final String enumName;
-    private Set<String> aliases;
 
+    /** Covering enums  */
     public ConstantDefinition(final String name,
-                              final String value,
-                              final boolean isEnum,
+                              final long value,
                               final String enumName) {
-        this.origName = name;
-        this.name = name;
-        this.value = value;
-        this.isEnum = isEnum;
+        super(name);
+        this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
+        this.sValue = String.valueOf(value);
+        this.iValue = value;
+        this.hasIntValue = true;
+        this.isEnum = true;
         this.enumName = enumName;
-        this.aliasedNames=new HashSet<String>();
     }
 
-    public boolean equals(final ConstantDefinition other) {
-        return (equals(name, other.name) &&
-                equals(value, other.value) &&
-                equals(enumName, other.enumName));
+    /** Covering defines */
+    public ConstantDefinition(final String name,
+                              final String value) {
+        super(name);
+        this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
+        this.sValue = value;
+        {
+            // Attempt to parse define string as number
+            long v;
+            boolean b;
+            try {
+                v = Long.decode(value).longValue();
+                b = true;
+            } catch (final NumberFormatException e) {
+                v = 0;
+                b = false;
+            }
+            this.iValue = v;
+            this.hasIntValue = b;
+        }
+        this.isEnum = false;
+        this.enumName = null;
     }
 
-    private boolean equals(final String s1, final String s2) {
+    /**
+     * Hash by its given {@link #getName() name}.
+     */
+    @Override
+    public final int hashCode() {
+        return getName().hashCode();
+    }
+
+    /**
+     * Equality test by its given {@link #getName() name}.
+     */
+    @Override
+    public final boolean equals(final Object arg) {
+        if (arg == this) {
+            return true;
+        } else  if ( !(arg instanceof ConstantDefinition) ) {
+            return false;
+        } else {
+            final ConstantDefinition t = (ConstantDefinition)arg;
+            return equals(getName(), t.getName());
+        }
+    }
+
+    @Override
+    public final int hashCodeSemantics() {
+        // 31 * x == (x << 5) - x
+        int hash = 31 + ( null != getName() ? getName().hashCode() : 0 );
+        hash = ((hash << 5) - hash) + ( null != sValue ? sValue.hashCode() : 0 );
+        return ((hash << 5) - hash) + ( null != enumName ? enumName.hashCode() : 0 );
+    }
+
+    @Override
+    public final boolean equalSemantics(final SemanticEqualityOp arg) {
+        if (arg == this) {
+            return true;
+        } else  if ( !(arg instanceof ConstantDefinition) ) {
+            return false;
+        } else {
+            final ConstantDefinition t = (ConstantDefinition) arg;
+            if( !equals(getName(), t.getName()) ||
+                !equals(enumName, t.enumName) ) {
+                return false;
+            }
+            if( hasIntValue ) {
+                return iValue == t.iValue;
+            } else {
+                // define's string value may be semantical equal .. but formatted differently!
+                return relaxedEqSem || equals(sValue, t.sValue);
+            }
+        }
+    }
+
+    public String getValue()    { return sValue;    }
+    /** Returns null if this definition was not part of an
+        enumeration, or if the enum was anonymous. */
+    public String getEnumName() { return enumName; }
+
+    public boolean isEnum() { return isEnum; }
+
+    @Override
+    public String toString() {
+        return "ConstantDefinition [name " + getName()
+                + ", value " + sValue + " (isInt " + hasIntValue
+                + "), enumName " + enumName + ", isEnum " + isEnum + "]";
+    }
+
+    private static boolean equals(final String s1, final String s2) {
         if (s1 == null || s2 == null) {
             if (s1 == null && s2 == null) {
                 return true;
@@ -75,58 +160,4 @@ public class ConstantDefinition {
 
         return s1.equals(s2);
     }
-
-    @Override
-    public int hashCode() {
-        return name.hashCode();
-    }
-
-    /** Supports renaming in Java binding. */
-    public void rename(final String name) {
-      if(null!=name) {
-          this.name = name;
-          aliasedNames.add(origName);
-      }
-    }
-
-    public void addAliasedName(final String name) {
-        aliasedNames.add(name);
-    }
-    public Collection<String> getAliasedNames() {
-        return aliasedNames;
-    }
-
-    public String getOrigName() {
-        return origName;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getValue()    { return value;    }
-    /** Returns null if this definition was not part of an
-        enumeration, or if the enum was anonymous. */
-    public String getEnumName() { return enumName; }
-
-    public boolean isEnum() { return isEnum; }
-
-    public Set<String> getAliases() {
-        return aliases;
-    }
-
-    public void addAlias(final String alias) {
-        if (aliases == null) {
-            aliases = new LinkedHashSet<String>();
-        }
-        aliases.add(alias);
-    }
-
-    @Override
-    public String toString() {
-        return "ConstantDefinition [name " + name + " origName " + origName + " value " + value
-                + " aliasedNames " + aliasedNames + " aliases " + aliases
-                + " enumName " + enumName + " isEnum " + isEnum + "]";
-    }
-
 }

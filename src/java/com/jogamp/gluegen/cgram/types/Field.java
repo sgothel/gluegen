@@ -40,10 +40,11 @@
 package com.jogamp.gluegen.cgram.types;
 
 import com.jogamp.common.os.MachineDataInfo;
+import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 
 /** Represents a field in a struct or union. */
 
-public class Field {
+public class Field implements SemanticEqualityOp {
   private final String    name;
   private final Type      type;
   private SizeThunk offset;
@@ -56,21 +57,41 @@ public class Field {
 
   @Override
   public int hashCode() {
-    return name.hashCode();
+    // 31 * x == (x << 5) - x
+    final int hash = 31 + ( null != name ? name.hashCode() : 0 );
+    return ((hash << 5) - hash) + type.hashCode();
   }
 
   @Override
   public boolean equals(final Object arg) {
-    if (arg == null || (!(arg instanceof Field))) {
+    if ( !(arg instanceof Field) ) {
       return false;
     }
 
     final Field f = (Field) arg;
     // Note: don't know how to examine offset any more since it's
     // implemented in terms of code and they're not canonicalized
-    return (((name != null && name.equals(f.name)) ||
-             (name == null && f.name == null)) &&
-            type.equals(f.type));
+    return ( ( name != null && name.equals(f.name) ) ||
+             ( name == null && f.name == null )
+           ) &&
+           type.equals(f.type);
+  }
+
+  @Override
+  public int hashCodeSemantics() {
+    return type.hashCodeSemantics();
+  }
+
+  @Override
+  public boolean equalSemantics(final SemanticEqualityOp arg) {
+    if ( !(arg instanceof Field) ) {
+      return false;
+    }
+
+    final Field f = (Field) arg;
+    // Note: don't know how to examine offset any more since it's
+    // implemented in terms of code and they're not canonicalized
+    return type.equalSemantics(f.type);
   }
 
   /** Name of this field in the containing data structure. */

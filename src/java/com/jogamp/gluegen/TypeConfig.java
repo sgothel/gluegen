@@ -1,5 +1,5 @@
 /**
- * Copyright 2011 JogAmp Community. All rights reserved.
+ * Copyright 2015 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -25,31 +25,28 @@
  * authors and should not be interpreted as representing official policies, either expressed
  * or implied, of JogAmp Community.
  */
-package com.jogamp.gluegen.cgram.types;
+package com.jogamp.gluegen;
 
-public class StructType extends CompoundType {
+import com.jogamp.gluegen.cgram.types.SizeThunk;
+import com.jogamp.gluegen.cgram.types.Type;
 
-  public StructType(final String name, final SizeThunk size, final int cvAttributes) {
-      this(name, size, cvAttributes, null);
-  }
+/**
+ * Static {@link Type} config helper
+ * binding {@link JavaConfiguration#relaxedEqualSemanticsTest()} system wide.
+ */
+public class TypeConfig {
+    private static boolean relaxedEqualSemanticsTest = false;
 
-  StructType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
-    super (name, size, cvAttributes, structName);
-  }
-
-  @Override
-  public final boolean isStruct() { return true; }
-  @Override
-  public final boolean isUnion()  { return false; }
-
-  @Override
-  Type newCVVariant(final int cvAttributes) {
-    final StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName());
-    t.setFields(getFields());
-    if( hasTypedefName() ) {
-        t.setTypedefName( getName() );
+    /**
+     * Returns whether {@link TypeConfig.SemanticEqualityOp#equalSemantics(TypeConfig.SemanticEqualityOp)}
+     * shall attempt to perform a relaxed semantic equality test, e.g. skip the {@code const} and {@code volatile} qualifier
+     * - or not.
+     */
+    public static boolean relaxedEqualSemanticsTest() {
+        return relaxedEqualSemanticsTest;
     }
-    return t;
-  }
-
+    /* pp */ static void setRelaxedEqualSemanticsTest(final boolean v) {
+        relaxedEqualSemanticsTest = v;
+        SizeThunk.setRelaxedEqualSemanticsTest(v);
+    }
 }

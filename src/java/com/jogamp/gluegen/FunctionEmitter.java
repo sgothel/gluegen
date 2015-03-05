@@ -42,6 +42,7 @@ package com.jogamp.gluegen;
 import java.util.*;
 import java.io.*;
 
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 
 public abstract class FunctionEmitter {
@@ -52,25 +53,29 @@ public abstract class FunctionEmitter {
   private final ArrayList<EmissionModifier> modifiers;
   private CommentEmitter commentEmitter = null;
   private final PrintWriter defaultOutput;
+  // Only present to provide more clear comments
+  protected final JavaConfiguration cfg;
 
   /**
    * Constructs the FunctionEmitter with a CommentEmitter that emits nothing.
    */
-  public FunctionEmitter(final PrintWriter defaultOutput, final boolean isInterface)  {
+  public FunctionEmitter(final PrintWriter defaultOutput, final boolean isInterface, final JavaConfiguration configuration)  {
     assert(defaultOutput != null);
+    this.isInterfaceVal = isInterface;
     this.modifiers = new ArrayList<EmissionModifier>();
     this.defaultOutput = defaultOutput;
-    this.isInterfaceVal = isInterface;
+    this.cfg = configuration;
   }
 
   /**
    * Makes this FunctionEmitter a copy of the passed one.
    */
   public FunctionEmitter(final FunctionEmitter arg) {
+    isInterfaceVal = arg.isInterfaceVal;
     modifiers      = new ArrayList<EmissionModifier>(arg.modifiers);
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
-    isInterfaceVal = arg.isInterfaceVal;
+    cfg            = arg.cfg;
   }
 
   public boolean isInterface() { return isInterfaceVal; }
@@ -112,6 +117,8 @@ public abstract class FunctionEmitter {
   public Iterator<EmissionModifier> getModifiers() { return modifiers.iterator(); }
 
   public abstract String getName();
+
+  public abstract FunctionSymbol getCSymbol();
 
   /**
    * Emit the function to the specified output (instead of the default

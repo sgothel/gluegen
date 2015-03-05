@@ -45,6 +45,7 @@ header {
         import java.util.*;
 
         import antlr.CommonAST;
+        import com.jogamp.gluegen.JavaConfiguration;
         import com.jogamp.gluegen.cgram.types.*;
 }
 
@@ -65,6 +66,12 @@ options {
 
     public void setDebug(boolean debug) {
         this.debug = debug;
+    }
+
+    /** Set the configuration for this
+        HeaderParser. Must be done before parsing. */
+    public void setJavaConfiguration(JavaConfiguration cfg) {
+        this.cfg = cfg;
     }
 
     /** Set the dictionary mapping typedef names to types for this
@@ -105,7 +112,7 @@ options {
         // the enumerates from each EnumType, and fill in the enumHash
         // so that each enumerate maps to the enumType to which it
         // belongs.
-                throw new RuntimeException("setEnums is Unimplemented!");
+        throw new RuntimeException("setEnums is Unimplemented!");
     }
 
     /** Returns the EnumTypes this HeaderParser processed. */
@@ -125,14 +132,13 @@ options {
         return functions;
     }
 
-    private CompoundType lookupInStructDictionary(String typeName,
+    private CompoundType lookupInStructDictionary(String structName,
                                                   CompoundTypeKind kind,
                                                   int cvAttrs) {
-        CompoundType t = (CompoundType) structDictionary.get(typeName);
+        CompoundType t = (CompoundType) structDictionary.get(structName);
         if (t == null) {
-            t = CompoundType.create(null, null, kind, cvAttrs);
-            t.setStructName(typeName);
-            structDictionary.put(typeName, t);
+            t = CompoundType.create(structName, null, kind, cvAttrs);
+            structDictionary.put(structName, t);
         }
         return t;
     }
@@ -153,8 +159,33 @@ options {
             this.id = id;
             this.type = type;
         }
-        String id()             { return id; }
-        Type   type()           { return type; }
+        String id()              { return id; }
+        Type   type()            { return type; }
+        void setType(final Type t) { type = t; }
+        public String toString() { return "ParamDecl["+id+": "+type.getDebugString()+"]"; }
+    }
+    Type resolveAnonCompound(Type type) { 
+        int mode = 0;
+        debugPrint("resolveAnonCompound: "+type.getDebugString());
+        if( !type.hasName() ) {
+            if( type.isCompound() ) {
+              final CompoundType ct = type.asCompound();
+              // return a copy w/ resolved name
+              type = ((CompoundType) ct.clone()).evalStructTypeName();
+              mode = 1;
+            } else if( type.isPointer() ) {
+              // non typedefed PointerType and base-elem w/o name
+              final PointerType pt = type.asPointer();
+              final Type b = pt.getBaseElementType();
+              if( b != null && b.isCompound() && !b.hasName() ) {
+                  // return same w/ resolved name
+                  b.asCompound().evalStructTypeName();
+                  mode = 2;
+              }
+            }
+        }
+        debugPrintln(" -> "+type.getDebugString()+" - MODE "+mode);
+        return type;
     }
 
     // A box for a Type. Allows type to be passed down to be modified by recursive rules.
@@ -207,21 +238,26 @@ options {
             }
     }
 
+    private String getDebugTypeString(Type t) {
+      if(debug) {
+        return getTypeString(t);
+      } else {
+        return null;
+      }
+    }
     private String getTypeString(Type t) {
       StringBuilder sb = new StringBuilder();
       sb.append("[");
-      sb.append(t);
-      sb.append(", size: ");
       if(null!=t) {
-        SizeThunk st = t.getSize();
-        if(null!=st) {
-          sb.append(st.getClass().getName());
-        } else {
-          sb.append("undef");
-        }
+        sb.append(t.getDebugString());
+        sb.append(", opaque ").append(isOpaque(t)).append("]");
+      } else {
+        sb.append("nil]");
       }
-      sb.append("]");
       return sb.toString();
+    }
+    private boolean isOpaque(final Type type) {
+      return (cfg.typeInfo(type) != null);
     }
 
     private void debugPrintln(String msg) {
@@ -236,14 +272,13 @@ options {
         }
     }
 
-    private boolean doDeclaration;   // Used to only process function typedefs
-    private String  declId;
-    private List    parameters;
+    private JavaConfiguration cfg;
     private TypeDictionary typedefDictionary;
     private TypeDictionary structDictionary;
     private List<FunctionSymbol> functions = new ArrayList<FunctionSymbol>();
     // hash from name of an enumerated value to the EnumType to which it belongs
     private HashMap<String, EnumType> enumHash = new HashMap<String, EnumType>();
+    private HashMap<String, EnumType> enumMap = new HashMap<String, EnumType>();
 
     // Storage class specifiers
     private static final int AUTO     = 1 << 0;
@@ -259,25 +294,36 @@ options {
     private static final int SIGNED   = 1 << 8;
     private static final int UNSIGNED = 1 << 9;
 
-    private void initDeclaration() {
-        doDeclaration = false;
-        declId = null;
-    }
+    private boolean isFuncDeclaration;   // Used to only process function typedefs
+    private String  funcDeclName;
+    private List<ParameterDeclaration> funcDeclParams;
 
-    private void doDeclaration() {
-        doDeclaration = true;
+    private void resetFuncDeclaration() {
+        isFuncDeclaration = false;
+        funcDeclName = null;
+        funcDeclParams = null;
+    }
+    private void setFuncDeclaration(final String name, final List<ParameterDeclaration> p) {
+        isFuncDeclaration = true;
+        funcDeclName = name;
+        funcDeclParams = p;
     }
 
     private void processDeclaration(Type returnType) {
-        if (doDeclaration) {
-            FunctionSymbol sym = new FunctionSymbol(declId, new FunctionType(null, null, returnType, 0));
-                if (parameters != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
-                for (Iterator iter = parameters.iterator(); iter.hasNext(); ) {
-                    ParameterDeclaration pd = (ParameterDeclaration) iter.next();
+        if (isFuncDeclaration) {
+            final FunctionSymbol sym = new FunctionSymbol(funcDeclName, new FunctionType(null, null, resolveAnonCompound(returnType), 0));
+            debugPrintln("Function ... "+sym.toString());
+            if (funcDeclParams != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
+                for (Iterator<ParameterDeclaration> iter = funcDeclParams.iterator(); iter.hasNext(); ) {
+                    ParameterDeclaration pd = iter.next();
+                    pd.setType(resolveAnonCompound(pd.type()));
+                    debugPrintln(" add "+pd.toString());
                     sym.addArgument(pd.type(), pd.id());
                 }
-                }
+            }
+            debugPrintln("Function Added "+sym.toString());
             functions.add(sym);
+            resetFuncDeclaration();
         }
     }
 
@@ -305,8 +351,7 @@ options {
             }
         }
         tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
-                                                tb.type(),
-                                                0)));
+                                                tb.type(), 0, null)));
     }
 
     private int parseIntConstExpr(AST t) throws RecognitionException {
@@ -315,47 +360,49 @@ options {
 
   /** Utility function: creates a new EnumType with the given name, or
           returns an existing one if it has already been created. */
-  private EnumType getEnumType(String enumTypeName) {
+    private EnumType getEnumType(String enumTypeName) {
         EnumType enumType = null;
         Iterator<EnumType> it = enumHash.values().iterator(); 
         while (it.hasNext()) {
           EnumType potentialMatch = it.next();
           if (potentialMatch.getName().equals(enumTypeName)) {
-                enumType = potentialMatch;
-                break;        
+              enumType = potentialMatch;
+              break;        
           }
         }
         
         if (enumType == null) {
-      // This isn't quite correct. In theory the enum should expand to
-      // the size of the largest element, so if there were a long long
-      // entry the enum should expand to e.g. int64. However, using
-      // "long" here (which is what used to be the case) was 
-      // definitely incorrect and caused problems.
+          // This isn't quite correct. In theory the enum should expand to
+          // the size of the largest element, so if there were a long long
+          // entry the enum should expand to e.g. int64. However, using
+          // "long" here (which is what used to be the case) was 
+          // definitely incorrect and caused problems.
           enumType = new EnumType(enumTypeName, SizeThunk.INT32);
         }  
         
         return enumType;
-  }        
+    }        
   
   // Map used to canonicalize types. For example, we may typedef
   // struct foo { ... } *pfoo; subsequent references to struct foo* should
   // point to the same PointerType object that had its name set to "pfoo".
-  private Map canonMap = new HashMap();
+  // Opaque canonical types are excluded.
+  private Map<Type, Type> canonMap = new HashMap<Type, Type>();
   private Type canonicalize(Type t) {
     Type res = (Type) canonMap.get(t);
     if (res != null) {
       return res;
+    } else {
+      canonMap.put(t, t);
+      return t;
     }
-    canonMap.put(t, t);
-    return t;
   }
 }
 
 declarator[TypeBox tb] returns [String s] {
-    initDeclaration();
+    resetFuncDeclaration();
     s = null;
-    List params = null;
+    List<ParameterDeclaration> params = null;
     String funcPointerName = null;
     TypeBox dummyTypeBox = null;
 }
@@ -374,28 +421,25 @@ declarator[TypeBox tb] returns [String s] {
                       RPAREN
                     )  {
                            if (id != null) {
-                               declId = id.getText();
-                               parameters = params; // FIXME: Ken, why are we setting this class member here? 
-                               doDeclaration();
+                               setFuncDeclaration(id.getText(), params);
                            } else if ( funcPointerName != null ) {
                                /* TypeBox becomes function pointer in this case */
                                FunctionType ft = new FunctionType(null, null, tb.type(), 0);
                                if (params == null) {
-                                                     // If the function pointer has no declared parameters, it's a 
-                                               // void function. I'm not sure if the parameter name is 
-                                               // ever referenced anywhere when the type is VoidType, so
+                                   // If the function pointer has no declared parameters, it's a 
+                                   // void function. I'm not sure if the parameter name is 
+                                   // ever referenced anywhere when the type is VoidType, so
                                    // just in case I'll set it to a comment string so it will
-                                               // still compile if written out to code anywhere.
-                                                     ft.addArgument(new VoidType(0), "/*unnamed-void*/");
-                                           } else {
-                                                     for (Iterator iter = params.iterator(); iter.hasNext(); ) {
-                                     ParameterDeclaration pd = (ParameterDeclaration) iter.next();
-                                     ft.addArgument(pd.type(), pd.id());
-                                                   }
+                                   // still compile if written out to code anywhere.
+                                   ft.addArgument(new VoidType(0), "/*unnamed-void*/");
+                               } else {
+                                   for (Iterator iter = params.iterator(); iter.hasNext(); ) {
+                                       ParameterDeclaration pd = (ParameterDeclaration) iter.next();
+                                       ft.addArgument(pd.type(), pd.id());
+                                   }
                                }
                                tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
-                                                                       ft,
-                                                                       0)));
+                                                                       ft, 0, null)));
                                s = funcPointerName;
                            }
                        }
@@ -422,8 +466,8 @@ declaration {
                 ) { processDeclaration(tb.type()); }
         ;
 
-parameterTypeList returns [List l] { l = new ArrayList(); ParameterDeclaration decl = null; }
-        :       ( decl = parameterDeclaration { if (decl != null) l.add(decl); } ( COMMA | SEMI )? )+ ( VARARGS )?
+parameterTypeList returns [List<ParameterDeclaration> l] { l = new ArrayList<ParameterDeclaration>(); ParameterDeclaration decl = null; }
+        :       ( decl = parameterDeclaration { if (decl != null) { l.add(decl); } } ( COMMA | SEMI )? )+ ( VARARGS )?
         ;
 
 parameterDeclaration returns [ParameterDeclaration pd] {
@@ -533,9 +577,12 @@ typeSpecifier[int attributes] returns [Type t] {
 typedefName[int cvAttrs] returns [Type t] { t = null; }
         :       #(NTypedefName id : ID)
             {
-              Type tdict = lookupInTypedefDictionary(id.getText());
-              t = canonicalize(tdict.getCVVariant(cvAttrs));
-              debugPrintln("Adding typedef canon : [" + id.getText() + "] -> [" + tdict + "] -> "+getTypeString(t));
+              final Type t0 = lookupInTypedefDictionary(id.getText());
+              debugPrint("Adding typedef lookup: [" + id.getText() + "] -> "+getDebugTypeString(t0));
+              final Type t1 = t0.getCVVariant(cvAttrs);
+              debugPrintln(" - cvvar -> "+getDebugTypeString(t1));
+              t = canonicalize(t1);
+              debugPrintln(" - canon -> "+getDebugTypeString(t));
             }
         ;
 
@@ -549,25 +596,35 @@ unionSpecifier[int cvAttrs] returns [Type t] { t = null; }
    
 structOrUnionBody[CompoundTypeKind kind, int cvAttrs] returns [CompoundType t] {
     t = null;
+    boolean addedAny = false;
 }
         :       ( (ID LCURLY) => id:ID LCURLY {
+                    // fully declared struct, i.e. not anonymous
                     t = (CompoundType) canonicalize(lookupInStructDictionary(id.getText(), kind, cvAttrs));
-                  } ( structDeclarationList[t] )?
-                    RCURLY { t.setBodyParsed(); }
-                |   LCURLY { t = CompoundType.create(null, null, kind, cvAttrs); }
-                    ( structDeclarationList[t] )?
-                    RCURLY { t.setBodyParsed(); }
-                | id2:ID { t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs)); }
+                  } ( addedAny = structDeclarationList[t] )?
+                    RCURLY { t.setBodyParsed(addedAny); }
+                |   LCURLY { 
+                      // anonymous declared struct
+                      t = CompoundType.create(null, null, kind, cvAttrs); 
+                    } ( structDeclarationList[t] )?
+                    RCURLY { t.setBodyParsed(false); }
+                | id2:ID { 
+                      // anonymous struct
+                      t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs)); 
+                    }
                 )
         ;
 
-structDeclarationList[CompoundType t]
-        :       ( structDeclaration[t] )+
+structDeclarationList[CompoundType t] returns [boolean addedAny] {
+    addedAny = false;
+    boolean addedOne = false;
+}
+        :       ( addedOne = structDeclaration[t] { addedAny |= addedOne; } )+
         ;
 
-structDeclaration[CompoundType containingType] {
+structDeclaration[CompoundType containingType] returns [boolean addedAny] {
+    addedAny = false;
     Type t = null;
-    boolean addedAny = false;
 }
         :       t = specifierQualifierList addedAny = structDeclaratorList[containingType, t] {
                     if (!addedAny) {
@@ -629,13 +686,28 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
 // "enumName" *before* executing the enumList rule.
 enumSpecifier [int cvAttrs] returns [Type t] { 
         t = null; 
+        EnumType e = null;
 }
         :       #( "enum"
-                   ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(t = getEnumType(i.getText()))] RCURLY 
-                     | LCURLY enumList[(EnumType)(t = getEnumType(ANONYMOUS_ENUM_NAME))] RCURLY 
-                     | ID { t = getEnumType(i.getText()); }
-                    )
-                  )
+                   ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(e = getEnumType(i.getText()))] RCURLY 
+                     | LCURLY enumList[(EnumType)(e = getEnumType(ANONYMOUS_ENUM_NAME))] RCURLY 
+                     | ID { e = getEnumType(i.getText()); }
+                   ) {
+                     debugPrintln("Adding enum mapping: "+getDebugTypeString(e));
+                     if( null != e ) {
+                        final String eName = e.getName();
+                        if( null != eName && !eName.equals(ANONYMOUS_ENUM_NAME) ) { // validate only non-anonymous enum
+                            final EnumType dupE = enumMap.get(eName);
+                            if( null != dupE && !dupE.equalSemantics(e) ) {
+                                throw new RuntimeException(String.format("Duplicate enum w/ incompatible type:%n  have '%s',%n  this '%s'",
+                                    getTypeString(dupE), getTypeString(e)));
+                            }
+                            enumMap.put(eName, (EnumType)e.clone());
+                        }
+                     }
+                     t = e; // return val
+                   }
+                 )
         ;
 
 enumList[EnumType enumeration] {
@@ -648,42 +720,42 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
         newDefaultValue = defaultValue;
 }
         :       eName:ID ( ASSIGN eVal:expr )? {
-                    long value = 0;
+                    final long newValue;
                     if (eVal != null) {
                       String vTxt = eVal.getAllChildrenText();
                       if (enumHash.containsKey(vTxt)) {
                         EnumType oldEnumType = enumHash.get(vTxt);
-                        value = oldEnumType.getEnumValue(vTxt);
+                        newValue = oldEnumType.getEnumValue(vTxt);
                       } else {
                         try {
-                          value = Long.decode(vTxt).longValue();
+                          newValue = Long.decode(vTxt).longValue();
                         } catch (NumberFormatException e) {
                           System.err.println("NumberFormatException: ID[" + eName.getText() + "], VALUE=[" + vTxt + "]");
                           throw e;
                         }
                       }
                     } else {
-                      value = defaultValue;
+                      newValue = defaultValue;
                     }
 
-                                        newDefaultValue = value+1;
-                                          String eTxt = eName.getText();
-                                          if (enumHash.containsKey(eTxt)) {
-                                                EnumType oldEnumType = enumHash.get(eTxt);
-                                                long oldValue = oldEnumType.getEnumValue(eTxt);
-                                                  System.err.println("WARNING: redefinition of enumerated value '" + eTxt + "';" +
-                                                     " existing definition is in enumeration '" + oldEnumType.getName() +
-                                                     "' with value " + oldValue + " and new definition is in enumeration '" +
-                                                     enumeration.getName() + "' with value " + value);
-                                                // remove old definition
-                                                oldEnumType.removeEnumerate(eTxt);
-                                          }
-                                          // insert new definition
-                                          enumeration.addEnum(eTxt, value);
-                                          enumHash.put(eTxt, enumeration);
-                                        debugPrintln("ENUM [" + enumeration.getName() + "]: " + eTxt + " = " + enumeration.getEnumValue(eTxt) +
-                                                     " (new default = " + newDefaultValue + ")");
-                                }
+                    newDefaultValue = newValue+1;
+                    String eTxt = eName.getText();
+                    if (enumHash.containsKey(eTxt)) {
+                        EnumType oldEnumType = enumHash.get(eTxt);
+                        final long oldValue = oldEnumType.getEnumValue(eTxt);
+                        if( oldValue != newValue ) {
+                            throw new RuntimeException(String.format("Duplicate enum value '%s.%s' w/ diff value:%n  have %d,%n  this %d",
+                                oldEnumType.getName(), eTxt, oldValue, newValue));
+                        }
+                        // remove old definition
+                        oldEnumType.removeEnumerate(eTxt);
+                    }
+                    // insert new definition
+                    enumeration.addEnum(eTxt, newValue);
+                    enumHash.put(eTxt, enumeration);
+                    debugPrintln("ENUM [" + enumeration.getName() + "]: " + eTxt + " = " + enumeration.getEnumValue(eTxt) +
+                                 " (new default = " + newDefaultValue + ")");
+                }
             ;
 
 initDeclList[TypeBox tb]
@@ -705,18 +777,48 @@ initDecl[TypeBox tb] {
 {
     if ((declName != null) && (tb != null) && tb.isTypedef()) {
         Type t = tb.type();
-        debugPrint("Adding typedef mapping: [" + declName + "] -> "+getTypeString(t));
+        debugPrint("Adding typedef mapping: [" + declName + "] -> "+getDebugTypeString(t));
         if (!t.hasTypedefName()) {
-            t.setName(declName);
-            debugPrint(" - declName -> "+getTypeString(t));
+            if( t.isCompound() ) {
+                // Allow redefinition of newly defined struct, i.e. use same instance.
+                // This aliases '_a' -> 'A' for 'typedef struct _a { } A, *B;', where '*B' will become also '*A'.
+                t.setTypedefName(declName);
+                debugPrint(" - redefine -> "+getDebugTypeString(t));
+            } else {
+                // Use new typedef, using a copy to preserve canonicalized base type
+                t = (Type) t.clone();
+                t.setTypedefName(declName);
+                debugPrint(" - newdefine -> "+getDebugTypeString(t));
+            }
         } else {
-            // copy type to preserve declName !
-            t = (Type) t.clone();
-            t.setName(declName);
-            debugPrint(" - copy -> "+getTypeString(t));
+            // Adds typeInfo alias w/ t's typeInfo, if exists
+            cfg.addTypeInfo(declName, t);
+            final Type alias;
+            if( t.isCompound() ) {
+                // Attempt to find a previous declared compound typedef
+                // This aliases 'D' -> 'A' for 'typedef struct _a { } A, D;'
+                alias = typedefDictionary.getEqualSemantics1(t, cfg, true);
+            } else {
+                alias = null;
+            }
+            if( null != alias ) {
+                // use previous typedef
+                t = alias;
+                debugPrint(" - alias -> "+getDebugTypeString(t));
+            } else {
+                // copy to preserve canonicalized base type
+                t = (Type) t.clone();
+                t.setTypedefName(declName);
+                debugPrint(" - copy -> "+getDebugTypeString(t));
+            }
+        }
+        final Type dupT = typedefDictionary.get(declName);
+        if( null != dupT && !dupT.equalSemantics(t) ) {
+            throw new RuntimeException(String.format("Duplicate typedef w/ incompatible type:%n  have '%s',%n  this '%s'",
+                getTypeString(dupT), getTypeString(t)));
         }
         t = canonicalize(t);
-        debugPrintln(" - canon -> "+getTypeString(t));
+        debugPrintln(" - canon -> "+getDebugTypeString(t));
         typedefDictionary.put(declName, t);
         // Clear out PointerGroup effects in case another typedef variant follows
         tb.reset();
@@ -731,7 +833,7 @@ pointerGroup[TypeBox tb] { int x = 0; int y = 0; }
                                         if (tb != null) {
                                             tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                                                     tb.type(),
-                                                                                    attrs2CVAttrs(x))));
+                                                                                    attrs2CVAttrs(x), null)));
                                         }
                                     }
                                  )+ )

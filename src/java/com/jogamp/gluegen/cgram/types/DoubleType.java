@@ -47,19 +47,28 @@ public class DoubleType extends PrimitiveType implements Cloneable {
     }
 
     @Override
-    public boolean equals(final Object arg) {
-        if (arg == this) {
-            return true;
-        }
-        if (arg == null || (!(arg instanceof DoubleType))) {
-            return false;
-        }
-        return super.equals(arg);
+    public DoubleType asDouble() {
+        return this;
     }
 
     @Override
-    public DoubleType asDouble() {
-        return this;
+    protected int hashCodeImpl() {
+        return 0;
+    }
+
+    @Override
+    protected boolean equalsImpl(final Type t) {
+        return true;
+    }
+
+    @Override
+    protected int hashCodeSemanticsImpl() {
+        return 0;
+    }
+
+    @Override
+    protected boolean equalSemanticsImpl(final Type t) {
+        return true;
     }
 
     @Override
