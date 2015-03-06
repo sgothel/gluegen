@@ -36,7 +36,7 @@ typedef void * XID;        // Opaque
 typedef XID    XID_2;      // Opaque, due to XID
 typedef void * AnonBuffer; // Non Opaque
 
-typedef XID    XID_2;                 // Duplicate w/ compatible type (ignored)
+// typedef XID    XID_2;              // Duplicate w/ compatible type (ignored) - OpenSolaris: Native gcc error
 // typedef int    XID_2;              // Duplicate w/ incompatible type ERROR
 
 #define DEFINE_01 1234
