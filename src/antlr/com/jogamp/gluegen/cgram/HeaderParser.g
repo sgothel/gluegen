@@ -45,6 +45,8 @@ header {
         import java.util.*;
 
         import antlr.CommonAST;
+        import com.jogamp.gluegen.ASTLocusTag;
+        import com.jogamp.gluegen.GlueGenException;
         import com.jogamp.gluegen.JavaConfiguration;
         import com.jogamp.gluegen.cgram.types.*;
 }
@@ -143,10 +145,11 @@ options {
         return t;
     }
 
-    private Type lookupInTypedefDictionary(String typeName) {
+    private Type lookupInTypedefDictionary(final AST _t, String typeName) {
         Type t = typedefDictionary.get(typeName);
         if (t == null) {
-            throw new RuntimeException("Undefined reference to typedef name " + typeName);
+            throwGlueGenException(_t,
+                 "Undefined reference to typedef name " + typeName);
         }
         return t;
     }
@@ -309,10 +312,12 @@ options {
         funcDeclParams = p;
     }
 
-    private void processDeclaration(Type returnType) {
+    private void processDeclaration(Type returnType, ASTLocusTag locusTag) {
         if (isFuncDeclaration) {
-            final FunctionSymbol sym = new FunctionSymbol(funcDeclName, new FunctionType(null, null, resolveAnonCompound(returnType), 0));
-            debugPrintln("Function ... "+sym.toString());
+            final FunctionSymbol sym = new FunctionSymbol(funcDeclName, 
+                                                          new FunctionType(null, null, resolveAnonCompound(returnType), 0),
+                                                          locusTag);
+            debugPrintln("Function ... "+sym.toString()+" @ "+locusTag);
             if (funcDeclParams != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
                 for (Iterator<ParameterDeclaration> iter = funcDeclParams.iterator(); iter.hasNext(); ) {
                     ParameterDeclaration pd = iter.next();
@@ -321,7 +326,7 @@ options {
                     sym.addArgument(pd.type(), pd.id());
                 }
             }
-            debugPrintln("Function Added "+sym.toString());
+            debugPrintln("Function Added "+sym.toString()+" @ "+locusTag);
             functions.add(sym);
             resetFuncDeclaration();
         }
@@ -360,7 +365,7 @@ options {
 
   /** Utility function: creates a new EnumType with the given name, or
           returns an existing one if it has already been created. */
-    private EnumType getEnumType(String enumTypeName) {
+    private EnumType getEnumType(String enumTypeName, ASTLocusTag locus) {
         EnumType enumType = null;
         Iterator<EnumType> it = enumHash.values().iterator(); 
         while (it.hasNext()) {
@@ -377,7 +382,7 @@ options {
           // entry the enum should expand to e.g. int64. However, using
           // "long" here (which is what used to be the case) was 
           // definitely incorrect and caused problems.
-          enumType = new EnumType(enumTypeName, SizeThunk.INT32);
+          enumType = new EnumType(enumTypeName, SizeThunk.INT32, locus);
         }  
         
         return enumType;
@@ -395,6 +400,54 @@ options {
     } else {
       canonMap.put(t, t);
       return t;
+    }
+  }
+
+  private void throwGlueGenException(final AST t, final String message) throws GlueGenException {
+    // dumpASTTree("XXX", t);
+    throw new GlueGenException(message, findASTLocusTag(t));
+  }
+
+  /**
+   * Return ASTLocusTag in tree, or null if not found.
+   */
+  private ASTLocusTag findASTLocusTag(final AST astIn) {
+    AST ast = astIn;
+    while(null != ast) {
+        if( ast instanceof TNode ) {
+            final TNode tn = (TNode) ast;
+            final ASTLocusTag tag = tn.getASTLocusTag();
+            if( null != tag ) {
+                return tag;
+            }
+        }
+        ast = ast.getFirstChild();
+    }
+    return null;
+  }
+  private void dumpASTTree(final String pre, final AST t) {
+    int i=0;
+    AST it = t;
+    while( null != it ) {
+        it = dumpAST(pre+"."+i, it);
+        i++;
+    }
+  }
+  private AST dumpAST(final String pre, final AST ast) {
+    if( null == ast ) {
+        System.err.println(pre+".0: AST NULL");
+        return null;
+    } else {
+        System.err.println(pre+".0: AST Type: "+ast.getClass().getName());
+        System.err.println(pre+".1: line:col "+ast.getLine()+":"+ast.getColumn()+" -> "+ast.getText());
+        if( ast instanceof TNode ) {
+            final TNode tn = (TNode) ast;
+            final ASTLocusTag tag = tn.getASTLocusTag();
+            System.err.println(pre+".TN.1: "+tag);
+            final Hashtable<String, Object> attributes = tn.getAttributesTable();
+            System.err.println(pre+".TN.2: "+attributes);
+        }
+        return ast.getFirstChild();
     }
   }
 }
@@ -463,7 +516,7 @@ declaration {
                         initDeclList[tb] 
                     )?
                     ( SEMI )+
-                ) { processDeclaration(tb.type()); }
+                ) { processDeclaration(tb.type(), findASTLocusTag(declaration_AST_in)); }
         ;
 
 parameterTypeList returns [List<ParameterDeclaration> l] { l = new ArrayList<ParameterDeclaration>(); ParameterDeclaration decl = null; }
@@ -577,7 +630,7 @@ typeSpecifier[int attributes] returns [Type t] {
 typedefName[int cvAttrs] returns [Type t] { t = null; }
         :       #(NTypedefName id : ID)
             {
-              final Type t0 = lookupInTypedefDictionary(id.getText());
+              final Type t0 = lookupInTypedefDictionary(typedefName_AST_in, id.getText());
               debugPrint("Adding typedef lookup: [" + id.getText() + "] -> "+getDebugTypeString(t0));
               final Type t1 = t0.getCVVariant(cvAttrs);
               debugPrintln(" - cvvar -> "+getDebugTypeString(t1));
@@ -687,11 +740,12 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
 enumSpecifier [int cvAttrs] returns [Type t] { 
         t = null; 
         EnumType e = null;
+        ASTLocusTag locus = findASTLocusTag(enumSpecifier_AST_in);
 }
         :       #( "enum"
-                   ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(e = getEnumType(i.getText()))] RCURLY 
-                     | LCURLY enumList[(EnumType)(e = getEnumType(ANONYMOUS_ENUM_NAME))] RCURLY 
-                     | ID { e = getEnumType(i.getText()); }
+                   ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(e = getEnumType(i.getText(), locus))] RCURLY 
+                     | LCURLY enumList[(EnumType)(e = getEnumType(ANONYMOUS_ENUM_NAME, locus))] RCURLY 
+                     | ID { e = getEnumType(i.getText(), locus); }
                    ) {
                      debugPrintln("Adding enum mapping: "+getDebugTypeString(e));
                      if( null != e ) {
@@ -699,8 +753,9 @@ enumSpecifier [int cvAttrs] returns [Type t] {
                         if( null != eName && !eName.equals(ANONYMOUS_ENUM_NAME) ) { // validate only non-anonymous enum
                             final EnumType dupE = enumMap.get(eName);
                             if( null != dupE && !dupE.equalSemantics(e) ) {
-                                throw new RuntimeException(String.format("Duplicate enum w/ incompatible type:%n  have '%s',%n  this '%s'",
-                                    getTypeString(dupE), getTypeString(e)));
+                                throwGlueGenException(enumSpecifier_AST_in,
+                                    String.format("Duplicate enum w/ incompatible type:%n  have '%s',%n  this '%s'",
+                                        getTypeString(dupE), getTypeString(e)));
                             }
                             enumMap.put(eName, (EnumType)e.clone());
                         }
@@ -744,8 +799,9 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                         EnumType oldEnumType = enumHash.get(eTxt);
                         final long oldValue = oldEnumType.getEnumValue(eTxt);
                         if( oldValue != newValue ) {
-                            throw new RuntimeException(String.format("Duplicate enum value '%s.%s' w/ diff value:%n  have %d,%n  this %d",
-                                oldEnumType.getName(), eTxt, oldValue, newValue));
+                            throwGlueGenException(enumerator_AST_in,
+                                 String.format("Duplicate enum value '%s.%s' w/ diff value:%n  have %d,%n  this %d",
+                                     oldEnumType.getName(), eTxt, oldValue, newValue));
                         }
                         // remove old definition
                         oldEnumType.removeEnumerate(eTxt);
@@ -814,8 +870,9 @@ initDecl[TypeBox tb] {
         }
         final Type dupT = typedefDictionary.get(declName);
         if( null != dupT && !dupT.equalSemantics(t) ) {
-            throw new RuntimeException(String.format("Duplicate typedef w/ incompatible type:%n  have '%s',%n  this '%s'",
-                getTypeString(dupT), getTypeString(t)));
+            throwGlueGenException(initDecl_AST_in,
+                  String.format("Duplicate typedef w/ incompatible type:%n  have '%s',%n  this '%s'", 
+                     getTypeString(dupT), getTypeString(t)));
         }
         t = canonicalize(t);
         debugPrintln(" - canon -> "+getDebugTypeString(t));
@@ -888,12 +945,14 @@ intConstExpr returns [int i] { i = -1; }
             final String enumName = e.getText();
             final EnumType enumType = enumHash.get(enumName);
             if( null == enumType ) {
-               throw new IllegalArgumentException("Error: intConstExpr ID "+enumName+" recognized, but no containing enum-type found");
+               throwGlueGenException(intConstExpr_AST_in,
+                     "Error: intConstExpr ID "+enumName+" recognized, but no containing enum-type found");
             }
             final long enumValue = enumType.getEnumValue(enumName);
             System.err.println("INFO: intConstExpr: enum[Type "+enumType.getName()+", name "+enumName+", value "+enumValue+"]");
             if( (long)Integer.MIN_VALUE > enumValue || (long)Integer.MAX_VALUE < enumValue ) {
-               throw new IndexOutOfBoundsException("Error: intConstExpr ID "+enumName+" enum-value "+enumValue+" out of int range");
+               throwGlueGenException(intConstExpr_AST_in,
+                     "Error: intConstExpr ID "+enumName+" enum-value "+enumValue+" out of int range");
             }
             return (int)enumValue;
           }

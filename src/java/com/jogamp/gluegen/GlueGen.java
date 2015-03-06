@@ -208,12 +208,14 @@ public class GlueGen implements GlueEmitterControls {
                 // iterate over all values in the enumeration
                 for (int i = 0; i < enumeration.getNumEnumerates(); ++i) {
                     final String enumElementName = enumeration.getEnumName(i);
-                    allConstants.add(new ConstantDefinition(enumElementName, enumeration.getEnumValue(i), enumName));
+                    allConstants.add(new ConstantDefinition(enumElementName, enumeration.getEnumValue(i),
+                                                            enumName, enumeration.getASTLocusTag()));
                 }
             }
             for (final Object elem : lexer.getDefines()) {
                 final Define def = (Define) elem;
-                allConstants.add(new ConstantDefinition(def.getName(), def.getValue()));
+                // TODO: Add ASTLocusTag
+                allConstants.add(new ConstantDefinition(def.getName(), def.getValue(), null));
             }
 
             allFunctions = headerParser.getParsedFunctions();

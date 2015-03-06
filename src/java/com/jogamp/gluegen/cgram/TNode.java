@@ -3,9 +3,13 @@ package com.jogamp.gluegen.cgram;
 import antlr.collections.AST;
 import antlr.CommonAST;
 import antlr.Token;
+
 import java.lang.reflect.*;
 import java.util.Hashtable;
 import java.util.Enumeration;
+
+import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 
 /**
   Class TNode is an implementation of the AST interface
@@ -29,7 +33,8 @@ import java.util.Enumeration;
 
 
  */
-public class TNode extends CommonAST {
+@SuppressWarnings("serial")
+public class TNode extends CommonAST implements ASTLocusTagProvider {
   protected int ttype;
   protected String text;
   protected int lineNum = 0;
@@ -40,7 +45,22 @@ public class TNode extends CommonAST {
   protected Hashtable<String, Object> attributes = null;
   static String tokenVocabulary;
 
-
+  /**
+   * {@inheritDoc}
+   * <p>
+   * If <i>source</i> is not available,
+   * implementation returns {@code null}.
+   * </p>
+   */
+  @Override
+  public ASTLocusTag getASTLocusTag() {
+      final Object s = getAttribute("source");
+      if( null != s ) {
+          return new ASTLocusTag(s, getLineNum(), -1, getText());
+      } else {
+          return null;
+      }
+  }
 
 
   /** Set the token vocabulary to a tokentypes class

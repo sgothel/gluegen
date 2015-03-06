@@ -40,6 +40,8 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.List;
 
+import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol.AliasedSymbolImpl;
 import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
 import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
@@ -57,14 +59,25 @@ import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
  * Deep comparison can be performed via {@link #isCompletelyEqual(Object o)};
  * </p>
  **/
-public class FunctionSymbol extends AliasedSymbolImpl implements AliasedSemanticSymbol {
+public class FunctionSymbol extends AliasedSymbolImpl implements AliasedSemanticSymbol, ASTLocusTagProvider {
 
     private final FunctionType type;
+    private final ASTLocusTag astLocus;
 
     public FunctionSymbol(final String name, final FunctionType type) {
         super(name);
         this.type = type;
+        this.astLocus = null;
     }
+
+    public FunctionSymbol(final String name, final FunctionType type, final ASTLocusTag locus) {
+        super(name);
+        this.type = type;
+        this.astLocus = locus;
+    }
+
+    @Override
+    public ASTLocusTag getASTLocusTag() { return astLocus; }
 
     /** Returns the type of this function. Do not add arguments to it
     directly; use addArgument instead. */

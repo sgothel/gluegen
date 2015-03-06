@@ -42,12 +42,14 @@ package com.jogamp.gluegen.cgram.types;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
+import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 
 
 /** Describes enumerated types. Enumerations are like ints except that
 they have a set of named values. */
-public class EnumType extends IntType implements Cloneable {
+public class EnumType extends IntType implements Cloneable, ASTLocusTagProvider {
 
     private IntType underlyingType;
 
@@ -101,21 +103,28 @@ public class EnumType extends IntType implements Cloneable {
     }
 
     private ArrayList<Enum> enums;
+    private final ASTLocusTag astLocus;
 
     public EnumType(final String name) {
         super(name, SizeThunk.LONG, false, CVAttributes.CONST);
         this.underlyingType = new IntType(name, SizeThunk.LONG, false, CVAttributes.CONST);
+        this.astLocus = null;
     }
 
-    public EnumType(final String name, final SizeThunk enumSizeInBytes) {
+    public EnumType(final String name, final SizeThunk enumSizeInBytes, final ASTLocusTag astLocus) {
         super(name, enumSizeInBytes, false, CVAttributes.CONST);
         this.underlyingType = new IntType(name, enumSizeInBytes, false, CVAttributes.CONST);
+        this.astLocus = astLocus;
     }
 
-    protected EnumType(final String name, final IntType underlyingType, final int cvAttributes) {
+    protected EnumType(final String name, final IntType underlyingType, final int cvAttributes, final ASTLocusTag astLocus) {
         super(name, underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
         this.underlyingType = underlyingType;
+        this.astLocus = astLocus;
     }
+
+    @Override
+    public ASTLocusTag getASTLocusTag() { return astLocus; }
 
     @Override
     public Object clone() {
@@ -244,7 +253,7 @@ public class EnumType extends IntType implements Cloneable {
 
     @Override
     Type newCVVariant(final int cvAttributes) {
-        final EnumType t = new EnumType(getName(), underlyingType, cvAttributes);
+        final EnumType t = new EnumType(getName(), underlyingType, cvAttributes, astLocus);
         t.enums = enums;
         return t;
     }

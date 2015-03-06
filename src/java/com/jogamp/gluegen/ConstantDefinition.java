@@ -33,24 +33,27 @@
 
 package com.jogamp.gluegen;
 
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol.AliasedSymbolImpl;
 import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
 import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 
 /** Represents the definition of a constant which was provided either
     via a #define statement or through an enum definition. */
-public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSemanticSymbol {
+public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSemanticSymbol, ASTLocusTagProvider {
     private final boolean relaxedEqSem;
     private final String sValue;
     private final long iValue;
     private final boolean hasIntValue;
     private final boolean isEnum;
     private final String enumName;
+    private final ASTLocusTag astLocus;
 
     /** Covering enums  */
     public ConstantDefinition(final String name,
                               final long value,
-                              final String enumName) {
+                              final String enumName,
+                              final ASTLocusTag astLocus) {
         super(name);
         this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
         this.sValue = String.valueOf(value);
@@ -58,11 +61,13 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
         this.hasIntValue = true;
         this.isEnum = true;
         this.enumName = enumName;
+        this.astLocus = astLocus;
     }
 
     /** Covering defines */
     public ConstantDefinition(final String name,
-                              final String value) {
+                              final String value,
+                              final ASTLocusTag astLocus) {
         super(name);
         this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
         this.sValue = value;
@@ -82,7 +87,11 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
         }
         this.isEnum = false;
         this.enumName = null;
+        this.astLocus = astLocus;
     }
+
+    @Override
+    public ASTLocusTag getASTLocusTag() { return astLocus; }
 
     /**
      * Hash by its given {@link #getName() name}.

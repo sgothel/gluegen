@@ -144,9 +144,14 @@ public class JavaEmitter implements GlueEmitter {
                     // Duplicate alias .. check and add aliased name
                     sym.rename(newName); // only rename to allow 'equalSemantics' to not care ..
                     if( !dupSym.equalSemantics(sym) ) {
-                        throw new RuntimeException(
-                                String.format("Duplicate Name (alias) w/ incompatible value:%n  have '%s',%n  this '%s'",
-                                        dupSym.getAliasedString(), sym.getAliasedString()));
+                        final String message =
+                            String.format("Duplicate Name (alias) w/ incompatible value:%n  have '%s',%n  this '%s'",
+                                    dupSym.getAliasedString(), sym.getAliasedString());
+                        if( sym instanceof ASTLocusTagProvider ) {
+                            throw new GlueGenException(message, ((ASTLocusTagProvider)sym).getASTLocusTag());
+                        } else {
+                            throw new GlueGenException(message);
+                        }
                     }
                     dupSym.addAliasedName(origName);
                 } else {
@@ -160,9 +165,14 @@ public class JavaEmitter implements GlueEmitter {
                 if( null != dupSym ) {
                     // Duplicate orig .. check and drop
                     if( !dupSym.equalSemantics(sym) ) {
-                        throw new RuntimeException(
+                        final String message =
                                 String.format("Duplicate Name (orig) w/ incompatible value:%n  have '%s',%n  this '%s'",
-                                        dupSym.getAliasedString(), sym.getAliasedString()));
+                                            dupSym.getAliasedString(), sym.getAliasedString());
+                        if( sym instanceof ASTLocusTagProvider ) {
+                            throw new GlueGenException(message, ((ASTLocusTagProvider)sym).getASTLocusTag());
+                        } else {
+                            throw new GlueGenException(message);
+                        }
                     }
                 } else {
                     // No duplicate orig .. add
