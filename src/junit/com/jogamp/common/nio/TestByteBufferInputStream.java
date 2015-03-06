@@ -41,6 +41,7 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -144,20 +145,32 @@ public class TestByteBufferInputStream extends SingletonJunitCase {
 
     @Test
     public void test11MMap1GiBFlushNone() throws IOException {
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileOneGiB, oneGiB);
-        // testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileTwoPlusGiB, twoPlusGiB);
+        if( !manualTest && Platform.OSType.MACOS == Platform.getOSType() ) {
+            testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileOneMiB, oneMiB);
+        } else {
+            testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileOneGiB, oneGiB);
+            // testCopyIntSize1Impl2(0, SrcType.MMAP2_NONE, 0, fileTwoPlusGiB, twoPlusGiB);
+        }
     }
 
     @Test
     public void test12MMap1GiBFlushSoft() throws IOException {
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileOneGiB, oneGiB);
-        // testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileTwoPlusGiB, twoPlusGiB);
+        if( !manualTest && Platform.OSType.MACOS == Platform.getOSType() ) {
+            testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileOneMiB, oneMiB);
+        } else {
+            testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileOneGiB, oneGiB);
+            // testCopyIntSize1Impl2(0, SrcType.MMAP2_SOFT, 0, fileTwoPlusGiB, twoPlusGiB);
+        }
     }
 
     @Test
     public void test13MMap2GiBFlushHard() throws IOException {
-        // testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileOneGiB, oneGiB);
-        testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileTwoPlusGiB, twoPlusGiB);
+        if( !manualTest && Platform.OSType.MACOS == Platform.getOSType() ) {
+            testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileOneMiB, oneMiB);
+        } else {
+            // testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileOneGiB, oneGiB);
+            testCopyIntSize1Impl2(0, SrcType.MMAP2_HARD, 0, fileTwoPlusGiB, twoPlusGiB);
+        }
     }
 
     void testCopyIntSize1Impl(final String testFileName, final long expSize) throws IOException {
@@ -336,7 +349,14 @@ public class TestByteBufferInputStream extends SingletonJunitCase {
         System.err.println(" MiB"); */
     }
 
+    static boolean manualTest = false;
+
     public static void main(final String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-manual")) {
+                manualTest = true;
+            }
+        }
         final String tstname = TestByteBufferInputStream.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

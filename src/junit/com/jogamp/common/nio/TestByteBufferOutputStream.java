@@ -284,7 +284,14 @@ public class TestByteBufferOutputStream extends SingletonJunitCase {
         testImpl(getSimpleTestName(".")+".bin", payLoad, 3021L, 6301L, "EOF".getBytes(), sliceShift);
     }
 
+    static boolean manualTest = false;
+
     public static void main(final String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-manual")) {
+                manualTest = true;
+            }
+        }
         final String tstname = TestByteBufferOutputStream.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }

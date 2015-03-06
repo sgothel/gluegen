@@ -35,6 +35,7 @@ import java.nio.channels.FileChannel;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
@@ -171,27 +172,42 @@ public class TestByteBufferCopyStream extends SingletonJunitCase {
 
     @Test
     public void test00() throws IOException {
+        final long size;
+        if( !manualTest && Platform.OSType.MACOS == Platform.getOSType() ) {
+            size = quaterGiB;
+        } else {
+            size = twoPlusGiB;
+        }
         final int srcSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
         final int dstSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
-        final long size = twoPlusGiB;
         testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, srcSliceShift,
-                 getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, dstSliceShift );
+                getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_HARD, dstSliceShift );
     }
 
     @Test
     public void test01() throws IOException {
+        final long size;
+        if( !manualTest && Platform.OSType.MACOS == Platform.getOSType() ) {
+            size = quaterGiB;
+        } else {
+            size = twoPlusGiB;
+        }
         final int srcSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
         final int dstSliceShift = MappedByteBufferInputStream.DEFAULT_SLICE_SHIFT;
-        final long size = twoPlusGiB;
         testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
                  getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
     @Test
     public void test02() throws IOException {
+        final long size;
+        if( !manualTest && Platform.OSType.MACOS == Platform.getOSType() ) {
+            size = quaterPlusGiB;
+        } else {
+            size = halfPlusGiB;
+        }
         final int srcSliceShift = 27; // 125M bytes per slice
         final int dstSliceShift = 27; // 125M bytes per slice
-        final long size = halfPlusGiB;
         testImpl(getSimpleTestName(".")+"_In.bin", size, MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, srcSliceShift,
                  getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
@@ -214,7 +230,14 @@ public class TestByteBufferCopyStream extends SingletonJunitCase {
                  getSimpleTestName(".")+"_Out.bin", MappedByteBufferInputStream.CacheMode.FLUSH_PRE_SOFT, dstSliceShift );
     }
 
+    static boolean manualTest = false;
+
     public static void main(final String args[]) throws IOException {
+        for(int i=0; i<args.length; i++) {
+            if(args[i].equals("-manual")) {
+                manualTest = true;
+            }
+        }
         final String tstname = TestByteBufferCopyStream.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
