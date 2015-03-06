@@ -71,6 +71,8 @@ public class GlueGen implements GlueEmitterControls {
 
     private static boolean debug = false;
 
+    private static Level logLevel = null;
+
     public static boolean debug() { return debug; }
 
     @Override
@@ -103,6 +105,8 @@ public class GlueGen implements GlueEmitterControls {
         try {
             if(debug) {
                 Logging.getLogger().setLevel(Level.ALL);
+            } else if( null != logLevel ) {
+                Logging.getLogger().setLevel(logLevel);
             }
             final GlueEmitter emit;
             if (emitterClass == null) {
@@ -377,6 +381,9 @@ public class GlueGen implements GlueEmitterControls {
                     emitterFQN = arg.substring(2);
                 } else if (arg.startsWith("-C")) {
                     cfgFiles.add(arg.substring(2));
+                } else if (arg.equals("--logLevel")) {
+                    i++;
+                    logLevel = Level.parse(args[i]);
                 } else if (arg.equals("--debug")) {
                     debug=true;
                 } else if (arg.equals("--dumpCPP")) {

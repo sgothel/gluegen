@@ -73,7 +73,8 @@ import org.apache.tools.ant.util.JavaEnvUtils;
                 emitter="[emitter class name]"
                 config="[configuration file]"
                 dumpCPP="[optional boolean]"
-                debug="[optional boolean]" /&gt;
+                debug="[optional boolean]"
+                logLevel="[optional string]" /&gt;
  * </pre>
  *
  * @author Rob Grzywinski <a href="mailto:rgrzywinski@realityinteractive.com">rgrzywinski@yahoo.com</a>
@@ -99,6 +100,11 @@ public class GlueGenTask extends Task
      * <p>The optional debug flag.</p>
      */
     private boolean debug=false;
+
+    /**
+     * <p>The optional logLevel.</p>
+     */
+    private String logLevel = null;
 
     /**
      * <p>The optional dumpCPP flag.</p>
@@ -179,6 +185,15 @@ public class GlueGenTask extends Task
     {
         log( ("Setting debug flag: " + debug), Project.MSG_VERBOSE);
         this.debug=debug;
+    }
+
+    /**
+     * <p>Set the logLevel (optional).  This is called by ANT.</p>
+     */
+    public void setLogLevel(final String logLevel)
+    {
+        log( ("Setting logLevel: " + logLevel), Project.MSG_VERBOSE);
+        this.logLevel=logLevel;
     }
 
     /**
@@ -454,6 +469,12 @@ public void setIncludeRefid(final Reference reference) {
         // add the debug flag if enabled
         if(debug) {
             gluegenCommandline.createArgument().setValue("--debug");
+        }
+
+        // add the logLevel if enabled
+        if(null != logLevel) {
+            gluegenCommandline.createArgument().setValue("--logLevel");
+            gluegenCommandline.createArgument().setValue(logLevel);
         }
 
         // add the debug flag if enabled

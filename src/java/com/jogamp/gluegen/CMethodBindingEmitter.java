@@ -44,9 +44,8 @@ import java.io.*;
 import java.text.MessageFormat;
 
 import com.jogamp.common.os.MachineDataInfo;
+import com.jogamp.gluegen.Logging.LoggerIf;
 import com.jogamp.gluegen.cgram.types.*;
-
-import java.util.logging.Logger;
 
 /** Emits the C-side component of the Java<->C JNI binding. */
 public class CMethodBindingEmitter extends FunctionEmitter {
@@ -57,7 +56,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   protected static final String arrayRes       = "_array_res";
   protected static final String arrayIdx       = "_array_idx";
 
-  protected final Logger LOG;
+  protected final LoggerIf LOG;
 
   protected MethodBinding binding;
 
@@ -129,7 +128,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                final JavaConfiguration configuration)
   {
     super(output, false, configuration);
-    LOG = Logging.getLogger(CMethodBindingEmitter.class.getPackage().getName());
+    LOG = Logging.getLogger(CMethodBindingEmitter.class.getPackage().getName(), CMethodBindingEmitter.class.getSimpleName());
 
     assert(binding != null);
     assert(javaClassName != null);

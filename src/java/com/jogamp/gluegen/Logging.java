@@ -31,6 +31,8 @@
  */
 package com.jogamp.gluegen;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Formatter;
 import java.util.logging.Handler;
@@ -45,10 +47,134 @@ import com.jogamp.common.util.PropertyAccess;
  * @author Michael Bien, et.al.
  */
 public class Logging {
+    /**
+     * An interface for {@link Logger}.
+     */
+    public static interface LoggerIf {
+        /**
+         * See {@link Logger#warning(String)}
+         */
+        void warning(String msg);
+        /**
+         * See {@link Logger#log(Level, String, Object[])}
+         */
+        void log(final Level level, final String msg, final Object ... params);
+        /**
+         * See {@link Logger#log(Level, String, Object)}
+         */
+        void log(final Level level, final String msg, final Object param);
+        /**
+         * See {@link Logger#log(Level, String)}
+         */
+        void log(final Level level, final String msg);
+        /**
+         * See {@link Logger#setLevel(Level)}
+         */
+        void setLevel(final Level newLevel) throws SecurityException;
+        /**
+         * See {@link Logger#getLevel()}
+         */
+        Level getLevel();
+        /**
+         * See {@link Logger#isLoggable(Level)}
+         */
+        boolean isLoggable(Level level);
+        /**
+         * See {@link Logger#getName()}
+         */
+        String getName();
+        /**
+         * See {@link Logger#getHandlers()}
+         */
+        Handler[] getHandlers();
+        /**
+         * See {@link LogRecord#getSourceClassName()}
+         */
+        String getSourceClassName();
+    }
+    /* pp */ static class FQNLogger implements LoggerIf {
+        public final Logger impl;
+        public final PlainLogConsoleHandler handler;
+        /* pp */ FQNLogger(final String fqnClassName, final String simpleClassName, final Level level) {
+            this.impl = Logger.getLogger(fqnClassName);
+            this.handler = new PlainLogConsoleHandler(new PlainLogFormatter(simpleClassName), level);
+            this.impl.setUseParentHandlers(false);
+            this.impl.setLevel(level);
+            this.impl.addHandler(this.handler);
+            this.impl.log(Level.INFO, "Logging.new: "+impl.getName()+": level "+level+
+                                      ": obj 0x"+Integer.toHexString(impl.hashCode()));
+        }
+        @Override
+        public void warning(final String msg) {
+            impl.warning(msg);
+        }
+        @Override
+        public void log(final Level level, final String msg, final Object ... params) {
+            impl.log(level, msg, params);
+        }
+        @Override
+        public void log(final Level level, final String msg, final Object param) {
+            impl.log(level, msg, param);
+        }
+        @Override
+        public void log(final Level level, final String msg) {
+            impl.log(level, msg);
+        }
+        @Override
+        public void setLevel(final Level newLevel) throws SecurityException {
+            impl.setLevel(newLevel);
+        }
+        @Override
+        public Level getLevel() {
+            return impl.getLevel();
+        }
+        @Override
+        public boolean isLoggable(final Level level) {
+            return impl.isLoggable(level);
+        }
+        @Override
+        public String getName() {
+            return impl.getName();
+        }
+        @Override
+        public synchronized Handler[] getHandlers() {
+            return impl.getHandlers();
+        }
+        @Override
+        public String getSourceClassName() {
+            return handler.plf.simpleClassName;
+        }
+    }
+    static class PlainLogFormatter extends Formatter {
+        final String simpleClassName;
+        PlainLogFormatter(final String simpleClassName) {
+            this.simpleClassName = simpleClassName;
+        }
+        @Override
+        public String format(final LogRecord record) {
+            final StringBuilder sb = new StringBuilder(128);
+            sb.append("[").append(record.getLevel()).append(' ').append(simpleClassName).append("]: ");
+            sb.append(formatMessage(record)).append("\n");
+            return sb.toString();
+        }
+    }
+    static class PlainLogConsoleHandler extends ConsoleHandler {
+        final PlainLogFormatter plf;
+        PlainLogConsoleHandler(final PlainLogFormatter plf, final Level level) {
+            this.plf = plf;
+            setFormatter(plf);
+            setLevel(level);
+        }
+        @Override
+        public java.util.logging.Formatter getFormatter() {
+            return plf;
+        }
+    }
 
-    final static Logger rootPackageLogger;
-
+    private final static Map<String, LoggerIf> loggers;
+    private final static FQNLogger rootPackageLogger;
     static {
+        loggers = new HashMap<String, LoggerIf>();
         final String packageName = Logging.class.getPackage().getName();
         final String property = PropertyAccess.getProperty(packageName+".level", true);
         Level level;
@@ -57,57 +183,36 @@ public class Logging {
         } else {
             level = Level.WARNING;
         }
-
-        final ConsoleHandler handler = new ConsoleHandler() {
-            @Override
-            public java.util.logging.Formatter getFormatter() {
-                return new PlainLogFormatter();
-            }
-        };
-        handler.setFormatter(new PlainLogFormatter());
-        handler.setLevel(level);
-
-        rootPackageLogger = Logger.getLogger(packageName);
-        rootPackageLogger.setUseParentHandlers(false);
-        rootPackageLogger.setLevel(level);
-        rootPackageLogger.addHandler(handler);
+        final String simpleClassName = Logging.class.getSimpleName();
+        final String fqnClassName = packageName+"."+simpleClassName;
+        rootPackageLogger = new FQNLogger(fqnClassName, simpleClassName, level);
+        loggers.put(fqnClassName, rootPackageLogger);
     }
 
     /** provokes static initialization */
     static void init() { }
 
     /** Returns the <i>root package logger</i>. */
-    public static Logger getLogger() {
+    public static LoggerIf getLogger() {
         return rootPackageLogger;
     }
     /** Returns the demanded logger, while aligning its log-level to the root logger's level. */
-    public static synchronized Logger getLogger(final String name) {
-        final Logger l = Logger.getLogger(name);
-        alignLevel(l);
-        return l;
+    public static synchronized LoggerIf getLogger(final String packageName, final String simpleClassName) {
+        final String fqnClassName = packageName+"."+simpleClassName;
+        LoggerIf res = loggers.get(fqnClassName);
+        if( null == res ) {
+            res = new FQNLogger(fqnClassName, simpleClassName, rootPackageLogger.getLevel());
+            loggers.put(fqnClassName, res);
+        }
+        return res;
     }
     /** Align log-level of given logger to the root logger's level. */
-    public static void alignLevel(final Logger l) {
+    public static void alignLevel(final LoggerIf l) {
         final Level level = rootPackageLogger.getLevel();
         l.setLevel(level);
         final Handler[] hs = l.getHandlers();
         for(final Handler h:hs) {
             h.setLevel(level);
-        }
-    }
-
-    /**
-     * This log formatter needs usually one line per log record.
-     * @author Michael Bien
-     */
-    private static class PlainLogFormatter extends Formatter {
-
-        @Override
-        public String format(final LogRecord record) {
-            final StringBuilder sb = new StringBuilder(128);
-            sb.append("[").append(record.getLevel()).append(' ').append(record.getSourceClassName()).append("]: ");
-            sb.append(formatMessage(record)).append("\n");
-            return sb.toString();
         }
     }
 }

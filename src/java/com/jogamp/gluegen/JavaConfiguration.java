@@ -42,6 +42,7 @@ package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.JavaEmitter.EmissionStyle;
 import com.jogamp.gluegen.JavaEmitter.MethodAccess;
+import com.jogamp.gluegen.Logging.LoggerIf;
 
 import java.io.*;
 import java.lang.reflect.Array;
@@ -51,8 +52,6 @@ import java.util.regex.*;
 import com.jogamp.gluegen.jgram.*;
 import com.jogamp.gluegen.cgram.types.*;
 
-import java.util.logging.Logger;
-
 import static java.util.logging.Level.*;
 import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
 import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
@@ -61,17 +60,13 @@ import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
     JavaEmitter. */
 
 public class JavaConfiguration {
-
-    public static final boolean DEBUG_IGNORES = GlueGen.debug() || false;
-    public static final boolean DEBUG_RENAMES = GlueGen.debug() || false;
-
     private int nestedReads;
     private String packageName;
     private String implPackageName;
     private String className;
     private String implClassName;
 
-    protected final Logger LOG;
+    protected final LoggerIf LOG;
 
     public static String NEWLINE = System.getProperty("line.separator");
 
@@ -186,7 +181,7 @@ public class JavaConfiguration {
     private final Map<String, List<String>> javaEpilogues = new HashMap<String, List<String>>();
 
     public JavaConfiguration() {
-        LOG = Logging.getLogger(JavaConfiguration.class.getPackage().getName());
+        LOG = Logging.getLogger(JavaConfiguration.class.getPackage().getName(), JavaConfiguration.class.getSimpleName());
     }
 
   /** Reads the configuration file.
@@ -728,48 +723,48 @@ public class JavaConfiguration {
     return parentClass.get(className);
   }
 
-  public void dumpIgnoresOnce() {
-    if(!dumpedIgnores) {
-        dumpedIgnores = true;
-        dumpIgnores();
+  public void logIgnoresOnce() {
+    if(!loggedIgnores) {
+        loggedIgnores = true;
+        logIgnores();
     }
   }
-  private static boolean dumpedIgnores = false;
+  private static boolean loggedIgnores = false;
 
-  public void dumpIgnores() {
-    System.err.println("Extended Intf: ");
+  public void logIgnores() {
+    LOG.log(INFO, "Extended Intf: {0}", extendedIntfSymbolsIgnore.size());
     for (final String str : extendedIntfSymbolsIgnore) {
-        System.err.println("\t"+str);
+        LOG.log(INFO, "\t{0}", str);
     }
-    System.err.println("Extended Impl: ");
+    LOG.log(INFO, "Extended Impl: {0}", extendedImplSymbolsIgnore.size());
     for (final String str : extendedImplSymbolsIgnore) {
-        System.err.println("\t"+str);
+        LOG.log(INFO, "\t{0}", str);
     }
-    System.err.println("Ignores (All): ");
+    LOG.log(INFO, "Ignores (All): {0}", ignores.size());
     for (final Pattern pattern : ignores) {
-        System.err.println("\t"+pattern);
+        LOG.log(INFO, "\t{0}", pattern);
     }
   }
 
-  public void dumpRenamesOnce() {
-    if(!dumpedRenames) {
-        dumpedRenames = true;
-        dumpRenames();
+  public void logRenamesOnce() {
+    if(!loggedRenames) {
+        loggedRenames = true;
+        logRenames();
     }
   }
-  private static boolean dumpedRenames = false;
+  private static boolean loggedRenames = false;
 
-  public void dumpRenames() {
-    System.err.println("Symbol Renames: ");
+  public void logRenames() {
+    LOG.log(INFO, "Symbol Renames: {0}", javaSymbolRenames.size());
     for (final String key : javaSymbolRenames.keySet()) {
-        System.err.println("\t"+key+" -> "+javaSymbolRenames.get(key));
+        LOG.log(INFO, "\t{0} -> {1}", key, javaSymbolRenames.get(key));
     }
 
-    System.err.println("Symbol Aliasing (through renaming): ");
+    LOG.log(INFO, "Symbol Aliasing (through renaming): {0}", javaSymbolRenames.size());
     for(final String newName : javaSymbolRenames.values()) {
         final Set<String> origNames = javaRenamedSymbols.get(newName);
         if(null!=origNames) {
-            System.err.println("\t"+newName+" <- "+origNames);
+            LOG.log(INFO, "\t{0} <- {1}", newName, origNames);
         }
     }
   }
@@ -848,8 +843,8 @@ public class JavaConfiguration {
       return false;
   }
   protected final boolean shouldIgnoreInInterface_Int(final AliasedSymbol symbol) {
-      if(DEBUG_IGNORES) {
-          dumpIgnoresOnce();
+      if( GlueGen.debug() ) {
+          logIgnoresOnce();
       }
       final String name = symbol.getName();
       final Set<String> aliases = symbol.getAliasedNames();
@@ -859,18 +854,14 @@ public class JavaConfiguration {
            oneInSet(extendedIntfSymbolsIgnore, aliases)
          )
       {
-          if(DEBUG_IGNORES) {
-              System.err.println("Ignore Intf ignore (one): "+symbol.getAliasedString());
-          }
+          LOG.log(INFO, "Ignore Intf ignore (one): {0}", symbol.getAliasedString());
           return true;
       }
       // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
       if ( !extendedIntfSymbolsOnly.isEmpty() &&
            !extendedIntfSymbolsOnly.contains( name ) &&
            !oneInSet(extendedIntfSymbolsOnly, aliases) ) {
-          if(DEBUG_IGNORES) {
-              System.err.println("Ignore Intf !extended (all): " + symbol.getAliasedString());
-          }
+          LOG.log(INFO, "Ignore Intf !extended (all): {0}", symbol.getAliasedString());
           return true;
       }
       return shouldIgnoreInImpl_Int(symbol);
@@ -901,18 +892,14 @@ public class JavaConfiguration {
            oneInSet(extendedImplSymbolsIgnore, aliases)
          )
       {
-          if(DEBUG_IGNORES) {
-              System.err.println("Ignore Impl ignore (one): "+symbol.getAliasedString());
-          }
+          LOG.log(INFO, "Ignore Impl ignore (one): {0}", symbol.getAliasedString());
           return true;
       }
       // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
       if ( !extendedImplSymbolsOnly.isEmpty() &&
            !extendedImplSymbolsOnly.contains( name ) &&
            !oneInSet(extendedImplSymbolsOnly, aliases) ) {
-          if(DEBUG_IGNORES) {
-              System.err.println("Ignore Impl !extended (all): " + symbol.getAliasedString());
-          }
+          LOG.log(INFO, "Ignore Impl !extended (all): {0}", symbol.getAliasedString());
           return true;
       }
 
@@ -921,9 +908,7 @@ public class JavaConfiguration {
       for (final Pattern ignoreRegexp : ignores) {
           final Matcher matcher = ignoreRegexp.matcher(name);
           if ( matcher.matches() || onePatternMatch(ignoreRegexp, aliases) ) {
-              if(DEBUG_IGNORES) {
-                  System.err.println("Ignore Impl RegEx: "+symbol.getAliasedString());
-              }
+              LOG.log(INFO, "Ignore Impl RegEx: {0}", symbol.getAliasedString());
               return true;
           }
       }
@@ -938,9 +923,7 @@ public class JavaConfiguration {
                   // Special case as this is most often likely to be the case.
                   // Unignores are not used very often.
                   if(unignores.isEmpty()) {
-                      if(DEBUG_IGNORES) {
-                          System.err.println("Ignore Impl unignores==0: "+symbol.getAliasedString()+" -> "+name);
-                      }
+                      LOG.log(INFO, "Ignore Impl unignores==0: {0} -> {1}", symbol.getAliasedString(), name);
                       return true;
                   }
                   boolean unignoreFound = false;
@@ -952,11 +935,10 @@ public class JavaConfiguration {
                       }
                   }
 
-                  if (!unignoreFound)
-                      if(DEBUG_IGNORES) {
-                          System.err.println("Ignore Impl !unignore: "+symbol.getAliasedString()+" -> "+name);
-                      }
-                  return true;
+                  if (!unignoreFound) {
+                      LOG.log(INFO, "Ignore Impl !unignore: {0} -> {1}", symbol.getAliasedString(), name);
+                      return true;
+                  }
               }
           }
       }
@@ -1010,8 +992,8 @@ public class JavaConfiguration {
       function under the hood. Returns null if this symbol has not
       been explicitly renamed. */
   public String getJavaSymbolRename(final String origName) {
-    if(DEBUG_RENAMES) {
-        dumpRenamesOnce();
+    if( LOG.isLoggable(INFO) ) {
+        logRenamesOnce();
     }
     return javaSymbolRenames.get(origName);
   }
@@ -1023,18 +1005,12 @@ public class JavaConfiguration {
 
   /** Programmatically adds a rename directive for the given symbol. */
   public void addJavaSymbolRename(final String origName, final String newName) {
-    if(DEBUG_RENAMES) {
-        System.err.print("\tRename "+origName+" -> "+newName);
-    }
+    LOG.log(INFO, "\tRename {0} -> {1}", origName, newName);
     final String prevValue = javaSymbolRenames.put(origName, newName);
     if(null != prevValue && !prevValue.equals(newName)) {
         throw new RuntimeException("Rename-Override Attampt: "+origName+" -> "+newName+
                                    ", but "+origName+" -> "+prevValue+" already exist. Run in 'debug' mode to analyze!");
     }
-    if(DEBUG_RENAMES) {
-        System.err.println();
-    }
-
     Set<String> origNames = javaRenamedSymbols.get(newName);
     if(null == origNames) {
         origNames = new HashSet<String>();
@@ -1118,7 +1094,7 @@ public class JavaConfiguration {
         try{
           emissionStyle = EmissionStyle.valueOf(readString("Style", tok, filename, lineNo));
         }catch(final IllegalArgumentException ex) {
-            LOG.log(WARNING, "Error parsing \"style\" command at line {0} in file \"{1}\"", new Object[]{lineNo, filename});
+            LOG.log(WARNING, "Error parsing \"style\" command at line {0} in file \"{1}\"", lineNo, filename);
         }
     } else if (cmd.equalsIgnoreCase("AccessControl")) {
       readAccessControl(tok, filename, lineNo);

@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import com.jogamp.gluegen.CMethodBindingEmitter;
 import com.jogamp.gluegen.CodeGenUtils;
@@ -133,6 +134,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         // honor that (for example, the superclass might have caught an Ignore
         // direction that matched the symbol's name).
         if (defaultEmitters.isEmpty()) {
+            LOG.log(Level.INFO, "genModProcAddrEmitter: SKIP, empty binding set: {0}", sym.getAliasedString());
             return defaultEmitters;
         }
 

@@ -56,9 +56,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import com.jogamp.gluegen.Logging;
+import com.jogamp.gluegen.Logging.LoggerIf;
 
 import static java.util.logging.Level.*;
 
@@ -68,7 +68,7 @@ import static java.util.logging.Level.*;
 
 public class PCPP {
 
-    private final Logger LOG;
+    private final LoggerIf LOG;
 
     /** Map containing the results of #define statements. We must
         evaluate certain very simple definitions (to properly handle
@@ -89,7 +89,7 @@ public class PCPP {
     private final boolean enableCopyOutput2Stderr;
 
     public PCPP(final List<String> includePaths, final boolean debug, final boolean copyOutput2Stderr) {
-        LOG = Logging.getLogger(PCPP.class.getPackage().getName());
+        LOG = Logging.getLogger(PCPP.class.getPackage().getName(), PCPP.class.getSimpleName());
         this.includePaths = includePaths;
         setOut(System.out);
         enableDebugPrint = debug;
@@ -464,20 +464,20 @@ public class PCPP {
             final String oldDef = defineMap.remove(name);
             if (oldDef == null) {
                 LOG.log(WARNING, "ignoring redundant \"#undef {0}\", at \"{1}\" line {2}: \"{3}\" was not previously defined",
-                        new Object[]{name, filename(), lineNumber(), name});
+                        name, filename(), lineNumber(), name);
             } else {
                 // System.err.println("UNDEFINED: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");
             }
             nonConstantDefines.remove(name);
         } else {
-            LOG.log(WARNING, "FAILED TO UNDEFINE: ''{0}''  (line {1} file {2})", new Object[]{name, lineNumber(), filename()});
+            LOG.log(INFO, "DISABLED UNDEFINE: ''{0}''  (line {1} file {2})", name, lineNumber(), filename());
         }
     }
 
     private void handleWarning() throws IOException {
         final String msg = nextWordOrString();
         if (enabled()) {
-            LOG.log(WARNING, "#warning {0} at \"{1}\" line \"{2}\"", new Object[]{msg, filename(), lineNumber()});
+            LOG.log(WARNING, "#warning {0} at \"{1}\" line \"{2}\"", msg, filename(), lineNumber());
         }
     }
 
@@ -545,7 +545,7 @@ public class PCPP {
                 final String value = "";
                 final String oldDef = defineMap.put(name, value);
                 if (oldDef != null && !oldDef.equals(value)) {
-                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"\"", new Object[]{name, oldDef});
+                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"\"", name, oldDef);
                 }
                 // We don't want to emit the define, because it would serve no purpose
                 // and cause GlueGen errors (confuse the GnuCParser)
@@ -560,7 +560,7 @@ public class PCPP {
                     // Put it in the #define map
                     final String oldDef = defineMap.put(name, value);
                     if (oldDef != null && !oldDef.equals(value)) {
-                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, value});
+                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, value);
                     }
                     debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
                     //System.err.println("//---DEFINED: " + name + " to \"" + value + "\"");
@@ -610,7 +610,7 @@ public class PCPP {
                 final Macro macro = new Macro(params, values);
                 final Macro oldDef = macroMap.put(name, macro);
                 if (oldDef != null) {
-                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, macro});
+                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, macro);
                 }
                 emitDefine = false;
 
@@ -661,7 +661,7 @@ public class PCPP {
 
                     final String oldDef = defineMap.put(name, value);
                     if (oldDef != null && !oldDef.equals(value)) {
-                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", new Object[]{name, oldDef, value});
+                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, value);
                     }
                     debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
 //                    System.err.println("#define " + name +" "+value + " CONST EXPRESSION");
