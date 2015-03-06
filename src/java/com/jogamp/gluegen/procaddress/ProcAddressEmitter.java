@@ -120,11 +120,11 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
 
     protected boolean needsModifiedEmitters(final FunctionSymbol sym) {
-        if (!needsProcAddressWrapper(sym) || getConfig().isUnimplemented(getAliasedSymName(sym))) {
+        if ( !callThroughProcAddress(sym) || getConfig().isUnimplemented(sym) ) {
             return false;
+        } else {
+            return true;
         }
-
-        return true;
     }
 
     private List<? extends FunctionEmitter> generateMethodBindingEmittersImpl(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
@@ -138,15 +138,19 @@ public class ProcAddressEmitter extends JavaEmitter {
             return defaultEmitters;
         }
 
-        // Don't do anything special if this symbol doesn't require
-        // modifications
-        if (!needsModifiedEmitters(sym)) {
+        final boolean callThroughProcAddress = callThroughProcAddress(sym);
+        final boolean isUnimplemented = getConfig().isUnimplemented(sym);
+
+        // Don't do anything special if this symbol doesn't require modifications
+        if( !callThroughProcAddress || isUnimplemented ) {
+            LOG.log(Level.INFO, "genModProcAddrEmitter: SKIP, not needed: callThrough {0}, isUnimplemented {1}: {2}",
+                    callThroughProcAddress, isUnimplemented, sym.getAliasedString());
             return defaultEmitters;
         }
 
         final ArrayList<FunctionEmitter> modifiedEmitters = new ArrayList<FunctionEmitter>(defaultEmitters.size());
 
-        if (needsProcAddressWrapper(sym)) {
+        if ( callThroughProcAddress ) {
             if (getProcAddressConfig().emitProcAddressTable()) {
                 // emit an entry in the GL proc address table for this method.
                 emitProcAddressTableEntryForString(getAliasedSymName(sym));
@@ -196,7 +200,7 @@ public class ProcAddressEmitter extends JavaEmitter {
 
   protected void generateModifiedEmitters(final JavaMethodBindingEmitter baseJavaEmitter, final List<FunctionEmitter> emitters) {
         // See whether we need a proc address entry for this one
-        final boolean callThroughProcAddress = needsProcAddressWrapper(baseJavaEmitter.getBinding().getCSymbol());
+        final boolean callThroughProcAddress = callThroughProcAddress(baseJavaEmitter.getBinding().getCSymbol());
 
         // If this emitter doesn't have a body (i.e., is a direct native
         // call with no intervening argument processing), we need to force
@@ -245,12 +249,15 @@ public class ProcAddressEmitter extends JavaEmitter {
         final FunctionSymbol cSymbol = baseCEmitter.getBinding().getCSymbol();
 
         // See whether we need a proc address entry for this one
-        final boolean callThroughProcAddress = needsProcAddressWrapper(cSymbol);
-        final boolean forceProcAddress = getProcAddressConfig().forceProcAddressGen(cSymbol.getName());
+        final boolean needsLocalTypedef = getProcAddressConfig().forceProcAddressGen(cSymbol) ||
+                                          !hasFunctionPointerTypedef(cSymbol);
+        final boolean callThroughProcAddress = needsLocalTypedef || callThroughProcAddress(cSymbol);
+        LOG.log(Level.INFO, "genModProcAddrEmitter: needsTypedef {0}, callThrough {1}: {2}",
+                needsLocalTypedef, callThroughProcAddress, cSymbol.getAliasedString());
 
         String forcedCallingConvention = null;
-        if (forceProcAddress) {
-            forcedCallingConvention = getProcAddressConfig().getLocalProcAddressCallingConvention(cSymbol.getName());
+        if (needsLocalTypedef) {
+            forcedCallingConvention = getProcAddressConfig().getLocalProcAddressCallingConvention(cSymbol);
         }
         // Note that we don't care much about the naming of the C argument
         // variables so to keep things simple we ignore the buffer object
@@ -260,7 +267,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         // extra final argument, which is the address (the OpenGL procedure
         // address) of the function it needs to call
         final ProcAddressCMethodBindingEmitter res = new ProcAddressCMethodBindingEmitter(
-                baseCEmitter, callThroughProcAddress, forceProcAddress, forcedCallingConvention, this);
+                baseCEmitter, callThroughProcAddress, needsLocalTypedef, forcedCallingConvention, this);
 
         final MessageFormat exp = baseCEmitter.getReturnValueCapacityExpression();
         if (exp != null) {
@@ -277,26 +284,30 @@ public class ProcAddressEmitter extends JavaEmitter {
         return symName;
     }
 
-    protected boolean needsProcAddressWrapper(final FunctionSymbol sym) {
-        final String symName = getAliasedSymName(sym);
-
-        final ProcAddressConfiguration config = getProcAddressConfig();
-
-        // We should only generate code to call through a function pointer
-        // if the symbol has an associated function pointer typedef.
+    protected boolean callThroughProcAddress(final FunctionSymbol sym) {
+        final ProcAddressConfiguration cfg = getProcAddressConfig();
+        boolean res = false;
+        int mode = 0;
+        if (cfg.forceProcAddressGen(sym)) {
+            res = true;
+            mode = 1;
+        } else {
+            if (cfg.skipProcAddressGen(sym)) {
+                res = false;
+                mode = 2;
+            } else {
+                res = hasFunctionPointerTypedef(sym);
+                mode = 3;
+            }
+        }
+        LOG.log(Level.INFO, "callThroughProcAddress: {0} [m {1}]: {2}", res, mode, sym.getAliasedString());
+        return res;
+    }
+    protected boolean hasFunctionPointerTypedef(final FunctionSymbol sym) {
         final String funcPointerTypedefName = getFunctionPointerTypedefName(sym);
-        boolean shouldWrap = typedefDictionary.containsKey(funcPointerTypedefName);
-        //System.err.println(funcPointerTypedefName + " defined: " + shouldWrap);
-
-        if (config.skipProcAddressGen(symName)) {
-            shouldWrap = false;
-        }
-
-        if (config.forceProcAddressGen(symName)) {
-            shouldWrap = true;
-        }
-
-        return shouldWrap;
+        final boolean res = typedefDictionary.containsKey(funcPointerTypedefName);
+        LOG.log(Level.INFO, "hasFunctionPointerTypedef: {0}: {1}", res, sym.getAliasedString());
+        return res;
     }
 
     protected void beginProcAddressTable() throws Exception {

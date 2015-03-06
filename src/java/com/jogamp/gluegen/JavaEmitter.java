@@ -563,7 +563,7 @@ public class JavaEmitter implements GlueEmitter {
       // It's possible we may not need a body even if signatureOnly is
       // set to false; for example, if the routine doesn't take any
       // arrays or buffers as arguments
-      final boolean isUnimplemented = cfg.isUnimplemented(binding.getName());
+      final boolean isUnimplemented = cfg.isUnimplemented(binding.getCSymbol());
       final List<String> prologue = cfg.javaPrologueForMethod(binding, false, false);
       final List<String> epilogue = cfg.javaEpilogueForMethod(binding, false, false);
       final boolean needsBody = isUnimplemented ||
@@ -633,7 +633,7 @@ public class JavaEmitter implements GlueEmitter {
               cfg.javaPrologueForMethod(binding, false, false) != null ||
               cfg.javaEpilogueForMethod(binding, false, false) != null ;
 
-      if ( !cfg.isUnimplemented( binding.getName() ) ) {
+      if ( !cfg.isUnimplemented( binding.getCSymbol() ) ) {
           if( !requiresStaticInitialization ) {
               requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
               if( requiresStaticInitialization ) {

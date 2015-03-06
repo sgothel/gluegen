@@ -813,27 +813,32 @@ public class JavaConfiguration {
   public boolean shouldIgnoreInInterface(final AliasedSymbol symbol) {
       return shouldIgnoreInInterface_Int(symbol);
   }
-  private static boolean oneInSet(final Set<String> ignoreSymbols, final Set<String> symbols) {
-      if( null != ignoreSymbols && ignoreSymbols.size() > 0 &&
+  public static <K,V> V oneInMap(final Map<K, V> map, final Set<K> symbols) {
+      if( null != map && map.size() > 0 &&
           null != symbols && symbols.size() > 0 ) {
-          for(final String sym : symbols) {
-              if( ignoreSymbols.contains( sym ) ) {
+          for(final K sym : symbols) {
+              final V v = map.get(sym);
+              if( null != v ) {
+                  return v;
+              }
+          }
+      }
+      return null;
+  }
+  public static <K> boolean oneInSet(final Set<K> set1, final Set<K> set2) {
+      if( null != set1 && set1.size() > 0 &&
+          null != set2 && set2.size() > 0 ) {
+          for(final K sym : set2) {
+              if( set1.contains( sym ) ) {
                   return true;
               }
           }
       }
       return false;
   }
-  /** private static boolean allInSet(final Set<String> ignoreSymbols, final Set<String> symbols) {
-      if( null != ignoreSymbols && ignoreSymbols.size() > 0 &&
-          null != symbols && symbols.size() > 0 ) {
-          return ignoreSymbols.containsAll(symbols);
-      }
-      return false;
-  } */
-  private static boolean onePatternMatch(final Pattern ignoreRegexp, final Set<String> symbols) {
-      if( null != ignoreRegexp && null != symbols && symbols.size() > 0 ) {
-          for(final String sym : symbols) {
+  private static boolean onePatternMatch(final Pattern ignoreRegexp, final Set<String> set) {
+      if( null != ignoreRegexp && null != set && set.size() > 0 ) {
+          for(final String sym : set) {
               final Matcher matcher = ignoreRegexp.matcher(sym);
               if (matcher.matches()) {
                   return true;
@@ -948,17 +953,16 @@ public class JavaConfiguration {
   /** Returns true if this function should be given a body which
       throws a run-time exception with an "unimplemented" message
       during glue code generation. */
-  public boolean isUnimplemented(final String symbol) {
-    // Ok, the slow case. We need to check the entire table, in case the table
-    // contains an regular expression that matches the symbol.
-    for (final Pattern regexp : unimplemented) {
-      final Matcher matcher = regexp.matcher(symbol);
-      if (matcher.matches()) {
-        return true;
+  public boolean isUnimplemented(final AliasedSymbol symbol) {
+      // Ok, the slow case. We need to check the entire table, in case the table
+      // contains an regular expression that matches the symbol.
+      for (final Pattern unimplRegexp : unimplemented) {
+          final Matcher matcher = unimplRegexp.matcher(symbol.getName());
+          if ( matcher.matches() || onePatternMatch(unimplRegexp, symbol.getAliasedNames()) ) {
+              return true;
+          }
       }
-    }
-
-    return false;
+      return false;
   }
 
   /**

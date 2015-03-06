@@ -38,7 +38,11 @@
  */
 package com.jogamp.gluegen.procaddress;
 
+import static java.util.logging.Level.INFO;
+
 import com.jogamp.gluegen.JavaConfiguration;
+import com.jogamp.gluegen.cgram.types.AliasedSymbol;
+
 import java.io.*;
 import java.text.*;
 import java.util.*;
@@ -269,8 +273,15 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         return tableClassName;
     }
 
-    public boolean skipProcAddressGen(final String name) {
-        return skipProcAddressGen.contains(name);
+    public boolean skipProcAddressGen(final AliasedSymbol symbol) {
+      if ( skipProcAddressGen.contains( symbol.getName() ) ||
+           oneInSet(skipProcAddressGen, symbol.getAliasedNames())
+         )
+      {
+          LOG.log(INFO, "Skip ProcAddress: {0}", symbol.getAliasedString());
+          return true;
+      }
+      return false;
     }
 
     public boolean isForceProcAddressGen4All() {
@@ -298,9 +309,25 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         return procAddressNameConverter.convert(funcName);
     }
 
-    public boolean forceProcAddressGen(final String funcName) {
-        return forceProcAddressGen4All || forceProcAddressGenSet.contains(funcName);
+    public boolean forceProcAddressGen(final AliasedSymbol symbol) {
+        if( forceProcAddressGen4All ) {
+            if(!forceProcAddressGen4AllOnce) {
+                forceProcAddressGen4AllOnce = true;
+                LOG.log(INFO, "Force ALL ProcAddress");
+            }
+            return true;
+        }
+
+        if ( forceProcAddressGenSet.contains( symbol.getName() ) ||
+             oneInSet(forceProcAddressGenSet, symbol.getAliasedNames())
+           )
+        {
+            LOG.log(INFO, "Force ProcAddress: {0}", symbol.getAliasedString());
+            return true;
+        }
+        return false;
     }
+    private static boolean forceProcAddressGen4AllOnce = false;
 
     public void addForceProcAddressGen(final String funcName) {
         forceProcAddressGen.add(funcName);
@@ -311,11 +338,15 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         localProcAddressCallingConventionMap.put(funcName, callingConvention);
     }
 
-    public String getLocalProcAddressCallingConvention(final String funcName) {
-        if (isLocalProcAddressCallingConvention4All()) {
+    public String getLocalProcAddressCallingConvention(final AliasedSymbol symbol) {
+        if ( isLocalProcAddressCallingConvention4All() ) {
             return getLocalProcAddressCallingConvention4All();
         }
-        return localProcAddressCallingConventionMap.get(funcName);
+        final String res = localProcAddressCallingConventionMap.get(symbol.getName());
+        if( null != res ) {
+            return res;
+        }
+        return oneInMap(localProcAddressCallingConventionMap, symbol.getAliasedNames());
     }
 
     public boolean isLocalProcAddressCallingConvention4All() {

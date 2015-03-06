@@ -85,6 +85,10 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 emitter.getConfiguration()
         );
 
+        if( needsLocalTypedef && !callThroughProcAddress ) {
+            throw new IllegalArgumentException("needsLocalTypedef=true, but callThroughProcAddress=false for "+methodToWrap.toString());
+        }
+
         if (methodToWrap.getReturnValueCapacityExpression() != null) {
             setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
         }
