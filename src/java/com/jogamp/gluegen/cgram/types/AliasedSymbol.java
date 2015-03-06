@@ -42,13 +42,19 @@ public interface AliasedSymbol {
      * to the list of {@link #getAliasedNames() aliases}.
      * while the given {@code newName} will be removed.
      * </p>
-     * @param newName the new {@link #getName() current-name}
+     * <p>
+     * Operation will be ignored if {@code newName} is {@code null}.
+     * </p>
+     * @param newName the new {@link #getName() current-name}, maybe {@code null}
      */
     void rename(final String newName);
     /**
      * Add the given {@code origName} to the list of {@link #getAliasedNames() aliases}
      * if not equal {@link #getName() current-name}.
-     * @param origName the new alias to be added
+     * <p>
+     * Operation will be ignored if {@code newName} is {@code null}.
+     * </p>
+     * @param origName the new alias to be added, maybe {@code null}
      */
     void addAliasedName(final String origName);
     /**
@@ -94,13 +100,16 @@ public interface AliasedSymbol {
         private String name;
 
         public AliasedSymbolImpl(final String origName) {
+            if( null == origName ) {
+                throw new IllegalArgumentException("Null origName not allowed");
+            }
             this.origName = origName;
             this.aliasedNames=new HashSet<String>();
             this.name = origName;
         }
         @Override
         public void rename(final String newName) {
-            if( !name.equals(newName) ) {
+            if( null != newName && !name.equals(newName) ) {
                 aliasedNames.add(name);
                 aliasedNames.remove(newName);
                 name = newName;
@@ -108,7 +117,7 @@ public interface AliasedSymbol {
         }
         @Override
         public void addAliasedName(final String origName) {
-            if( !name.equals(origName) ) {
+            if( null != origName && !name.equals(origName) ) {
                 aliasedNames.add(origName);
             }
         }

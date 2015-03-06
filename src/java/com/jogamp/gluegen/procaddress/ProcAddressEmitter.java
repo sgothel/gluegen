@@ -178,7 +178,7 @@ public class ProcAddressEmitter extends JavaEmitter {
      * whether or not the typedef is actually defined.
      */
     protected String getFunctionPointerTypedefName(final FunctionSymbol sym) {
-        return getProcAddressConfig().convertToFunctionPointerName(sym.getName());
+        return getProcAddressConfig().convertToFunctionPointerName(sym.getOrigName());
     }
 
     //----------------------------------------------------------------------

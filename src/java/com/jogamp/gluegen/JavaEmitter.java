@@ -1151,9 +1151,11 @@ public class JavaEmitter implements GlueEmitter {
           System.err.printf("SE.ac.%02d: %s / %s, %s%n", (i+1), field, cfgFieldName1, fieldType.getDebugString());
         }
         if (fieldType.isFunctionPointer()) {
+            final FunctionSymbol func = new FunctionSymbol(field.getName(), fieldType.asPointer().getTargetType().asFunction());
+            func.rename(renamed); // null is OK
             generateFunctionPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
                                         containingCType, containingJType, i,
-                                        new FunctionSymbol(fieldName, fieldType.asPointer().getTargetType().asFunction()), cfgFieldName1);
+                                        func, cfgFieldName1);
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate a name?)
