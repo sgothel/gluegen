@@ -607,9 +607,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // FIXME: if the arg type is non-const, the sematics might be that
             // the function modifies the argument -- we don't yet support
             // this.
-            throw new RuntimeException(
-              "Cannot copy data for ptr-to-ptr arg type \"" + cArgType +
-              "\": support for non-const ptr-to-ptr types not implemented.");
+            throw new GlueGenException(
+              "Cannot copy data for ptr-to-ptr arg type \"" + cArgType.getDebugString() +
+              "\": support for non-const ptr-to-ptr types not implemented: "+binding, binding.getCSymbol().getASTLocusTag());
           }
 
           writer.println();
@@ -653,9 +653,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                   error = 100;
               }
               if( 0 < error ) {
-                throw new RuntimeException(
-                  "Could not copy data for type \"" + cArgType +
-                  "\"; currently only pointer- and array-types are supported. (error "+error+")");
+                throw new GlueGenException(
+                  "Could not copy data for type \"" + cArgType.getDebugString() +
+                  "\"; currently only pointer- and array-types are supported. (error "+error+"): "+binding,
+                  binding.getCSymbol().getASTLocusTag());
               }
           }
           emitMalloc(
@@ -715,7 +716,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                        null, true);
           } else {
             if( null == cArgElementType2 ) {
-                throw new RuntimeException("XXX: Type "+cArgType+" not properly handled as ptr-to-ptr");
+                throw new GlueGenException("XXX: Type "+cArgType.getDebugString()+" not properly handled as ptr-to-ptr: "+binding,
+                                           binding.getCSymbol().getASTLocusTag());
             }
             // Question: do we always need to copy the sub-arrays, or just
             // GetPrimitiveArrayCritical on each jobjectarray element and
@@ -732,8 +734,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                        "Could not allocate buffer during copying of data in argument \\\""+javaArgName+"\\\"");
             // FIXME: copy the data (use matched Get/ReleasePrimitiveArrayCritical() calls)
             if (true) {
-                throw new RuntimeException("Cannot yet handle type \"" + cArgType.getCName() +
-                              "\"; need to add support for copying ptr-to-ptr-to-primitiveType subarrays");
+                throw new GlueGenException("Cannot yet handle type \"" + cArgType.getDebugString() +
+                                           "\"; need to add support for copying ptr-to-ptr-to-primitiveType subarrays: "+binding,
+                                           binding.getCSymbol().getASTLocusTag());
             }
 
           }
@@ -817,9 +820,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                           null);
               writer.println("    }");
             } else {
-              throw new RuntimeException(
-                "Cannot clean up copied data for ptr-to-ptr arg type \"" + cArgType +
-                "\": support for cleaning up most non-const ptr-to-ptr types not implemented.");
+              throw new GlueGenException(
+                "Cannot clean up copied data for ptr-to-ptr arg type \"" + cArgType.getDebugString() +
+                "\": support for cleaning up most non-const ptr-to-ptr types not implemented.",
+                binding.getCSymbol().getASTLocusTag());
             }
           }
 
@@ -840,9 +844,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // free each element
             final PointerType cArgPtrType = cArgType.asPointer();
             if (cArgPtrType == null) {
-              throw new RuntimeException(
-                "Could not copy data for type \"" + cArgType +
-                "\"; currently only pointer types supported.");
+              throw new GlueGenException(
+                "Could not copy data for type \"" + cArgType.getDebugString() +
+                "\"; currently only pointer types supported.",
+                binding.getCSymbol().getASTLocusTag());
             }
 
             // process each element in the array
@@ -861,9 +866,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               writer.print(convName+"_copy[_copyIndex]");
               writer.println(");");
             } else {
-              if (true) throw new RuntimeException(
-                "Cannot yet handle type \"" + cArgType.getCName() +
-                "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays");
+              if (true) throw new GlueGenException(
+                "Cannot yet handle type \"" + cArgType.getDebugString() +
+                "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays",
+                binding.getCSymbol().getASTLocusTag());
             }
             writer.println("    }");
           }
@@ -1047,12 +1053,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                 {
                     // fully declared non-anonymous struct pointer: pass content
                     if ( cReturnTargetType.getSize() == null ) {
-                      throw new RuntimeException(
+                      throw new GlueGenException(
                         "Error emitting code for compound return type "+
                         "for function \"" + binding + "\": " +
                         "Structs to be emitted should have been laid out by this point " +
                         "(type " + cReturnTargetType.getCName() + " / " +
-                        cReturnTargetType.getDebugString() + " was not) for "+binding
+                        cReturnTargetType.getDebugString() + " was not) for "+binding,
+                        binding.getCSymbol().getASTLocusTag()
                       );
                     }
                     writer.println("sizeof(" + cReturnTargetType.getCName() + ") );");
@@ -1103,8 +1110,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                  (javaReturnType.isArray() && javaReturnType.isNIOByteBufferArray())) {
         writer.println("  if (NULL == _res) return NULL;");
         if (returnValueLengthExpression == null) {
-          throw new RuntimeException("Error while generating C code: no length specified for array returned from function " +
-                                     binding);
+          throw new GlueGenException("Error while generating C code: no length specified for array returned from function " +
+                                      binding, binding.getCSymbol().getASTLocusTag());
         }
         writer.println("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNameArray()) + ";");
         writer.println("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
@@ -1126,9 +1133,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         // expression which computes the array size (already present
         // as ReturnValueCapacity, not yet implemented / tested here)
 
-        throw new RuntimeException(
+        throw new GlueGenException(
                                    "Could not emit native code for function \"" + binding +
-                                   "\": array return values for non-char types not implemented yet, for "+binding);
+                                   "\": array return values for non-char types not implemented yet, for "+binding,
+                                   binding.getCSymbol().getASTLocusTag());
 
         // FIXME: This is approximately what will be required here
         //
@@ -1150,8 +1158,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         //writer.print(arrayRes);
         //writer.println(";");
       } else {
-        System.err.print("Unhandled return type: "+javaReturnType.getDebugString());
-        throw new RuntimeException("Unhandled return type: "+javaReturnType.getDebugString()+" for "+binding);
+        throw new GlueGenException("Unhandled return type: "+javaReturnType.getDebugString()+" for "+binding,
+                                   binding.getCSymbol().getReturnType().getASTLocusTag());
       }
     }
   }
@@ -1178,7 +1186,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         // We should only see "void" as the first argument of a 1-argument function
         // FIXME: should normalize this in the parser
         if ((i != 0) || (binding.getNumArguments() > 1)) {
-          throw new RuntimeException("Saw illegal \"void\" argument while emitting \"" + getName() + "\"");
+          throw new GlueGenException("Saw illegal \"void\" argument while emitting arg "+i+" of "+binding,
+                                     binding.getCArgumentType(i).getASTLocusTag());
         }
       } else {
         Class<?> c = type.getJavaClass();
@@ -1210,7 +1219,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           // These are not exposed at the Java level
         } else {
           // FIXME: add support for char* -> String conversion
-          throw new RuntimeException("Unknown kind of JavaType: name="+type.getName());
+          throw new GlueGenException("Unknown kind of JavaType: arg "+i+", name="+type.getName()+" of "+binding,
+                                     binding.getCArgumentType(i).getASTLocusTag());
         }
       }
     }
@@ -1450,12 +1460,12 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           } else {
             // type is pointer to pointer of some type we don't support (maybe
             // it's an array of pointers to structs?)
-            throw new RuntimeException("Unsupported pointer type: \"" + cType.getCName() + "\"");
+            throw new GlueGenException("Unsupported pointer type: \"" + cType.getDebugString() + "\"", cType.getASTLocusTag());
           }
         } else {
           // type is pointer to pointer of some type we don't support (maybe
           // it's an array of pointers to structs?)
-          throw new RuntimeException("Unsupported pointer type: \"" + cType.getCName() + "\"");
+          throw new GlueGenException("Unsupported pointer type: \"" + cType.getDebugString() + "\"", cType.getASTLocusTag());
         }
       }
     } else {

@@ -42,6 +42,8 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.*;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 /** Models all compound types, i.e., those containing fields: structs
     and unions. The boolean type accessors indicate how the type is
     really defined. */
@@ -59,8 +61,9 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
    * @param cvAttributes
    * @param structName
    */
-  CompoundType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
-    super(name, size, cvAttributes);
+  CompoundType(final String name, final SizeThunk size, final int cvAttributes,
+               final String structName, final ASTLocusTag astLocus) {
+    super(name, size, cvAttributes, astLocus);
     this.structName = structName;
   }
 
@@ -96,15 +99,17 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
    * @param cvAttributes
    * @return
    */
-  public static CompoundType create(final String structName, final SizeThunk size, final CompoundTypeKind kind, final int cvAttributes)
+  public static CompoundType create(final String structName, final SizeThunk size,
+                                    final CompoundTypeKind kind, final int cvAttributes,
+                                    final ASTLocusTag astLocus)
   {
     final CompoundType res;
     switch (kind) {
       case STRUCT:
-          res = new StructType(null, size, cvAttributes, structName);
+          res = new StructType(null, size, cvAttributes, structName, astLocus);
           break;
       case UNION:
-          res = new UnionType(null, size, cvAttributes, structName);
+          res = new UnionType(null, size, cvAttributes, structName, astLocus);
           break;
       default:
           throw new RuntimeException("OO relation "+kind+" / Compount not yet supported");
@@ -165,7 +170,7 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
 
   @Override
   public String getCName(final boolean includeCVAttrs) {
-      if( hasTypedefName() ) {
+      if( isTypedef() ) {
           return getName(includeCVAttrs);
       } else {
           return (isStruct() ? "struct " : "union ")+getName(includeCVAttrs);

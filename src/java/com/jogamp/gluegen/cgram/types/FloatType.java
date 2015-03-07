@@ -40,11 +40,13 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 /** Represents a single-word floating-point type (C type "float".) */
 
 public class FloatType extends PrimitiveType implements Cloneable {
-  public FloatType(final String name, final SizeThunk size, final int cvAttributes) {
-    super(name, size, cvAttributes);
+  public FloatType(final String name, final SizeThunk size, final int cvAttributes, final ASTLocusTag astLocus) {
+    super(name, size, cvAttributes, astLocus);
   }
 
   @Override
@@ -72,6 +74,10 @@ public class FloatType extends PrimitiveType implements Cloneable {
 
   @Override
   Type newCVVariant(final int cvAttributes) {
-    return new FloatType(getName(), getSize(), cvAttributes);
+    final Type t = new FloatType(getName(), getSize(), cvAttributes, astLocus);
+    if( isTypedef() ) {
+        t.setTypedef(getTypedefCVAttributes());
+    }
+    return t;
   }
 }

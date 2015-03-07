@@ -73,6 +73,8 @@ public class GlueGen implements GlueEmitterControls {
 
     private static Level logLevel = null;
 
+    public static void setDebug(final boolean v) { debug=v; }
+    public static void setLogLevel(final Level l) { logLevel=l; }
     public static boolean debug() { return debug; }
 
     @Override
@@ -330,12 +332,12 @@ public class GlueGen implements GlueEmitterControls {
             for (final Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
                 final Type t = iter.next();
                 if (t.isCompound()) {
-                    assert t.hasTypedefName() && t.getName() == null : "ReferencedStructs incorrectly recorded compound type " + t;
+                    assert t.isTypedef() && t.getName() == null : "ReferencedStructs incorrectly recorded compound type " + t;
                     emit.emitStruct(t.asCompound(), null);
                 } else if (t.isPointer()) {
                     final PointerType p = t.asPointer();
                     final CompoundType c = p.getTargetType().asCompound();
-                    assert p.hasTypedefName() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
+                    assert p.isTypedef() && c.getName() == null : "ReferencedStructs incorrectly recorded pointer type " + p;
                     emit.emitStruct(c, p);
                 }
             }

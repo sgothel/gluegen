@@ -134,7 +134,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 // We (probably) didn't get a typedef for this function
                 // pointer type in the header file; the user requested that we
                 // forcibly generate one. Here we force the emission of one.
-                final PointerType funcPtrType = new PointerType(null, cSym.getType(), 0, null);
+                final PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
                 // Just for safety, emit this name slightly differently than
                 // the mangling would otherwise produce
                 funcPointerTypedefName = "_local_" + funcPointerTypedefName;

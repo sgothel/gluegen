@@ -40,7 +40,7 @@
 
 package com.jogamp.gluegen.cgram.types;
 
-import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
+import com.jogamp.gluegen.ASTLocusTag;
 
 /** Represents a bitfield in a struct. */
 
@@ -49,8 +49,9 @@ public class BitType extends IntType implements Cloneable {
   private final int sizeInBits;
   private final int offset;
 
-  public BitType(final IntType underlyingType, final int sizeInBits, final int lsbOffset, final int cvAttributes) {
-    super(underlyingType.getName(), underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes);
+  public BitType(final IntType underlyingType, final int sizeInBits, final int lsbOffset,
+                 final int cvAttributes, final ASTLocusTag astLocus) {
+    super(underlyingType.getName(), underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes, astLocus);
     this.underlyingType = underlyingType;
     this.sizeInBits = sizeInBits;
     this.offset = lsbOffset;
@@ -110,6 +111,10 @@ public class BitType extends IntType implements Cloneable {
 
   @Override
   Type newCVVariant(final int cvAttributes) {
-    return new BitType(underlyingType, sizeInBits, offset, cvAttributes);
+    final Type t = new BitType(underlyingType, sizeInBits, offset, cvAttributes, astLocus);
+    if( isTypedef() ) {
+        t.setTypedef(getTypedefCVAttributes());
+    }
+    return t;
   }
 }

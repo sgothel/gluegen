@@ -27,14 +27,12 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 public class StructType extends CompoundType {
 
-  public StructType(final String name, final SizeThunk size, final int cvAttributes) {
-      this(name, size, cvAttributes, null);
-  }
-
-  StructType(final String name, final SizeThunk size, final int cvAttributes, final String structName) {
-    super (name, size, cvAttributes, structName);
+  StructType(final String name, final SizeThunk size, final int cvAttributes, final String structName, final ASTLocusTag astLocus) {
+    super (name, size, cvAttributes, structName, astLocus);
   }
 
   @Override
@@ -44,10 +42,10 @@ public class StructType extends CompoundType {
 
   @Override
   Type newCVVariant(final int cvAttributes) {
-    final StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName());
+    final StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName(), astLocus);
     t.setFields(getFields());
-    if( hasTypedefName() ) {
-        t.setTypedefName( getName() );
+    if( isTypedef() ) {
+        t.setTypedef(getTypedefCVAttributes());
     }
     return t;
   }

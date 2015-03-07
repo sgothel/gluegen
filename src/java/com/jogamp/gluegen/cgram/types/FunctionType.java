@@ -41,7 +41,7 @@ package com.jogamp.gluegen.cgram.types;
 
 import java.util.*;
 
-import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
+import com.jogamp.gluegen.ASTLocusTag;
 
 /** Describes a function type, used to model both function
 declarations and (via PointerType) function pointers. */
@@ -51,8 +51,13 @@ public class FunctionType extends Type implements Cloneable {
     private ArrayList<Type> argumentTypes;
     private ArrayList<String> argumentNames;
 
-    public FunctionType(final String name, final SizeThunk size, final Type returnType, final int cvAttributes) {
-        super(name, size, cvAttributes);
+    public FunctionType(final String name, final SizeThunk size, final Type returnType,
+                        final int cvAttributes) {
+        this(name, size, returnType, cvAttributes, null);
+    }
+    public FunctionType(final String name, final SizeThunk size, final Type returnType,
+                        final int cvAttributes, final ASTLocusTag astLocus) {
+        super(name, size, cvAttributes, astLocus);
         this.returnType = returnType;
     }
 

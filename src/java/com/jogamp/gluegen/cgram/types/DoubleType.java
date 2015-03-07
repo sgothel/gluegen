@@ -39,11 +39,13 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 /** Represents a double-word floating-point type (C type "double".) */
 public class DoubleType extends PrimitiveType implements Cloneable {
 
-    public DoubleType(final String name, final SizeThunk size, final int cvAttributes) {
-        super(name, size, cvAttributes);
+    public DoubleType(final String name, final SizeThunk size, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(name, size, cvAttributes, astLocus);
     }
 
     @Override
@@ -73,6 +75,10 @@ public class DoubleType extends PrimitiveType implements Cloneable {
 
     @Override
     Type newCVVariant(final int cvAttributes) {
-        return new DoubleType(getName(), getSize(), cvAttributes);
+        final Type t = new DoubleType(getName(), getSize(), cvAttributes, astLocus);
+        if( isTypedef() ) {
+            t.setTypedef(getTypedefCVAttributes());
+        }
+        return t;
     }
 }

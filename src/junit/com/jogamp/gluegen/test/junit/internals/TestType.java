@@ -43,10 +43,10 @@ public class TestType extends SingletonJunitCase {
 
     @Test
     public void test01Equals() {
-        final FloatType f1 = new FloatType("GLfloat", null, 0);
-        final FloatType f2 = new FloatType("float", null, 0);
-        final IntType i1 = new IntType("GLint", null, false, 0);
-        final IntType i2 = new IntType("int", null, false, 0);
+        final FloatType f1 = new FloatType("GLfloat", null, 0, null);
+        final FloatType f2 = new FloatType("float", null, 0, null);
+        final IntType i1 = new IntType("GLint", null, false, 0, null);
+        final IntType i2 = new IntType("int", null, false, 0, null);
         final int f1H = f1.hashCode();
         final int f2H = f2.hashCode();
         final int i1H = i1.hashCode();

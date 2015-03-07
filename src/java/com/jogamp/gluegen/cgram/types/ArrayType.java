@@ -40,6 +40,8 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 /** Represents an array type. This differs from a pointer type in C
     syntax by the use of "[]" rather than "*". The length may or may
     not be known; if the length is unknown then a negative number
@@ -49,8 +51,13 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   private final Type elementType;
   private final int length;
 
-  public ArrayType(final Type elementType, final SizeThunk sizeInBytes, final int length, final int cvAttributes) {
-    super(elementType.getName() + " *", sizeInBytes, cvAttributes);
+  public ArrayType(final Type elementType, final SizeThunk sizeInBytes, final int length,
+                   final int cvAttributes) {
+    this(elementType, sizeInBytes, length, cvAttributes, null);
+  }
+  public ArrayType(final Type elementType, final SizeThunk sizeInBytes, final int length,
+                   final int cvAttributes, final ASTLocusTag astLocus) {
+    super(elementType.getName() + " *", sizeInBytes, cvAttributes, astLocus);
     this.elementType = elementType;
     this.length      = length;
   }
@@ -147,6 +154,10 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
 
   @Override
   Type newCVVariant(final int cvAttributes) {
-    return new ArrayType(elementType, getSize(), length, cvAttributes);
+    final Type t = new ArrayType(elementType, getSize(), length, cvAttributes, astLocus);
+    if( isTypedef() ) {
+        t.setTypedef(getTypedefCVAttributes());
+    }
+    return t;
   }
 }

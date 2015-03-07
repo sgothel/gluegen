@@ -58,7 +58,7 @@ public class ReferencedStructs implements TypeVisitor {
   public void visitType(final Type t) {
     if (t.isPointer()) {
       final PointerType p = t.asPointer();
-      if (p.hasTypedefName()) {
+      if (p.isTypedef()) {
         final CompoundType c = p.getTargetType().asCompound();
         if (c != null && c.getName() == null) {
           // This otherwise-unnamed CompoundType is referred to by a

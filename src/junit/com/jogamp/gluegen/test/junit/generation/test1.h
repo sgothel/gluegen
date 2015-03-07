@@ -365,7 +365,7 @@ typedef struct {
     const int32_t structPointerCustomLenVal;
     const TK_Dimension * structPointerOneElem;
 
-    const TK_Context ctx;
+    TK_Context ctx;
 
     const char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
     const char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */

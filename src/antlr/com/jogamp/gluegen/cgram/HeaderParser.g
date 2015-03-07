@@ -136,10 +136,11 @@ options {
 
     private CompoundType lookupInStructDictionary(String structName,
                                                   CompoundTypeKind kind,
-                                                  int cvAttrs) {
+                                                  int cvAttrs, final ASTLocusTag locusTag) 
+    {
         CompoundType t = (CompoundType) structDictionary.get(structName);
         if (t == null) {
-            t = CompoundType.create(structName, null, kind, cvAttrs);
+            t = CompoundType.create(structName, null, kind, cvAttrs, locusTag);
             structDictionary.put(structName, t);
         }
         return t;
@@ -300,24 +301,27 @@ options {
     private boolean isFuncDeclaration;   // Used to only process function typedefs
     private String  funcDeclName;
     private List<ParameterDeclaration> funcDeclParams;
+    private ASTLocusTag funcLocusTag;
 
     private void resetFuncDeclaration() {
         isFuncDeclaration = false;
         funcDeclName = null;
         funcDeclParams = null;
+        funcLocusTag = null;
     }
-    private void setFuncDeclaration(final String name, final List<ParameterDeclaration> p) {
+    private void setFuncDeclaration(final String name, final List<ParameterDeclaration> p, final ASTLocusTag locusTag) {
         isFuncDeclaration = true;
         funcDeclName = name;
         funcDeclParams = p;
+        funcLocusTag = locusTag;
     }
 
-    private void processDeclaration(Type returnType, ASTLocusTag locusTag) {
+    private void processDeclaration(Type returnType) {
         if (isFuncDeclaration) {
             final FunctionSymbol sym = new FunctionSymbol(funcDeclName, 
-                                                          new FunctionType(null, null, resolveAnonCompound(returnType), 0),
-                                                          locusTag);
-            debugPrintln("Function ... "+sym.toString()+" @ "+locusTag);
+                                                          new FunctionType(null, null, resolveAnonCompound(returnType), 0, funcLocusTag),
+                                                          funcLocusTag);
+            debugPrintln("Function ... "+sym.toString()+" @ "+funcLocusTag);
             if (funcDeclParams != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
                 for (Iterator<ParameterDeclaration> iter = funcDeclParams.iterator(); iter.hasNext(); ) {
                     ParameterDeclaration pd = iter.next();
@@ -326,7 +330,7 @@ options {
                     sym.addArgument(pd.type(), pd.id());
                 }
             }
-            debugPrintln("Function Added "+sym.toString()+" @ "+locusTag);
+            debugPrintln("Function Added "+sym.toString());
             functions.add(sym);
             resetFuncDeclaration();
         }
@@ -345,18 +349,18 @@ options {
 
     /** Helper routine which handles creating a pointer or array type
         for [] expressions */
-    private void handleArrayExpr(TypeBox tb, AST t) {
+    private void handleArrayExpr(TypeBox tb, AST t, ASTLocusTag locusTag) {
         if (t != null) {
             try {
                 final int len = parseIntConstExpr(t);
-                tb.setType(canonicalize(new ArrayType(tb.type(), SizeThunk.mul(SizeThunk.constant(len), tb.type().getSize()), len, 0)));
+                tb.setType(canonicalize(new ArrayType(tb.type(), SizeThunk.mul(SizeThunk.constant(len), tb.type().getSize()), len, 0, locusTag)));
                 return;
             } catch (RecognitionException e) {
                 // Fall through
             }
         }
         tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
-                                                tb.type(), 0, null)));
+                                                tb.type(), 0, locusTag)));
     }
 
     private int parseIntConstExpr(AST t) throws RecognitionException {
@@ -365,7 +369,7 @@ options {
 
   /** Utility function: creates a new EnumType with the given name, or
           returns an existing one if it has already been created. */
-    private EnumType getEnumType(String enumTypeName, ASTLocusTag locus) {
+    private EnumType getEnumType(String enumTypeName, ASTLocusTag locusTag) {
         EnumType enumType = null;
         Iterator<EnumType> it = enumHash.values().iterator(); 
         while (it.hasNext()) {
@@ -382,7 +386,7 @@ options {
           // entry the enum should expand to e.g. int64. However, using
           // "long" here (which is what used to be the case) was 
           // definitely incorrect and caused problems.
-          enumType = new EnumType(enumTypeName, SizeThunk.INT32, locus);
+          enumType = new EnumType(enumTypeName, SizeThunk.INT32, locusTag);
         }  
         
         return enumType;
@@ -458,6 +462,7 @@ declarator[TypeBox tb] returns [String s] {
     List<ParameterDeclaration> params = null;
     String funcPointerName = null;
     TypeBox dummyTypeBox = null;
+    final ASTLocusTag locusTag = findASTLocusTag(declarator_AST_in);
 }
         :   #( NDeclarator
                 ( pointerGroup[tb] )?
@@ -474,17 +479,17 @@ declarator[TypeBox tb] returns [String s] {
                       RPAREN
                     )  {
                            if (id != null) {
-                               setFuncDeclaration(id.getText(), params);
+                               setFuncDeclaration(id.getText(), params, locusTag);
                            } else if ( funcPointerName != null ) {
                                /* TypeBox becomes function pointer in this case */
-                               FunctionType ft = new FunctionType(null, null, tb.type(), 0);
+                               final FunctionType ft = new FunctionType(null, null, tb.type(), 0, locusTag);
                                if (params == null) {
                                    // If the function pointer has no declared parameters, it's a 
                                    // void function. I'm not sure if the parameter name is 
                                    // ever referenced anywhere when the type is VoidType, so
                                    // just in case I'll set it to a comment string so it will
                                    // still compile if written out to code anywhere.
-                                   ft.addArgument(new VoidType(0), "/*unnamed-void*/");
+                                   ft.addArgument(new VoidType(0, locusTag), "/*unnamed-void*/");
                                } else {
                                    for (Iterator iter = params.iterator(); iter.hasNext(); ) {
                                        ParameterDeclaration pd = (ParameterDeclaration) iter.next();
@@ -492,11 +497,11 @@ declarator[TypeBox tb] returns [String s] {
                                    }
                                }
                                tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
-                                                                       ft, 0, null)));
+                                                                       ft, 0, locusTag)));
                                s = funcPointerName;
                            }
                        }
-                 | LBRACKET ( e:expr )? RBRACKET { handleArrayExpr(tb, e); }
+                 | LBRACKET ( e:expr )? RBRACKET { handleArrayExpr(tb, e, locusTag); }
                 )*
              )
         ;
@@ -516,7 +521,7 @@ declaration {
                         initDeclList[tb] 
                     )?
                     ( SEMI )+
-                ) { processDeclaration(tb.type(), findASTLocusTag(declaration_AST_in)); }
+                ) { processDeclaration(tb.type()); }
         ;
 
 parameterTypeList returns [List<ParameterDeclaration> l] { l = new ArrayList<ParameterDeclaration>(); ParameterDeclaration decl = null; }
@@ -559,7 +564,10 @@ declSpecifiers returns [TypeBox tb] {
 {
             if (t == null &&
                 (x & (SIGNED | UNSIGNED)) != 0) {
-                t = new IntType("int", SizeThunk.INTxx, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
+                t = new IntType("int", SizeThunk.INTxx, 
+                                ((x & UNSIGNED) != 0), 
+                                attrs2CVAttrs(x),
+                                findASTLocusTag(declSpecifiers_AST_in));
             }
             tb = new TypeBox(t, ((x & TYPEDEF) != 0));
 }
@@ -590,30 +598,35 @@ typeQualifier returns [int x] { x = 0; }
 typeSpecifier[int attributes] returns [Type t] {
     t = null;
     int cvAttrs = attrs2CVAttrs(attributes);
-    boolean unsigned = ((attributes & UNSIGNED) != 0);
+    boolean unsig = ((attributes & UNSIGNED) != 0);
+    final ASTLocusTag locusTag = findASTLocusTag(typeSpecifier_AST_in);
 }
-        :       "void"      { t = new VoidType(cvAttrs); }
-        |       "char"      { t = new IntType("char" , SizeThunk.INT8,  unsigned, cvAttrs); }
-        |       "short"     { t = new IntType("short", SizeThunk.INT16, unsigned, cvAttrs); }
-        |       "int"       { t = new IntType("int"  , SizeThunk.INTxx, unsigned, cvAttrs); }
-        |       "long"      { t = new IntType("long" , SizeThunk.LONG,  unsigned, cvAttrs); }
-        |       "float"     { t = new FloatType("float", SizeThunk.FLOAT, cvAttrs); }
-        |       "double"    { t = new DoubleType("double", SizeThunk.DOUBLE, cvAttrs); }
-        |       "__int32"   { t = new IntType("__int32", SizeThunk.INT32, unsigned, cvAttrs); }
-        |       "__int64"   { t = new IntType("__int64", SizeThunk.INT64, unsigned, cvAttrs); }
-        |       "int8_t"    { t = new IntType("int8_t", SizeThunk.INT8, false, cvAttrs); /* TS: always signed */ }
-        |       "uint8_t"   { t = new IntType("uint8_t", SizeThunk.INT8, true, cvAttrs); /* TS: always unsigned */ }
-        |       "int16_t"   { t = new IntType("int16_t", SizeThunk.INT16, false, cvAttrs); /* TS: always signed */ }
-        |       "uint16_t"  { t = new IntType("uint16_t", SizeThunk.INT16, true, cvAttrs); /* TS: always unsigned */ }
-        |       "int32_t"   { t = new IntType("int32_t", SizeThunk.INT32, false, cvAttrs); /* TS: always signed */ }
-        |       "wchar_t"   { t = new IntType("wchar_t", SizeThunk.INT32, false, cvAttrs); /* TS: always signed */ }
-        |       "uint32_t"  { t = new IntType("uint32_t", SizeThunk.INT32, true, cvAttrs, true); /* TS: always unsigned */ }
-        |       "int64_t"   { t = new IntType("int64_t", SizeThunk.INT64, false, cvAttrs); /* TS: always signed */ }
-        |       "uint64_t"  { t = new IntType("uint64_t", SizeThunk.INT64, true, cvAttrs, true); /* TS: always unsigned */ }
-        |       "ptrdiff_t" { t = new IntType("ptrdiff_t", SizeThunk.POINTER, false, cvAttrs); /* TS: always signed */ }
-        |       "intptr_t"  { t = new IntType("intptr_t", SizeThunk.POINTER, false, cvAttrs); /* TS: always signed */ }
-        |       "size_t"    { t = new IntType("size_t", SizeThunk.POINTER, true, cvAttrs, true); /* TS: always unsigned */ }
-        |       "uintptr_t" { t = new IntType("uintptr_t", SizeThunk.POINTER, true, cvAttrs, true); /* TS: always unsigned */ }
+        //
+        //                                                                                    TYPEDEF
+        //                                                                    UNSIGNED        |
+        //      TOKEN                 TYPE    NAME         SIZE               |      ATTRIBS  |      LOCUS
+        :       "void"      { t = new VoidType(                                      cvAttrs,        locusTag); }
+        |       "char"      { t = new IntType("char" ,     SizeThunk.INT8,    unsig, cvAttrs, false, locusTag); }
+        |       "short"     { t = new IntType("short",     SizeThunk.INT16,   unsig, cvAttrs, false, locusTag); }
+        |       "int"       { t = new IntType("int"  ,     SizeThunk.INTxx,   unsig, cvAttrs, false, locusTag); }
+        |       "long"      { t = new IntType("long" ,     SizeThunk.LONG,    unsig, cvAttrs, false, locusTag); }
+        |       "float"     { t = new FloatType("float",   SizeThunk.FLOAT,          cvAttrs,        locusTag); }
+        |       "double"    { t = new DoubleType("double", SizeThunk.DOUBLE,         cvAttrs,        locusTag); }
+        |       "__int32"   { t = new IntType("__int32",   SizeThunk.INT32,   unsig, cvAttrs, false, locusTag); }
+        |       "__int64"   { t = new IntType("__int64",   SizeThunk.INT64,   unsig, cvAttrs, false, locusTag); }
+        |       "int8_t"    { t = new IntType("int8_t",    SizeThunk.INT8,    false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "uint8_t"   { t = new IntType("uint8_t",   SizeThunk.INT8,    true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
+        |       "int16_t"   { t = new IntType("int16_t",   SizeThunk.INT16,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "uint16_t"  { t = new IntType("uint16_t",  SizeThunk.INT16,   true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
+        |       "int32_t"   { t = new IntType("int32_t",   SizeThunk.INT32,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "wchar_t"   { t = new IntType("wchar_t",   SizeThunk.INT32,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "uint32_t"  { t = new IntType("uint32_t",  SizeThunk.INT32,   true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
+        |       "int64_t"   { t = new IntType("int64_t",   SizeThunk.INT64,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "uint64_t"  { t = new IntType("uint64_t",  SizeThunk.INT64,   true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
+        |       "ptrdiff_t" { t = new IntType("ptrdiff_t", SizeThunk.POINTER, false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "intptr_t"  { t = new IntType("intptr_t",  SizeThunk.POINTER, false, cvAttrs, true,  locusTag); }  /* TS: always signed */
+        |       "size_t"    { t = new IntType("size_t",    SizeThunk.POINTER, true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
+        |       "uintptr_t" { t = new IntType("uintptr_t", SizeThunk.POINTER, true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
         |       t = structSpecifier[cvAttrs] ( attributeDecl )*
         |       t = unionSpecifier [cvAttrs] ( attributeDecl )*
         |       t = enumSpecifier  [cvAttrs] 
@@ -650,20 +663,21 @@ unionSpecifier[int cvAttrs] returns [Type t] { t = null; }
 structOrUnionBody[CompoundTypeKind kind, int cvAttrs] returns [CompoundType t] {
     t = null;
     boolean addedAny = false;
+    final ASTLocusTag locusTag = findASTLocusTag(structOrUnionBody_AST_in);
 }
         :       ( (ID LCURLY) => id:ID LCURLY {
                     // fully declared struct, i.e. not anonymous
-                    t = (CompoundType) canonicalize(lookupInStructDictionary(id.getText(), kind, cvAttrs));
+                    t = (CompoundType) canonicalize(lookupInStructDictionary(id.getText(), kind, cvAttrs, locusTag));
                   } ( addedAny = structDeclarationList[t] )?
                     RCURLY { t.setBodyParsed(addedAny); }
                 |   LCURLY { 
                       // anonymous declared struct
-                      t = CompoundType.create(null, null, kind, cvAttrs); 
+                      t = CompoundType.create(null, null, kind, cvAttrs, locusTag); 
                     } ( structDeclarationList[t] )?
                     RCURLY { t.setBodyParsed(false); }
                 | id2:ID { 
                       // anonymous struct
-                      t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs)); 
+                      t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs, locusTag)); 
                     }
                 )
         ;
@@ -701,7 +715,8 @@ specifierQualifierList returns [Type t] {
                 )+ {
             if (t == null &&
                 (x & (SIGNED | UNSIGNED)) != 0) {
-                t = new IntType("int", SizeThunk.INTxx, ((x & UNSIGNED) != 0), attrs2CVAttrs(x));
+                t = new IntType("int", SizeThunk.INTxx, ((x & UNSIGNED) != 0), attrs2CVAttrs(x), 
+                                findASTLocusTag(specifierQualifierList_AST_in));
             }
 }
         ;
@@ -740,12 +755,12 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
 enumSpecifier [int cvAttrs] returns [Type t] { 
         t = null; 
         EnumType e = null;
-        ASTLocusTag locus = findASTLocusTag(enumSpecifier_AST_in);
+        ASTLocusTag locusTag = findASTLocusTag(enumSpecifier_AST_in);
 }
         :       #( "enum"
-                   ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(e = getEnumType(i.getText(), locus))] RCURLY 
-                     | LCURLY enumList[(EnumType)(e = getEnumType(ANONYMOUS_ENUM_NAME, locus))] RCURLY 
-                     | ID { e = getEnumType(i.getText(), locus); }
+                   ( ( ID LCURLY )=> i:ID LCURLY enumList[(EnumType)(e = getEnumType(i.getText(), locusTag))] RCURLY 
+                     | LCURLY enumList[(EnumType)(e = getEnumType(ANONYMOUS_ENUM_NAME, locusTag))] RCURLY 
+                     | ID { e = getEnumType(i.getText(), locusTag); }
                    ) {
                      debugPrintln("Adding enum mapping: "+getDebugTypeString(e));
                      if( null != e ) {
@@ -834,7 +849,7 @@ initDecl[TypeBox tb] {
     if ((declName != null) && (tb != null) && tb.isTypedef()) {
         Type t = tb.type();
         debugPrint("Adding typedef mapping: [" + declName + "] -> "+getDebugTypeString(t));
-        if (!t.hasTypedefName()) {
+        if (!t.isTypedef()) {
             if( t.isCompound() ) {
                 // Allow redefinition of newly defined struct, i.e. use same instance.
                 // This aliases '_a' -> 'A' for 'typedef struct _a { } A, *B;', where '*B' will become also '*A'.
@@ -890,7 +905,8 @@ pointerGroup[TypeBox tb] { int x = 0; int y = 0; }
                                         if (tb != null) {
                                             tb.setType(canonicalize(new PointerType(SizeThunk.POINTER,
                                                                                     tb.type(),
-                                                                                    attrs2CVAttrs(x), null)));
+                                                                                    attrs2CVAttrs(x), 
+                                                                                    findASTLocusTag(pointerGroup_AST_in))));
                                         }
                                     }
                                  )+ )
@@ -915,7 +931,9 @@ typeName {
 /* FIXME: the handling of types in this rule has not been well thought
    out and is known to be incomplete. Currently it is only used to handle
    pointerGroups for unnamed parameters. */
-nonemptyAbstractDeclarator[TypeBox tb]
+nonemptyAbstractDeclarator[TypeBox tb] {
+    final ASTLocusTag locusTag = findASTLocusTag(nonemptyAbstractDeclarator_AST_in);
+}
         :   #( NNonemptyAbstractDeclarator
             (   pointerGroup[tb]
                 (   (LPAREN  
@@ -923,7 +941,7 @@ nonemptyAbstractDeclarator[TypeBox tb]
                         | parameterTypeList
                     )?
                     RPAREN)
-                | (LBRACKET (e1:expr)? RBRACKET) { handleArrayExpr(tb, e1); }
+                | (LBRACKET (e1:expr)? RBRACKET) { handleArrayExpr(tb, e1, locusTag); }
                 )*
 
             |  (   (LPAREN  
@@ -931,7 +949,7 @@ nonemptyAbstractDeclarator[TypeBox tb]
                         | parameterTypeList
                     )?
                     RPAREN)
-                | (LBRACKET (e2:expr)? RBRACKET) { handleArrayExpr(tb, e2); }
+                | (LBRACKET (e2:expr)? RBRACKET) { handleArrayExpr(tb, e2, locusTag); }
                 )+
             )
             )

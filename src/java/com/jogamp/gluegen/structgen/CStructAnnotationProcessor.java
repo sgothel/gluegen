@@ -131,7 +131,11 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             if( f.exists() ) {
                 return f;
             }
-        } catch (final IOException e) { if(DEBUG) { System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */ } }
+        } catch (final IOException e) {
+            if(DEBUG) {
+                System.err.println("Caught "+e.getClass().getSimpleName()+": "+e.getMessage()); /* e.printStackTrace(); */
+            }
+        }
         return null;
     }
 
@@ -262,6 +266,9 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             reader = new BufferedReader(new FileReader(filename));
         } catch (final FileNotFoundException ex) {
             throw new RuntimeException("input file not found", ex);
+        }
+        if( DEBUG  ) {
+            GlueGen.setDebug(true);
         }
         new GlueGen().run(reader, filename, AnnotationProcessorJavaStructEmitter.class,
                           includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */);

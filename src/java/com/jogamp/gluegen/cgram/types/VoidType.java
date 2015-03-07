@@ -39,14 +39,16 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 public class VoidType extends Type implements Cloneable {
 
-    public VoidType(final int cvAttributes) {
-        this("void", cvAttributes);
+    public VoidType(final int cvAttributes, final ASTLocusTag astLocus) {
+        this("void", cvAttributes, astLocus);
     }
 
-    private VoidType(final String name, final int cvAttributes) {
-        super(name, null, cvAttributes);
+    private VoidType(final String name, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(name, null, cvAttributes, astLocus);
     }
 
     @Override
@@ -56,7 +58,11 @@ public class VoidType extends Type implements Cloneable {
 
     @Override
     Type newCVVariant(final int cvAttributes) {
-        return new VoidType(getName(), cvAttributes);
+        final Type t = new VoidType(getName(), cvAttributes, astLocus);
+        if( isTypedef() ) {
+            t.setTypedef(getTypedefCVAttributes());
+        }
+        return t;
     }
 
     @Override

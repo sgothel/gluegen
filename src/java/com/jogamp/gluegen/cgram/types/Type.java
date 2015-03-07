@@ -41,6 +41,8 @@
 package com.jogamp.gluegen.cgram.types;
 
 import com.jogamp.common.os.MachineDataInfo;
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
+import com.jogamp.gluegen.ASTLocusTag;
 import com.jogamp.gluegen.GlueGen;
 import com.jogamp.gluegen.TypeConfig;
 import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
@@ -49,36 +51,34 @@ import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
     double. All types have an associated name. Structs and unions are
     modeled as "compound" types -- composed of fields of primitive or
     other types. */
-public abstract class Type implements Cloneable, SemanticEqualityOp {
+public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTagProvider {
   public final boolean relaxedEqSem;
   private final int cvAttributes;
   private String name;
   private SizeThunk size;
-  private int typedefedCVAttributes;
-  private boolean hasTypedefName;
+  private int typedefCVAttributes;
+  private boolean isTypedef;
   private boolean hasCachedHash;
   private int cachedHash;
   private boolean hasCachedSemanticHash;
   private int cachedSemanticHash;
+  final ASTLocusTag astLocus;
 
-  protected Type(final String name, final SizeThunk size, final int cvAttributes) {
-    setName(name);
+  protected Type(final String name, final SizeThunk size, final int cvAttributes, final ASTLocusTag astLocus) {
+    setName(name); // -> clearCache()
     this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
     this.cvAttributes = cvAttributes;
     this.size = size;
-    this.typedefedCVAttributes = 0;
-    this.hasTypedefName = false;
-    this.hasCachedHash = false;
-    this.cachedHash = 0;
-    this.hasCachedSemanticHash = false;
-    this.cachedSemanticHash = 0;
+    this.typedefCVAttributes = 0;
+    this.isTypedef = false;
+    this.astLocus = astLocus;
   }
 
   protected final void clearCache() {
+    hasCachedHash = false;
     cachedHash = 0;
-    hasCachedHash = false;
+    hasCachedSemanticHash = false;
     cachedSemanticHash = 0;
-    hasCachedHash = false;
   }
 
   @Override
@@ -89,6 +89,9 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
         throw new InternalError();
     }
   }
+
+  @Override
+  public final ASTLocusTag getASTLocusTag() { return astLocus; }
 
   public final boolean isAnonymous() { return null == name; }
 
@@ -139,11 +142,15 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
   }
   // For debugging
   public String getDebugString() {
+      return getDebugString(false);
+  }
+  // For debugging
+  public String getDebugString(final boolean withASTLoc) {
     final StringBuilder sb = new StringBuilder();
     boolean prepComma = false;
     sb.append("CType[");
     sb.append("(").append(getClass().getSimpleName()).append(") ");
-    if( hasTypedefName() ) {
+    if( isTypedef() ) {
         sb.append("typedef ");
     }
     if( null != name ) {
@@ -223,34 +230,85 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
     if( isVoid() ) {
         append(sb, "void", prepComma); prepComma=true;
     }
-    sb.append("]]");
+    sb.append("]");
+    if( withASTLoc ) {
+        sb.append(", loc ").append(astLocus);
+    }
+    sb.append("]");
     return sb.toString();
   }
   private final int objHash() { return super.hashCode(); }
 
 
-  protected final void setName(final String name) {
-    if (name == null) {
+  /**
+   * Returns {@code true} if given {@code name} is not {@code null}
+   * and has a length &gt; 0. In this case this instance's names will
+   * be set to the internalized version.
+   * <p>
+   * Otherwise method returns {@code false}
+   * and this instance's name will be set to {@code null}.
+   * </p>
+   * <p>
+   * Method issues {@link #clearCache()}, to force re-evaluation
+   * of hashes.
+   * </p>
+   */
+  protected final boolean setName(final String name) {
+    clearCache();
+    if( null == name || 0 == name.length() ) {
       this.name = name;
+      return false;
     } else {
       this.name = name.intern();
+      return true;
     }
+  }
+
+  /**
+   * Set the typedef name of this type and renders this type a typedef,
+   * if given {@code name} has a length.
+   * <p>
+   * Method issues {@link #clearCache()}, to force re-evaluation
+   * of hashes.
+   * </p>
+   */
+  public void setTypedefName(final String name) {
+    if( setName(name) ) {
+        // Capture the const/volatile attributes at the time of typedef so
+        // we don't redundantly repeat them in the CV attributes string
+        typedefCVAttributes = cvAttributes;
+        isTypedef = true;
+    }
+  }
+  /**
+   * Set the typedef name of this type and renders this type a typedef,
+   * if given {@code name} has a length.
+   * <p>
+   * Method issues {@link #clearCache()}, to force re-evaluation
+   * of hashes.
+   * </p>
+   */
+  final void setTypedef(final String name, final int typedefedCVAttributes) {
+    if( setName(name) ) {
+        this.typedefCVAttributes = typedefedCVAttributes;
+        this.isTypedef = true;
+    }
+  }
+  final void setTypedef(final int typedefedCVAttributes) {
+    this.typedefCVAttributes = typedefedCVAttributes;
+    this.isTypedef = true;
     clearCache();
   }
-
-  /** Set the name of this type; used for handling typedefs. */
-  public void setTypedefName(final String name) {
-    setName(name);
-    // Capture the const/volatile attributes at the time of typedef so
-    // we don't redundantly repeat them in the CV attributes string
-    typedefedCVAttributes = cvAttributes;
-    hasTypedefName = true;
+  final int getTypedefCVAttributes() {
+    return typedefCVAttributes;
   }
 
-  /** Indicates whether {@link #setTypedefName(String)} has been called on this type,
-      indicating that it already has a typedef name. */
-  public final boolean hasTypedefName() {
-    return hasTypedefName;
+  /**
+   * Indicates whether this type is a typedef type,
+   * i.e. declared via {@link #setTypedefName(String)}.
+   */
+  public final boolean isTypedef() {
+    return isTypedef;
   }
 
   /** SizeThunk which computes size of this type in bytes. */
@@ -312,9 +370,9 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
   public boolean      isVoid()     { return (asVoid()     != null); }
 
   /** Indicates whether this type is const. */
-  public boolean      isConst()    { return (((cvAttributes & ~typedefedCVAttributes) & CVAttributes.CONST) != 0); }
+  public boolean      isConst()    { return (((cvAttributes & ~typedefCVAttributes) & CVAttributes.CONST) != 0); }
   /** Indicates whether this type is volatile. */
-  public boolean      isVolatile() { return (((cvAttributes & ~typedefedCVAttributes) & CVAttributes.VOLATILE) != 0); }
+  public boolean      isVolatile() { return (((cvAttributes & ~typedefCVAttributes) & CVAttributes.VOLATILE) != 0); }
 
   /** Indicates whether this type is a primitive type. */
   public boolean      isPrimitive(){ return false; }
@@ -330,11 +388,11 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
   public final int hashCode() {
     if( !hasCachedHash ) {
         // 31 * x == (x << 5) - x
-        int hash = 31 + ( hasTypedefName ? 1 : 0 );
+        int hash = 31 + ( isTypedef ? 1 : 0 );
         hash = ((hash << 5) - hash) + ( null != size ? size.hashCode() : 0 );
         hash = ((hash << 5) - hash) + cvAttributes;
         hash = ((hash << 5) - hash) + ( null != name ? name.hashCode() : 0 );
-        if( !hasTypedefName ) {
+        if( !isTypedef ) {
             hash = ((hash << 5) - hash) + hashCodeImpl();
         }
         cachedHash = hash;
@@ -355,7 +413,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
         return false;
     } else {
         final Type t = (Type)arg;
-        if( hasTypedefName == t.hasTypedefName &&
+        if( isTypedef == t.isTypedef &&
             ( ( null != size && size.equals(t.size) ) ||
               ( null == size && null == t.size )
             ) &&
@@ -363,7 +421,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp {
             ( null == name ? null == t.name : name.equals(t.name) )
           )
         {
-            if( !hasTypedefName ) {
+            if( !isTypedef ) {
                 return equalsImpl(t);
             } else {
                 return true;

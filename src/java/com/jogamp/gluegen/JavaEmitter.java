@@ -820,7 +820,7 @@ public class JavaEmitter implements GlueEmitter {
         }
       } // end iteration over expanded bindings
     } catch (final Exception e) {
-      throw new RuntimeException("Error while generating bindings for \"" + sym + "\"", e);
+      throw new GlueGenException("Error while generating bindings for \"" + sym + "\"", sym.getASTLocusTag(), e);
     }
 
     return allEmitters;
@@ -899,7 +899,12 @@ public class JavaEmitter implements GlueEmitter {
         return;
     }
 
-    final Type containingCType = canonicalize(new PointerType(SizeThunk.POINTER, structCType, 0, typedefedName));
+    final Type containingCType;
+    {
+        final Type aptr = new PointerType(SizeThunk.POINTER, structCType, 0);
+        aptr.setTypedefName(typedefedName);
+        containingCType = canonicalize(aptr);
+    }
     final JavaType containingJType = typeToJavaType(containingCType, null);
     if( containingJType.isOpaqued() ) {
         LOG.log(INFO, "skipping emission of opaque {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
@@ -913,11 +918,11 @@ public class JavaEmitter implements GlueEmitter {
     LOG.log(INFO, "perform emission of \"{0}\" -> \"{1}\": {2}", structCTypeName, containingJTypeName, structCType.getDebugString());
     if( GlueGen.debug() ) {
         if( null != typedefed ) {
-            LOG.log(INFO, "    typedefed {0}", typedefed.getDebugString());
+            LOG.log(INFO, "    typedefed {0}", typedefed.getDebugString(true));
         } else {
             LOG.log(INFO, "    typedefed {0}", (Object)null);
         }
-        LOG.log(INFO, "    containingCType {0}", containingCType.getDebugString());
+        LOG.log(INFO, "    containingCType {0}", containingCType.getDebugString(true));
         LOG.log(INFO, "    containingJType {0}", containingJType.getDebugString());
     }
     if( 0 == structCType.getNumFields() ) {
@@ -1061,8 +1066,8 @@ public class JavaEmitter implements GlueEmitter {
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate
           // a name?)
           if (fieldType.getName() == null) {
-            throw new RuntimeException("Anonymous structs as fields not supported yet, field \"" +
-                                       cfgFieldName1 + "\", "+fieldType.getDebugString());
+            throw new GlueGenException("Anonymous structs as fields not supported yet, field \"" +
+                                       cfgFieldName1 + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag());
           }
           if( GlueGen.debug() ) {
             System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "compound");
@@ -1080,11 +1085,11 @@ public class JavaEmitter implements GlueEmitter {
           try {
             externalJavaType = typeToJavaType(fieldType, machDescJava);
           } catch (final Exception e) {
-            throw new RuntimeException("Error occurred while creating accessor for field \"" +
-                                       cfgFieldName1 + "\", "+fieldType.getDebugString(), e);
+            throw new GlueGenException("Error occurred while creating accessor for field \"" +
+                                       cfgFieldName1 + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
           }
           if( GlueGen.debug() ) {
-              System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, fieldName, fieldType.getDebugString(), "MISC");
+              System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "MISC");
               System.err.printf("SE.os.%02d: javaType %s%n", (i+1), externalJavaType.getDebugString());
           }
           if (externalJavaType.isPrimitive()) {
@@ -1160,8 +1165,9 @@ public class JavaEmitter implements GlueEmitter {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate a name?)
           if (fieldType.getName() == null) {
-            throw new RuntimeException("Anonymous structs as fields not supported yet (field \"" +
-                                       field + "\" in type \"" + structCTypeName + "\")");
+            throw new GlueGenException("Anonymous structs as fields not supported yet (field \"" +
+                                       field + "\" in type \"" + structCTypeName + "\")",
+                                       fieldType.getASTLocusTag());
           }
           javaWriter.println();
           generateGetterSignature(javaWriter, fieldType, false, false, fieldType.getName(), capitalizeString(fieldName), null, null);
@@ -1179,9 +1185,8 @@ public class JavaEmitter implements GlueEmitter {
           try {
             javaType = typeToJavaType(fieldType, machDescJava);
           } catch (final Exception e) {
-            LOG.log(SEVERE, "Error occurred while creating accessor for field \"{0}\", {1}",
-                               field.getName(), fieldType.getDebugString());
-            throw(e);
+            throw new GlueGenException("Error occurred while creating accessor for field \"" +
+                                       field.getName() + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
           }
           if (javaType.isPrimitive()) {
             // Primitive type
@@ -1582,14 +1587,15 @@ public class JavaEmitter implements GlueEmitter {
                                              final PrintWriter javaWriter, final PrintWriter jniWriter,
                                              final String structCTypeName, final String structClassPkgName,
                                              final Type containingCType, final JavaType containingJType,
-                                             final int i, final Field field, final String fieldName, final String returnSizeLookupName) throws Exception {
+                                             final int i, final Field field, final String fieldName,
+                                             final String returnSizeLookupName) throws Exception {
       final Type fieldType = field.getType();
       final JavaType javaType;
       try {
         javaType = typeToJavaType(fieldType, machDescJava);
       } catch (final Exception e) {
-        throw new RuntimeException("Error occurred while creating array/pointer accessor for field \"" +
-                                   returnSizeLookupName + "\", "+fieldType.getDebugString(), e);
+        throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
+                                   returnSizeLookupName + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
       }
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: javaType  %s%n", (i+1), javaType.getDebugString());
@@ -1668,8 +1674,9 @@ public class JavaEmitter implements GlueEmitter {
               try {
                   baseJElemType = typeToJavaType(baseCElemType, machDescJava);
               } catch (final Exception e ) {
-                  throw new RuntimeException("Error occurred while creating array/pointer accessor for field \"" +
-                                              returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(), e);
+                  throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
+                                              returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(),
+                                              fieldType.getASTLocusTag(), e);
               }
               baseJElemTypeName = baseJElemType.getName();
               baseCElemNativeSizeFixed = baseCElemType.isPrimitive() ? baseCElemType.getSize().hasFixedNativeSize() : true;
@@ -2073,8 +2080,9 @@ public class JavaEmitter implements GlueEmitter {
        case 2:  return javaType(Short.TYPE);
        case 4:  return javaType(Integer.TYPE);
        case 8:  return javaType(Long.TYPE);
-       default: throw new RuntimeException("Unknown integer type of size " +
-                                           cType.getSize(curMachDesc) + " and name " + cType.getName());
+       default: throw new GlueGenException("Unknown integer type of size " +
+                                           cType.getSize(curMachDesc) + " and name " + cType.getName(),
+                                           cType.getASTLocusTag());
       }
     } else if (cType.isFloat()) {
       return javaType(Float.TYPE);
@@ -2109,8 +2117,9 @@ public class JavaEmitter implements GlueEmitter {
               case 2:  return JavaType.createForCShortPointer();
               case 4:  return JavaType.createForCInt32Pointer();
               case 8:  return JavaType.createForCInt64Pointer();
-              default: throw new RuntimeException("Unknown integer array type of size " +
-                                                  cType.getSize(curMachDesc) + " and name " + cType.getName()+", "+cType.getDebugString());
+              default: throw new GlueGenException("Unknown integer array type of size " +
+                                                  cType.getSize(curMachDesc) + " and name " + cType.getName()+", "+cType.getDebugString(),
+                                                  cType.getASTLocusTag());
             }
           } else if (targetType.isFloat()) {
             return JavaType.createForCFloatPointer();
@@ -2130,13 +2139,15 @@ public class JavaEmitter implements GlueEmitter {
               // Try containing pointer type for any typedefs
               name = cType.getName();
               if (name == null) {
-                throw new RuntimeException("Couldn't find a proper type name for pointer type " + cType.getDebugString());
+                throw new GlueGenException("Couldn't find a proper type name for pointer type " + cType.getDebugString(),
+                                            cType.getASTLocusTag());
               }
             }
             return JavaType.createForCStruct(cfg.renameJavaType(name));
           } else {
-            throw new RuntimeException("Don't know how to convert pointer/array type \"" +
-                                       cType.getDebugString() + "\"");
+            throw new GlueGenException("Don't know how to convert pointer/array type \"" +
+                                       cType.getDebugString() + "\"",
+                                       cType.getASTLocusTag());
           }
         }
         // Handle Types of form pointer-to-pointer-to-type or
@@ -2179,16 +2190,17 @@ public class JavaEmitter implements GlueEmitter {
                 case 2: return javaType(ArrayTypes.shortBufferArrayClass);
                 case 4: return javaType(ArrayTypes.intBufferArrayClass);
                 case 8: return javaType(ArrayTypes.longBufferArrayClass);
-                default: throw new RuntimeException("Unknown two-dimensional integer array type of element size " +
-                                                    bottomType.getSize(curMachDesc) + " and name " + bottomType.getName()+", "+bottomType.getDebugString());
+                default: throw new GlueGenException("Unknown two-dimensional integer array type of element size " +
+                                                    bottomType.getSize(curMachDesc) + " and name " + bottomType.getName()+", "+bottomType.getDebugString(),
+                                                    bottomType.getASTLocusTag());
               }
             } else if (bottomType.isFloat()) {
               return javaType(ArrayTypes.floatBufferArrayClass);
             } else if (bottomType.isDouble()) {
               return javaType(ArrayTypes.doubleBufferArrayClass);
             } else {
-              throw new RuntimeException("Unexpected primitive type " + bottomType.getDebugString() +
-                                         " in two-dimensional array");
+              throw new GlueGenException("Unexpected primitive type " + bottomType.getDebugString() +
+                                         " in two-dimensional array", bottomType.getASTLocusTag());
             }
           } else if (bottomType.isVoid()) {
             return javaType(ArrayTypes.bufferArrayClass);
@@ -2197,32 +2209,38 @@ public class JavaEmitter implements GlueEmitter {
             // Array of pointers; convert as array of StructAccessors
             return JavaType.createForCArray(bottomType);
           } else {
-            throw new RuntimeException(
+            throw new GlueGenException(
               "Could not convert C type \"" + cType.getDebugString() + "\" " +
               "to appropriate Java type; need to add more support for " +
               "depth=2 pointer/array types [debug info: targetType=\"" +
-              targetType + "\"]");
+              targetType + "\"]", cType.getASTLocusTag());
           }
         } else {
           // can't handle this type of pointer/array argument
-          throw new RuntimeException(
+          throw new GlueGenException(
             "Could not convert C pointer/array \"" + cType.getDebugString() + "\" to " +
             "appropriate Java type; types with pointer/array depth " +
             "greater than 2 are not yet supported [debug info: " +
             "pointerDepth=" + cType.pointerDepth() + " arrayDimension=" +
-            cType.arrayDimension() + " targetType=\"" + targetType + "\"]");
+            cType.arrayDimension() + " targetType=\"" + targetType + "\"]",
+            cType.getASTLocusTag());
         }
 
-    } else if(cType.isCompound() ) { // FIXME: Compound and Compound-Arrays
-        final String name = cType.getName();
+    } else if( cType.isCompound() ) { // FIXME: Compound and Compound-Arrays
+        String name = cType.getName();
         if (name == null) {
-          throw new RuntimeException("Couldn't find a proper type name for pointer type " + cType.getDebugString());
+          name = cType.asCompound().getStructName();
+          if (name == null) {
+              throw new GlueGenException("Couldn't find a proper type name for pointer type " + cType.getDebugString(),
+                                         cType.getASTLocusTag());
+          }
         }
         return JavaType.createForCStruct(cfg.renameJavaType(name));
     } else {
-        throw new RuntimeException(
+        throw new GlueGenException(
           "Could not convert C type \"" + cType.getDebugString() + "\" (class " +
-          cType.getClass().getName() + ") to appropriate Java type");
+          cType.getClass().getName() + ") to appropriate Java type",
+          cType.getASTLocusTag());
     }
   }
 
@@ -2258,7 +2276,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   private boolean isOpaque(final Type type) {
-    return (cfg.typeInfo(type) != null);
+    return null != cfg.typeInfo(type);
   }
 
   private String compatiblePrimitiveJavaTypeName(final Type fieldType,
@@ -2267,14 +2285,16 @@ public class JavaEmitter implements GlueEmitter {
     final Class<?> c = javaType.getJavaClass();
     if (!isIntegerType(c)) {
       // FIXME
-      throw new RuntimeException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.): type: "+fieldType+", javaType "+javaType+", javaClass "+c);
+      throw new GlueGenException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.): type: "+fieldType+", javaType "+javaType+", javaClass "+c,
+                                 fieldType.getASTLocusTag());
     }
     switch ((int) fieldType.getSize(curMachDesc)) {
       case 1:  return "byte";
       case 2:  return "short";
       case 4:  return "int";
       case 8:  return "long";
-      default: throw new RuntimeException("Can't handle opaque definitions if the starting type isn't compatible with integral types");
+      default: throw new GlueGenException("Can't handle opaque definitions if the starting type isn't compatible with integral types",
+                                          fieldType.getASTLocusTag());
     }
   }
 
@@ -2662,9 +2682,10 @@ public class JavaEmitter implements GlueEmitter {
       if (prt == null ||
           prt.getTargetType().asInt() == null ||
           prt.getTargetType().getSize(curMachDesc) != 1) {
-        throw new RuntimeException(
+        throw new GlueGenException(
           "Cannot apply ReturnsString configuration directive to \"" + sym +
-          "\". ReturnsString requires native method to have return type \"char *\"");
+          "\". ReturnsString requires native method to have return type \"char *\"",
+          sym.getASTLocusTag());
       }
       binding.setJavaReturnType(javaType(java.lang.String.class));
     } else {
@@ -2703,10 +2724,11 @@ public class JavaEmitter implements GlueEmitter {
           }
         }
         else {
-        throw new RuntimeException(
+        throw new GlueGenException(
           "Cannot apply ArgumentIsString configuration directive to " +
           "argument " + i + " of \"" + sym + "\": argument type is not " +
-          "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent");
+          "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent",
+          sym.getASTLocusTag());
         }
       }
       binding.addJavaArgumentType(mappedType);
@@ -2776,7 +2798,7 @@ public class JavaEmitter implements GlueEmitter {
             result = result.replaceJavaArgumentType(i, JavaType.forNIODoubleBufferClass());
           }
         } else {
-          throw new RuntimeException("Unknown C pointer type " + t);
+          throw new GlueGenException("Unknown C pointer type " + t);
         }
       }
     }
@@ -2801,7 +2823,7 @@ public class JavaEmitter implements GlueEmitter {
       } else if (t.isCDoublePointerType()) {
         result = result.replaceJavaArgumentType(-1, JavaType.forNIODoubleBufferClass());
       } else {
-        throw new RuntimeException("Unknown C pointer type " + t);
+        throw new GlueGenException("Unknown C pointer type " + t, result.getCReturnType().getASTLocusTag());
       }
     }
 

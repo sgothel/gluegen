@@ -39,18 +39,20 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 public class PointerType extends Type implements Cloneable {
 
     private final Type targetType;
 
-    public PointerType(final SizeThunk size, final Type targetType, final int cvAttributes, final String typedefedName) {
+    public PointerType(final SizeThunk size, final Type targetType, final int cvAttributes) {
+        this(size, targetType, cvAttributes, null);
+    }
+    public PointerType(final SizeThunk size, final Type targetType, final int cvAttributes, final ASTLocusTag astLocus) {
         // can pass null for the final name parameter because the PointerType's getName()
         // completely replaces superclass behavior
-        super(targetType.getName() + " *", size, cvAttributes);
+        super(targetType.getName() + " *", size, cvAttributes, astLocus);
         this.targetType = targetType;
-        if (null != typedefedName) {
-            setTypedefName(typedefedName);
-        }
     }
 
     @Override
@@ -77,7 +79,7 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     public boolean hasName() {
-        if ( hasTypedefName() ) {
+        if ( isTypedef() ) {
             return super.hasName();
         } else {
             return targetType.hasName();
@@ -86,7 +88,7 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     public String getName(final boolean includeCVAttrs) {
-        if ( hasTypedefName() ) {
+        if ( isTypedef() ) {
             return super.getName(includeCVAttrs);
         } else if (!includeCVAttrs) {
             return targetType.getName(includeCVAttrs) + " *";
@@ -97,7 +99,7 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     public String getCName(final boolean includeCVAttrs) {
-        if ( hasTypedefName() ) {
+        if ( isTypedef() ) {
             return super.getCName(includeCVAttrs);
         } else if (!includeCVAttrs) {
             return targetType.getCName(includeCVAttrs) + " *";
@@ -134,7 +136,7 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     public String toString() {
-        if ( hasTypedefName() ) {
+        if ( isTypedef() ) {
             return super.getCName(true);
         } else {
             return toStringInt();
@@ -167,6 +169,10 @@ public class PointerType extends Type implements Cloneable {
 
     @Override
     Type newCVVariant(final int cvAttributes) {
-        return new PointerType(getSize(), targetType, cvAttributes, (hasTypedefName() ? getName() : null));
+        final Type t = new PointerType(getSize(), targetType, cvAttributes, astLocus);
+        if( isTypedef() ) {
+            t.setTypedef(getName(), getTypedefCVAttributes());
+        }
+        return t;
     }
 }

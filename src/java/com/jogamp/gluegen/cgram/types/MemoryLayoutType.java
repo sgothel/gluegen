@@ -27,11 +27,13 @@
  */
 package com.jogamp.gluegen.cgram.types;
 
+import com.jogamp.gluegen.ASTLocusTag;
+
 public abstract class MemoryLayoutType extends Type {
   private boolean isLayouted;
 
-  protected MemoryLayoutType(final String name, final SizeThunk size, final int cvAttributes) {
-      super(name, size, cvAttributes);
+  protected MemoryLayoutType(final String name, final SizeThunk size, final int cvAttributes, final ASTLocusTag astLocus) {
+      super(name, size, cvAttributes, astLocus);
       isLayouted = false;
   }
 
