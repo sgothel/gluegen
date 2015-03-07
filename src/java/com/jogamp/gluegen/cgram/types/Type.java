@@ -134,11 +134,12 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   }
 
 
-  private void append(final StringBuilder sb, final String val, final boolean prepComma) {
+  private StringBuilder append(final StringBuilder sb, final String val, final boolean prepComma) {
       if( prepComma ) {
           sb.append(", ");
       }
       sb.append(val);
+      return sb;
   }
   // For debugging
   public String getDebugString() {
@@ -186,59 +187,64 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
         sb.append(" ZERO");
     }
     append(sb, "[", prepComma); prepComma=false;
-    append(sb, "const[", prepComma); prepComma=false;
-    if( isConstTypedef() ) {
-        append(sb, "type ", prepComma);  prepComma=true;
+    {
+        append(sb, "const[", prepComma); prepComma=false;
+        {
+            if( isConstTypedef() ) {
+                append(sb, "type ", prepComma);  prepComma=true;
+            }
+            if( isConstRaw() ) {
+                append(sb, "inst -> ", prepComma);  prepComma=false;
+            }
+            if( isConst() ) {
+                append(sb, "true]", prepComma);
+            } else {
+                append(sb, "false]", prepComma);
+            }
+            prepComma=true;
+        }
+        if( isVolatile() ) {
+            append(sb, "volatile ", prepComma);  prepComma=true;
+        }
+        if( isPointer() ) {
+            append(sb, "pointer*"+pointerDepth(), prepComma); prepComma=true;
+        }
+        if( isArray() ) {
+            append(sb, "array*"+arrayDimension(), prepComma); prepComma=true;
+        }
+        if( isBit() ) {
+            append(sb, "bit", prepComma); prepComma=true;
+        }
+        if( isCompound() ) {
+            append(sb, "struct{", prepComma).append(asCompound().getStructName()).append(": ").append(asCompound().getNumFields());
+            append(sb, "}", prepComma); prepComma=true;
+        }
+        if( isDouble() ) {
+            append(sb, "double", prepComma); prepComma=true;
+        }
+        if( isEnum() ) {
+            final EnumType eT = asEnum();
+            append(sb, "enum ", prepComma).append(" [").append(eT.getUnderlyingType()).append("] {").append(eT.getNumEnumerates()).append(": ");
+            eT.appendEnums(sb, false);
+            prepComma=true;
+        }
+        if( isFloat() ) {
+            append(sb, "float", prepComma); prepComma=true;
+        }
+        if( isFunction() ) {
+            append(sb, "function", prepComma); prepComma=true;
+        }
+        if( isFunctionPointer() ) {
+            append(sb, "funcPointer", prepComma); prepComma=true;
+        }
+        if( isInt() ) {
+            append(sb, "int", prepComma); prepComma=true;
+        }
+        if( isVoid() ) {
+            append(sb, "void", prepComma); prepComma=true;
+        }
+        sb.append("]");
     }
-    if( isConstRaw() ) {
-        append(sb, "inst -> ", prepComma);  prepComma=false;
-    }
-    if( isConst() ) {
-        append(sb, "true]", prepComma);  prepComma=true;
-    } else {
-        append(sb, "false]", prepComma);  prepComma=true;
-    }
-    if( isVolatile() ) {
-        append(sb, "volatile ", prepComma);  prepComma=true;
-    }
-    if( isPointer() ) {
-        append(sb, "pointer*"+pointerDepth(), prepComma); prepComma=true;
-    }
-    if( isArray() ) {
-        append(sb, "array*"+arrayDimension(), prepComma); prepComma=true;
-    }
-    if( isBit() ) {
-        append(sb, "bit", prepComma); prepComma=true;
-    }
-    if( isCompound() ) {
-        sb.append("struct{").append(asCompound().getStructName()).append(": ").append(asCompound().getNumFields());
-        append(sb, "}", prepComma); prepComma=true;
-    }
-    if( isDouble() ) {
-        append(sb, "double", prepComma); prepComma=true;
-    }
-    if( isEnum() ) {
-        final EnumType eT = asEnum();
-        sb.append("enum ").append(" [").append(eT.getUnderlyingType()).append("] {").append(eT.getNumEnumerates()).append(": ");
-        eT.appendEnums(sb, false);
-        prepComma=true;
-    }
-    if( isFloat() ) {
-        append(sb, "float", prepComma); prepComma=true;
-    }
-    if( isFunction() ) {
-        append(sb, "function", prepComma); prepComma=true;
-    }
-    if( isFunctionPointer() ) {
-        append(sb, "funcPointer", prepComma); prepComma=true;
-    }
-    if( isInt() ) {
-        append(sb, "int", prepComma); prepComma=true;
-    }
-    if( isVoid() ) {
-        append(sb, "void", prepComma); prepComma=true;
-    }
-    sb.append("]");
     if( withASTLoc ) {
         sb.append(", loc ").append(astLocus);
     }
