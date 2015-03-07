@@ -162,13 +162,12 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
     if( null != targetType && this != targetType ) {
         sb.append(" -> ");
         if (!targetType.isFunction()) {
-            sb.append(targetType.toString() + " * " + getCVAttributesString());
+            sb.append("(" + targetType.toString() + ") * " + getCVAttributesString());
         } else {
             sb.append(((FunctionType) targetType).toString(null /* functionName */, null /* callingConvention */, false, true));
         }
     }
     if( GlueGen.debug() ) {
-        // sb.append(", o=0x"+Integer.toHexString(objHash())+" h=0x"+Integer.toHexString(hashCode()));
         sb.append(", o=0x"+Integer.toHexString(objHash()));
     }
     sb.append(", size ");
@@ -187,11 +186,20 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
         sb.append(" ZERO");
     }
     append(sb, "[", prepComma); prepComma=false;
+    append(sb, "const[", prepComma); prepComma=false;
+    if( isConstTypedef() ) {
+        append(sb, "type ", prepComma);  prepComma=true;
+    }
+    if( isConstRaw() ) {
+        append(sb, "inst -> ", prepComma);  prepComma=false;
+    }
     if( isConst() ) {
-        append(sb, "const ", false);
+        append(sb, "true]", prepComma);  prepComma=true;
+    } else {
+        append(sb, "false]", prepComma);  prepComma=true;
     }
     if( isVolatile() ) {
-        append(sb, "volatile ", false);
+        append(sb, "volatile ", prepComma);  prepComma=true;
     }
     if( isPointer() ) {
         append(sb, "pointer*"+pointerDepth(), prepComma); prepComma=true;
@@ -369,10 +377,12 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   /** Indicates whether this is a VoidType. */
   public boolean      isVoid()     { return (asVoid()     != null); }
 
-  /** Indicates whether this type is const. */
-  public boolean      isConst()    { return (((cvAttributes & ~typedefCVAttributes) & CVAttributes.CONST) != 0); }
   /** Indicates whether this type is volatile. */
-  public boolean      isVolatile() { return (((cvAttributes & ~typedefCVAttributes) & CVAttributes.VOLATILE) != 0); }
+  public boolean      isVolatile() { return 0 != ( ( cvAttributes & ~typedefCVAttributes ) & CVAttributes.VOLATILE );  }
+  /** Indicates whether this type is const. */
+  public boolean      isConst()    { return 0 != ( ( cvAttributes & ~typedefCVAttributes ) & CVAttributes.CONST );  }
+  private boolean isConstTypedef() { return 0 !=                   ( typedefCVAttributes   & CVAttributes.CONST ); }
+  private boolean isConstRaw()     { return 0 !=   ( cvAttributes                          & CVAttributes.CONST ); }
 
   /** Indicates whether this type is a primitive type. */
   public boolean      isPrimitive(){ return false; }

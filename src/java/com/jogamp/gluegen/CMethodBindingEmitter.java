@@ -928,20 +928,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                      javaArgType.isArray() ||
                                      javaArgType.isArrayOfCompoundTypeWrappers() ||
                                      ( javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation ) );
-        if (isBaseTypeConst(cArgType)) {
-            writer.print("const ");
-        }
-
-        // if this is a pointer to an unsigned type, add unsigned to the name to avoid compiler warnings
-        if(cArgType.isPointer()) {
-          final Type baseType = cArgType.getBaseElementType();
-          if(baseType.isInt() && (((IntType)baseType).isPrimitiveUnsigned())) {
-            writer.print("unsigned ");
-          }
-        }
-
-        writer.print(cArgType.getCName());
+        writer.print(cArgType.getCName(true));
         writer.print(") ");
+
         if (cArgType.isPointer() && javaArgType.isPrimitive()) {
           writer.print("(intptr_t) ");
         }
@@ -1105,7 +1094,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         }
       } else if (javaReturnType.isString()) {
         writer.println("  if (NULL == _res) return NULL;");
-        writer.println("  return (*env)->NewStringUTF(env, _res);");
+        writer.println("  return (*env)->NewStringUTF(env, (const char *)_res);");
       } else if (javaReturnType.isArrayOfCompoundTypeWrappers() ||
                  (javaReturnType.isArray() && javaReturnType.isNIOByteBufferArray())) {
         writer.println("  if (NULL == _res) return NULL;");
