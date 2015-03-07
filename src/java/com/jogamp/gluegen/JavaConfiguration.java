@@ -371,6 +371,22 @@ public class JavaConfiguration {
     }
 
   private static final boolean DEBUG_TYPE_INFO = false;
+
+  /**
+   * If the given {@code canonicalName} should be considered opaque,
+   * returns the TypeInfo describing the replacement type.
+   * <p>
+   * Returns null if this type should not be considered opaque.
+   * </p>
+   * <p>
+   * If symbol references a struct fields, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   */
+  public TypeInfo canonicalNameOpaque(final String canonicalName) {
+    return typeInfoMap.get(canonicalName);
+  }
+
   /** If this type should be considered opaque, returns the TypeInfo
       describing the replacement type. Returns null if this type
       should not be considered opaque. */

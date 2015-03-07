@@ -59,9 +59,12 @@ typedef enum { MI=1, MU, MO } Momo;
 // typedef enum { MI=1, MU=3, MO } Momo; // Duplicate w/ diff value ERROR
 // typedef enum { MI=1, MU, MO, MERR } Momo; // Duplicate w/ diff value ERROR
 
+struct _Crazy;
+
 typedef struct _ShortBlob {
     uint8_t b1;
     uint8_t b2;
+    struct _Crazy * Cool;  // Opaque field!
 } ShortBlob, ShortBlob2, *LPShortBlob1; // Aliased to 'ShortBlob'
 typedef ShortBlob2 * LPShortBlob2; // Aliased to 'ShortBlob'
 typedef ShortBlob  * LPShortBlob3; // Aliased to 'ShortBlob'
