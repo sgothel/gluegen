@@ -40,6 +40,7 @@
 
 package com.jogamp.gluegen;
 
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.JavaEmitter.EmissionStyle;
 import com.jogamp.gluegen.JavaEmitter.MethodAccess;
 import com.jogamp.gluegen.Logging.LoggerIf;
@@ -829,6 +830,7 @@ public class JavaConfiguration {
   public boolean shouldIgnoreInInterface(final AliasedSymbol symbol) {
       return shouldIgnoreInInterface_Int(symbol);
   }
+
   public static <K,V> V oneInMap(final Map<K, V> map, final Set<K> symbols) {
       if( null != map && map.size() > 0 &&
           null != symbols && symbols.size() > 0 ) {
@@ -863,6 +865,15 @@ public class JavaConfiguration {
       }
       return false;
   }
+  protected static ASTLocusTag getASTLocusTag(final AliasedSymbol s) {
+      if( s instanceof ASTLocusTagProvider ) {
+          return ((ASTLocusTagProvider)s).getASTLocusTag();
+      } else {
+          return null;
+      }
+  }
+
+
   protected final boolean shouldIgnoreInInterface_Int(final AliasedSymbol symbol) {
       if( GlueGen.debug() ) {
           logIgnoresOnce();
@@ -875,14 +886,14 @@ public class JavaConfiguration {
            oneInSet(extendedIntfSymbolsIgnore, aliases)
          )
       {
-          LOG.log(INFO, "Ignore Intf ignore (one): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Intf ignore (one): {0}", symbol.getAliasedString());
           return true;
       }
       // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
       if ( !extendedIntfSymbolsOnly.isEmpty() &&
            !extendedIntfSymbolsOnly.contains( name ) &&
            !oneInSet(extendedIntfSymbolsOnly, aliases) ) {
-          LOG.log(INFO, "Ignore Intf !extended (all): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Intf !extended (all): {0}", symbol.getAliasedString());
           return true;
       }
       return shouldIgnoreInImpl_Int(symbol);
@@ -904,6 +915,7 @@ public class JavaConfiguration {
   public boolean shouldIgnoreInImpl(final AliasedSymbol symbol) {
     return shouldIgnoreInImpl_Int(symbol);
   }
+
   protected final boolean shouldIgnoreInImpl_Int(final AliasedSymbol symbol) {
       final String name = symbol.getName();
       final Set<String> aliases = symbol.getAliasedNames();
@@ -913,14 +925,14 @@ public class JavaConfiguration {
            oneInSet(extendedImplSymbolsIgnore, aliases)
          )
       {
-          LOG.log(INFO, "Ignore Impl ignore (one): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl ignore (one): {0}", symbol.getAliasedString());
           return true;
       }
       // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
       if ( !extendedImplSymbolsOnly.isEmpty() &&
            !extendedImplSymbolsOnly.contains( name ) &&
            !oneInSet(extendedImplSymbolsOnly, aliases) ) {
-          LOG.log(INFO, "Ignore Impl !extended (all): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl !extended (all): {0}", symbol.getAliasedString());
           return true;
       }
 
@@ -929,7 +941,7 @@ public class JavaConfiguration {
       for (final Pattern ignoreRegexp : ignores) {
           final Matcher matcher = ignoreRegexp.matcher(name);
           if ( matcher.matches() || onePatternMatch(ignoreRegexp, aliases) ) {
-              LOG.log(INFO, "Ignore Impl RegEx: {0}", symbol.getAliasedString());
+              LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl RegEx: {0}", symbol.getAliasedString());
               return true;
           }
       }
@@ -944,7 +956,7 @@ public class JavaConfiguration {
                   // Special case as this is most often likely to be the case.
                   // Unignores are not used very often.
                   if(unignores.isEmpty()) {
-                      LOG.log(INFO, "Ignore Impl unignores==0: {0} -> {1}", symbol.getAliasedString(), name);
+                      LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl unignores==0: {0} -> {1}", symbol.getAliasedString(), name);
                       return true;
                   }
                   boolean unignoreFound = false;
@@ -957,7 +969,7 @@ public class JavaConfiguration {
                   }
 
                   if (!unignoreFound) {
-                      LOG.log(INFO, "Ignore Impl !unignore: {0} -> {1}", symbol.getAliasedString(), name);
+                      LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl !unignore: {0} -> {1}", symbol.getAliasedString(), name);
                       return true;
                   }
               }

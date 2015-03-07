@@ -54,19 +54,38 @@ public class Logging {
         /**
          * See {@link Logger#warning(String)}
          */
-        void warning(String msg);
+        void warning(final String msg);
         /**
-         * See {@link Logger#log(Level, String, Object[])}
+         * See {@link Logger#warning(String)}
          */
-        void log(final Level level, final String msg, final Object ... params);
+        void warning(final ASTLocusTag loc, final String msg);
+
+        /**
+         * See {@link Logger#log(Level, String)}
+         */
+        void log(final Level level, final String msg);
         /**
          * See {@link Logger#log(Level, String, Object)}
          */
         void log(final Level level, final String msg, final Object param);
         /**
+         * See {@link Logger#log(Level, String, Object[])}
+         */
+        void log(final Level level, final String msg, final Object ... params);
+
+        /**
          * See {@link Logger#log(Level, String)}
          */
-        void log(final Level level, final String msg);
+        void log(final Level level, final ASTLocusTag loc, final String msg);
+        /**
+         * See {@link Logger#log(Level, String, Object)}
+         */
+        void log(final Level level, final ASTLocusTag loc, final String msg, final Object param);
+        /**
+         * See {@link Logger#log(Level, String, Object[])}
+         */
+        void log(final Level level, final ASTLocusTag loc, final String msg, final Object ... params);
+
         /**
          * See {@link Logger#setLevel(Level)}
          */
@@ -109,17 +128,56 @@ public class Logging {
             impl.warning(msg);
         }
         @Override
-        public void log(final Level level, final String msg, final Object ... params) {
-            impl.log(level, msg, params);
+        public void warning(final ASTLocusTag loc, final String msg) {
+            handler.plf.setASTLocusTag(loc);
+            try {
+                impl.warning(msg);
+            } finally {
+                handler.plf.setASTLocusTag(null);
+            }
+        }
+
+        @Override
+        public void log(final Level level, final String msg) {
+            impl.log(level, msg);
         }
         @Override
         public void log(final Level level, final String msg, final Object param) {
             impl.log(level, msg, param);
         }
         @Override
-        public void log(final Level level, final String msg) {
-            impl.log(level, msg);
+        public void log(final Level level, final String msg, final Object ... params) {
+            impl.log(level, msg, params);
         }
+
+        @Override
+        public void log(final Level level, final ASTLocusTag loc, final String msg) {
+            handler.plf.setASTLocusTag(loc);
+            try {
+                impl.log(level, msg);
+            } finally {
+                handler.plf.setASTLocusTag(null);
+            }
+        }
+        @Override
+        public void log(final Level level, final ASTLocusTag loc, final String msg, final Object param) {
+            handler.plf.setASTLocusTag(loc);
+            try {
+                impl.log(level, msg, param);
+            } finally {
+                handler.plf.setASTLocusTag(null);
+            }
+        }
+        @Override
+        public void log(final Level level, final ASTLocusTag loc, final String msg, final Object ... params) {
+            handler.plf.setASTLocusTag(loc);
+            try {
+                impl.log(level, msg, params);
+            } finally {
+                handler.plf.setASTLocusTag(null);
+            }
+        }
+
         @Override
         public void setLevel(final Level newLevel) throws SecurityException {
             impl.setLevel(newLevel);
@@ -145,19 +203,6 @@ public class Logging {
             return handler.plf.simpleClassName;
         }
     }
-    static class PlainLogFormatter extends Formatter {
-        final String simpleClassName;
-        PlainLogFormatter(final String simpleClassName) {
-            this.simpleClassName = simpleClassName;
-        }
-        @Override
-        public String format(final LogRecord record) {
-            final StringBuilder sb = new StringBuilder(128);
-            sb.append("[").append(record.getLevel()).append(' ').append(simpleClassName).append("]: ");
-            sb.append(formatMessage(record)).append("\n");
-            return sb.toString();
-        }
-    }
     static class PlainLogConsoleHandler extends ConsoleHandler {
         final PlainLogFormatter plf;
         PlainLogConsoleHandler(final PlainLogFormatter plf, final Level level) {
@@ -168,6 +213,23 @@ public class Logging {
         @Override
         public java.util.logging.Formatter getFormatter() {
             return plf;
+        }
+    }
+    static class PlainLogFormatter extends Formatter {
+        final String simpleClassName;
+        ASTLocusTag astLocus;
+        PlainLogFormatter(final String simpleClassName) {
+            this.simpleClassName = simpleClassName;
+        }
+        public void setASTLocusTag(final ASTLocusTag loc) { astLocus = loc; }
+        @Override
+        public String format(final LogRecord record) {
+            final StringBuilder sb = new StringBuilder(256);
+            if( null != astLocus ) {
+                astLocus.toString(sb, getCanonicalName(record.getLevel())).append(": ");
+            }
+            sb.append(simpleClassName).append(": ").append(formatMessage(record)).append("\n");
+            return sb.toString();
         }
     }
 
@@ -191,6 +253,24 @@ public class Logging {
 
     /** provokes static initialization */
     static void init() { }
+
+    public static String getCanonicalName(final Level level) {
+        if( Level.CONFIG == level ) {
+            return "config";
+        } else if( Level.FINER == level ) {
+            return "verbose";
+        } else if( Level.FINE == level ) {
+            return "debug";
+        } else if( Level.INFO == level ) {
+            return "info";
+        } else if( Level.WARNING == level ) {
+            return "warning";
+        } else if( Level.SEVERE == level ) {
+            return "error";
+        } else {
+            return level.getName().toLowerCase();
+        }
+    }
 
     /** Returns the <i>root package logger</i>. */
     public static LoggerIf getLogger() {

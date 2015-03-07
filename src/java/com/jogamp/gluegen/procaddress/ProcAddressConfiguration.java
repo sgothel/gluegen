@@ -42,6 +42,7 @@ import static java.util.logging.Level.INFO;
 
 import com.jogamp.gluegen.JavaConfiguration;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 
 import java.io.*;
 import java.text.*;
@@ -273,12 +274,12 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         return tableClassName;
     }
 
-    public boolean skipProcAddressGen(final AliasedSymbol symbol) {
+    public boolean skipProcAddressGen(final FunctionSymbol symbol) {
       if ( skipProcAddressGen.contains( symbol.getName() ) ||
            oneInSet(skipProcAddressGen, symbol.getAliasedNames())
          )
       {
-          LOG.log(INFO, "Skip ProcAddress: {0}", symbol.getAliasedString());
+          LOG.log(INFO, symbol.getASTLocusTag(), "Skip ProcAddress: {0}", symbol.getAliasedString());
           return true;
       }
       return false;
@@ -309,11 +310,11 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         return procAddressNameConverter.convert(funcName);
     }
 
-    public boolean forceProcAddressGen(final AliasedSymbol symbol) {
+    public boolean forceProcAddressGen(final FunctionSymbol symbol) {
         if( forceProcAddressGen4All ) {
             if(!forceProcAddressGen4AllOnce) {
                 forceProcAddressGen4AllOnce = true;
-                LOG.log(INFO, "Force ALL ProcAddress");
+                LOG.log(INFO, symbol.getASTLocusTag(), "Force ALL ProcAddress");
             }
             return true;
         }
@@ -322,7 +323,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
              oneInSet(forceProcAddressGenSet, symbol.getAliasedNames())
            )
         {
-            LOG.log(INFO, "Force ProcAddress: {0}", symbol.getAliasedString());
+            LOG.log(INFO, symbol.getASTLocusTag(), "Force ProcAddress: {0}", symbol.getAliasedString());
             return true;
         }
         return false;
@@ -338,7 +339,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
         localProcAddressCallingConventionMap.put(funcName, callingConvention);
     }
 
-    public String getLocalProcAddressCallingConvention(final AliasedSymbol symbol) {
+    public String getLocalProcAddressCallingConvention(final FunctionSymbol symbol) {
         if ( isLocalProcAddressCallingConvention4All() ) {
             return getLocalProcAddressCallingConvention4All();
         }

@@ -109,29 +109,28 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public PointerType asPointer() {
+    public final PointerType asPointer() {
         return this;
     }
 
     @Override
-    public Type getTargetType() {
+    public final Type getTargetType() {
         return targetType;
     }
 
     @Override
-    public Type getBaseElementType() {
-        /**
-        if(targetType.isPointer()) {
-            return ((PointerType)targetType).getBaseElementType();
-        } else {
-            return targetType;
-        } */
+    public final Type getBaseElementType() {
         return targetType.getBaseElementType();
     }
 
     @Override
-    public boolean isFunctionPointer() {
+    public final boolean isFunctionPointer() {
         return targetType.isFunction();
+    }
+
+    @Override
+    public final int pointerDepth() {
+        return 1 + targetType.pointerDepth();
     }
 
     @Override

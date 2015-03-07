@@ -57,6 +57,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.GlueGenException;
 import com.jogamp.gluegen.Logging;
 import com.jogamp.gluegen.Logging.LoggerIf;
 
@@ -463,28 +465,30 @@ public class PCPP {
         if (enabled()) {
             final String oldDef = defineMap.remove(name);
             if (oldDef == null) {
-                LOG.log(WARNING, "ignoring redundant \"#undef {0}\", at \"{1}\" line {2}: \"{3}\" was not previously defined",
-                        name, filename(), lineNumber(), name);
+                LOG.log(WARNING, new ASTLocusTag(filename(), lineNumber(), -1, name),
+                        "ignoring redundant \"#undef {0}\" - was not previously defined",
+                        name);
             } else {
                 // System.err.println("UNDEFINED: '" + name + "'  (line " + lineNumber() + " file " + filename() + ")");
             }
             nonConstantDefines.remove(name);
         } else {
-            LOG.log(INFO, "DISABLED UNDEFINE: ''{0}''  (line {1} file {2})", name, lineNumber(), filename());
+            LOG.log(INFO, new ASTLocusTag(filename(), lineNumber(), -1, name),
+                    "DISABLED UNDEFINE: ''{0}''", name);
         }
     }
 
     private void handleWarning() throws IOException {
         final String msg = nextWordOrString();
         if (enabled()) {
-            LOG.log(WARNING, "#warning {0} at \"{1}\" line \"{2}\"", msg, filename(), lineNumber());
+            LOG.log(WARNING, new ASTLocusTag(filename(), lineNumber(), -1, null), msg);
         }
     }
 
-    private void handleError() throws IOException {
+    private void handleError() throws IOException, GlueGenException {
         final String msg = nextWordOrString();
         if (enabled()) {
-            throw new RuntimeException("#error "+msg+" at \""+filename()+"\" line "+lineNumber());
+            throw new GlueGenException(msg, new ASTLocusTag(filename(), lineNumber(), -1, null));
         }
     }
 
@@ -545,7 +549,8 @@ public class PCPP {
                 final String value = "";
                 final String oldDef = defineMap.put(name, value);
                 if (oldDef != null && !oldDef.equals(value)) {
-                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"\"", name, oldDef);
+                    LOG.log(WARNING, new ASTLocusTag(filename(), lineNumber(), -1, null),
+                            "\"{0}\" redefined from \"{1}\" to \"\"", name, oldDef);
                 }
                 // We don't want to emit the define, because it would serve no purpose
                 // and cause GlueGen errors (confuse the GnuCParser)
@@ -560,7 +565,8 @@ public class PCPP {
                     // Put it in the #define map
                     final String oldDef = defineMap.put(name, value);
                     if (oldDef != null && !oldDef.equals(value)) {
-                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, value);
+                        LOG.log(WARNING, new ASTLocusTag(filename(), lineNumber(), -1, null),
+                                "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, value);
                     }
                     debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
                     //System.err.println("//---DEFINED: " + name + " to \"" + value + "\"");
@@ -610,7 +616,8 @@ public class PCPP {
                 final Macro macro = new Macro(params, values);
                 final Macro oldDef = macroMap.put(name, macro);
                 if (oldDef != null) {
-                    LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, macro);
+                    LOG.log(WARNING, new ASTLocusTag(filename(), lineNumber(), -1, null),
+                            "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, macro);
                 }
                 emitDefine = false;
 
@@ -661,7 +668,8 @@ public class PCPP {
 
                     final String oldDef = defineMap.put(name, value);
                     if (oldDef != null && !oldDef.equals(value)) {
-                        LOG.log(WARNING, "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, value);
+                        LOG.log(WARNING, new ASTLocusTag(filename(), lineNumber(), -1, null),
+                                "\"{0}\" redefined from \"{1}\" to \"{2}\"", name, oldDef, value);
                     }
                     debugPrint(true, "DEFINE " + name + " ["+oldDef+" ] -> "+value + " CONST");
 //                    System.err.println("#define " + name +" "+value + " CONST EXPRESSION");
@@ -1012,7 +1020,8 @@ public class PCPP {
                 buf.append(curTokenAsString());
             }
             if (t == StreamTokenizer.TT_EOF) {
-                LOG.warning("unexpected EOF while processing #include directive");
+                LOG.warning(new ASTLocusTag(filename(), lineNumber(), -1, null),
+                            "unexpected EOF while processing #include directive");
             }
             filename = buf.toString();
         }

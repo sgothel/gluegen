@@ -99,20 +99,20 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   }
 
   @Override
-  public ArrayType asArray()      { return this; }
+  public final ArrayType asArray()      { return this; }
 
   public Type    getElementType() { return elementType; }
   public int     getLength()      { return length;      }
   public boolean hasLength()      { return length >= 0; }
 
   @Override
-  public Type getBaseElementType() {
-    ArrayType t = this;
-    while (t.getElementType().isArray()) {
-      t = t.getElementType().asArray();
-    }
-    return t.getElementType();
-    // return elementType.getBaseElementType();
+  public final Type getBaseElementType() {
+    return elementType.getBaseElementType();
+  }
+
+  @Override
+  public final int arrayDimension() {
+    return 1 + elementType.arrayDimension();
   }
 
   /** Recompute the size of this array if necessary. This needs to be

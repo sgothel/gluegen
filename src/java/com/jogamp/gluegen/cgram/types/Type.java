@@ -134,7 +134,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   }
 
 
-  private StringBuilder append(final StringBuilder sb, final String val, final boolean prepComma) {
+  private static StringBuilder append(final StringBuilder sb, final String val, final boolean prepComma) {
       if( prepComma ) {
           sb.append(", ");
       }
@@ -142,11 +142,11 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
       return sb;
   }
   // For debugging
-  public String getDebugString() {
+  public final String getDebugString() {
       return getDebugString(false);
   }
   // For debugging
-  public String getDebugString(final boolean withASTLoc) {
+  public final String getDebugString(final boolean withASTLoc) {
     final StringBuilder sb = new StringBuilder();
     boolean prepComma = false;
     sb.append("CType[");
@@ -286,7 +286,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
    * of hashes.
    * </p>
    */
-  public void setTypedefName(final String name) {
+  public final void setTypedefName(final String name) {
     if( setName(name) ) {
         // Capture the const/volatile attributes at the time of typedef so
         // we don't redundantly repeat them in the CV attributes string
@@ -326,9 +326,9 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   }
 
   /** SizeThunk which computes size of this type in bytes. */
-  public SizeThunk    getSize()    { return size; }
+  public final SizeThunk getSize()    { return size; }
   /** Size of this type in bytes according to the given MachineDataInfo. */
-  public long         getSize(final MachineDataInfo machDesc) {
+  public final long getSize(final MachineDataInfo machDesc) {
     final SizeThunk thunk = getSize();
     if (thunk == null) {
       throw new RuntimeException("No size set for type \"" + getName() + "\"");
@@ -336,7 +336,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
     return thunk.computeSize(machDesc);
   }
   /** Set the size of this type; only available for CompoundTypes. */
-  void setSize(final SizeThunk size) {
+  final void setSize(final SizeThunk size) {
       this.size = size;
       clearCache();
   }
@@ -363,40 +363,51 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   public VoidType     asVoid()     { return null; }
 
   /** Indicates whether this is a BitType. */
-  public boolean      isBit()      { return (asBit()      != null); }
+  public final boolean      isBit()      { return (asBit()      != null); }
   /** Indicates whether this is an IntType. */
-  public boolean      isInt()      { return (asInt()      != null); }
+  public final boolean      isInt()      { return (asInt()      != null); }
   /** Indicates whether this is an EnumType. */
-  public boolean      isEnum()     { return (asEnum()     != null); }
+  public final boolean      isEnum()     { return (asEnum()     != null); }
   /** Indicates whether this is a FloatType. */
-  public boolean      isFloat()    { return (asFloat()    != null); }
+  public final boolean      isFloat()    { return (asFloat()    != null); }
   /** Indicates whether this is a DoubleType. */
-  public boolean      isDouble()   { return (asDouble()   != null); }
+  public final boolean      isDouble()   { return (asDouble()   != null); }
   /** Indicates whether this is a PointerType. */
-  public boolean      isPointer()  { return (asPointer()  != null); }
+  public final boolean      isPointer()  { return (asPointer()  != null); }
   /** Indicates whether this is an ArrayType. */
-  public boolean      isArray()    { return (asArray()    != null); }
+  public final boolean      isArray()    { return (asArray()    != null); }
   /** Indicates whether this is a CompoundType. */
-  public boolean      isCompound() { return (asCompound() != null); }
+  public final boolean      isCompound() { return (asCompound() != null); }
   /** Indicates whether this is a FunctionType. */
-  public boolean      isFunction() { return (asFunction() != null); }
+  public final boolean      isFunction() { return (asFunction() != null); }
   /** Indicates whether this is a VoidType. */
-  public boolean      isVoid()     { return (asVoid()     != null); }
+  public final boolean      isVoid()     { return (asVoid()     != null); }
 
   /** Indicates whether this type is volatile. */
-  public boolean      isVolatile() { return 0 != ( ( cvAttributes & ~typedefCVAttributes ) & CVAttributes.VOLATILE );  }
+  public final boolean      isVolatile() { return 0 != ( ( cvAttributes & ~typedefCVAttributes ) & CVAttributes.VOLATILE );  }
   /** Indicates whether this type is const. */
-  public boolean      isConst()    { return 0 != ( ( cvAttributes & ~typedefCVAttributes ) & CVAttributes.CONST );  }
-  private boolean isConstTypedef() { return 0 !=                   ( typedefCVAttributes   & CVAttributes.CONST ); }
-  private boolean isConstRaw()     { return 0 !=   ( cvAttributes                          & CVAttributes.CONST ); }
+  public final boolean      isConst()    { return 0 != ( ( cvAttributes & ~typedefCVAttributes ) & CVAttributes.CONST );  }
+
+  private final boolean isConstTypedef() { return 0 !=                   ( typedefCVAttributes   & CVAttributes.CONST ); }
+  private final boolean isConstRaw()     { return 0 !=   ( cvAttributes                          & CVAttributes.CONST ); }
 
   /** Indicates whether this type is a primitive type. */
-  public boolean      isPrimitive(){ return false; }
+  public boolean isPrimitive(){ return false; }
 
   /** Convenience routine indicating whether this Type is a pointer to
       a function. */
   public boolean isFunctionPointer() {
-    return (isPointer() && asPointer().getTargetType().isFunction());
+    return false;
+  }
+
+  /**
+   * Checks the base type of pointer-to-pointer, pointer, array or plain for const-ness.
+   * <p>
+   * Note: Intermediate 'const' qualifier are not considered, e.g. const pointer.
+   * </p>
+   */
+  public final boolean isBaseTypeConst() {
+    return getBaseElementType().isConst();
   }
 
   /** Hashcode for Types. */
@@ -524,22 +535,14 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
       type represents (i.e., "void **" returns 2). Returns 0 if this
       type is not a pointer type. */
   public int pointerDepth() {
-    final PointerType pt = asPointer();
-    if (pt == null) {
-      return 0;
-    }
-    return 1 + pt.getTargetType().pointerDepth();
+    return 0;
   }
 
   /** Helper method for determining how many array dimentions this
       type represents (i.e., "char[][]" returns 2). Returns 0 if this
       type is not an array type. */
   public int arrayDimension() {
-    final ArrayType arrayType = asArray();
-    if (arrayType == null) {
-      return 0;
-    }
-    return 1 + arrayType.getElementType().arrayDimension();
+    return 0;
   }
 
   /**

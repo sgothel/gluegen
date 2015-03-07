@@ -602,7 +602,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           //
           // Note that we properly handle only the case of an array of
           // compound type wrappers in emitBodyVariablePostCallCleanup below
-          if (!isBaseTypeConst(cArgType) &&
+          if (!cArgType.isBaseTypeConst() &&
               !javaArgType.isArrayOfCompoundTypeWrappers()) {
             // FIXME: if the arg type is non-const, the sematics might be that
             // the function modifies the argument -- we don't yet support
@@ -663,7 +663,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             writer,
             convName+"_copy",
             cArgElementType.getCName(),
-            isBaseTypeConst(cArgType),
+            cArgType.isBaseTypeConst(),
             arrayLenName,
             "Could not allocate buffer for copying data in argument \\\""+javaArgName+"\\\"");
 
@@ -729,7 +729,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                        writer,
                        convName+"_copy[_copyIndex]",
                        cArgElementType2.getCName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
-                       isBaseTypeConst(cArgType),
+                       cArgType.isBaseTypeConst(),
                        "(*env)->GetArrayLength(env, _tmpObj)",
                        "Could not allocate buffer during copying of data in argument \\\""+javaArgName+"\\\"");
             // FIXME: copy the data (use matched Get/ReleasePrimitiveArrayCritical() calls)
@@ -791,7 +791,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           writer.println("  if ( JNI_FALSE == " + isNIOArgName(i) + " && NULL != " + javaArgName + " ) {");
 
           // Release array
-          final String modeFlag = isBaseTypeConst(cArgType) ? "JNI_ABORT" : "0" ;
+          final String modeFlag = cArgType.isBaseTypeConst() ? "JNI_ABORT" : "0" ;
           writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, " + javaArgName + ", " + convName + ", "+modeFlag+");");
         } else {
           writer.println("  if ( NULL != " + javaArgName + " ) {");
@@ -802,7 +802,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           //
           // FIXME: should factor out this whole block of code into a separate
           // method for clarity and maintenance purposes
-          if (!isBaseTypeConst(cArgType)) {
+          if (!cArgType.isBaseTypeConst()) {
             // FIXME: handle any cleanup from treatment of non-const args,
             // assuming they were treated differently in
             // emitBodyVariablePreCallSetup() (see the similar section in that
@@ -1080,7 +1080,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                 final String wmsg = "Assumed return size of equivalent C return type";
                 writer.println("sizeof(" + cReturnType.getCName()  + ") ); // WARNING: "+wmsg);
                 mode = 99;
-                LOG.warning(
+                LOG.warning(binding.getCSymbol().getASTLocusTag(),
                   "No capacity specified for java.nio.Buffer return " +
                   "value for function \"" + binding.getName() + "\". " + wmsg + " (sizeof(" + cReturnType.getCName() + ")): " + binding);
             }
@@ -1482,12 +1482,12 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         if (cPtrType != null) {
             cElementTypeName = cPtrType.getTargetType().asPointer().getCName();
         }
-        if (isBaseTypeConst(cType)) {
+        if (cType.isBaseTypeConst()) {
             writer.print("const ");
         }
         writer.print(cElementTypeName+" *");
       } else {
-        if (isBaseTypeConst(cType)) {
+        if (cType.isBaseTypeConst()) {
             writer.print("const ");
         }
         writer.print(ptrTypeString);

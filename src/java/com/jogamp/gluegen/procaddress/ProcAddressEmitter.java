@@ -134,7 +134,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         // honor that (for example, the superclass might have caught an Ignore
         // direction that matched the symbol's name).
         if (defaultEmitters.isEmpty()) {
-            LOG.log(Level.INFO, "genModProcAddrEmitter: SKIP, empty binding set: {0}", sym.getAliasedString());
+            LOG.log(Level.INFO, sym.getASTLocusTag(), "genModProcAddrEmitter: SKIP, empty binding set: {0}", sym.getAliasedString());
             return defaultEmitters;
         }
 
@@ -143,7 +143,7 @@ public class ProcAddressEmitter extends JavaEmitter {
 
         // Don't do anything special if this symbol doesn't require modifications
         if( !callThroughProcAddress || isUnimplemented ) {
-            LOG.log(Level.INFO, "genModProcAddrEmitter: SKIP, not needed: callThrough {0}, isUnimplemented {1}: {2}",
+            LOG.log(Level.INFO, sym.getASTLocusTag(), "genModProcAddrEmitter: SKIP, not needed: callThrough {0}, isUnimplemented {1}: {2}",
                     callThroughProcAddress, isUnimplemented, sym.getAliasedString());
             return defaultEmitters;
         }
@@ -252,7 +252,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         final boolean needsLocalTypedef = getProcAddressConfig().forceProcAddressGen(cSymbol) ||
                                           !hasFunctionPointerTypedef(cSymbol);
         final boolean callThroughProcAddress = needsLocalTypedef || callThroughProcAddress(cSymbol);
-        LOG.log(Level.INFO, "genModProcAddrEmitter: needsTypedef {0}, callThrough {1}: {2}",
+        LOG.log(Level.INFO, cSymbol.getASTLocusTag(), "genModProcAddrEmitter: needsTypedef {0}, callThrough {1}: {2}",
                 needsLocalTypedef, callThroughProcAddress, cSymbol.getAliasedString());
 
         String forcedCallingConvention = null;
@@ -300,13 +300,13 @@ public class ProcAddressEmitter extends JavaEmitter {
                 mode = 3;
             }
         }
-        LOG.log(Level.INFO, "callThroughProcAddress: {0} [m {1}]: {2}", res, mode, sym.getAliasedString());
+        LOG.log(Level.INFO, sym.getASTLocusTag(), "callThroughProcAddress: {0} [m {1}]: {2}", res, mode, sym.getAliasedString());
         return res;
     }
     protected boolean hasFunctionPointerTypedef(final FunctionSymbol sym) {
         final String funcPointerTypedefName = getFunctionPointerTypedefName(sym);
         final boolean res = typedefDictionary.containsKey(funcPointerTypedefName);
-        LOG.log(Level.INFO, "hasFunctionPointerTypedef: {0}: {1}", res, sym.getAliasedString());
+        LOG.log(Level.INFO, sym.getASTLocusTag(), "hasFunctionPointerTypedef: {0}: {1}", res, sym.getAliasedString());
         return res;
     }
 

@@ -48,26 +48,40 @@ public class ASTLocusTag {
     }
 
     public String toString() {
-        return toString(true);
+        return toString(new StringBuilder(), null).toString();
     }
-    public String toString(final boolean includeText) {
-        final StringBuffer buf = new StringBuffer();
+    public StringBuilder toString(final StringBuilder sb, final String level) {
+        boolean preCol = false;
         if (source != null) {
-            buf.append(source).append(":");
+            sb.append(source);
+            preCol = true;
         }
         if (line != -1) {
-            buf.append(line);
+            if( preCol ) {
+                sb.append(":");
+            } else {
+                sb.append("line ");
+            }
+            sb.append(line);
             if (column != -1) {
-                buf.append(":" + column);
+                sb.append(":" + column);
             }
+            preCol = true;
         }
-        if( includeText && null != text && text.length()>0 ) {
-            if( buf.length() > 0 ) {
-                buf.append(": ");
+        if( null != level && level.length()>0 ) {
+            if( preCol ) {
+                sb.append(": ");
             }
-            buf.append("text '").append(text).append("'");
+            sb.append(level);
+            preCol = true;
         }
-        return buf.toString();
+        if( null != text && text.length()>0 ) {
+            if( preCol ) {
+                sb.append(": ");
+            }
+            sb.append("text '").append(text).append("'");
+        }
+        return sb;
     }
 
     /**

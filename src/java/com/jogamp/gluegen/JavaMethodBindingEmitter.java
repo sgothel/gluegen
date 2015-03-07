@@ -709,7 +709,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       // ByteBuffers back into the wrapper types
       for (int i = 0; i < binding.getNumArguments(); i++) {
         final JavaType javaArgType = binding.getJavaArgumentType(i);
-        if ( javaArgType.isArrayOfCompoundTypeWrappers() && !isBaseTypeConst(javaArgType.getElementCType()) ) {
+        if ( javaArgType.isArrayOfCompoundTypeWrappers() && !javaArgType.getElementCType().isBaseTypeConst() ) {
           final String argName = binding.getArgumentName(i);
           writer.println("    for (int _ctr = 0; _ctr < " + argName + ".length; _ctr++) {");
           writer.println("      if ((" + argName + "[_ctr] == null && " + argName + COMPOUND_ARRAY_SUFFIX + "[_ctr] == null) ||");

@@ -81,18 +81,12 @@ public class GlueGenException extends JogampRuntimeException {
   }
 
   public String toString() {
-      final StringBuffer buf = new StringBuffer();
+      final StringBuilder sb = new StringBuilder(256);
       if (null != locus) {
-          buf.append(locus.toString(false)).append(": error: ");
-          if( null != locus.text && locus.text.length()>0 ) {
-              buf.append("text '").append(locus.text).append("': ");
-          }
+          locus.toString(sb, "error").append(": ");
       }
-      buf.append(getLocalizedMessage());
-      final String message = buf.toString();
-
-      final String className = getClass().getSimpleName();
-      return null != message ? className + ": " + message : className;
+      sb.append(getClass().getSimpleName()).append(": ").append(getLocalizedMessage());
+      return sb.toString();
   }
 
 }

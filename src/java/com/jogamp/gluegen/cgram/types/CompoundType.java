@@ -161,11 +161,6 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   }
 
   @Override
-  public void setSize(final SizeThunk size) {
-    super.setSize(size);
-  }
-
-  @Override
   public CompoundType asCompound() { return this; }
 
   @Override

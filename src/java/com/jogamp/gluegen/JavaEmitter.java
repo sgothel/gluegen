@@ -478,7 +478,7 @@ public class JavaEmitter implements GlueEmitter {
           // Check to see whether this function should be ignored
           if ( !cfg.shouldIgnoreInImpl(cFunc) ) {
               methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
-              LOG.log(INFO, "Non-Ignored Impl[{0}]: {1}", i++, cFunc.getAliasedString());
+              LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Impl[{0}]: {1}", i++, cFunc.getAliasedString());
           }
 
         }
@@ -493,7 +493,7 @@ public class JavaEmitter implements GlueEmitter {
             if ( !emitter.isInterface() || !cfg.shouldIgnoreInInterface(cFunc) ) {
                 emitter.emit();
                 emitter.getDefaultOutput().println(); // put newline after method body
-                LOG.log(INFO, "Non-Ignored Intf[{0}]: {1}", i++, cFunc.getAliasedString());
+                LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc.getAliasedString());
             }
           } catch (final Exception e) {
             throw new RuntimeException(
@@ -575,7 +575,7 @@ public class JavaEmitter implements GlueEmitter {
       if( !requiresStaticInitialization ) {
           requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
           if( requiresStaticInitialization ) {
-              LOG.log(INFO, "StaticInit Trigger.1 \"{0}\"", binding);
+              LOG.log(INFO, binding.getCSymbol().getASTLocusTag(), "StaticInit Trigger.1 \"{0}\"", binding);
           }
       }
 
@@ -637,7 +637,7 @@ public class JavaEmitter implements GlueEmitter {
           if( !requiresStaticInitialization ) {
               requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
               if( requiresStaticInitialization ) {
-                  LOG.log(INFO, "StaticInit Trigger.2 \"{0}\"", binding);
+                  LOG.log(INFO, binding.getCSymbol().getASTLocusTag(), "StaticInit Trigger.2 \"{0}\"", binding);
               }
           }
 
@@ -882,20 +882,24 @@ public class JavaEmitter implements GlueEmitter {
     if ( null == structCTypeName ) {
         final String structName = structCType.getStructName();
         if ( null != structName && cfg.shouldIgnoreInInterface(structName) ) {
-            LOG.log(INFO, "skipping emission of unnamed ignored struct \"{0}\": {1}", structName, structCType.getDebugString());
+            LOG.log(INFO, structCType.getASTLocusTag(),
+                    "skipping emission of unnamed ignored struct \"{0}\": {1}", structName, structCType.getDebugString());
             return;
         } else {
             final String d1 = null != typedefed ? typedefed.getDebugString() : null;
-            LOG.log(INFO, "skipping emission of unnamed struct {0}, typedef {1} ",  structCType.getDebugString(), d1);
+            LOG.log(INFO, structCType.getASTLocusTag(),
+                    "skipping emission of unnamed struct {0}, typedef {1} ",  structCType.getDebugString(), d1);
             return;
         }
     }
     if ( cfg.shouldIgnoreInInterface(structCTypeName) ) {
-        LOG.log(INFO, "skipping emission of ignored \"{0}\": {1}", structCTypeName, structCType.getDebugString());
+        LOG.log(INFO, structCType.getASTLocusTag(),
+                "skipping emission of ignored \"{0}\": {1}", structCTypeName, structCType.getDebugString());
         return;
     }
     if( null != typedefed && isOpaque(typedefed) ) {
-        LOG.log(INFO, "skipping emission of opaque typedef {0}, c-struct {1}", typedefed.getDebugString(), structCType.getDebugString());
+        LOG.log(INFO, structCType.getASTLocusTag(),
+                "skipping emission of opaque typedef {0}, c-struct {1}", typedefed.getDebugString(), structCType.getDebugString());
         return;
     }
 
@@ -907,26 +911,30 @@ public class JavaEmitter implements GlueEmitter {
     }
     final JavaType containingJType = typeToJavaType(containingCType, null);
     if( containingJType.isOpaqued() ) {
-        LOG.log(INFO, "skipping emission of opaque {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
+        LOG.log(INFO, structCType.getASTLocusTag(),
+                "skipping emission of opaque {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
         return;
     }
     if( !containingJType.isCompoundTypeWrapper() ) {
-        LOG.log(WARNING, "skipping emission of non-compound {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
+        LOG.log(WARNING, structCType.getASTLocusTag(),
+                "skipping emission of non-compound {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
         return;
     }
     final String containingJTypeName = containingJType.getName();
-    LOG.log(INFO, "perform emission of \"{0}\" -> \"{1}\": {2}", structCTypeName, containingJTypeName, structCType.getDebugString());
+    LOG.log(INFO, structCType.getASTLocusTag(),
+            "perform emission of \"{0}\" -> \"{1}\": {2}", structCTypeName, containingJTypeName, structCType.getDebugString());
     if( GlueGen.debug() ) {
         if( null != typedefed ) {
-            LOG.log(INFO, "    typedefed {0}", typedefed.getDebugString(true));
+            LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", typedefed.getDebugString());
         } else {
-            LOG.log(INFO, "    typedefed {0}", (Object)null);
+            LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", (Object)null);
         }
-        LOG.log(INFO, "    containingCType {0}", containingCType.getDebugString(true));
-        LOG.log(INFO, "    containingJType {0}", containingJType.getDebugString());
+        LOG.log(INFO, structCType.getASTLocusTag(), "    containingCType {0}", containingCType.getDebugString(true));
+        LOG.log(INFO, structCType.getASTLocusTag(), "    containingJType {0}", containingJType.getDebugString());
     }
     if( 0 == structCType.getNumFields() ) {
-        LOG.log(INFO, "emission of \"{0}\" with zero fields {1}", containingJTypeName, structCType.getDebugString());
+        LOG.log(INFO, structCType.getASTLocusTag(),
+                "emission of \"{0}\" with zero fields {1}", containingJTypeName, structCType.getDebugString());
     }
 
     this.requiresStaticInitialization = false; // reset
@@ -1182,9 +1190,9 @@ public class JavaEmitter implements GlueEmitter {
           javaWriter.println(" }");
 
         } else if ( ( fieldType.isArray() || fieldType.isPointer() ) && !isOpaqueField ) {
-            generateArrayGetterSetterCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
-                                          containingCType, containingJType,
-                                          i, field, fieldName, cfgFieldName1);
+            generateArrayGetterSetterCode(methodBindingSet, javaWriter, jniWriter, structCType, structCTypeName,
+                                          structClassPkgName, containingCType,
+                                          containingJType, i, field, fieldName, cfgFieldName1);
         } else {
           final JavaType javaType;
           try {
@@ -1209,10 +1217,9 @@ public class JavaEmitter implements GlueEmitter {
             final String capFieldName = capitalizeString(fieldName);
             final String sizeDenominator = fieldType.isPointer() ? "pointer" : javaTypeName ;
 
-            if( LOG.isLoggable(FINE) ) {
-                LOG.log(FINE, "Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getDebugString()+", "+javaTypeName+", "+
-                        ", fixedSize "+fieldTypeNativeSizeFixed+", opaque[t "+isOpaqueFieldType+", f "+isOpaqueField+"], sizeDenominator "+sizeDenominator);
-            }
+            LOG.log(FINE, structCType.getASTLocusTag(),
+                    "Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getDebugString()+", "+javaTypeName+", "+
+                    ", fixedSize "+fieldTypeNativeSizeFixed+", opaque[t "+isOpaqueFieldType+", f "+isOpaqueField+"], sizeDenominator "+sizeDenominator);
 
             if( !fieldType.isConst() ) {
                 // Setter
@@ -1553,14 +1560,16 @@ public class JavaEmitter implements GlueEmitter {
       final String cfgVal = cfg.returnedArrayLength(returnSizeLookupName);
       if( null != cfgVal ) {
           if( hasFixedTypeLen[0] ) {
-              LOG.log(WARNING, "struct array field '"+returnSizeLookupName+"' of '"+type+"' length '"+Arrays.toString(length)+"' overwritten by cfg-expression: "+cfgVal);
+              LOG.log(WARNING, type.getASTLocusTag(),
+                      "struct array field '"+returnSizeLookupName+"' of '"+type+"' length '"+Arrays.toString(length)+"' overwritten by cfg-expression: "+cfgVal);
           }
           return cfgVal;
       }
       if( hasFixedTypeLen[0] ) {
           return lengthExpr.toString();
       } else {
-          LOG.log(WARNING, "struct array field '"+returnSizeLookupName+"' length '"+Arrays.toString(length)+"' without fixed- nor configured-size: "+type.getDebugString());
+          LOG.log(WARNING, type.getASTLocusTag(),
+                  "struct array field '"+returnSizeLookupName+"' length '"+Arrays.toString(length)+"' without fixed- nor configured-size: "+type.getDebugString());
           return null;
       }
   }
@@ -1593,6 +1602,7 @@ public class JavaEmitter implements GlueEmitter {
 
   private void generateArrayGetterSetterCode(final Set<MethodBinding> methodBindingSet,
                                              final PrintWriter javaWriter, final PrintWriter jniWriter,
+                                             final CompoundType structCType,
                                              final String structCTypeName, final String structClassPkgName,
                                              final Type containingCType, final JavaType containingJType,
                                              final int i, final Field field, final String fieldName,
@@ -1670,7 +1680,7 @@ public class JavaEmitter implements GlueEmitter {
                       javaWriter.println();
                       final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+returnSizeLookupName +": "+fieldType;
                       javaWriter.println("  // "+msg);
-                      LOG.log(WARNING, msg);
+                      LOG.log(WARNING, structCType.getASTLocusTag(), msg);
                       return;
                   }
               }
@@ -1694,7 +1704,7 @@ public class JavaEmitter implements GlueEmitter {
                   javaWriter.println();
                   final String msg = "SKIP primitive w/ platform dependent sized type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
                   javaWriter.println("  // "+msg);
-                  LOG.log(WARNING, msg);
+                  LOG.log(WARNING, structCType.getASTLocusTag(), msg);
                   return;
               }
           }
@@ -1710,7 +1720,7 @@ public class JavaEmitter implements GlueEmitter {
               _arrayLengthExpr = "getCStringLengthImpl(pString)+1";
               _arrayLengthExprIsConst = false;
               this.requiresStaticInitialization = true;
-              LOG.log(INFO, "StaticInit Trigger.3 \"{0}\"", returnSizeLookupName);
+              LOG.log(INFO, structCType.getASTLocusTag(), "StaticInit Trigger.3 \"{0}\"", returnSizeLookupName);
           } else {
               useGetCStringLength = false;
           }
@@ -1720,7 +1730,7 @@ public class JavaEmitter implements GlueEmitter {
               javaWriter.println();
               final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
               javaWriter.println("  // "+msg);
-              LOG.log(WARNING, msg);
+              LOG.log(WARNING, structCType.getASTLocusTag(), msg);
               return;
           }
           boolean _hasSingleElement=false;
@@ -1756,7 +1766,7 @@ public class JavaEmitter implements GlueEmitter {
                   // Setter Primitive Pointer
                   final String msg = "SKIP setter for primitive-pointer type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
                   javaWriter.println("  // "+msg);
-                  LOG.log(INFO, msg);
+                  LOG.log(INFO, structCType.getASTLocusTag(), msg);
               } else {
                   // Setter Primitive Array
                   if( hasSingleElement ) {
@@ -1793,7 +1803,7 @@ public class JavaEmitter implements GlueEmitter {
                   // Setter Struct Pointer
                   final String msg = "SKIP setter for complex-pointer type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
                   javaWriter.println("  // "+msg);
-                  LOG.log(INFO, msg);
+                  LOG.log(INFO, structCType.getASTLocusTag(), msg);
               } else {
                   // Setter Struct Array
                   if( hasSingleElement ) {
@@ -2034,7 +2044,7 @@ public class JavaEmitter implements GlueEmitter {
 
   private JavaType typeToJavaType(final Type cType, final MachineDataInfo curMachDesc) {
       final JavaType jt = typeToJavaTypeImpl(cType, curMachDesc);
-      LOG.log(FINE, "typeToJavaType: {0} -> {1}", cType.getDebugString(), jt.getDebugString());
+      LOG.log(FINE, cType.getASTLocusTag(), "typeToJavaType: {0} -> {1}", cType.getDebugString(), jt.getDebugString());
       return jt;
   }
   private boolean isJNIEnvPointer(final Type cType) {
@@ -2071,7 +2081,7 @@ public class JavaEmitter implements GlueEmitter {
             if( GlueGen.debug() ) {
                 // t is<type>**, targetType is <type>*, we need to get <type>
                 final Type bottomType = targetType.asPointer().getTargetType();
-                LOG.log(INFO, "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr",
+                LOG.log(INFO, cType.getASTLocusTag(), "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr",
                         cType.getDebugString(), targetType, bottomType);
             }
           }
@@ -2169,7 +2179,7 @@ public class JavaEmitter implements GlueEmitter {
             // t is<type>**, targetType is <type>*, we need to get <type>
             bottomType = targetType.asPointer().getTargetType();
             if( GlueGen.debug() ) {
-                LOG.log(INFO, "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2}",
+                LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2}",
                         cType.getDebugString(), targetType, bottomType);
             }
             return JavaType.forNIOPointerBufferClass();
@@ -2177,13 +2187,13 @@ public class JavaEmitter implements GlueEmitter {
             // t is<type>[][], targetType is <type>[], we need to get <type>
             bottomType = targetType.asArray().getBaseElementType();
             if( GlueGen.debug() ) {
-                LOG.log(INFO, "typeToJavaType(ptr-ptr.array): {0}, targetType: {1}, bottomType: {2}",
+                LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr.array): {0}, targetType: {1}, bottomType: {2}",
                         cType.getDebugString(), targetType, bottomType);
             }
           } else {
             bottomType = targetType;
             if( GlueGen.debug() ) {
-                LOG.log(INFO, "typeToJavaType(ptr-ptr.primitive): {0}, targetType: {1}, bottomType: {2}",
+                LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr.primitive): {0}, targetType: {1}, bottomType: {2}",
                         cType.getDebugString(), targetType, bottomType);
             }
           }
