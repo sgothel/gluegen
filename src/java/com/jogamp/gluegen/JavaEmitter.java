@@ -138,22 +138,45 @@ public class JavaEmitter implements GlueEmitter {
         for (final T sym : inList) {
             final String origName = sym.getName();
             final String newName = cfg.getJavaSymbolRename(origName);
+            final T dupSym;
             if( null != newName ) {
                 // Alias Name
-                final T dupSym = symMap.get(newName);
+                dupSym = symMap.get(newName);
                 if( null != dupSym ) {
-                    // Duplicate alias .. check and add aliased name
-                    sym.rename(newName); // only rename to allow 'equalSemantics' to not care ..
-                    if( !dupSym.equalSemantics(sym) ) {
-                        final String message =
-                            String.format("Duplicate Name (alias) w/ incompatible value:%n  have '%s',%n  this '%s'",
-                                    dupSym.getAliasedString(), sym.getAliasedString());
-                        if( sym instanceof ASTLocusTagProvider ) {
-                            throw new GlueGenException(message, ((ASTLocusTagProvider)sym).getASTLocusTag());
-                        } else {
-                            throw new GlueGenException(message);
-                        }
+                    // only rename to allow 'equalSemantics' to not care ..
+                    sym.rename(newName);
+                }
+            } else {
+                // Original Name
+                dupSym = symMap.get(origName);
+            }
+            if( null != dupSym ) {
+                // Duplicate alias .. check
+                if( !dupSym.equalSemantics(sym) ) {
+                    final ASTLocusTag loc;
+                    final String preLoc;
+                    if( sym instanceof ASTLocusTagProvider ) {
+                        loc = ((ASTLocusTagProvider)sym).getASTLocusTag();
+                    } else {
+                        loc = null;
                     }
+                    if( dupSym instanceof ASTLocusTagProvider ) {
+                        preLoc = String.format(", previously declared here: %s",
+                                ((ASTLocusTagProvider)dupSym).getASTLocusTag());
+                    } else {
+                        preLoc = "";
+                    }
+                    final String mode = null != newName ? "alias" : "orig";
+                    final String message =
+                            String.format("Duplicate Name (%s) w/ incompatible value:%n  this '%s',%n  have '%s'%s",
+                                    mode, sym.getAliasedString(), dupSym.getAliasedString(), preLoc);
+                    throw new GlueGenException(message, loc);
+                }
+            }
+            if( null != newName ) {
+                // Alias Name
+                if( null != dupSym ) {
+                    // Duplicate alias .. add aliased name
                     dupSym.addAliasedName(origName);
                 } else {
                     // No duplicate .. rename and add
@@ -162,19 +185,8 @@ public class JavaEmitter implements GlueEmitter {
                 }
             } else {
                 // Original Name
-                final T dupSym = symMap.get(origName);
                 if( null != dupSym ) {
-                    // Duplicate orig .. check and drop
-                    if( !dupSym.equalSemantics(sym) ) {
-                        final String message =
-                                String.format("Duplicate Name (orig) w/ incompatible value:%n  have '%s',%n  this '%s'",
-                                            dupSym.getAliasedString(), sym.getAliasedString());
-                        if( sym instanceof ASTLocusTagProvider ) {
-                            throw new GlueGenException(message, ((ASTLocusTagProvider)sym).getASTLocusTag());
-                        } else {
-                            throw new GlueGenException(message);
-                        }
-                    }
+                    // Duplicate orig .. drop
                 } else {
                     // No duplicate orig .. add
                     symMap.put(origName, sym);
@@ -879,27 +891,31 @@ public class JavaEmitter implements GlueEmitter {
             structCTypeName = _name;
         }
     }
+    LOG.log(INFO, structCType.getASTLocusTag(),
+            "Struct emission of structCType \"{0}\" -> {1}", structCTypeName, structCType);
+    LOG.log(INFO, structCType.getASTLocusTag(),
+            "           which has a typedef \"{0}\" -> {1}", typedefedName, typedefed);
+
     if ( null == structCTypeName ) {
         final String structName = structCType.getStructName();
         if ( null != structName && cfg.shouldIgnoreInInterface(structName) ) {
             LOG.log(INFO, structCType.getASTLocusTag(),
-                    "skipping emission of unnamed ignored struct \"{0}\": {1}", structName, structCType.getDebugString());
+                    "skipping emission of unnamed ignored struct \"{0}\": {1}", structName, structCType);
             return;
         } else {
-            final String d1 = null != typedefed ? typedefed.getDebugString() : null;
             LOG.log(INFO, structCType.getASTLocusTag(),
-                    "skipping emission of unnamed struct {0}, typedef {1} ",  structCType.getDebugString(), d1);
+                    "skipping emission of unnamed struct {0}, typedef {1} ",  structCType, typedefed);
             return;
         }
     }
     if ( cfg.shouldIgnoreInInterface(structCTypeName) ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
-                "skipping emission of ignored \"{0}\": {1}", structCTypeName, structCType.getDebugString());
+                "skipping emission of ignored \"{0}\": {1}", structCTypeName, structCType);
         return;
     }
     if( null != typedefed && isOpaque(typedefed) ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
-                "skipping emission of opaque typedef {0}, c-struct {1}", typedefed.getDebugString(), structCType.getDebugString());
+                "skipping emission of opaque typedef {0}, c-struct {1}", typedefed, structCType);
         return;
     }
 
@@ -912,29 +928,29 @@ public class JavaEmitter implements GlueEmitter {
     final JavaType containingJType = typeToJavaType(containingCType, null);
     if( containingJType.isOpaqued() ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
-                "skipping emission of opaque {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
+                "skipping emission of opaque {0}, {1}", containingJType, structCType);
         return;
     }
     if( !containingJType.isCompoundTypeWrapper() ) {
         LOG.log(WARNING, structCType.getASTLocusTag(),
-                "skipping emission of non-compound {0}, {1}", containingJType.getDebugString(), structCType.getDebugString());
+                "skipping emission of non-compound {0}, {1}", containingJType, structCType);
         return;
     }
     final String containingJTypeName = containingJType.getName();
     LOG.log(INFO, structCType.getASTLocusTag(),
-            "perform emission of \"{0}\" -> \"{1}\": {2}", structCTypeName, containingJTypeName, structCType.getDebugString());
+            "perform emission of \"{0}\" -> \"{1}\": {2}", structCTypeName, containingJTypeName, structCType);
     if( GlueGen.debug() ) {
         if( null != typedefed ) {
-            LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", typedefed.getDebugString());
+            LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", typedefed);
         } else {
             LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", (Object)null);
         }
-        LOG.log(INFO, structCType.getASTLocusTag(), "    containingCType {0}", containingCType.getDebugString(true));
-        LOG.log(INFO, structCType.getASTLocusTag(), "    containingJType {0}", containingJType.getDebugString());
+        LOG.log(INFO, structCType.getASTLocusTag(), "    containingCType {0}", containingCType);
+        LOG.log(INFO, structCType.getASTLocusTag(), "    containingJType {0}", containingJType);
     }
     if( 0 == structCType.getNumFields() ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
-                "emission of \"{0}\" with zero fields {1}", containingJTypeName, structCType.getDebugString());
+                "emission of \"{0}\" with zero fields {1}", containingJTypeName, structCType);
     }
 
     this.requiresStaticInitialization = false; // reset
@@ -1218,7 +1234,7 @@ public class JavaEmitter implements GlueEmitter {
             final String sizeDenominator = fieldType.isPointer() ? "pointer" : javaTypeName ;
 
             LOG.log(FINE, structCType.getASTLocusTag(),
-                    "Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType.getDebugString()+", "+javaTypeName+", "+
+                    "Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType+", "+javaTypeName+", "+
                     ", fixedSize "+fieldTypeNativeSizeFixed+", opaque[t "+isOpaqueFieldType+", f "+isOpaqueField+"], sizeDenominator "+sizeDenominator);
 
             if( !fieldType.isConst() ) {
@@ -1569,7 +1585,7 @@ public class JavaEmitter implements GlueEmitter {
           return lengthExpr.toString();
       } else {
           LOG.log(WARNING, type.getASTLocusTag(),
-                  "struct array field '"+returnSizeLookupName+"' length '"+Arrays.toString(length)+"' without fixed- nor configured-size: "+type.getDebugString());
+                  "struct array field '"+returnSizeLookupName+"' length '"+Arrays.toString(length)+"' without fixed- nor configured-size: {0}", type);
           return null;
       }
   }
@@ -1879,7 +1895,7 @@ public class JavaEmitter implements GlueEmitter {
               ft.addArgument(int32Type, nativeArrayLengthArg);
               final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
               jniWriter.println();
-              jniWriter.print("static "+fs.toString());
+              jniWriter.print("static "+fs.toString(false));
               jniWriter.println("{");
               jniWriter.println("  return "+CMethodBindingEmitter.cThisArgumentName()+"->"+field.getName()+";");
               jniWriter.println("}");
@@ -1987,7 +2003,7 @@ public class JavaEmitter implements GlueEmitter {
               ft.addArgument(int32Type, nativeArrayElemOffsetArg);
               final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
               jniWriter.println();
-              jniWriter.print("static "+fs.toString());
+              jniWriter.print("static "+fs.toString(false));
               jniWriter.println("{");
               jniWriter.println("  return "+CMethodBindingEmitter.cThisArgumentName()+"->"+field.getName()+"+"+nativeArrayElemOffsetArg+";");
               jniWriter.println("}");
@@ -2044,7 +2060,7 @@ public class JavaEmitter implements GlueEmitter {
 
   private JavaType typeToJavaType(final Type cType, final MachineDataInfo curMachDesc) {
       final JavaType jt = typeToJavaTypeImpl(cType, curMachDesc);
-      LOG.log(FINE, cType.getASTLocusTag(), "typeToJavaType: {0} -> {1}", cType.getDebugString(), jt.getDebugString());
+      LOG.log(FINE, cType.getASTLocusTag(), "typeToJavaType: {0} -> {1}", cType, jt);
       return jt;
   }
   private boolean isJNIEnvPointer(final Type cType) {
@@ -2082,7 +2098,7 @@ public class JavaEmitter implements GlueEmitter {
                 // t is<type>**, targetType is <type>*, we need to get <type>
                 final Type bottomType = targetType.asPointer().getTargetType();
                 LOG.log(INFO, cType.getASTLocusTag(), "Opaque Type: {0}, targetType: {1}, bottomType: {2} is ptr-ptr",
-                        cType.getDebugString(), targetType, bottomType);
+                        cType, targetType, bottomType);
             }
           }
         }

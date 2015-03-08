@@ -41,6 +41,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.gluegen.cgram.types.Type;
 
 /**
  *
@@ -224,6 +225,18 @@ public class Logging {
         public void setASTLocusTag(final ASTLocusTag loc) { astLocus = loc; }
         @Override
         public String format(final LogRecord record) {
+            // Replace [Type, JavaType] -> its debug string!
+            final Object[] params = record.getParameters();
+            if( null != params ) {
+                for(int i=params.length-1; 0<=i; i--) {
+                    final Object o = params[i];
+                    if( o instanceof Type ) {
+                        params[i] = ((Type)o).getDebugString();
+                    } else if( o instanceof JavaType ) {
+                        params[i] = ((JavaType)o).getDebugString();
+                    }
+                }
+            }
             final StringBuilder sb = new StringBuilder(256);
             if( null != astLocus ) {
                 astLocus.toString(sb, getCanonicalName(record.getLevel())).append(": ");

@@ -866,7 +866,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               writer.print(convName+"_copy[_copyIndex]");
               writer.println(");");
             } else {
-              if (true) throw new GlueGenException(
+              throw new GlueGenException(
                 "Cannot yet handle type \"" + cArgType.getDebugString() +
                 "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays",
                 binding.getCSymbol().getASTLocusTag());
