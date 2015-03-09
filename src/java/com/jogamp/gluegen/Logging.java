@@ -41,6 +41,7 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 
 /**
@@ -234,14 +235,19 @@ public class Logging {
                         params[i] = ((Type)o).getDebugString();
                     } else if( o instanceof JavaType ) {
                         params[i] = ((JavaType)o).getDebugString();
+                    } else if( o instanceof AliasedSymbol ) {
+                        params[i] = ((AliasedSymbol)o).getAliasedString();
                     }
                 }
             }
             final StringBuilder sb = new StringBuilder(256);
             if( null != astLocus ) {
-                astLocus.toString(sb, getCanonicalName(record.getLevel())).append(": ");
+                astLocus.toString(sb, getCanonicalName(record.getLevel()), GlueGen.debug()).append(": ");
             }
-            sb.append(simpleClassName).append(": ").append(formatMessage(record)).append("\n");
+            if( GlueGen.debug() ) {
+                sb.append(simpleClassName).append(": ");
+            }
+            sb.append(formatMessage(record)).append("\n");
             return sb.toString();
         }
     }

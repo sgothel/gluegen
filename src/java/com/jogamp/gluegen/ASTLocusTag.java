@@ -48,9 +48,9 @@ public class ASTLocusTag {
     }
 
     public String toString() {
-        return toString(new StringBuilder(), null).toString();
+        return toString(new StringBuilder(), null, true).toString();
     }
-    public StringBuilder toString(final StringBuilder sb, final String level) {
+    public StringBuilder toString(final StringBuilder sb, final String level, final boolean inclText) {
         boolean preCol = false;
         if (source != null) {
             sb.append(source);
@@ -75,11 +75,13 @@ public class ASTLocusTag {
             sb.append(level);
             preCol = true;
         }
-        if( null != text && text.length()>0 ) {
+        if( inclText && null != text && text.length()>0 ) {
             if( preCol ) {
                 sb.append(": ");
+            } else {
+                sb.append("text ");
             }
-            sb.append("text '").append(text).append("'");
+            sb.append("'").append(text).append("'");
         }
         return sb;
     }

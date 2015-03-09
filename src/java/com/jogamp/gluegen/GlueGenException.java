@@ -83,7 +83,7 @@ public class GlueGenException extends JogampRuntimeException {
   public String toString() {
       final StringBuilder sb = new StringBuilder(256);
       if (null != locus) {
-          locus.toString(sb, "error").append(": ");
+          locus.toString(sb, "error", true).append(": ");
       }
       sb.append(getClass().getSimpleName()).append(": ").append(getLocalizedMessage());
       return sb.toString();
