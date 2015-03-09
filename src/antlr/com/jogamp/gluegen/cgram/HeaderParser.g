@@ -761,8 +761,8 @@ enumSpecifier [int cvAttrs] returns [Type t] {
                             final EnumType dupE = enumMap.get(eName);
                             if( null != dupE && !dupE.equalSemantics(e) ) {
                                 throwGlueGenException(enumSpecifier_AST_in,
-                                    String.format("Duplicate enum w/ incompatible type:%n  this '%s',%n  have '%s',%n  previously declared here: %s", 
-                                        getTypeString(e), getTypeString(dupE), dupE.getASTLocusTag()));
+                                    String.format("Duplicate enum w/ incompatible type:%n  this '%s',%n  have '%s',%n  %s: previous definition is here",
+                                        getTypeString(e), getTypeString(dupE), dupE.getASTLocusTag().toString(new StringBuilder(), "note", true)));
                             }
                             enumMap.put(eName, (EnumType)e.clone(locusTag));
                         }
@@ -879,8 +879,8 @@ initDecl[TypeBox tb] {
         final Type dupT = typedefDictionary.get(declName);
         if( null != dupT && !dupT.equalSemantics(t) ) {
             throwGlueGenException(locusTag,
-                  String.format("Duplicate typedef w/ incompatible type:%n  this '%s',%n  have '%s',%n  previously declared here: %s", 
-                     getTypeString(t), getTypeString(dupT), dupT.getASTLocusTag()));
+                  String.format("Duplicate typedef w/ incompatible type:%n  this '%s',%n  have '%s',%n  %s: previous definition is here",
+                     getTypeString(t), getTypeString(dupT), dupT.getASTLocusTag().toString(new StringBuilder(), "note", true)));
         }
         t = canonicalize(t);
         debugPrintln(" - canon -> "+getDebugTypeString(t));

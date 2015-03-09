@@ -161,8 +161,8 @@ public class JavaEmitter implements GlueEmitter {
                         loc = null;
                     }
                     if( dupSym instanceof ASTLocusTagProvider ) {
-                        preLoc = String.format(", previously declared here: %s",
-                                ((ASTLocusTagProvider)dupSym).getASTLocusTag());
+                        preLoc = String.format(",%n  %s: previous definition is here",
+                                ((ASTLocusTagProvider)dupSym).getASTLocusTag().toString(new StringBuilder(), "note", true));
                     } else {
                         preLoc = "";
                     }
