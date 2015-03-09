@@ -459,6 +459,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       writer.print("  ");
       // Note we respect const/volatile in the function return type.
       // However, we cannot have it 'const' for our local variable.
+      // See cast in emitBodyCallCFunction(..)!
       writer.print(binding.getCSymbol().getReturnType().getCName(false));
       writer.println(" _res;");
       if (javaReturnType.isNIOByteBufferArray() ||
@@ -978,7 +979,12 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     final Type cReturnType = binding.getCReturnType();
 
     if (!cReturnType.isVoid()) {
-      writer.print("_res = ");
+      // Note we respect const/volatile in the function return type.
+      // However, we cannot have it 'const' for our local variable.
+      // See return type in emitBodyVariableDeclarations(..)!
+      writer.print("_res = (");
+      writer.print(cReturnType.getCName(false));
+      writer.print(") ");
     }
     if ( isCStructFunctionPointer && binding.hasContainingType() ) {
       // Call through function pointer

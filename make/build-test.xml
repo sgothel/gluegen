@@ -148,7 +148,7 @@
                debug="${javacdebug}" debuglevel="${javacdebuglevel}">
             <classpath refid="junit.compile.classpath"/>
             <compilerarg value="-proc:only"/>
-            <compilerarg value="-J-Djogamp.gluegen.structgen.debug"/>
+            <!-- compilerarg value="-J-Djogamp.gluegen.structgen.debug"/ -->
             <compilerarg value="-J-Djogamp.gluegen.structgen.output=${build_t.gen}/classes"/>
             <src path="${test.base.dir}/com/jogamp/gluegen/test/junit/structgen"/>
             <src path="${build_t.gen}/classes/com/jogamp/gluegen/test/junit/structgen" />

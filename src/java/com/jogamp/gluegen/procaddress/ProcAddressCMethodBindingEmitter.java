@@ -198,7 +198,12 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             final Type cReturnType = binding.getCReturnType();
 
             if (!cReturnType.isVoid()) {
-                writer.print("_res = ");
+                // Note we respect const/volatile in the function return type.
+                // However, we cannot have it 'const' for our local variable.
+                // See return type in CMethodBindingEmitter.emitBodyVariableDeclarations(..)!
+                writer.print("_res = (");
+                writer.print(cReturnType.getCName(false));
+                writer.print(") ");
             }
             final MethodBinding mBinding = getBinding();
             if (mBinding.hasContainingType()) {
