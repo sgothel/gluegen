@@ -39,18 +39,32 @@
 
 package com.jogamp.gluegen.cgram;
 
+import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
+
 /** Represents a #define of a literal to a value (a number represented
     in string form.) */
 
-public class Define {
+public class Define implements ASTLocusTagProvider {
   private final String name;
   private final String value;
+  private final ASTLocusTag astLocus;
 
   public Define(final String name, final String value) {
     this.name = name;
     this.value = value;
+    this.astLocus = null;
+  }
+
+  public Define(final String name, final String value, final ASTLocusTag astLocus) {
+    this.name = name;
+    this.value = value;
+    this.astLocus = astLocus;
   }
 
   public String getName()  { return name; }
   public String getValue() { return value; }
+
+  @Override
+  public ASTLocusTag getASTLocusTag() { return astLocus; }
 }

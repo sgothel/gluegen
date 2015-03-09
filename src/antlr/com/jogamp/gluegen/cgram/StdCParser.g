@@ -1131,11 +1131,12 @@ options {
             nw:NonWhitespace
             ("\r\n" | "\r" | "\n") )               {
                                                      if (n != null) {
-                                                       //System.out.println("addDefine: #define " + i.getText() + " " +  n.getText());
+                                                       // System.out.println("addDefine: #define " + i.getText() + " " +  n.getText()+" @ "+lineObject.getSource()+":"+(lineObject.line+deferredLineCount));
                                                        addDefine(i.getText(), n.getText());
                                                      } else {
                                                        setPreprocessingDirective("#define " + i.getText() + " " + nw.getText());
                                                      }
+                                                     deferredNewline();
                                                    }
         | (~'\n')*                                 { setPreprocessingDirective(getText()); }
         )
@@ -1165,15 +1166,19 @@ protected LineDirective
 }
 :
                 {
-                        lineObject = new LineObject();
-                        deferredLineCount = 0;
+                    lineObject = new LineObject();
+                    deferredLineCount = 0;
                 }
         ("line")?  //this would be for if the directive started "#line", but not there for GNU directives
         (Space)+
-        n:Number { lineObject.setLine(Integer.parseInt(n.getText())); } 
+        n:Number { 
+                    lineObject.setLine(Integer.parseInt(n.getText()));
+                 } 
         (Space)+
         (       fn:StringLiteral {  try { 
-                                          lineObject.setSource(fn.getText().substring(1,fn.getText().length()-1)); 
+                                          final String newSource = fn.getText().substring(1,fn.getText().length()-1);
+                                          // System.out.println("line: "+lineObject.getSource()+" -> "+newSource+", line "+(lineObject.line+deferredLineCount));
+                                          lineObject.setSource(newSource);
                                     } 
                                     catch (StringIndexOutOfBoundsException e) { /*not possible*/ } 
                                  }

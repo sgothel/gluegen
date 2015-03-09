@@ -44,6 +44,7 @@ typedef void * AnonBuffer; // Non Opaque
 // #define DEFINE_01 1235             // Duplicate w/ diff value ERROR
 #define DEFINE_01_EXT 1234            // Renamed Duplicate w/ same value (ignored)
 // #define DEFINE_01_EXT 1235         // Renamed Duplicate w/ diff value ERROR
+// #define DEFINE_01 1235             // Duplicate w/ diff value ERROR
 
 #define DEFINE_02 ( (int ) 3 )
 // #define DEFINE_02 ( (int ) 3 )     // Duplicate w/ same value ERROR (PCPP redefine)

@@ -23,6 +23,7 @@ header {
 
         import antlr.CommonAST;
         import antlr.DumpASTVisitor;
+        import com.jogamp.gluegen.ASTLocusTag;
 }
 
            
@@ -715,7 +716,7 @@ tokens {
   
   public void addDefine(String name, String value)
   {
-    defines.add(new Define(name, value));
+    defines.add(new Define(name, value, new ASTLocusTag(lineObject.getSource(), lineObject.getLine()+deferredLineCount, -1, name)));
   }
 
   /** Returns a list of Define objects corresponding to the

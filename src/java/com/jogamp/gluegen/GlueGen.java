@@ -220,8 +220,7 @@ public class GlueGen implements GlueEmitterControls {
             }
             for (final Object elem : lexer.getDefines()) {
                 final Define def = (Define) elem;
-                // TODO: Add ASTLocusTag
-                allConstants.add(new ConstantDefinition(def.getName(), def.getValue(), null));
+                allConstants.add(new ConstantDefinition(def.getName(), def.getValue(), def.getASTLocusTag()));
             }
 
             allFunctions = headerParser.getParsedFunctions();
