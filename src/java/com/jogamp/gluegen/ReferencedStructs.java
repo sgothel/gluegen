@@ -44,31 +44,43 @@ import com.jogamp.gluegen.cgram.types.*;
 
 public class ReferencedStructs implements TypeVisitor {
 
-  private final Set<Type> results = new HashSet<Type>();
+    private final Map<String, Type> resultMap = new HashMap<String, Type>();
+    private final Set<CompoundType> layoutSet = new HashSet<CompoundType>();
+    private final Set<Type> skip = new HashSet<Type>();
 
-  public void clear() {
-    results.clear();
-  }
-
-  public Iterator<Type> results() {
-    return results.iterator();
-  }
-
-  @Override
-  public void visitType(final Type t) {
-    if (t.isPointer()) {
-      final PointerType p = t.asPointer();
-      if (p.isTypedef()) {
-        final CompoundType c = p.getTargetType().asCompound();
-        if (c != null && c.getName() == null) {
-          // This otherwise-unnamed CompoundType is referred to by a
-          // PointerType that has a typedef name. Assume that it is
-          // referred to in the glue code and emit it.
-          results.add(p);
-        }
-      }
-    } else if (t.isCompound()) {
-      results.add(t);
+    public void clear() {
+        resultMap.clear();
     }
-  }
+
+    public Iterator<Type> results() {
+        return resultMap.values().iterator();
+    }
+    public Iterator<CompoundType> layouts() {
+        return layoutSet.iterator();
+    }
+
+    @Override
+    public void visitType(final Type t) {
+        if( skip.contains(t) ) {
+            return;
+        }
+        if ( t.isPointer() ) {
+            final PointerType p = t.asPointer();
+            final CompoundType c = p.getTargetType().asCompound();
+            if( p.isTypedef() && null != c ) {
+                // If containing pointer is typedef, use it (preferred)
+                skip.add(c); // earmark to skip the compound!
+                resultMap.put(c.getName(), p);
+                layoutSet.add(c);
+            } else {
+                // .. otherwise skip pointer and use followup compound
+            }
+        } else if( t.isCompound() ) {
+            // Use compound if not yet mapped, e.g. by typedef'ed (preferred)
+            if( !resultMap.containsKey(t.getName()) ) {
+                resultMap.put(t.getName(), t);
+            }
+            layoutSet.add(t.asCompound()); // always: could be const/volatile variants ..
+        }
+    }
 }

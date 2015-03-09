@@ -294,8 +294,7 @@ public class GlueGen implements GlueEmitterControls {
             for (final FunctionSymbol sym : allFunctions) {
                 // FIXME: this doesn't take into account the possibility that some of
                 // the functions we send to emitMethodBindings() might not actually be
-                // emitted (e.g., if an Ignore directive in the JavaEmitter causes it
-                // to be skipped).
+                // emitted (e.g., if an Ignore directive in the JavaEmitter causes it to be skipped).
                 sym.getType().visit(referencedStructs);
             }
 
@@ -315,13 +314,9 @@ public class GlueGen implements GlueEmitterControls {
 
             // Lay out structs
             emit.beginStructLayout();
-            for (final Iterator<Type> iter = referencedStructs.results(); iter.hasNext();) {
-                final Type t = iter.next();
-                if (t.isCompound()) {
-                    emit.layoutStruct(t.asCompound());
-                } else if (t.isPointer()) {
-                    final PointerType p = t.asPointer();
-                    final CompoundType c = p.getTargetType().asCompound();
+            for (final Iterator<CompoundType> iter = referencedStructs.layouts(); iter.hasNext();) {
+                final CompoundType c = iter.next();
+                if( !c.isLayouted() ) {
                     emit.layoutStruct(c);
                 }
             }

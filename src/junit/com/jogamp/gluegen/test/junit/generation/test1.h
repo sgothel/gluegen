@@ -65,10 +65,12 @@ typedef struct _ShortBlob {
     uint8_t b1;
     uint8_t b2;
     struct _Crazy * Cool;  // Opaque field!
-} ShortBlob, ShortBlob2, *LPShortBlob1; // Aliased to 'ShortBlob'
+} ShortBlob, ShortBlob2, *LPShortBlob0; // Aliased to 'ShortBlob'
+typedef ShortBlob  * LPShortBlob1; // Aliased to 'ShortBlob'
 typedef ShortBlob2 * LPShortBlob2; // Aliased to 'ShortBlob'
-typedef ShortBlob  * LPShortBlob3; // Aliased to 'ShortBlob'
-typedef LPShortBlob1 LPShortBlob4; // Aliased to 'ShortBlob'
+typedef LPShortBlob1 LPShortBlob3; // Aliased to 'ShortBlob'
+typedef ShortBlob    ShortBlobL1;  // Aliased to 'ShortBlob'
+typedef ShortBlob2   ShortBlobL2;  // Aliased to 'ShortBlob'
 
 struct Int32Struct {
     uint8_t b1;
@@ -88,11 +90,13 @@ MYAPI XID MYAPIENTRY testXID_EXT(XID v);    // renamed duplicate w/ compat value
 // MYAPI XID MYAPIENTRY testXID_EXT(int v); // renamed duplicate w/ diff value ERROR
 MYAPI XID_2 MYAPIENTRY testXID_2(XID_2 v);
 MYAPI AnonBuffer MYAPIENTRY testAnonBuffer(AnonBuffer v);
-MYAPI const ShortBlob * MYAPIENTRY testShortBlob0(const ShortBlob *v);
-MYAPI LPShortBlob1 MYAPIENTRY testShortBlob1(LPShortBlob1 v);
-MYAPI LPShortBlob2 MYAPIENTRY testShortBlob2(LPShortBlob2 v);
-MYAPI LPShortBlob3 MYAPIENTRY testShortBlob3(LPShortBlob3 v);
-MYAPI LPShortBlob4 MYAPIENTRY testShortBlob4(LPShortBlob4 v);
+MYAPI const ShortBlob * MYAPIENTRY testShortBlob(const ShortBlob *v);
+MYAPI const LPShortBlob0 MYAPIENTRY testLPShortBlob0(const LPShortBlob0 v);
+MYAPI LPShortBlob1 MYAPIENTRY testLPShortBlob1(LPShortBlob1 v);
+MYAPI const LPShortBlob2 MYAPIENTRY testLPShortBlob2(const LPShortBlob2 v);
+MYAPI LPShortBlob3 MYAPIENTRY testLPShortBlob3(LPShortBlob3 v);
+MYAPI const ShortBlobL1 * MYAPIENTRY testShortBlobL1(const ShortBlobL1 *v);
+MYAPI ShortBlobL2 * MYAPIENTRY testShortBlobL2(ShortBlobL2 *v);
 MYAPI struct Int32Struct * MYAPIENTRY testInt32Struct(struct Int32Struct * v);
 
 MYAPI AnonBlob MYAPIENTRY testCreateAnonBlob();
@@ -318,9 +322,12 @@ typedef struct {
     int32_t i2;
 } TK_DimensionPair;
 
+// some implicity _local_ typedef -> public typedef checks
+typedef TK_Surface *  (MYAPIENTRY* PFNCREATESURFACEPROC)();
+typedef void (MYAPIENTRY* PFNDESTROYSURFACEPROC)(TK_Surface *  surface);
+
 MYAPI TK_Surface * MYAPIENTRY createSurface();
 MYAPI void MYAPIENTRY destroySurface(TK_Surface * surface);
-
 MYAPI TK_ComplicatedSuperSet * MYAPIENTRY createComplicatedSuperSet();
 MYAPI Bool MYAPIENTRY hasInitValues(TK_ComplicatedSuperSet * s);
 MYAPI void MYAPIENTRY destroyComplicatedSuperSet(TK_ComplicatedSuperSet * s);
@@ -337,6 +344,13 @@ MYAPI Bool MYAPIENTRY isSameInstanceByRef(const TK_Dimension *s1, const TK_Dimen
 MYAPI TK_Dimension MYAPIENTRY addDimensions(const TK_Dimension s[TWO]);
 MYAPI TK_Dimension MYAPIENTRY addDimensionPair(const TK_DimensionPair s);
 MYAPI void MYAPIENTRY zeroDimensions(TK_Dimension s[2]);
+
+
+// some implicity _local_ typedef -> public typedef checks
+typedef void (MYAPIENTRY* PFNCOPYPRIMTODIMENSIONSPROC)(const int pos[2], const int size[2], TK_Dimension dest[1]);
+typedef int (MYAPIENTRY* PFNRGBATOINTPROC)(const char rgba[4]);
+typedef void (MYAPIENTRY* PFNINTTORGBAPROC)(int irgba, char rgbaSink[4]);
+typedef void (MYAPIENTRY* PFNADDBYTEPROC)(const char summands[2], char result[1]);
 
 MYAPI void MYAPIENTRY copyPrimToDimensions(const int pos[2], const int size[2], TK_Dimension dest[1]);
 MYAPI void MYAPIENTRY copyDimensionsToPrim(TK_Dimension dim, int dpos[2], int dsize[2]);

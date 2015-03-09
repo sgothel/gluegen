@@ -877,53 +877,64 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public void emitStruct(final CompoundType structCType, final Type typedefed) throws Exception {
+  public void emitStruct(final CompoundType structCType, final Type structCTypedefPtr) throws Exception {
     final String structCTypeName, typedefedName;
     {
         final String _name = structCType.getName();
-        if ( null == _name && null != typedefed && null != typedefed.getName() ) {
-            // use typedef'ed name
-            typedefedName = typedefed.getName();
+        if ( null != structCTypedefPtr && null != structCTypedefPtr.getName() ) {
+            // always use typedef'ed name if available
+            typedefedName = structCTypedefPtr.getName();
             structCTypeName = typedefedName;
         } else {
-            // use actual struct type name
+            // fall back to actual struct type name
             typedefedName = null;
             structCTypeName = _name;
         }
-    }
-    LOG.log(INFO, structCType.getASTLocusTag(),
-            "Struct emission of structCType \"{0}\" -> {1}", structCTypeName, structCType);
-    LOG.log(INFO, structCType.getASTLocusTag(),
-            "           which has a typedef \"{0}\" -> {1}", typedefedName, typedefed);
-
-    if ( null == structCTypeName ) {
-        final String structName = structCType.getStructName();
-        if ( null != structName && cfg.shouldIgnoreInInterface(structName) ) {
+        LOG.log(INFO, structCType.getASTLocusTag(), "Struct emission of structCType {0}", structCType);
+        LOG.log(INFO, structCType.getASTLocusTag(),"              structCTypedefPtr {0}", structCTypedefPtr);
+        LOG.log(INFO, structCType.getASTLocusTag(),"   : structCTypeName \"{0}\" -> typedefedName \"{1}\" -> \"{2}\"",
+                                                                   _name, typedefedName, structCTypeName);
+        if ( null == structCTypeName ) {
             LOG.log(INFO, structCType.getASTLocusTag(),
-                    "skipping emission of unnamed ignored struct \"{0}\": {1}", structName, structCType);
+                    "skipping emission of unnamed struct {0} w/o typedef",  structCType);
             return;
-        } else {
+        }
+        final AliasedSymbol.AliasedSymbolImpl aliases = new AliasedSymbol.AliasedSymbolImpl(structCTypeName);
+        aliases.addAliasedName(_name);
+        aliases.addAliasedName(typedefedName);
+        if ( cfg.shouldIgnoreInInterface(aliases) ) {
             LOG.log(INFO, structCType.getASTLocusTag(),
-                    "skipping emission of unnamed struct {0}, typedef {1} ",  structCType, typedefed);
+                    "skipping emission of ignored \"{0}\": {1}", aliases, structCType);
             return;
         }
     }
-    if ( cfg.shouldIgnoreInInterface(structCTypeName) ) {
+
+    if( null != structCTypedefPtr && isOpaque(structCTypedefPtr) ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
-                "skipping emission of ignored \"{0}\": {1}", structCTypeName, structCType);
+                "skipping emission of opaque typedef {0}", structCTypedefPtr);
         return;
     }
-    if( null != typedefed && isOpaque(typedefed) ) {
+    if( isOpaque(structCType) ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
-                "skipping emission of opaque typedef {0}, c-struct {1}", typedefed, structCType);
+                "skipping emission of opaque c-struct {0}", structCType);
         return;
     }
 
     final Type containingCType;
     {
-        final Type aptr = new PointerType(SizeThunk.POINTER, structCType, 0);
-        aptr.setTypedefName(typedefedName);
+        // NOTE: Struct Name Resolution (JavaEmitter, HeaderParser)
+        final Type aptr;
+        int mode;
+        if( null != typedefedName ) {
+            aptr = structCTypedefPtr;
+            mode = 1;
+        } else {
+            aptr = new PointerType(SizeThunk.POINTER, structCType, 0);
+            aptr.setTypedefName(typedefedName);
+            mode = 2;
+        }
         containingCType = canonicalize(aptr);
+        LOG.log(INFO, structCType.getASTLocusTag(), "containingCType[{0}]: {1} -canon-> {2}", mode, aptr, containingCType);
     }
     final JavaType containingJType = typeToJavaType(containingCType, null);
     if( containingJType.isOpaqued() ) {
@@ -939,15 +950,7 @@ public class JavaEmitter implements GlueEmitter {
     final String containingJTypeName = containingJType.getName();
     LOG.log(INFO, structCType.getASTLocusTag(),
             "perform emission of \"{0}\" -> \"{1}\": {2}", structCTypeName, containingJTypeName, structCType);
-    if( GlueGen.debug() ) {
-        if( null != typedefed ) {
-            LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", typedefed);
-        } else {
-            LOG.log(INFO, structCType.getASTLocusTag(), "    typedefed {0}", (Object)null);
-        }
-        LOG.log(INFO, structCType.getASTLocusTag(), "    containingCType {0}", containingCType);
-        LOG.log(INFO, structCType.getASTLocusTag(), "    containingJType {0}", containingJType);
-    }
+
     if( 0 == structCType.getNumFields() ) {
         LOG.log(INFO, structCType.getASTLocusTag(),
                 "emission of \"{0}\" with zero fields {1}", containingJTypeName, structCType);
@@ -2168,14 +2171,22 @@ public class JavaEmitter implements GlueEmitter {
                 cType.getName().equals("jobject")) {
               return javaType(java.lang.Object.class);
             }
-            String name = targetType.getName();
-            if (name == null) {
-              // Try containing pointer type for any typedefs
-              name = cType.getName();
-              if (name == null) {
-                throw new GlueGenException("Couldn't find a proper type name for pointer type " + cType.getDebugString(),
-                                            cType.getASTLocusTag());
-              }
+            // NOTE: Struct Name Resolution (JavaEmitter, HeaderParser)
+            String name;
+            if( !targetType.isTypedef() && cType.isTypedef() ) {
+                // If compound is not a typedef _and_ containing pointer is typedef, use the latter.
+                name = cType.getName();
+            } else {
+                // .. otherwise try compound name
+                name = targetType.getName();
+                if( null == name ) {
+                  // .. fall back to pointer type name
+                  name = cType.getName();
+                  if (name == null) {
+                    throw new GlueGenException("Couldn't find a proper type name for pointer type " + cType.getDebugString(),
+                                                cType.getASTLocusTag());
+                  }
+                }
             }
             return JavaType.createForCStruct(cfg.renameJavaType(name));
           } else {

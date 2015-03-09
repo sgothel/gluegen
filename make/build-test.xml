@@ -542,7 +542,7 @@ chmod 644 ${results}/* \${line.separator}
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  dumpCPP="false"
-                 debug="true"
+                 debug="false"
                  logLevel="WARNING">
             <classpath refid="gluegen.classpath" />
         </gluegen>
@@ -555,7 +555,7 @@ chmod 644 ${results}/* \${line.separator}
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  dumpCPP="false"
                  debug="false"
-                 logLevel="INFO">
+                 logLevel="WARNING">
             <classpath refid="gluegen.classpath" />
         </gluegen>
 

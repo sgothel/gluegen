@@ -101,11 +101,13 @@ public class BaseClass extends SingletonJunitCase {
 
               bb = binding.testAnonBuffer(bb);
 
-              sb = binding.testShortBlob0(sb);
-              sb = binding.testShortBlob1(sb);
-              sb = binding.testShortBlob2(sb);
-              sb = binding.testShortBlob3(sb);
-              sb = binding.testShortBlob4(sb);
+              sb = binding.testShortBlob(sb);
+              sb = binding.testLPShortBlob0(sb);
+              sb = binding.testLPShortBlob1(sb);
+              sb = binding.testLPShortBlob2(sb);
+              sb = binding.testLPShortBlob3(sb);
+              sb = binding.testShortBlobL1(sb);
+              sb = binding.testShortBlobL2(sb);
 
               i32s = binding.testInt32Struct(i32s);
 
@@ -673,16 +675,20 @@ public class BaseClass extends SingletonJunitCase {
               final ShortBlob sb = ShortBlob.create();
               sb.setB1((byte)0xAA);
               sb.setB2((byte)0xEE);
-              final ShortBlob sb0 = binding.testShortBlob0(sb);
-              final ShortBlob sb1 = binding.testShortBlob1(sb);
-              final ShortBlob sb2 = binding.testShortBlob2(sb);
-              final ShortBlob sb3 = binding.testShortBlob3(sb);
-              final ShortBlob sb4 = binding.testShortBlob4(sb);
+              final ShortBlob sb_ = binding.testShortBlob(sb);
+              final ShortBlob sb0 = binding.testLPShortBlob0(sb);
+              final ShortBlob sb1 = binding.testLPShortBlob1(sb);
+              final ShortBlob sb2 = binding.testLPShortBlob2(sb);
+              final ShortBlob sb3 = binding.testLPShortBlob3(sb);
+              final ShortBlob sb4 = binding.testShortBlobL1(sb);
+              final ShortBlob sb5 = binding.testShortBlobL2(sb);
+              Assert.assertEquals(sb.getBuffer(), sb_.getBuffer());
               Assert.assertEquals(sb.getBuffer(), sb0.getBuffer());
               Assert.assertEquals(sb.getBuffer(), sb1.getBuffer());
               Assert.assertEquals(sb.getBuffer(), sb2.getBuffer());
               Assert.assertEquals(sb.getBuffer(), sb3.getBuffer());
               Assert.assertEquals(sb.getBuffer(), sb4.getBuffer());
+              Assert.assertEquals(sb.getBuffer(), sb5.getBuffer());
 
               final Int32Struct i32s = Int32Struct.create();
               i32s.setB1((byte)0x02);

@@ -17,19 +17,26 @@ MYAPI XID_2 MYAPIENTRY testXID_2(XID_2 v) {
 MYAPI AnonBuffer MYAPIENTRY testAnonBuffer(AnonBuffer v) {
     return v;
 }
-MYAPI const ShortBlob * MYAPIENTRY testShortBlob0(const ShortBlob *v) {
+
+MYAPI const ShortBlob * MYAPIENTRY testShortBlob(const ShortBlob *v) {
     return v;
 }
-MYAPI LPShortBlob1 MYAPIENTRY testShortBlob1(LPShortBlob1 v) {
+MYAPI const LPShortBlob0 MYAPIENTRY testLPShortBlob0(const LPShortBlob0 v) {
     return v;
 }
-MYAPI LPShortBlob2 MYAPIENTRY testShortBlob2(LPShortBlob2 v) {
+MYAPI LPShortBlob1 MYAPIENTRY testLPShortBlob1(LPShortBlob1 v) {
     return v;
 }
-MYAPI LPShortBlob3 MYAPIENTRY testShortBlob3(LPShortBlob3 v) {
+MYAPI const LPShortBlob2 MYAPIENTRY testLPShortBlob2(const LPShortBlob2 v) {
     return v;
 }
-MYAPI LPShortBlob4 MYAPIENTRY testShortBlob4(LPShortBlob4 v) {
+MYAPI LPShortBlob3 MYAPIENTRY testLPShortBlob3(LPShortBlob3 v) {
+    return v;
+}
+MYAPI const ShortBlobL1 * MYAPIENTRY testShortBlobL1(const ShortBlobL1 * v) {
+    return v;
+}
+MYAPI ShortBlobL2 * MYAPIENTRY testShortBlobL2(ShortBlobL2 * v) {
     return v;
 }
 MYAPI struct Int32Struct * MYAPIENTRY testInt32Struct(struct Int32Struct * v) {

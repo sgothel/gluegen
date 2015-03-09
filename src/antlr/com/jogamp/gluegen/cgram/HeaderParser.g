@@ -142,6 +142,8 @@ options {
         if (t == null) {
             t = CompoundType.create(structName, null, kind, cvAttrs, locusTag);
             structDictionary.put(structName, t);
+            debugPrintln("Adding compound mapping: [" + structName + "] -> "+getDebugTypeString(t)+" @ "+locusTag);
+            debugPrintln(t.getStructString());
         }
         return t;
     }
@@ -167,29 +169,6 @@ options {
         Type   type()            { return type; }
         void setType(final Type t) { type = t; }
         public String toString() { return "ParamDecl["+id+": "+type.getDebugString()+"]"; }
-    }
-    Type resolveAnonCompound(Type type) { 
-        int mode = 0;
-        debugPrint("resolveAnonCompound: "+type.getDebugString());
-        if( !type.hasName() ) {
-            if( type.isCompound() ) {
-              final CompoundType ct = type.asCompound();
-              // return a copy w/ resolved name
-              type = ((CompoundType) ct.clone()).evalStructTypeName();
-              mode = 1;
-            } else if( type.isPointer() ) {
-              // non typedefed PointerType and base-elem w/o name
-              final PointerType pt = type.asPointer();
-              final Type b = pt.getBaseElementType();
-              if( b != null && b.isCompound() && !b.hasName() ) {
-                  // return same w/ resolved name
-                  b.asCompound().evalStructTypeName();
-                  mode = 2;
-              }
-            }
-        }
-        debugPrintln(" -> "+type.getDebugString()+" - MODE "+mode);
-        return type;
     }
 
     // A box for a Type. Allows type to be passed down to be modified by recursive rules.
@@ -319,13 +298,13 @@ options {
     private void processDeclaration(Type returnType) {
         if (isFuncDeclaration) {
             final FunctionSymbol sym = new FunctionSymbol(funcDeclName, 
-                                                          new FunctionType(null, null, resolveAnonCompound(returnType), 0, funcLocusTag),
+                                                          new FunctionType(null, null, returnType, 0, funcLocusTag),
                                                           funcLocusTag);
             debugPrintln("Function ... "+sym.toString()+" @ "+funcLocusTag);
             if (funcDeclParams != null) { // handle funcs w/ empty parameter lists (e.g., "foo()")
                 for (Iterator<ParameterDeclaration> iter = funcDeclParams.iterator(); iter.hasNext(); ) {
                     ParameterDeclaration pd = iter.next();
-                    pd.setType(resolveAnonCompound(pd.type()));
+                    pd.setType(pd.type());
                     debugPrintln(" add "+pd.toString());
                     sym.addArgument(pd.type(), pd.id());
                 }
@@ -683,7 +662,10 @@ structOrUnionBody[CompoundTypeKind kind, int cvAttrs] returns [CompoundType t] {
                       // anonymous struct
                       t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs, locusTag)); 
                     }
-                )
+                ) {
+                    debugPrintln("Adding compound body: [" + t.getName() + "] -> "+getDebugTypeString(t)+" @ "+locusTag);
+                    debugPrintln(t.getStructString());
+                }
         ;
 
 structDeclarationList[CompoundType t] returns [boolean addedAny] {
@@ -773,10 +755,10 @@ enumSpecifier [int cvAttrs] returns [Type t] {
                             final EnumType dupE = enumMap.get(eName);
                             if( null != dupE && !dupE.equalSemantics(e) ) {
                                 throwGlueGenException(enumSpecifier_AST_in,
-                                    String.format("Duplicate enum w/ incompatible type:%n  have '%s',%n  this '%s'",
-                                        getTypeString(dupE), getTypeString(e)));
+                                    String.format("Duplicate enum w/ incompatible type:%n  this '%s',%n  have '%s',%n  previously declared here: %s", 
+                                        getTypeString(e), getTypeString(dupE), dupE.getASTLocusTag()));
                             }
-                            enumMap.put(eName, (EnumType)e.clone());
+                            enumMap.put(eName, (EnumType)e.clone(locusTag));
                         }
                      }
                      t = e; // return val
@@ -819,8 +801,8 @@ enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValu
                         final long oldValue = oldEnumType.getEnumValue(eTxt);
                         if( oldValue != newValue ) {
                             throwGlueGenException(enumerator_AST_in,
-                                 String.format("Duplicate enum value '%s.%s' w/ diff value:%n  have %d,%n  this %d",
-                                     oldEnumType.getName(), eTxt, oldValue, newValue));
+                                 String.format("Duplicate enum value '%s.%s' w/ diff value:%n  this %d,%n  have %d",
+                                     oldEnumType.getName(), eTxt, newValue, oldValue));
                         }
                         // remove old definition
                         oldEnumType.removeEnumerate(eTxt);
@@ -853,39 +835,39 @@ initDecl[TypeBox tb] {
 {
     if ((declName != null) && (tb != null) && tb.isTypedef()) {
         Type t = tb.type();
-        debugPrint("Adding typedef mapping: [" + declName + "] -> "+getDebugTypeString(t));
+        debugPrintln("Adding typedef mapping: [" + declName + "] -> "+getDebugTypeString(t));
+        final Type tg;
+        if( t.isPointer() ) {
+            tg = t.getTargetType();
+            debugPrintln("  - has target: "+getDebugTypeString(tg));
+        } else {
+            tg = null;
+        }
+        // NOTE: Struct Name Resolution (JavaEmitter, HeaderParser)
+        // Also see NOTE below.
         if (!t.isTypedef()) {
             if( t.isCompound() ) {
-                // Allow redefinition of newly defined struct, i.e. use same instance.
-                // This aliases '_a' -> 'A' for 'typedef struct _a { } A, *B;', where '*B' will become also '*A'.
+                // This aliases '_a' -> 'A' for 'typedef struct _a { } A;' in-place
                 t.setTypedefName(declName);
-                debugPrint(" - redefine -> "+getDebugTypeString(t));
+                debugPrintln(" - alias.11 -> "+getDebugTypeString(t));
             } else {
                 // Use new typedef, using a copy to preserve canonicalized base type
                 t = t.clone(locusTag);
                 t.setTypedefName(declName);
-                debugPrint(" - newdefine -> "+getDebugTypeString(t));
+                debugPrintln(" - newdefine.12 -> "+getDebugTypeString(t));
             }
         } else {
             // Adds typeInfo alias w/ t's typeInfo, if exists
             cfg.addTypeInfo(declName, t);
             final Type alias;
             if( t.isCompound() ) {
-                // Attempt to find a previous declared compound typedef
-                // This aliases 'D' -> 'A' for 'typedef struct _a { } A, D;'
-                alias = typedefDictionary.getEqualSemantics1(t, cfg, true);
-            } else {
-                alias = null;
-            }
-            if( null != alias ) {
-                // use previous typedef
-                t = alias;
-                debugPrint(" - alias -> "+getDebugTypeString(t));
+                // This aliases 'D' -> 'A' for 'typedef struct _a { } A, D;' in-place
+                debugPrintln(" - alias.21 -> "+getDebugTypeString(t));
             } else {
                 // copy to preserve canonicalized base type
                 t = t.clone(locusTag);
                 t.setTypedefName(declName);
-                debugPrint(" - copy -> "+getDebugTypeString(t));
+                debugPrintln(" - copy.22 -> "+getDebugTypeString(t));
             }
         }
         final Type dupT = typedefDictionary.get(declName);
@@ -901,6 +883,50 @@ initDecl[TypeBox tb] {
         tb.reset();
     }
 }
+    /*
+        // Below just shows a different handling using copying
+        // and enforcing aliased names, which is not desired.
+        // Keeping it in here for documentation.
+        // NOTE: Struct Name Resolution (JavaEmitter, HeaderParser)
+        if ( !t.isTypedef() ) {
+            if( t.isCompound() ) {
+                // This aliases '_a' -> 'A' for 'typedef struct _a { } A;'
+                t.setTypedefName(declName);
+                debugPrintln(" - alias.10 -> "+getDebugTypeString(t));
+            } else if( null != tg && tg.isCompound() ) {
+                if( !tg.isTypedef() ) {
+                    // This aliases '_a *' -> 'A*' for 'typedef struct _a { } *A;'
+                    t.setTypedefName(declName);
+                    debugPrintln(" - alias.11 -> "+getDebugTypeString(t));
+                } else {
+                    // This aliases 'B' -> 'A*' for 'typedef struct _a { } A, *B;' and 'typedef A * B;'
+                    t = new PointerType(SizeThunk.POINTER, tg, 0, locusTag); // name: 'A*'
+                    t.setTypedefName(t.getName()); // make typedef
+                    debugPrintln(" - alias.12 -> "+getDebugTypeString(t));
+                }
+            } else {
+                // Use new typedef, using a copy to preserve canonicalized base type
+                t = t.clone(locusTag);
+                t.setTypedefName(declName);
+                debugPrintln(" - newdefine.13 -> "+getDebugTypeString(t));
+            }
+        } else {
+            // Adds typeInfo alias w/ t's typeInfo, if exists
+            cfg.addTypeInfo(declName, t);
+            if( t.isCompound() ) {
+                // This aliases 'D' -> 'A' for 'typedef struct _a { } A, D;'
+                debugPrintln(" - alias.20 -> "+getDebugTypeString(t));
+            } else if( null != tg && tg.isCompound() ) {
+                // This aliases 'B' -> 'A' for 'typedef A B;', where A is pointer to compound
+                debugPrintln(" - alias.21 -> "+getDebugTypeString(t));
+            } else {
+                // copy to preserve canonicalized base type
+                t = t.clone(locusTag);
+                t.setTypedefName(declName);
+                debugPrintln(" - copy.22 -> "+getDebugTypeString(t));
+            }
+        }
+*/
         ;
 
 pointerGroup[TypeBox tb] { int x = 0; int y = 0; }
