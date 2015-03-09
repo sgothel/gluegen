@@ -249,16 +249,13 @@ public class ProcAddressEmitter extends JavaEmitter {
         final FunctionSymbol cSymbol = baseCEmitter.getBinding().getCSymbol();
 
         // See whether we need a proc address entry for this one
-        final boolean needsLocalTypedef = getProcAddressConfig().forceProcAddressGen(cSymbol) ||
-                                          !hasFunctionPointerTypedef(cSymbol);
-        final boolean callThroughProcAddress = needsLocalTypedef || callThroughProcAddress(cSymbol);
-        LOG.log(Level.INFO, cSymbol.getASTLocusTag(), "genModProcAddrEmitter: needsTypedef {0}, callThrough {1}: {2}",
-                needsLocalTypedef, callThroughProcAddress, cSymbol.getAliasedString());
+        final boolean hasProcAddrTypedef = hasFunctionPointerTypedef(cSymbol);
+        final boolean callThroughProcAddress = hasProcAddrTypedef || callThroughProcAddress(cSymbol);
+        final String localProcCallingConvention = getProcAddressConfig().getLocalProcAddressCallingConvention(cSymbol);
 
-        String forcedCallingConvention = null;
-        if (needsLocalTypedef) {
-            forcedCallingConvention = getProcAddressConfig().getLocalProcAddressCallingConvention(cSymbol);
-        }
+        LOG.log(Level.INFO, cSymbol.getASTLocusTag(), "genModProcAddrEmitter: callThrough {0}, hasTypedef {1}, localCallConv {2}: {3}",
+                callThroughProcAddress, hasProcAddrTypedef, localProcCallingConvention, cSymbol.getAliasedString());
+
         // Note that we don't care much about the naming of the C argument
         // variables so to keep things simple we ignore the buffer object
         // property for the binding
@@ -267,7 +264,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         // extra final argument, which is the address (the OpenGL procedure
         // address) of the function it needs to call
         final ProcAddressCMethodBindingEmitter res = new ProcAddressCMethodBindingEmitter(
-                baseCEmitter, callThroughProcAddress, needsLocalTypedef, forcedCallingConvention, this);
+                baseCEmitter, callThroughProcAddress, hasProcAddrTypedef, localProcCallingConvention, this);
 
         final MessageFormat exp = baseCEmitter.getReturnValueCapacityExpression();
         if (exp != null) {

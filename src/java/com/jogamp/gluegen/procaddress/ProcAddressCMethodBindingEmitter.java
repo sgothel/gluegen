@@ -50,7 +50,7 @@ import com.jogamp.gluegen.cgram.types.*;
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
   private boolean callThroughProcAddress;
-  private boolean needsLocalTypedef;
+  private boolean hasProcAddrTypedef;
 
   private String localTypedefCallingConvention;
 
@@ -59,7 +59,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
   public ProcAddressCMethodBindingEmitter(final CMethodBindingEmitter methodToWrap,
                                           final boolean callThroughProcAddress,
-                                          final boolean needsLocalTypedef,
+                                          final boolean hasProcAddrTypedef,
                                           final String localTypedefCallingConvention,
                                           final ProcAddressEmitter emitter) {
 
@@ -84,11 +84,6 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 methodToWrap.getMachineDataInfo(),
                 emitter.getConfiguration()
         );
-
-        if( needsLocalTypedef && !callThroughProcAddress ) {
-            throw new IllegalArgumentException("needsLocalTypedef=true, but callThroughProcAddress=false for "+methodToWrap.toString());
-        }
-
         if (methodToWrap.getReturnValueCapacityExpression() != null) {
             setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
         }
@@ -101,7 +96,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         setCommentEmitter(defaultCommentEmitter);
 
         this.callThroughProcAddress = callThroughProcAddress;
-        this.needsLocalTypedef = needsLocalTypedef;
+        this.hasProcAddrTypedef = hasProcAddrTypedef;
         this.localTypedefCallingConvention = localTypedefCallingConvention;
         this.emitter = emitter;
     }
@@ -127,25 +122,28 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             // create variable for the function pointer with the right type, and set
             // it to the value of the passed-in proc address
             final FunctionSymbol cSym = getBinding().getCSymbol();
-            String funcPointerTypedefName =
-                    emitter.getFunctionPointerTypedefName(cSym);
 
-            if (needsLocalTypedef) {
-                // We (probably) didn't get a typedef for this function
-                // pointer type in the header file; the user requested that we
-                // forcibly generate one. Here we force the emission of one.
-                final PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
-                // Just for safety, emit this name slightly differently than
-                // the mangling would otherwise produce
-                funcPointerTypedefName = "_local_" + funcPointerTypedefName;
-
-                writer.print("  typedef ");
-                writer.print(funcPtrType.toString(funcPointerTypedefName, localTypedefCallingConvention));
-                writer.println(";");
+            // Always emit the local typedef, based on our parsing results.
+            // In case we do have the public typedef from the original header,
+            // we use it for the local var and assign our proc-handle to it,
+            // cast to the local typedef.
+            // This allows the native C compiler to validate our types!
+            final String funcPointerTypedefBaseName = emitter.getFunctionPointerTypedefName(cSym);
+            final String funcPointerTypedefLocalName = "_local_" + funcPointerTypedefBaseName;
+            final String funcPointerTypedefName;
+            if (hasProcAddrTypedef) {
+                funcPointerTypedefName = funcPointerTypedefBaseName;
+            } else {
+                funcPointerTypedefName = funcPointerTypedefLocalName;
             }
+            final PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
+
+            writer.print("  typedef ");
+            writer.print(funcPtrType.toString(funcPointerTypedefLocalName, localTypedefCallingConvention));
+            writer.println(";");
 
             writer.print("  ");
-            writer.print(funcPointerTypedefName);
+            writer.print(funcPointerTypedefName); // Uses public typedef if available!
             writer.print(" ptr_");
             writer.print(cSym.getName());
             writer.println(";");
@@ -161,17 +159,26 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         if (callThroughProcAddress) {
             // set the function pointer to the value of the passed-in procAddress
             final FunctionSymbol cSym = getBinding().getCSymbol();
-            String funcPointerTypedefName = emitter.getFunctionPointerTypedefName(cSym);
-            if (needsLocalTypedef) {
-                funcPointerTypedefName = "_local_" + funcPointerTypedefName;
+
+            // See above notes in emitBodyVariableDeclarations(..)!
+            final String funcPointerTypedefBaseName = emitter.getFunctionPointerTypedefName(cSym);
+            final String funcPointerTypedefLocalName = "_local_" + funcPointerTypedefBaseName;
+            final String funcPointerTypedefName;
+            if (hasProcAddrTypedef) {
+                funcPointerTypedefName = funcPointerTypedefBaseName;
+            } else {
+                funcPointerTypedefName = funcPointerTypedefLocalName;
             }
 
             final String ptrVarName = "ptr_" + cSym.getName();
 
+            if (hasProcAddrTypedef) {
+                writer.println("  // implicit type validation of "+funcPointerTypedefLocalName+" -> "+funcPointerTypedefName);
+            }
             writer.print("  ");
             writer.print(ptrVarName);
             writer.print(" = (");
-            writer.print(funcPointerTypedefName);
+            writer.print(funcPointerTypedefLocalName);
             writer.println(") (intptr_t) procAddress;");
 
             writer.println("  assert(" + ptrVarName + " != NULL);");
