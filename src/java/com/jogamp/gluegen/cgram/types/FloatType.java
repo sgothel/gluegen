@@ -49,6 +49,15 @@ public class FloatType extends PrimitiveType implements Cloneable {
     super(name, size, cvAttributes, astLocus);
   }
 
+  private FloatType(final FloatType o, final int cvAttributes, final ASTLocusTag astLocus) {
+      super(o, cvAttributes, astLocus);
+  }
+
+  @Override
+  Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+    return new FloatType(this, cvAttributes, astLocus);
+  }
+
   @Override
   public FloatType asFloat() { return this; }
 
@@ -70,14 +79,5 @@ public class FloatType extends PrimitiveType implements Cloneable {
   @Override
   protected boolean equalSemanticsImpl(final Type t) {
       return true;
-  }
-
-  @Override
-  Type newCVVariant(final int cvAttributes) {
-    final Type t = new FloatType(getName(), getSize(), cvAttributes, astLocus);
-    if( isTypedef() ) {
-        t.setTypedef(getTypedefCVAttributes());
-    }
-    return t;
   }
 }

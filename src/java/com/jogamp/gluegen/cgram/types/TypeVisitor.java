@@ -39,6 +39,12 @@
 
 package com.jogamp.gluegen.cgram.types;
 
+/**
+ * A visitor for {@link Type}'s visitor model.
+ */
 public interface TypeVisitor {
+  /**
+   * Visiting the given {@link Type}.
+   */
   public void visitType(Type t);
 }

@@ -51,9 +51,10 @@ import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
     double. All types have an associated name. Structs and unions are
     modeled as "compound" types -- composed of fields of primitive or
     other types. */
-public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTagProvider {
+public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
   public final boolean relaxedEqSem;
   private final int cvAttributes;
+  final ASTLocusTag astLocus;
   private String name;
   private SizeThunk size;
   private int typedefCVAttributes;
@@ -62,16 +63,25 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   private int cachedHash;
   private boolean hasCachedSemanticHash;
   private int cachedSemanticHash;
-  final ASTLocusTag astLocus;
 
   protected Type(final String name, final SizeThunk size, final int cvAttributes, final ASTLocusTag astLocus) {
     setName(name); // -> clearCache()
     this.relaxedEqSem = TypeConfig.relaxedEqualSemanticsTest();
     this.cvAttributes = cvAttributes;
+    this.astLocus = astLocus;
     this.size = size;
     this.typedefCVAttributes = 0;
     this.isTypedef = false;
+  }
+  Type(final Type o, final int cvAttributes, final ASTLocusTag astLocus) {
+    this.relaxedEqSem = o.relaxedEqSem;
+    this.cvAttributes = cvAttributes;
     this.astLocus = astLocus;
+    this.name = o.name;
+    this.size = o.size;
+    this.typedefCVAttributes = o.typedefCVAttributes;
+    this.isTypedef = o.isTypedef;
+    clearCache();
   }
 
   protected final void clearCache() {
@@ -81,21 +91,40 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
     cachedSemanticHash = 0;
   }
 
-  @Override
-  public Object clone() {
-    try {
-        return super.clone();
-    } catch (final CloneNotSupportedException ex) {
-        throw new InternalError();
+  /**
+   * Return a variant of this type matching the given const/volatile
+   * attributes. May return this object if the attributes match.
+   */
+  public final Type newCVVariant(final int cvAttributes) {
+    if (this.cvAttributes == cvAttributes) {
+        return this;
+    } else {
+        return newVariantImpl(true, cvAttributes, astLocus);
     }
   }
+
+  /**
+   * Clones this instance using a new {@link ASTLocusTag}.
+   */
+  public Type clone(final ASTLocusTag newLoc) {
+    return newVariantImpl(true, cvAttributes, newLoc);
+  }
+
+  /**
+   * Create a new variant of this type matching the given parameter
+   * <p>
+   * Implementation <i>must</i> use {@link Type}'s copy-ctor: {@link #Type(Type, int, ASTLocusTag)}!
+   * </p>
+   * @param newCVVariant true if new variant is intended to have new <i>cvAttributes</i>
+   * @param cvAttributes the <i>cvAttributes</i> to be used
+   * @param astLocus the {@link ASTLocusTag} to be used
+   */
+  abstract Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus);
 
   @Override
   public final ASTLocusTag getASTLocusTag() { return astLocus; }
 
-  public final boolean isAnonymous() { return null == name; }
-
-  public boolean hasName() { return null != name; }
+  public boolean isAnon() { return null == name; }
 
   /** Returns the name of this type. The returned string is suitable
       for use as a type specifier for native C. Does not include any const/volatile
@@ -143,10 +172,6 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   }
   // For debugging
   public final String getDebugString() {
-      return getDebugString(false);
-  }
-  // For debugging
-  public final String getDebugString(final boolean withASTLoc) {
     final StringBuilder sb = new StringBuilder();
     boolean prepComma = false;
     sb.append("CType[");
@@ -245,9 +270,6 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
         }
         sb.append("]");
     }
-    if( withASTLoc ) {
-        sb.append(", loc ").append(astLocus);
-    }
     sb.append("]");
     return sb.toString();
   }
@@ -267,7 +289,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
    * of hashes.
    * </p>
    */
-  protected final boolean setName(final String name) {
+  private final boolean setName(final String name) {
     clearCache();
     if( null == name || 0 == name.length() ) {
       this.name = name;
@@ -286,29 +308,19 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
    * of hashes.
    * </p>
    */
-  public final void setTypedefName(final String name) {
+  public boolean setTypedefName(final String name) {
     if( setName(name) ) {
         // Capture the const/volatile attributes at the time of typedef so
         // we don't redundantly repeat them in the CV attributes string
         typedefCVAttributes = cvAttributes;
         isTypedef = true;
-    }
-  }
-  /**
-   * Set the typedef name of this type and renders this type a typedef,
-   * if given {@code name} has a length.
-   * <p>
-   * Method issues {@link #clearCache()}, to force re-evaluation
-   * of hashes.
-   * </p>
-   */
-  final void setTypedef(final String name, final int typedefedCVAttributes) {
-    if( setName(name) ) {
-        this.typedefCVAttributes = typedefedCVAttributes;
-        this.isTypedef = true;
+        return true;
+    } else {
+        return false;
     }
   }
   final void setTypedef(final int typedefedCVAttributes) {
+    this.name = this.name.intern(); // just make sure ..
     this.typedefCVAttributes = typedefedCVAttributes;
     this.isTypedef = true;
     clearCache();
@@ -418,6 +430,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
         int hash = 31 + ( isTypedef ? 1 : 0 );
         hash = ((hash << 5) - hash) + ( null != size ? size.hashCode() : 0 );
         hash = ((hash << 5) - hash) + cvAttributes;
+        hash = ((hash << 5) - hash) + typedefCVAttributes;
         hash = ((hash << 5) - hash) + ( null != name ? name.hashCode() : 0 );
         if( !isTypedef ) {
             hash = ((hash << 5) - hash) + hashCodeImpl();
@@ -445,6 +458,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
               ( null == size && null == t.size )
             ) &&
             cvAttributes == t.cvAttributes &&
+            typedefCVAttributes == t.typedefCVAttributes &&
             ( null == name ? null == t.name : name.equals(t.name) )
           )
         {
@@ -467,6 +481,7 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
         int hash = 31 + ( null != size ? size.hashCodeSemantics() : 0 );
         if( !relaxedEqSem ) {
             hash = ((hash << 5) - hash) + cvAttributes;
+            hash = ((hash << 5) - hash) + typedefCVAttributes;
         }
         hash = ((hash << 5) - hash) + hashCodeSemanticsImpl();
         cachedSemanticHash = hash;
@@ -488,7 +503,11 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
         if( ( ( null != size && size.equalSemantics(t.size) ) ||
               ( null == size && null == t.size )
             ) &&
-            ( relaxedEqSem || cvAttributes == t.cvAttributes )
+            ( relaxedEqSem ||
+              ( cvAttributes == t.cvAttributes &&
+                typedefCVAttributes == t.typedefCVAttributes
+              )
+            )
           )
         {
             return equalSemanticsImpl(t);
@@ -499,8 +518,10 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
   }
   protected abstract boolean equalSemanticsImpl(final Type t);
 
-  /** Visit this type and all of the component types of this one; for
-      example, the return type and argument types of a FunctionType. */
+  /**
+   * Traverse this {@link Type} and all of its component types; for
+   * example, the return type and argument types of a FunctionType.
+   */
   public void visit(final TypeVisitor visitor) {
     visitor.visitType(this);
   }
@@ -517,19 +538,6 @@ public abstract class Type implements Cloneable, SemanticEqualityOp, ASTLocusTag
     if (isVolatile()) return "volatile ";
     return "";
   }
-
-  /** Return a variant of this type matching the given const/volatile
-      attributes. May return this object if the attributes match. */
-  public final Type getCVVariant(final int cvAttributes) {
-    if (this.cvAttributes == cvAttributes) {
-      return this;
-    }
-    return newCVVariant(cvAttributes);
-  }
-
-  /** Create a new variant of this type matching the given
-      const/volatile attributes. */
-  abstract Type newCVVariant(int cvAttributes);
 
   /** Helper method for determining how many pointer indirections this
       type represents (i.e., "void **" returns 2). Returns 0 if this

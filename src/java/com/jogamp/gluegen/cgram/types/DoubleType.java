@@ -48,6 +48,15 @@ public class DoubleType extends PrimitiveType implements Cloneable {
         super(name, size, cvAttributes, astLocus);
     }
 
+    private DoubleType(final DoubleType o, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(o, cvAttributes, astLocus);
+    }
+
+    @Override
+    Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+        return new DoubleType(this, cvAttributes, astLocus);
+    }
+
     @Override
     public DoubleType asDouble() {
         return this;
@@ -71,14 +80,5 @@ public class DoubleType extends PrimitiveType implements Cloneable {
     @Override
     protected boolean equalSemanticsImpl(final Type t) {
         return true;
-    }
-
-    @Override
-    Type newCVVariant(final int cvAttributes) {
-        final Type t = new DoubleType(getName(), getSize(), cvAttributes, astLocus);
-        if( isTypedef() ) {
-            t.setTypedef(getTypedefCVAttributes());
-        }
-        return t;
     }
 }

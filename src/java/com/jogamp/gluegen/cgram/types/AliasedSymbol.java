@@ -107,6 +107,11 @@ public interface AliasedSymbol {
             this.aliasedNames=new HashSet<String>();
             this.name = origName;
         }
+        public AliasedSymbolImpl(final AliasedSymbolImpl o) {
+            this.origName = o.origName;
+            this.aliasedNames = new HashSet<String>(o.aliasedNames);
+            this.name = o.origName;
+        }
         @Override
         public void rename(final String newName) {
             if( null != newName && !name.equals(newName) ) {

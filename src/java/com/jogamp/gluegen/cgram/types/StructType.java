@@ -35,19 +35,17 @@ public class StructType extends CompoundType {
     super (name, size, cvAttributes, structName, astLocus);
   }
 
+  private StructType(final StructType o, final int cvAttributes, final ASTLocusTag astLocus) {
+    super(o, cvAttributes, astLocus);
+  }
+
+  @Override
+  Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+    return new StructType(this, cvAttributes, astLocus);
+  }
+
   @Override
   public final boolean isStruct() { return true; }
   @Override
   public final boolean isUnion()  { return false; }
-
-  @Override
-  Type newCVVariant(final int cvAttributes) {
-    final StructType t = new StructType(getName(), getSize(), cvAttributes, getStructName(), astLocus);
-    t.setFields(getFields());
-    if( isTypedef() ) {
-        t.setTypedef(getTypedefCVAttributes());
-    }
-    return t;
-  }
-
 }

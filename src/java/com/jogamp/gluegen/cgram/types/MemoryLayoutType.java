@@ -36,6 +36,10 @@ public abstract class MemoryLayoutType extends Type {
       super(name, size, cvAttributes, astLocus);
       isLayouted = false;
   }
+  MemoryLayoutType(final MemoryLayoutType o, final int cvAttributes, final ASTLocusTag astLocus) {
+      super(o, cvAttributes, astLocus);
+      isLayouted = o.isLayouted;
+  }
 
   public boolean isLayouted() { return isLayouted; }
   public void setLayouted() {

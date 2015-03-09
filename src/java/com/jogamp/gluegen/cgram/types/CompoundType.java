@@ -54,18 +54,6 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   private ArrayList<Field> fields;
   private boolean visiting;
   private boolean bodyParsed;
-  /**
-   *
-   * @param name
-   * @param size
-   * @param cvAttributes
-   * @param structName
-   */
-  CompoundType(final String name, final SizeThunk size, final int cvAttributes,
-               final String structName, final ASTLocusTag astLocus) {
-    super(name, size, cvAttributes, astLocus);
-    this.structName = structName;
-  }
 
   @Override
   public void rename(final String newName) {
@@ -117,13 +105,19 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
     return res;
   }
 
-  @Override
-  public Object clone() {
-    final CompoundType n = (CompoundType) super.clone();
-    if(null!=this.fields) {
-        n.fields = new ArrayList<Field>(this.fields);
+  CompoundType(final String name, final SizeThunk size, final int cvAttributes,
+               final String structName, final ASTLocusTag astLocus) {
+    super(null == name ? structName : name, size, cvAttributes, astLocus);
+    this.structName = structName;
+  }
+
+  CompoundType(final CompoundType o, final int cvAttributes, final ASTLocusTag astLocus) {
+    super(o, cvAttributes, astLocus);
+    this.structName = o.structName;
+    if(null != o.fields) {
+        fields = new ArrayList<Field>(o.fields);
     }
-    return n;
+    bodyParsed = o.bodyParsed;
   }
 
   @Override
@@ -200,30 +194,13 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
   /**
    * Indicates to this CompoundType that its body has been parsed and
    * that no more {@link #addField} operations will be made.
-   * <p>
-   * If {@code evalStructTypeName} is {@code true}, {@link #evalStructTypeName()} is performed.
-   * </p>
    * @throws IllegalStateException If called twice.
    */
-  public void setBodyParsed(final boolean evalStructTypeName) throws IllegalStateException {
+  public void setBodyParsed() throws IllegalStateException {
     if (bodyParsed) {
         throw new IllegalStateException("Body of this CompoundType has been already closed");
     }
     bodyParsed = true;
-    if( evalStructTypeName ) {
-        evalStructTypeName();
-    }
-  }
-  public boolean isBodyParsed() { return bodyParsed; }
-  /**
-   * {@link #getName() name} is set to {@link #getStructName() struct-name},
-   * which promotes this instance for emission by its struct-name.
-   */
-  public Type evalStructTypeName() {
-      if( null == getName() ) {
-          setName(structName);
-      }
-      return this;
   }
 
   /** Indicates whether this type was declared as a struct. */
@@ -254,12 +231,12 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
       super.visit(arg);
       final int n = getNumFields();
       for (int i = 0; i < n; i++) {
-        final Field f = getField(i);
-        f.getType().visit(arg);
+        getField(i).getType().visit(arg);
       }
     } finally {
       visiting = false;
     }
+    return;
   }
 
   public String getStructString() {

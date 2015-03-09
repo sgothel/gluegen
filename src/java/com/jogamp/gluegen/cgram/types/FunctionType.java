@@ -61,16 +61,25 @@ public class FunctionType extends Type implements Cloneable {
         this.returnType = returnType;
     }
 
+    private FunctionType(final FunctionType o, final ASTLocusTag astLocus) {
+        super(o, o.getCVAttributes(), astLocus);
+        returnType = o.returnType;
+        if(null != o.argumentTypes) {
+            argumentTypes = new ArrayList<Type>(o.argumentTypes);
+        }
+        if(null != o.argumentNames) {
+            argumentNames = new ArrayList<String>(o.argumentNames);
+        }
+    }
+
     @Override
-    public Object clone() {
-        final FunctionType n = (FunctionType) super.clone();
-        if(null!=this.argumentTypes) {
-            n.argumentTypes = new ArrayList<Type>(this.argumentTypes);
+    Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+        if( newCVVariant ) {
+            // Functions don't have const/volatile attributes
+            return this;
+        } else {
+            return new FunctionType(this, astLocus);
         }
-        if(null!=this.argumentNames) {
-            n.argumentNames = new ArrayList<String>(this.argumentNames);
-        }
-        return n;
     }
 
     @Override
@@ -146,18 +155,15 @@ public class FunctionType extends Type implements Cloneable {
 
     @Override
     public String toString() {
-        return toString(null);
-    }
-
-    public String toString(final String functionName) {
-        return toString(functionName, false);
+        return toString(null, false);
     }
 
     public String toString(final String functionName, final boolean emitNativeTag) {
         return toString(functionName, null, emitNativeTag, false);
     }
 
-    String toString(final String functionName, final String callingConvention, final boolean emitNativeTag, final boolean isPointer) {
+    String toString(final String functionName, final String callingConvention,
+                    final boolean emitNativeTag, final boolean isPointer) {
         final StringBuilder res = new StringBuilder();
         res.append(getReturnType().getCName(true));
         res.append(" ");
@@ -215,11 +221,5 @@ public class FunctionType extends Type implements Cloneable {
         for (int i = 0; i < n; i++) {
             getArgumentType(i).visit(arg);
         }
-    }
-
-    @Override
-    Type newCVVariant(final int cvAttributes) {
-        // Functions don't have const/volatile attributes
-        return this;
     }
 }

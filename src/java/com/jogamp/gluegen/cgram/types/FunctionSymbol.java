@@ -113,7 +113,7 @@ public class FunctionSymbol extends AliasedSymbolImpl implements AliasedSemantic
 
     @Override
     public String toString() {
-        return getType().toString(getName());
+        return getType().toString(getName(), false);
     }
 
     /** Helper routine for emitting native javadoc tags */

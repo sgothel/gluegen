@@ -44,6 +44,7 @@ import com.jogamp.gluegen.ASTLocusTag;
 public class IntType extends PrimitiveType implements Cloneable {
 
     private final boolean unsigned;
+    private boolean typedefUnsigned;
 
     public IntType(final String name, final SizeThunk size, final boolean unsigned, final int cvAttributes) {
         this(name, size, unsigned, cvAttributes, null);
@@ -54,42 +55,79 @@ public class IntType extends PrimitiveType implements Cloneable {
                    final ASTLocusTag astLocus) {
         super(name, size, cvAttributes, astLocus);
         this.unsigned = unsigned;
+        this.typedefUnsigned = false;
     }
 
-    /** Only for HeaderParser */
+    /**
+     * Only for HeaderParser!
+     *
+     * @param name  the name
+     * @param size  the size
+     * @param unsigned true if this instance is unsigned, not the <i>typedef</i>!
+     * @param cvAttributes the cvAttributes for this instance, not for the <i>typedef</i>!
+     * @param isTypedef true if this instance is a <i>typedef</i> variant
+     * @param typedefUnsigned true if the <i>typedef</i> itself is unsigned
+     * @param astLocus the location in source code
+     */
     public IntType(final String name, final SizeThunk size,
                    final boolean unsigned, final int cvAttributes,
-                   final boolean isTypedef,
+                   final boolean isTypedef, final boolean typedefUnsigned,
                    final ASTLocusTag astLocus) {
         super(name, size, cvAttributes, astLocus);
         this.unsigned = unsigned;
         if( isTypedef ) {
-            setTypedef(cvAttributes);
+            // the 'cvAttributes' are intended for this instance, not the 'typedef cvAttributes'!
+            setTypedef(0);
+            this.typedefUnsigned = typedefUnsigned;
+        } else {
+            this.typedefUnsigned = false;
         }
+    }
+
+    IntType(final IntType o, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(o, cvAttributes, astLocus);
+        this.unsigned = o.unsigned;
+        this.typedefUnsigned = o.typedefUnsigned;
+    }
+
+    @Override
+    Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+        return new IntType(this, cvAttributes, astLocus);
     }
 
     @Override
     protected int hashCodeImpl() {
       // 31 * x == (x << 5) - x
-      return 31 + ( unsigned ? 1 : 0 );
+      int hash = 1;
+      hash = ((hash << 5) - hash) + ( unsigned ? 1 : 0 );
+      return ((hash << 5) - hash) + ( typedefUnsigned ? 1 : 0 );
     }
 
     @Override
     protected boolean equalsImpl(final Type arg) {
         final IntType t = (IntType) arg;
-        return unsigned == t.unsigned;
+        return unsigned == t.unsigned &&
+               typedefUnsigned == t.typedefUnsigned;
     }
 
     @Override
     protected int hashCodeSemanticsImpl() {
-      return hashCodeImpl();
+      // 31 * x == (x << 5) - x
+      int hash = 1;
+      if( !relaxedEqSem ) {
+        hash = ((hash << 5) - hash) + ( unsigned ? 1 : 0 );
+        hash = ((hash << 5) - hash) + ( typedefUnsigned ? 1 : 0 );
+      }
+      return hash;
     }
 
     @Override
     protected boolean equalSemanticsImpl(final Type arg) {
         final IntType t = (IntType) arg;
         return relaxedEqSem ||
-               unsigned == t.unsigned;
+               ( unsigned == t.unsigned &&
+                 typedefUnsigned == t.typedefUnsigned
+               );
     }
 
     @Override
@@ -104,7 +142,7 @@ public class IntType extends PrimitiveType implements Cloneable {
 
     @Override
     public String getCName(final boolean includeCVAttrs) {
-        if ( isTypedef() || !isUnsigned() ) {
+        if ( !unsigned || typedefUnsigned ) {
             return super.getCName(includeCVAttrs);
         } else {
             return "unsigned "+super.getCName(includeCVAttrs);
@@ -113,15 +151,16 @@ public class IntType extends PrimitiveType implements Cloneable {
 
     @Override
     public String toString() {
-        return getCVAttributesString() + ( isUnsigned() && !isTypedef() ? "unsigned " : "") + getCName();
+        return getCVAttributesString() + ( unsigned && !typedefUnsigned ? "unsigned " : "") + getCName();
     }
 
     @Override
-    Type newCVVariant(final int cvAttributes) {
-        final Type t = new IntType(getName(), getSize(), isUnsigned(), cvAttributes, astLocus);
-        if( isTypedef() ) {
-            t.setTypedef(getTypedefCVAttributes());
+    public boolean setTypedefName(final String name) {
+        if( super.setTypedefName(name) ) {
+            typedefUnsigned = unsigned;
+            return true;
+        } else {
+            return false;
         }
-        return t;
     }
 }

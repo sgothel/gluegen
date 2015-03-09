@@ -1037,7 +1037,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           int mode = 0;
           if ( 1 == cReturnType.pointerDepth() && null != cReturnTargetType ) {
             if( cReturnTargetType.isCompound() ) {
-                if( !cReturnTargetType.isAnonymous() &&
+                if( !cReturnTargetType.isAnon() &&
                     cReturnTargetType.asCompound().getNumFields() > 0 )
                 {
                     // fully declared non-anonymous struct pointer: pass content
@@ -1047,7 +1047,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                         "for function \"" + binding + "\": " +
                         "Structs to be emitted should have been laid out by this point " +
                         "(type " + cReturnTargetType.getCName() + " / " +
-                        cReturnTargetType.getDebugString() + " was not) for "+binding,
+                        cReturnTargetType.getDebugString() + " was not) for "+binding.getCSymbol(),
                         binding.getCSymbol().getASTLocusTag()
                       );
                     }

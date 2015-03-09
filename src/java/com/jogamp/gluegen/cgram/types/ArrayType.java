@@ -61,6 +61,16 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
     this.elementType = elementType;
     this.length      = length;
   }
+  private ArrayType(final ArrayType o, final int cvAttributes, final ASTLocusTag astLocus) {
+    super(o, cvAttributes, astLocus);
+    elementType = o.elementType;
+    length      = o.length;
+  }
+
+  @Override
+  Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+    return new ArrayType(this, cvAttributes, astLocus);
+  }
 
   @Override
   protected int hashCodeImpl() {
@@ -91,7 +101,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   }
 
   @Override
-  public boolean hasName() { return null != elementType.getName(); }
+  public boolean isAnon() { return elementType.isAnon(); }
 
   @Override
   public String getName(final boolean includeCVAttrs) {
@@ -150,14 +160,5 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   public void visit(final TypeVisitor arg) {
     super.visit(arg);
     elementType.visit(arg);
-  }
-
-  @Override
-  Type newCVVariant(final int cvAttributes) {
-    final Type t = new ArrayType(elementType, getSize(), length, cvAttributes, astLocus);
-    if( isTypedef() ) {
-        t.setTypedef(getTypedefCVAttributes());
-    }
-    return t;
   }
 }

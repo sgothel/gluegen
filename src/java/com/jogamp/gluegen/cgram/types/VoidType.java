@@ -51,18 +51,18 @@ public class VoidType extends Type implements Cloneable {
         super(name, null, cvAttributes, astLocus);
     }
 
-    @Override
-    public VoidType asVoid() {
-        return this;
+    private VoidType(final VoidType o, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(o, cvAttributes, astLocus);
     }
 
     @Override
-    Type newCVVariant(final int cvAttributes) {
-        final Type t = new VoidType(getName(), cvAttributes, astLocus);
-        if( isTypedef() ) {
-            t.setTypedef(getTypedefCVAttributes());
-        }
-        return t;
+    Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+        return new VoidType(this, cvAttributes, astLocus);
+    }
+
+    @Override
+    public VoidType asVoid() {
+        return this;
     }
 
     @Override

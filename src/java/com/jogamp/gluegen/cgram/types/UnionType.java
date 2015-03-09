@@ -35,19 +35,17 @@ public class UnionType extends CompoundType {
     super (name, size, cvAttributes, structName, astLocus);
   }
 
+  private UnionType(final UnionType o, final int cvAttributes, final ASTLocusTag astLocus) {
+    super(o, cvAttributes, astLocus);
+  }
+
+  @Override
+  Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+    return new UnionType(this, cvAttributes, astLocus);
+  }
+
   @Override
   public final boolean isStruct() { return false; }
   @Override
   public final boolean isUnion()  { return true; }
-
-  @Override
-  Type newCVVariant(final int cvAttributes) {
-    final UnionType t = new UnionType(getName(), getSize(), cvAttributes, getStructName(), astLocus);
-    t.setFields(getFields());
-    if( isTypedef() ) {
-        t.setTypedef(getTypedefCVAttributes());
-    }
-    return t;
-  }
-
 }

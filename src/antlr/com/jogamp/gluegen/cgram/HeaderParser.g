@@ -411,6 +411,10 @@ options {
     // dumpASTTree("XXX", t);
     throw new GlueGenException(message, findASTLocusTag(t));
   }
+  private void throwGlueGenException(final ASTLocusTag locusTag, final String message) throws GlueGenException {
+    // dumpASTTree("XXX", t);
+    throw new GlueGenException(message, locusTag);
+  }
 
   /**
    * Return ASTLocusTag in tree, or null if not found.
@@ -601,32 +605,32 @@ typeSpecifier[int attributes] returns [Type t] {
     boolean unsig = ((attributes & UNSIGNED) != 0);
     final ASTLocusTag locusTag = findASTLocusTag(typeSpecifier_AST_in);
 }
-        //
         //                                                                                    TYPEDEF
-        //                                                                    UNSIGNED        |
-        //      TOKEN                 TYPE    NAME         SIZE               |      ATTRIBS  |      LOCUS
-        :       "void"      { t = new VoidType(                                      cvAttrs,        locusTag); }
-        |       "char"      { t = new IntType("char" ,     SizeThunk.INT8,    unsig, cvAttrs, false, locusTag); }
-        |       "short"     { t = new IntType("short",     SizeThunk.INT16,   unsig, cvAttrs, false, locusTag); }
-        |       "int"       { t = new IntType("int"  ,     SizeThunk.INTxx,   unsig, cvAttrs, false, locusTag); }
-        |       "long"      { t = new IntType("long" ,     SizeThunk.LONG,    unsig, cvAttrs, false, locusTag); }
-        |       "float"     { t = new FloatType("float",   SizeThunk.FLOAT,          cvAttrs,        locusTag); }
-        |       "double"    { t = new DoubleType("double", SizeThunk.DOUBLE,         cvAttrs,        locusTag); }
-        |       "__int32"   { t = new IntType("__int32",   SizeThunk.INT32,   unsig, cvAttrs, false, locusTag); }
-        |       "__int64"   { t = new IntType("__int64",   SizeThunk.INT64,   unsig, cvAttrs, false, locusTag); }
-        |       "int8_t"    { t = new IntType("int8_t",    SizeThunk.INT8,    false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "uint8_t"   { t = new IntType("uint8_t",   SizeThunk.INT8,    true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
-        |       "int16_t"   { t = new IntType("int16_t",   SizeThunk.INT16,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "uint16_t"  { t = new IntType("uint16_t",  SizeThunk.INT16,   true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
-        |       "int32_t"   { t = new IntType("int32_t",   SizeThunk.INT32,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "wchar_t"   { t = new IntType("wchar_t",   SizeThunk.INT32,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "uint32_t"  { t = new IntType("uint32_t",  SizeThunk.INT32,   true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
-        |       "int64_t"   { t = new IntType("int64_t",   SizeThunk.INT64,   false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "uint64_t"  { t = new IntType("uint64_t",  SizeThunk.INT64,   true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
-        |       "ptrdiff_t" { t = new IntType("ptrdiff_t", SizeThunk.POINTER, false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "intptr_t"  { t = new IntType("intptr_t",  SizeThunk.POINTER, false, cvAttrs, true,  locusTag); }  /* TS: always signed */
-        |       "size_t"    { t = new IntType("size_t",    SizeThunk.POINTER, true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
-        |       "uintptr_t" { t = new IntType("uintptr_t", SizeThunk.POINTER, true,  cvAttrs, true,  locusTag); }  /* TS: always unsigned */
+        //                                                                                    |      TYPEDEF-UNSIGNED
+        //                                                                    UNSIGNED        |      |
+        //      TOKEN                 TYPE    NAME         SIZE               |      ATTRIBS  |      |      LOCUS
+        :       "void"      { t = new VoidType(                                      cvAttrs,               locusTag); }
+        |       "char"      { t = new IntType("char" ,     SizeThunk.INT8,    unsig, cvAttrs, false, false, locusTag); }
+        |       "short"     { t = new IntType("short",     SizeThunk.INT16,   unsig, cvAttrs, false, false, locusTag); }
+        |       "int"       { t = new IntType("int"  ,     SizeThunk.INTxx,   unsig, cvAttrs, false, false, locusTag); }
+        |       "long"      { t = new IntType("long" ,     SizeThunk.LONG,    unsig, cvAttrs, false, false, locusTag); }
+        |       "float"     { t = new FloatType("float",   SizeThunk.FLOAT,          cvAttrs,               locusTag); }
+        |       "double"    { t = new DoubleType("double", SizeThunk.DOUBLE,         cvAttrs,               locusTag); }
+        |       "__int32"   { t = new IntType("__int32",   SizeThunk.INT32,   unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "__int64"   { t = new IntType("__int64",   SizeThunk.INT64,   unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "int8_t"    { t = new IntType("int8_t",    SizeThunk.INT8,    unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "uint8_t"   { t = new IntType("uint8_t",   SizeThunk.INT8,    unsig, cvAttrs, true,  true,  locusTag); }  /* TD: unsigned */
+        |       "int16_t"   { t = new IntType("int16_t",   SizeThunk.INT16,   unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "uint16_t"  { t = new IntType("uint16_t",  SizeThunk.INT16,   unsig, cvAttrs, true,  true,  locusTag); }  /* TD: unsigned */
+        |       "int32_t"   { t = new IntType("int32_t",   SizeThunk.INT32,   unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "wchar_t"   { t = new IntType("wchar_t",   SizeThunk.INT32,   unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "uint32_t"  { t = new IntType("uint32_t",  SizeThunk.INT32,   unsig, cvAttrs, true,  true,  locusTag); }  /* TS: unsigned */
+        |       "int64_t"   { t = new IntType("int64_t",   SizeThunk.INT64,   unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "uint64_t"  { t = new IntType("uint64_t",  SizeThunk.INT64,   unsig, cvAttrs, true,  true,  locusTag); }  /* TD: unsigned */
+        |       "ptrdiff_t" { t = new IntType("ptrdiff_t", SizeThunk.POINTER, unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "intptr_t"  { t = new IntType("intptr_t",  SizeThunk.POINTER, unsig, cvAttrs, true,  false, locusTag); }  /* TD: signed   */
+        |       "size_t"    { t = new IntType("size_t",    SizeThunk.POINTER, unsig, cvAttrs, true,  true,  locusTag); }  /* TD: unsigned */
+        |       "uintptr_t" { t = new IntType("uintptr_t", SizeThunk.POINTER, unsig, cvAttrs, true,  true,  locusTag); }  /* TD: unsigned */
         |       t = structSpecifier[cvAttrs] ( attributeDecl )*
         |       t = unionSpecifier [cvAttrs] ( attributeDecl )*
         |       t = enumSpecifier  [cvAttrs] 
@@ -645,7 +649,7 @@ typedefName[int cvAttrs] returns [Type t] { t = null; }
             {
               final Type t0 = lookupInTypedefDictionary(typedefName_AST_in, id.getText());
               debugPrint("Adding typedef lookup: [" + id.getText() + "] -> "+getDebugTypeString(t0));
-              final Type t1 = t0.getCVVariant(cvAttrs);
+              final Type t1 = t0.newCVVariant(cvAttrs);
               debugPrintln(" - cvvar -> "+getDebugTypeString(t1));
               t = canonicalize(t1);
               debugPrintln(" - canon -> "+getDebugTypeString(t));
@@ -669,12 +673,12 @@ structOrUnionBody[CompoundTypeKind kind, int cvAttrs] returns [CompoundType t] {
                     // fully declared struct, i.e. not anonymous
                     t = (CompoundType) canonicalize(lookupInStructDictionary(id.getText(), kind, cvAttrs, locusTag));
                   } ( addedAny = structDeclarationList[t] )?
-                    RCURLY { t.setBodyParsed(addedAny); }
+                    RCURLY { t.setBodyParsed(); }
                 |   LCURLY { 
                       // anonymous declared struct
                       t = CompoundType.create(null, null, kind, cvAttrs, locusTag); 
                     } ( structDeclarationList[t] )?
-                    RCURLY { t.setBodyParsed(false); }
+                    RCURLY { t.setBodyParsed(); }
                 | id2:ID { 
                       // anonymous struct
                       t = (CompoundType) canonicalize(lookupInStructDictionary(id2.getText(), kind, cvAttrs, locusTag)); 
@@ -835,6 +839,7 @@ initDeclList[TypeBox tb]
 
 initDecl[TypeBox tb] {
     String declName = null;
+    final ASTLocusTag locusTag = findASTLocusTag(initDecl_AST_in);
 }
         :       #( NInitDecl
                 declName = declarator[tb] { 
@@ -857,7 +862,7 @@ initDecl[TypeBox tb] {
                 debugPrint(" - redefine -> "+getDebugTypeString(t));
             } else {
                 // Use new typedef, using a copy to preserve canonicalized base type
-                t = (Type) t.clone();
+                t = t.clone(locusTag);
                 t.setTypedefName(declName);
                 debugPrint(" - newdefine -> "+getDebugTypeString(t));
             }
@@ -878,16 +883,16 @@ initDecl[TypeBox tb] {
                 debugPrint(" - alias -> "+getDebugTypeString(t));
             } else {
                 // copy to preserve canonicalized base type
-                t = (Type) t.clone();
+                t = t.clone(locusTag);
                 t.setTypedefName(declName);
                 debugPrint(" - copy -> "+getDebugTypeString(t));
             }
         }
         final Type dupT = typedefDictionary.get(declName);
         if( null != dupT && !dupT.equalSemantics(t) ) {
-            throwGlueGenException(initDecl_AST_in,
-                  String.format("Duplicate typedef w/ incompatible type:%n  have '%s',%n  this '%s'", 
-                     getTypeString(dupT), getTypeString(t)));
+            throwGlueGenException(locusTag,
+                  String.format("Duplicate typedef w/ incompatible type:%n  this '%s',%n  have '%s',%n  previously declared here: %s", 
+                     getTypeString(t), getTypeString(dupT), dupT.getASTLocusTag()));
         }
         t = canonicalize(t);
         debugPrintln(" - canon -> "+getDebugTypeString(t));

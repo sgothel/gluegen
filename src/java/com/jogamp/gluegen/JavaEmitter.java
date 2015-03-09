@@ -1890,7 +1890,7 @@ public class JavaEmitter implements GlueEmitter {
           if( isPointer ) {
               // Getter Primitive Pointer
               final FunctionType ft = new FunctionType(dummyFuncTypeName, SizeThunk.POINTER, fieldType, 0);
-              ft.addArgument(containingCType.getCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
+              ft.addArgument(containingCType.newCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
                              CMethodBindingEmitter.cThisArgumentName());
               ft.addArgument(int32Type, nativeArrayLengthArg);
               final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
@@ -1998,7 +1998,7 @@ public class JavaEmitter implements GlueEmitter {
           if( isPointer ) {
               // Getter Struct Pointer
               final FunctionType ft = new FunctionType(dummyFuncTypeName, SizeThunk.POINTER, fieldType, 0);
-              ft.addArgument(containingCType.getCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
+              ft.addArgument(containingCType.newCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
                              CMethodBindingEmitter.cThisArgumentName());
               ft.addArgument(int32Type, nativeArrayElemOffsetArg);
               final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);

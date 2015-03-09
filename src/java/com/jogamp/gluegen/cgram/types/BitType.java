@@ -57,10 +57,23 @@ public class BitType extends IntType implements Cloneable {
     this.offset = lsbOffset;
   }
 
+  private BitType(final BitType o, final int cvAttributes, final ASTLocusTag astLocus) {
+      super(o, cvAttributes, astLocus);
+      underlyingType = o.underlyingType;
+      sizeInBits = o.sizeInBits;
+      offset = o.offset;
+  }
+
+  @Override
+  Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+    return new BitType(this, cvAttributes, astLocus);
+  }
+
   @Override
   protected int hashCodeImpl() {
       // 31 * x == (x << 5) - x
-      int hash = underlyingType.hashCode();
+      int hash = super.hashCodeImpl();
+      hash = ((hash << 5) - hash) + underlyingType.hashCode();
       hash = ((hash << 5) - hash) + sizeInBits;
       return ((hash << 5) - hash) + offset;
   }
@@ -68,7 +81,8 @@ public class BitType extends IntType implements Cloneable {
   @Override
   protected boolean equalsImpl(final Type arg) {
       final BitType t = (BitType) arg;
-      return underlyingType.equals(t.underlyingType) &&
+      return super.equalsImpl(arg) &&
+             underlyingType.equals(t.underlyingType) &&
              sizeInBits == t.sizeInBits &&
              offset == t.offset;
   }
@@ -76,7 +90,8 @@ public class BitType extends IntType implements Cloneable {
   @Override
   protected int hashCodeSemanticsImpl() {
       // 31 * x == (x << 5) - x
-      int hash = underlyingType.hashCodeSemantics();
+      int hash = super.hashCodeSemanticsImpl();
+      hash = ((hash << 5) - hash) + underlyingType.hashCodeSemantics();
       hash = ((hash << 5) - hash) + sizeInBits;
       return ((hash << 5) - hash) + offset;
   }
@@ -84,9 +99,10 @@ public class BitType extends IntType implements Cloneable {
   @Override
   protected boolean equalSemanticsImpl(final Type arg) {
       final BitType t = (BitType) arg;
-      return underlyingType.equalSemantics(t.underlyingType) &&
-              sizeInBits == t.sizeInBits &&
-              offset == t.offset;
+      return super.equalSemanticsImpl(arg) &&
+             underlyingType.equalSemantics(t.underlyingType) &&
+             sizeInBits == t.sizeInBits &&
+             offset == t.offset;
   }
 
   @Override
@@ -107,14 +123,5 @@ public class BitType extends IntType implements Cloneable {
   public void visit(final TypeVisitor arg) {
     super.visit(arg);
     underlyingType.visit(arg);
-  }
-
-  @Override
-  Type newCVVariant(final int cvAttributes) {
-    final Type t = new BitType(underlyingType, sizeInBits, offset, cvAttributes, astLocus);
-    if( isTypedef() ) {
-        t.setTypedef(getTypedefCVAttributes());
-    }
-    return t;
   }
 }

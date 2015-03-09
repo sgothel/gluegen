@@ -50,8 +50,6 @@ import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 they have a set of named values. */
 public class EnumType extends IntType implements Cloneable {
 
-    private IntType underlyingType;
-
     private static class Enum implements TypeComparator.SemanticEqualityOp {
         final String name;
         final long value;
@@ -101,6 +99,7 @@ public class EnumType extends IntType implements Cloneable {
         public String toString() { return name+" = "+value; }
     }
 
+    private final IntType underlyingType;
     private ArrayList<Enum> enums;
 
     public EnumType(final String name) {
@@ -113,48 +112,48 @@ public class EnumType extends IntType implements Cloneable {
         this.underlyingType = new IntType(name, enumSizeInBytes, false, CVAttributes.CONST, astLocus);
     }
 
-    protected EnumType(final String name, final IntType underlyingType, final int cvAttributes, final ASTLocusTag astLocus) {
-        super(name, underlyingType.getSize(), underlyingType.isUnsigned(), cvAttributes, astLocus);
-        this.underlyingType = underlyingType;
+    private EnumType(final EnumType o, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(o, cvAttributes, astLocus);
+        underlyingType = o.underlyingType;
+        if(null != o.enums) {
+            enums = new ArrayList<Enum>(o.enums);
+        }
     }
 
     @Override
-    public Object clone() {
-        final EnumType n = (EnumType) super.clone();
-        if(null!=this.underlyingType) {
-            n.underlyingType = (IntType) this.underlyingType.clone();
-        }
-        if(null!=this.enums) {
-            n.enums = new ArrayList<Enum>(this.enums);
-        }
-        return n;
+    Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+        return new EnumType(this, cvAttributes, astLocus);
     }
 
     @Override
     protected int hashCodeImpl() {
       // 31 * x == (x << 5) - x
-      final int hash = underlyingType.hashCode();
+      int hash = super.hashCodeImpl();
+      hash = ((hash << 5) - hash) + underlyingType.hashCode();
       return ((hash << 5) - hash) + TypeComparator.listsHashCode(enums);
     }
 
     @Override
     protected boolean equalsImpl(final Type arg) {
         final EnumType t = (EnumType) arg;
-        return underlyingType.equals(t.underlyingType) &&
+        return super.equalsImpl(arg) &&
+                underlyingType.equals(t.underlyingType) &&
                TypeComparator.listsEqual(enums, t.enums);
     }
 
     @Override
     protected int hashCodeSemanticsImpl() {
       // 31 * x == (x << 5) - x
-      final int hash = underlyingType.hashCodeSemantics();
+      int hash = super.hashCodeSemanticsImpl();
+      hash = ((hash << 5) - hash) + underlyingType.hashCodeSemantics();
       return ((hash << 5) - hash) + TypeComparator.listsHashCodeSemantics(enums);
     }
 
     @Override
     protected boolean equalSemanticsImpl(final Type arg) {
         final EnumType t = (EnumType) arg;
-        return underlyingType.equalSemantics(t.underlyingType) &&
+        return super.equalSemanticsImpl(arg) &&
+                underlyingType.equalSemantics(t.underlyingType) &&
                TypeComparator.listsEqualSemantics(enums, t.enums);
     }
 
@@ -241,15 +240,5 @@ public class EnumType extends IntType implements Cloneable {
     public void visit(final TypeVisitor arg) {
         super.visit(arg);
         underlyingType.visit(arg);
-    }
-
-    @Override
-    Type newCVVariant(final int cvAttributes) {
-        final EnumType t = new EnumType(getName(), underlyingType, cvAttributes, astLocus);
-        t.enums = enums;
-        if( isTypedef() ) {
-            t.setTypedef(getTypedefCVAttributes());
-        }
-        return t;
     }
 }

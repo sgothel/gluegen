@@ -55,6 +55,16 @@ public class PointerType extends Type implements Cloneable {
         this.targetType = targetType;
     }
 
+    private PointerType(final PointerType o, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(o, cvAttributes, astLocus);
+        targetType = o.targetType;
+    }
+
+    @Override
+    Type newVariantImpl(final boolean newCVVariant, final int cvAttributes, final ASTLocusTag astLocus) {
+        return new PointerType(this, cvAttributes, astLocus);
+    }
+
     @Override
     protected int hashCodeImpl() {
       return targetType.hashCode();
@@ -78,11 +88,11 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public boolean hasName() {
+    public boolean isAnon() {
         if ( isTypedef() ) {
-            return super.hasName();
+            return super.isAnon();
         } else {
-            return targetType.hasName();
+            return targetType.isAnon();
         }
     }
 
@@ -164,14 +174,5 @@ public class PointerType extends Type implements Cloneable {
     public void visit(final TypeVisitor arg) {
         super.visit(arg);
         targetType.visit(arg);
-    }
-
-    @Override
-    Type newCVVariant(final int cvAttributes) {
-        final Type t = new PointerType(getSize(), targetType, cvAttributes, astLocus);
-        if( isTypedef() ) {
-            t.setTypedef(getName(), getTypedefCVAttributes());
-        }
-        return t;
     }
 }

@@ -47,6 +47,10 @@ public abstract class PrimitiveType extends Type implements Cloneable {
         super(name, size, cvAttributes, astLocus);
     }
 
+    PrimitiveType(final PrimitiveType o, final int cvAttributes, final ASTLocusTag astLocus) {
+        super(o, cvAttributes, astLocus);
+    }
+
     @Override
     public boolean isPrimitive() {
         return true;
