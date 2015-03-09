@@ -457,8 +457,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     final JavaType javaReturnType = binding.getJavaReturnType();
     if (!cReturnType.isVoid()) {
       writer.print("  ");
-      // Note we must respect const/volatile for return argument
-      writer.print(binding.getCSymbol().getReturnType().getCName(true));
+      // Note we respect const/volatile in the function return type.
+      // However, we cannot have it 'const' for our local variable.
+      writer.print(binding.getCSymbol().getReturnType().getCName(false));
       writer.println(" _res;");
       if (javaReturnType.isNIOByteBufferArray() ||
           javaReturnType.isArrayOfCompoundTypeWrappers()) {
