@@ -520,7 +520,13 @@ parameterDeclaration returns [ParameterDeclaration pd] {
         :       #( NParameterDeclaration
                 tb    = declSpecifiers
                 (decl = declarator[tb] | nonemptyAbstractDeclarator[tb])?
-                ) { pd = new ParameterDeclaration(decl, tb.type()); }
+                ) { 
+                  if( null == tb ) {
+                    throwGlueGenException(parameterDeclaration_AST_in,
+                        String.format("Undefined type for declaration '%s'", decl));
+                  }
+                  pd = new ParameterDeclaration(decl, tb.type()); 
+                }
         ;
 
 functionDef {
