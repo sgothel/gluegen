@@ -221,7 +221,7 @@ public class ProcAddressEmitter extends JavaEmitter {
             final ProcAddressJavaMethodBindingEmitter emitter = new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
                     callThroughProcAddress,
                     getProcAddressConfig().getProcAddressTableExpr(),
-                    baseJavaEmitter.isForImplementingMethodCall(),
+                    baseJavaEmitter.isForNativeMethod(),
                     this);
             if( needsJavaWrapper ) {
                 emitter.setEmitBody(true);

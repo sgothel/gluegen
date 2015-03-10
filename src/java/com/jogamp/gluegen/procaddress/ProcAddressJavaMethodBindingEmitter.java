@@ -106,8 +106,8 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected String getImplMethodName() {
-        final String name = super.getImplMethodName();
+    protected String getNativeMethodName() {
+        final String name = super.getNativeMethodName();
         if (callThroughProcAddress) {
             return ProcAddressEmitter.WRAP_PREFIX + name;
         }

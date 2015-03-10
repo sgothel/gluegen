@@ -76,7 +76,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   protected boolean eraseBufferAndArrayTypes;
   protected boolean useNIOOnly;
   protected boolean useNIODirectOnly;
-  protected boolean forImplementingMethodCall;
+  protected boolean isNativeMethod;
   protected boolean forDirectBufferImplementation;
   protected boolean forIndirectBufferAndArrayImplementation;
   protected boolean isUnimplemented;
@@ -109,11 +109,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
                                   final boolean eraseBufferAndArrayTypes,
                                   final boolean useNIOOnly,
                                   final boolean useNIODirectOnly,
-                                  final boolean forImplementingMethodCall,
                                   final boolean forDirectBufferImplementation,
                                   final boolean forIndirectBufferAndArrayImplementation,
                                   final boolean isUnimplemented,
                                   final boolean isInterface,
+                                  final boolean isNativeMethod,
                                   final JavaConfiguration configuration) {
     super(output, isInterface, configuration);
     this.binding = binding;
@@ -124,15 +124,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     this.eraseBufferAndArrayTypes = eraseBufferAndArrayTypes;
     this.useNIOOnly = useNIOOnly;
     this.useNIODirectOnly = useNIODirectOnly;
-    this.forImplementingMethodCall = forImplementingMethodCall;
     this.forDirectBufferImplementation = forDirectBufferImplementation;
     this.forIndirectBufferAndArrayImplementation = forIndirectBufferAndArrayImplementation;
     this.isUnimplemented = isUnimplemented;
-    if (forImplementingMethodCall) {
+    this.isNativeMethod = isNativeMethod;
+    if (isNativeMethod) {
       setCommentEmitter(defaultJavaCommentEmitter);
     } else {
       setCommentEmitter(defaultInterfaceCommentEmitter);
     }
+    // !forImplementingMethodCall && !isInterface
   }
 
   public JavaMethodBindingEmitter(final JavaMethodBindingEmitter arg) {
@@ -145,7 +146,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     eraseBufferAndArrayTypes      = arg.eraseBufferAndArrayTypes;
     useNIOOnly                    = arg.useNIOOnly;
     useNIODirectOnly              = arg.useNIODirectOnly;
-    forImplementingMethodCall     = arg.forImplementingMethodCall;
+    isNativeMethod                = arg.isNativeMethod;
     forDirectBufferImplementation = arg.forDirectBufferImplementation;
     forIndirectBufferAndArrayImplementation = arg.forIndirectBufferAndArrayImplementation;
     isUnimplemented               = arg.isUnimplemented;
@@ -157,7 +158,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   public final MethodBinding getBinding() { return binding; }
 
-  public boolean isForImplementingMethodCall() { return forImplementingMethodCall; }
+  public boolean isForNativeMethod() { return isNativeMethod; }
   public boolean isForDirectBufferImplementation() { return forDirectBufferImplementation; }
   public boolean isForIndirectBufferAndArrayImplementation() { return forIndirectBufferAndArrayImplementation; }
 
@@ -237,7 +238,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   /** Accessor for subclasses. */
   public void setForImplementingMethodCall(final boolean impl) {
-    this.forImplementingMethodCall = impl;
+    this.isNativeMethod = impl;
   }
 
   /** Accessor for subclasses. */
@@ -325,8 +326,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   @Override
   protected void emitName(final PrintWriter writer)  {
-    if (forImplementingMethodCall) {
-      writer.print(getImplMethodName());
+    if (isNativeMethod) {
+      writer.print(getNativeMethodName());
     } else {
       writer.print(getName());
     }
@@ -337,7 +338,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     boolean needComma = false;
     int numEmitted = 0;
 
-    if (forImplementingMethodCall  && binding.hasContainingType()) {
+    if (isNativeMethod  && binding.hasContainingType()) {
       // Always emit outgoing "this" argument
       writer.print("ByteBuffer ");
       writer.print(javaThisArgumentName());
@@ -398,7 +399,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
 
-  protected String getImplMethodName() {
+  protected String getNativeMethodName() {
     return binding.getName() + ( useNIODirectOnly ? "0" : "1" );
   }
 
@@ -547,7 +548,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   protected void emitCall(final MethodBinding binding, final PrintWriter writer) {
-    writer.print(getImplMethodName());
+    writer.print(getNativeMethodName());
     writer.print("(");
     emitCallArguments(binding, writer);
     writer.print(");");

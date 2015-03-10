@@ -592,21 +592,22 @@ public class JavaEmitter implements GlueEmitter {
           }
       }
 
+      final boolean emitBody = !signatureOnly && needsBody;
       final JavaMethodBindingEmitter emitter =
               new JavaMethodBindingEmitter(binding,
                       writer,
                       cfg.runtimeExceptionType(),
                       cfg.unsupportedExceptionType(),
-                      !signatureOnly && needsBody,
+                      emitBody,        // emitBody
                       cfg.tagNativeBinding(),
-                      false, // eraseBufferAndArrayTypes
+                      false,           // eraseBufferAndArrayTypes
                       cfg.useNIOOnly(binding.getName()),
                       cfg.useNIODirectOnly(binding.getName()),
-                      false,
-                      false,
-                      false,
-                      isUnimplemented,
-                      signatureOnly,
+                      false,           // forDirectBufferImplementation
+                      false,           // forIndirectBufferAndArrayImplementation
+                      isUnimplemented, // isUnimplemented
+                      signatureOnly,   // isInterface
+                      false,           // isNativeMethod
                       cfg);
       switch (accessControl) {
           case PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
@@ -674,16 +675,16 @@ public class JavaEmitter implements GlueEmitter {
                               writer,
                               cfg.runtimeExceptionType(),
                               cfg.unsupportedExceptionType(),
-                              false,
+                              false, // emitBody
                               cfg.tagNativeBinding(),
-                              true, // eraseBufferAndArrayTypes
+                              true,  // eraseBufferAndArrayTypes
                               cfg.useNIOOnly(binding.getName()),
                               cfg.useNIODirectOnly(binding.getName()),
-                              true,
-                              true,
-                              false,
-                              false,
-                              false,
+                              true,  // forDirectBufferImplementation
+                              false, // forIndirectBufferAndArrayImplementation
+                              false, // isUnimplemented
+                              false, // isInterface
+                              true,  // isNativeMethod
                               cfg);
               emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
               if (cfg.allStatic()) {
@@ -1142,6 +1143,7 @@ public class JavaEmitter implements GlueEmitter {
       }
     }
     javaWriter.println();
+    // getDelegatedImplementation
     if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, "size")) ) {
         javaWriter.println("  public static int size() {");
         javaWriter.println("    return "+containingJTypeName+"_size[mdIdx];");
@@ -1421,16 +1423,16 @@ public class JavaEmitter implements GlueEmitter {
                           javaWriter,
                           cfg.runtimeExceptionType(),
                           cfg.unsupportedExceptionType(),
-                          true,
+                          true,  // emitBody
                           cfg.tagNativeBinding(),
                           false, // eraseBufferAndArrayTypes
                           useNIOOnly,
                           useNIODirectOnly,
-                          false,
-                          false, // FIXME: should unify this with the general emission code
+                          false, // forDirectBufferImplementation
                           false, // forIndirectBufferAndArrayImplementation
-                          false, // FIXME: should unify this with the general emission code
-                          false,
+                          false, // isUnimplemented
+                          false, // isInterface
+                          false, // isNativeMethod
                           cfg);
           emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
           emitter.emit();
@@ -1441,16 +1443,16 @@ public class JavaEmitter implements GlueEmitter {
                           javaWriter,
                           cfg.runtimeExceptionType(),
                           cfg.unsupportedExceptionType(),
-                          false,
+                          false, // emitBody
                           cfg.tagNativeBinding(),
-                          true, // eraseBufferAndArrayTypes
+                          true,  // eraseBufferAndArrayTypes
                           useNIOOnly,
                           useNIODirectOnly,
-                          true,
-                          true, // FIXME: should unify this with the general emission code
+                          true,  // forDirectBufferImplementation
                           false, // forIndirectBufferAndArrayImplementation
-                          false, // FIXME: should unify this with the general emission code
-                          false,
+                          false, // isUnimplemented
+                          false, // isInterface
+                          true,  // isNativeMethod
                           cfg);
           emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
           emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
@@ -1503,16 +1505,16 @@ public class JavaEmitter implements GlueEmitter {
                           javaWriter,
                           cfg.runtimeExceptionType(),
                           cfg.unsupportedExceptionType(),
-                          false,
-                          cfg.tagNativeBinding(),
-                          true, // eraseBufferAndArrayTypes
+                          false,                  // emitBody
+                          cfg.tagNativeBinding(), // tagNativeBinding
+                          true,                   // eraseBufferAndArrayTypes
                           useNIOOnly,
                           useNIODirectOnly,
-                          true,
-                          true, // FIXME: should unify this with the general emission code
-                          false, // forIndirectBufferAndArrayImplementation
-                          false, // FIXME: should unify this with the general emission code
-                          false,
+                          false,                  // forDirectBufferImplementation
+                          false,                  // forIndirectBufferAndArrayImplementation
+                          false,                  // isUnimplemented
+                          true,                   // isInterface
+                          true,                   // isNativeMethod
                           cfg);
           if( null != docArrayLenExpr ) {
               emitter.setReturnedArrayLengthExpression(docArrayLenExpr, true);
