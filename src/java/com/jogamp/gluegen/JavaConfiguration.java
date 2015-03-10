@@ -562,17 +562,6 @@ public class JavaConfiguration {
     return forceUseNIODirectOnly4All || useNIODirectOnly.contains(functionName);
   }
 
-  /** Returns true if the glue code for the given function will be
-      manually implemented by the end user.
-   * <p>
-   * If symbol references a struct field or method, see {@link #canonicalStructFieldSymbol(String, String)},
-   * it describes field's array-length or element-count referenced by a pointer.
-   * </p>
-   */
-  public boolean manuallyImplement(final String functionName) {
-    return manuallyImplement.contains(functionName);
-  }
-
   /**
    * Returns true if the static initialization java code calling <code>initializeImpl()</code>
    * for the given class will be manually implemented by the end user
@@ -786,51 +775,6 @@ public class JavaConfiguration {
     }
   }
 
-  /**
-   * Returns the canonical configuration name for a struct field name,
-   * i.e. 'struct-name'.'field-name'
-   */
-  public static String canonicalStructFieldSymbol(final String structName, final String fieldName) {
-      return structName+"."+fieldName;
-  }
-
-  /**
-   * Returns true if the given struct, or field within a struct
-   * should be ignored during glue code generation of interfaces and implementation.
-   * For other types, use {@link #shouldIgnoreInInterface(AliasedSymbol)}.
-   * <p>
-   * This method only considers the {@link AliasedSymbol#getName() current-name}
-   * of the given symbol, i.e. does not test the {@link #getJavaSymbolRename(String) renamed-symbol}.
-   * </p>
-   * <p>
-   * For struct fields see {@link #canonicalStructFieldSymbol(String, String)}.
-   * </p>
-   * <p>
-   * Implementation calls {@link #shouldIgnoreInInterface(AliasedSymbol)}
-   * </p>
-   * @param symbol the symbolic name to check for exclusion
-   *
-   */
-  public final boolean shouldIgnoreInInterface(final String symbol) {
-      return shouldIgnoreInInterface( new AliasedSymbol.NoneAliasedSymbol(symbol) );
-  }
-  /**
-   * Returns true if this aliased symbol should be ignored
-   * during glue code generation of interfaces and implementation.
-   * <p>
-   * Both, the {@link AliasedSymbol#getName() current-name}
-   * and all {@link AliasedSymbol#getAliasedNames() aliases} shall be considered.
-   * </p>
-   * <p>
-   * Implementation calls {@link #shouldIgnoreInInterface_Int(AliasedSymbol)}
-   * and overriding implementations shall ensure its being called as well!
-   * </p>
-   * @param symbol the symbolic aliased name to check for exclusion
-   */
-  public boolean shouldIgnoreInInterface(final AliasedSymbol symbol) {
-      return shouldIgnoreInInterface_Int(symbol);
-  }
-
   public static <K,V> V oneInMap(final Map<K, V> map, final Set<K> symbols) {
       if( null != map && map.size() > 0 &&
           null != symbols && symbols.size() > 0 ) {
@@ -873,6 +817,80 @@ public class JavaConfiguration {
       }
   }
 
+  /**
+   * Returns the canonical configuration name for a struct field name,
+   * i.e. 'struct-name'.'field-name'
+   */
+  public static String canonicalStructFieldSymbol(final String structName, final String fieldName) {
+      return structName+"."+fieldName;
+  }
+
+  /**
+   * Variant of {@link #manuallyImplement(AliasedSymbol)},
+   * where this method only considers the {@link AliasedSymbol#getName() current-name}
+   * of the given symbol, not the {@link #getJavaSymbolRename(String) renamed-symbol}.
+   */
+  public boolean manuallyImplement(final String functionName) {
+      if( manuallyImplement.contains(functionName) ) {
+          LOG.log(INFO, "ManuallyImplement: \"{0}\"", functionName);
+          return true;
+      } else {
+          return false;
+      }
+  }
+
+  /**
+   * Returns true if the glue code for the given aliased function will be
+   * manually implemented by the end user.
+   * <p>
+   * Both, the {@link AliasedSymbol#getName() current-name}
+   * and all {@link AliasedSymbol#getAliasedNames() aliases} shall be considered.
+   * </p>
+   * <p>
+   * If symbol references a struct field or method, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   * @see #manuallyImplement(String)
+   */
+  public boolean manuallyImplement(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+
+      if ( manuallyImplement.contains( name ) ||
+           oneInSet(manuallyImplement, aliases)
+         )
+      {
+          LOG.log(INFO, getASTLocusTag(symbol), "ManuallyImplement: {0}", symbol.getAliasedString());
+          return true;
+      } else {
+          return false;
+      }
+  }
+
+  /**
+   * Variant of {@link #shouldIgnoreInInterface(AliasedSymbol)},
+   * where this method only considers the {@link AliasedSymbol#getName() current-name}
+   * of the given symbol, not the {@link #getJavaSymbolRename(String) renamed-symbol}.
+   */
+  public final boolean shouldIgnoreInInterface(final String symbol) {
+      return shouldIgnoreInInterface( new AliasedSymbol.NoneAliasedSymbol(symbol) );
+  }
+  /**
+   * Returns true if this aliased symbol should be ignored
+   * during glue code generation of interfaces and implementation.
+   * <p>
+   * Both, the {@link AliasedSymbol#getName() current-name}
+   * and all {@link AliasedSymbol#getAliasedNames() aliases} shall be considered.
+   * </p>
+   * <p>
+   * Implementation calls {@link #shouldIgnoreInInterface_Int(AliasedSymbol)}
+   * and overriding implementations shall ensure its being called as well!
+   * </p>
+   * @param symbol the symbolic aliased name to check for exclusion
+   */
+  public boolean shouldIgnoreInInterface(final AliasedSymbol symbol) {
+      return shouldIgnoreInInterface_Int(symbol);
+  }
 
   protected final boolean shouldIgnoreInInterface_Int(final AliasedSymbol symbol) {
       if( GlueGen.debug() ) {
@@ -1236,9 +1254,7 @@ public class JavaConfiguration {
       readParentClass(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaType")) {
       readRenameJavaType(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("RenameJavaSymbol") ||
-               // Backward compatibility
-               cmd.equalsIgnoreCase("RenameJavaMethod")) {
+    } else if (cmd.equalsIgnoreCase("RenameJavaSymbol")) {
       readRenameJavaSymbol(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
       runtimeExceptionType = readString("RuntimeExceptionType", tok, filename, lineNo);

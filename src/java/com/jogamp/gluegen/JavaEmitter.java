@@ -558,7 +558,8 @@ public class JavaEmitter implements GlueEmitter {
    * outgoing arguments).
    */
   protected void generatePublicEmitters(final MethodBinding binding, final List<FunctionEmitter> allEmitters, final boolean signatureOnly) {
-      if (cfg.manuallyImplement(binding.getName()) && !signatureOnly) {
+      final FunctionSymbol cSymbol = binding.getCSymbol();
+      if ( !signatureOnly && cfg.manuallyImplement(cSymbol) ) {
           // We only generate signatures for manually-implemented methods;
           // user provides the implementation
           return;
@@ -575,7 +576,7 @@ public class JavaEmitter implements GlueEmitter {
       // It's possible we may not need a body even if signatureOnly is
       // set to false; for example, if the routine doesn't take any
       // arrays or buffers as arguments
-      final boolean isUnimplemented = cfg.isUnimplemented(binding.getCSymbol());
+      final boolean isUnimplemented = cfg.isUnimplemented(cSymbol);
       final List<String> prologue = cfg.javaPrologueForMethod(binding, false, false);
       final List<String> epilogue = cfg.javaEpilogueForMethod(binding, false, false);
       final boolean needsBody = isUnimplemented ||
@@ -587,7 +588,7 @@ public class JavaEmitter implements GlueEmitter {
       if( !requiresStaticInitialization ) {
           requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
           if( requiresStaticInitialization ) {
-              LOG.log(INFO, binding.getCSymbol().getASTLocusTag(), "StaticInit Trigger.1 \"{0}\"", binding);
+              LOG.log(INFO, cSymbol.getASTLocusTag(), "StaticInit Trigger.1 \"{0}\"", binding);
           }
       }
 
@@ -636,7 +637,8 @@ public class JavaEmitter implements GlueEmitter {
    */
   protected void generatePrivateEmitters(final MethodBinding binding,
                                          final List<FunctionEmitter> allEmitters) {
-      if (cfg.manuallyImplement(binding.getName())) {
+      final FunctionSymbol cSymbol = binding.getCSymbol();
+      if (cfg.manuallyImplement(cSymbol)) {
           // Don't produce emitters for the implementation class
           return;
       }
@@ -645,11 +647,11 @@ public class JavaEmitter implements GlueEmitter {
               cfg.javaPrologueForMethod(binding, false, false) != null ||
               cfg.javaEpilogueForMethod(binding, false, false) != null ;
 
-      if ( !cfg.isUnimplemented( binding.getCSymbol() ) ) {
+      if ( !cfg.isUnimplemented( cSymbol ) ) {
           if( !requiresStaticInitialization ) {
               requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
               if( requiresStaticInitialization ) {
-                  LOG.log(INFO, binding.getCSymbol().getASTLocusTag(), "StaticInit Trigger.2 \"{0}\"", binding);
+                  LOG.log(INFO, cSymbol.getASTLocusTag(), "StaticInit Trigger.2 \"{0}\"", binding);
               }
           }
 
