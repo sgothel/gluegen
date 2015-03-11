@@ -279,7 +279,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
            oneInSet(skipProcAddressGen, symbol.getAliasedNames())
          )
       {
-          LOG.log(INFO, symbol.getASTLocusTag(), "Skip ProcAddress: {0}", symbol.getAliasedString());
+          LOG.log(INFO, symbol.getASTLocusTag(), "Skip ProcAddress: {0}", symbol);
           return true;
       }
       return false;
@@ -323,7 +323,7 @@ public class ProcAddressConfiguration extends JavaConfiguration {
              oneInSet(forceProcAddressGenSet, symbol.getAliasedNames())
            )
         {
-            LOG.log(INFO, symbol.getASTLocusTag(), "Force ProcAddress: {0}", symbol.getAliasedString());
+            LOG.log(INFO, symbol.getASTLocusTag(), "Force ProcAddress: {0}", symbol);
             return true;
         }
         return false;

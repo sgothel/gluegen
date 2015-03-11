@@ -869,7 +869,7 @@ public class JavaConfiguration {
            oneInSet(manuallyImplement, aliases)
          )
       {
-          LOG.log(INFO, getASTLocusTag(symbol), "ManuallyImplement: {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "ManuallyImplement: {0}", symbol);
           return true;
       } else {
           return false;
@@ -920,7 +920,7 @@ public class JavaConfiguration {
               return null;
           }
       }
-      LOG.log(INFO, getASTLocusTag(symbol), "DelegatedImplementation: {0}", symbol.getAliasedString());
+      LOG.log(INFO, getASTLocusTag(symbol), "DelegatedImplementation: {0} -> {1}", symbol, res);
       return res;
   }
 
@@ -961,14 +961,14 @@ public class JavaConfiguration {
            oneInSet(extendedIntfSymbolsIgnore, aliases)
          )
       {
-          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Intf ignore (one): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Intf ignore (one): {0}", symbol);
           return true;
       }
       // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
       if ( !extendedIntfSymbolsOnly.isEmpty() &&
            !extendedIntfSymbolsOnly.contains( name ) &&
            !oneInSet(extendedIntfSymbolsOnly, aliases) ) {
-          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Intf !extended (all): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Intf !extended (all): {0}", symbol);
           return true;
       }
       return shouldIgnoreInImpl_Int(symbol);
@@ -1000,14 +1000,14 @@ public class JavaConfiguration {
            oneInSet(extendedImplSymbolsIgnore, aliases)
          )
       {
-          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl ignore (one): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl ignore (one): {0}", symbol);
           return true;
       }
       // Simple case-2; the entire symbol (orig and renamed) is _not_ in the not-empty interface only table
       if ( !extendedImplSymbolsOnly.isEmpty() &&
            !extendedImplSymbolsOnly.contains( name ) &&
            !oneInSet(extendedImplSymbolsOnly, aliases) ) {
-          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl !extended (all): {0}", symbol.getAliasedString());
+          LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl !extended (all): {0}", symbol);
           return true;
       }
 
@@ -1016,7 +1016,7 @@ public class JavaConfiguration {
       for (final Pattern ignoreRegexp : ignores) {
           final Matcher matcher = ignoreRegexp.matcher(name);
           if ( matcher.matches() || onePatternMatch(ignoreRegexp, aliases) ) {
-              LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl RegEx: {0}", symbol.getAliasedString());
+              LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl RegEx: {0}", symbol);
               return true;
           }
       }
@@ -1031,7 +1031,7 @@ public class JavaConfiguration {
                   // Special case as this is most often likely to be the case.
                   // Unignores are not used very often.
                   if(unignores.isEmpty()) {
-                      LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl unignores==0: {0} -> {1}", symbol.getAliasedString(), name);
+                      LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl unignores==0: {0} -> {1}", symbol, name);
                       return true;
                   }
                   boolean unignoreFound = false;
@@ -1044,7 +1044,7 @@ public class JavaConfiguration {
                   }
 
                   if (!unignoreFound) {
-                      LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl !unignore: {0} -> {1}", symbol.getAliasedString(), name);
+                      LOG.log(INFO, getASTLocusTag(symbol), "Ignore Impl !unignore: {0} -> {1}", symbol, name);
                       return true;
                   }
               }

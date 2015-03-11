@@ -492,7 +492,7 @@ public class JavaEmitter implements GlueEmitter {
           // Check to see whether this function should be ignored
           if ( !cfg.shouldIgnoreInImpl(cFunc) ) {
               methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
-              LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Impl[{0}]: {1}", i++, cFunc.getAliasedString());
+              LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Impl[{0}]: {1}", i++, cFunc);
           }
 
         }
@@ -507,7 +507,7 @@ public class JavaEmitter implements GlueEmitter {
             if ( !emitter.isInterface() || !cfg.shouldIgnoreInInterface(cFunc) ) {
                 emitter.emit();
                 emitter.getDefaultOutput().println(); // put newline after method body
-                LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc.getAliasedString());
+                LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc);
             }
           } catch (final Exception e) {
             throw new GlueGenException(
