@@ -76,6 +76,17 @@ public class FunctionSymbol extends AliasedSymbolImpl implements AliasedSemantic
         this.astLocus = locus;
     }
 
+    /** Shallow'ish copy, only aliased names are re-created. */
+    public static FunctionSymbol cloneWithDeepAliases(final FunctionSymbol o) {
+        return new FunctionSymbol(o);
+    }
+    /** Warning: Shallow'ish copy, only aliased names are re-created. */
+    private FunctionSymbol(final FunctionSymbol o) {
+        super(o);
+        this.type = o.type;
+        this.astLocus = o.astLocus;
+    }
+
     @Override
     public ASTLocusTag getASTLocusTag() { return astLocus; }
 

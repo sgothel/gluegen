@@ -484,14 +484,13 @@ public class JavaEmitter implements GlueEmitter {
   @Override
   public Iterator<FunctionSymbol> emitFunctions(final List<FunctionSymbol> funcsToBind) throws Exception {
     // Bind all the C funcs to Java methods
-    final HashSet<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
     final ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
     {
         int i=0;
         for (final FunctionSymbol cFunc : funcsToBind) {
           // Check to see whether this function should be ignored
           if ( !cfg.shouldIgnoreInImpl(cFunc) ) {
-              methodBindingEmitters.addAll(generateMethodBindingEmitters(methodBindingSet, cFunc));
+              methodBindingEmitters.addAll(generateMethodBindingEmitters(cFunc));
               LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Impl[{0}]: {1}", i++, cFunc);
           }
 
@@ -560,11 +559,26 @@ public class JavaEmitter implements GlueEmitter {
    * native code because it doesn't need any processing of the
    * outgoing arguments).
    */
-  protected void generatePublicEmitters(final MethodBinding binding, final List<FunctionEmitter> allEmitters, final boolean signatureOnly) {
+  protected void generatePublicEmitters(final MethodBinding binding, final List<FunctionEmitter> allEmitters,
+                                        final boolean signatureOnly) {
       final FunctionSymbol cSymbol = binding.getCSymbol();
       if ( !signatureOnly && cfg.manuallyImplement(cSymbol) ) {
           // We only generate signatures for manually-implemented methods;
           // user provides the implementation
+          return;
+      }
+
+      final MethodAccess accessControl;
+
+      if ( !signatureOnly && null != binding.getDelegationImplName() ) {
+          // private access for delegation implementation methods
+          accessControl = PRIVATE;
+      } else {
+          accessControl = cfg.accessControl(binding.getName());
+      }
+
+      // We should not emit anything except public APIs into interfaces
+      if ( signatureOnly && PUBLIC != accessControl ) {
           return;
       }
 
@@ -589,20 +603,6 @@ public class JavaEmitter implements GlueEmitter {
 
       final boolean emitBody = !signatureOnly && needsBody;
       final boolean isNativeMethod = !isUnimplemented && !needsBody && !signatureOnly;
-
-      final MethodAccess accessControl;
-
-      if ( !signatureOnly && null != binding.getDelegationImplName() ) {
-          // private access for delegation implementation methods
-          accessControl = PRIVATE;
-      } else {
-          accessControl = cfg.accessControl(binding.getName());
-      }
-
-      // We should not emit anything except public APIs into interfaces
-      if ( signatureOnly && PUBLIC != accessControl ) {
-          return;
-      }
 
       final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
 
@@ -769,17 +769,33 @@ public class JavaEmitter implements GlueEmitter {
    * Generate all appropriate Java bindings for the specified C function
    * symbols.
    */
-  protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
-
+  protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final FunctionSymbol sym) throws Exception {
     final ArrayList<FunctionEmitter> allEmitters = new ArrayList<FunctionEmitter>();
-
     try {
+        if( cfg.emitInterface() ) {
+            generateMethodBindingEmittersImpl(allEmitters, sym, true);
+        }
+        if( cfg.emitImpl() ) {
+            generateMethodBindingEmittersImpl(allEmitters, sym, false);
+        }
+    } catch (final Exception e) {
+      throw new GlueGenException("Error while generating bindings for \"" + sym + "\"", sym.getASTLocusTag(), e);
+    }
+
+    return allEmitters;
+  }
+  private void generateMethodBindingEmittersImpl(final ArrayList<FunctionEmitter> allEmitters,
+                                                 final FunctionSymbol sym,
+                                                 final boolean forInterface) throws Exception
+  {
       // Get Java binding for the function
-      final MethodBinding mb = bindFunction(sym, machDescJava, null, null);
+      final MethodBinding mb = bindFunction(sym, forInterface, machDescJava, null, null);
 
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
       final List<MethodBinding> bindings = expandMethodBinding(mb);
+
+      final HashSet<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
 
       for (final MethodBinding binding : bindings) {
 
@@ -841,20 +857,14 @@ public class JavaEmitter implements GlueEmitter {
         // Note in particular that the public entry point taking an
         // array is merely a special case of the indirect buffer case.
 
-        if (cfg.emitInterface()) {
+        if ( forInterface ) {
           generatePublicEmitters(binding, allEmitters, true);
-        }
-        if (cfg.emitImpl()) {
+        } else {
           generatePublicEmitters(binding, allEmitters, false);
           generatePrivateEmitters(binding, allEmitters);
         }
       } // end iteration over expanded bindings
-    } catch (final Exception e) {
-      throw new GlueGenException("Error while generating bindings for \"" + sym + "\"", sym.getASTLocusTag(), e);
     }
-
-    return allEmitters;
-  }
 
 
   @Override
@@ -1416,7 +1426,7 @@ public class JavaEmitter implements GlueEmitter {
           final Type containingCType, final JavaType containingJType,
           final int i, final FunctionSymbol funcSym, final String returnSizeLookupName) {
       // Emit method call and associated native code
-      final MethodBinding  mb = bindFunction(funcSym, machDescJava, containingJType, containingCType);
+      final MethodBinding  mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, containingJType, containingCType);
       mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
 
       // JavaTypes representing C pointers in the initial
@@ -1498,7 +1508,7 @@ public class JavaEmitter implements GlueEmitter {
           final int i, final FunctionSymbol funcSym,
           final String returnSizeLookupName, final String docArrayLenExpr, final String nativeArrayLenExpr) {
       // Emit method call and associated native code
-      final MethodBinding  mb = bindFunction(funcSym, machDescJava, containingJType, containingCType);
+      final MethodBinding  mb = bindFunction(funcSym, true /* forInterface */, machDescJava, containingJType, containingCType);
       mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
 
       // JavaTypes representing C pointers in the initial
@@ -2744,12 +2754,19 @@ public class JavaEmitter implements GlueEmitter {
       potentially representing C pointers rather than true Java types)
       and must be lowered to concrete Java types before creating
       emitters for them. */
-  private MethodBinding bindFunction(final FunctionSymbol sym,
+  private MethodBinding bindFunction(FunctionSymbol sym,
+                                     final boolean forInterface,
                                      final MachineDataInfo curMachDesc,
-                                     final JavaType containingType,
-                                     final Type containingCType) {
+                                     final JavaType containingType, final Type containingCType) {
 
-    // System.out.println("bindFunction(0) "+sym.getReturnType());
+    final String delegationImplName = null == containingType && null == containingCType ?
+                                      cfg.getDelegatedImplementation(sym) : null;
+    if( !forInterface && null != delegationImplName ) {
+        // We need to reflect the 'delegationImplName' for implementations
+        // to allow all subsequent type/cfg checks to hit on AliasedSymbol!
+        sym = FunctionSymbol.cloneWithDeepAliases(sym);
+        sym.addAliasedName(delegationImplName);
+    }
     final String name = sym.getName();
     final JavaType javaReturnType;
 
@@ -2765,7 +2782,12 @@ public class JavaEmitter implements GlueEmitter {
       }
       javaReturnType = javaType(java.lang.String.class);
     } else {
-      javaReturnType = typeToJavaType(sym.getReturnType(), curMachDesc);
+      final JavaType r = cfg.getOpaqueReturnType(sym);
+      if( null != r ) {
+          javaReturnType = r;
+      } else {
+          javaReturnType = typeToJavaType(sym.getReturnType(), curMachDesc);
+      }
     }
 
     // List of the indices of the arguments in this function that should be
@@ -2809,8 +2831,6 @@ public class JavaEmitter implements GlueEmitter {
       javaArgumentTypes.add(mappedType);
       //System.out.println("During binding of [" + sym + "], added mapping from C type: " + cArgType + " to Java type: " + mappedType);
     }
-    final String delegationImplName = null == containingType && null == containingCType ?
-                                      cfg.getDelegatedImplementation(sym) : null;
     final MethodBinding mb = new MethodBinding(sym, delegationImplName,
                                                javaReturnType, javaArgumentTypes,
                                                containingType, containingCType);

@@ -55,7 +55,6 @@ import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.JavaConfiguration;
 import com.jogamp.gluegen.JavaEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
-import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.cgram.types.TypeDictionary;
@@ -115,8 +114,8 @@ public class ProcAddressEmitter extends JavaEmitter {
     }
 
     @Override
-    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
-        return generateMethodBindingEmittersImpl(methodBindingSet, sym);
+    protected List<? extends FunctionEmitter> generateMethodBindingEmitters(final FunctionSymbol sym) throws Exception {
+        return generateMethodBindingEmittersImpl(sym);
     }
 
     protected boolean needsModifiedEmitters(final FunctionSymbol sym) {
@@ -127,8 +126,8 @@ public class ProcAddressEmitter extends JavaEmitter {
         }
     }
 
-    private List<? extends FunctionEmitter> generateMethodBindingEmittersImpl(final Set<MethodBinding> methodBindingSet, final FunctionSymbol sym) throws Exception {
-        final List<? extends FunctionEmitter> defaultEmitters = super.generateMethodBindingEmitters(methodBindingSet, sym);
+    private List<? extends FunctionEmitter> generateMethodBindingEmittersImpl(final FunctionSymbol sym) throws Exception {
+        final List<? extends FunctionEmitter> defaultEmitters = super.generateMethodBindingEmitters(sym);
 
         // if the superclass didn't generate any bindings for the symbol, let's
         // honor that (for example, the superclass might have caught an Ignore
@@ -153,7 +152,7 @@ public class ProcAddressEmitter extends JavaEmitter {
         if ( callThroughProcAddress ) {
             if (getProcAddressConfig().emitProcAddressTable()) {
                 // emit an entry in the GL proc address table for this method.
-                emitProcAddressTableEntryForString(getAliasedSymName(sym));
+                emitProcAddressTableEntryForString(sym.getName());
             }
         }
         for (final FunctionEmitter emitter : defaultEmitters) {
@@ -265,14 +264,6 @@ public class ProcAddressEmitter extends JavaEmitter {
             res.setReturnValueCapacityExpression(exp);
         }
         emitters.add(res);
-    }
-
-    private String getAliasedSymName(final FunctionSymbol sym) {
-        String symName = getConfig().getJavaSymbolRename(sym.getName());
-        if (null == symName) {
-            symName = sym.getName();
-        }
-        return symName;
     }
 
     protected boolean callThroughProcAddress(final FunctionSymbol sym) {

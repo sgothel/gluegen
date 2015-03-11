@@ -120,7 +120,7 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
         super.emitPreCallSetup(binding, writer);
 
         if (callThroughProcAddress) {
-            final String procAddressVariable = ProcAddressEmitter.PROCADDRESS_VAR_PREFIX + binding.getName();
+            final String procAddressVariable = ProcAddressEmitter.PROCADDRESS_VAR_PREFIX + binding.getNativeName();
             writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
             writer.println("    if (__addr_ == 0) {");
             writer.format("      throw new %s(String.format(\"Method \\\"%%s\\\" not available\", \"%s\"));%n",

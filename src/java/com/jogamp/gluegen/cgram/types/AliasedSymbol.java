@@ -110,7 +110,7 @@ public interface AliasedSymbol {
         public AliasedSymbolImpl(final AliasedSymbolImpl o) {
             this.origName = o.origName;
             this.aliasedNames = new HashSet<String>(o.aliasedNames);
-            this.name = o.origName;
+            this.name = o.name;
         }
         @Override
         public void rename(final String newName) {

@@ -203,7 +203,7 @@ public class MethodBinding {
     /**
      * Returns the {@link FunctionSymbol}'s name for the native function
      * which is the {@link FunctionSymbol#getOrigName() original} C API name per default,
-     * but may be overriden via {@link #setNativeName(String)}.
+     * but may be overridden via {@link #setNativeName(String)}.
      */
     public String getNativeName() {
         return null != nativeName ? nativeName : sym.getOrigName();

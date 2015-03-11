@@ -1083,7 +1083,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             }
           }
           if( 0 == mode ) {
-            if( null != cfg.typeInfo(cReturnType) ) {
+            if( null != cfg.typeInfo(cReturnType) ) { // javaReturnType.isOpaqued() covered above via isPrimitive()
                 // Opaque
                 writer.println("sizeof(" + cReturnType.getCName()  + ") );");
                 mode = 88;

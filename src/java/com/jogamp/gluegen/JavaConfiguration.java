@@ -138,6 +138,7 @@ public class JavaConfiguration {
     private final Map<String, MethodAccess> accessControl = new HashMap<String, MethodAccess>();
     private final Map<String, TypeInfo> typeInfoMap = new HashMap<String, TypeInfo>();
     private final Set<String> returnsString = new HashSet<String>();
+    private final Map<String, JavaType> returnsOpaqueJType = new HashMap<String, JavaType>();
     private final Map<String, String> returnedArrayLengths = new HashMap<String, String>();
 
     /**
@@ -519,7 +520,6 @@ public class JavaConfiguration {
              oneInSet(returnsString, symbol.getAliasedNames());
   }
 
-
   /**
    * Returns a MessageFormat string of the Java expression calculating
    * the number of elements in the returned array from the specified function
@@ -886,7 +886,7 @@ public class JavaConfiguration {
       if( null == res ) {
           return null;
       }
-      LOG.log(INFO, "DelegatedImplementation: {0}", functionName);
+      LOG.log(INFO, "DelegatedImplementation: {0} -> {1}", functionName, res);
       return res;
   }
 
@@ -921,6 +921,41 @@ public class JavaConfiguration {
           }
       }
       LOG.log(INFO, getASTLocusTag(symbol), "DelegatedImplementation: {0} -> {1}", symbol, res);
+      return res;
+  }
+
+  /**
+   * Variant of {@link #getOpaqueReturnType(AliasedSymbol)},
+   * where this method only considers the {@link AliasedSymbol#getName() current-name}
+   * of the given symbol, not the {@link #getJavaSymbolRename(String) renamed-symbol}.
+   */
+  public JavaType getOpaqueReturnType(final String functionName) {
+      final JavaType res = returnsOpaqueJType.get(functionName);
+      if( null == res ) {
+          return null;
+      }
+      LOG.log(INFO, "ReturnsOpaque: {0} -> {1}", functionName, res);
+      return res;
+  }
+
+  /**
+   * Returns the opaque {@link JavaType} for the given function {@link AliasedSymbol}
+   * or {@code null} if not opaque.
+   * <p>
+   * {@code ReturnsOpaque <Primitive Java Type> <Function Name>}
+   * </p>
+   */
+  public JavaType getOpaqueReturnType(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+      JavaType res = returnsOpaqueJType.get(name);
+      if( null == res ) {
+          res = oneInMap(returnsOpaqueJType, aliases);
+          if( null == res ) {
+              return null;
+          }
+      }
+      LOG.log(INFO, getASTLocusTag(symbol), "ReturnsOpaque: {0} -> {1}", symbol, res);
       return res;
   }
 
@@ -1222,6 +1257,8 @@ public class JavaConfiguration {
       readOpaque(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ReturnsString")) {
       readReturnsString(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ReturnsOpaque")) {
+      readReturnsOpaque(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ReturnedArrayLength")) {
       readReturnedArrayLength(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -1414,6 +1451,17 @@ public class JavaConfiguration {
       addTypeInfo(info);
     } catch (final Exception e) {
       throw new RuntimeException("Error parsing \"Opaque\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readReturnsOpaque(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final JavaType javaType = JavaType.createForOpaqueClass(stringToPrimitiveType(tok.nextToken()));
+      final String funcName = tok.nextToken();
+      returnsOpaqueJType.put(funcName, javaType);
+    } catch (final Exception e) {
+      throw new RuntimeException("Error parsing \"ReturnsOpaque\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
