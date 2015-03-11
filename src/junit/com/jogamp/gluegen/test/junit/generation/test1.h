@@ -111,6 +111,8 @@ MYAPI foo_ptr MYAPIENTRY testFooPtr(foo_ptr v);
 /** Returns 42 */
 MYAPI foo MYAPIENTRY nopTest();
 
+MYAPI int32_t MYAPIENTRY testDelegate(int32_t v);
+
 //
 // Different pointer type tests ..
 //

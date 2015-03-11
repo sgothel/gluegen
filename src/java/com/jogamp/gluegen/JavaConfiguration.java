@@ -159,6 +159,7 @@ public class JavaConfiguration {
     private boolean forceUseNIODirectOnly4All = false;
     private final Set<String> useNIODirectOnly = new HashSet<String>();
     private final Set<String> manuallyImplement = new HashSet<String>();
+    private final Map<String, String> delegatedImplementation = new HashMap<String, String>();
     private final Set<String> manualStaticInitCall = new HashSet<String>();
     private final Set<String> forceStaticInitCode = new HashSet<String>();
     private final Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
@@ -876,6 +877,54 @@ public class JavaConfiguration {
   }
 
   /**
+   * Variant of {@link #getDelegatedImplementation(AliasedSymbol)},
+   * where this method only considers the {@link AliasedSymbol#getName() current-name}
+   * of the given symbol, not the {@link #getJavaSymbolRename(String) renamed-symbol}.
+   */
+  public String getDelegatedImplementation(final String functionName) {
+      final String res = delegatedImplementation.get(functionName);
+      if( null == res ) {
+          return null;
+      }
+      LOG.log(INFO, "DelegatedImplementation: {0}", functionName);
+      return res;
+  }
+
+  /**
+   * Returns the {@code RENAMED-IMPL-SYMBOL} if the implementation of the glue code
+   * of the given function shall be manually delegated by the end user.
+   * <p>
+   * {@code DelegateImplementation <ORIG-SYMBOL> <RENAMED-IMPL-SYMBOL>}
+   * </p>
+   * <p>
+   * The interface is emitted unchanged.
+   * </p>
+   * <p>
+   * The Java and native-code implementation is renamed to {@code RENAMED-IMPL-SYMBOL}.
+   * The user's manual implementation of {@code ORIG-SYMBOL}
+   * may delegate to {@code RENAMED-IMPL-SYMBOL}.
+   * </p>
+   * <p>
+   * If symbol references a struct field or method, see {@link #canonicalStructFieldSymbol(String, String)},
+   * it describes field's array-length or element-count referenced by a pointer.
+   * </p>
+   */
+  public String getDelegatedImplementation(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+
+      String res = delegatedImplementation.get(name);
+      if( null == res ) {
+          res = oneInMap(delegatedImplementation, aliases);
+          if( null == res ) {
+              return null;
+          }
+      }
+      LOG.log(INFO, getASTLocusTag(symbol), "DelegatedImplementation: {0}", symbol.getAliasedString());
+      return res;
+  }
+
+  /**
    * Variant of {@link #shouldIgnoreInInterface(AliasedSymbol)},
    * where this method only considers the {@link AliasedSymbol#getName() current-name}
    * of the given symbol, not the {@link #getJavaSymbolRename(String) renamed-symbol}.
@@ -1078,6 +1127,16 @@ public class JavaConfiguration {
     origNames.add(origName);
   }
 
+  /** Programmatically adds a delegate implementation directive for the given symbol. */
+  public void addDelegateImplementation(final String origName, final String renamedImpl) {
+    LOG.log(INFO, "\tDelegateImplementation {0} -> {1}", origName, renamedImpl);
+    final String prevValue = delegatedImplementation.put(origName, renamedImpl);
+    if(null != prevValue && !prevValue.equals(renamedImpl)) {
+        throw new RuntimeException("Rename-Override Attampt: "+origName+" -> "+renamedImpl+
+                                   ", but "+origName+" -> "+prevValue+" already exist. Run in 'debug' mode to analyze!");
+    }
+  }
+
   /** Returns true if the emission style is AllStatic. */
   public boolean allStatic() {
     return emissionStyle == AllStatic;
@@ -1265,6 +1324,8 @@ public class JavaConfiguration {
       readRenameJavaType(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RenameJavaSymbol")) {
       readRenameJavaSymbol(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("DelegateImplementation")) {
+      readDelegateImplementation(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("RuntimeExceptionType")) {
       runtimeExceptionType = readString("RuntimeExceptionType", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("UnsupportedExceptionType")) {
@@ -1794,6 +1855,17 @@ public class JavaConfiguration {
       addJavaSymbolRename(fromName, toName);
     } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"RenameJavaSymbol\" command at line " + lineNo +
+        " in file \"" + filename + "\": missing expected parameter", e);
+    }
+  }
+
+  public void readDelegateImplementation(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String fromName = tok.nextToken();
+      final String toName   = tok.nextToken();
+      addDelegateImplementation(fromName, toName);
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"DelegateImplementation\" command at line " + lineNo +
         " in file \"" + filename + "\": missing expected parameter", e);
     }
   }

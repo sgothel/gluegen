@@ -77,7 +77,7 @@ public class BaseClass extends SingletonJunitCase {
      * ie a compilation only coverage test without functional tests.
      */
     public void chapter__TestCoverageSignature(final Bindingtest1 binding) throws Exception {
-          int i;
+          int i = 0;
           final long context = 0;
           LongBuffer lb=null;
           ByteBuffer bb=null;
@@ -119,6 +119,8 @@ public class BaseClass extends SingletonJunitCase {
 
               lb = binding.testFooPtr(larray, 0);
               lb = binding.testFooPtr(lb);
+
+              i = binding.testDelegate(i);
           }
 
           {
@@ -712,6 +714,11 @@ public class BaseClass extends SingletonJunitCase {
               Assert.assertEquals(fooLB, foo2Out);
           }
 
+          {
+              i=41;
+              final int iRes = binding.testDelegate(i);
+              Assert.assertEquals(i+1, iRes);
+          }
     }
 
     public void chapter04TestPointerBuffer(final Bindingtest1 binding) throws Exception {

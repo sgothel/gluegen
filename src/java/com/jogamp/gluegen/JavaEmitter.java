@@ -568,12 +568,6 @@ public class JavaEmitter implements GlueEmitter {
           return;
       }
 
-      final MethodAccess accessControl = cfg.accessControl(binding.getName());
-      // We should not emit anything except public APIs into interfaces
-      if (signatureOnly && (accessControl != PUBLIC)) {
-          return;
-      }
-
       // It's possible we may not need a body even if signatureOnly is
       // set to false; for example, if the routine doesn't take any
       // arrays or buffers as arguments
@@ -595,6 +589,20 @@ public class JavaEmitter implements GlueEmitter {
 
       final boolean emitBody = !signatureOnly && needsBody;
       final boolean isNativeMethod = !isUnimplemented && !needsBody && !signatureOnly;
+
+      final MethodAccess accessControl;
+
+      if ( !signatureOnly && null != binding.getDelegationImplName() ) {
+          // private access for delegation implementation methods
+          accessControl = PRIVATE;
+      } else {
+          accessControl = cfg.accessControl(binding.getName());
+      }
+
+      // We should not emit anything except public APIs into interfaces
+      if ( signatureOnly && PUBLIC != accessControl ) {
+          return;
+      }
 
       final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
 
@@ -2801,8 +2809,9 @@ public class JavaEmitter implements GlueEmitter {
       javaArgumentTypes.add(mappedType);
       //System.out.println("During binding of [" + sym + "], added mapping from C type: " + cArgType + " to Java type: " + mappedType);
     }
+    final String delegationImplName = null == containingType && null == containingCType ?
+                                      cfg.getDelegatedImplementation(sym) : null;
     final MethodBinding mb = new MethodBinding(sym, delegationImplName,
-    final MethodBinding mb = new MethodBinding(sym, 
                                                javaReturnType, javaArgumentTypes,
                                                containingType, containingCType);
     mangleBinding(mb);

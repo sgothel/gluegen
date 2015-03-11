@@ -65,6 +65,10 @@ MYAPI foo MYAPIENTRY nopTest() {
     return 42;
 }
 
+MYAPI int32_t MYAPIENTRY testDelegate(int32_t v) {
+   return v; 
+}
+
 /**
  * new blob sizeof(void*) filled w/ 0xDEADBEEF
  */

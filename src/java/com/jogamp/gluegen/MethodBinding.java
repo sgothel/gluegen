@@ -52,6 +52,7 @@ import java.util.List;
 public class MethodBinding {
 
   private final FunctionSymbol sym;
+  private final String   delegationImplName;
   private final JavaType containingType;
   private final Type     containingCType;
   private String         nativeName;
@@ -77,6 +78,7 @@ public class MethodBinding {
    */
   public MethodBinding(final MethodBinding bindingToCopy) {
     this.sym                              = bindingToCopy.sym;
+    this.delegationImplName               = bindingToCopy.delegationImplName;
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
 
@@ -105,11 +107,13 @@ public class MethodBinding {
    * </p>
    */
   public MethodBinding(final FunctionSymbol sym,
+                       final String delegationImplName,
                        final JavaType javaReturnType,
                        final List<JavaType> javaArgumentTypes,
                        final JavaType containingType,
                        final Type containingCType) {
     this.sym = sym;
+    this.delegationImplName = delegationImplName;
     this.containingType = containingType;
     this.containingCType = containingCType;
 
@@ -173,16 +177,28 @@ public class MethodBinding {
     public String getName() {
         return sym.getName();
     }
+    /**
+     * The
+     * {@link JavaConfiguration#getDelegatedImplementation(com.jogamp.gluegen.cgram.types.AliasedSymbol) implementation delegation}
+     * name, or {@code null} for no delegation.
+     * @see #getImplName()
+     */
+    public String getDelegationImplName() {
+        return delegationImplName;
+    }
+
     /** Returns the {@link FunctionSymbol}'s current {@link FunctionSymbol#getName() aliased} API name for the interface. */
     public String getInterfaceName() {
         return sym.getName();
     }
     /**
      * Returns the {@link FunctionSymbol}'s name for the implementation,
-     * which is the current {@link FunctionSymbol#getName() aliased} API name per default.
+     * which is the current {@link FunctionSymbol#getName() aliased} API name per default,
+     * or the {@link #getDelegationImplName() delegation} name.
+     * @see #getDelegationImplName()
      */
     public String getImplName() {
-        return sym.getName();
+        return null != delegationImplName ? delegationImplName : sym.getName();
     }
     /**
      * Returns the {@link FunctionSymbol}'s name for the native function
