@@ -67,22 +67,22 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   protected final CommentEmitter defaultJavaCommentEmitter = new DefaultCommentEmitter();
   protected final CommentEmitter defaultInterfaceCommentEmitter = new InterfaceCommentEmitter();
+  protected final boolean tagNativeBinding;
+  protected final boolean useNIODirectOnly;
+  protected final MethodBinding binding;
 
   // Exception type raised in the generated code if runtime checks fail
   private final String runtimeExceptionType;
   private final String unsupportedExceptionType;
+  private final boolean useNIOOnly;
+  private final boolean isNativeMethod;
+  private final boolean isUnimplemented;
 
-  protected boolean emitBody;
-  protected boolean eraseBufferAndArrayTypes;
-  protected boolean useNIOOnly;
-  protected boolean useNIODirectOnly;
-  protected boolean isNativeMethod;
-  protected boolean forDirectBufferImplementation;
-  protected boolean forIndirectBufferAndArrayImplementation;
-  protected boolean isUnimplemented;
-  protected boolean tagNativeBinding;
-
-  protected MethodBinding binding;
+  private boolean emitBody;
+  private boolean eraseBufferAndArrayTypes;
+  private boolean isPrivateNativeMethod;
+  private boolean forDirectBufferImplementation;
+  private boolean forIndirectBufferAndArrayImplementation;
 
   // Manually-specified prologue and epilogue code
   protected List<String> prologue;
@@ -114,7 +114,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
                                   final boolean isUnimplemented,
                                   final boolean isInterface,
                                   final boolean isNativeMethod,
-                                  final JavaConfiguration configuration) {
+                                  final boolean isPrivateNativeMethod, final JavaConfiguration configuration) {
     super(output, isInterface, configuration);
     this.binding = binding;
     this.runtimeExceptionType = runtimeExceptionType;
@@ -128,7 +128,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     this.forIndirectBufferAndArrayImplementation = forIndirectBufferAndArrayImplementation;
     this.isUnimplemented = isUnimplemented;
     this.isNativeMethod = isNativeMethod;
-    if (isNativeMethod) {
+    this.isPrivateNativeMethod = isPrivateNativeMethod;
+    if (isPrivateNativeMethod) {
       setCommentEmitter(defaultJavaCommentEmitter);
     } else {
       setCommentEmitter(defaultInterfaceCommentEmitter);
@@ -147,6 +148,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     useNIOOnly                    = arg.useNIOOnly;
     useNIODirectOnly              = arg.useNIODirectOnly;
     isNativeMethod                = arg.isNativeMethod;
+    isPrivateNativeMethod         = arg.isPrivateNativeMethod;
     forDirectBufferImplementation = arg.forDirectBufferImplementation;
     forIndirectBufferAndArrayImplementation = arg.forIndirectBufferAndArrayImplementation;
     isUnimplemented               = arg.isUnimplemented;
@@ -158,13 +160,22 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   public final MethodBinding getBinding() { return binding; }
 
-  public boolean isForNativeMethod() { return isNativeMethod; }
+  public boolean isNativeMethod() { return isNativeMethod; }
+  public boolean isPrivateNativeMethod() { return isPrivateNativeMethod; }
   public boolean isForDirectBufferImplementation() { return forDirectBufferImplementation; }
   public boolean isForIndirectBufferAndArrayImplementation() { return forIndirectBufferAndArrayImplementation; }
 
   @Override
-  public String getName() {
-    return binding.getName();
+  public String getInterfaceName() {
+    return binding.getInterfaceName();
+  }
+  @Override
+  public String getImplName() {
+    return binding.getImplName();
+  }
+  @Override
+  public String getNativeName() {
+    return binding.getNativeName();
   }
 
   @Override
@@ -237,8 +248,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   /** Accessor for subclasses. */
-  public void setForImplementingMethodCall(final boolean impl) {
-    this.isNativeMethod = impl;
+  public void setPrivateNativeMethod(final boolean v) {
+    this.isPrivateNativeMethod = v;
   }
 
   /** Accessor for subclasses. */
@@ -326,10 +337,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
   @Override
   protected void emitName(final PrintWriter writer)  {
-    if (isNativeMethod) {
-      writer.print(getNativeMethodName());
+    if (isPrivateNativeMethod) {
+      writer.print(getNativeImplMethodName());
+    } else if( isInterface()) {
+      writer.print(getInterfaceName());
     } else {
-      writer.print(getName());
+      writer.print(getImplName());
     }
   }
 
@@ -338,7 +351,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     boolean needComma = false;
     int numEmitted = 0;
 
-    if (isNativeMethod  && binding.hasContainingType()) {
+    if (isPrivateNativeMethod  && binding.hasContainingType()) {
       // Always emit outgoing "this" argument
       writer.print("ByteBuffer ");
       writer.print(javaThisArgumentName());
@@ -399,8 +412,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
 
-  protected String getNativeMethodName() {
-    return binding.getName() + ( useNIODirectOnly ? "0" : "1" );
+  protected String getNativeImplMethodName() {
+    return binding.getImplName() + ( useNIODirectOnly ? "0" : "1" );
   }
 
   protected String byteOffsetArgName(final int i) {
@@ -548,7 +561,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   }
 
   protected void emitCall(final MethodBinding binding, final PrintWriter writer) {
-    writer.print(getNativeMethodName());
+    writer.print(getNativeImplMethodName());
     writer.print("(");
     emitCallArguments(binding, writer);
     writer.print(");");
@@ -679,9 +692,10 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         } else if(type.isIntArray()) {
           writer.print(", Buffers.SIZEOF_INT * ");
         } else {
-          throw new RuntimeException("Unsupported type for calculating array offset argument for " +
+          throw new GlueGenException("Unsupported type for calculating array offset argument for " +
                                      getArgumentName(i) +
-                                     " -- error occurred while processing Java glue code for " + getName());
+                                     " -- error occurred while processing Java glue code for " + getCSymbol().getAliasedString(),
+                                     getCSymbol().getASTLocusTag());
         }
         writer.print(offsetArgName(i));
       }
@@ -692,7 +706,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         }
       } else if (type.isPrimitiveArray()) {
         if (useNIOOnly) {
-            throw new RuntimeException("NIO[Direct]Only "+binding+" is set, but "+getArgumentName(i)+" is a primitive array");
+            throw new GlueGenException("NIO[Direct]Only "+binding+" is set, but "+getArgumentName(i)+" is a primitive array",
+                                       getCSymbol().getASTLocusTag());
         }
         writer.print( ", false");
       }
@@ -747,8 +762,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
           } else if (returnType.isNIOLongBuffer()) {
               writer.println("    return _res.asLongBuffer();");
           } else {
-            throw new RuntimeException("While emitting glue code for " + getName() +
-                                       ": can not legally make pointers opaque to anything but PointerBuffer or LongBuffer/long");
+            throw new GlueGenException("While emitting glue code for " + getCSymbol().getAliasedString() +
+                                       ": can not legally make pointers opaque to anything but PointerBuffer or LongBuffer/long",
+                                       getCSymbol().getASTLocusTag());
           }
         } else if (getBinding().getCReturnType().pointerDepth() == 1 && returnType.isNIOLongBuffer()) {
           writer.println("    return _res.asLongBuffer();");

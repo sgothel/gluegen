@@ -204,16 +204,10 @@ public class ProcAddressEmitter extends JavaEmitter {
 
         // If this emitter doesn't have a body (i.e., is a direct native
         // call with no intervening argument processing), we need to force
-        // it to emit a body, and produce another one to act as the entry
-        // point
-        // FIXME: the negative test against the PRIVATE modifier is a
-        // nasty hack to prevent the ProcAddressJavaMethodBindingEmitter
-        // from incorrectly introducing method bodies to the private
-        // native implementing methods; want this to work at least for
-        // public and package-private methods
+        // it to emit a body, and produce another one to act as the entry point
         final boolean needsJavaWrapper = baseJavaEmitter.signatureOnly() &&
-                                        !baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.PRIVATE) &&
-                                         baseJavaEmitter.hasModifier(JavaMethodBindingEmitter.NATIVE) &&
+                                         baseJavaEmitter.isNativeMethod() &&
+                                         !baseJavaEmitter.isPrivateNativeMethod() &&
                                          callThroughProcAddress;
 
 
@@ -221,7 +215,7 @@ public class ProcAddressEmitter extends JavaEmitter {
             final ProcAddressJavaMethodBindingEmitter emitter = new ProcAddressJavaMethodBindingEmitter(baseJavaEmitter,
                     callThroughProcAddress,
                     getProcAddressConfig().getProcAddressTableExpr(),
-                    baseJavaEmitter.isForNativeMethod(),
+                    baseJavaEmitter.isPrivateNativeMethod(),
                     this);
             if( needsJavaWrapper ) {
                 emitter.setEmitBody(true);
@@ -238,7 +232,7 @@ public class ProcAddressEmitter extends JavaEmitter {
                     getProcAddressConfig().getProcAddressTableExpr(),
                     true,
                     this);
-            emitter.setForImplementingMethodCall(true);
+            emitter.setPrivateNativeMethod(true);
             fixSecurityModifiers(emitter);
             emitters.add(emitter);
         }

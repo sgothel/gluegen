@@ -66,11 +66,11 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         super(
                 new MethodBinding(methodToWrap.getBinding()) {
                     @Override
-                    public String getName() {
+                    public String getImplName() {
                         if (callThroughProcAddress) {
-                            return ProcAddressEmitter.WRAP_PREFIX + super.getName();
+                            return ProcAddressEmitter.WRAP_PREFIX + super.getImplName();
                         } else {
-                            return super.getName();
+                            return super.getImplName();
                         }
                     }
                 },
@@ -121,7 +121,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
         if (callThroughProcAddress) {
             // create variable for the function pointer with the right type, and set
             // it to the value of the passed-in proc address
-            final FunctionSymbol cSym = getBinding().getCSymbol();
+            final FunctionSymbol cSym = binding.getCSymbol();
 
             // Always emit the local typedef, based on our parsing results.
             // In case we do have the public typedef from the original header,
@@ -145,7 +145,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             writer.print("  ");
             writer.print(funcPointerTypedefName); // Uses public typedef if available!
             writer.print(" ptr_");
-            writer.print(cSym.getName());
+            writer.print(getNativeName());
             writer.println(";");
         }
 
@@ -158,10 +158,8 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
         if (callThroughProcAddress) {
             // set the function pointer to the value of the passed-in procAddress
-            final FunctionSymbol cSym = getBinding().getCSymbol();
-
             // See above notes in emitBodyVariableDeclarations(..)!
-            final String funcPointerTypedefBaseName = emitter.getFunctionPointerTypedefName(cSym);
+            final String funcPointerTypedefBaseName = emitter.getFunctionPointerTypedefName(binding.getCSymbol());
             final String funcPointerTypedefLocalName = "_local_" + funcPointerTypedefBaseName;
             final String funcPointerTypedefName;
             if (hasProcAddrTypedef) {
@@ -170,7 +168,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 funcPointerTypedefName = funcPointerTypedefLocalName;
             }
 
-            final String ptrVarName = "ptr_" + cSym.getName();
+            final String ptrVarName = "ptr_" + getNativeName();
 
             if (hasProcAddrTypedef) {
                 writer.println("  // implicit type validation of "+funcPointerTypedefLocalName+" -> "+funcPointerTypedefName);
@@ -214,7 +212,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
             // call throught the run-time function pointer
             writer.print("(* ptr_");
-            writer.print(mBinding.getCSymbol().getName()); // use renamed base-name
+            writer.print(getNativeName());
             writer.print(") ");
             writer.print("(");
             emitBodyPassCArguments(writer);

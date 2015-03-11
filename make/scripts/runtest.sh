@@ -125,12 +125,12 @@ function onetest() {
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferInputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
-onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen02 2>&1 | tee -a $LOG

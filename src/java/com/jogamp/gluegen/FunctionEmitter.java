@@ -49,7 +49,7 @@ public abstract class FunctionEmitter {
 
   public static final EmissionModifier STATIC = new EmissionModifier("static");
 
-  private final boolean isInterfaceVal;
+  private final boolean isInterface;
   private final ArrayList<EmissionModifier> modifiers;
   private CommentEmitter commentEmitter = null;
   private final PrintWriter defaultOutput;
@@ -61,7 +61,7 @@ public abstract class FunctionEmitter {
    */
   public FunctionEmitter(final PrintWriter defaultOutput, final boolean isInterface, final JavaConfiguration configuration)  {
     assert(defaultOutput != null);
-    this.isInterfaceVal = isInterface;
+    this.isInterface = isInterface;
     this.modifiers = new ArrayList<EmissionModifier>();
     this.defaultOutput = defaultOutput;
     this.cfg = configuration;
@@ -71,14 +71,14 @@ public abstract class FunctionEmitter {
    * Makes this FunctionEmitter a copy of the passed one.
    */
   public FunctionEmitter(final FunctionEmitter arg) {
-    isInterfaceVal = arg.isInterfaceVal;
+    isInterface = arg.isInterface;
     modifiers      = new ArrayList<EmissionModifier>(arg.modifiers);
     commentEmitter = arg.commentEmitter;
     defaultOutput  = arg.defaultOutput;
     cfg            = arg.cfg;
   }
 
-  public boolean isInterface() { return isInterfaceVal; }
+  public boolean isInterface() { return isInterface; }
 
   public PrintWriter getDefaultOutput() { return defaultOutput; }
 
@@ -97,7 +97,9 @@ public abstract class FunctionEmitter {
 
   public Iterator<EmissionModifier> getModifiers() { return modifiers.iterator(); }
 
-  public abstract String getName();
+  public abstract String getInterfaceName();
+  public abstract String getImplName();
+  public abstract String getNativeName();
 
   public abstract FunctionSymbol getCSymbol();
 

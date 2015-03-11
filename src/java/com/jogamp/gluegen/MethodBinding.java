@@ -43,7 +43,6 @@ import com.jogamp.gluegen.cgram.types.FunctionSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /** Represents the binding of a C function to a Java method. Also used
@@ -53,6 +52,9 @@ import java.util.List;
 public class MethodBinding {
 
   private final FunctionSymbol sym;
+  private final JavaType containingType;
+  private final Type     containingCType;
+  private String         nativeName;
   private JavaType       javaReturnType;
   private List<JavaType> javaArgumentTypes;
   private boolean        computedSignatureProperties;
@@ -66,8 +68,6 @@ public class MethodBinding {
   private boolean        signatureUsesCArrays;
   private boolean        signatureUsesJavaPrimitiveArrays;
   private boolean        signatureRequiresStaticInitialization;
-  private JavaType       containingType;
-  private Type           containingCType;
   private int            thisPointerIndex = -1;
 
   /**
@@ -76,10 +76,11 @@ public class MethodBinding {
    * types. It's safe to modify this binding after construction.
    */
   public MethodBinding(final MethodBinding bindingToCopy) {
-    this.sym = bindingToCopy.sym;
-
+    this.sym                              = bindingToCopy.sym;
     this.containingType                   = bindingToCopy.containingType;
     this.containingCType                  = bindingToCopy.containingCType;
+
+    this.nativeName                       = bindingToCopy.nativeName;
     this.javaReturnType                   = bindingToCopy.javaReturnType;
     this.javaArgumentTypes                = ( null != bindingToCopy.javaArgumentTypes ) ? new ArrayList<JavaType>(bindingToCopy.javaArgumentTypes) : null;
     this.computedSignatureProperties      = bindingToCopy.computedSignatureProperties;
@@ -96,17 +97,25 @@ public class MethodBinding {
     this.thisPointerIndex                 = bindingToCopy.thisPointerIndex;
   }
 
-  /** Constructor for calling a C function. */
-  public MethodBinding(final FunctionSymbol sym) {
-    this.sym = sym;
-  }
-
-  /** Constructor for calling a function pointer contained in a
-      struct. */
-  public MethodBinding(final FunctionSymbol sym, final JavaType containingType, final Type containingCType) {
+  /**
+   * Constructor for calling a C function or a function pointer contained in a struct.
+   * <p>
+   * In case of the latter, a struct function pointer,
+   * the arguments {@code containingType} and {@code containingCType} must not be {@code null}!
+   * </p>
+   */
+  public MethodBinding(final FunctionSymbol sym,
+                       final JavaType javaReturnType,
+                       final List<JavaType> javaArgumentTypes,
+                       final JavaType containingType,
+                       final Type containingCType) {
     this.sym = sym;
     this.containingType = containingType;
     this.containingCType = containingCType;
+
+    this.nativeName = null;
+    this.javaReturnType = javaReturnType;
+    this.javaArgumentTypes = javaArgumentTypes;
   }
 
     public void setJavaReturnType(final JavaType type) {
@@ -142,6 +151,7 @@ public class MethodBinding {
         return sym.getArgumentType(i);
     }
 
+    /** Returns the {@link FunctionSymbol}. */
     public FunctionSymbol getCSymbol() {
         return sym;
     }
@@ -159,12 +169,30 @@ public class MethodBinding {
         return "arg" + i;
     }
 
-    public Collection<String> getAliasedNames() {
-        return sym.getAliasedNames();
-    }
+    /** Returns the {@link FunctionSymbol}'s current {@link FunctionSymbol#getName() aliased} API name. */
     public String getName() {
         return sym.getName();
     }
+    /** Returns the {@link FunctionSymbol}'s current {@link FunctionSymbol#getName() aliased} API name for the interface. */
+    public String getInterfaceName() {
+        return sym.getName();
+    }
+    /**
+     * Returns the {@link FunctionSymbol}'s name for the implementation,
+     * which is the current {@link FunctionSymbol#getName() aliased} API name per default.
+     */
+    public String getImplName() {
+        return sym.getName();
+    }
+    /**
+     * Returns the {@link FunctionSymbol}'s name for the native function
+     * which is the {@link FunctionSymbol#getOrigName() original} C API name per default,
+     * but may be overriden via {@link #setNativeName(String)}.
+     */
+    public String getNativeName() {
+        return null != nativeName ? nativeName : sym.getOrigName();
+    }
+    public void setNativeName(final String s) { nativeName = s; }
 
   /** Creates a new MethodBinding replacing the specified Java
       argument type with a new argument type. If argumentNumber is

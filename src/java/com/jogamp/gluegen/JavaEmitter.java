@@ -98,8 +98,10 @@ public class JavaEmitter implements GlueEmitter {
       private final String javaName;
   }
 
-  private PrintWriter javaWriter; // Emits either interface or, in AllStatic mode, everything
+  private String javaFileName;        // of  javaWriter or javaImplWriter
+  private PrintWriter javaWriter;     // Emits either interface or, in AllStatic mode, everything
   private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
+  private String cFileName;           // of cWriter
   private PrintWriter cWriter;
   private final MachineDataInfo machDescJava = MachineDataInfo.StaticConfig.LP64_UNIX.md;
   private final MachineDataInfo.StaticConfig[] machDescTargetConfigs = MachineDataInfo.StaticConfig.values();
@@ -508,8 +510,9 @@ public class JavaEmitter implements GlueEmitter {
                 LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc.getAliasedString());
             }
           } catch (final Exception e) {
-            throw new RuntimeException(
-                "Error while emitting binding for \"" + emitter.getName() + "\"", e);
+            throw new GlueGenException(
+                "Error while emitting binding for \"" + emitter.getCSymbol().getAliasedString() + "\"",
+                emitter.getCSymbol().getASTLocusTag(), e);
           }
         }
     }
@@ -571,8 +574,6 @@ public class JavaEmitter implements GlueEmitter {
           return;
       }
 
-      final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
-
       // It's possible we may not need a body even if signatureOnly is
       // set to false; for example, if the routine doesn't take any
       // arrays or buffers as arguments
@@ -593,6 +594,10 @@ public class JavaEmitter implements GlueEmitter {
       }
 
       final boolean emitBody = !signatureOnly && needsBody;
+      final boolean isNativeMethod = !isUnimplemented && !needsBody && !signatureOnly;
+
+      final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
+
       final JavaMethodBindingEmitter emitter =
               new JavaMethodBindingEmitter(binding,
                       writer,
@@ -607,7 +612,8 @@ public class JavaEmitter implements GlueEmitter {
                       false,           // forIndirectBufferAndArrayImplementation
                       isUnimplemented, // isUnimplemented
                       signatureOnly,   // isInterface
-                      false,           // isNativeMethod
+                      isNativeMethod,  // isNativeMethod
+                      false,           // isPrivateNativeMethod
                       cfg);
       switch (accessControl) {
           case PUBLIC:     emitter.addModifier(JavaMethodBindingEmitter.PUBLIC); break;
@@ -618,7 +624,7 @@ public class JavaEmitter implements GlueEmitter {
       if (cfg.allStatic()) {
           emitter.addModifier(FunctionEmitter.STATIC);
       }
-      if (!isUnimplemented && !needsBody && !signatureOnly) {
+      if (isNativeMethod) {
           emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
       }
       emitter.setReturnedArrayLengthExpression(cfg.returnedArrayLength(binding.getName()));
@@ -685,6 +691,7 @@ public class JavaEmitter implements GlueEmitter {
                               false, // isUnimplemented
                               false, // isInterface
                               true,  // isNativeMethod
+                              true,  // isPrivateNativeMethod
                               cfg);
               emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
               if (cfg.allStatic()) {
@@ -760,7 +767,7 @@ public class JavaEmitter implements GlueEmitter {
 
     try {
       // Get Java binding for the function
-      final MethodBinding mb = bindFunction(sym, null, null, machDescJava);
+      final MethodBinding mb = bindFunction(sym, machDescJava, null, null);
 
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
@@ -1401,7 +1408,7 @@ public class JavaEmitter implements GlueEmitter {
           final Type containingCType, final JavaType containingJType,
           final int i, final FunctionSymbol funcSym, final String returnSizeLookupName) {
       // Emit method call and associated native code
-      final MethodBinding  mb = bindFunction(funcSym, containingJType, containingCType, machDescJava);
+      final MethodBinding  mb = bindFunction(funcSym, machDescJava, containingJType, containingCType);
       mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
 
       // JavaTypes representing C pointers in the initial
@@ -1433,6 +1440,7 @@ public class JavaEmitter implements GlueEmitter {
                           false, // isUnimplemented
                           false, // isInterface
                           false, // isNativeMethod
+                          false, // isPrivateNativeMethod
                           cfg);
           emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
           emitter.emit();
@@ -1452,8 +1460,8 @@ public class JavaEmitter implements GlueEmitter {
                           false, // forIndirectBufferAndArrayImplementation
                           false, // isUnimplemented
                           false, // isInterface
-                          true,  // isNativeMethod
-                          cfg);
+                          false,  // isNativeMethod
+                          true, cfg);
           emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
           emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
           emitter.emit();
@@ -1482,7 +1490,7 @@ public class JavaEmitter implements GlueEmitter {
           final int i, final FunctionSymbol funcSym,
           final String returnSizeLookupName, final String docArrayLenExpr, final String nativeArrayLenExpr) {
       // Emit method call and associated native code
-      final MethodBinding  mb = bindFunction(funcSym, containingJType, containingCType, machDescJava);
+      final MethodBinding  mb = bindFunction(funcSym, machDescJava, containingJType, containingCType);
       mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
 
       // JavaTypes representing C pointers in the initial
@@ -1515,6 +1523,7 @@ public class JavaEmitter implements GlueEmitter {
                           false,                  // isUnimplemented
                           true,                   // isInterface
                           true,                   // isNativeMethod
+                          true,                   // isPrivateNativeMethod
                           cfg);
           if( null != docArrayLenExpr ) {
               emitter.setReturnedArrayLengthExpression(docArrayLenExpr, true);
@@ -2367,13 +2376,16 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     if (cfg.allStatic() || cfg.emitInterface()) {
-      javaWriter = openFile(jRoot + File.separator + cfg.className() + ".java", cfg.className());
+      javaFileName = jRoot + File.separator + cfg.className() + ".java";
+      javaWriter = openFile(javaFileName, cfg.className());
     }
     if (!cfg.allStatic() && cfg.emitImpl()) {
-      javaImplWriter = openFile(jImplRoot + File.separator + cfg.implClassName() + ".java", cfg.implClassName());
+      javaFileName = jImplRoot + File.separator + cfg.implClassName() + ".java";
+      javaImplWriter = openFile(javaFileName, cfg.implClassName());
     }
     if (cfg.emitImpl()) {
-      cWriter = openFile(nRoot + File.separator + cfg.implClassName() + "_JNI.c", cfg.implClassName());
+      cFileName = nRoot + File.separator + cfg.implClassName() + "_JNI.c";
+      cWriter = openFile(cFileName, cfg.implClassName());
     }
 
     if (javaWriter != null) {
@@ -2386,6 +2398,9 @@ public class JavaEmitter implements GlueEmitter {
       CodeGenUtils.emitAutogeneratedWarning(cWriter, this);
     }
   }
+
+  /** For {@link #javaWriter} or {@link #javaImplWriter} */
+  protected String javaFileName() { return javaFileName; }
 
   protected PrintWriter javaWriter() {
     if (!cfg.allStatic() && !cfg.emitInterface()) {
@@ -2400,6 +2415,9 @@ public class JavaEmitter implements GlueEmitter {
     }
     return javaImplWriter;
   }
+
+  /** For {@link #cImplWriter} */
+  protected String cFileName() { return cFileName; }
 
   protected PrintWriter cWriter() {
     if (!cfg.emitImpl()) {
@@ -2719,14 +2737,15 @@ public class JavaEmitter implements GlueEmitter {
       and must be lowered to concrete Java types before creating
       emitters for them. */
   private MethodBinding bindFunction(final FunctionSymbol sym,
+                                     final MachineDataInfo curMachDesc,
                                      final JavaType containingType,
-                                     final Type containingCType,
-                                     final MachineDataInfo curMachDesc) {
+                                     final Type containingCType) {
 
-    final MethodBinding binding = new MethodBinding(sym, containingType, containingCType);
     // System.out.println("bindFunction(0) "+sym.getReturnType());
+    final String name = sym.getName();
+    final JavaType javaReturnType;
 
-    if (cfg.returnsString(binding.getName())) {
+    if (cfg.returnsString(sym)) {
       final PointerType prt = sym.getReturnType().asPointer();
       if (prt == null ||
           prt.getTargetType().asInt() == null ||
@@ -2736,16 +2755,15 @@ public class JavaEmitter implements GlueEmitter {
           "\". ReturnsString requires native method to have return type \"char *\"",
           sym.getASTLocusTag());
       }
-      binding.setJavaReturnType(javaType(java.lang.String.class));
+      javaReturnType = javaType(java.lang.String.class);
     } else {
-      binding.setJavaReturnType(typeToJavaType(sym.getReturnType(), curMachDesc));
+      javaReturnType = typeToJavaType(sym.getReturnType(), curMachDesc);
     }
-
-    // System.out.println("bindFunction(1) "+binding.getJavaReturnType());
 
     // List of the indices of the arguments in this function that should be
     // converted from byte[] or short[] to String
-    final List<Integer> stringArgIndices = cfg.stringArguments(binding.getName());
+    final List<JavaType> javaArgumentTypes = new ArrayList<JavaType>();
+    final List<Integer> stringArgIndices = cfg.stringArguments(name);
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       final Type cArgType = sym.getArgumentType(i);
@@ -2780,14 +2798,15 @@ public class JavaEmitter implements GlueEmitter {
           sym.getASTLocusTag());
         }
       }
-      binding.addJavaArgumentType(mappedType);
+      javaArgumentTypes.add(mappedType);
       //System.out.println("During binding of [" + sym + "], added mapping from C type: " + cArgType + " to Java type: " + mappedType);
     }
-
-    // System.out.println("---> " + binding);
-    // System.out.println("    ---> " + binding.getCSymbol());
-    // System.out.println("bindFunction(3) "+binding);
-    return binding;
+    final MethodBinding mb = new MethodBinding(sym, delegationImplName,
+    final MethodBinding mb = new MethodBinding(sym, 
+                                               javaReturnType, javaArgumentTypes,
+                                               containingType, containingCType);
+    mangleBinding(mb);
+    return mb;
   }
 
   private MethodBinding lowerMethodBindingPointerTypes(final MethodBinding inputBinding,
@@ -2883,6 +2902,14 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     return result;
+  }
+
+  /**
+   * Allow specializations to modify the given {@link MethodBinding}
+   * before {@link #expandMethodBinding(MethodBinding) expanding} and emission.
+   */
+  protected void mangleBinding(final MethodBinding binding) {
+      // NOP
   }
 
   // Expands a MethodBinding containing C primitive pointer types into

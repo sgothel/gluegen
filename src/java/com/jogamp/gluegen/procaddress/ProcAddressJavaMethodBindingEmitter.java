@@ -41,6 +41,7 @@ package com.jogamp.gluegen.procaddress;
 import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.FunctionEmitter;
 import com.jogamp.gluegen.JavaMethodBindingEmitter;
+
 import java.io.*;
 
 /** A specialization of JavaMethodBindingEmitter with knowledge of how
@@ -76,12 +77,12 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
 
     public ProcAddressJavaMethodBindingEmitter(final ProcAddressJavaMethodBindingEmitter methodToWrap) {
         this(methodToWrap, methodToWrap.callThroughProcAddress, methodToWrap.getProcAddressTableExpr,
-                methodToWrap.changeNameAndArguments, methodToWrap.emitter);
+             methodToWrap.changeNameAndArguments, methodToWrap.emitter);
     }
 
     @Override
-    public String getName() {
-        final String res = super.getName();
+    public String getImplName() {
+        final String res = super.getImplName();
         if (changeNameAndArguments) {
             return ProcAddressEmitter.WRAP_PREFIX + res;
         }
@@ -106,8 +107,8 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected String getNativeMethodName() {
-        final String name = super.getNativeMethodName();
+    protected String getNativeImplMethodName() {
+        final String name = super.getNativeImplMethodName();
         if (callThroughProcAddress) {
             return ProcAddressEmitter.WRAP_PREFIX + name;
         }

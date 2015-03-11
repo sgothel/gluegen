@@ -347,7 +347,7 @@ public class JavaConfiguration {
         }
         // Default access control is public
         return PUBLIC;
-  }
+    }
 
     /** Returns the package in which the generated glue code expects to
     find its run-time helper classes (Buffers, Platform,
@@ -510,6 +510,14 @@ public class JavaConfiguration {
   public boolean returnsString(final String functionName) {
     return returnsString.contains(functionName);
   }
+  /** Indicates whether the given function (which returns a
+      <code>char*</code> in C) should be translated as returning a
+      <code>java.lang.String</code>. */
+  public boolean returnsString(final AliasedSymbol symbol) {
+      return returnsString.contains( symbol.getName() ) ||
+             oneInSet(returnsString, symbol.getAliasedNames());
+  }
+
 
   /**
    * Returns a MessageFormat string of the Java expression calculating
@@ -1010,6 +1018,7 @@ public class JavaConfiguration {
       }
       return false;
   }
+
 
   /**
    * Return a set of aliased-name for comment in docs.

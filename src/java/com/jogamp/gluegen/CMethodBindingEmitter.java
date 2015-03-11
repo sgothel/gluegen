@@ -150,8 +150,16 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   public final MethodBinding getBinding() { return binding; }
 
   @Override
-  public String getName() {
-    return binding.getName();
+  public String getInterfaceName() {
+    return binding.getInterfaceName();
+  }
+  @Override
+  public String getImplName() {
+    return binding.getImplName();
+  }
+  @Override
+  public String getNativeName() {
+    return binding.getNativeName();
   }
 
   @Override
@@ -313,12 +321,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     writer.print("_");
     if (isOverloadedBinding)    {
       writer.print(jniMangle(binding));
-      //System.err.println("OVERLOADED MANGLING FOR " + getName() +
-      //                   " = " + jniMangle(binding));
     } else {
-      writer.print(JavaEmitter.jniMangle(getName()));
-      //System.err.println("    NORMAL MANGLING FOR " + binding.getName() +
-      //                   " = " + jniMangle(getName()));
+      writer.print(JavaEmitter.jniMangle(getImplName()));
     }
   }
 
@@ -990,7 +994,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       // Call through function pointer
       writer.print(CMethodBindingEmitter.cThisArgumentName() + "->");
     }
-    writer.print(binding.getCSymbol().getOrigName()); // use original API name
+    writer.print(getNativeName());
     writer.print("(");
     emitBodyPassCArguments(writer);
     writer.println(");");
@@ -1166,7 +1170,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
   protected String jniMangle(final MethodBinding binding) {
     final StringBuilder buf = new StringBuilder();
-    buf.append(JavaEmitter.jniMangle(getName()));
+    buf.append(JavaEmitter.jniMangle(getImplName()));
     buf.append(getImplSuffix());
     buf.append("__");
     if (binding.hasContainingType()) {
@@ -1277,7 +1281,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     writer.println("      (*env)->ThrowNew(env, (*env)->FindClass(env, \"java/lang/OutOfMemoryError\"),");
     writer.print("                       \"" + errorMessage);
     writer.print(" in native dispatcher for \\\"");
-    writer.print(getName());
+    writer.print(getInterfaceName());
     writer.println("\\\"\");");
     writer.print("      return");
     if (!binding.getJavaReturnType().isVoid()) {
