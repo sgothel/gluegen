@@ -189,7 +189,10 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
      * @see DynamicLibraryBundleInfo#getToolLibNames()
      */
     public final boolean isToolLibComplete() {
-        return toolGetProcAddressComplete && null != dynLinkGlobal && getToolLibNumber() == getToolLibLoadedNumber();
+        final int toolLibNumber = getToolLibNumber();
+        return toolGetProcAddressComplete &&
+               ( 0 == toolLibNumber || null != dynLinkGlobal ) &&
+               toolLibNumber == getToolLibLoadedNumber();
     }
 
     public final boolean isToolLibLoaded() {
