@@ -169,4 +169,86 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
 
         return s1.equals(s2);
     }
+
+    public static boolean isConstantExpression(final String value) {
+        if( null != value && value.length() > 0 ) {
+            // Single numeric value
+            if ( isNumber(value) ) {
+                return true;
+            }
+            // Find constant expressions like (1 << 3)
+            // if found just pass them through, they will most likely work in java too
+            // expressions containing identifiers are currently ignored (casts too)
+            final String[] values = value.split("[\\s\\(\\)]"); // [ whitespace '(' ')' ]
+            int numberCount = 0;
+            for (final String s : values) {
+                if( s.length() > 0 ) {
+                    if( isCPPOperand(s) ) {
+                        // OK
+                    } else if ( isNumber(s) ) {
+                        // OK
+                        numberCount++;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            final boolean res = numberCount > 0;
+            return res;
+        }
+        return false;
+    }
+    public static boolean isNumber(final String s) {
+        if( isHexNumber(s) ) {
+            return true;
+        } else {
+            return isDecimalNumber(s);
+        }
+    }
+    public static boolean isHexNumber(final String s) {
+        return patternHexNumber.matcher(s).matches();
+    }
+    public static java.util.regex.Pattern patternHexNumber =
+        java.util.regex.Pattern.compile("0[xX][0-9a-fA-F]+[lLfFuU]?");
+
+    public static boolean isDecimalNumber(final String s) {
+        try {
+            Float.valueOf(s);
+        } catch (final NumberFormatException e) {
+            // not parsable as a number
+            return false;
+        }
+        return true;
+    }
+
+
+    public static boolean isCPPOperand(final String s) {
+        return patternCPPOperand.matcher(s).matches();
+    }
+    /**
+     * One of: {@code +} {@code -} {@code *} {@code /} {@code |} {@code &} {@code (} {@code )} {@code <<} {@code >>}
+     */
+    public static java.util.regex.Pattern patternCPPOperand =
+        java.util.regex.Pattern.compile("[\\+\\-\\*\\/\\|\\&\\(\\)]|(\\<\\<)|(\\>\\>)");
+
+    public static boolean isIdentifier(final String value) {
+        boolean identifier = false;
+
+        final char[] chars = value.toCharArray();
+
+        for (int i = 0; i < chars.length; i++) {
+            final char c = chars[i];
+            if (i == 0) {
+                if (Character.isJavaIdentifierStart(c)) {
+                    identifier = true;
+                }
+            } else {
+                if (!Character.isJavaIdentifierPart(c)) {
+                    identifier = false;
+                    break;
+                }
+            }
+        }
+        return identifier;
+    }
 }

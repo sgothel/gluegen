@@ -63,7 +63,7 @@ public class GlueGen implements GlueEmitterControls {
     }
 
     private final List<String> forcedStructNames = new ArrayList<String>();
-    private PCPP preprocessor;
+    private GenericCPP preprocessor;
 
     // State for SymbolFilters
     private List<ConstantDefinition> allConstants;
@@ -100,6 +100,7 @@ public class GlueGen implements GlueEmitterControls {
         }
     }
 
+    public static final String __GLUEGEN__ = "__GLUEGEN__";
 
     @SuppressWarnings("unchecked")
     public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyPCPPOutput2Stderr) {
@@ -136,7 +137,7 @@ public class GlueGen implements GlueEmitterControls {
             }
 
             preprocessor = new PCPP(includePaths, debug, copyPCPPOutput2Stderr);
-            preprocessor.addDefine("__GLUEGEN__", "2");
+            preprocessor.addDefine(__GLUEGEN__, "2");
             preprocessor.setOut(outStream);
 
             preprocessor.run(reader, filename);
@@ -222,6 +223,7 @@ public class GlueGen implements GlueEmitterControls {
                 final Define def = (Define) elem;
                 allConstants.add(new ConstantDefinition(def.getName(), def.getValue(), def.getASTLocusTag()));
             }
+            allConstants.addAll(preprocessor.getConstantDefinitions());
 
             allFunctions = headerParser.getParsedFunctions();
 
@@ -248,44 +250,46 @@ public class GlueGen implements GlueEmitterControls {
                 }
             }
 
-            emit.beginDefines();
-            final Set<String> emittedDefines = new HashSet<String>(100);
-            // emit java equivalent of enum { ... } statements
-            final StringBuilder comment = new StringBuilder();
-            for (final ConstantDefinition def : allConstants) {
-                if (!emittedDefines.contains(def.getName())) {
-                    emittedDefines.add(def.getName());
-                    final Set<String> aliases = cfg.getAliasedDocNames(def);
-                    if (aliases != null && aliases.size() > 0 ) {
-                        int i=0;
-                        comment.append("Alias for: <code>");
-                        for (final String alias : aliases) {
-                            if(0 < i) {
-                                comment.append("</code>, <code>");
+            if ( !cfg.structsOnly() ) {
+                emit.beginDefines();
+                final Set<String> emittedDefines = new HashSet<String>(100);
+                // emit java equivalent of enum { ... } statements
+                final StringBuilder comment = new StringBuilder();
+                for (final ConstantDefinition def : allConstants) {
+                    if (!emittedDefines.contains(def.getName())) {
+                        emittedDefines.add(def.getName());
+                        final Set<String> aliases = cfg.getAliasedDocNames(def);
+                        if (aliases != null && aliases.size() > 0 ) {
+                            int i=0;
+                            comment.append("Alias for: <code>");
+                            for (final String alias : aliases) {
+                                if(0 < i) {
+                                    comment.append("</code>, <code>");
+                                }
+                                comment.append(alias);
+                                i++;
                             }
-                            comment.append(alias);
-                            i++;
+                            comment.append("</code>");
                         }
-                        comment.append("</code>");
-                    }
-                    if (def.getEnumName() != null) {
-                        if (comment.length() > 0)
-                            comment.append("<br>\n");
+                        if (def.getEnumName() != null) {
+                            if (comment.length() > 0)
+                                comment.append("<br>\n");
 
-                        comment.append("Defined as part of enum type \"");
-                        comment.append(def.getEnumName());
-                        comment.append("\"");
-                    }
-                    if (comment.length() > 0) {
-                        emit.emitDefine(def, comment.toString());
-                        comment.setLength(0);
-                    }
-                    else {
-                        emit.emitDefine(def, null);
+                            comment.append("Defined as part of enum type \"");
+                            comment.append(def.getEnumName());
+                            comment.append("\"");
+                        }
+                        if (comment.length() > 0) {
+                            emit.emitDefine(def, comment.toString());
+                            comment.setLength(0);
+                        }
+                        else {
+                            emit.emitDefine(def, null);
+                        }
                     }
                 }
+                emit.endDefines();
             }
-            emit.endDefines();
 
             // Iterate through the functions finding structs that are referenced in
             // the function signatures; these will be remembered for later emission
@@ -337,10 +341,12 @@ public class GlueGen implements GlueEmitterControls {
             }
             emit.endStructs();
 
-            // emit java and C code to interface with the native functions
-            emit.beginFunctions(td, sd, headerParser.getCanonMap());
-            emit.emitFunctions(allFunctions);
-            emit.endFunctions();
+            if ( !cfg.structsOnly() ) {
+                // emit java and C code to interface with the native functions
+                emit.beginFunctions(td, sd, headerParser.getCanonMap());
+                emit.emitFunctions(allFunctions);
+                emit.endFunctions();
+            }
 
             // end emission of glue code
             emit.endEmission();

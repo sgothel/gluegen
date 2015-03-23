@@ -54,6 +54,15 @@ public class Logging {
      */
     public static interface LoggerIf {
         /**
+         * See {@link Logger#info(String)}
+         */
+        void info(final String msg);
+        /**
+         * See {@link Logger#info(String)}
+         */
+        void info(final ASTLocusTag loc, final String msg);
+
+        /**
          * See {@link Logger#warning(String)}
          */
         void warning(final String msg);
@@ -61,6 +70,15 @@ public class Logging {
          * See {@link Logger#warning(String)}
          */
         void warning(final ASTLocusTag loc, final String msg);
+
+        /**
+         * Calls {@link #log(Level, String)} w/ {@link Level#FINE}.
+         */
+        void debug(final String msg);
+        /**
+         * Calls {@link #log(Level, ASTLocusTag, String)} w/ {@link Level#FINE}.
+         */
+        void debug(final ASTLocusTag loc, final String msg);
 
         /**
          * See {@link Logger#log(Level, String)}
@@ -126,6 +144,20 @@ public class Logging {
                                       ": obj 0x"+Integer.toHexString(impl.hashCode()));
         }
         @Override
+        public void info(final String msg) {
+            impl.info(msg);
+        }
+        @Override
+        public void info(final ASTLocusTag loc, final String msg) {
+            handler.plf.setASTLocusTag(loc);
+            try {
+                impl.info(msg);
+            } finally {
+                handler.plf.setASTLocusTag(null);
+            }
+        }
+
+        @Override
         public void warning(final String msg) {
             impl.warning(msg);
         }
@@ -137,6 +169,15 @@ public class Logging {
             } finally {
                 handler.plf.setASTLocusTag(null);
             }
+        }
+
+        @Override
+        public void debug(final String msg) {
+            log(Level.FINE, msg);
+        }
+        @Override
+        public void debug(final ASTLocusTag loc, final String msg) {
+            log(Level.FINE, loc, msg);
         }
 
         @Override
@@ -295,6 +336,11 @@ public class Logging {
     public static LoggerIf getLogger() {
         return rootPackageLogger;
     }
+    /** Returns the demanded logger, while aligning its log-level to the root logger's level. */
+    public static synchronized LoggerIf getLogger(final Class<?> clazz) {
+        return getLogger(clazz.getPackage().getName(), clazz.getSimpleName());
+    }
+
     /** Returns the demanded logger, while aligning its log-level to the root logger's level. */
     public static synchronized LoggerIf getLogger(final String packageName, final String simpleClassName) {
         final String fqnClassName = packageName+"."+simpleClassName;

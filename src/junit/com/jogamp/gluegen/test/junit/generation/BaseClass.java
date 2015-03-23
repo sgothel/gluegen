@@ -65,11 +65,12 @@ public class BaseClass extends SingletonJunitCase {
         Assert.assertNotNull(ifName+" does not exist", clazzIf);
         Assert.assertNotNull(implName+" does not exist", clazzImpl);
 
-        Assert.assertEquals(1,  clazzIf.getDeclaredField("CONSTANT_ONE").get(null));
+        Assert.assertNotNull(clazzImpl.getDeclaredMethod("nopTest"));
 
         final Object obj = clazzImpl.newInstance();
         Assert.assertTrue("Not of type "+ifName, clazzIf.isAssignableFrom(obj.getClass()));
-        Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.generation.Bindingtest1", (obj instanceof com.jogamp.gluegen.test.junit.generation.Bindingtest1));
+        Assert.assertTrue("Not of type com.jogamp.gluegen.test.junit.generation.Bindingtest1",
+                (obj instanceof com.jogamp.gluegen.test.junit.generation.Bindingtest1));
     }
 
     /**

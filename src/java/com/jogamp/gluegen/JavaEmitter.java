@@ -223,7 +223,7 @@ public class JavaEmitter implements GlueEmitter {
             controls.forceStructEmission(structs);
         }
 
-        if (!cfg.structsOnly()) {
+        if ( !cfg.structsOnly() ) {
             try {
                 openWriters();
             } catch (final Exception e) {
@@ -235,7 +235,7 @@ public class JavaEmitter implements GlueEmitter {
 
     @Override
     public void endEmission() {
-        if (!cfg.structsOnly()) {
+        if ( !cfg.structsOnly() ) {
             emitAllFileFooters();
 
             try {
@@ -248,7 +248,7 @@ public class JavaEmitter implements GlueEmitter {
 
   @Override
   public void beginDefines() throws Exception {
-    if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
+    if ( ( cfg.allStatic() || cfg.emitInterface() ) && !cfg.structsOnly() ) {
       javaWriter().println();
     }
   }
@@ -301,8 +301,7 @@ public class JavaEmitter implements GlueEmitter {
     // "calculates" the result type of a simple expression
     // example: (2+3)-(2.0f-3.0) -> Double
     // example: (1 << 2) -> Integer
-
-    final Scanner scanner = new Scanner(value).useDelimiter("[+-/*/></(/)]");
+    final Scanner scanner = new Scanner(value).useDelimiter(ConstantDefinition.patternCPPOperand);
 
     Object resultType = null;
 
@@ -430,8 +429,7 @@ public class JavaEmitter implements GlueEmitter {
 
   @Override
   public void emitDefine(final ConstantDefinition def, final String optionalComment) throws Exception  {
-
-    if (cfg.allStatic() || cfg.emitInterface()) {
+    if ( ( cfg.allStatic() || cfg.emitInterface() ) && !cfg.structsOnly() ) {
       // TODO: Some defines (e.g., GL_DOUBLE_EXT in gl.h) are defined in terms
       // of other defines -- should we emit them as references to the original
       // define (not even sure if the lexer supports this)? Right now they're
@@ -457,7 +455,6 @@ public class JavaEmitter implements GlueEmitter {
                 value = value.substring(0, value.length()-1);
             }
         }
-
         javaWriter().println("  public static final " + type + " " + name + " = " + value + suffix + ";");
       }
     }
@@ -476,46 +473,47 @@ public class JavaEmitter implements GlueEmitter {
     this.canonMap          = canonMap;
     this.requiresStaticInitialization = false; // reset
 
-    if ((cfg.allStatic() || cfg.emitInterface()) && !cfg.structsOnly()) {
+    if ( ( cfg.allStatic() || cfg.emitInterface() ) && !cfg.structsOnly() ) {
       javaWriter().println();
     }
   }
 
   @Override
   public Iterator<FunctionSymbol> emitFunctions(final List<FunctionSymbol> funcsToBind) throws Exception {
-    // Bind all the C funcs to Java methods
-    final ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
-    {
-        int i=0;
-        for (final FunctionSymbol cFunc : funcsToBind) {
-          // Check to see whether this function should be ignored
-          if ( !cfg.shouldIgnoreInImpl(cFunc) ) {
-              methodBindingEmitters.addAll(generateMethodBindingEmitters(cFunc));
-              LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Impl[{0}]: {1}", i++, cFunc);
-          }
+    if ( !cfg.structsOnly() ) {
+        // Bind all the C funcs to Java methods
+        final ArrayList<FunctionEmitter> methodBindingEmitters = new ArrayList<FunctionEmitter>(2*funcsToBind.size());
+        {
+            int i=0;
+            for (final FunctionSymbol cFunc : funcsToBind) {
+              // Check to see whether this function should be ignored
+              if ( !cfg.shouldIgnoreInImpl(cFunc) ) {
+                  methodBindingEmitters.addAll(generateMethodBindingEmitters(cFunc));
+                  LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Impl[{0}]: {1}", i++, cFunc);
+              }
 
-        }
-    }
-
-    // Emit all the methods
-    {
-        int i=0;
-        for (final FunctionEmitter emitter : methodBindingEmitters) {
-          try {
-            final FunctionSymbol cFunc = emitter.getCSymbol();
-            if ( !emitter.isInterface() || !cfg.shouldIgnoreInInterface(cFunc) ) {
-                emitter.emit();
-                emitter.getDefaultOutput().println(); // put newline after method body
-                LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc);
             }
-          } catch (final Exception e) {
-            throw new GlueGenException(
-                "Error while emitting binding for \"" + emitter.getCSymbol().getAliasedString() + "\"",
-                emitter.getCSymbol().getASTLocusTag(), e);
-          }
+        }
+
+        // Emit all the methods
+        {
+            int i=0;
+            for (final FunctionEmitter emitter : methodBindingEmitters) {
+              try {
+                final FunctionSymbol cFunc = emitter.getCSymbol();
+                if ( !emitter.isInterface() || !cfg.shouldIgnoreInInterface(cFunc) ) {
+                    emitter.emit();
+                    emitter.getDefaultOutput().println(); // put newline after method body
+                    LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc);
+                }
+              } catch (final Exception e) {
+                throw new GlueGenException(
+                    "Error while emitting binding for \"" + emitter.getCSymbol().getAliasedString() + "\"",
+                    emitter.getCSymbol().getASTLocusTag(), e);
+              }
+            }
         }
     }
-
     // Return the list of FunctionSymbols that we generated gluecode for
     return funcsToBind.iterator();
   }
@@ -869,7 +867,7 @@ public class JavaEmitter implements GlueEmitter {
 
   @Override
   public void endFunctions() throws Exception {
-    if (!cfg.structsOnly()) {
+    if ( !cfg.structsOnly() ) {
         if (cfg.allStatic() || cfg.emitInterface()) {
             emitCustomJavaCode(javaWriter(), cfg.className());
         }

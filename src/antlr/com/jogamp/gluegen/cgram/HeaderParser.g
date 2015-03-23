@@ -689,7 +689,12 @@ structDeclaration[CompoundType containingType] returns [boolean addedAny] {
                     if (!addedAny) {
                         if (t != null) {
                             CompoundType ct = t.asCompound();
-                            if (ct.isUnion()) {
+                            if( null == ct ) {
+                                throwGlueGenException(structDeclaration_AST_in,
+                                    String.format("Anonymous compound, w/ NULL type:%n  containing '%s'",
+                                        getTypeString(containingType)));
+                            }
+                            if ( ct.isUnion() ) {
                                 // Anonymous union
                                 containingType.addField(new Field(null, t, null));
                             }

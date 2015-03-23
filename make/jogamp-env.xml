@@ -236,6 +236,9 @@
                     <contains string="${target.sourcelevel}" substring="1.6" casesensitive="false" />
                     <contains string="${target.sourcelevel}" substring="1.7" casesensitive="false" />
                     <contains string="${target.sourcelevel}" substring="1.8" casesensitive="false" />
+                    <contains string="${target.sourcelevel}" substring="1.9" casesensitive="false" />
+                    <contains string="${target.sourcelevel}" substring="2.0" casesensitive="false" />
+                    <contains string="${target.sourcelevel}" substring="2.1" casesensitive="false" />
                 </or>
             </not>
         </condition>
@@ -247,6 +250,9 @@
                     <contains string="${target.targetlevel}" substring="1.6" casesensitive="false" />
                     <contains string="${target.targetlevel}" substring="1.7" casesensitive="false" />
                     <contains string="${target.targetlevel}" substring="1.8" casesensitive="false" />
+                    <contains string="${target.targetlevel}" substring="1.9" casesensitive="false" />
+                    <contains string="${target.targetlevel}" substring="2.0" casesensitive="false" />
+                    <contains string="${target.targetlevel}" substring="2.1" casesensitive="false" />
                 </or>
             </not>
         </condition>

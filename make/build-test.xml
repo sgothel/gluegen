@@ -36,6 +36,7 @@
         <property name="test.junit.generation.rel" value="${test.junit.rel}/gluegen/test/junit/generation" />
         <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
+        <property name="tempdir"      value="${project.root}/build-temp" />
         <property name="build"        location="${project.root}/${rootrel.build}" />
         <property name="test.dir"     value="${gluegen.root}/${rootrel.build}/test"/>
         <property name="results"      value="${test.dir}/results" />
@@ -50,6 +51,7 @@
 
         <property name="build_t.gen.rootrel" value="${rootrel.build}/test/build/gensrc"/>
 
+        <mkdir dir="${tempdir}" />
         <mkdir dir="${test.dir}"/>
         <mkdir dir="${results}"/>
         <mkdir dir="${build_t}"/>
@@ -516,6 +518,12 @@ chmod 644 ${results}/* \${line.separator}
       </antcall>
     </target>
 
+    <target name="java.generate.copy2temp">
+        <copy todir="${tempdir}">
+            <fileset dir="${build_t}"
+                     includes="gensrc/classes/**" />
+        </copy>
+    </target>
 
     <!-- 
 
@@ -546,6 +554,7 @@ chmod 644 ${results}/* \${line.separator}
                  logLevel="WARNING">
             <classpath refid="gluegen.classpath" />
         </gluegen>
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
 
         <gluegen src="${test.junit.generation.dir}/test1-gluegen.c"
                  outputRootDir="${build_t.gen}"

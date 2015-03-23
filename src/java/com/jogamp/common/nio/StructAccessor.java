@@ -83,6 +83,16 @@ public class StructAccessor {
         bb.put(byteOffset, v);
     }
 
+    /** Retrieves the boolean at the specified byteOffset. */
+    public final boolean getBooleanAt(final int byteOffset) {
+        return (byte)0 != bb.get(byteOffset);
+    }
+
+    /** Puts a boolean at the specified byteOffset. */
+    public final void setBooleanAt(final int byteOffset, final boolean v) {
+        bb.put(byteOffset, v?(byte)1:(byte)0);
+    }
+
     /** Retrieves the char at the specified byteOffset. */
     public final char getCharAt(final int byteOffset) {
         return bb.getChar(byteOffset);
@@ -209,6 +219,19 @@ public class StructAccessor {
     public final byte[] getBytesAt(int byteOffset, final byte[] v) {
         for (int i = 0; i < v.length; i++) {
             v[i] = bb.get(byteOffset++);
+        }
+        return v;
+    }
+
+    public final void setBooleansAt(int byteOffset, final boolean[] v) {
+        for (int i = 0; i < v.length; i++) {
+            bb.put(byteOffset++, v[i]?(byte)1:(byte)0);
+        }
+    }
+
+    public final boolean[] getBooleansAt(int byteOffset, final boolean[] v) {
+        for (int i = 0; i < v.length; i++) {
+            v[i] = (byte)0 != bb.get(byteOffset++);
         }
         return v;
     }

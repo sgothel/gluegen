@@ -56,8 +56,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.ConstantDefinition;
+import com.jogamp.gluegen.GenericCPP;
 import com.jogamp.gluegen.GlueGenException;
 import com.jogamp.gluegen.Logging;
 import com.jogamp.gluegen.Logging.LoggerIf;
@@ -68,7 +71,7 @@ import static java.util.logging.Level.*;
     #define statements defining constants so they can be observed by a
     glue code generator. */
 
-public class PCPP {
+public class PCPP implements GenericCPP {
 
     private final LoggerIf LOG;
 
@@ -98,7 +101,8 @@ public class PCPP {
         enableCopyOutput2Stderr = copyOutput2Stderr;
     }
 
-    public void run(final Reader reader, final String filename) throws IOException {
+    @Override
+    public void run(final Reader reader, final String filename) throws GlueGenException {
         StreamTokenizer tok = null;
         BufferedReader bufReader = null;
         if (reader instanceof BufferedReader) {
@@ -114,11 +118,27 @@ public class PCPP {
         final ParseState oldState = state;
         state = curState;
         lineDirective();
-        parse();
+        try {
+            parse();
+        } catch (final Exception e) {
+            final StringBuilder buf = new StringBuilder("Preprocessor failed");
+            LOG.log(Level.SEVERE, buf.toString(), e);
+            if( e instanceof GlueGenException ) {
+                throw (GlueGenException)e;
+            } else {
+                throw new GlueGenException("Preprocessor failed",
+                                           new ASTLocusTag(filename(), lineNumber(), -1, null), e);
+            }
+        }
         state = oldState;
         if (state != null) {
             lineDirective();
         }
+    }
+
+    @Override
+    public List<ConstantDefinition> getConstantDefinitions() {
+        return new ArrayList<ConstantDefinition>(); // NOP
     }
 
     private void initTokenizer(final StreamTokenizer tok) {
@@ -137,6 +157,7 @@ public class PCPP {
         tok.slashStarComments(true);
     }
 
+    @Override
     public String findFile(final String filename) {
         final String sep = File.separator;
         for (final String inclPath : includePaths) {
@@ -149,10 +170,12 @@ public class PCPP {
         return null;
     }
 
+    @Override
     public OutputStream out() {
         return out;
     }
 
+    @Override
     public void setOut(final OutputStream out) {
         this.out = out;
         writer = new PrintWriter(out);
@@ -381,7 +404,7 @@ public class PCPP {
                             }
                         }
 
-                        if(isIdentifier(value)) {
+                        if(ConstantDefinition.isIdentifier(value)) {
                             newS +=" ";
                         }
 
@@ -528,6 +551,7 @@ public class PCPP {
         addDefine(name, macroDefinition, values);
     }
 
+    @Override
     public void addDefine(final String name, final String value) {
         final List<String> values = new ArrayList<String>();
         values.add(value);
@@ -560,7 +584,7 @@ public class PCPP {
                 // See whether the value is a constant
                 final String value = values.get(0);
 
-                if (isConstant(value)) {
+                if (ConstantDefinition.isNumber(value)) {
                     // Value is numeric constant like "#define FOO 5".
                     // Put it in the #define map
                     final String oldDef = defineMap.put(name, value);
@@ -629,7 +653,7 @@ public class PCPP {
 
                 boolean containsIdentifier = false;
                 for (final String value : values) {
-                    if(isIdentifier(value)) {
+                    if(ConstantDefinition.isIdentifier(value)) {
                         containsIdentifier = true;
                         break;
                     }
@@ -691,68 +715,6 @@ public class PCPP {
         } // end if (enabled())
 
         //System.err.println("OUT HANDLE_DEFINE: " + name);
-    }
-
-    private boolean isIdentifier(final String value) {
-
-        boolean identifier = false;
-
-        final char[] chars = value.toCharArray();
-
-        for (int i = 0; i < chars.length; i++) {
-            final char c = chars[i];
-            if (i == 0) {
-                if (Character.isJavaIdentifierStart(c)) {
-                    identifier = true;
-                }
-            } else {
-                if (!Character.isJavaIdentifierPart(c)) {
-                    identifier = false;
-                    break;
-                }
-            }
-        }
-        return identifier;
-    }
-
-    private boolean isConstant(final String s) {
-        if (s.startsWith("0x") || s.startsWith("0X")) {
-            return checkHex(s);
-        } else {
-            return checkDecimal(s);
-        }
-    }
-
-    private boolean checkHex(final String s) {
-        char c='\0';
-        int i;
-        for (i = 2; i < s.length(); i++) {
-            c = s.charAt(i);
-            if (!((c >= '0' && c <= '9') ||
-                  (c >= 'a' && c <= 'f') ||
-                  (c >= 'A' && c <= 'F'))) {
-                break;
-            }
-        }
-        if(i==s.length()) {
-            return true;
-        } else if(i==s.length()-1) {
-            // Const qualifier ..
-            return c == 'l' || c == 'L' ||
-                   c == 'f' || c == 'F' ||
-                   c == 'u' || c == 'U' ;
-        }
-        return false;
-    }
-
-    private boolean checkDecimal(final String s) {
-        try {
-            Float.valueOf(s);
-        } catch (final NumberFormatException e) {
-            // not parsable as a number
-            return false;
-        }
-        return true;
     }
 
     private String resolveDefine(final String word, final boolean returnNullIfNotFound) {
@@ -929,6 +891,27 @@ public class PCPP {
                     {
                         // NOTE: we don't handle expressions like this properly
                         final boolean rhs = handleIfRecursive(true);
+                        ifValue = false;
+                    }
+                    break;
+                case '*':
+                    {
+                        // NOTE: we don't handle expressions like this properly
+                        final boolean rhs = handleIfRecursive(false);
+                        ifValue = false;
+                    }
+                    break;
+                case '+':
+                    {
+                        // NOTE: we don't handle expressions like this properly
+                        final boolean rhs = handleIfRecursive(false);
+                        ifValue = false;
+                    }
+                    break;
+                case '-':
+                    {
+                        // NOTE: we don't handle expressions like this properly
+                        final boolean rhs = handleIfRecursive(false);
                         ifValue = false;
                     }
                     break;
