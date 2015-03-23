@@ -1,5 +1,5 @@
 /*
- * @(#)jni_md.h	1.18 03/12/19
+ * @(#)jawt_md.h	1.8 05/11/17
  *
  * This C header file is derived from Sun Microsystem's Java SDK provided C header file
  * with the following copyright notice:
@@ -24,21 +24,31 @@
  * L 111/17 (10) and (15)
  */
 
-#ifndef _JAVASOFT_JNI_MD_H_
-#define _JAVASOFT_JNI_MD_H_
+#ifndef _JAVASOFT_JAWT_MD_H_
+#define _JAVASOFT_JAWT_MD_H_
 
-#ifdef __GLUEGEN__
-    #define JNIEXPORT
-    #define JNIIMPORT
-    #define JNICALL
-#else /* __GLUEGEN__ */
-    #define JNIEXPORT __attribute__((visibility("default")))
-    #define JNIIMPORT __attribute__((visibility("default")))
-    #define JNICALL
-#endif /* __GLUEGEN__ */
+#include <windows.h>
+#include "jawt.h"
 
-typedef int8_t  jbyte;
-typedef int32_t jint;
-typedef int64_t jlong;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-#endif /* !_JAVASOFT_JNI_MD_H_ */
+typedef struct jawt_Win32DrawingSurfaceInfo {
+    /**
+    union {
+        HWND hwnd;
+        HBITMAP hbitmap;
+        void* pbits;
+    }; */
+    HWND handle;
+
+    HDC hdc;
+    HPALETTE hpalette;
+} JAWT_Win32DrawingSurfaceInfo;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* !_JAVASOFT_JAWT_MD_H_ */

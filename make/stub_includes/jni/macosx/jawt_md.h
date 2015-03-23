@@ -1,9 +1,4 @@
 /**
- * Temporary workaround!
- * 
- * Provided darwin/jawt_md.h from Oracle for OSX / Java7
- * has X11 dependencies and does not define JAWT_SurfaceLayers. 
- *
  * This C header file is derived from Apple's Java SDK provided C header file
  * with the following copyright notice:
  *
@@ -59,7 +54,7 @@ JAWT_MacOSXDrawingSurfaceInfo;
     @property (readonly) CALayer *windowLayer;
     @end
 
-#endif /* __GLUEGEN__ */
+#endif __GLUEGEN__
 
 #ifdef __cplusplus
 }

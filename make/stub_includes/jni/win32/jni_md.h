@@ -1,5 +1,5 @@
 /*
- * @(#)jni_md.h	1.18 03/12/19
+ * @(#)jni_md.h	1.15 05/11/17
  *
  * This C header file is derived from Sun Microsystem's Java SDK provided C header file
  * with the following copyright notice:
@@ -32,9 +32,9 @@
     #define JNIIMPORT
     #define JNICALL
 #else /* __GLUEGEN__ */
-    #define JNIEXPORT __attribute__((visibility("default")))
-    #define JNIIMPORT __attribute__((visibility("default")))
-    #define JNICALL
+    #define JNIEXPORT __declspec(dllexport)
+    #define JNIIMPORT __declspec(dllimport)
+    #define JNICALL __stdcall
 #endif /* __GLUEGEN__ */
 
 typedef int8_t  jbyte;
