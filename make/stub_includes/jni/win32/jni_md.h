@@ -27,6 +27,8 @@
 #ifndef _JAVASOFT_JNI_MD_H_
 #define _JAVASOFT_JNI_MD_H_
 
+#include <gluegen_stdint.h>
+
 #ifdef __GLUEGEN__
     #define JNIEXPORT
     #define JNIIMPORT
