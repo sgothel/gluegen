@@ -40,6 +40,8 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
+import jogamp.common.Debug;
+
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.Type;
@@ -49,6 +51,8 @@ import com.jogamp.gluegen.cgram.types.Type;
  * @author Michael Bien, et.al.
  */
 public class Logging {
+    public static final boolean DEBUG = Debug.debug("Logging");
+
     /**
      * An interface for {@link Logger}.
      */
@@ -111,6 +115,10 @@ public class Logging {
          */
         void setLevel(final Level newLevel) throws SecurityException;
         /**
+         * See {@link Handler#setLevel(Level)}
+         */
+        void setLevelOfAllHandler(final Level newLevel) throws SecurityException;
+        /**
          * See {@link Logger#getLevel()}
          */
         Level getLevel();
@@ -136,7 +144,7 @@ public class Logging {
         public final PlainLogConsoleHandler handler;
         /* pp */ FQNLogger(final String fqnClassName, final String simpleClassName, final Level level) {
             this.impl = Logger.getLogger(fqnClassName);
-            this.handler = new PlainLogConsoleHandler(new PlainLogFormatter(simpleClassName), level);
+            this.handler = new PlainLogConsoleHandler(new PlainLogFormatter(simpleClassName), Level.ALL);
             this.impl.setUseParentHandlers(false);
             this.impl.setLevel(level);
             this.impl.addHandler(this.handler);
@@ -226,6 +234,13 @@ public class Logging {
             impl.setLevel(newLevel);
         }
         @Override
+        public void setLevelOfAllHandler(final Level newLevel) throws SecurityException {
+            final Handler[] hs = getHandlers();
+            for(final Handler h:hs) {
+                h.setLevel(newLevel);
+            }
+        }
+        @Override
         public Level getLevel() {
             return impl.getLevel();
         }
@@ -303,7 +318,11 @@ public class Logging {
         if(property != null) {
             level = Level.parse(property);
         } else {
-            level = Level.WARNING;
+            if( DEBUG || GlueGen.debug() ) {
+                level = Level.ALL;
+            } else {
+                level = Level.WARNING;
+            }
         }
         final String simpleClassName = Logging.class.getSimpleName();
         final String fqnClassName = packageName+"."+simpleClassName;
@@ -353,11 +372,11 @@ public class Logging {
     }
     /** Align log-level of given logger to the root logger's level. */
     public static void alignLevel(final LoggerIf l) {
-        final Level level = rootPackageLogger.getLevel();
+        alignLevel(l, rootPackageLogger.getLevel());
+    }
+    /** Align log-level of given logger and all its handlers to the given level. */
+    public static void alignLevel(final LoggerIf l, final Level level) {
         l.setLevel(level);
-        final Handler[] hs = l.getHandlers();
-        for(final Handler h:hs) {
-            h.setLevel(level);
-        }
+        l.setLevelOfAllHandler(level);
     }
 }
