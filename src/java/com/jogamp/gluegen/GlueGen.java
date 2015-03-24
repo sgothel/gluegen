@@ -100,10 +100,11 @@ public class GlueGen implements GlueEmitterControls {
         }
     }
 
+    /** GlueGen's build in macro name {@value}, when compiling w/ GlueGen. */
     public static final String __GLUEGEN__ = "__GLUEGEN__";
 
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyPCPPOutput2Stderr) {
+    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyCPPOutput2Stderr) {
 
         try {
             if(debug) {
@@ -127,17 +128,18 @@ public class GlueGen implements GlueEmitterControls {
             }
             final JavaConfiguration cfg = emit.getConfiguration();
 
-            final File out = File.createTempFile("PCPPTemp", ".pcpp");
+            final File out = File.createTempFile("CPPTemp", ".cpp");
             final FileOutputStream outStream = new FileOutputStream(out);
 
+            // preprocessor = new PCPP(includePaths, debug, copyCPPOutput2Stderr);
+            preprocessor = new JCPP(includePaths, debug, copyCPPOutput2Stderr);
+            final String cppName = preprocessor.getClass().getSimpleName();
             if(debug) {
-                System.err.println("PCPP output at (persistent): " + out.getAbsolutePath());
+                System.err.println("CPP <"+cppName+"> output at (persistent): " + out.getAbsolutePath());
             } else {
                 out.deleteOnExit();
             }
 
-            // preprocessor = new PCPP(includePaths, debug, copyPCPPOutput2Stderr);
-            preprocessor = new JCPP(includePaths, debug, copyPCPPOutput2Stderr);
             preprocessor.addDefine(__GLUEGEN__, "2");
             preprocessor.setOut(outStream);
 
@@ -145,7 +147,7 @@ public class GlueGen implements GlueEmitterControls {
             outStream.flush();
             outStream.close();
             if(debug) {
-                System.err.println("PCPP done");
+                System.err.println("CPP <"+cppName+"> done");
             }
 
             final FileInputStream inStream = new FileInputStream(out);
@@ -439,7 +441,7 @@ public class GlueGen implements GlueEmitterControls {
         out.println("file or files can be specified with -C option; e.g,");
         out.println("-Cjava-emitter.cfg.");
         out.println("  --debug enables debug mode");
-        out.println("  --dumpCPP directs PCPP to dump all output to stderr as well");
+        out.println("  --dumpCPP directs CPP to dump all output to stderr as well");
         exit(1);
     }
 }
