@@ -137,7 +137,7 @@ public class PCPP implements GenericCPP {
     }
 
     @Override
-    public List<ConstantDefinition> getConstantDefinitions() {
+    public List<ConstantDefinition> getConstantDefinitions() throws GlueGenException {
         return new ArrayList<ConstantDefinition>(); // NOP
     }
 

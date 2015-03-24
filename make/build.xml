@@ -31,6 +31,7 @@
          This requires the user-defined "antlr.jar" property. -->
     <path id="cc_gluegen.classpath">
       <pathelement location="${antlr.jar}" />
+      <pathelement location="${semver.jar}" />
     </path>
   </target>
 
@@ -59,6 +60,7 @@
     <property name="project.root"  value=".." />
     <property name="src.java" value="${project.root}/src/java" />
     <property name="src.antlr" value="${project.root}/src/antlr" />
+    <property name="src.jcpp" value="${project.root}/jcpp/src/main/java" />
 
     <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="javadoc.root.path"    location="${build}/javadoc" />
@@ -142,6 +144,7 @@
     <property name="java.part.nonjava" value="com/jogamp/common/util/bin/*" />
     <property name="gluegen-rt.classes" value="com/jogamp/gluegen/runtime/**"/>
     <property name="jogamp.common.classes" value="com/jogamp/common/** jogamp/common/**"/>
+    <property name="java.part.jcpp" value="com/jogamp/gluegen/jcpp/**"/>
 
     <property name="gluegen.excludes.all" value="${gluegen.excludes.nsig} ${jogamp-android-launcher.classes}" />
   </target>
@@ -604,6 +607,7 @@
       <uptodate property="gluegen.build.skip.java1">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
+        <srcfiles dir= "${src.jcpp}"  includes="**"/>
         <srcfiles dir= "${c.grammar}" includes="*.g"/>
         <srcfiles dir= "${j.grammar}" includes="*.g"/>
         <mapper type="merge" to="${build}/gluegen.jar"/>
@@ -611,6 +615,7 @@
       <uptodate property="gluegen.build.skip.java2">
         <srcfiles dir= "."            includes="*.xml"/>
         <srcfiles dir= "${src.java}"  includes="**"/>
+        <srcfiles dir= "${src.jcpp}"  includes="**"/>
         <srcfiles dir= "${c.grammar}" includes="*.g"/>
         <srcfiles dir= "${j.grammar}" includes="*.g"/>
         <mapper type="merge" to="${build}/gluegen-rt.jar"/>
@@ -739,10 +744,11 @@
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${target.sourcelevel}" 
+           source="${target.sourcelevel}"
            target="${target.targetlevel}" 
            bootclasspath="${host.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+      <src path="${src.jcpp}" />
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen.classpath" />
@@ -822,6 +828,7 @@
         <include name="jogamp/common/**" />
         <exclude name="${jogamp-android-launcher.classes}" />
         <exclude name="${java.part.android}" />
+        <exclude name="${java.part.jcpp}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -836,6 +843,7 @@
         <include name="jogamp/common/**" />
         <exclude name="${jogamp-android-launcher.classes}" />
         <exclude name="${java.part.android}" />
+        <exclude name="${java.part.jcpp}" />
       </fileset>
       <fileset dir="resources/assets">
         <include name="**" />
@@ -1033,7 +1041,7 @@
     <delete dir="${javadoc.gluegen.path}" includeEmptyDirs="true" quiet="true" failonerror="false" />
     <mkdir dir="${javadoc.gluegen.path}" />
     <javadoc packagenames="com.jogamp.*"
-             sourcepath="${src.java};${src.generated.java}"
+             sourcepath="${src.java};${src.jcpp};${src.generated.java}"
              destdir="${javadoc.gluegen.path}" windowtitle="GlueGen Runtime Documentation"
              overview="../src/java/com/jogamp/gluegen/package.html"
              encoding="UTF-8"
@@ -1065,6 +1073,7 @@
         <zip destfile="${build}/gluegen-java-src.zip" level="0">
             <fileset dir="${src.java}"/>
             <fileset dir="${build}/gensrc/java"/>
+            <fileset dir="${src.jcpp}"/>
         </zip>
     </target>
 

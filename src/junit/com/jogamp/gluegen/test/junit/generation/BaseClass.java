@@ -96,6 +96,33 @@ public class BaseClass extends SingletonJunitCase {
           AnonBlob ab = null;
           PointerBuffer pb=null;
 
+          // Test constants values: binding and value!
+          {
+              // Plain vanilla CPP constants
+              Assert.assertEquals(   1, Bindingtest1.CONSTANT_ONE);
+              Assert.assertEquals(   8, Bindingtest1.ARRAY_SIZE);
+              Assert.assertEquals(1234, Bindingtest1.DEFINE_01);
+
+              // Enums
+              Assert.assertEquals(   1, Bindingtest1.LI);
+              Assert.assertEquals(   3, Bindingtest1.LO);
+              Assert.assertEquals(   2, Bindingtest1.LU);
+              Assert.assertEquals(   1, Bindingtest1.MI);
+              Assert.assertEquals(   3, Bindingtest1.MO);
+              Assert.assertEquals(   2, Bindingtest1.MU);
+              Assert.assertEquals(   0, Bindingtest1.ZERO);
+              Assert.assertEquals(   1, Bindingtest1.ONE);
+              Assert.assertEquals(   2, Bindingtest1.TWO);
+              Assert.assertEquals(   3, Bindingtest1.THREE);
+
+              // CPP Macro Expansion!
+              Assert.assertEquals(   1, Bindingtest1.NUMBER_ONE);
+              Assert.assertEquals(   2, Bindingtest1.NUMBER_TWO);
+              Assert.assertEquals(   4, Bindingtest1.NUMBER_FOUR);
+              Assert.assertEquals(   8, Bindingtest1.NUMBER_EIGHT);
+              Assert.assertEquals(   9, Bindingtest1.NUMBER_NINE);
+              Assert.assertEquals(  10, Bindingtest1.NUMBER_TEN);
+          }
           {
               l = binding.testXID(l);
               l = binding.testXID_2(l);

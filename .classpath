@@ -21,6 +21,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="test/junit"/>
+	<classpathentry kind="src" path="jcpp/src/main/java"/>
+	<classpathentry kind="src" path="jcpp/src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="lib" path="make/lib/antlr.jar"/>

@@ -49,7 +49,7 @@ import antlr.*;
 
 import com.jogamp.gluegen.cgram.*;
 import com.jogamp.gluegen.cgram.types.*;
-import com.jogamp.gluegen.pcpp.*;
+import com.jogamp.gluegen.jcpp.JCPP;
 
 import static java.lang.System.*;
 
@@ -136,7 +136,8 @@ public class GlueGen implements GlueEmitterControls {
                 out.deleteOnExit();
             }
 
-            preprocessor = new PCPP(includePaths, debug, copyPCPPOutput2Stderr);
+            // preprocessor = new PCPP(includePaths, debug, copyPCPPOutput2Stderr);
+            preprocessor = new JCPP(includePaths, debug, copyPCPPOutput2Stderr);
             preprocessor.addDefine(__GLUEGEN__, "2");
             preprocessor.setOut(outStream);
 

@@ -36,6 +36,8 @@
         <property name="test.junit.generation.rel" value="${test.junit.rel}/gluegen/test/junit/generation" />
         <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
+        <property name="test.jcpp.base.dir" value="${project.root}/jcpp/src/test/java" />
+
         <property name="tempdir"      value="${project.root}/build-temp" />
         <property name="build"        location="${project.root}/${rootrel.build}" />
         <property name="test.dir"     value="${gluegen.root}/${rootrel.build}/test"/>
@@ -169,6 +171,7 @@
             <classpath refid="junit.compile.classpath"/>
             <compilerarg value="-proc:none"/>
             <src path="${test.base.dir}"/>
+            <src path="${test.jcpp.base.dir}"/>
             <src path="${build_t.gen}" />
         </javac>
 
@@ -266,9 +269,10 @@
 
     <target name="junit.compile.check" depends="init">
       <uptodate property="junit.compile.skip">
-        <srcfiles dir= "."                 includes="*.xml"/>
-        <srcfiles dir= "${test.base.dir}"  includes="**"/>
-        <srcfiles                          file="${gluegen.jar}" />
+        <srcfiles dir= "."                      includes="*.xml"/>
+        <srcfiles dir= "${test.base.dir}"       includes="**"/>
+        <srcfiles dir= "${test.jcpp.base.dir}"  includes="**"/>
+        <srcfiles                               file="${gluegen.jar}" />
         <mapper type="merge" to="${gluegen-test.jar}"/>
       </uptodate>
     </target>

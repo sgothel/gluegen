@@ -39,6 +39,10 @@ ANT_JARS=$ANT_PATH/lib/ant.jar:$ANT_PATH/lib/ant-junit.jar:$ANT_PATH/lib/ant-lau
 LOG=runtest.log
 rm -f $LOG
 
+GLUEGEN_ROOT=`dirname $builddir`
+ROOTREL_BUILD=`basename $builddir`
+
+X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup"
 #D_ARGS="-Djogamp.debug.TraceLock"
 #D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
@@ -58,7 +62,8 @@ rm -f $LOG
 #D_ARGS="-Djogamp.debug.IOUtil"
 #D_ARGS="-Djogamp.debug.ByteBufferInputStream"
 #D_ARGS="-Djogamp.debug.Bitstream"
-D_ARGS="-Djogamp.debug=all"
+#D_ARGS="-Djogamp.debug=all"
+#D_ARGS="-Djogamp.debug.Logging"
 
 function onetest() {
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
@@ -73,11 +78,11 @@ function onetest() {
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
     echo USE_CLASSPATH $USE_CLASSPATH
     which java
-    #echo java -cp $USE_CLASSPATH $D_ARGS -Djava.library.path=$libspath $*
-    #java -cp $USE_CLASSPATH $D_ARGS -Djava.library.path="$libspath" $*
-    echo java -cp "$USE_CLASSPATH" $D_ARGS $*
-    java -cp "$USE_CLASSPATH" $D_ARGS $*
-    #j3 -cp "$USE_CLASSPATH" $D_ARGS $*
+    #echo java -cp $USE_CLASSPATH $X_ARGS $D_ARGS -Djava.library.path=$libspath $*
+    #java -cp $USE_CLASSPATH $X_ARGS $D_ARGS -Djava.library.path="$libspath" $*
+    echo java -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS $*
+    java -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS $*
+    #j3 -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS $*
     echo
 }
 #
@@ -128,9 +133,15 @@ function onetest() {
 #onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.PCPPTest 2>&1 | tee -a $LOG
+
+#onetest com.jogamp.gluegen.test.junit.generation.PCPPTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.CppReaderTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.TokenPastingWhitespaceTest 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.jcpp.PreprocessorTest 2>&1 | tee -a $LOG
+
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen02 2>&1 | tee -a $LOG

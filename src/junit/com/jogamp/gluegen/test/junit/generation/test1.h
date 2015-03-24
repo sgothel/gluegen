@@ -50,6 +50,13 @@ typedef void * AnonBuffer; // Non Opaque
 // #define DEFINE_02 ( (int ) 3 )     // Duplicate w/ same value ERROR (PCPP redefine)
 // #define DEFINE_02 ( (int) 3 )      // Duplicate w/ diff value ERROR (PCPP redefine, then GlueGen)
 
+#define NUMBER_ONE      CONSTANT_ONE
+#define NUMBER_TWO      ( NUMBER_ONE + NUMBER_ONE )
+#define NUMBER_FOUR     ( NUMBER_ONE << NUMBER_TWO )
+#define NUMBER_EIGHT    ( NUMBER_TWO * NUMBER_TWO + ( NUMBER_ONE << NUMBER_TWO ) )
+#define NUMBER_NINE     ( 2 * 2 + ( 1 << 2 ) + 1 )
+#define NUMBER_TEN      ( NUMBER_EIGHT | NUMBER_TWO )
+
 enum Lala { LI=1, LU, LO };            
 // enum Lala { LI=1, LU, LO };        // Duplicate w/ same value (ignored, ERROR in native compilation)
 // enum Lala { LI=1, LU=3, LO };      // Duplicate w/ diff value ERROR

@@ -31,7 +31,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.util.List;
 
-import org.anarres.cpp.LexerException;
+import com.jogamp.gluegen.jcpp.LexerException;
 
 /**
  * Generic C preprocessor interface for GlueGen
@@ -55,8 +55,9 @@ public interface GenericCPP {
      * May return an empty list, in case this preprocessor does not
      * store {@link ConstantDefinition}s.
      * </p>
+     * @throws GlueGenException
      */
-    public List<ConstantDefinition> getConstantDefinitions();
+    public List<ConstantDefinition> getConstantDefinitions() throws GlueGenException;
 
 
 }

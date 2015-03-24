@@ -1,0 +1,3 @@
+[submodule "jcpp"]
+	path = jcpp
+	url = ../jcpp

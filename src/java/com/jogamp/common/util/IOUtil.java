@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.io.Reader;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.net.URISyntaxException;
@@ -186,6 +187,15 @@ public class IOUtil {
             numBytes += count;
         }
         return numBytes;
+    }
+
+    public static StringBuilder appendCharStream(final StringBuilder sb, final Reader r) throws IOException {
+        final char[] cbuf = new char[1024];
+        int count;
+        while( 0 < ( count = r.read(cbuf) ) ) {
+            sb.append(cbuf, 0, count);
+        }
+        return sb;
     }
 
     /**
