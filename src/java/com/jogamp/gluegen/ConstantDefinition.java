@@ -33,6 +33,8 @@
 
 package com.jogamp.gluegen;
 
+import java.util.regex.Pattern;
+
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol.AliasedSymbolImpl;
 import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
@@ -198,38 +200,6 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
         }
         return false;
     }
-    public static boolean isNumber(final String s) {
-        if( isHexNumber(s) ) {
-            return true;
-        } else {
-            return isDecimalNumber(s);
-        }
-    }
-    public static boolean isHexNumber(final String s) {
-        return patternHexNumber.matcher(s).matches();
-    }
-    public static java.util.regex.Pattern patternHexNumber =
-        java.util.regex.Pattern.compile("0[xX][0-9a-fA-F]+[lLfFuU]?");
-
-    public static boolean isDecimalNumber(final String s) {
-        try {
-            Float.valueOf(s);
-        } catch (final NumberFormatException e) {
-            // not parsable as a number
-            return false;
-        }
-        return true;
-    }
-
-
-    public static boolean isCPPOperand(final String s) {
-        return patternCPPOperand.matcher(s).matches();
-    }
-    /**
-     * One of: {@code +} {@code -} {@code *} {@code /} {@code |} {@code &} {@code (} {@code )} {@code <<} {@code >>}
-     */
-    public static java.util.regex.Pattern patternCPPOperand =
-        java.util.regex.Pattern.compile("[\\+\\-\\*\\/\\|\\&\\(\\)]|(\\<\\<)|(\\>\\>)");
 
     public static boolean isIdentifier(final String value) {
         boolean identifier = false;
@@ -251,4 +221,91 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
         }
         return identifier;
     }
+
+    public static boolean isNumber(final String s) {
+        if( isHexNumber(s) ) {
+            return true;
+        } else {
+            return isDecimalNumber(s);
+        }
+    }
+    public static boolean isHexNumber(final String s) {
+        return patternHexNumber.matcher(s).matches();
+    }
+    public static Pattern patternHexNumber = Pattern.compile("0[xX][0-9a-fA-F]+[lLfFuU]?");
+
+    /**
+     * Complete pattern for <code>floating point</code> number,
+     * compatible and described in {@link Double#valueOf(String)}.
+     */
+    public static Pattern patternDecimalNumber;
+    private static String fpRegex;
+    static {
+        final String Digits = "(\\p{Digit}+)";
+        final String HexDigits = "(\\p{XDigit}+)";
+        // an exponent is 'e' or 'E' followed by an optionally
+        // signed decimal integer.
+        final String Exp = "[eE][+-]?"+Digits;
+        fpRegex =
+            ("[\\x00-\\x20]*"+  // Optional leading "whitespace"
+             "[+-]?" + // Optional sign character
+             "("+
+                 "NaN|" +       // "NaN" string
+                 "Infinity|" +  // "Infinity" string
+
+                 // A decimal floating-point string representing a finite positive
+                 // number without a leading sign has at most five basic pieces:
+                 // Digits . Digits ExponentPart FloatTypeSuffix
+                 //
+                 // Since this method allows integer-only strings as input
+                 // in addition to strings of floating-point literals, the
+                 // two sub-patterns below are simplifications of the grammar
+                 // productions from the Java Language Specification, 2nd
+                 // edition, section 3.10.2.
+
+                 "("+
+                     "("+
+                         // Digits ._opt Digits_opt ExponentPart_opt FloatTypeSuffix_opt
+                         "("+Digits+"(\\.)?("+Digits+"?)("+Exp+")?)|"+
+
+                         // . Digits ExponentPart_opt FloatTypeSuffix_opt
+                         "(\\.("+Digits+")("+Exp+")?)|"+
+
+                         // Hexadecimal w/ binary exponent
+                         "(" +
+                             "(" +
+                                 // Hexadecimal strings
+                                 // 0[xX] HexDigits ._opt BinaryExponent FloatTypeSuffix_opt
+                                 "(0[xX]" + HexDigits + "(\\.)?)|" +
+
+                                 // 0[xX] HexDigits_opt . HexDigits BinaryExponent FloatTypeSuffix_opt
+                                 "(0[xX]" + HexDigits + "?(\\.)" + HexDigits + ")" +
+                             ")" +
+
+                           // binary exponent
+                           "[pP][+-]?" + Digits +
+                         ")" +
+                     ")" +
+                     "[fFdD]?"+
+                 ")"+
+             ")" +
+             "[\\x00-\\x20]*"// Optional trailing "whitespace"
+            );
+        patternDecimalNumber = Pattern.compile(fpRegex);
+    }
+    public static boolean isDecimalNumber(final String s) {
+        return patternDecimalNumber.matcher(s).matches();
+    }
+
+    public static boolean isCPPOperand(final String s) {
+        return patternCPPOperand.matcher(s).matches();
+    }
+    /**
+     * One of: {@code +} {@code -} {@code *} {@code /} {@code |} {@code &} {@code (} {@code )} {@code <<} {@code >>}
+     * <p>
+     * Expression excludes {@link #patternDecimalNumber}.
+     * </p>
+     */
+    public static Pattern patternCPPOperand = Pattern.compile("(?!"+fpRegex+")[\\+\\-\\*\\/\\|\\&\\(\\)]|(\\<\\<)|(\\>\\>)");
+
 }

@@ -73,6 +73,8 @@ public class BaseClass extends SingletonJunitCase {
                 (obj instanceof com.jogamp.gluegen.test.junit.generation.Bindingtest1));
     }
 
+    public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
+
     /**
      * Verifies if all generated method signatures are completed,
      * ie a compilation only coverage test without functional tests.
@@ -122,6 +124,36 @@ public class BaseClass extends SingletonJunitCase {
               Assert.assertEquals(   8, Bindingtest1.NUMBER_EIGHT);
               Assert.assertEquals(   9, Bindingtest1.NUMBER_NINE);
               Assert.assertEquals(  10, Bindingtest1.NUMBER_TEN);
+
+
+              // Floating point hexadecimals
+              final float CL_FLT_A0 = Bindingtest1.CL_FLT_A0;
+              final float CL_FLT_A1 = Bindingtest1.CL_FLT_A1;
+              final float CL_FLT_A2 = Bindingtest1.CL_FLT_A2;
+              Assert.assertEquals(  0x1.p127f,  CL_FLT_A0, EPSILON);
+              Assert.assertEquals(  0x1.p+127F, CL_FLT_A1, EPSILON);
+              Assert.assertEquals(  0x1.p-127f, CL_FLT_A2, EPSILON);
+
+              final float CL_FLT_EPSILON = Bindingtest1.CL_FLT_EPSILON;
+              final double CL_FLT_MAX= Bindingtest1.CL_FLT_MAX;
+              final double CL_FLT_MIN = Bindingtest1.CL_FLT_MIN;
+              Assert.assertEquals(  0x1.0p-23f, CL_FLT_EPSILON, EPSILON);
+              Assert.assertEquals(  0x1.fffffep127f, CL_FLT_MAX, EPSILON);
+              Assert.assertEquals(  0x1.0p-126f, CL_FLT_MIN, EPSILON);
+
+              final double CL_DBL_B0 = Bindingtest1.CL_DBL_B0;
+              final double CL_DBL_B1 = Bindingtest1.CL_DBL_B1;
+              final double CL_DBL_B2 = Bindingtest1.CL_DBL_B2;
+              Assert.assertEquals(  0x1.p127d,  CL_DBL_B0, EPSILON);
+              Assert.assertEquals(  0x1.p+127D, CL_DBL_B1, EPSILON);
+              Assert.assertEquals(  0x1.p-127d, CL_DBL_B2, EPSILON);
+
+              final float CL_DBL_EPSILON = Bindingtest1.CL_DBL_EPSILON;
+              final double CL_DBL_MAX= Bindingtest1.CL_DBL_MAX;
+              final double CL_DBL_MIN = Bindingtest1.CL_DBL_MIN;
+              Assert.assertEquals(  0x1.0p-52f, CL_DBL_EPSILON, EPSILON);
+              Assert.assertEquals(  0x1.fffffffffffffp1023, CL_DBL_MAX, EPSILON);
+              Assert.assertEquals(  0x1.0p-1022, CL_DBL_MIN, EPSILON);
           }
           {
               l = binding.testXID(l);
@@ -1232,8 +1264,6 @@ public class BaseClass extends SingletonJunitCase {
             Assert.assertEquals(3, result[0]);
         }
     }
-
-    public static final float EPSILON = 1.1920929E-7f; // Float.MIN_VALUE == 1.4e-45f ; double EPSILON 2.220446049250313E-16d
 
     /** Test array and pointer bindings of structs  */
     public void chapter12TestStructArrayModelConst(final Bindingtest1 binding) throws Exception {

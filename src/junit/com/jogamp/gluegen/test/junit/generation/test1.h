@@ -39,6 +39,22 @@ typedef void * AnonBuffer; // Non Opaque
 // typedef XID    XID_2;              // Duplicate w/ compatible type (ignored) - OpenSolaris: Native gcc error
 // typedef int    XID_2;              // Duplicate w/ incompatible type ERROR
 
+#define CL_FLT_A0           0x1p127
+#define CL_FLT_A1           0x1p+127F
+#define CL_FLT_A2           0x1p-127f
+
+#define CL_DBL_B0           0x1.p127d
+#define CL_DBL_B1           0x1.p+127D
+#define CL_DBL_B2           0x1.p-127d
+
+#define CL_FLT_MAX          0x1.fffffep127f
+#define CL_FLT_MIN          0x1.0p-126f
+#define CL_FLT_EPSILON      0x1.0p-23f
+
+#define CL_DBL_MAX          0x1.fffffffffffffp1023
+#define CL_DBL_MIN          0x1.0p-1022
+#define CL_DBL_EPSILON      0x1.0p-52
+
 #define DEFINE_01 1234
 #define DEFINE_01 1234                // Duplicate w/ same value (ignored)
 // #define DEFINE_01 1235             // Duplicate w/ diff value ERROR

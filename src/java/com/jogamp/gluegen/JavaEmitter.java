@@ -384,7 +384,7 @@ public class JavaEmitter implements GlueEmitter {
         final double dVal = Double.parseDouble(value);
         final double absVal = Math.abs(dVal);
         // if constant is small enough, store it as a float instead of a double
-        if (absVal < Float.MIN_VALUE || absVal > Float.MAX_VALUE) {
+        if (absVal < Float.MIN_VALUE || absVal > Float.MAX_VALUE || lastChar == 'd' || lastChar == 'D' ) {
             return new Double(dVal);
         }
         return new Float((float) dVal);
@@ -448,10 +448,11 @@ public class JavaEmitter implements GlueEmitter {
           javaWriter().println("  /** " + optionalComment + " */");
         }
         String suffix = "";
-        if(!value.endsWith(")")) {
-            if (type.equals("float") && !value.endsWith("f")) {
+        final char lastChar = value.charAt(value.length()-1);
+        if( lastChar != ')' ) {
+            if (type.equals("float") && lastChar != 'f' && lastChar != 'F' ) {
                 suffix = "f";
-            }else if(value.endsWith("u") || value.endsWith("U")) {
+            }else if( lastChar == 'u' || lastChar == 'U' ) {
                 value = value.substring(0, value.length()-1);
             }
         }
