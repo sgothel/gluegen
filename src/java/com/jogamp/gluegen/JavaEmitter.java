@@ -1011,13 +1011,13 @@ public class JavaEmitter implements GlueEmitter {
       final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
 
-      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, field.getName());
+      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, field.getName());
 
       if (!cfg.shouldIgnoreInInterface(cfgFieldName0)) {
 
         final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
         final String fieldName = renamed==null ? field.getName() : renamed;
-        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, fieldName);
+        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName);
 
         if ( fieldType.isFunctionPointer() || fieldType.isPointer() || requiresGetCStringLength(fieldType, cfgFieldName1) ) {
             needsNativeCode = true;
@@ -1105,11 +1105,11 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < structCType.getNumFields(); i++) {
       final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
-      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, field.getName());
+      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, field.getName());
       if ( !cfg.shouldIgnoreInInterface(cfgFieldName0) ) {
         final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
         final String fieldName = null==renamed ? field.getName() : renamed;
-        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, fieldName);
+        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName);
         if (fieldType.isFunctionPointer()) {
           // no offset/size for function pointer ..
           if( GlueGen.debug() ) {
@@ -1201,11 +1201,11 @@ public class JavaEmitter implements GlueEmitter {
       final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
 
-      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, field.getName());
+      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, field.getName());
       if (!cfg.shouldIgnoreInInterface(cfgFieldName0)) {
         final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
         final String fieldName = renamed==null ? field.getName() : renamed;
-        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(structCTypeName, fieldName);
+        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName);
         final TypeInfo opaqueFieldType = cfg.typeInfo(fieldType);
         final boolean isOpaqueFieldType = null != opaqueFieldType;
         final TypeInfo opaqueField = cfg.canonicalNameOpaque(cfgFieldName1);
