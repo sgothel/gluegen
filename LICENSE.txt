@@ -157,4 +157,26 @@ A.1) The GlueGen source tree contains code from The Apache Software Foundation
     - src/java/com/jogamp/common/net/Uri.java 
       (derived from java.net.URI.Helper and heavily modified)
 
+A.2) The GlueGen source tree contains code from Ben Mankin, a.k.a 'Shevek',
+     which is covered by the Apache License Version 2.0
+
+   JCPP - A Java C Preprocessor
+   =============================
+
+   <http://www.anarres.org/projects/jcpp/>
+   <https://github.com/shevek/jcpp>
+
+   Author: Ben Mankin, a.k.a 'Shevek' (http://www.anarres.org/about/).
+
+   Copyright (c) 2007-2008, Shevek
+
+   Apache License Version 2.0, January 2004
+   http://www.apache.org/licenses/LICENSE-2.0
+   Or within this repository: doc/licenses/Apache.LICENSE-2.0
+
+   Files:
+    The complete git submodule 'jcpp',
+    which is a patched version of the original mentioned above.
+
+   Used for the compile-time module gluegen.jar only.
 
