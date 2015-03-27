@@ -66,9 +66,6 @@ import com.jogamp.junit.util.VersionSemanticsUtil;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestVersionSemantics extends SingletonJunitCase {
     static final String jarFile = "gluegen-rt.jar";
-    static final VersionNumberString preVersionNumber = new VersionNumberString("2.2.0");
-    static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-    // static final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
 
     static final DiffCriteria diffCriteria = new SimpleDiffCriteria();
     // static final DiffCriteria diffCriteria = new PublicDiffCriteria();
@@ -76,22 +73,50 @@ public class TestVersionSemantics extends SingletonJunitCase {
     static final JogampVersion curVersion = GlueGenVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
-    static final Set<String> excludes;
+    static final Set<String> excludesDefault;
     static {
-        excludes = new HashSet<String>();
-        excludes.add("^\\Qjogamp/\\E.*$");
+        excludesDefault = new HashSet<String>();
+        excludesDefault.add("^\\Qjogamp/\\E.*$");
     }
 
     @Test
-    public void testVersionLatest() throws IllegalArgumentException, IOException, URISyntaxException {
+    public void testVersionV220V221() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER, "2.2.0", "2.2.1", excludesDefault);
+    }
 
+    @Test
+    public void testVersionV221V230() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.2.1", "2.3.0", excludesDefault);
+    }
+
+    void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
+                      final String v1, final String v2, final Set<String> excludes)
+                              throws IllegalArgumentException, IOException, URISyntaxException {
+        final VersionNumberString preVersionNumber = new VersionNumberString(v1);
+        final File previousJar = new File("lib/v"+v1+"/"+jarFile);
+
+        final VersionNumberString curVersionNumber = new VersionNumberString(v2);
+        final File currentJar = new File("lib/v"+v2+"/"+jarFile);
+
+        VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
+                                         previousJar, preVersionNumber,
+                                         currentJar, curVersionNumber,
+                                         excludes);
+    }
+
+    @Test
+    public void testVersionV230V23x() throws IllegalArgumentException, IOException, URISyntaxException {
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+
+        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
 
         final ClassLoader currentCL = TestVersionSemantics.class.getClassLoader();
 
         VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
                                          previousJar, preVersionNumber,
-                                         curVersion.getClass(), currentCL, curVersionNumber, excludes);
+                                         curVersion.getClass(), currentCL, curVersionNumber, excludesDefault);
     }
 
     public static void main(final String args[]) throws IOException {

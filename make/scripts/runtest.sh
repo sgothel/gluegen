@@ -90,7 +90,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
@@ -135,7 +135,7 @@ function onetest() {
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.PCPPTest 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.CppReaderTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.TokenPastingWhitespaceTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.PreprocessorTest 2>&1 | tee -a $LOG
