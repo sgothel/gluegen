@@ -894,7 +894,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
           writer.print(" valid values are: <code>");
           for (int j = 0; j < enumType.getNumEnumerates(); ++j) {
             if (j>0) writer.print(", ");
-            writer.print(enumType.getEnumName(j));
+            writer.print(enumType.getEnum(j).getName());
           }
           writer.println("</code>");
         } else if (javaType.isNIOBuffer()) {

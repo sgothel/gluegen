@@ -46,9 +46,13 @@ header {
 
         import antlr.CommonAST;
         import com.jogamp.gluegen.ASTLocusTag;
+        import com.jogamp.gluegen.ConstantDefinition;
+        import com.jogamp.gluegen.ConstantDefinition.CNumber;
         import com.jogamp.gluegen.GlueGenException;
         import com.jogamp.gluegen.JavaConfiguration;
         import com.jogamp.gluegen.cgram.types.*;
+        import com.jogamp.gluegen.cgram.types.EnumType;
+        import com.jogamp.gluegen.cgram.types.EnumType.Enumerator;
 }
 
 class HeaderParser extends GnuCTreeParser;
@@ -738,7 +742,7 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
         )
         ;
 
-// FIXME: this will not correctly set the name of the enumeration when
+// This will not correctly set the name of the enumeration when
 // encountering a declaration like this:
 //
 //     typedef enum {  } enumName;
@@ -747,8 +751,8 @@ structDeclarator[CompoundType containingType, Type t] returns [boolean addedAny]
 // incorrectly return HeaderParser.ANONYMOUS_ENUM_NAME instead of
 // "enumName"
 //
-// I haven't implemented it yet because I'm not sure how to get the
-// "enumName" *before* executing the enumList rule.
+// The followup typedef, see 'initDecl', will alias this name, 
+// hence correct the issue!
 enumSpecifier [int cvAttrs] returns [Type t] { 
         t = null; 
         EnumType e = null;
@@ -778,50 +782,55 @@ enumSpecifier [int cvAttrs] returns [Type t] {
         ;
 
 enumList[EnumType enumeration] {
-        long defaultEnumerantValue = 0;
+        ConstantDefinition defEnumerant = new ConstantDefinition("def", "0", new CNumber(true, false, 0), findASTLocusTag(enumList_AST_in));
 }
-      :       ( defaultEnumerantValue = enumerator[enumeration, defaultEnumerantValue] )+
+      :       ( defEnumerant = enumerator[enumeration, defEnumerant] )+
       ;
 
-enumerator[EnumType enumeration, long defaultValue] returns [long newDefaultValue] {
+enumerator[EnumType enumeration, ConstantDefinition defaultValue] returns [ConstantDefinition newDefaultValue] {
         newDefaultValue = defaultValue;
 }
         :       eName:ID ( ASSIGN eVal:expr )? {
-                    final long newValue;
+                    final String eTxt = eName.getText();
+                    final Enumerator newEnum;
                     if (eVal != null) {
-                      String vTxt = eVal.getAllChildrenText();
+                      String vTxt = eVal.getAllChildrenText(eTxt);
                       if (enumHash.containsKey(vTxt)) {
                         EnumType oldEnumType = enumHash.get(vTxt);
-                        newValue = oldEnumType.getEnumValue(vTxt);
+                        Enumerator oldEnum = oldEnumType.getEnum(vTxt);
+                        newEnum = oldEnum;
                       } else {
-                        try {
-                          newValue = Long.decode(vTxt).longValue();
-                        } catch (NumberFormatException e) {
-                          System.err.println("NumberFormatException: ID[" + eName.getText() + "], VALUE=[" + vTxt + "]");
-                          throw e;
-                        }
+                        newEnum = new Enumerator(eTxt, vTxt);
                       }
+                    } else if( defaultValue.hasNumber() ) {
+                      newEnum = new Enumerator(eTxt, defaultValue.getNumber());
                     } else {
-                      newValue = defaultValue;
+                      newEnum = new Enumerator(eTxt, defaultValue.getNativeExpr());
                     }
-
-                    newDefaultValue = newValue+1;
-                    String eTxt = eName.getText();
+                    final ASTLocusTag locus = findASTLocusTag(enumerator_AST_in);
+                    final CNumber newEnumNum = newEnum.getNumber();
+                    if( null != newEnumNum && newEnumNum.isInteger ) {
+                        final long n = newEnumNum.i+1;
+                        newDefaultValue = new ConstantDefinition("def", String.valueOf(n), new CNumber(newEnumNum.isLong, newEnumNum.isUnsigned, n), locus);
+                    } else {
+                        newDefaultValue = new ConstantDefinition("def", "("+newEnum.getExpr()+")+1", null, locus);
+                    }
                     if (enumHash.containsKey(eTxt)) {
                         EnumType oldEnumType = enumHash.get(eTxt);
-                        final long oldValue = oldEnumType.getEnumValue(eTxt);
-                        if( oldValue != newValue ) {
+                        final Enumerator oldEnum = oldEnumType.getEnum(eTxt);
+                        final String oldExpr = oldEnum.getExpr();
+                        if( !oldExpr.equals(newEnum.getExpr()) ) {
                             throwGlueGenException(enumerator_AST_in,
-                                 String.format("Duplicate enum value '%s.%s' w/ diff value:%n  this %d,%n  have %d",
-                                     oldEnumType.getName(), eTxt, newValue, oldValue));
+                                 String.format("Duplicate enum value '%s.%s' w/ diff value:%n  this %s,%n  have %s",
+                                     oldEnumType.getName(), eTxt, newEnum, oldEnum));
                         }
                         // remove old definition
                         oldEnumType.removeEnumerate(eTxt);
                     }
                     // insert new definition
-                    enumeration.addEnum(eTxt, newValue);
+                    enumeration.addEnum(eTxt, newEnum);
                     enumHash.put(eTxt, enumeration);
-                    debugPrintln("ENUM [" + enumeration.getName() + "]: " + eTxt + " = " + enumeration.getEnumValue(eTxt) +
+                    debugPrintln("ENUM [" + enumeration.getName() + "]: " + eTxt + " = " + newEnum +
                                  " (new default = " + newDefaultValue + ")");
                 }
             ;
@@ -857,8 +866,9 @@ initDecl[TypeBox tb] {
         // NOTE: Struct Name Resolution (JavaEmitter, HeaderParser)
         // Also see NOTE below.
         if (!t.isTypedef()) {
-            if( t.isCompound() ) {
+            if( t.isCompound() || t.isEnum() ) {
                 // This aliases '_a' -> 'A' for 'typedef struct _a { } A;' in-place
+                // This aliases '_a' -> 'A' for 'typedef enum _a { } A;' in-place
                 t.setTypedefName(declName);
                 debugPrintln(" - alias.11 -> "+getDebugTypeString(t));
             } else {
@@ -1008,12 +1018,14 @@ intConstExpr returns [int i] { i = -1; }
                throwGlueGenException(intConstExpr_AST_in,
                      "Error: intConstExpr ID "+enumName+" recognized, but no containing enum-type found");
             }
-            final long enumValue = enumType.getEnumValue(enumName);
-            System.err.println("INFO: intConstExpr: enum[Type "+enumType.getName()+", name "+enumName+", value "+enumValue+"]");
-            if( (long)Integer.MIN_VALUE > enumValue || (long)Integer.MAX_VALUE < enumValue ) {
-               throwGlueGenException(intConstExpr_AST_in,
-                     "Error: intConstExpr ID "+enumName+" enum-value "+enumValue+" out of int range");
+            final Enumerator enumerator = enumType.getEnum(enumName);
+            final CNumber number = enumerator.getNumber();
+            if( null != number && number.isInteger && !number.isLong ) {
+                debugPrintln("INFO: intConstExpr: enum[Type "+enumType.getName()+", "+enumerator+"]");
+            } else {
+                throwGlueGenException(intConstExpr_AST_in,
+                     "Error: intConstExpr ID "+enumName+" enum "+enumerator+" not an int32_t");
             }
-            return (int)enumValue;
+            return (int)number.i;
           }
         ;

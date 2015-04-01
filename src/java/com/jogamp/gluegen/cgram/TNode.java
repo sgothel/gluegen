@@ -10,6 +10,7 @@ import java.util.Enumeration;
 
 import com.jogamp.gluegen.ASTLocusTag;
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
+import com.jogamp.gluegen.GlueGen;
 
 /**
   Class TNode is an implementation of the AST interface
@@ -179,14 +180,86 @@ public void initialize(final AST tr) {
     text = text_;
   }
 
-  /** Returns the text for this node and all children */
-  public String getAllChildrenText() {
+  static class DebugASTVisitor {
+      protected int level;
+      private String tabs(final StringBuilder sb) {
+          sb.setLength(0);
+          for (int i = 0; i < level; i++) {
+              sb.append("   ");
+          }
+          return sb.toString();
+      }
+      DebugASTVisitor(final int level) {
+          this.level = level;
+      }
+      void visit(final AST node) {
+          final StringBuilder sb = new StringBuilder();
+          AST node2;
+          for (node2 = node; node2 != null; node2 = node2.getNextSibling()) {
+              if (node2.getText() == null) {
+                  System.err.printf("%03d: %snil [%d]%n", level, tabs(sb), node2.getType());
+              } else {
+                  System.err.printf("%03d: %s%s [%d]%n", level, tabs(sb), node2.getText(), node2.getType());
+              }
+              if (node2.getFirstChild() != null) {
+                  level++;
+                  visit(node2.getFirstChild());
+                  level--;
+              }
+          }
+      }
+  }
+
+  /**
+   * Returns the text for this node, its children and siblings.
+   * <p>
+   * Implementation converts the AST LISP notation to serialized form.
+   * </p>
+   */
+  public String getAllChildrenText(final String name) {
+    if( GlueGen.debug() ) {
+        System.err.println("TNode.XXX: "+name);
+        new DebugASTVisitor(1).visit(getFirstChild());
+    }
     final StringBuilder buf = new StringBuilder();
-    buf.append(getText());
-    for (TNode node = (TNode) getFirstChild(); node != null; node = (TNode) node.getNextSibling()) {
-      buf.append(node.getText());
+    final TNode down = (TNode) this.getFirstChild();
+    if( null == down ) {
+        buf.append(this.getText());
+    } else {
+        getAllChildrenText(buf, this, down);
     }
     return buf.toString();
+  }
+  private static void getAllChildrenText(final StringBuilder buf,
+                                         final TNode upNode, TNode thisNode) {
+    boolean first = true;
+    while( null != thisNode ) {
+      final boolean isClosing = HeaderParserTokenTypes.RPAREN == thisNode.getType();
+      final boolean isGroupStart = HeaderParserTokenTypes.NExpressionGroup == thisNode.getType();
+
+      final TNode nextNode = (TNode) thisNode.getNextSibling();
+      final TNode downNode = (TNode) thisNode.getFirstChild();
+      if( !isClosing &&
+          ( null == downNode && null == nextNode || // unary
+            !first                                  // binary
+          )
+        ) {
+          buf.append(" ").append(upNode.getText());
+      }
+      if( null != downNode ) {
+          if( !isGroupStart ) {
+              buf.append(" (");
+          }
+          getAllChildrenText(buf, thisNode, downNode);
+          if( !isGroupStart ) {
+              buf.append(" )");
+          }
+      } else if( !isClosing ) {
+          buf.append(" ").append(thisNode.getText());
+      }
+      thisNode = nextNode;
+      first = false;
+    }
   }
 
   /** return the last child of this node, or null if there is none */

@@ -30,6 +30,7 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.IOException;
 
+import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p1Impl;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest1p2Impl;
 import com.jogamp.common.os.NativeLibrary;
 
@@ -54,7 +55,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      * Verifies loading of the new library.
      */
     @BeforeClass
-    public static void chapter01TestLoadLibrary() throws Exception {
+    public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest1p2();
         dynamicLookupHelper = NativeLibrary.open("test1", Test1p2ProcAddressEmitter.class.getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test1) failed", dynamicLookupHelper);
@@ -66,7 +67,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      * Verifies the existence and creation of the generated class.
      */
     @Test
-    public void chapter02TestClassExist() throws Exception {
+    public void chapter00TestClassExist() throws Exception {
         testClassExist("test1p2");
     }
 
@@ -76,6 +77,18 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      */
     public void chapter__TestCoverageSignature() throws Exception {
         chapter__TestCoverageSignature(new Bindingtest1p2Impl());
+    }
+
+    /**
+     * Verifies if all generated static constant values are completed,
+     * and whether their value is as expected!
+     * <p>
+     * Covers all enumerates and defines.
+     * </p>
+     */
+    @Test
+    public void chapter01TestStaticConstants() throws Exception {
+        chapter01TestStaticConstants(new Bindingtest1p2Impl());
     }
 
     /**

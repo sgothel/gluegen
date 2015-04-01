@@ -43,6 +43,9 @@ import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.ConstantDefinition;
+import com.jogamp.gluegen.ConstantDefinition.CNumber;
+import com.jogamp.gluegen.GlueGenException;
 import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 
 
@@ -50,40 +53,49 @@ import com.jogamp.gluegen.cgram.types.TypeComparator.SemanticEqualityOp;
 they have a set of named values. */
 public class EnumType extends IntType implements Cloneable {
 
-    private static class Enum implements TypeComparator.SemanticEqualityOp {
-        final String name;
-        final long value;
+    public static class Enumerator implements TypeComparator.SemanticEqualityOp {
+        private final String name;
+        private final String expr;
+        private final CNumber number;
 
-        Enum(final String name, final long value) {
+        public Enumerator(final String name, final long value) {
             this.name = name;
-            this.value = value;
+            this.number = new CNumber(false, false, value);
+            this.expr = this.number.toJavaString();
+        }
+        public Enumerator(final String name, final CNumber number) {
+            this.name = name;
+            this.number = number;
+            this.expr = this.number.toJavaString();
+        }
+        public Enumerator(final String name, final String value) {
+            this.name = name;
+            this.expr = value;
+            this.number = ConstantDefinition.decodeIntegerNumber(value);
         }
 
-        String getName() {
-            return name;
-        }
-
-        long getValue() {
-            return value;
-        }
+        public String getName() { return name; }
+        public String getExpr() { return expr; }
+        public CNumber getNumber() { return number; }
+        public boolean hasNumber() { return null != number; }
 
         @Override
         public int hashCode() {
             // 31 * x == (x << 5) - x
             final int hash = name.hashCode();
-            return ((hash << 5) - hash) + (int)(value ^ (value >>> 32));
+            return ((hash << 5) - hash) + expr.hashCode();
         }
 
         @Override
         public boolean equals(final Object arg) {
             if (arg == this) {
                 return true;
-            } else if ( !(arg instanceof Enum) ) {
+            } else if ( !(arg instanceof Enumerator) ) {
                 return false;
             }
-            final Enum t = (Enum) arg;
+            final Enumerator t = (Enumerator) arg;
             return name.equals(t.name) &&
-                   value == t.value;
+                   expr.equals(t.expr);
         }
 
         @Override
@@ -96,11 +108,12 @@ public class EnumType extends IntType implements Cloneable {
             return equals(arg);
         }
 
-        public String toString() { return name+" = "+value; }
+        @Override
+        public String toString() { return "["+name+" = ["+expr+", "+number+"]"; }
     }
 
     private final IntType underlyingType;
-    private ArrayList<Enum> enums;
+    private ArrayList<Enumerator> enums;
 
     public EnumType(final String name) {
         super(name, SizeThunk.LONG, false, CVAttributes.CONST);
@@ -116,7 +129,7 @@ public class EnumType extends IntType implements Cloneable {
         super(o, cvAttributes, astLocus);
         underlyingType = o.underlyingType;
         if(null != o.enums) {
-            enums = new ArrayList<Enum>(o.enums);
+            enums = new ArrayList<Enumerator>(o.enums);
         }
     }
 
@@ -164,11 +177,11 @@ public class EnumType extends IntType implements Cloneable {
 
     public Type getUnderlyingType() { return this.underlyingType; }
 
-    public void addEnum(final String name, final long val) {
+    public void addEnum(final String name, final Enumerator newEnum) {
         if (enums == null) {
-            enums = new ArrayList<Enum>();
+            enums = new ArrayList<Enumerator>();
         }
-        enums.add(new Enum(name, val));
+        enums.add(newEnum);
         clearCache();
     }
 
@@ -177,22 +190,17 @@ public class EnumType extends IntType implements Cloneable {
         return enums.size();
     }
 
-    /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) name */
-    public String getEnumName(final int i) {
-        return (enums.get(i)).getName();
+    /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) {@link Enumerator} */
+    public Enumerator getEnum(final int i) {
+        return enums.get(i);
     }
 
-    /** Fetch <i>i</i>th (0..getNumEnumerates() - 1) value */
-    public long getEnumValue(final int i) {
-        return (enums.get(i)).getValue();
-    }
-
-    /** Fetch the value of the enumerate with the given name. */
-    public long getEnumValue(final String name) {
+    /** Fetch the enumerate with the given name. */
+    public Enumerator getEnum(final String name) {
         for (int i = 0; i < enums.size(); ++i) {
-            final Enum n = (enums.get(i));
+            final Enumerator n = (enums.get(i));
             if (n.getName().equals(name)) {
-                return n.getValue();
+                return n;
             }
         }
         throw new NoSuchElementException(
@@ -215,7 +223,7 @@ public class EnumType extends IntType implements Cloneable {
      */
     public boolean removeEnumerate(final String name) {
         for (int i = 0; i < enums.size(); ++i) {
-            final Enum e = enums.get(i);
+            final Enumerator e = enums.get(i);
             if (e.getName().equals(name)) {
                 enums.remove(e);
                 clearCache();

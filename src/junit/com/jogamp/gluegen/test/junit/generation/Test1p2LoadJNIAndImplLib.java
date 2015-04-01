@@ -46,7 +46,7 @@ public class Test1p2LoadJNIAndImplLib extends BaseClass {
      * Verifies loading of the new library.
      */
     @BeforeClass
-    public static void chapter01TestLoadLibrary() throws Exception {
+    public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest1p2();
         dynamicLookupHelper = NativeLibrary.open("test1", Test1p2LoadJNIAndImplLib.class.getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test1) failed", dynamicLookupHelper);
@@ -58,17 +58,16 @@ public class Test1p2LoadJNIAndImplLib extends BaseClass {
      * Verifies the existence and creation of the generated class.
      */
     @Test
-    public void chapter02TestClassExist() throws Exception {
+    public void chapter00TestClassExist() throws Exception {
         testClassExist("test1p2");
     }
-
 
     @SuppressWarnings("unused")
     public static void main(final String args[]) throws Exception {
         if( true ) {
-            chapter01TestLoadLibrary();
+            chapter__TestLoadLibrary();
             final Test1p2LoadJNIAndImplLib tst = new Test1p2LoadJNIAndImplLib();
-            tst.chapter02TestClassExist();
+            tst.chapter00TestClassExist();
         } else {
             final String tstname = Test1p2LoadJNIAndImplLib.class.getName();
             org.junit.runner.JUnitCore.main(tstname);

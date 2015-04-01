@@ -98,63 +98,6 @@ public class BaseClass extends SingletonJunitCase {
           AnonBlob ab = null;
           PointerBuffer pb=null;
 
-          // Test constants values: binding and value!
-          {
-              // Plain vanilla CPP constants
-              Assert.assertEquals(   1, Bindingtest1.CONSTANT_ONE);
-              Assert.assertEquals(   8, Bindingtest1.ARRAY_SIZE);
-              Assert.assertEquals(1234, Bindingtest1.DEFINE_01);
-
-              // Enums
-              Assert.assertEquals(   1, Bindingtest1.LI);
-              Assert.assertEquals(   3, Bindingtest1.LO);
-              Assert.assertEquals(   2, Bindingtest1.LU);
-              Assert.assertEquals(   1, Bindingtest1.MI);
-              Assert.assertEquals(   3, Bindingtest1.MO);
-              Assert.assertEquals(   2, Bindingtest1.MU);
-              Assert.assertEquals(   0, Bindingtest1.ZERO);
-              Assert.assertEquals(   1, Bindingtest1.ONE);
-              Assert.assertEquals(   2, Bindingtest1.TWO);
-              Assert.assertEquals(   3, Bindingtest1.THREE);
-
-              // CPP Macro Expansion!
-              Assert.assertEquals(   1, Bindingtest1.NUMBER_ONE);
-              Assert.assertEquals(   2, Bindingtest1.NUMBER_TWO);
-              Assert.assertEquals(   4, Bindingtest1.NUMBER_FOUR);
-              Assert.assertEquals(   8, Bindingtest1.NUMBER_EIGHT);
-              Assert.assertEquals(   9, Bindingtest1.NUMBER_NINE);
-              Assert.assertEquals(  10, Bindingtest1.NUMBER_TEN);
-
-
-              // Floating point hexadecimals
-              final float CL_FLT_A0 = Bindingtest1.CL_FLT_A0;
-              final float CL_FLT_A1 = Bindingtest1.CL_FLT_A1;
-              final float CL_FLT_A2 = Bindingtest1.CL_FLT_A2;
-              Assert.assertEquals(  0x1.p127f,  CL_FLT_A0, EPSILON);
-              Assert.assertEquals(  0x1.p+127F, CL_FLT_A1, EPSILON);
-              Assert.assertEquals(  0x1.p-127f, CL_FLT_A2, EPSILON);
-
-              final float CL_FLT_EPSILON = Bindingtest1.CL_FLT_EPSILON;
-              final double CL_FLT_MAX= Bindingtest1.CL_FLT_MAX;
-              final double CL_FLT_MIN = Bindingtest1.CL_FLT_MIN;
-              Assert.assertEquals(  0x1.0p-23f, CL_FLT_EPSILON, EPSILON);
-              Assert.assertEquals(  0x1.fffffep127f, CL_FLT_MAX, EPSILON);
-              Assert.assertEquals(  0x1.0p-126f, CL_FLT_MIN, EPSILON);
-
-              final double CL_DBL_B0 = Bindingtest1.CL_DBL_B0;
-              final double CL_DBL_B1 = Bindingtest1.CL_DBL_B1;
-              final double CL_DBL_B2 = Bindingtest1.CL_DBL_B2;
-              Assert.assertEquals(  0x1.p127d,  CL_DBL_B0, EPSILON);
-              Assert.assertEquals(  0x1.p+127D, CL_DBL_B1, EPSILON);
-              Assert.assertEquals(  0x1.p-127d, CL_DBL_B2, EPSILON);
-
-              final float CL_DBL_EPSILON = Bindingtest1.CL_DBL_EPSILON;
-              final double CL_DBL_MAX= Bindingtest1.CL_DBL_MAX;
-              final double CL_DBL_MIN = Bindingtest1.CL_DBL_MIN;
-              Assert.assertEquals(  0x1.0p-52f, CL_DBL_EPSILON, EPSILON);
-              Assert.assertEquals(  0x1.fffffffffffffp1023, CL_DBL_MAX, EPSILON);
-              Assert.assertEquals(  0x1.0p-1022, CL_DBL_MIN, EPSILON);
-          }
           {
               l = binding.testXID(l);
               l = binding.testXID_2(l);
@@ -265,6 +208,185 @@ public class BaseClass extends SingletonJunitCase {
           l = binding.typeTestPtrDiffT(l, l);
           l = binding.typeTestIntPtrT(l, l);
           l = binding.typeTestUIntPtrT(l, l);
+    }
+
+    /**
+     * Verifies if all generated static constant values are completed,
+     * and whether their value is as expected!
+     * <p>
+     * Covers all enumerates and defines.
+     * </p>
+     */
+    public void chapter01TestStaticConstants(final Bindingtest1 binding) throws Exception {
+        // Plain vanilla CPP constants
+        Assert.assertEquals(   1, Bindingtest1.CONSTANT_ONE);
+        Assert.assertEquals(   8, Bindingtest1.ARRAY_SIZE);
+        Assert.assertEquals(1234, Bindingtest1.DEFINE_01);
+
+        // Enums
+        Assert.assertEquals(   1, Bindingtest1.LI);
+        Assert.assertEquals(   3, Bindingtest1.LO);
+        Assert.assertEquals(   2, Bindingtest1.LU);
+        Assert.assertEquals(   1, Bindingtest1.MI);
+        Assert.assertEquals(   3, Bindingtest1.MO);
+        Assert.assertEquals(   2, Bindingtest1.MU);
+        Assert.assertEquals(   0, Bindingtest1.ZERO);
+        Assert.assertEquals(   1, Bindingtest1.ONE);
+        Assert.assertEquals(   2, Bindingtest1.TWO);
+        Assert.assertEquals(   3, Bindingtest1.THREE);
+
+        // CPP Macro Expansion!
+        Assert.assertEquals(   1, Bindingtest1.NUMBER_ONE);
+        Assert.assertEquals(   2, Bindingtest1.NUMBER_TWO);
+        Assert.assertEquals(   4, Bindingtest1.NUMBER_FOUR);
+        Assert.assertEquals(   5, Bindingtest1.NUMBER_FIVE);
+        Assert.assertEquals(   8, Bindingtest1.NUMBER_EIGHT);
+        Assert.assertEquals(   9, Bindingtest1.NUMBER_NINE);
+        Assert.assertEquals(  10, Bindingtest1.NUMBER_TEN);
+
+        // Enum Constant Expressions!
+        Assert.assertEquals(   1, Bindingtest1.ENUM_NUM_ONE);
+        Assert.assertEquals(   2, Bindingtest1.ENUM_NUM_TWO);
+        Assert.assertEquals(   3, Bindingtest1.ENUM_NUM_THREE);
+        Assert.assertEquals(   4, Bindingtest1.ENUM_NUM_FOUR);
+        Assert.assertEquals(   5, Bindingtest1.ENUM_NUM_FIVE);
+        Assert.assertEquals(   8, Bindingtest1.ENUM_NUM_EIGHT);
+        Assert.assertEquals(   9, Bindingtest1.ENUM_NUM_NINE);
+        Assert.assertEquals(  10, Bindingtest1.ENUM_NUM_TEN);
+
+        // Integer 32bit (int / enum)
+        final int ENUM_I0 =  Bindingtest1.ENUM_I0;
+        final int ENUM_I1 =  Bindingtest1.ENUM_I1;
+        final int ENUM_I2 =  Bindingtest1.ENUM_I2;
+        final int ENUM_I3 =  Bindingtest1.ENUM_I3;
+        final int ENUM_I4 = -Bindingtest1.ENUM_I4;
+        final int ENUM_I5 = -Bindingtest1.ENUM_I5;
+        final int ENUM_I6 = -Bindingtest1.ENUM_I6;
+        final int ENUM_I7 =  Bindingtest1.ENUM_I7;
+        final int ENUM_I8 =  Bindingtest1.ENUM_I8;
+        final int ENUM_I9 =  Bindingtest1.ENUM_I9;
+        final int ENUM_IA =  Bindingtest1.ENUM_IA;
+        final int ENUM_IB =  Bindingtest1.ENUM_IB;
+        final int ENUM_IX =  Bindingtest1.ENUM_IX;
+        int iexp = 10;
+        Assert.assertEquals(iexp++, ENUM_I0);
+        Assert.assertEquals(iexp++, ENUM_I1);
+        Assert.assertEquals(iexp++, ENUM_I2);
+        Assert.assertEquals(iexp++, ENUM_I3);
+        Assert.assertEquals(iexp++, ENUM_I4);
+        Assert.assertEquals(iexp++, ENUM_I5);
+        Assert.assertEquals(iexp++, ENUM_I6);
+        Assert.assertEquals(iexp++, ENUM_I7);
+        Assert.assertEquals(iexp++, ENUM_I8);
+        Assert.assertEquals(iexp++, ENUM_I9);
+        Assert.assertEquals(iexp++, ENUM_IA);
+        Assert.assertEquals(iexp++, ENUM_IB);
+        Assert.assertEquals(0xffffffff, ENUM_IX);
+
+        // Integer 32bit (int / define)
+        final int CL_INT_I0 =  Bindingtest1.CL_INT_I0;
+        final int CL_INT_I1 =  Bindingtest1.CL_INT_I1;
+        final int CL_INT_I2 =  Bindingtest1.CL_INT_I2;
+        final int CL_INT_I3 =  Bindingtest1.CL_INT_I3;
+        final int CL_INT_I4 = -Bindingtest1.CL_INT_I4;
+        final int CL_INT_I5 = -Bindingtest1.CL_INT_I5;
+        final int CL_INT_I6 = -Bindingtest1.CL_INT_I6;
+        final int CL_INT_I7 = -Bindingtest1.CL_INT_I7;
+        final int CL_INT_I8 =  Bindingtest1.CL_INT_I8;
+        final int CL_INT_I9 =  Bindingtest1.CL_INT_I9;
+        final int CL_INT_IA =  Bindingtest1.CL_INT_IA;
+        final int CL_INT_IB =  Bindingtest1.CL_INT_IB;
+        final int CL_INT_IX =  Bindingtest1.CL_INT_IX;
+        iexp = 10;
+        Assert.assertEquals(iexp++, CL_INT_I0);
+        Assert.assertEquals(iexp++, CL_INT_I1);
+        Assert.assertEquals(iexp++, CL_INT_I2);
+        Assert.assertEquals(iexp++, CL_INT_I3);
+        Assert.assertEquals(iexp++, CL_INT_I4);
+        Assert.assertEquals(iexp++, CL_INT_I5);
+        Assert.assertEquals(iexp++, CL_INT_I6);
+        Assert.assertEquals(iexp++, CL_INT_I7);
+        Assert.assertEquals(iexp++, CL_INT_I8);
+        Assert.assertEquals(iexp++, CL_INT_I9);
+        Assert.assertEquals(iexp++, CL_INT_IA);
+        Assert.assertEquals(iexp++, CL_INT_IB);
+        Assert.assertEquals(0xffffffff, CL_INT_IX);
+
+        // Integer 64bit (long / define )
+        final long CL_LNG_L0 =  Bindingtest1.CL_LNG_L0;
+        final long CL_LNG_L1 =  Bindingtest1.CL_LNG_L1;
+        final long CL_LNG_L2 =  Bindingtest1.CL_LNG_L2;
+        final long CL_LNG_L3 =  Bindingtest1.CL_LNG_L3;
+        final long CL_LNG_L4 = -Bindingtest1.CL_LNG_L4;
+        final long CL_LNG_L5 = -Bindingtest1.CL_LNG_L5;
+        final long CL_LNG_L6 = -Bindingtest1.CL_LNG_L6;
+        final long CL_LNG_L7 = -Bindingtest1.CL_LNG_L7;
+        final long CL_LNG_L8 =  Bindingtest1.CL_LNG_L8;
+        final long CL_LNG_L9 =  Bindingtest1.CL_LNG_L9;
+        final long CL_LNG_LA =  Bindingtest1.CL_LNG_LA;
+        final long CL_LNG_LB =  Bindingtest1.CL_LNG_LB;
+        final long CL_LNG_LX =  Bindingtest1.CL_LNG_LX;
+        long lexp = 2147483648L;
+        Assert.assertEquals(lexp++, CL_LNG_L0);
+        Assert.assertEquals(lexp++, CL_LNG_L1);
+        Assert.assertEquals(lexp++, CL_LNG_L2);
+        Assert.assertEquals(lexp++, CL_LNG_L3);
+        Assert.assertEquals(lexp++, CL_LNG_L4);
+        Assert.assertEquals(lexp++, CL_LNG_L5);
+        Assert.assertEquals(lexp++, CL_LNG_L6);
+        Assert.assertEquals(lexp++, CL_LNG_L7);
+        Assert.assertEquals(lexp++, CL_LNG_L8);
+        Assert.assertEquals(lexp++, CL_LNG_L9);
+        Assert.assertEquals(lexp++, CL_LNG_LA);
+        Assert.assertEquals(lexp++, CL_LNG_LB);
+        Assert.assertEquals(0xffffffffffffffffL, CL_LNG_LX);
+
+        // Floating point hexadecimals
+        final float CL_FLT_A0 = Bindingtest1.CL_FLT_A0;
+        final float CL_FLT_A1 = Bindingtest1.CL_FLT_A1;
+        final float CL_FLT_A2 = Bindingtest1.CL_FLT_A2;
+        final float CL_FLT_A3 = Bindingtest1.CL_FLT_A3;
+        final float CL_FLT_A4 = Bindingtest1.CL_FLT_A4;
+        final float CL_FLT_A5 = Bindingtest1.CL_FLT_A5;
+        final float CL_FLT_A6 = Bindingtest1.CL_FLT_A6;
+        final float CL_FLT_A7 = Bindingtest1.CL_FLT_A7;
+        Assert.assertEquals(  0x1.p127f,  CL_FLT_A0, EPSILON);
+        Assert.assertEquals(  0x1.p+127F, CL_FLT_A1, EPSILON);
+        Assert.assertEquals(  0x1.p-127f, CL_FLT_A2, EPSILON);
+        Assert.assertEquals( -0.1f, CL_FLT_A3, EPSILON);
+        Assert.assertEquals(  0.2f, CL_FLT_A4, EPSILON);
+        Assert.assertEquals(  0.3f, CL_FLT_A5, EPSILON);
+        Assert.assertEquals(  0.4f, CL_FLT_A6, EPSILON);
+        Assert.assertEquals(  1.0f, CL_FLT_A7, EPSILON);
+
+        final float CL_FLT_EPSILON = Bindingtest1.CL_FLT_EPSILON;
+        final double CL_FLT_MAX= Bindingtest1.CL_FLT_MAX;
+        final double CL_FLT_MIN = Bindingtest1.CL_FLT_MIN;
+        Assert.assertEquals(  0x1.0p-23f, CL_FLT_EPSILON, EPSILON);
+        Assert.assertEquals(  0x1.fffffep127f, CL_FLT_MAX, EPSILON);
+        Assert.assertEquals(  0x1.0p-126f, CL_FLT_MIN, EPSILON);
+
+        final double CL_DBL_B0 = Bindingtest1.CL_DBL_B0;
+        final double CL_DBL_B1 = Bindingtest1.CL_DBL_B1;
+        final double CL_DBL_B2 = Bindingtest1.CL_DBL_B2;
+        final double CL_DBL_B3 = Bindingtest1.CL_DBL_B3;
+        final double CL_DBL_B4 = Bindingtest1.CL_DBL_B4;
+        final double CL_DBL_B5 = Bindingtest1.CL_DBL_B5;
+        final double CL_DBL_B6 = Bindingtest1.CL_DBL_B6;
+        Assert.assertEquals(  0x1.p127d,  CL_DBL_B0, EPSILON);
+        Assert.assertEquals(  0x1.p+127D, CL_DBL_B1, EPSILON);
+        Assert.assertEquals(  0x1.p-127d, CL_DBL_B2, EPSILON);
+        Assert.assertEquals( -0.1, CL_DBL_B3, EPSILON);
+        Assert.assertEquals(  0.2, CL_DBL_B4, EPSILON);
+        Assert.assertEquals(  0.3, CL_DBL_B5, EPSILON);
+        Assert.assertEquals(  3.5e+38, CL_DBL_B6, EPSILON);
+
+        final float CL_DBL_EPSILON = Bindingtest1.CL_DBL_EPSILON;
+        final double CL_DBL_MAX= Bindingtest1.CL_DBL_MAX;
+        final double CL_DBL_MIN = Bindingtest1.CL_DBL_MIN;
+        Assert.assertEquals(  0x1.0p-52f, CL_DBL_EPSILON, EPSILON);
+        Assert.assertEquals(  0x1.fffffffffffffp1023, CL_DBL_MAX, EPSILON);
+        Assert.assertEquals(  0x1.0p-1022, CL_DBL_MIN, EPSILON);
     }
 
     ByteBuffer newByteBuffer(final int size, final boolean direct) {

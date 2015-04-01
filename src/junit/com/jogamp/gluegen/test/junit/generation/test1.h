@@ -39,13 +39,53 @@ typedef void * AnonBuffer; // Non Opaque
 // typedef XID    XID_2;              // Duplicate w/ compatible type (ignored) - OpenSolaris: Native gcc error
 // typedef int    XID_2;              // Duplicate w/ incompatible type ERROR
 
+#define CL_INT_I0           10
+#define CL_INT_I1           11u
+#define CL_INT_I2           12U
+#define CL_INT_I3           0x0d
+#define CL_INT_I4           -14
+#define CL_INT_I5           -15u
+#define CL_INT_I6           -16U
+#define CL_INT_I7           -0x11U
+#define CL_INT_I8           +18
+#define CL_INT_I9           +19u
+#define CL_INT_IA           +20U
+#define CL_INT_IB           +0x15u
+#define CL_INT_IX           0xffffffffU
+
+enum CL_INT { ENUM_I0=10, ENUM_I1, ENUM_I2=+12U, ENUM_I3=0x0d, ENUM_I4=-14, ENUM_I5=-15u, ENUM_I6=-16U, ENUM_I7=0x11U, 
+              ENUM_I8=+18, ENUM_I9=+19u, ENUM_IA, ENUM_IB=+0x15u, ENUM_IX=0xffffffffU };
+
+#define CL_LNG_L0           2147483648
+#define CL_LNG_L1           0x80000001ul
+#define CL_LNG_L2           2147483650UL
+#define CL_LNG_L3           0x80000003l
+#define CL_LNG_L4           -2147483652L
+#define CL_LNG_L5           -2147483653ul
+#define CL_LNG_L6           -2147483654lu
+#define CL_LNG_L7           -0x80000007UL
+#define CL_LNG_L8           +2147483656LU
+#define CL_LNG_L9           +2147483657uL
+#define CL_LNG_LA           +2147483658lU
+#define CL_LNG_LB           +0x8000000BLu
+#define CL_LNG_LX           0xffffffffffffffffUL
+
 #define CL_FLT_A0           0x1p127
 #define CL_FLT_A1           0x1p+127F
-#define CL_FLT_A2           0x1p-127f
+#define CL_FLT_A2           +0x1p-127f
+#define CL_FLT_A3           -0.1
+#define CL_FLT_A4           0.2f
+#define CL_FLT_A5           0.3F
+#define CL_FLT_A6           .4
+#define CL_FLT_A7           1.0
 
 #define CL_DBL_B0           0x1.p127d
 #define CL_DBL_B1           0x1.p+127D
-#define CL_DBL_B2           0x1.p-127d
+#define CL_DBL_B2           +0x1.p-127d
+#define CL_DBL_B3           -0.1d
+#define CL_DBL_B4           0.2D
+#define CL_DBL_B5           .3D
+#define CL_DBL_B6           3.5e+38
 
 #define CL_FLT_MAX          0x1.fffffep127f
 #define CL_FLT_MIN          0x1.0p-126f
@@ -69,9 +109,21 @@ typedef void * AnonBuffer; // Non Opaque
 #define NUMBER_ONE      CONSTANT_ONE
 #define NUMBER_TWO      ( NUMBER_ONE + NUMBER_ONE )
 #define NUMBER_FOUR     ( NUMBER_ONE << NUMBER_TWO )
+#define NUMBER_FIVE     ( ( CONSTANT_ONE << NUMBER_TWO ) + NUMBER_ONE )
 #define NUMBER_EIGHT    ( NUMBER_TWO * NUMBER_TWO + ( NUMBER_ONE << NUMBER_TWO ) )
 #define NUMBER_NINE     ( 2 * 2 + ( 1 << 2 ) + 1 )
 #define NUMBER_TEN      ( NUMBER_EIGHT | NUMBER_TWO )
+
+enum NumberOps { ENUM_NUM_ONE = CONSTANT_ONE,
+                 ENUM_NUM_TWO = 1+1,
+                 ENUM_NUM_THREE,
+                 ENUM_NUM_FOUR = ( ENUM_NUM_ONE << ENUM_NUM_TWO ),
+                 ENUM_NUM_FIVE = ( CONSTANT_ONE << ENUM_NUM_TWO ) + ENUM_NUM_ONE,
+                 ENUM_NUM_EIGHT = ( ENUM_NUM_TWO * ENUM_NUM_TWO + ( ENUM_NUM_ONE << ENUM_NUM_TWO ) ),
+                 ENUM_NUM_NINE = ( 2 * 2 + ( 1 << 2 ) + 1 ),
+                 ENUM_NUM_TEN = ENUM_NUM_EIGHT | 
+                                ENUM_NUM_TWO
+               };
 
 enum Lala { LI=1, LU, LO };            
 // enum Lala { LI=1, LU, LO };        // Duplicate w/ same value (ignored, ERROR in native compilation)

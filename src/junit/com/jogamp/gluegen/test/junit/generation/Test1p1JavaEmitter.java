@@ -50,7 +50,7 @@ public class Test1p1JavaEmitter extends BaseClass {
      * Verifies loading of the new library.
      */
     @BeforeClass
-    public static void chapter01TestLoadLibrary() throws Exception {
+    public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest1p1();
     }
 
@@ -58,7 +58,7 @@ public class Test1p1JavaEmitter extends BaseClass {
      * Verifies the existence and creation of the generated class.
      */
     @Test
-    public void chapter02TestClassExist() throws Exception {
+    public void chapter00TestClassExist() throws Exception {
         testClassExist("test1p1");
     }
 
@@ -68,6 +68,18 @@ public class Test1p1JavaEmitter extends BaseClass {
      */
     public void chapter__TestCoverageSignature() throws Exception {
         chapter__TestCoverageSignature(new Bindingtest1p1Impl());
+    }
+
+    /**
+     * Verifies if all generated static constant values are completed,
+     * and whether their value is as expected!
+     * <p>
+     * Covers all enumerates and defines.
+     * </p>
+     */
+    @Test
+    public void chapter01TestStaticConstants() throws Exception {
+        chapter01TestStaticConstants(new Bindingtest1p1Impl());
     }
 
     /**

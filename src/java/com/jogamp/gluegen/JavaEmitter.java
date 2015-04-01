@@ -40,24 +40,56 @@
 
 package com.jogamp.gluegen;
 
+import static com.jogamp.gluegen.JavaEmitter.MethodAccess.PACKAGE_PRIVATE;
+import static com.jogamp.gluegen.JavaEmitter.MethodAccess.PRIVATE;
+import static com.jogamp.gluegen.JavaEmitter.MethodAccess.PROTECTED;
+import static com.jogamp.gluegen.JavaEmitter.MethodAccess.PUBLIC;
+import static com.jogamp.gluegen.JavaEmitter.MethodAccess.PUBLIC_ABSTRACT;
+import static java.util.logging.Level.FINE;
+import static java.util.logging.Level.INFO;
+import static java.util.logging.Level.WARNING;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.Buffer;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import jogamp.common.os.MachineDataInfoRuntime;
+
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.MachineDataInfo;
-
-import java.io.*;
-import java.util.*;
-import java.text.MessageFormat;
-
+import com.jogamp.common.util.ArrayHashMap;
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.Logging.LoggerIf;
-import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.cgram.types.AliasedSymbol;
+import com.jogamp.gluegen.cgram.types.ArrayType;
+import com.jogamp.gluegen.cgram.types.CVAttributes;
+import com.jogamp.gluegen.cgram.types.CompoundType;
+import com.jogamp.gluegen.cgram.types.Field;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.FunctionType;
+import com.jogamp.gluegen.cgram.types.IntType;
+import com.jogamp.gluegen.cgram.types.PointerType;
+import com.jogamp.gluegen.cgram.types.SizeThunk;
+import com.jogamp.gluegen.cgram.types.StructLayout;
+import com.jogamp.gluegen.cgram.types.Type;
 import com.jogamp.gluegen.cgram.types.TypeComparator.AliasedSemanticSymbol;
-
-import java.nio.Buffer;
-
-import jogamp.common.os.MachineDataInfoRuntime;
-import static java.util.logging.Level.*;
-import static com.jogamp.gluegen.JavaEmitter.MethodAccess.*;
+import com.jogamp.gluegen.cgram.types.TypeDictionary;
 
 // PROBLEMS:
 //  - what if something returns 'const int *'? Could we
@@ -134,9 +166,12 @@ public class JavaEmitter implements GlueEmitter {
       return functions;
     }
 
-    private <T extends AliasedSemanticSymbol> List<T> filterSymbolsInt(final List<T> inList, final List<T> outList) {
+    private <T extends AliasedSemanticSymbol> List<T> filterSymbolsInt(final List<T> inList,
+                                                                       final boolean preserveOrder,
+                                                                       final List<T> outList) {
         final JavaConfiguration cfg = getConfig();
-        final HashMap<String, T> symMap = new HashMap<String, T>(100);
+        final ArrayHashMap<String, T> symMap =
+                new ArrayHashMap<String, T>(false, 100, ArrayHashMap.DEFAULT_LOAD_FACTOR);
         for (final T sym : inList) {
             final String origName = sym.getName();
             final String newName = cfg.getJavaSymbolRename(origName);
@@ -195,21 +230,23 @@ public class JavaEmitter implements GlueEmitter {
                 }
             }
         }
-        outList.addAll(symMap.values());
-        // sort constants to make them easier to find in native code
-        Collections.sort(outList, new Comparator<T>() {
-            @Override
-            public int compare(final T o1, final T o2) {
-                return o1.getName().compareTo(o2.getName());
-            }
-        });
+        outList.addAll(symMap.getData());
+        if( !preserveOrder ) {
+            // sort constants to make them easier to find in native code
+            Collections.sort(outList, new Comparator<T>() {
+                @Override
+                public int compare(final T o1, final T o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+        }
         return outList;
     }
 
     @Override
     public void filterSymbols(final List<ConstantDefinition> inConstList, final List<FunctionSymbol> inFuncList) {
-        constants = filterSymbolsInt(inConstList, new ArrayList<ConstantDefinition>(100));
-        functions = filterSymbolsInt(inFuncList, new ArrayList<FunctionSymbol>(100));
+        constants = filterSymbolsInt(inConstList, true, new ArrayList<ConstantDefinition>(100));
+        functions = filterSymbolsInt(inFuncList, true, new ArrayList<FunctionSymbol>(100));
     }
   }
 
@@ -253,171 +290,6 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  protected static int getJavaRadix(final String name, final String value)  {
-    // FIXME: need to handle when type specifier is in last char (e.g.,
-    // "1.0d or 2759L", because parseXXX() methods don't allow the type
-    // specifier character in the string.
-    //
-    //char lastChar = value.charAt(value.length()-1);
-
-    try {
-      // see if it's a long or int
-      int radix;
-      String parseValue;
-      // FIXME: are you allowed to specify hex/octal constants with
-      // negation, e.g. "-0xFF" or "-056"? If so, need to modify the
-      // following "if(..)" checks and parseValue computation
-      if (value.startsWith("0x") || value.startsWith("0X")) {
-        radix = 16;
-        parseValue = value.substring(2);
-      }
-      else if (value.startsWith("0") && value.length() > 1) {
-        // TODO: is "0" the prefix in C to indicate octal???
-        radix = 8;
-        parseValue = value.substring(1);
-      }
-      else {
-        radix = 10;
-        parseValue = value;
-      }
-      //System.err.println("parsing " + value + " as long w/ radix " + radix);
-      Long.parseLong(parseValue, radix);
-      return radix;
-    } catch (final NumberFormatException e) {
-      try {
-        // see if it's a double or float
-        Double.parseDouble(value);
-        return 10;
-      } catch (final NumberFormatException e2) {
-        throw new RuntimeException(
-          "Cannot emit define \""+name+"\": value \""+value+
-          "\" cannot be assigned to a int, long, float, or double", e2);
-      }
-    }
-  }
-
-  protected static Object getJavaValue(final String name, final String value) {
-
-    // "calculates" the result type of a simple expression
-    // example: (2+3)-(2.0f-3.0) -> Double
-    // example: (1 << 2) -> Integer
-    final Scanner scanner = new Scanner(value).useDelimiter(ConstantDefinition.patternCPPOperand);
-
-    Object resultType = null;
-
-    while (scanner.hasNext()) {
-
-        final String t = scanner.next().trim();
-
-        if(0<t.length()) {
-            final Object type = getJavaValue2(name, t);
-
-            //fast path
-            if(type instanceof Double)
-                return type;
-
-            if(resultType != null) {
-
-                if(resultType instanceof Integer) {
-                    if(type instanceof Long || type instanceof Float || type instanceof Double)
-                        resultType = type;
-                }else if(resultType instanceof Long) {
-                    if(type instanceof Float || type instanceof Double)
-                        resultType = type;
-                }else if(resultType instanceof Float) {
-                    if(type instanceof Float)
-                        resultType = type;
-                }
-            }else{
-                resultType = type;
-            }
-
-            //fast path
-            if(resultType instanceof Double)
-                return type;
-        }
-    }
-
-    return resultType;
-  }
-
-  private static Object getJavaValue2(final String name, final String value) {
-    // FIXME: need to handle when type specifier is in last char (e.g.,
-    // "1.0d or 2759L", because parseXXX() methods don't allow the type
-    // specifier character in the string.
-    //
-    final char lastChar = value.charAt(value.length()-1);
-
-    try {
-      // see if it's a long or int
-      int radix;
-      String parseValue;
-      // FIXME: are you allowed to specify hex/octal constants with
-      // negation, e.g. "-0xFF" or "-056"? If so, need to modify the
-      // following "if(..)" checks and parseValue computation
-      if (value.startsWith("0x") || value.startsWith("0X")) {
-        radix = 16;
-        parseValue = value.substring(2);
-      } else if (value.startsWith("0") && value.length() > 1) {
-        // TODO: is "0" the prefix in C to indicate octal???
-        radix = 8;
-        parseValue = value.substring(1);
-      } else {
-        radix = 10;
-        parseValue = value;
-      }
-      if(lastChar == 'u' || lastChar == 'U') {
-          parseValue = parseValue.substring(0, parseValue.length()-1);
-      }
-
-      //System.err.println("parsing " + value + " as long w/ radix " + radix);
-      final long longVal = Long.parseLong(parseValue, radix);
-      // if constant is small enough, store it as an int instead of a long
-      if (longVal > Integer.MIN_VALUE && longVal < Integer.MAX_VALUE) {
-        return (int)longVal;
-      }
-      return longVal;
-
-    } catch (final NumberFormatException e) {
-      try {
-        // see if it's a double or float
-        final double dVal = Double.parseDouble(value);
-        final double absVal = Math.abs(dVal);
-        // if constant is small enough, store it as a float instead of a double
-        if (absVal < Float.MIN_VALUE || absVal > Float.MAX_VALUE || lastChar == 'd' || lastChar == 'D' ) {
-            return new Double(dVal);
-        }
-        return new Float((float) dVal);
-      } catch (final NumberFormatException e2) {
-        throw new RuntimeException(
-          "Cannot emit define \""+name+"\": value \""+value+
-          "\" cannot be assigned to a int, long, float, or double", e2);
-      }
-    }
-  }
-
-
-  protected static String getJavaType(final String name, final String value) {
-    final Object oval = getJavaValue(name, value);
-    return getJavaType(name, oval);
-  }
-
-  protected static String getJavaType(final String name, final Object oval) {
-    if(oval instanceof Integer) {
-        return "int";
-    } else if(oval instanceof Long) {
-        return "long";
-    } else if(oval instanceof Float) {
-        return "float";
-    } else if(oval instanceof Double) {
-        return "double";
-    }
-
-    throw new RuntimeException(
-      "Cannot emit define (2) \""+name+"\": value \""+oval+
-      "\" cannot be assigned to a int, long, float, or double");
-  }
-
   /** Mangle a class, package or function name for JNI usage, i.e. replace all '.' w/ '_' */
   protected static String jniMangle(final String name) {
     return name.replaceAll("_", "_1").replace('.', '_');
@@ -426,6 +298,9 @@ public class JavaEmitter implements GlueEmitter {
   protected static String getJNIMethodNamePrefix(final String javaPackageName, final String javaClassName) {
       return "Java_"+jniMangle(javaPackageName)+"_"+jniMangle(javaClassName);
   }
+
+  private final Map<String, ConstantDefinition.JavaExpr> constMap =
+          new HashMap<String, ConstantDefinition.JavaExpr>();
 
   @Override
   public void emitDefine(final ConstantDefinition def, final String optionalComment) throws Exception  {
@@ -439,24 +314,22 @@ public class JavaEmitter implements GlueEmitter {
       // currently only emits only numeric defines -- if it handled #define'd
       // objects it would make a bigger difference.
 
-      final String name = def.getName();
-      String value = def.getValue();
-
       if ( !cfg.shouldIgnoreInInterface(def) ) {
-        final String type = getJavaType(name, value);
+        final ConstantDefinition.JavaExpr constExpr = def.computeJavaExpr(constMap);
+        constMap.put(def.getName(), constExpr);
+        javaWriter().print("  /** ");
         if (optionalComment != null && optionalComment.length() != 0) {
-          javaWriter().println("  /** " + optionalComment + " */");
+            javaWriter().print(optionalComment);
+            javaWriter().print(" - ");
         }
-        String suffix = "";
-        final char lastChar = value.charAt(value.length()-1);
-        if( lastChar != ')' ) {
-            if (type.equals("float") && lastChar != 'f' && lastChar != 'F' ) {
-                suffix = "f";
-            }else if( lastChar == 'u' || lastChar == 'U' ) {
-                value = value.substring(0, value.length()-1);
-            }
+        javaWriter().print("CType: ");
+        if( constExpr.resultType.isUnsigned ) {
+            javaWriter().print("unsigned ");
         }
-        javaWriter().println("  public static final " + type + " " + name + " = " + value + suffix + ";");
+        javaWriter().print(constExpr.resultJavaTypeName);
+        javaWriter().println(" */");
+        javaWriter().println("  public static final " + constExpr.resultJavaTypeName +
+                             " " + def.getName() + " = " + constExpr.javaExpression + ";");
       }
     }
   }

@@ -74,7 +74,7 @@ public class DebugEmitter implements GlueEmitter {
   @Override
   public void emitDefine(final ConstantDefinition def, final String optionalComment) {
     final String name = def.getName();
-    final String value = def.getValue();
+    final String value = def.getNativeExpr();
     System.out.println("#define " + name + " " + value +
                        (optionalComment != null ? ("// " + optionalComment) : ""));
   }
