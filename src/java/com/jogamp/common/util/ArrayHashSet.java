@@ -68,23 +68,76 @@ import java.util.ListIterator;
 public class ArrayHashSet<E>
     implements Cloneable, Collection<E>, List<E>
 {
+    /**
+     * Default load factor: {@value}
+     */
+    public static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    /**
+     * The default initial capacity: {@value}
+     */
+    public static final int DEFAULT_INITIAL_CAPACITY = 16;
+
     private final HashMap<E,E> map; // object -> object
     private final ArrayList<E> data; // list of objects
+    private final boolean supportNullValue;
 
+    /**
+     * @deprecated Use {@link #ArrayHashSet(boolean, int, float)}
+     */
     public ArrayHashSet() {
-        map  = new HashMap<E,E>();
-        data = new ArrayList<E>();
+        this(true, DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
     }
 
+    /**
+     * @param initialCapacity
+     * @deprecated Use {@link #ArrayHashSet(boolean, int, float)}
+     */
     public ArrayHashSet(final int initialCapacity) {
-        map  = new HashMap<E,E>(initialCapacity);
-        data = new ArrayList<E>(initialCapacity);
+        this(true, initialCapacity, DEFAULT_LOAD_FACTOR);
     }
 
+    /**
+     * @param initialCapacity
+     * @param loadFactor
+     * @deprecated Use {@link #ArrayHashSet(boolean, int, float)}
+     */
     public ArrayHashSet(final int initialCapacity, final float loadFactor) {
-        map  = new HashMap<E,E>(initialCapacity, loadFactor);
-        data = new ArrayList<E>(initialCapacity);
+        this(true, initialCapacity, loadFactor);
     }
+
+    /**
+     *
+     * @param supportNullValue Use {@code true} for default behavior, i.e. {@code null} can be a valid value.
+     *                         Use {@code false} if {@code null} is not a valid value,
+     *                         here {@link #remove(E)} and {@link #getOrAdd(Object)} will be optimized.
+     * @param initialCapacity use {@link #DEFAULT_INITIAL_CAPACITY} for default
+     * @param loadFactor use {@link #DEFAULT_LOAD_FACTOR} for default
+     * @see #supportsNullValue()
+     */
+    public ArrayHashSet(final boolean supportNullValue, final int initialCapacity, final float loadFactor) {
+        this.map  = new HashMap<E,E>(initialCapacity, loadFactor);
+        this.data = new ArrayList<E>(initialCapacity);
+        this.supportNullValue = supportNullValue;
+    }
+
+    /**
+     * @return a shallow copy of this ArrayHashSet, elements are not copied.
+     */
+    public ArrayHashSet(final ArrayHashSet<E> o) {
+        map = new HashMap<E, E>(o.map);
+        data = new ArrayList<E>(o.data);
+        supportNullValue = o.supportNullValue;
+    }
+
+    /**
+     * Returns {@code true} for default behavior, i.e. {@code null} can be a valid value.
+     * <p>
+     * Returns {@code false} if {@code null} is not a valid value,
+     * here {@link #remove(E)} and {@link #getOrAdd(Object)} are optimized operations.
+     * </p>
+     * @see #ArrayHashSet(boolean, int, float)
+     */
+    public final boolean supportsNullValue() { return supportNullValue; }
 
     //
     // Cloneable
@@ -95,12 +148,7 @@ public class ArrayHashSet<E>
      */
     @Override
     public final Object clone() {
-        final ArrayList<E> clonedList = new ArrayList<E>(data);
-
-        final ArrayHashSet<E> newObj = new ArrayHashSet<E>();
-        newObj.addAll(clonedList);
-
-        return newObj;
+        return new ArrayHashSet<E>(this);
     }
 
     /** Returns this object ordered ArrayList. Use w/ care, it's not a copy. */
@@ -125,40 +173,66 @@ public class ArrayHashSet<E>
      * Add element at the end of this list, if it is not contained yet.
      * <br>
      * This is an O(1) operation
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if the element was added to this list,
      *         otherwise false (already contained).
+     * @throws NullPointerException if {@code element} is {@code null} but {@link #supportsNullValue()} == {@code false}
      */
     @Override
-    public final boolean add(final E element) {
-        final boolean exists = map.containsKey(element);
-        if(!exists) {
+    public final boolean add(final E element) throws NullPointerException {
+        if( !supportNullValue ) {
+            checkNull(element);
+        }
+        if( !map.containsKey(element) ) {
+            // !exists
             if(null != map.put(element, element)) {
+                // slips a valid null ..
                 throw new InternalError("Already existing, but checked before: "+element);
             }
             if(!data.add(element)) {
                 throw new InternalError("Couldn't add element: "+element);
             }
+            return true;
         }
-        return !exists;
+        return false;
     }
 
     /**
      * Remove element from this list.
      * <br>
-     * This is an O(1) operation, in case it does not exist,
+     * This is an O(1) operation, in case the element does not exist,
      * otherwise O(n).
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if the element was removed from this list,
      *         otherwise false (not contained).
+     * @throws NullPointerException if {@code element} is {@code null} but {@link #supportsNullValue()} == {@code false}
      */
     @Override
-    public final boolean remove(final Object element) {
-        if ( null != map.remove(element) ) {
-            if ( ! data.remove(element) ) {
-                throw new InternalError("Couldn't remove prev mapped element: "+element);
+    public final boolean remove(final Object element) throws NullPointerException {
+        if( supportNullValue ) {
+            if( map.containsKey(element) ) {
+                // exists
+                map.remove(element);
+                if ( !data.remove(element) ) {
+                    throw new InternalError("Couldn't remove prev mapped element: "+element);
+                }
+                return true;
             }
-            return true;
+        } else {
+            checkNull(element);
+            if ( null != map.remove(element) ) {
+                // exists
+                if ( !data.remove(element) ) {
+                    throw new InternalError("Couldn't remove prev mapped element: "+element);
+                }
+                return true;
+            }
         }
         return false;
     }
@@ -167,6 +241,9 @@ public class ArrayHashSet<E>
      * Add all elements of given {@link java.util.Collection} at the end of this list.
      * <br>
      * This is an O(n) operation, over the given Collection size.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if at least one element was added to this list,
      *         otherwise false (completely container).
@@ -184,6 +261,9 @@ public class ArrayHashSet<E>
      * Test for containment
      * <br>
      * This is an O(1) operation.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if the given element is contained by this list using fast hash map,
      *         otherwise false.
@@ -197,6 +277,9 @@ public class ArrayHashSet<E>
      * Test for containment of given {@link java.util.Collection}
      * <br>
      * This is an O(n) operation, over the given Collection size.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if the given Collection is completly contained by this list using hash map,
      *         otherwise false.
@@ -215,6 +298,9 @@ public class ArrayHashSet<E>
      * Remove all elements of given {@link java.util.Collection} from this list.
      * <br>
      * This is an O(n) operation.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if at least one element of this list was removed,
      *         otherwise false.
@@ -233,6 +319,9 @@ public class ArrayHashSet<E>
      * remove all elements not contained by the given {@link java.util.Collection} c.
      * <br>
      * This is an O(n) operation.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if at least one element of this list was removed,
      *         otherwise false.
@@ -250,6 +339,9 @@ public class ArrayHashSet<E>
 
     /**
      * This is an O(n) operation.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return true if arrayHashSet is of type ArrayHashSet and all entries are equal
      * Performance: arrayHashSet(1)
@@ -264,6 +356,9 @@ public class ArrayHashSet<E>
 
     /**
      * This is an O(n) operation over the size of this list.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return the hash code of this list as define in {@link java.util.List#hashCode()},
      * ie hashing all elements of this list.
@@ -316,30 +411,44 @@ public class ArrayHashSet<E>
      * Add element at the given index in this list, if it is not contained yet.
      * <br>
      * This is an O(1) operation
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @throws IllegalArgumentException if the given element was already contained
+     * @throws NullPointerException if {@code element} is {@code null} but {@link #supportsNullValue()} == {@code false}
      */
     @Override
-    public final void add(final int index, final E element) {
+    public final void add(final int index, final E element) throws IllegalArgumentException, NullPointerException {
+        if( !supportNullValue ) {
+            checkNull(element);
+        }
         if ( map.containsKey(element) ) {
             throw new IllegalArgumentException("Element "+element+" is already contained");
         }
         if(null != map.put(element, element)) {
+            // slips a valid null ..
             throw new InternalError("Already existing, but checked before: "+element);
         }
+        // !exists
         data.add(index, element);
     }
 
     /**
+     * <p>
+     * {@inheritDoc}
+     * </p>
      * @throws UnsupportedOperationException
      */
     @Override
-    public final boolean addAll(final int index, final Collection<? extends E> c) {
+    public final boolean addAll(final int index, final Collection<? extends E> c) throws UnsupportedOperationException {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     /**
-     * @throws UnsupportedOperationException
+     * <p>
+     * {@inheritDoc}
+     * </p>
      */
     @Override
     public final E set(final int index, final E element) {
@@ -354,6 +463,9 @@ public class ArrayHashSet<E>
      * Remove element at given index from this list.
      * <br>
      * This is an O(n) operation.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return the removed object
      */
@@ -370,6 +482,9 @@ public class ArrayHashSet<E>
      * Since this list is unique, equivalent to {@link #indexOf(java.lang.Object)}.
      * <br>
      * This is an O(n) operation.
+     * <p>
+     * {@inheritDoc}
+     * </p>
      *
      * @return index of element, or -1 if not found
      */
@@ -409,34 +524,44 @@ public class ArrayHashSet<E>
      * <br>
      * This is an O(1) operation.
      *
-     * @param key hash source to find the identical Object within this list
+     * @param element hash source to find the identical Object within this list
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or null if not contained
      */
-    public final E get(final Object key) {
-        return map.get(key);
+    public final E get(final Object element) {
+        return map.get(element);
     }
 
     /**
      * Identity method allowing to get the identical object, using the internal hash map.<br>
-     * If the <code>key</code> is not yet contained, add it.
+     * If the <code>element</code> is not yet contained, add it.
      * <br>
      * This is an O(1) operation.
      *
-     * @param key hash source to find the identical Object within this list
+     * @param element hash source to find the identical Object within this list
      * @return object from this list, identical to the given <code>key</code> hash code,
      * or add the given <code>key</code> and return it.
+     * @throws NullPointerException if {@code element} is {@code null} but {@link #supportsNullValue()} == {@code false}
      */
-    public final E getOrAdd(final E key) {
-        final E identity = get(key);
-        if(null == identity) {
-            // object not contained yet, add it
-            if(!this.add(key)) {
-                throw new InternalError("Key not mapped, but contained in list: "+key);
+    public final E getOrAdd(final E element) throws NullPointerException {
+        if( supportNullValue ) {
+            if( map.containsKey(element) ) {
+                // existent
+                return map.get(element);
             }
-            return key;
+        } else {
+            checkNull(element);
+            final E identity = map.get(element);
+            if(null != identity) {
+                // existent
+                return identity;
+            }
         }
-        return identity;
+        // !existent
+        if(!this.add(element)) {
+            throw new InternalError("Element not mapped, but contained in list: "+element);
+        }
+        return element;
     }
 
     /**
@@ -455,4 +580,9 @@ public class ArrayHashSet<E>
         return data.contains(element);
     }
 
+    private static final void checkNull(final Object element) throws NullPointerException {
+        if( null == element ) {
+            throw new NullPointerException("Null element not supported");
+        }
+    }
 }

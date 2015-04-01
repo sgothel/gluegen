@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2015 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -40,7 +40,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestArrayHashSet01 extends SingletonJunitCase {
+public class TestArrayHashMap01 extends SingletonJunitCase {
 
     public static class Dummy {
         int i1, i2, i3;
@@ -74,11 +74,11 @@ public class TestArrayHashSet01 extends SingletonJunitCase {
         }
     }
 
-    void populate(final List<Dummy> l, final int start, final int len,
+    void populate(final Map<Integer, Dummy> l, final int start, final int len,
                   final int i2, final int i3, final int expectedPlusSize) {
         final int oldSize = l.size();
         for(int pos = start+len-1; pos>=start; pos--) {
-            l.add(new Dummy(pos, i2, i3));
+            l.put(pos, new Dummy(pos, i2, i3));
         }
         Assert.assertEquals(expectedPlusSize, l.size() - oldSize);
     }
@@ -94,34 +94,36 @@ public class TestArrayHashSet01 extends SingletonJunitCase {
     }
 
     @Test
-    public void test01ArrayHashSetWithNullValue() {
-        testArrayHashSetImpl(true);
+    public void test01ArrayHashMapWithNullValue() {
+        testArrayHashMapImpl(true);
     }
     @Test
     public void test02ArrayHashSetWithoutNullValue() {
-        testArrayHashSetImpl(false);
+        testArrayHashMapImpl(false);
     }
-    void testArrayHashSetImpl(final boolean supportNullValue) {
-        final ArrayHashSet<Dummy> l =
-                new ArrayHashSet<Dummy>(supportNullValue,
+    void testArrayHashMapImpl(final boolean supportNullValue) {
+        final ArrayHashMap<Integer, Dummy> l =
+                new ArrayHashMap<Integer, Dummy>(supportNullValue,
                                         ArrayHashSet.DEFAULT_INITIAL_CAPACITY,
                                         ArrayHashSet.DEFAULT_LOAD_FACTOR);
         Assert.assertEquals(supportNullValue, l.supportsNullValue());
-        final int p7_22_34_idx;
+        final int p7_22_34_key, p7_22_34_idx;
         final Dummy p7_22_34_orig;
-        final int p6_22_34_idx;
+        final int p6_22_34_key, p6_22_34_idx;
         final Dummy p6_22_34_orig;
         {
             populate(l, 10, 100, 22, 34, 100); // [109 .. 10]
-            Assert.assertTrue(checkOrder(l, 0, 10, 100));
+            Assert.assertTrue(checkOrder(l.getData(), 0, 10, 100));
             populate(l, 10, 100, 22, 34,   0); // [109 .. 10]
-            Assert.assertTrue(checkOrder(l, 0, 10, 100));
+            Assert.assertTrue(checkOrder(l.getData(), 0, 10, 100));
             populate(l,  6,   5, 22, 34,   4); // [  9 ..  6], 10 already exists
-            Assert.assertTrue(checkOrder(l, 100, 6, 4));
+            Assert.assertTrue(checkOrder(l.getData(), 100, 6, 4));
             p7_22_34_idx = l.size() - 2;
-            p7_22_34_orig = l.get(p7_22_34_idx);
+            p7_22_34_key = 7;
+            p7_22_34_orig = l.get(p7_22_34_key);
             p6_22_34_idx = l.size() - 1;
-            p6_22_34_orig = l.get(p6_22_34_idx);
+            p6_22_34_key = 6;
+            p6_22_34_orig = l.get(p6_22_34_key);
         }
         Assert.assertNotNull(p7_22_34_orig);
         Assert.assertEquals(7, p7_22_34_orig.i1);
@@ -139,58 +141,35 @@ public class TestArrayHashSet01 extends SingletonJunitCase {
         Assert.assertTrue(p6_22_34_other.hashCode() == p6_22_34_orig.hashCode());
         Assert.assertTrue(p6_22_34_other != p6_22_34_orig); // diff reference
 
-        // slow get on position ..
-        final int i = l.indexOf(p6_22_34_other);
-        Dummy q = l.get(i);
-        Assert.assertNotNull(q);
-        Assert.assertEquals(p6_22_34_other, q);
-        Assert.assertTrue(p6_22_34_other.hashCode() == q.hashCode());
-        Assert.assertTrue(p6_22_34_other != q); // diff reference
-        Assert.assertTrue(p6_22_34_orig == q); // same reference
-
         // fast identity ..
-        q = l.get(p6_22_34_other);
+        Dummy q = l.get(p6_22_34_key);
         Assert.assertNotNull(q);
         Assert.assertEquals(p6_22_34_other, q);
         Assert.assertTrue(p6_22_34_other.hashCode() == q.hashCode());
         Assert.assertTrue(p6_22_34_other != q); // diff reference
         Assert.assertTrue(p6_22_34_orig == q); // same reference
 
-        Assert.assertTrue(!l.add(q)); // add same
-        Assert.assertTrue(!l.add(p6_22_34_other)); // add equivalent
+        Assert.assertTrue(l.containsValue(q));
+        Assert.assertTrue(l.containsValue(p6_22_34_other)); // add equivalent
 
-        q = l.getOrAdd(p6_22_34_other); // not added test w/ diff hash-obj
+        q = l.put(p6_22_34_key, p6_22_34_other); // override w/ diff hash-obj
         Assert.assertNotNull(q);
         Assert.assertEquals(p6_22_34_other, q);
         Assert.assertTrue(p6_22_34_other.hashCode() == q.hashCode());
-        Assert.assertTrue(p6_22_34_other != q); // diff reference
-        Assert.assertTrue(p6_22_34_orig == q); // same reference
-        Assert.assertTrue(checkOrder(l, 0, 10, 100));
-        Assert.assertTrue(checkOrder(l, 100, 6, 4));
+        Assert.assertTrue(p6_22_34_other != q); // diff reference new != old (q)
+        Assert.assertTrue(p6_22_34_orig == q); // same reference orig == old (q)
+        Assert.assertTrue(checkOrder(l.getData(), 0, 10, 100));
+        Assert.assertTrue(checkOrder(l.getData(), 100, 6, 4));
 
         final Dummy p1_2_3 = new Dummy(1, 2, 3); // a new one ..
-        q = l.getOrAdd(p1_2_3); // added test
-        Assert.assertNotNull(q);
-        Assert.assertEquals(p1_2_3, q);
-        Assert.assertTrue(p1_2_3.hashCode() == q.hashCode());
-        Assert.assertTrue(p1_2_3 == q); // _same_ reference, since getOrAdd added it
-        Assert.assertTrue(checkOrder(l, 0, 10, 100));
-        Assert.assertTrue(checkOrder(l, 100, 6, 4));
+        q = l.put(1, p1_2_3); // added test
+        Assert.assertNull(q);
 
         final Dummy pNull = null;
         NullPointerException npe = null;
         try {
-            q = l.getOrAdd(pNull);
+            q = l.put(0, pNull);
             Assert.assertNull(q);
-        } catch (final NullPointerException _npe) { npe = _npe; }
-        if( l.supportsNullValue() ) {
-            Assert.assertNull(npe);
-        } else {
-            Assert.assertNotNull(npe);
-        }
-
-        try {
-            Assert.assertTrue(l.remove(pNull));
         } catch (final NullPointerException _npe) { npe = _npe; }
         if( l.supportsNullValue() ) {
             Assert.assertNull(npe);
@@ -200,7 +179,7 @@ public class TestArrayHashSet01 extends SingletonJunitCase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestArrayHashSet01.class.getName();
+        final String tstname = TestArrayHashMap01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 
