@@ -1,7 +1,22 @@
 https://github.com/sgothel/semantic-versioning
   forked from https://github.com/jeluard/semantic-versioning
 
-0.9.30-SNAPSHOT
+0.9.33-SNAPSHOT
+
+commit c714666c0f4e19bb9db163f576e28d36cad7df74
+Author: Sven Gothel <sgothel@jausoft.com>
+Date:   Fri Apr 3 05:00:00 2015 +0200
+
+    Add Delta.CompatChange for binary compatible changes, i.e. change in method throws clause or final field value
+    
+    Change in method throws clause:
+      - Tools.isThrowsClauseChange(..)
+      - <https://docs.oracle.com/javase/specs/jls/se7/html/jls-13.html#jls-13.4.21>
+    
+    Change of final field value:
+      - Tools.isFieldValueChange(..)
+      - <https://docs.oracle.com/javase/specs/jls/se7/html/jls-13.html#jls-13.4.9>
+
 
 commit 616f566cfe60638eb97823e1f63cf203161502da
 Author: Sven Gothel <sgothel@jausoft.com>

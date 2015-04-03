@@ -86,16 +86,17 @@ public class VersionSemanticsUtil {
         }
 
         System.err.println("Semantic Version Test");
-        System.err.println("Previous version: "+preVersionNumber+" - "+previousJar.toString());
-        System.err.println("Current  version: "+curVersionNumber+" - "+currentJar.toString());
-        System.err.println("Compat. expected: "+expectedCompatibilityType);
-        System.err.println("Compat. detected: "+detectedCompatibilityType);
-        System.err.println("Compat. result:   detected "+compS+" expected -> "+(compOK ? "OK" : "ERROR"));
+        System.err.println(" criteria: "+diffCriteria);
+        System.err.println(" Previous version: "+preVersionNumber+" - "+previousJar.toString());
+        System.err.println(" Current  version: "+curVersionNumber+" - "+currentJar.toString());
+        System.err.println(" Compat. expected: "+expectedCompatibilityType);
+        System.err.println(" Compat. detected: "+detectedCompatibilityType);
+        System.err.println(" Compat. result:   detected "+compS+" expected -> "+(compOK ? "OK" : "ERROR"));
         final String resS;
         if( compOK ) {
-            resS = "Current version "+curVersionNumber+" is "+expectedCompatibilityType+" to previous version "+preVersionNumber+", actually "+detectedCompatibilityType;
+            resS = " Current version "+curVersionNumber+" is "+expectedCompatibilityType+" to previous version "+preVersionNumber+", actually "+detectedCompatibilityType;
         } else {
-            resS = "Current version "+curVersionNumber+" is not "+expectedCompatibilityType+" to previous version "+preVersionNumber+", but "+detectedCompatibilityType;
+            resS = " Current version "+curVersionNumber+" is not "+expectedCompatibilityType+" to previous version "+preVersionNumber+", but "+detectedCompatibilityType;
         }
         System.err.println(resS);
         System.err.printf("%n%n");
