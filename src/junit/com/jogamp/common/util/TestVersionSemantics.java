@@ -100,14 +100,14 @@ public class TestVersionSemantics extends SingletonJunitCase {
 
         VersionSemanticsUtil.testVersion(diffCriteria, expectedCompatibilityType,
                                          previousJar, preVersionNumber,
-                                         currentJar, curVersionNumber,
-                                         excludes);
+                                         currentJar, curVersionNumber, excludes);
     }
 
     @Test
     public void testVersionV230V23x() throws IllegalArgumentException, IOException, URISyntaxException {
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
 
         final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);

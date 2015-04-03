@@ -89,6 +89,7 @@ public class VersionSemanticsUtil {
         System.err.println(" criteria: "+diffCriteria);
         System.err.println(" Previous version: "+preVersionNumber+" - "+previousJar.toString());
         System.err.println(" Current  version: "+curVersionNumber+" - "+currentJar.toString());
+        System.err.println(" Field values changed: "+delta.fieldCompatChanged());
         System.err.println(" Compat. expected: "+expectedCompatibilityType);
         System.err.println(" Compat. detected: "+detectedCompatibilityType);
         System.err.println(" Compat. result:   detected "+compS+" expected -> "+(compOK ? "OK" : "ERROR"));
