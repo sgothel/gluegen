@@ -3,9 +3,9 @@ https://github.com/sgothel/semantic-versioning
 
 0.9.33-SNAPSHOT
 
-commit a6d08112c8e09e3bb32dcdb8397919d664c9c14c
+commit 0d2e314ef48bd2fd38b45f781c4573bdb2b32a69
 Author: Sven Gothel <sgothel@jausoft.com>
-Date:   Fri Apr 3 23:25:40 2015 +0200
+Date:   Fri Apr 3 23:49:31 2015 +0200
 
-    Add CompatibilityType.BACKWARD_COMPATIBLE_BINARY: Allowing changes in throw-clause and field-value
+    *DiffCriteria.differs[Binary](FieldInfo ..): Need to take value type into account!
 
