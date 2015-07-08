@@ -2501,7 +2501,7 @@ public class JavaEmitter implements GlueEmitter {
     if (getConfig().emitImpl()) {
       cWriter.println("#include <assert.h>");
       cWriter.println();
-      cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity); /* forward decl. */");
+      cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jint capacity); /* forward decl. */");
       cWriter.println();
     }
     for (final String code : cfg.customCCode()) {
@@ -2549,7 +2549,7 @@ public class JavaEmitter implements GlueEmitter {
          "    return JNI_TRUE;\n"+
          "}\n"+
          "\n"+
-         "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity) {\n"+
+         "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jint capacity) {\n"+
          "    jobject jbyteBuffer;\n"+
          "    void * byteBufferPtr;\n"+
          "\n"+
