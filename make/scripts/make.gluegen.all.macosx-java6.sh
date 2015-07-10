@@ -25,5 +25,5 @@ export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
 ant \
-    -Drootrel.build=build-macosx \
-    $* 2>&1 | tee make.gluegen.all.macosx.log
+    -Drootrel.build=build-macosx-java6 \
+    $* 2>&1 | tee make.gluegen.all.macosx-java6.log
