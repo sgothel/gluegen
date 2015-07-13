@@ -20,7 +20,6 @@
     <property name="gluegen.cpptasks.detected.os"     value="true" /> 
     <property name="isUnix"                           value="true" /> 
     <property name="isAndroid"                        value="true" /> 
-    <property name="isAndroidARMv6"                   value="false" /> 
     <property name="isAndroidARM64"                   value="true" /> 
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
     <property name="isCrosscompilation"               value="true" />
