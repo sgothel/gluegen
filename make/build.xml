@@ -250,7 +250,6 @@
 
     <target name="declare.win32" depends="declare.win32.vc6,declare.win32.vc7,declare.win32.vc8,declare.win32.vc8_x64,declare.win32.vc9,declare.win32.mingw,declare.win64.mingw" if="isWindows" >
       <property name="c.src.dir.os"                         value="windows" />
-      <property name="java.includes.dir.platform"           value="${java.includes.dir}/win32" />
     </target>
 
     <target name="declare.linux.x86" if="isLinuxX86">
@@ -327,7 +326,6 @@
     
     <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv6" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
-      <property name="java.includes.dir.platform"           value="${java.includes.dir}/linux" />
     </target>
 
     <target name="declare.android" if="isAndroid" >
@@ -354,7 +352,6 @@
    
     <target name="declare.solaris" depends="declare.solaris32,declare.solarisSparcv9,declare.solarisAMD64" if="isSolaris" >
       <property name="c.src.dir.os"                         value="unix" />
-      <property name="java.includes.dir.platform"           value="${java.includes.dir}/solaris" />
     </target>
 
     <target name="declare.macosx" if="isOSX">
@@ -380,7 +377,6 @@
 
     <target name="declare.freebsd" depends="declare.freebsd.x86,declare.freebsd.amd64" if="isFreeBSD" >
       <property name="c.src.dir.os"                         value="unix" />
-      <property name="java.includes.dir.platform"           value="${java.includes.dir}/freebsd" />
     </target>
 
     <target name="declare.hpux" if="isHPUX">
@@ -388,7 +384,6 @@
       <property name="compiler.cfg.id"                      value="compiler.cfg.hpux" />
       <property name="linker.cfg.id"                        value="linker.cfg.hpux" />
       <property name="c.src.dir.os"                         value="unix" />
-      <property name="java.includes.dir.hpux"               value="${java.includes.dir}/hp-ux" />
     </target>
 
     <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.android,declare.solaris,declare.macosx,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" unless="build.javaonly" />
