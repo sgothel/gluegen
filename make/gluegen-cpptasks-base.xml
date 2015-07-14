@@ -88,9 +88,9 @@
    - and the following properties:
    -
    -   java.home.dir               : path to the JDK home directory
-   -   java.includes.dir           : path to the JNI headers (.../jdk/include)
-   -   java.includes.dir.platform  : path to the platform JNI headers (.../jdk/include/linux)
    -   java.lib.dir.platform       : path to the Java library dir (libjawt.so, etc.)
+   -   java.includes.dir           : path to the GlueGen JNI headers: gluegen/make/stub_includes/jni
+   -   java.includes.dir.platform  : path to the GlueGen Platform JNI headers: gluegen/make/stub_includes/jni/<platform>
    -
    - If your project requires only minimal changes to the compiler
    - configuration, you may be able to simply refer to the
@@ -922,7 +922,6 @@
   <target name="setup.java.home.dir.nonmacosx" unless="isOSX">
       <!-- java home dir is up one directory as java.home points to '<java-install-dir>/jre' -->
       <property name="java.home.dir" value="${java.home}/.." />
-      <property name="java.includes.dir" value="${java.home.dir}/include" />
   </target>
   <target name="setup.java.home.dir.macosx" if="isOSX">
       <!-- Java7 std location -->
@@ -930,15 +929,11 @@
                  value="${java.home}/..">
                  <available file="${java.home}/../include/jni.h"/>
       </condition>
-      <condition property="java.includes.dir"
-                 value="${java.home}/../include">
-                 <available file="${java.home}/../include/jni.h"/>
-      </condition>
       <!-- Fallback value Java6 -->
       <property name="java.home.dir" value="/System/Library/Frameworks/JavaVM.framework/Home" />
-      <property name="java.includes.dir" value="/System/Library/Frameworks/JavaVM.framework/Headers" />
   </target>
   <target name="setup.java.home.dir" depends="setup.java.home.dir.nonmacosx,setup.java.home.dir.macosx">
+      <property name="java.includes.dir" value="${gluegen.root.abs-path}/make/stub_includes/jni" />
       <echo message="java.home.dir      ${java.home.dir}" />
       <echo message="java.includes.dir  ${java.includes.dir}" />
   </target>
@@ -1519,7 +1514,7 @@
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux" depends="gluegen.cpptasks.declare.compiler.linux.x86,gluegen.cpptasks.declare.compiler.linux.amd64,gluegen.cpptasks.declare.compiler.linux.ia64,gluegen.cpptasks.declare.compiler.linux.armv6,gluegen.cpptasks.declare.compiler.linux.aarch64,gluegen.cpptasks.declare.compiler.linux.alpha,gluegen.cpptasks.declare.compiler.linux.hppa,gluegen.cpptasks.declare.compiler.linux.mips,gluegen.cpptasks.declare.compiler.linux.mipsel,gluegen.cpptasks.declare.compiler.linux.ppc,gluegen.cpptasks.declare.compiler.linux.s390,gluegen.cpptasks.declare.compiler.linux.s390x,gluegen.cpptasks.declare.compiler.linux.sparc" if="isLinux">
-        <property name="java.includes.dir.platform" value="${java.includes.dir}/linux" />
+        <property name="java.includes.dir.platform" value="${java.includes.dir}/x11" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.solaris32" if="isSolaris32Bit">
@@ -1541,7 +1536,7 @@
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.solaris" depends="gluegen.cpptasks.declare.compiler.solaris32,gluegen.cpptasks.declare.compiler.solaris.sparcv9,gluegen.cpptasks.declare.compiler.solaris.amd64" if="isSolaris">
-      <property name="java.includes.dir.platform"    value="${java.includes.dir}/solaris" />
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/${solaris.cpu}" />
     </target>
 
@@ -1549,25 +1544,13 @@
       <echo message="MacOSX" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.macosx" /> 
-      <!-- Java7 std location -->
-      <!-- Temporary workaround:
-           Provided darwin/jawt_md.h from Oracle for OSX / Java7
-           has X11 dependencies and does not define JAWT_SurfaceLayers. 
-                 value="${java.includes.dir}/darwin">
-        -->
-      <condition property="java.includes.dir.platform"
-                 value="${gluegen.root.abs-path}/make/stub_includes/jni/macosx">
-                 <available file="${java.includes.dir}/darwin/jawt_md.h"/>
-      </condition>
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/macosx" />
       <condition property="java.lib.dir.platform"
                  value="${java.home.dir}/jre/lib">
                  <available file="${java.home.dir}/jre/lib/libjawt.dylib"/>
       </condition>
       <!-- Fallback value Java6 -->
-      <property name="java.includes.dir.platform" value="/System/Library/Frameworks/JavaVM.framework/Headers" />
       <property name="java.lib.dir.platform"      value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
-      <echo message="java.includes.dir.platform   ${java.includes.dir.platform}" />
-      <echo message="java.lib.dir.platform        ${java.lib.dir.platform}" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.freebsd.x86" if="isFreeBSDX86">
@@ -1585,19 +1568,22 @@
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.freebsd" depends="gluegen.cpptasks.declare.compiler.freebsd.x86,gluegen.cpptasks.declare.compiler.freebsd.amd64" if="isFreeBSD">
-      <property name="java.includes.dir.platform"    value="${java.includes.dir}/freebsd" />
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.hpux" if="isHPUX">
       <echo message="HP-UX" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.hpux" />
       <property name="linker.cfg.id.base"            value="linker.cfg.hpux" />
-      <property name="java.includes.dir.platform"    value="${java.includes.dir}/hp-ux" />
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/PA_RISC2.0" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.environment,gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" >
-      <echo message="java.lib.dir.platform: ${java.lib.dir.platform}" />
+      <echo message="java.home.dir                ${java.home.dir}" />
+      <echo message="java.includes.dir            ${java.includes.dir}" />
+      <echo message="java.includes.dir.platform   ${java.includes.dir.platform}" />
+      <echo message="java.lib.dir.platform        ${java.lib.dir.platform}" />
     </target>
 
     <target name="gluegen.cpptasks.setup.compiler" depends="gluegen.cpptasks.detect.compiler,gluegen.cpptasks.configure.compiler,gluegen.cpptasks.declare.compiler" />
