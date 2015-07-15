@@ -23,7 +23,7 @@
   </condition>
 
   <target name="setup.excludes.nsig" unless="gluegen.nsig">
-    <property name="gluegen.excludes.nsig" value="com/jogamp/gluegen/runtime/BufferFactoryInternal.java com/jogamp/gluegen/nativesig/**" />
+    <property name="gluegen.excludes.nsig" value="com/jogamp/gluegen/nativesig/**" />
   </target>
 
   <target name="init.base" depends="jogamp.env.init,gluegen.properties.load.user,gluegen.cpptasks.detect.os,setup.excludes.nsig">
