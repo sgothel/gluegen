@@ -2500,8 +2500,9 @@ public class JavaEmitter implements GlueEmitter {
 
     if (getConfig().emitImpl()) {
       cWriter.println("#include <assert.h>");
+      cWriter.println("#include <stddef.h>");
       cWriter.println();
-      cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jint capacity); /* forward decl. */");
+      cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, size_t capacity); /* forward decl. */");
       cWriter.println();
     }
     for (final String code : cfg.customCCode()) {
@@ -2549,7 +2550,8 @@ public class JavaEmitter implements GlueEmitter {
          "    return JNI_TRUE;\n"+
          "}\n"+
          "\n"+
-         "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jint capacity) {\n"+
+         "#define JINT_MAX_VALUE ((size_t)0x7fffffffU)\n"+
+         "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, size_t capacity) {\n"+
          "    jobject jbyteBuffer;\n"+
          "    void * byteBufferPtr;\n"+
          "\n"+
@@ -2558,7 +2560,13 @@ public class JavaEmitter implements GlueEmitter {
          "        (*env)->FatalError(env, \"initializeImpl() not called\");\n"+
          "        return NULL;\n"+
          "    }\n"+
-         "    jbyteBuffer  = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffersNew, capacity);\n"+
+         "    if( JINT_MAX_VALUE < capacity ) {\n"+
+         "        fprintf(stderr, \"FatalError: capacity > MAX_INT: %lu\\n\", (unsigned long)capacity);\n"+
+         "        (*env)->FatalError(env, \"capacity > MAX_INT\");\n"+
+         "        return NULL;\n"+
+         "    }\n"+
+
+         "    jbyteBuffer  = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffersNew, (jint)capacity);\n"+
          "    byteBufferPtr = (*env)->GetDirectBufferAddress(env, jbyteBuffer);\n"+
          "    memcpy(byteBufferPtr, source_address, capacity);\n"+
          "    return jbyteBuffer;\n"+
