@@ -2515,6 +2515,7 @@ public class JavaEmitter implements GlueEmitter {
          "static const char * clazzNameBuffers = \"com/jogamp/common/nio/Buffers\";\n"+
          "static const char * clazzNameBuffersStaticNewCstrName = \"newDirectByteBuffer\";\n"+
          "static const char * clazzNameBuffersStaticNewCstrSignature = \"(I)Ljava/nio/ByteBuffer;\";\n"+
+         "static const char * sFatalError = \"FatalError:\";\n"+
          "static jclass clazzBuffers = NULL;\n"+
          "static jmethodID cstrBuffersNew = NULL;\n"+
          "static jboolean _initClazzAccessDone = JNI_FALSE;\n"+
@@ -2526,13 +2527,13 @@ public class JavaEmitter implements GlueEmitter {
          "\n"+
          "    c = (*env)->FindClass(env, clazzNameBuffers);\n"+
          "    if(NULL==c) {\n"+
-         "        fprintf(stderr, \"FatalError: Can't find %s\\n\", clazzNameBuffers);\n"+
+         "        fprintf(stderr, \"%s Can't find %s\\n\", sFatalError, clazzNameBuffers);\n"+
          "        (*env)->FatalError(env, clazzNameBuffers);\n"+
          "        return JNI_FALSE;\n"+
          "    }\n"+
          "    clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);\n"+
          "    if(NULL==clazzBuffers) {\n"+
-         "        fprintf(stderr, \"FatalError: Can't use %s\\n\", clazzNameBuffers);\n"+
+         "        fprintf(stderr, \"%s Can't use %s\\n\", sFatalError, clazzNameBuffers);\n"+
          "        (*env)->FatalError(env, clazzNameBuffers);\n"+
          "        return JNI_FALSE;\n"+
          "    }\n"+
@@ -2540,7 +2541,7 @@ public class JavaEmitter implements GlueEmitter {
          "    cstrBuffersNew = (*env)->GetStaticMethodID(env, clazzBuffers,\n"+
          "                            clazzNameBuffersStaticNewCstrName, clazzNameBuffersStaticNewCstrSignature);\n"+
          "    if(NULL==cstrBuffersNew) {\n"+
-         "        fprintf(stderr, \"FatalError: can't create %s.%s %s\\n\",\n"+
+         "        fprintf(stderr, \"%s can't create %s.%s %s\\n\", sFatalError,\n"+
          "            clazzNameBuffers,\n"+
          "            clazzNameBuffersStaticNewCstrName, clazzNameBuffersStaticNewCstrSignature);\n"+
          "        (*env)->FatalError(env, clazzNameBuffersStaticNewCstrName);\n"+
@@ -2551,18 +2552,20 @@ public class JavaEmitter implements GlueEmitter {
          "}\n"+
          "\n"+
          "#define JINT_MAX_VALUE ((size_t)0x7fffffffU)\n"+
+         "static const char * sNewBufferImplNotCalled = \"initializeImpl() not called\";\n"+
+         "static const char * sNewBufferMAX_INT = \"capacity > MAX_INT\";\n"+
          "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, size_t capacity) {\n"+
          "    jobject jbyteBuffer;\n"+
          "    void * byteBufferPtr;\n"+
          "\n"+
          "    if( JNI_FALSE == _initClazzAccessDone ) {\n"+
-         "        fprintf(stderr, \"FatalError: initializeImpl() not called\\n\");\n"+
-         "        (*env)->FatalError(env, \"initializeImpl() not called\");\n"+
+         "        fprintf(stderr, \"%s %s\\n\", sFatalError, sNewBufferImplNotCalled);\n"+
+         "        (*env)->FatalError(env, sNewBufferImplNotCalled);\n"+
          "        return NULL;\n"+
          "    }\n"+
          "    if( JINT_MAX_VALUE < capacity ) {\n"+
-         "        fprintf(stderr, \"FatalError: capacity > MAX_INT: %lu\\n\", (unsigned long)capacity);\n"+
-         "        (*env)->FatalError(env, \"capacity > MAX_INT\");\n"+
+         "        fprintf(stderr, \"%s %s: %lu\\n\", sFatalError, sNewBufferMAX_INT, (unsigned long)capacity);\n"+
+         "        (*env)->FatalError(env, sNewBufferMAX_INT);\n"+
          "        return NULL;\n"+
          "    }\n"+
 
