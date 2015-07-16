@@ -2554,6 +2554,8 @@ public class JavaEmitter implements GlueEmitter {
          "#define JINT_MAX_VALUE ((size_t)0x7fffffffU)\n"+
          "static const char * sNewBufferImplNotCalled = \"initializeImpl() not called\";\n"+
          "static const char * sNewBufferMAX_INT = \"capacity > MAX_INT\";\n"+
+         "static const char * sNewBufferNULL = \"New direct ByteBuffer is NULL\";\n"+
+         "\n"+
          "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, size_t capacity) {\n"+
          "    jobject jbyteBuffer;\n"+
          "    void * byteBufferPtr;\n"+
@@ -2568,10 +2570,16 @@ public class JavaEmitter implements GlueEmitter {
          "        (*env)->FatalError(env, sNewBufferMAX_INT);\n"+
          "        return NULL;\n"+
          "    }\n"+
-
          "    jbyteBuffer  = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffersNew, (jint)capacity);\n"+
-         "    byteBufferPtr = (*env)->GetDirectBufferAddress(env, jbyteBuffer);\n"+
-         "    memcpy(byteBufferPtr, source_address, capacity);\n"+
+         "    if( NULL == jbyteBuffer ) {\n"+
+         "        fprintf(stderr, \"%s %s: size %lu\\n\", sFatalError, sNewBufferNULL, (unsigned long)capacity);\n"+
+         "        (*env)->FatalError(env, sNewBufferNULL);\n"+
+         "        return NULL;\n"+
+         "    }\n"+
+         "    if( 0 < capacity ) {\n"+
+         "        byteBufferPtr = (*env)->GetDirectBufferAddress(env, jbyteBuffer);\n"+
+         "        memcpy(byteBufferPtr, source_address, capacity);\n"+
+         "    }\n"+
          "    return jbyteBuffer;\n"+
          "}\n"+
          "\n";
