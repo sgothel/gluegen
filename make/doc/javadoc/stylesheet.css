@@ -212,7 +212,6 @@ Page header and footer styles
 .header ul li, .footer ul li {
     list-style-type:disc;
     padding:5px 0px;
-    font-size:90%
 }
 /*
 Heading styles
