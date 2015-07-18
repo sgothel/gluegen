@@ -56,7 +56,8 @@
       <linkerarg value="-mfloat-abi=hard" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
-      <linkerarg value="-static-libgcc"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
 </target>

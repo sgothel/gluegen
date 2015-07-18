@@ -1218,16 +1218,19 @@
 
     <linker id="linker.cfg.linux" name="${gcc.compat.compiler}">
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.linux.x86" name="${gcc.compat.compiler}">
       <linkerarg value="-m32"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.linux.amd64" name="${gcc.compat.compiler}">
       <linkerarg value="-m64"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <!-- Using default compiler settings - utilize:
@@ -1239,6 +1242,7 @@
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.linux.aarch64" name="${gcc.compat.compiler}">
@@ -1246,6 +1250,7 @@
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.linux.alpha" name="${gcc.compat.compiler}">
@@ -1292,16 +1297,19 @@
     <linker id="linker.cfg.solaris" name="${gcc.compat.compiler}"> 
       <linkerarg value="-m32"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker> 
 
     <linker id="linker.cfg.solaris.sparcv9" name="${gcc.compat.compiler}"> 
       <linkerarg value="-xarch=v9a" /> 
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker> 
 
     <linker id="linker.cfg.solaris.amd64" name="${gcc.compat.compiler}"> 
       <linkerarg value="-m64"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
       <!-- linkerarg value="-xarch=amd64" / --> 
     </linker>
 
@@ -1317,6 +1325,7 @@
       <linkerarg value="x86_64" if="use.macosx64"/>
       <linkerarg value="-mmacosx-version-min=10.5"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
       <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
     </linker>
 
@@ -1326,6 +1335,7 @@
     <linker id="linker.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
       <linkerarg value="-m64"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
     
     <!--linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker"-->
@@ -1333,6 +1343,7 @@
       <linkerarg value="-m32"/>
       <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.win32.mingw" name="${gcc.compat.compiler}" incremental="false">
@@ -1341,6 +1352,7 @@
       <linkerarg value="-Wl,--enable-stdcall-fixup"/>  <!-- for linking against dll directly -->
       <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.win64.mingw" name="${gcc.compat.compiler}" incremental="false">
@@ -1349,6 +1361,7 @@
       <linkerarg value="-Wl,--enable-stdcall-fixup"/>  <!-- for linking against dll directly -->
       <linkerarg value="-Wl,--kill-at" />        <!-- remove @ from function names, ie no __stdcall @nn -->
       <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <linker id="linker.cfg.win32.msvc" name="msvc" incremental="false">
