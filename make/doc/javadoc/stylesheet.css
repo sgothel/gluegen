@@ -52,8 +52,19 @@ h5 {
 h6 {
     font-size:1.1em;
 }
+ol {
+    list-style-type:decimal;
+    padding: 0em 0em 0em 1.2em;
+}
 ul {
     list-style-type:disc;
+    padding: 0em 0em 0em 1.2em;
+}
+ol li {
+    margin-bottom:0.5em;
+}
+ul li {
+    margin-bottom:0.5em;
 }
 code, tt {
     font-size:1.2em;
@@ -202,16 +213,13 @@ Page header and footer styles
     margin:5px 0 0 0;
 }
 .header ul {
-    margin:0 0 25px 0;
-    padding:0;
+    margin:0.5em 0 0.5em 0;
 }
 .footer ul {
-    /* margin:20px 0 5px 0; */
-    margin:5px 0 5px 0;
+    margin:0.5em 0 0.5em 0;
 }
 .header ul li, .footer ul li {
-    list-style-type:disc;
-    padding:5px 0px;
+    margin:0.5em 0 0.5em 0;
 }
 /*
 Heading styles
