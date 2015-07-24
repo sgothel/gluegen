@@ -62,6 +62,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, byteBuffer.position());
         assertEquals(8, byteBuffer.limit());
         assertEquals(8, byteBuffer.capacity());
+        assertEquals(8, byteBuffer.remaining());
         assertEquals(5, byteBuffer.get(4));
 
         final double[] doubleData = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
@@ -69,6 +70,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, doubleBuffer.position());
         assertEquals(8, doubleBuffer.limit());
         assertEquals(8, doubleBuffer.capacity());
+        assertEquals(8, doubleBuffer.remaining());
         assertEquals(5.0, doubleBuffer.get(4), 0.1);
 
         final float[] floatData = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f };
@@ -76,6 +78,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, floatBuffer.position());
         assertEquals(8, floatBuffer.limit());
         assertEquals(8, floatBuffer.capacity());
+        assertEquals(8, floatBuffer.remaining());
         assertEquals(5.0f, floatBuffer.get(4), 0.1f);
 
         final int[] intData = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -83,6 +86,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, intBuffer.position());
         assertEquals(8, intBuffer.limit());
         assertEquals(8, intBuffer.capacity());
+        assertEquals(8, intBuffer.remaining());
         assertEquals(5, intBuffer.get(4));
 
         final long[] longData = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -90,6 +94,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, longBuffer.position());
         assertEquals(8, longBuffer.limit());
         assertEquals(8, longBuffer.capacity());
+        assertEquals(8, longBuffer.remaining());
         assertEquals(5, longBuffer.get(4));
 
         final short[] shortData = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -97,6 +102,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, shortBuffer.position());
         assertEquals(8, shortBuffer.limit());
         assertEquals(8, shortBuffer.capacity());
+        assertEquals(8, shortBuffer.remaining());
         assertEquals(5, shortBuffer.get(4));
 
         final char[] charData = { 1, 2, 3, 4, 5, 6, 7, 8 };
@@ -104,6 +110,7 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(0, charBuffer.position());
         assertEquals(8, charBuffer.limit());
         assertEquals(8, charBuffer.capacity());
+        assertEquals(8, charBuffer.remaining());
         assertEquals(5, charBuffer.get(4));
     }
 
