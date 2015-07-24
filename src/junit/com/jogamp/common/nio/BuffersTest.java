@@ -31,6 +31,7 @@
  */
 package com.jogamp.common.nio;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.DoubleBuffer;
@@ -55,57 +56,59 @@ import org.junit.runners.MethodSorters;
 public class BuffersTest extends SingletonJunitCase {
 
     @Test
-    public void positionLimitCapacityAfterArrayAllocation() {
-        byte[] byteData = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    public void test01PositionLimitCapacityAfterArrayAllocation() {
+        final byte[] byteData = { 1, 2, 3, 4, 5, 6, 7, 8 };
         final ByteBuffer byteBuffer = Buffers.newDirectByteBuffer(byteData);
         assertEquals(0, byteBuffer.position());
         assertEquals(8, byteBuffer.limit());
         assertEquals(8, byteBuffer.capacity());
         assertEquals(5, byteBuffer.get(4));
 
-        double[] doubleData = { 1, 2 };
+        final double[] doubleData = { 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0 };
         final DoubleBuffer doubleBuffer = Buffers.newDirectDoubleBuffer(doubleData);
         assertEquals(0, doubleBuffer.position());
-        assertEquals(2, doubleBuffer.limit());
-        assertEquals(2, doubleBuffer.capacity());
+        assertEquals(8, doubleBuffer.limit());
+        assertEquals(8, doubleBuffer.capacity());
+        assertEquals(5.0, doubleBuffer.get(4), 0.1);
 
-        float[] floatData = { 1.0f, 2.0f, 3.0f };
+        final float[] floatData = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f };
         final FloatBuffer floatBuffer = Buffers.newDirectFloatBuffer(floatData);
         assertEquals(0, floatBuffer.position());
-        assertEquals(3, floatBuffer.limit());
-        assertEquals(3, floatBuffer.capacity());
+        assertEquals(8, floatBuffer.limit());
+        assertEquals(8, floatBuffer.capacity());
+        assertEquals(5.0f, floatBuffer.get(4), 0.1f);
 
-        int[] intData = { 1, 2, 3, 4 };
+        final int[] intData = { 1, 2, 3, 4, 5, 6, 7, 8 };
         final IntBuffer intBuffer = Buffers.newDirectIntBuffer(intData);
         assertEquals(0, intBuffer.position());
-        assertEquals(4, intBuffer.limit());
-        assertEquals(4, intBuffer.capacity());
-        assertEquals(3, intBuffer.get(2));
+        assertEquals(8, intBuffer.limit());
+        assertEquals(8, intBuffer.capacity());
+        assertEquals(5, intBuffer.get(4));
 
-        long[] longData = { 1, 2, 3, 4, 5 };
+        final long[] longData = { 1, 2, 3, 4, 5, 6, 7, 8 };
         final LongBuffer longBuffer = Buffers.newDirectLongBuffer(longData);
         assertEquals(0, longBuffer.position());
-        assertEquals(5, longBuffer.limit());
-        assertEquals(5, longBuffer.capacity());
-        assertEquals(4, longBuffer.get(3));
+        assertEquals(8, longBuffer.limit());
+        assertEquals(8, longBuffer.capacity());
+        assertEquals(5, longBuffer.get(4));
 
-        short[] shortData = { 1, 2, 3, 4, 5, 6 };
+        final short[] shortData = { 1, 2, 3, 4, 5, 6, 7, 8 };
         final ShortBuffer shortBuffer = Buffers.newDirectShortBuffer(shortData);
         assertEquals(0, shortBuffer.position());
-        assertEquals(6, shortBuffer.limit());
-        assertEquals(6, shortBuffer.capacity());
-        assertEquals(4, shortBuffer.get(3));
+        assertEquals(8, shortBuffer.limit());
+        assertEquals(8, shortBuffer.capacity());
+        assertEquals(5, shortBuffer.get(4));
 
-        char[] charData = { 1, 2, 3, 4, 5, 6, 7 };
+        final char[] charData = { 1, 2, 3, 4, 5, 6, 7, 8 };
         final CharBuffer charBuffer = Buffers.newDirectCharBuffer(charData);
         assertEquals(0, charBuffer.position());
-        assertEquals(7, charBuffer.limit());
-        assertEquals(7, charBuffer.capacity());
-        assertEquals(6, charBuffer.get(5));
+        assertEquals(8, charBuffer.limit());
+        assertEquals(8, charBuffer.capacity());
+        assertEquals(5, charBuffer.get(4));
     }
 
     @Test
-    public void slice() {
+    public void test10Slice() {
 
         final IntBuffer buffer = Buffers.newDirectIntBuffer(6);
         buffer.put(new int[]{1,2,3,4,5,6}).rewind();
@@ -144,8 +147,10 @@ public class BuffersTest extends SingletonJunitCase {
 
         assertEquals(42, buffer.get(2));
         assertEquals(42, onetwothree.get(2));
-
-
     }
 
+    public static void main(final String args[]) throws IOException {
+        final String tstname = BuffersTest.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
+    }
 }
