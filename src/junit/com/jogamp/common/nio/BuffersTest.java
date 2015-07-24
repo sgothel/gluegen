@@ -31,7 +31,14 @@
  */
 package com.jogamp.common.nio;
 
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
+
 import org.junit.Test;
 
 import com.jogamp.junit.util.SingletonJunitCase;
@@ -46,6 +53,56 @@ import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class BuffersTest extends SingletonJunitCase {
+
+    @Test
+    public void positionLimitCapacityAfterArrayAllocation() {
+        byte[] byteData = { 1, 2, 3, 4, 5, 6, 7, 8 };
+        final ByteBuffer byteBuffer = Buffers.newDirectByteBuffer(byteData);
+        assertEquals(0, byteBuffer.position());
+        assertEquals(8, byteBuffer.limit());
+        assertEquals(8, byteBuffer.capacity());
+        assertEquals(5, byteBuffer.get(4));
+
+        double[] doubleData = { 1, 2 };
+        final DoubleBuffer doubleBuffer = Buffers.newDirectDoubleBuffer(doubleData);
+        assertEquals(0, doubleBuffer.position());
+        assertEquals(2, doubleBuffer.limit());
+        assertEquals(2, doubleBuffer.capacity());
+
+        float[] floatData = { 1.0f, 2.0f, 3.0f };
+        final FloatBuffer floatBuffer = Buffers.newDirectFloatBuffer(floatData);
+        assertEquals(0, floatBuffer.position());
+        assertEquals(3, floatBuffer.limit());
+        assertEquals(3, floatBuffer.capacity());
+
+        int[] intData = { 1, 2, 3, 4 };
+        final IntBuffer intBuffer = Buffers.newDirectIntBuffer(intData);
+        assertEquals(0, intBuffer.position());
+        assertEquals(4, intBuffer.limit());
+        assertEquals(4, intBuffer.capacity());
+        assertEquals(3, intBuffer.get(2));
+
+        long[] longData = { 1, 2, 3, 4, 5 };
+        final LongBuffer longBuffer = Buffers.newDirectLongBuffer(longData);
+        assertEquals(0, longBuffer.position());
+        assertEquals(5, longBuffer.limit());
+        assertEquals(5, longBuffer.capacity());
+        assertEquals(4, longBuffer.get(3));
+
+        short[] shortData = { 1, 2, 3, 4, 5, 6 };
+        final ShortBuffer shortBuffer = Buffers.newDirectShortBuffer(shortData);
+        assertEquals(0, shortBuffer.position());
+        assertEquals(6, shortBuffer.limit());
+        assertEquals(6, shortBuffer.capacity());
+        assertEquals(4, shortBuffer.get(3));
+
+        char[] charData = { 1, 2, 3, 4, 5, 6, 7 };
+        final CharBuffer charBuffer = Buffers.newDirectCharBuffer(charData);
+        assertEquals(0, charBuffer.position());
+        assertEquals(7, charBuffer.limit());
+        assertEquals(7, charBuffer.capacity());
+        assertEquals(6, charBuffer.get(5));
+    }
 
     @Test
     public void slice() {
