@@ -63,6 +63,10 @@ public abstract class PlatformPropsImpl {
     public static final VersionNumber Version16;
     /** Version 1.7. As a JVM version, it enables certain JVM 1.7 features. */
     public static final VersionNumber Version17;
+    /** Version 1.8. As a JVM version, it enables certain JVM 1.8 features. */
+    public static final VersionNumber Version18;
+    /** Version 1.9. As a JVM version, it enables certain JVM 1.9 features. */
+    public static final VersionNumber Version19;
 
     public static final String OS;
     public static final String OS_lower;
@@ -101,6 +105,8 @@ public abstract class PlatformPropsImpl {
     static {
         Version16 = new VersionNumber(1, 6, 0);
         Version17 = new VersionNumber(1, 7, 0);
+        Version18 = new VersionNumber(1, 8, 0);
+        Version19 = new VersionNumber(1, 9, 0);
 
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned Applets.
