@@ -12,6 +12,7 @@ Implementation-Vendor: JogAmp Community
 Implementation-URL: http://jogamp.org/
 Extension-Name: com.jogamp
 Implementation-Vendor-Id: com.jogamp
+Main-Class: jogamp.opengl.awt.VersionApplet
 Trusted-Library: true
 Permissions: all-permissions
 Application-Library-Allowable-Codebase: *
