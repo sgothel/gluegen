@@ -789,6 +789,32 @@
         </filterset>
     </copy>
 
+    <copy file="jogamp-fat.mf"
+          tofile="${build}/jogamp-fat.mf"
+          overwrite="true">
+        <filterset>
+            <filter token="VERSION" value="${jogamp.version}"/>
+            <filter token="BUILD_VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+            <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+        </filterset>
+    </copy>
+
+    <copy file="jogamp-fat-test.mf"
+          tofile="${build}/jogamp-fat-test.mf"
+          overwrite="true">
+        <filterset>
+            <filter token="VERSION" value="${jogamp.version}"/>
+            <filter token="BUILD_VERSION" value="${gluegen.version}"/>
+            <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
+            <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
+            <filter token="BASEVERSION" value="${jogamp.version.base}"/>
+            <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
+        </filterset>
+    </copy>
+
     <!-- copy file="Manifest-rt-alt"
           tofile="${build}/Manifest-rt-alt.temp"
           overwrite="true">
@@ -1075,8 +1101,11 @@
     <target name="developer-zip-archive" depends="init,developer-src-zip" if="build.archiveon">
         <delete includeEmptyDirs="true" quiet="true" dir="${archive}" failonerror="false" />
         <mkdir dir="${archive}" />
-        <copy file="${build}/artifact.properties" todir="${archive}"/>
-        <copy file="../LICENSE.txt"    todir="${archive}" />
+        <copy todir="${archive}">
+            <fileset dir=".."       includes="LICENSE.txt"/>
+            <fileset dir="${build}" includes="artifact.properties"/>
+            <fileset dir="${build}" includes="gluegen-java-src.zip"/>
+        </copy>
         <mkdir dir="${archive}/jar" />
         <copy todir="${archive}/jar">
             <fileset dir="${build}" includes="gluegen*.jar"/>
@@ -1090,7 +1119,13 @@
         <copy todir="${archive}/jnlp-files">
             <fileset dir="${project.root}/jnlp-files" includes="*" />
         </copy>
-        <copy todir="${archive}" file="${build}/gluegen-java-src.zip"/>
+        <mkdir dir="${archive}/dist" />
+        <copy todir="${archive}/dist">
+            <fileset dir="${build}" includes="jogamp-fat.mf"/>
+            <fileset dir="${build}" includes="jogamp-fat-test.mf"/>
+            <fileset dir="lib" includes="junit.jar"/>
+        </copy>
+
         <archive.7z destfile="${build}/${archive.name}.7z"
              basedir="${build}"
              includes="${archive.name}/**" />
