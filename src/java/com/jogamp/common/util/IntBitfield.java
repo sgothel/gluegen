@@ -28,7 +28,10 @@
 package com.jogamp.common.util;
 
 /**
+ * @deprecated Use {@link Bitfield} implementations via {@link Bitfield.Factory#create(int)}.
+ * <p>
  * Simple bitfield holder class using an int[] storage.
+ * </p>
  * <p>
  * IntBitfield allows convenient access of a wide field of transient bits using efficient storage in O(1).
  * </p>
@@ -137,21 +140,10 @@ public class IntBitfield {
         return prev;
     }
     /**
-     * Returns the number of set bits within given 32bit integer in O(1)
-     * using <i>HAKEM Bit Count</i>:
-     * <pre>
-     *   http://www.inwap.com/pdp10/hbaker/hakmem/hakmem.html
-     *   http://home.pipeline.com/~hbaker1/hakmem/hacks.html#item169
-     *   http://tekpool.wordpress.com/category/bit-count/
-     * </pre>
+     * @deprecated Use {@link Bitfield.Util#getBitCount(int)}.
      */
     public static final int getBitCount(final int n) {
-        // Note: Original used 'unsigned int',
-        // hence we use the unsigned right-shift '>>>'
-        int c = n;
-        c -= (n >>> 1) & 033333333333;
-        c -= (n >>> 2) & 011111111111;
-        return ( (c + ( c >>> 3 ) ) & 030707070707 ) % 63;
+        return Bitfield.Util.getBitCount(n);
     }
 
     /**
@@ -163,7 +155,7 @@ public class IntBitfield {
     public long getBitCount() {
         long c = 0;
         for(int i = storage.length-1; i>=0; i--) {
-            c += getBitCount(storage[i]);
+            c += Bitfield.Util.getBitCount(storage[i]);
         }
         return c;
     }
