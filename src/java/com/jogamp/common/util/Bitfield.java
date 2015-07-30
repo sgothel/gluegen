@@ -28,7 +28,8 @@
 package com.jogamp.common.util;
 
 /**
- * Simple bitfield interface for efficient storage access in O(1).
+ * Simple bitfield interface for efficient bit storage access in O(1).
+ * @since 2.3.2
  */
 public interface Bitfield {
     /**
