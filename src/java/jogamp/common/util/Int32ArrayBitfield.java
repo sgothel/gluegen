@@ -54,14 +54,14 @@ public class Int32ArrayBitfield implements Bitfield {
         return bitSize;
     }
 
-    private final void check(final int limit, final int bitnum) throws ArrayIndexOutOfBoundsException {
+    private final void check(final int limit, final int bitnum) throws IndexOutOfBoundsException {
         if( 0 > bitnum || bitnum >= limit ) {
-            throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(limit-1)+"], but is "+bitnum);
+            throw new IndexOutOfBoundsException("Bitnum should be within [0.."+(limit-1)+"], but is "+bitnum);
         }
     }
 
     @Override
-    public final int getInt32(final int rightBitnum) throws ArrayIndexOutOfBoundsException {
+    public final int getInt32(final int rightBitnum) throws IndexOutOfBoundsException {
         check(bitSize-31, rightBitnum);
         if( 0 == rightBitnum % 32 ) {
             // fast path
@@ -73,7 +73,7 @@ public class Int32ArrayBitfield implements Bitfield {
     }
 
     @Override
-    public final void putInt32(final int rightBitnum, final int mask) throws ArrayIndexOutOfBoundsException {
+    public final void putInt32(final int rightBitnum, final int mask) throws IndexOutOfBoundsException {
         check(bitSize-31, rightBitnum);
         if( 0 == rightBitnum % 32 ) {
             // fast path
@@ -85,7 +85,7 @@ public class Int32ArrayBitfield implements Bitfield {
     }
 
     @Override
-    public final boolean get(final int bitnum) throws ArrayIndexOutOfBoundsException {
+    public final boolean get(final int bitnum) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );
@@ -93,7 +93,7 @@ public class Int32ArrayBitfield implements Bitfield {
     }
 
     @Override
-    public final boolean put(final int bitnum, final boolean bit) throws ArrayIndexOutOfBoundsException {
+    public final boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );
@@ -109,7 +109,7 @@ public class Int32ArrayBitfield implements Bitfield {
         return prev;
     }
     @Override
-    public final void set(final int bitnum) throws ArrayIndexOutOfBoundsException {
+    public final void set(final int bitnum) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );
@@ -117,7 +117,7 @@ public class Int32ArrayBitfield implements Bitfield {
         storage[u] |=  m;
     }
     @Override
-    public final void clear (final int bitnum) throws ArrayIndexOutOfBoundsException {
+    public final void clear (final int bitnum) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );

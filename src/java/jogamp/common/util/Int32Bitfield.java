@@ -49,32 +49,32 @@ public class Int32Bitfield implements Bitfield {
         return UNIT_SIZE;
     }
 
-    private final void check(final int limit, final int bitnum) throws ArrayIndexOutOfBoundsException {
+    private final void check(final int limit, final int bitnum) throws IndexOutOfBoundsException {
         if( 0 > bitnum || bitnum >= limit ) {
-            throw new ArrayIndexOutOfBoundsException("Bitnum should be within [0.."+(limit-1)+"], but is "+bitnum);
+            throw new IndexOutOfBoundsException("Bitnum should be within [0.."+(limit-1)+"], but is "+bitnum);
         }
     }
 
     @Override
-    public final int getInt32(final int rightBitnum) throws ArrayIndexOutOfBoundsException {
+    public final int getInt32(final int rightBitnum) throws IndexOutOfBoundsException {
         check(UNIT_SIZE-31, rightBitnum);
         return storage;
     }
 
     @Override
-    public final void putInt32(final int rightBitnum, final int mask) throws ArrayIndexOutOfBoundsException {
+    public final void putInt32(final int rightBitnum, final int mask) throws IndexOutOfBoundsException {
         check(UNIT_SIZE-31, rightBitnum);
         storage = mask;
     }
 
     @Override
-    public final boolean get(final int bitnum) throws ArrayIndexOutOfBoundsException {
+    public final boolean get(final int bitnum) throws IndexOutOfBoundsException {
         check(UNIT_SIZE, bitnum);
         return 0 != ( storage & ( 1 << bitnum ) ) ;
     }
 
     @Override
-    public final boolean put(final int bitnum, final boolean bit) throws ArrayIndexOutOfBoundsException {
+    public final boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
         check(UNIT_SIZE, bitnum);
         final int m = 1 << bitnum;
         final boolean prev = 0 != ( storage & m ) ;
@@ -88,13 +88,13 @@ public class Int32Bitfield implements Bitfield {
         return prev;
     }
     @Override
-    public final void set(final int bitnum) throws ArrayIndexOutOfBoundsException {
+    public final void set(final int bitnum) throws IndexOutOfBoundsException {
         check(UNIT_SIZE, bitnum);
         final int m = 1 << bitnum;
         storage |=  m;
     }
     @Override
-    public final void clear (final int bitnum) throws ArrayIndexOutOfBoundsException {
+    public final void clear (final int bitnum) throws IndexOutOfBoundsException {
         check(UNIT_SIZE, bitnum);
         final int m = 1 << bitnum;
         storage &= ~m;

@@ -81,46 +81,46 @@ public interface Bitfield {
     /**
      * Returns the 32 bit integer mask w/ its lowest bit at the bit number {@code rightBitnum}.
      * @param rightBitnum bit number denoting the position of the lowest bit, restricted to [0..{@link #getStorageBitSize()}-32].
-     * @throws ArrayIndexOutOfBoundsException if {@code rightBitnum} is out of bounds
+     * @throws IndexOutOfBoundsException if {@code rightBitnum} is out of bounds
      */
-    int getInt32(final int rightBitnum) throws ArrayIndexOutOfBoundsException;
+    int getInt32(final int rightBitnum) throws IndexOutOfBoundsException;
 
     /**
      * Sets the given 32 bit integer mask w/ its lowest bit at the bit number {@code rightBitnum}.
      * @param rightBitnum bit number denoting the position of the lowest bit, restricted to [0..{@link #getStorageBitSize()}-32].
      * @param mask denoting the 32 bit mask value to store
-     * @throws ArrayIndexOutOfBoundsException if {@code rightBitnum} is out of bounds
+     * @throws IndexOutOfBoundsException if {@code rightBitnum} is out of bounds
      */
-    void putInt32(final int rightBitnum, final int mask) throws ArrayIndexOutOfBoundsException;
+    void putInt32(final int rightBitnum, final int mask) throws IndexOutOfBoundsException;
 
     /**
      * Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>.
      * @param bitnum bit number, restricted to [0..{@link #getStorageBitSize()}-1].
-     * @throws ArrayIndexOutOfBoundsException if {@code bitnum} is out of bounds
+     * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
-    boolean get(final int bitnum) throws ArrayIndexOutOfBoundsException;
+    boolean get(final int bitnum) throws IndexOutOfBoundsException;
 
     /**
      * Set or clear the bit at position <code>bitnum</code> according to <code>bit</code>
      * and return the previous value.
      * @param bitnum bit number, restricted to [0..{@link #getStorageBitSize()}-1].
-     * @throws ArrayIndexOutOfBoundsException if {@code bitnum} is out of bounds
+     * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
-    boolean put(final int bitnum, final boolean bit) throws ArrayIndexOutOfBoundsException;
+    boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException;
 
     /**
      * Set the bit at position <code>bitnum</code> according to <code>bit</code>.
      * @param bitnum bit number, restricted to [0..{@link #getStorageBitSize()}-1].
-     * @throws ArrayIndexOutOfBoundsException if {@code bitnum} is out of bounds
+     * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
-    void set(final int bitnum) throws ArrayIndexOutOfBoundsException;
+    void set(final int bitnum) throws IndexOutOfBoundsException;
 
     /**
      * Clear the bit at position <code>bitnum</code> according to <code>bit</code>.
      * @param bitnum bit number, restricted to [0..{@link #getStorageBitSize()}-1].
-     * @throws ArrayIndexOutOfBoundsException if {@code bitnum} is out of bounds
+     * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
-    void clear(final int bitnum) throws ArrayIndexOutOfBoundsException;
+    void clear(final int bitnum) throws IndexOutOfBoundsException;
 
     /**
      * Returns the number of set bits within this bitfield.
