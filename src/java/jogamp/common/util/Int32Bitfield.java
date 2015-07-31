@@ -49,22 +49,55 @@ public class Int32Bitfield implements Bitfield {
         return UNIT_SIZE;
     }
 
-    private final void check(final int limit, final int bitnum) throws IndexOutOfBoundsException {
-        if( 0 > bitnum || bitnum >= limit ) {
-            throw new IndexOutOfBoundsException("Bitnum should be within [0.."+(limit-1)+"], but is "+bitnum);
+    private static final void check(final int size, final int bitnum) throws IndexOutOfBoundsException {
+        if( 0 > bitnum || bitnum >= size ) {
+            throw new IndexOutOfBoundsException("Bitnum should be within [0.."+(size-1)+"], but is "+bitnum);
         }
     }
 
     @Override
-    public final int getInt32(final int rightBitnum) throws IndexOutOfBoundsException {
-        check(UNIT_SIZE-31, rightBitnum);
-        return storage;
+    public final int get32(final int lowBitnum, final int length) throws IndexOutOfBoundsException {
+        if( 0 > length || length > 32 ) {
+            throw new IndexOutOfBoundsException("length should be within [0..32], but is "+length);
+        }
+        check(UNIT_SIZE-length+1, lowBitnum);
+        final int left = 32 - lowBitnum;             // remaining bits of first chunk
+        if( 32 == left ) {
+            // fast path
+            final int m = ( 1 << length ) - 1;
+            return m & storage;
+        } else {
+            // slow path
+            final int l = Math.min(length, left);    // length of first chunk
+            final int m = ( 1 << l ) - 1;            // mask of first chunk
+            return m & ( storage >>> lowBitnum );
+        }
     }
-
     @Override
-    public final void putInt32(final int rightBitnum, final int mask) throws IndexOutOfBoundsException {
-        check(UNIT_SIZE-31, rightBitnum);
-        storage = mask;
+    public final void put32(final int lowBitnum, final int length, final int data) throws IndexOutOfBoundsException {
+        if( 0 > length || length > 32 ) {
+            throw new IndexOutOfBoundsException("length should be within [0..32], but is "+length);
+        }
+        check(UNIT_SIZE-length+1, lowBitnum);
+        final int left = 32 - lowBitnum;             // remaining bits of first chunk storage
+        if( 32 == left ) {
+            // fast path
+            final int m = ( 1 << length ) - 1;       // mask of chunk
+            storage = ( ( ~m ) & storage )           // keep non-written storage bits
+                      | ( m & data );                // overwrite storage w/ used data bits
+        } else {
+            // slow path
+            final int l = Math.min(length, left);    // length of first chunk
+            final int m = ( 1 << l ) - 1;            // mask of first chunk
+            storage = ( ( ~( m << lowBitnum ) ) & storage ) // keep non-written storage bits
+                      | ( ( m & data ) << lowBitnum );      // overwrite storage w/ used data bits
+        }
+    }
+    @Override
+    public final int copy32(final int srcBitnum, final int dstBitnum, final int length) throws IndexOutOfBoundsException {
+        final int data = get32(srcBitnum, length);
+        put32(dstBitnum, length, data);
+        return data;
     }
 
     @Override
@@ -72,20 +105,15 @@ public class Int32Bitfield implements Bitfield {
         check(UNIT_SIZE, bitnum);
         return 0 != ( storage & ( 1 << bitnum ) ) ;
     }
-
     @Override
-    public final boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
+    public final void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
         check(UNIT_SIZE, bitnum);
         final int m = 1 << bitnum;
-        final boolean prev = 0 != ( storage & m ) ;
-        if( prev != bit ) {
-            if( bit ) {
-                storage |=  m;
-            } else {
-                storage &= ~m;
-            }
+        if( bit ) {
+            storage |=  m;
+        } else {
+            storage &= ~m;
         }
-        return prev;
     }
     @Override
     public final void set(final int bitnum) throws IndexOutOfBoundsException {
@@ -98,6 +126,21 @@ public class Int32Bitfield implements Bitfield {
         check(UNIT_SIZE, bitnum);
         final int m = 1 << bitnum;
         storage &= ~m;
+    }
+    @Override
+    public final boolean copy(final int srcBitnum, final int dstBitnum) throws IndexOutOfBoundsException {
+        check(UNIT_SIZE, srcBitnum);
+        check(UNIT_SIZE, dstBitnum);
+        // get
+        final boolean bit = 0 != ( storage & ( 1 << srcBitnum ) ) ;
+        // put
+        final int m = 1 << dstBitnum;
+        if( bit ) {
+            storage |=  m;
+        } else {
+            storage &= ~m;
+        }
+        return bit;
     }
 
     @Override

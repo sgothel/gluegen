@@ -54,34 +54,70 @@ public class Int32ArrayBitfield implements Bitfield {
         return bitSize;
     }
 
-    private final void check(final int limit, final int bitnum) throws IndexOutOfBoundsException {
-        if( 0 > bitnum || bitnum >= limit ) {
-            throw new IndexOutOfBoundsException("Bitnum should be within [0.."+(limit-1)+"], but is "+bitnum);
+    private static final void check(final int size, final int bitnum) throws IndexOutOfBoundsException {
+        if( 0 > bitnum || bitnum >= size ) {
+            throw new IndexOutOfBoundsException("Bitnum should be within [0.."+(size-1)+"], but is "+bitnum);
         }
     }
 
     @Override
-    public final int getInt32(final int rightBitnum) throws IndexOutOfBoundsException {
-        check(bitSize-31, rightBitnum);
-        if( 0 == rightBitnum % 32 ) {
+    public final int get32(final int lowBitnum, final int length) throws IndexOutOfBoundsException {
+        if( 0 > length || length > 32 ) {
+            throw new IndexOutOfBoundsException("length should be within [0..32], but is "+length);
+        }
+        check(bitSize-length+1, lowBitnum);
+        final int u = lowBitnum >>> UNIT_SHIFT;
+        final int left = 32 - ( lowBitnum - ( u << UNIT_SHIFT ) ); // remaining bits of first chunk storage
+        if( 32 == left ) {
             // fast path
-            return storage[rightBitnum >>> UNIT_SHIFT];
+            final int m = ( 1 << length ) - 1;
+            return m & storage[u];
         } else {
             // slow path
-            throw new UnsupportedOperationException("todo: non-32bit alignment");
+            final int l = Math.min(length, left);    // length of first chunk
+            final int m = ( 1 << l ) - 1;            // mask of first chunk
+            final int d = m & ( storage[u] >>> lowBitnum );
+            final int l2 = length - l;               // length of last chunk
+            if( l2 > 0 ) {
+                final int m2 = ( 1 << l2 ) - 1;      // mask of last chunk
+                return d | ( ( m2 & storage[u+1] ) << l );
+            } else {
+                return d;
+            }
         }
     }
-
     @Override
-    public final void putInt32(final int rightBitnum, final int mask) throws IndexOutOfBoundsException {
-        check(bitSize-31, rightBitnum);
-        if( 0 == rightBitnum % 32 ) {
+    public final void put32(final int lowBitnum, final int length, final int data) throws IndexOutOfBoundsException {
+        if( 0 > length || length > 32 ) {
+            throw new IndexOutOfBoundsException("length should be within [0..32], but is "+length);
+        }
+        check(bitSize-length+1, lowBitnum);
+        final int u = lowBitnum >>> UNIT_SHIFT;
+        final int left = 32 - ( lowBitnum - ( u << UNIT_SHIFT ) ); // remaining bits of first chunk storage
+        if( 32 == left ) {
             // fast path
-            storage[rightBitnum >>> UNIT_SHIFT] = mask;
+            final int m = ( 1 << length ) - 1;       // mask of chunk
+            storage[u] = ( ( ~m ) & storage[u] )     // keep non-written storage bits
+                         | ( m & data );             // overwrite storage w/ used data bits
         } else {
             // slow path
-            throw new UnsupportedOperationException("todo: non-32bit alignment");
+            final int l = Math.min(length, left);    // length of first chunk
+            final int m = ( 1 << l ) - 1;            // mask of first chunk
+            storage[u] = ( ( ~( m << lowBitnum ) ) & storage[u] ) // keep non-written storage bits
+                         | ( ( m & data ) << lowBitnum );         // overwrite storage w/ used data bits
+            final int l2 = length - l;               // length of last chunk
+            if( l2 > 0 ) {
+                final int m2 = ( 1 << l2 ) - 1;      // mask of last chunk
+                storage[u] = ( ( ~m2 ) & storage[u+1] ) // keep non-written storage bits
+                             | ( m2 & ( data >>> l ) ); // overwrite storage w/ used data bits
+            }
         }
+    }
+    @Override
+    public final int copy32(final int srcBitnum, final int dstBitnum, final int length) throws IndexOutOfBoundsException {
+        final int data = get32(srcBitnum, length);
+        put32(dstBitnum, length, data);
+        return data;
     }
 
     @Override
@@ -93,20 +129,16 @@ public class Int32ArrayBitfield implements Bitfield {
     }
 
     @Override
-    public final boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
+    public final void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );
         final int m = 1 << b;
-        final boolean prev = 0 != ( storage[u] & m ) ;
-        if( prev != bit ) {
-            if( bit ) {
-                storage[u] |=  m;
-            } else {
-                storage[u] &= ~m;
-            }
+        if( bit ) {
+            storage[u] |=  m;
+        } else {
+            storage[u] &= ~m;
         }
-        return prev;
     }
     @Override
     public final void set(final int bitnum) throws IndexOutOfBoundsException {
@@ -117,12 +149,34 @@ public class Int32ArrayBitfield implements Bitfield {
         storage[u] |=  m;
     }
     @Override
-    public final void clear (final int bitnum) throws IndexOutOfBoundsException {
+    public final void clear(final int bitnum) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );
         final int m = 1 << b;
         storage[u] &= ~m;
+    }
+    @Override
+    public final boolean copy(final int srcBitnum, final int dstBitnum) throws IndexOutOfBoundsException {
+        check(bitSize, srcBitnum);
+        check(bitSize, dstBitnum);
+        final boolean bit;
+        // get
+        {
+            final int u = srcBitnum >>> UNIT_SHIFT;
+            final int b = srcBitnum - ( u << UNIT_SHIFT );
+            bit = 0 != ( storage[u] & ( 1 << b ) ) ;
+        }
+        // put
+        final int u = dstBitnum >>> UNIT_SHIFT;
+        final int b = dstBitnum - ( u << UNIT_SHIFT );
+        final int m = 1 << b;
+        if( bit ) {
+            storage[u] |=  m;
+        } else {
+            storage[u] &= ~m;
+        }
+        return bit;
     }
 
     @Override

@@ -27,6 +27,8 @@
  */
 package com.jogamp.common.util;
 
+import jogamp.common.util.SyncedBitfield;
+
 /**
  * Simple bitfield interface for efficient bit storage access in O(1).
  * @since 2.3.2
@@ -72,27 +74,53 @@ public interface Bitfield {
                 return new jogamp.common.util.Int32ArrayBitfield(storageBitSize);
             }
         }
+        /**
+         * Creates a synchronized {@link Bitfield} by wrapping the given {@link Bitfield} instance.
+         */
+        public static Bitfield synchronize(final Bitfield impl) {
+            return new SyncedBitfield(impl);
+        }
     }
-
     /**
      * Returns the storage size in bit units, e.g. 32 bit for implementations using one {@code int} field.
      */
     int getStorageBitSize();
 
     /**
-     * Returns the 32 bit integer mask w/ its lowest bit at the bit number {@code rightBitnum}.
-     * @param rightBitnum bit number denoting the position of the lowest bit, restricted to [0..{@link #getStorageBitSize()}-32].
+     * Returns {@code length} bits from this storage,
+     * starting with the lowest bit from the storage position {@code lowBitnum}.
+     * @param lowBitnum storage bit position of the lowest bit, restricted to [0..{@link #getStorageBitSize()}-{@code length}].
+     * @param length number of bits to read, constrained to [0..32].
      * @throws IndexOutOfBoundsException if {@code rightBitnum} is out of bounds
+     * @see #put32(int, int, int)
      */
-    int getInt32(final int rightBitnum) throws IndexOutOfBoundsException;
+    int get32(final int lowBitnum, final int length) throws IndexOutOfBoundsException;
 
     /**
-     * Sets the given 32 bit integer mask w/ its lowest bit at the bit number {@code rightBitnum}.
-     * @param rightBitnum bit number denoting the position of the lowest bit, restricted to [0..{@link #getStorageBitSize()}-32].
-     * @param mask denoting the 32 bit mask value to store
+     * Puts {@code length} bits of given {@code data} into this storage,
+     * starting w/ the lowest bit to the storage position {@code lowBitnum}.
+     * @param lowBitnum storage bit position of the lowest bit, restricted to [0..{@link #getStorageBitSize()}-{@code length}].
+     * @param length number of bits to read, constrained to [0..32].
+     * @param data the actual bits to be put into this storage
      * @throws IndexOutOfBoundsException if {@code rightBitnum} is out of bounds
+     * @see #get32(int, int)
      */
-    void putInt32(final int rightBitnum, final int mask) throws IndexOutOfBoundsException;
+    void put32(final int lowBitnum, final int length, final int data) throws IndexOutOfBoundsException;
+
+    /**
+     * Copies {@code length} bits at position {@code srcLowBitnum} to position {@code dstLowBitnum}
+     * and returning the bits.
+     * <p>
+     * Implementation shall operate as if invoking {@link #get32(int, int)}
+     * and then {@link #put32(int, int, int)} sequentially.
+     * </p>
+     * @param srcLowBitnum source bit number, restricted to [0..{@link #getStorageBitSize()}-1].
+     * @param dstLowBitnum destination bit number, restricted to [0..{@link #getStorageBitSize()}-1].
+     * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
+     * @see #get32(int, int)
+     * @see #put32(int, int, int)
+     */
+    int copy32(final int srcLowBitnum, final int dstLowBitnum, final int length) throws IndexOutOfBoundsException;
 
     /**
      * Return <code>true</code> if the bit at position <code>bitnum</code> is set, otherwise <code>false</code>.
@@ -107,7 +135,7 @@ public interface Bitfield {
      * @param bitnum bit number, restricted to [0..{@link #getStorageBitSize()}-1].
      * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
-    boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException;
+    void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException;
 
     /**
      * Set the bit at position <code>bitnum</code> according to <code>bit</code>.
@@ -122,6 +150,15 @@ public interface Bitfield {
      * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
     void clear(final int bitnum) throws IndexOutOfBoundsException;
+
+    /**
+     * Copies the bit at position {@code srcBitnum} to position {@code dstBitnum}
+     * and returning <code>true</code> if the bit is set, otherwise <code>false</code>.
+     * @param srcBitnum source bit number, restricted to [0..{@link #getStorageBitSize()}-1].
+     * @param dstBitnum destination bit number, restricted to [0..{@link #getStorageBitSize()}-1].
+     * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
+     */
+    boolean copy(final int srcBitnum, final int dstBitnum) throws IndexOutOfBoundsException;
 
     /**
      * Returns the number of set bits within this bitfield.
