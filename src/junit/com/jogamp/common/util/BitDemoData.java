@@ -30,11 +30,49 @@ package com.jogamp.common.util;
 
 import java.nio.ByteBuffer;
 
-public class BitstreamData {
+public class BitDemoData {
+    public static final long UNSIGNED_INT_MAX_VALUE = 0xffffffffL;
+
+    public static final String[] pyramid32bit_one = {
+                                               "00000000000000000000000000000001",
+                                               "00000000000000000000000000000010",
+                                               "00000000000000000000000000000100",
+                                               "00000000000000000000000000001000",
+                                               "00000000000000000000000000010000",
+                                               "00000000000000000000000000100000",
+                                               "00000000000000000000000001000000",
+                                               "00000000000000000000000010000000",
+                                               "00000000000000000000000100000000",
+                                               "00000000000000000000001000000000",
+                                               "00000000000000000000010000000000",
+                                               "00000000000000000000100000000000",
+                                               "00000000000000000001000000000000",
+                                               "00000000000000000010000000000000",
+                                               "00000000000000000100000000000000",
+                                               "00000000000000001000000000000000",
+                                               "00000000000000010000000000000000",
+                                               "00000000000000100000000000000000",
+                                               "00000000000001000000000000000000",
+                                               "00000000000010000000000000000000",
+                                               "00000000000100000000000000000000",
+                                               "00000000001000000000000000000000",
+                                               "00000000010000000000000000000000",
+                                               "00000000100000000000000000000000",
+                                               "00000001000000000000000000000000",
+                                               "00000010000000000000000000000000",
+                                               "00000100000000000000000000000000",
+                                               "00001000000000000000000000000000",
+                                               "00010000000000000000000000000000",
+                                               "00100000000000000000000000000000",
+                                               "01000000000000000000000000000000",
+                                               "10000000000000000000000000000000"
+                                             };
+
     //
     // MSB -> LSB over whole data
     //
     public static final byte[] testBytesMSB = new byte[] { (byte)0xde, (byte)0xaf, (byte)0xca, (byte)0xfe };
+    public static final int testIntMSB = 0xdeafcafe; //           11011110    10101111    11001010    11111110
     public static final String[] testStringsMSB = new String[] { "11011110", "10101111", "11001010", "11111110" };
     public static final String testStringMSB = testStringsMSB[0]+testStringsMSB[1]+testStringsMSB[2]+testStringsMSB[3];
 
@@ -42,6 +80,7 @@ public class BitstreamData {
     // MSB -> LSB, reverse bit-order over each byte of testBytesLSB
     //
     public static final byte[] testBytesMSB_rev = new byte[] { (byte)0xfe, (byte)0xca, (byte)0xaf, (byte)0xde };
+    public static final int testIntMSB_rev = 0xfecaafde;
     public static final String[] testStringsMSB_rev = new String[] { "11111110", "11001010", "10101111", "11011110" };
     public static final String testStringMSB_rev = testStringsMSB_rev[0]+testStringsMSB_rev[1]+testStringsMSB_rev[2]+testStringsMSB_rev[3];
 
@@ -49,6 +88,7 @@ public class BitstreamData {
     // LSB -> MSB over whole data
     //
     public static final byte[] testBytesLSB = new byte[] { (byte)0x7f, (byte)0x53, (byte)0xf5, (byte)0x7b };
+    public static final int testIntLSB = 0x7f53f57b;
     public static final String[] testStringsLSB = new String[] { "01111111", "01010011", "11110101", "01111011" };
     public static final String testStringLSB = testStringsLSB[0]+testStringsLSB[1]+testStringsLSB[2]+testStringsLSB[3];
 
@@ -56,6 +96,7 @@ public class BitstreamData {
     // LSB -> MSB, reverse bit-order over each byte of testBytesMSB
     //
     public static final byte[] testBytesLSB_revByte = new byte[] { (byte)0x7b, (byte)0xf5, (byte)0x53, (byte)0x7f };
+    public static final int testIntLSB_revByte = 0x7bf5537f;
     public static final String[] testStringsLSB_revByte = new String[] { "01111011", "11110101", "01010011", "01111111" };
     public static final String testStringLSB_revByte = testStringsLSB_revByte[0]+testStringsLSB_revByte[1]+testStringsLSB_revByte[2]+testStringsLSB_revByte[3];
 
@@ -78,6 +119,26 @@ public class BitstreamData {
             }
             System.err.println("");
         }
+    }
+
+    public static int getOneBitCount(final String pattern) {
+        int c=0;
+        for(int i=0; i<pattern.length(); i++) {
+            if( '1' == pattern.charAt(i) ) {
+                c++;
+            }
+        }
+        return c;
+    }
+    public static long toLong(final String bitPattern) {
+        return Long.valueOf(bitPattern, 2).longValue();
+    }
+    public static int toInteger(final String bitPattern) {
+        final long res = Long.valueOf(bitPattern, 2).longValue();
+        if( res > UNSIGNED_INT_MAX_VALUE ) {
+            throw new NumberFormatException("Exceeds "+toHexString(UNSIGNED_INT_MAX_VALUE)+": "+toHexString(res)+" - source "+bitPattern);
+        }
+        return (int)res;
     }
 
     public static String toHexString(final int v) {

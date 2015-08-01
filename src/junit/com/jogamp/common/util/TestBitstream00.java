@@ -40,7 +40,7 @@ import org.junit.Assert;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.Platform;
 
-import static com.jogamp.common.util.BitstreamData.*;
+import static com.jogamp.common.util.BitDemoData.*;
 
 import com.jogamp.junit.util.SingletonJunitCase;
 

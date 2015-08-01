@@ -37,7 +37,7 @@ import org.junit.Test;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.junit.util.SingletonJunitCase;
 
-import static com.jogamp.common.util.BitstreamData.*;
+import static com.jogamp.common.util.BitDemoData.*;
 
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
