@@ -45,7 +45,7 @@ public class SyncedBitfield implements Bitfield {
     }
 
     @Override
-    public final void clearField(final boolean bit) {
+    public final synchronized void clearField(final boolean bit) {
         impl.clearField(bit);
     }
 
