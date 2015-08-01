@@ -341,7 +341,8 @@ public class TestBitfield00 extends SingletonJunitCase {
             // copy bits 1 forward
             // clear trailing orig bit
             for(int i=d.bitSize-1; i>=0; i--) {
-                bf.copy(lowBitnum+i, lowBitnum+1+i);
+                Assert.assertEquals(msg+", bitpos "+i, 0 != ( d.val & ( 1 << i ) ),
+                                                       bf.copy(lowBitnum+i, lowBitnum+1+i) );
             }
             bf.clear(lowBitnum);
             Assert.assertEquals(msg, d.val, bf.get32( lowBitnum+1, d.bitSize));
