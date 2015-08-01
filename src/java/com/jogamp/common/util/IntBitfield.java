@@ -54,7 +54,7 @@ public class IntBitfield {
      * @param bitCount
      */
     public IntBitfield(final long bitCount) {
-        final int units = (int) Math.max(1L, ( bitCount + 7L ) >>> UNIT_SHIFT_L);
+        final int units = (int) Math.max(1L, ( bitCount + 31L ) >>> UNIT_SHIFT_L);
         this.storage = new int[units];
         this.bitsCountL = (long)units << UNIT_SHIFT_L ;
         this.bitsCountI = bitsCountL > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int)bitsCountL;
@@ -64,7 +64,7 @@ public class IntBitfield {
      * @param bitCount
      */
     public IntBitfield(final int bitCount) {
-        final int units = Math.max(1, ( bitCount + 7 ) >>> UNIT_SHIFT_I);
+        final int units = Math.max(1, ( bitCount + 31 ) >>> UNIT_SHIFT_I);
         this.storage = new int[units];
         this.bitsCountI = units << UNIT_SHIFT_I;
         this.bitsCountL = bitsCountI;
