@@ -44,14 +44,27 @@ public class Int32ArrayBitfield implements Bitfield {
      * @param storageBitSize
      */
     public Int32ArrayBitfield(final int storageBitSize) {
-        final int units = Math.max(1, ( storageBitSize + 7 ) >>> UNIT_SHIFT);
-        this.storage = new int[units];
+        final int units = Math.max(1, ( storageBitSize + 31 ) >>> UNIT_SHIFT);
+        this.storage = new int[units]; // initialized w/ default '0'
         this.bitSize = units << UNIT_SHIFT;
     }
 
     @Override
-    public int getStorageBitSize() {
+    public int size() {
         return bitSize;
+    }
+
+    @Override
+    public final void clearField(final boolean bit) {
+        final int v;
+        if( bit ) {
+            v = Bitfield.UNSIGNED_INT_MAX_VALUE;
+        } else {
+            v = 0;
+        }
+        for(int i=storage.length-1; i>=0; i--) {
+            storage[i] = v;
+        }
     }
 
     private static final void check(final int size, final int bitnum) throws IndexOutOfBoundsException {
@@ -70,14 +83,14 @@ public class Int32ArrayBitfield implements Bitfield {
         final int left = 32 - ( lowBitnum - ( u << UNIT_SHIFT ) ); // remaining bits of first chunk storage
         if( 32 == left ) {
             // fast path
-            final int m = ( 1 << length ) - 1;
+            final int m = Util.getBitMask(length);   // mask of chunk
             return m & storage[u];
         } else {
             // slow path
-            final int l = Math.min(length, left);    // length of first chunk
+            final int l = Math.min(length, left);    // length of first chunk < 32
             final int m = ( 1 << l ) - 1;            // mask of first chunk
             final int d = m & ( storage[u] >>> lowBitnum );
-            final int l2 = length - l;               // length of last chunk
+            final int l2 = length - l;               // length of last chunk < 32
             if( l2 > 0 ) {
                 final int m2 = ( 1 << l2 ) - 1;      // mask of last chunk
                 return d | ( ( m2 & storage[u+1] ) << l );
@@ -96,20 +109,20 @@ public class Int32ArrayBitfield implements Bitfield {
         final int left = 32 - ( lowBitnum - ( u << UNIT_SHIFT ) ); // remaining bits of first chunk storage
         if( 32 == left ) {
             // fast path
-            final int m = ( 1 << length ) - 1;       // mask of chunk
+            final int m = Util.getBitMask(length);   // mask of chunk
             storage[u] = ( ( ~m ) & storage[u] )     // keep non-written storage bits
                          | ( m & data );             // overwrite storage w/ used data bits
         } else {
             // slow path
-            final int l = Math.min(length, left);    // length of first chunk
+            final int l = Math.min(length, left);    // length of first chunk < 32
             final int m = ( 1 << l ) - 1;            // mask of first chunk
             storage[u] = ( ( ~( m << lowBitnum ) ) & storage[u] ) // keep non-written storage bits
                          | ( ( m & data ) << lowBitnum );         // overwrite storage w/ used data bits
-            final int l2 = length - l;               // length of last chunk
+            final int l2 = length - l;               // length of last chunk < 32
             if( l2 > 0 ) {
                 final int m2 = ( 1 << l2 ) - 1;      // mask of last chunk
-                storage[u] = ( ( ~m2 ) & storage[u+1] ) // keep non-written storage bits
-                             | ( m2 & ( data >>> l ) ); // overwrite storage w/ used data bits
+                storage[u+1] = ( ( ~m2 ) & storage[u+1] ) // keep non-written storage bits
+                               | ( m2 & ( data >>> l ) ); // overwrite storage w/ used data bits
             }
         }
     }
@@ -180,10 +193,10 @@ public class Int32ArrayBitfield implements Bitfield {
     }
 
     @Override
-    public int getBitCount() {
+    public int bitCount() {
         int c = 0;
         for(int i = storage.length-1; i>=0; i--) {
-            c += Bitfield.Util.getBitCount(storage[i]);
+            c += Bitfield.Util.bitCount(storage[i]);
         }
         return c;
     }

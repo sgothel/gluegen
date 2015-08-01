@@ -45,8 +45,17 @@ public class Int32Bitfield implements Bitfield {
     }
 
     @Override
-    public int getStorageBitSize() {
+    public int size() {
         return UNIT_SIZE;
+    }
+
+    @Override
+    public final void clearField(final boolean bit) {
+        if( bit ) {
+            storage = Bitfield.UNSIGNED_INT_MAX_VALUE;
+        } else {
+            storage = 0;
+        }
     }
 
     private static final void check(final int size, final int bitnum) throws IndexOutOfBoundsException {
@@ -64,11 +73,11 @@ public class Int32Bitfield implements Bitfield {
         final int left = 32 - lowBitnum;             // remaining bits of first chunk
         if( 32 == left ) {
             // fast path
-            final int m = ( 1 << length ) - 1;
+            final int m = Util.getBitMask(length);   // mask of chunk
             return m & storage;
         } else {
             // slow path
-            final int l = Math.min(length, left);    // length of first chunk
+            final int l = Math.min(length, left);    // length of first chunk < 32
             final int m = ( 1 << l ) - 1;            // mask of first chunk
             return m & ( storage >>> lowBitnum );
         }
@@ -82,12 +91,12 @@ public class Int32Bitfield implements Bitfield {
         final int left = 32 - lowBitnum;             // remaining bits of first chunk storage
         if( 32 == left ) {
             // fast path
-            final int m = ( 1 << length ) - 1;       // mask of chunk
+            final int m = Util.getBitMask(length);   // mask of chunk
             storage = ( ( ~m ) & storage )           // keep non-written storage bits
                       | ( m & data );                // overwrite storage w/ used data bits
         } else {
             // slow path
-            final int l = Math.min(length, left);    // length of first chunk
+            final int l = Math.min(length, left);    // length of first chunk < 32
             final int m = ( 1 << l ) - 1;            // mask of first chunk
             storage = ( ( ~( m << lowBitnum ) ) & storage ) // keep non-written storage bits
                       | ( ( m & data ) << lowBitnum );      // overwrite storage w/ used data bits
@@ -144,7 +153,7 @@ public class Int32Bitfield implements Bitfield {
     }
 
     @Override
-    public int getBitCount() {
-        return Bitfield.Util.getBitCount(storage);
+    public int bitCount() {
+        return Bitfield.Util.bitCount(storage);
     }
 }

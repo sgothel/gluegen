@@ -40,8 +40,13 @@ public class SyncedBitfield implements Bitfield {
     }
 
     @Override
-    public final synchronized int getStorageBitSize() {
-        return impl.getStorageBitSize();
+    public final synchronized int size() {
+        return impl.size();
+    }
+
+    @Override
+    public final void clearField(final boolean bit) {
+        impl.clearField(bit);
     }
 
     @Override
@@ -85,7 +90,7 @@ public class SyncedBitfield implements Bitfield {
     }
 
     @Override
-    public final synchronized int getBitCount() {
-        return impl.getBitCount();
+    public final synchronized int bitCount() {
+        return impl.bitCount();
     }
 }

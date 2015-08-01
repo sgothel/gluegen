@@ -140,10 +140,10 @@ public class IntBitfield {
         return prev;
     }
     /**
-     * @deprecated Use {@link Bitfield.Util#getBitCount(int)}.
+     * @deprecated Use {@link Bitfield.Util#bitCount(int)}.
      */
     public static final int getBitCount(final int n) {
-        return Bitfield.Util.getBitCount(n);
+        return Bitfield.Util.bitCount(n);
     }
 
     /**
@@ -155,7 +155,7 @@ public class IntBitfield {
     public long getBitCount() {
         long c = 0;
         for(int i = storage.length-1; i>=0; i--) {
-            c += Bitfield.Util.getBitCount(storage[i]);
+            c += Bitfield.Util.bitCount(storage[i]);
         }
         return c;
     }
