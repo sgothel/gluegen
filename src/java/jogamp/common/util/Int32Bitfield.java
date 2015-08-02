@@ -115,14 +115,18 @@ public class Int32Bitfield implements Bitfield {
         return 0 != ( storage & ( 1 << bitnum ) ) ;
     }
     @Override
-    public final void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
+    public final boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
         check(UNIT_SIZE, bitnum);
         final int m = 1 << bitnum;
-        if( bit ) {
-            storage |=  m;
-        } else {
-            storage &= ~m;
+        final boolean prev = 0 != ( storage & m ) ;
+        if( prev != bit ) {
+            if( bit ) {
+                storage |=  m;
+            } else {
+                storage &= ~m;
+            }
         }
+        return prev;
     }
     @Override
     public final void set(final int bitnum) throws IndexOutOfBoundsException {

@@ -173,7 +173,7 @@ public interface Bitfield {
      * @param bitnum bit number, restricted to [0..{@link #size()}-1].
      * @throws IndexOutOfBoundsException if {@code bitnum} is out of bounds
      */
-    void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException;
+    boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException;
 
     /**
      * Set the bit at position <code>bitnum</code> according to <code>bit</code>.

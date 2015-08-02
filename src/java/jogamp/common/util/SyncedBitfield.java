@@ -70,8 +70,8 @@ public class SyncedBitfield implements Bitfield {
     }
 
     @Override
-    public final synchronized void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
-        impl.put(bitnum, bit);
+    public final synchronized boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
+        return impl.put(bitnum, bit);
     }
 
     @Override

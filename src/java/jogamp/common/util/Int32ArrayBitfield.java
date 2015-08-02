@@ -142,16 +142,20 @@ public class Int32ArrayBitfield implements Bitfield {
     }
 
     @Override
-    public final void put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
+    public final boolean put(final int bitnum, final boolean bit) throws IndexOutOfBoundsException {
         check(bitSize, bitnum);
         final int u = bitnum >>> UNIT_SHIFT;
         final int b = bitnum - ( u << UNIT_SHIFT );
         final int m = 1 << b;
-        if( bit ) {
-            storage[u] |=  m;
-        } else {
-            storage[u] &= ~m;
+        final boolean prev = 0 != ( storage[u] & m ) ;
+        if( prev != bit ) {
+            if( bit ) {
+                storage[u] |=  m;
+            } else {
+                storage[u] &= ~m;
+            }
         }
+        return prev;
     }
     @Override
     public final void set(final int bitnum) throws IndexOutOfBoundsException {

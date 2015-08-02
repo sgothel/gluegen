@@ -320,12 +320,16 @@ public class TestBitfield00 extends SingletonJunitCase {
             assertEquals(bf, lowBitnum+1, d.val, d.pattern, oneBitCount);
         }
 
+        // test put() return value (previous value)
+        bf.clearField(false);
+        Assert.assertEquals(msg+", bitpos "+0, false, bf.put(lowBitnum+0, true));
+        Assert.assertEquals(msg+", bitpos "+0,  true, bf.put(lowBitnum+0, false));
+
         //
         // via put
         //
-        bf.clearField(false);
         for(int i=0; i<d.bitSize; i++) {
-            bf.put(lowBitnum+i, 0 != ( d.val & ( 1 << i ) ));
+            Assert.assertEquals(msg+", bitpos "+i, false, bf.put(lowBitnum+i, 0 != ( d.val & ( 1 << i ) )));
         }
         Assert.assertEquals(msg, d.val, bf.get32(lowBitnum, d.bitSize));
         for(int i=0; i<d.bitSize; i++) {
