@@ -361,7 +361,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             final long addr = info.toolGetProcAddress(toolGetProcAddressHandle, funcName);
             if(DEBUG_LOOKUP) {
                 if(0!=addr) {
-                    System.err.println("Lookup-Tool: <"+funcName+"> 0x"+Long.toHexString(addr));
+                    System.err.println("Lookup-Tool: <"+funcName+"> 0x"+Long.toHexString(addr)+", via tool 0x"+Long.toHexString(toolGetProcAddressHandle));
                 }
             }
             return addr;
