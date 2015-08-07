@@ -95,7 +95,7 @@ public class TestBitfield00 extends SingletonJunitCase {
         final int val0 = (int)l;
         final int oneBitCountI = Integer.bitCount(val0);
         final int oneBitCount1 = Bitfield.Util.bitCount(val0);
-        final String msg = String.format("Round 0x%08x, c %d / %d / %d%n", val0,
+        final String msg = String.format("Round 0x%08x, c %d / %d / %d", val0,
                 oneBitCountL, oneBitCountI, oneBitCount1);
         Assert.assertEquals(msg, oneBitCountI, oneBitCountL);
         Assert.assertEquals(msg, oneBitCountI, oneBitCount1);
@@ -124,7 +124,7 @@ public class TestBitfield00 extends SingletonJunitCase {
     static void test_BitCount32_Data(final int i, final int expOneBits) {
         final int oneBitCountI = Integer.bitCount(i);
         final int oneBitCount1 = Bitfield.Util.bitCount(i);
-        final String msg = String.format("Round 0x%08x, c %d / %d%n", i,
+        final String msg = String.format("Round 0x%08x, c %d / %d", i,
                                     oneBitCountI, oneBitCount1);
         Assert.assertEquals(msg, oneBitCount1, expOneBits);
         Assert.assertEquals(msg, oneBitCountI, oneBitCount1);
@@ -194,6 +194,11 @@ public class TestBitfield00 extends SingletonJunitCase {
         new TestDataBF(16, 0xDEAD, "1101111010101101"),
         new TestDataBF(16, 0xBEEF, "1011111011101111")
     };
+    static TestDataBF[] testDataBF3Bit = {
+        new TestDataBF(3, 0x01, "001"),
+        new TestDataBF(3, 0x02, "010"),
+        new TestDataBF(3, 0x05, "101")
+    };
 
     @Test
     public void test20_ValidateTestData() {
@@ -202,6 +207,9 @@ public class TestBitfield00 extends SingletonJunitCase {
         }
         for(int i=0; i<testDataBF16Bit.length; i++) {
             test_ValidateTestData( testDataBF16Bit[i] );
+        }
+        for(int i=0; i<testDataBF3Bit.length; i++) {
+            test_ValidateTestData( testDataBF3Bit[i] );
         }
     }
     static void test_ValidateTestData(final TestDataBF d) {
@@ -221,7 +229,7 @@ public class TestBitfield00 extends SingletonJunitCase {
             final boolean exp0 = 0 != ( v & ( 1 << i ) );
             final boolean exp1 = '1' == pattern.charAt(len-1-i);
             final boolean has = bf.get(i+bf_off);
-            final String msg = String.format("Pos %04d: Value 0x%08x / %s, c %d%n", i, v, pattern, oneBitCount);
+            final String msg = String.format("Pos %04d: Value 0x%08x / %s, c %d", i, v, pattern, oneBitCount);
             Assert.assertEquals(msg, exp0, has);
             Assert.assertEquals(msg, exp1, has);
         }
@@ -234,6 +242,9 @@ public class TestBitfield00 extends SingletonJunitCase {
         }
         for(int i=0; i<testDataBF16Bit.length; i++) {
             test_Aligned32bit( testDataBF16Bit[i] );
+        }
+        for(int i=0; i<testDataBF3Bit.length; i++) {
+            test_Aligned32bit( testDataBF3Bit[i] );
         }
     }
     static int get32BitStorageSize(final int bits) {
@@ -276,6 +287,9 @@ public class TestBitfield00 extends SingletonJunitCase {
         for(int i=0; i<testDataBF16Bit.length; i++) {
             test_Unaligned(testDataBF16Bit[i]);
         }
+        for(int i=0; i<testDataBF3Bit.length; i++) {
+            test_Unaligned( testDataBF3Bit[i] );
+        }
     }
     static void test_Unaligned(final TestDataBF d) {
             final Bitfield bf1 = Bitfield.Factory.create(d.bitSize);
@@ -286,15 +300,18 @@ public class TestBitfield00 extends SingletonJunitCase {
             test_Unaligned( d, bf2 );
     }
     static void test_Unaligned(final TestDataBF d, final Bitfield bf) {
-        for(int i=0; i<bf.size()-d.bitSize; i++) {
+        final int maxBitpos = bf.size()-d.bitSize;
+        for(int i=0; i<=maxBitpos; i++) {
             bf.clearField(false);
             test_Unaligned(d, bf, i);
         }
     }
     static void test_Unaligned(final TestDataBF d, final Bitfield bf, final int lowBitnum) {
+        final int maxBitpos = bf.size()-d.bitSize;
         final int oneBitCount = Bitfield.Util.bitCount(d.val);
 
-        final String msg = String.format("Value 0x%08x / %s, c %d, lbPos %d%n", d.val, d.pattern, oneBitCount, lowBitnum);
+        final String msg = String.format("Value 0x%08x / %s, l %d/%d, c %d, lbPos %d -> %d",
+                d.val, d.pattern, d.bitSize, bf.size(), oneBitCount, lowBitnum, maxBitpos);
 
         //
         // via put32
@@ -310,7 +327,7 @@ public class TestBitfield00 extends SingletonJunitCase {
         //
         // via copy32
         //
-        if( bf.size()-d.bitSize > lowBitnum+1 ) {
+        if( lowBitnum < maxBitpos ) {
             // copy bits 1 forward
             // clear trailing orig bit
             Assert.assertEquals(msg, d.val, bf.copy32(lowBitnum, lowBitnum+1, d.bitSize));
@@ -341,7 +358,7 @@ public class TestBitfield00 extends SingletonJunitCase {
         //
         // via copy
         //
-        if( bf.size()-d.bitSize > lowBitnum+1 ) {
+        if( lowBitnum < maxBitpos ) {
             // copy bits 1 forward
             // clear trailing orig bit
             for(int i=d.bitSize-1; i>=0; i--) {
@@ -374,6 +391,36 @@ public class TestBitfield00 extends SingletonJunitCase {
         }
         Assert.assertEquals(msg, oneBitCount, bf.bitCount());
         assertEquals(bf, lowBitnum, d.val, d.pattern, oneBitCount);
+
+        //
+        // Validate 'other bits' put32/get32
+        //
+        bf.clearField(false);
+        bf.put32( lowBitnum, d.bitSize, d.val);
+        checkOtherBits(d, bf, lowBitnum, msg, 0);
+
+        bf.clearField(true);
+        bf.put32( lowBitnum, d.bitSize, d.val);
+        checkOtherBits(d, bf, lowBitnum, msg, Bitfield.UNSIGNED_INT_MAX_VALUE);
+    }
+
+    static void checkOtherBits(final TestDataBF d, final Bitfield bf, final int lowBitnum, final String msg, final int expBits) {
+        final int highBitnum = lowBitnum + d.bitSize - 1;
+        // System.err.println(msg+": [0"+".."+"("+lowBitnum+".."+highBitnum+").."+(bf.size()-1)+"]");
+        for(int i=0; i<lowBitnum; i+=32) {
+            final int len = Math.min(32, lowBitnum-i);
+            final int val = bf.get32(i, len);
+            final int exp = expBits & Bitfield.Util.getBitMask(len);
+            // System.err.println("    <"+i+".."+(i+len-1)+">, exp "+BitDemoData.toHexString(exp));
+            Assert.assertEquals(msg+", bitpos "+i, exp, val);
+        }
+        for(int i=highBitnum+1; i<bf.size(); i+=32) {
+            final int len = Math.min(32, bf.size() - i);
+            final int val = bf.get32(i, len);
+            final int exp = expBits & Bitfield.Util.getBitMask(len);
+            // System.err.println("        <"+i+".."+(i+len-1)+">, exp "+BitDemoData.toHexString(exp));
+            Assert.assertEquals(msg+", bitpos "+i, exp, val);
+        }
     }
 
     public static void main(final String args[]) throws IOException {
