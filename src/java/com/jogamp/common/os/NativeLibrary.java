@@ -144,7 +144,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @throws SecurityException if user is not granted access for the named library.
    */
   public static final NativeLibrary open(final String libName, final ClassLoader loader) throws SecurityException {
-    return open(libName, libName, libName, true, loader, true);
+    return open(libName, libName, libName, loader, true);
   }
 
   /** Opens the given native library, assuming it has the same base
@@ -154,16 +154,14 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @throws SecurityException if user is not granted access for the named library.
    */
   public static final NativeLibrary open(final String libName, final ClassLoader loader, final boolean global) throws SecurityException {
-    return open(libName, libName, libName, true, loader, global);
+    return open(libName, libName, libName, loader, global);
   }
 
   /** Opens the given native library, assuming it has the given base
       names (no "lib" prefix or ".dll/.so/.dylib" suffix) on the
       Windows, Unix and Mac OS X platforms, respectively, and in the
       context of the specified ClassLoader, which is used to help find
-      the library in the case of e.g. Java Web Start. The
-      searchSystemPathFirst argument changes the behavior to first
-      search the default system path rather than searching it last.
+      the library in the case of e.g. Java Web Start.
       Note that we do not currently handle DSO versioning on Unix.
       Experience with JOAL and OpenAL has shown that it is extremely
       problematic to rely on a specific .so version (for one thing,
@@ -176,9 +174,8 @@ public final class NativeLibrary implements DynamicLookupHelper {
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
-                                         final boolean searchSystemPathFirst,
                                          final ClassLoader loader) throws SecurityException {
-    return open(windowsLibName, unixLibName, macOSXLibName, searchSystemPathFirst, loader, true);
+    return open(windowsLibName, unixLibName, macOSXLibName, loader, true);
   }
 
   /**
@@ -187,12 +184,10 @@ public final class NativeLibrary implements DynamicLookupHelper {
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
-                                         final boolean searchSystemPathFirst,
                                          final ClassLoader loader, final boolean global) throws SecurityException {
     final List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                        unixLibName,
                                                        macOSXLibName,
-                                                       searchSystemPathFirst,
                                                        loader);
     Platform.initSingleton(); // loads native gluegen-rt library
 
@@ -371,7 +366,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
   public static final List<String> enumerateLibraryPaths(final String windowsLibName,
                                                    final String unixLibName,
                                                    final String macOSXLibName,
-                                                   final boolean searchSystemPathFirst,
                                                    final ClassLoader loader) {
     final List<String> paths = new ArrayList<String>();
     final String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
@@ -387,13 +381,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
 
     final String[] baseNames = buildNames(libName);
-
-    if (searchSystemPathFirst) {
-      // Add just the library names to use the OS's search algorithm
-      for (int i = 0; i < baseNames.length; i++) {
-        paths.add(baseNames[i]);
-      }
-    }
 
     // The idea to ask the ClassLoader to find the library is borrowed
     // from the LWJGL library
@@ -412,24 +399,10 @@ public final class NativeLibrary implements DynamicLookupHelper {
             if(null != usrPath) {
                 count++;
             }
-            final String sysPath = System.getProperty("sun.boot.library.path");
-            if(null != sysPath) {
-                count++;
-            }
             final String[] res = new String[count];
             int i=0;
-            if (searchSystemPathFirst) {
-                if(null != sysPath) {
-                    res[i++] = sysPath;
-                }
-            }
             if(null != usrPath) {
                 res[i++] = usrPath;
-            }
-            if (!searchSystemPathFirst) {
-                if(null != sysPath) {
-                    res[i++] = sysPath;
-                }
             }
             return res;
           }
@@ -452,21 +425,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
           }
         });
     addPaths(userDir, baseNames, paths);
-
-    if (!searchSystemPathFirst) {
-      // Add just the library names to use the OS's search algorithm
-      for (int i = 0; i < baseNames.length; i++) {
-        paths.add(baseNames[i]);
-      }
-    }
-
-    // Add probable Mac OS X-specific paths
-    if ( isOSX ) {
-      // Add historical location
-      addPaths("/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
-      // Add current location
-      addPaths("/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
-    }
 
     return paths;
   }

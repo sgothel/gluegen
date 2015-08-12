@@ -585,7 +585,7 @@ public class JNILibLoaderBase {
                   if(DEBUG) {
                       System.err.println("ERROR (retry w/ enumLibPath) - "+ex1.getMessage());
                   }
-                  final List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, true, cl);
+                  final List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, cl);
                   // Iterate down these and see which one if any we can actually find.
                   for (final Iterator<String> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
                       final String path = iter.next();
