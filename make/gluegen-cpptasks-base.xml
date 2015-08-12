@@ -1655,7 +1655,9 @@
 
       <mkdir dir="${nativejarfile.tmpdir}/java" />
       <mkdir dir="${nativejarfile.tmpdir.natives}" />
-      <copy todir="${nativejarfile.tmpdir.natives}">
+      <mkdir dir="${nativejarfile.tmpdir.natives}/natives" />
+      <mkdir dir="${nativejarfile.tmpdir.natives}/natives/${os.and.arch}" />
+      <copy todir="${nativejarfile.tmpdir.natives}/natives/${os.and.arch}">
         <fileset dir="@{objdir}"
                  includes="@{includelibs}"
                  excludes="@{excludelibs}"/>
