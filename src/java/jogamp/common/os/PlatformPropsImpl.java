@@ -446,7 +446,7 @@ public abstract class PlatformPropsImpl {
     }
     private static File findSysLib(final String libName) {
         final ClassLoader cl = PlatformPropsImpl.class.getClassLoader();
-        final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
+        final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, cl);
         for(int i=0; i<possibleLibPaths.size(); i++) {
             final String libPath = possibleLibPaths.get(i);
             final File lib = new File(libPath);
