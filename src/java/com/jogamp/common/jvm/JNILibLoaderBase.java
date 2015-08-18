@@ -61,7 +61,18 @@ import jogamp.common.Debug;
 import jogamp.common.os.PlatformPropsImpl;
 
 public class JNILibLoaderBase {
-  public static final boolean DEBUG = Debug.debug("JNILibLoader");
+  public static final boolean DEBUG;
+  protected static final boolean PERF;
+
+  static {
+      Debug.initSingleton();
+      DEBUG = Debug.debug("JNILibLoader");
+      PERF = DEBUG || PropertyAccess.isPropertyDefined("jogamp.debug.JNILibLoader.Perf", true);
+  }
+
+  private static final Object perfSync = new Object();
+  private static long perfTotal = 0;
+  private static long perfCount = 0;
 
   public interface LoaderAction {
     /**
@@ -177,6 +188,7 @@ public class JNILibLoaderBase {
         msg.append(")");
         System.err.println(msg.toString());
     }
+    final long t0 = PERF ? System.currentTimeMillis() : 0; // 'Platform.currentTimeMillis()' not yet available!
 
     boolean ok = false;
 
@@ -271,8 +283,18 @@ public class JNILibLoaderBase {
         }
     }
 
-    if (DEBUG) {
-        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ok: %b%n", ok);
+    if (DEBUG || PERF) {
+        final long tNow = System.currentTimeMillis() - t0;
+        final long tTotal, tCount;
+        synchronized(perfSync) {
+            tCount = perfCount+1;
+            tTotal = perfTotal + tNow;
+            perfTotal = tTotal;
+            perfCount = tCount;
+        }
+        final double tAvrg = tTotal / (double)tCount;
+        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl.X: %s / %s -> ok: %b; duration: now %d ms, total %d ms (count %d, avrg %.3f ms)%n",
+                          jarBasename, nativeJarBasename, ok, tNow, tTotal, tCount, tAvrg);
     }
     return ok;
   }

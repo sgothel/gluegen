@@ -50,12 +50,13 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.TempFileCache"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djava.io.tmpdir=/run/tmp"
-D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djogamp.debug.TempJarCache"
+#D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JNILibLoader -Djogamp.debug.TempFileCache -Djogamp.debug.JarUtil -Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.JarUtil -Djogamp.debug.TempJarCache -Djogamp.debug.Uri -Djogamp.debug.Uri.ShowFix"
 #D_ARGS="-Djogamp.debug.Uri -Djogamp.debug.Uri.ShowFix"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader"
+D_ARGS="-Djogamp.debug.JNILibLoader.Perf"
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
@@ -86,7 +87,7 @@ function onetest() {
     echo
 }
 #
-#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -144,7 +145,7 @@ function onetest() {
 #onetest com.jogamp.gluegen.jcpp.PreprocessorTest 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen02 2>&1 | tee -a $LOG
