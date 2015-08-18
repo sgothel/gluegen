@@ -196,27 +196,30 @@ public class JNILibLoaderBase {
         System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: nativeLibraryPath: %s%n", nativeLibraryPath);
     }
     final ClassLoader cl = classFromJavaJar.getClassLoader();
-    final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
-    if (null != nativeLibraryURI) {
-        // We probably have one big-fat jar file, containing java classes
-        // and all native platform libraries under 'natives/os.and.arch'!
-        final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(jarBasename) );
-        try {
-            if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
-                ok = true;
-                if (DEBUG) {
-                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: fat: %s -> %s%n", jarBasename, nativeJarURI);
+    {
+        // Attempt a 'one big-fat jar file' layout, containing java classes
+        // and all native platform libraries under 'natives/os.and.arch' per platform!
+        final URL nativeLibraryURI = cl.getResource(nativeLibraryPath);
+        if (null != nativeLibraryURI) {
+            final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(jarBasename) );
+            try {
+                if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
+                    ok = true;
+                    if (DEBUG) {
+                        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: fat: %s -> %s%n", jarBasename, nativeJarURI);
+                    }
                 }
-            }
-        } catch(final Exception e) {
-            if(DEBUG) {
-                System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
-                e.printStackTrace();
+            } catch(final Exception e) {
+                if(DEBUG) {
+                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
+                    e.printStackTrace();
+                }
             }
         }
     }
     if (!ok) {
-        // We assume one slim native jar file per 'os.and.arch'!
+        // Attempt a 'one slim native jar file' per 'os.and.arch' layout
+        // with native platform libraries under 'natives/os.and.arch'!
         final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(nativeJarBasename) );
 
         if (DEBUG) {
@@ -224,7 +227,7 @@ public class JNILibLoaderBase {
         }
 
         try {
-            ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, null /* nativeLibraryPath */);
+            ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath);
         } catch(final Exception e) {
             if(DEBUG) {
                 System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
@@ -234,7 +237,8 @@ public class JNILibLoaderBase {
     }
     if (!ok) {
         // Attempt to find via ClassLoader and Native-Jar-Tag,
-        // assuming one slim native jar file per 'os.and.arch'!
+        // assuming one slim native jar file per 'os.and.arch'
+        // and native platform libraries under 'natives/os.and.arch'!
         final String moduleName;
         {
             final String packageName = classFromJavaJar.getPackage().getName();
@@ -256,7 +260,7 @@ public class JNILibLoaderBase {
             if (DEBUG) {
                 System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ClassLoader/TAG: %s -> %s%n", nativeJarTagClassName, nativeJarTagClassJarURI);
             }
-            ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarTagClassJarURI, null /* nativeLibraryPath */);
+            ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarTagClassJarURI, nativeLibraryPath);
         } catch (final Exception e ) {
             if(DEBUG) {
                 System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
