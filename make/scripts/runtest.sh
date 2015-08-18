@@ -112,7 +112,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSyncRingBuffer01 $*
 #onetest com.jogamp.common.util.TestLFRingBuffer01 $*
-onetest com.jogamp.common.util.TestBitfield00 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestBitfield00 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream00 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
@@ -134,7 +134,7 @@ onetest com.jogamp.common.util.TestBitfield00 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferInputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
+onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.PCPPTest 2>&1 | tee -a $LOG
