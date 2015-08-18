@@ -46,6 +46,9 @@ public class JogampVersion {
     /** See {@link #getImplementationCommit()} */
     public static final Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
 
+    /** For FAT JogAmp jar files */
+    private static final String packageNameFAT = "com.jogamp";
+
     private final String packageName;
     private final Manifest mf;
     private final int hash;
@@ -55,12 +58,27 @@ public class JogampVersion {
     private final String androidPackageVersionName;
 
     protected JogampVersion(final String packageName, final Manifest mf) {
-        this.packageName = packageName;
-        this.mf = ( null != mf ) ? mf : new Manifest();
+        if( null != mf ) {
+            // use provided valid data
+            this.mf = mf;
+            this.packageName = packageName;
+        } else {
+            // try FAT jar file
+            final Manifest fatMF = VersionUtil.getManifest(JogampVersion.class.getClassLoader(), packageNameFAT);
+            if( null != fatMF ) {
+                // use FAT jar file
+                this.mf = fatMF;
+                this.packageName = packageNameFAT;
+            } else {
+                // use faulty data, unresolvable ..
+                this.mf = new Manifest();
+                this.packageName = packageName;
+            }
+        }
         this.hash = this.mf.hashCode();
         mainAttributes = this.mf.getMainAttributes();
         mainAttributeNames = mainAttributes.keySet();
-        androidPackageVersionName = AndroidUtils.getPackageInfoVersionName(packageName); // null if !Android
+        androidPackageVersionName = AndroidUtils.getPackageInfoVersionName(this.packageName); // null if !Android
     }
 
     @Override
