@@ -157,10 +157,10 @@ public class RecursiveThreadGroupLockImpl01Unfairish
         final Thread cur = Thread.currentThread();
         final ThreadGroupSync tgSync = (ThreadGroupSync)sync;
         if(!tgSync.isOriginalOwner(cur)) {
-            throw new IllegalArgumentException("Current thread is not the original owner: orig-owner: "+tgSync.getOwner()+", current "+cur);
+            throw new IllegalArgumentException("Current thread is not the original owner: orig-owner: "+tgSync.getOwner()+", current "+cur+": "+toString());
         }
         if(tgSync.isOriginalOwner(t)) {
-            throw new IllegalArgumentException("Passed thread is original owner: "+t);
+            throw new IllegalArgumentException("Passed thread is original owner: "+t+", "+toString());
         }
         tgSync.addOwner(t);
     }
