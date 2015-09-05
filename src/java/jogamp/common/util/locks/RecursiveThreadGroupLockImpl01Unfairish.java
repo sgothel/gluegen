@@ -42,6 +42,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
             threadNum = 0;
             threads = null;
             holdCountAdditionOwner = 0;
+            waitingOrigOwner = null;
         }
         @Override
         public final void incrHoldCount(final Thread t) {
@@ -63,6 +64,12 @@ public class RecursiveThreadGroupLockImpl01Unfairish
 
         public final boolean isOriginalOwner(final Thread t) {
             return super.isOwner(t);
+        }
+        public final void setWaitingOrigOwner(final Thread origOwner) {
+            waitingOrigOwner = origOwner;
+        }
+        public final Thread getWaitingOrigOwner() {
+            return waitingOrigOwner;
         }
         @Override
         public final boolean isOwner(final Thread t) {
@@ -133,6 +140,7 @@ public class RecursiveThreadGroupLockImpl01Unfairish
         private int holdCountAdditionOwner;
         private Thread[] threads;
         private int threadNum;
+        private Thread waitingOrigOwner;
     }
 
     public RecursiveThreadGroupLockImpl01Unfairish() {
@@ -179,19 +187,25 @@ public class RecursiveThreadGroupLockImpl01Unfairish
                     // original locking owner thread
                     if( tgSync.getHoldCount() - tgSync.getAdditionalOwnerHoldCount() == 1 ) {
                         // release orig. lock
-                        while ( tgSync.getAdditionalOwnerHoldCount() > 0 ) {
-                            try {
-                                sync.wait();
-                            } catch (final InterruptedException e) {
-                                // regular wake up!
+                        tgSync.setWaitingOrigOwner(cur);
+                        try {
+                            while ( tgSync.getAdditionalOwnerHoldCount() > 0 ) {
+                                try {
+                                    sync.wait();
+                                } catch (final InterruptedException e) {
+                                    // regular wake up!
+                                }
                             }
+                        } finally {
+                            tgSync.setWaitingOrigOwner(null);
+                            Thread.interrupted(); // clear slipped interrupt
                         }
                         tgSync.removeAllOwners();
                     }
                 } else if( tgSync.getAdditionalOwnerHoldCount() == 1 ) {
-                    // last additional owner thread wakes up original owner
-                    final Thread originalOwner = tgSync.getOwner();
-                    if(originalOwner.getState() == Thread.State.WAITING) {
+                    // last additional owner thread wakes up original owner if waiting in unlock(..)
+                    final Thread originalOwner = tgSync.getWaitingOrigOwner();
+                    if( null != originalOwner ) {
                         originalOwner.interrupt();
                     }
                 }

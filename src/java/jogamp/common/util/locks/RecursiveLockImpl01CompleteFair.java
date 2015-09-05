@@ -215,6 +215,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                         } // else: Issued by unlock, owning lock .. expected!
                     }
                 } while ( cur != sync.getOwner() && 0 < timeout ) ;
+                Thread.interrupted(); // clear slipped interrupt
 
                 if( 0 >= timeout && cur != sync.getOwner() ) {
                     // timed out
