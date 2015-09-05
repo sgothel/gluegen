@@ -45,19 +45,29 @@ public abstract class SingletonJunitCase extends JunitTracer {
 
     private static SingletonInstance singletonInstance = null; // system wide lock via port locking
     private static final Object singletonSync = new Object();  // classloader wide lock
+    private static boolean enabled = true;
+
+    /**
+     * Default is {@code true}.
+     */
+    public static final void enableSingletonLock(final boolean v) {
+        enabled = v;
+    }
 
     @BeforeClass
     public static final void oneTimeSetUpSingleton() {
         // one-time initialization code
         synchronized( singletonSync ) {
-            if( null == singletonInstance )  {
-                System.err.println("++++ Test Singleton.ctor()");
-                // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
-                singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
-            }
-            System.err.println("++++ Test Singleton.lock()");
-            if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
-                throw new RuntimeException("Fatal: Could not lock single instance: "+singletonInstance.getName());
+            if( enabled ) {
+                if( null == singletonInstance )  {
+                    System.err.println("++++ Test Singleton.ctor()");
+                    // singletonInstance = SingletonInstance.createFileLock(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_FILE);
+                    singletonInstance = SingletonInstance.createServerSocket(SINGLE_INSTANCE_LOCK_POLL, SINGLE_INSTANCE_LOCK_PORT);
+                }
+                System.err.println("++++ Test Singleton.lock()");
+                if(!singletonInstance.tryLock(SINGLE_INSTANCE_LOCK_TO)) {
+                    throw new RuntimeException("Fatal: Could not lock single instance: "+singletonInstance.getName());
+                }
             }
         }
     }
@@ -67,12 +77,14 @@ public abstract class SingletonJunitCase extends JunitTracer {
         // one-time cleanup code
         synchronized( singletonSync ) {
             System.gc(); // force cleanup
-            System.err.println("++++ Test Singleton.unlock()");
-            singletonInstance.unlock();
-            try {
-                // allowing other JVM instances to pick-up socket
-                Thread.sleep( SINGLE_INSTANCE_LOCK_POLL );
-            } catch (final InterruptedException e) { }
+            if( enabled ) {
+                System.err.println("++++ Test Singleton.unlock()");
+                singletonInstance.unlock();
+                try {
+                    // allowing other JVM instances to pick-up socket
+                    Thread.sleep( SINGLE_INSTANCE_LOCK_POLL );
+                } catch (final InterruptedException e) { }
+            }
         }
     }
 }
