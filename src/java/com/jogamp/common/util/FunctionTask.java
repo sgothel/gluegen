@@ -30,6 +30,8 @@ package com.jogamp.common.util;
 
 import java.io.PrintStream;
 
+import com.jogamp.common.JogampRuntimeException;
+
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
@@ -40,34 +42,54 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     protected A[] args;
 
     /**
-     * Invokes <code>func</code>.
+     * @deprecated Simply invoke {@link Function#eval(Object...)}
+     */
+    public static <U,V> U invoke(final boolean waitUntilDone, final Function<U,V> func, final V... args) {
+        return func.eval(args);
+    }
+
+    /**
+     * Invokes <code>func</code> on a new thread belonging to the given {@link ThreadGroup}.
+     * <p>
+     * The result can be retrieved via {@link FunctionTask#getResult()},
+     * using the returned instance.
+     * </p>
+     * @param tg the {@link ThreadGroup} for the new thread, maybe <code>null</code>
+     * @param threadName the name for the new thread
      * @param waitUntilDone if <code>true</code>, waits until <code>func</code> execution is completed, otherwise returns immediately.
      * @param func the {@link Function} to execute.
      * @param args the {@link Function} arguments
-     * @return the {@link Function} return value
+     * @return the newly created and invoked {@link FunctionTask}
      */
-    public static <U,V> U invoke(final boolean waitUntilDone, final Function<U,V> func, final V... args) {
-        Throwable throwable = null;
-        final Object sync = new Object();
-        final FunctionTask<U,V> rt = new FunctionTask<U,V>( func, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
-        final U res;
-        synchronized(sync) {
-            res = rt.eval(args);
-            if( waitUntilDone ) {
-                try {
-                    sync.wait();
-                } catch (final InterruptedException ie) {
-                    throwable = ie;
-                }
-                if(null==throwable) {
-                    throwable = rt.getThrowable();
-                }
-                if(null!=throwable) {
-                    throw new RuntimeException(throwable);
+    public static <U,V> FunctionTask<U,V> invokeOnNewThread(final ThreadGroup tg, final String threadName,
+                                                            final boolean waitUntilDone, final Function<U,V> func, final V... args) {
+        final FunctionTask<U,V> rt;
+        if( !waitUntilDone ) {
+            rt = new FunctionTask<U,V>( func, null, true, System.err );
+            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            rt.args = args;
+            t.start();
+        } else {
+            final Object sync = new Object();
+            rt = new FunctionTask<U,V>( func, sync, true, null );
+            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            synchronized(sync) {
+                rt.args = args;
+                t.start();
+                while( rt.isInQueue() ) {
+                    try {
+                        sync.wait();
+                    } catch (final InterruptedException ie) {
+                        throw new InterruptedRuntimeException(ie);
+                    }
+                    final Throwable throwable = rt.getThrowable();
+                    if(null!=throwable) {
+                        throw new JogampRuntimeException(throwable);
+                    }
                 }
             }
         }
-        return res;
+        return rt;
     }
 
     /**
@@ -124,6 +146,8 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
      */
     @Override
     public final void run() {
+        execThread = Thread.currentThread();
+
         final A[] args = this.args;
         this.args = null;
         this.result = null;
@@ -144,6 +168,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                 }
             } finally {
                 tExecuted = System.currentTimeMillis();
+                isExecuted = true;
             }
         } else {
             synchronized (syncObject) {
@@ -161,6 +186,7 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
                     }
                 } finally {
                     tExecuted = System.currentTimeMillis();
+                    isExecuted = true;
                     syncObject.notifyAll();
                 }
             }

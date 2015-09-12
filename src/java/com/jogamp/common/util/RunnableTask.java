@@ -30,6 +30,8 @@ package com.jogamp.common.util;
 
 import java.io.PrintStream;
 
+import com.jogamp.common.JogampRuntimeException;
+
 /**
  * Helper class to provide a Runnable queue implementation with a Runnable wrapper
  * which notifies after execution for the <code>invokeAndWait()</code> semantics.
@@ -38,30 +40,18 @@ public class RunnableTask extends TaskBase {
     protected final Runnable runnable;
 
     /**
-     * Invokes <code>runnable</code> on the current thread.
-     * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
-     * @param runnable the {@link Runnable} to execute.
+     * @deprecated Simply invoke {@link Runnable#run()}
      */
     public static void invoke(final boolean waitUntilDone, final Runnable runnable) {
-        Throwable throwable = null;
-        final Object sync = new Object();
-        final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
-        synchronized(sync) {
-            rt.run();
-            if( waitUntilDone ) {
-                try {
-                    sync.wait();
-                } catch (final InterruptedException ie) {
-                    throwable = ie;
-                }
-                if(null==throwable) {
-                    throwable = rt.getThrowable();
-                }
-                if(null!=throwable) {
-                    throw new RuntimeException(throwable);
-                }
-            }
-        }
+        runnable.run();
+    }
+
+    /**
+     * @deprecated Use {@link #invokeOnNewThread(ThreadGroup, String, boolean, Runnable)}
+     */
+    public static Thread invokeOnNewThread(final ThreadGroup tg, final boolean waitUntilDone, final Runnable runnable, final String threadName) {
+        final RunnableTask rt = invokeOnNewThread(tg, threadName, waitUntilDone, runnable);
+        return rt.getExecutionThread();
     }
 
     /**
@@ -71,36 +61,36 @@ public class RunnableTask extends TaskBase {
      * @param runnable the {@link Runnable} to execute on the new thread. If <code>waitUntilDone</code> is <code>true</code>,
      *                 the runnable <b>must exist</b>, i.e. not loop forever.
      * @param threadName the name for the new thread
-     * @return the newly created {@link Thread}
+     * @return the newly created and invoked {@link RunnableTask}
      */
-    public static Thread invokeOnNewThread(final ThreadGroup tg, final boolean waitUntilDone, final Runnable runnable, final String threadName) {
-        final Thread t = new Thread(tg, threadName) {
-            @Override
-            public void run() {
-                Throwable throwable = null;
-                final Object sync = new Object();
-                final RunnableTask rt = new RunnableTask( runnable, waitUntilDone ? sync : null, true, waitUntilDone ? null : System.err );
-                synchronized(sync) {
-                    rt.run();
-                    if( waitUntilDone ) {
-                        try {
-                            sync.wait();
-                        } catch (final InterruptedException ie) {
-                            throwable = ie;
-                        }
-                        if(null==throwable) {
-                            throwable = rt.getThrowable();
-                        }
-                        if(null!=throwable) {
-                            throw new RuntimeException(throwable);
-                        }
+    public static RunnableTask invokeOnNewThread(final ThreadGroup tg, final String threadName,
+                                                 final boolean waitUntilDone, final Runnable runnable) {
+        final RunnableTask rt;
+        if( !waitUntilDone ) {
+            rt = new RunnableTask( runnable, null, true, System.err );
+            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            t.start();
+        } else {
+            final Object sync = new Object();
+            rt = new RunnableTask( runnable, sync, true, null );
+            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            synchronized(sync) {
+                t.start();
+                while( rt.isInQueue() ) {
+                    try {
+                        sync.wait();
+                    } catch (final InterruptedException ie) {
+                        throw new InterruptedRuntimeException(ie);
+                    }
+                    final Throwable throwable = rt.getThrowable();
+                    if(null!=throwable) {
+                        throw new JogampRuntimeException(throwable);
                     }
                 }
-            } };
-        t.start();
-        return t;
+            }
+        }
+        return rt;
     }
-
 
     /**
      * Create a RunnableTask object w/ synchronization,
@@ -126,6 +116,8 @@ public class RunnableTask extends TaskBase {
 
     @Override
     public final void run() {
+        execThread = Thread.currentThread();
+
         runnableException = null;
         tStarted = System.currentTimeMillis();
         if(null == syncObject) {
@@ -143,6 +135,7 @@ public class RunnableTask extends TaskBase {
                 }
             } finally {
                 tExecuted = System.currentTimeMillis();
+                isExecuted = true;
             }
         } else {
             synchronized (syncObject) {
@@ -160,6 +153,7 @@ public class RunnableTask extends TaskBase {
                     }
                 } finally {
                     tExecuted = System.currentTimeMillis();
+                    isExecuted = true;
                     syncObject.notifyAll();
                 }
             }

@@ -54,7 +54,9 @@ public abstract class TaskBase implements Runnable {
     protected Throwable runnableException;
     protected long tCreated, tStarted;
     protected volatile long tExecuted;
+    protected volatile boolean isExecuted;
     protected volatile boolean isFlushed;
+    protected volatile Thread execThread;
 
     protected TaskBase(final Object syncObject, final boolean catchExceptions, final PrintStream exceptionOut) {
         this.syncObject = syncObject;
@@ -64,7 +66,9 @@ public abstract class TaskBase implements Runnable {
         tCreated = System.currentTimeMillis();
         tStarted = 0;
         tExecuted = 0;
+        isExecuted = false;
         isFlushed = false;
+        execThread = null;
     }
 
     protected final String getExceptionOutIntro() {
@@ -74,6 +78,11 @@ public abstract class TaskBase implements Runnable {
         if( null != sourceStack && null != exceptionOut ) {
             sourceStack.printStackTrace(exceptionOut);
         }
+    }
+
+    /** Returns the execution thread or {@code null} if not yet {@link #run()}. */
+    public final Thread getExecutionThread() {
+        return execThread;
     }
 
     /**
@@ -126,12 +135,12 @@ public abstract class TaskBase implements Runnable {
     /**
      * @return !{@link #isExecuted()} && !{@link #isFlushed()}
      */
-    public final boolean isInQueue() { return 0 != tExecuted && !isFlushed; }
+    public final boolean isInQueue() { return !isExecuted() && !isFlushed(); }
 
     /**
      * @return True if executed, otherwise false;
      */
-    public final boolean isExecuted() { return 0 != tExecuted ; }
+    public final boolean isExecuted() { return isExecuted; }
 
     /**
      * @return True if flushed, otherwise false;
@@ -159,7 +168,7 @@ public abstract class TaskBase implements Runnable {
 
     @Override
     public String toString() {
-        return "RunnableTask[executed "+isExecuted()+", tTotal "+getDurationTotal()+" ms, tExec "+getDurationInExec()+" ms, tQueue "+getDurationInQueue()+" ms, attachment "+attachment+", throwable "+getThrowable()+"]";
+        return "RunnableTask[enqueued "+isInQueue()+"[executed "+isExecuted()+", flushed "+isFlushed()+"], tTotal "+getDurationTotal()+" ms, tExec "+getDurationInExec()+" ms, tQueue "+getDurationInQueue()+" ms, attachment "+attachment+", throwable "+getThrowable()+"]";
     }
 }
 
