@@ -57,6 +57,37 @@ public class ExceptionUtils {
         }
     }
 
+    /** Interface allowing {@link Throwable} specializations to provide their custom stack trace presentation. */
+    public static interface CustomStackTrace {
+        /** Custom non-iterative stack dump */
+        void dumpCauseStack(final PrintStream s, final String causeStr, int causeDepth);
+        /** Custom {@code printStackTrace} method, similar to {@link Throwable#printStackTrace(PrintStream)}. */
+        void printStackTrace(final PrintStream s);
+    }
+
+    public static int dumpCause(final PrintStream s, final String causeStr, Throwable cause, int causeDepth) {
+        for( ; null != cause; cause = cause.getCause() ) {
+            if( cause instanceof CustomStackTrace ) {
+                ((CustomStackTrace)cause).dumpCauseStack(s, causeStr, causeDepth);
+            } else {
+                s.println(causeStr+"["+causeDepth+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
+                dumpStack(s, cause.getStackTrace(), 0, -1);
+            }
+            causeDepth++;
+        }
+        return causeDepth;
+    }
+
+    public static void printStackTrace(final PrintStream s, final Throwable t) {
+        if( t instanceof CustomStackTrace ) {
+            ((CustomStackTrace)t).printStackTrace(s);
+        } else {
+            s.println(t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
+            dumpStack(s, t.getStackTrace(), 0, -1);
+            dumpCause(s, "Caused", t.getCause(), 1);
+        }
+    }
+
     /**
      * Dumps a {@link Throwable} in a decorating message including the current thread name,
      * and its {@link #dumpStack(PrintStream, StackTraceElement[], int, int) stack trace}.
@@ -65,14 +96,7 @@ public class ExceptionUtils {
      * </p>
      */
     public static void dumpThrowable(final String additionalDescr, final Throwable t) {
-        System.err.println("Caught "+additionalDescr+" "+t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
-        dumpStack(System.err, t.getStackTrace(), 0, -1);
-        int causeDepth = 1;
-        for( Throwable cause = t.getCause(); null != cause; cause = cause.getCause() ) {
-            System.err.println("Caused["+causeDepth+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
-            dumpStack(System.err, cause.getStackTrace(), 0, -1);
-            causeDepth++;
-        }
+        System.err.print("Caught "+additionalDescr+" ");
+        printStackTrace(System.err, t);
     }
-
 }
