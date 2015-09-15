@@ -55,25 +55,27 @@ public class RunnableTask extends TaskBase {
     }
 
     /**
-     * Invokes <code>runnable</code> on a new thread belonging to the given {@link ThreadGroup}.
+     * Invokes <code>runnable</code> on a new {@link InterruptSource.Thread},
+     * see {@link InterruptSource.Thread#Thread(ThreadGroup, Runnable, String)} for details.
      * @param tg the {@link ThreadGroup} for the new thread, maybe <code>null</code>
+     * @param threadName the name for the new thread, maybe <code>null</code>
      * @param waitUntilDone if <code>true</code>, waits until <code>runnable</code> execution is completed, otherwise returns immediately.
      * @param runnable the {@link Runnable} to execute on the new thread. If <code>waitUntilDone</code> is <code>true</code>,
-     *                 the runnable <b>must exist</b>, i.e. not loop forever.
-     * @param threadName the name for the new thread
+     *                 the runnable <b>must exit</b>, i.e. not loop forever.
      * @return the newly created and invoked {@link RunnableTask}
+     * @since 2.3.2
      */
     public static RunnableTask invokeOnNewThread(final ThreadGroup tg, final String threadName,
                                                  final boolean waitUntilDone, final Runnable runnable) {
         final RunnableTask rt;
         if( !waitUntilDone ) {
             rt = new RunnableTask( runnable, null, true, System.err );
-            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            final InterruptSource.Thread t = InterruptSource.Thread.create(tg, rt, threadName);
             t.start();
         } else {
             final Object sync = new Object();
             rt = new RunnableTask( runnable, sync, true, null );
-            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            final InterruptSource.Thread t = InterruptSource.Thread.create(tg, rt, threadName);
             synchronized(sync) {
                 t.start();
                 while( rt.isInQueue() ) {

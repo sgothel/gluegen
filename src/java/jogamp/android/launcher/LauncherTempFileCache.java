@@ -34,6 +34,8 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
+import com.jogamp.common.util.InterruptSource;
+
 import android.content.Context;
 
 public class LauncherTempFileCache {
@@ -223,7 +225,7 @@ public class LauncherTempFileCache {
                 // Add shutdown hook to cleanup the OutputStream, FileChannel,
                 // and FileLock for the jlnNNNN.lck and jlnNNNN.lck files.
                 // We do this so that the locks never get garbage-collected.
-                Runtime.getRuntime().addShutdownHook(new Thread() {
+                Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
                     /* @Override */
                     public void run() {
                         // NOTE: we don't really expect that this code will ever
@@ -249,7 +251,7 @@ public class LauncherTempFileCache {
                 }
 
                 // Start a new Reaper thread to do stuff...
-                final Thread reaperThread = new Thread() {
+                final Thread reaperThread = new InterruptSource.Thread() {
                     /* @Override */
                     public void run() {
                         deleteOldTempDirs();

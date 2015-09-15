@@ -35,10 +35,11 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSingletonServerSocket01 {
+public class TestSingletonServerSocket01 extends JunitTracer {
     private static volatile SingletonInstance singletonInstance;
 
     @BeforeClass

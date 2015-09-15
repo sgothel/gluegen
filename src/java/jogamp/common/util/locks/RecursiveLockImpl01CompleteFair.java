@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.AbstractOwnableSynchronizer;
 
+import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.common.util.locks.RecursiveLock;
 
 /**
@@ -197,7 +198,7 @@ public class RecursiveLockImpl01CompleteFair implements RecursiveLock {
                     } catch (final InterruptedException e) {
                         if( !wCur.signaledByUnlock ) {
                             sync.queue.remove(wCur); // O(n)
-                            throw e; // propagate interruption not send by unlock
+                            throw SourcedInterruptedException.wrap(e); // propagate interruption not send by unlock
                         } else if( cur != sync.getOwner() ) {
                             // Issued by unlock, but still locked by other thread
                             //

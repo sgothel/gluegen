@@ -49,30 +49,32 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     }
 
     /**
-     * Invokes <code>func</code> on a new thread belonging to the given {@link ThreadGroup}.
+     * Invokes <code>func</code> on a new {@link InterruptSource.Thread},
+     * see {@link InterruptSource.Thread#Thread(ThreadGroup, Runnable, String)} for details.
      * <p>
      * The result can be retrieved via {@link FunctionTask#getResult()},
      * using the returned instance.
      * </p>
      * @param tg the {@link ThreadGroup} for the new thread, maybe <code>null</code>
-     * @param threadName the name for the new thread
+     * @param threadName the name for the new thread, maybe <code>null</code>
      * @param waitUntilDone if <code>true</code>, waits until <code>func</code> execution is completed, otherwise returns immediately.
      * @param func the {@link Function} to execute.
      * @param args the {@link Function} arguments
      * @return the newly created and invoked {@link FunctionTask}
+     * @since 2.3.2
      */
     public static <U,V> FunctionTask<U,V> invokeOnNewThread(final ThreadGroup tg, final String threadName,
                                                             final boolean waitUntilDone, final Function<U,V> func, final V... args) {
         final FunctionTask<U,V> rt;
         if( !waitUntilDone ) {
             rt = new FunctionTask<U,V>( func, null, true, System.err );
-            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            final InterruptSource.Thread t = InterruptSource.Thread.create(tg, rt, threadName);
             rt.args = args;
             t.start();
         } else {
             final Object sync = new Object();
             rt = new FunctionTask<U,V>( func, sync, true, null );
-            final InterruptSource.Thread t = new InterruptSource.Thread(tg, rt, threadName);
+            final InterruptSource.Thread t = InterruptSource.Thread.create(tg, rt, threadName);
             synchronized(sync) {
                 rt.args = args;
                 t.start();

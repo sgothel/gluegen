@@ -35,10 +35,11 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestSingletonServerSocket00 {
+public class TestSingletonServerSocket00 extends JunitTracer {
     public static final long SINGLE_INSTANCE_LOCK_TO   = SingletonJunitCase.SINGLE_INSTANCE_LOCK_TO;
 
     public static final long SINGLE_INSTANCE_LOCK_POLL = 100; // poll every 100ms

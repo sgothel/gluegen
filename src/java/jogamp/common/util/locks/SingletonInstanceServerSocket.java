@@ -33,10 +33,16 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
+
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.InterruptSource;
+import com.jogamp.common.util.InterruptedRuntimeException;
+import com.jogamp.common.util.SourcedInterruptedException;
 import com.jogamp.common.util.locks.SingletonInstance;
 
 public class SingletonInstanceServerSocket extends SingletonInstance {
 
+    private static int serverInstanceCount = 0;
     private final Server singletonServer;
     private final String fullName;
 
@@ -139,38 +145,58 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
        public final boolean start() {
            if(alive) return true;
 
+           final String sname;
+           synchronized (Server.class) {
+               serverInstanceCount++;
+               sname = "SingletonServerSocket"+serverInstanceCount+"-"+fullName;
+           }
            synchronized (syncOnStartStop) {
-               serverThread = new Thread(this);
+               shallQuit = false;
+               serverThread = InterruptSource.Thread.create(null, this, sname);
                serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
                serverThread.start();
                try {
-                   syncOnStartStop.wait();
+                   while( !alive && !shallQuit ) {
+                       syncOnStartStop.wait();
+                   }
                } catch (final InterruptedException ie) {
-                   ie.printStackTrace();
+                   final InterruptedException ie2 = SourcedInterruptedException.wrap(ie);
+                   shutdown(false);
+                   throw new InterruptedRuntimeException(ie2);
                }
            }
            final boolean ok = isBound();
            if(!ok) {
-               shutdown();
+               shutdown(true);
            }
            return ok;
        }
 
        public final boolean shutdown() {
+           return shutdown(true);
+       }
+       private final boolean shutdown(final boolean wait) {
            if(!alive) return true;
 
-           synchronized (syncOnStartStop) {
-               shallQuit = true;
-               connect();
-               try {
-                   syncOnStartStop.wait();
-               } catch (final InterruptedException ie) {
-                   ie.printStackTrace();
+           try {
+               synchronized (syncOnStartStop) {
+                   shallQuit = true;
+                   connect();
+                   if( wait ) {
+                       try {
+                           while( alive ) {
+                               syncOnStartStop.wait();
+                           }
+                       } catch (final InterruptedException ie) {
+                           throw new InterruptedRuntimeException(ie);
+                       }
+                   }
                }
-           }
-           if(alive) {
-               System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
-               kill();
+           } finally {
+               if(alive) {
+                   System.err.println(infoPrefix()+" EEE "+getName()+" - Unable to remove lock: ServerThread still alive ?");
+                   kill();
+               }
            }
            return true;
        }
@@ -185,7 +211,8 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
                 System.err.println(infoPrefix()+" XXX "+getName()+" - Kill @ JVM Shutdown");
            }
            alive = false;
-           if(null != serverThread) {
+           shallQuit = false;
+           if(null != serverThread && serverThread.isAlive() ) {
                try {
                    serverThread.stop();
                } catch(final Throwable t) { }
@@ -214,47 +241,49 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
 
        @Override
        public void run() {
-           {
-               final Thread currentThread = Thread.currentThread();
-               currentThread.setName(currentThread.getName() + " - SISock: "+getName());
-               if(DEBUG) {
-                   System.err.println(currentThread.getName()+" - started");
-               }
+           if(DEBUG) {
+               System.err.println(infoPrefix()+" III - Start");
            }
-           alive = false;
-           synchronized (syncOnStartStop) {
-               try {
-                   serverSocket = new ServerSocket(portNumber, 1, localInetAddress);
-                   serverSocket.setReuseAddress(true); // reuse same port w/ subsequent instance, i.e. overcome TO state when JVM crashed
-                   alive = true;
-               } catch (final IOException e) {
-                    System.err.println(infoPrefix()+" III - Unable to install ServerSocket: "+e.getMessage());
-                    shallQuit = true;
-               } finally {
-                    syncOnStartStop.notifyAll();
-               }
-           }
-
-           while (!shallQuit) {
-               try {
-                   final Socket clientSocket = serverSocket.accept();
-                   clientSocket.close();
-               } catch (final IOException ioe) {
-                   System.err.println(infoPrefix()+" EEE - Exception during accept: " + ioe.getMessage());
-               }
-           }
-
-           synchronized (syncOnStartStop) {
-               try {
-                   if(null != serverSocket) {
-                       serverSocket.close();
+           try {
+               synchronized (syncOnStartStop) {
+                   try {
+                       serverSocket = new ServerSocket(portNumber, 1, localInetAddress);
+                       serverSocket.setReuseAddress(true); // reuse same port w/ subsequent instance, i.e. overcome TO state when JVM crashed
+                       alive = true;
+                   } catch (final IOException e) {
+                       System.err.println(infoPrefix()+" III - Unable to install ServerSocket: "+e.getMessage());
+                       shallQuit = true;
+                   } finally {
+                       syncOnStartStop.notifyAll();
                    }
-               } catch (final IOException e) {
-                   System.err.println(infoPrefix()+" EEE - Exception during close: " + e.getMessage());
-               } finally {
+               }
+
+               while (!shallQuit) {
+                   try {
+                       final Socket clientSocket = serverSocket.accept();
+                       clientSocket.close();
+                   } catch (final IOException ioe) {
+                       System.err.println(infoPrefix()+" EEE - Exception during accept: " + ioe.getMessage());
+                   }
+               }
+           } catch(final ThreadDeath td) {
+               if( DEBUG ) {
+                   ExceptionUtils.dumpThrowable("", td);
+               }
+           } finally {
+               synchronized (syncOnStartStop) {
+                   if(DEBUG) {
+                       System.err.println(infoPrefix()+" III - Stopping: alive "+alive+", shallQuit "+shallQuit+", hasSocket "+(null!=serverSocket));
+                   }
+                   if(null != serverSocket) {
+                       try {
+                           serverSocket.close();
+                       } catch (final IOException e) {
+                           System.err.println(infoPrefix()+" EEE - Exception during close: " + e.getMessage());
+                       }
+                   }
                    serverSocket = null;
                    alive = false;
-                   shallQuit = false;
                    syncOnStartStop.notifyAll();
                }
            }

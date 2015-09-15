@@ -31,6 +31,7 @@ package com.jogamp.common.util;
 /**
  * Interface exposing {@link java.lang.Thread#interrupt()} source,
  * intended for {@link java.lang.Thread} specializations.
+ * @since 2.3.2
  */
 public interface InterruptSource {
     /**
@@ -52,7 +53,7 @@ public interface InterruptSource {
 
     public static class Util {
         /**
-         * Casts given {@link java.lang.Thread} to {@link InterruptSource},
+         * Casts given {@link java.lang.Thread} to {@link InterruptSource}
          * if applicable, otherwise returns {@code null}.
          */
         public static InterruptSource get(final java.lang.Thread t) {
@@ -63,7 +64,7 @@ public interface InterruptSource {
             }
         }
         /**
-         * Casts current {@link java.lang.Thread} to {@link InterruptSource},
+         * Casts current {@link java.lang.Thread} to {@link InterruptSource}
          * if applicable, otherwise returns {@code null}.
          */
         public static InterruptSource currentThread() {
@@ -74,23 +75,47 @@ public interface InterruptSource {
     /**
      * {@link java.lang.Thread} specialization implementing {@link InterruptSource}
      * to track {@link java.lang.Thread#interrupt()} calls.
+     * @since 2.3.2
      */
     public static class Thread extends java.lang.Thread implements InterruptSource {
         volatile Throwable interruptSource = null;
         volatile int interruptCounter = 0;
         final Object sync = new Object();
 
-        public Thread(final String name) {
-            super(name);
+        /**
+         * See {@link Thread#Thread(} for details.
+         */
+        public Thread() {
+            super();
         }
-        public Thread(final Runnable target) {
-            super(target);
+        /**
+         * See {@link Thread#Thread(ThreadGroup, Runnable)} for details.
+         * @param tg explicit {@link ThreadGroup}, may be {@code null}
+         * @param target explicit {@link Runnable}, may be {@code null}
+         */
+        public Thread(final ThreadGroup tg, final Runnable target) {
+            super(tg, target);
         }
-        public Thread(final Runnable target, final String name) {
-            super(target, name);
-        }
+        /**
+         * See {@link Thread#Thread(ThreadGroup, Runnable, String)} for details.
+         * @param tg explicit {@link ThreadGroup}, may be {@code null}
+         * @param target explicit {@link Runnable}, may be {@code null}
+         * @param name explicit name of thread, must not be {@code null}
+         */
         public Thread(final ThreadGroup tg, final Runnable target, final String name) {
             super(tg, target, name);
+        }
+
+        /**
+         * Depending on whether {@code name} is null, either
+         * {@link #Thread(ThreadGroup, Runnable, String)} or
+         * {@link #Thread(ThreadGroup, Runnable)} is being utilized.
+         * @param tg explicit {@link ThreadGroup}, may be {@code null}
+         * @param target explicit {@link Runnable}, may be {@code null}
+         * @param name explicit name of thread, may be {@code null}
+         */
+        public static Thread create(final ThreadGroup tg, final Runnable target, final String name) {
+            return null != name ? new Thread(tg, target, name) : new Thread(tg, target);
         }
 
         @Override

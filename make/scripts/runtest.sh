@@ -56,7 +56,7 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache"
 #D_ARGS="-Djogamp.debug.JNILibLoader"
-D_ARGS="-Djogamp.debug.JNILibLoader.Perf"
+#D_ARGS="-Djogamp.debug.JNILibLoader.Perf"
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
@@ -87,7 +87,7 @@ function onetest() {
     echo
 }
 #
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -95,7 +95,7 @@ onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestSingletonServerSocket01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestSingletonServerSocket02 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestFloatStack01 2>&1 | tee -a $LOG

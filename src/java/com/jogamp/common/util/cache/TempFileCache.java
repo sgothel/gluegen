@@ -35,6 +35,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.InterruptSource;
 
 import jogamp.common.Debug;
 
@@ -238,7 +239,7 @@ public class TempFileCache {
             // Add shutdown hook to cleanup the OutputStream, FileChannel,
             // and FileLock for the jlnNNNN.lck and jlnNNNN.lck files.
             // We do this so that the locks never get garbage-collected.
-            Runtime.getRuntime().addShutdownHook(new Thread() {
+            Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
                 /* @Override */
                 @Override
                 public void run() {
@@ -265,7 +266,7 @@ public class TempFileCache {
             }
 
             // Start a new Reaper thread to do stuff...
-            final Thread reaperThread = new Thread() {
+            final Thread reaperThread = new InterruptSource.Thread() {
                 /* @Override */
                 @Override
                 public void run() {

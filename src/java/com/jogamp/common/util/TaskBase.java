@@ -80,7 +80,10 @@ public abstract class TaskBase implements Runnable {
         }
     }
 
-    /** Returns the execution thread or {@code null} if not yet {@link #run()}. */
+    /**
+     * Returns the execution thread or {@code null} if not yet {@link #run()}.
+     * @since 2.3.2
+     */
     public final Thread getExecutionThread() {
         return execThread;
     }
@@ -135,7 +138,7 @@ public abstract class TaskBase implements Runnable {
     /**
      * @return !{@link #isExecuted()} && !{@link #isFlushed()}
      */
-    public final boolean isInQueue() { return !isExecuted() && !isFlushed(); }
+    public final boolean isInQueue() { return !isExecuted && !isFlushed; }
 
     /**
      * @return True if executed, otherwise false;
