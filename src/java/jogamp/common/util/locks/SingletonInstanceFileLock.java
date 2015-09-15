@@ -32,6 +32,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
+
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.common.util.locks.SingletonInstance;
 
 public class SingletonInstanceFileLock extends SingletonInstance {
@@ -76,7 +78,7 @@ public class SingletonInstanceFileLock extends SingletonInstance {
 
     private void setupFileCleanup() {
         file.deleteOnExit();
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
             @Override
             public void run() {
                 if(isLocked()) {

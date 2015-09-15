@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.junit.util.JunitTracer;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -70,7 +71,7 @@ public class TestSingletonServerSocket00 extends JunitTracer {
     }
 
     private Thread startLockUnlockOffThread(final int i) {
-        final Thread t = new Thread(new Runnable() {
+        final Thread t = new InterruptSource.Thread(null, new Runnable() {
             public void run() {
                 final SingletonInstance myLock = SingletonInstance.createServerSocket(10, SingletonJunitCase.SINGLE_INSTANCE_LOCK_PORT);
                 System.err.println(Thread.currentThread().getName()+" LOCK try ..");

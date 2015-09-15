@@ -33,6 +33,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
+import com.jogamp.common.util.InterruptSource;
+
 import android.app.Activity;
 import android.net.Uri;
 import android.os.Bundle;
@@ -117,17 +119,17 @@ public class MainLauncher extends Activity {
    public void onResume() {
      Log.d(TAG, "onResume - S - "+Thread.currentThread().getName());
      super.onResume();
-     final Thread mainThread = new Thread("Main") {
+     final Thread mainThread = new InterruptSource.Thread(null, null, "Main") {
          public void run() {
              try {
-                Log.d(TAG, "onResume - main.0 - "+Thread.currentThread().getName());
+                Log.d(TAG, "onResume - main.0 - "+java.lang.Thread.currentThread().getName());
                 mainClazzMain.invoke(null, new Object[] { mainClassArgs } );
              } catch (final InvocationTargetException ite) {
                  ite.getTargetException().printStackTrace();
              } catch (final Throwable t) {
                  t.printStackTrace();
              }
-             Log.d(TAG, "onResume - main.X -> finish() - "+Thread.currentThread().getName());
+             Log.d(TAG, "onResume - main.X -> finish() - "+java.lang.Thread.currentThread().getName());
              finish();
          } };
      mainThread.start();

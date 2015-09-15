@@ -77,7 +77,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
 
         fullName = ilh.toString()+":"+portNumber;
         singletonServer = new Server(ilh, portNumber);
-        Runtime.getRuntime().addShutdownHook(new Thread() {
+        Runtime.getRuntime().addShutdownHook(new InterruptSource.Thread() {
             @Override
             public void run() {
                 singletonServer.kill();
@@ -152,7 +152,7 @@ public class SingletonInstanceServerSocket extends SingletonInstance {
            }
            synchronized (syncOnStartStop) {
                shallQuit = false;
-               serverThread = InterruptSource.Thread.create(null, this, sname);
+               serverThread = new InterruptSource.Thread(null, this, sname);
                serverThread.setDaemon(true);  // be a daemon, don't keep the JVM running
                serverThread.start();
                try {

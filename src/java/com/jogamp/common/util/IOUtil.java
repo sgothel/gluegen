@@ -812,7 +812,7 @@ public class IOUtil {
             this.istreams = streams;
             this.ostream = ostream;
             this.prefix = prefix;
-            new Thread(this, "StreamMonitor-"+Thread.currentThread().getName()).start();
+            new InterruptSource.Thread(null, this, "StreamMonitor-"+Thread.currentThread().getName()).start();
         }
         @Override
         public void run()

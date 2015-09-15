@@ -38,6 +38,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
@@ -170,7 +171,7 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
 
         public final void action2Deferred(final int l, final YieldMode yieldMode) {
             final Action2 action2 = new Action2(l, yieldMode);
-            new Thread(action2, Thread.currentThread().getName()+"-deferred").start();
+            new InterruptSource.Thread(null, action2, Thread.currentThread().getName()+"-deferred").start();
         }
 
         public final void lock() {
@@ -296,14 +297,14 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
         final long t0 = System.currentTimeMillis();
         final LockedObject lo = new LockedObject(implType, fair);
         final LockedObjectRunner[] runners = new LockedObjectRunner[threadNum];
-        final Thread[] threads = new Thread[threadNum];
+        final InterruptSource.Thread[] threads = new InterruptSource.Thread[threadNum];
         int i;
 
         for(i=0; i<threadNum; i++) {
             runners[i] = new LockedObjectRunner1(lo, loops, iloops, yieldMode);
             // String name = Thread.currentThread().getName()+"-ActionThread-"+i+"_of_"+threadNum;
             final String name = "ActionThread-"+i+"_of_"+threadNum;
-            threads[i] = new Thread( runners[i], name );
+            threads[i] = new InterruptSource.Thread( null, runners[i], name );
             threads[i].start();
         }
 

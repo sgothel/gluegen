@@ -60,7 +60,7 @@ public class TestRunnableTask01 extends SingletonJunitCase {
         System.err.println("BB.0: "+syncObject);
         synchronized (syncObject) {
             System.err.println("BB.1: "+syncObject);
-            new Thread(clientAction, Thread.currentThread().getName()+"-clientAction").start();
+            new InterruptSource.Thread(null, clientAction, Thread.currentThread().getName()+"-clientAction").start();
             try {
                 System.err.println("BB.2");
                 syncObject.wait();
@@ -88,7 +88,7 @@ public class TestRunnableTask01 extends SingletonJunitCase {
         System.err.println("BB.0: "+rTask.getSyncObject());
         synchronized (rTask.getSyncObject()) {
             System.err.println("BB.1: "+rTask.getSyncObject());
-            new Thread(rTask, Thread.currentThread().getName()+"-clientAction").start();
+            new InterruptSource.Thread(null, rTask, Thread.currentThread().getName()+"-clientAction").start();
             try {
                 System.err.println("BB.2");
                 rTask.getSyncObject().wait();

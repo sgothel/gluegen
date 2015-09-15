@@ -34,6 +34,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.jogamp.common.os.Platform;
+import com.jogamp.common.util.InterruptSource;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.FixMethodOrder;
@@ -239,15 +240,15 @@ public class TestRecursiveThreadGroupLock01 extends SingletonJunitCase {
         final LockedObject lo = new LockedObject();
         final LockedObjectRunner[] concurrentRunners = new LockedObjectRunner[concurrentThreadNum];
         final LockedObjectRunner[] slaveRunners = new LockedObjectRunner[slaveThreadNum];
-        final Thread[] concurrentThreads = new Thread[concurrentThreadNum];
-        final Thread[] slaveThreads = new Thread[slaveThreadNum];
-        final Thread[] noCoOwnerThreads = new Thread[0];
+        final InterruptSource.Thread[] concurrentThreads = new InterruptSource.Thread[concurrentThreadNum];
+        final InterruptSource.Thread[] slaveThreads = new InterruptSource.Thread[slaveThreadNum];
+        final InterruptSource.Thread[] noCoOwnerThreads = new InterruptSource.Thread[0];
         int i;
 
         for(i=0; i<slaveThreadNum; i++) {
             slaveRunners[i] = new LockedObjectRunner1("    ", "s"+i, lo, loops, mark, yieldMode);
             final String name = "ActionThread-Slaves-"+i+"_of_"+slaveThreadNum;
-            slaveThreads[i] = new Thread( slaveRunners[i], name );
+            slaveThreads[i] = new InterruptSource.Thread( null, slaveRunners[i], name );
         }
         for(i=0; i<concurrentThreadNum; i++) {
             String name;
@@ -258,7 +259,7 @@ public class TestRecursiveThreadGroupLock01 extends SingletonJunitCase {
                 concurrentRunners[i] = new LockedObjectRunner1("  ", "O"+i, lo, noCoOwnerThreads, loops, mark, yieldMode);
                 name = "ActionThread-Others-"+i+"_of_"+concurrentThreadNum;
             }
-            concurrentThreads[i] = new Thread( concurrentRunners[i], name );
+            concurrentThreads[i] = new InterruptSource.Thread( null, concurrentRunners[i], name );
             concurrentThreads[i].start();
             if(i==0) {
                 // master thread w/ slaves shall start first
