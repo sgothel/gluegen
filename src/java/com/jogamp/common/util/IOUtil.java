@@ -40,6 +40,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
+import java.io.SyncFailedException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.net.URISyntaxException;
@@ -47,11 +48,13 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import jogamp.common.Debug;
 import jogamp.common.os.AndroidUtils;
 import jogamp.common.os.PlatformPropsImpl;
 
+import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.net.AssetURLContext;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.nio.Buffers;
@@ -59,7 +62,14 @@ import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 
 public class IOUtil {
-    public static final boolean DEBUG = Debug.debug("IOUtil");
+    public static final boolean DEBUG;
+    private static final boolean DEBUG_EXE;
+
+    static {
+        Debug.initSingleton();
+        DEBUG = Debug.debug("IOUtil");
+        DEBUG_EXE = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
+    }
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
     private static final String java_io_tmpdir_propkey = "java.io.tmpdir";
@@ -691,13 +701,15 @@ public class IOUtil {
               return new String[] { scriptFile };
         }
     }
-    private static final byte[] getBytesFromRelFile(final byte[] res, final String fname, final int size) throws IOException {
+    private static final byte[] getBytesFromRelFile(final byte[] res, final String fname, final int iSize, final int dSize) throws IOException {
         final URLConnection con = IOUtil.getResource(IOUtil.class, fname);
-        final InputStream in = con.getInputStream();
+        final InputStream in = ( dSize > 0 && dSize < iSize ) ?
+                                    new GZIPInputStream(con.getInputStream(), dSize) :
+                                    con.getInputStream();
         int numBytes = 0;
         try {
             while (true) {
-                final int remBytes = size - numBytes;
+                final int remBytes = iSize - numBytes;
                 int count;
                 if ( 0 >= remBytes || (count = in.read(res, numBytes, remBytes)) == -1 ) {
                     break;
@@ -707,8 +719,8 @@ public class IOUtil {
         } finally {
             in.close();
         }
-        if( size != numBytes ) {
-            throw new IOException("Got "+numBytes+" bytes != expected "+size);
+        if( iSize != numBytes ) {
+            throw new IOException("Got "+numBytes+" bytes != expected "+iSize);
         }
         return res;
     }
@@ -719,20 +731,27 @@ public class IOUtil {
         if( Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
             Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family
           ) {
-            final int codeSize = 268;
+            final int gzipSize = 305;
+            final int codeSize = 2048;
             final byte[] code;
             synchronized ( exeTestBytesLock ) {
                 byte[] _code;
                 if( null == exeTestBytesRef || null == ( _code = exeTestBytesRef.get() ) ) {
-                    code = getBytesFromRelFile(new byte[512], "bin/exe-windows-i586-268b.bin", codeSize);
+                    // code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin", codeSize, 0);
+                    code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin.305b.gz", codeSize, gzipSize);
                     exeTestBytesRef = new WeakReference<byte[]>(code);
                 } else {
                     code = _code;
                 }
             }
-            final OutputStream out = new FileOutputStream(exefile);
+            final FileOutputStream out = new FileOutputStream(exefile);
             try {
                 out.write(code, 0, codeSize);
+                try {
+                    out.getFD().sync();
+                } catch (final SyncFailedException sfe) {
+                    ExceptionUtils.dumpThrowable("", sfe);
+                }
             } finally {
                 out.close();
             }
@@ -742,6 +761,11 @@ public class IOUtil {
                 final FileWriter fout = new FileWriter(exefile);
                 try {
                     fout.write(shellCode);
+                    try {
+                        fout.flush();
+                    } catch (final IOException sfe) {
+                        ExceptionUtils.dumpThrowable("", sfe);
+                    }
                 } finally {
                     fout.close();
                 }
@@ -865,32 +889,34 @@ public class IOUtil {
     public static boolean testDirExec(final File dir)
             throws SecurityException
     {
+        final boolean debug = DEBUG_EXE || DEBUG;
+
         if (!testFile(dir, true, true)) {
-            if(DEBUG) {
+            if( debug ) {
                 System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Not writeable dir");
             }
             return false;
         }
         if(!getOSHasNoexecFS()) {
-            if(DEBUG) {
+            if( debug ) {
                 System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Always executable");
             }
             return true;
         }
 
-        final long t0 = DEBUG ? System.currentTimeMillis() : 0;
+        final long t0 = debug ? System.currentTimeMillis() : 0;
         final File exeTestFile;
         try {
             exeTestFile = File.createTempFile("jogamp_exe_tst", getExeTestFileSuffix(), dir);
         } catch (final SecurityException se) {
             throw se; // fwd Security exception
         } catch (final IOException e) {
-            if(DEBUG) {
+            if( debug ) {
                 e.printStackTrace();
             }
             return false;
         }
-        final long t1 = DEBUG ? System.currentTimeMillis() : 0;
+        final long t1 = debug ? System.currentTimeMillis() : 0;
         int res = -1;
         if(exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */)) {
             try {
@@ -899,30 +925,31 @@ public class IOUtil {
                 // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                 // and hence splitting up command by spaces!
                 final Process pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ) );
-                /**
-                 * Disable StreamMonitor, which throttles exec-test performance a lot!
-                 *
-                 * if( isStringSet(shellCode) ) {
+                if( DEBUG_EXE ) {
                     new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
-                   }
-                 */
+                }
                 pr.waitFor() ;
                 res = pr.exitValue();
             } catch (final SecurityException se) {
                 throw se; // fwd Security exception
             } catch (final Throwable t) {
                 res = -2;
-                if(DEBUG) {
+                if( debug ) {
                     System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
                     t.printStackTrace();
                 }
             }
         }
         final boolean ok = 0 == res;
-        final long t2 = DEBUG ? System.currentTimeMillis() : 0;
-        exeTestFile.delete();
-        if( DEBUG) {
-            System.err.println("IOUtil.testDirExec(): <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
+        if( !DEBUG_EXE ) {
+            exeTestFile.delete();
+        }
+        if( debug ) {
+            final long t2 = System.currentTimeMillis();
+            if( DEBUG_EXE ) {
+                System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">");
+            }
+            System.err.println("IOUtil.testDirExec(): abs-path <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
             System.err.println("IOUtil.testDirExec(): total "+(t2-t0)+"ms, create "+(t1-t0)+"ms, execute "+(t2-t1)+"ms");
         }
         return ok;

@@ -60,7 +60,7 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
-#D_ARGS="-Djogamp.debug.IOUtil"
+D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe"
 #D_ARGS="-Djogamp.debug.ByteBufferInputStream"
 #D_ARGS="-Djogamp.debug.Bitstream"
 #D_ARGS="-Djogamp.debug=all"
@@ -95,7 +95,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestSingletonServerSocket01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestSingletonServerSocket02 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestFloatStack01 2>&1 | tee -a $LOG
@@ -105,7 +105,7 @@ onetest com.jogamp.common.util.locks.TestSingletonServerSocket00 2>&1 | tee -a $
 #onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
