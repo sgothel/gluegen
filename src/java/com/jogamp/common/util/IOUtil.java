@@ -731,14 +731,14 @@ public class IOUtil {
         if( Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
             Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family
           ) {
-            final int gzipSize = 305;
+            final int gzipSize = 316;
             final int codeSize = 2048;
             final byte[] code;
             synchronized ( exeTestBytesLock ) {
                 byte[] _code;
                 if( null == exeTestBytesRef || null == ( _code = exeTestBytesRef.get() ) ) {
                     // code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin", codeSize, 0);
-                    code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin.305b.gz", codeSize, gzipSize);
+                    code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin.316b.gz", codeSize, gzipSize);
                     exeTestBytesRef = new WeakReference<byte[]>(code);
                 } else {
                     code = _code;
