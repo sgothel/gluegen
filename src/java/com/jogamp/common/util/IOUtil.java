@@ -832,44 +832,52 @@ public class IOUtil {
 
     public static class StreamMonitor implements Runnable {
         private final InputStream[] istreams;
+        private final boolean[] eos;
         private final PrintStream ostream;
         private final String prefix;
         public StreamMonitor(final InputStream[] streams, final PrintStream ostream, final String prefix) {
             this.istreams = streams;
+            this.eos = new boolean[streams.length];
             this.ostream = ostream;
             this.prefix = prefix;
-            new InterruptSource.Thread(null, this, "StreamMonitor-"+Thread.currentThread().getName()).start();
+            final InterruptSource.Thread t = new InterruptSource.Thread(null, this, "StreamMonitor-"+Thread.currentThread().getName());
+            t.setDaemon(true);
+            t.start();
         }
+
         @Override
         public void run()
         {
             final byte[] buffer = new byte[4096];
             try {
-                int numRead;
+                final int streamCount = istreams.length;
+                int eosCount = 0;
                 do {
-                    numRead = 0;
                     for(int i=0; i<istreams.length; i++) {
-                        final int numReadI = istreams[i].read(buffer);
-                        if (numReadI > 0) {
-                            if( null != ostream ) {
-                                if( null != prefix ) {
-                                    ostream.write(prefix.getBytes());
+                        if( !eos[i] ) {
+                            final int numReadI = istreams[i].read(buffer);
+                            if (numReadI > 0) {
+                                if( null != ostream ) {
+                                    if( null != prefix ) {
+                                        ostream.write(prefix.getBytes());
+                                    }
+                                    ostream.write(buffer, 0, numReadI);
                                 }
-                                ostream.write(buffer, 0, numReadI);
+                            } else {
+                                // numReadI == -1
+                                eosCount++;
+                                eos[i] = true;
                             }
-                            numRead += numReadI;
                         }
                     }
                     if( null != ostream ) {
                         ostream.flush();
                     }
-                } while (numRead >= 0);
-            }
-            catch (final IOException e) {
-                for(int i=0; i<istreams.length; i++) {
-                    try {
-                        istreams[i].close();
-                    } catch (final IOException e2) { }
+                } while ( eosCount < streamCount );
+            } catch (final IOException e) {
+            } finally {
+                if( null != ostream ) {
+                    ostream.flush();
                 }
                 // Should allow clean exit when process shuts down
             }
