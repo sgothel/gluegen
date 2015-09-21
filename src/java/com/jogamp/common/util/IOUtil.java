@@ -64,11 +64,13 @@ import com.jogamp.common.os.Platform;
 public class IOUtil {
     public static final boolean DEBUG;
     private static final boolean DEBUG_EXE;
+    private static final boolean DEBUG_EXE_NOSTREAM;
 
     static {
         Debug.initSingleton();
         DEBUG = Debug.debug("IOUtil");
         DEBUG_EXE = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
+        DEBUG_EXE_NOSTREAM = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.NoStream", true);
     }
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
@@ -906,8 +908,16 @@ public class IOUtil {
 
         final long t0 = debug ? System.currentTimeMillis() : 0;
         final File exeTestFile;
+        final boolean existingExe;
         try {
-            exeTestFile = File.createTempFile("jogamp_exe_tst", getExeTestFileSuffix(), dir);
+            final File permExeTestFile = DEBUG_EXE ? new File(dir, "jogamp_exe_tst"+getExeTestFileSuffix()) : null;
+            if( null != permExeTestFile && permExeTestFile.exists() ) {
+                exeTestFile = permExeTestFile;
+                existingExe = true;
+            } else {
+                exeTestFile = File.createTempFile("jogamp_exe_tst", getExeTestFileSuffix(), dir);
+                existingExe = false;
+            }
         } catch (final SecurityException se) {
             throw se; // fwd Security exception
         } catch (final IOException e) {
@@ -918,18 +928,22 @@ public class IOUtil {
         }
         final long t1 = debug ? System.currentTimeMillis() : 0;
         int res = -1;
-        if(exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */)) {
+        int exitValue = -1;
+        if( existingExe || exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */) ) {
             try {
-                fillExeTestFile(exeTestFile);
-
+                if( !existingExe ) {
+                    fillExeTestFile(exeTestFile);
+                }
                 // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                 // and hence splitting up command by spaces!
-                final Process pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ) );
-                if( DEBUG_EXE ) {
+                // Note: All no-exec cases throw an IOExceptions at ProcessBuilder.start(), i.e. below exec() call!
+                final Process pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ), null, null );
+                if( DEBUG_EXE && !DEBUG_EXE_NOSTREAM ) {
                     new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
                 }
                 pr.waitFor() ;
-                res = pr.exitValue();
+                exitValue = pr.exitValue(); // Note: Bug 1219 Comment 50: On reporter's machine exit value 1 is being returned
+                res = 0; // file has been executed
             } catch (final SecurityException se) {
                 throw se; // fwd Security exception
             } catch (final Throwable t) {
@@ -941,14 +955,12 @@ public class IOUtil {
             }
         }
         final boolean ok = 0 == res;
-        if( !DEBUG_EXE ) {
+        if( !DEBUG_EXE && !existingExe ) {
             exeTestFile.delete();
         }
         if( debug ) {
             final long t2 = System.currentTimeMillis();
-            if( DEBUG_EXE ) {
-                System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">");
-            }
+            System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">, existingFile "+existingExe+", returned "+exitValue);
             System.err.println("IOUtil.testDirExec(): abs-path <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
             System.err.println("IOUtil.testDirExec(): total "+(t2-t0)+"ms, create "+(t1-t0)+"ms, execute "+(t2-t1)+"ms");
         }

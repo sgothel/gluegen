@@ -1,0 +1,118 @@
+JUnit version 4.11
+++++ Test Singleton.ctor()
+++++ Test Singleton.lock()
+SLOCK [T SingletonServerSocket1-localhost/127.0.0.1:59999 @ 1442717359736 ms III - Start
+SLOCK [T main @ 1442717359736 ms +++ localhost/127.0.0.1:59999 - Locked within 1047 ms, 1 attempts
+.++++ TestCase.setUp: com.jogamp.common.util.TestPlatform01 - testInfo00
+
+IOUtil.getTempRoot(): tempX1 <C:\cygwin\tmp>, used true
+IOUtil.getTempRoot(): tempX3 <C:\cygwin\tmp>, used false
+IOUtil.getTempRoot(): tempX4 <C:\Users\sven>, used true
+IOUtil.getTempRoot(): tempX2 <null>, used false
+IOUtil.testDirExec: <C:\cygwin\tmp\jogamp_exe_tst.exe>: Caught IOException: Cannot run program "C:\cygwin\tmp\jogamp_exe_tst.exe": CreateProcess error=216, This version of %1 is not compatible with the version of Windows you're running. Check your computer's system information to see whether you need a x86 (32-bit) or x64 (64-bit) version of the program, and then contact the software publisher
+java.io.IOException: Cannot run program "C:\cygwin\tmp\jogamp_exe_tst.exe": CreateProcess error=216, This version of %1 is not compatible with the version of Windows you're running. Check your computer's system information to see whether you need a x86 (32-bit) or x64 (64-bit) version of the program, and then contact the software publisher
+	at java.lang.ProcessBuilder.start(Unknown Source)
+	at java.lang.Runtime.exec(Unknown Source)
+	at com.jogamp.common.util.IOUtil.testDirExec(IOUtil.java:948)
+	at com.jogamp.common.util.IOUtil.testDirImpl(IOUtil.java:990)
+	at com.jogamp.common.util.IOUtil.getSubTempDir(IOUtil.java:1050)
+	at com.jogamp.common.util.IOUtil.getTempDir(IOUtil.java:1165)
+	at com.jogamp.common.util.cache.TempFileCache.<clinit>(TempFileCache.java:81)
+	at com.jogamp.common.util.cache.TempJarCache.initSingleton(TempJarCache.java:88)
+	at com.jogamp.common.os.Platform$1.run(Platform.java:309)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at com.jogamp.common.os.Platform.<clinit>(Platform.java:287)
+	at com.jogamp.common.util.TestPlatform01.testInfo00(TestPlatform01.java:47)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(Unknown Source)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(Unknown Source)
+	at java.lang.reflect.Method.invoke(Unknown Source)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:55)
+	at org.junit.rules.RunRules.evaluate(RunRules.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:309)
+	at org.junit.runners.Suite.runChild(Suite.java:127)
+	at org.junit.runners.Suite.runChild(Suite.java:26)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:309)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:160)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:138)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:117)
+	at org.junit.runner.JUnitCore.runMain(JUnitCore.java:96)
+	at org.junit.runner.JUnitCore.runMainAndExit(JUnitCore.java:47)
+	at org.junit.runner.JUnitCore.main(JUnitCore.java:40)
+	at com.jogamp.common.util.TestPlatform01.main(TestPlatform01.java:93)
+Caused by: java.io.IOException: CreateProcess error=216, This version of %1 is not compatible with the version of Windows you're running. Check your computer's system information to see whether you need a x86 (32-bit) or x64 (64-bit) version of the program, and then contact the software publisher
+	at java.lang.ProcessImpl.create(Native Method)
+	at java.lang.ProcessImpl.<init>(Unknown Source)
+	at java.lang.ProcessImpl.start(Unknown Source)
+	... 50 more
+IOUtil.testDirExec(): test-exe <C:\cygwin\tmp\jogamp_exe_tst.exe>, existingFile true
+IOUtil.testDirExec(): abs-path <C:\cygwin\tmp>: res -2 -> false
+IOUtil.testDirExec(): total 63ms, create 0ms, execute 63ms
+IOUtil.testDirImpl(tempX1): <C:\cygwin\tmp>, create true, exec true: false
+IOUtil: locating <com/jogamp/common/util/bin/exe-windows-i386-2048b.bin.316b.gz>, has cl: true
+AssetURLContext.resolve: <com/jogamp/common/util/bin/exe-windows-i386-2048b.bin.316b.gz>
+ERR(0): no protocol: com/jogamp/common/util/bin/exe-windows-i386-2048b.bin.316b.gz
+AssetURLContext.resolve: type 2: url <jar:file:/C:/projects/jogamp/gluegen/build-win64/gluegen-rt.jar!/com/jogamp/common/util/bin/exe-windows-i386-2048b.bin.316b.gz>, conn <sun.net.www.protocol.jar.JarURLConnection:jar:file:/C:/projects/jogamp/gluegen/build-win64/gluegen-rt.jar!/com/jogamp/common/util/bin/exe-windows-i386-2048b.bin.316b.gz>, connURL <jar:file:/C:/projects/jogamp/gluegen/build-win64/gluegen-rt.jar!/com/jogamp/common/util/bin/exe-windows-i386-2048b.bin.316b.gz>
+IOUtil: found <bin/exe-windows-i386-2048b.bin.316b.gz> within class package <com/jogamp/common/util/> of given class <com.jogamp.common.util.IOUtil>: true
+IOUtil.testDirExec(): test-exe <C:\Users\sven\jogamp_exe_tst568391728696376020.exe>, existingFile false
+IOUtil.testDirExec(): abs-path <C:\Users\sven>: res 0 -> true
+IOUtil.testDirExec(): total 578ms, create 94ms, execute 484ms
+IOUtil.testDirImpl(tempX4): <C:\Users\sven>, create true, exec true: true
+IOUtil.testDirExec(): test-exe <C:\Users\sven\.jogamp_0000\jogamp_exe_tst1623018008115501549.exe>, existingFile false
+IOUtil.testDirExec(): abs-path <C:\Users\sven\.jogamp_0000>: res 0 -> true
+IOUtil.testDirExec(): total 16ms, create 0ms, execute 16ms
+IOUtil.testDirImpl(tempX4): <C:\Users\sven\.jogamp_0000>, create true, exec true: true
+IOUtil.getTempRoot(): temp dirs: exec: C:\Users\sven\.jogamp_0000, noexec: C:\Users\sven\.jogamp_0000
+IOUtil.testDirImpl(testDir): <C:\Users\sven\.jogamp_0000\file_cache>, create true, exec false: true
+
+OS name/type: Windows 7, WINDOWS
+OS version: 6.1, 6.1.0
+
+Arch, CPU: amd64, X86_64/X86
+OS/Arch: windows-amd64
+
+Java runtime: Java(TM) SE Runtime Environment
+Java vendor[name/url]: Oracle Corporation/http://java.oracle.com/
+Java version, vm: 1.8.0_60, Java HotSpot(TM) 64-Bit Server VM
+
+MD: MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    4 / 4
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 16 / 16
+  pointer 8 / 8, page    4096
+
+
+++++ TestCase.tearDown: com.jogamp.common.util.TestPlatform01 - testInfo00
+.++++ TestCase.setUp: com.jogamp.common.util.TestPlatform01 - testPageSize01
+PageSize: 4096
+++++ TestCase.tearDown: com.jogamp.common.util.TestPlatform01 - testPageSize01
+++++ Test Singleton.unlock()
+SLOCK [T SingletonServerSocket1-localhost/127.0.0.1:59999 @ 1442717360611 ms III - Stopping: alive true, shallQuit true, hasSocket true
+SLOCK [T main @ 1442717360611 ms --- localhost/127.0.0.1:59999 - Unlock ok within 0 ms
+
+Time: 2.437
+
+OK (2 tests)
+

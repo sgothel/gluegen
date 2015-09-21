@@ -1,0 +1,119 @@
+LD_LIBRARY_PATH ../build-x86_64/test/build/natives:
+USE_CLASSPATH lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:/opt-share/apache-ant/lib/ant-launcher.jar:lib/semantic-versioning/semver.jar:../build-x86_64/../make/lib/TestJarsInJar.jar:../build-x86_64/gluegen-rt.jar:../build-x86_64/gluegen.jar:../build-x86_64/gluegen-test-util.jar:../build-x86_64/test/build/gluegen-test.jar:../build-x86_64/gluegen-rt-natives.jar
+/opt-linux-x86_64/jre8/bin/java
+java -cp lib/junit.jar:/opt-share/apache-ant/lib/ant.jar:/opt-share/apache-ant/lib/ant-junit.jar:/opt-share/apache-ant/lib/ant-launcher.jar:lib/semantic-versioning/semver.jar:../build-x86_64/../make/lib/TestJarsInJar.jar:../build-x86_64/gluegen-rt.jar:../build-x86_64/gluegen.jar:../build-x86_64/gluegen-test-util.jar:../build-x86_64/test/build/gluegen-test.jar:../build-x86_64/gluegen-rt-natives.jar -Drootrel.build=build-x86_64 -Dgluegen.root=.. -Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe -Djogamp.debug.IOUtil.Exe.NoStream com.jogamp.common.util.TestPlatform01
+JUnit version 4.11
+++++ Test Singleton.ctor()
+++++ Test Singleton.lock()
+SLOCK [T SingletonServerSocket1-localhost/127.0.0.1:59999 @ 1442811548011 ms III - Start
+SLOCK [T main @ 1442811548012 ms +++ localhost/127.0.0.1:59999 - Locked within 5 ms, 1 attempts
+.++++ TestCase.setUp: com.jogamp.common.util.TestPlatform01 - testInfo00
+
+IOUtil.getTempRoot(): tempX1 </tmp>, used true
+IOUtil.getTempRoot(): tempX3 <null>, used false
+IOUtil.getTempRoot(): tempX4 </home/sven>, used true
+IOUtil.getTempRoot(): tempX2 </home/sven/.cache>, used true
+IOUtil.testDirExec: </tmp/jogamp_exe_tst.sh>: Caught IOException: Cannot run program "/tmp/jogamp_exe_tst.sh": error=13, Permission denied
+java.io.IOException: Cannot run program "/tmp/jogamp_exe_tst.sh": error=13, Permission denied
+	at java.lang.ProcessBuilder.start(ProcessBuilder.java:1048)
+	at java.lang.Runtime.exec(Runtime.java:620)
+	at com.jogamp.common.util.IOUtil.testDirExec(IOUtil.java:948)
+	at com.jogamp.common.util.IOUtil.testDirImpl(IOUtil.java:986)
+	at com.jogamp.common.util.IOUtil.getSubTempDir(IOUtil.java:1046)
+	at com.jogamp.common.util.IOUtil.getTempDir(IOUtil.java:1161)
+	at com.jogamp.common.util.cache.TempFileCache.<clinit>(TempFileCache.java:81)
+	at com.jogamp.common.util.cache.TempJarCache.initSingleton(TempJarCache.java:88)
+	at com.jogamp.common.os.Platform$1.run(Platform.java:309)
+	at java.security.AccessController.doPrivileged(Native Method)
+	at com.jogamp.common.os.Platform.<clinit>(Platform.java:287)
+	at com.jogamp.common.util.TestPlatform01.testInfo00(TestPlatform01.java:47)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:497)
+	at org.junit.runners.model.FrameworkMethod$1.runReflectiveCall(FrameworkMethod.java:47)
+	at org.junit.internal.runners.model.ReflectiveCallable.run(ReflectiveCallable.java:12)
+	at org.junit.runners.model.FrameworkMethod.invokeExplosively(FrameworkMethod.java:44)
+	at org.junit.internal.runners.statements.InvokeMethod.evaluate(InvokeMethod.java:17)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.junit.rules.TestWatcher$1.evaluate(TestWatcher.java:55)
+	at org.junit.rules.RunRules.evaluate(RunRules.java:20)
+	at org.junit.runners.ParentRunner.runLeaf(ParentRunner.java:271)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:70)
+	at org.junit.runners.BlockJUnit4ClassRunner.runChild(BlockJUnit4ClassRunner.java:50)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)
+	at org.junit.internal.runners.statements.RunBefores.evaluate(RunBefores.java:26)
+	at org.junit.internal.runners.statements.RunAfters.evaluate(RunAfters.java:27)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:309)
+	at org.junit.runners.Suite.runChild(Suite.java:127)
+	at org.junit.runners.Suite.runChild(Suite.java:26)
+	at org.junit.runners.ParentRunner$3.run(ParentRunner.java:238)
+	at org.junit.runners.ParentRunner$1.schedule(ParentRunner.java:63)
+	at org.junit.runners.ParentRunner.runChildren(ParentRunner.java:236)
+	at org.junit.runners.ParentRunner.access$000(ParentRunner.java:53)
+	at org.junit.runners.ParentRunner$2.evaluate(ParentRunner.java:229)
+	at org.junit.runners.ParentRunner.run(ParentRunner.java:309)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:160)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:138)
+	at org.junit.runner.JUnitCore.run(JUnitCore.java:117)
+	at org.junit.runner.JUnitCore.runMain(JUnitCore.java:96)
+	at org.junit.runner.JUnitCore.runMainAndExit(JUnitCore.java:47)
+	at org.junit.runner.JUnitCore.main(JUnitCore.java:40)
+	at com.jogamp.common.util.TestPlatform01.main(TestPlatform01.java:93)
+Caused by: java.io.IOException: error=13, Permission denied
+	at java.lang.UNIXProcess.forkAndExec(Native Method)
+	at java.lang.UNIXProcess.<init>(UNIXProcess.java:248)
+	at java.lang.ProcessImpl.start(ProcessImpl.java:134)
+	at java.lang.ProcessBuilder.start(ProcessBuilder.java:1029)
+	... 49 more
+IOUtil.testDirExec(): test-exe </tmp/jogamp_exe_tst.sh>, existingFile true, returned -1
+IOUtil.testDirExec(): abs-path </tmp>: res -2 -> false
+IOUtil.testDirExec(): total 72ms, create 0ms, execute 72ms
+IOUtil.testDirImpl(tempX1): </tmp>, create true, exec true: false
+IOUtil.testDirExec(): test-exe </home/sven/.cache/jogamp_exe_tst1387386267639974492.sh>, existingFile false, returned 0
+IOUtil.testDirExec(): abs-path </home/sven/.cache>: res 0 -> true
+IOUtil.testDirExec(): total 17ms, create 13ms, execute 4ms
+IOUtil.testDirImpl(tempX2): </home/sven/.cache>, create true, exec true: true
+IOUtil.testDirExec(): test-exe </home/sven/.cache/jogamp_0000/jogamp_exe_tst906522503538352810.sh>, existingFile false, returned 0
+IOUtil.testDirExec(): abs-path </home/sven/.cache/jogamp_0000>: res 0 -> true
+IOUtil.testDirExec(): total 2ms, create 0ms, execute 2ms
+IOUtil.testDirImpl(tempX2): </home/sven/.cache/jogamp_0000>, create true, exec true: true
+IOUtil.getTempRoot(): temp dirs: exec: /home/sven/.cache/jogamp_0000, noexec: /home/sven/.cache/jogamp_0000
+IOUtil.testDirImpl(testDir): </home/sven/.cache/jogamp_0000/file_cache>, create true, exec false: true
+
+OS name/type: Linux, LINUX
+OS version: 4.1.6-x64-k10-nlb-jau01, 4.1.6
+
+Arch, CPU: amd64, X86_64/X86
+OS/Arch: linux-amd64
+
+Java runtime: Java(TM) SE Runtime Environment
+Java vendor[name/url]: Oracle Corporation/http://java.oracle.com/
+Java version, vm: 1.8.0_60, Java HotSpot(TM) 64-Bit Server VM
+
+MD: MachineDataInfo: runtimeValidated true, 32Bit false, primitive size / alignment:
+  int8    1 / 1, int16   2 / 2
+  int     4 / 4, long    8 / 8
+  int32   4 / 4, int64   8 / 8
+  float   4 / 4, double  8 / 8, ldouble 16 / 16
+  pointer 8 / 8, page    4096
+
+
+++++ TestCase.tearDown: com.jogamp.common.util.TestPlatform01 - testInfo00
+.++++ TestCase.setUp: com.jogamp.common.util.TestPlatform01 - testPageSize01
+PageSize: 4096
+++++ TestCase.tearDown: com.jogamp.common.util.TestPlatform01 - testPageSize01
+++++ Test Singleton.unlock()
+SLOCK [T SingletonServerSocket1-localhost/127.0.0.1:59999 @ 1442811548171 ms III - Stopping: alive true, shallQuit true, hasSocket true
+SLOCK [T main @ 1442811548171 ms --- localhost/127.0.0.1:59999 - Unlock ok within 1 ms
+
+Time: 0.693
+
+OK (2 tests)
+
+

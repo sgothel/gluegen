@@ -44,7 +44,7 @@ public class TestPlatform01 extends SingletonJunitCase {
     @Test
     public void testInfo00()  {
         System.err.println();
-        System.err.println();
+        System.err.print(Platform.getNewline());
         System.err.println("OS name/type: "+Platform.getOSName()+", "+Platform.getOSType());
         System.err.println("OS version: "+Platform.getOSVersion()+", "+Platform.getOSVersionNumber());
         System.err.println();
