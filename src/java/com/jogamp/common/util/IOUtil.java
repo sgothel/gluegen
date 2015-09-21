@@ -65,12 +65,15 @@ public class IOUtil {
     public static final boolean DEBUG;
     private static final boolean DEBUG_EXE;
     private static final boolean DEBUG_EXE_NOSTREAM;
+    private static final boolean DEBUG_EXE_EXISTING_FILE;
 
     static {
         Debug.initSingleton();
         DEBUG = Debug.debug("IOUtil");
         DEBUG_EXE = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
         DEBUG_EXE_NOSTREAM = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.NoStream", true);
+        // For security reasons, we have to hardcode this, i.e. disable this manual debug feature!
+        DEBUG_EXE_EXISTING_FILE = false; // PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.ExistingFile", true);
     }
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
@@ -918,7 +921,7 @@ public class IOUtil {
         final File exeTestFile;
         final boolean existingExe;
         try {
-            final File permExeTestFile = DEBUG_EXE ? new File(dir, "jogamp_exe_tst"+getExeTestFileSuffix()) : null;
+            final File permExeTestFile = DEBUG_EXE_EXISTING_FILE ? new File(dir, "jogamp_exe_tst"+getExeTestFileSuffix()) : null;
             if( null != permExeTestFile && permExeTestFile.exists() ) {
                 exeTestFile = permExeTestFile;
                 existingExe = true;
