@@ -18,7 +18,7 @@ echo CP_ALL %CP_ALL%
 set X_ARGS="-Drootrel.build=%BLD_SUB%" "-Dgluegen.root=.."
 REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.JNILibLoader" "-Djogamp.debug.TempFileCache" "-Djogamp.debug.JarUtil" "-Djogamp.debug.TempJarCache"
 REM set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.IOUtil"
-set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.IOUtil.Exe"
+set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.IOUtil.Exe" "-Djogamp.debug.IOUtil.Exe.NoStream"
 REM set D_ARGS="-Djogamp.debug=all"
 
 REM %J2RE_HOME%\bin\java -classpath %CP_ALL% %X_ARGS% %D_ARGS% "-Djava.library.path=%LIB_DIR%" "-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win64.log 2>&1

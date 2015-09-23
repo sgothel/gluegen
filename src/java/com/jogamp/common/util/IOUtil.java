@@ -941,6 +941,7 @@ public class IOUtil {
         int res = -1;
         int exitValue = -1;
         if( existingExe || exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */) ) {
+            Process pr = null;
             try {
                 if( !existingExe ) {
                     fillExeTestFile(exeTestFile);
@@ -948,11 +949,11 @@ public class IOUtil {
                 // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                 // and hence splitting up command by spaces!
                 // Note: All no-exec cases throw an IOExceptions at ProcessBuilder.start(), i.e. below exec() call!
-                final Process pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ), null, null );
+                pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ), null, null );
                 if( DEBUG_EXE && !DEBUG_EXE_NOSTREAM ) {
                     new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
                 }
-                pr.waitFor() ;
+                pr.waitFor();
                 exitValue = pr.exitValue(); // Note: Bug 1219 Comment 50: On reporter's machine exit value 1 is being returned
                 res = 0; // file has been executed
             } catch (final SecurityException se) {
@@ -962,6 +963,17 @@ public class IOUtil {
                 if( debug ) {
                     System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
                     t.printStackTrace();
+                }
+            } finally {
+                if( null != pr ) {
+                    // Bug 1219 Comment 58: Ensure that the launched process gets terminated!
+                    // This is Process implementation specific and varies on different platforms,
+                    // hence it may be required.
+                    try {
+                        pr.destroy();
+                    } catch (final Throwable t) {
+                        ExceptionUtils.dumpThrowable("", t);
+                    }
                 }
             }
         }
