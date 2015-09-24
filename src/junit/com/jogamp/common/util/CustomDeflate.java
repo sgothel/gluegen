@@ -71,7 +71,7 @@ public class CustomDeflate {
                     throw new IOException("Got "+numBytes+" bytes != expected "+inSize);
                 }
                 out = new FileOutputStream(fileOut);
-                CustomCompress.deflateToStream(input, out);
+                CustomCompress.deflateToStream(input, 0, inSize, 9, out);
             } catch (final IOException ioe) {
                 ioe.printStackTrace();
             } finally {
