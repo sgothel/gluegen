@@ -48,7 +48,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 
 import jogamp.common.Debug;
 import jogamp.common.os.AndroidUtils;
@@ -706,52 +705,44 @@ public class IOUtil {
               return new String[] { scriptFile };
         }
     }
-    private static final byte[] getBytesFromRelFile(final byte[] res, final String fname, final int iSize, final int dSize) throws IOException {
+
+    private static final byte[] readCode(final String fname) throws IOException {
         final URLConnection con = IOUtil.getResource(IOUtil.class, fname);
-        final InputStream in = ( dSize > 0 && dSize < iSize ) ?
-                                    new GZIPInputStream(con.getInputStream(), dSize) :
-                                    con.getInputStream();
-        int numBytes = 0;
+        final InputStream in = con.getInputStream();
+        byte[] output = null;
         try {
-            while (true) {
-                final int remBytes = iSize - numBytes;
-                int count;
-                if ( 0 >= remBytes || (count = in.read(res, numBytes, remBytes)) == -1 ) {
-                    break;
-                }
-                numBytes += count;
-            }
+            output = CustomCompress.inflateFromStream(in);
         } finally {
             in.close();
         }
-        if( iSize != numBytes ) {
-            throw new IOException("Got "+numBytes+" bytes != expected "+iSize);
-        }
-        return res;
+        return output;
     }
-    private static final Object exeTestBytesLock = new Object();
-    private static WeakReference<byte[]> exeTestBytesRef = null;
+    private static final Object exeTestLock = new Object();
+    private static WeakReference<byte[]> exeTestCodeRef = null;
 
     private static void fillExeTestFile(final File exefile) throws IOException {
         if( Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
             Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family
           ) {
-            final int gzipSize = 316;
-            final int codeSize = 2048;
-            final byte[] code;
-            synchronized ( exeTestBytesLock ) {
-                byte[] _code;
-                if( null == exeTestBytesRef || null == ( _code = exeTestBytesRef.get() ) ) {
-                    // code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin", codeSize, 0);
-                    code = getBytesFromRelFile(new byte[codeSize], "bin/exe-windows-i386-2048b.bin.316b.gz", codeSize, gzipSize);
-                    exeTestBytesRef = new WeakReference<byte[]>(code);
+            final byte[] exeTestCode;
+            synchronized ( exeTestLock ) {
+                byte[] _exeTestCode = null;
+                if( null == exeTestCodeRef || null == ( _exeTestCode = exeTestCodeRef.get() ) ) {
+                    final String fname;
+                    if( Platform.CPUType.X86_64 == PlatformPropsImpl.CPU_ARCH ) {
+                        fname = "bin/exe-windows-x86_64.defl";
+                    } else {
+                        fname = "bin/exe-windows-i386.defl";
+                    }
+                    exeTestCode = readCode(fname);
+                    exeTestCodeRef = new WeakReference<byte[]>(exeTestCode);
                 } else {
-                    code = _code;
+                    exeTestCode = _exeTestCode;
                 }
             }
             final FileOutputStream out = new FileOutputStream(exefile);
             try {
-                out.write(code, 0, codeSize);
+                out.write(exeTestCode, 0, exeTestCode.length);
                 try {
                     out.getFD().sync();
                 } catch (final SyncFailedException sfe) {
@@ -938,6 +929,7 @@ public class IOUtil {
             return false;
         }
         final long t1 = debug ? System.currentTimeMillis() : 0;
+        long t2;
         int res = -1;
         int exitValue = -1;
         if( existingExe || exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */) ) {
@@ -946,6 +938,7 @@ public class IOUtil {
                 if( !existingExe ) {
                     fillExeTestFile(exeTestFile);
                 }
+                t2 = debug ? System.currentTimeMillis() : 0;
                 // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                 // and hence splitting up command by spaces!
                 // Note: All no-exec cases throw an IOExceptions at ProcessBuilder.start(), i.e. below exec() call!
@@ -959,6 +952,7 @@ public class IOUtil {
             } catch (final SecurityException se) {
                 throw se; // fwd Security exception
             } catch (final Throwable t) {
+                t2 = debug ? System.currentTimeMillis() : 0;
                 res = -2;
                 if( debug ) {
                     System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
@@ -976,16 +970,19 @@ public class IOUtil {
                     }
                 }
             }
+        } else {
+            t2 = debug ? System.currentTimeMillis() : 0;
         }
+
         final boolean ok = 0 == res;
         if( !DEBUG_EXE && !existingExe ) {
             exeTestFile.delete();
         }
         if( debug ) {
-            final long t2 = System.currentTimeMillis();
+            final long t3 = System.currentTimeMillis();
             System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">, existingFile "+existingExe+", returned "+exitValue);
             System.err.println("IOUtil.testDirExec(): abs-path <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
-            System.err.println("IOUtil.testDirExec(): total "+(t2-t0)+"ms, create "+(t1-t0)+"ms, execute "+(t2-t1)+"ms");
+            System.err.println("IOUtil.testDirExec(): total "+(t3-t0)+"ms, create "+(t1-t0)+"ms, fill "+(t2-t1)+"ms, execute "+(t3-t2)+"ms");
         }
         return ok;
     }
