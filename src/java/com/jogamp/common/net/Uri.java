@@ -1232,7 +1232,12 @@ public class Uri {
 
     /** Returns true, if this instance is a {@code file} {@code scheme}, otherwise false. */
     public final boolean isFileScheme() {
-        return FILE_SCHEME.equals( scheme.get() );
+        return null != scheme && FILE_SCHEME.equals( scheme.get() );
+    }
+
+    /** Returns true, if this instance is a {@code jar} {@code scheme}, otherwise false. */
+    public final boolean isJarScheme() {
+        return null != scheme && JAR_SCHEME.equals( scheme.get() );
     }
 
     /**
@@ -1386,7 +1391,7 @@ public class Uri {
         if( !emptyString(schemeSpecificPart) ) {
             final StringBuilder sb = new StringBuilder();
 
-            if( scheme.equals(JAR_SCHEME) ) {
+            if( isJarScheme() ) {
                 final int idx = schemeSpecificPart.lastIndexOf(JAR_SCHEME_SEPARATOR);
                 if (0 > idx) {
                     throw new URISyntaxException(input.get(), "missing jar separator");

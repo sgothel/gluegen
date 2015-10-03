@@ -163,7 +163,7 @@ public class JarUtil {
                 }
             }
         }
-        if( !uri.scheme.equals( Uri.JAR_SCHEME ) ) {
+        if( !uri.isJarScheme() ) {
             throw new IllegalArgumentException("Uri is not using scheme "+Uri.JAR_SCHEME+": <"+uri+">");
         }
         if(DEBUG) {
@@ -190,7 +190,7 @@ public class JarUtil {
         if(null == classJarUri) {
             throw new IllegalArgumentException("Uri is null");
         }
-        if( !classJarUri.scheme.equals(Uri.JAR_SCHEME) ) {
+        if( !classJarUri.isJarScheme() ) {
             throw new IllegalArgumentException("Uri is not using scheme "+Uri.JAR_SCHEME+": <"+classJarUri+">");
         }
         Uri.Encoded ssp = classJarUri.schemeSpecificPart;
@@ -262,7 +262,7 @@ public class JarUtil {
         if(null == classJarUri) {
             throw new IllegalArgumentException("Uri is null");
         }
-        if( !classJarUri.scheme.equals(Uri.JAR_SCHEME) ) {
+        if( !classJarUri.isJarScheme() ) {
             throw new IllegalArgumentException("Uri is not a using scheme "+Uri.JAR_SCHEME+": <"+classJarUri+">");
         }
         final Uri.Encoded uriSSP = classJarUri.schemeSpecificPart;

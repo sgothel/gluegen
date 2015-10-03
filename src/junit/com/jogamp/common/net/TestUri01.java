@@ -248,6 +248,20 @@ public class TestUri01 extends SingletonJunitCase {
     @Test
     public void test08NormalizedHierarchy() throws IOException, URISyntaxException {
         {
+            final Uri input    = Uri.cast("./dummy/nop/../a.txt");
+            final Uri expected = Uri.cast("dummy/a.txt");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("../dummy/nop/../a.txt");
+            final Uri expected = Uri.cast("../dummy/a.txt");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
             final Uri input    = Uri.cast("http://localhost/dummy/../");
             final Uri expected = Uri.cast("http://localhost/");
             URIDumpUtil.showUri(input);
@@ -255,7 +269,21 @@ public class TestUri01 extends SingletonJunitCase {
             Assert.assertEquals(expected, normal);
         }
         {
-            final Uri input    = Uri.cast("http://localhost/test/dummy/../text.txt");
+            final Uri input    = Uri.cast("http://localhost/dummy/./../");
+            final Uri expected = Uri.cast("http://localhost/");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("http://localhost/dummy/../aa/././../");
+            final Uri expected = Uri.cast("http://localhost/");
+            URIDumpUtil.showUri(input);
+            final Uri normal = input.getNormalized();
+            Assert.assertEquals(expected, normal);
+        }
+        {
+            final Uri input    = Uri.cast("http://localhost/test/dummy/./../text.txt");
             final Uri expected = Uri.cast("http://localhost/test/text.txt");
             URIDumpUtil.showUri(input);
             final Uri normal = input.getNormalized();
@@ -280,7 +308,7 @@ public class TestUri01 extends SingletonJunitCase {
             Assert.assertEquals(expected, normal);
         }
         {
-            final Uri input    = Uri.cast("jar:http://localhost/test/dummy/../abc.jar!/");
+            final Uri input    = Uri.cast("jar:http://localhost/test/./dummy/../abc.jar!/");
             final Uri expected = Uri.cast("jar:http://localhost/test/abc.jar!/");
             URIDumpUtil.showUri(input);
             final Uri normal = input.getNormalized();

@@ -620,7 +620,7 @@ public class IOUtil {
     }
 
     /**
-     * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
+     * @param path assuming a slashified path, either denotes a file or directory, either relative or absolute.
      * @return parent of path
      * @throws URISyntaxException if path is empty or has no parent directory available
      */
@@ -632,11 +632,11 @@ public class IOUtil {
 
         final int e = path.lastIndexOf("/");
         if( e < 0 ) {
-            throw new URISyntaxException(path, "path contains no '/'");
+            throw new URISyntaxException(path, "path contains no '/': <"+path+">");
         }
         if( e == 0 ) {
             // path is root directory
-            throw new URISyntaxException(path, "path has no parents");
+            throw new URISyntaxException(path, "path has no parents: <"+path+">");
         }
         if( e <  pl - 1 ) {
             // path is file, return it's parent directory
@@ -646,23 +646,45 @@ public class IOUtil {
         // path is a directory ..
         final int p = path.lastIndexOf("/", e-1);
         if( p >= j) {
+            // parent itself has '/' - post '!' or no '!' at all
             return path.substring(0, p+1);
+        } else {
+            // parent itself has no '/'
+            final String parent = path.substring(j, e);
+            if( parent.equals("..") ) {
+                throw new URISyntaxException(path, "parent is unresolved: <"+path+">");
+            } else {
+                // parent is '!' or empty (relative path)
+                return path.substring(0, j);
+            }
         }
-        throw new URISyntaxException(path, "parent of path contains no '/'");
     }
 
     /**
-     * @param path assuming a slashified path beginning with "/" as it's root directory, either denotes a file or directory.
-     * @return clean path string where <code>../</code> and <code>./</code> is resolved.
+     * @param path assuming a slashified path, either denoting a file or directory, either relative or absolute.
+     * @return clean path string where {@code ./} and {@code ../} is resolved,
+     *         while keeping a starting {@code ../} at the beginning of a relative path.
      * @throws URISyntaxException if path is empty or has no parent directory available while resolving <code>../</code>
      */
     public static String cleanPathString(String path) throws URISyntaxException {
-        int idx;
-        while ( ( idx = path.indexOf("../") ) >= 0 ) {
-            path = getParentOf(path.substring(0, idx)) + path.substring(idx+3);
+        // Resolve './' before '../' to handle case 'parent/./../a.txt' properly.
+        int idx = path.length() - 1;
+        while ( idx >= 1 && ( idx = path.lastIndexOf("./", idx) ) >= 0 ) {
+            if( 0 < idx && path.charAt(idx-1) == '.' ) {
+                idx-=2; // skip '../' -> idx upfront
+            } else {
+                path = path.substring(0, idx) + path.substring(idx+2);
+                idx--; // idx upfront
+            }
         }
-        while ( ( idx = path.indexOf("./") ) >= 0 ) {
-            path = path.substring(0, idx) + path.substring(idx+2);
+        idx = 0;
+        while ( ( idx = path.indexOf("../", idx) ) >= 0 ) {
+            if( 0 == idx ) {
+                idx += 3; // skip starting '../'
+            } else {
+                path = getParentOf(path.substring(0, idx)) + path.substring(idx+3);
+                idx = 0;
+            }
         }
         return path;
     }

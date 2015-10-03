@@ -150,7 +150,7 @@ public class SourcedInterruptedException extends InterruptedException implements
         s.println(s0+" by "+getClass().getSimpleName()+": "+getMessage()+" on thread "+Thread.currentThread().getName());
         ExceptionUtils.dumpStack(s, getStackTrace(), 0, -1);
         if( null != interruptSource ) {
-            ExceptionUtils.dumpCause(s, s0, interruptSource, 1);
+            ExceptionUtils.dumpCause(s, s0, interruptSource, 1, -1, -1);
         }
     }
 
@@ -158,9 +158,9 @@ public class SourcedInterruptedException extends InterruptedException implements
     public final void printStackTrace(final PrintStream s) {
         s.println(getClass().getSimpleName()+": "+getMessage()+" on thread "+Thread.currentThread().getName());
         ExceptionUtils.dumpStack(s, getStackTrace(), 0, -1);
-        final int causeDepth = ExceptionUtils.dumpCause(s, "Caused", getCause(), 1);
+        final int causeDepth = ExceptionUtils.dumpCause(s, "Caused", getCause(), 1, -1, -1);
         if( null != interruptSource ) {
-            ExceptionUtils.dumpCause(s, "InterruptSource", interruptSource, causeDepth);
+            ExceptionUtils.dumpCause(s, "InterruptSource", interruptSource, causeDepth, -1, -1);
         }
     }
 }

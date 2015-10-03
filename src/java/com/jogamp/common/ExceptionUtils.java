@@ -65,26 +65,26 @@ public class ExceptionUtils {
         void printStackTrace(final PrintStream s);
     }
 
-    public static int dumpCause(final PrintStream s, final String causeStr, Throwable cause, int causeDepth) {
-        for( ; null != cause; cause = cause.getCause() ) {
+    public static int dumpCause(final PrintStream s, final String causeStr, Throwable cause, int causeIdx, final int causeDepth, final int stackDepth) {
+        for(int i=0; null != cause && ( -1 == causeDepth || i < causeDepth ); cause = cause.getCause(), i++) {
             if( cause instanceof CustomStackTrace ) {
-                ((CustomStackTrace)cause).dumpCauseStack(s, causeStr, causeDepth);
+                ((CustomStackTrace)cause).dumpCauseStack(s, causeStr, causeIdx);
             } else {
-                s.println(causeStr+"["+causeDepth+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
-                dumpStack(s, cause.getStackTrace(), 0, -1);
+                s.println(causeStr+"["+causeIdx+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
+                dumpStack(s, cause.getStackTrace(), 0, stackDepth);
             }
-            causeDepth++;
+            causeIdx++;
         }
-        return causeDepth;
+        return causeIdx;
     }
 
-    public static void printStackTrace(final PrintStream s, final Throwable t) {
+    public static void printStackTrace(final PrintStream s, final Throwable t, final int causeDepth, final int stackDepth) {
         if( t instanceof CustomStackTrace ) {
             ((CustomStackTrace)t).printStackTrace(s);
         } else {
             s.println(t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
-            dumpStack(s, t.getStackTrace(), 0, -1);
-            dumpCause(s, "Caused", t.getCause(), 1);
+            dumpStack(s, t.getStackTrace(), 0, stackDepth);
+            dumpCause(s, "Caused", t.getCause(), 1, causeDepth, stackDepth);
         }
     }
 
@@ -96,7 +96,17 @@ public class ExceptionUtils {
      * </p>
      */
     public static void dumpThrowable(final String additionalDescr, final Throwable t) {
+        dumpThrowable(additionalDescr, t, -1, -1);
+    }
+    /**
+     * Dumps a {@link Throwable} in a decorating message including the current thread name,
+     * and its {@link #dumpStack(PrintStream, StackTraceElement[], int, int) stack trace}.
+     * <p>
+     * Implementation will iterate through all {@link Throwable#getCause() causes}.
+     * </p>
+     */
+    public static void dumpThrowable(final String additionalDescr, final Throwable t, final int causeDepth, final int stackDepth) {
         System.err.print("Caught "+additionalDescr+" ");
-        printStackTrace(System.err, t);
+        printStackTrace(System.err, t, causeDepth, stackDepth);
     }
 }

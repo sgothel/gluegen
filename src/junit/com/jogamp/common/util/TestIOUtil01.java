@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URISyntaxException;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
 
@@ -43,6 +44,9 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.net.URIDumpUtil;
+import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
@@ -78,7 +82,85 @@ public class TestIOUtil01 extends SingletonJunitCase {
     }
 
     @Test
-    public void testCopyStream01Array() throws IOException {
+    public void test01CleanPathString() throws IOException, URISyntaxException {
+        {
+            final String input    = "./dummy/nop/../a.txt";
+            final String expected = "dummy/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = "../dummy/nop/../a.txt";
+            final String expected = "../dummy/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = ".././dummy/nop/../a.txt";
+            final String expected = "../dummy/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = "./../dummy/nop/../a.txt";
+            final String expected = "../dummy/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = "../dummy/./nop/../a.txt";
+            final String expected = "../dummy/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = "/dummy/nop/./../a.txt";
+            final String expected = "/dummy/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = "dummy/../nop/./.././aaa/bbb/../../a.txt";
+            final String expected = "a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            final String input    = "/dummy/../nop/./.././aaa/bbb/././ccc/../../../a.txt";
+            final String expected = "/a.txt";
+            Assert.assertEquals(expected, IOUtil.cleanPathString(input));
+        }
+        {
+            URISyntaxException use = null;
+            try {
+                // Error case!
+                final String input    = "../../error.txt";
+                final String expected = "error.txt";
+                final String result = IOUtil.cleanPathString(input); // URISyntaxException
+                System.err.println("input   : "+input);
+                System.err.println("expected: "+expected);
+                System.err.println("result  : "+result);
+                Assert.assertEquals(expected, result);
+            } catch (final URISyntaxException _use) {
+                use = _use;
+                ExceptionUtils.dumpThrowable("", _use, 0, 3);
+            }
+            Assert.assertNotNull("URISyntaxException expected", use);
+        }
+        {
+            URISyntaxException use = null;
+            try {
+                // Error case!
+                final String input    = ".././a/../../error.txt";
+                final String expected = "error.txt";
+                final String result = IOUtil.cleanPathString(input); // URISyntaxException
+                System.err.println("input   : "+input);
+                System.err.println("expected: "+expected);
+                System.err.println("result  : "+result);
+                Assert.assertEquals(expected, result);
+            } catch (final URISyntaxException _use) {
+                use = _use;
+                ExceptionUtils.dumpThrowable("", _use, 0, 3);
+            }
+            Assert.assertNotNull("URISyntaxException expected", use);
+        }
+    }
+
+    @Test
+    public void test11CopyStream01Array() throws IOException {
         final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(urlConn);
         final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
@@ -94,7 +176,7 @@ public class TestIOUtil01 extends SingletonJunitCase {
     }
 
     @Test
-    public void testCopyStream02Buffer() throws IOException {
+    public void test12CopyStream02Buffer() throws IOException {
         final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(urlConn);
         final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
@@ -111,7 +193,7 @@ public class TestIOUtil01 extends SingletonJunitCase {
     }
 
     @Test
-    public void testCopyStream03Buffer() throws IOException {
+    public void test13CopyStream03Buffer() throws IOException {
         final String tfilename2 = "./test2.bin" ;
         final URLConnection urlConn1 = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(urlConn1);

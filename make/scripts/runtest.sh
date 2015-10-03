@@ -60,7 +60,7 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.Lock"
 #D_ARGS="-Djogamp.debug.Lock -Djogamp.debug.Lock.TraceLock"
 #D_ARGS="-Djogamp.debug.Lock.TraceLock"
-D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe -Djogamp.debug.IOUtil.Exe.NoStream"
+#D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe -Djogamp.debug.IOUtil.Exe.NoStream"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe"
 #D_ARGS="-Djogamp.debug.ByteBufferInputStream"
 #D_ARGS="-Djogamp.debug.Bitstream"
@@ -106,9 +106,9 @@ function onetest() {
 #onetest com.jogamp.common.util.IntIntHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.IntObjectHashMapTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.LongIntHashMapTest 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestValueConversion 2>&1 | tee -a $LOG
