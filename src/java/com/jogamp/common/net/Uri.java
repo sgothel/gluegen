@@ -1235,7 +1235,10 @@ public class Uri {
         return null != scheme && FILE_SCHEME.equals( scheme.get() );
     }
 
-    /** Returns true, if this instance is a {@code jar} {@code scheme}, otherwise false. */
+    /**
+     * Returns true, if this instance is a {@code jar} {@code scheme}, otherwise false.
+     * @since 2.3.2
+     */
     public final boolean isJarScheme() {
         return null != scheme && JAR_SCHEME.equals( scheme.get() );
     }

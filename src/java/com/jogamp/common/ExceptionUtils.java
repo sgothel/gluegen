@@ -57,53 +57,95 @@ public class ExceptionUtils {
         }
     }
 
-    /** Interface allowing {@link Throwable} specializations to provide their custom stack trace presentation. */
+    /**
+     * Interface allowing {@link Throwable} specializations to provide their custom stack trace presentation.
+     * @since 2.3.2
+     */
     public static interface CustomStackTrace {
-        /** Custom non-iterative stack dump */
-        void dumpCauseStack(final PrintStream s, final String causeStr, int causeDepth);
-        /** Custom {@code printStackTrace} method, similar to {@link Throwable#printStackTrace(PrintStream)}. */
-        void printStackTrace(final PrintStream s);
+        /**
+         * Prints this {@link Throwable} as a cause to the output {@link PrintStream} {@code s},
+         * not iterating over all inner causes!
+         * @param s output stream
+         * @param causeStr the cause title
+         * @param causeIdx the cause index over all causes known by caller
+         * @param stackDepth the maximum depth for stack entries, or {@code -1} for all
+         * @since 2.3.2
+         */
+        void printCauseStack(final PrintStream s, final String causeStr, final int causeIdx, final int stackDepth);
+        /**
+         * Custom {@code printStackTrace} method, similar to {@link Throwable#printStackTrace(PrintStream, int, int)}.
+         * @param s output stream
+         * @param causeDepth the maximum depth for causes, or {@code -1} for all
+         * @param stackDepth the maximum depth for stack entries, or {@code -1} for all
+         */
+        void printStackTrace(final PrintStream s, final int causeDepth, final int stackDepth);
     }
 
-    public static int dumpCause(final PrintStream s, final String causeStr, Throwable cause, int causeIdx, final int causeDepth, final int stackDepth) {
-        for(int i=0; null != cause && ( -1 == causeDepth || i < causeDepth ); cause = cause.getCause(), i++) {
+    /**
+     * Prints the given {@link Throwable} cause to the output {@link PrintStream} {@code s}.
+     * @param s output stream
+     * @param causeStr the cause title
+     * @param cause the {@link Throwable} cause for output
+     * @param causeIdx the cause index over all causes known by caller
+     * @param causeDepth the maximum depth for causes, or {@code -1} for all
+     * @param stackDepth the maximum depth for stack entries, or {@code -1} for all
+     * @since 2.3.2
+     */
+    public static int printCause(final PrintStream s, final String causeStr, Throwable cause, final int causeIdx, final int causeDepth, final int stackDepth) {
+        int i=causeIdx;
+        for(; null != cause && ( -1 == causeDepth || i < causeDepth ); cause = cause.getCause()) {
             if( cause instanceof CustomStackTrace ) {
-                ((CustomStackTrace)cause).dumpCauseStack(s, causeStr, causeIdx);
+                ((CustomStackTrace)cause).printCauseStack(s, causeStr, i, stackDepth);
             } else {
-                s.println(causeStr+"["+causeIdx+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
+                s.println(causeStr+"["+i+"] by "+cause.getClass().getSimpleName()+": "+cause.getMessage()+" on thread "+Thread.currentThread().getName());
                 dumpStack(s, cause.getStackTrace(), 0, stackDepth);
             }
-            causeIdx++;
+            i++;
         }
-        return causeIdx;
+        return i;
     }
 
+    /**
+     * Prints the given {@link Throwable} to the output {@link PrintStream} {@code s}.
+     * @param s output stream
+     * @param t the {@link Throwable} for output
+     * @param causeDepth the maximum depth for causes, or {@code -1} for all
+     * @param stackDepth the maximum depth for stack entries, or {@code -1} for all
+     * @since 2.3.2
+     */
     public static void printStackTrace(final PrintStream s, final Throwable t, final int causeDepth, final int stackDepth) {
         if( t instanceof CustomStackTrace ) {
-            ((CustomStackTrace)t).printStackTrace(s);
+            ((CustomStackTrace)t).printStackTrace(s, causeDepth, stackDepth);
         } else {
             s.println(t.getClass().getSimpleName()+": "+t.getMessage()+" on thread "+Thread.currentThread().getName());
             dumpStack(s, t.getStackTrace(), 0, stackDepth);
-            dumpCause(s, "Caused", t.getCause(), 1, causeDepth, stackDepth);
+            printCause(s, "Caused", t.getCause(), 0, causeDepth, stackDepth);
         }
     }
 
     /**
-     * Dumps a {@link Throwable} in a decorating message including the current thread name,
+     * Dumps a {@link Throwable} to {@link System.err} in a decorating message including the current thread name,
      * and its {@link #dumpStack(PrintStream, StackTraceElement[], int, int) stack trace}.
      * <p>
      * Implementation will iterate through all {@link Throwable#getCause() causes}.
      * </p>
+     * @param additionalDescr additional text placed before the {@link Throwable} details.
+     * @param t the {@link Throwable} for output
      */
     public static void dumpThrowable(final String additionalDescr, final Throwable t) {
         dumpThrowable(additionalDescr, t, -1, -1);
     }
     /**
-     * Dumps a {@link Throwable} in a decorating message including the current thread name,
+     * Dumps a {@link Throwable} to {@link System.err} in a decorating message including the current thread name,
      * and its {@link #dumpStack(PrintStream, StackTraceElement[], int, int) stack trace}.
      * <p>
      * Implementation will iterate through all {@link Throwable#getCause() causes}.
      * </p>
+     * @param additionalDescr additional text placed before the {@link Throwable} details.
+     * @param t the {@link Throwable} for output
+     * @param causeDepth the maximum depth for causes, or {@code -1} for all
+     * @param stackDepth the maximum depth for stack entries, or {@code -1} for all
+     * @since 2.3.2
      */
     public static void dumpThrowable(final String additionalDescr, final Throwable t, final int causeDepth, final int stackDepth) {
         System.err.print("Caught "+additionalDescr+" ");

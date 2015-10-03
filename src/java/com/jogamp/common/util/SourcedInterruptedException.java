@@ -145,22 +145,22 @@ public class SourcedInterruptedException extends InterruptedException implements
     }
 
     @Override
-    public final void dumpCauseStack(final PrintStream s, final String causeStr, final int causeDepth) {
-        final String s0 = causeStr+"["+causeDepth+"]";
+    public final void printCauseStack(final PrintStream s, final String causeStr, final int causeIdx, final int stackDepth) {
+        final String s0 = causeStr+"["+causeIdx+"]";
         s.println(s0+" by "+getClass().getSimpleName()+": "+getMessage()+" on thread "+Thread.currentThread().getName());
-        ExceptionUtils.dumpStack(s, getStackTrace(), 0, -1);
+        ExceptionUtils.dumpStack(s, getStackTrace(), 0, stackDepth);
         if( null != interruptSource ) {
-            ExceptionUtils.dumpCause(s, s0, interruptSource, 1, -1, -1);
+            ExceptionUtils.printCause(s, s0, interruptSource, 0, 1, stackDepth);
         }
     }
 
     @Override
-    public final void printStackTrace(final PrintStream s) {
+    public final void printStackTrace(final PrintStream s, final int causeDepth, final int stackDepth) {
         s.println(getClass().getSimpleName()+": "+getMessage()+" on thread "+Thread.currentThread().getName());
-        ExceptionUtils.dumpStack(s, getStackTrace(), 0, -1);
-        final int causeDepth = ExceptionUtils.dumpCause(s, "Caused", getCause(), 1, -1, -1);
+        ExceptionUtils.dumpStack(s, getStackTrace(), 0, stackDepth);
+        ExceptionUtils.printCause(s, "Caused", getCause(), 0, causeDepth, stackDepth);
         if( null != interruptSource ) {
-            ExceptionUtils.dumpCause(s, "InterruptSource", interruptSource, causeDepth, -1, -1);
+            ExceptionUtils.printCause(s, "InterruptSource", interruptSource, 0, causeDepth, stackDepth);
         }
     }
 }
