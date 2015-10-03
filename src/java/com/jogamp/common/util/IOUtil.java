@@ -548,10 +548,8 @@ public class IOUtil {
                     System.err.println("IOUtil: found <"+resourcePath+"> within class package <"+pkgName+"> of given class <"+relContext.getName()+">: "+(null!=conn));
                 }
             }
-        } else {
-            if(DEBUG) {
-                System.err.println("IOUtil: null context");
-            }
+        } else if(DEBUG) {
+            System.err.println("IOUtil: null context, skip rel. lookup");
         }
         if(null == conn) {
             conn = getResource(resourcePath, classLoader);

@@ -164,7 +164,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
             url = new URL(path);
             conn = open(url);
             type = null != conn ? 1 : -1;
-        } catch(final MalformedURLException e1) { if(DEBUG) { System.err.println("ERR(0): "+e1.getMessage()); } }
+        } catch(final MalformedURLException e1) { if(DEBUG) { System.err.println("FAIL(1): "+e1.getMessage()); } }
 
         if(null == conn && null != cl) {
             // lookup via ClassLoader .. cleanup leading '/'
@@ -189,7 +189,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
                     conn = open(url);
                     type = null != conn ? 3 : -1;
                 }
-            } catch (final Throwable e) { if(DEBUG) { System.err.println("ERR(1): "+e.getMessage()); } }
+            } catch (final Throwable e) { if(DEBUG) { System.err.println("FAIL(3): "+e.getMessage()); } }
         }
 
         if(DEBUG) {
@@ -209,7 +209,7 @@ public abstract class AssetURLContext implements PiggybackURLContext {
             final URLConnection c = url.openConnection();
             c.connect(); // redundant
             return c;
-        } catch (final IOException ioe) { if(DEBUG) { System.err.println("ERR: "+ioe.getMessage()); } }
+        } catch (final IOException ioe) { if(DEBUG) { System.err.println("FAIL(2): "+ioe.getMessage()); } }
         return null;
     }
 
