@@ -432,7 +432,7 @@ public class IOUtil {
 
     /***
      *
-     * RESOURCE LOCATION STUFF
+     * RESOURCE LOCATION HELPER
      *
      */
 
@@ -441,7 +441,10 @@ public class IOUtil {
      * to be {@link #resolve(int) resolved} at a later time.
      */
     public static class ClassResources {
-        /** Class instance used to {@link #resolve(int)} the {@link #resourcePaths}. */
+        /** Optional {@link ClassLoader} used to {@link #resolve(int)} {@link #resourcePaths}. */
+        public final ClassLoader classLoader;
+
+        /** Optional class instance used to {@link #resolve(int)} relative {@link #resourcePaths}. */
         public final Class<?> contextCL;
 
         /** Resource paths, see {@link #resolve(int)}. */
@@ -453,23 +456,34 @@ public class IOUtil {
         /**
          * @param contextCL class instance to {@link #resolve(int)} {@link #resourcePaths}.
          * @param resourcePaths array of strings denominating multiple resource paths. None shall be null.
+         * @deprecated Use {@link #IOUtil(String[], ClassLoader, Class)} for clarity!
          */
         public ClassResources(final Class<?> contextCL, final String[] resourcePaths) {
+            this(resourcePaths, contextCL.getClassLoader(), contextCL);
+        }
+        /**
+         * @param resourcePaths multiple relative or absolute resource locations
+         * @param classLoader optional {@link ClassLoader}, see {@link IOUtil#getResource(String, ClassLoader, Class)}
+         * @param relContext optional relative context, see {@link IOUtil#getResource(String, ClassLoader, Class)}
+         */
+        public ClassResources(final String[] resourcePaths, final ClassLoader classLoader, final Class<?> relContext) {
             for(int i=resourcePaths.length-1; i>=0; i--) {
                 if( null == resourcePaths[i] ) {
                     throw new IllegalArgumentException("resourcePath["+i+"] is null");
                 }
             }
-            this.contextCL = contextCL;
+            this.classLoader = classLoader;
+            this.contextCL = relContext;
             this.resourcePaths = resourcePaths;
         }
 
         /**
-         * Resolving one of the {@link #resourcePaths} indexed by <code>uriIndex</code> using {@link #contextCL} and {@link IOUtil#getResource(Class, String)}.
+         * Resolving one of the {@link #resourcePaths} indexed by <code>uriIndex</code> using
+         * {@link #classLoader}, {@link #contextCL} through {@link IOUtil#getResource(String, ClassLoader, Class)}.
          * @throws ArrayIndexOutOfBoundsException if <code>uriIndex</code> is < 0 or >= {@link #resourceCount()}.
          */
         public URLConnection resolve(final int uriIndex) throws ArrayIndexOutOfBoundsException {
-            return getResource(contextCL, resourcePaths[uriIndex]);
+            return getResource(resourcePaths[uriIndex], classLoader, contextCL);
         }
     }
 
@@ -478,10 +492,11 @@ public class IOUtil {
      * <ul>
      *   <li><i>relative</i>: <code>context</code>'s package name-path plus <code>resourcePath</code> via <code>context</code>'s ClassLoader.
      *       This allows locations relative to JAR- and other URLs.
-     *       The <code>resourcePath</code> may start with <code>../</code> to navigate to parent folder.</li>
-     *   <li><i>absolute</i>: <code>context</code>'s ClassLoader and the <code>resourcePath</code> as is (filesystem)</li>
+     *       The <code>resourcePath</code> may start with <code>../</code> to navigate to parent folder.
+     *       This attempt is skipped if {@code context} is {@code null}.</li>
+     *   <li><i>absolute</i>: <code>resourcePath</code> as is via <code>context</code>'s ClassLoader.
+     *       In case {@code context} is {@code null}, this class {@link ClassLoader} is being used.</li>
      * </ul>
-     *
      * <p>
      * Returns the resolved and open URLConnection or null if not found.
      * </p>
@@ -489,29 +504,57 @@ public class IOUtil {
      * @see #getResource(String, ClassLoader)
      * @see ClassLoader#getResource(String)
      * @see ClassLoader#getSystemResource(String)
+     * @deprecated Use {@link IOUtil#getResource(String, ClassLoader, Class)} for clarity!
      */
     public static URLConnection getResource(final Class<?> context, final String resourcePath) {
+        final ClassLoader contextCL = null != context ? context.getClassLoader() : IOUtil.class.getClassLoader();
+        return getResource(resourcePath, contextCL, context);
+    }
+
+    /**
+     * Locating a resource using {@link #getResource(String, ClassLoader)}:
+     * <ul>
+     *   <li><i>relative</i>: <code>relContext</code>'s package name-path plus <code>resourcePath</code> via <code>classLoader</code>.
+     *       This allows locations relative to JAR- and other URLs.
+     *       The <code>resourcePath</code> may start with <code>../</code> to navigate to parent folder.
+     *       This attempt is skipped if {@code relContext} is {@code null}.</li>
+     *   <li><i>absolute</i>: <code>resourcePath</code> as is via <code>classLoader</code>.
+     * </ul>
+     * <p>
+     * Returns the resolved and open URLConnection or null if not found.
+     * </p>
+     *
+     * @param resourcePath the resource path to locate relative or absolute
+     * @param classLoader the optional {@link ClassLoader}, recommended
+     * @param relContext relative context, i.e. position, of the {@code resourcePath},
+     *                   to perform the relative lookup, if not {@code null}.
+     * @see #getResource(String, ClassLoader)
+     * @see ClassLoader#getResource(String)
+     * @see ClassLoader#getSystemResource(String)
+     */
+    public static URLConnection getResource(final String resourcePath, final ClassLoader classLoader, final Class<?> relContext) {
         if(null == resourcePath) {
             return null;
         }
-        final ClassLoader contextCL = (null!=context)?context.getClassLoader():IOUtil.class.getClassLoader();
         URLConnection conn = null;
-        if(null != context) {
+        if(null != relContext) {
             // scoping the path within the class's package
-            final String className = context.getName().replace('.', '/');
+            final String className = relContext.getName().replace('.', '/');
             final int lastSlash = className.lastIndexOf('/');
             if (lastSlash >= 0) {
                 final String pkgName = className.substring(0, lastSlash + 1);
-                conn = getResource(pkgName + resourcePath, contextCL);
+                conn = getResource(pkgName + resourcePath, classLoader);
                 if(DEBUG) {
-                    System.err.println("IOUtil: found <"+resourcePath+"> within class package <"+pkgName+"> of given class <"+context.getName()+">: "+(null!=conn));
+                    System.err.println("IOUtil: found <"+resourcePath+"> within class package <"+pkgName+"> of given class <"+relContext.getName()+">: "+(null!=conn));
                 }
             }
-        } else if(DEBUG) {
-            System.err.println("IOUtil: null context");
+        } else {
+            if(DEBUG) {
+                System.err.println("IOUtil: null context");
+            }
         }
         if(null == conn) {
-            conn = getResource(resourcePath, contextCL);
+            conn = getResource(resourcePath, classLoader);
             if(DEBUG) {
                 System.err.println("IOUtil: found <"+resourcePath+"> by classloader: "+(null!=conn));
             }
@@ -542,8 +585,7 @@ public class IOUtil {
                 return AssetURLContext.createURL(resourcePath, cl).openConnection();
             } catch (final IOException ioe) {
                 if(DEBUG) {
-                    System.err.println("IOUtil: Caught Exception:");
-                    ioe.printStackTrace();
+                    ExceptionUtils.dumpThrowable("IOUtil", ioe);
                 }
                 return null;
             }
@@ -552,8 +594,7 @@ public class IOUtil {
                 return AssetURLContext.resolve(resourcePath, cl);
             } catch (final IOException ioe) {
                 if(DEBUG) {
-                    System.err.println("IOUtil: Caught Exception:");
-                    ioe.printStackTrace();
+                    ExceptionUtils.dumpThrowable("IOUtil", ioe);
                 }
             }
         }
@@ -666,8 +707,7 @@ public class IOUtil {
                 return c;
             } catch (final IOException ioe) {
                 if(DEBUG) {
-                    System.err.println("IOUtil: urlExists("+url+") ["+dbgmsg+"] - false - "+ioe.getClass().getSimpleName()+": "+ioe.getMessage());
-                    ioe.printStackTrace();
+                    ExceptionUtils.dumpThrowable("IOUtil: urlExists("+url+") ["+dbgmsg+"] - false -", ioe);
                 }
             }
         } else if(DEBUG) {
@@ -707,7 +747,7 @@ public class IOUtil {
     }
 
     private static final byte[] readCode(final String fname) throws IOException {
-        final URLConnection con = IOUtil.getResource(IOUtil.class, fname);
+        final URLConnection con = IOUtil.getResource(fname, IOUtil.class.getClassLoader(), IOUtil.class);
         final InputStream in = con.getInputStream();
         byte[] output = null;
         try {

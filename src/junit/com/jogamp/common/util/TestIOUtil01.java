@@ -79,7 +79,7 @@ public class TestIOUtil01 extends SingletonJunitCase {
 
     @Test
     public void testCopyStream01Array() throws IOException {
-        final URLConnection urlConn = IOUtil.getResource(this.getClass(), tfilename);
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(urlConn);
         final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
         final byte[] bb;
@@ -95,7 +95,7 @@ public class TestIOUtil01 extends SingletonJunitCase {
 
     @Test
     public void testCopyStream02Buffer() throws IOException {
-        final URLConnection urlConn = IOUtil.getResource(this.getClass(), tfilename);
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(urlConn);
         final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
         final ByteBuffer bb;
@@ -113,14 +113,14 @@ public class TestIOUtil01 extends SingletonJunitCase {
     @Test
     public void testCopyStream03Buffer() throws IOException {
         final String tfilename2 = "./test2.bin" ;
-        final URLConnection urlConn1 = IOUtil.getResource(this.getClass(), tfilename);
+        final URLConnection urlConn1 = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
         Assert.assertNotNull(urlConn1);
 
         final File file2 = new File(tfilename2);
         file2.deleteOnExit();
         try {
             IOUtil.copyURLConn2File(urlConn1, file2);
-            final URLConnection urlConn2 = IOUtil.getResource(this.getClass(), tfilename2);
+            final URLConnection urlConn2 = IOUtil.getResource(tfilename2, this.getClass().getClassLoader(), this.getClass());
             Assert.assertNotNull(urlConn2);
 
             final BufferedInputStream bis = new BufferedInputStream( urlConn2.getInputStream() );

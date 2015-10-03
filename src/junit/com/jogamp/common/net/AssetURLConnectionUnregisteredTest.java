@@ -38,7 +38,7 @@ public class AssetURLConnectionUnregisteredTest extends AssetURLConnectionBase {
 
     @Test
     public void assetUnregisteredIOUtilGetResourceRel0_RT() throws IOException, URISyntaxException {
-        final URLConnection urlConn0 = IOUtil.getResource(this.getClass(), test_asset_test2_rel.get());
+        final URLConnection urlConn0 = IOUtil.getResource(test_asset_test2_rel.get(), this.getClass().getClassLoader(), this.getClass());
         testAssetConnection(urlConn0, test_asset_test2_entry);
 
         final Uri uri1 = Uri.valueOf(urlConn0.getURL()).getRelativeOf(test_asset_test3_rel);
