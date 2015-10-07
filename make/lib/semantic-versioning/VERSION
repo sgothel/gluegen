@@ -3,9 +3,18 @@ https://github.com/sgothel/semantic-versioning
 
 0.9.33-SNAPSHOT
 
-commit 0d2e314ef48bd2fd38b45f781c4573bdb2b32a69
+commit 4f50b49c955f2bde2bb7eb4c7493206ec6bb1f2f
 Author: Sven Gothel <sgothel@jausoft.com>
-Date:   Fri Apr 3 23:49:31 2015 +0200
+Date:   Wed Oct 7 10:40:40 2015 +0200
 
-    *DiffCriteria.differs[Binary](FieldInfo ..): Need to take value type into account!
+    Fix JLS Binary Compat: Moving methods and fields upwards for classes _and_ interfaces is OK
+    
+    - We shall also travers all interfaces upwards
+    - All methods and fields found upwards must be tested for compatibility as well!
+    
+    Further:
+    - Add class-name to Field- and MethodInfo via new intermediate AbstractMemberInfo.
+      The class-name is used to have allow differs to find a class move upwards!
+    
+    - Pretty printing of class move binary-compatible change
 
