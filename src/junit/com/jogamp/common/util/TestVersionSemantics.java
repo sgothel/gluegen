@@ -89,6 +89,11 @@ public class TestVersionSemantics extends SingletonJunitCase {
         testVersions(diffCriteria, Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE, "2.2.1", "2.3.0", excludesDefault);
     }
 
+    @Test
+    public void testVersionV230V232() throws IllegalArgumentException, IOException, URISyntaxException {
+        testVersions(diffCriteria, Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY, "2.3.0", "2.3.2", excludesDefault);
+    }
+
     void testVersions(final DiffCriteria diffCriteria, final Delta.CompatibilityType expectedCompatibilityType,
                       final String v1, final String v2, final Set<String> excludes)
                               throws IllegalArgumentException, IOException, URISyntaxException {
@@ -104,12 +109,12 @@ public class TestVersionSemantics extends SingletonJunitCase {
     }
 
     @Test
-    public void testVersionV230V23x() throws IllegalArgumentException, IOException, URISyntaxException {
-        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
+    public void testVersionV232V24x() throws IllegalArgumentException, IOException, URISyntaxException {
+        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.NON_BACKWARD_COMPATIBLE;
         // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_USER;
-        final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
+        // final Delta.CompatibilityType expectedCompatibilityType = Delta.CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
 
-        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.0");
+        final VersionNumberString preVersionNumber = new VersionNumberString("2.3.2");
         final File previousJar = new File("lib/v"+preVersionNumber.getVersionString()+"/"+jarFile);
 
         final ClassLoader currentCL = TestVersionSemantics.class.getClassLoader();
