@@ -82,30 +82,6 @@ public class ArrayHashSet<E>
     private final boolean supportNullValue;
 
     /**
-     * @deprecated Use {@link #ArrayHashSet(boolean, int, float)}
-     */
-    public ArrayHashSet() {
-        this(true, DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR);
-    }
-
-    /**
-     * @param initialCapacity
-     * @deprecated Use {@link #ArrayHashSet(boolean, int, float)}
-     */
-    public ArrayHashSet(final int initialCapacity) {
-        this(true, initialCapacity, DEFAULT_LOAD_FACTOR);
-    }
-
-    /**
-     * @param initialCapacity
-     * @param loadFactor
-     * @deprecated Use {@link #ArrayHashSet(boolean, int, float)}
-     */
-    public ArrayHashSet(final int initialCapacity, final float loadFactor) {
-        this(true, initialCapacity, loadFactor);
-    }
-
-    /**
      *
      * @param supportNullValue Use {@code true} for default behavior, i.e. {@code null} can be a valid value.
      *                         Use {@code false} if {@code null} is not a valid value,

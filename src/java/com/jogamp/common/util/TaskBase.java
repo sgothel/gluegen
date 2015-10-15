@@ -58,17 +58,25 @@ public abstract class TaskBase implements Runnable {
     protected volatile boolean isFlushed;
     protected volatile Thread execThread;
 
+    /**
+     * @param syncObject The synchronization object if caller wait until <code>runnable</code> execution is completed,
+     *                   or <code>null</code> if waiting is not desired.
+     * @param catchExceptions Influence an occurring exception during <code>runnable</code> execution.
+     *                        If <code>true</code>, the exception is silenced and can be retrieved via {@link #getThrowable()},
+     *                        otherwise the exception is thrown.
+     * @param exceptionOut If not <code>null</code>, exceptions are written to this {@link PrintStream}.
+     */
     protected TaskBase(final Object syncObject, final boolean catchExceptions, final PrintStream exceptionOut) {
         this.syncObject = syncObject;
         this.catchExceptions = catchExceptions;
         this.exceptionOut = exceptionOut;
         this.sourceStack = TRACE_SOURCE ? new Throwable("Creation @") : null;
-        tCreated = System.currentTimeMillis();
-        tStarted = 0;
-        tExecuted = 0;
-        isExecuted = false;
-        isFlushed = false;
-        execThread = null;
+        this.tCreated = System.currentTimeMillis();
+        this.tStarted = 0;
+        this.tExecuted = 0;
+        this.isExecuted = false;
+        this.isFlushed = false;
+        this.execThread = null;
     }
 
     protected final String getExceptionOutIntro() {
@@ -171,7 +179,16 @@ public abstract class TaskBase implements Runnable {
 
     @Override
     public String toString() {
-        return "RunnableTask[enqueued "+isInQueue()+"[executed "+isExecuted()+", flushed "+isFlushed()+"], tTotal "+getDurationTotal()+" ms, tExec "+getDurationInExec()+" ms, tQueue "+getDurationInQueue()+" ms, attachment "+attachment+", throwable "+getThrowable()+"]";
+        final String etn;
+        final String eth;
+        if( null != execThread ) {
+            etn = execThread.getName();
+            eth = "0x"+Integer.toHexString(execThread.hashCode());
+        } else {
+            etn = "n/a";
+            eth = "n/a";
+        }
+        return "RunnableTask[enqueued "+isInQueue()+"[executed "+isExecuted()+", flushed "+isFlushed()+", thread["+eth+", "+etn+"]], tTotal "+getDurationTotal()+" ms, tExec "+getDurationInExec()+" ms, tQueue "+getDurationInQueue()+" ms, attachment "+attachment+", throwable "+getThrowable()+"]";
     }
 }
 

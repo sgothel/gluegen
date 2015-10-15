@@ -413,20 +413,6 @@ public class JarUtil {
     }
 
     /**
-     * See {@link #getRelativeOf(Class, com.jogamp.common.net.Uri.Encoded, com.jogamp.common.net.Uri.Encoded)}.
-     * @param classFromJavaJar URI encoded!
-     * @param cutOffInclSubDir URI encoded!
-     * @param relResPath URI encoded!
-     * @return
-     * @throws IllegalArgumentException
-     * @throws IOException
-     * @throws URISyntaxException
-     * @deprecated Use {@link #getRelativeOf(Class, com.jogamp.common.net.Uri.Encoded, com.jogamp.common.net.Uri.Encoded)}.
-     */
-    public static java.net.URI getRelativeOf(final Class<?> classFromJavaJar, final String cutOffInclSubDir, final String relResPath) throws IllegalArgumentException, IOException, URISyntaxException {
-        return getRelativeOf(classFromJavaJar, Uri.Encoded.cast(cutOffInclSubDir), Uri.Encoded.cast(relResPath)).toURI();
-    }
-    /**
      * Locates the {@link JarUtil#getJarFileUri(Uri) Jar file Uri} of a given resource
      * relative to a given class's Jar's Uri.
      * <pre>

@@ -40,18 +40,16 @@ public class RunnableTask extends TaskBase {
     protected final Runnable runnable;
 
     /**
-     * @deprecated Simply invoke {@link Runnable#run()}
+     * Invokes <code>runnable</code> on the current {@link Thread}.
+     * @param runnable the {@link Runnable} to execute on the current thread.
+     *                 The runnable <b>must exit</b>, i.e. not loop forever.
+     * @return the newly created and invoked {@link RunnableTask}
+     * @since 2.4.0
      */
-    public static void invoke(final boolean waitUntilDone, final Runnable runnable) {
-        runnable.run();
-    }
-
-    /**
-     * @deprecated Use {@link #invokeOnNewThread(ThreadGroup, String, boolean, Runnable)}
-     */
-    public static Thread invokeOnNewThread(final ThreadGroup tg, final boolean waitUntilDone, final Runnable runnable, final String threadName) {
-        final RunnableTask rt = invokeOnNewThread(tg, threadName, waitUntilDone, runnable);
-        return rt.getExecutionThread();
+    public static RunnableTask invokeOnCurrentThread(final Runnable runnable) {
+        final RunnableTask rt = new RunnableTask( runnable, null, false, null );
+        rt.run();
+        return rt;
     }
 
     /**

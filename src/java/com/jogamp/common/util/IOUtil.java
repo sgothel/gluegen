@@ -454,14 +454,6 @@ public class IOUtil {
         public final int resourceCount() { return resourcePaths.length; }
 
         /**
-         * @param contextCL class instance to {@link #resolve(int)} {@link #resourcePaths}.
-         * @param resourcePaths array of strings denominating multiple resource paths. None shall be null.
-         * @deprecated Use {@link #IOUtil(String[], ClassLoader, Class)} for clarity!
-         */
-        public ClassResources(final Class<?> contextCL, final String[] resourcePaths) {
-            this(resourcePaths, contextCL.getClassLoader(), contextCL);
-        }
-        /**
          * @param resourcePaths multiple relative or absolute resource locations
          * @param classLoader optional {@link ClassLoader}, see {@link IOUtil#getResource(String, ClassLoader, Class)}
          * @param relContext optional relative context, see {@link IOUtil#getResource(String, ClassLoader, Class)}
@@ -485,30 +477,6 @@ public class IOUtil {
         public URLConnection resolve(final int uriIndex) throws ArrayIndexOutOfBoundsException {
             return getResource(resourcePaths[uriIndex], classLoader, contextCL);
         }
-    }
-
-    /**
-     * Locating a resource using {@link #getResource(String, ClassLoader)}:
-     * <ul>
-     *   <li><i>relative</i>: <code>context</code>'s package name-path plus <code>resourcePath</code> via <code>context</code>'s ClassLoader.
-     *       This allows locations relative to JAR- and other URLs.
-     *       The <code>resourcePath</code> may start with <code>../</code> to navigate to parent folder.
-     *       This attempt is skipped if {@code context} is {@code null}.</li>
-     *   <li><i>absolute</i>: <code>resourcePath</code> as is via <code>context</code>'s ClassLoader.
-     *       In case {@code context} is {@code null}, this class {@link ClassLoader} is being used.</li>
-     * </ul>
-     * <p>
-     * Returns the resolved and open URLConnection or null if not found.
-     * </p>
-     *
-     * @see #getResource(String, ClassLoader)
-     * @see ClassLoader#getResource(String)
-     * @see ClassLoader#getSystemResource(String)
-     * @deprecated Use {@link IOUtil#getResource(String, ClassLoader, Class)} for clarity!
-     */
-    public static URLConnection getResource(final Class<?> context, final String resourcePath) {
-        final ClassLoader contextCL = null != context ? context.getClassLoader() : IOUtil.class.getClassLoader();
-        return getResource(resourcePath, contextCL, context);
     }
 
     /**

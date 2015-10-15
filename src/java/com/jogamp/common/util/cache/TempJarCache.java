@@ -273,19 +273,6 @@ public class TempJarCache {
     }
 
     /**
-     * See {@link #addResources(Class, Uri)}
-     * @param certClass
-     * @param jarURI
-     * @throws IOException
-     * @throws SecurityException
-     * @throws IllegalArgumentException
-     * @throws URISyntaxException
-     * @deprecated Use {@link #addResources(Class, Uri)}
-     */
-    public synchronized static final void addResources(final Class<?> certClass, final java.net.URI jarURI) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
-        addResources(certClass, Uri.valueOf(jarURI));
-    }
-    /**
      * Adds native resources, if not yet added.
      *
      * @param certClass if class is certified, the JarFile entries needs to have the same certificate
@@ -419,14 +406,6 @@ public class TempJarCache {
             return f.getAbsolutePath();
         }
         return null;
-    }
-
-    /**
-     * See {@link #getResourceUri(String)}
-     * @deprecated Use {@link #getResourceUri(String)}
-     */
-    public synchronized static final java.net.URI getResource(final String name) throws URISyntaxException {
-        return getResourceUri(name).toURI();
     }
 
     /** Similar to {@link ClassLoader#getResource(String)}. */

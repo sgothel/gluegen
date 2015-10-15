@@ -42,10 +42,21 @@ public class FunctionTask<R,A> extends TaskBase implements Function<R,A> {
     protected A[] args;
 
     /**
-     * @deprecated Simply invoke {@link Function#eval(Object...)}
+     * Invokes <code>func</code> on the current {@link Thread}.
+     * <p>
+     * The result can be retrieved via {@link FunctionTask#getResult()},
+     * using the returned instance.
+     * </p>
+     * @param func the {@link Function} to execute.
+     * @param args the {@link Function} arguments
+     * @return the newly created and invoked {@link FunctionTask}
+     * @since 2.4.0
      */
-    public static <U,V> U invoke(final boolean waitUntilDone, final Function<U,V> func, final V... args) {
-        return func.eval(args);
+    public static <U,V> FunctionTask<U,V> invokeOnCurrentThread(final Function<U,V> func, final V... args) {
+        final FunctionTask<U,V> rt = new FunctionTask<U,V>( func, null, false, null);
+        rt.args = args;
+        rt.run();
+        return rt;
     }
 
     /**
