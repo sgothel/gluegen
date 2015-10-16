@@ -112,6 +112,8 @@ public class MachineDataInfoRuntime {
       } else {
           if( osType == Platform.OSType.WINDOWS ) {
               return StaticConfig.X86_64_WINDOWS;
+          } else if ( Platform.CPUType.PPC64 == cpuType ) {
+              return StaticConfig.PPC_64_UNIX;
           } else {
               // for all 64bit unix types (x86_64, aarch64, sparcv9, ..)
               return StaticConfig.LP64_UNIX;

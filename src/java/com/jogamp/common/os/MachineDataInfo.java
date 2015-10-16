@@ -63,6 +63,7 @@ public class MachineDataInfo {
   private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
   private final static int[] size_x86_32_windows  =  { 4,    4,     4,     8,     12,    4,   4096 };
   private final static int[] size_lp64_unix       =  { 4,    8,     4,     8,     16,    8,   4096 };
+  private final static int[] size_ppc_64_unix     =  { 4,    8,     4,     8,     16,    8,  65536 };
   private final static int[] size_x86_64_windows  =  { 4,    4,     4,     8,     16,    8,   4096 };
 
   /*                               arch   os          i8, i16, i32, i64, int, long, float, doubl, ldoubl, ptr */
@@ -106,8 +107,10 @@ public class MachineDataInfo {
       SPARC_32_SUNOS( size_sparc_32_sunos, align_sparc_32_sunos),
       /** {@link Platform.CPUType#X86_32} Windows */
       X86_32_WINDOWS( size_x86_32_windows, align_x86_32_windows),
-      /** LP64 Unix, e.g.: {@link Platform.CPUType#X86_64} Unix, {@link Platform.CPUType#ARM64} EABI, {@link Platform.CPUType#PPC64} Unix, .. */
+      /** LP64 Unix, e.g.: {@link Platform.CPUType#X86_64} Unix, {@link Platform.CPUType#ARM64} EABI, .. */
       LP64_UNIX(      size_lp64_unix,    align_lp64_unix),
+      /** {@link Platform.CPUType#PPC64} Unix */
+      PPC_64_UNIX(      size_ppc_64_unix,    align_lp64_unix),
       /** {@link Platform.CPUType#X86_64} Windows */
       X86_64_WINDOWS( size_x86_64_windows, align_x86_64_windows);
       // 8
@@ -332,7 +335,7 @@ public class MachineDataInfo {
              doubleSizeInBytes == md.doubleSizeInBytes &&
              ldoubleSizeInBytes == md.ldoubleSizeInBytes &&
              pointerSizeInBytes == md.pointerSizeInBytes &&
-
+             pageSizeInBytes == md.pageSizeInBytes &&
              int8AlignmentInBytes == md.int8AlignmentInBytes &&
              int16AlignmentInBytes == md.int16AlignmentInBytes &&
              int32AlignmentInBytes == md.int32AlignmentInBytes &&
