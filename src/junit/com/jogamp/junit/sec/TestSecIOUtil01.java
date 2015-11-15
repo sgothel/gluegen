@@ -183,7 +183,7 @@ public class TestSecIOUtil01 extends SingletonJunitCase {
             Exception se0 = null;
             NativeLibrary nlib = null;
             try {
-                nlib = NativeLibrary.open(absLib.toFile().getPath(), cl);
+                nlib = NativeLibrary.open(absLib.toFile().getPath(), true, true, cl, true);
                 System.err.println("NativeLibrary: "+nlib);
             } catch (final SecurityException e) {
                 se0 = e;

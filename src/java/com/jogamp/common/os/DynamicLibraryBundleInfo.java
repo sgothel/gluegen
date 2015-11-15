@@ -37,6 +37,21 @@ public interface DynamicLibraryBundleInfo {
     public static final boolean DEBUG = DynamicLibraryBundle.DEBUG;
 
     /**
+     * Returns {@code true} if tool libraries shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+     * @since 2.4.0
+     */
+    public boolean searchToolLibInSystemPath();
+
+    /**
+     * Returns {@code true} if system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
+     * <p>
+     * If {@link #searchToolLibInSystemPath()} is {@code false} the return value is ignored.
+     * </p>
+     * @since 2.4.0
+     */
+    public boolean searchToolLibSystemPathFirst();
+
+    /**
      * If a {@link SecurityManager} is installed, user needs link permissions
      * for the named libraries.
      *

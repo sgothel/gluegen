@@ -138,23 +138,31 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
 
   /** Opens the given native library, assuming it has the same base
-      name on all platforms, looking first in the system's search
-      path, and in the context of the specified ClassLoader, which is
-      used to help find the library in the case of e.g. Java Web Start.
+      name on all platforms.
+      <p>
+      The {@code searchSystemPath} argument changes the behavior to
+      either use the default system path or not at all.
+      </p>
+      <p>
+      Assuming {@code searchSystemPath} is {@code true},
+      the {@code searchSystemPathFirst} argument changes the behavior to first
+      search the default system path rather than searching it last.
+      </p>
+   * @param libName library name, with or without prefix and suffix
+   * @param searchSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+   * @param searchSystemPathFirst if {@code true} system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
+   *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
+   * @param loader {@link ClassLoader} to locate the library
+   * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
+   * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
    * @throws SecurityException if user is not granted access for the named library.
+   * @since 2.4.0
    */
-  public static final NativeLibrary open(final String libName, final ClassLoader loader) throws SecurityException {
-    return open(libName, libName, libName, true, loader, true);
-  }
-
-  /** Opens the given native library, assuming it has the same base
-      name on all platforms, looking first in the system's search
-      path, and in the context of the specified ClassLoader, which is
-      used to help find the library in the case of e.g. Java Web Start.
-   * @throws SecurityException if user is not granted access for the named library.
-   */
-  public static final NativeLibrary open(final String libName, final ClassLoader loader, final boolean global) throws SecurityException {
-    return open(libName, libName, libName, true, loader, global);
+  public static final NativeLibrary open(final String libName,
+                                         final boolean searchSystemPath,
+                                         final boolean searchSystemPathFirst,
+                                         final ClassLoader loader, final boolean global) throws SecurityException {
+    return open(libName, libName, libName, searchSystemPath, searchSystemPathFirst, loader, global);
   }
 
   /** Opens the given native library, assuming it has the given base
@@ -163,7 +171,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
       context of the specified ClassLoader, which is used to help find
       the library in the case of e.g. Java Web Start.
       <p>
-      The {@code searchSystemPathFirst} argument changes the behavior to first
+      The {@code searchSystemPath} argument changes the behavior to
+      either use the default system path or not at all.
+      </p>
+      <p>
+      Assuming {@code searchSystemPath} is {@code true},
+      the {@code searchSystemPathFirst} argument changes the behavior to first
       search the default system path rather than searching it last.
       </p>
       Note that we do not currently handle DSO versioning on Unix.
@@ -173,29 +186,27 @@ public final class NativeLibrary implements DynamicLookupHelper {
       ending in .so, for example .so.0), and in general if this
       dynamic loading facility is used correctly the version number
       will be irrelevant.
+   * @param windowsLibName windows library name, with or without prefix and suffix
+   * @param unixLibName unix library name, with or without prefix and suffix
+   * @param macOSXLibName mac-osx library name, with or without prefix and suffix
+   * @param searchSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+   * @param searchSystemPathFirst if {@code true} system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
+   *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
+   * @param loader {@link ClassLoader} to locate the library
+   * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
+   * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
    * @throws SecurityException if user is not granted access for the named library.
    */
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
+                                         final boolean searchSystemPath,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader) throws SecurityException {
-    return open(windowsLibName, unixLibName, macOSXLibName, searchSystemPathFirst, loader, true);
-  }
-
-  /**
-   * @throws SecurityException if user is not granted access for the named library.
-   */
-  public static final NativeLibrary open(final String windowsLibName,
-                                         final String unixLibName,
-                                         final String macOSXLibName,
-                                         final boolean searchSystemPathFirst,
-                                         final ClassLoader loader,
-                                         final boolean global) throws SecurityException {
+                                         final ClassLoader loader, final boolean global) throws SecurityException {
     final List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                        unixLibName,
                                                        macOSXLibName,
-                                                       searchSystemPathFirst,
+                                                       searchSystemPath, searchSystemPathFirst,
                                                        loader);
     Platform.initSingleton(); // loads native gluegen-rt library
 

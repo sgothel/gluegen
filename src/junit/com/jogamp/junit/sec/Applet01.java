@@ -201,7 +201,7 @@ public class Applet01 extends Applet {
             final Uri absLib = libDir1.concat(Uri.Encoded.cast("natives/" + libBaseName));
             Exception sec01 = null;
             try {
-                final NativeLibrary nlib = NativeLibrary.open(absLib.toFile().getPath(), cl);
+                final NativeLibrary nlib = NativeLibrary.open(absLib.toFile().getPath(), true, true, cl, true);
                 System.err.println("NativeLibrary: "+nlib);
             } catch (final SecurityException e) {
                 sec01 = e;

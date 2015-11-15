@@ -249,9 +249,12 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return aptr;
     }
 
-    protected static final NativeLibrary loadFirstAvailable(final List<String> libNames, final ClassLoader loader, final boolean global) throws SecurityException {
+    protected static final NativeLibrary loadFirstAvailable(final List<String> libNames,
+                                                            final boolean searchSystemPath,
+                                                            final boolean searchSystemPathFirst,
+                                                            final ClassLoader loader, final boolean global) throws SecurityException {
         for (int i=0; i < libNames.size(); i++) {
-            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), loader, global);
+            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), searchSystemPath, searchSystemPathFirst, loader, global);
             if (lib != null) {
                 return lib;
             }
@@ -269,7 +272,10 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         for (i=0; i < toolLibNames.size(); i++) {
             final List<String> libNames = toolLibNames.get(i);
             if( null != libNames && libNames.size() > 0 ) {
-                lib = loadFirstAvailable(libNames, cl, info.shallLinkGlobal());
+                lib = loadFirstAvailable(libNames,
+                                         info.searchToolLibInSystemPath(),
+                                         info.searchToolLibSystemPathFirst(),
+                                         cl, info.shallLinkGlobal());
                 if ( null == lib ) {
                     if(DEBUG) {
                         System.err.println("Unable to load any Tool library of: "+libNames);
