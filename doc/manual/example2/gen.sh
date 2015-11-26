@@ -14,4 +14,4 @@ else
   SEP=:
 fi
 
-java -cp $GLUEGEN_JAR$SEP$ANTLR_JAR com.sun.gluegen.GlueGen -I. -Ecom.sun.gluegen.JavaEmitter -Cfunction.cfg function.h
+java -cp $GLUEGEN_JAR$SEP$ANTLR_JAR com.jogamp.gluegen.GlueGen -I. -Ecom.jogamp.gluegen.JavaEmitter -Cfunction.cfg function.h

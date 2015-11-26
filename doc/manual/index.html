@@ -363,7 +363,7 @@
 
 
                     <dl>
-                        <dt> <strong>CharScanner; panic: ClassNotFoundException: com.sun.gluegen.cgram.CToken</strong></dt>
+                        <dt> <strong>CharScanner; panic: ClassNotFoundException: com.jogamp.gluegen.cgram.CToken</strong></dt>
                         <dd> This occurs because ANTLR was dropped into the Extensions
                             directory of the JRE/JDK. On Windows and Linux, delete any ANTLR
                             jars from jre/lib/ext, and on Mac OS X, delete them from
@@ -397,9 +397,9 @@
                             <em>emitterClassName</em> as the fully-qualified name of the
                             emitter class which will be used by GlueGen to generate the glue
                             code. The emitter class must implement the
-                            <code>com.sun.gluegen.GlueEmitter</code> interface. If this
+                            <code>com.jogamp.gluegen.GlueEmitter</code> interface. If this
                             option is not specified, a
-                            <code>com.sun.gluegen.JavaEmitter</code> will be used by default.
+                            <code>com.jogamp.gluegen.JavaEmitter</code> will be used by default.
                         </li>
                         <li> -C<em>cfgFile</em> adds <em>cfgFile</em> to the list of
                             configuration files used to set up the chosen emitter. This is
@@ -435,7 +435,7 @@
 
                     <pre>
 &lt;taskdef name="gluegen"
-    classname="com.sun.gluegen.ant.GlueGenTask"
+    classname="com.jogamp.gluegen.ant.GlueGenTask"
     classpathref="gluegen.classpath" /&gt;
                     </pre>
 
@@ -445,7 +445,7 @@
 &lt;gluegen src="[header to parse]" 
          config="[configuration file]"
          includeRefid="[dirset for include path]"
-         emitter="com.sun.gluegen.JavaEmitter"&gt;
+         emitter="com.jogamp.gluegen.JavaEmitter"&gt;
     &lt;classpath refid="gluegen.classpath" /&gt;
 &lt;/gluegen&gt;
                     </pre>
@@ -1679,8 +1679,8 @@
                     </p>
 
                     <pre>
-    java -cp gluegen.jar:antlr.jar com.sun.gluegen.GlueGen \
-        -I. -Ecom.sun.gluegen.JavaEmitter -Cfunction.cfg function.h
+    java -cp gluegen.jar:antlr.jar com.jogamp.gluegen.GlueGen \
+        -I. -Ecom.jogamp.gluegen.JavaEmitter -Cfunction.cfg function.h
                     </pre>
 
                     <p> The resulting Java and native code needs to be compiled, and the
