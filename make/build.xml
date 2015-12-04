@@ -264,6 +264,12 @@
       <property name="linker.cfg.id"                        value="linker.cfg.linux.amd64" />
     </target>
     
+    <target name="declare.linux.aarch64" if="isLinuxARM64">
+      <echo message="Linux.AArch64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.linux.aarch64" />
+      <property name="linker.cfg.id"                        value="linker.cfg.linux.aarch64" />
+    </target>
+
     <target name="declare.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.linux" /> 
@@ -324,7 +330,7 @@
       <property name="linker.cfg.id"                        value="linker.cfg.linux.sparc" /> 
     </target>
     
-    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv6" if="isLinux" >
+    <target name="declare.linux" depends="declare.linux.x86,declare.linux.amd64,declare.linux.ia64,declare.linux.hppa,declare.linux.mips,declare.linux.mipsel,declare.linux.ppc,declare.linux.s390,declare.linux.s390x,declare.linux.sparc,declare.linux.armv6,declare.linux.aarch64" if="isLinux" >
       <property name="c.src.dir.os"                         value="unix" />
     </target>
 
