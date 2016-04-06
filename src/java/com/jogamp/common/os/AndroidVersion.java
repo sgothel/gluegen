@@ -74,15 +74,20 @@ public class AndroidVersion {
         Object abvObject= null;
         Class<?> abvcClass = null;
         Object abvcObject= null;
-        try {
-            abClass = ReflectionUtil.getClass(androidBuild, true, cl);
-            abObject = abClass.newInstance();
-            abvClass = ReflectionUtil.getClass(androidBuildVersion, true, cl);
-            abvObject = abvClass.newInstance();
-            abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
-            abvcObject = abvcClass.newInstance();
-        } catch (final Exception e) { /* n/a */ }
-        isAvailable = null != abObject && null != abvObject;
+
+        boolean isDalvikVm = "Dalvik".equals(System.getProperty("java.vm.name"));
+
+        if (isDalvikVm) {
+          try {
+              abClass = ReflectionUtil.getClass(androidBuild, true, cl);
+              abObject = abClass.newInstance();
+              abvClass = ReflectionUtil.getClass(androidBuildVersion, true, cl);
+              abvObject = abvClass.newInstance();
+              abvcClass = ReflectionUtil.getClass(androidBuildVersionCodes, true, cl);
+              abvcObject = abvcClass.newInstance();
+          } catch (final Exception e) { /* n/a */ }
+        }
+        isAvailable = isDalvikVm && null != abObject && null != abvObject;
         if(isAvailable) {
             CPU_ABI = getString(abClass, abObject, "CPU_ABI", true);
             CPU_ABI2 = getString(abClass, abObject, "CPU_ABI2", true);
