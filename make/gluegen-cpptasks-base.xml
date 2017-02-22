@@ -1467,7 +1467,7 @@
       <echo message="Linux.aarch64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.aarch64" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.linux.aarch64" /> 
-      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/arm" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/aarch64" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinuxIA64">

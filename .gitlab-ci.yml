@@ -1,0 +1,69 @@
+before_script:
+  - git submodule sync --recursive
+  - git submodule update --init --recursive
+
+stages:
+  - build
+  - package
+  - test
+
+build_amd64-linux_job:
+  tags:
+  - amd64
+  - linux
+  stage: build
+  script:
+  - cd make
+  - ant
+  artifacts:
+    paths:
+    - build/*
+    
+build_arm64-linux_job:
+  tags:
+  - arm64
+  - linux
+  stage: build
+  script:
+  - cd make
+  - ant
+  artifacts:
+    paths:
+    - build/*
+    
+package_job:
+  tags:
+  - amd64
+  - linux
+  stage: package
+  script:
+  - cd build
+  artifacts:
+    paths:
+    - build/*.jar
+
+test_amd64-linux_job:
+  tags:
+  - amd64
+  - linux
+  stage: test
+  script:
+  - cd make
+  - ant junit.run
+  - bash ./scripts/check-junit.sh ../build
+  artifacts:
+    paths:
+    - build/*test-results*.7z
+  
+test_arm64-linux_job:
+  tags:
+  - arm64
+  - linux
+  stage: test
+  script:
+  - cd make
+  - ant junit.run
+  - bash ./scripts/check-junit.sh ../build
+  artifacts:
+    paths:
+    - build/*test-results*.7z
