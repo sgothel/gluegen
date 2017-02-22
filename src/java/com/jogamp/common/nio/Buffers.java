@@ -39,6 +39,7 @@
  */
 package com.jogamp.common.nio;
 
+import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -48,8 +49,13 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
+import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.ValueConv;
+
+import jogamp.common.Debug;
 
 /**
  * Utility methods allowing easy {@link java.nio.Buffer} manipulations.
@@ -59,6 +65,11 @@ import com.jogamp.common.util.ValueConv;
  * @author Michael Bien
  */
 public class Buffers {
+
+    static final boolean DEBUG;
+    static {
+        DEBUG = Debug.debug("Buffers");
+    }
 
     public static final int SIZEOF_BYTE     = 1;
     public static final int SIZEOF_SHORT    = 2;
@@ -1150,4 +1161,64 @@ public class Buffers {
         return sb;
     }
 
+    /**
+     * Access to NIO {@link sun.misc.Cleaner}, allowing caller to deterministically clean a given {@link sun.nio.ch.DirectBuffer}.
+     */
+    public static class Cleaner {
+        private static final Method mbbCleaner;
+        private static final Method cClean;
+        private static final boolean hasCleaner;
+        /** OK to be lazy on thread synchronization, just for early out **/
+        private static volatile boolean cleanerError;
+        static {
+            final Method[] _mbbCleaner = { null };
+            final Method[] _cClean = { null };
+            if( AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+                @Override
+                public Boolean run() {
+                    try {
+                        _mbbCleaner[0] = ReflectionUtil.getMethod("sun.nio.ch.DirectBuffer", "cleaner", null, Buffers.class.getClassLoader());
+                        _mbbCleaner[0].setAccessible(true);
+                        _cClean[0] = Class.forName("sun.misc.Cleaner").getMethod("clean");
+                        _cClean[0].setAccessible(true);
+                        return Boolean.TRUE;
+                    } catch(final Throwable t) {
+                        if( DEBUG ) {
+                            System.err.println("Caught "+t.getMessage());
+                            t.printStackTrace();
+                        }
+                        return Boolean.FALSE;
+                    } } } ).booleanValue() ) {
+                mbbCleaner = _mbbCleaner[0];
+                cClean = _cClean[0];
+                hasCleaner = null != mbbCleaner && null != cClean;
+            } else {
+                mbbCleaner = null;
+                cClean = null;
+                hasCleaner = false;
+            }
+            cleanerError = !hasCleaner;
+        }
+        /**
+         * If {@code b} is an direct NIO buffer, i.e {@link sun.nio.ch.DirectBuffer},
+         * calls it's {@link sun.misc.Cleaner} instance {@code clean()} method.
+         * @return {@code true} if successful, otherwise {@code false}.
+         */
+        public static boolean clean(final Buffer b) {
+            if( !hasCleaner || cleanerError || !b.isDirect() ) {
+                return false;
+            }
+            try {
+                cClean.invoke(mbbCleaner.invoke(b));
+                return true;
+            } catch(final Throwable t) {
+                cleanerError = true;
+                if( DEBUG ) {
+                    System.err.println("Caught "+t.getMessage());
+                    t.printStackTrace();
+                }
+                return false;
+            }
+        }
+    }
 }

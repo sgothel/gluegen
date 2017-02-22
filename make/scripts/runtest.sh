@@ -63,6 +63,7 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe -Djogamp.debug.IOUtil.Exe.NoStream"
 #D_ARGS="-Djogamp.debug.IOUtil -Djogamp.debug.IOUtil.Exe"
 #D_ARGS="-Djogamp.debug.ByteBufferInputStream"
+D_ARGS="-Djogamp.debug.Buffers"
 #D_ARGS="-Djogamp.debug.Bitstream"
 #D_ARGS="-Djogamp.debug=all"
 #D_ARGS="-Djogamp.debug.Logging"
@@ -92,7 +93,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
@@ -133,7 +134,7 @@ onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestBuffersFloatDoubleConversion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestPointerBufferEndian 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestStructAccessorEndian 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.nio.TestByteBufferInputStream 2>&1 | tee -a $LOG
+onetest com.jogamp.common.nio.TestByteBufferInputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG

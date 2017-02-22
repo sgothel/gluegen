@@ -33,13 +33,10 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.RandomAccessFile;
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 
 import jogamp.common.Debug;
 
@@ -163,10 +160,6 @@ public class MappedByteBufferInputStream extends InputStream {
 
     private int refCount;
 
-    private Method mbbCleaner;
-    private Method cClean;
-    private boolean cleanerInit;
-    private boolean hasCleaner;
     private CacheMode cmode;
 
     private int sliceIdx;
@@ -229,8 +222,6 @@ public class MappedByteBufferInputStream extends InputStream {
         notifyLengthChange( totalSize );
 
         this.refCount = 1;
-        this.cleanerInit = false;
-        this.hasCleaner = false;
         this.cmode = cmode;
 
         this.sliceIdx = currSliceIdx;
@@ -630,58 +621,16 @@ public class MappedByteBufferInputStream extends InputStream {
         }
     }
     private synchronized boolean cleanBuffer(final ByteBuffer mbb, final boolean syncBuffer) throws IOException {
-        if( !cleanerInit ) {
-            initCleaner(mbb);
-        }
         syncSlice(mbb, syncBuffer);
         if( !mbb.isDirect() ) {
             return false;
         }
-        boolean res = false;
-        if ( hasCleaner ) {
-            try {
-                cClean.invoke(mbbCleaner.invoke(mbb));
-                res = true;
-            } catch(final Throwable t) {
-                hasCleaner = false;
-                if( DEBUG ) {
-                    System.err.println("Caught "+t.getMessage());
-                    t.printStackTrace();
-                }
-            }
-        }
-        if( !res && CacheMode.FLUSH_PRE_HARD == cmode ) {
+        if( !Buffers.Cleaner.clean(mbb) && CacheMode.FLUSH_PRE_HARD == cmode ) {
             cmode = CacheMode.FLUSH_PRE_SOFT;
+            return false;
+        } else {
+            return true;
         }
-        return res;
-    }
-    private synchronized void initCleaner(final ByteBuffer bb) {
-        final Method[] _mbbCleaner = { null };
-        final Method[] _cClean = { null };
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                try {
-                    _mbbCleaner[0] = bb.getClass().getMethod("cleaner");
-                    _mbbCleaner[0].setAccessible(true);
-                    _cClean[0] = Class.forName("sun.misc.Cleaner").getMethod("clean");
-                    _cClean[0].setAccessible(true);
-                } catch(final Throwable t) {
-                    if( DEBUG ) {
-                        System.err.println("Caught "+t.getMessage());
-                        t.printStackTrace();
-                    }
-                }
-                return null;
-            } } );
-        mbbCleaner = _mbbCleaner[0];
-        cClean = _cClean[0];
-        final boolean res = null != mbbCleaner && null != cClean;
-        if( DEBUG ) {
-            System.err.println("initCleaner: Has cleaner: "+res+", mbbCleaner "+mbbCleaner+", cClean "+cClean);
-        }
-        hasCleaner = res;
-        cleanerInit = true;
     }
 
     /**
