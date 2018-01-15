@@ -184,10 +184,12 @@ public class MappedByteBufferInputStream extends InputStream {
             }
         }
         long fcSz = 0, pos = 0, rem = 0;
-        try {
-            fcSz = fc.size();
-        } catch (final IOException e) {
-            e.printStackTrace();
+        if( fc.isOpen() ) {
+            try {
+                fcSz = fc.size();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
         if( 0 < refCount ) {
             try {
@@ -228,6 +230,10 @@ public class MappedByteBufferInputStream extends InputStream {
         this.mark = -1;
 
         currentSlice().position(0);
+
+        if( MappedByteBufferInputStream.DEBUG ) {
+            this.dbgDump("CTOR", System.err);
+        }
     }
 
     /**
@@ -320,6 +326,9 @@ public class MappedByteBufferInputStream extends InputStream {
                     super.close();
                 }
             }
+        }
+        if( MappedByteBufferInputStream.DEBUG ) {
+            this.dbgDump("Close", System.err);
         }
     }
 
@@ -432,10 +441,9 @@ public class MappedByteBufferInputStream extends InputStream {
             }
             position2( Math.min(prePosition, newTotalSize) ); // -> clipped position (set currSlice and re-map/-pos buffer)
         }
-        /* if( DEBUG ) {
-            System.err.println("notifyLengthChange.X: "+slices[currSlice]);
-            dbgDump("notifyLengthChange.X:", System.err);
-        } */
+        if( MappedByteBufferInputStream.DEBUG ) {
+            this.dbgDump("NotifyLengthChange", System.err);
+        }
     }
 
     /**
@@ -539,6 +547,21 @@ public class MappedByteBufferInputStream extends InputStream {
             return slice;
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Releases the mapped {@link ByteBuffer} slices.
+     * @throws IOException if a buffer slice operation failed.
+     */
+    public final synchronized void flushSlices() throws IOException {
+        if( null != slices ) {
+            for(int i=0; i<sliceCount; i++) {
+                flushSlice(i, synchronous);
+            }
+        }
+        if( MappedByteBufferInputStream.DEBUG ) {
+            this.dbgDump("FlushSlices", System.err);
         }
     }
 
