@@ -69,6 +69,12 @@ public class IOUtil {
     /** Subdirectory within platform's temporary root directory where all JogAmp related temp files are being stored: {@code jogamp} */
     public static final String tmpSubDir = "jogamp";
 
+    private static final String _TestTempDirExec = "jogamp.gluegen.TestTempDirExec";
+    private static final boolean testTempDirExec;
+    static {
+        testTempDirExec = PropertyAccess.getBooleanProperty(_TestTempDirExec, true, true);
+    }
+
     private IOUtil() {}
 
     /**
@@ -865,6 +871,12 @@ public class IOUtil {
     public static boolean testDirExec(final File dir)
             throws SecurityException
     {
+        if( !testTempDirExec ) {
+            if(DEBUG) {
+                System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Disabled "+_TestTempDirExec);
+            }
+            return false;
+        }
         if (!testFile(dir, true, true)) {
             if(DEBUG) {
                 System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Not writeable dir");
