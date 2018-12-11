@@ -3,8 +3,10 @@ set THISDIR="C:\JOGL"
 set J2RE_HOME=c:\jre1.8.0_25_x64
 set JAVA_HOME=c:\jdk1.8.0_25_x64
 set ANT_PATH=C:\apache-ant-1.9.4
+set GIT_PATH=C:\cygwin\bin
+set SEVENZIP=C:\Program Files\7-Zip
 
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw64\bin;c:\mingw\bin;%PATH%
+set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw64\bin;c:\mingw\bin;%GIT_PATH%;%SEVENZIP%;%PATH%
 
 set LIB_GEN=%THISDIR%\lib
 set CLASSPATH=.;%THISDIR%\build-win64\classes
