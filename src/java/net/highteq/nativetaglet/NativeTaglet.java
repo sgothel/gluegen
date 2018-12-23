@@ -1,11 +1,20 @@
 package net.highteq.nativetaglet;
 
-import com.sun.tools.doclets.Taglet;
-import com.sun.javadoc.*;
+import jdk.javadoc.doclet.Taglet;
+import com.sun.source.doctree.DocTree;
+import com.sun.source.doctree.TextTree;
+import com.sun.source.doctree.UnknownBlockTagTree;
+import com.sun.source.doctree.UnknownInlineTagTree;
+import com.sun.source.util.SimpleDocTreeVisitor;
+
+import javax.lang.model.element.Element;
 
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.MalformedURLException;
@@ -22,65 +31,6 @@ public class NativeTaglet implements Taglet
   public String getName()
   {
     return NAME;
-  }
-
-  /**
-   * @return true since this tag can be used in a field
-   *         doc comment
-   */
-  @Override
-  public boolean inField()
-  {
-    return true;
-  }
-
-  /**
-   * @return true since this tag can be used in a constructor
-   *         doc comment
-   */
-  @Override
-  public boolean inConstructor()
-  {
-    return true;
-  }
-
-  /**
-   * @return true since this tag can be used in a method
-   *         doc comment
-   */
-  @Override
-  public boolean inMethod()
-  {
-    return true;
-  }
-
-  /**
-   * @return true since this tag can be used in an overview
-   *         doc comment
-   */
-  @Override
-  public boolean inOverview()
-  {
-    return true;
-  }
-
-  /**
-   * @return true since this tag can be used in a package
-   *         doc comment
-   */
-  @Override
-  public boolean inPackage()
-  {
-    return true;
-  }
-
-  /**
-   * @return true since this
-   */
-  @Override
-  public boolean inType()
-  {
-    return true;
   }
 
   /**
@@ -111,16 +61,54 @@ public class NativeTaglet implements Taglet
     tagletMap.put(tag.getName(), tag);
   }
 
+    /**
+     * Utility function to visit the tree of tags and return the text.
+     * @param tags the list of instances of this tag
+     * @return the text of the tags.
+     */
+    static String getTagsText(DocTree tags) {
+        return new SimpleDocTreeVisitor<String, Void>() {
+            @Override
+            public String visitText(TextTree node, Void unused) {
+                return node.getBody();
+            }
+
+            @Override
+            public String visitUnknownBlockTag(UnknownBlockTagTree node, Void unused) {
+                for(DocTree doctree : node.getContent())
+                    return doctree.accept(this, unused);
+
+                return "";
+            }
+
+            @Override
+            public String visitUnknownInlineTag(UnknownInlineTagTree node, Void unused) {
+                for(DocTree doctree : node.getContent())
+                    return doctree.accept(this, unused);
+
+                return "";
+            }
+
+            @Override
+            protected String defaultAction(DocTree node, Void unused) {
+                return "";
+            }
+
+      }.visit(tags, null);
+  }
+
   /**
-   * Given the <code>Tag</code> representation of this custom
-   * tag, return its string representation.
+   * Returns the string representation of a series of instances of
+   * this tag to be included in the generated output.
    *
-   * @param tag the <code>Tag</code> representation of this custom tag.
+   * @param tags the list of instances of this tag
+   * @param element the element to which the enclosing comment belongs
+   * @return the string representation of the tags to be included in
+   *  the generated output
    */
   @Override
-  public String toString(final Tag tag)
-  {
-    String text= tag.text().trim();
+  public String toString(List<? extends DocTree> tags, Element element) {
+    String text= getTagsText(tags.get(0)).trim();
     if(mapping== null)
       {
         mapping= new Properties();
@@ -222,16 +210,15 @@ public class NativeTaglet implements Taglet
     return false;
   }
 
-  /**
-   * This method should not be called since arrays of inline tags do not
-   * exist.  Method {@link #tostring(Tag)} should be used to convert this
-   * inline tag to a string.
-   *
-   * @param tags the array of <code>Tag</code>s representing of this custom tag.
-   */
-  @Override
-  public String toString(final Tag[] tags)
-  {
-    return null;
-  }
+    @Override
+    public Set<Location> getAllowedLocations() {
+        Set<Location> locations = new HashSet<Location>();
+        locations.add(Location.FIELD);
+        locations.add(Location.CONSTRUCTOR);
+        locations.add(Location.METHOD);
+        locations.add(Location.OVERVIEW);
+        locations.add(Location.PACKAGE);
+        locations.add(Location.TYPE);
+        return locations;
+    }
 }
