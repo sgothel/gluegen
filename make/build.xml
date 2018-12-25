@@ -467,10 +467,6 @@
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
 
-      <javah destdir="${src.generated.c}"         classpath="${classes}" class="com.jogamp.common.os.Platform, com.jogamp.common.nio.PointerBuffer, jogamp.common.jvm.JVMUtil, com.jogamp.common.util.JarUtil, jogamp.common.os.MachineDataInfoRuntime" />
-      <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="jogamp.common.os.UnixDynamicLinkerImpl" />
-      <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.common.os.WindowsDynamicLinkerImpl"/>
-
       <echo message="Output lib name = ${output.lib.name} -> ${output.lib.name.os} [${output.lib.type}]" />
 
       <mkdir dir="${gluegen.lib.dir}"/>
@@ -768,14 +764,13 @@
       <param name="target"     value="JavaParser.g" />
     </antcall>
 
-    <!-- Build GlueGen using the generated Java files along with the
-      - original source. -->
-
-    <!-- Compile gluegen-rt first -->
+    <!-- Build GlueGen using the generated Java files along with the original source.
+         Compile gluegen-rt first and generate native headers. -->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
            excludes="${gluegen.excludes.all} ${java.part.android}"
+           nativeheaderdir="${src.generated.c}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
            source="${target.sourcelevel}" 
@@ -786,6 +781,10 @@
       <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen.classpath" />
     </javac>
+
+    <!-- move platform-specific native headers into the right directories -->
+    <move file="${src.generated.c}/jogamp_common_os_UnixDynamicLinkerImpl.h" todir="${src.generated.c}/Unix"/>
+    <move file="${src.generated.c}/jogamp_common_os_WindowsDynamicLinkerImpl.h" todir="${src.generated.c}/Windows"/>
 
     <!-- make non-java code available in classpath -->
     <copy todir="${classes}">
