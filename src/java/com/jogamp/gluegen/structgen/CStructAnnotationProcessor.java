@@ -178,7 +178,10 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                 System.err.println("CStruct.0: element: "+element+", .simpleName "+element.getSimpleName());
                 System.err.print("CStruct.0: isPackageOrType "+isPackageOrType+", enclElement: "+enclElement);
                 if( !isPackageOrType ) {
-                    System.err.println(", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());
+                	if(!enclElement.toString().equals("unnamed module"))
+	                    System.err.println(", .simpleName "+enclElement.getSimpleName()+", .package "+eltUtils.getPackageOf(enclElement).toString());
+                	else
+	                    System.err.println(", .simpleName "+enclElement.getSimpleName()+", .package <unnamed modules have no package>");
                 } else {
                     System.err.println("");
                 }
