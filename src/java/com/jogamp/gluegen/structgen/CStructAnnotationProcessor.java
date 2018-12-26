@@ -249,7 +249,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             writer = new FileWriter(configFile);
             writer.write("Package "+pakage+"\n");
             writer.write("EmitStruct "+structName+"\n");
-            if( finalType != structName ) {
+            if( !useJavaName && (finalType != structName) ) {
                 // We allow renaming the structType to the element's declaredType (FIELD annotation only)
                 writer.write("RenameJavaType " + struct.name()+" " + declaredType +"\n");
             }

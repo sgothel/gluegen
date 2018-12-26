@@ -7,7 +7,7 @@
  * </p>
  * @see BuildStruct01
  */
-@CStructs({@CStruct(name="RenderingConfig", header="TestStruct01.h"), @CStruct(name="Pixel", header="TestStruct02.h")})
+@CStructs({@CStruct(name="RenderingConfig", jname="RenderingConfig", header="TestStruct01.h"), @CStruct(name="Pixel", jname="Pixel", header="TestStruct02.h")})
 package com.jogamp.gluegen.test.junit.structgen;
 
 import com.jogamp.gluegen.structgen.CStructs;
