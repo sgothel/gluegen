@@ -22,7 +22,6 @@
         <echo message=" - - - compiling java files - - - "/>
 
         <property name="build.dir.java" value="${build.dir}/classes"/>
-        <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
 
         <echo message="src: ${src.dir} "/>
         <echo message="build: ${build.dir.java} "/>
@@ -31,7 +30,7 @@
 
         <javac destdir="${build.dir.java}" source="1.5" failonerror="true" debug="true" debuglevel="lines,vars,source">
             <src path="${src.dir}"/>
-            <classpath path="${gluegen.root}/${rootrel.build}/classes:${src.dir}:${gluegen.root}/${rootrel.build}/antlr-3.2.jar:${gluegen.root}/make/lib/junit.jar:${tools.jar}:${ant.core.lib}"/>
+            <classpath path="${gluegen.root}/${rootrel.build}/classes:${src.dir}:${gluegen.root}/${rootrel.build}/antlr-3.2.jar:${gluegen.root}/make/lib/junit.jar:${ant.core.lib}"/>
         </javac>
 
         <echo message=" - - - java files compiled - - - "/>

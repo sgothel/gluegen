@@ -138,8 +138,6 @@
     <property name="c.grammar.out.dir" value="${src.generated.java}/com/jogamp/gluegen/cgram" />
     <property name="j.grammar.out.dir" value="${src.generated.java}/com/jogamp/gluegen/jgram" />
 
-    <property name="tools.jar" value="${java.home}/../lib/tools.jar"/>
-
     <property name="archive.name"     value="gluegen-${gluegen.version}-${os.and.arch}" />
     <property name="archive"          value="${build}/${archive.name}" />
 

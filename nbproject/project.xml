@@ -224,20 +224,20 @@
         <java-data xmlns="http://www.netbeans.org/ns/freeform-project-java/2">
             <compilation-unit>
                 <package-root>src/java</package-root>
-                <classpath mode="compile">build/classes:${jdk.home}/lib/tools.jar:/usr/share/ant/lib/ant.jar:/home/mbien/netbeans68/java3/ant/lib/ant.jar:make/lib/antlr.jar</classpath>
+                <classpath mode="compile">build/classes:/usr/share/ant/lib/ant.jar:/home/mbien/netbeans68/java3/ant/lib/ant.jar:make/lib/antlr.jar</classpath>
                 <built-to>build/classes</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
             <compilation-unit>
                 <package-root>build/gensrc/java</package-root>
-                <classpath mode="compile">build/classes:make/lib/antlr.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}</classpath>
+                <classpath mode="compile">build/classes:make/lib/antlr.jar:${ant.core.lib}</classpath>
                 <built-to>build/classes</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
             <compilation-unit>
                 <package-root>test/junit</package-root>
                 <unit-tests/>
-                <classpath mode="compile">build/classes:build/test/build/classes:make/lib/antlr.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit.jar</classpath>
+                <classpath mode="compile">build/classes:build/test/build/classes:make/lib/antlr.jar:${ant.core.lib}:make/lib/junit.jar</classpath>
                 <built-to>build/classes</built-to>
                 <source-level>1.5</source-level>
             </compilation-unit>
@@ -253,7 +253,7 @@
             <compilation-unit>
                 <package-root>src/junit</package-root>
                 <unit-tests/>
-                <classpath mode="compile">build/classes:build/test/build/classes:make/lib/antlr.jar:${jdk.home}/lib/tools.jar:${ant.core.lib}:make/lib/junit.jar</classpath>
+                <classpath mode="compile">build/classes:build/test/build/classes:make/lib/antlr.jar:${ant.core.lib}:make/lib/junit.jar</classpath>
                 <source-level>1.5</source-level>
             </compilation-unit>
         </java-data>
