@@ -195,6 +195,7 @@
   -->
 <project name="GlueGen-cpptasks-base" basedir=".">
 
+  <import file="gluegen-properties.xml" />
   <target name="gluegen.cpptasks.initialize" depends="gluegen.properties.load.user">
     <echo message="os.name=${os.name}" />
     <echo message="os.version=${os.version}" />
