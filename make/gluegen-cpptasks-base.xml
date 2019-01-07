@@ -1590,7 +1590,7 @@
       <echo message="Linux.AMD64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" /> 
       <property name="linker.cfg.id.base"            value="linker.cfg.linux.amd64" /> 
-      <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/amd64" />
+      <property name="java.lib.dir.platform"         value="${java.home.dir}/lib" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.alpha" if="isLinuxAlpha">
