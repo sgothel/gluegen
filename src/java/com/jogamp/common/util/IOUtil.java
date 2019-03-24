@@ -43,10 +43,13 @@ import java.io.Reader;
 import java.io.SyncFailedException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.regex.Pattern;
 
 import jogamp.common.Debug;
@@ -54,6 +57,7 @@ import jogamp.common.os.AndroidUtils;
 import jogamp.common.os.PlatformPropsImpl;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.net.AssetURLContext;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.nio.Buffers;
@@ -65,14 +69,55 @@ public class IOUtil {
     private static final boolean DEBUG_EXE;
     private static final boolean DEBUG_EXE_NOSTREAM;
     private static final boolean DEBUG_EXE_EXISTING_FILE;
+    private static final boolean testTempDirExec;
+    private static final Method fileToPathGetter;
+    private static final Method isExecutableQuery;
+    private static final boolean useNioExecTest;
 
     static {
-        Debug.initSingleton();
-        DEBUG = Debug.debug("IOUtil");
-        DEBUG_EXE = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
-        DEBUG_EXE_NOSTREAM = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.NoStream", true);
-        // For security reasons, we have to hardcode this, i.e. disable this manual debug feature!
-        DEBUG_EXE_EXISTING_FILE = false; // PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.ExistingFile", true);
+        final boolean _props[] = { false, false, false, false, false };
+        final Method[] res = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+            @Override
+            public Method[] run() {
+                final Method[] res = new Method[] { null, null };
+                try {
+                    int i=0;
+                    _props[i++] = Debug.debug("IOUtil");
+                    _props[i++] = PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe", true);
+                    _props[i++] =  PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.NoStream", true);
+                    // For security reasons, we have to hardcode this, i.e. disable this manual debug feature!
+                    _props[i++] = false; // PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.ExistingFile", true);
+                    _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.TestTempDirExec", true, true);
+
+                    // Java 1.7
+                    i=0;
+                    res[i] = File.class.getDeclaredMethod("toPath");
+                    res[i++].setAccessible(true);
+                    final Class<?> nioPathClz = ReflectionUtil.getClass("java.nio.file.Path", false, IOUtil.class.getClassLoader());
+                    final Class<?> nioFilesClz = ReflectionUtil.getClass("java.nio.file.Files", false, IOUtil.class.getClassLoader());
+                    res[i] = nioFilesClz.getDeclaredMethod("isExecutable", nioPathClz);
+                    res[i++].setAccessible(true);
+                } catch (final Throwable t) {
+                    if(_props[0]) {
+                        ExceptionUtils.dumpThrowable("ioutil-init", t);
+                    }
+                }
+                return res;
+            }
+        });
+        {
+            int i=0;
+            DEBUG = _props[i++];
+            DEBUG_EXE = _props[i++];
+            DEBUG_EXE_NOSTREAM = _props[i++];
+            DEBUG_EXE_EXISTING_FILE = _props[i++];
+            testTempDirExec = _props[i++];
+
+            i=0;
+            fileToPathGetter = res[i++];
+            isExecutableQuery = res[i++];
+            useNioExecTest = null != fileToPathGetter && null != isExecutableQuery;
+        }
     }
 
     /** Std. temporary directory property key <code>java.io.tmpdir</code>. */
@@ -82,12 +127,6 @@ public class IOUtil {
 
     /** Subdirectory within platform's temporary root directory where all JogAmp related temp files are being stored: {@code jogamp} */
     public static final String tmpSubDir = "jogamp";
-
-    private static final String _TestTempDirExec = "jogamp.gluegen.TestTempDirExec";
-    private static final boolean testTempDirExec;
-    static {
-        testTempDirExec = PropertyAccess.getBooleanProperty(_TestTempDirExec, true, true);
-    }
 
     private IOUtil() {}
 
@@ -714,7 +753,7 @@ public class IOUtil {
     private static String getExeTestFileSuffix() {
         switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
-              if( Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family ) {
+              if( !useNioExecTest && Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family ) {
                   return ".exe";
               } else {
                   return ".bat";
@@ -728,7 +767,7 @@ public class IOUtil {
             case WINDOWS:
               return "echo off"+PlatformPropsImpl.NEWLINE;
             default:
-              return null;
+              return "#!/bin/true"+PlatformPropsImpl.NEWLINE;
         }
     }
     private static String[] getExeTestCommandArgs(final String scriptFile) {
@@ -755,7 +794,8 @@ public class IOUtil {
     private static WeakReference<byte[]> exeTestCodeRef = null;
 
     private static void fillExeTestFile(final File exefile) throws IOException {
-        if( Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
+        if( !useNioExecTest &&
+            Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
             Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family
           ) {
             final byte[] exeTestCode;
@@ -912,6 +952,18 @@ public class IOUtil {
         }
     }
 
+    private static final Boolean isNioExecutableFile(final File file) {
+        if( useNioExecTest ) {
+            try {
+                return (Boolean) isExecutableQuery.invoke(null, fileToPathGetter.invoke(file));
+            } catch (final Throwable t) {
+                throw new JogampRuntimeException("error invoking Files.isExecutable(file.toPath())", t);
+            }
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Returns true if the given {@code dir}
      * <ol>
@@ -931,7 +983,7 @@ public class IOUtil {
 
         if( !testTempDirExec ) {
             if(DEBUG) {
-                System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Disabled "+_TestTempDirExec);
+                System.err.println("IOUtil.testDirExec: <"+dir.getAbsolutePath()+">: Disabled TestTempDirExec");
             }
             return false;
         }
@@ -959,6 +1011,7 @@ public class IOUtil {
             } else {
                 exeTestFile = File.createTempFile("jogamp_exe_tst", getExeTestFileSuffix(), dir);
                 existingExe = false;
+                fillExeTestFile(exeTestFile);
             }
         } catch (final SecurityException se) {
             throw se; // fwd Security exception
@@ -972,41 +1025,44 @@ public class IOUtil {
         long t2;
         int res = -1;
         int exitValue = -1;
+        Boolean isNioExec = null;
         if( existingExe || exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */) ) {
-            Process pr = null;
-            try {
-                if( !existingExe ) {
-                    fillExeTestFile(exeTestFile);
-                }
-                t2 = debug ? System.currentTimeMillis() : 0;
-                // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
-                // and hence splitting up command by spaces!
-                // Note: All no-exec cases throw an IOExceptions at ProcessBuilder.start(), i.e. below exec() call!
-                pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ), null, null );
-                if( DEBUG_EXE && !DEBUG_EXE_NOSTREAM ) {
-                    new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
-                }
-                pr.waitFor();
-                exitValue = pr.exitValue(); // Note: Bug 1219 Comment 50: On reporter's machine exit value 1 is being returned
-                res = 0; // file has been executed
-            } catch (final SecurityException se) {
-                throw se; // fwd Security exception
-            } catch (final Throwable t) {
-                t2 = debug ? System.currentTimeMillis() : 0;
-                res = -2;
-                if( debug ) {
-                    System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
-                    t.printStackTrace();
-                }
-            } finally {
-                if( null != pr ) {
-                    // Bug 1219 Comment 58: Ensure that the launched process gets terminated!
-                    // This is Process implementation specific and varies on different platforms,
-                    // hence it may be required.
-                    try {
-                        pr.destroy();
-                    } catch (final Throwable t) {
-                        ExceptionUtils.dumpThrowable("", t);
+            t2 = debug ? System.currentTimeMillis() : 0;
+            isNioExec = isNioExecutableFile(exeTestFile);
+            if( null != isNioExec ) {
+                res = isNioExec.booleanValue() ? 0 : -1;
+            } else {
+                Process pr = null;
+                try {
+                    // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
+                    // and hence splitting up command by spaces!
+                    // Note: All no-exec cases throw an IOExceptions at ProcessBuilder.start(), i.e. below exec() call!
+                    pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ), null, null );
+                    if( DEBUG_EXE && !DEBUG_EXE_NOSTREAM ) {
+                        new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
+                    }
+                    pr.waitFor();
+                    exitValue = pr.exitValue(); // Note: Bug 1219 Comment 50: On reporter's machine exit value 1 is being returned
+                    res = 0; // file has been executed
+                } catch (final SecurityException se) {
+                    throw se; // fwd Security exception
+                } catch (final Throwable t) {
+                    t2 = debug ? System.currentTimeMillis() : 0;
+                    res = -2;
+                    if( debug ) {
+                        System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
+                        t.printStackTrace();
+                    }
+                } finally {
+                    if( null != pr ) {
+                        // Bug 1219 Comment 58: Ensure that the launched process gets terminated!
+                        // This is Process implementation specific and varies on different platforms,
+                        // hence it may be required.
+                        try {
+                            pr.destroy();
+                        } catch (final Throwable t) {
+                            ExceptionUtils.dumpThrowable("", t);
+                        }
                     }
                 }
             }
@@ -1020,7 +1076,7 @@ public class IOUtil {
         }
         if( debug ) {
             final long t3 = System.currentTimeMillis();
-            System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">, existingFile "+existingExe+", returned "+exitValue);
+            System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">, existingFile "+existingExe+", isNioExec "+isNioExec+", returned "+exitValue);
             System.err.println("IOUtil.testDirExec(): abs-path <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
             System.err.println("IOUtil.testDirExec(): total "+(t3-t0)+"ms, create "+(t1-t0)+"ms, fill "+(t2-t1)+"ms, execute "+(t3-t2)+"ms");
         }
