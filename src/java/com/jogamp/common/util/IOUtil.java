@@ -72,10 +72,10 @@ public class IOUtil {
     private static final boolean testTempDirExec;
     private static final Method fileToPathGetter;
     private static final Method isExecutableQuery;
-    private static final boolean useNioExecTest;
+    private static final boolean useNativeExeFile;
 
     static {
-        final boolean _props[] = { false, false, false, false, false };
+        final boolean _props[] = { false, false, false, false, false, false };
         final Method[] res = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
             @Override
             public Method[] run() {
@@ -88,6 +88,7 @@ public class IOUtil {
                     // For security reasons, we have to hardcode this, i.e. disable this manual debug feature!
                     _props[i++] = false; // PropertyAccess.isPropertyDefined("jogamp.debug.IOUtil.Exe.ExistingFile", true);
                     _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.TestTempDirExec", true, true);
+                    _props[i++] = PropertyAccess.getBooleanProperty("jogamp.gluegen.UseNativeExeFile", true, false);
 
                     // Java 1.7
                     i=0;
@@ -112,11 +113,11 @@ public class IOUtil {
             DEBUG_EXE_NOSTREAM = _props[i++];
             DEBUG_EXE_EXISTING_FILE = _props[i++];
             testTempDirExec = _props[i++];
+            useNativeExeFile = _props[i++];
 
             i=0;
             fileToPathGetter = res[i++];
             isExecutableQuery = res[i++];
-            useNioExecTest = null != fileToPathGetter && null != isExecutableQuery;
         }
     }
 
@@ -753,7 +754,7 @@ public class IOUtil {
     private static String getExeTestFileSuffix() {
         switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
-              if( !useNioExecTest && Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family ) {
+              if( useNativeExeFile && Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family ) {
                   return ".exe";
               } else {
                   return ".bat";
@@ -794,7 +795,7 @@ public class IOUtil {
     private static WeakReference<byte[]> exeTestCodeRef = null;
 
     private static void fillExeTestFile(final File exefile) throws IOException {
-        if( !useNioExecTest &&
+        if( useNativeExeFile &&
             Platform.OSType.WINDOWS == PlatformPropsImpl.OS_TYPE &&
             Platform.CPUFamily.X86 == PlatformPropsImpl.CPU_ARCH.family
           ) {
@@ -953,7 +954,7 @@ public class IOUtil {
     }
 
     private static final Boolean isNioExecutableFile(final File file) {
-        if( useNioExecTest ) {
+        if( null != fileToPathGetter && null != isExecutableQuery ) {
             try {
                 return (Boolean) isExecutableQuery.invoke(null, fileToPathGetter.invoke(file));
             } catch (final Throwable t) {
@@ -1028,10 +1029,14 @@ public class IOUtil {
         Boolean isNioExec = null;
         if( existingExe || exeTestFile.setExecutable(true /* exec */, true /* ownerOnly */) ) {
             t2 = debug ? System.currentTimeMillis() : 0;
+            // First soft exec test via NIO's ACL check, if available
             isNioExec = isNioExecutableFile(exeTestFile);
             if( null != isNioExec ) {
                 res = isNioExec.booleanValue() ? 0 : -1;
-            } else {
+            }
+            if( null == isNioExec || 0 <= res ) {
+                // Hard exec test via actual execution, if NIO's ACL check succeeded or not available.
+                // Required, since Windows 'Software Restriction Policies (SRP)' won't be triggered merely by NIO's ACL check.
                 Process pr = null;
                 try {
                     // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
@@ -1043,12 +1048,16 @@ public class IOUtil {
                     }
                     pr.waitFor();
                     exitValue = pr.exitValue(); // Note: Bug 1219 Comment 50: On reporter's machine exit value 1 is being returned
-                    res = 0; // file has been executed
+                    if( 0 == exitValue ) {
+                        res++; // file has been executed and exited normally
+                    } else {
+                        res = -2; // abnormal termination
+                    }
                 } catch (final SecurityException se) {
                     throw se; // fwd Security exception
                 } catch (final Throwable t) {
                     t2 = debug ? System.currentTimeMillis() : 0;
-                    res = -2;
+                    res = -3;
                     if( debug ) {
                         System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
                         t.printStackTrace();
@@ -1070,7 +1079,7 @@ public class IOUtil {
             t2 = debug ? System.currentTimeMillis() : 0;
         }
 
-        final boolean ok = 0 == res;
+        final boolean ok = 0 <= res;
         if( !DEBUG_EXE && !existingExe ) {
             exeTestFile.delete();
         }
