@@ -523,6 +523,7 @@ public abstract class PlatformPropsImpl {
      *   <li>linux-aarch64</li>
      *   <li>linux-amd64</li>
      *   <li>linux-ppc64</li>
+     *   <li>linux-ppc64le</li>
      *   <li>linux-mips64</li>
      *   <li>linux-ia64</li>
      *   <li>linux-sparcv9</li>
@@ -579,7 +580,7 @@ public abstract class PlatformPropsImpl {
                 _and_arch_tmp = "amd64";
                 break;
             case PPC64:
-                _and_arch_tmp = "ppc64";
+                _and_arch_tmp = littleEndian ? "ppc64le" : "ppc64";
                 break;
             case MIPS_64:
                 _and_arch_tmp = "mips64";
