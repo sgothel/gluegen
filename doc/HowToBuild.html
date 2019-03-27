@@ -55,10 +55,10 @@
                         <li> <b>GNU Linux</b> x86, 32- and 64-bit<br/>
                             You may have to install a few developer packages ...
                             <ul>
-                                <li> <b>Debian</b> 5.00 or later
+                                <li> <b>Debian</b> 9.00 or later
                                     <ul>
-                                        <li>openjdk-7-jre</li>
-                                        <li>openjdk-7-jdk</li>
+                                        <li>openjdk-8-jre</li>
+                                        <li>openjdk-8-jdk</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>p7zip-full</li>
@@ -66,10 +66,6 @@
                                     </ul>
                                     One liner install command:
                                     <ul>
-                                      <li><b>Debian</b> 5.00 or later
-                                      <pre>
-apt-get install openjdk-7-jre openjdk-7-jdk ant git-all p7zip-full gcc
-                                      </pre></li>
                                       <li><b>Debian</b> 9.00 Stretch
                                       <pre>
 apt-get install openjdk-8-jre openjdk-8-jdk ant git-all p7zip-full gcc
@@ -81,19 +77,6 @@ apt-get install kernel-package build-essential
                                     </pre>
                                     Optional: Add <i>multiarch</i> i386 next to amd64 
                                     <ul>
-                                      <li><b>Debian</b> 7.00
-                                        <pre>
-dpkg --add-architecture i386
-apt-get update
-apt-get install ia32-libs ia32-libs-gtk gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libc6-i386 ibc6-dev-i386 g++-multilib lib32stdc++6 openjdk-7-jre:i386 openjdk-7-jdk:i386
-                                        </pre></li>
-
-                                      <li><b>Debian</b> 8.00
-                                        <pre>
-dpkg --add-architecture i386
-apt-get update
-apt-get install lib32z1 lib32ncurses5 lib32bz2-1.0 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-7-jre:i386 openjdk-7-jdk:i386
-                                        </pre></li>
                                       <li><b>Debian</b> 9.00 Stretch
                                       <pre>
 dpkg --add-architecture i386
