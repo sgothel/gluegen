@@ -50,6 +50,7 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import jogamp.common.Debug;
@@ -1162,7 +1163,7 @@ public class IOUtil {
        File tmpBaseDir = null;
        if(null != testDirImpl(tmpRoot, true /* create */, executable, dbgMsg)) { // check tmpRoot first
            for(int i = 0; null == tmpBaseDir && i<=9999; i++) {
-               final String tmpDirSuffix = String.format("_%04d", i); // 4 digits for iteration
+               final String tmpDirSuffix = String.format((Locale)null, "_%04d", i); // 4 digits for iteration
                tmpBaseDir = testDirImpl(new File(tmpRoot, tmpSubDirPrefix+tmpDirSuffix), true /* create */, executable, dbgMsg);
            }
        }

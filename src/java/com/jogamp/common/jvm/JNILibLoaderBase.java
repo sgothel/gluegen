@@ -50,6 +50,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
@@ -203,7 +204,7 @@ public class JNILibLoaderBase {
         System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: initial: %s -> %s%n", jarSubURI, jarSubUriRoot);
     }
 
-    final String nativeLibraryPath = String.format("natives/%s/", PlatformPropsImpl.os_and_arch);
+    final String nativeLibraryPath = String.format((Locale)null, "natives/%s/", PlatformPropsImpl.os_and_arch);
     if (DEBUG) {
         System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: nativeLibraryPath: %s%n", nativeLibraryPath);
     }
@@ -451,7 +452,7 @@ public class JNILibLoaderBase {
               }
 
               final Uri.Encoded nativeJarBasename =
-                      Uri.Encoded.cast( String.format("%s-natives-%s.jar", jarBasename.get(), PlatformPropsImpl.os_and_arch) );
+                      Uri.Encoded.cast( String.format((Locale)null, "%s-natives-%s.jar", jarBasename.get(), PlatformPropsImpl.os_and_arch) );
 
               ok = JNILibLoaderBase.addNativeJarLibsImpl(c, classJarURI, jarName, nativeJarBasename);
               if (ok) {

@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 import jogamp.common.Debug;
 
@@ -1507,7 +1508,7 @@ public class Bitstream<T> {
             mode = outputMode ? "output" : "input";
             bpos = bytes.position();
         }
-        return String.format("%s, pos %d [byteP %d, bitCnt %d], bitbuf %s",
+        return String.format((Locale)null, "%s, pos %d [byteP %d, bitCnt %d], bitbuf %s",
                 mode, position(), bpos, bitCount, toHexBinString(true, bitBuffer, 8));
     }
 
@@ -1531,7 +1532,7 @@ public class Bitstream<T> {
     }
     public static String toHexBinString(final boolean msbFirst, final int v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
-        return String.format("[0x%0"+nibbles+"X, msbFirst %b, %s]", v, msbFirst, toBinString(msbFirst, v, bitCount));
+        return String.format((Locale)null, "[0x%0"+nibbles+"X, msbFirst %b, %s]", v, msbFirst, toBinString(msbFirst, v, bitCount));
     }
     public static final String toHexBinString(final boolean msbFirst, final byte[] data, final int offset, final int len) {
         final StringBuilder sb = new StringBuilder();

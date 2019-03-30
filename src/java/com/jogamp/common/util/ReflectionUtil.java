@@ -42,6 +42,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -92,7 +93,7 @@ public final class ReflectionUtil {
         public int count;
         @Override
         public String toString() {
-            return String.format("%8.3f ms, %03d invoc, %s", nanoCosts/1e6, count, name);
+            return String.format((Locale)null, "%8.3f ms, %03d invoc, %s", nanoCosts/1e6, count, name);
         }
     }
     public static void resetForNameCount() {

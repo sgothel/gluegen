@@ -29,6 +29,7 @@
 package com.jogamp.common.util;
 
 import java.nio.ByteBuffer;
+import java.util.Locale;
 
 public class BitDemoData {
     public static final long UNSIGNED_INT_MAX_VALUE = 0xffffffffL;
@@ -166,14 +167,14 @@ public class BitDemoData {
     }
     public static String toHexBinaryString(final long v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
-        return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
+        return String.format((Locale)null, "[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
     public static String toHexBinaryString(final int v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
-        return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
+        return String.format((Locale)null, "[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
     public static String toHexBinaryString(final short v, final int bitCount) {
         final int nibbles = 0 == bitCount ? 2 : ( bitCount + 3 ) / 4;
-        return String.format("[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
+        return String.format((Locale)null, "[%0"+nibbles+"X, %s]", v, toBinaryString(v, bitCount));
     }
 }
