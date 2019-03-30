@@ -215,12 +215,6 @@
         <property name="linker.cfg.id"   value="${linker.cfg.id.base}" />
     </target>
 
-    <!-- FIXME: this is a hack; the cpptask should have an option to change the
-                suffix or at least understand the override from dylib to jnilib -->
-    <target name="rename.dylib" if="isOSX">
-        <move file="${src}" tofile="${dest}" />
-    </target>
-
     <macrodef name="c.build">
       <attribute name="c.compiler.src.files" />
       <attribute name="compiler.cfg.id" />
@@ -625,11 +619,6 @@ chmod 644 ${results}/* \${line.separator}
                  output.lib.name="Bindingtest1p1"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.fixed.cfg.id"/>
-
-        <antcall target="rename.dylib" inheritRefs="true">
-            <param name="src"  value="${build_t.lib}/libBindingtest1p1.dylib" />
-            <param name="dest" value="${build_t.lib}/libBindingtest1p1.jnilib" />
-        </antcall>
     </target>
 
     <!-- this is a dynamic lookup binding to the test1 implementation -->
@@ -651,12 +640,6 @@ chmod 644 ${results}/* \${line.separator}
                  output.lib.name="Bindingtest1p2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.runtime.cfg.id"/>
-
-        <antcall target="rename.dylib" inheritRefs="true">
-            <param name="src"  value="${build_t.lib}/libBindingtest1p2.dylib" />
-            <param name="dest" value="${build_t.lib}/libBindingtest1p2.jnilib" />
-        </antcall>
-
     </target>
 
     <!-- 

@@ -1679,7 +1679,6 @@
           <include name="**/*.so"/>     <!-- unix    -->
           <include name="**/*.dll"/>    <!-- windows -->
           <include name="**/*.dylib"/>  <!-- macosx  -->
-          <include name="**/*.jnilib"/> <!-- macosx  -->
         </fileset>
       </apply>
     </target>

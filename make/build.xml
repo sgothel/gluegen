@@ -413,8 +413,7 @@
     </target>
 
     <target name="c.rename.lib.macosx" if="isOSX">
-      <move file="${build}/obj/libgluegen-rt.dylib" tofile="${build}/obj/libgluegen-rt.jnilib" />
-      <copy file="${build}/obj/libgluegen-rt.jnilib" tofile="${build}/obj/libgluegen-rt.so" />
+      <copy file="${build}/obj/libgluegen-rt.dylib" tofile="${build}/obj/libgluegen-rt.so" />
     </target>
 
     <target name="c.manifest" if="isVC8Family">
@@ -429,7 +428,7 @@
       <property name="output.lib.name" value="gluegen-rt" />
       <condition property="output.lib.name.os" value="lib${output.lib.name}.so"><isset property="isUnix"/></condition>
       <condition property="output.lib.name.os" value="${output.lib.name}.dll"><isset property="isWindows"/></condition>
-      <condition property="output.lib.name.os" value="lib${output.lib.name}.jnilib"><isset property="isOSX"/></condition>
+      <condition property="output.lib.name.os" value="lib${output.lib.name}.dylib"><isset property="isOSX"/></condition>
 
       <uptodate property="gluegen.build.skip.c">
         <srcfiles dir= "${project.root}"  includes="${c.compiler.src.files.os}"/>
