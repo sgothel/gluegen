@@ -405,7 +405,7 @@ public class JNILibLoaderBase {
     }
 
     boolean ok = false;
-    if (TempJarCache.isInitialized()) {
+    if ( TempJarCache.isInitialized(true) ) {
         ok = addNativeJarLibsWithTempJarCache(classesFromJavaJars, singleJarMarker);
     } else if(DEBUG) {
         System.err.println("JNILibLoaderBase: addNativeJarLibs0: disabled due to uninitialized TempJarCache");

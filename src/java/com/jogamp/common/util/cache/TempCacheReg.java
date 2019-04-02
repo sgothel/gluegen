@@ -31,7 +31,11 @@ public class TempCacheReg {
     public static boolean isTempFileCacheUsed() {
         return null != System.getProperty(TempFileCache.tmpRootPropName);
     }
-    public static boolean isTempJarCacheUsed() {
-        return TempJarCache.isInitialized();
+    /**
+     * @param forExecutables if {@code true}, method also tests whether {@link TempJarCache}'s underlying cache is suitable to load native libraries or launch executables
+     * @return true if {@link TempJarCache} has been properly initialized, ie. is in use. Otherwise returns false.
+     */
+    public static boolean isTempJarCacheUsed(final boolean forExecutables) {
+        return TempJarCache.isInitialized(forExecutables);
     }
 }

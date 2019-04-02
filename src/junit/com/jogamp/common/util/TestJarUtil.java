@@ -73,7 +73,7 @@ public class TestJarUtil extends SingletonJunitCase {
         Assert.assertTrue(TempCacheReg.isTempFileCacheUsed());
 
         fileCache = new TempFileCache();
-        Assert.assertTrue(fileCache.isValid());
+        Assert.assertTrue(fileCache.isValid(false));
         System.err.println("tmp dir: "+fileCache.getTempDir());
     }
 
@@ -150,8 +150,8 @@ public class TestJarUtil extends SingletonJunitCase {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         Assert.assertTrue(TempJarCache.initSingleton());
-        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
-        Assert.assertTrue(TempJarCache.isInitialized());
+        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed(false));
+        Assert.assertTrue(TempJarCache.isInitialized(false));
 
         final ClassLoader rootCL = this.getClass().getClassLoader();
 
@@ -171,8 +171,8 @@ public class TestJarUtil extends SingletonJunitCase {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         Assert.assertTrue(TempJarCache.initSingleton());
-        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
-        Assert.assertTrue(TempJarCache.isInitialized());
+        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed(false));
+        Assert.assertTrue(TempJarCache.isInitialized(false));
 
         final ClassLoader rootCL = this.getClass().getClassLoader();
 
@@ -199,8 +199,8 @@ public class TestJarUtil extends SingletonJunitCase {
         System.err.println("XXXXXXXXXXXXXXXXXXXXXXXXXXXX");
 
         Assert.assertTrue(TempJarCache.initSingleton());
-        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
-        Assert.assertTrue(TempJarCache.isInitialized());
+        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed(false));
+        Assert.assertTrue(TempJarCache.isInitialized(false));
 
         /** This classloader mimics what OSGi's does -- it takes jar: URLs and makes them into bundleresource: URLs
          * where the JAR is not directly accessible anymore. Here I leave the JAR name at the end of the URL so I can

@@ -45,6 +45,9 @@ public class TempFileCache {
     // Flag indicating that we got a fatal error in the static initializer.
     private static boolean staticInitError = false;
 
+    // Flag indicating that the temp root folder can be used for executable files
+    private static boolean staticTempIsExecutable = true;
+
     private static final String tmpDirPrefix = "file_cache";
 
     // Lifecycle: For one user's JVMs, ClassLoader and time.
@@ -80,10 +83,19 @@ public class TempFileCache {
             try {
                 _tmpBaseDir = new File(IOUtil.getTempDir(true /* executable */), tmpDirPrefix);
                 _tmpBaseDir = IOUtil.testDir(_tmpBaseDir, true /* create */, false /* executable */); // executable already checked
+                staticTempIsExecutable = true;
             } catch (final Exception ex) {
                 System.err.println("Warning: Caught Exception while retrieving executable temp base directory:");
                 ex.printStackTrace();
-                staticInitError = true;
+                staticTempIsExecutable = false;
+                try {
+                    _tmpBaseDir = new File(IOUtil.getTempDir(false /* executable */), tmpDirPrefix);
+                    _tmpBaseDir = IOUtil.testDir(_tmpBaseDir, true /* create */, false /* executable */);
+                } catch (final Exception ex2) {
+                    System.err.println("Warning: Caught Exception while retrieving non-executable temp base directory:");
+                    ex2.printStackTrace();
+                    staticInitError = true;
+                }
             }
             tmpBaseDir = _tmpBaseDir;
 
@@ -92,7 +104,7 @@ public class TempFileCache {
                 System.err.println("TempFileCache: Static Initialization ---------------------------------------------- OK: "+(!staticInitError));
                 System.err.println("TempFileCache: Thread: "+Thread.currentThread().getName()+
                         ", CL 0x"+Integer.toHexString(TempFileCache.class.getClassLoader().hashCode())+
-                        ", tempBaseDir "+tmpBaseDirAbsPath);
+                        ", tempBaseDir "+tmpBaseDirAbsPath+", executable "+staticTempIsExecutable);
             }
 
             if(!staticInitError) {
@@ -102,6 +114,7 @@ public class TempFileCache {
                     System.err.println("Warning: Caught Exception due to initializing TmpRoot:");
                     ex.printStackTrace();
                     staticInitError = true;
+                    staticTempIsExecutable = false;
                 }
             }
             if (DEBUG) {
@@ -414,7 +427,7 @@ public class TempFileCache {
         path.delete();
     }
 
-    /** Create the <code>individualTmpDir</code>. */
+    /** Create the {@link #getTempDir()} */
     public TempFileCache () {
         if (DEBUG) {
             System.err.println("TempFileCache: new TempFileCache() --------------------- (static ok: "+(!staticInitError)+")");
@@ -434,7 +447,7 @@ public class TempFileCache {
         }
     }
 
-    /** Delete the <code>individualTmpDir</code> recursively and remove it's reference. */
+    /** Delete the {@link #getTempDir()} recursively and remove it's reference. */
     public void destroy() {
         if (DEBUG) {
             System.err.println("TempFileCache: destroy() --------------------- (static ok: "+(!staticInitError)+")");
@@ -454,15 +467,20 @@ public class TempFileCache {
     }
 
     /**
-     * @return true is static and object initialization was successful
+     * @param forExecutables if {@code true}, method also tests whether the underlying {@link #getBaseDir()} is suitable to load native libraries or launch executables
+     * @return true if static and object initialization was successful
+     * @see #isTempExecutable()
+     * @see #isValid()
      */
-    public boolean isValid() { return !staticInitError && !initError; }
+    public boolean isValid(final boolean forExecutables) {
+        return !staticInitError && !initError && ( !forExecutables || staticTempIsExecutable );
+    }
 
     /**
-     * Base temp directory used by TempFileCache.
+     * Base temp directory used by {@link TempFileCache}.
      *
      * <p>
-     * Lifecycle: For one user's JVMs, ClassLoader and time.
+     * Lifecycle: For one user's concurrently running JVMs and ClassLoader
      * </p>
      *
      * This is set to:
@@ -472,11 +490,14 @@ public class TempFileCache {
      *
      * @return
      */
-    public File getBaseDir() { return tmpBaseDir; }
+    public static File getBaseDir() { return tmpBaseDir; }
 
     /**
      * Root temp directory for this JVM instance. Used to store individual
      * directories.
+     * <p>
+     * This directory is a sub-folder to {@link #getBaseDir()}.
+     * </p>
      *
      * <p>
      * Lifecycle: For one user's concurrently running JVMs and ClassLoader
@@ -498,15 +519,19 @@ public class TempFileCache {
      *
      * @return
      */
-    public File getRootDir() { return tmpRootDir; }
+    public static File getRootDir() { return tmpRootDir; }
 
     /**
      * Temporary directory for individual files (eg. native libraries of one ClassLoader instance).
-     * The directory name is:
+     * <p>
+     * This directory is a sub-folder to {@link #getRootDir()}.
+     * </p>
      *
      * <p>
-     * Lifecycle: Within each JVM .. use case dependent, ie. per ClassLoader
+     * Lifecycle: Within each JVM .. use case dependent, ie. per ClassLoader <b>and</b> per {@link TempFileCache} instance!
      * </p>
+     * <p>
+     * The directory name is:
      *
      * <pre>
      *   tmpRootDir/jlnMMMMM
@@ -514,7 +539,7 @@ public class TempFileCache {
      *
      * where jlnMMMMM is the unique filename created by File.createTempFile()
      * without the ".tmp" extension.
-     *
+     * </p>
      *
      * @return
      */

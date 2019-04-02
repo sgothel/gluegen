@@ -306,7 +306,7 @@ public class Platform extends PlatformPropsImpl {
                                          PropertyAccess.getBooleanProperty(useTempJarCachePropName, true, true);
 
                 // load GluegenRT native library
-                if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton()) {
+                if(_USE_TEMP_JAR_CACHE[0] && TempJarCache.initSingleton() && TempJarCache.isInitialized(true) ) {
                     try {
                         JNILibLoaderBase.addNativeJarLibs(new Class<?>[] { jogamp.common.Debug.class }, null);
                     } catch (final Exception e0) {

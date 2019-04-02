@@ -72,8 +72,8 @@ public class TestTempJarCache extends SingletonJunitCase {
         Assert.assertTrue(fileCache3.getTempDir().exists());
         Assert.assertTrue(fileCache3.getTempDir().isDirectory());
 
-        Assert.assertEquals(fileCache2.getBaseDir(), fileCache3.getBaseDir());
-        Assert.assertEquals(fileCache2.getRootDir(), fileCache3.getRootDir());
+        Assert.assertEquals(TempFileCache.getBaseDir(), TempFileCache.getBaseDir());
+        Assert.assertEquals(TempFileCache.getRootDir(), TempFileCache.getRootDir());
 
         if(shallBeSame) {
             Assert.assertTrue("file caches are not equal", fileCache2.getTempDir().equals(fileCache3.getTempDir()));
@@ -122,7 +122,7 @@ public class TestTempJarCache extends SingletonJunitCase {
         Assert.assertTrue(TempCacheReg.isTempFileCacheUsed());
 
         fileCache = new TempFileCache();
-        Assert.assertTrue(fileCache.isValid());
+        Assert.assertTrue(fileCache.isValid(false));
         System.err.println("tmp dir: "+fileCache.getTempDir());
     }
 
@@ -167,8 +167,8 @@ public class TestTempJarCache extends SingletonJunitCase {
         // Assert.assertFalse(TempCacheReg.isTempJarCacheUsed());
         // Assert.assertFalse(TempJarCache.isInitialized());
         Assert.assertTrue(TempJarCache.initSingleton());
-        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed());
-        Assert.assertTrue(TempJarCache.isInitialized());
+        Assert.assertTrue(TempCacheReg.isTempJarCacheUsed(false));
+        Assert.assertTrue(TempJarCache.isInitialized(false));
     }
 
     @Test

@@ -643,7 +643,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   }
   public static final String findLibrary(final String libName, final ClassLoader loader) {
     String res = null;
-    if(TempJarCache.isInitialized()) {
+    if( TempJarCache.isInitialized(true) ) {
         res = TempJarCache.findLibrary(libName);
         if (DEBUG) {
           System.err.println("NativeLibrary.findLibrary(<"+libName+">) (TempJarCache): "+res);

@@ -37,6 +37,7 @@ import java.util.jar.JarFile;
 
 import jogamp.common.Debug;
 
+import com.jogamp.common.JogampRuntimeException;
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.JarUtil;
@@ -74,6 +75,7 @@ public class TempJarCache {
     private static TempFileCache tmpFileCache;
 
     private static volatile boolean staticInitError = false;
+    private static volatile boolean staticTempIsExecutable = true;
     private static volatile boolean isInit = false;
 
     /**
@@ -89,7 +91,8 @@ public class TempJarCache {
 
                     if(!staticInitError) {
                         tmpFileCache = new TempFileCache();
-                        staticInitError = !tmpFileCache.isValid();
+                        staticInitError = !tmpFileCache.isValid(false);
+                        staticTempIsExecutable = tmpFileCache.isValid(true);
                     }
 
                     if(!staticInitError) {
@@ -102,7 +105,7 @@ public class TempJarCache {
                     if(DEBUG) {
                         final File tempDir = null != tmpFileCache ? tmpFileCache.getTempDir() : null;
                         final String tempDirAbsPath = null != tempDir ? tempDir.getAbsolutePath() : null;
-                        System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tempDirAbsPath);
+                        System.err.println("TempJarCache.initSingleton(): ok "+(false==staticInitError)+", "+ tempDirAbsPath+", executable "+staticTempIsExecutable);
                     }
                     isInit = true;
                 }
@@ -163,44 +166,77 @@ public class TempJarCache {
     }
 
     /**
-     * @return true if this class has been properly initialized, ie. is in use, otherwise false.
+     * @param forExecutables if {@code true}, method also tests whether the underlying cache is suitable to load native libraries or launch executables
+     * @return true if this class has been properly initialized, ie. is in use. Otherwise returns false.
      */
-    public static boolean isInitialized() {
-        return isInitializedImpl() && !staticInitError;
+    public static boolean isInitialized(final boolean forExecutables) {
+        return isInitializedImpl() && !staticInitError && ( !forExecutables || staticTempIsExecutable );
     }
 
-    /* package */ static void checkInitialized() {
+    /**
+     * @param forExecutables if {@code true}, method also tests whether the underlying cache is suitable to load native libraries or launch executables
+     */
+    /* package */ static void checkInitialized(final boolean forExecutables) {
         if(!isInitializedImpl()) {
-            throw new RuntimeException("initSingleton() has to be called first.");
+            throw new JogampRuntimeException("initSingleton() has to be called first.");
         }
         if(staticInitError) {
-            throw new RuntimeException("initSingleton() failed.");
+            throw new JogampRuntimeException("initSingleton() failed.");
+        }
+        if( forExecutables && !staticTempIsExecutable ) {
+            throw new JogampRuntimeException("TempJarCache folder not suitable for executables");
         }
     }
 
+    /**
+     * @return the underlying {@link TempFileCache}
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public static TempFileCache getTempFileCache() {
-        checkInitialized();
+        checkInitialized(false);
         return tmpFileCache;
     }
 
+    /**
+     * @param jarUri
+     * @param exp
+     * @return
+     * @throws IOException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public synchronized static boolean checkNativeLibs(final Uri jarUri, final LoadState exp) throws IOException {
-        checkInitialized();
+        checkInitialized(false);
         if(null == jarUri) {
             throw new IllegalArgumentException("jarUri is null");
         }
         return testLoadState(nativeLibJars.get(jarUri), exp);
     }
 
+    /**
+     * @param jarUri
+     * @param exp
+     * @return
+     * @throws IOException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public synchronized static boolean checkClasses(final Uri jarUri, final LoadState exp) throws IOException {
-        checkInitialized();
+        checkInitialized(false);
         if(null == jarUri) {
             throw new IllegalArgumentException("jarUri is null");
         }
         return testLoadState(classFileJars.get(jarUri), exp);
     }
 
+    /**
+     *
+     * @param jarUri
+     * @param exp
+     * @return
+     * @throws IOException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public synchronized static boolean checkResources(final Uri jarUri, final LoadState exp) throws IOException {
-        checkInitialized();
+        checkInitialized(false);
         if(null == jarUri) {
             throw new IllegalArgumentException("jarUri is null");
         }
@@ -218,9 +254,10 @@ public class TempJarCache {
      * @throws SecurityException
      * @throws URISyntaxException
      * @throws IllegalArgumentException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(true)}
      */
     public synchronized static final boolean addNativeLibs(final Class<?> certClass, final Uri jarUri, final String nativeLibraryPath) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
-        checkInitialized();
+        checkInitialized(true);
         final LoadState nativeLibJarsLS = nativeLibJars.get(jarUri);
         if( !testLoadState(nativeLibJarsLS, LoadState.LOOKED_UP) ) {
             nativeLibJars.put(jarUri, LoadState.LOOKED_UP);
@@ -253,9 +290,10 @@ public class TempJarCache {
      * @throws SecurityException
      * @throws URISyntaxException
      * @throws IllegalArgumentException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
      */
     public synchronized static final void addClasses(final Class<?> certClass, final Uri jarUri) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
-        checkInitialized();
+        checkInitialized(false);
         final LoadState classFileJarsLS = classFileJars.get(jarUri);
         if( !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ) {
             classFileJars.put(jarUri, LoadState.LOOKED_UP);
@@ -282,9 +320,10 @@ public class TempJarCache {
      * @throws SecurityException
      * @throws URISyntaxException
      * @throws IllegalArgumentException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
      */
     public synchronized static final void addResources(final Class<?> certClass, final Uri jarUri) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
-        checkInitialized();
+        checkInitialized(false);
         final LoadState resourceFileJarsLS = resourceFileJars.get(jarUri);
         if( !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) {
             resourceFileJars.put(jarUri, LoadState.LOOKED_UP);
@@ -314,9 +353,10 @@ public class TempJarCache {
      * @throws SecurityException
      * @throws URISyntaxException
      * @throws IllegalArgumentException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
      */
     public synchronized static final void addAll(final Class<?> certClass, final Uri jarUri) throws IOException, SecurityException, IllegalArgumentException, URISyntaxException {
-        checkInitialized();
+        checkInitialized(false);
         if(null == jarUri) {
             throw new IllegalArgumentException("jarUri is null");
         }
@@ -327,7 +367,7 @@ public class TempJarCache {
             !testLoadState(classFileJarsLS, LoadState.LOOKED_UP) ||
             !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP) ) {
 
-            final boolean extractNativeLibraries = !testLoadState(nativeLibJarsLS, LoadState.LOADED);
+            final boolean extractNativeLibraries = staticTempIsExecutable && !testLoadState(nativeLibJarsLS, LoadState.LOADED);
             final boolean extractClassFiles = !testLoadState(classFileJarsLS, LoadState.LOADED);
             final boolean extractOtherFiles = !testLoadState(resourceFileJarsLS, LoadState.LOOKED_UP);
 
@@ -367,8 +407,18 @@ public class TempJarCache {
         }
     }
 
+    /**
+     * If {@link #isInitialized(boolean) isInitialized(true)} is false due to lack of executable support only,
+     * this method always returns false.
+     * @param libName
+     * @return the found native library path within this cache or null if not found
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public synchronized static final String findLibrary(final String libName) {
-        checkInitialized();
+        checkInitialized(false);
+        if( !staticTempIsExecutable ) {
+            return null;
+        }
         // try with mapped library basename first
         String path = nativeLibMap.get(libName);
         if(null == path) {
@@ -398,9 +448,14 @@ public class TempJarCache {
         return null;
     } */
 
-    /** Similar to {@link ClassLoader#getResource(String)}. */
+    /**
+     * Similar to {@link ClassLoader#getResource(String)}.
+     * @param name
+     * @return
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public synchronized static final String findResource(final String name) {
-        checkInitialized();
+        checkInitialized(false);
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
             return f.getAbsolutePath();
@@ -408,9 +463,15 @@ public class TempJarCache {
         return null;
     }
 
-    /** Similar to {@link ClassLoader#getResource(String)}. */
+    /**
+     * Similar to {@link ClassLoader#getResource(String)}.
+     * @param name
+     * @return
+     * @throws URISyntaxException
+     * @throws JogampRuntimeException if not {@link #isInitialized(boolean) isInitialized(false)}
+     */
     public synchronized static final Uri getResourceUri(final String name) throws URISyntaxException {
-        checkInitialized();
+        checkInitialized(false);
         final File f = new File(tmpFileCache.getTempDir(), name);
         if(f.exists()) {
             return Uri.valueOf(f);
