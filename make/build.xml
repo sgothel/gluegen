@@ -413,7 +413,7 @@
       <property name="c.src.dir.os"                         value="unix" />
     </target>
 
-    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.android,declare.solaris,declare.macosx,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" unless="build.javaonly" />
+    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.android,declare.solaris,declare.macosx,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" />
 
     <target name="c.rename.lib.mingw" if="isMingW">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
@@ -430,7 +430,9 @@
       <msvc.manifest objdir="${build}/obj" dllname="gluegen-rt" />
     </target>
 
-    <target name="gluegen.build.c" depends="init, c.configure" unless="build.javaonly" >
+    <target name="gluegen.build.native" depends="init, c.configure" >
+      <var name="gluegen.build.shasum.done" unset="true"/>
+      <var name="gluegen.package.native.done" unset="true"/>
       <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
       <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
 
@@ -439,16 +441,19 @@
       <condition property="output.lib.name.os" value="${output.lib.name}.dll"><isset property="isWindows"/></condition>
       <condition property="output.lib.name.os" value="lib${output.lib.name}.dylib"><isset property="isOSX"/></condition>
 
-      <uptodate property="gluegen.build.skip.c">
+      <uptodate property="gluegen.build.skip.native">
         <srcfiles dir= "${project.root}"  includes="${c.compiler.src.files.os}"/>
         <srcfiles dir= "${project.root}"  includes="${c.compiler.src.files.common}"/>
         <mapper type="merge" to="${gluegen.lib.dir}/${output.lib.name.os}"/>
       </uptodate>
 
+      <condition property="gluegen.package.native.done" value="true">
+        <isset property="gluegen.build.skip.native"/>
+      </condition>
       <antcall target="gluegen.build.c.impl" inheritAll="true" inheritRefs="true" />
     </target>
 
-    <target name="gluegen.build.c.impl" depends="init, c.configure" unless="gluegen.build.skip.c">
+    <target name="gluegen.build.c.impl" depends="init, c.configure" unless="gluegen.build.skip.native">
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
 
@@ -511,7 +516,8 @@
       <antcall target="c.manifest" inheritRefs="true" />
     </target>  
 
-    <target name="gluegen.package.native" depends="init, c.configure" unless="build.javaonly" >
+    <target name="gluegen.package.native" depends="init, c.configure" unless="gluegen.package.native.done" >
+      <property name="gluegen.package.native.done" value="true" />
       <copy file="Manifest-rt-natives"
             tofile="${build}/Manifest-rt-natives.temp"
             overwrite="true">
@@ -1053,14 +1059,22 @@
     </jar>
   </target>
   
-  <target name="gluegen.build.java" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
+  <target name="gluegen.build.java" depends="gluegen.build.java.impl">
+      <condition property="gluegen.package.java.done" value="true">
+        <isset property="gluegen.build.skip.java"/>
+      </condition>
+  </target>
+  <target name="gluegen.build.java.impl" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
+    <var name="gluegen.build.shasum.done" unset="true"/>
+    <var name="gluegen.package.java.done" unset="true"/>
     <antcall target="generate-hash-maps"        inheritRefs="true"/>
     <antcall target="generate-primitive-stacks" inheritRefs="true"/>
     <antcall target="gluegen.build.javase"      inheritRefs="true"/>
     <antcall target="gluegen.build.android"     inheritRefs="true"/>
   </target>
 
-  <target name="gluegen.packaging" depends="gluegen.cpptasks.detect.os">
+  <target name="gluegen.build.shasum" depends="gluegen.cpptasks.detect.os" unless="gluegen.build.shasum.done">
+    <property name="gluegen.build.shasum.done" value="true"/>
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
           outputproperty="gluegen.build.sha.sources">
@@ -1092,9 +1106,12 @@
     <echo message="gluegen.build.sha.sources ${gluegen.build.sha.sources}"/>
     <echo message="gluegen.build.sha.classes ${gluegen.build.sha.classes}"/>
     <echo message="gluegen.build.sha.natives ${gluegen.build.sha.natives}"/>
+  </target>
+
+  <target name="gluegen.package.java" depends="gluegen.cpptasks.detect.os" unless="gluegen.package.java.done">
+    <property name="gluegen.package.java.done" value="true"/>
     <antcall target="gluegen.package.javase"      inheritRefs="true"/>
     <antcall target="gluegen.package.android"     inheritRefs="true"/>
-    <antcall target="gluegen.package.native"      inheritRefs="true"/>
   </target>
 
   <target name="gluegen.build.check.android-launcher" depends="init">
@@ -1197,7 +1214,7 @@
   </target>
 
   <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
-                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.c, gluegen.packaging, android-launcher.package" />
+                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.native, gluegen.build.shasum, gluegen.package.java, gluegen.package.native, android-launcher.package" />
 
   <target name="all.no_junit" description="Release build" depends="init, base.compile, tag.build, android.package, developer-zip-archive" />
   <target name="all" description="Release build" depends="init, base.compile, tag.build, junit.compile, android.package, developer-zip-archive" />
