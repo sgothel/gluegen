@@ -55,18 +55,18 @@ public class TestVersionInfo extends SingletonJunitCase {
     }
 
     @Test
-    public void test02ValidateSHA256()
+    public void test02ValidateSHA()
             throws IllegalArgumentException, IOException, URISyntaxException, SecurityException, NoSuchAlgorithmException
     {
         final GlueGenVersion info = GlueGenVersion.getInstance();
-        final String sha256ClassesThis = info.getImplementationSHA256ClassesThis();
-        System.err.println("SHA256 CLASSES.this (build-time): "+sha256ClassesThis);
+        final String shaClassesThis = info.getImplementationSHAClassesThis();
+        System.err.println("SHA CLASSES.this (build-time): "+shaClassesThis);
 
         final GlueGenVersion.GluGenRTJarSHASum shaSum = new GlueGenVersion.GluGenRTJarSHASum();
         final byte[] shasum = shaSum.compute(VERBOSE);
-        final String sha256Classes = SHASum.toHexString(shasum, null).toString();
-        System.err.println("SHA256 CLASSES.this (now): "+sha256Classes);
-        Assert.assertEquals("SHA256 not equal", sha256ClassesThis, sha256Classes);
+        final String shaClasses = SHASum.toHexString(shasum, null).toString();
+        System.err.println("SHA CLASSES.this (now): "+shaClasses);
+        Assert.assertEquals("SHA not equal", shaClassesThis, shaClasses);
     }
 
     public static void main(final String args[]) throws IOException {

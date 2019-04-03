@@ -45,16 +45,16 @@ public class JogampVersion {
     public static final Attributes.Name IMPLEMENTATION_BRANCH = new Attributes.Name("Implementation-Branch");
     /** See {@link #getImplementationCommit()} */
     public static final Attributes.Name IMPLEMENTATION_COMMIT = new Attributes.Name("Implementation-Commit");
-    /** See {@link #getImplementationSHA256Sources()} */
-    public static final Attributes.Name IMPLEMENTATION_SHA256_SOURCES = new Attributes.Name("Implementation-SHA256-Sources");
-    /** See {@link #getImplementationSHA256Classes()} */
-    public static final Attributes.Name IMPLEMENTATION_SHA256_CLASSES = new Attributes.Name("Implementation-SHA256-Classes");
-    /** See {@link #getImplementationSHA256ClassesThis()} */
-    public static final Attributes.Name IMPLEMENTATION_SHA256_CLASSES_THIS = new Attributes.Name("Implementation-SHA256-Classes-this");
-    /** See {@link #getImplementationSHA256Natives()} */
-    public static final Attributes.Name IMPLEMENTATION_SHA256_NATIVES = new Attributes.Name("Implementation-SHA256-Natives");
-    /** See {@link #getImplementationSHA256NativesThis()} */
-    public static final Attributes.Name IMPLEMENTATION_SHA256_NATIVES_THIS = new Attributes.Name("Implementation-SHA256-Natives-this");
+    /** See {@link #getImplementationSHASources()} */
+    public static final Attributes.Name IMPLEMENTATION_SHA_SOURCES = new Attributes.Name("Implementation-SHA-Sources");
+    /** See {@link #getImplementationSHAClasses()} */
+    public static final Attributes.Name IMPLEMENTATION_SHA_CLASSES = new Attributes.Name("Implementation-SHA-Classes");
+    /** See {@link #getImplementationSHAClassesThis()} */
+    public static final Attributes.Name IMPLEMENTATION_SHA_CLASSES_THIS = new Attributes.Name("Implementation-SHA-Classes-this");
+    /** See {@link #getImplementationSHANatives()} */
+    public static final Attributes.Name IMPLEMENTATION_SHA_NATIVES = new Attributes.Name("Implementation-SHA-Natives");
+    /** See {@link #getImplementationSHANativesThis()} */
+    public static final Attributes.Name IMPLEMENTATION_SHA_NATIVES_THIS = new Attributes.Name("Implementation-SHA-Natives-this");
 
     /** For FAT JogAmp jar files */
     private static final String packageNameFAT = "com.jogamp";
@@ -166,38 +166,38 @@ public class JogampVersion {
     }
 
     /**
-     * Returns the SHA256 of all concatenated source files of the whole project
+     * Returns the SHA of all concatenated source files of the whole project
      */
-    public final String getImplementationSHA256Sources() {
-        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA256_SOURCES);
+    public final String getImplementationSHASources() {
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA_SOURCES);
     }
 
     /**
-     * Returns the SHA256 of all concatenated class files of all build classes
+     * Returns the SHA of all concatenated class files of all build classes
      */
-    public final String getImplementationSHA256Classes() {
-        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA256_CLASSES);
+    public final String getImplementationSHAClasses() {
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA_CLASSES);
     }
 
     /**
-     * Returns the SHA256 of all concatenated class files of the local (jar) package subset
+     * Returns the SHA of all concatenated class files of the local (jar) package subset
      */
-    public final String getImplementationSHA256ClassesThis() {
-        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA256_CLASSES_THIS);
+    public final String getImplementationSHAClassesThis() {
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA_CLASSES_THIS);
     }
 
     /**
-     * Returns the SHA256 of all concatenated native library files of all build libs
+     * Returns the SHA of all concatenated native library files of all build libs
      */
-    public final String getImplementationSHA256Natives() {
-        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA256_NATIVES);
+    public final String getImplementationSHANatives() {
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA_NATIVES);
     }
 
     /**
-     * Returns the SHA256 of all concatenated native library files of the local (jar) package subset
+     * Returns the SHA of all concatenated native library files of the local (jar) package subset
      */
-    public final String getImplementationSHA256NativesThis() {
-        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA256_NATIVES_THIS);
+    public final String getImplementationSHANativesThis() {
+        return this.getAttribute(JogampVersion.IMPLEMENTATION_SHA_NATIVES_THIS);
     }
 
     public final String getImplementationTitle() {
@@ -265,11 +265,11 @@ public class JogampVersion {
         sb.append("Implementation Build: ").append(getImplementationBuild()).append(nl);
         sb.append("Implementation Branch: ").append(getImplementationBranch()).append(nl);
         sb.append("Implementation Commit: ").append(getImplementationCommit()).append(nl);
-        sb.append("Implementation SHA256 Sources: ").append(getImplementationSHA256Sources()).append(nl);
-        sb.append("Implementation SHA256 Classes: ").append(getImplementationSHA256Classes()).append(nl);
-        sb.append("Implementation SHA256 Classes-this: ").append(getImplementationSHA256ClassesThis()).append(nl);
-        sb.append("Implementation SHA256 Natives: ").append(getImplementationSHA256Natives()).append(nl);
-        sb.append("Implementation SHA256 Natives-this: ").append(getImplementationSHA256NativesThis()).append(nl);
+        sb.append("Implementation SHA Sources: ").append(getImplementationSHASources()).append(nl);
+        sb.append("Implementation SHA Classes: ").append(getImplementationSHAClasses()).append(nl);
+        sb.append("Implementation SHA Classes-this: ").append(getImplementationSHAClassesThis()).append(nl);
+        sb.append("Implementation SHA Natives: ").append(getImplementationSHANatives()).append(nl);
+        sb.append("Implementation SHA Natives-this: ").append(getImplementationSHANativesThis()).append(nl);
         if(null != getAndroidPackageVersionName()) {
             sb.append("Android Package Version: ").append(getAndroidPackageVersionName()).append(nl);
         }

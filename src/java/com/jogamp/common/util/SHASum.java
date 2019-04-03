@@ -42,7 +42,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-import com.jogamp.common.GlueGenVersion;
 import com.jogamp.common.util.cache.TempFileCache;
 import com.jogamp.common.util.cache.TempJarCache;
 
@@ -55,13 +54,13 @@ import jogamp.common.Debug;
  * </p>
  * <p>
  * This implementation is being utilized at JogAmp build time to produce various
- * SHA256 sums over sources, class files and native libraries to ensure their identity.
- * See {@link JogampVersion#getImplementationSHA256Sources()},
- * {@link JogampVersion#getImplementationSHA256Classes()}
- * and {@link JogampVersion#getImplementationSHA256Natives()}.
+ * SHA sums over sources, class files and native libraries to ensure their identity.
+ * See {@link JogampVersion#getImplementationSHASources()},
+ * {@link JogampVersion#getImplementationSHAClasses()}
+ * and {@link JogampVersion#getImplementationSHANatives()}.
  * </p>
  * <p>
- * {@link JogampVersion#getImplementationSHA256Sources()} for module gluegen is produced via:
+ * {@link JogampVersion#getImplementationSHASources()} for module gluegen is produced via:
  * <pre>
  * java -cp build/gluegen-rt.jar com.jogamp.common.util.SHASum --algorithm 256 --exclude ".*\\.log" --exclude "make/lib/toolchain" src jcpp/src make
  * </pre>
@@ -250,7 +249,7 @@ public class SHASum {
      * This ensures identical SHA sums over same contents within given paths.
      * </p>
      * <p>
-     * Example to calculate the SHA-256 over our source files as performed for {@link JogampVersion#getImplementationSHA256Sources()}
+     * Example to calculate the SHA-256 over our source files as performed for {@link JogampVersion#getImplementationSHASources()}
      * <pre>
      * java -cp build/gluegen-rt.jar com.jogamp.common.util.SHASum --algorithm 256 --exclude ".*\\.log" --exclude "make/lib/toolchain" src jcpp/src make
      * </pre>

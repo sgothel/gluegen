@@ -520,11 +520,11 @@
               <filter token="BUILD_VERSION" value="${gluegen.version}"/>
               <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
               <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-              <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-              <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-              <filter token="SHA256_CLASSES_THIS" value="0"/>
-              <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-              <filter token="SHA256_NATIVES_THIS" value="${gluegen.build.sha256.natives}"/>
+              <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+              <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+              <filter token="SHA_CLASSES_THIS" value="0"/>
+              <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+              <filter token="SHA_NATIVES_THIS" value="${gluegen.build.sha.natives}"/>
               <filter token="BASEVERSION" value="${jogamp.version.base}"/>
               <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
           </filterset>
@@ -799,7 +799,7 @@
   <target name="gluegen.package.javase">
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.classes.gluegen">
+          outputproperty="gluegen.build.sha.classes.gluegen">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
 
         <arg value="--include"/>
@@ -818,11 +818,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes.gluegen}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="0"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes.gluegen}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="0"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -844,7 +844,7 @@
 
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.classes.gluegen-rt">
+          outputproperty="gluegen.build.sha.classes.gluegen-rt">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
 
         <arg value="--include"/>
@@ -871,11 +871,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes.gluegen-rt}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="0"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes.gluegen-rt}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="0"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -904,11 +904,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes.gluegen-rt-alt}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="0"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes.gluegen-rt-alt}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="0"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -936,11 +936,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="${gluegen.build.sha256.natives}"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="${gluegen.build.sha.natives}"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -954,11 +954,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="${gluegen.build.sha256.natives}"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="${gluegen.build.sha.natives}"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -1002,7 +1002,7 @@
   <target name="gluegen.package.android" if="android-jars.available">
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.classes.gluegen-rt-android">
+          outputproperty="gluegen.build.sha.classes.gluegen-rt-android">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
 
         <arg value="--include"/>
@@ -1027,11 +1027,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes.gluegen-rt-android}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="0"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes.gluegen-rt-android}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="0"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -1063,7 +1063,7 @@
   <target name="gluegen.packaging" depends="gluegen.cpptasks.detect.os">
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.sources">
+          outputproperty="gluegen.build.sha.sources">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
         <!-- jvmarg value="-Djogamp.debug.SHASum"/ -->
 
@@ -1079,19 +1079,19 @@
     </java>
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.classes">
+          outputproperty="gluegen.build.sha.classes">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
         <arg value="${classes.unix}"/>
     </java>
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.natives">
+          outputproperty="gluegen.build.sha.natives">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
         <arg value="${gluegen.lib.dir}/${output.lib.name.os}"/>
     </java>
-    <echo message="gluegen.build.sha256.sources ${gluegen.build.sha256.sources}"/>
-    <echo message="gluegen.build.sha256.classes ${gluegen.build.sha256.classes}"/>
-    <echo message="gluegen.build.sha256.natives ${gluegen.build.sha256.natives}"/>
+    <echo message="gluegen.build.sha.sources ${gluegen.build.sha.sources}"/>
+    <echo message="gluegen.build.sha.classes ${gluegen.build.sha.classes}"/>
+    <echo message="gluegen.build.sha.natives ${gluegen.build.sha.natives}"/>
     <antcall target="gluegen.package.javase"      inheritRefs="true"/>
     <antcall target="gluegen.package.android"     inheritRefs="true"/>
     <antcall target="gluegen.package.native"      inheritRefs="true"/>
@@ -1125,7 +1125,7 @@
   <target name="android-launcher.package" depends="android-launcher.build" if="isAndroid" unless="gluegen.build.skip.android-launcher">
     <java classname="com.jogamp.common.util.SHASum" logError="true" failonerror="true" fork="true" newenvironment="true"
           classpath="${classes}"
-          outputproperty="gluegen.build.sha256.classes.jogamp-android-launcher">
+          outputproperty="gluegen.build.sha.classes.jogamp-android-launcher">
         <sysproperty key="java.library.path" value="${gluegen.lib.dir}"/>
 
         <arg value="--include"/>
@@ -1141,11 +1141,11 @@
             <filter token="BUILD_VERSION" value="${gluegen.version}"/>
             <filter token="SCM_BRANCH" value="${gluegen.build.branch}"/>
             <filter token="SCM_COMMIT" value="${gluegen.build.commit}"/>
-            <filter token="SHA256_SOURCES" value="${gluegen.build.sha256.sources}"/>
-            <filter token="SHA256_CLASSES" value="${gluegen.build.sha256.classes}"/>
-            <filter token="SHA256_CLASSES_THIS" value="${gluegen.build.sha256.classes.jogamp-android-launcher}"/>
-            <filter token="SHA256_NATIVES" value="${gluegen.build.sha256.natives}"/>
-            <filter token="SHA256_NATIVES_THIS" value="0"/>
+            <filter token="SHA_SOURCES" value="${gluegen.build.sha.sources}"/>
+            <filter token="SHA_CLASSES" value="${gluegen.build.sha.classes}"/>
+            <filter token="SHA_CLASSES_THIS" value="${gluegen.build.sha.classes.jogamp-android-launcher}"/>
+            <filter token="SHA_NATIVES" value="${gluegen.build.sha.natives}"/>
+            <filter token="SHA_NATIVES_THIS" value="0"/>
             <filter token="BASEVERSION" value="${jogamp.version.base}"/>
             <filter token="JAR_CODEBASE_TAG" value="${jogamp.jar.codebase}"/>
         </filterset>
@@ -1219,9 +1219,9 @@
     <echo message='gluegen.build.id=${gluegen.build.id}${line.separator}'         file="${build}/artifact.properties" append="true"/>
     <echo message='gluegen.build.branch=${gluegen.build.branch}${line.separator}' file="${build}/artifact.properties" append="true"/>
     <echo message='gluegen.build.commit=${gluegen.build.commit}${line.separator}' file="${build}/artifact.properties" append="true"/>
-    <echo message='gluegen.build.sha256.sources=${gluegen.build.sha256.sources}${line.separator}' file="${build}/artifact.properties" append="true"/>
-    <echo message='gluegen.build.sha256.classes=${gluegen.build.sha256.classes}${line.separator}' file="${build}/artifact.properties" append="true"/>
-    <echo message='gluegen.build.sha256.natives=${gluegen.build.sha256.natives}${line.separator}' file="${build}/artifact.properties" append="true"/>
+    <echo message='gluegen.build.sha.sources=${gluegen.build.sha.sources}${line.separator}' file="${build}/artifact.properties" append="true"/>
+    <echo message='gluegen.build.sha.classes=${gluegen.build.sha.classes}${line.separator}' file="${build}/artifact.properties" append="true"/>
+    <echo message='gluegen.build.sha.natives=${gluegen.build.sha.natives}${line.separator}' file="${build}/artifact.properties" append="true"/>
   </target>
 
   <target name="junit.compile" depends="init">
