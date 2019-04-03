@@ -245,17 +245,17 @@ public class TestTempJarCache extends SingletonJunitCase {
         final ClassLoader cl2 = new TestClassLoader(urls, null);
         final ClassLoader cl3 = new TestClassLoader(urls, null);
 
-        Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl2)
+        Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", new Class<?>[] { Boolean.TYPE }, new Object[] { Boolean.FALSE }, cl2)
                            ).booleanValue());
-        Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl3)
+        Assert.assertFalse(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", new Class<?>[] { Boolean.TYPE }, new Object[] { Boolean.FALSE }, cl3)
                            ).booleanValue());
         Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "initSingleton", null, null, cl2)
                            ).booleanValue());
         Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "initSingleton", null, null, cl3)
                            ).booleanValue());
-        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl2)
+        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", new Class<?>[] { Boolean.TYPE }, new Object[] { Boolean.FALSE }, cl2)
                            ).booleanValue());
-        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", null, null, cl3)
+        Assert.assertTrue(( (Boolean) ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "isInitialized", new Class<?>[] { Boolean.TYPE }, new Object[] { Boolean.FALSE }, cl3)
                            ).booleanValue());
 
         final Object fileCache2 = ReflectionUtil.callStaticMethod(TempJarCache.class.getName(), "getTempFileCache", null, null, cl2);
