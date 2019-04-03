@@ -28,6 +28,16 @@ if [ ! -z "$J2RE_HOME" -a ! -z "$JAVA_HOME" ] ; then
 fi 
 
 if [ -z "$FOUND_JAVA" ] ; then
+    if [ -e /usr/lib/jvm/java-8-openjdk-i386 -a -e /usr/lib/jvm/java-8-openjdk-i386/jre ] ; then
+        J2RE_HOME=/usr/lib/jvm/java-8-openjdk-i386/jre
+        JAVA_HOME=/usr/lib/jvm/java-8-openjdk-i386
+        PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi 
+fi 
+
+if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /opt-linux-x86/jre8 -a -e /opt-linux-x86/j2se8 ] ; then
         J2RE_HOME=/opt-linux-x86/jre8
         JAVA_HOME=/opt-linux-x86/j2se8

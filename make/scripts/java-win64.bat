@@ -1,7 +1,7 @@
 
 set BLD_SUB=build-win64
-set J2RE_HOME=c:\jre1.8.0_66_x64
-set JAVA_HOME=c:\jdk1.8.0_66_x64
+set J2RE_HOME=c:\jre8u202-b08_x64
+set JAVA_HOME=c:\jdk8u202-b08_x64
 set ANT_PATH=C:\apache-ant-1.9.4
 
 set BLD_DIR=..\%BLD_SUB%
@@ -20,7 +20,7 @@ REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.JNILibLoader" "-Djogamp.d
 REM set D_ARGS="-Djogamp.debug.Platform" "-Djogamp.debug.NativeLibrary" "-Djogamp.debug.IOUtil"
 REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.IOUtil.Exe" "-Djogamp.debug.IOUtil.Exe.NoStream"
 REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.TempFileCache" "-Djogamp.debug.TempJarCache" "-Djogamp.debug.IOUtil.Exe" "-Djogamp.gluegen.UseNativeExeFile=true" "-Djava.io.tmpdir=c:\temp_noexec"
-set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.TempFileCache" "-Djogamp.debug.TempJarCache" "-Djava.io.tmpdir=c:\temp_noexec"
+REM set D_ARGS="-Djogamp.debug.IOUtil" "-Djogamp.debug.TempFileCache" "-Djogamp.debug.TempJarCache" "-Djava.io.tmpdir=c:\temp_noexec"
 REM set D_ARGS="-Djogamp.debug=all"
 
 REM %J2RE_HOME%\bin\java -classpath %CP_ALL% %X_ARGS% %D_ARGS% "-Djava.library.path=%LIB_DIR%" "-Dsun.java2d.noddraw=true" "-Dsun.awt.noerasebackground=true" %1 %2 %3 %4 %5 %6 %7 %8 %9 > java-win64.log 2>&1
