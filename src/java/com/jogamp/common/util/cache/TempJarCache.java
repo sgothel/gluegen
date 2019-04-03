@@ -43,6 +43,12 @@ import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.SecurityUtil;
 
+/**
+ * Static Jar file cache handler using an underlying instance of {@link TempFileCache}, see {@link #getTempFileCache()}.
+ * <p>
+ * Lifecycle: Concurrently running JVMs and ClassLoader
+ * </p>
+ */
 public class TempJarCache {
     private static final boolean DEBUG = Debug.debug("TempJarCache");
 

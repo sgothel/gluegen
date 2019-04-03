@@ -29,8 +29,17 @@
 package com.jogamp.common;
 
 import com.jogamp.common.util.JogampVersion;
+import com.jogamp.common.util.SHASum;
 import com.jogamp.common.util.VersionUtil;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.jar.Manifest;
+import java.util.regex.Pattern;
 
 public class GlueGenVersion extends JogampVersion {
 
@@ -57,6 +66,40 @@ public class GlueGenVersion extends JogampVersion {
             }
         }
         return jogampCommonVersionInfo;
+    }
+
+    /**
+     * {@code gluegen-rt.jar} definition of {@link SHASum.TempJarSHASum}'s specialization of {@link SHASum}.
+     * <p>
+     * Implementation uses {@link com.jogamp.common.util.cache.TempJarCache}.
+     * </p>
+     * <p>
+     * Constructor defines the includes and excludes as used for {@code gluegen-rt.jar} {@link SHASum} computation.
+     * </p>
+     */
+    public static class GluGenRTJarSHASum extends SHASum.TempJarSHASum {
+        /**
+         * See {@link GluGenRTJarSHASum}
+         * @throws SecurityException
+         * @throws IllegalArgumentException
+         * @throws NoSuchAlgorithmException
+         * @throws IOException
+         * @throws URISyntaxException
+         */
+        public GluGenRTJarSHASum()
+                throws SecurityException, IllegalArgumentException, NoSuchAlgorithmException, IOException, URISyntaxException
+        {
+            super(MessageDigest.getInstance("SHA-256"), GlueGenVersion.class, new ArrayList<Pattern>(), new ArrayList<Pattern>());
+            final List<Pattern> excludes = getExcludes();
+            final List<Pattern> includes = getIncludes();
+            final String origin = getOrigin();
+            excludes.add(Pattern.compile(origin+"/jogamp/android/launcher"));
+            excludes.add(Pattern.compile(origin+"/jogamp/common/os/android"));
+            excludes.add(Pattern.compile(origin+"/com/jogamp/gluegen/jcpp"));
+            includes.add(Pattern.compile(origin+"/com/jogamp/gluegen/runtime/.*\\.class"));
+            includes.add(Pattern.compile(origin+"/com/jogamp/common/.*"));
+            includes.add(Pattern.compile(origin+"/jogamp/common/.*"));
+        }
     }
 
     public static void main(final String args[]) {

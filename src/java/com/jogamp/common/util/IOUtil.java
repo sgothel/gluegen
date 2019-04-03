@@ -50,6 +50,8 @@ import java.net.URLConnection;
 import java.nio.ByteBuffer;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -1401,5 +1403,76 @@ public class IOUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * Retrieve the list of all filenames traversing through given paths
+     * @param paths list of paths to traverse through, containing directories and files
+     * @param excludes optional list of exclude {@link Pattern}. All {@link Pattern#matcher(CharSequence) matching} files or directories will be omitted. Maybe be null or empty.
+     * @param includes optional list of explicit include {@link Pattern}. If given, only {@link Pattern#matcher(CharSequence) matching} files will be returned, otherwise all occurring.
+     * @return list of unsorted filenames within given paths
+     */
+    public static ArrayList<String> filesOf(final List<String> paths, final List<Pattern> excludes, final List<Pattern> includes) {
+        final ArrayList<String> files = new ArrayList<String>(paths.size()*32);
+        final ArrayList<String> todo = new ArrayList<String>(paths);
+        while(todo.size() > 0) {
+            final String p = todo.remove(0);
+            if( null != excludes && excludes.size() > 0) {
+                boolean exclude = false;
+                for(int i=0; !exclude && i<excludes.size(); i++) {
+                    exclude = excludes.get(i).matcher(p).matches();
+                    if( DEBUG ) {
+                        if( exclude ) {
+                            System.err.println("IOUtil.filesOf(): excluding <"+p+"> (exclude["+i+"]: "+excludes.get(i)+")");
+                        }
+                    }
+                }
+                if( exclude ) {
+                    continue; // skip further processing, continue w/ next path
+                }
+            }
+            final File f = new File(p);
+            if( !f.exists() ) {
+                if( DEBUG ) {
+                    System.err.println("IOUtil.filesOf(): not existing: "+f);
+                }
+                continue;
+            } else if( f.isDirectory() ) {
+                final String[] subs = f.list();
+                if( null == subs ) {
+                    if( DEBUG ) {
+                        System.err.println("IOUtil.filesOf(): null list of directory: "+f);
+                    }
+                } else if( 0 == subs.length ) {
+                    if( DEBUG ) {
+                        System.err.println("IOUtil.filesOf(): empty list of directory: "+f);
+                    }
+                } else {
+                    int j=0;
+                    final String pp = p.endsWith("/") ? p : p+"/";
+                    for(int i=0; i<subs.length; i++) {
+                        todo.add(j++, pp+subs[i]); // add 'in-place' to soothe the later sorting algorithm
+                    }
+                }
+            } else {
+                if( null != includes && includes.size() > 0) {
+                    boolean include = false;
+                    for(int i=0; !include && i<includes.size(); i++) {
+                        include = includes.get(i).matcher(p).matches();
+                        if( DEBUG ) {
+                            if( include ) {
+                                System.err.println("IOUtil.filesOf(): including <"+p+"> (including["+i+"]: "+includes.get(i)+")");
+                            }
+                        }
+                    }
+                    if( include ) {
+                        files.add(p);
+                    }
+                } else {
+                    files.add(p);
+                }
+            }
+        }
+        return files;
     }
 }
