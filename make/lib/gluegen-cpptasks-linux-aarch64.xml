@@ -42,6 +42,7 @@
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
       </defineset>
       <compilerarg value="-fpic" /> 
+      <compilerarg value="-march=armv8-a" />
       <compilerarg value="-include"/>
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>

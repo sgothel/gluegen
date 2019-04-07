@@ -22,7 +22,10 @@
               however memcpy is not versioned for aarch64 */
            #define GLIBC_COMPAT_SYMBOL(FFF)
         #elif defined(__arm__)
+           /** On recent toolchain memcpy is no more versioned for arm 
            #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
+            */
+           #define GLIBC_COMPAT_SYMBOL(FFF)
         #elif defined(__amd64__)
            #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
         #else
@@ -34,7 +37,10 @@
               however memcpy is not versioned for aarch64 */
            #define GLIBC_COMPAT_SYMBOL(FFF)
         #elif defined(__arm__)
-           #define GLIBC_COMPAT_SYMBOL(FFF) asm(".symver " #FFF "," #FFF "@GLIBC_2.4");
+           /** On recent toolchain memcpy is no more versioned for arm 
+           #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
+            */
+           #define GLIBC_COMPAT_SYMBOL(FFF)
         #elif defined(__amd64__)
            #define GLIBC_COMPAT_SYMBOL(FFF) asm(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
         #else

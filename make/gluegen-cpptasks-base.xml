@@ -238,7 +238,7 @@
        by a custom file set in property 'gluegen-cpptasks.file' 
        or environment var 'GLUEGEN_CPPTASKS_FILE' 
 
-       See 'lib/gluegen-cpptasks-linux-armv6.xml' which sets OS and ARCH
+       See 'lib/gluegen-cpptasks-linux-armv6hf.xml' which sets OS and ARCH
        for crosscompilation.
     -->
   <target name="gluegen.cpptasks.detect.os.custom">
@@ -1041,8 +1041,8 @@
     </compiler>
 
     <!-- Using default compiler settings - utilize:
-           - lib/gluegen-cpptasks-linux-armv6.xml   (armv5te + softfp), or 
            - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
          for official JogAmp builds! -->
     <compiler id="compiler.cfg.linux.armv6" name="${gcc.compat.compiler}">
       <defineset>
@@ -1057,6 +1057,10 @@
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
+    <!-- Using default compiler settings - utilize:
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
+         for official JogAmp builds! -->
     <compiler id="compiler.cfg.linux.aarch64" name="${gcc.compat.compiler}">
       <defineset>
         <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
@@ -1279,8 +1283,8 @@
     </linker>
 
     <!-- Using default compiler settings - utilize:
-           - lib/gluegen-cpptasks-linux-armv6.xml   (armv5te + softfp), or 
            - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
          for official JogAmp builds! -->
     <linker id="linker.cfg.linux.armv6" name="${gcc.compat.compiler}">
       <linkerarg value="-fpic" /> 
@@ -1290,6 +1294,10 @@
       <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
+    <!-- Using default compiler settings - utilize:
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
+         for official JogAmp builds! -->
     <linker id="linker.cfg.linux.aarch64" name="${gcc.compat.compiler}">
       <linkerarg value="-fpic" /> 
       <linkerarg value="-nostdlib" />
