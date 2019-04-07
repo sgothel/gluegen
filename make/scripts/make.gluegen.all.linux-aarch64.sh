@@ -11,7 +11,7 @@
 export TARGET_PLATFORM_LIBS=/usr/lib/aarch64-linux-gnu
 export TARGET_JAVA_LIBS=/usr/lib/jvm/java-8-openjdk-aarch64/jre/lib/aarch64
 
-export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-aarch64.xml"
+export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-aarch64-ontarget.xml"
 
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"

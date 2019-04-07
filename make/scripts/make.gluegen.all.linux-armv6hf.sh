@@ -9,9 +9,9 @@
 
 # arm-linux-gnueabihf == armhf triplet
 export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabihf
-export TARGET_JAVA_LIBS=/usr/lib/jvm/java-6-openjdk-armhf/jre/lib/arm
+export TARGET_JAVA_LIBS=/usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm
 
-export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6hf.xml"
+export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6hf-ontarget.xml"
 
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
