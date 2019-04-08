@@ -299,8 +299,20 @@
          <equals arg1="${env.TARGET_PLATFORM_USRROOT}" arg2="$${env.TARGET_PLATFORM_USRROOT}" casesensitive="true" />
         </not>
     </condition>
+    <condition property="TARGET_PLATFORM_USRLIBS" value="${env.TARGET_PLATFORM_USRLIBS}">
+        <not>
+         <equals arg1="${env.TARGET_PLATFORM_USRLIBS}" arg2="$${env.TARGET_PLATFORM_USRLIBS}" casesensitive="true" />
+        </not>
+    </condition>
+    <condition property="TARGET_JAVA_LIBS" value="${env.TARGET_JAVA_LIBS}">
+        <not>
+         <equals arg1="${env.TARGET_JAVA_LIBS}" arg2="$${env.TARGET_JAVA_LIBS}" casesensitive="true" />
+        </not>
+    </condition>
     <echo message='TARGET_PLATFORM_SYSROOT ${TARGET_PLATFORM_SYSROOT}'/>
     <echo message='TARGET_PLATFORM_USRROOT ${TARGET_PLATFORM_USRROOT}'/>
+    <echo message='TARGET_PLATFORM_USRLIBS ${TARGET_PLATFORM_USRLIBS}'/>
+    <echo message='TARGET_JAVA_LIBS ${TARGET_JAVA_LIBS}'/>
   </target>
 
 </project>

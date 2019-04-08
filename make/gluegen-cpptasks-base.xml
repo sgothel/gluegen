@@ -1441,8 +1441,8 @@
       -->
     <target name="gluegen.cpptasks.declare.compiler.environment" >
       <condition property="java.lib.dir.platform"
-                 value="${env.TARGET_JAVA_LIBS}" >
-                 <available file="${env.TARGET_JAVA_LIBS}" type="dir" />
+                 value="${TARGET_JAVA_LIBS}" >
+                 <available file="${TARGET_JAVA_LIBS}" type="dir" />
       </condition>
     </target>
 
