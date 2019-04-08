@@ -17,6 +17,12 @@
      Current GlueGen code utilizes some minor Java 1.6 features
      which could be replaced, however it's not desired at this point
      since we have no mode hard Java 1.5 constraints.
+
+     For crosscompilation the following shall be set:
+     - TARGET_PLATFORM_SYSROOT Crosscompiler and system specified 'sysroot' (as in gcc \-\-print-sysroot)
+     - TARGET_PLATFORM_USRROOT Additional optional user headers and libraries for target
+     - TARGET_PLATFORM_USRLIBS Actual location of target user libraries within TARGET_PLATFORM_USRROOT
+     - TARGET_JAVA_LIBS Actual location of the Java libraries within TARGET_PLATFORM_USRROOT
   -->
 
 <project name="jogamp-env" basedir=".">
@@ -283,6 +289,18 @@
     </condition>
     <echo message="macosx.sdkroot             ${macosx.sdkroot}"/>
 
+    <condition property="TARGET_PLATFORM_SYSROOT" value="${env.TARGET_PLATFORM_SYSROOT}">
+        <not>
+         <equals arg1="${env.TARGET_PLATFORM_SYSROOT}" arg2="$${env.TARGET_PLATFORM_SYSROOT}" casesensitive="true" />
+        </not>
+    </condition>
+    <condition property="TARGET_PLATFORM_USRROOT" value="${env.TARGET_PLATFORM_USRROOT}">
+        <not>
+         <equals arg1="${env.TARGET_PLATFORM_USRROOT}" arg2="$${env.TARGET_PLATFORM_USRROOT}" casesensitive="true" />
+        </not>
+    </condition>
+    <echo message='TARGET_PLATFORM_SYSROOT ${TARGET_PLATFORM_SYSROOT}'/>
+    <echo message='TARGET_PLATFORM_USRROOT ${TARGET_PLATFORM_USRROOT}'/>
   </target>
 
 </project>

@@ -8,8 +8,9 @@
 #    -DisX11=true \
 
 # arm-linux-gnueabihf == armhf triplet
-export TARGET_PLATFORM_LIBS=/usr/lib/arm-linux-gnueabihf
-export TARGET_JAVA_LIBS=/usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm
+export TARGET_PLATFORM_USRROOT=
+export TARGET_PLATFORM_USRLIBS=$TARGET_PLATFORM_USRROOT/usr/lib/arm-linux-gnueabihf
+export TARGET_JAVA_LIBS=$TARGET_PLATFORM_USRROOT/usr/lib/jvm/java-8-openjdk-armhf/jre/lib/arm
 
 export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6hf-ontarget.xml"
 

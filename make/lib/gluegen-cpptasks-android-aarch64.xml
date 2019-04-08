@@ -33,7 +33,7 @@
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
     <compiler id="compiler.cfg.android" name="gcc">
-      <compilerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+      <compilerarg value="--sysroot=${TARGET_PLATFORM_SYSROOT}" />
       <!-- The default search dirs for 'gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin will not find
         subprograms properly (see gcc -print-search-dirs). Not sure if this is a bug in the NDK
         or not. Need to explicitly indicate where subprograms are with -B.
@@ -86,7 +86,7 @@
     </compiler>
 
     <linker id="linker.cfg.android" name="gcc">
-         <linkerarg value="--sysroot=${env.TARGET_PLATFORM_ROOT}" />
+         <linkerarg value="--sysroot=${TARGET_PLATFORM_SYSROOT}" />
 
          <linkerarg value="-fpic" /> 
          <!-- linkerarg value="-fPIE" / --> <!-- not for shared libs, won't produce symbols -->

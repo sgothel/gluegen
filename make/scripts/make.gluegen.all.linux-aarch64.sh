@@ -8,8 +8,9 @@
 #    -DisX11=true \
 
 # aarch64-linux-gnue == aarch64 triplet
-export TARGET_PLATFORM_LIBS=/usr/lib/aarch64-linux-gnu
-export TARGET_JAVA_LIBS=/usr/lib/jvm/java-8-openjdk-aarch64/jre/lib/aarch64
+export TARGET_PLATFORM_USRROOT=
+export TARGET_PLATFORM_USRLIBS=$TARGET_PLATFORM_USRROOT/usr/lib/aarch64-linux-gnu
+export TARGET_JAVA_LIBS=$TARGET_PLATFORM_USRROOT/usr/lib/jvm/java-8-openjdk-aarch64/jre/lib/aarch64
 
 export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-aarch64-ontarget.xml"
 

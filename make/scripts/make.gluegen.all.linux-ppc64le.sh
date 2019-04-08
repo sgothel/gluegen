@@ -11,7 +11,7 @@ MACHINE=ppc64le
 ARCH=ppc64el
 TRIPLET=powerpc64le-linux-gnu
 
-export TARGET_PLATFORM_LIBS=/usr/lib/$TRIPLET
+export TARGET_PLATFORM_USRLIBS=/usr/lib/$TRIPLET
 export TARGET_JAVA_LIBS=/usr/lib/jvm/java-7-openjdk-$ARCH/jre/lib/$MACHINE
 
 export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-$MACHINE.xml"
