@@ -431,8 +431,6 @@
     </target>
 
     <target name="gluegen.build.native" depends="init, c.configure" >
-      <var name="gluegen.build.shasum.done" unset="true"/>
-      <var name="gluegen.package.native.done" unset="true"/>
       <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
       <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
 
@@ -454,6 +452,9 @@
     </target>
 
     <target name="gluegen.build.c.impl" depends="init, c.configure" unless="gluegen.build.skip.native">
+      <echo message="clearing gluegen.build.shasum.done (2) - was ${gluegen.build.shasum.done}"/>
+      <var name="gluegen.build.shasum.done" unset="true"/>
+      <var name="gluegen.package.native.done" unset="true"/>
       <fail message="Requires '${compiler.cfg.id}'"      unless="compiler.cfg.id"/>
       <fail message="Requires '${linker.cfg.id}'"        unless="linker.cfg.id"/>
 
@@ -1065,6 +1066,7 @@
       </condition>
   </target>
   <target name="gluegen.build.java.impl" depends="gluegen.cpptasks.detect.os,gluegen.build.check.java" unless="gluegen.build.skip.java">
+    <echo message="clearing gluegen.build.shasum.done (1) - was ${gluegen.build.shasum.done}"/>
     <var name="gluegen.build.shasum.done" unset="true"/>
     <var name="gluegen.package.java.done" unset="true"/>
     <antcall target="generate-hash-maps"        inheritRefs="true"/>
