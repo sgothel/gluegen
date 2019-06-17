@@ -234,7 +234,7 @@
 
         <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
 
-        <cc outtype="shared" 
+        <cc outtype="${output.lib.type}" 
             objdir="${build_t.obj}" 
             outfile="${build_t.lib}/@{output.lib.name}"
             optimize="${c.compiler.optimise}" 

@@ -469,7 +469,8 @@
       <echo message="Compiling ${c.compiler.src.files.os} ${c.compiler.src.files.common}" />
       <echo message="user.dir=${user.dir}" />
 
-      <cc outtype="shared" 
+      <cc outtype="${output.lib.type}" 
+          usehighleveltool="true"
           objdir="${gluegen.lib.dir}"
           outfile="${gluegen.lib.dir}/${output.lib.name}"
           optimize="${c.compiler.optimise}" 
