@@ -56,6 +56,9 @@
    -   isLinuxSparc
    -   isOSX
    -   isOSXPPC
+   -   isIOS
+   -   isIOSAmd64
+   -   isIOSArm64
    -   isSolaris
    -   isSolaris32Bit
    -   isSolaris64Bit
@@ -70,15 +73,21 @@
    -   jvmDataModel32Bit
 
    -   jvmDataModel.arg  either one of [ "-d64", "-d32" or "-Djnlp.no.jvm.data.model.set=true" ]
+
+   -   build.dynamiclibs
+   -   build.staticlibs  (usually = !build.dynamiclibs)
+   -   output.lib.type
+
    -
-   - isX11 is set if: !isWindows && !isOSX && !noX11
+   - isX11 is set if: !isWindows && !isOSX !isIOS && !noX11
    - 
    - It also sets the following properties which are useful for
    - building native library jar files for Java Web Start and
    - understanding on what OS and architecture things are being built.
    -
    -   os.and.arch (i.e., "windows-i586")
-   -   native.library.suffix (i.e.., "so", "dll")
+   -   native.library.prefix (i.e.., "lib", "")
+   -   native.library.suffix (i.e.., "so", "dll", "dylib")
    - 
    - The gluegen.cpptasks.setup.compiler target is the preferred target
    - to depend upon in your build.xml. It depends on gluegen.cpptasks.detect.compiler
@@ -148,6 +157,8 @@
    -   compiler.cfg.win32.mingw
    -   compiler.cfg.win32.msvc
    -   compiler.cfg.macosx
+   -   compiler.cfg.ios.amd64
+   -   compiler.cfg.ios.arm64
    -   compiler.cfg.freebsd
    -   compiler.cfg.hpux
    -   linker.cfg.linux
@@ -173,6 +184,8 @@
    -   linker.cfg.win32.mingw
    -   linker.cfg.win32.msvc
    -   linker.cfg.macosx
+   -   linker.cfg.ios.amd64
+   -   linker.cfg.ios.arm64
    -   linker.cfg.hpux
    - 
    - This project file also defines a macrodef called "msvc.manifest"
@@ -263,6 +276,8 @@
     <condition property="is64Bit">
       <or>
         <istrue value="${isAMD64}" />
+        <istrue value="${isIOSAmd64}"/> 
+        <istrue value="${isIOSArm64}"/> 
         <os arch="IA64" />
         <os arch="sparcv9" />
         <os arch="armv8a" />
@@ -270,10 +285,19 @@
       </or>
     </condition>
 
+    <condition property="isIOS">
+      <or>
+          <istrue value="${isIOSAmd64}"/> 
+          <istrue value="${isIOSArm64}"/> 
+      </or>
+    </condition>
     <condition property="isOSX">
       <and>
         <os family="mac"/>
         <os family="unix"/>
+        <not>
+          <istrue value="${isIOS}"/> 
+        </not>
       </and>
     </condition>
     <condition property="isUnix">
@@ -540,6 +564,7 @@
       <and>
         <isfalse value="${isWindows}" />
         <isfalse value="${isOSX}" />
+        <isfalse value="${isIOS}" />
         <isfalse value="${isAndroid}" />
         <isfalse value="${noX11}" />
       </and>
@@ -571,6 +596,9 @@
     <condition property="jvmDataModel.arg" value="-d64"><isset property="jvmDataModel64Bit"/></condition>
     <condition property="jvmDataModel.arg" value="-d32"><isset property="jvmDataModel32Bit"/></condition>
     <property name="jvmDataModel.arg" value="-Djnlp.no.jvm.data.model.set=true" /> <!-- dummy placeholder, valid jvm arg, won't override above spec -->
+    <condition property="build.dynamiclibs" value="false" else="true"><istrue value="${isIOS}"/></condition>
+    <condition property="build.staticlibs" value="false" else="true"><istrue value="${build.dynamiclibs}"/></condition>
+    <condition property="output.lib.type" value="shared" else="static"><istrue value="${build.dynamiclibs}"/></condition>
   </target>
 
   <target name="gluegen.cpptasks.detect.os.refine" unless="gluegen.cpptasks.detected.os.2">
@@ -641,6 +669,9 @@
     <echo message="OS X PPC=${use.macosppc}" />
     <echo message="OS X x32=${use.macosx32}" />
     <echo message="OS X x64=${use.macosx64}" />
+    <echo message="iOS=${isIOS}" />
+    <echo message="iOSAmd64=${isIOSAmd64}" />
+    <echo message="iOSArm64=${isIOSArm64}" />
     <echo message="Solaris=${isSolaris}" />
     <echo message="Solaris32Bit=${isSolaris32Bit}" />
     <echo message="Solaris64Bit=${isSolaris64Bit}" />
@@ -654,6 +685,9 @@
     <echo message="os=${os.name}" />
     <echo message="os=${os.version}" />
     <echo message="arch=${os.arch}" /> 
+    <echo message="build.dynamiclibs=${build.dynamiclibs}" /> 
+    <echo message="build.staticlibs=${build.staticlibs}" /> 
+    <echo message="output.lib.type=${output.lib.type}" /> 
  </target>
 
  <!-- Consult jogamp.common.os.PlatformPropsImpl.getOSAndArch(..) to complete/sync mapping! -->
@@ -755,8 +789,21 @@
   <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv6.armel,gluegen.cpptasks.detect.os.linux.armv6.armhf,gluegen.cpptasks.detect.os.android.armv6.armel,gluegen.cpptasks.detect.os.linux.aarch64,gluegen.cpptasks.detect.os.android.armv6.armhf,gluegen.cpptasks.detect.os.android.aarch64,gluegen.cpptasks.detect.os.android.x86,gluegen.cpptasks.detect.os.linux.alpha,gluegen.cpptasks.detect.os.linux.hppa,gluegen.cpptasks.detect.os.linux.mips,gluegen.cpptasks.detect.os.linux.mipsel,gluegen.cpptasks.detect.os.linux.ppc,gluegen.cpptasks.detect.os.linux.ppc64,gluegen.cpptasks.detect.os.linux.ppc64le,gluegen.cpptasks.detect.os.linux.s390,gluegen.cpptasks.detect.os.linux.s390x,gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
-    <property name="native.library.suffix"     value="*lib" />
+    <property name="native.library.prefix"     value="lib" />
+    <property name="native.library.suffix"     value="dylib" />
     <property name="os.and.arch" value="macosx-universal" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.ios.amd64" unless="gluegen.cpptasks.detected.os.2" if="isIOSAmd64">
+    <property name="native.library.prefix"     value="lib" />
+    <property name="native.library.suffix"     value="a" />
+    <property name="os.and.arch" value="ios-amd64" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.ios.arch64" unless="gluegen.cpptasks.detected.os.2" if="isIOSArm64">
+    <property name="native.library.prefix"     value="lib" />
+    <property name="native.library.suffix"     value="a" />
+    <property name="os.and.arch" value="ios-arm64" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os.solaris.sparc" unless="gluegen.cpptasks.detected.os.2" if="isSolarisSparc">
@@ -778,6 +825,7 @@
   <target name="gluegen.cpptasks.detect.os.solaris" depends="gluegen.cpptasks.detect.os.solaris.sparc,gluegen.cpptasks.detect.os.solaris.sparcv9,gluegen.cpptasks.detect.os.solaris.amd64,gluegen.cpptasks.detect.os.solaris.x86" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.unix" unless="gluegen.cpptasks.detected.os.2" if="isUnix">
+    <property name="native.library.prefix"     value="lib" />
     <property name="native.library.suffix"     value="so" />
   </target>
 
@@ -790,10 +838,11 @@
   </target>
 
   <target name="gluegen.cpptasks.detect.os.windows" depends="gluegen.cpptasks.detect.os.windows.amd64,gluegen.cpptasks.detect.os.windows.x86" unless="gluegen.cpptasks.detected.os.2" if="isWindows">
+    <property name="native.library.prefix"     value="" />
     <property name="native.library.suffix"     value="dll" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.refine,gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
+  <target name="gluegen.cpptasks.detect.os.2" depends="gluegen.cpptasks.detect.os.refine,gluegen.cpptasks.detect.os.freebsd,gluegen.cpptasks.detect.os.hpux,gluegen.cpptasks.detect.os.linux,gluegen.cpptasks.detect.os.osx,gluegen.cpptasks.detect.os.ios.amd64,gluegen.cpptasks.detect.os.ios.arch64,gluegen.cpptasks.detect.os.solaris,gluegen.cpptasks.detect.os.unix,gluegen.cpptasks.detect.os.windows"  unless="gluegen.cpptasks.detected.os.2">
     <propertyregex property="os.and.arch.dot"
                    input="${os.and.arch}"
                    regexp="-"
@@ -819,6 +868,10 @@
       <isset property="isOSX"/> 
     </condition>
     <condition property="system.env.library.path"
+               value="DYLD_LIBRARY_PATH">
+      <isset property="isIOS"/> 
+    </condition>
+    <condition property="system.env.library.path"
                value="LD_LIBRARY_PATH">
       <isset property="isUnix"/> 
     </condition>
@@ -830,6 +883,7 @@
     <!-- NOTE: the value of the c.strip.tool and c.strip.args attribute will not be overridden if already set externally -->
     <property name="c.strip.tool"     value="strip" /> 
     <condition property="c.strip.args" value="-S -x"><isset property="isOSX"/></condition>
+    <condition property="c.strip.args" value="-S -x"><isset property="isIOS"/></condition>
     <property name="c.strip.args"     value="" /> 
 
   </target>
@@ -1188,6 +1242,36 @@
       </defineset>
     </compiler>
 
+    <compiler id="compiler.cfg.ios.amd64" name="${gcc.compat.compiler}">
+      <compilerarg value="-v"/>
+      <compilerarg value="-arch"/>
+      <compilerarg value="x86_64"/>
+      <compilerarg value="-Wmost" />
+      <compilerarg value="-ObjC" />
+      <compilerarg value="-miphoneos-version-min=10.5"/>
+      <!-- sysincludepath path="${macosx.sdkroot}" if="macosx.sdkroot"/ -->
+      <defineset>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+      </defineset>
+    </compiler>
+
+    <compiler id="compiler.cfg.ios.arm64" name="${gcc.compat.compiler}">
+      <compilerarg value="-v"/>
+      <compilerarg value="-arch"/>
+      <compilerarg value="arm64"/>
+      <compilerarg value="-Wmost" />
+      <compilerarg value="-ObjC" />
+      <compilerarg value="-miphoneos-version-min=10.5"/>
+      <!-- sysincludepath path="${macosx.sdkroot}" if="macosx.sdkroot"/ -->
+      <defineset>
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
+      </defineset>
+    </compiler>
+
     <!-- Windows compiler configuration -->
 
     <!--compiler id="compiler.cfg.linux64.mingw64" classname="net.sf.antcontrib.cpptasks.gcc.Gcc64CCompiler"-->
@@ -1375,7 +1459,6 @@
     <!-- MacOSX linker configuration -->
 
     <linker id="linker.cfg.macosx" name="${gcc.compat.compiler}">
-      <!-- Note: Apple doesn't seem to provide ppc binaries on Snow Leopard -->
       <linkerarg value="-arch" if="use.macosppc"/>
       <linkerarg value="ppc" if="use.macosppc"/>
       <linkerarg value="-arch" if="use.macosx32"/>
@@ -1385,7 +1468,24 @@
       <linkerarg value="-mmacosx-version-min=10.5"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
-      <!-- Note: Apple doesn't seem to provide ppc64 binaries on Leopard -->
+    </linker>
+
+    <linker id="linker.cfg.ios.amd64" name="${gcc.compat.compiler}">
+      <linkerarg value="-v"/>
+      <linkerarg value="-arch"/>
+      <linkerarg value="x86_64"/>
+      <linkerarg value="-miphoneos-version-min=10.5"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
+    </linker>
+
+    <linker id="linker.cfg.ios.arm64" name="${gcc.compat.compiler}">
+      <linkerarg value="-v"/>
+      <linkerarg value="-arch"/>
+      <linkerarg value="arm64"/>
+      <linkerarg value="-miphoneos-version-min=10.5"/>
+      <linkerarg value="-static-libgcc" if="isGCC"/>
+      <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
 
     <!-- Windows linker configuration -->
@@ -1639,6 +1739,28 @@
       <property name="java.lib.dir.platform"      value="/System/Library/Frameworks/JavaVM.framework/Libraries" />
     </target>
 
+    <target name="gluegen.cpptasks.declare.compiler.ios.amd64" if="isIOSAmd64">
+      <echo message="iOSAmd64" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.ios.amd64" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.ios.amd64" /> 
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/macosx" />
+      <condition property="java.lib.dir.platform"
+                 value="${java.home.dir}/jre/lib">
+                 <available file="${java.home.dir}/jre/lib/libjvm.a"/>
+      </condition>
+    </target>
+
+    <target name="gluegen.cpptasks.declare.compiler.ios.arm64" if="isIOSArm64">
+      <echo message="iOSArm64" />
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.ios.arm64" /> 
+      <property name="linker.cfg.id.base"            value="linker.cfg.ios.arm64" /> 
+      <property name="java.includes.dir.platform"    value="${java.includes.dir}/macosx" />
+      <condition property="java.lib.dir.platform"
+                 value="${java.home.dir}/jre/lib">
+                 <available file="${java.home.dir}/jre/lib/libjvm.a"/>
+      </condition>
+    </target>
+
     <target name="gluegen.cpptasks.declare.compiler.freebsd.x86" if="isFreeBSDX86">
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
@@ -1665,7 +1787,7 @@
       <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/PA_RISC2.0" />
     </target>
 
-    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.environment,gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" >
+    <target name="gluegen.cpptasks.declare.compiler" depends="gluegen.cpptasks.declare.compiler.environment,gluegen.cpptasks.declare.compiler.win32,gluegen.cpptasks.declare.compiler.linux,gluegen.cpptasks.declare.compiler.solaris,gluegen.cpptasks.declare.compiler.macosx,gluegen.cpptasks.declare.compiler.ios.amd64,gluegen.cpptasks.declare.compiler.ios.arm64,gluegen.cpptasks.declare.compiler.freebsd,gluegen.cpptasks.declare.compiler.hpux" >
       <echo message="java.home.dir                ${java.home.dir}" />
       <echo message="java.includes.dir            ${java.includes.dir}" />
       <echo message="java.includes.dir.platform   ${java.includes.dir.platform}" />

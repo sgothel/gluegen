@@ -71,6 +71,11 @@ public class MachineDataInfoRuntime {
       }
       throw new InternalError("Already initialized");
   }
+  /**
+   * The static {@link MachineDataInfo} is utilized for high performance
+   * precompiled size, offset, etc table lookup within generated structures
+   * using the {@link MachineDataInfo.StaticConfig} index.
+   */
   public static MachineDataInfo.StaticConfig getStatic() {
       if(!initialized) {
           synchronized(MachineDataInfo.class) { // volatile dbl-checked-locking OK
@@ -110,8 +115,10 @@ public class MachineDataInfoRuntime {
               return StaticConfig.X86_32_UNIX;
           }
       } else {
-          if( osType == Platform.OSType.WINDOWS ) {
+          if( Platform.OSType.WINDOWS == osType ) {
               return StaticConfig.X86_64_WINDOWS;
+          } else if( Platform.OSType.IOS == osType &&  Platform.CPUType.ARM64 == cpuType ) {
+              return StaticConfig.ARM64_IOS;
           } else {
               // for all 64bit unix types (x86_64, aarch64, sparcv9, ..)
               return StaticConfig.LP64_UNIX;

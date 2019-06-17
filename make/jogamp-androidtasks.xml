@@ -28,7 +28,7 @@
             jarbuilddir="${build}"   // jar build location
             jarbasename="gluegen-rt" // jar base file name
             nativebuilddir="${gluegen.lib.dir}" // native library build location
-            nativebasename="gluegen-rt"         // native library base file name "*${nativebasename}*.${native.library.suffix}"
+            nativebasename="${output.lib.name}"         // native library base file name "*${nativebasename}*.${native.library.suffix}"
             androidmanifest.path="resources/android/AndroidManifest.xml"
             androidresources.path="resources/android/res"
             jarmanifest.path="${build}/Manifest-rt.temp" // optional

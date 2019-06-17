@@ -58,7 +58,7 @@ import jogamp.common.os.PlatformPropsImpl;
 public class Platform extends PlatformPropsImpl {
 
     public enum OSType {
-        LINUX, FREEBSD, ANDROID, MACOS, SUNOS, HPUX, WINDOWS, OPENKODE;
+        LINUX, FREEBSD, ANDROID, MACOS, SUNOS, HPUX, WINDOWS, OPENKODE, IOS;
     }
 
     public enum CPUFamily {
@@ -302,7 +302,8 @@ public class Platform extends PlatformPropsImpl {
                 }
                 _isRunningFromJarURL[0] = null != platformClassJarURI;
 
-                _USE_TEMP_JAR_CACHE[0] = ( OS_TYPE != OSType.ANDROID ) && ( null != platformClassJarURI ) &&
+                _USE_TEMP_JAR_CACHE[0] = ( OS_TYPE != OSType.ANDROID ) && ( OS_TYPE != OSType.IOS ) &&
+                                         ( null != platformClassJarURI ) &&
                                          PropertyAccess.getBooleanProperty(useTempJarCachePropName, true, true);
 
                 // load GluegenRT native library

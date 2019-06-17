@@ -89,6 +89,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
         break;
 
       case MACOS:
+      case IOS:
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".dylib", ".jnilib" };
         isOSX = true;
@@ -217,6 +218,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
         break;
 
       case MACOS:
+      case IOS:
         dynLink = new MacOSXDynamicLinkerImpl();
         break;
 
@@ -526,6 +528,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
         return windowsLibName;
 
       case MACOS:
+      case IOS:
         return macOSXLibName;
 
       default:
@@ -602,7 +605,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private static Method  findLibraryMethod = null;
   private static final String findLibraryImpl(final String libName, final ClassLoader loader) {
     if (loader == null) {
-      return null;
+        return null;
     }
     if (!initializedFindLibraryMethod) {
       AccessController.doPrivileged(new PrivilegedAction<Object>() {

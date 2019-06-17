@@ -88,10 +88,16 @@
     <!-- maybe overriden, e.g. with "clang" -->
     <echo message="Setting default gcc.compat.compiler" />
     <condition property="gcc.compat.compiler" value="xcode.clang"> <!-- default for OSX -->
-      <and>
-        <os family="mac"/>
-        <os family="unix"/>
-      </and>
+      <or>
+          <istrue value="${isOSX}"/> 
+          <istrue value="${isIOS}"/> 
+          <istrue value="${isIOSAmd64}"/> 
+          <istrue value="${isIOSArm64}"/> 
+          <and>
+            <os family="mac"/>
+            <os family="unix"/>
+          </and>
+      </or>
     </condition>
     <property name="gcc.compat.compiler" value="gcc"/>             <!-- default for all others .. -->
     <echo message="gcc.compat.compiler=${gcc.compat.compiler}" />

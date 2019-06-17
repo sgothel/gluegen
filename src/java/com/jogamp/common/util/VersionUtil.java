@@ -75,6 +75,7 @@ public class VersionUtil {
         sb.append("Platform: Java Vendor: ").append(Platform.getJavaVendor()).append(", ").append(Platform.getJavaVendorURL());
         sb.append(", JavaSE: ").append(PlatformPropsImpl.JAVA_SE);
         sb.append(", Java6: ").append(PlatformPropsImpl.JAVA_6);
+        sb.append(", dynamicLib: ").append(PlatformPropsImpl.useDynamicLibraries);
         sb.append(", AWT enabled: ").append(Platform.AWT_AVAILABLE);
         sb.append(Platform.getNewline()).append(SEPERATOR);
 

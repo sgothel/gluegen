@@ -660,7 +660,7 @@ public class JarUtil {
         // We tolerate UnsatisfiedLinkError (and derived) to solve the chicken and egg problem
         // of loading gluegen's native library.
         // On Safari(OSX), Bug 865, we simply hope the destination folder is executable.
-        if( Platform.OSType.MACOS == Platform.getOSType() ) {
+        if( Platform.OSType.MACOS == Platform.getOSType() || Platform.OSType.IOS == Platform.getOSType() ) {
             final String fileAbsPath = file.getAbsolutePath();
             try {
                 fixNativeLibAttribs(fileAbsPath);

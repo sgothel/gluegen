@@ -863,6 +863,7 @@ public class IOUtil {
         switch(PlatformPropsImpl.OS_TYPE) {
             case ANDROID:
             case MACOS:
+            case IOS:
             case WINDOWS:
             case OPENKODE:
               return false;
@@ -1273,7 +1274,7 @@ public class IOUtil {
 
                     // 1) java.io.tmpdir/jogamp
                     if( null == tempRootExec && null != java_io_tmpdir ) {
-                        if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE ) {
+                        if( Platform.OSType.MACOS == PlatformPropsImpl.OS_TYPE || Platform.OSType.IOS == PlatformPropsImpl.OS_TYPE ) {
                             // Bug 865: Safari >= 6.1 [OSX] May employ xattr on 'com.apple.quarantine' on 'PluginProcess.app'
                             // We attempt to fix this issue _after_ gluegen native lib is loaded, see JarUtil.fixNativeLibAttribs(File).
                             tempRootExec = getSubTempDir(java_io_tmpdir, tmpSubDir, false /* executable */, "tempX1");

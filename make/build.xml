@@ -388,6 +388,24 @@
       <property name="c.src.dir.os"                         value="unix" />
     </target>
     
+    <linker id="linker.cfg.ios.amd64.gluegen" extends="linker.cfg.ios.amd64">
+      <linkerarg value="-exported_symbols_list lib"/>
+    </linker>
+
+    <target name="declare.ios.amd64" if="isIOSAmd64">
+      <echo message="IOSAmd64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.amd64" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.ios.amd64" /> 
+      <property name="c.src.dir.os"                         value="unix" />
+    </target>
+    
+    <target name="declare.ios.arm64" if="isIOSArm64">
+      <echo message="IOSArm64" />
+      <property name="compiler.cfg.id"                      value="compiler.cfg.ios.arm64" /> 
+      <property name="linker.cfg.id"                        value="linker.cfg.ios.arm64" /> 
+      <property name="c.src.dir.os"                         value="unix" />
+    </target>
+    
     <target name="declare.freebsd.amd64" if="isFreeBSDAMD64">
       <echo message="FreeBSDAMD64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.freebsd" />
@@ -413,7 +431,7 @@
       <property name="c.src.dir.os"                         value="unix" />
     </target>
 
-    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.android,declare.solaris,declare.macosx,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" />
+    <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.android,declare.solaris,declare.macosx,declare.ios.amd64,declare.ios.arm64,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" />
 
     <target name="c.rename.lib.mingw" if="isMingW">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
@@ -451,6 +469,20 @@
       <antcall target="gluegen.build.c.impl" inheritAll="true" inheritRefs="true" />
     </target>
 
+    <target name="gluegen.build.a.symbols" depends="" if="${build.staticlibs}" unless="gluegen.build.skip.native">
+      <!-- invoke nm in a most compatible way, tested on GNU/Linux and MacOS -->
+      <exec executable="nm" dir="${build}" output="${gluegen.lib.dir}/lib${output.lib.name}.symbols.raw">
+        <arg value="--extern-only"/>
+        <arg value="--defined-only"/>
+        <arg value="${gluegen.lib.dir}/${output.lib.name.os}"/>
+      </exec>
+      <exec executable="awk" dir="${build}" output="${gluegen.lib.dir}/lib${output.lib.name}.symbols">
+        <arg value="{ print $3 }"/>
+        <arg value="${gluegen.lib.dir}/lib${output.lib.name}.symbols.raw"/>
+      </exec>
+      <delete file="${gluegen.lib.dir}/lib${output.lib.name}.symbols.raw" quiet="true" failonerror="false" />
+    </target>
+
     <target name="gluegen.build.c.impl" depends="init, c.configure" unless="gluegen.build.skip.native">
       <echo message="clearing gluegen.build.shasum.done (2) - was ${gluegen.build.shasum.done}"/>
       <var name="gluegen.build.shasum.done" unset="true"/>
@@ -462,7 +494,7 @@
       <javah destdir="${src.generated.c}/Unix"    classpath="${classes}" class="jogamp.common.os.UnixDynamicLinkerImpl" />
       <javah destdir="${src.generated.c}/Windows" classpath="${classes}" class="jogamp.common.os.WindowsDynamicLinkerImpl"/>
 
-      <echo message="Output lib name = ${output.lib.name} -> ${output.lib.name.os}" />
+      <echo message="Output lib name = ${output.lib.name} -> ${output.lib.name.os} [${output.lib.type}]" />
 
       <mkdir dir="${gluegen.lib.dir}"/>
 
@@ -502,12 +534,14 @@
           <includepath path="${src.generated.c}" />
           <includepath path="${src.generated.c}/Unix" if="isUnix"/>
           <includepath path="${src.generated.c}/Unix" if="isOSX"/>
+          <includepath path="${src.generated.c}/Unix" if="isIOS"/>
           <includepath path="${src.generated.c}/Windows" if="isWindows"/>
         </compiler>
 
         <linker extends="${linker.cfg.id}" />
       </cc>
 
+      <antcall target="gluegen.build.a.symbols" inheritAll="true" inheritRefs="true" />
       <antcall target="c.rename.lib.mingw" inheritRefs="true" />
       <antcall target="c.rename.lib.macosx" inheritRefs="true" />
 
@@ -542,7 +576,7 @@
                       nativejarfile="${build}/gluegen-rt-natives-${os.and.arch}.jar"
                       manifestfile="${build}/Manifest-rt-natives.temp" 
                       module="common"
-                      includelibs="*gluegen-rt.${native.library.suffix}" />
+                      includelibs="*${output.lib.name}.${native.library.suffix}" />
 
       <!-- Produce duplicates for different configurations, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
       <copy file="${build}/gluegen-rt-natives-${os.and.arch}.jar" tofile="${build}/gluegen-rt-android-natives-${os.and.arch}.jar"/>
@@ -1206,7 +1240,7 @@
         jarbuilddir="${build}"
         jarbasename="gluegen-rt-android"
         nativebuilddir="${gluegen.lib.dir}"
-        nativebasename="gluegen-rt"
+        nativebasename="${output.lib.name}"
         android.abi="${android.abi}"
         androidmanifest.path="resources/android/AndroidManifest-Runtime.xml"
         androidresources.path="resources/android/res"
@@ -1244,11 +1278,11 @@
     <echo message='gluegen.build.sha.natives=${gluegen.build.sha.natives}${line.separator}' file="${build}/artifact.properties" append="true"/>
   </target>
 
-  <target name="junit.compile" depends="init">
+  <target name="junit.compile" depends="init" if="${build.dynamiclibs}">
     <ant antfile="build-test.xml" target="junit.compile"/>
   </target>
 
-  <target name="junit.run" depends="init,junit.compile">
+  <target name="junit.run" depends="init,junit.compile" if="${build.dynamiclibs}">
     <ant antfile="build-test.xml" target="junit.run"/>
   </target>
 

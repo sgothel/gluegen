@@ -38,7 +38,7 @@ import com.jogamp.common.util.VersionNumber;
 public abstract class PlatformPropsImpl {
     static final boolean DEBUG = Debug.debug("Platform");
 
-    /** Selected {@link Platform.OSType#MACOS} {@link VersionNumber}s. */
+    /** Selected {@link Platform.OSType#MACOS} or {@link Platform.OSType#IOS} {@link VersionNumber}s. */
     public static class OSXVersion {
         /** OSX Tiger, i.e. 10.4.0 */
         public static final VersionNumber Tiger = new VersionNumber(10,4,0);
@@ -101,6 +101,14 @@ public abstract class PlatformPropsImpl {
     public static final ABIType ABI_TYPE;
     public static final OSType OS_TYPE;
     public static final String os_and_arch;
+    /**
+     * Usually GlueGen and subsequent JogAmp modules are build using dynamic libraries on supported platforms,
+     * hence this boolean is expected to be true.
+     * <p>
+     * However, on certain systems static libraries are being used on which native JNI library loading is disabled.
+     * </p>
+     */
+    public static final boolean useDynamicLibraries;
 
     static {
         Version16 = new VersionNumber(1, 6, 0);
@@ -318,8 +326,13 @@ public abstract class PlatformPropsImpl {
                 strategy = 220;
             }
         }
+        if( OSType.IOS == OS_TYPE ) {
+            useDynamicLibraries = false;
+        } else {
+            useDynamicLibraries = true;
+        }
         if( DEBUG ) {
-            System.err.println("Platform.Hard: ARCH "+ARCH+", CPU_ARCH "+CPU_ARCH+", ABI_TYPE "+ABI_TYPE+" - strategy "+strategy+"(isAndroid "+isAndroid+", elfValid "+elfValid+")");
+            System.err.println("Platform.Hard: ARCH "+ARCH+", CPU_ARCH "+CPU_ARCH+", ABI_TYPE "+ABI_TYPE+" - strategy "+strategy+"(isAndroid "+isAndroid+", elfValid "+elfValid+"), useDynLibs "+useDynamicLibraries);
         }
         os_and_arch = getOSAndArch(OS_TYPE, CPU_ARCH, ABI_TYPE, LITTLE_ENDIAN);
     }
@@ -492,6 +505,9 @@ public abstract class PlatformPropsImpl {
         if ( osLower.startsWith("kd") ) {
             return OSType.OPENKODE;
         }
+        if ( osLower.startsWith("ios") ) {
+            return OSType.IOS;
+        }
         throw new RuntimeException("Please port OS detection to your platform (" + OS_lower + "/" + ARCH_lower + ")");
     }
 
@@ -606,6 +622,10 @@ public abstract class PlatformPropsImpl {
             case MACOS:
               os_ = "macosx";
               _and_arch_final = "universal";
+              break;
+            case IOS:
+              os_ = "ios";
+              _and_arch_final = _and_arch_tmp;
               break;
             case WINDOWS:
               os_ = "windows";
