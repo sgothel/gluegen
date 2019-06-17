@@ -65,8 +65,8 @@ public abstract class PlatformPropsImpl {
     public static final VersionNumber Version17;
     /** Version 1.8. As a JVM version, it enables certain JVM 1.8 features. */
     public static final VersionNumber Version18;
-    /** Version 1.9. As a JVM version, it enables certain JVM 1.9 features. */
-    public static final VersionNumber Version19;
+    /** Version 1.9. As a JVM version, it enables certain JVM 1.9 features. Note the skipped first version number due to JEP 223. */
+    public static final VersionNumber Version9;
 
     public static final String OS;
     public static final String OS_lower;
@@ -93,6 +93,17 @@ public abstract class PlatformPropsImpl {
      * </p>
      */
     public static final boolean JAVA_6;
+    /**
+     * True only if being compatible w/ language level 9, e.g. JRE 9.
+     * <p>
+     * Implies {@link #isJavaSE()} and {@link #JAVA_6}.
+     * </p>
+     * <p>
+     * Since JRE 9, the version string has dropped the major release number,
+     * see JEP 223: http://openjdk.java.net/jeps/223
+     * </p>
+     */
+    public static final boolean JAVA_9;
 
     public static final String NEWLINE;
     public static final boolean LITTLE_ENDIAN;
@@ -114,7 +125,7 @@ public abstract class PlatformPropsImpl {
         Version16 = new VersionNumber(1, 6, 0);
         Version17 = new VersionNumber(1, 7, 0);
         Version18 = new VersionNumber(1, 8, 0);
-        Version19 = new VersionNumber(1, 9, 0);
+        Version9 = new VersionNumber(9, 0, 0);
 
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned Applets.
@@ -143,7 +154,8 @@ public abstract class PlatformPropsImpl {
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();
-        JAVA_6 = JAVA_SE && ( isAndroid || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
+        JAVA_9 = JAVA_SE && JAVA_VERSION_NUMBER.compareTo(Version9) >= 0;
+        JAVA_6 = JAVA_SE && ( isAndroid || JAVA_9 || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
 
         NEWLINE = System.getProperty("line.separator");
 

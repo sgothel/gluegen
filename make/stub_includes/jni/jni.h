@@ -164,6 +164,7 @@ typedef long JNIEnv;
 
 #define JDK1_2
 #define JDK1_4
+#define JDK1_8
 
 #define _JNI_IMPORT_OR_EXPORT_ JNIIMPORT
 
@@ -171,6 +172,7 @@ typedef long JNIEnv;
 #define JNI_VERSION_1_2 0x00010002
 #define JNI_VERSION_1_4 0x00010004
 #define JNI_VERSION_1_6 0x00010006
+#define JNI_VERSION_1_8 0x00010008
 
 #else /*  __GLUEGEN__ */
 
@@ -1859,6 +1861,7 @@ typedef struct JavaVMAttachArgs {
 
 #define JDK1_2
 #define JDK1_4
+#define JDK1_8
 
 struct JNIInvokeInterface_ {
     void *reserved0;
@@ -1923,6 +1926,7 @@ JNI_OnUnload(JavaVM *vm, void *reserved);
 #define JNI_VERSION_1_2 0x00010002
 #define JNI_VERSION_1_4 0x00010004
 #define JNI_VERSION_1_6 0x00010006
+#define JNI_VERSION_1_8 0x00010008
 
 #endif /*  __GLUEGEN__ */
 

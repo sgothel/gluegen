@@ -604,6 +604,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private static boolean initializedFindLibraryMethod = false;
   private static Method  findLibraryMethod = null;
   private static final String findLibraryImpl(final String libName, final ClassLoader loader) {
+    if( PlatformPropsImpl.JAVA_9 ) {
+        return null;
+    }
     if (loader == null) {
         return null;
     }

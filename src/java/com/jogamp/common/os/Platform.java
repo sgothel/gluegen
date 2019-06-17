@@ -255,8 +255,11 @@ public class Platform extends PlatformPropsImpl {
 
     private static final String useTempJarCachePropName = "jogamp.gluegen.UseTempJarCache";
 
-    /** fixed basename of JAR file and native library */
-    private static final String libBaseName = "gluegen-rt";
+    /**
+     * Fixed basename of JAR file and native library.
+     * Dash replaced by underscore to allow static linkage via JEP 178.
+     */
+    private static final String libBaseName = "gluegen_rt";
 
     //
     // static initialization order:

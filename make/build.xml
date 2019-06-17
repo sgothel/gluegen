@@ -436,26 +436,20 @@
     <target name="c.rename.lib.mingw" if="isMingW">
       <!-- FIXME: this is a hack; the cpptask should have an option to change the
            suffix or at least understand the override from .so to .dll -->
-      <move file="${build}/obj/libgluegen-rt.so" tofile="${build}/obj/gluegen-rt.dll" />
-    </target>
-
-    <target name="c.rename.lib.macosx" if="isOSX">
-      <copy file="${build}/obj/libgluegen-rt.dylib" tofile="${build}/obj/libgluegen-rt.so" />
+      <move file="${build}/obj/libgluegen_rt.so" tofile="${build}/obj/gluegen_rt.dll" />
     </target>
 
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
-      <msvc.manifest objdir="${build}/obj" dllname="gluegen-rt" />
+      <msvc.manifest objdir="${build}/obj" dllname="gluegen_rt" />
     </target>
 
     <target name="gluegen.build.native" depends="init, c.configure" >
       <property name="c.compiler.src.files.common" value="src/native/common/*.c" />
       <property name="c.compiler.src.files.os" value="src/native/${c.src.dir.os}/*.c" />
 
-      <property name="output.lib.name" value="gluegen-rt" />
-      <condition property="output.lib.name.os" value="lib${output.lib.name}.so"><isset property="isUnix"/></condition>
-      <condition property="output.lib.name.os" value="${output.lib.name}.dll"><isset property="isWindows"/></condition>
-      <condition property="output.lib.name.os" value="lib${output.lib.name}.dylib"><isset property="isOSX"/></condition>
+      <property name="output.lib.name" value="gluegen_rt" /> <!-- dash replaced by underscore to allow static linkage via JEP 178 -->
+      <property name="output.lib.name.os" value="${native.library.prefix}${output.lib.name}.${native.library.suffix}" />
 
       <uptodate property="gluegen.build.skip.native">
         <srcfiles dir= "${project.root}"  includes="${c.compiler.src.files.os}"/>
@@ -543,7 +537,6 @@
 
       <antcall target="gluegen.build.a.symbols" inheritAll="true" inheritRefs="true" />
       <antcall target="c.rename.lib.mingw" inheritRefs="true" />
-      <antcall target="c.rename.lib.macosx" inheritRefs="true" />
 
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
           <param name="libdir" value="${gluegen.lib.dir}"/>
