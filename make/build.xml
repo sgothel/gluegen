@@ -388,10 +388,6 @@
       <property name="c.src.dir.os"                         value="unix" />
     </target>
     
-    <linker id="linker.cfg.ios.amd64.gluegen" extends="linker.cfg.ios.amd64">
-      <linkerarg value="-exported_symbols_list lib"/>
-    </linker>
-
     <target name="declare.ios.amd64" if="isIOSAmd64">
       <echo message="IOSAmd64" />
       <property name="compiler.cfg.id"                      value="compiler.cfg.ios.amd64" /> 
