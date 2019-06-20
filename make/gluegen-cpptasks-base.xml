@@ -1248,7 +1248,7 @@
       <compilerarg value="x86_64"/>
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
-      <compilerarg value="-miphoneos-version-min=10.5"/>
+      <compilerarg value="-miphoneos-version-min=11.0"/>
       <!-- sysincludepath path="${macosx.sdkroot}" if="macosx.sdkroot"/ -->
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -1263,7 +1263,7 @@
       <compilerarg value="arm64"/>
       <compilerarg value="-Wmost" />
       <compilerarg value="-ObjC" />
-      <compilerarg value="-miphoneos-version-min=10.5"/>
+      <compilerarg value="-miphoneos-version-min=11.0"/>
       <!-- sysincludepath path="${macosx.sdkroot}" if="macosx.sdkroot"/ -->
       <defineset>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
@@ -1475,7 +1475,7 @@
       <!-- compilerarg value="-v"/ -->
       <linkerarg value="-arch"/>
       <linkerarg value="x86_64"/>
-      <linkerarg value="-miphoneos-version-min=10.5"/>
+      <linkerarg value="-miphoneos-version-min=11.0"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
@@ -1484,7 +1484,7 @@
       <!-- compilerarg value="-v"/ -->
       <linkerarg value="-arch"/>
       <linkerarg value="arm64"/>
-      <linkerarg value="-miphoneos-version-min=10.5"/>
+      <linkerarg value="-miphoneos-version-min=11.0"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
