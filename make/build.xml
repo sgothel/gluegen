@@ -459,20 +459,6 @@
       <antcall target="gluegen.build.c.impl" inheritAll="true" inheritRefs="true" />
     </target>
 
-    <target name="gluegen.build.a.symbols" depends="" if="${build.staticlibs}" unless="gluegen.build.skip.native">
-      <!-- invoke nm in a most compatible way, tested on GNU/Linux and MacOS -->
-      <exec executable="nm" dir="${build}" output="${gluegen.lib.dir}/lib${output.lib.name}.symbols.raw">
-        <arg value="--extern-only"/>
-        <arg value="--defined-only"/>
-        <arg value="${gluegen.lib.dir}/${output.lib.name.os}"/>
-      </exec>
-      <exec executable="awk" dir="${build}" output="${gluegen.lib.dir}/lib${output.lib.name}.symbols">
-        <arg value="{ print $3 }"/>
-        <arg value="${gluegen.lib.dir}/lib${output.lib.name}.symbols.raw"/>
-      </exec>
-      <delete file="${gluegen.lib.dir}/lib${output.lib.name}.symbols.raw" quiet="true" failonerror="false" />
-    </target>
-
     <target name="gluegen.build.c.impl" depends="init, c.configure" unless="gluegen.build.skip.native">
       <echo message="clearing gluegen.build.shasum.done (2) - was ${gluegen.build.shasum.done}"/>
       <var name="gluegen.build.shasum.done" unset="true"/>
@@ -531,8 +517,11 @@
         <linker extends="${linker.cfg.id}" />
       </cc>
 
-      <antcall target="gluegen.build.a.symbols" inheritAll="true" inheritRefs="true" />
       <antcall target="c.rename.lib.mingw" inheritRefs="true" />
+
+      <gluegen.make.libsymbols builddir="${build}" 
+         nativelib="${gluegen.lib.dir}/${output.lib.name.os}" 
+         symbolsfile="${gluegen.lib.dir}/${native.library.prefix}${output.lib.name}.symbols" />
 
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
           <param name="libdir" value="${gluegen.lib.dir}"/>
@@ -1250,8 +1239,9 @@
   <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, tag.build, junit.compile" />
 
   <target name="clean" depends="init">
-    <delete includeEmptyDirs="true">
+    <delete includeEmptyDirs="true" failonerror="false">
       <fileset dir="${build}" />
+      <fileset dir="${project.root}/build-temp" />
       <fileset dir="${project.root}" includes="make/GnuCTreeParserTokenTypes.txt make/STDCTokenTypes.txt" />
     </delete>
   </target>    

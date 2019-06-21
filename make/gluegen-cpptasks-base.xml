@@ -1877,4 +1877,23 @@
       </delete>
       </sequential>
     </macrodef>  
+
+    <macrodef name="gluegen.make.libsymbols">
+      <attribute name="builddir" />
+      <attribute name="nativelib" />
+      <attribute name="symbolsfile" />
+      <sequential>
+      <!-- invoke nm in a most compatible way, tested on GNU/Linux and MacOS -->
+      <exec executable="nm" dir="@{builddir}" output="@{symbolsfile}.raw">
+        <arg value="--extern-only"/>
+        <arg value="--defined-only"/>
+        <arg value="@{nativelib}"/>
+      </exec>
+      <exec executable="awk" dir="@{builddir}" output="@{symbolsfile}">
+        <arg value="{ print $3 }"/>
+        <arg value="@{symbolsfile}.raw"/>
+      </exec>
+      <delete file="@{symbolsfile}.raw" quiet="true" failonerror="false" />
+      </sequential>
+    </macrodef>  
 </project>
