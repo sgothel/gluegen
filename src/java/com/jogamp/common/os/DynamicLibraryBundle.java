@@ -282,7 +282,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                     }
                 } else {
                     if( null == dynLinkGlobal ) {
-                        dynLinkGlobal = lib.getDynamicLinker();
+                        dynLinkGlobal = lib.dynamicLinker();
                     }
                     nativeLibraries.add(lib);
                     toolLibLoaded[i]=true;

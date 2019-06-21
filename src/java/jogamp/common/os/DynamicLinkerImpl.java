@@ -144,14 +144,15 @@ import com.jogamp.common.util.SecurityUtil;
   @Override
   public final void closeLibrary(final long libraryHandle, final boolean debug) throws SecurityException, IllegalArgumentException {
     final LibRef libRef = decrLibRefCount( libraryHandle );
-    if( null == libRef ) {
-        throw new IllegalArgumentException("Library handle 0x"+Long.toHexString(libraryHandle)+" unknown.");
-    }
-    checkLinkPermission(libRef.getName());
+    if( null != libRef ) {
+        checkLinkPermission(libRef.getName());
+    } // else null libRef is OK for global lookup
     if( DEBUG || debug ) {
         System.err.println("DynamicLinkerImpl.closeLibrary(0x"+Long.toHexString(libraryHandle)+" -> "+libRef+")");
     }
-    closeLibraryImpl(libraryHandle);
+    if( 0 != libraryHandle ) {
+        closeLibraryImpl(libraryHandle);
+    }
   }
   protected abstract void closeLibraryImpl(final long libraryHandle) throws SecurityException;
 

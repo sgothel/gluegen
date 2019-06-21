@@ -49,14 +49,15 @@ package jogamp.common.os;
 
   @Override
   protected final long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws SecurityException {
-      return dlsym(libraryHandle, symbolName);
+      return 0 != libraryHandle ? dlsym(libraryHandle, symbolName) : 0;
   }
 
   @Override
   protected final void closeLibraryImpl(final long libraryHandle) throws SecurityException {
-      dlclose(libraryHandle);
+      if( 0 != libraryHandle ) {
+          dlclose(libraryHandle);
+      }
   }
-
 
   @Override
   public final String getLastError() {

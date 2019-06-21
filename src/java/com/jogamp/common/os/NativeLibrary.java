@@ -89,9 +89,14 @@ public final class NativeLibrary implements DynamicLookupHelper {
         break;
 
       case MACOS:
-      case IOS:
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".dylib", ".jnilib" };
+        isOSX = true;
+        break;
+
+      case IOS:
+        prefixes = new String[] { "lib" };
+        suffixes = new String[] { ".dylib" };
         isOSX = true;
         break;
 
@@ -211,29 +216,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
                                                        loader);
     Platform.initSingleton(); // loads native gluegen-rt library
 
-    final DynamicLinker dynLink;
-    switch (PlatformPropsImpl.OS_TYPE) {
-      case WINDOWS:
-        dynLink = new WindowsDynamicLinkerImpl();
-        break;
-
-      case MACOS:
-      case IOS:
-        dynLink = new MacOSXDynamicLinkerImpl();
-        break;
-
-      case ANDROID:
-        if( PlatformPropsImpl.CPU_ARCH.is32Bit ) {
-            dynLink = new BionicDynamicLinker32bitImpl();
-        } else {
-            dynLink = new BionicDynamicLinker64BitImpl();
-        }
-        break;
-
-      default:
-        dynLink = new PosixDynamicLinkerImpl();
-        break;
-    }
+    final DynamicLinker dynLink = getDynamicLinker();
 
     // Iterate down these and see which one if any we can actually find.
     for (final Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
@@ -312,7 +295,34 @@ public final class NativeLibrary implements DynamicLookupHelper {
     return dynLink.lookupSymbolGlobal(funcName);
   }
 
-  /* pp */ final DynamicLinker getDynamicLinker() { return dynLink; }
+  /* pp */ final DynamicLinker dynamicLinker() { return dynLink; }
+
+  /* pp */ static DynamicLinker getDynamicLinker() {
+      final DynamicLinker dynLink;
+      switch (PlatformPropsImpl.OS_TYPE) {
+          case WINDOWS:
+              dynLink = new WindowsDynamicLinkerImpl();
+              break;
+
+          case MACOS:
+          case IOS:
+              dynLink = new MacOSXDynamicLinkerImpl();
+              break;
+
+          case ANDROID:
+              if( PlatformPropsImpl.CPU_ARCH.is32Bit ) {
+                  dynLink = new BionicDynamicLinker32bitImpl();
+              } else {
+                  dynLink = new BionicDynamicLinker64BitImpl();
+              }
+              break;
+
+          default:
+              dynLink = new PosixDynamicLinkerImpl();
+              break;
+      }
+      return dynLink;
+  }
 
   /** Retrieves the low-level library handle from this NativeLibrary
       object. On the Windows platform this is an HMODULE, and on Unix
@@ -433,9 +443,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
         // Add probable Mac OS X-specific paths
         if ( isOSX ) {
             // Add historical location
-            addPaths("/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
+            addPaths("/Library/Frameworks/" + libName + ".framework", baseNames, paths);
             // Add current location
-            addPaths("/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
+            addPaths("/System/Library/Frameworks/" + libName + ".framework", baseNames, paths);
         }
     }
 
