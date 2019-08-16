@@ -764,8 +764,10 @@
       <param name="target"     value="JavaParser.g" />
     </antcall>
 
-    <!-- Build GlueGen using the generated Java files along with the original source.
-         Compile gluegen-rt first and generate native headers. -->
+    <!-- Build GlueGen using the generated Java files along with the
+         original source in multiple stages below. -->
+
+    <!-- Compile gluegen-rt first including generation of native headers -->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
@@ -783,8 +785,8 @@
     </javac>
 
     <!-- move platform-specific native headers into the right directories -->
-    <move file="${src.generated.c}/jogamp_common_os_UnixDynamicLinkerImpl.h" todir="${src.generated.c}/Unix"/>
-    <move file="${src.generated.c}/jogamp_common_os_WindowsDynamicLinkerImpl.h" todir="${src.generated.c}/Windows"/>
+    <move file="${src.generated.c}/jogamp_common_os_UnixDynamicLinkerImpl.h" todir="${src.generated.c}/Unix" failonerror="false" quiet="true"/>
+    <move file="${src.generated.c}/jogamp_common_os_WindowsDynamicLinkerImpl.h" todir="${src.generated.c}/Windows" failonerror="false" quiet="true"/>
 
     <!-- make non-java code available in classpath -->
     <copy todir="${classes}">
@@ -793,13 +795,7 @@
                  excludes="**/*.java"/>
     </copy>
 
-    <!-- Compile gluegen (compile time).
-
-         Uses target.rt.jar, since we require 'com.sun.tools.doclets.Taglet',
-         w/o it breaks build on OSX w/ Java6 compiler. 
-         Surprisingly it works on other platforms, which seems to pick classes
-         outside of the 'bootclasspath'.
-      -->
+    <!-- Compile gluegen (compile time).  -->
     <javac destdir="${classes}"
            includeAntRuntime="true"
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
@@ -807,7 +803,6 @@
            encoding="UTF-8"
            source="${target.sourcelevel}"
            target="${target.targetlevel}" 
-           bootclasspath="${target.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.jcpp}" />
       <src path="${src.java}" />
