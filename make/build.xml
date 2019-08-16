@@ -54,7 +54,8 @@
 
     <!-- property name="javadoc.link" value="http://java.sun.com/j2se/1.4.2/docs/api/" /-->
     <!-- property name="javadoc.link" value="http://download.oracle.com/javase/1.5.0/docs/api/" /-->
-    <property name="javadoc.link" value="http://docs.oracle.com/javase/6/docs/api/" />
+    <!-- property name="javadoc.link" value="http://docs.oracle.com/javase/6/docs/api/" /-->
+    <property name="javadoc.link" value="https://docs.oracle.com/javase/8/docs/api/" />
 
     <!-- The source and build directories. -->
     <property name="project.root"  value=".." />
@@ -795,7 +796,7 @@
 
     <!-- Compile gluegen (compile time).
 
-         Uses host.rt.jar, since we require 'com.sun.tools.doclets.Taglet',
+         Uses target.rt.jar, since we require 'com.sun.tools.doclets.Taglet',
          w/o it breaks build on OSX w/ Java6 compiler. 
          Surprisingly it works on other platforms, which seems to pick classes
          outside of the 'bootclasspath'.
@@ -807,7 +808,7 @@
            encoding="UTF-8"
            source="${target.sourcelevel}"
            target="${target.targetlevel}" 
-           bootclasspath="${host.rt.jar}"
+           bootclasspath="${target.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.jcpp}" />
       <src path="${src.java}" />

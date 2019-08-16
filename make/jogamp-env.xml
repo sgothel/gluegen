@@ -1,23 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Current minimum requirements are:
-        - Java 1.6 (Level 6.0)
-        - Android SDK API Level 9 (Version 2.3 Gingerbread)
+<!-- Current requirements are:
+        - Java 1.8 (Level 8.0)
+        - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
-     Official production builds are performed w/ Java 1.6.
-        - Java 1.6 (Level 6.0)
-        - Android SDK API Level 9 (Version 2.3 Gingerbread)
+     Official production builds are performed w/ Java 1.8.
+        - Java 1.8 (Level 8.0)
+        - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
-     Android supports Java language level 6.0.
-     Nevertheless, it cannot be guaranteed whether the Android API
-     supports all classes and methods of Java 1.6.
-     It is required for JogAmp developers to validate Android compatibility
-     by an Android crosscompilation build.
+     Android 7 API level 24 supports Java 1.8, 
+     see https://developer.android.com/studio/write/java8-support
 
-     Current GlueGen code utilizes some minor Java 1.6 features
-     which could be replaced, however it's not desired at this point
-     since we have no mode hard Java 1.5 constraints.
-
+     Java 8 is chosen today, June 2019, since OpenJDK 1.8 is well supported
+     on desktop, mobile support is given w/ OpenJDK 9 and 
+     Android also support these language features for almost 3 years.
+     
      For crosscompilation the following shall be set:
      - TARGET_PLATFORM_SYSROOT Crosscompiler and system specified 'sysroot' (as in gcc \-\-print-sysroot)
      - TARGET_PLATFORM_USRROOT Additional optional user headers and libraries for target
@@ -36,12 +33,12 @@
     <property name="jvmJava.exe" value="${java.home}/bin/java" /> <!-- the java jvm executable for unit tests -->
     <echo message="jvmJava.exe                ${jvmJava.exe}"/>
 
-    <condition property="jvmJava7.exe" value="${env.JAVA7_EXE}">
+    <condition property="jvmJava8.exe" value="${env.JAVA8_EXE}">
         <not>
-         <equals arg1="${env.JAVA7_EXE}" arg2="$${env.JAVA7_EXE}" casesensitive="true" />
+         <equals arg1="${env.JAVA8_EXE}" arg2="$${env.JAVA8_EXE}" casesensitive="true" />
         </not>
     </condition>
-    <echo message="jvmJava7.exe               ${jvmJava7.exe}"/> <!-- optional extra Java7 JVM for unit tests -->
+    <echo message="jvmJava8.exe               ${jvmJava8.exe}"/> <!-- optional extra Java8 JVM for unit tests -->
 
     <fail message="Please build using Ant 1.8.0 or higher.">
       <condition>
@@ -51,16 +48,23 @@
       </condition>
     </fail>
 
-    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
+    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of the Java compiler is 1.8 (8.0) or greater.">
         <condition>
             <not>
                 <or>
-                    <equals arg1="${ant.java.version}" arg2="1.6"/>
-                    <equals arg1="${ant.java.version}" arg2="1.7"/>
                     <equals arg1="${ant.java.version}" arg2="1.8"/>
                     <equals arg1="${ant.java.version}" arg2="1.9"/>
-                    <equals arg1="${ant.java.version}" arg2="2.0"/>
-                    <equals arg1="${ant.java.version}" arg2="2.1"/>
+                    <equals arg1="${ant.java.version}" arg2="1.10"/>
+                    <equals arg1="${ant.java.version}" arg2="1.11"/>
+                    <equals arg1="${ant.java.version}" arg2="1.12"/>
+                    <equals arg1="${ant.java.version}" arg2="1.13"/>
+                    <equals arg1="${ant.java.version}" arg2="1.14"/>
+                    <equals arg1="${ant.java.version}" arg2="9"/>
+                    <equals arg1="${ant.java.version}" arg2="10"/>
+                    <equals arg1="${ant.java.version}" arg2="11"/>
+                    <equals arg1="${ant.java.version}" arg2="12"/>
+                    <equals arg1="${ant.java.version}" arg2="13"/>
+                    <equals arg1="${ant.java.version}" arg2="14"/>
                 </or>
             </not>
         </condition>
@@ -78,9 +82,12 @@
     <condition property="javadoc.xarg1" value="-Xdoclint:none" else="-J-Ddummy=val">
         <or>
             <equals arg1="${ant.java.version}" arg2="1.8"/>
-            <equals arg1="${ant.java.version}" arg2="1.9"/>
-            <equals arg1="${ant.java.version}" arg2="2.0"/>
-            <equals arg1="${ant.java.version}" arg2="2.1"/>
+            <equals arg1="${ant.java.version}" arg2="9"/>
+            <equals arg1="${ant.java.version}" arg2="10"/>
+            <equals arg1="${ant.java.version}" arg2="11"/>
+            <equals arg1="${ant.java.version}" arg2="12"/>
+            <equals arg1="${ant.java.version}" arg2="13"/>
+            <equals arg1="${ant.java.version}" arg2="14"/>
         </or>
     </condition>
     <echo message="javadoc.xarg1              ${javadoc.xarg1}"/>
@@ -95,7 +102,7 @@
 
     <property name="jogamp.version.major" value="2"/>
     <property name="jogamp.version.minor" value="4"/>
-    <property name="jogamp.version.submi" value="0"/>
+    <property name="jogamp.version.submi" value="1"/>
     <property name="jogamp.version.devel" value="-rc-${version.timestamp}"/> <!-- Devel RC Tag -->
     <!-- property name="jogamp.version.devel" value=""/ --> <!-- Release tag -->
     <property name="jogamp.version.base"  value="${jogamp.version.major}.${jogamp.version.minor}"/>
@@ -103,7 +110,7 @@
     <echo message="jogamp.version             ${jogamp.version}"/>
 
     <!-- This is the Android version: xxyyzzz, xx=API yy screen-from-to zzz app-version-->
-    <property name="jogamp.version.int"   value="0914019"/>
+    <property name="jogamp.version.int"   value="2414020"/>
     <echo message="jogamp.version.int         ${jogamp.version.int}"/>
 
     <!-- only set 'junit.is.disabled' if set in environment as 'true' to disable JUNIT tests -->
@@ -136,7 +143,7 @@
         </not>
     </condition>
 
-    <condition property="android.version" value="${env.ANDROID_VERSION}" else="9">
+    <condition property="android.version" value="${env.ANDROID_VERSION}" else="24">
         <not>
          <equals arg1="${env.ANDROID_VERSION}" arg2="$${env.ANDROID_VERSION}" casesensitive="true" />
         </not>
@@ -160,25 +167,6 @@
         </not>
     </condition>
 
-    <fail message="You need to specify all properties 'target.sourcelevel', 'target.targetlevel' and 'target.rt.jar' or none at all.">
-      <condition>
-        <and>
-            <or>
-              <isset property="target.sourcelevel"/>
-              <isset property="target.targetlevel"/>
-              <isset property="target.rt.jar"/>
-            </or>
-            <not>
-              <and>
-                  <isset property="target.sourcelevel"/>
-                  <isset property="target.targetlevel"/>
-                  <isset property="target.rt.jar"/>
-              </and>
-            </not>
-        </and>
-      </condition>
-    </fail>
-
     <condition property="target.user.set" value="true">
           <and>
               <isset property="target.sourcelevel"/>
@@ -186,79 +174,33 @@
               <isset property="target.rt.jar"/>
           </and>
     </condition>
-
-    <property name="target.sourcelevel"       value="${ant.java.version}" />      <!-- default fallback values -->
-    <property name="target.targetlevel"       value="${ant.java.version}" />      <!-- default fallback values -->
-    <!-- Default value for std Java (incl. Java7 on OS X) -->
-    <condition property="target.rt.jar"
-               value="${java.home}/lib/rt.jar">
-               <available file="${java.home}/lib/rt.jar"/>
-    </condition>
-    <!-- Default fallback value for Java6 OS X -->
-    <condition property="target.rt.jar"
-               value="${java.home}/../Classes/classes.jar">
-               <available file="${java.home}/../Classes/classes.jar"/>
-    </condition>
-    <!-- Default fallback value on std Java -->
     <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
     <echo message="target.rt.jar              ${target.rt.jar}"/>
-    <fail message="No target.rt.jar specified not found.">
+
+    <fail message="You need to specify all properties 'target.sourcelevel', 'target.targetlevel' and 'target.rt.jar'.">
       <condition>
         <not>
-          <isset property="target.rt.jar"/>
+          <istrue value="${target.user.set}"/> 
         </not>
       </condition>
     </fail>
 
-    <property name="host.sourcelevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
-    <property name="host.targetlevel"         value="${ant.java.version}" />      <!-- default values for compile time components -->
-    <!-- Default value for std Java (incl. Java7 on OS X) -->
-    <condition property="host.rt.jar"
-               value="${java.home}/lib/rt.jar">
-               <available file="${java.home}/lib/rt.jar"/>
-    </condition>
-    <!-- Default fallback value for Java6 OS X -->
-    <condition property="host.rt.jar"
-               value="${java.home}/../Classes/classes.jar">
-               <available file="${java.home}/../Classes/classes.jar"/>
-    </condition>
-    <echo message="host.sourcelevel           ${host.sourcelevel}"/>
-    <echo message="host.targetlevel           ${host.targetlevel}"/>
-    <echo message="host.rt.jar                ${host.rt.jar}"/>
-    <fail message="No host.rt.jar specified not found.">
-      <condition>
-        <not>
-          <isset property="host.rt.jar"/>
-        </not>
-      </condition>
-    </fail>
-
-    <fail message="Unsupported Target Java version (sourcelevel): ${target.sourcelevel}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
+    <fail message="Unsupported Target Java sourcelevel: ${target.sourcelevel}. Make sure that the sourcelevel is set to 1.8 (8.0).">
         <condition>
             <not>
                 <or>
-                    <contains string="${target.sourcelevel}" substring="1.6" casesensitive="false" />
-                    <contains string="${target.sourcelevel}" substring="1.7" casesensitive="false" />
                     <contains string="${target.sourcelevel}" substring="1.8" casesensitive="false" />
-                    <contains string="${target.sourcelevel}" substring="1.9" casesensitive="false" />
-                    <contains string="${target.sourcelevel}" substring="2.0" casesensitive="false" />
-                    <contains string="${target.sourcelevel}" substring="2.1" casesensitive="false" />
                 </or>
             </not>
         </condition>
     </fail>
-    <fail message="Unsupported Target Java version (targetlevel): ${target.targetlevel}. Make sure that the version of the Java compiler is 1.6 (6.0) or greater.">
+    <fail message="Unsupported Target Java targetlevel: ${target.targetlevel}. Make sure that the targetlevel is set to 1.8 (8.0).">
         <condition>
             <not>
                 <or>
-                    <contains string="${target.targetlevel}" substring="1.6" casesensitive="false" />
-                    <contains string="${target.targetlevel}" substring="1.7" casesensitive="false" />
                     <contains string="${target.targetlevel}" substring="1.8" casesensitive="false" />
-                    <contains string="${target.targetlevel}" substring="1.9" casesensitive="false" />
-                    <contains string="${target.targetlevel}" substring="2.0" casesensitive="false" />
-                    <contains string="${target.targetlevel}" substring="2.1" casesensitive="false" />
                 </or>
             </not>
         </condition>

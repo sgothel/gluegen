@@ -219,15 +219,7 @@
     <!-- NOTE: the values of the macos<arch> attributes will not be overridden if already set externally -->
     <property name="macosppc"     value="false" /> 
     <property name="macosx64"     value="true" /> 
-    <!-- No 32bit binaries on OSX since Java7 -->
-    <condition property="macosx32" value="false" else="true">
-        <or>
-            <contains string="${ant.java.version}" substring="1.7" casesensitive="false" />
-            <contains string="${ant.java.version}" substring="1.8" casesensitive="false" />
-            <contains string="${ant.java.version}" substring="1.9" casesensitive="false" />
-            <contains string="${ant.java.version}" substring="2.0" casesensitive="false" />
-        </or>
-    </condition>
+    <property name="macosx32"     value="false" /> <!-- we disable 32bit on OSX for good now -->
 
     <!-- Need a way to be able to disable the macosx64 property specification in a build.xml -->
     <condition property="use.macosppc">
