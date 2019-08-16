@@ -2,8 +2,8 @@
 
 SDIR=`dirname $0` 
 
-if [ -e $SDIR/setenv-build-jogl-x86_64.sh ] ; then
-    . $SDIR/setenv-build-jogl-x86_64.sh
+if [ -e $SDIR/setenv-build-jogamp-x86_64.sh ] ; then
+    . $SDIR/setenv-build-jogamp-x86_64.sh
 fi
 
 # arm-linux-gnueabihf == armhf triplet
@@ -21,7 +21,7 @@ export NODE_LABEL=.
 
 export HOST_UID=jogamp
 export HOST_IP=jogamp02
-export HOST_RSYNC_ROOT=PROJECTS/JOGL
+export HOST_RSYNC_ROOT=PROJECTS/JogAmp
 
 export TARGET_UID=jogamp
 export TARGET_IP=panda02
@@ -38,9 +38,9 @@ export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6hf.xml"
 #export JUNIT_DISABLED="true"
 export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
-export SOURCE_LEVEL=1.6
-export TARGET_LEVEL=1.6
-export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+export SOURCE_LEVEL=1.8
+export TARGET_LEVEL=1.8
+export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
 
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"

@@ -4,7 +4,7 @@ export HOST_UID=jogamp
 # jogamp02 - 10.1.0.122
 export HOST_IP=10.1.0.122
 #export HOST_IP=10.1.0.52
-export HOST_RSYNC_ROOT=PROJECTS/JOGL
+export HOST_RSYNC_ROOT=PROJECTS/JogAmp
 
 export TARGET_UID=jogamp
 #export TARGET_IP=panda02

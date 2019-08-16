@@ -2,8 +2,8 @@
 
 SDIR=`dirname $0` 
 
-if [ -e $SDIR/setenv-build-jogl-x86.sh ] ; then
-    . $SDIR/setenv-build-jogl-x86.sh
+if [ -e $SDIR/setenv-build-jogamp-x86.sh ] ; then
+    . $SDIR/setenv-build-jogamp-x86.sh
 fi
 
 #    -Dc.compiler.debug=true 

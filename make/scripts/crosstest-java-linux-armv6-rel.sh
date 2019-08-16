@@ -1,6 +1,6 @@
 export HOST_UID=sven
 export HOST_IP=jogamp02
-export HOST_RSYNC_ROOT=PROJECTS/JOGL
+export HOST_RSYNC_ROOT=PROJECTS/JogAmp
 
 export TARGET_UID=jogamp
 export TARGET_IP=panda01

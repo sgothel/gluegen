@@ -2,7 +2,7 @@
 
 export HOST_UID=jogamp
 export HOST_IP=10.1.0.122
-export HOST_RSYNC_ROOT=PROJECTS/JOGL
+export HOST_RSYNC_ROOT=PROJECTS/JogAmp
 
 export TARGET_UID=jogamp
 export TARGET_IP=jautab03

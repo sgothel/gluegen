@@ -2,8 +2,8 @@
 
 SDIR=`dirname $0` 
 
-if [ -e $SDIR/setenv-build-jogl-x86_64.sh ] ; then
-    . $SDIR/setenv-build-jogl-x86_64.sh
+if [ -e $SDIR/setenv-build-jogamp-x86_64.sh ] ; then
+    . $SDIR/setenv-build-jogamp-x86_64.sh
 fi
 
 if [ -e $SDIR/setenv-android-tools.sh ] ; then
@@ -15,7 +15,7 @@ export NODE_LABEL=.
 export HOST_UID=jogamp
 # jogamp02 - 10.1.0.122
 export HOST_IP=10.1.0.122
-export HOST_RSYNC_ROOT=PROJECTS/JOGL
+export HOST_RSYNC_ROOT=PROJECTS/JogAmp
 
 export TARGET_UID=jogamp
 export TARGET_IP=panda02
@@ -26,12 +26,11 @@ export TARGET_ADB_PORT=5555
 export TARGET_ROOT=/data/projects
 export TARGET_ANT_HOME=/usr/share/ant
 
-export ANDROID_VERSION=21
-export SOURCE_LEVEL=1.6
-export TARGET_LEVEL=1.6
-export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+export ANDROID_VERSION=24
+export SOURCE_LEVEL=1.8
+export TARGET_LEVEL=1.8
+export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
 
-#export GCC_VERSION=4.4.3
 export GCC_VERSION=4.9
 HOST_ARCH=linux-x86_64
 export TARGET_TRIPLE=aarch64-linux-android

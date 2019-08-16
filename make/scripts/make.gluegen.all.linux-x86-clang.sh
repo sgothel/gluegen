@@ -2,8 +2,8 @@
 
 SDIR=`dirname $0` 
 
-if [ -e $SDIR/setenv-build-jogl-x86.sh ] ; then
-    . $SDIR/setenv-build-jogl-x86.sh
+if [ -e $SDIR/setenv-build-jogamp-x86.sh ] ; then
+    . $SDIR/setenv-build-jogamp-x86.sh
 fi
 
 #    -Dc.compiler.debug=true 
@@ -15,9 +15,9 @@ fi
 #    -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml \
 #
 
-export SOURCE_LEVEL=1.6
-export TARGET_LEVEL=1.6
-export TARGET_RT_JAR=/opt-share/jre1.6.0_30/lib/rt.jar
+export SOURCE_LEVEL=1.8
+export TARGET_LEVEL=1.8
+export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
 
 export GLUEGEN_PROPERTIES_FILE="lib/gluegen-clang.properties"
 # or -Dgcc.compat.compiler=clang

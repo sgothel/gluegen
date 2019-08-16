@@ -43,8 +43,12 @@ export NDK_ROOT
 if [ -z "$ANDROID_HOME" ] ; then
     if [ -e /usr/local/android-sdk-linux_x86 ] ; then
         ANDROID_HOME=/usr/local/android-sdk-linux_x86
+    elif [ -e /opt-linux-x86_64/android-sdk-linux_x86_64 ] ; then
+        ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
     elif [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
         ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
+    elif [ -e /opt/android-sdk-linux_x86_64 ] ; then
+        ANDROID_HOME=/opt/android-sdk-linux_x86_64
     elif [ -e /opt/android-sdk-linux_x86 ] ; then
         ANDROID_HOME=/opt/android-sdk-linux_x86
     else 
