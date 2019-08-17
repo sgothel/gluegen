@@ -1222,20 +1222,33 @@
   </target>
 
   <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
-                              depends="init, android-launcher.build, gluegen.build.java, gluegen.build.native, gluegen.build.shasum, gluegen.package.java, gluegen.package.native, android-launcher.package" />
+                              depends="clean-temp, android-launcher.build, gluegen.build.java, gluegen.build.native, gluegen.build.shasum, gluegen.package.java, gluegen.package.native, android-launcher.package" />
 
-  <target name="all.no_junit" description="Release build" depends="init, base.compile, tag.build, android.package, developer-zip-archive" />
-  <target name="all" description="Release build" depends="init, base.compile, tag.build, junit.compile, android.package, developer-zip-archive" />
+  <target name="all.no_junit" description="Release build" depends="base.compile, tag.build, android.package, developer-zip-archive" >
+      <antcall target="clean-temp" inheritAll="true" inheritRefs="true" />
+  </target>
+  <target name="all" description="Release build" depends="base.compile, tag.build, junit.compile, android.package, developer-zip-archive" >
+      <antcall target="clean-temp" inheritAll="true" inheritRefs="true" />
+  </target>
 
-  <target name="all.debug" description="Debug build" depends="init.debug, base.compile, tag.build, junit.compile, developer-zip-archive" />
+  <target name="all.debug" description="Debug build" depends="init.debug, base.compile, tag.build, junit.compile, developer-zip-archive" >
+      <antcall target="clean-temp" inheritAll="true" inheritRefs="true" />
+  </target>
 
-  <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, tag.build, junit.compile" />
+  <target name="all.ide" description="Debug IDE build including all junit tests, but don't tag the build or create archives" depends="init.debug, base.compile, tag.build, junit.compile" >
+      <antcall target="clean-temp" inheritAll="true" inheritRefs="true" />
+  </target>
 
-  <target name="clean" depends="init">
+  <target name="clean-temp" depends="init">
     <delete includeEmptyDirs="true" failonerror="false">
-      <fileset dir="${build}" />
       <fileset dir="${project.root}/build-temp" />
       <fileset dir="${project.root}" includes="make/GnuCTreeParserTokenTypes.txt make/STDCTokenTypes.txt" />
+    </delete>
+  </target>    
+
+  <target name="clean" depends="clean-temp">
+    <delete includeEmptyDirs="true" failonerror="false">
+      <fileset dir="${build}" />
     </delete>
   </target>    
 
