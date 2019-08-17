@@ -66,6 +66,7 @@
                                         <li>openjdk11</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>awk</li>
                                         <li>p7zip-full ???</li>
                                         <li>gcc</li>
                                     </ul>
@@ -80,6 +81,7 @@
                                         <li>openjdk-11-jdk</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>gawk</li>
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
                                     </ul>
@@ -87,7 +89,7 @@
                                     <ul>
                                       <li><b>Debian</b> 10 Buster
                                       <pre>
-apt-get install openjdk-11-jre openjdk-11-jdk ant git-all p7zip-full gcc
+apt-get install openjdk-11-jre openjdk-11-jdk ant git-all gawk p7zip-full gcc
                                       </pre></li>
                                     </ul>
                                     Optional: Add <i>kernel</i> build utilities:
@@ -109,6 +111,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                         <li>java-11-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>gawk</li>
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
                                     </ul>
@@ -118,6 +121,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                         <li>java-11-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
+                                        <li>gawk</li>
                                         <li>p7zip-full</li>
                                         <li>gcc</li>
                                     </ul>
@@ -139,6 +143,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                         <li> <b>MacOS and iOS</b> Intel and Arm64
                             <ul>
                                 <li>git &ge; 2.11 provided by Xcode &ge; 8.3.3</li>
+                                <li>awk is provided by MacOS</li>
                                 <li><a href="http://www.apple.com/macosx/">Mac OS</a> 10.13 or later (note: may not work with earlier releases) </li>
                                 <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 8.3.3 or later for gcc, etc (included in MacOS)</li>
                             </ul>
@@ -147,6 +152,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                             <ul>
                                 <li>Windows XP or later </li>
                                 <li>git is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li>gawk is provided by <a href="https://cygwin.com">cygwin</a></li>
                                 <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
                                   <ul>
                                     <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
@@ -160,13 +166,15 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                       </ul></li>
                                     <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
                                          via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/32-bit/threads-win32/sjlj/">7z archive file</a></li>
-                                  </ul></li>
+                                  </ul>
+                                </li>
                             </ul>
                         </li>
                         <li> <b>Windows</b>/x86_64 (64-bit)
                             <ul>
                                 <li>Windows XP or later </li>
                                 <li>git is provided by <a href="https://cygwin.com">cygwin</a></li>
+                                <li>gawk is provided by <a href="https://cygwin.com">cygwin</a></li>
                                 <li> <a href="http://mingw-w64.sourceforge.net/">MinGW64</a>
                                   <ul>
                                     <li> <a href="http://sourceforge.net/projects/mingwbuilds/files/mingw-builds-install/mingw-builds-install.exe/download">Installer</a>
@@ -180,7 +188,8 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                       </ul></li>
                                     <li> or <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/">manual</a> 
                                          via  <a href="http://sourceforge.net/projects/mingwbuilds/files/host-windows/releases/4.8.1/64-bit/threads-win32/sjlj/">7z archive file</a></li>
-                                  </ul></li>
+                                  </ul>
+                                </li>
                             </ul>
                         </li>
                     </ul>
