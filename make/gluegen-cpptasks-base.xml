@@ -879,6 +879,7 @@
     <condition property="c.strip.args" value="-S -x"><isset property="isIOS"/></condition>
     <property name="c.strip.args"     value="" /> 
 
+    <condition property="awk_executable" value="gawk" else="awk"><isset property="isWindows"/></condition>
   </target>
 
   <!-- Detect compiler setup, in particular on Windows; separated
@@ -1953,7 +1954,7 @@
         <arg value="--defined-only"/>
         <arg value="@{nativelib}"/>
       </exec>
-      <exec executable="awk" dir="@{builddir}" output="@{symbolsfile}">
+      <exec executable="${awk_executable}" dir="@{builddir}" output="@{symbolsfile}">
         <arg value="{ print $3 }"/>
         <arg value="@{symbolsfile}.raw"/>
       </exec>
