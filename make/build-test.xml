@@ -579,7 +579,7 @@ chmod 644 ${results}/* \${line.separator}
         </gluegen>
     </target>
 
-    <target name="junit.test1.c.build" depends="junit.test1i.c.build, junit.test1p1.c.build, junit.test1p2.c.build" unless="build.javaonly" />
+    <target name="junit.test1.c.build" depends="junit.test1i.c.build, c.rename.lib.test1.mingw, junit.test1p1.c.build, c.rename.lib.test1p1.mingw, junit.test1p2.c.build, c.rename.lib.test1p2.mingw" unless="build.javaonly" />
 
     <!-- this is the test1 implementation -->
     <target name="junit.test1i.c.build">
@@ -589,21 +589,21 @@ chmod 644 ${results}/* \${line.separator}
 
         <!-- Windows hacks ro make a proper DLL -->
         <linker id="linker.test1.dll.cfg.id" extends="${linker.cfg.id}">
-            <linkerarg value="-Wl,-soname=test1.dll" if="isMingW"/>
-            <linkerarg value="-Wl,--output=test1.dll" if="isMingW"/>
         </linker>
 
         <c.build c.compiler.src.files="junit.test1i.c.src.files"
                  output.lib.name="test1"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.dll.cfg.id"/>
+
+    </target>
+    <target name="c.rename.lib.test1.mingw" if="isMingW">
+      <move file="${build_t.lib}/libtest1.so" tofile="${build_t.lib}/test1.dll" />
     </target>
 
     <!-- this is a fixed binding to the test1 implementation -->
     <target name="junit.test1p1.c.build">
         <linker id="linker.test1.fixed.cfg.id" extends="${linker.cfg.id}">
-            <linkerarg value="-Wl,-soname=Bindingtest1p1.dll" if="isMingW"/>
-            <linkerarg value="-Wl,--output=Bindingtest1p1.dll" if="isMingW"/>
             <syslibset dir="${build_t.lib}" libs="test1"/>
         </linker>
 
@@ -620,12 +620,13 @@ chmod 644 ${results}/* \${line.separator}
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.fixed.cfg.id"/>
     </target>
+    <target name="c.rename.lib.test1p1.mingw" if="isMingW">
+      <move file="${build_t.lib}/libBindingtest1p1.so" tofile="${build_t.lib}/Bindingtest1p1.dll" />
+    </target>
 
     <!-- this is a dynamic lookup binding to the test1 implementation -->
     <target name="junit.test1p2.c.build">
         <linker id="linker.test1.runtime.cfg.id" extends="${linker.cfg.id}">
-            <linkerarg value="-Wl,-soname=Bindingtest1p2.dll" if="isMingW"/>
-            <linkerarg value="-Wl,--output=Bindingtest1p2.dll" if="isMingW"/>
         </linker>
 
         <patternset id="junit.test1p2.c.src.files">
@@ -640,6 +641,9 @@ chmod 644 ${results}/* \${line.separator}
                  output.lib.name="Bindingtest1p2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.runtime.cfg.id"/>
+    </target>
+    <target name="c.rename.lib.test1p2.mingw" if="isMingW">
+      <move file="${build_t.lib}/libBindingtest1p2.so" tofile="${build_t.lib}/Bindingtest1p2.dll" />
     </target>
 
     <!-- 

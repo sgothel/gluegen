@@ -6,10 +6,10 @@ set ANT_PATH=C:\apache-ant-1.10.5
 set GIT_PATH=C:\cygwin\bin
 set SEVENZIP=C:\Program Files\7-Zip
 
-set CMAKE_PATH=C:\cmake-2.8.10.2-win32-x86
-set CMAKE_C_COMPILER=c:\mingw\bin\gcc
+set CMAKE_PATH=C:\cmake-3.15.2-win32-x86
+set CMAKE_C_COMPILER=c:\mingw32\bin\gcc
 
-set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw\bin;%CMAKE_PATH%\bin;%GIT_PATH%;%SEVENZIP%;%PATH%
+set PATH=%JAVA_HOME%\bin;%ANT_PATH%\bin;c:\mingw32\bin;%CMAKE_PATH%\bin;%GIT_PATH%;%SEVENZIP%;%PATH%
 
 set LIB_GEN=%THISDIR%\lib
 set CLASSPATH=.;%THISDIR%\build-win32\classes
