@@ -48,19 +48,14 @@
       </condition>
     </fail>
 
-    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of the Java compiler is 1.8 (8.0) or greater.">
+    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of the Java compiler is 1.11 (11.0) or greater.">
         <condition>
             <not>
                 <or>
-                    <equals arg1="${ant.java.version}" arg2="1.8"/>
-                    <equals arg1="${ant.java.version}" arg2="1.9"/>
-                    <equals arg1="${ant.java.version}" arg2="1.10"/>
                     <equals arg1="${ant.java.version}" arg2="1.11"/>
                     <equals arg1="${ant.java.version}" arg2="1.12"/>
                     <equals arg1="${ant.java.version}" arg2="1.13"/>
                     <equals arg1="${ant.java.version}" arg2="1.14"/>
-                    <equals arg1="${ant.java.version}" arg2="9"/>
-                    <equals arg1="${ant.java.version}" arg2="10"/>
                     <equals arg1="${ant.java.version}" arg2="11"/>
                     <equals arg1="${ant.java.version}" arg2="12"/>
                     <equals arg1="${ant.java.version}" arg2="13"/>
@@ -81,9 +76,6 @@
 
     <condition property="javadoc.xarg1" value="-Xdoclint:none" else="-J-Ddummy=val">
         <or>
-            <equals arg1="${ant.java.version}" arg2="1.8"/>
-            <equals arg1="${ant.java.version}" arg2="9"/>
-            <equals arg1="${ant.java.version}" arg2="10"/>
             <equals arg1="${ant.java.version}" arg2="11"/>
             <equals arg1="${ant.java.version}" arg2="12"/>
             <equals arg1="${ant.java.version}" arg2="13"/>

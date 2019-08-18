@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <link href="../../style.css" rel="stylesheet" type="text/css"/>
         <link href="../../style-alt1.css" rel="alternate stylesheet" title="default sans-serif font" type="text/css"/>
-        <title>How to build JOGL</title>
+        <title>How to build GlueGen</title>
     </head>
     <body>
         <div id="container">
@@ -202,7 +202,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                     <h2>Build Steps</h2>
                     <hr/>
                     <p>
-                        Here are the steps that are required in order to build JOGL.
+                        Here are the steps that are required in order to build GlueGen.
                     </p>
 
                     <ol>
@@ -226,7 +226,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                         </li>
 
                         <li> <b>Unset your CLASSPATH environment variable:</b> <br/>
-                            The Ant build requires that the JOGL jars not be visible on the classpath. On Unix, type
+                            The Ant build requires that the GlueGen jars not be visible on the classpath. On Unix, type
                             <code> unsetenv CLASSPATH </code> into a csh or tcsh shell, or <code> unset CLASSPATH </code>
                             into a Bourne shell. On Windows, type <code> set CLASSPATH= </code> into a command prompt.
                         </li>
@@ -236,13 +236,32 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                             copy <b>gluegen/make/gluegen.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br/></li>
 
                         <li> <b>Build the source tree:</b> <br/>
-                            Open a command shell in the "gluegen/make" directory of the source tree and type <code>"ant"</code>.
+                            Open a command shell in the "gluegen/make" directory of the source tree and invoke <code>ant</code> 
+                            with the given properties as follows
+                            <pre>
+    cd /home/dude/projects/jogamp/gluegen/make/
+    ant -Dtarget.sourcelevel=1.8 -Dtarget.targetlevel=1.8 -Dtarget.rt.jar=/your/openjdk8/lib/rt.jar
+                            </pre>
+                            Alternatively you can also use environment variables instead of properties
+                            <pre>
+    export SOURCE_LEVEL=1.8
+    export TARGET_LEVEL=1.8
+    export TARGET_RT_JAR=/your/openjdk8/lib/rt.jar
+    ant
+                            </pre>
+                            Optionally you can also set certain build features via properites or environment variables
+                            <pre>
+    Feature                Property                          or Environment Variable
+    developer-zip-archive: build.archiveon=true                 BUILD_ARCHIVE=true
+    Native Debug Code:     c.compiler.debug=true
+    Java Debug Code:       javacdebuglevel="source,lines,vars"
+                            </pre>
                         </li>
 
-                        <li> <b>Test your build:</b> <br/> Stay in your command shell in the "gluegen/make" directory of the source tree and type <code>"ant junit.run"</code>.</li>
+                        <li> <b>Test your build:</b> <br/> Stay in your command shell in the "gluegen/make" directory of the source tree and invoke <code>ant</code> with above properties or environment variables and use the target <code>junit.run</code>.</li>
 
-                        <li> <b>Build Javadoc:</b> <br/> Stay in your command shell in the "gluegen/make" directory of the source tree and type "<code>ant javadoc"</code>.
-                            This will produce the end-user documentation for JOGL along with some auxiliary utility packages.
+                        <li> <b>Build Javadoc:</b> <br/> Stay in your command shell in the "gluegen/make" directory of the source tree and invoke <code>ant</code> with above properties or environment variables and use the target <code>javadoc</code>.
+                            This will produce the end-user documentation for GlueGen along with some auxiliary utility packages.
                         </li>
                     </ol>
 
