@@ -128,8 +128,12 @@
   <echo message="Custom forced Linux.x86 cross compile android" />
   <property name="compiler.cfg.id.base"          value="compiler.cfg.android" /> 
   <property name="linker.cfg.id.base"            value="linker.cfg.android" /> 
-  <property name="java.lib.dir.platform"         value="${java.home.dir}/jre/lib/i386" />
   <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
+  <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386" 
+                                                  file="${java.home.dir}/jre/lib/i386/libjava.so"/>
+  <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"     
+                                                  file="${java.home.dir}/lib/i386/libjava.so"/>
+  <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
 </target>
 
 <target name="declare.linux.android">
