@@ -33,6 +33,12 @@
       <pathelement location="${antlr.jar}" />
       <pathelement location="${semver.jar}" />
     </path>
+    <path id="javadoc_gluegen.classpath">
+      <pathelement location="${ant.jar}" />
+      <pathelement location="${antlr.jar}" />
+      <pathelement location="${semver.jar}" />
+      <pathelement location="${gluegen.jar}" />
+    </path>
   </target>
 
   <target name="init.android" if="android-jars.available" >
@@ -780,6 +786,7 @@
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
       <classpath refid="cc_gluegen.classpath" />
+      <!-- compilerarg line="release ${target.releaselevel}"/ -->
     </javac>
 
     <!-- move platform-specific native headers into the right directories -->
@@ -799,7 +806,6 @@
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
-           source="${target.sourcelevel}"
            target="${target.targetlevel}" 
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.jcpp}" />
@@ -1283,9 +1289,11 @@
              source="${target.sourcelevel}"
              maxmemory="${javac.memorymax}"
              stylesheetfile="doc/javadoc/stylesheet.css">
-        <classpath path="${classes}"/>
+        <classpath refid="javadoc_gluegen.classpath" />
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
         <arg value="${javadoc.xarg1}"/>
+        <arg value="-html5"/>
+        <arg value="--show-packages=all"/>
     </javadoc>
     <copy todir="${javadoc.gluegen.path}/resources" overwrite="true">
         <fileset dir="doc/javadoc/resources" includes="*" />

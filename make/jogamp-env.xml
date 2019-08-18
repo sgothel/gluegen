@@ -161,6 +161,12 @@
         </not>
     </condition>
 
+    <condition property="target.releaselevel" value="${env.RELEASE_LEVEL}">
+        <not>
+         <equals arg1="${env.RELEASE_LEVEL}" arg2="$${env.RELEASE_LEVEL}" casesensitive="true" />
+        </not>
+    </condition>
+
     <condition property="target.rt.jar" value="${env.TARGET_RT_JAR}">
         <not>
          <equals arg1="${env.TARGET_RT_JAR}" arg2="$${env.TARGET_RT_JAR}" casesensitive="true" />
@@ -171,12 +177,14 @@
           <and>
               <isset property="target.sourcelevel"/>
               <isset property="target.targetlevel"/>
+              <!-- isset property="target.releaselevel"/ -->
               <isset property="target.rt.jar"/>
           </and>
     </condition>
     <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
+    <echo message="target.releaselevel        ${target.releaselevel}"/>
     <echo message="target.rt.jar              ${target.rt.jar}"/>
 
     <fail message="You need to specify all properties 'target.sourcelevel', 'target.targetlevel' and 'target.rt.jar'.">
@@ -192,6 +200,7 @@
             <not>
                 <or>
                     <contains string="${target.sourcelevel}" substring="1.8" casesensitive="false" />
+                    <contains string="${target.sourcelevel}" substring="8" casesensitive="false" />
                 </or>
             </not>
         </condition>
@@ -201,10 +210,20 @@
             <not>
                 <or>
                     <contains string="${target.targetlevel}" substring="1.8" casesensitive="false" />
+                    <contains string="${target.targetlevel}" substring="8" casesensitive="false" />
                 </or>
             </not>
         </condition>
     </fail>
+    <!-- fail message="Unsupported Target Java releaselevel: ${target.releaselevel}. Make sure that the releaselevel is set to 8.">
+        <condition>
+            <not>
+                <or>
+                    <contains string="${target.releaselevel}" substring="8" casesensitive="false" />
+                </or>
+            </not>
+        </condition>
+    </fail -->
 
     <property name="javacdebug"       value="true" /> 
     <property name="javacdebuglevel"  value="source,lines" /> 
