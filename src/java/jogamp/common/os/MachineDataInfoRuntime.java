@@ -128,7 +128,7 @@ public class MachineDataInfoRuntime {
 
   private static MachineDataInfo getRuntimeImpl() {
         try {
-            Platform.initSingleton(); // loads native gluegen-rt library
+            Platform.initSingleton(); // loads native gluegen_rt library
         } catch (final UnsatisfiedLinkError err) {
             return null;
         }

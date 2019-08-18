@@ -405,7 +405,7 @@ public abstract class PlatformPropsImpl {
      * For Elf parsing one of the following binaries is used:
      * <ul>
      *  <li>Linux: Current executable</li>
-     *  <li>Android: Found gluegen-rt library</li>
+     *  <li>Android: Found gluegen_rt library</li>
      *  <li>Other: A found java/jvm native library.</li>
      * </ul>
      * </p>
@@ -417,7 +417,7 @@ public abstract class PlatformPropsImpl {
         File file = null;
         try {
             if( OSType.ANDROID == osType ) {
-                file = new File(NativeLibrary.findLibrary("gluegen-rt", PlatformPropsImpl.class.getClassLoader()));
+                file = new File(NativeLibrary.findLibrary("gluegen_rt", PlatformPropsImpl.class.getClassLoader()));
             } else {
                 if( OSType.LINUX == osType ) {
                     file = new File("/proc/self/exe");

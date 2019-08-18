@@ -197,7 +197,7 @@ public class TestTempJarCache extends SingletonJunitCase {
     public void testTempJarCache02AddNativeLibs() throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
         final Uri.Encoded nativeJarName = Uri.Encoded.cast("gluegen-rt-natives-"+Platform.getOSAndArch()+".jar");
-        final String libBaseName = "gluegen-rt";
+        final String libBaseName = "gluegen_rt";
         final ClassLoader cl = getClass().getClassLoader();
 
         final Uri jarUri = JarUtil.getJarUri(TempJarCache.class.getName(), cl);

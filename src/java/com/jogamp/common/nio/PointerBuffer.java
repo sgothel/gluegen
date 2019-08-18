@@ -53,7 +53,7 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
     protected LongObjectHashMap dataMap = null;
 
     static {
-        Platform.initSingleton(); // loads native gluegen-rt library
+        Platform.initSingleton(); // loads native gluegen_rt library
     }
 
     /** no backup array, use for direct usage only */

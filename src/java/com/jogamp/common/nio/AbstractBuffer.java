@@ -48,7 +48,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     protected int position;
 
     static {
-        Platform.initSingleton(); // loads native gluegen-rt library
+        Platform.initSingleton(); // loads native gluegen_rt library
     }
 
     /**

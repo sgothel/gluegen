@@ -321,7 +321,7 @@ public class Platform extends PlatformPropsImpl {
                 DynamicLibraryBundle.GlueJNILibLoader.loadLibrary(libBaseName, false, cl);
 
                 // JVM bug workaround
-                JVMUtil.initSingleton(); // requires gluegen-rt, one-time init.
+                JVMUtil.initSingleton(); // requires gluegen_rt, one-time init.
 
                 // AWT Headless determination
                 if( !PropertyAccess.getBooleanProperty("java.awt.headless", true) &&
@@ -354,7 +354,7 @@ public class Platform extends PlatformPropsImpl {
     }
 
     /**
-     * kick off static initialization of <i>platform property information</i> and <i>native gluegen-rt lib loading</i>
+     * kick off static initialization of <i>platform property information</i> and <i>native gluegen_rt lib loading</i>
      */
     public static void initSingleton() { }
 

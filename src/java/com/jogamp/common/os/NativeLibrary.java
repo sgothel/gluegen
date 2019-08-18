@@ -209,7 +209,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
                                                        macOSXLibName,
                                                        searchSystemPath, searchSystemPathFirst,
                                                        loader);
-    Platform.initSingleton(); // loads native gluegen-rt library
+    Platform.initSingleton(); // loads native gluegen_rt library
 
     final DynamicLinker dynLink = getDynamicLinker();
 
