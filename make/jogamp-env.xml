@@ -1,18 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<!-- Current requirements are:
+<!-- Current runtime requirements are:
         - Java 1.8 (Level 8.0)
         - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
-     Official production builds are performed w/ Java 1.8.
+     Official production builds are performed _for_ Java 1.8.
         - Java 1.8 (Level 8.0)
         - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
+
+     Official production builds are performed _on_ OpenJDK 11
+     and a Java JDK 11 or greater is required!
 
      Android 7 API level 24 supports Java 1.8, 
      see https://developer.android.com/studio/write/java8-support
 
-     Java 8 is chosen today, June 2019, since OpenJDK 1.8 is well supported
-     on desktop, mobile support is given w/ OpenJDK 9 and 
+     Target Java 8 baseline is chosen today, June 2019, 
+     since OpenJDK 1.8 is well supported on desktop, 
+     mobile support is given w/ OpenJDK 9 and 
      Android also support these language features for almost 3 years.
      
      For crosscompilation the following shall be set:
@@ -48,14 +52,14 @@
       </condition>
     </fail>
 
-    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of the Java compiler is 1.11 (11.0) or greater.">
+    <!-- Only for junit runtime tests Java [8-10] is allowed, for building Java 11 is required. -->
+    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 1.8 or greater.">
         <condition>
             <not>
                 <or>
-                    <equals arg1="${ant.java.version}" arg2="1.11"/>
-                    <equals arg1="${ant.java.version}" arg2="1.12"/>
-                    <equals arg1="${ant.java.version}" arg2="1.13"/>
-                    <equals arg1="${ant.java.version}" arg2="1.14"/>
+                    <equals arg1="${ant.java.version}" arg2="1.8"/>
+                    <equals arg1="${ant.java.version}" arg2="9"/>
+                    <equals arg1="${ant.java.version}" arg2="10"/>
                     <equals arg1="${ant.java.version}" arg2="11"/>
                     <equals arg1="${ant.java.version}" arg2="12"/>
                     <equals arg1="${ant.java.version}" arg2="13"/>
@@ -76,6 +80,9 @@
 
     <condition property="javadoc.xarg1" value="-Xdoclint:none" else="-J-Ddummy=val">
         <or>
+            <equals arg1="${ant.java.version}" arg2="1.8"/>
+            <equals arg1="${ant.java.version}" arg2="9"/>
+            <equals arg1="${ant.java.version}" arg2="10"/>
             <equals arg1="${ant.java.version}" arg2="11"/>
             <equals arg1="${ant.java.version}" arg2="12"/>
             <equals arg1="${ant.java.version}" arg2="13"/>
