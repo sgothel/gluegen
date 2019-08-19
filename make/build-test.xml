@@ -437,8 +437,11 @@ chmod 644 ${results}/* \${line.separator}
             <jvmarg value="-Drootrel.build=${rootrel.build}"/>
             <!--
             <jvmarg value="-Djogamp.debug.NativeLibrary=true"/>
-            <jvmarg value="-Djogamp.debug.ProcAddressHelper=true"/>
             <jvmarg value="-Djogamp.debug.JNILibLoader=true"/>
+            <jvmarg value="-Djogamp.debug.TempFileCache=true"/>
+            <jvmarg value="-Djogamp.debug.JarUtil=true"/>
+            <jvmarg value="-Djogamp.debug.TempJarCache=true"/>
+            <jvmarg value="-Djogamp.debug.ProcAddressHelper=true"/>
             <jvmarg value="-verbose:jni"/> 
             <jvmarg value="-client"/>
             -->
