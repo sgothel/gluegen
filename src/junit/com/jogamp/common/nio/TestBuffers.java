@@ -53,7 +53,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class BuffersTest extends SingletonJunitCase {
+public class TestBuffers extends SingletonJunitCase {
 
     @Test
     public void test01PositionLimitCapacityAfterArrayAllocation() {
@@ -156,8 +156,14 @@ public class BuffersTest extends SingletonJunitCase {
         assertEquals(42, onetwothree.get(2));
     }
 
+    @Test
+    public void test20Cleaner() {
+        final ByteBuffer byteBuffer = Buffers.newDirectByteBuffer(1024);
+        Buffers.Cleaner.clean(byteBuffer);
+    }
+
     public static void main(final String args[]) throws IOException {
-        final String tstname = BuffersTest.class.getName();
+        final String tstname = TestBuffers.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

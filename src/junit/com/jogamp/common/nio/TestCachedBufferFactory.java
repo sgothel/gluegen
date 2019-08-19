@@ -55,7 +55,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class CachedBufferFactoryTest extends SingletonJunitCase {
+public class TestCachedBufferFactory extends SingletonJunitCase {
 
     private final int BUFFERCOUNT = 120;
 
@@ -210,7 +210,7 @@ public class CachedBufferFactoryTest extends SingletonJunitCase {
 
     public static void main(final String[] args) {
 
-        CachedBufferFactoryTest test = new CachedBufferFactoryTest();
+        TestCachedBufferFactory test = new TestCachedBufferFactory();
 
         out.print("warmup...");
         Object obj = null;
@@ -221,7 +221,7 @@ public class CachedBufferFactoryTest extends SingletonJunitCase {
         }
         out.println("done");
 
-        test = new CachedBufferFactoryTest();
+        test = new TestCachedBufferFactory();
         gc();
 
         for (int i = 0; i < 10; i++) {

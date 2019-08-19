@@ -39,6 +39,7 @@
  */
 package com.jogamp.common.nio;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -56,6 +57,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import com.jogamp.common.util.ValueConv;
 
 import jogamp.common.Debug;
+import jogamp.common.os.PlatformPropsImpl;
 
 /**
  * Utility methods allowing easy {@link java.nio.Buffer} manipulations.
@@ -1165,22 +1167,42 @@ public class Buffers {
      * Access to NIO {@link sun.misc.Cleaner}, allowing caller to deterministically clean a given {@link sun.nio.ch.DirectBuffer}.
      */
     public static class Cleaner {
+        private static final Object theUnsafe;
         private static final Method mbbCleaner;
         private static final Method cClean;
         private static final boolean hasCleaner;
         /** OK to be lazy on thread synchronization, just for early out **/
         private static volatile boolean cleanerError;
         static {
+            final Object[] _theUnsafe = { null };
             final Method[] _mbbCleaner = { null };
             final Method[] _cClean = { null };
             if( AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
                 @Override
                 public Boolean run() {
                     try {
-                        _mbbCleaner[0] = ReflectionUtil.getMethod("sun.nio.ch.DirectBuffer", "cleaner", null, Buffers.class.getClassLoader());
-                        _mbbCleaner[0].setAccessible(true);
-                        _cClean[0] = Class.forName("sun.misc.Cleaner").getMethod("clean");
-                        _cClean[0].setAccessible(true);
+                        if(PlatformPropsImpl.JAVA_9) {
+                            // Using: sun.misc.Unsafe { public void invokeCleaner(java.nio.ByteBuffer directBuffer); }
+                            _mbbCleaner[0] = null;
+                            final Class<?> unsafeClass = Class.forName("sun.misc.Unsafe");
+                            {
+                                final Field f = unsafeClass.getDeclaredField("theUnsafe");
+                                f.setAccessible(true);
+                                _theUnsafe[0] = f.get(null);
+                            }
+                            _cClean[0] = unsafeClass.getMethod("invokeCleaner", java.nio.ByteBuffer.class);
+                            _cClean[0].setAccessible(true);
+                        } else {
+                            _mbbCleaner[0] = ReflectionUtil.getMethod("sun.nio.ch.DirectBuffer", "cleaner", null, Buffers.class.getClassLoader());
+                            _mbbCleaner[0].setAccessible(true);
+                            final Class<?> cleanerType = _mbbCleaner[0].getReturnType();
+                            // Java >= 9: jdk.internal.ref.Cleaner (NOT accessible!)
+                            //            "Unable to make public void jdk.internal.ref.Cleaner.clean() accessible:
+                            //             module java.base does not "exports jdk.internal.ref" to unnamed module"
+                            // Java <= 8: sun.misc.Cleaner OK
+                            _cClean[0] = cleanerType.getMethod("clean");
+                            _cClean[0].setAccessible(true);
+                        }
                         return Boolean.TRUE;
                     } catch(final Throwable t) {
                         if( DEBUG ) {
@@ -1189,27 +1211,43 @@ public class Buffers {
                         }
                         return Boolean.FALSE;
                     } } } ).booleanValue() ) {
+                theUnsafe = _theUnsafe[0];
                 mbbCleaner = _mbbCleaner[0];
                 cClean = _cClean[0];
-                hasCleaner = null != mbbCleaner && null != cClean;
+                hasCleaner = PlatformPropsImpl.JAVA_9 ? null != theUnsafe && null != cClean : null != mbbCleaner && null != cClean;
             } else {
+                theUnsafe = null;
                 mbbCleaner = null;
                 cClean = null;
                 hasCleaner = false;
             }
             cleanerError = !hasCleaner;
+            if( DEBUG ) {
+                System.err.print("Buffers.Cleaner.init: hasCleaner: "+hasCleaner+", cleanerError "+cleanerError);
+                if( null != mbbCleaner ) {
+                    System.err.print(", using Cleaner class: "+mbbCleaner.getReturnType().getName());
+                }
+                if( null != theUnsafe ) {
+                    System.err.print(", using sun.misc.Unsafe::invokeCleaner(..);");
+                }
+                System.err.println();
+            }
         }
         /**
          * If {@code b} is an direct NIO buffer, i.e {@link sun.nio.ch.DirectBuffer},
          * calls it's {@link sun.misc.Cleaner} instance {@code clean()} method.
          * @return {@code true} if successful, otherwise {@code false}.
          */
-        public static boolean clean(final Buffer b) {
-            if( !hasCleaner || cleanerError || !b.isDirect() ) {
+        public static boolean clean(final ByteBuffer bb) {
+            if( !hasCleaner || cleanerError || !bb.isDirect() ) {
                 return false;
             }
             try {
-                cClean.invoke(mbbCleaner.invoke(b));
+                if( PlatformPropsImpl.JAVA_9 ) {
+                    cClean.invoke(theUnsafe, bb);
+                } else {
+                    cClean.invoke(mbbCleaner.invoke(bb));
+                }
                 return true;
             } catch(final Throwable t) {
                 cleanerError = true;

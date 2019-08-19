@@ -52,6 +52,8 @@ public class TestByteBufferCopyStream extends SingletonJunitCase {
                          final MappedByteBufferInputStream.CacheMode srcCacheMode, final int srcSliceShift,
                          final String dstFileName,
                          final MappedByteBufferInputStream.CacheMode dstCacheMode, final int dstSliceShift ) throws IOException {
+        System.err.println("Test: source[CacheMode "+srcCacheMode+", SliceShift "+srcSliceShift+"]");
+        System.err.println("      destin[CacheMode "+dstCacheMode+", SliceShift "+dstSliceShift+"]");
         final Runtime runtime = Runtime.getRuntime();
         final long[] usedMem0 = { 0 };
         final long[] freeMem0 = { 0 };
@@ -60,6 +62,7 @@ public class TestByteBufferCopyStream extends SingletonJunitCase {
         final String prefix = "test "+String.format(TestByteBufferInputStream.PrintPrecision+" MiB", size/TestByteBufferInputStream.MIB);
         TestByteBufferInputStream.dumpMem(prefix+" before", runtime, -1, -1, usedMem0, freeMem0 );
 
+        final long t0 = Platform.currentTimeMillis();
         final File srcFile = new File(srcFileName);
         srcFile.delete();
         srcFile.createNewFile();
@@ -72,6 +75,7 @@ public class TestByteBufferCopyStream extends SingletonJunitCase {
             _input.close();
             input = new RandomAccessFile(srcFile, "r");
         }
+        final long t1 = Platform.currentTimeMillis();
         final MappedByteBufferInputStream mis = new MappedByteBufferInputStream(input.getChannel(),
                                                                                 FileChannel.MapMode.READ_ONLY,
                                                                                 srcCacheMode,
@@ -131,12 +135,19 @@ public class TestByteBufferCopyStream extends SingletonJunitCase {
             output.close();
             srcFile.delete();
             dstFile.delete();
+            final long t5 = Platform.currentTimeMillis();
             TestByteBufferInputStream.dumpMem(prefix+" after ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
             System.gc();
+            final long t6 = Platform.currentTimeMillis();
             try {
                 Thread.sleep(500);
             } catch (final InterruptedException e) { }
             TestByteBufferInputStream.dumpMem(prefix+" gc'ed ", runtime, usedMem0[0], freeMem0[0], usedMem1, freeMem1 );
+            System.err.println("Performance Stats: ");
+            System.err.printf("- File-Create %6d ms\n", t1-t0);
+            System.err.printf("- File-Copy   %6d ms\n", t5-t1);
+            System.err.printf("- GC          %6d ms\n", t6-t5);
+            System.err.printf("- Total       %6d ms\n", t6-t0);
         }
         if( null != ioe || null != oome ) {
             if( null != oome ) {
