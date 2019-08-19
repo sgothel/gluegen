@@ -772,6 +772,7 @@
          original source in multiple stages below. -->
 
     <!-- Compile gluegen-rt first including generation of native headers -->
+    <!-- This has a hard Java8 target spec requirement: source, target + bootclasspath -->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
@@ -801,6 +802,7 @@
     </copy>
 
     <!-- Compile gluegen (compile time).  -->
+    <!-- This has a soft Java8 bytecote target only (Using some build time APIs): target -->
     <javac destdir="${classes}"
            includeAntRuntime="true"
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
@@ -1002,6 +1004,7 @@
 
   <target name="gluegen.build.android" if="android-jars.available">
     <!--compile gluegen-rt-android last-->
+    <!-- This has a hard Java8 target spec requirement: source, target + bootclasspath -->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${gluegen-rt.classes} ${jogamp.common.classes}"
@@ -1138,6 +1141,7 @@
   </target>
 
   <target name="android-launcher.build" depends="gluegen.cpptasks.detect.os,gluegen.build.check.android-launcher" if="android-jars.available" unless="gluegen.build.skip.android-launcher">
+    <!-- This has a hard Java8 target spec requirement: source, target + bootclasspath -->
     <javac destdir="${classes}"
            includeAntRuntime="false"
            includes="${jogamp-android-launcher.classes}"

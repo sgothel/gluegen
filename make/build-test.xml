@@ -125,6 +125,7 @@
         <echo message=" build_t.gen     ${build_t.gen}"/>
 
         <!-- Javac of Annotation Processor dependencies - First -->
+        <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
         <javac destdir="${build_t.java}" 
                fork="yes"
                includeAntRuntime="false"
@@ -140,6 +141,7 @@
         </javac>
 
         <!-- Annotation Processor - Second -->
+        <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
         <mkdir dir="${build_t.gen}/classes/com/jogamp/gluegen/test/junit/structgen"/>
         <javac destdir="${build_t.java}" 
                fork="yes"
@@ -159,6 +161,7 @@
         </javac>
 
         <!-- Javac All - Third -->
+        <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
         <javac destdir="${build_t.java}" 
                fork="yes"
                includeAntRuntime="false"
