@@ -98,7 +98,7 @@ public abstract class JunitTracer {
 
     static final String unsupportedTestMsg = "Test not supported on this platform.";
 
-    public static final void waitForKey(final String preMessage) {
+    public static void waitForKey(final String preMessage) {
         final BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
         System.err.println(preMessage+"> Press enter to continue");
         try {
