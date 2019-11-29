@@ -589,9 +589,6 @@
     <condition property="jvmDataModel.arg" value="-d64"><isset property="jvmDataModel64Bit"/></condition>
     <condition property="jvmDataModel.arg" value="-d32"><isset property="jvmDataModel32Bit"/></condition>
     <property name="jvmDataModel.arg" value="-Djnlp.no.jvm.data.model.set=true" /> <!-- dummy placeholder, valid jvm arg, won't override above spec -->
-    <condition property="build.dynamiclibs" value="false" else="true"><istrue value="${isIOS}"/></condition>
-    <condition property="build.staticlibs" value="false" else="true"><istrue value="${build.dynamiclibs}"/></condition>
-    <condition property="output.lib.type" value="shared" else="static"><istrue value="${build.dynamiclibs}"/></condition>
   </target>
 
   <target name="gluegen.cpptasks.detect.os.refine" unless="gluegen.cpptasks.detected.os.2">
@@ -620,67 +617,6 @@
         <istrue value="${isLinuxARMv6}" />
       </and>
     </condition>
-
-    <echo message="isI386=${isI386}" />
-    <echo message="isAMD64=${isAMD64}" />
-    <echo message="is64Bit=${is64Bit}" />
-    <echo message="isAbiEabiGnuArmel=${isAbiEabiGnuArmel}" />
-    <echo message="isAbiEabiGnuArmhf=${isAbiEabiGnuArmhf}" />
-    <echo message="jvmDataModel32Bit=${jvmDataModel32Bit}" />
-    <echo message="jvmDataModel64Bit=${jvmDataModel64Bit}" />
-    <echo message="jvmDataModel.arg=${jvmDataModel.arg}" />
-    <echo message="FreeBSD=${isFreeBSD}" />
-    <echo message="FreeBSDX86=${isFreeBSDX86}" />
-    <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
-    <echo message="HPUX=${isHPUX}" />
-    <echo message="IA64=${isIA64}" />
-    <echo message="Android=${isAndroid}" />
-    <echo message="AndroidARMv6=${isAndroidARMv6}" />
-    <echo message="AndroidARM64=${isAndroidARM64}" />
-    <echo message="AndroidARMv6Armel=${isAndroidARMv6Armel}" />
-    <echo message="AndroidARMv6Armhf=${isAndroidARMv6Armhf}" />
-    <echo message="AndroidX86=${isAndroidX86}" />
-    <echo message="Linux=${isLinux}" />
-    <echo message="LinuxAMD64=${isLinuxAMD64}" />
-    <echo message="LinuxIA64=${isLinuxIA64}" />
-    <echo message="LinuxX86=${isLinuxX86}" />
-    <echo message="LinuxARMv6=${isLinuxARMv6}" />
-    <echo message="LinuxARM64=${isLinuxARM64}" />
-    <echo message="LinuxARMv6Armel=${isLinuxARMv6Armel}" />
-    <echo message="LinuxARMv6Armhf=${isLinuxARMv6Armhf}" />
-    <echo message="LinuxAlpha=${isLinuxAlpha}" />
-    <echo message="LinuxHppa=${isLinuxHppa}" />
-    <echo message="LinuxMips=${isLinuxMips}" />
-    <echo message="LinuxMipsel=${isLinuxMipsel}" />
-    <echo message="LinuxPpc=${isLinuxPpc}" />
-    <echo message="LinuxPpc64=${isLinuxPpc64}" />
-    <echo message="LinuxPpc64le=${isLinuxPpc64le}" />
-    <echo message="Linuxs390=${isLinuxs390}" />
-    <echo message="Linuxs390x=${isLinuxs390x}" />
-    <echo message="LinuxSparc=${isLinuxSparc}" />
-    <echo message="OS X=${isOSX}" />
-    <echo message="OS X PPC=${use.macosppc}" />
-    <echo message="OS X x32=${use.macosx32}" />
-    <echo message="OS X x64=${use.macosx64}" />
-    <echo message="iOS=${isIOS}" />
-    <echo message="iOSAmd64=${isIOSAmd64}" />
-    <echo message="iOSArm64=${isIOSArm64}" />
-    <echo message="Solaris=${isSolaris}" />
-    <echo message="Solaris32Bit=${isSolaris32Bit}" />
-    <echo message="Solaris64Bit=${isSolaris64Bit}" />
-    <echo message="SolarisSparc=${isSolarisSparc}" />
-    <echo message="SolarisSparcv9=${isSolarisSparcv9}" />
-    <echo message="SolarisAMD64=${isSolarisAMD64}" />
-    <echo message="SolarisX86=${isSolarisX86}" />
-    <echo message="Unix=${isUnix}" />
-    <echo message="Windows=${isWindows}" />
-    <echo message="X11=${isX11}" />
-    <echo message="os=${os.name}" />
-    <echo message="os=${os.version}" />
-    <echo message="arch=${os.arch}" /> 
-    <echo message="build.dynamiclibs=${build.dynamiclibs}" /> 
-    <echo message="build.staticlibs=${build.staticlibs}" /> 
-    <echo message="output.lib.type=${output.lib.type}" /> 
  </target>
 
  <!-- Consult jogamp.common.os.PlatformPropsImpl.getOSAndArch(..) to complete/sync mapping! -->
@@ -852,6 +788,9 @@
   </target>
 
   <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.custom,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">
+    <echo message="gluegen.cpptasks.detected.os=${gluegen.cpptasks.detected.os}" />
+    <echo message="gluegen.cpptasks.detected.os.2=${gluegen.cpptasks.detected.os.2}" />
+
     <property name="gluegen.cpptasks.detected.os" value="true" />
     <property name="gluegen.cpptasks.detected.os.2" value="true" />
 
@@ -880,6 +819,72 @@
     <property name="c.strip.args"     value="" /> 
 
     <condition property="awk_executable" value="gawk" else="awk"><isset property="isWindows"/></condition>
+
+    <condition property="build.dynamiclibs" value="false" else="true"><istrue value="${isIOS}"/></condition>
+    <condition property="build.staticlibs" value="false" else="true"><istrue value="${build.dynamiclibs}"/></condition>
+    <condition property="output.lib.type" value="shared" else="static"><istrue value="${build.dynamiclibs}"/></condition>
+
+    <echo message="isCrosscompilation=${isCrosscompilation}" />
+    <echo message="isI386=${isI386}" />
+    <echo message="isAMD64=${isAMD64}" />
+    <echo message="is64Bit=${is64Bit}" />
+    <echo message="isAbiEabiGnuArmel=${isAbiEabiGnuArmel}" />
+    <echo message="isAbiEabiGnuArmhf=${isAbiEabiGnuArmhf}" />
+    <echo message="jvmDataModel32Bit=${jvmDataModel32Bit}" />
+    <echo message="jvmDataModel64Bit=${jvmDataModel64Bit}" />
+    <echo message="jvmDataModel.arg=${jvmDataModel.arg}" />
+    <echo message="FreeBSD=${isFreeBSD}" />
+    <echo message="FreeBSDX86=${isFreeBSDX86}" />
+    <echo message="FreeBSDAMD64=${isFreeBSDAMD64}" />
+    <echo message="HPUX=${isHPUX}" />
+    <echo message="IA64=${isIA64}" />
+    <echo message="Android=${isAndroid}" />
+    <echo message="AndroidARMv6=${isAndroidARMv6}" />
+    <echo message="AndroidARM64=${isAndroidARM64}" />
+    <echo message="AndroidARMv6Armel=${isAndroidARMv6Armel}" />
+    <echo message="AndroidARMv6Armhf=${isAndroidARMv6Armhf}" />
+    <echo message="AndroidX86=${isAndroidX86}" />
+    <echo message="Linux=${isLinux}" />
+    <echo message="LinuxAMD64=${isLinuxAMD64}" />
+    <echo message="LinuxIA64=${isLinuxIA64}" />
+    <echo message="LinuxX86=${isLinuxX86}" />
+    <echo message="LinuxARMv6=${isLinuxARMv6}" />
+    <echo message="LinuxARM64=${isLinuxARM64}" />
+    <echo message="LinuxARMv6Armel=${isLinuxARMv6Armel}" />
+    <echo message="LinuxARMv6Armhf=${isLinuxARMv6Armhf}" />
+    <echo message="LinuxAlpha=${isLinuxAlpha}" />
+    <echo message="LinuxHppa=${isLinuxHppa}" />
+    <echo message="LinuxMips=${isLinuxMips}" />
+    <echo message="LinuxMipsel=${isLinuxMipsel}" />
+    <echo message="LinuxPpc=${isLinuxPpc}" />
+    <echo message="LinuxPpc64=${isLinuxPpc64}" />
+    <echo message="LinuxPpc64le=${isLinuxPpc64le}" />
+    <echo message="Linuxs390=${isLinuxs390}" />
+    <echo message="Linuxs390x=${isLinuxs390x}" />
+    <echo message="LinuxSparc=${isLinuxSparc}" />
+    <echo message="OS X=${isOSX}" />
+    <echo message="OS X PPC=${use.macosppc}" />
+    <echo message="OS X x32=${use.macosx32}" />
+    <echo message="OS X x64=${use.macosx64}" />
+    <echo message="iOS=${isIOS}" />
+    <echo message="iOSAmd64=${isIOSAmd64}" />
+    <echo message="iOSArm64=${isIOSArm64}" />
+    <echo message="Solaris=${isSolaris}" />
+    <echo message="Solaris32Bit=${isSolaris32Bit}" />
+    <echo message="Solaris64Bit=${isSolaris64Bit}" />
+    <echo message="SolarisSparc=${isSolarisSparc}" />
+    <echo message="SolarisSparcv9=${isSolarisSparcv9}" />
+    <echo message="SolarisAMD64=${isSolarisAMD64}" />
+    <echo message="SolarisX86=${isSolarisX86}" />
+    <echo message="Unix=${isUnix}" />
+    <echo message="Windows=${isWindows}" />
+    <echo message="X11=${isX11}" />
+    <echo message="os=${os.name}" />
+    <echo message="os=${os.version}" />
+    <echo message="arch=${os.arch}" /> 
+    <echo message="build.dynamiclibs=${build.dynamiclibs}" /> 
+    <echo message="build.staticlibs=${build.staticlibs}" /> 
+    <echo message="output.lib.type=${output.lib.type}" /> 
   </target>
 
   <!-- Detect compiler setup, in particular on Windows; separated
