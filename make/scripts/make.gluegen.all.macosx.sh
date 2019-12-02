@@ -1,7 +1,7 @@
 #! /bin/sh
 
-if [ -e /opt-share/etc/profile.ant ] ; then
-    . /opt-share/etc/profile.ant
+if [ -e /usr/local/etc/profile.ant ] ; then
+    . /usr/local/etc/profile.ant
 fi
 
 #    -Dc.compiler.debug=true 
@@ -19,7 +19,7 @@ export JAVA_HOME PATH
 
 export SOURCE_LEVEL=1.8
 export TARGET_LEVEL=1.8
-export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
+export TARGET_RT_JAR=/usr/local/jre1.8.0_212/lib/rt.jar
 
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
