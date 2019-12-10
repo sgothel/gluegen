@@ -23,7 +23,7 @@
     <property name="isAndroidARMv6"                   value="true" /> 
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
     <property name="isCrosscompilation"               value="true" />
-    <property name="android.abi"                      value="armeabi" />
+    <property name="android.abi"                      value="${env.ANDROID_ABI}" /> <!-- armeabi-v7a -->
     <property name="isAbiEabiGnuArmel"                value="true" />
     <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-armv6' done"/>
 </target>
@@ -32,53 +32,52 @@
 
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
-    <compiler id="compiler.cfg.android" name="gcc">
-      <compilerarg value="--sysroot=${TARGET_PLATFORM_SYSROOT}" />
-      <!-- The default search dirs for 'gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin will not find
-        subprograms properly (see gcc -print-search-dirs). Not sure if this is a bug in the NDK
-        or not. Need to explicitly indicate where subprograms are with -B.
-        NOTE: This is not necessary if using '$TARGET_TRIPLE-gcc' from $NDK_TOOLCHAIN_ROOT/bin. -->
-      <compilerarg value="-B${env.NDK_TOOLCHAIN_ROOT}/libexec/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" />
+    <compiler id="compiler.cfg.android" name="clang">
+      <compilerarg value="--sysroot=${env.ANDROID_TOOLCHAIN_SYSROOT}" />
+
+      <compilerarg value="-v" /> 
 
       <compilerarg value="-fpic" /> 
+
+      <!-- from sdk cmake start -->
+      <compilerarg value="-fdata-sections" />
       <compilerarg value="-ffunction-sections" />
       <compilerarg value="-funwind-tables" />
-      <compilerarg value="-fstack-protector" />
-      <!-- compilerarg value="-no-canonical-prefixes" / --> <!-- will disallow creating shared library -->
+      <compilerarg value="-fstack-protector-strong" />
+      <compilerarg value="-no-canonical-prefixes" />
+      <compilerarg value="-nostdinc++" />
+      <!-- from sdk cmake end -->
+
       <compilerarg value="-Wa,--noexecstack" /> 
 
-      <compilerarg value="-march=armv6" />
+      <compilerarg value="-target" />
+      <compilerarg value="${env.ANDROID_LLVM_TRIPLE}" /> <!-- armv7-none-linux-androideabi -->
+      <compilerarg value="-mfpu=neon" /> <!-- with NEON by default since NDK r21 -->
+      <!-- compilerarg value="-march=armv6" />
       <compilerarg value="-mfloat-abi=softfp" />
-      <compilerarg value="-marm" /> 
+      <compilerarg value="-marm" / -->
 
       <!-- Generic ARM Flags -->
+      <compilerarg value="-fno-strict-aliasing"/> <!-- be safe -->
+
       <compilerarg value="-O2"                  unless="c.compiler.use-debug" /> 
       <!-- compilerarg value="-g"                   unless="c.compiler.use-debug" /-->
       <compilerarg value="-fomit-frame-pointer" unless="c.compiler.use-debug"/> 
-      <compilerarg value="-fstrict-aliasing"    unless="c.compiler.use-debug"/> 
-      <compilerarg value="-funswitch-loops"     unless="c.compiler.use-debug"/> 
-      <compilerarg value="-finline-limit=300"   unless="c.compiler.use-debug"/> 
-
-      <!-- THUMB Flags ..
-      <compilerarg value="-Os"                  unless="c.compiler.use-debug" /> 
-      <compilerarg value="-g"                   unless="c.compiler.use-debug" />
-      <compilerarg value="-fomit-frame-pointer" unless="c.compiler.use-debug"/> 
-      <compilerarg value="-fno-strict-aliasing" unless="c.compiler.use-debug" /> 
-      <compilerarg value="-finline-limit=64"    unless="c.compiler.use-debug"/> 
-         -->
+      <!-- compilerarg value="-funswitch-loops"     unless="c.compiler.use-debug"/ not supported --> 
+      <!-- compilerarg value="-finline-limit=300"   unless="c.compiler.use-debug"/ not supported --> 
 
       <compilerarg value="-O0"                     if="c.compiler.use-debug" />
       <compilerarg value="-g"                      if="c.compiler.use-debug" />
       <compilerarg value="-fno-omit-frame-pointer" if="c.compiler.use-debug" /> 
-      <compilerarg value="-fno-strict-aliasing"    if="c.compiler.use-debug" /> 
 
-      <includepath path="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}/include" /> <!-- for stdarg.h -->
+      <!-- includepath path="${env.ANDROID_TOOLCHAIN_SYSROOT_INC}" / -->
       <defineset>
         <define name="__unix__" />
         <define name="__ARM_ARCH_5__" />
         <define name="__ARM_ARCH_5T__" />
         <define name="__ARM_ARCH_5E__" />
         <define name="__ARM_ARCH_5TE__" />
+        <define name="HAVE_NEON" />
         <define name="ANDROID" />
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
         <define name="DEBUG"    if="c.compiler.use-debug"/>        
@@ -86,40 +85,42 @@
       </defineset>
     </compiler>
 
-    <linker id="linker.cfg.android" name="gcc">
-         <linkerarg value="--sysroot=${TARGET_PLATFORM_SYSROOT}" />
+    <linker id="linker.cfg.android" name="clang">
+      <linkerarg value="--sysroot=${env.ANDROID_TOOLCHAIN_SYSROOT}" />
+      <!-- linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT_LIB_0}" / -->
+      <linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT_LIB_1}" />
+      <linkerarg value="-Wl,-rpath-link=${env.ANDROID_TOOLCHAIN_SYSROOT_LIB_1}" />
+      
+      <linkerarg value="-v" /> 
 
-         <linkerarg value="-fpic" /> 
-         <linkerarg value="-ffunction-sections" />
-         <linkerarg value="-funwind-tables" />
-         <linkerarg value="-fstack-protector" />
-         <!-- linkerarg value="-no-canonical-prefixes" / --> <!-- will disallow creating shared library -->
-         <linkerarg value="-Wa,--noexecstack" /> 
+      <linkerarg value="-fpic" /> 
 
-         <linkerarg value="-fno-use-linker-plugin" /> 
+      <!-- from sdk cmake start -->
+      <linkerarg value="-Wl,--build-id" /> 
+      <linkerarg value="-Wl,--no-warn-shared-textrel" /> 
+      <linkerarg value="-Wl,--fatal-warnings" />
+      <linkerarg value="-nostdlib" />
+      <linkerarg value="-nostdlib++" />
+      <!-- from sdk cmake end -->
 
-         <linkerarg value="-march=armv6" />
-         <linkerarg value="-mfloat-abi=softfp" />
-         <linkerarg value="-marm" /> 
+      <linkerarg value="-fno-use-linker-plugin" /> 
 
-         <linkerarg value="-nostdlib" />
-         <linkerarg value="-Bdynamic" />
-         <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" />
-         <linkerarg value="-Wl,-z,nocopyreloc" />
+      <linkerarg value="-target" />
+      <linkerarg value="${env.ANDROID_LLVM_TRIPLE}" /> <!-- armv7-none-linux-androideabi -->
+      <linkerarg value="-mfpu=neon" /> <!-- with NEON by default since NDK r21 -->
+      <!--
+      <linkerarg value="-march=armv6" />
+      <linkerarg value="-mfloat-abi=softfp" />
+      <linkerarg value="-marm" />  -->
 
-         <linkerarg value="--demangle" /> 
-         <linkerarg value="--gc-sections" /> 
-         <linkerarg value="--no-undefined" /> 
-         <linkerarg value="-static-libgcc" if="isGCC"/>
-         <linkerarg value="-static-libstdc++" if="isGCC"/>
-         <!-- The gcc from $NDK_TOOLCHAIN_ROOT/$TARGET_TRIPLE/bin needs to be told
-           where to find libgcc as the default location (gcc -print-search-dirs)
-           is not correct. Not sure if this is a bug in the NDK or not. We also
-           enforce that libgcc is linked after source files but before other shared
-           libraries. -->
-         <libset dir="${env.NDK_TOOLCHAIN_ROOT}/lib/gcc/${env.TARGET_TRIPLE}/${env.GCC_VERSION}" libs="gcc" />
-         <!-- libset libs="c,m,dl,log" / -->
-         <libset libs="c,m,dl" />
+      <linkerarg value="-Bdynamic" />
+      <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" />
+      <linkerarg value="-Wl,-z,nocopyreloc" />
+
+      <!-- linkerarg value="- -no-undefined" / -->
+
+      <!-- libset libs="c,m,dl,log" / -->
+      <libset libs="c,m,dl" />
     </linker>
 
 </target>
@@ -130,16 +131,16 @@
   <property name="linker.cfg.id.base"            value="linker.cfg.android" /> 
   <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
   <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386" 
-                                                  file="${java.home.dir}/jre/lib/i386/libjava.so"/>
+                                                 file="${java.home.dir}/jre/lib/i386/libjava.so"/>
   <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"     
-                                                  file="${java.home.dir}/lib/i386/libjava.so"/>
+                                                 file="${java.home.dir}/lib/i386/libjava.so"/>
   <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
 </target>
 
 <target name="declare.linux.android">
-      <echo message="android.arm" />
-      <property name="compiler.cfg.id"                      value="compiler.cfg.android" />
-      <property name="linker.cfg.id"                        value="linker.cfg.android" />
+  <echo message="android.${env.ANDROID_ABI}" />
+  <property name="compiler.cfg.id"               value="compiler.cfg.android" />
+  <property name="linker.cfg.id"                 value="linker.cfg.android" />
 </target>
 
 </project>

@@ -25,7 +25,7 @@
 # - ANDROID_HOST_TAG - defaults to linux-x86_64
 #
 # - ANDROID_ABI - defaults to x86_64, one of
-#        armeabi-v7a 
+#        armeabi-v7a (with NEON by default since NDK r21)
 #        arm64-v8a 
 #        x86_64
 #        x86
@@ -97,6 +97,7 @@ if [ -z "${ANDROID_ABI}" ] ; then
     echo "Setting undefined ANDROID_ABI to ${ANDROID_ABI} default!"
 fi
 if [ "${ANDROID_ABI}" = "armeabi-v7a" ] ; then
+    # with NEON by default since NDK r21
     ANDROID_SYSROOT_ABI=arm
     #CMAKE_SYSTEM_PROCESSOR=armv7-a
     ANDROID_TOOLCHAIN_NAME=arm-linux-androideabi

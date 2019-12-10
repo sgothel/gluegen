@@ -75,7 +75,7 @@ public class AndroidVersion {
         Class<?> abvcClass = null;
         Object abvcObject= null;
 
-        boolean isDalvikVm = "Dalvik".equals(System.getProperty("java.vm.name"));
+        final boolean isDalvikVm = "Dalvik".equals(System.getProperty("java.vm.name"));
 
         if (isDalvikVm) {
           try {
@@ -111,6 +111,7 @@ public class AndroidVersion {
              * <pre>
              *  lib/armeabi/libfoo.so
              *  lib/armeabi-v7a/libfoo.so
+             *  lib/arm64-v8a/libfoo.so
              *  lib/x86/libfoo.so
              *  lib/mips/libfoo.so
              * </pre>
