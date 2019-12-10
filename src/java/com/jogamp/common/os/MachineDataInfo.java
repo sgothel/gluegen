@@ -58,6 +58,7 @@ public class MachineDataInfo {
   /*                              arch   os          int, long, float, doubl, ldoubl,  ptr,   page */
   private final static int[] size_arm_mips_32     =  { 4,    4,     4,     8,      8,    4,   4096 };
   private final static int[] size_x86_32_unix     =  { 4,    4,     4,     8,     12,    4,   4096 };
+  private final static int[] size_x86_32_android  =  { 4,    4,     4,     8,      8,    4,   4096 };
   private final static int[] size_x86_32_macos    =  { 4,    4,     4,     8,     16,    4,   4096 };
   private final static int[] size_ppc_32_unix     =  { 4,    4,     4,     8,     16,    4,   4096 };
   private final static int[] size_sparc_32_sunos  =  { 4,    4,     4,     8,     16,    4,   8192 };
@@ -100,6 +101,8 @@ public class MachineDataInfo {
       ARM_MIPS_32(     size_arm_mips_32,   align_arm_mips_32),
       /** {@link Platform.CPUType#X86_32} Unix */
       X86_32_UNIX(    size_x86_32_unix,    align_x86_32_unix),
+      /** {@link Platform.CPUType#X86_32} Android/Bionic */
+      X86_32_ANDROID( size_x86_32_android, align_x86_32_unix),
       /** {@link Platform.CPUType#X86_32} MacOS (Special case gcc4/OSX) */
       X86_32_MACOS(   size_x86_32_macos,   align_x86_32_macos),
       /** {@link Platform.CPUType#PPC} Unix */
