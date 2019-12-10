@@ -57,10 +57,9 @@
     <property name="ant-junit4.jar" value="${ant.home}/lib/ant-junit4.jar" />
     <property name="semver.jar" value="${gluegen.root}/make/lib/semantic-versioning/semver.jar" />
 
-    <property name="android.version" value="9" /> <!-- default - if not set by jogamp-env.xml:jogamp.env.init -->
-    <property name="android-min.jar" value="${gluegen.root}/make/lib/android-sdk/${android.version}/android.jar" />
-    <property name="android-015.jar" value="${gluegen.root}/make/lib/android-sdk/15/android.jar" />
-    <property name="android.jar"     value="${android-015.jar}" />
+    <property name="android.api.level" value="24" /> <!-- default - if not set by jogamp-env.xml:jogamp.env.init -->
+    <property name="android-min.jar"   value="${gluegen.root}/make/lib/android-sdk/${android.api.level}/android.jar" />
+    <property name="android.jar"       value="${android-min.jar}" />
     <condition property="android-jars.available">
         <and>
             <available file="${android-min.jar}"/>

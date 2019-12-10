@@ -11,7 +11,7 @@
      Official production builds are performed _on_ OpenJDK 11
      and a Java JDK 11 or greater is required!
 
-     Android 7 API level 24 supports Java 1.8, 
+     Android 7.0 Nougat, API level 24 supports Java 1.8, 
      see https://developer.android.com/studio/write/java8-support
 
      Target Java 8 baseline is chosen today, June 2019, 
@@ -142,9 +142,9 @@
         </not>
     </condition>
 
-    <condition property="android.version" value="${env.ANDROID_VERSION}" else="24">
+    <condition property="android.api.level" value="${env.ANDROID_API_LEVEL}" else="24">
         <not>
-         <equals arg1="${env.ANDROID_VERSION}" arg2="$${env.ANDROID_VERSION}" casesensitive="true" />
+         <equals arg1="${env.ANDROID_API_LEVEL}" arg2="$${env.ANDROID_API_LEVEL}" casesensitive="true" />
         </not>
     </condition>
 
@@ -237,7 +237,7 @@
     <echo message="build.archiveon            ${build.archiveon}"/>
     <echo message="build.node.name            ${build.node.name}"/>
 
-    <echo message="android.version            ${android.version}"/>
+    <echo message="android.api.level          ${android.api.level}"/>
 
     <echo message="junit.run.arg0             ${junit.run.arg0}"/>
     <echo message="junit.run.arg1             ${junit.run.arg1}"/>

@@ -180,14 +180,6 @@
             <arg line="${m.aapt.build.apk}/temp/classes"/>
         </exec>
         
-        <path id="android.antlibs">
-            <pathelement path="${env.ANDROID_HOME}/tools/lib/anttasks.jar" />
-            <pathelement path="${env.ANDROID_HOME}/tools/lib/sdklib.jar" />
-            <pathelement path="${env.ANDROID_HOME}/tools/lib/androidprefs.jar" />
-            <pathelement path="${env.ANDROID_HOME}/tools/lib/apkbuilder.jar" />
-            <pathelement path="${env.ANDROID_HOME}/tools/lib/jarutils.jar" />
-        </path>
-
         <echo>aapt.signed ${m.aapt.apkbasename}: packaging</echo>
         <exec dir="." executable="aapt" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="package"/>
@@ -282,7 +274,7 @@
         </exec>
 
         <echo>aapt.signed ${m.aapt.apkbasename}: zip aligning</echo>
-        <exec dir="." executable="${env.ANDROID_HOME}/build-tools/${env.ANDROID_BUILD_TOOLS_VERSION}/zipalign" failonerror="true">
+        <exec dir="." executable="zipalign" failonerror="true">
             <arg line="-v" />
             <arg value="-f" />
             <arg value="4" />

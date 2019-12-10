@@ -1,83 +1,316 @@
 #! /bin/sh
 
+# Aligned with Android SDK build-tools 29 and NDK 20 as of 2019-12-10
+#
+# As it is no more easily achievable to download the complete SDK 
+# separately, I used Android-Studio to fetch all parts incl. the NDK.
+# Thereafter I copied ~/Android/Sdk -> /opt-linux-x86_64/android-sdk-linux_x86_64
+# which I also use for the official crosscompilation.
+#
+# Variable names borrowed from ~/Android/Sdk/ndk/20.1.5948944/build/cmake/android.toolchain.cmake
+# We only use ANDROID_API_LEVEL instead of ANDROID_PLATFORM_LEVEL, as it describes the API level.
+#
+#
+# User should set environment variables:
+# ==========================================
+#
+# - ANDROID_HOME - defaults to one of
+#        ~/Android/Sdk
+#        /opt-linux-x86_64/android-sdk-linux_x86_64
+#        /opt/android-sdk-linux_x86_64
+#        /usr/local/android-sdk-linux_x86_64
+#
+# - ANDROID_API_LEVEL - defaults to 24
+#
+# - ANDROID_HOST_TAG - defaults to linux-x86_64
+#
+# - ANDROID_ABI - defaults to x86_64, one of
+#        armeabi-v7a 
+#        arm64-v8a 
+#        x86_64
+#        x86
+#
+# Following environment variables will be set
+# ============================================
+#
+# - ANDROID_SYSROOT_ABI
+# - ANDROID_TOOLCHAIN_NAME
+# - ANDROID_LLVM_TRIPLE
+# - ANDROID_BUILD_TOOLS_VERSION
+# - ANDROID_NDK
+# - ANDROID_BUILDTOOLS_ROOT
+# - ANDROID_TOOLCHAIN_ROOT
+# - ANDROID_TOOLCHAIN_SYSROOT
+# - ANDROID_TOOLCHAIN_SYSROOT_INC
+# - ANDROID_TOOLCHAIN_SYSROOT_LIB_0
+# - ANDROID_TOOLCHAIN_SYSROOT_LIB_1
+#
+# Android Studio SDK + NDK Filesystem Layout (official)
+#
+# ~/Android/Sdk/
+# ~/Android/Sdk/build-tools/29.0.2/
+# ~/Android/Sdk/build-tools/29.0.2/zipalign (*)
+# ~/Android/Sdk/ndk/
+# ~/Android/Sdk/ndk/20.1.5948944/sysroot/ (gcc)
+# ~/Android/Sdk/ndk/20.1.5948944/sysroot/usr/include/ (gcc)
+# ~/Android/Sdk/ndk/20.1.5948944/sysroot/usr/lib/aarch64-linux-android/libc.a (gcc)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/aarch64-linux-android/bin/ld (gcc)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin/aarch64-linux-android-ld (gcc)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-ld (*)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/aarch64-linux-android/bin/ld
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/clang (*)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc.a (*)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/24/libc.a (*)
+#
+# (*) tested by this script
+#
+# Having
+#   ANDROID_HOME=~/Android/Sdk
+#   ANDROID_API_LEVEL 24
+#   ANDROID_HOST_TAG linux-x86_64
+#   ANDROID_ABI arm64-v8a
+# Using derived values of
+#   ANDROID_BUILD_TOOLS_VERSION=29.0.2
+#   ANDROID_NDK_VERSION=20.1.5948944
+#   ANDROID_TOOLCHAIN_NAME aarch64-linux-android
+
 echo $0
 
-echo Presets
-echo   NDK_ROOT $NDK_ROOT
-echo   ANDROID_HOME $ANDROID_HOME
-echo   ANDROID_BUILD_TOOLS_VERSION $ANDROID_BUILD_TOOLS_VERSION
+NDK_TOOLCHAIN_VERSION=clang
+echo "Setting NDK_TOOLCHAIN_VERSION to ${NDK_TOOLCHAIN_VERSION} default!"
 
-if [ -z "$NDK_ROOT" ] ; then
-    #
-    # Generic android-ndk
-    #
-    if [ -e /usr/local/android-ndk ] ; then
-        NDK_ROOT=/usr/local/android-ndk
-    elif [ -e /opt-linux-x86_64/android-ndk ] ; then
-        NDK_ROOT=/opt-linux-x86_64/android-ndk
-    elif [ -e /opt-linux-x86/android-ndk ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk
-    elif [ -e /opt/android-ndk ] ; then
-        NDK_ROOT=/opt/android-ndk
-    #
-    # Specific android-ndk-r10d
-    #
-    elif [ -e /usr/local/android-ndk-r10d ] ; then
-        NDK_ROOT=/usr/local/android-ndk-r10d
-    elif [ -e /opt-linux-x86_64/android-ndk-r10d ] ; then
-        NDK_ROOT=/opt-linux-x86_64/android-ndk-r10d
-    elif [ -e /opt-linux-x86/android-ndk-r10d ] ; then
-        NDK_ROOT=/opt-linux-x86/android-ndk-r10d
-    elif [ -e /opt/android-ndk-r10d ] ; then
-        NDK_ROOT=/opt/android-ndk-r10d
-    else 
-        echo NDK_ROOT is not specified and does not exist in default locations
-        exit 1
-    fi
-elif [ ! -e $NDK_ROOT ] ; then
-    echo NDK_ROOT $NDK_ROOT does not exist
+if [ -z "${ANDROID_API_LEVEL}" ] ; then
+    ANDROID_API_LEVEL=24
+    echo "Setting undefined ANDROID_API_LEVEL to ${ANDROID_API_LEVEL} default!"
+fi
+if [ -z "${ANDROID_HOST_TAG}" ] ; then
+    ANDROID_HOST_TAG=linux-x86_64
+    echo "Setting undefined ANDROID_HOST_TAG to ${ANDROID_HOST_TAG} default!"
+fi
+
+if [ -z "${ANDROID_ABI}" ] ; then
+    ANDROID_ABI=x86_64
+    echo "Setting undefined ANDROID_ABI to ${ANDROID_ABI} default!"
+fi
+if [ "${ANDROID_ABI}" = "armeabi-v7a" ] ; then
+    ANDROID_SYSROOT_ABI=arm
+    #CMAKE_SYSTEM_PROCESSOR=armv7-a
+    ANDROID_TOOLCHAIN_NAME=arm-linux-androideabi
+    ANDROID_LLVM_TRIPLE=armv7-none-linux-androideabi
+elif [ "${ANDROID_ABI}" = "arm64-v8a" ] ; then
+    ANDROID_SYSROOT_ABI=arm64
+    #CMAKE_SYSTEM_PROCESSOR=aarch64
+    ANDROID_TOOLCHAIN_NAME=aarch64-linux-android
+    ANDROID_LLVM_TRIPLE=aarch64-none-linux-android
+elif [ "${ANDROID_ABI}" = "x86_64" ] ; then
+    ANDROID_SYSROOT_ABI=x86_64
+    #CMAKE_SYSTEM_PROCESSOR=x86_64
+    ANDROID_TOOLCHAIN_NAME=x86_64-linux-android
+    ANDROID_LLVM_TRIPLE=x86_64-none-linux-android
+elif [ "${ANDROID_ABI}" = "x86" ] ; then
+    ANDROID_SYSROOT_ABI=x86
+    #CMAKE_SYSTEM_PROCESSOR=i686
+    ANDROID_TOOLCHAIN_NAME=i686-linux-android
+    ANDROID_LLVM_TRIPLE=i686-none-linux-android
+else
+    echo "ANDROID_ABI is ${ANDROID_ABI} and not supported!"
     exit 1
 fi
-export NDK_ROOT
 
-if [ -z "$ANDROID_HOME" ] ; then
-    if [ -e /usr/local/android-sdk-linux_x86 ] ; then
-        ANDROID_HOME=/usr/local/android-sdk-linux_x86
+echo "Preset-0 (user)"
+echo   ANDROID_HOME ${ANDROID_HOME}
+echo   ANDROID_API_LEVEL ${ANDROID_API_LEVEL}
+echo   ANDROID_HOST_TAG ${ANDROID_HOST_TAG}
+echo   ANDROID_ABI ${ANDROID_ABI}
+echo
+echo Preset-1
+echo   NDK_TOOLCHAIN_VERSION ${NDK_TOOLCHAIN_VERSION}
+echo   ANDROID_SYSROOT_ABI ${ANDROID_SYSROOT_ABI}
+echo   ANDROID_TOOLCHAIN_NAME ${ANDROID_TOOLCHAIN_NAME}
+echo   "ANDROID_LLVM_TRIPLE ${ANDROID_LLVM_TRIPLE} (compiler target)"
+echo   ANDROID_BUILD_TOOLS_VERSION ${ANDROID_BUILD_TOOLS_VERSION}
+echo   ANDROID_NDK ${ANDROID_NDK}
+echo
+echo Preset-2
+echo   ANDROID_BUILDTOOLS_ROOT ${ANDROID_BUILDTOOLS_ROOT}
+echo   ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_ROOT}
+echo   ANDROID_TOOLCHAIN_SYSROOT ${ANDROID_TOOLCHAIN_SYSROOT}
+echo   ANDROID_TOOLCHAIN_SYSROOT_INC ${ANDROID_TOOLCHAIN_SYSROOT_INC}
+echo   ANDROID_TOOLCHAIN_SYSROOT_LIB_0 ${ANDROID_TOOLCHAIN_SYSROOT_LIB_0}
+echo   ANDROID_TOOLCHAIN_SYSROOT_LIB_1 ${ANDROID_TOOLCHAIN_SYSROOT_LIB_1}
+echo
+
+check_exists() {
+    if [ ! -e "$1" ] ; then
+        echo "$1" does not exist
+        exit 1
+    fi
+    return 0
+}
+
+if [ -z "${ANDROID_HOME}" ] ; then
+    if [ -e ${HOME}/Android/Sdk ] ; then
+        ANDROID_HOME=${HOME}/Android/Sdk
     elif [ -e /opt-linux-x86_64/android-sdk-linux_x86_64 ] ; then
-        ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
-    elif [ -e /opt-linux-x86/android-sdk-linux_x86 ] ; then
-        ANDROID_HOME=/opt-linux-x86/android-sdk-linux_x86
+        ANDROID_HOME=/opt-linux-x86_64/android-sdk-linux_x86_64
     elif [ -e /opt/android-sdk-linux_x86_64 ] ; then
         ANDROID_HOME=/opt/android-sdk-linux_x86_64
-    elif [ -e /opt/android-sdk-linux_x86 ] ; then
-        ANDROID_HOME=/opt/android-sdk-linux_x86
+    elif [ -e /usr/local/android-sdk-linux_x86_64 ] ; then
+        ANDROID_HOME=/usr/local/android-sdk-linux_x86_64
     else 
         echo ANDROID_HOME is not specified and does not exist in default locations
         exit 1
     fi
-elif [ ! -e $ANDROID_HOME ] ; then
-    echo ANDROID_HOME $ANDROID_HOME does not exist
+elif [ ! -e ${ANDROID_HOME} ] ; then
+    echo ANDROID_HOME ${ANDROID_HOME} does not exist
     exit 1
 fi
-export ANDROID_HOME
 
-if [ -z "$ANDROID_BUILD_TOOLS_VERSION" ] ; then
-    if [ -e $ANDROID_HOME/build-tools/21.1.2/zipalign ] ; then
-        ANDROID_BUILD_TOOLS_VERSION=21.1.2
-    elif [ -e $ANDROID_HOME/build-tools/20.0.0/zipalign ] ; then
-        ANDROID_BUILD_TOOLS_VERSION=20.0.0
-    else 
-        echo ANDROID_BUILD_TOOLS_VERSION $ANDROID_HOME/build-tools/ANDROID_BUILD_TOOLS_VERSION/zipalign does not exist in default locations
+unset ANDROID_BUILD_TOOLS_VERSION
+if [ -z "${ANDROID_BUILD_TOOLS_VERSION}" ] ; then
+    # basename $(dirname `find /home/sven/Android/Sdk/build-tools -name zipalign | sort -u | tail -n1`)
+    fzipalign=`find ${ANDROID_HOME}/build-tools -name zipalign | sort -u | tail -n1`
+    if [ ! -z "${fzipalign}" ] ; then
+        dzipalign=`dirname ${fzipalign}`
+        vzipalign=`basename ${dzipalign}`
+        if [ -e ${ANDROID_HOME}/build-tools/${vzipalign}/zipalign ] ; then
+            ANDROID_BUILD_TOOLS_VERSION=${vzipalign}
+        fi
+    fi
+    if [ -z "${ANDROID_BUILD_TOOLS_VERSION}" ] ; then
+        echo ANDROID_BUILD_TOOLS_VERSION ${ANDROID_HOME}/build-tools/ANDROID_BUILD_TOOLS_VERSION/zipalign does not exist
         exit 1
     fi
-elif [ ! -e $ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION/zipalign ] ; then
-    echo ANDROID_BUILD_TOOLS_VERSION $ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS_VERSION/zipalign does not exist
+fi
+
+if [ -z "${ANDROID_NDK}" ] ; then
+    #
+    # Generic android-ndk
+    #
+    if [ -e ${ANDROID_HOME}/ndk ] ; then
+        # basename $(dirname `find ndk -name toolchains -a -type d | sort -u | tail -n1`)
+        d2toolchains=`find ${ANDROID_HOME}/ndk -name toolchains -a -type d | sort -u | tail -n1`
+        if [ ! -z "${d2toolchains}" ] ; then
+            dtoolchains=`dirname ${d2toolchains}`
+            vtoolchains=`basename ${dtoolchains}`
+            # ~/Android/Sdk/ndk/20.1.5948944/sysroot/usr/lib/aarch64-linux-android/libc.a (*)
+            if [ -e ${ANDROID_HOME}/ndk/${vtoolchains}/sysroot/usr/lib/aarch64-linux-android/libc.a ] ; then
+                ANDROID_NDK_VERSION=${vtoolchains}
+            fi
+        fi
+        if [ -z "${ANDROID_NDK_VERSION}" ] ; then
+            echo ANDROID_NDK_VERSION ${ANDROID_HOME}/ndk/ANDROID_NDK_VERSION/sysroot/usr/lib/aarch64-linux-android/libc.a does not exist
+        else
+            ANDROID_NDK=${ANDROID_HOME}/ndk/${vtoolchains}
+        fi
+    fi
+    if [ -z "${ANDROID_NDK}" ] ; then
+        if [ -e /usr/local/android-ndk ] ; then
+            ANDROID_NDK=/usr/local/android-ndk
+        elif [ -e /opt-linux-x86_64/android-ndk ] ; then
+            ANDROID_NDK=/opt-linux-x86_64/android-ndk
+        elif [ -e /opt/android-ndk ] ; then
+            ANDROID_NDK=/opt/android-ndk
+        fi
+    fi
+    if [ -z "${ANDROID_NDK}" ] ; then
+        echo ANDROID_NDK is not specified and does not exist in default locations
+        exit 1
+    fi
+fi
+if [ ! -e "${ANDROID_NDK}" ] ; then
+    echo ANDROID_NDK ${ANDROID_NDK} does not exist
     exit 1
 fi
-export ANDROID_BUILD_TOOLS_VERSION
 
-echo Set
-echo   NDK_ROOT $NDK_ROOT
-echo   ANDROID_HOME $ANDROID_HOME
-echo   ANDROID_BUILD_TOOLS_VERSION $ANDROID_BUILD_TOOLS_VERSION
+ANDROID_BUILDTOOLS_ROOT=${ANDROID_HOME}/build-tools/${ANDROID_BUILD_TOOLS_VERSION}
+ANDROID_TOOLCHAIN_ROOT=${ANDROID_NDK}/toolchains/llvm/prebuilt/${ANDROID_HOST_TAG}
+ANDROID_TOOLCHAIN_SYSROOT=${ANDROID_TOOLCHAIN_ROOT}/sysroot
+ANDROID_TOOLCHAIN_SYSROOT_INC=${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr/include
+ANDROID_TOOLCHAIN_SYSROOT_LIB_0=${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr/lib/${ANDROID_TOOLCHAIN_NAME}
+ANDROID_TOOLCHAIN_SYSROOT_LIB_1=${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr/lib/${ANDROID_TOOLCHAIN_NAME}/${ANDROID_API_LEVEL}
+
+# ~/Android/Sdk/build-tools/29.0.2/zipalign (*)
+check_exists ${ANDROID_BUILDTOOLS_ROOT}/zipalign
+
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android-ld (*)
+check_exists ${ANDROID_TOOLCHAIN_ROOT}/bin/${ANDROID_TOOLCHAIN_NAME}-ld
+
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/bin/clang (*)
+check_exists ${ANDROID_TOOLCHAIN_ROOT}/bin/clang
+
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc.a (*)
+check_exists ${ANDROID_TOOLCHAIN_SYSROOT_LIB_0}/libc.a
+
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/24/libc.a (*)
+check_exists ${ANDROID_TOOLCHAIN_SYSROOT_LIB_1}/libc.a
+
+export ANDROID_HOME
+export ANDROID_API_LEVEL
+export ANDROID_HOST_TAG
+export ANDROID_ABI
+
+export NDK_TOOLCHAIN_VERSION
+export ANDROID_SYSROOT_ABI
+export ANDROID_TOOLCHAIN_NAME
+export ANDROID_LLVM_TRIPLE
+export ANDROID_BUILD_TOOLS_VERSION
+export ANDROID_NDK
+
+export ANDROID_BUILDTOOLS_ROOT
+export ANDROID_TOOLCHAIN_ROOT
+export ANDROID_TOOLCHAIN_SYSROOT
+export ANDROID_TOOLCHAIN_SYSROOT_INC
+export ANDROID_TOOLCHAIN_SYSROOT_LIB_0
+export ANDROID_TOOLCHAIN_SYSROOT_LIB_1
+
+echo "Postset-0 (user)"
+echo   ANDROID_HOME ${ANDROID_HOME}
+echo   ANDROID_API_LEVEL ${ANDROID_API_LEVEL}
+echo   ANDROID_HOST_TAG ${ANDROID_HOST_TAG}
+echo   ANDROID_ABI ${ANDROID_ABI}
+echo
+echo Postset-1
+echo   NDK_TOOLCHAIN_VERSION ${NDK_TOOLCHAIN_VERSION}
+echo   ANDROID_SYSROOT_ABI ${ANDROID_SYSROOT_ABI}
+echo   ANDROID_TOOLCHAIN_NAME ${ANDROID_TOOLCHAIN_NAME}
+echo   "ANDROID_LLVM_TRIPLE ${ANDROID_LLVM_TRIPLE} (compiler target)"
+echo   ANDROID_BUILD_TOOLS_VERSION ${ANDROID_BUILD_TOOLS_VERSION}
+echo   ANDROID_NDK ${ANDROID_NDK}
+echo
+echo Postset-2
+echo   ANDROID_BUILDTOOLS_ROOT ${ANDROID_BUILDTOOLS_ROOT}
+echo   ANDROID_TOOLCHAIN_ROOT ${ANDROID_TOOLCHAIN_ROOT}
+echo   ANDROID_TOOLCHAIN_SYSROOT ${ANDROID_TOOLCHAIN_SYSROOT}
+echo   ANDROID_TOOLCHAIN_SYSROOT_INC ${ANDROID_TOOLCHAIN_SYSROOT_INC}
+echo   ANDROID_TOOLCHAIN_SYSROOT_LIB_0 ${ANDROID_TOOLCHAIN_SYSROOT_LIB_0}
+echo   ANDROID_TOOLCHAIN_SYSROOT_LIB_1 ${ANDROID_TOOLCHAIN_SYSROOT_LIB_1}
+echo
+
+export -p | grep ANDROID
+
+#
+# CC="$ANDROID_NDK/toolchains/llvm/prebuilt/$ANDROID_HOST_TAG/bin/clang -target $ANDROID_LLVM_TRIPLE"
+#
+## Generic flags.
+##list(APPEND ANDROID_COMPILER_FLAGS
+#  -g
+#  -DANDROID
+#  -fdata-sections
+#  -ffunction-sections
+#  -funwind-tables
+#  -fstack-protector-strong
+#  -no-canonical-prefixes)
+#list(APPEND ANDROID_LINKER_FLAGS
+#  -Wl,--build-id
+#  -Wl,--warn-shared-textrel
+#  -Wl,--fatal-warnings)
+#list(APPEND ANDROID_LINKER_FLAGS_EXE -Wl,--gc-sections)
+#
+#list(APPEND ANDROID_COMPILER_FLAGS_RELEASE -O2)
+#
 
