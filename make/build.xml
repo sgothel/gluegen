@@ -515,7 +515,10 @@
           <includepath path="${src.generated.c}/Windows" if="isWindows"/>
         </compiler>
 
-        <linker extends="${linker.cfg.id}" />
+        <linker extends="${linker.cfg.id}" >
+            <linkerarg value="-Wl,-soname,${output.lib.name.os}" />
+        </linker>
+
       </cc>
 
       <antcall target="c.rename.lib.mingw" inheritRefs="true" />
