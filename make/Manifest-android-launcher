@@ -22,6 +22,3 @@ Permissions: all-permissions
 Application-Library-Allowable-Codebase: *
 @JAR_CODEBASE_TAG@
 
-Name: jogamp/android/launcher/
-Sealed: true
-

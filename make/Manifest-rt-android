@@ -22,9 +22,3 @@ Permissions: all-permissions
 Application-Library-Allowable-Codebase: *
 @JAR_CODEBASE_TAG@
 
-Name: jogamp/common/
-Sealed: true
-
-Name: com/jogamp/common/
-Sealed: true
-
