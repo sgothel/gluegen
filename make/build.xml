@@ -480,6 +480,7 @@
 
       <cc outtype="${output.lib.type}" 
           usehighleveltool="true"
+          writesoname="true"
           objdir="${gluegen.lib.dir}"
           outfile="${gluegen.lib.dir}/${output.lib.name}"
           optimize="${c.compiler.optimise}" 
@@ -515,9 +516,7 @@
           <includepath path="${src.generated.c}/Windows" if="isWindows"/>
         </compiler>
 
-        <linker extends="${linker.cfg.id}" >
-            <linkerarg value="-Wl,-soname,${output.lib.name.os}" />
-        </linker>
+        <linker extends="${linker.cfg.id}" />
 
       </cc>
 
