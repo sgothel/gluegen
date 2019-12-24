@@ -33,16 +33,12 @@
 <target name="gluegen.cpptasks.configure.compiler" depends="setup.java.home.dir,declare.linux.android">
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
     <compiler id="compiler.cfg.android" name="clang">
-      <compilerarg value="--sysroot=${env.ANDROID_TOOLCHAIN_SYSROOT1}" /> <!-- include files, but libs not in std FS layout -->
-      <compilerarg value="-stdlib=libstdc++"/>
-      <compilerarg value="-isysroot"/>
-      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1}" />
+      <!-- compilerarg value="-isystem"/> LLVM's C++ STL 
+      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC_STL}" / -->
       <compilerarg value="-isystem"/>
       <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC}" />
       <compilerarg value="-isystem"/>
       <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH}" />
-      <compilerarg value="-isystem"/>
-      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC}/c++/v1" />
 
       <compilerarg value="-v" /> 
 
@@ -94,8 +90,9 @@
 
     <linker id="linker.cfg.android" name="clang">
       <linkerarg value="--sysroot=${env.ANDROID_TOOLCHAIN_SYSROOT0}" /> <!-- libs in std FS layout, but no include files -->
-      <linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT0_LIB}" />
-      <linkerarg value="-Wl,-rpath-link=${env.ANDROID_TOOLCHAIN_SYSROOT0_LIB}" />
+      <linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT1_LIB1}" />
+      <linkerarg value="-Wl,-rpath-link=${env.ANDROID_TOOLCHAIN_SYSROOT1_LIB1}" />
+      <linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT1_LIB2}" />
       
       <linkerarg value="-v" /> 
 

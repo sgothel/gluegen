@@ -45,7 +45,9 @@
 # - ANDROID_TOOLCHAIN_SYSROOT1
 # - ANDROID_TOOLCHAIN_SYSROOT1_INC
 # - ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH
-# - ANDROID_TOOLCHAIN_SYSROOT1_LIB
+# - ANDROID_TOOLCHAIN_SYSROOT1_INC_STL
+# - ANDROID_TOOLCHAIN_SYSROOT1_LIB1
+# - ANDROID_TOOLCHAIN_SYSROOT1_LIB2
 #
 # Android Studio SDK + NDK Filesystem Layout (official)
 #
@@ -53,6 +55,8 @@
 # ~/Android/Sdk/build-tools/29.0.2/
 # ~/Android/Sdk/build-tools/29.0.2/zipalign (*)
 # ~/Android/Sdk/ndk/
+# ~/Android/Sdk/ndk/20.1.5948944/platforms/android-24/arch-arm64 (1)
+# ~/Android/Sdk/ndk/20.1.5948944/platforms/android-24/arch-arm64/usr/lib/libc.a (*)(1)
 # ~/Android/Sdk/ndk/20.1.5948944/sysroot/ (gcc)
 # ~/Android/Sdk/ndk/20.1.5948944/sysroot/usr/include/ (gcc)
 # ~/Android/Sdk/ndk/20.1.5948944/sysroot/usr/lib/aarch64-linux-android/libc.a (gcc)
@@ -67,14 +71,26 @@
 # ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include
 # ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/types.h (*) (2,3)
 # ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc.a (*)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so (*)
 # ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/24/libc.a (*) (2)
-# ~/Android/Sdk/ndk/20.1.5948944/platforms/android-24/arch-arm64 (1)
-# ~/Android/Sdk/ndk/20.1.5948944/platforms/android-24/arch-arm64/usr/lib/libc.a (*)(1)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/complex (*) (4)
 #
 # (*) tested by this script
+#
 # (1) ANDROID_TOOLCHAIN_SYSROOT0 exposes all libs with standard FS layout usr/lib, but no include files
+#     -> ANDROID_TOOLCHAIN_SYSROOT0_LIB
+#
 # (2) ANDROID_TOOLCHAIN_SYSROOT1 exposes all libs but without standard FS layout, also exposes include files 
+#     -> ANDROID_TOOLCHAIN_SYSROOT1_INC
+#
 # (3) ANDROID_TOOLCHAIN_SYSROOT1 also exposes the arch dependent include files, i.e. asm/types.h etc
+#     -> ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH
+#
+# (4) ANDROID_TOOLCHAIN_SYSROOT1_INC_STL for LLVM's C++ STL lib (default since NDK r18)
+#     Using LLVM's c++_shared as of NDK r18: https://developer.android.com/ndk/guides/cpp-support.html
+#     LLVM's c++ headers must come before other system header!
+#     Also see https://github.com/android/ndk/issues/452 and https://gitlab.kitware.com/cmake/cmake/issues/17059
+#
 # Native libraries of (1) and (2) are identical
 #
 # Having
@@ -155,7 +171,9 @@ echo   ANDROID_TOOLCHAIN_SYSROOT0_LIB ${ANDROID_TOOLCHAIN_SYSROOT0_LIB}
 echo   ANDROID_TOOLCHAIN_SYSROOT1 ${ANDROID_TOOLCHAIN_SYSROOT1}
 echo   ANDROID_TOOLCHAIN_SYSROOT1_INC ${ANDROID_TOOLCHAIN_SYSROOT1_INC}
 echo   ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH ${ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH}
-echo   ANDROID_TOOLCHAIN_SYSROOT1_LIB ${ANDROID_TOOLCHAIN_SYSROOT1_LIB}
+echo   ANDROID_TOOLCHAIN_SYSROOT1_INC_STL ${ANDROID_TOOLCHAIN_SYSROOT1_INC_STL}
+echo   ANDROID_TOOLCHAIN_SYSROOT1_LIB1 ${ANDROID_TOOLCHAIN_SYSROOT1_LIB1}
+echo   ANDROID_TOOLCHAIN_SYSROOT1_LIB2 ${ANDROID_TOOLCHAIN_SYSROOT1_LIB2}
 echo
 
 check_exists() {
@@ -249,8 +267,10 @@ ANDROID_TOOLCHAIN_SYSROOT0_LIB=${ANDROID_TOOLCHAIN_SYSROOT0}/usr/lib
 
 ANDROID_TOOLCHAIN_SYSROOT1=${ANDROID_TOOLCHAIN_ROOT}/sysroot
 ANDROID_TOOLCHAIN_SYSROOT1_INC=${ANDROID_TOOLCHAIN_SYSROOT1}/usr/include
-ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH=${ANDROID_TOOLCHAIN_SYSROOT1}/usr/include/${ANDROID_TOOLCHAIN_NAME}
-ANDROID_TOOLCHAIN_SYSROOT1_LIB=${ANDROID_TOOLCHAIN_SYSROOT1}/usr/lib/${ANDROID_TOOLCHAIN_NAME}/${ANDROID_API_LEVEL}
+ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH=${ANDROID_TOOLCHAIN_SYSROOT1_INC}/${ANDROID_TOOLCHAIN_NAME}
+ANDROID_TOOLCHAIN_SYSROOT1_INC_STL=${ANDROID_TOOLCHAIN_SYSROOT1_INC}/c++/v1
+ANDROID_TOOLCHAIN_SYSROOT1_LIB1=${ANDROID_TOOLCHAIN_SYSROOT1}/usr/lib/${ANDROID_TOOLCHAIN_NAME}/${ANDROID_API_LEVEL}
+ANDROID_TOOLCHAIN_SYSROOT1_LIB2=${ANDROID_TOOLCHAIN_SYSROOT1}/usr/lib/${ANDROID_TOOLCHAIN_NAME}
 
 # ~/Android/Sdk/build-tools/29.0.2/zipalign (*)
 check_exists ${ANDROID_BUILDTOOLS_ROOT}/zipalign
@@ -267,8 +287,16 @@ check_exists ${ANDROID_TOOLCHAIN_SYSROOT0_LIB}/libc.a
 # ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/aarch64-linux-android/asm/types.h (*) (2)
 check_exists ${ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH}/asm/types.h
 
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/include/c++/v1/complex (*) (4)
+check_exists ${ANDROID_TOOLCHAIN_SYSROOT1_INC_STL}/complex
+
 # ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/24/libc.a (*)
-check_exists ${ANDROID_TOOLCHAIN_SYSROOT1_LIB}/libc.a
+check_exists ${ANDROID_TOOLCHAIN_SYSROOT1_LIB1}/libc.a
+
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc.a (*)
+# ~/Android/Sdk/ndk/20.1.5948944/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/aarch64-linux-android/libc++_shared.so (*)
+check_exists ${ANDROID_TOOLCHAIN_SYSROOT1_LIB2}/libc.a
+check_exists ${ANDROID_TOOLCHAIN_SYSROOT1_LIB2}/libc++_shared.so
 
 export ANDROID_HOME
 export ANDROID_API_LEVEL
@@ -288,8 +316,10 @@ export ANDROID_TOOLCHAIN_SYSROOT0
 export ANDROID_TOOLCHAIN_SYSROOT0_LIB
 export ANDROID_TOOLCHAIN_SYSROOT1
 export ANDROID_TOOLCHAIN_SYSROOT1_INC
-export ANDROID_TOOLCHAIN_SYSROOT1_ARCH
-export ANDROID_TOOLCHAIN_SYSROOT1_LIB
+export ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH
+export ANDROID_TOOLCHAIN_SYSROOT1_INC_STL
+export ANDROID_TOOLCHAIN_SYSROOT1_LIB1
+export ANDROID_TOOLCHAIN_SYSROOT1_LIB2
 
 echo "Postset-0 (user)"
 echo   ANDROID_HOME ${ANDROID_HOME}
@@ -313,7 +343,9 @@ echo   ANDROID_TOOLCHAIN_SYSROOT0_LIB ${ANDROID_TOOLCHAIN_SYSROOT0_LIB}
 echo   ANDROID_TOOLCHAIN_SYSROOT1 ${ANDROID_TOOLCHAIN_SYSROOT1}
 echo   ANDROID_TOOLCHAIN_SYSROOT1_INC ${ANDROID_TOOLCHAIN_SYSROOT1_INC}
 echo   ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH ${ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH}
-echo   ANDROID_TOOLCHAIN_SYSROOT1_LIB ${ANDROID_TOOLCHAIN_SYSROOT1_LIB}
+echo   ANDROID_TOOLCHAIN_SYSROOT1_INC_STL ${ANDROID_TOOLCHAIN_SYSROOT1_INC_STL}
+echo   ANDROID_TOOLCHAIN_SYSROOT1_LIB1 ${ANDROID_TOOLCHAIN_SYSROOT1_LIB1}
+echo   ANDROID_TOOLCHAIN_SYSROOT1_LIB2 ${ANDROID_TOOLCHAIN_SYSROOT1_LIB2}
 echo
 
 export -p | grep ANDROID
