@@ -34,6 +34,15 @@
     <echo message="Custom forced compiler Android NDK, linker.cfg.android" />
     <compiler id="compiler.cfg.android" name="clang">
       <compilerarg value="--sysroot=${env.ANDROID_TOOLCHAIN_SYSROOT1}" /> <!-- include files, but libs not in std FS layout -->
+      <compilerarg value="-stdlib=libstdc++"/>
+      <compilerarg value="-isysroot"/>
+      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1}" />
+      <compilerarg value="-isystem"/>
+      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC}" />
+      <compilerarg value="-isystem"/>
+      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC_ARCH}" />
+      <compilerarg value="-isystem"/>
+      <compilerarg value="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC}/c++/v1" />
 
       <compilerarg value="-v" /> 
 
