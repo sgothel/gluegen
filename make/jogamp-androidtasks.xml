@@ -65,6 +65,7 @@
       <attribute name="keystore.alias" default="${android.keystore.alias}" />
       <attribute name="keystore.storepass" default="${android.keystore.storepass}" />
       <attribute name="keystore.keypass" default="${android.keystore.keypass}" />
+      <element name="d8-classpaths" implicit="no" optional="true" />
 
       <sequential>
         <var name="m.aapt.apkbasename0" unset="true"/>
@@ -171,13 +172,32 @@
                  <pathelement path="${android.jar}"/>
             </classpath>
         </javac>
+        <zip destfile="${m.aapt.build.apk}/temp/classes.zip" level="0">
+            <fileset dir="${m.aapt.build.apk}/temp/classes"/>
+        </zip>
 
         <echo>aapt.signed ${m.aapt.apkbasename}: dex'ing</echo>
-        <exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
-            <arg line="--dex"/>
-            <arg line="--output=${m.aapt.dex.file}"/>
+        <!-- exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="- -dex"/>
+            <arg line="- -output=${m.aapt.dex.file}"/>
+            <arg line="- -min-sdk-version=${android.api.level.min}"/>
             <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
             <arg line="${m.aapt.build.apk}/temp/classes"/>
+        </exec -->
+        <exec dir="." executable="d8" logError="true" failonerror="true" failifexecutionfails="true">
+            <arg line="--output ${m.aapt.build.apk}/image"/>
+
+            <arg line="--classpath ${android-min.jar}"/>
+            <arg line="--classpath ${target.rt.jar}"/>
+            <d8-classpaths/>
+
+            <arg line="--min-api ${android.api.level.min}"/>
+
+            <arg line="--release"/>
+            <!-- arg line="- -debug"/ -->
+
+            <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
+            <arg line="${m.aapt.build.apk}/temp/classes.zip"/>
         </exec>
         
         <echo>aapt.signed ${m.aapt.apkbasename}: packaging</echo>
