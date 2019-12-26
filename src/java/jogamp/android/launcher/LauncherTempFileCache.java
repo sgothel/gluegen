@@ -145,7 +145,7 @@ public class LauncherTempFileCache {
         synchronized (System.out) {
             // Get the name of the tmpbase directory.
             {
-                final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
+                final File tmpRoot = ctx.getDir("temp", Context.MODE_PRIVATE); // Context.MODE_WORLD_READABLE -> SecurityException API >= 24
                 tmpBaseDir = new File(new File(tmpRoot, tmpSubDir), tmpDirPrefix);
             }
             tmpRootPropValue = System.getProperty(tmpRootPropName);

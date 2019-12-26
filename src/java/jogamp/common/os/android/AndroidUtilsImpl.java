@@ -75,7 +75,7 @@ public class AndroidUtilsImpl {
    {
        final Context ctx = StaticContext.getContext();
        if(null != ctx) {
-           final File tmpRoot = ctx.getDir("temp", Context.MODE_WORLD_READABLE);
+           final File tmpRoot = ctx.getDir("temp", Context.MODE_PRIVATE); // Context.MODE_WORLD_READABLE -> SecurityException API >= 24
            if(null==tmpRoot|| !tmpRoot.isDirectory() || !tmpRoot.canWrite()) {
                throw new RuntimeException("Not a writable directory: '"+tmpRoot+"', retrieved Android static context");
            }
