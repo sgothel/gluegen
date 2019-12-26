@@ -11,14 +11,36 @@
      Official production builds are performed _on_ OpenJDK 11
      and a Java JDK 11 or greater is required!
 
-     Android 7.0 Nougat, API level 24 supports Java 1.8, 
-     see https://developer.android.com/studio/write/java8-support
-
      Target Java 8 baseline is chosen today, June 2019, 
      since OpenJDK 1.8 is well supported on desktop, 
      mobile support is given w/ OpenJDK 9 and 
      Android also support these language features for almost 3 years.
+
+     +++
      
+     Android 7.0 Nougat, API level 24 supports Java 1.8, 
+     see <https://developer.android.com/studio/write/java8-support>.
+
+     However, we need to set the APK's manifest SDK min version to 21 (Android 5)
+     and target version to 28 (Android 9), as required as of 2019-08-01
+     <https://support.google.com/googleplay/android-developer/answer/113469#targetsdk>
+
+         <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28"/>
+
+     Due to certain libc compatibility issues of Android API > 22,
+     we compile certain native libraries @ API 22,
+     see <https://github.com/android/ndk/issues/964>.
+     One example is OpenAL-Soft.
+
+     It is strongly recommended to test with the x86 emulator
+     using the latest API level. 
+     On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
+
+     Further testing should be performed from Android 5, API 21, to Android 9, API 28,
+     as well as on aarch64 and armv7a devices.
+
+     +++
+
      For crosscompilation the following shall be set:
      - TARGET_PLATFORM_SYSROOT Crosscompiler and system specified 'sysroot' (as in gcc \-\-print-sysroot)
      - TARGET_PLATFORM_USRROOT Additional optional user headers and libraries for target
@@ -141,6 +163,8 @@
          <equals arg1="${env.NODE_NAME}" arg2="$${env.NODE_NAME}" casesensitive="true" />
         </not>
     </condition>
+
+    <property name="android.api.level.min" value="21" /> 
 
     <condition property="android.api.level" value="${env.ANDROID_API_LEVEL}" else="24">
         <not>
