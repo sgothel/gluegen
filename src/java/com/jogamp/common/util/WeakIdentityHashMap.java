@@ -28,9 +28,9 @@
  * Original source code of this class taken from Apache Avro
  * <https://github.com/apache/avro/blob/master/lang/java/avro/src/main/java/org/apache/avro/util/WeakIdentityHashMap.java>
  * commit 70260919426f89825ca148f5ee815f3b2cf4764d.
- * Up until commit 70260919426f89825ca148f5ee815f3b2cf4764d, 
+ * Up until commit 70260919426f89825ca148f5ee815f3b2cf4764d,
  * this code has been licensed as described below:
- * 
+ *
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -74,9 +74,28 @@ import java.util.Set;
  */
 public class WeakIdentityHashMap<K, V> implements Map<K, V> {
   private final ReferenceQueue<K> queue = new ReferenceQueue<>();
-  private Map<IdentityWeakReference, V> backingStore = new HashMap<>();
+  private final Map<IdentityWeakReference<K>, V> backingStore;
 
+  /**
+   * See {@link HashMap#HashMap()}
+   */
   public WeakIdentityHashMap() {
+      backingStore = new HashMap<>();
+  }
+
+  /**
+   * See {@link HashMap#HashMap(int, float)}
+   * <p>
+   * Usable slots before resize are {@code capacity * loadFactor}.
+   * </p>
+   * <p>
+   * Capacity for n-slots w/o resize would be {@code Math.ceil(n/loadFactor)}.
+   * </p>
+   * @param initialCapacity default value would be 16, i.e. 12 slots @ 0.75f loadFactor before resize
+   * @param loadFactor default value would be 0.75f
+   */
+  public WeakIdentityHashMap(final int initialCapacity, final float loadFactor) {
+      backingStore = new HashMap<>(initialCapacity, loadFactor);
   }
 
   @Override
@@ -85,14 +104,15 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     reap();
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public boolean containsKey(Object key) {
+  public boolean containsKey(final Object key) {
     reap();
-    return backingStore.containsKey(new IdentityWeakReference(key));
+    return backingStore.containsKey(new IdentityWeakReference<K>((K) key, queue));
   }
 
   @Override
-  public boolean containsValue(Object value) {
+  public boolean containsValue(final Object value) {
     reap();
     return backingStore.containsValue(value);
   }
@@ -100,11 +120,11 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
   @Override
   public Set<Map.Entry<K, V>> entrySet() {
     reap();
-    Set<Map.Entry<K, V>> ret = new HashSet<>();
-    for (Map.Entry<IdentityWeakReference, V> ref : backingStore.entrySet()) {
+    final Set<Map.Entry<K, V>> ret = new HashSet<>();
+    for (final Map.Entry<IdentityWeakReference<K>, V> ref : backingStore.entrySet()) {
       final K key = ref.getKey().get();
       final V value = ref.getValue();
-      Map.Entry<K, V> entry = new Map.Entry<K, V>() {
+      final Map.Entry<K, V> entry = new Map.Entry<K, V>() {
         @Override
         public K getKey() {
           return key;
@@ -116,7 +136,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
         }
 
         @Override
-        public V setValue(V value) {
+        public V setValue(final V value) {
           throw new UnsupportedOperationException();
         }
       };
@@ -128,31 +148,32 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
   @Override
   public Set<K> keySet() {
     reap();
-    Set<K> ret = new HashSet<>();
-    for (IdentityWeakReference ref : backingStore.keySet()) {
+    final Set<K> ret = new HashSet<>();
+    for (final IdentityWeakReference<K> ref : backingStore.keySet()) {
       ret.add(ref.get());
     }
     return Collections.unmodifiableSet(ret);
   }
 
   @Override
-  public boolean equals(Object o) {
+  public boolean equals(final Object o) {
     if (!(o instanceof WeakIdentityHashMap)) {
       return false;
     }
-    return backingStore.equals(((WeakIdentityHashMap) o).backingStore);
+    return backingStore.equals(((WeakIdentityHashMap<?, ?>) o).backingStore);
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public V get(final Object key) {
+    reap();
+    return backingStore.get(new IdentityWeakReference<K>((K) key, queue));
   }
 
   @Override
-  public V get(Object key) {
+  public V put(final K key, final V value) {
     reap();
-    return backingStore.get(new IdentityWeakReference(key));
-  }
-
-  @Override
-  public V put(K key, V value) {
-    reap();
-    return backingStore.put(new IdentityWeakReference(key), value);
+    return backingStore.put(new IdentityWeakReference<K>(key, queue), value);
   }
 
   @Override
@@ -168,14 +189,23 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
   }
 
   @Override
-  public void putAll(Map t) {
-    throw new UnsupportedOperationException();
+  public void putAll(final Map<? extends K, ? extends V> t) {
+    final int n = t.size();
+    if ( 0 < n ) {
+        final Map<IdentityWeakReference<K>, V> t2 = new HashMap<>((int)Math.ceil(n/0.75), 0.75f);
+        for (final Map.Entry<? extends K, ? extends V> e : t.entrySet()) {
+          t2.put(new IdentityWeakReference<K>(e.getKey(), queue), e.getValue());
+        }
+        backingStore.putAll(t2);
+        reap();
+    }
   }
 
+  @SuppressWarnings("unchecked")
   @Override
-  public V remove(Object key) {
+  public V remove(final Object key) {
     reap();
-    return backingStore.remove(new IdentityWeakReference(key));
+    return backingStore.remove(new IdentityWeakReference<K>((K) key, queue));
   }
 
   @Override
@@ -194,18 +224,18 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     Object zombie = queue.poll();
 
     while (zombie != null) {
-      IdentityWeakReference victim = (IdentityWeakReference) zombie;
+      @SuppressWarnings("unchecked")
+      final IdentityWeakReference<K> victim = (IdentityWeakReference<K>) zombie;
       backingStore.remove(victim);
       zombie = queue.poll();
     }
   }
 
-  class IdentityWeakReference extends WeakReference<K> {
+  private static class IdentityWeakReference<K> extends WeakReference<K> {
     int hash;
 
-    @SuppressWarnings("unchecked")
-    IdentityWeakReference(Object obj) {
-      super((K) obj, queue);
+    IdentityWeakReference(final K obj, final ReferenceQueue<K> q) {
+      super(obj, q);
       hash = System.identityHashCode(obj);
     }
 
@@ -215,14 +245,15 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
       if (this == o) {
         return true;
       }
-      if (!(o instanceof WeakIdentityHashMap.IdentityWeakReference)) {
+      if (!(o instanceof IdentityWeakReference)) {
         return false;
       }
-      IdentityWeakReference ref = (IdentityWeakReference) o;
+      @SuppressWarnings("unchecked")
+      final IdentityWeakReference<K> ref = (IdentityWeakReference<K>) o;
       return this.get() == ref.get();
     }
   }
