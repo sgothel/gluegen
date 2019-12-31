@@ -172,24 +172,26 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     final Set<Map.Entry<K, V>> ret = new HashSet<>();
     for (final Map.Entry<IdentityWeakReference<K>, V> ref : backingStore.entrySet()) {
       final K key = ref.getKey().get();
-      final V value = ref.getValue();
-      final Map.Entry<K, V> entry = new Map.Entry<K, V>() {
-        @Override
-        public K getKey() {
-          return key;
-        }
+      if( null != key ) {
+          final V value = ref.getValue();
+          final Map.Entry<K, V> entry = new Map.Entry<K, V>() {
+            @Override
+            public K getKey() {
+              return key;
+            }
 
-        @Override
-        public V getValue() {
-          return value;
-        }
+            @Override
+            public V getValue() {
+              return value;
+            }
 
-        @Override
-        public V setValue(final V value) {
-          throw new UnsupportedOperationException();
-        }
-      };
-      ret.add(entry);
+            @Override
+            public V setValue(final V value) {
+              throw new UnsupportedOperationException();
+            }
+          };
+          ret.add(entry);
+      }
     }
     return Collections.unmodifiableSet(ret);
   }
@@ -199,7 +201,10 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
     reap();
     final Set<K> ret = new HashSet<>();
     for (final IdentityWeakReference<K> ref : backingStore.keySet()) {
-      ret.add(ref.get());
+      final K key = ref.get();
+      if( null != key ) {
+          ret.add(key);
+      }
     }
     return Collections.unmodifiableSet(ret);
   }
@@ -283,7 +288,7 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
   }
 
   private static class IdentityWeakReference<K> extends WeakReference<K> {
-    int hash;
+    final int hash;
 
     IdentityWeakReference(final K obj, final ReferenceQueue<K> q) {
       super(obj, q);
