@@ -42,6 +42,14 @@ public interface Bitfield {
      */
     public static class Util {
         /**
+         * Maximum 32bit integer value being of {@link #isPowerOf2(int)}.
+         * <p>
+         * We rely on the JVM spec {@link Integer#SIZE} == 32.
+         * </p>
+         */
+        public static final int MAX_POWER_OF_2 = 1 << ( Integer.SIZE - 2 );
+
+        /**
          * Returns the 32 bit mask of n-bits, i.e. n low order 1’s.
          * <p>
          * Implementation handles n == 32.
@@ -67,6 +75,9 @@ public interface Bitfield {
          *   http://tekpool.wordpress.com/category/bit-count/
          *   http://www.hackersdelight.org/
          * </pre>
+         * <p>
+         * We rely on the JVM spec {@link Integer#SIZE} == 32.
+         * </p>
          */
         public static final int bitCount(int n) {
             // Note: Original used 'unsigned int',
@@ -86,6 +97,47 @@ public interface Bitfield {
             n = n + (n >>> 8);
             n = n + (n >>> 16);
             return n & 0x3f;
+        }
+
+        /**
+         * Returns {@code true} if the given integer is a power of 2
+         * <p>
+         * Source: bithacks: http://www.graphics.stanford.edu/~seander/bithacks.html#DetermineIfPowerOf2
+         * </p>
+         */
+        public static final boolean isPowerOf2(final int n) {
+            return 0<n && 0 == (n & (n - 1));
+        }
+        /**
+         * Returns the next higher power of 2 of 32-bit of given {@code n}
+         * <p>
+         * Source: bithacks: http://www.graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+         * </p>
+         * <p>
+         * We rely on the JVM spec {@link Integer#SIZE} == 32.
+         * </p>
+         */
+        public static final int nextPowerOf2(int n) {
+            n--;
+            n |= n >>> 1;
+            n |= n >>> 2;
+            n |= n >>> 4;
+            n |= n >>> 8;
+            n |= n >>> 16;
+            return (n < 0) ? 1 : n + 1; // avoid edge case where n is 0, it would return 0, which isn't a power of 2
+        }
+        /**
+         * If the given {@code n} is not {@link #isPowerOf2(int)} return {@link #nextPowerOf2(int)},
+         * otherwise return {@code n} unchanged.
+         * <pre>
+         * return isPowerOf2(n) ? n : nextPowerOf2(n);
+         * </pre>
+         * <p>
+         * We rely on the JVM spec {@link Integer#SIZE} == 32.
+         * </p>
+         */
+        public static final int roundToPowerOf2(final int n) {
+            return isPowerOf2(n) ? n : nextPowerOf2(n);
         }
     }
     /**

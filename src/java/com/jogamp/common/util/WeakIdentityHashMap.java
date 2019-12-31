@@ -89,13 +89,62 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
    * Usable slots before resize are {@code capacity * loadFactor}.
    * </p>
    * <p>
-   * Capacity for n-slots w/o resize would be {@code Math.ceil(n/loadFactor)}.
+   * Capacity for n-slots w/o resize would be {@code (float)n/loadFactor + 1.0f}, see {@link #capacityForRequiredSize(int, float[])}.
    * </p>
    * @param initialCapacity default value would be 16, i.e. 12 slots @ 0.75f loadFactor before resize
    * @param loadFactor default value would be 0.75f
+   * @see #capacityForRequiredSize(int, float[])
+   * @see #createWithRequiredSize(int, float)
    */
   public WeakIdentityHashMap(final int initialCapacity, final float loadFactor) {
       backingStore = new HashMap<>(initialCapacity, loadFactor);
+  }
+
+  /**
+   * Static creation method using {@link #capacityForRequiredSize(int, float[])}
+   * to instantiate a new {@link WeakIdentityHashMap} via {@link #WeakIdentityHashMap(int, float)}.
+   *
+   * @param requiredSize the user desired n-slots before resize
+   * @param loadFactor given loadFactor, which might be increased a little to avoid next PowerOf2 bloat
+   * @return the new {@link WeakIdentityHashMap} instance
+   */
+  @SuppressWarnings("rawtypes")
+  public static WeakIdentityHashMap<?, ?> createWithRequiredSize(final int requiredSize, final float loadFactor) {
+      final float[] lf = { loadFactor };
+      final int icap = capacityForRequiredSize(requiredSize, lf);
+      return new WeakIdentityHashMap(icap, lf[0]);
+  }
+
+  /**
+   * Returns the [initial] capacity using the given {@code loadFactor}
+   * and {@code requiredSize}.
+   * <p>
+   * General calculation is {@code (float)requiredSize/loadFactor + 1.0f}, using {@code loadFactor := 0.75f}.
+   * </p>
+   * <p>
+   * In case above computed capacity is {@link Bitfield.Util#isPowerOf2(int)},
+   * the given {@code loadFactor} will be increased to avoid next PowerOf2 table size initialization.
+   * </p>
+   * @param requiredSize the user desired n-slots before resize
+   * @param loadFactor given loadFactor, which might be increased a little to avoid next PowerOf2 bloat
+   * @return the [initial] capacity to be used for {@link #WeakIdentityHashMap(int, float)}
+   */
+  public static int capacityForRequiredSize(final int requiredSize, final float[] loadFactor) {
+      if( requiredSize >= Bitfield.Util.MAX_POWER_OF_2 ) {
+          return Integer.MAX_VALUE;
+      }
+      float lf = loadFactor[0];
+      int c0 = (int)( requiredSize/lf + 1.0f );
+      if( !Bitfield.Util.isPowerOf2(c0) || 0.86f <= lf ) {
+          return c0;
+      }
+      do {
+          lf += 0.01f;
+          c0 = (int)( requiredSize/lf + 1.0f );
+      } while( Bitfield.Util.isPowerOf2(c0) && 0.86f > lf );
+
+      loadFactor[0] = lf;
+      return c0;
   }
 
   @Override
@@ -192,7 +241,9 @@ public class WeakIdentityHashMap<K, V> implements Map<K, V> {
   public void putAll(final Map<? extends K, ? extends V> t) {
     final int n = t.size();
     if ( 0 < n ) {
-        final Map<IdentityWeakReference<K>, V> t2 = new HashMap<>((int)Math.ceil(n/0.75), 0.75f);
+        final float[] lf = { 0.75f };
+        final int icap = capacityForRequiredSize(n, lf);
+        final Map<IdentityWeakReference<K>, V> t2 = new HashMap<>(icap, lf[0]);
         for (final Map.Entry<? extends K, ? extends V> e : t.entrySet()) {
           t2.put(new IdentityWeakReference<K>(e.getKey(), queue), e.getValue());
         }
