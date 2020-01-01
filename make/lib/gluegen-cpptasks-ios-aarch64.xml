@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="GlueGen-cpptasks-ios-aarch64" basedir="." >
+
+<!-- Only set 'isIOSArm64' then continue via default task 'gluegen.cpptasks.detect.os.1' etc -->
+<target name="gluegen.cpptasks.detect.os.custom">
+    <property name="isIOSArm64"                       value="true" /> 
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-ios-aarch64' done"/>
+</target>
+
+<import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
+
+</project>
+
+
