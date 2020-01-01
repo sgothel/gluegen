@@ -13,7 +13,7 @@ fi
 # Force OSX SDK 10.6, if desired
 # export SDKROOT=macosx10.6
 
-export SDKROOT=iphoneos12.2
+export SDKROOT=iphoneos13.2
 xcrun --show-sdk-path
 
 JAVA_HOME=`/usr/libexec/java_home -version 11`
