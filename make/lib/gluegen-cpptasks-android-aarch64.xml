@@ -18,6 +18,7 @@
 <!-- Set OS and ARCH for crosscompilation compiler configuration -->
 <target name="gluegen.cpptasks.detect.os.custom">
     <property name="gluegen.cpptasks.detected.os"     value="true" /> 
+    <property name="is64Bit"                          value="true" /> 
     <property name="isUnix"                           value="true" /> 
     <property name="isAndroid"                        value="true" /> 
     <property name="isAndroidARM64"                   value="true" /> 
