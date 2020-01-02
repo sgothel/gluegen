@@ -1909,6 +1909,7 @@
       <attribute name="excludelibs" default="" />
       <sequential>
 
+      <echo message="native.tag.jar @{module} for @{nativejarfile} include @{includelibs} exclude @{excludelibs}"/>
       <var name="nativejarfile.basename" unset="true"/>
       <var name="nativejarfile.tmpdir" unset="true"/>
       <var name="nativejarfile.tmpdir.natives" unset="true"/>
