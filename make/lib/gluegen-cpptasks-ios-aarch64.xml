@@ -5,6 +5,9 @@
 <!-- Only set 'isIOSArm64' then continue via default task 'gluegen.cpptasks.detect.os.1' etc -->
 <target name="gluegen.cpptasks.detect.os.custom">
     <property name="isIOSArm64"                       value="true" /> 
+    <property name="junit.is.disabled"                value="true" /> 
+    <property name="junit.compile.skip"               value="true" /> 
+    <property name="test.compile.skip"                value="true" />
     <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-ios-aarch64' done"/>
 </target>
 

@@ -1275,11 +1275,11 @@
     <echo message='gluegen.build.sha.natives=${gluegen.build.sha.natives}${line.separator}' file="${build}/artifact.properties" append="true"/>
   </target>
 
-  <target name="junit.compile" depends="init" if="${build.dynamiclibs}">
+  <target name="junit.compile" depends="init">
     <ant antfile="build-test.xml" target="junit.compile"/>
   </target>
 
-  <target name="junit.run" depends="init,junit.compile" if="${build.dynamiclibs}">
+  <target name="junit.run" depends="init,junit.compile">
     <ant antfile="build-test.xml" target="junit.run"/>
   </target>
 
