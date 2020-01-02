@@ -1297,6 +1297,7 @@
              stylesheetfile="doc/javadoc/stylesheet.css">
         <classpath refid="javadoc_gluegen.classpath" />
         <link offline="true" href="${javadoc.link}" packagelistLoc="142-packages" />
+        <arg value="--frames"/>
         <arg value="${javadoc.xarg1}"/>
         <arg value="-html5"/>
         <arg value="--show-packages=all"/>
