@@ -557,7 +557,7 @@
                       nativejarfile="${build}/gluegen-rt-natives-${os.and.arch}.jar"
                       manifestfile="${build}/Manifest-rt-natives.temp" 
                       module="common"
-                      includelibs="*${output.lib.name}.${native.library.suffix} *.symbols" />
+                      includelibs="*${output.lib.name}.${native.library.suffix}" />
 
       <!-- Produce duplicates for different configurations, since non-native-jar aliasing (Bug 1023/Bug 1024) -->
       <copy file="${build}/gluegen-rt-natives-${os.and.arch}.jar" tofile="${build}/gluegen-rt-android-natives-${os.and.arch}.jar"/>

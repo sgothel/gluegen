@@ -1909,15 +1909,30 @@
       <attribute name="excludelibs" default="" />
       <sequential>
 
-      <echo message="native.tag.jar @{module} for @{nativejarfile} include @{includelibs} exclude @{excludelibs}"/>
+      <echo message="native.tag.jar @{module} (attr) for @{nativejarfile} include @{includelibs} exclude @{excludelibs}"/>
       <var name="nativejarfile.basename" unset="true"/>
       <var name="nativejarfile.tmpdir" unset="true"/>
       <var name="nativejarfile.tmpdir.natives" unset="true"/>
+      <var name="nativejarfile.includelibs" unset="true"/>
+      <var name="nativejarfile.excludelibs" unset="true"/>
       <basename property="nativejarfile.basename" file="@{nativejarfile}"/>
       <property name="nativejarfile.tmpdir" value="@{objdir}/${nativejarfile.basename}.d" />
       <property name="nativejarfile.tmpdir.natives" value="${nativejarfile.tmpdir}/jar" />
       <!-- In case we like to switch to a natives subfolder 'natives/${os.and.arch}' use the following -->
       <!-- property name="nativejarfile.tmpdir.natives" value="${nativejarfile.tmpdir}/jar/natives/${os.and.arch}" /-->
+
+      <!-- enforce inclusion/exclusion of *.symbols depending on build.dynamiclibs -->
+      <condition property="nativejarfile.includelibs"
+                 value="@{includelibs}"
+                 else="@{includelibs} *.symbols">
+           <istrue value="${build.dynamiclibs}"/>
+      </condition>
+      <condition property="nativejarfile.excludelibs"
+                 value="@{excludelibs} *.symbols"
+                 else="@{excludelibs}">
+           <istrue value="${build.dynamiclibs}"/>
+      </condition>
+      <echo message="native.tag.jar @{module} (props) ${nativejarfile.basename} include ${nativejarfile.includelibs} exclude ${nativejarfile.excludelibs}"/>
 
       <mkdir dir="${nativejarfile.tmpdir}/java" />
       <mkdir dir="${nativejarfile.tmpdir.natives}" />
@@ -1925,8 +1940,8 @@
       <mkdir dir="${nativejarfile.tmpdir.natives}/natives/${os.and.arch}" />
       <copy todir="${nativejarfile.tmpdir.natives}/natives/${os.and.arch}">
         <fileset dir="@{objdir}"
-                 includes="@{includelibs}"
-                 excludes="@{excludelibs}"/>
+                 includes="${nativejarfile.includelibs}"
+                 excludes="${nativejarfile.excludelibs}"/>
       </copy>
       <echo message='package ${nativejartag.package}.@{module}.${os.and.arch.dot}; public final class TAG { }' file="${nativejarfile.tmpdir}/java/${nativejartag.prefix}/@{module}/${os.and.arch.slash}/TAG.java"/>
       <javac destdir="${nativejarfile.tmpdir}/jar"
