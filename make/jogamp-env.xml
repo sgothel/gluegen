@@ -8,7 +8,7 @@
         - Java 1.8 (Level 8.0)
         - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
-     Official production builds are performed _on_ OpenJDK 11
+     Official production builds are performed _on_ OpenJDK 11 or 17
      and a Java JDK 11 or greater is required!
 
      Target Java 8 baseline is chosen today, June 2019, 
@@ -86,6 +86,11 @@
                     <equals arg1="${ant.java.version}" arg2="12"/>
                     <equals arg1="${ant.java.version}" arg2="13"/>
                     <equals arg1="${ant.java.version}" arg2="14"/>
+                    <equals arg1="${ant.java.version}" arg2="15"/>
+                    <equals arg1="${ant.java.version}" arg2="16"/>
+                    <equals arg1="${ant.java.version}" arg2="17"/>
+                    <equals arg1="${ant.java.version}" arg2="18"/>
+                    <equals arg1="${ant.java.version}" arg2="19"/>
                 </or>
             </not>
         </condition>
@@ -109,6 +114,11 @@
             <equals arg1="${ant.java.version}" arg2="12"/>
             <equals arg1="${ant.java.version}" arg2="13"/>
             <equals arg1="${ant.java.version}" arg2="14"/>
+            <equals arg1="${ant.java.version}" arg2="15"/>
+            <equals arg1="${ant.java.version}" arg2="16"/>
+            <equals arg1="${ant.java.version}" arg2="17"/>
+            <equals arg1="${ant.java.version}" arg2="18"/>
+            <equals arg1="${ant.java.version}" arg2="19"/>
         </or>
     </condition>
     <echo message="javadoc.xarg1              ${javadoc.xarg1}"/>

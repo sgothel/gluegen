@@ -46,6 +46,10 @@ public abstract class PlatformPropsImpl {
         public static final VersionNumber Lion = new VersionNumber(10,7,0);
         /** OSX Mavericks, i.e. 10.9.0 */
         public static final VersionNumber Mavericks = new VersionNumber(10,9,0);
+        /** OSX Mojave, i.e. 10.14.0 */
+        public static final VersionNumber Mojave = new VersionNumber(10,14,0);
+        /** OSX Big Sur, i.e. 11.00.0 */
+        public static final VersionNumber BigSur = new VersionNumber(11,0,0);
     }
 
     /**
