@@ -23,11 +23,11 @@
 	<classpathentry kind="src" path="test/junit"/>
 	<classpathentry kind="src" path="jcpp/src/main/java"/>
 	<classpathentry kind="src" path="jcpp/src/test/java"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="lib" path="make/lib/antlr.jar" sourcepath="make/lib/antlr-src.zip"/>
 	<classpathentry kind="lib" path="make/lib/junit.jar" sourcepath="make/lib/junit-sources.jar"/>
 	<classpathentry kind="lib" path="make/lib/semantic-versioning/semver.jar" sourcepath="make/lib/semantic-versioning/semver-src.zip"/>
 	<classpathentry kind="lib" path="make/lib/android-sdk/24/android.jar" sourcepath="make/lib/android-sdk/24/android-java-src.zip"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/jdk1.8.0_121"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>
