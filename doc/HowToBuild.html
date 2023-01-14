@@ -144,7 +144,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                 <li><a href="https://www.openindiana.org/">OpenIndiana</a> using illumus's OpenSolaris continuation <i>(todo: test)</i></li>
                             </ul>
                         </li>
-                        <li> <b>MacOS and iOS</b> Intel and Arm64
+                        <li> <b>MacOS and iOS</b> x86_64 and aarch64
                             <ul>
                                 <li>git &ge; 2.37 provided by Xcode &ge; 14</li>
                                 <li>awk is provided by MacOS</li>
@@ -152,6 +152,21 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                 <li><a href="http://www.apple.com/macosx/">Mac OS</a> 11 or later (note: may not work with earlier releases) </li>
                                 <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 14 or later for clang, etc (included in MacOS)</li>
                             </ul>
+                            Prepare fat universal OpenJDK libraries
+                            <ul>
+                                <li>Open a terminal in your home folder, e.g. <i>/Users/jogamp</i></li>
+                                <li>The OpenJDK library folder of each target platform, x86_64 or aarch64, is <i>/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home/lib</i></li>
+                                <li>Transfer the x86_64 OpenJDK library folder to <i>temurin-17.jdk.amd64.lib</i><li>
+                                <li>Transfer the aarch64 OpenJDK library folder to <i> temurin-17.jdk.arm64.lib</i></li>
+                                <li>Run the script <i>gluegen/make/scripts/make.macosx.jdk_lipo_libs.sh</i></li>
+                                <li>Fat universal OpenJDK libraries are produced into <i>temurin-17.jdk.fat.lib</i></li>
+                            </ul>
+                            Now we have to tell the <i>gluegen</i> build framework to use <i>temurin-17.jdk.fat.lib</i>,
+                            by adding an <i>ant</i> macro in <i>$HOME/gluegen.properties</i>
+                            <pre>
+                                java.lib.dir.platform=/Users/jogamp/temurin-17.jdk.fat.lib
+                            </pre>
+                            Replace <i>jogamp</i> with your user name.
                         </li>
                         <li> <b>Windows</b>/x86 (32 bit)
                             <ul>
