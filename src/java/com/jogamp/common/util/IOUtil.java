@@ -48,7 +48,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.ByteBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,7 +78,7 @@ public class IOUtil {
 
     static {
         final boolean _props[] = { false, false, false, false, false, false };
-        final Method[] res = AccessController.doPrivileged(new PrivilegedAction<Method[]>() {
+        final Method[] res = SecurityUtil.doPrivileged(new PrivilegedAction<Method[]>() {
             @Override
             public Method[] run() {
                 final Method[] res = new Method[] { null, null };

@@ -6,7 +6,6 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.List;
 
@@ -23,6 +22,7 @@ import com.jogamp.common.os.Platform.ABIType;
 import com.jogamp.common.os.Platform.CPUFamily;
 import com.jogamp.common.os.Platform.CPUType;
 import com.jogamp.common.os.Platform.OSType;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 
 /**
@@ -181,7 +181,7 @@ public abstract class PlatformPropsImpl {
             final ABIType[] _elfAbiType = { null };
             final int[] _elfLittleEndian = { 0 }; // 1 - little, 2 - big
             final boolean[] _elfValid = { false };
-            AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
                 @Override
                 public Object run() {
                     RandomAccessFile in = null;
@@ -357,7 +357,7 @@ public abstract class PlatformPropsImpl {
 
     private static final String getJavaRuntimeNameImpl() {
         // the fast path, check property Java SE instead of traversing through the ClassLoader
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
             @Override
             public String run() {
               return System.getProperty("java.runtime.name");

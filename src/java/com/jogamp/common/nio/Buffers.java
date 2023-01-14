@@ -50,11 +50,11 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 import java.nio.ShortBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.UnsafeUtil;
 import com.jogamp.common.util.ValueConv;
 
@@ -1177,7 +1177,7 @@ public class Buffers {
             final Method[] _mbbCleaner = { null };
             final Method[] _cClean = { null };
             final boolean hasCleaner;
-            if( AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+            if( SecurityUtil.doPrivileged(new PrivilegedAction<Boolean>() {
                 @Override
                 public Boolean run() {
                     try {

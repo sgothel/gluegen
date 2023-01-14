@@ -29,13 +29,16 @@
 package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.jvm.JNILibLoaderBase;
+import com.jogamp.common.util.SecurityUtil;
+
 import java.security.*;
 
 public class BindingJNILibLoader extends JNILibLoaderBase {
 
   public static void loadBindingtest1p1() {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      public Object run() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+      @Override
+    public Object run() {
         loadLibrary("Bindingtest1p1", null, true, BindingJNILibLoader.class.getClassLoader());
         return null;
       }
@@ -43,8 +46,9 @@ public class BindingJNILibLoader extends JNILibLoaderBase {
   }
 
   public static void loadBindingtest1p2() {
-    AccessController.doPrivileged(new PrivilegedAction<Object>() {
-      public Object run() {
+    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+      @Override
+    public Object run() {
         loadLibrary("Bindingtest1p2", null, true, BindingJNILibLoader.class.getClassLoader());
         return null;
       }

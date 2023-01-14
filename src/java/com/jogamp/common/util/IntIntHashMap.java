@@ -34,7 +34,6 @@ package com.jogamp.common.util;
 import com.jogamp.common.JogampRuntimeException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,7 +83,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
         isPrimitive = valueClazz.isPrimitive();
 
         if(!isPrimitive) {
-            final EntryCM cm = AccessController.doPrivileged(new PrivilegedAction<EntryCM>() {
+            final EntryCM cm = SecurityUtil.doPrivileged(new PrivilegedAction<EntryCM>() {
                 @Override
                 @SuppressWarnings("unchecked")
                 public EntryCM run() {
@@ -502,7 +501,7 @@ public class /*name*/IntIntHashMap/*name*/ implements Cloneable,
 
     private static Method getCloneMethod(final Object obj) {
         final Class<?> clazz = obj.getClass();
-        return AccessController.doPrivileged(new PrivilegedAction<Method>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<Method>() {
                 @Override
                 public Method run() {
                     try {

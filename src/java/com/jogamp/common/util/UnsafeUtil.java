@@ -31,7 +31,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
@@ -73,7 +72,7 @@ public class UnsafeUtil {
         final Class<?>[] _illegalAccessLoggerClass = { null };
         final Long[] _loggerOffset = { null };
 
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 Class<?> unsafeClass = null;
@@ -172,7 +171,7 @@ public class UnsafeUtil {
     /**
      * Issue the given user {@code action} while {@code jdk.internal.module.IllegalAcessLogger}'s {@code logger} has been temporarily disabled.
      * <p>
-     * The caller shall place this call into their own {@link AccessController#doPrivileged(PrivilegedAction)} block.
+     * The caller shall place this call into their own {@link SecurityUtil#doPrivileged(PrivilegedAction)} block.
      * </p>
      * <p>
      * In case the runtime is not {@link PlatformPropsImpl#JAVA_9} or the logger is not accessible or disabling caused an exception,

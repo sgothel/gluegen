@@ -44,7 +44,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -56,6 +55,7 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 import jogamp.common.Debug;
@@ -512,7 +512,7 @@ public class JNILibLoaderBase {
     final String sunAppletLauncherProperty = "sun.jnlp.applet.launcher";
     final String sunAppletLauncherClassName = "org.jdesktop.applet.util.JNLPAppletLauncher";
 
-    final Method loadLibraryMethod = AccessController.doPrivileged(new PrivilegedAction<Method>() {
+    final Method loadLibraryMethod = SecurityUtil.doPrivileged(new PrivilegedAction<Method>() {
         @Override
         public Method run() {
             // FIXME: remove

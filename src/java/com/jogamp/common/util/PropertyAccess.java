@@ -175,7 +175,7 @@ public class PropertyAccess {
   }
 
   private static final String getTrustedPropKey(final String propertyKey) {
-    return AccessController.doPrivileged(new PrivilegedAction<String>() {
+    return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
         @Override
         public String run() {
           try {

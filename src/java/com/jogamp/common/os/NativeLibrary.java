@@ -43,7 +43,6 @@ package com.jogamp.common.os;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -59,6 +58,7 @@ import jogamp.common.os.WindowsDynamicLinkerImpl;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.util.IOUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
 /** Provides low-level, relatively platform-independent access to
@@ -453,7 +453,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
     // Add entries from java.library.path
     final String[] javaLibraryPaths =
-      AccessController.doPrivileged(new PrivilegedAction<String[]>() {
+      SecurityUtil.doPrivileged(new PrivilegedAction<String[]>() {
           @Override
           public String[] run() {
             int count = 0;
@@ -495,7 +495,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
     // Add current working directory
     final String userDir =
-      AccessController.doPrivileged(new PrivilegedAction<String>() {
+      SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
           @Override
           public String run() {
             return System.getProperty("user.dir");
@@ -616,7 +616,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
         return null;
     }
     if (!initializedFindLibraryMethod) {
-      AccessController.doPrivileged(new PrivilegedAction<Object>() {
+      SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
           @Override
           public Object run() {
             try {
@@ -633,7 +633,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
     if (findLibraryMethod != null) {
       try {
-        return AccessController.doPrivileged(new PrivilegedAction<String>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
             @Override
             public String run() {
               try {

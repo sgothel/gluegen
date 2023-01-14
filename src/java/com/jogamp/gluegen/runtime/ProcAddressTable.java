@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Field;
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -89,7 +88,7 @@ public abstract class ProcAddressTable {
     private final FunctionAddressResolver resolver;
 
     static {
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
                 DEBUG = (System.getProperty("jogamp.debug.ProcAddressHelper") != null);
@@ -207,7 +206,7 @@ public abstract class ProcAddressTable {
      * </p>
      */
     private final Field fieldForFunctionInSec(final String name) throws IllegalArgumentException {
-        return AccessController.doPrivileged(new PrivilegedAction<Field>() {
+        return SecurityUtil.doPrivileged(new PrivilegedAction<Field>() {
             @Override
             public Field run() {
                 try {

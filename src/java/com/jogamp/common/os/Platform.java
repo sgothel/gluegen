@@ -28,7 +28,6 @@
 
 package com.jogamp.common.os;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.concurrent.TimeUnit;
 
@@ -37,6 +36,7 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.PropertyAccess;
 import com.jogamp.common.util.ReflectionUtil;
+import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.VersionNumber;
 import com.jogamp.common.util.cache.TempJarCache;
 
@@ -287,7 +287,7 @@ public class Platform extends PlatformPropsImpl {
         final boolean[] _USE_TEMP_JAR_CACHE = new boolean[] { false };
         final boolean[] _AWT_AVAILABLE = new boolean[] { false };
 
-        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
 
