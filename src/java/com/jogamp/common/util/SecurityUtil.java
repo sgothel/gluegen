@@ -34,6 +34,8 @@ import java.security.PrivilegedAction;
 import java.security.ProtectionDomain;
 import java.security.cert.Certificate;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 public class SecurityUtil {
     @SuppressWarnings("removal")
     private static final SecurityManager securityManager;
@@ -41,22 +43,44 @@ public class SecurityUtil {
     private static final boolean DEBUG = false;
 
     /**
-     * Deprecated call to {@link System#getSecurityManager()} w/o warnings.
+     * Call wrapper for {@link System#getSecurityManager()}.
+     * <p>
+     * {@link System#getSecurityManager()} is deprecated
+     * since Java 17 (JEP 411) and earmarked to be removed.<br/>
+     * </p>
+     * <p>
+     * On a Java 17 machine, this method will simply return null.
+     * </p>
      */
     @SuppressWarnings({ "deprecation", "removal" })
     public static final SecurityManager getSecurityManager() {
-        return System.getSecurityManager();
+        if( PlatformPropsImpl.JAVA_17 ) {
+            return null;
+        } else {
+            return System.getSecurityManager();
+        }
     }
 
     /**
-     * Deprecated call to {@link java.security.AccessController#doPrivileged(PrivilegedAction)} w/o warnings.
-     * @param <T>
-     * @param o
-     * @return
+     * Call wrapper for {@link java.security.AccessController#doPrivileged(PrivilegedAction)}.
+     * <p>
+     * {@link java.security.AccessController#doPrivileged(PrivilegedAction)} is deprecated
+     * since Java 17 (JEP 411) and earmarked to be removed.<br/>
+     * </p>
+     * <p>
+     * On a Java 17 machine, this method will simply invoke the given PrivilegedAction<T>.
+     * </p>
+     * @param <T> return type of PrivilegedAction<T>
+     * @param o the PrivilegedAction<T>
+     * @return the return type
      */
     @SuppressWarnings({ "deprecation", "removal" })
     public static <T> T doPrivileged(final PrivilegedAction<T> o) {
-        return java.security.AccessController.doPrivileged( o );
+        if( PlatformPropsImpl.JAVA_17 ) {
+            return o.run();
+        } else {
+            return java.security.AccessController.doPrivileged( o );
+        }
     }
 
     static {
