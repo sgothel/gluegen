@@ -462,8 +462,8 @@ typedef struct {
 
     TK_Context ctx;
 
-    const char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
-    const char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
+    char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
+    char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
     const char * modelNamePointerCustomLen;  /* 'Hello Pointer' len=13+1 */
     const int modelNamePointerCustomLenVal;  /* 13+1 */
 
@@ -495,7 +495,7 @@ typedef struct {
     TK_Context ctx;
 
     char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
-    const char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
+    char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
     char * modelNamePointerCustomLen;  /* 'Hello Pointer' len=13+1 */
     int modelNamePointerCustomLenVal;  /* 13+1 */
 
