@@ -28,6 +28,16 @@ if [ ! -z "$J2RE_HOME" -a ! -z "$JAVA_HOME" ] ; then
 fi 
 
 if [ -z "$FOUND_JAVA" ] ; then
+    if [ -e /usr/lib/jvm/java-17-openjdk-i386 ] ; then
+        J2RE_HOME=/usr/lib/jvm/java-17-openjdk-i386
+        JAVA_HOME=/usr/lib/jvm/java-17-openjdk-i386
+        PATH=$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi 
+fi 
+
+if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /usr/lib/jvm/java-11-openjdk-i386 ] ; then
         J2RE_HOME=/usr/lib/jvm/java-11-openjdk-i386
         JAVA_HOME=/usr/lib/jvm/java-11-openjdk-i386

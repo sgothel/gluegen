@@ -38,20 +38,6 @@ import com.jogamp.common.util.VersionNumber;
 public abstract class PlatformPropsImpl {
     static final boolean DEBUG = Debug.debug("Platform");
 
-    /** Selected {@link Platform.OSType#MACOS} or {@link Platform.OSType#IOS} {@link VersionNumber}s. */
-    public static class OSXVersion {
-        /** OSX Tiger, i.e. 10.4.0 */
-        public static final VersionNumber Tiger = new VersionNumber(10,4,0);
-        /** OSX Lion, i.e. 10.7.0 */
-        public static final VersionNumber Lion = new VersionNumber(10,7,0);
-        /** OSX Mavericks, i.e. 10.9.0 */
-        public static final VersionNumber Mavericks = new VersionNumber(10,9,0);
-        /** OSX Mojave, i.e. 10.14.0 */
-        public static final VersionNumber Mojave = new VersionNumber(10,14,0);
-        /** OSX Big Sur, i.e. 11.00.0 */
-        public static final VersionNumber BigSur = new VersionNumber(11,0,0);
-    }
-
     /**
      * Returns {@code true} if the given {@link CPUType}s and {@link ABIType}s are compatible.
      */
@@ -62,15 +48,6 @@ public abstract class PlatformPropsImpl {
     //
     // static initialization order:
     //
-
-    /** Version 1.6. As a JVM version, it enables certain JVM 1.6 features. */
-    public static final VersionNumber Version16;
-    /** Version 1.7. As a JVM version, it enables certain JVM 1.7 features. */
-    public static final VersionNumber Version17;
-    /** Version 1.8. As a JVM version, it enables certain JVM 1.8 features. */
-    public static final VersionNumber Version18;
-    /** Version 1.9. As a JVM version, it enables certain JVM 1.9 features. Note the skipped first version number due to JEP 223. */
-    public static final VersionNumber Version9;
 
     public static final String OS;
     public static final String OS_lower;
@@ -97,10 +74,11 @@ public abstract class PlatformPropsImpl {
      * </p>
      */
     public static final boolean JAVA_6;
+
     /**
      * True only if being compatible w/ language level 9, e.g. JRE 9.
      * <p>
-     * Implies {@link #isJavaSE()} and {@link #JAVA_6}.
+     * Implies {@link #JAVA_6} and {@link #isJavaSE()}
      * </p>
      * <p>
      * Since JRE 9, the version string has dropped the major release number,
@@ -108,6 +86,22 @@ public abstract class PlatformPropsImpl {
      * </p>
      */
     public static final boolean JAVA_9;
+
+    /**
+     * True only if being compatible w/ language level 17, e.g. JRE 17 (LTS).
+     * <p>
+     * Implies {@link #JAVA_9}, {@link #JAVA_6} and {@link #isJavaSE()}
+     * </p>
+     */
+    public static final boolean JAVA_17;
+
+    /**
+     * True only if being compatible w/ language level 21, e.g. JRE 21 (LTS).
+     * <p>
+     * Implies {@link #JAVA_17}, {@link #JAVA_9}, {@link #JAVA_6} and {@link #isJavaSE()}
+     * </p>
+     */
+    public static final boolean JAVA_21;
 
     public static final String NEWLINE;
     public static final boolean LITTLE_ENDIAN;
@@ -126,11 +120,6 @@ public abstract class PlatformPropsImpl {
     public static final boolean useDynamicLibraries;
 
     static {
-        Version16 = new VersionNumber(1, 6, 0);
-        Version17 = new VersionNumber(1, 7, 0);
-        Version18 = new VersionNumber(1, 8, 0);
-        Version9 = new VersionNumber(9, 0, 0);
-
         // We don't seem to need an AccessController.doPrivileged() block
         // here as these system properties are visible even to unsigned Applets.
         final boolean isAndroid = AndroidVersion.isAvailable; // also triggers it's static initialization
@@ -158,9 +147,41 @@ public abstract class PlatformPropsImpl {
         JAVA_VM_NAME = System.getProperty("java.vm.name");
         JAVA_RUNTIME_NAME = getJavaRuntimeNameImpl();
         JAVA_SE = initIsJavaSE();
-        JAVA_9 = JAVA_SE && JAVA_VERSION_NUMBER.compareTo(Version9) >= 0;
-        JAVA_6 = JAVA_SE && ( isAndroid || JAVA_9 || JAVA_VERSION_NUMBER.compareTo(Version16) >= 0 ) ;
-
+        if( JAVA_SE ) {
+            if( JAVA_VERSION_NUMBER.compareTo(new VersionNumber(21, 0, 0)) >= 0 ) {
+                JAVA_21 = true;
+                JAVA_17 = true;
+                JAVA_9 = true;
+                JAVA_6 = true;
+            } else if( JAVA_VERSION_NUMBER.compareTo(new VersionNumber(17, 0, 0)) >= 0 ) {
+                JAVA_21 = false;
+                JAVA_17 = true;
+                JAVA_9 = true;
+                JAVA_6 = true;
+            } else if( JAVA_VERSION_NUMBER.compareTo(new VersionNumber(9, 0, 0)) >= 0 ) {
+                JAVA_21 = false;
+                JAVA_17 = false;
+                JAVA_9 = true;
+                JAVA_6 = true;
+            } else if( isAndroid || JAVA_VERSION_NUMBER.compareTo(new VersionNumber(1, 6, 0)) >= 0 ) {
+                JAVA_21 = false;
+                JAVA_17 = false;
+                JAVA_9 = false;
+                JAVA_6 = true;
+            } else {
+                // we probably don't support anything below 1.6
+                JAVA_21 = false;
+                JAVA_17 = false;
+                JAVA_9 = false;
+                JAVA_6 = false;
+            }
+        } else {
+            // we probably don't support anything below 1.6 or non JavaSE
+            JAVA_21 = false;
+            JAVA_17 = false;
+            JAVA_9 = false;
+            JAVA_6 = false;
+        }
         NEWLINE = System.getProperty("line.separator");
 
         OS =  System.getProperty("os.name");
