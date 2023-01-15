@@ -13,7 +13,7 @@ fi
 # Force OSX SDK 10.6, if desired
 # export SDKROOT=macosx10.6
 
-JAVA_HOME=`/usr/libexec/java_home -version 11`
+JAVA_HOME=`/usr/libexec/java_home -version 17`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 
