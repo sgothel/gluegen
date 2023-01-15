@@ -53,7 +53,7 @@ public class TestRecursiveThreadGroupLock01 extends SingletonJunitCase {
         }
     }
 
-    static void yield(final YieldMode mode) {
+    static void yield_thread(final YieldMode mode) {
         switch(mode) {
             case YIELD:
                 Thread.yield();
@@ -96,7 +96,7 @@ public class TestRecursiveThreadGroupLock01 extends SingletonJunitCase {
                         slaves[i].start();
                     }
                     while(slaveCounter<mark) {
-                        yield(yieldMode);
+                        yield_thread(yieldMode);
                     }
                 }
             } finally {
@@ -130,7 +130,7 @@ public class TestRecursiveThreadGroupLock01 extends SingletonJunitCase {
                 while(slaveCounter<mark) {
                     slaveCounter++;
                 } */
-                yield(yieldMode);
+                yield_thread(yieldMode);
             } finally {
                 if(DEBUG) {
                     System.err.println(tab+" "+name+" c "+slaveCounter+"]");

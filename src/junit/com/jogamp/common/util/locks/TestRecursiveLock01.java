@@ -57,7 +57,7 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
         }
     }
 
-    static void yield(final YieldMode mode) {
+    static void yield_thread(final YieldMode mode) {
         switch(mode) {
             case YIELD:
                 Thread.yield();
@@ -119,7 +119,7 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
                     System.err.print("+");
                 }
                 while(l>0) l--;
-                yield(yieldMode);
+                yield_thread(yieldMode);
             } finally {
                 if(DEBUG) {
                     System.err.print("-");
@@ -151,7 +151,7 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
                         System.err.print("+");
                     }
                     while(l>0) l--;
-                     yield(yieldMode);
+                     yield_thread(yieldMode);
                 } finally {
                     if(DEBUG) {
                         System.err.print("-");
