@@ -810,6 +810,7 @@
            excludes="${gluegen.excludes.all} ${gluegen-rt.classes} ${java.part.android}"
            memoryMaximumSize="${javac.memorymax}"
            encoding="UTF-8"
+           source="${target.sourcelevel}" 
            target="${target.targetlevel}" 
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.jcpp}" />
