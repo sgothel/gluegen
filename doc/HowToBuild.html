@@ -38,10 +38,10 @@
                     <ul>
                         <li> <b>Java</b>
                            <ul>
-                              <li>Build &amp; Runtime: An <a href="http://openjdk.java.net/">OpenJDK</a> 11 compliant SDK.</li>
+                              <li>Build &amp; Runtime: An <a href="http://openjdk.java.net/">OpenJDK</a> 17 compliant SDK.</li>
                               <li>Runtime: An OpenJDK 8 compliant JRE.</li>
                            </ul>
-                           You may find an appropriate <a href="http://openjdk.java.net/">OpenJDK</a> build @ <a href="https://adoptopenjdk.net/">AdoptOpenJDK</a>.<br/>
+                           You may find an appropriate <a href="http://openjdk.java.net/">OpenJDK</a> build @ <a href="https://adoptium.net/temurin/releases/">Adoptium</a>.<br/>
                            <br/>
                            Or you may try one of the following SDK's and/or Runtimes:
                            <ul>
@@ -63,7 +63,7 @@
                             <ul>
                                 <li> <b><a href="https://www.freebsd.org/releases/">FreeBSD</a></b> 12 or later <i>(todo: test)</i>
                                     <ul>
-                                        <li>openjdk11</li>
+                                        <li>openjdk17</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>awk</li>
@@ -73,13 +73,13 @@
                                     </ul>
                             </ul>
                         </li>
-                        <li> <b>GNU Linux</b> x86, 32- and 64-bit as well as Arm64, etc<br/>
+                        <li> <b>GNU Linux</b> x86_64 as well as Arm64, etc<br/>
                             You may have to install a few developer packages ...
                             <ul>
                                 <li> <b>Debian</b> 10 or later
                                     <ul>
-                                        <li>openjdk-11-jre</li>
-                                        <li>openjdk-11-jdk</li>
+                                        <li>openjdk-17-jre</li>
+                                        <li>openjdk-17-jdk</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
@@ -91,7 +91,7 @@
                                     <ul>
                                       <li><b>Debian</b> 10 Buster
                                       <pre>
-apt-get install openjdk-11-jre openjdk-11-jdk ant git-all gawk p7zip-full gcc cmake
+apt-get install openjdk-17-jre openjdk-17-jdk ant git-all gawk p7zip-full gcc cmake
                                       </pre></li>
                                     </ul>
                                     Optional: Add <i>kernel</i> build utilities:
@@ -104,13 +104,13 @@ apt-get install kernel-package build-essential
                                       <pre>
 dpkg --add-architecture i386
 apt-get update
-apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-11-jre:i386 openjdk-11-jdk:i386
+apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm1 lib32quadmath0 libudev1:i386 libc6-i386 libc6-dev-i386 g++-multilib lib32stdc++6 openjdk-17-jre:i386 openjdk-17-jdk:i386
                                       </pre></li>
                                     </ul>
                                 </li>
                                 <li> <b>OpenSuSE</b> 15.0 or later
                                     <ul>
-                                        <li>java-11-openjdk</li>
+                                        <li>java-17-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
@@ -121,7 +121,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                                 </li>
                                 <li> <b>CentOS 7 / Red Hat Enterprise Linux 7.6</b> or later<br/>
                                     <ul>
-                                        <li>java-11-openjdk</li>
+                                        <li>java-17-openjdk</li>
                                         <li>ant</li>
                                         <li>git</li>
                                         <li>gawk</li>
