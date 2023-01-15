@@ -45,7 +45,7 @@ public class TestIteratorIndexCORE extends SingletonJunitCase {
     static int elems = 10;
     static int loop = ( Platform.getCPUFamily() == Platform.CPUFamily.ARM ) ? 20 : 9999999;
 
-    public void populate(final List l, int len) {
+    public void populate(final List<Integer> l, int len) {
         while(len>0) {
             l.add(new Integer(len--));
         }
@@ -54,12 +54,12 @@ public class TestIteratorIndexCORE extends SingletonJunitCase {
     @Test
     public void test01ArrayListIterator() {
         int sum=0;
-        final ArrayList l = new ArrayList();
+        final ArrayList<Integer> l = new ArrayList<Integer>();
         populate(l, elems);
 
         for(int j=loop; j>0; j--) {
-            for(final Iterator iter = l.iterator(); iter.hasNext(); ) {
-                final Integer i = (Integer)iter.next();
+            for(final Iterator<Integer> iter = l.iterator(); iter.hasNext(); ) {
+                final Integer i = iter.next();
                 sum+=i.intValue();
             }
         }
@@ -69,12 +69,12 @@ public class TestIteratorIndexCORE extends SingletonJunitCase {
     @Test
     public void test0ArrayListIndex() {
         int sum=0;
-        final ArrayList l = new ArrayList();
+        final ArrayList<Integer> l = new ArrayList<Integer>();
         populate(l, elems);
 
         for(int j=loop; j>0; j--) {
             for(int k = 0; k < l.size(); k++) {
-                final Integer i = (Integer)l.get(k);
+                final Integer i = l.get(k);
                 sum+=i.intValue();
             }
         }
@@ -84,12 +84,12 @@ public class TestIteratorIndexCORE extends SingletonJunitCase {
     @Test
     public void test01LinkedListListIterator() {
         int sum=0;
-        final LinkedList l = new LinkedList();
+        final LinkedList<Integer> l = new LinkedList<Integer>();
         populate(l, elems);
 
         for(int j=loop; j>0; j--) {
-            for(final Iterator iter = l.iterator(); iter.hasNext(); ) {
-                final Integer i = (Integer)iter.next();
+            for(final Iterator<Integer> iter = l.iterator(); iter.hasNext(); ) {
+                final Integer i = iter.next();
                 sum+=i.intValue();
             }
         }
@@ -99,12 +99,12 @@ public class TestIteratorIndexCORE extends SingletonJunitCase {
     @Test
     public void test01LinkedListListIndex() {
         int sum=0;
-        final LinkedList l = new LinkedList();
+        final LinkedList<Integer> l = new LinkedList<Integer>();
         populate(l, elems);
 
         for(int j=loop; j>0; j--) {
             for(int k = 0; k < l.size(); k++) {
-                final Integer i = (Integer)l.get(k);
+                final Integer i = l.get(k);
                 sum+=i.intValue();
             }
         }
