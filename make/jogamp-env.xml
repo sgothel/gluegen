@@ -74,26 +74,65 @@
       </condition>
     </fail>
 
+    <condition property="minJava21" value="true">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="21"/>
+            <equals arg1="${ant.java.version}" arg2="22"/>
+            <equals arg1="${ant.java.version}" arg2="23"/>
+            <equals arg1="${ant.java.version}" arg2="24"/>
+            <equals arg1="${ant.java.version}" arg2="25"/>
+            <equals arg1="${ant.java.version}" arg2="26"/>
+            <equals arg1="${ant.java.version}" arg2="27"/>
+            <equals arg1="${ant.java.version}" arg2="28"/>
+        </or>
+    </condition>
+    <echo message="minJava21                  ${minJava21}"/> 
+
+    <condition property="minJava17" value="true">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="17"/>
+            <equals arg1="${ant.java.version}" arg2="18"/>
+            <equals arg1="${ant.java.version}" arg2="19"/>
+            <equals arg1="${ant.java.version}" arg2="20"/>
+            <istrue value="${minJava21}"/>
+        </or>
+    </condition>
+    <echo message="minJava17                  ${minJava17}"/> 
+
+    <condition property="minJava11" value="true">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="11"/>
+            <equals arg1="${ant.java.version}" arg2="12"/>
+            <equals arg1="${ant.java.version}" arg2="13"/>
+            <equals arg1="${ant.java.version}" arg2="14"/>
+            <equals arg1="${ant.java.version}" arg2="15"/>
+            <equals arg1="${ant.java.version}" arg2="16"/>
+            <istrue value="${minJava17}"/>
+        </or>
+    </condition>
+    <echo message="minJava11                  ${minJava11}"/> 
+
+    <condition property="minJava9" value="true">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="9"/>
+            <istrue value="${minJava11}"/>
+        </or>
+    </condition>
+    <echo message="minJava9                   ${minJava9}"/> 
+
+    <condition property="minJava8" value="true">
+        <or>
+            <equals arg1="${ant.java.version}" arg2="1.8"/>
+            <istrue value="${minJava9}"/>
+        </or>
+    </condition>
+    <echo message="minJava8                   ${minJava8}"/> 
+
     <!-- Only for junit runtime tests Java [8-10] is allowed, for building Java 11 is required. -->
     <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 1.8 or greater.">
         <condition>
             <not>
-                <or>
-                    <equals arg1="${ant.java.version}" arg2="1.8"/>
-                    <equals arg1="${ant.java.version}" arg2="9"/>
-                    <equals arg1="${ant.java.version}" arg2="10"/>
-                    <equals arg1="${ant.java.version}" arg2="11"/>
-                    <equals arg1="${ant.java.version}" arg2="12"/>
-                    <equals arg1="${ant.java.version}" arg2="13"/>
-                    <equals arg1="${ant.java.version}" arg2="14"/>
-                    <equals arg1="${ant.java.version}" arg2="15"/>
-                    <equals arg1="${ant.java.version}" arg2="16"/>
-                    <equals arg1="${ant.java.version}" arg2="17"/>
-                    <equals arg1="${ant.java.version}" arg2="18"/>
-                    <equals arg1="${ant.java.version}" arg2="19"/>
-                    <equals arg1="${ant.java.version}" arg2="20"/>
-                    <equals arg1="${ant.java.version}" arg2="21"/>
-                </or>
+                <istrue value="${minJava8}"/>
             </not>
         </condition>
     </fail>
@@ -108,22 +147,7 @@
     </tstamp>
 
     <condition property="javadoc.xarg1" value="-Xdoclint:none" else="-J-Ddummy=val">
-        <or>
-            <equals arg1="${ant.java.version}" arg2="1.8"/>
-            <equals arg1="${ant.java.version}" arg2="9"/>
-            <equals arg1="${ant.java.version}" arg2="10"/>
-            <equals arg1="${ant.java.version}" arg2="11"/>
-            <equals arg1="${ant.java.version}" arg2="12"/>
-            <equals arg1="${ant.java.version}" arg2="13"/>
-            <equals arg1="${ant.java.version}" arg2="14"/>
-            <equals arg1="${ant.java.version}" arg2="15"/>
-            <equals arg1="${ant.java.version}" arg2="16"/>
-            <equals arg1="${ant.java.version}" arg2="17"/>
-            <equals arg1="${ant.java.version}" arg2="18"/>
-            <equals arg1="${ant.java.version}" arg2="19"/>
-            <equals arg1="${ant.java.version}" arg2="20"/>
-            <equals arg1="${ant.java.version}" arg2="21"/>
-        </or>
+        <istrue value="${minJava8}"/>
     </condition>
     <echo message="javadoc.xarg1              ${javadoc.xarg1}"/>
 
