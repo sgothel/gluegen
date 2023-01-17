@@ -1,8 +1,8 @@
 
 set BLD_SUB=build-win64
 
-set J2RE_HOME=c:\jre-11.0.4+11_x64
-set JAVA_HOME=c:\jdk-11.0.4+11_x64
+set J2RE_HOME=c:\jdk-17
+set JAVA_HOME=c:\jdk-17
 set ANT_PATH=C:\apache-ant-1.10.5
 
 set BLD_DIR=..\%BLD_SUB%
