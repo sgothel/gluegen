@@ -148,7 +148,7 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                             <ul>
                                 <li>git &ge; 2.37 provided by Xcode &ge; 14</li>
                                 <li>awk is provided by MacOS</li>
-                                <li><a href="https://cmake.org/">CMake 3.15.2</a>, and install the <a href="https://stackoverflow.com/questions/30668601/installing-cmake-command-line-tools-on-a-mac">command line tools</a></li>
+                                <li><a href="https://cmake.org/">CMake 3.25.1</a>, and install the <a href="https://stackoverflow.com/questions/30668601/installing-cmake-command-line-tools-on-a-mac">command line tools</a></li>
                                 <li><a href="http://www.apple.com/macosx/">Mac OS</a> 11 or later (note: may not work with earlier releases) </li>
                                 <li><a href="http://developer.apple.com/technologies/xcode.html">Xcode</a> 14 or later for clang, etc (included in MacOS)</li>
                             </ul>
@@ -168,44 +168,26 @@ apt-get install lib32z1 lib32ncurses5 gcc-multilib lib32gcc1 lib32gomp1 lib32itm
                             </pre>
                             Replace <i>jogamp</i> with your user name.
                         </li>
-                        <li> <b>Windows</b>/x86 (32 bit)
-                            <ul>
-                                <li>Windows XP or later </li>
-                                <li>git is provided by <a href="https://cygwin.com">cygwin</a></li>
-                                <li>gawk is provided by <a href="https://cygwin.com">cygwin</a></li>
-                                <li> <a href="http://mingw-w64.org/">MinGW64</a> (<a href="https://sourceforge.net/projects/mingw-w64/files/">files on sourceforge</a>)
-                                  <ul>
-                                    <li> <a href="https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win32/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/i686-8.1.0-release-win32-sjlj-rt_v6-rev0.7z">i686-8.1.0-release-win32-sjlj-rt_v6-rev0.7z</a>
-                                      <ul>
-                                        <li>version: 8.1.0</li>
-                                        <li>host: x32</li>
-                                        <li>threading: win32</li>
-                                        <li>exceptions: SJLJ</li>
-                                        <li>revision: 0</li>
-                                      </ul></li>
-                                  </ul>
-                                </li>
-                                <li><a href="https://cmake.org/">CMake 3.15.2</a> 32bit version</li>
-                            </ul>
-                        </li>
                         <li> <b>Windows</b>/x86_64 (64-bit)
                             <ul>
-                                <li>Windows XP or later </li>
+                                <li>Windows 7 or later </li>
                                 <li>git is provided by <a href="https://cygwin.com">cygwin</a></li>
                                 <li>gawk is provided by <a href="https://cygwin.com">cygwin</a></li>
-                                <li> <a href="http://mingw-w64.org/">MinGW64</a> (<a href="https://sourceforge.net/projects/mingw-w64/files/">files on sourceforge</a>)
+                                <li> <a href="http://mingw-w64.org/">MinGW64</a> (<a href="https://github.com/niXman/mingw-builds-binaries/releases">files on github</a>)
                                   <ul>
-                                    <li> <a href="https://sourceforge.net/projects/mingw-w64/files/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/8.1.0/threads-win32/sjlj/x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z">x86_64-8.1.0-release-win32-sjlj-rt_v6-rev0.7z</a>
+                                    <li> <a href="https://github.com/niXman/mingw-builds-binaries/releases/download/12.2.0-rt_v10-rev2/x86_64-12.2.0-release-win32-seh-msvcrt-rt_v10-rev2.7z">x86_64-12.2.0-release-win32-seh-msvcrt-rt_v10-rev2.7z</a>
                                       <ul>
-                                        <li>version: 8.1.0</li>
+                                        <li>version: 12.2.0</li>
                                         <li>host: x64</li>
                                         <li>threading: win32</li>
-                                        <li>exceptions: SJLJ</li>
-                                        <li>revision: 0</li>
+                                        <li>exceptions: seh</li>
+                                        <li>c-runtime: msvcrt</li>
+                                        <li>revision: 2</li>
                                       </ul></li>
                                   </ul>
                                 </li>
-                                <li><a href="https://cmake.org/">CMake 3.15.2</a> 64bit version</li>
+                                <li><a href="https://cmake.org/">CMake 3.25.1</a> 64bit version</li>
+                                <li><a href="https://www.7-zip.org/">7-Zip 22.01</a> 64bit version</li>
                             </ul>
                         </li>
                     </ul>
