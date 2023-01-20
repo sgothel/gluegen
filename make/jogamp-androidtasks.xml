@@ -159,6 +159,7 @@
 
         <echo>aapt.signed ${m.aapt.apkbasename}: compiling R.java...</echo>
         <javac encoding="${m.aapt.java.encoding}"
+            includeAntRuntime="false"
             source="${target.sourcelevel}" 
             target="${target.targetlevel}" 
             bootclasspath="${target.rt.jar}"
