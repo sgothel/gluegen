@@ -194,6 +194,7 @@
 
             <arg line="--min-api ${android.api.level}"/>
 
+            <!-- arg line="- -no-desugaring"/ -->
 
             <arg line="--release"/>
             <!-- arg line="- -debug"/ -->
@@ -237,11 +238,13 @@
 
             <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
             <arg value="-sigalg"/>
-            <arg value="MD5withRSA"/>
+            <arg value="SHA256withRSA"/>
             <arg value="-keyalg"/>
             <arg value="RSA"/>
             <arg value="-keysize"/>
-            <arg value="1024"/>
+            <arg value="2048"/>
+            <arg value="-validity"/>
+            <arg value="365"/>
 
             <arg value="-keystore" />
             <arg value="${m.aapt.build.apk}/debug.keystore" />
@@ -262,8 +265,8 @@
         <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
         <echo>aapt.signed ${m.aapt.apkbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
         <!-- signjar
-              sigalg="MD5withRSA"
-              digestalg="SHA1"
+              sigalg="SHA256withRSA"
+              digestalg="SHA256"
               jar="${m.aapt.unsigned.package.file.name}"
               signedjar="${m.aapt.signed.file.name}"
               keystore="${m.aapt.keystore.file}"
@@ -275,9 +278,9 @@
         <exec dir="." executable="jarsigner" failonerror="true">
             <!-- Be Java6 keytool/jarsigner compatible, and hence Android compatible -->
             <arg value="-sigalg"/>
-            <arg value="MD5withRSA"/>
+            <arg value="SHA256withRSA"/>
             <arg value="-digestalg"/>
-            <arg value="SHA1"/>
+            <arg value="SHA256"/>
 
             <arg value="-keystore" />
             <arg value="${m.aapt.keystore.file}" />
