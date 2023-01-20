@@ -12,7 +12,7 @@ function dump_versions() {
     #dump_version jogamp.common.Debug
     javap -v `find . -name '*.class'` | grep -e '^Classfile' -e 'major version'
     #for i in `find . -name '*.class'` ; do 
-    #  dump_version `echo $i | sed -e 's/\//./g' -e 's/\.class//g'`
+    #  dump_version `echo $i | sed -e 's/^\.\///g' -e 's/\//./g' -e 's/\.class//g'`
     #done
     cd $TDIR
 }
