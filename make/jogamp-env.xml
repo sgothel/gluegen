@@ -202,8 +202,6 @@
         </not>
     </condition>
 
-    <property name="android.api.level.min" value="21" /> 
-
     <condition property="android.api.level" value="${env.ANDROID_API_LEVEL}" else="24">
         <not>
          <equals arg1="${env.ANDROID_API_LEVEL}" arg2="$${env.ANDROID_API_LEVEL}" casesensitive="true" />

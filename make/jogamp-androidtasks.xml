@@ -181,7 +181,7 @@
         <!-- exec dir="." executable="dx" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="- -dex"/>
             <arg line="- -output=${m.aapt.dex.file}"/>
-            <arg line="- -min-sdk-version=${android.api.level.min}"/>
+            <arg line="- -min-sdk-version=${android.api.level}"/>
             <arg line="@{jarbuilddir}/@{jarbasename}.jar"/>
             <arg line="${m.aapt.build.apk}/temp/classes"/>
         </exec -->
@@ -192,7 +192,8 @@
             <arg line="--classpath ${target.rt.jar}"/>
             <d8-classpaths/>
 
-            <arg line="--min-api ${android.api.level.min}"/>
+            <arg line="--min-api ${android.api.level}"/>
+
 
             <arg line="--release"/>
             <!-- arg line="- -debug"/ -->
