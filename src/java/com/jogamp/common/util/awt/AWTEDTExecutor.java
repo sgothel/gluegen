@@ -48,17 +48,17 @@ public class AWTEDTExecutor implements RunnableExecutor {
         if(EventQueue.isDispatchThread()) {
             r.run();
         } else {
-          try {
-            if(wait) {
-                EventQueue.invokeAndWait(r);
-            } else {
-                EventQueue.invokeLater(r);
+            try {
+                if(wait) {
+                    EventQueue.invokeAndWait(r);
+                } else {
+                    EventQueue.invokeLater(r);
+                }
+            } catch (final InvocationTargetException e) {
+                throw new RuntimeException(e.getTargetException());
+            } catch (final InterruptedException e) {
+                throw new RuntimeException(e);
             }
-          } catch (final InvocationTargetException e) {
-            throw new RuntimeException(e.getTargetException());
-          } catch (final InterruptedException e) {
-            throw new RuntimeException(e);
-          }
         }
     }
 

@@ -35,25 +35,25 @@ import java.security.*;
 
 public class BindingJNILibLoader extends JNILibLoaderBase {
 
-  public static void loadBindingtest1p1() {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-      @Override
-    public Object run() {
-        loadLibrary("Bindingtest1p1", null, true, BindingJNILibLoader.class.getClassLoader());
-        return null;
-      }
-    });
-  }
+    public static void loadBindingtest1p1() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                loadLibrary("Bindingtest1p1", null, true, BindingJNILibLoader.class.getClassLoader());
+                return null;
+            }
+        });
+    }
 
-  public static void loadBindingtest1p2() {
-    SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-      @Override
-    public Object run() {
-        loadLibrary("Bindingtest1p2", null, true, BindingJNILibLoader.class.getClassLoader());
-        return null;
-      }
-    });
-  }
+    public static void loadBindingtest1p2() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                loadLibrary("Bindingtest1p2", null, true, BindingJNILibLoader.class.getClassLoader());
+                return null;
+            }
+        });
+    }
 }
 
 
