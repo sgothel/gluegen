@@ -605,14 +605,14 @@ public class JNILibLoaderBase {
               mode = 2;
           } else {
               if(DEBUG) {
-                  System.err.println("JNILibLoaderBase: System.loadLibrary("+libraryName+") - mode 3");
+                  System.err.println("JNILibLoaderBase: System.loadLibrary("+libraryName+") - mode 3: SystemEnvLibraryPaths: "+NativeLibrary.getSystemEnvLibraryPaths());
               }
               try {
                   System.loadLibrary(libraryName);
                   mode = 3;
               } catch (final UnsatisfiedLinkError ex1) {
                   if(DEBUG) {
-                      System.err.println("ERROR (retry w/ enumLibPath) - "+ex1.getMessage());
+                      System.err.println("ERROR mode 3 - "+ex1.getMessage());
                   }
                   final List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, cl);
                   // Iterate down these and see which one if any we can actually find.
@@ -629,7 +629,10 @@ public class JNILibLoaderBase {
                               System.err.println("n/a - "+ex2.getMessage());
                           }
                           if(!iter.hasNext()) {
-                              throw ex2;
+                              // Avoid misleading final exception, use our own
+                              throw new UnsatisfiedLinkError("Couldn't load library '"+libraryName+
+                                      "' generically including "+NativeLibrary.getSystemEnvLibraryPaths()+ // mode 3
+                                      ", nor as "+possiblePaths); // mode 4
                           }
                       }
                   }
