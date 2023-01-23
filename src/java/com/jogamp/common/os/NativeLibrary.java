@@ -488,9 +488,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
         // Add probable Mac OS X-specific paths
         if ( isOSX ) {
             // Add historical location
-            addPaths("add.ssp_1st_maxos_old", "/Library/Frameworks/" + libName + ".framework", baseNames, paths);
+            addAbsPaths("add.ssp_1st_macos_old", "/Library/Frameworks/" + libName + ".framework", baseNames, paths);
             // Add current location
-            addPaths("add.ssp_1st_maxos_cur", "/System/Library/Frameworks/" + libName + ".framework", baseNames, paths);
+            addAbsPaths("add.ssp_1st_macos_cur", "/System/Library/Frameworks/" + libName + ".framework", baseNames, paths);
         }
     }
 
@@ -541,7 +541,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
         for( int i=0; i < javaLibraryPaths.length; i++ ) {
             final StringTokenizer tokenizer = new StringTokenizer(javaLibraryPaths[i], File.pathSeparator);
             while (tokenizer.hasMoreTokens()) {
-                addPaths("add.java.library.path", tokenizer.nextToken(), baseNames, paths);
+                addRelPaths("add.java.library.path", tokenizer.nextToken(), baseNames, paths);
             }
         }
     }
@@ -554,11 +554,11 @@ public final class NativeLibrary implements DynamicLookupHelper {
             return System.getProperty("user.dir");
           }
         });
-    addPaths("add.user.dir.std", userDir, baseNames, paths);
+    addAbsPaths("add.user.dir.std", userDir, baseNames, paths);
 
     // Add current working directory + natives/os-arch/ + library names
     // to handle Bug 1145 cc1 using an unpacked fat-jar
-    addPaths("add.user.dir.fat", userDir+File.separator+"natives"+File.separator+PlatformPropsImpl.os_and_arch+File.separator, baseNames, paths);
+    addAbsPaths("add.user.dir.fat", userDir+File.separator+"natives"+File.separator+PlatformPropsImpl.os_and_arch, baseNames, paths);
 
     if( searchSystemPath && !searchSystemPathFirst ) {
         // Add just the library names to use the OS's search algorithm
@@ -571,9 +571,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
         // Add probable Mac OS X-specific paths
         if ( isOSX ) {
             // Add historical location
-            addPaths("add.ssp_lst_maxos_old", "/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
+            addAbsPaths("add.ssp_lst_macos_old", "/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
             // Add current location
-            addPaths("add.ssp_lst_maxos_cur", "/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
+            addAbsPaths("add.ssp_lst_macos_cur", "/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
         }
     }
     if (DEBUG) {
@@ -658,7 +658,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       return res;
   }
 
-  private static final void addPaths(final String cause, final String path, final String[] baseNames, final List<String> paths) {
+  private static final void addRelPaths(final String cause, final String path, final String[] baseNames, final List<String> paths) {
       final String abs_path;
       try {
           final File fpath = new File(path);
@@ -669,10 +669,13 @@ public final class NativeLibrary implements DynamicLookupHelper {
           }
           return;
       }
+      addAbsPaths(cause, abs_path, baseNames, paths);
+  }
+  private static final void addAbsPaths(final String cause, final String abs_path, final String[] baseNames, final List<String> paths) {
       for (int j = 0; j < baseNames.length; j++) {
           final String p = abs_path + File.separator + baseNames[j];
           if (DEBUG) {
-              System.err.println("NativeLibrary.enumerateLibraryPaths: "+cause+": "+p+", from path "+path);
+              System.err.println("NativeLibrary.enumerateLibraryPaths: "+cause+": "+p+", from path "+abs_path);
           }
           paths.add(p);
       }
