@@ -41,10 +41,12 @@
 package com.jogamp.common.os;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
@@ -78,6 +80,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private static final String[] prefixes;
   private static final String[] suffixes;
   private static final boolean isOSX;
+  private static String sys_env_lib_path_varname;
 
   static {
     // Instantiate dynamic linker implementation
@@ -85,6 +88,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       case WINDOWS:
         prefixes = new String[] { "" };
         suffixes = new String[] { ".dll" };
+        sys_env_lib_path_varname = "PATH";
         isOSX = false;
         break;
 
@@ -92,6 +96,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       case IOS:
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".dylib" };
+        sys_env_lib_path_varname = "DYLD_LIBRARY_PATH";
         isOSX = true;
         break;
 
@@ -105,6 +110,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
       default:
         prefixes = new String[] { "lib" };
         suffixes = new String[] { ".so" };
+        sys_env_lib_path_varname = "LD_LIBRARY_PATH";
         isOSX = false;
         break;
     }
@@ -136,6 +142,35 @@ public final class NativeLibrary implements DynamicLookupHelper {
   @Override
   public final String toString() {
     return "NativeLibrary[" + dynLink.getClass().getSimpleName() + ", " + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
+  }
+
+  /**
+   * Returns the system's environment variable name used for the dynamic linker to resolve library locations, e.g.
+   * - Windows: PATH
+   * - MacOS: DYLD_LIBRARY_PATH
+   * - Unix: LD_LIBRARY_PATH
+   */
+  public static final String getSystemEnvLibraryPathVarname() { return sys_env_lib_path_varname; }
+
+  /**
+   * Returns a list of system paths, from the {@link #getSystemEnvLibraryPathVarname()} variable.
+   */
+  public static final List<String> getSystemEnvLibraryPaths() {
+      final String paths =
+              SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
+                  @Override
+                  public String run() {
+                      return System.getenv(getSystemEnvLibraryPathVarname());
+                  }
+              });
+      final List<String> res = new ArrayList<String>();
+      if( null != paths && paths.length() > 0 ) {
+          final StringTokenizer st = new StringTokenizer(paths, File.pathSeparator);
+          while (st.hasMoreTokens()) {
+              res.add(st.nextToken());
+          }
+      }
+      return res;
   }
 
   /** Opens the given native library, assuming it has the same base
