@@ -38,9 +38,10 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
-import jogamp.common.Debug;
+import com.jogamp.common.os.Platform.OSType;
 
-import com.jogamp.common.os.Platform;
+import jogamp.common.Debug;
+import jogamp.common.os.PlatformPropsImpl;
 
 /**
  * An {@link InputStream} implementation based on an underlying {@link FileChannel}'s memory mapped {@link ByteBuffer},
@@ -136,8 +137,7 @@ public class MappedByteBufferInputStream extends InputStream {
     static final boolean DEBUG;
 
     static {
-        Platform.initSingleton();
-        if( Platform.is32Bit() ) {
+        if( PlatformPropsImpl.CPU_ARCH.is32Bit ) {
             DEFAULT_SLICE_SHIFT = 29;
         } else {
             DEFAULT_SLICE_SHIFT = 30;
@@ -366,7 +366,7 @@ public class MappedByteBufferInputStream extends InputStream {
             currentPosition = -1L;
         }
         if( fc.size() != newTotalSize ) {
-            if( Platform.OSType.WINDOWS == Platform.getOSType() ) {
+            if( OSType.WINDOWS == PlatformPropsImpl.OS_TYPE ) {
                 // On Windows, we have to close all mapped slices.
                 // Otherwise we will receive:
                 // java.io.IOException: The requested operation cannot be performed on a file with a user-mapped section open
