@@ -177,7 +177,9 @@
             <src path="${test.jcpp.base.dir}"/>
             <src path="${build_t.gen}" />
         </javac>
+    </target>
 
+    <target name="jar.build">
         <jar destfile="${gluegen-test-util.jar}">
           <fileset dir="${build_t.java}">
             <include name="${test.junit.util.rel}/**/*.class"/>
@@ -198,7 +200,7 @@
         </jar>
     </target>
 
-    <target name="android.package" depends="java.generate,java.build,native.build" if="isAndroid">
+    <target name="android.package" depends="java.generate,java.build,native.build,jar.build" if="isAndroid">
         <aapt.signed 
             assetsdir="resources/assets-test"
             jarbuilddir="${build_t}"
@@ -591,7 +593,7 @@ chmod 644 ${results}/* \${line.separator}
         </gluegen>
     </target>
 
-    <target name="junit.test1.c.build" depends="junit.test1i.c.build, c.rename.lib.test1.mingw, junit.test1p1.c.build, c.rename.lib.test1p1.mingw, junit.test1p2.c.build, c.rename.lib.test1p2.mingw" unless="build.javaonly" />
+    <target name="junit.test1.c.build" depends="junit.test1i.c.build, junit.test1p1.c.build, junit.test1p2.c.build" unless="build.javaonly" />
 
     <!-- this is the test1 implementation -->
     <target name="junit.test1i.c.build">
@@ -608,9 +610,6 @@ chmod 644 ${results}/* \${line.separator}
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.dll.cfg.id"/>
 
-    </target>
-    <target name="c.rename.lib.test1.mingw" if="isMingW">
-      <move file="${build_t.lib}/libtest1.so" tofile="${build_t.lib}/test1.dll" />
     </target>
 
     <!-- this is a fixed binding to the test1 implementation -->
@@ -632,9 +631,6 @@ chmod 644 ${results}/* \${line.separator}
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.fixed.cfg.id"/>
     </target>
-    <target name="c.rename.lib.test1p1.mingw" if="isMingW">
-      <move file="${build_t.lib}/libBindingtest1p1.so" tofile="${build_t.lib}/Bindingtest1p1.dll" />
-    </target>
 
     <!-- this is a dynamic lookup binding to the test1 implementation -->
     <target name="junit.test1p2.c.build">
@@ -653,9 +649,6 @@ chmod 644 ${results}/* \${line.separator}
                  output.lib.name="Bindingtest1p2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test1.runtime.cfg.id"/>
-    </target>
-    <target name="c.rename.lib.test1p2.mingw" if="isMingW">
-      <move file="${build_t.lib}/libBindingtest1p2.so" tofile="${build_t.lib}/Bindingtest1p2.dll" />
     </target>
 
     <!-- 

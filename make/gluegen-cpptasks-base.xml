@@ -785,6 +785,7 @@
     <echo message="os and arch:       ${os.and.arch}" />
     <echo message="os and arch.dot:   ${os.and.arch.dot}" />
     <echo message="os and arch.slash: ${os.and.arch.slash}" />
+    <echo message="native library: prefix '${native.library.prefix}', suffix '${native.library.suffix}'" />
   </target>
 
   <target name="gluegen.cpptasks.detect.os" depends="gluegen.properties.load.user,gluegen.cpptasks.detect.os.custom,gluegen.cpptasks.detect.os.1,gluegen.cpptasks.detect.os.2">

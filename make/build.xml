@@ -434,12 +434,6 @@
 
     <target name="c.configure" depends="gluegen.cpptasks.detect.os,gluegen.cpptasks.setup.compiler,declare.win32,declare.linux,declare.android,declare.solaris,declare.macosx,declare.ios.amd64,declare.ios.arm64,declare.freebsd,declare.hpux,gluegen.cpptasks.configure.compiler" />
 
-    <target name="c.rename.lib.mingw" if="isMingW">
-      <!-- FIXME: this is a hack; the cpptask should have an option to change the
-           suffix or at least understand the override from .so to .dll -->
-      <move file="${build}/obj/libgluegen_rt.so" tofile="${build}/obj/gluegen_rt.dll" />
-    </target>
-
     <target name="c.manifest" if="isVC8Family">
       <!-- exec mt, the Microsoft Manifest Tool, to include DLL manifests in order to resolve the location of msvcr80.dll -->
       <msvc.manifest objdir="${build}/obj" dllname="gluegen_rt" />
@@ -519,8 +513,6 @@
         <linker extends="${linker.cfg.id}" />
 
       </cc>
-
-      <antcall target="c.rename.lib.mingw" inheritRefs="true" />
 
       <gluegen.make.libsymbols builddir="${build}" 
          nativelib="${gluegen.lib.dir}/${output.lib.name.os}" 
