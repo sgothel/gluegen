@@ -818,6 +818,156 @@ public class Buffers {
     }
 
     @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put3b(final B dest, final byte v1, final byte v2, final byte v3) {
+        if (dest instanceof ByteBuffer) {
+            final ByteBuffer b = (ByteBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof ShortBuffer) {
+            final ShortBuffer b = (ShortBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof CharBuffer) {
+            final CharBuffer b = (CharBuffer) dest;
+            b.put((char)v1);
+            b.put((char)v2);
+            b.put((char)v3);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put4b(final B dest, final byte v1, final byte v2, final byte v3, final byte v4) {
+        if (dest instanceof ByteBuffer) {
+            final ByteBuffer b = (ByteBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof ShortBuffer) {
+            final ShortBuffer b = (ShortBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof CharBuffer) {
+            final CharBuffer b = (CharBuffer) dest;
+            b.put((char)v1);
+            b.put((char)v2);
+            b.put((char)v3);
+            b.put((char)v4);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putb(final B dest, final byte[] src, final int offset, final int length) {
+        if (dest instanceof ByteBuffer) {
+            return (B) ((ByteBuffer) dest).put(src, offset, length);
+        } else if (dest instanceof ShortBuffer) {
+            final ShortBuffer b = (ShortBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof CharBuffer) {
+            final CharBuffer b = (CharBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put((char) src[offset+i]);
+            }
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Byte doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B puts(final B dest, final short v) {
         if (dest instanceof ShortBuffer) {
             return (B) ((ShortBuffer) dest).put(v);
@@ -829,6 +979,118 @@ public class Buffers {
             return (B) ((LongBuffer) dest).put(v);
         } else if (dest instanceof DoubleBuffer) {
             return (B) ((DoubleBuffer) dest).put(v);
+        } else {
+            throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put3s(final B dest, final short v1, final short v2, final short v3) {
+        if (dest instanceof ShortBuffer) {
+            final ShortBuffer b = (ShortBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put4s(final B dest, final short v1, final short v2, final short v3, final short v4) {
+        if (dest instanceof ShortBuffer) {
+            final ShortBuffer b = (ShortBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B puts(final B dest, final short[] src, final int offset, final int length) {
+        if (dest instanceof ShortBuffer) {
+            return (B) ((ShortBuffer) dest).put(src, offset, length);
+        } else if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
         } else {
             throw new IllegalArgumentException("Short doesn't match Buffer Class: " + dest);
         }
@@ -850,6 +1112,99 @@ public class Buffers {
     }
 
     @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put3i(final B dest, final int v1, final int v2, final int v3) {
+        if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put4i(final B dest, final int v1, final int v2, final int v3, final int v4) {
+        if (dest instanceof IntBuffer) {
+            final IntBuffer b = (IntBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B puti(final B dest, final int[] src, final int offset, final int length) {
+        if (dest instanceof IntBuffer) {
+            return (B) ((IntBuffer) dest).put(src, offset, length);
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof LongBuffer) {
+            final LongBuffer b = (LongBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Integer doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     public static <B extends Buffer> B putf(final B dest, final float v) {
         if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put(v);
@@ -865,11 +1220,123 @@ public class Buffers {
     }
 
     @SuppressWarnings("unchecked")
-    public static <B extends Buffer> B putd(final B dest, final double v) {
+    public static <B extends Buffer> B put3f(final B dest, final float v1, final float v2, final float v3) {
         if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put4f(final B dest, final float v1, final float v2, final float v3, final float v4) {
+        if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putf(final B dest, final float[] src, final int offset, final int length) {
+        if (dest instanceof FloatBuffer) {
+            return (B) ((FloatBuffer) dest).put(src, offset, length);
+        } else if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put(src[offset+i]);
+            }
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putd(final B dest, final double v) {
+        if (dest instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) dest).put(v);
+        } else if (dest instanceof FloatBuffer) {
             return (B) ((FloatBuffer) dest).put((float) v);
         } else {
             throw new IllegalArgumentException("Double doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put3d(final B dest, final double v1, final double v2, final double v3) {
+        if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put((float) v1);
+            b.put((float) v2);
+            b.put((float) v3);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Double doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B put4d(final B dest, final double v1, final double v2, final double v3, final double v4) {
+        if (dest instanceof DoubleBuffer) {
+            final DoubleBuffer b = (DoubleBuffer) dest;
+            b.put(v1);
+            b.put(v2);
+            b.put(v3);
+            b.put(v4);
+            return (B)b;
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            b.put((float) v1);
+            b.put((float) v2);
+            b.put((float) v3);
+            b.put((float) v4);
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Double doesn't match Buffer Class: " + dest);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B putd(final B dest, final double[] src, final int offset, final int length) {
+        if (dest instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) dest).put(src, offset, length);
+        } else if (dest instanceof FloatBuffer) {
+            final FloatBuffer b = (FloatBuffer) dest;
+            for(int i=0; i<length; ++i) {
+                b.put((float) src[offset+i]);
+            }
+            return (B)b;
+        } else {
+            throw new IllegalArgumentException("Float doesn't match Buffer Class: " + dest);
         }
     }
 
