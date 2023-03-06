@@ -26,9 +26,15 @@
 package com.jogamp.common.util;
 
 import java.io.PrintStream;
-import java.time.Duration;
+import com.jogamp.common.os.Clock;
 
-/** Simple performance counter controller. */
+/**
+ * Simple performance counter controller.
+ * <p>
+ * Implementation is expected to utilize nanosecond counter since module start,
+ * e.g. {@link Clock#currentTimeNanos()}.
+ * </p>
+ */
 public interface PerfCounterCtrl {
     /** Enable or disable performance counter. */
     void enable(final boolean enable);
@@ -36,8 +42,8 @@ public interface PerfCounterCtrl {
     /** Clear performance counter. */
     void clear();
 
-    /** Return the total duration, covering all sub-counter. */
-    Duration getTotalDuration();
+    /** Return the total duration in nanoseconds, covering all sub-counter. */
+    long getTotalDuration();
 
     /** Print performance counter. */
     void print(final PrintStream out);
