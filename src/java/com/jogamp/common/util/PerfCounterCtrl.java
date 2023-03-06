@@ -32,7 +32,7 @@ import com.jogamp.common.os.Clock;
  * Simple performance counter controller.
  * <p>
  * Implementation is expected to utilize nanosecond counter since module start,
- * e.g. {@link Clock#currentTimeNanos()}.
+ * e.g. {@link Clock#currentNanos()}.
  * </p>
  */
 public interface PerfCounterCtrl {

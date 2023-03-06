@@ -47,13 +47,13 @@ public class Clock {
      * since the underlying OS shall support fast calls.
      * </p>
      * <p>
-     * Note that {@link #currentTimeNanos()} and {@link #getMonotonicNanos()}
+     * Note that {@link #currentNanos()} and {@link #getMonotonicNanos()}
      * perform much better than this method, since they only return one long nanosecond value
      * since module startup. <br/>
      * The implementation of this method needs to write two long values into an array.
      * </p>
      * @see #getMonotonicStartupTime()
-     * @see #currentTimeNanos()
+     * @see #currentNanos()
      * @see #getMonotonicNanos()
      * @see #getWallClockTime()
      */
@@ -74,7 +74,7 @@ public class Clock {
      * since the underlying OS unlikely supports fast calls.
      * </p>
      * @see #getMonotonicStartupTime()
-     * @see #currentTimeNanos()
+     * @see #currentNanos()
      * @see #getMonotonicNanos()
      * @see #getMonotonicTime()
      */
@@ -86,43 +86,51 @@ public class Clock {
     private static native void getWallClockTimeImpl(final long[/*2*/] val);
 
     /**
-     * Returns the monotonic startup time since module startup as used in {@link #currentTimeNanos()} and {@link #getMonotonicNanos()}.
-     * @see #currentTimeNanos()
+     * Returns the monotonic startup time since module startup as used in {@link #currentNanos()} and {@link #getMonotonicNanos()}.
+     * @see #currentNanos()
      * @see #getMonotonicNanos()
      */
     public static Instant getMonotonicStartupTime() { return t0; }
     private static native void getMonotonicStartupTimeImpl(final long[/*2*/] val);
 
     /**
-     * Returns current monotonic time in nanoseconds since start of this application.
+     * Returns current monotonic nanoseconds since start of this application.
      * <p>
      * Monotonic time shall be used for high-performance measurements of durations,
      * since the underlying OS shall support fast calls.
      * </p>
      * <p>
-     * Since the returned nanoseconds are counted not from Unix Epoch but start of this application,
-     * it lasts for 9'223'372'036 seconds or 292 years using the 64-bit type `long`.
+     * The returned nanoseconds are counted not from Unix Epoch but start of this module,
+     * hence it lasts for 9'223'372'036 seconds or 292 years using the 64-bit type `long`.
+     * </p>
+     * <p>
+     * Method name doesn't include the term `Time` intentionally,
+     * since the returned value represent the nanoseconds duration since module start.
      * </p>
      * @see #getMonotonicStartupTime()
      * @see #getMonotonicNanos()
      */
-    public static native long currentTimeNanos();
+    public static native long currentNanos();
 
     /**
-     * Returns the Instant presentation of monotonic {@link #currentTimeNanos()}.
+     * Returns the Instant presentation of monotonic {@link #currentNanos()}.
      * <p>
      * Monotonic time shall be used for high-performance measurements of durations,
      * since the underlying OS shall support fast calls.
      * </p>
      * <p>
-     * Note that the represented time is not from Unix epoch as claimed,
-     * but monotonic module startup time.
+     * The returned nanoseconds are counted not from Unix Epoch but start of this module,
+     * hence it lasts for 9'223'372'036 seconds or 292 years using the 64-bit type `long`.
+     * </p>
+     * <p>
+     * Method name doesn't include the term `Time` intentionally,
+     * since the returned value represent the nanoseconds duration since module start.
      * </p>
      * @see #getMonotonicStartupTime()
-     * @see #currentTimeNanos()
+     * @see #currentNanos()
      */
     public static Instant getMonotonicNanos() {
-        final long nanos = currentTimeNanos();
+        final long nanos = currentNanos();
         return Instant.ofEpochSecond(nanos/1000000000L, nanos%1000000000L);
     }
 
@@ -130,7 +138,7 @@ public class Clock {
      * Returns current monotonic time in milliseconds.
      *
      * @see #getMonotonicStartupTime()
-     * @see #currentTimeNanos()
+     * @see #currentNanos()
      * @see #getMonotonicNanos()
      */
     public static native long currentTimeMillis();
@@ -141,7 +149,7 @@ public class Clock {
      *
      * @see #getWallClockTime()
      * @see #getMonotonicTime()
-     * @see #currentTimeNanos()
+     * @see #currentNanos()
      * @see #getMonotonicNanos()
      */
     public static native long wallClockSeconds();

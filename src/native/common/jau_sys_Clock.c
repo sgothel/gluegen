@@ -113,7 +113,7 @@ Java_com_jogamp_common_os_Clock_getMonotonicStartupTimeImpl(JNIEnv *env, jclass 
  * Only bfin and sh are missing, while ia64 seems to be complicated.
  */
 JNIEXPORT jlong JNICALL
-Java_com_jogamp_common_os_Clock_currentTimeNanos(JNIEnv *env, jclass clazz) {
+Java_com_jogamp_common_os_Clock_currentNanos(JNIEnv *env, jclass clazz) {
     (void)env;
     (void)clazz;
 
