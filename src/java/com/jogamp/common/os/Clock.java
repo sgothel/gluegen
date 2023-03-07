@@ -32,8 +32,11 @@ public class Clock {
         Platform.initSingleton(); // loads native gluegen_rt library
         {
             final long[/*2*/] val = { 0, 0 };
-            getMonotonicStartupTimeImpl(val);
-            t0 = Instant.ofEpochSecond(val[0], val[1]);
+            if( getMonotonicStartupTimeImpl(val) ) {
+                t0 = Instant.ofEpochSecond(val[0], val[1]);
+            } else {
+                t0 = Instant.EPOCH;
+            }
         }
     }
 
@@ -59,10 +62,13 @@ public class Clock {
      */
     public static Instant getMonotonicTime() {
         final long[/*2*/] val = { 0, 0 };
-        getMonotonicTimeImpl(val);
-        return Instant.ofEpochSecond(val[0], val[1]);
+        if( getMonotonicTimeImpl(val) ) {
+            return Instant.ofEpochSecond(val[0], val[1]);
+        } else {
+            return Instant.EPOCH;
+        }
     }
-    private static native void getMonotonicTimeImpl(final long[/*2*/] val);
+    private static native boolean getMonotonicTimeImpl(final long[/*2*/] val);
 
     /**
      * Returns current wall-clock real-time since Unix Epoch `00:00:00 UTC on 1970-01-01`.
@@ -80,10 +86,13 @@ public class Clock {
      */
     public static Instant getWallClockTime() {
         final long[/*2*/] val = { 0, 0 };
-        getWallClockTimeImpl(val);
-        return Instant.ofEpochSecond(val[0], val[1]);
+        if( getWallClockTimeImpl(val) ) {
+            return Instant.ofEpochSecond(val[0], val[1]);
+        } else {
+            return Instant.EPOCH;
+        }
     }
-    private static native void getWallClockTimeImpl(final long[/*2*/] val);
+    private static native boolean getWallClockTimeImpl(final long[/*2*/] val);
 
     /**
      * Returns the monotonic startup time since module startup as used in {@link #currentNanos()} and {@link #getMonotonicNanos()}.
@@ -91,7 +100,7 @@ public class Clock {
      * @see #getMonotonicNanos()
      */
     public static Instant getMonotonicStartupTime() { return t0; }
-    private static native void getMonotonicStartupTimeImpl(final long[/*2*/] val);
+    private static native boolean getMonotonicStartupTimeImpl(final long[/*2*/] val);
 
     /**
      * Returns current monotonic nanoseconds since start of this application.
