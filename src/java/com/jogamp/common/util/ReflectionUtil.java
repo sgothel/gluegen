@@ -51,6 +51,7 @@ import jogamp.common.Debug;
 
 import com.jogamp.common.ExceptionUtils;
 import com.jogamp.common.JogampRuntimeException;
+import com.jogamp.common.os.Clock;
 
 public final class ReflectionUtil {
 
@@ -125,9 +126,9 @@ public final class ReflectionUtil {
 
     private static Class<?> getClassImpl(final String clazzName, final boolean initializeClazz, final ClassLoader cl) throws ClassNotFoundException {
         if(DEBUG_STATS_FORNAME) {
-            final long t0 = System.nanoTime();
+            final long t0 = Clock.currentNanos();
             final Class<?> res = Class.forName(clazzName, initializeClazz, cl);
-            final long t1 = System.nanoTime();
+            final long t1 = Clock.currentNanos();
             final long nanoCosts = t1 - t0;
             synchronized(forNameLock) {
                 forNameCount++;

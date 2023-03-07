@@ -39,6 +39,7 @@ import java.util.Map.Entry;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
@@ -143,55 +144,55 @@ public class LongIntHashMapTest extends SingletonJunitCase {
                 " warmup: " + warmup);
 
         out.println("put");
-        long time = nanoTime();
+        long time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             intmap.put(pairs.keys[i], pairs.values[i]);
         }
-        final long intmapPutTime = (nanoTime() - time);
+        final long intmapPutTime = (Clock.currentNanos() - time);
         out.println("   iimap: " + intmapPutTime/1000000.0f+"ms");
 
 
-        time = nanoTime();
+        time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             map.put(pairs.keys[i], pairs.values[i]);
         }
-        final long mapPutTime = (nanoTime() - time);
+        final long mapPutTime = (Clock.currentNanos() - time);
         out.println("   map:   " + mapPutTime/1000000.0f+"ms");
 
 
         System.out.println();
         System.out.println("get");
-        time = nanoTime();
+        time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             intmap.get(pairs.keys[i]);
         }
-        final long intmapGetTime = (nanoTime() - time);
+        final long intmapGetTime = (Clock.currentNanos() - time);
         out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
 
-        time = nanoTime();
+        time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             map.get(pairs.keys[i]);
         }
-        final long mapGetTime = (nanoTime() - time);
+        final long mapGetTime = (Clock.currentNanos() - time);
         out.println("   map:   " + mapGetTime/1000000.0f+"ms");
 
 
         out.println();
         out.println("remove");
-        time = nanoTime();
+        time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             intmap.remove(pairs.keys[i]);
         }
         assertEquals(0, intmap.size());
-        final long intmapRemoveTime = (nanoTime() - time);
+        final long intmapRemoveTime = (Clock.currentNanos() - time);
         out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
 
-        time = nanoTime();
+        time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             map.remove(pairs.keys[i]);
         }
         assertEquals(0, map.size());
-        final long mapRemoveTime = (nanoTime() - time);
+        final long mapRemoveTime = (Clock.currentNanos() - time);
         out.println("   map:   " + mapRemoveTime/1000000.0f+"ms");
 
         if(!warmup) {

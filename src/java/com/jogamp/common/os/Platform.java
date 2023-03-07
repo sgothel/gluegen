@@ -540,11 +540,11 @@ public class Platform extends PlatformPropsImpl {
     }
     private static long getCurrentSleepJitterImpl(final long nsDuration, final int splitInLoops) {
         final long nsPeriod = nsDuration / splitInLoops;
-        final long t0_ns = System.nanoTime();
+        final long t0_ns = Clock.currentNanos();
         for(int i=splitInLoops; i>0; i--) {
             try { TimeUnit.NANOSECONDS.sleep(nsPeriod); } catch (final InterruptedException e) { }
         }
-        return  ( ( System.nanoTime() - t0_ns ) - nsDuration ) / splitInLoops;
+        return  ( ( Clock.currentNanos() - t0_ns ) - nsDuration ) / splitInLoops;
     }
 
 }

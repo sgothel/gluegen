@@ -37,6 +37,7 @@ import java.util.Map;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.Platform;
 import com.jogamp.common.util.InterruptSource;
 import com.jogamp.junit.util.SingletonJunitCase;
@@ -141,6 +142,7 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
                 incrDeferredThreadCount();
             }
 
+            @Override
             public void run() {
                 if(DEBUG) {
                     System.err.print("[a2");
@@ -175,9 +177,9 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
         }
 
         public final void lock() {
-            long td = System.nanoTime();
+            long td = Clock.currentNanos();
             locker.lock();
-            td = System.nanoTime() - td;
+            td = Clock.currentNanos() - td;
 
             final String cur = Thread.currentThread().getName();
             ThreadStat ts = threadWaitMap.get(cur);
@@ -258,14 +260,17 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
             this.yieldMode = yieldMode;
         }
 
+        @Override
         public final void stop() {
             shouldStop = true;
         }
 
+        @Override
         public final boolean isStopped() {
             return stopped;
         }
 
+        @Override
         public void waitUntilStopped() {
             synchronized(this) {
                 while(!stopped) {
@@ -279,6 +284,7 @@ public class TestRecursiveLock01 extends SingletonJunitCase {
 
         }
 
+        @Override
         public void run() {
             synchronized(this) {
                 while(!shouldStop && loops>0) {
