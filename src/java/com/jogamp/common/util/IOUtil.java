@@ -337,6 +337,39 @@ public class IOUtil {
         return data;
     }
 
+    /**
+     * Copy the specified input stream chunk to a NIO ByteBuffer w/ native byte order, which is being returned.
+     *
+     * @param stream input stream, which will be wrapped into a BufferedInputStream, if not already done.
+     * @param skipBytes initial bytes to skip from input stream.
+     * @param byteCount bytes to copy starting after skipBytes.
+     */
+    public static ByteBuffer copyStreamChunk2ByteBuffer(InputStream stream, int skipBytes, int byteCount) throws IOException {
+        if( !(stream instanceof BufferedInputStream) ) {
+            stream = new BufferedInputStream(stream);
+        }
+        final MachineDataInfo machine = Platform.getMachineDataInfo();
+        final ByteBuffer data = Buffers.newDirectByteBuffer( machine.pageAlignedSize( byteCount ) );
+        final byte[] chunk = new byte[machine.pageSizeInBytes()];
+        int numRead = 1; // EOS: -1 == numRead, EOF maybe reached earlier w/ 0 == numRead
+        while ( numRead > 0 && skipBytes > 0 ) {
+            final int chunk2Read = Math.min(machine.pageSizeInBytes(), skipBytes);
+            numRead = stream.read(chunk, 0, chunk2Read);
+            skipBytes -= numRead;
+        }
+        while ( numRead > 0 && byteCount > 0 ) {
+            final int chunk2Read = Math.min(machine.pageSizeInBytes(), byteCount);
+            numRead = stream.read(chunk, 0, chunk2Read);
+            if (numRead > 0) {
+                data.put(chunk, 0, numRead);
+            }
+            byteCount -= numRead;
+        }
+
+        data.flip();
+        return data;
+    }
+
     /***
      *
      * RESOURCE / FILE NAME STUFF

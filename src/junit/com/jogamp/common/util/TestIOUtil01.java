@@ -221,6 +221,118 @@ public class TestIOUtil01 extends SingletonJunitCase {
         }
     }
 
+    @Test
+    public void test21CopyStreamChunk01Buffer() throws IOException {
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
+        final ByteBuffer bb;
+        final int skipBytes = 0;
+        final int byteCount = orig.length;
+        try {
+            bb = IOUtil.copyStreamChunk2ByteBuffer( bis, skipBytes, byteCount );
+        } finally {
+            IOUtil.close(bis, false);
+        }
+        Assert.assertTrue( machine.pageAlignedSize( byteCount ) >= byteCount );
+        Assert.assertEquals( machine.pageAlignedSize( byteCount ), bb.capacity() );
+        Assert.assertEquals(orig.length, bb.limit());
+        int i;
+        for(i=tsz-1; i>=0 && orig[i]==bb.get(i); i--) ;
+        Assert.assertTrue("Bytes not equal orig vs array", 0>i);
+        System.err.println(getTestMethodName()+" OK: ["+skipBytes+".."+(skipBytes+byteCount)+"): "+bb);
+    }
+
+    @Test
+    public void test22CopyStreamChunk02Buffer() throws IOException {
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
+        final ByteBuffer bb;
+        final int skipBytes = 0;
+        final int byteCount = orig.length + machine.pageSizeInBytes(); // expect more data than exists, complete with actual data
+        try {
+            bb = IOUtil.copyStreamChunk2ByteBuffer( bis, skipBytes, byteCount );
+        } finally {
+            IOUtil.close(bis, false);
+        }
+        Assert.assertTrue( machine.pageAlignedSize( byteCount ) >= byteCount );
+        Assert.assertEquals( machine.pageAlignedSize( byteCount ), bb.capacity() );
+        Assert.assertEquals( orig.length, bb.limit() );
+        int i;
+        for(i=tsz-1; i>=0 && orig[i]==bb.get(i); i--) ;
+        Assert.assertTrue("Bytes not equal orig vs array", 0>i);
+        System.err.println(getTestMethodName()+" OK: ["+skipBytes+".."+(skipBytes+byteCount)+"): "+bb);
+    }
+
+    @Test
+    public void test23CopyStreamChunk03Buffer() throws IOException {
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
+        final ByteBuffer bb;
+        final int skipBytes = 0;
+        final int byteCount = orig.length / 2; // take less data than exists
+        Assert.assertTrue( orig.length >= byteCount );
+        try {
+            bb = IOUtil.copyStreamChunk2ByteBuffer( bis, skipBytes, byteCount );
+        } finally {
+            IOUtil.close(bis, false);
+        }
+        Assert.assertTrue( machine.pageAlignedSize( byteCount ) >= byteCount );
+        Assert.assertEquals( machine.pageAlignedSize( byteCount ), bb.capacity() );
+        Assert.assertEquals( byteCount, bb.limit() );
+        int i;
+        for(i=byteCount-1; i>=0 && orig[i]==bb.get(i); i--) ;
+        Assert.assertTrue("Bytes not equal orig vs array", 0>i);
+        System.err.println(getTestMethodName()+" OK: ["+skipBytes+".."+(skipBytes+byteCount)+"): "+bb);
+    }
+
+    @Test
+    public void test24CopyStreamChunk04Buffer() throws IOException {
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
+        final ByteBuffer bb;
+        final int skipBytes = orig.length / 2;
+        final int byteCount = orig.length / 4; // take less data than exists
+        Assert.assertTrue( orig.length >= skipBytes + byteCount );
+        Assert.assertTrue( orig.length >= byteCount );
+        try {
+            bb = IOUtil.copyStreamChunk2ByteBuffer( bis, skipBytes, byteCount );
+        } finally {
+            IOUtil.close(bis, false);
+        }
+        Assert.assertTrue( machine.pageAlignedSize( byteCount ) >= byteCount );
+        Assert.assertEquals( machine.pageAlignedSize( byteCount ), bb.capacity() );
+        Assert.assertEquals( byteCount, bb.limit() );
+        int i;
+        for(i=byteCount-1; i>=0 && orig[skipBytes+i]==bb.get(i); i--) ;
+        Assert.assertTrue("Bytes not equal orig vs array", 0>i);
+        System.err.println(getTestMethodName()+" OK: ["+skipBytes+".."+(skipBytes+byteCount)+"): "+bb);
+    }
+
+    @Test
+    public void test25CopyStreamChunk05Buffer() throws IOException {
+        final URLConnection urlConn = IOUtil.getResource(tfilename, this.getClass().getClassLoader(), this.getClass());
+        Assert.assertNotNull(urlConn);
+        final BufferedInputStream bis = new BufferedInputStream( urlConn.getInputStream() );
+        final ByteBuffer bb;
+        final int skipBytes = orig.length * 2; // skip all and more ..
+        final int byteCount = orig.length; // expect more data than left, won't take anything
+        Assert.assertTrue( orig.length < skipBytes + byteCount );
+        Assert.assertTrue( orig.length >= byteCount );
+        try {
+            bb = IOUtil.copyStreamChunk2ByteBuffer( bis, skipBytes, byteCount );
+        } finally {
+            IOUtil.close(bis, false);
+        }
+        Assert.assertTrue( machine.pageAlignedSize( byteCount ) >= byteCount );
+        Assert.assertEquals( machine.pageAlignedSize( byteCount ), bb.capacity() );
+        Assert.assertEquals( 0, bb.limit() );
+        System.err.println(getTestMethodName()+" OK: ["+skipBytes+".."+(skipBytes+byteCount)+"): "+bb);
+    }
+
     public static void main(final String args[]) throws IOException {
         final String tstname = TestIOUtil01.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
