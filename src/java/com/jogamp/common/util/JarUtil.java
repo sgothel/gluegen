@@ -628,7 +628,7 @@ public class JarUtil {
                 final OutputStream out = new BufferedOutputStream(new FileOutputStream(destFile));
                 int numBytes = -1;
                 try {
-                    numBytes = IOUtil.copyStream2Stream(BUFFER_SIZE, in, out, -1);
+                    numBytes = IOUtil.copyStream2Stream(BUFFER_SIZE, in, out);
                 } finally {
                     in.close();
                     out.close();

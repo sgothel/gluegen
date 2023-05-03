@@ -171,7 +171,7 @@ public class IOUtil {
      */
 
     /**
-     * Copy the specified URL resource to the specified output file. The total
+     * Copy the complete specified URL resource to the specified output file. The total
      * number of bytes written is returned.
      *
      * @param conn the open URLConnection
@@ -185,7 +185,7 @@ public class IOUtil {
         int totalNumBytes = 0;
         final InputStream in = new BufferedInputStream(conn.getInputStream());
         try {
-            totalNumBytes = copyStream2File(in, outFile, conn.getContentLength());
+            totalNumBytes = copyStream2File(in, outFile);
         } finally {
             in.close();
         }
@@ -193,51 +193,47 @@ public class IOUtil {
     }
 
     /**
-     * Copy the specified input stream to the specified output file. The total
+     * Copy the complete specified input stream to the specified output file. The total
      * number of bytes written is returned.
      *
      * @param in the source
      * @param outFile the destination
-     * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown
      * @return
      * @throws IOException
      */
-    public static int copyStream2File(final InputStream in, final File outFile, int totalNumBytes) throws IOException {
+    public static int copyStream2File(final InputStream in, final File outFile) throws IOException {
         final OutputStream out = new BufferedOutputStream(new FileOutputStream(outFile));
         try {
-            totalNumBytes = copyStream2Stream(in, out, totalNumBytes);
+            return copyStream2Stream(in, out);
         } finally {
             out.close();
         }
-        return totalNumBytes;
     }
 
     /**
-     * Copy the specified input stream to the specified output stream. The total
+     * Copy the complete specified input stream to the specified output stream. The total
      * number of bytes written is returned.
      *
      * @param in the source
      * @param out the destination
-     * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown
      * @return
      * @throws IOException
      */
-    public static int copyStream2Stream(final InputStream in, final OutputStream out, final int totalNumBytes) throws IOException {
-        return copyStream2Stream(Platform.getMachineDataInfo().pageSizeInBytes(), in, out, totalNumBytes);
+    public static int copyStream2Stream(final InputStream in, final OutputStream out) throws IOException {
+        return copyStream2Stream(Platform.getMachineDataInfo().pageSizeInBytes(), in, out);
     }
 
     /**
-     * Copy the specified input stream to the specified output stream. The total
+     * Copy the complete specified input stream to the specified output stream. The total
      * number of bytes written is returned.
      *
      * @param bufferSize the intermediate buffer size, should be {@link MachineDataInfo#pageSizeInBytes()} for best performance.
      * @param in the source
      * @param out the destination
-     * @param totalNumBytes informal number of expected bytes, maybe used for user feedback while processing. -1 if unknown
      * @return
      * @throws IOException
      */
-    public static int copyStream2Stream(final int bufferSize, final InputStream in, final OutputStream out, final int totalNumBytes) throws IOException {
+    public static int copyStream2Stream(final int bufferSize, final InputStream in, final OutputStream out) throws IOException {
         final byte[] buf = new byte[bufferSize];
         int numBytes = 0;
         while (true) {

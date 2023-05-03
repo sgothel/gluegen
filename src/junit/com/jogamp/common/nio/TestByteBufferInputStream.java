@@ -265,7 +265,7 @@ public class TestByteBufferInputStream extends SingletonJunitCase {
             final long t1 = System.currentTimeMillis();
 
             final File out = new File(fileOut);
-            IOUtil.copyStream2File(bis, out, -1);
+            IOUtil.copyStream2File(bis, out);
             final long t2 = System.currentTimeMillis();
 
             final String suffix;

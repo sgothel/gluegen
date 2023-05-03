@@ -103,7 +103,7 @@ public class MiscUtils {
             }
             final InputStream in = new BufferedInputStream(new FileInputStream(src));
             try {
-                stats.totalBytes += IOUtil.copyStream2File(in, dest, 0);
+                stats.totalBytes += IOUtil.copyStream2File(in, dest);
             } finally {
                 in.close();
             }
