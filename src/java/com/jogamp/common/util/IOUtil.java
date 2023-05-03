@@ -257,7 +257,7 @@ public class IOUtil {
     }
 
     /**
-     * Copy the specified input stream to a byte array, which is being returned.
+     * Copy the complete specified input stream to a byte array, which is being returned.
      */
     public static byte[] copyStream2ByteArray(InputStream stream) throws IOException {
         if( !(stream instanceof BufferedInputStream) ) {
@@ -290,8 +290,7 @@ public class IOUtil {
     }
 
     /**
-     * Copy the specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
-     * <p>The implementation creates the ByteBuffer w/ {@link #copyStream2ByteArray(InputStream)}'s returned byte array.</p>
+     * Copy the complete specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
      *
      * @param stream input stream, which will be wrapped into a BufferedInputStream, if not already done.
      */
@@ -300,11 +299,10 @@ public class IOUtil {
     }
 
     /**
-     * Copy the specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
-     * <p>The implementation creates the ByteBuffer w/ {@link #copyStream2ByteArray(InputStream)}'s returned byte array.</p>
+     * Copy the complete specified input stream to a NIO ByteBuffer w/ native byte order, which is being returned.
      *
      * @param stream input stream, which will be wrapped into a BufferedInputStream, if not already done.
-     * @param initialCapacity initial buffer capacity in bytes, if &gt; available bytes
+     * @param initialCapacity initial buffer capacity in bytes, if &lt; currently available bytes, initial buffer capacity is set to currently available bytes.
      */
     public static ByteBuffer copyStream2ByteBuffer(InputStream stream, int initialCapacity) throws IOException {
         if( !(stream instanceof BufferedInputStream) ) {
