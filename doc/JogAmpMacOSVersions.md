@@ -15,8 +15,8 @@ References
 | 10.14         | Mojave       | 18             |                                            |
 | 10.15         | Catalina     | 19             |                                            |
 |               |              |                |                                            |
-| 11            | Big Sur      | 20             | Build node 12.6.5, w/ Xcode 14.2, `x86_64` |
-| 12            | Monterey     | 21             |                                            |
+| 11            | Big Sur      | 20             |                                            |
+| 12            | Monterey     | 21             | Build node 12.6.5, w/ Xcode 14.2, `x86_64` |
 | 13            | Ventura      | 22             | Test node 13.1, `arm64`                    |
 
 ## OpenJDK
