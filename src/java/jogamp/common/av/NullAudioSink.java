@@ -47,6 +47,12 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
+    public final void lockExclusive() { }
+
+    @Override
+    public final void unlockExclusive() { }
+
+    @Override
     public boolean isAvailable() {
         return available;
     }

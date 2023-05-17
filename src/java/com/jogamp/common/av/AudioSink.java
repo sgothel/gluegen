@@ -242,6 +242,18 @@ public interface AudioSink {
     }
 
     /**
+     * Exclusively locks this instance for the calling thread, if implementation utilizes locking.
+     * @see #unlockExclusive()
+     */
+    public void lockExclusive();
+
+    /**
+     * Releases the exclusive lock for the calling thread, if implementation utilizes locking.
+     * @see #lockExclusive()
+     */
+    public void unlockExclusive();
+
+    /**
      * Returns the <code>available state</code> of this instance.
      * <p>
      * The <code>available state</code> is affected by this instance

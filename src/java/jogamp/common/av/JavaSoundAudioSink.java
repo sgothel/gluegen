@@ -84,6 +84,12 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
+    public final void lockExclusive() { }
+
+    @Override
+    public final void unlockExclusive() { }
+
+    @Override
     public String toString() {
         return "JavaSoundSink[avail "+available+", dataLine "+info+", source "+auline+", bufferCount "+bufferCount+
                ", chosen "+chosenFormat+", jsFormat "+format;
