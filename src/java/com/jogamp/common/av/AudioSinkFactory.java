@@ -32,7 +32,7 @@ import com.jogamp.common.util.ReflectionUtil;
 import jogamp.common.av.NullAudioSink;
 
 public class AudioSinkFactory {
-    private static final String ALAudioSinkClazzName = "jogamp.openal.util.ALAudioSink";
+    private static final String ALAudioSinkClazzName = "com.jogamp.openal.util.ALAudioSink";
     private static final String JavaAudioSinkClazzName = "jogamp.common.av.JavaSoundAudioSink";
 
     public static AudioSink createDefault(final ClassLoader cl) {

@@ -29,6 +29,7 @@ package jogamp.common.av;
 
 import java.nio.ByteBuffer;
 
+import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 
 public class NullAudioSink implements AudioSink {

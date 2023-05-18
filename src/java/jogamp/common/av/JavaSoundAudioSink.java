@@ -34,6 +34,7 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.DataLine;
 import javax.sound.sampled.SourceDataLine;
 
+import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 
 /***
@@ -60,7 +61,7 @@ public class JavaSoundAudioSink implements AudioSink {
     private int bufferCount;
     private final byte [] sampleData = new byte[BUFFER_SIZE];
     private boolean available = false;
-    private AudioSink.AudioFormat chosenFormat = null;
+    private AudioFormat chosenFormat = null;
 
     private volatile boolean playRequested = false;
     private float volume = 1.0f;
@@ -122,7 +123,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public AudioSink.AudioFormat getPreferredFormat() {
+    public AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
 
@@ -132,12 +133,12 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final boolean isSupported(final AudioSink.AudioFormat format) {
+    public final boolean isSupported(final AudioFormat format) {
         return true;
     }
 
     @Override
-    public boolean init(final AudioSink.AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
+    public boolean init(final AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         if( !staticAvailable ) {
             return false;
         }
