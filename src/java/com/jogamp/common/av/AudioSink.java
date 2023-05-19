@@ -145,17 +145,24 @@ public interface AudioSink {
     public boolean setVolume(float v);
 
     /**
-     * Returns the preferred sample-rate of this sink.
+     * Returns the preferred sample-rate of this sink, i.e. mixer frequency in Hz, e.g. 41000 or 48000.
      * <p>
      * The preferred sample-rate is guaranteed to be supported
      * and shall reflect this sinks most native format,
      * i.e. best performance w/o data conversion.
      * </p>
-     * @see #initSink(AudioFormat)
+     * @see #init(AudioFormat, float, int, int, int)
      * @see #isSupported(AudioFormat)
-     * @see #getPreferredSampleRate()
      */
     public int getPreferredSampleRate();
+
+    /**
+     * Returns the default (minimum) latency in seconds
+     * <p>
+     * Latency might be the reciprocal mixer-refresh-interval [Hz], e.g. 50 Hz refresh-rate = 20ms minimum latency.
+     * </p>
+     */
+    public float getDefaultLatency();
 
     /**
      * Returns the preferred {@link AudioFormat} by this sink.
@@ -170,7 +177,7 @@ public interface AudioSink {
      *   <li>ALAudioSink: {@link AudioFormat#sampleRate}.
      * </ul>
      * </p>
-     * @see #initSink(AudioFormat)
+     * @see #init(AudioFormat, float, int, int, int)
      * @see #isSupported(AudioFormat)
      * @see #getPreferredSampleRate()
      */
@@ -181,7 +188,7 @@ public interface AudioSink {
 
     /**
      * Returns true if the given format is supported by the sink, otherwise false.
-     * @see #initSink(AudioFormat)
+     * @see #init(AudioFormat, float, int, int, int)
      * @see #getPreferredFormat()
      */
     public boolean isSupported(AudioFormat format);
@@ -205,7 +212,7 @@ public interface AudioSink {
      * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
      * @return true if successful, otherwise false
      */
-    public boolean init(AudioFormat requestedFormat, float frameDuration,
+    public boolean init(AudioFormat requestedFormat, int frameDuration,
                         int initialQueueSize, int queueGrowAmount, int queueLimit);
 
     /**
@@ -213,6 +220,15 @@ public interface AudioSink {
      * i.e. it shall match the <i>requestedFormat</i>.
      */
     public AudioFormat getChosenFormat();
+
+    /**
+     * Returns the (minimum) latency in seconds of this sink as set by {@link #init(AudioFormat, float, int, int, int)}, see {@link #getDefaultLatency()}.
+     * <p>
+     * Latency might be the reciprocal mixer-refresh-interval [Hz], e.g. 50 Hz refresh-rate = 20ms minimum latency.
+     * </p>
+     * @see #init(AudioFormat, float, int, int, int)
+     */
+    public float getLatency();
 
     /**
      * Returns true, if {@link #play()} has been requested <i>and</i> the sink is still playing,
@@ -244,6 +260,7 @@ public interface AudioSink {
      * @see #play()
      * @see #pause()
      * @see #enqueueData(AudioFrame)
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public void flush();
 
@@ -253,10 +270,14 @@ public interface AudioSink {
     /**
      * Returns the number of allocated buffers as requested by
      * {@link #init(AudioFormat, float, int, int, int)}.
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public int getFrameCount();
 
-    /** @return the current enqueued frames count since {@link #init(AudioFormat, float, int, int, int)}. */
+    /**
+     * Returns the current enqueued frames count since {@link #init(AudioFormat, float, int, int, int)}.
+     * @see #init(AudioFormat, float, int, int, int)
+     */
     public int getEnqueuedFrameCount();
 
     /**
@@ -264,6 +285,7 @@ public interface AudioSink {
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public int getQueuedFrameCount();
 
@@ -272,6 +294,7 @@ public interface AudioSink {
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public int getQueuedByteCount();
 
@@ -280,6 +303,7 @@ public interface AudioSink {
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public int getQueuedTime();
 
@@ -293,18 +317,20 @@ public interface AudioSink {
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public int getFreeFrameCount();
 
     /**
      * Enqueue <code>byteCount</code> bytes of the remaining bytes of the given NIO {@link ByteBuffer} to this sink.
      * <p>
-     * The data must comply with the chosen {@link AudioFormat} as returned by {@link #initSink(AudioFormat)}.
+     * The data must comply with the chosen {@link AudioFormat} as set via {@link #init(AudioFormat, float, int, int, int)}.
      * </p>
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
      * @returns the enqueued internal {@link AudioFrame}.
+     * @see #init(AudioFormat, float, int, int, int)
      */
     public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount);
 }

@@ -123,6 +123,16 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
+    public float getDefaultLatency() {
+        return 20f/1000f; // fake 20ms
+    }
+
+    @Override
+    public float getLatency() {
+        return 20f/1000f; // fake 20ms
+    }
+
+    @Override
     public AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
@@ -138,7 +148,7 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public boolean init(final AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
+    public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         if( !staticAvailable ) {
             return false;
         }
@@ -271,4 +281,5 @@ public class JavaSoundAudioSink implements AudioSink {
 
     @Override
     public final int getPTS() { return 0; } // FIXME
+
 }

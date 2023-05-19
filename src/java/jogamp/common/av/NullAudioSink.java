@@ -89,6 +89,16 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
+    public float getDefaultLatency() {
+        return 0;
+    }
+
+    @Override
+    public float getLatency() {
+        return 0;
+    }
+
+    @Override
     public AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
@@ -114,7 +124,7 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public boolean init(final AudioFormat requestedFormat, final float frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
+    public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         chosenFormat = requestedFormat;
         return true;
     }
