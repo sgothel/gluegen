@@ -50,6 +50,12 @@ public interface AudioSink {
     public static final AudioFormat DefaultFormat = new AudioFormat(44100, 16, 2, true /* signed */,
                                           true /* fixed point */, false /* planar */, true /* littleEndian */);
 
+    /**
+     * Abstract audio frame tracking {@link TimeFrameI} pts and size in bytes.
+     * <p>
+     * Implementations may assign actual data to queue frames from streaming, see {@link AudioDataFrame}.
+     * </p>
+     */
     public static abstract class AudioFrame extends TimeFrameI {
         protected int byteSize;
 
@@ -71,6 +77,9 @@ public interface AudioSink {
             return "AudioFrame[pts " + pts + " ms, l " + duration + " ms, "+byteSize + " bytes]";
         }
     }
+    /**
+     * Audio data frame example of {@link AudioFrame} with actual audio data being attached.
+     */
     public static class AudioDataFrame extends AudioFrame {
         protected final ByteBuffer data;
 
@@ -226,9 +235,11 @@ public interface AudioSink {
      * {@link #getPreferredFormat()} and {@link #getMaxSupportedChannels()} may help.
      * </p>
      * @param requestedFormat the requested {@link AudioFormat}.
-     * @param frameDuration average or fixed frame duration in milliseconds
-     *                      helping a caching {@link AudioFrame} based implementation to determine the frame count in the queue.
-     *                      See {@link #DefaultFrameDuration}.
+     * @param frameDuration average frame duration in milliseconds.
+     *                      May assist a caching {@link AudioFrame} based implementation to limit waiting when dequeuing frames, e.g. JOAL's ALAudioSink.
+     *                      Also may assist to adjust latency of the backend, as currently used for JOAL's ALAudioSink.
+     *                      A value below 30ms or {@link #DefaultFrameDuration} may increase the audio processing load.
+     *                      Set to {@link #DefaultFrameDuration}, if <code>frameDuration < 1 ms</code>.
      * @param initialQueueSize initial time in milliseconds to queue in this sink, see {@link #DefaultInitialQueueSize}.
      * @param queueGrowAmount time in milliseconds to grow queue if full, see {@link #DefaultQueueGrowAmount}.
      * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
