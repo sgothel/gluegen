@@ -123,6 +123,11 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
+    public int getSourceCount() {
+        return -1;
+    }
+
+    @Override
     public float getDefaultLatency() {
         return 20f/1000f; // fake 20ms
     }

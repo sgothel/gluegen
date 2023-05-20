@@ -151,15 +151,34 @@ public interface AudioSink {
      * and shall reflect this sinks most native format,
      * i.e. best performance w/o data conversion.
      * </p>
+     * <p>
+     * May return {@link AudioSink#DefaultFormat}'s  44100 default if undefined.
+     * </p>
      * @see #init(AudioFormat, float, int, int, int)
      * @see #isSupported(AudioFormat)
      */
     public int getPreferredSampleRate();
 
     /**
+     * Returns the number of sources the used device is capable to mix.
+     * <p>
+     * This device attribute is only formally exposed and not used,
+     * since an audio sink is only utilizing one source.
+     * </p>
+     * <p>
+     * May return <code>-1</code> if undefined.
+     * </p>
+     * @return
+     */
+    public int getSourceCount();
+
+    /**
      * Returns the default (minimum) latency in seconds
      * <p>
      * Latency might be the reciprocal mixer-refresh-interval [Hz], e.g. 50 Hz refresh-rate = 20ms minimum latency.
+     * </p>
+     * <p>
+     * May return 20ms for a 50 Hz refresh rate if undefined.
      * </p>
      */
     public float getDefaultLatency();
@@ -177,13 +196,16 @@ public interface AudioSink {
      *   <li>ALAudioSink: {@link AudioFormat#sampleRate}.
      * </ul>
      * </p>
+     * <p>
+     * May return {@link AudioSink#DefaultFormat} if undefined.
+     * </p>
      * @see #init(AudioFormat, float, int, int, int)
      * @see #isSupported(AudioFormat)
      * @see #getPreferredSampleRate()
      */
     public AudioFormat getPreferredFormat();
 
-    /** Return the maximum number of supported channels. */
+    /** Return the maximum number of supported channels, e.g. 1 for mono, 2 for stereo, etc. */
     public int getMaxSupportedChannels();
 
     /**

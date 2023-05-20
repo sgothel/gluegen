@@ -89,6 +89,11 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
+    public int getSourceCount() {
+        return -1;
+    }
+
+    @Override
     public float getDefaultLatency() {
         return 0;
     }

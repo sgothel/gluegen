@@ -32,13 +32,13 @@ package com.jogamp.common.av;
  */
 public class AudioFormat {
     /**
-     * @param sampleRate sample rate in Hz (1/s)
-     * @param sampleSize sample size in bits
-     * @param channelCount number of channels
-     * @param signed true if signed number, false for unsigned
-     * @param fixedP true for fixed point value, false for unsigned floating point value with a sampleSize of 32 (float) or 64 (double)
+     * @param sampleRate sample rate in Hz (1/s), e.g. 44100 Hz
+     * @param sampleSize sample size in bits, e.g. 16 bits
+     * @param channelCount number of channels, e.g. 2 channels for stereo
+     * @param signed true if signed PCM values, false for unsigned values
+     * @param fixedP true for fixed point values, false for unsigned floating point values with a sampleSize of 32 (float) or 64 (double)
      * @param planar true for planar data package (each channel in own data buffer), false for packed data channels interleaved in one buffer.
-     * @param littleEndian true for little-endian, false for big endian
+     * @param littleEndian true for little-endian byte order, false for big endian byte order
      */
     public AudioFormat(final int sampleRate, final int sampleSize, final int channelCount, final boolean signed, final boolean fixedP, final boolean planar, final boolean littleEndian) {
         this.sampleRate = sampleRate;
@@ -58,17 +58,19 @@ public class AudioFormat {
         }
     }
 
-    /** Sample rate in Hz (1/s). */
+    /** Sample rate in Hz (1/s, e.g. 44100 Hz. */
     public final int sampleRate;
-    /** Sample size in bits. */
+    /** Sample size in bits, e.g. 16 bits. */
     public final int sampleSize;
-    /** Number of channels. */
+    /** Number of channels, e.g. 2 channels for stereo. */
     public final int channelCount;
+    /** Signed PCM values if true, otherwise unsigned values. */
     public final boolean signed;
     /** Fixed or floating point values. Floating point 'float' has {@link #sampleSize} 32, 'double' has {@link #sampleSize} 64. */
     public final boolean fixedP;
     /** Planar or packed samples. If planar, each channel has their own data buffer. If packed, channel data is interleaved in one buffer. */
     public final boolean planar;
+    /** Little-endian byte order if true, otherwise big endian byte order. */
     public final boolean littleEndian;
 
 
