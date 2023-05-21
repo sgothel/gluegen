@@ -34,16 +34,16 @@ import jogamp.common.Debug;
 public interface AudioSink {
     public static final boolean DEBUG = Debug.debug("AudioSink");
 
-    /** Default frame duration in millisecond, i.e. 1 frame per {@value} ms. */
+    /** Default frame duration in millisecond, i.e. 1 {@link AudioFrame} per {@value} ms. */
     public static final int DefaultFrameDuration = 32;
 
-    /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
+    /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
     public static final int DefaultInitialQueueSize = 16 * 32; // 512 ms
-    /** Audio queue grow size in milliseconds. {@value} ms, i.e. 16 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
+    /** Audio queue grow size in milliseconds. {@value} ms, i.e. 16 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
     public static final int DefaultQueueGrowAmount = 16 * 32; // 512 ms
-    /** Audio queue limit w/ video in milliseconds. {@value} ms, i.e. 96 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
+    /** Audio queue limit w/ video in milliseconds. {@value} ms, i.e. 96 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
     public static final int DefaultQueueLimitWithVideo =  96 * 32; // 3072 ms
-    /** Audio queue limit w/o video in milliseconds. {@value} ms, i.e. 32 frames per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
+    /** Audio queue limit w/o video in milliseconds. {@value} ms, i.e. 32 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
     public static final int DefaultQueueLimitAudioOnly =  32 * 32; // 1024 ms
 
     /** Default {@link AudioFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, !planar, littleEndian]. */
@@ -241,22 +241,22 @@ public interface AudioSink {
      * {@link #getPreferredFormat()} and {@link #getMaxSupportedChannels()} may help.
      * </p>
      * @param requestedFormat the requested {@link AudioFormat}.
-     * @param frameDuration average {@link AudioFrame} duration hint in milliseconds.
-     *                      May assist to shape the {@link AudioFrame} buffer's initial size, its growth amount and limit
-     *                      using `initialQueueSize`, `queueGrowAmount` and `queueLimit`.
+     * @param frameDurationHint average {@link AudioFrame} duration hint in milliseconds.
+     *                      May assist to shape the {@link AudioFrame} initial queue size using `initialQueueSize`.
      *                      May assist to adjust latency of the backend, as currently used for JOAL's ALAudioSink.
      *                      A value below 30ms or {@link #DefaultFrameDuration} may increase the audio processing load.
      *                      Assumed as {@link #DefaultFrameDuration}, if <code>frameDuration < 1 ms</code>.
-     * @param initialQueueSize initial time in milliseconds to queue in this sink, see {@link #DefaultInitialQueueSize}.
-     *                         May be used with `frameDuration` to determine initial {@link AudioFrame} buffer size.
-     * @param queueGrowAmount time in milliseconds to grow queue if full, see {@link #DefaultQueueGrowAmount}.
-     *                        May be used with `frameDuration` to determine {@link AudioFrame} buffer growth amount.
+     * @param initialQueueSize initial queue size in milliseconds, see {@link #DefaultInitialQueueSize}.
+     *                        May use `frameDurationHint` to determine initial {@link AudioFrame} queue size.
+     * @param queueGrowAmount queue grow size in milliseconds if queue is full, see {@link #DefaultQueueGrowAmount}.
+     *                        May use {@link #getAvgFrameDuration()} to determine {@link AudioFrame} queue growth amount.
      * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
-     *                   May be used with `frameDuration` to determine {@link AudioFrame} buffer limit.
+     *                        May use {@link #getAvgFrameDuration()} to determine {@link AudioFrame} queue limit.
      * @return true if successful, otherwise false
      * @see #enqueueData(int, ByteBuffer, int)
+     * @see #getAvgFrameDuration()
      */
-    public boolean init(AudioFormat requestedFormat, int frameDuration,
+    public boolean init(AudioFormat requestedFormat, int frameDurationHint,
                         int initialQueueSize, int queueGrowAmount, int queueLimit);
 
     /**
@@ -350,6 +350,14 @@ public interface AudioSink {
      * @see #init(AudioFormat, float, int, int, int)
      */
     public int getQueuedTime();
+
+    /**
+     * Returns average frame duration last assessed @ {@link #enqueueData(int, ByteBuffer, int)} when queue was full.
+     * <pre>
+     *   avgFrameDuration = {@link #getQueuedTime()} / {@link #getQueuedFrameCount()}
+     * </pre>
+     */
+    public int getAvgFrameDuration();
 
     /**
      * Return the current audio presentation timestamp (PTS) in milliseconds.

@@ -190,6 +190,11 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
+    public int getAvgFrameDuration() {
+        return 0;
+    }
+
+    @Override
     public final int getPTS() { return playingPTS; }
 
     @Override

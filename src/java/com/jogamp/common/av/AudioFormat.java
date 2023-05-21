@@ -124,13 +124,15 @@ public class AudioFormat {
      * </pre>
      * <p>
      * Note: <code>frameDuration</code> can be derived by <i>sample count per frame and channel</i>
-     * via {@link #getSamplesDuration(int)}.
+     * via {@link #getSamplesDuration(int)} or by <i>byte count</i> via {@link #getBytesDuration(int)}.
      * </p>
      * <p>
      * Frame Time -> Frame Count
      * </p>
      * @param millisecs time in milliseconds
      * @param frameDuration duration per frame in milliseconds.
+     * @see #getSamplesDuration(int)
+     * @see #getBytesDuration(int)
      */
     public final int getFrameCount(final int millisecs, final int frameDuration) {
         return Math.max(1, (int) ( (float)millisecs / (float)frameDuration + 0.5f ));
