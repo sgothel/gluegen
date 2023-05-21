@@ -56,10 +56,18 @@ public class TimeFrameI {
     protected int pts;
     protected int duration;
 
+    /**
+     * Ctor w/ zero duration and {@link #INVALID_PTS}.
+     */
     public TimeFrameI() {
         pts = INVALID_PTS;
         duration = 0;
     }
+    /**
+     * Create a new instance
+     * @param pts frame pts in milliseconds
+     * @param duration frame duration in milliseconds
+     */
     public TimeFrameI(final int pts, final int duration) {
         this.pts = pts;
         this.duration = duration;

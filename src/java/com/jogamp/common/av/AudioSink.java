@@ -65,9 +65,18 @@ public interface AudioSink {
     public static abstract class AudioFrame extends TimeFrameI {
         protected int byteSize;
 
+        /**
+         * Ctor w/ zero duration, {@link #INVALID_PTS} and zero byte size
+         */
         public AudioFrame() {
             this.byteSize = 0;
         }
+        /**
+         * Create a new instance
+         * @param pts frame pts in milliseconds
+         * @param duration frame duration in milliseconds
+         * @param byteCount size in bytes
+         */
         public AudioFrame(final int pts, final int duration, final int byteCount) {
             super(pts, duration);
             this.byteSize=byteCount;
@@ -89,6 +98,13 @@ public interface AudioSink {
     public static class AudioDataFrame extends AudioFrame {
         protected final ByteBuffer data;
 
+        /**
+         * Create a new instance
+         * @param pts frame pts in milliseconds
+         * @param duration frame duration in milliseconds
+         * @param bytes audio data
+         * @param byteCount size in bytes
+         */
         public AudioDataFrame(final int pts, final int duration, final ByteBuffer bytes, final int byteCount) {
             super(pts, duration, byteCount);
             if( byteCount > bytes.remaining() ) {
@@ -343,13 +359,13 @@ public interface AudioSink {
     public int getQueuedByteCount();
 
     /**
-     * Returns the current queued frame time in milliseconds for playing.
+     * Returns the current queued frame time in seconds for playing.
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
      * @see #init(AudioFormat, float, int, int, int)
      */
-    public int getQueuedTime();
+    public float getQueuedTime();
 
     /**
      * Returns average frame duration last assessed @ {@link #enqueueData(int, ByteBuffer, int)} when queue was full.
@@ -357,7 +373,7 @@ public interface AudioSink {
      *   avgFrameDuration = {@link #getQueuedTime()} / {@link #getQueuedFrameCount()}
      * </pre>
      */
-    public int getAvgFrameDuration();
+    public float getAvgFrameDuration();
 
     /**
      * Return the current audio presentation timestamp (PTS) in milliseconds.
@@ -381,7 +397,7 @@ public interface AudioSink {
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
-     * @param pts presentation time stamp for the newly enqueued {@link AudioFrame}
+     * @param pts presentation time stamp in milliseconds for the newly enqueued {@link AudioFrame}
      * @param bytes audio data for the newly enqueued {@link AudioFrame}
      * @returns the enqueued internal {@link AudioFrame}.
      * @see #init(AudioFormat, float, int, int, int)

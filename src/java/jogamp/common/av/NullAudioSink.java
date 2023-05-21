@@ -185,13 +185,13 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public int getQueuedTime() {
-        return 0;
+    public float getQueuedTime() {
+        return 0f;
     }
 
     @Override
-    public int getAvgFrameDuration() {
-        return 0;
+    public float getAvgFrameDuration() {
+        return 0f;
     }
 
     @Override

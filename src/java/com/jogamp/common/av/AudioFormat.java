@@ -79,48 +79,58 @@ public class AudioFormat {
     //
 
     /**
-     * Returns the byte size of the given milliseconds
+     * Returns the byte size of the given duration in seconds
      * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}.
+     * <pre>
+     *  final float bytesPerSample = sampleSize/8;
+     *  return Math.round( duration * channelCount * bytesPerSample * sampleRate );
+     * </pre>
      * <p>
      * Time -> Byte Count
      * </p>
+     * @param duration duration in seconds
      */
-    public final int getDurationsByteSize(final int millisecs) {
-        final int bytesPerSample = sampleSize >>> 3; // /8
-        return Math.round( millisecs * ( (float)channelCount * (float)bytesPerSample * ( sampleRate / 1000f ) ) );
+    public final int getDurationsByteSize(final float duration) {
+        final float bytesPerSample = sampleSize >>> 3; // /8
+        return Math.round( duration * channelCount * bytesPerSample * sampleRate );
     }
 
     /**
-     * Returns the duration in milliseconds of the given byte count
+     * Returns the duration in seconds of the given byte count
      * according to {@link #sampleSize}, {@link #channelCount} and {@link #sampleRate}.
+     * <pre>
+     *  final float bytesPerSample = sampleSize/8;
+     *  return byteCount / ( channelCount * bytesPerSample * sampleRate )
+     * </pre>
      * <p>
      * Byte Count -> Time
      * </p>
+     * @param byteCount size in bytes
      */
-    public final int getBytesDuration(final int byteCount) {
-        final int bytesPerSample = sampleSize >>> 3; // /8
-        return Math.round( byteCount / ( (float)channelCount * (float)bytesPerSample * ( sampleRate / 1000f ) ) );
+    public final float getBytesDuration(final int byteCount) {
+        final float bytesPerSample = sampleSize >>> 3; // /8
+        return byteCount / ( channelCount * bytesPerSample * sampleRate );
     }
 
     /**
-     * Returns the duration in milliseconds of the given sample count per frame and channel
+     * Returns the duration in seconds of the given sample count per frame and channel
      * according to the {@link #sampleRate}, i.e.
      * <pre>
-     *    round( ( 1000f * sampleCount ) / sampleRate )
+     *    (float)sampleCount / sampleRate
      * </pre>
      * <p>
      * Sample Count -> Time
      * </p>
      * @param sampleCount sample count per frame and channel
      */
-    public final int getSamplesDuration(final int sampleCount) {
-        return Math.round( ( 1000f * sampleCount ) / sampleRate );
+    public final float getSamplesDuration(final int sampleCount) {
+        return (float)sampleCount / sampleRate;
     }
 
     /**
-     * Returns the rounded frame count of the given milliseconds and frame duration.
+     * Returns the rounded frame count of the given duration and frame duration, both in seconds.
      * <pre>
-     *     Math.max( 1, millisecs / frameDuration + 0.5f )
+     *     Math.max(1, Math.round( duration / frameDuration ))
      * </pre>
      * <p>
      * Note: <code>frameDuration</code> can be derived by <i>sample count per frame and channel</i>
@@ -129,13 +139,13 @@ public class AudioFormat {
      * <p>
      * Frame Time -> Frame Count
      * </p>
-     * @param millisecs time in milliseconds
-     * @param frameDuration duration per frame in milliseconds.
+     * @param duration duration in seconds
+     * @param frameDuration duration per frame in seconds, i.e. 1/frame_rate
      * @see #getSamplesDuration(int)
      * @see #getBytesDuration(int)
      */
-    public final int getFrameCount(final int millisecs, final int frameDuration) {
-        return Math.max(1, (int) ( (float)millisecs / (float)frameDuration + 0.5f ));
+    public final int getFrameCount(final float duration, final float frameDuration) {
+        return Math.max(1, Math.round( duration / frameDuration ));
     }
 
     /**

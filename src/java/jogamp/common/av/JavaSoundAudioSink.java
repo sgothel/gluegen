@@ -262,7 +262,7 @@ public class JavaSoundAudioSink implements AudioSink {
             written += len;
         }
         playImpl();
-        return new AudioDataFrame(pts, chosenFormat.getBytesDuration(byteCount), byteBuffer, byteCount);
+        return new AudioDataFrame(pts, Math.round(1000f*chosenFormat.getBytesDuration(byteCount)), byteBuffer, byteCount);
     }
 
     @Override
@@ -276,17 +276,13 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public int getQueuedTime() {
-        return getQueuedTimeImpl( getQueuedByteCount() );
-    }
-    private final int getQueuedTimeImpl(final int byteCount) {
-        final int bytesPerSample = chosenFormat.sampleSize >>> 3; // /8
-        return byteCount / ( chosenFormat.channelCount * bytesPerSample * ( chosenFormat.sampleRate / 1000 ) );
+    public float getQueuedTime() {
+        return chosenFormat.getBytesDuration( getQueuedByteCount() );
     }
 
     @Override
-    public int getAvgFrameDuration() {
-        return 0;
+    public float getAvgFrameDuration() {
+        return 0f;
     }
 
     @Override
