@@ -51,10 +51,16 @@ public interface AudioSink {
                                           true /* fixed point */, false /* planar */, true /* littleEndian */);
 
     /**
-     * Abstract audio frame tracking {@link TimeFrameI} pts and size in bytes.
+     * Abstract audio frame containing multiple audio samples per channel, tracking {@link TimeFrameI} pts and size in bytes.
+     * <p>
+     * One {@link AudioFrame} may contain multiple pairs of samples per channel,
+     * i.e. this {@link AudioFrame} does not limit a frame to be one sample per channel.
+     * See its application in {@link AudioSink#enqueueData(int, ByteBuffer, int)}.
+     * </p>
      * <p>
      * Implementations may assign actual data to queue frames from streaming, see {@link AudioDataFrame}.
      * </p>
+     * @see AudioSink#enqueueData(int, ByteBuffer, int)
      */
     public static abstract class AudioFrame extends TimeFrameI {
         protected int byteSize;
@@ -235,15 +241,20 @@ public interface AudioSink {
      * {@link #getPreferredFormat()} and {@link #getMaxSupportedChannels()} may help.
      * </p>
      * @param requestedFormat the requested {@link AudioFormat}.
-     * @param frameDuration average frame duration in milliseconds.
-     *                      May assist a caching {@link AudioFrame} based implementation to limit waiting when dequeuing frames, e.g. JOAL's ALAudioSink.
-     *                      Also may assist to adjust latency of the backend, as currently used for JOAL's ALAudioSink.
+     * @param frameDuration average {@link AudioFrame} duration hint in milliseconds.
+     *                      May assist to shape the {@link AudioFrame} buffer's initial size, its growth amount and limit
+     *                      using `initialQueueSize`, `queueGrowAmount` and `queueLimit`.
+     *                      May assist to adjust latency of the backend, as currently used for JOAL's ALAudioSink.
      *                      A value below 30ms or {@link #DefaultFrameDuration} may increase the audio processing load.
-     *                      Set to {@link #DefaultFrameDuration}, if <code>frameDuration < 1 ms</code>.
+     *                      Assumed as {@link #DefaultFrameDuration}, if <code>frameDuration < 1 ms</code>.
      * @param initialQueueSize initial time in milliseconds to queue in this sink, see {@link #DefaultInitialQueueSize}.
+     *                         May be used with `frameDuration` to determine initial {@link AudioFrame} buffer size.
      * @param queueGrowAmount time in milliseconds to grow queue if full, see {@link #DefaultQueueGrowAmount}.
+     *                        May be used with `frameDuration` to determine {@link AudioFrame} buffer growth amount.
      * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
+     *                   May be used with `frameDuration` to determine {@link AudioFrame} buffer limit.
      * @return true if successful, otherwise false
+     * @see #enqueueData(int, ByteBuffer, int)
      */
     public boolean init(AudioFormat requestedFormat, int frameDuration,
                         int initialQueueSize, int queueGrowAmount, int queueLimit);
@@ -355,13 +366,15 @@ public interface AudioSink {
     public int getFreeFrameCount();
 
     /**
-     * Enqueue <code>byteCount</code> bytes of the remaining bytes of the given NIO {@link ByteBuffer} to this sink.
+     * Enqueue <code>byteCount</code> bytes as a new {@link AudioFrame} to this sink.
      * <p>
      * The data must comply with the chosen {@link AudioFormat} as set via {@link #init(AudioFormat, float, int, int, int)}.
      * </p>
      * <p>
      * {@link #init(AudioFormat, float, int, int, int)} must be called first.
      * </p>
+     * @param pts presentation time stamp for the newly enqueued {@link AudioFrame}
+     * @param bytes audio data for the newly enqueued {@link AudioFrame}
      * @returns the enqueued internal {@link AudioFrame}.
      * @see #init(AudioFormat, float, int, int, int)
      */
