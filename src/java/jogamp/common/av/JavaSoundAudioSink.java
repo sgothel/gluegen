@@ -44,7 +44,7 @@ import com.jogamp.common.av.AudioSink;
  * audio capabilities
  * </p>
  */
-public class JavaSoundAudioSink implements AudioSink {
+public final class JavaSoundAudioSink implements AudioSink {
 
     // Chunk of audio processed at one time
     public static final int BUFFER_SIZE = 1000;
@@ -85,10 +85,10 @@ public class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final void lockExclusive() { }
+    public final boolean makeCurrent(final boolean throwException) { return true; }
 
     @Override
-    public final void unlockExclusive() { }
+    public final boolean release(final boolean throwException) { return true; }
 
     @Override
     public String toString() {

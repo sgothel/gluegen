@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
 import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
 
-public class NullAudioSink implements AudioSink {
+public final class NullAudioSink implements AudioSink {
 
     private volatile float playSpeed = 1.0f;
     private volatile boolean playRequested = false;
@@ -48,10 +48,10 @@ public class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public final void lockExclusive() { }
+    public final boolean makeCurrent(final boolean throwException) { return true; }
 
     @Override
-    public final void unlockExclusive() { }
+    public final boolean release(final boolean throwException) { return true; }
 
     @Override
     public boolean isAvailable() {

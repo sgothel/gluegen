@@ -123,16 +123,37 @@ public interface AudioSink {
     }
 
     /**
-     * Exclusively locks this instance for the calling thread, if implementation utilizes locking.
-     * @see #unlockExclusive()
+     * Makes the audio context current on the calling thread, if implementation utilizes context locking.
+     * <p>
+     * If implementation doesn't utilizes context locking, method always returns true.
+     * </p>
+     * <p>
+     * Recursive call to {@link #makeCurrent()} and hence {@link #release()} are supported.
+     * </p>
+     * <p>
+     * At any point in time one context can only be current by one thread,
+     * and one thread can only have one context current.
+     * </p>
+     * @param throwException if true, throws ALException if context is null, current thread holds another context or failed to natively make current
+     * @return true if current thread holds no other context and context successfully made current, otherwise false
+     * @see #release()
      */
-    public void lockExclusive();
+    public boolean makeCurrent(final boolean throwException);
 
     /**
-     * Releases the exclusive lock for the calling thread, if implementation utilizes locking.
-     * @see #lockExclusive()
+     * Releases control of this audio context from the current thread, if implementation utilizes context locking.
+     * <p>
+     * If implementation doesn't utilizes context locking, method always returns true.
+     * </p>
+     * <p>
+     * Recursive call to {@link #makeCurrent()} and hence {@link #release()} are supported.
+     * </p>
+     * @param throwException if true, throws ALException if context has not been previously made current on current thread
+     *                       or native release failed.
+     * @return true if context has previously been made current on the current thread and successfully released, otherwise false
+     * @see #makeCurrent()
      */
-    public void unlockExclusive();
+    public boolean release(final boolean throwException);
 
     /**
      * Returns the <code>available state</code> of this instance.
