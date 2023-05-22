@@ -61,6 +61,9 @@ public final class JavaSoundAudioSink implements AudioSink {
     private int bufferCount;
     private final byte [] sampleData = new byte[BUFFER_SIZE];
     private boolean available = false;
+    private final AudioFormat nativeFormat;
+    private int userMaxChannels = 8;
+    private AudioFormat preferredFormat = null;
     private AudioFormat chosenFormat = null;
 
     private volatile boolean playRequested = false;
@@ -79,8 +82,12 @@ public final class JavaSoundAudioSink implements AudioSink {
     public JavaSoundAudioSink() {
         available = false;
         if( !staticAvailable ) {
+            nativeFormat = DefaultFormat;
             return;
         }
+        nativeFormat = new AudioFormat(DefaultFormat.sampleRate, DefaultFormat.sampleSize, getMaxSupportedChannels(),
+                                       DefaultFormat.signed, DefaultFormat.fixedP, DefaultFormat.planar, DefaultFormat.littleEndian);
+        preferredFormat = nativeFormat;
         available = true;
     }
 
@@ -118,11 +125,6 @@ public final class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public int getPreferredSampleRate() {
-        return DefaultFormat.sampleRate;
-    }
-
-    @Override
     public int getSourceCount() {
         return -1;
     }
@@ -138,23 +140,50 @@ public final class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
+    public final AudioFormat getNativeFormat() {
+        return nativeFormat;
+    }
+
+    @Override
     public AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
 
     @Override
-    public final int getMaxSupportedChannels() {
-        return 2;
+    public final void setChannelLimit(final int cc) {
+        userMaxChannels = Math.min(8, Math.max(1, cc));
+        preferredFormat = new AudioFormat(nativeFormat.sampleRate,
+                                       nativeFormat.sampleSize, getMaxSupportedChannels(),
+                                       nativeFormat.signed, nativeFormat.fixedP,
+                                       nativeFormat.planar, nativeFormat.littleEndian);
+        if( DEBUG ) {
+            System.out.println("ALAudioSink: channelLimit "+userMaxChannels+", preferredFormat "+preferredFormat);
+        }
+    }
+
+    private final int getMaxSupportedChannels() {
+        final int cc = 2;
+        return Math.min(userMaxChannels, cc);
     }
 
     @Override
     public final boolean isSupported(final AudioFormat format) {
+        if( format.planar != preferredFormat.planar ||
+            format.fixedP != preferredFormat.fixedP ||
+            format.sampleRate > preferredFormat.sampleRate ||
+            format.channelCount > preferredFormat.channelCount )
+        {
+            return false;
+        }
         return true;
     }
 
     @Override
     public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
         if( !staticAvailable ) {
+            return false;
+        }
+        if( !isSupported(requestedFormat) ) {
             return false;
         }
         // Create the audio format we wish to use

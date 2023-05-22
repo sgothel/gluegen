@@ -84,11 +84,6 @@ public final class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public int getPreferredSampleRate() {
-        return DefaultFormat.sampleRate;
-    }
-
-    @Override
     public int getSourceCount() {
         return -1;
     }
@@ -104,14 +99,17 @@ public final class NullAudioSink implements AudioSink {
     }
 
     @Override
+    public AudioFormat getNativeFormat() {
+        return DefaultFormat;
+    }
+
+    @Override
     public AudioFormat getPreferredFormat() {
         return DefaultFormat;
     }
 
     @Override
-    public final int getMaxSupportedChannels() {
-        return 8;
-    }
+    public void setChannelLimit(final int cc) { }
 
     @Override
     public final boolean isSupported(final AudioFormat format) {

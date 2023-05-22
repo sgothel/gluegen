@@ -197,21 +197,6 @@ public interface AudioSink {
     public boolean setVolume(float v);
 
     /**
-     * Returns the preferred sample-rate of this sink, i.e. mixer frequency in Hz, e.g. 41000 or 48000.
-     * <p>
-     * The preferred sample-rate is guaranteed to be supported
-     * and shall reflect this sinks most native format,
-     * i.e. best performance w/o data conversion.
-     * </p>
-     * <p>
-     * May return {@link AudioSink#DefaultFormat}'s  44100 default if undefined.
-     * </p>
-     * @see #init(AudioFormat, float, int, int, int)
-     * @see #isSupported(AudioFormat)
-     */
-    public int getPreferredSampleRate();
-
-    /**
      * Returns the number of sources the used device is capable to mix.
      * <p>
      * This device attribute is only formally exposed and not used,
@@ -236,32 +221,64 @@ public interface AudioSink {
     public float getDefaultLatency();
 
     /**
-     * Returns the preferred {@link AudioFormat} by this sink.
+     * Returns the native {@link AudioFormat} by this sink.
      * <p>
-     * The preferred format is guaranteed to be supported
+     * The native format is guaranteed to be supported
      * and shall reflect this sinks most native format,
      * i.e. best performance w/o data conversion.
      * </p>
      * <p>
-     * Known {@link #AudioFormat} attributes considered by implementations:
-     * <ul>
-     *   <li>ALAudioSink: {@link AudioFormat#sampleRate}.
-     * </ul>
+     * The native format is not impacted by {@link #setChannelLimit(int)}.
      * </p>
      * <p>
      * May return {@link AudioSink#DefaultFormat} if undefined.
      * </p>
      * @see #init(AudioFormat, float, int, int, int)
+     */
+    public AudioFormat getNativeFormat();
+
+    /**
+     * Returns the preferred {@link AudioFormat} by this sink.
+     * <p>
+     * The preferred format is a subset of {@link #getNativeFormat()},
+     * impacted by {@link #setChannelLimit(int)}.
+     * </p>
+     * <p>
+     * Known {@link #AudioFormat} attributes considered by implementations:
+     * <ul>
+     *   <li>ALAudioSink: {@link AudioFormat#sampleRate}.
+     *   <li>ALAudioSink: {@link AudioFormat#channelCount}
+     * </ul>
+     * </p>
+     * @see #getNativeFormat()
+     * @see #init(AudioFormat, float, int, int, int)
+     * @see #setChannelLimit(int)
      * @see #isSupported(AudioFormat)
-     * @see #getPreferredSampleRate()
      */
     public AudioFormat getPreferredFormat();
 
-    /** Return the maximum number of supported channels, e.g. 1 for mono, 2 for stereo, etc. */
-    public int getMaxSupportedChannels();
+    /**
+     * Limit maximum supported audio channels by user.
+     * <p>
+     * Must be set before {@link #getPreferredFormat()}, {@link #isSupported(AudioFormat)} and naturally {@link #init(AudioFormat, int, int, int, int)}.
+     * </p>
+     * <p>
+     * May be utilized to enforce 1 channel (mono) downsampling
+     * in combination with JOAL/OpenAL to experience spatial 3D position effects.
+     * </p>
+     * @param cc maximum supported audio channels, will be clipped [1..{@link #getNativeFormat()}.{@link AudioFormat#channelCount channelCount}]
+     * @see #getNativeFormat()
+     * @see #getPreferredFormat()
+     * @see #isSupported(AudioFormat)
+     * @see #init(AudioFormat, int, int, int, int)
+     */
+    public void setChannelLimit(final int cc);
 
     /**
      * Returns true if the given format is supported by the sink, otherwise false.
+     * <p>
+     * The {@link #getPreferredFormat()} is used to validate compatibility with the given format.
+     * </p>
      * @see #init(AudioFormat, float, int, int, int)
      * @see #getPreferredFormat()
      */
@@ -275,7 +292,7 @@ public interface AudioSink {
      * <p>
      * Caller shall validate <code>requestedFormat</code> via {@link #isSupported(AudioFormat)}
      * beforehand and try to find a suitable supported one.
-     * {@link #getPreferredFormat()} and {@link #getMaxSupportedChannels()} may help.
+     * {@link #getPreferredFormat()} may help.
      * </p>
      * @param requestedFormat the requested {@link AudioFormat}.
      * @param frameDurationHint average {@link AudioFrame} duration hint in milliseconds.
