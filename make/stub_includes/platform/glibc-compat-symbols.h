@@ -26,6 +26,11 @@
            #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
             */
            #define GLIBC_COMPAT_SYMBOL(FFF)
+        #elif defined(__PPC64__)
+	   /* PPC64 has multiple versions of memcpy from glibc 2.3 and onwards
+	    * while PPC64LE only has one (introduced in glibc 2.17). PPC64LE is
+	    * the more common of the two now so skip versioning. */
+           #define GLIBC_COMPAT_SYMBOL(FFF)
         #elif defined(__amd64__)
            #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
         #else
@@ -40,6 +45,11 @@
            /** On recent toolchain memcpy is no more versioned for arm 
            #define GLIBC_COMPAT_SYMBOL(FFF) __asm__(".symver " #FFF "," #FFF "@GLIBC_2.4");
             */
+           #define GLIBC_COMPAT_SYMBOL(FFF)
+        #elif defined(__PPC64__)
+	   /* PPC64 has multiple versions of memcpy from glibc 2.3 and onwards
+	    * while PPC64LE only has one (introduced in glibc 2.17). PPC64LE is
+	    * the more common of the two now so skip versioning. */
            #define GLIBC_COMPAT_SYMBOL(FFF)
         #elif defined(__amd64__)
            #define GLIBC_COMPAT_SYMBOL(FFF) asm(".symver " #FFF "," #FFF "@GLIBC_2.2.5");
