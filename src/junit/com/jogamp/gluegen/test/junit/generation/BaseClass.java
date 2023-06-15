@@ -246,6 +246,15 @@ public class BaseClass extends SingletonJunitCase {
         Assert.assertEquals(   9, Bindingtest1.NUMBER_NINE);
         Assert.assertEquals(  10, Bindingtest1.NUMBER_TEN);
 
+        // Bitwise not Expression
+        Assert.assertEquals(~ Bindingtest1.NUMBER_ONE, Bindingtest1.BITWISE_NOT_OF_ONE);
+        Assert.assertEquals(~ Bindingtest1.NUMBER_TWO, Bindingtest1.BITWISE_NOT_OF_TWO);
+        Assert.assertEquals(~ Bindingtest1.NUMBER_FOUR, Bindingtest1.BITWISE_NOT_OF_FOUR);
+        Assert.assertEquals(~ Bindingtest1.NUMBER_FIVE, Bindingtest1.BITWISE_NOT_OF_FIVE);
+        Assert.assertEquals(~ Bindingtest1.NUMBER_EIGHT, Bindingtest1.BITWISE_NOT_OF_EIGHT);
+        Assert.assertEquals(~ Bindingtest1.NUMBER_NINE, Bindingtest1.BITWISE_NOT_OF_NINE);
+        Assert.assertEquals(~ Bindingtest1.NUMBER_TEN, Bindingtest1.BITWISE_NOT_OF_TEN);
+
         // Enum Constant Expressions!
         Assert.assertEquals(   1, Bindingtest1.ENUM_NUM_ONE);
         Assert.assertEquals(   2, Bindingtest1.ENUM_NUM_TWO);

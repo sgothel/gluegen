@@ -114,6 +114,14 @@ enum CL_INT { ENUM_I0=10, ENUM_I1, ENUM_I2=+12U, ENUM_I3=0x0d, ENUM_I4=-14, ENUM
 #define NUMBER_NINE     ( 2 * 2 + ( 1 << 2 ) + 1 )
 #define NUMBER_TEN      ( NUMBER_EIGHT | NUMBER_TWO )
 
+#define BITWISE_NOT_OF_ONE      ~ NUMBER_ONE
+#define BITWISE_NOT_OF_TWO      ~ NUMBER_TWO
+#define BITWISE_NOT_OF_FOUR     ~ NUMBER_FOUR
+#define BITWISE_NOT_OF_FIVE     ~ NUMBER_FIVE
+#define BITWISE_NOT_OF_EIGHT    ~ NUMBER_EIGHT
+#define BITWISE_NOT_OF_NINE     ~ NUMBER_NINE
+#define BITWISE_NOT_OF_TEN      ~ NUMBER_TEN
+
 enum NumberOps { ENUM_NUM_ONE = CONSTANT_ONE,
                  ENUM_NUM_TWO = 1+1,
                  ENUM_NUM_THREE,
