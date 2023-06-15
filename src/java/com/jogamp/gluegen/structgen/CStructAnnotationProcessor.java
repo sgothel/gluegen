@@ -276,7 +276,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             GlueGen.setDebug(true);
         }
         new GlueGen().run(reader, filename, AnnotationProcessorJavaStructEmitter.class,
-                          includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */);
+                          includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */, false /* preserveGeneratedCPP */);
 
         configFile.delete();
         generatedStructs.add(finalType);

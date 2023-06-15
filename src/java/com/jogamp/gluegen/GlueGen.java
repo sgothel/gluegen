@@ -104,7 +104,7 @@ public class GlueGen implements GlueEmitterControls {
     public static final String __GLUEGEN__ = "__GLUEGEN__";
 
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyCPPOutput2Stderr) {
+    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyCPPOutput2Stderr, final boolean preserveGeneratedCPP) {
 
         try {
             if(debug) {
@@ -134,7 +134,7 @@ public class GlueGen implements GlueEmitterControls {
             // preprocessor = new PCPP(includePaths, debug, copyCPPOutput2Stderr);
             preprocessor = new JCPP(includePaths, debug, copyCPPOutput2Stderr);
             final String cppName = preprocessor.getClass().getSimpleName();
-            if(debug) {
+            if(debug || preserveGeneratedCPP) {
                 System.err.println("CPP <"+cppName+"> output at (persistent): " + out.getAbsolutePath());
             } else {
                 out.deleteOnExit();
@@ -375,6 +375,7 @@ public class GlueGen implements GlueEmitterControls {
         String outputRootDir = null;
         final List<String> cfgFiles = new ArrayList<String>();
         boolean copyCPPOutput2Stderr = false;
+        boolean preserveGeneratedCPP = false;
 
         final List<String> includePaths = new ArrayList<String>();
         for (int i = 0; i < args.length; i++) {
@@ -396,6 +397,8 @@ public class GlueGen implements GlueEmitterControls {
                     debug=true;
                 } else if (arg.equals("--dumpCPP")) {
                     copyCPPOutput2Stderr=true;
+                } else if (arg.equals("--preserveGeneratedCPP")) {
+                    preserveGeneratedCPP=true;
                 } else {
                     usage();
                 }
@@ -420,7 +423,7 @@ public class GlueGen implements GlueEmitterControls {
 
         try {
             final Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
-            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, copyCPPOutput2Stderr);
+            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, copyCPPOutput2Stderr, preserveGeneratedCPP);
         } catch (final ClassNotFoundException ex) {
             throw new RuntimeException("specified emitter class was not in the classpath", ex);
         }
@@ -445,6 +448,7 @@ public class GlueGen implements GlueEmitterControls {
         out.println("-Cjava-emitter.cfg.");
         out.println("  --debug enables debug mode");
         out.println("  --dumpCPP directs CPP to dump all output to stderr as well");
+        out.println("  --preserveGeneratedCPP preserve generated CPP file during generation (File it's already preserved by debug mode)");
         exit(1);
     }
 }
