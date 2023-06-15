@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -138,8 +138,10 @@ public class JavaConfiguration {
     private final Map<String, MethodAccess> accessControl = new HashMap<String, MethodAccess>();
     private final Map<String, TypeInfo> typeInfoMap = new HashMap<String, TypeInfo>();
     private final Set<String> returnsString = new HashSet<String>();
+    private final Set<String> returnsStringOnly = new HashSet<String>();
     private final Map<String, JavaType> returnsOpaqueJType = new HashMap<String, JavaType>();
     private final Map<String, String> returnedArrayLengths = new HashMap<String, String>();
+    private final Set<String> maxOneElement = new HashSet<String>();
 
     /**
      * Key is function that has some byte[] or short[] arguments that should be
@@ -159,10 +161,9 @@ public class JavaConfiguration {
     private final Set<String> useNIOOnly = new HashSet<String>();
     private boolean forceUseNIODirectOnly4All = false;
     private final Set<String> useNIODirectOnly = new HashSet<String>();
+    private final Set<String> immutableAccessSymbols = new HashSet<String>();
     private final Set<String> manuallyImplement = new HashSet<String>();
     private final Map<String, String> delegatedImplementation = new HashMap<String, String>();
-    private final Set<String> manualStaticInitCall = new HashSet<String>();
-    private final Set<String> forceStaticInitCode = new HashSet<String>();
     private final Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
     private final Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
     private final Map<String, List<String>> methodJavadoc = new HashMap<String, List<String>>();
@@ -520,10 +521,17 @@ public class JavaConfiguration {
              oneInSet(returnsString, symbol.getAliasedNames());
   }
 
+  /** Indicates whether the given function (which returns a
+      <code>char*</code> in C) should be translated as returning a
+      <code>java.lang.String</code> only. Excluding other variants for struct field access. */
+  public boolean returnsStringOnly(final String functionName) {
+    return returnsStringOnly.contains(functionName);
+  }
+
   /**
    * Returns a MessageFormat string of the Java expression calculating
    * the number of elements in the returned array from the specified function
-   * name. The literal <code>1</code> indicates a single object.
+   * name or struct-field array-size. The literal <code>1</code> indicates a constant single object.
    * <p>
    * If symbol references a struct fields, see {@link #canonicalStructFieldSymbol(String, String)},
    * it describes field's array-length or element-count referenced by a pointer.
@@ -535,8 +543,17 @@ public class JavaConfiguration {
    * either {@link #returnValueCapacity(String)} or {@link #returnValueLength(String)}!
    * </p>
    */
-  public String returnedArrayLength(final String functionName) {
-    return returnedArrayLengths.get(functionName);
+  public String returnedArrayLength(final String symbol) {
+    return returnedArrayLengths.get(symbol);
+  }
+
+  /**
+   * Indicates whether the given symbol covers no or one single object.
+   * This is useful for struct-field pointer, indicating a null value
+   * holding no object or at most referincing memory for one single object.
+   */
+  public boolean maxOneElement(final String symbol) {
+    return maxOneElement.contains(symbol);
   }
 
   /** Returns a list of <code>Integer</code>s which are the indices of <code>const char*</code>
@@ -569,32 +586,6 @@ public class JavaConfiguration {
    */
   public boolean useNIODirectOnly(final String functionName) {
     return forceUseNIODirectOnly4All || useNIODirectOnly.contains(functionName);
-  }
-
-  /**
-   * Returns true if the static initialization java code calling <code>initializeImpl()</code>
-   * for the given class will be manually implemented by the end user
-   * as requested via configuration directive <code>ManualStaticInitCall 'class-name'</code>.
-   */
-  public boolean manualStaticInitCall(final String clazzName) {
-    return manualStaticInitCall.contains(clazzName);
-  }
-
-  /**
-   * Returns true if the static initialization java code implementing <code>initializeImpl()</code>
-   * and the native code implementing:
-   * <pre>
-   *   static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, jlong capacity);
-   * </pre>
-   * for the given class will be included in the generated code, always,
-   * as requested via configuration directive <code>ForceStaticInitCode 'class-name'</code>.
-   * <p>
-   * If case above code has been generated, static class initialization is generated
-   * to call <code>initializeImpl()</code>, see {@link #manualStaticInitCall(String)}.
-   * </p>
-   */
-  public boolean forceStaticInitCode(final String clazzName) {
-    return forceStaticInitCode.contains(clazzName);
   }
 
   /** Returns a list of Strings containing user-implemented code for
@@ -832,6 +823,43 @@ public class JavaConfiguration {
    */
   public static String canonicalStructFieldSymbol(final String structName, final String fieldName) {
       return structName+"."+fieldName;
+  }
+
+  /**
+   * Returns true if the glue code for the given aliased symbol
+   * shall produce code for immutable access only.
+   * <p>
+   * This is implemented for whole struct-type symbols or struct-field names,
+   * where no setter methods will be produced if marked immutable.
+   * </p>
+   */
+  public final boolean immutableAccess(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+
+      if ( immutableAccessSymbols.contains( name ) ||
+           oneInSet(immutableAccessSymbols, aliases)
+         )
+      {
+          LOG.log(INFO, getASTLocusTag(symbol), "Immutable access: {0}", symbol);
+          return true;
+      }
+      return false;
+  }
+  /**
+   * Returns true if the glue code for the given symbol
+   * shall produce code for immutable access only.
+   * <p>
+   * This is implemented for whole struct-type symbols or struct-field names,
+   * where no setter methods will be produced if marked immutable.
+   * </p>
+   */
+  public final boolean immutableAccess(final String symbol) {
+      if ( immutableAccessSymbols.contains( symbol ) ) {
+          LOG.log(INFO, "Immutable access: {0}", symbol);
+          return true;
+      }
+      return false;
   }
 
   /**
@@ -1257,12 +1285,16 @@ public class JavaConfiguration {
       readOpaque(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ReturnsString")) {
       readReturnsString(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ReturnsStringOnly")) {
+      readReturnsStringOnly(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ReturnsOpaque")) {
       readReturnsOpaque(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ReturnedArrayLength")) {
       readReturnedArrayLength(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
       // because ReturnedArrayLength changes them.
+    } else if (cmd.equalsIgnoreCase("MaxOneElement")) {
+      readMaxOneElement(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ArgumentIsString")) {
       readArgumentIsString(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsIgnore")) {
@@ -1287,12 +1319,10 @@ public class JavaConfiguration {
       readUnimplemented(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("IgnoreField")) {
       readIgnoreField(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("ImmutableAccess")) {
+      readImmutableAccess(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ManuallyImplement")) {
       readManuallyImplement(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("ManualStaticInitCall")) {
-      readManualStaticInitCall(tok, filename, lineNo);
-    } else if (cmd.equalsIgnoreCase("ForceStaticInitCode")) {
-      readForceStaticInitCode(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("CustomJavaCode")) {
       readCustomJavaCode(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
@@ -1476,6 +1506,16 @@ public class JavaConfiguration {
     }
   }
 
+  protected void readReturnsStringOnly(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String name = tok.nextToken();
+      returnsStringOnly.add(name);
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"ReturnsStringOnly\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
   protected void readReturnedArrayLength(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       final String functionName = tok.nextToken();
@@ -1484,6 +1524,16 @@ public class JavaConfiguration {
       returnedArrayLengths.put(functionName, restOfLine);
     } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ReturnedArrayLength\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readMaxOneElement(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String name = tok.nextToken();
+      maxOneElement.add(name);
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"MaxOneElement\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
@@ -1598,30 +1648,22 @@ public class JavaConfiguration {
     }
   }
 
+  protected void readImmutableAccess(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String name = tok.nextToken();
+      immutableAccessSymbols.add(name);
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"ImmutableAccess\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
   protected void readManuallyImplement(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       final String name = tok.nextToken();
       manuallyImplement.add(name);
     } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"ManuallyImplement\" command at line " + lineNo +
-        " in file \"" + filename + "\"", e);
-    }
-  }
-  protected void readManualStaticInitCall(final StringTokenizer tok, final String filename, final int lineNo) {
-    try {
-      final String name = tok.nextToken();
-      manualStaticInitCall.add(name);
-    } catch (final NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"ManualStaticInitCall\" command at line " + lineNo +
-        " in file \"" + filename + "\"", e);
-    }
-  }
-  protected void readForceStaticInitCode(final StringTokenizer tok, final String filename, final int lineNo) {
-    try {
-      final String name = tok.nextToken();
-      forceStaticInitCode.add(name);
-    } catch (final NoSuchElementException e) {
-      throw new RuntimeException("Error parsing \"ForceStaticInitCode\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }

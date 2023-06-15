@@ -408,22 +408,6 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   /**
-   * Returns <code>true</code> if implementation (java and native-code)
-   * requires {@link #staticClassInitCodeCCode} and {@link #staticClassInitCallJavaCode}
-   * and have <code>initializeImpl()</code> being called at static class initialization.
-   * <p>
-   * This is currently true, if one of the following method returns <code>true</code>
-   * <ul>
-   *   <li>{@link MethodBinding#signatureRequiresStaticInitialization() one of the binding's signature requires it}</li>
-   *   <li>{@link JavaConfiguration#forceStaticInitCode(String)}</li>
-   * </ul>
-   * </p>
-   */
-  protected final boolean requiresStaticInitialization(final String clazzName) {
-      return requiresStaticInitialization || cfg.forceStaticInitCode(clazzName);
-  }
-
-  /**
    * Generates the public emitters for this MethodBinding which will
    * produce either simply signatures (for the interface class, if
    * any) or function definitions with or without a body (depending on
@@ -465,13 +449,6 @@ public class JavaEmitter implements GlueEmitter {
                                 binding.signatureUsesJavaPrimitiveArrays() ||
                                 null != prologue  ||
                                 null != epilogue;
-
-      if( !requiresStaticInitialization ) {
-          requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
-          if( requiresStaticInitialization ) {
-              LOG.log(INFO, cSymbol.getASTLocusTag(), "StaticInit Trigger.1 \"{0}\"", binding);
-          }
-      }
 
       final boolean emitBody = !signatureOnly && needsBody;
       final boolean isNativeMethod = !isUnimplemented && !needsBody && !signatureOnly;
@@ -535,12 +512,6 @@ public class JavaEmitter implements GlueEmitter {
               cfg.javaEpilogueForMethod(binding, false, false) != null ;
 
       if ( !cfg.isUnimplemented( cSymbol ) ) {
-          if( !requiresStaticInitialization ) {
-              requiresStaticInitialization = binding.signatureRequiresStaticInitialization();
-              if( requiresStaticInitialization ) {
-                  LOG.log(INFO, cSymbol.getASTLocusTag(), "StaticInit Trigger.2 \"{0}\"", binding);
-              }
-          }
 
           // If we already generated a public native entry point for this
           // method, don't emit another one
