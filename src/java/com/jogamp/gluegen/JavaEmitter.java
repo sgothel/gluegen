@@ -830,7 +830,7 @@ public class JavaEmitter implements GlueEmitter {
     // Note that machDescJava MachineDataInfo is always 64bit unix,
     // which complies w/ Java types.
 
-    boolean needsNativeCode = false;
+    boolean needsNativeCode = !cfg.customJNICodeForClass(containingJTypeName).isEmpty();
 
     // Native code for calls through function pointers gets emitted
     // into the abstract base class; Java code which accesses fields
@@ -1162,6 +1162,7 @@ public class JavaEmitter implements GlueEmitter {
     javaUnit.emitln("}");
     javaUnit.close();
     if (needsNativeCode) {
+      emitCustomJNICode(jniUnit, containingJTypeName);
       jniUnit.close();
     }
     if( GlueGen.debug() ) {
@@ -2522,6 +2523,23 @@ public class JavaEmitter implements GlueEmitter {
       unit.emitln(line);
     }
     unit.emitln("  // ---- End CustomJavaCode .cfg declarations");
+  }
+
+  /**
+   * Emit all the strings specified in the "CustomJNICode" parameters of
+   * the configuration file.
+   */
+  protected void emitCustomJNICode(final CodeUnit unit, final String className) throws Exception  {
+    final List<String> code = cfg.customJNICodeForClass(className);
+    if (code.isEmpty())
+      return;
+
+    unit.emitln();
+    unit.emitln("  // --- Begin CustomJNICode .cfg declarations");
+    for (final String line : code) {
+      unit.emitln(line);
+    }
+    unit.emitln("  // ---- End CustomJNICode .cfg declarations");
   }
 
   public String[] getClassAccessModifiers(final String classFQName) {

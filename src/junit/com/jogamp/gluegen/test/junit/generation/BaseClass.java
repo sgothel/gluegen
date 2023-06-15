@@ -2256,4 +2256,8 @@ public class BaseClass extends SingletonJunitCase {
         model.setCtx(surfaceContext);
         assertAPTR(surfaceContext, model.getCtx());
     }
+
+    public void chapter14TestCustomJNICode(final Bindingtest1 binding) throws Exception {
+        Assert.assertEquals(Bindingtest1.FOO_VALUE, binding.getFoo());
+    }
 }

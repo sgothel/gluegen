@@ -175,6 +175,14 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     }
 
     /**
+     * Test Custom JNI Code invocation
+     */
+    @Test
+    public void chapter14TestCustomJNICode() throws Exception {
+        chapter14TestCustomJNICode(new Bindingtest1p2Impl());
+    }
+
+    /**
      * Verifies unloading of the new library.
      */
     @AfterClass

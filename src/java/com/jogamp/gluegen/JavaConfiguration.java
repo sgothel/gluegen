@@ -165,6 +165,7 @@ public class JavaConfiguration {
     private final Set<String> manuallyImplement = new HashSet<String>();
     private final Map<String, String> delegatedImplementation = new HashMap<String, String>();
     private final Map<String, List<String>> customJavaCode = new HashMap<String, List<String>>();
+    private final Map<String, List<String>> customJNICode = new HashMap<String, List<String>>();
     private final Map<String, List<String>> classJavadoc = new HashMap<String, List<String>>();
     private final Map<String, List<String>> methodJavadoc = new HashMap<String, List<String>>();
     private final Map<String, String> structPackages = new HashMap<String, String>();
@@ -597,6 +598,19 @@ public class JavaConfiguration {
     if (res == null) {
       res = new ArrayList<String>();
       customJavaCode.put(className, res);
+    }
+    return res;
+  }
+
+  /** Returns a list of Strings containing user-implemented JNI code for
+      the given Java type name (not fully-qualified, only the class
+      name); returns either null or an empty list if there is no
+      custom code for the class. */
+  public List<String> customJNICodeForClass(final String className) {
+    List<String> res = customJNICode.get(className);
+    if (res == null) {
+      res = new ArrayList<String>();
+      customJNICode.put(className, res);
     }
     return res;
   }
@@ -1330,6 +1344,10 @@ public class JavaConfiguration {
     } else if (cmd.equalsIgnoreCase("CustomCCode")) {
       readCustomCCode(tok, filename, lineNo);
       // Warning: make sure delimiters are reset at the top of this loop
+      // because readCustomJNICode changes them.
+    } else if (cmd.equalsIgnoreCase("CustomJNICode")) {
+      readCustomJNICode(tok, filename, lineNo);
+      // Warning: make sure delimiters are reset at the top of this loop
       // because readCustomCCode changes them.
     } else if (cmd.equalsIgnoreCase("MethodJavadoc")) {
       readMethodJavadoc(tok, filename, lineNo);
@@ -1695,6 +1713,26 @@ public class JavaConfiguration {
     } catch (final NoSuchElementException e) {
       customCCode.add("");
     }
+  }
+
+  protected void readCustomJNICode(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String tokenClassName = tok.nextToken();
+      try {
+        final String restOfLine = tok.nextToken("\n\r\f");
+        addCustomJNICode(tokenClassName, restOfLine);
+      } catch (final NoSuchElementException e) {
+        addCustomJNICode(tokenClassName, "");
+      }
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"CustomJNICode\" command at line " + lineNo +
+              " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void addCustomJNICode(final String className, final String code) {
+    final List<String> codeList = customJNICodeForClass(className);
+    codeList.add(code);
   }
 
   protected void readMethodJavadoc(final StringTokenizer tok, final String filename, final int lineNo) {

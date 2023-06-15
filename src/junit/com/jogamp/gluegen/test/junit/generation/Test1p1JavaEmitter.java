@@ -165,6 +165,14 @@ public class Test1p1JavaEmitter extends BaseClass {
         chapter15TestTKMixed(new Bindingtest1p1Impl());
     }
 
+    /**
+     * Test Custom JNI Code invocation
+     */
+    @Test
+    public void chapter14TestCustomJNICode() throws Exception {
+        chapter14TestCustomJNICode(new Bindingtest1p1Impl());
+    }
+
     public static void main(final String args[]) throws IOException {
         final String tstname = Test1p1JavaEmitter.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
