@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,20 +42,26 @@ package com.jogamp.common.nio;
 import java.nio.*;
 
 /**
- * @author Kenneth Russel, et al.
+ * @author Kenneth Russel, Sven Gothel, Michael Bien, et al.
  */
 public class StructAccessor {
 
     private final ByteBuffer bb;
 
+    /** Create a new instance. The {@link ByteBuffer} will be {@link ByteBuffer#rewind()} and native-order to be used with native code set. */
     public StructAccessor(final ByteBuffer bb) {
-        // Setting of byte order is concession to native code which needs
-        // to instantiate these
         this.bb = bb.order(ByteOrder.nativeOrder());
+        this.bb.rewind();
     }
 
+    /** Return the underlying native direct ByteBuffer */
     public final ByteBuffer getBuffer() {
         return bb;
+    }
+
+    /** Returns the native address of the underlying native ByteBuffer. */
+    public final long getDirectBufferAddress() {
+        return Buffers.getDirectBufferAddressImpl(bb);
     }
 
     /**

@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -39,7 +39,6 @@
  */
 package com.jogamp.common.nio;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
@@ -233,135 +232,6 @@ public class Buffers {
     }
 
     /**
-     * Calls slice on the specified buffer while maintaining the byteorder.
-     * @see #slice(java.nio.Buffer, int, int)
-     */
-    @SuppressWarnings("unchecked")
-    public static <B extends Buffer> B slice(final B buffer) {
-        if (buffer instanceof ByteBuffer) {
-            final ByteBuffer bb = (ByteBuffer) buffer;
-            return (B) bb.slice().order(bb.order()); // slice and duplicate may change byte order
-        } else if (buffer instanceof IntBuffer) {
-            return (B) ((IntBuffer) buffer).slice();
-        } else if (buffer instanceof ShortBuffer) {
-            return (B) ((ShortBuffer) buffer).slice();
-        } else if (buffer instanceof FloatBuffer) {
-            return (B) ((FloatBuffer) buffer).slice();
-        } else if (buffer instanceof DoubleBuffer) {
-            return (B) ((DoubleBuffer) buffer).slice();
-        } else if (buffer instanceof LongBuffer) {
-            return (B) ((LongBuffer) buffer).slice();
-        } else if (buffer instanceof CharBuffer) {
-            return (B) ((CharBuffer) buffer).slice();
-        }
-        throw new IllegalArgumentException("unexpected buffer type: " + buffer.getClass());
-    }
-
-    /**
-     * Slices the specified buffer with offset as position and offset+size as limit
-     * while maintaining the byteorder.
-     * Concurrency warning: this method changes the buffers position and limit but
-     * will restore it before return.
-     */
-    public static <B extends Buffer> B slice(final B buffer, final int offset, final int size) {
-        final int pos = buffer.position();
-        final int limit = buffer.limit();
-
-        B slice = null;
-        try {
-            buffer.position(offset).limit(offset+size);
-            slice = slice(buffer);
-        } finally {
-            buffer.position(pos).limit(limit);
-        }
-
-        return slice;
-    }
-
-    /**
-     * Slices a ByteBuffer <i>or</i> a FloatBuffer to a FloatBuffer
-     * at the given position with the given size in float-space.
-     * <p>
-     * The returned sliced buffer's start position is always zero.
-     * </p>
-     * <p>
-     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's {@link FloatBuffer#position() start position}. Hence
-     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
-     * </p>
-     * <p>
-     * Using a ByteBuffer as the source guarantees
-     * keeping the source native order programmatically.
-     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>.
-     * This bug is resolved at least in Android 3.2.
-     * </p>
-     *
-     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer.
-     *            Buffer's position is ignored and floatPos is being used.
-     * @param floatStartPos {@link Buffers#SIZEOF_FLOAT} position
-     * @param floatSize {@link Buffers#SIZEOF_FLOAT} size
-     * @return FloatBuffer w/ native byte order as given ByteBuffer
-     */
-    public static final FloatBuffer slice2Float(final Buffer buf, final int floatStartPos, final int floatSize) {
-        final int pos;
-        final int limit;
-        if(null != buf) {
-            pos = buf.position();
-            limit = buf.limit();
-        } else {
-            pos = 0;
-            limit = 0;
-        }
-        final FloatBuffer res;
-        try {
-            if(buf instanceof ByteBuffer) {
-                final ByteBuffer bb = (ByteBuffer) buf;
-                bb.position( floatStartPos * Buffers.SIZEOF_FLOAT );
-                bb.limit( (floatStartPos + floatSize) * Buffers.SIZEOF_FLOAT );
-                res = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
-            } else if(buf instanceof FloatBuffer) {
-                final FloatBuffer fb = (FloatBuffer) buf;
-                fb.position( floatStartPos );
-                fb.limit( floatStartPos + floatSize );
-                res = fb.slice(); // slice and duplicate may change byte order
-            } else {
-                throw new InternalError("Buffer not ByteBuffer, nor FloarBuffer, nor backing array given");
-            }
-        } finally {
-            if(null != buf) {
-                buf.position(pos).limit(limit);
-            }
-        }
-        res.mark();
-        return res;
-    }
-
-    /**
-     * Slices a primitive float backing array to a FloatBuffer at the given position with the given size
-     * in float-space by {@link FloatBuffer#wrap(float[], int, int) wrapping} the backing array.
-     * <p>
-     * Due to {@link FloatBuffer#wrap(float[], int, int) wrapping} the backing array,
-     * the returned sliced buffer's {@link FloatBuffer#position() start position} equals
-     * the given <code>floatStartPos</code> within the given backing array
-     * while it's {@link FloatBuffer#arrayOffset() array-offset} is zero.
-     * This has the advantage of being able to dismiss the {@link FloatBuffer#arrayOffset() array-offset}
-     * in user code, while only being required to consider it's {@link FloatBuffer#position() position}.
-     * </p>
-     * <p>
-     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's {@link FloatBuffer#position() start position}. Hence
-     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
-     * </p>
-     *
-     * @param backing source float array
-     * @param floatStartPos {@link Buffers#SIZEOF_FLOAT} position
-     * @param floatSize {@link Buffers#SIZEOF_FLOAT} size
-     * @return FloatBuffer w/ native byte order as given ByteBuffer
-     */
-    public static final FloatBuffer slice2Float(final float[] backing, final int floatStartPos, final int floatSize) {
-        return (FloatBuffer) FloatBuffer.wrap(backing, floatStartPos, floatSize).mark();
-    }
-
-
-    /**
      * Helper routine to set a ByteBuffer to the native byte order, if
      * that operation is supported by the underlying NIO
      * implementation.
@@ -371,8 +241,65 @@ public class Buffers {
     }
 
     /**
+     * Returns {@link Buffer} class matching the given lower case `typeName`
+     * @param typeName lower-case type name
+     * @return matching {@link Buffer} class or `null`
+     * @see #sizeOfBufferElem(Class)
+     */
+    public static Class<? extends Buffer> typeNameToBufferClass(final String typeName) {
+        if (typeName == null) {
+            return null;
+        }
+        if( "byte".equals(typeName) ) {
+            return ByteBuffer.class;
+        } else if( "short".equals(typeName) ) {
+            return ShortBuffer.class;
+        } else if( "char".equals(typeName) ) {
+            return CharBuffer.class;
+        } else if( "int".equals(typeName) ) {
+            return IntBuffer.class;
+        } else if( "float".equals(typeName) ) {
+            return FloatBuffer.class;
+        } else if( "long".equals(typeName) ) {
+            return LongBuffer.class;
+        } else if( "double".equals(typeName) ) {
+            return DoubleBuffer.class;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the size of a single element of the given buffer class in bytes
+     * or <code>0</code> if the given buffer is <code>null</code>.
+     * @see #typeNameToBufferClass(String)
+     * @see #sizeOfBufferElem(Object)
+     */
+    public static int sizeOfBufferElem(final Class<? extends Buffer> bufferClz) {
+        if (bufferClz == null) {
+            return 0;
+        }
+        if (ByteBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_BYTE;
+        } else if (ShortBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_SHORT;
+        } else if (CharBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_CHAR;
+        } else if (IntBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_INT;
+        } else if (FloatBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_FLOAT;
+        } else if (LongBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_LONG;
+        } else if (DoubleBuffer.class.isAssignableFrom(bufferClz)) {
+            return SIZEOF_DOUBLE;
+        }
+        throw new RuntimeException("Unexpected buffer type " + bufferClz.getName());
+    }
+
+    /**
      * Returns the size of a single element of the given buffer in bytes
      * or <code>0</code> if the given buffer is <code>null</code>.
+     * @see #sizeOfBufferElem(Class)
      */
     public static int sizeOfBufferElem(final Object buffer) {
         if (buffer == null) {
@@ -563,6 +490,429 @@ public class Buffers {
     }
 
 
+    //----------------------------------------------------------------------
+    // Slice routines (mapping buffer to typed-buffer w/o copy)
+    //
+    /**
+     * Calls slice on the specified buffer while maintaining the byteorder.
+     * @see #slice(java.nio.Buffer, int, int)
+     */
+    @SuppressWarnings("unchecked")
+    public static <B extends Buffer> B slice(final B buffer) {
+        if (buffer instanceof ByteBuffer) {
+            final ByteBuffer bb = (ByteBuffer) buffer;
+            return (B) bb.slice().order(bb.order()); // slice and duplicate may change byte order
+        } else if (buffer instanceof IntBuffer) {
+            return (B) ((IntBuffer) buffer).slice();
+        } else if (buffer instanceof ShortBuffer) {
+            return (B) ((ShortBuffer) buffer).slice();
+        } else if (buffer instanceof FloatBuffer) {
+            return (B) ((FloatBuffer) buffer).slice();
+        } else if (buffer instanceof DoubleBuffer) {
+            return (B) ((DoubleBuffer) buffer).slice();
+        } else if (buffer instanceof LongBuffer) {
+            return (B) ((LongBuffer) buffer).slice();
+        } else if (buffer instanceof CharBuffer) {
+            return (B) ((CharBuffer) buffer).slice();
+        }
+        throw new IllegalArgumentException("unexpected buffer type: " + buffer.getClass());
+    }
+
+    /**
+     * Slices the specified buffer with offset as position and offset+size as limit
+     * while maintaining the byteorder.
+     * Concurrency warning: this method changes the buffers position and limit but
+     * will restore it before return.
+     */
+    public static <B extends Buffer> B slice(final B buffer, final int offset, final int size) {
+        final int pos = buffer.position();
+        final int limit = buffer.limit();
+
+        B slice = null;
+        try {
+            buffer.position(offset).limit(offset+size);
+            slice = slice(buffer);
+        } finally {
+            buffer.position(pos).limit(limit);
+        }
+
+        return slice;
+    }
+
+    /**
+     * Slices a ByteBuffer <i>or</i> a FloatBuffer to a FloatBuffer
+     * at the given `elementStartPos` with the given `elementCount` in float-space.
+     * <p>
+     * The returned sliced buffer's start position is zero.
+     * </p>
+     * <p>
+     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's {@link FloatBuffer#position() start position}. Hence
+     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
+     * </p>
+     * <p>
+     * Using a ByteBuffer as the source guarantees
+     * keeping the source native order programmatically.
+     * This works around <a href="http://code.google.com/p/android/issues/detail?id=16434">Honeycomb / Android 3.0 Issue 16434</a>.
+     * This bug is resolved at least in Android 3.2.
+     * </p>
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or FloatBuffer.
+     *            Buffer's position is ignored and `elementStartPos` is being used.
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_FLOAT}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_FLOAT}
+     * @return FloatBuffer w/ native byte order as given ByteBuffer
+     */
+    public static final FloatBuffer slice2Float(final Buffer buf, final int elementStartPos, final int elementCount) {
+        if( null == buf ) {
+            throw new IllegalArgumentException("Buffer is null");
+        }
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final FloatBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                final ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( elementStartPos * Buffers.SIZEOF_FLOAT );
+                bb.limit( (elementStartPos + elementCount) * Buffers.SIZEOF_FLOAT );
+                res = bb.slice().order(bb.order()).asFloatBuffer(); // slice and duplicate may change byte order
+            } else if(buf instanceof FloatBuffer) {
+                final FloatBuffer fb = (FloatBuffer) buf;
+                fb.position( elementStartPos );
+                fb.limit( elementStartPos + elementCount );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new IllegalArgumentException("Buffer not ByteBuffer, nor FloarBuffer, nor backing array given");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
+        }
+        res.mark();
+        return res;
+    }
+    /**
+     * Slices a primitive float backing array to a FloatBuffer at the given `elementStartPos` with the given `elementCount`
+     * in float-space by {@link FloatBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * Due to {@link FloatBuffer#wrap(float[], int, int) wrapping} the backing array,
+     * the returned sliced buffer's {@link FloatBuffer#position() start position} equals
+     * the given <code>floatStartPos</code> within the given backing array
+     * while it's {@link FloatBuffer#arrayOffset() array-offset} is zero.
+     * This has the advantage of being able to dismiss the {@link FloatBuffer#arrayOffset() array-offset}
+     * in user code, while only being required to consider it's {@link FloatBuffer#position() position}.
+     * </p>
+     * <p>
+     * The returned sliced buffer is {@link FloatBuffer#mark() marked} at it's {@link FloatBuffer#position() start position}. Hence
+     * {@link FloatBuffer#reset()} will rewind it to start after applying relative operations like {@link FloatBuffer#get()}.
+     * </p>
+     *
+     * @param backing source float array
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_FLOAT}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_FLOAT}
+     * @return FloatBuffer w/ native byte order as given ByteBuffer
+     */
+    public static final FloatBuffer slice2Float(final float[] backing, final int elementStartPos, final int elementCount) {
+        return (FloatBuffer) FloatBuffer.wrap(backing, elementStartPos, elementCount).mark();
+    }
+
+    /**
+     * Slices a ByteBuffer <i>or</i> a ShortBuffer to a ShortBuffer
+     * at the given `elementStartPos` with the given `elementCount` in short-space.
+     * <p>
+     * The returned sliced buffer's start position is zero.
+     * </p>
+     * <p>
+     * See {@link #slice2Float(Buffer, int, int)} for details.
+     * </p>
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or ShortBuffer.
+     *            Buffer's position is ignored and `elementStartPos` is being used.
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_SHORT}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_SHORT}
+     * @return ShortBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(Buffer, int, int)
+     */
+    public static final ShortBuffer slice2Short(final Buffer buf, final int elementStartPos, final int elementCount) {
+        if( null == buf ) {
+            throw new IllegalArgumentException("Buffer is null");
+        }
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final ShortBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                final ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( elementStartPos * Buffers.SIZEOF_SHORT );
+                bb.limit( (elementStartPos + elementCount) * Buffers.SIZEOF_SHORT );
+                res = bb.slice().order(bb.order()).asShortBuffer(); // slice and duplicate may change byte order
+            } else if(buf instanceof ShortBuffer) {
+                final ShortBuffer fb = (ShortBuffer) buf;
+                fb.position( elementStartPos );
+                fb.limit( elementStartPos + elementCount );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new IllegalArgumentException("Buffer not ByteBuffer, nor ShortBuffer");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
+        }
+        res.mark();
+        return res;
+    }
+    /**
+     * Slices a primitive float backing array to a ShortBuffer at the given `elementStartPos` with the given `elementCount`
+     * in short-space by {@link ShortBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * See {@link #slice2Float(float[], int, int)} for details.
+     * </p>
+     * @param backing source float array
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_SHORT}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_SHORT}
+     * @return ShortBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(float[], int, int)
+     */
+    public static final ShortBuffer slice2Short(final short[] backing, final int elementStartPos, final int elementCount) {
+        return (ShortBuffer) ShortBuffer.wrap(backing, elementStartPos, elementCount).mark();
+    }
+
+    /**
+     * Slices a ByteBuffer <i>or</i> a CharBuffer to a CharBuffer
+     * at the given `elementStartPos` with the given `elementCount` in short-space.
+     * <p>
+     * The returned sliced buffer's start position is zero.
+     * </p>
+     * <p>
+     * See {@link #slice2Float(Buffer, int, int)} for details.
+     * </p>
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or CharBuffer.
+     *            Buffer's position is ignored and `elementStartPos` is being used.
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_CHAR}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_CHAR}
+     * @return CharBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(Buffer, int, int)
+     */
+    public static final CharBuffer slice2Char(final Buffer buf, final int elementStartPos, final int elementCount) {
+        if( null == buf ) {
+            throw new IllegalArgumentException("Buffer is null");
+        }
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final CharBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                final ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( elementStartPos * Buffers.SIZEOF_CHAR );
+                bb.limit( (elementStartPos + elementCount) * Buffers.SIZEOF_CHAR );
+                res = bb.slice().order(bb.order()).asCharBuffer(); // slice and duplicate may change byte order
+            } else if(buf instanceof CharBuffer) {
+                final CharBuffer fb = (CharBuffer) buf;
+                fb.position( elementStartPos );
+                fb.limit( elementStartPos + elementCount );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new IllegalArgumentException("Buffer not ByteBuffer, nor CharBuffer");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
+        }
+        res.mark();
+        return res;
+    }
+    /**
+     * Slices a primitive float backing array to a CharBuffer at the given `elementStartPos` with the given `elementCount`
+     * in short-space by {@link CharBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * See {@link #slice2Float(float[], int, int)} for details.
+     * </p>
+     * @param backing source float array
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_CHAR}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_CHAR}
+     * @return CharBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(float[], int, int)
+     */
+    public static final CharBuffer slice2Char(final char[] backing, final int elementStartPos, final int elementCount) {
+        return (CharBuffer) CharBuffer.wrap(backing, elementStartPos, elementCount).mark();
+    }
+
+    /**
+     * Slices a ByteBuffer <i>or</i> a IntBuffer to a IntBuffer
+     * at the given `elementStartPos` with the given `elementCount` in int-space.
+     * <p>
+     * The returned sliced buffer's start position is zero.
+     * </p>
+     * <p>
+     * See {@link #slice2Float(Buffer, int, int)} for details.
+     * </p>
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or IntBuffer.
+     *            Buffer's position is ignored and `elementStartPos` is being used.
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_INT}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_INT}
+     * @return IntBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(Buffer, int, int)
+     */
+    public static final IntBuffer slice2Int(final Buffer buf, final int elementStartPos, final int elementCount) {
+        if( null == buf ) {
+            throw new IllegalArgumentException("Buffer is null");
+        }
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final IntBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                final ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( elementStartPos * Buffers.SIZEOF_INT );
+                bb.limit( (elementStartPos + elementCount) * Buffers.SIZEOF_INT );
+                res = bb.slice().order(bb.order()).asIntBuffer(); // slice and duplicate may change byte order
+            } else if(buf instanceof IntBuffer) {
+                final IntBuffer fb = (IntBuffer) buf;
+                fb.position( elementStartPos );
+                fb.limit( elementStartPos + elementCount );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new IllegalArgumentException("Buffer not ByteBuffer, nor IntBuffer");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
+        }
+        res.mark();
+        return res;
+    }
+    /**
+     * Slices a primitive float backing array to a IntBuffer at the given `elementStartPos` with the given `elementCount`
+     * in int-space by {@link IntBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * See {@link #slice2Float(float[], int, int)} for details.
+     * </p>
+     * @param backing source float array
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_INT}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_INT}
+     * @return IntBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(float[], int, int)
+     */
+    public static final IntBuffer slice2Int(final int[] backing, final int elementStartPos, final int elementCount) {
+        return (IntBuffer) IntBuffer.wrap(backing, elementStartPos, elementCount).mark();
+    }
+
+    /**
+     * Slices a ByteBuffer <i>or</i> a LongBuffer to a LongBuffer
+     * at the given `elementStartPos` with the given `elementCount` in long-space.
+     * <p>
+     * The returned sliced buffer's start position is zero.
+     * </p>
+     * <p>
+     * See {@link #slice2Float(Buffer, int, int)} for details.
+     * </p>
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or LongBuffer.
+     *            Buffer's position is ignored and `elementStartPos` is being used.
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_LONG}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_LONG}
+     * @return LongBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(Buffer, int, int)
+     */
+    public static final LongBuffer slice2Long(final Buffer buf, final int elementStartPos, final int elementCount) {
+        if( null == buf ) {
+            throw new IllegalArgumentException("Buffer is null");
+        }
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final LongBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                final ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( elementStartPos * Buffers.SIZEOF_LONG );
+                bb.limit( (elementStartPos + elementCount) * Buffers.SIZEOF_LONG );
+                res = bb.slice().order(bb.order()).asLongBuffer(); // slice and duplicate may change byte order
+            } else if(buf instanceof LongBuffer) {
+                final LongBuffer fb = (LongBuffer) buf;
+                fb.position( elementStartPos );
+                fb.limit( elementStartPos + elementCount );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new IllegalArgumentException("Buffer not ByteBuffer, nor LongBuffer");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
+        }
+        res.mark();
+        return res;
+    }
+    /**
+     * Slices a primitive float backing array to a LongBuffer at the given `elementStartPos` with the given `elementCount`
+     * in long-space by {@link LongBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * See {@link #slice2Float(float[], int, int)} for details.
+     * </p>
+     * @param backing source float array
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_LONG}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_LONG}
+     * @return LongBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(float[], int, int)
+     */
+    public static final LongBuffer slice2Long(final long[] backing, final int elementStartPos, final int elementCount) {
+        return (LongBuffer) LongBuffer.wrap(backing, elementStartPos, elementCount).mark();
+    }
+
+    /**
+     * Slices a ByteBuffer <i>or</i> a DoubleBuffer to a DoubleBuffer
+     * at the given `elementStartPos` with the given `elementCount` in double-space.
+     * <p>
+     * The returned sliced buffer's start position is zero.
+     * </p>
+     * <p>
+     * See {@link #slice2Float(Buffer, int, int)} for details.
+     * </p>
+     *
+     * @param buf source Buffer, maybe ByteBuffer (recommended) or DoubleBuffer.
+     *            Buffer's position is ignored and `elementStartPos` is being used.
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_DOUBLE}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_DOUBLE}
+     * @return DoubleBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(Buffer, int, int)
+     */
+    public static final DoubleBuffer slice2Double(final Buffer buf, final int elementStartPos, final int elementCount) {
+        if( null == buf ) {
+            throw new IllegalArgumentException("Buffer is null");
+        }
+        final int pos = buf.position();
+        final int limit = buf.limit();
+        final DoubleBuffer res;
+        try {
+            if(buf instanceof ByteBuffer) {
+                final ByteBuffer bb = (ByteBuffer) buf;
+                bb.position( elementStartPos * Buffers.SIZEOF_DOUBLE );
+                bb.limit( (elementStartPos + elementCount) * Buffers.SIZEOF_DOUBLE );
+                res = bb.slice().order(bb.order()).asDoubleBuffer(); // slice and duplicate may change byte order
+            } else if(buf instanceof DoubleBuffer) {
+                final DoubleBuffer fb = (DoubleBuffer) buf;
+                fb.position( elementStartPos );
+                fb.limit( elementStartPos + elementCount );
+                res = fb.slice(); // slice and duplicate may change byte order
+            } else {
+                throw new IllegalArgumentException("Buffer not ByteBuffer, nor DoubleBuffer");
+            }
+        } finally {
+            buf.position(pos).limit(limit);
+        }
+        res.mark();
+        return res;
+    }
+    /**
+     * Slices a primitive float backing array to a DoubleBuffer at the given `elementStartPos` with the given `elementCount`
+     * in double-space by {@link DoubleBuffer#wrap(float[], int, int) wrapping} the backing array.
+     * <p>
+     * See {@link #slice2Float(float[], int, int)} for details.
+     * </p>
+     * @param backing source float array
+     * @param elementStartPos element start position w/ element of size {@link Buffers#SIZEOF_DOUBLE}
+     * @param elementCount element count for element of size {@link Buffers#SIZEOF_DOUBLE}
+     * @return DoubleBuffer w/ native byte order as given ByteBuffer
+     * @see #slice2Float(float[], int, int)
+     */
+    public static final DoubleBuffer slice2Double(final double[] backing, final int elementStartPos, final int elementCount) {
+        return (DoubleBuffer) DoubleBuffer.wrap(backing, elementStartPos, elementCount).mark();
+    }
     //----------------------------------------------------------------------
     // Copy routines (type-to-type)
     //
@@ -1710,4 +2060,72 @@ public class Buffers {
             }
         }
     }
+
+    /**
+     * Copy `len` native bytes @ `source_address` into a newly created direct {@link ByteBuffer}.
+     * @param source_address memory address of bytes to copy from
+     * @param len number of bytes to copy
+     * @return newly created direct {@link ByteBuffer} holding the copied bytes
+     */
+    public static ByteBuffer copyNativeToDirectByteBuffer(final long source_address, final long len) {
+        final Method id;
+        if( Integer.MAX_VALUE < len ) {
+            throw new IllegalArgumentException("length "+len+" > MAX_INT");
+        }
+        final int lenI = (int)len;
+        final ByteBuffer bb = Buffers.newDirectByteBuffer(lenI);
+        if( null == bb ) {
+            throw new RuntimeException("New direct ByteBuffer is NULL");
+        }
+        if( 0 < lenI ) {
+            final long byteBufferPtr = getDirectBufferAddressImpl(bb);
+            memcpyImpl(byteBufferPtr, source_address, lenI);
+        }
+        return bb;
+    }
+
+    /* pp */ static ByteBuffer getDirectByteBuffer(final long aptr, final int byteCount) {
+        final ByteBuffer r = getDirectByteBufferImpl(aptr, byteCount);
+        return null != r ? nativeOrder( r ) : null;
+    }
+
+    /* pp */ static void storeDirectAddress(final long addr, final ByteBuffer dest, final int destBytePos, final int nativeSizeInBytes) {
+        switch(nativeSizeInBytes) {
+            case 4:
+                dest.putInt(destBytePos, (int) ( addr & 0x00000000FFFFFFFFL ) );
+                break;
+            case 8:
+                dest.putLong(destBytePos, addr);
+                break;
+            default:
+                throw new InternalError("invalid nativeSizeInBytes "+nativeSizeInBytes);
+        }
+    }
+
+    /**
+     * Returns <code>strnlen(cstrptr, maxlen)</code> according to POSIX.1-2008.
+     * <p>
+     * The `strnlen()` function returns the number of bytes in the string pointed to by `cstrptr`, excluding the terminating null byte ('\0'), but at most `maxlen`.
+     * In doing this, `strnlen()` looks only at the first `maxlen` characters in the string pointed to by `cstrptr` and never beyond `cstrptr[maxlen-1]`.
+     * </p>
+     */
+    public static int strnlen(final long cstrptr, final int maxlen) {
+        return strnlenImpl(cstrptr, maxlen);
+    }
+
+    /**
+     * Returns <code>memcpy(dest, src, len)</code> according to POSIX.1-2001, POSIX.1-2008.
+     * <p>
+     * The `memcpy()` function copies `len` bytes from memory area `src` to memory area `dest`.  The memory areas must not overlap.<br/>
+     * The `memcpy()` function returns a pointer to `dest`.
+     * </p>
+    public static long memcpy(final long dest, final long src, final long len) {
+        return memcpyImpl(dest, src, len);
+    }
+     */
+
+    /* pp */ static native long getDirectBufferAddressImpl(Object directBuffer);
+    private static native ByteBuffer getDirectByteBufferImpl(long aptr, int byteCount);
+    private static native int strnlenImpl(long cstrptr, int maxlen);
+    private static native long memcpyImpl(long dest, long src, long len);
 }

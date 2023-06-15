@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@
 package com.jogamp.common.nio;
 
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 
 /**
  * Hardware independent container for various kinds of buffers.
@@ -76,19 +77,34 @@ public interface NativeBuffer<B extends NativeBuffer> {
      */
     public Object array() throws UnsupportedOperationException ;
 
+    /** Returns the underlying buffer object. */
     public Buffer getBuffer();
-
+    /** Return true if the underlying buffer is NIO direct, otherwise false. */
     public boolean isDirect();
+    /** Returns the native address of the underlying buffer if {@link #isDirect()}, otherwise {@code 0}. */
+    public long getDirectBufferAddress();
+    /**
+     * Store the {@link #getDirectBufferAddress()} into the given {@link ByteBuffer} using relative put.
+     * <p>
+     * The native pointer value is stored either as a 32bit (int) or 64bit (long) wide value,
+     * depending of the CPU pointer width.
+     * </p>
+     */
+    public void storeDirectAddress(final ByteBuffer directDest);
+    /**
+     * Store the {@link #getDirectBufferAddress()} into the given {@link ByteBuffer} using absolute put.
+     * <p>
+     * The native pointer value is stored either as a 32bit (int) or 64bit (long) wide value,
+     * depending of the CPU pointer width.
+     * </p>
+     **/
+    public void storeDirectAddress(final ByteBuffer directDest, final int destOffset);
 
     public B rewind();
 
-    public B put(int index, long value);
-
-    public B put(long value);
-
+    /**
+     * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code>
+     * to this buffer and increment the position by <code>capacity-position</code>.
+     */
     public B put(B src);
-
-    public long get();
-
-    public long get(int idx);
 }

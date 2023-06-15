@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -34,6 +34,9 @@ package com.jogamp.common.nio;
 import com.jogamp.common.os.*;
 
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
 
 /**
  * @author Sven Gothel
@@ -41,6 +44,8 @@ import java.nio.Buffer;
  */
 @SuppressWarnings("rawtypes")
 public abstract class AbstractBuffer<B extends AbstractBuffer> implements NativeBuffer<B> {
+    /** Platform dependent pointer size in bytes, i.e. 32bit or 64bit wide, depending of the CPU pointer width. */
+    public static final int POINTER_SIZE;
 
     protected final Buffer buffer;
     protected final int elementSize;
@@ -49,6 +54,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
 
     static {
         Platform.initSingleton(); // loads native gluegen_rt library
+        POINTER_SIZE = Platform.is32Bit() ? Buffers.SIZEOF_INT : Buffers.SIZEOF_LONG ;
     }
 
     /**
@@ -118,10 +124,43 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     public final Buffer getBuffer() {
         return buffer;
     }
-
     @Override
     public final boolean isDirect() {
         return buffer.isDirect();
+    }
+    @Override
+    public long getDirectBufferAddress() {
+        if( isDirect() ) {
+            return Buffers.getDirectBufferAddressImpl(buffer);
+        } else {
+            return 0;
+        }
+    }
+    @Override
+    public void storeDirectAddress(final ByteBuffer directDest) {
+        final long addr = getDirectBufferAddress();
+        switch(POINTER_SIZE) {
+            case 4:
+                directDest.putInt(0, (int) ( addr & 0x00000000FFFFFFFFL ) );
+                break;
+            case 8:
+                directDest.putLong(0, addr);
+                break;
+        }
+        directDest.position(directDest.position()+POINTER_SIZE);
+    }
+
+    @Override
+    public void storeDirectAddress(final ByteBuffer directDest, final int destBytePos) {
+        final long addr = getDirectBufferAddress();
+        switch(POINTER_SIZE) {
+            case 4:
+                directDest.putInt(destBytePos, (int) ( addr & 0x00000000FFFFFFFFL ) );
+                break;
+            case 8:
+                directDest.putLong(destBytePos, addr);
+                break;
+        }
     }
 
     @Override
@@ -143,9 +182,11 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         return buffer.array();
     }
 
+    protected String toSubString() {
+        return "[direct["+isDirect()+", addr 0x"+Long.toHexString(getDirectBufferAddress())+"], hasArray "+hasArray()+", capacity "+capacity+", position "+position+", elementSize "+elementSize+", buffer[capacity "+buffer.capacity()+", lim "+buffer.limit()+", pos "+buffer.position()+"]]";
+    }
     @Override
     public String toString() {
-        return "AbstractBuffer[direct "+isDirect()+", hasArray "+hasArray()+", capacity "+capacity+", position "+position+", elementSize "+elementSize+", buffer[capacity "+buffer.capacity()+", lim "+buffer.limit()+", pos "+buffer.position()+"]]";
+        return "AbstractBuffer"+toSubString();
     }
-
 }

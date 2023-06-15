@@ -28,6 +28,7 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
+import com.jogamp.common.nio.AbstractBuffer;
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.PointerBuffer;
 import com.jogamp.common.os.MachineDataInfo;
@@ -465,8 +466,8 @@ public class BaseClass extends SingletonJunitCase {
         return pb;
     }
     PointerBuffer safeByteBuffer2PointerBuffer(final ByteBuffer bb, final int elements) {
-        Assert.assertEquals("ByteBuffer capacity not PointerBuffer ELEMENT_SIZE * "+elements, elements * PointerBuffer.ELEMENT_SIZE, bb.capacity());
-        Assert.assertEquals("ByteBuffer remaining not PointerBuffer ELEMENT_SIZE * "+elements, elements * PointerBuffer.ELEMENT_SIZE, bb.remaining());
+        Assert.assertEquals("ByteBuffer capacity not PointerBuffer POINTER_SIZE * "+elements, elements * AbstractBuffer.POINTER_SIZE, bb.capacity());
+        Assert.assertEquals("ByteBuffer remaining not PointerBuffer POINTER_SIZE * "+elements, elements * AbstractBuffer.POINTER_SIZE, bb.remaining());
         return validatePointerBuffer(PointerBuffer.wrap(bb), elements);
     }
 
@@ -849,7 +850,7 @@ public class BaseClass extends SingletonJunitCase {
               Assert.assertEquals(l0, l1);
               Assert.assertEquals(l0, l2);
 
-              final ByteBuffer bb = Buffers.newDirectByteBuffer(PointerBuffer.ELEMENT_SIZE);
+              final ByteBuffer bb = Buffers.newDirectByteBuffer(AbstractBuffer.POINTER_SIZE);
               for(int j=0; j<bb.limit(); j++) {
                   bb.put(j, (byte)(0xAA+j));
               }
