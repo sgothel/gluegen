@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -153,6 +154,17 @@ public class MethodBinding {
 
     public Type getCArgumentType(final int i) {
         return sym.getArgumentType(i);
+    }
+
+    public final boolean isReturnCompoundByValue() {
+        final Type cReturnType = getCReturnType();
+        if (cReturnType.isVoid()) {
+            return false;
+        }
+        if (javaReturnType.isPrimitive()) {
+            return false;
+        }
+        return !cReturnType.isPointer() && javaReturnType.isCompoundTypeWrapper();
     }
 
     /** Returns the {@link FunctionSymbol}. */

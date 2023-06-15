@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,15 +40,18 @@
 
 package com.jogamp.gluegen;
 
-import java.util.*;
-import java.io.*;
+import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.List;
 
 import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.gluegen.Logging.LoggerIf;
-import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.cgram.types.ArrayType;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.PointerType;
+import com.jogamp.gluegen.cgram.types.Type;
 
-/** Emits the C-side component of the Java<->C JNI binding. */
+/** Emits the C-side component of the Java<->C JNI binding to its {@link CodeUnit}, see {@link FunctionEmitter}. */
 public class CMethodBindingEmitter extends FunctionEmitter {
 
   protected static final CommentEmitter defaultCommentEmitter = new DefaultCommentEmitter();
@@ -57,8 +61,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   protected static final String arrayIdx       = "_array_idx";
 
   protected final LoggerIf LOG;
-
-  protected MethodBinding binding;
 
   /** Name of the package in which the corresponding Java method resides.*/
   private final String packageName;
@@ -117,7 +119,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
    * being bound.
    */
   public CMethodBindingEmitter(final MethodBinding binding,
-                               final PrintWriter output,
+                               final CodeUnit unit,
                                final String javaPackageName,
                                final String javaClassName,
                                final boolean isOverloadedBinding,
@@ -127,14 +129,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                                final MachineDataInfo machDesc,
                                final JavaConfiguration configuration)
   {
-    super(output, false, configuration);
+    super(binding, unit, false, configuration);
     LOG = Logging.getLogger(CMethodBindingEmitter.class.getPackage().getName(), CMethodBindingEmitter.class.getSimpleName());
 
     assert(binding != null);
     assert(javaClassName != null);
     assert(javaPackageName != null);
 
-    this.binding = binding;
     this.packageName = javaPackageName;
     this.className = javaClassName;
     this.isOverloadedBinding = isOverloadedBinding;
@@ -146,8 +147,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
     setCommentEmitter(defaultCommentEmitter);
   }
-
-  public final MethodBinding getBinding() { return binding; }
 
   @Override
   public String getInterfaceName() {
@@ -308,21 +307,21 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
 
   @Override
-  protected void emitReturnType(final PrintWriter writer)  {
-    writer.print("JNIEXPORT ");
-    writer.print(binding.getJavaReturnType().jniTypeName());
-    writer.print(" JNICALL");
+  protected void emitReturnType()  {
+    unit.emit("JNIEXPORT ");
+    unit.emit(binding.getJavaReturnType().jniTypeName());
+    unit.emit(" JNICALL");
   }
 
   @Override
-  protected void emitName(final PrintWriter writer)  {
-    writer.println(); // start name on new line
-    writer.print(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
-    writer.print("_");
+  protected void emitName()  {
+    unit.emitln(); // start name on new line
+    unit.emit(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
+    unit.emit("_");
     if (isOverloadedBinding)    {
-      writer.print(jniMangle(binding));
+      unit.emit(jniMangle(binding));
     } else {
-      writer.print(JavaEmitter.jniMangle(getImplName()));
+      unit.emit(JavaEmitter.jniMangle(getImplName()));
     }
   }
 
@@ -338,20 +337,24 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   }
 
   @Override
-  protected int emitArguments(final PrintWriter writer)  {
-    writer.print("JNIEnv *env, ");
+  protected int emitArguments()  {
+    unit.emit("JNIEnv *env, ");
     int numEmitted = 1; // initially just the JNIEnv
     if (isJavaMethodStatic && !binding.hasContainingType())    {
-      writer.print("jclass");
+      unit.emit("jclass");
     } else {
-      writer.print("jobject");
+      unit.emit("jobject");
     }
-    writer.print(" _unused");
+    unit.emit(" _unused");
     ++numEmitted;
 
+    if( binding.isReturnCompoundByValue() ) {
+        unit.emit(", jclass _clazzBuffers");
+        ++numEmitted;
+    }
     if (binding.hasContainingType())   {
       // "this" argument always comes down in argument 0 as direct buffer
-      writer.print(", jobject " + JavaMethodBindingEmitter.javaThisArgumentName());
+      unit.emit(", jobject " + JavaMethodBindingEmitter.javaThisArgumentName());
     }
     for (int i = 0; i < binding.getNumArguments(); i++) {
       final JavaType javaArgType = binding.getJavaArgumentType(i);
@@ -365,20 +368,20 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
         continue;
       }
-      writer.print(", ");
-      writer.print(javaArgType.jniTypeName());
-      writer.print(" ");
-      writer.print(binding.getArgumentName(i));
+      unit.emit(", ");
+      unit.emit(javaArgType.jniTypeName());
+      unit.emit(" ");
+      unit.emit(binding.getArgumentName(i));
       ++numEmitted;
 
       if (javaArgType.isPrimitiveArray() ||
           javaArgType.isNIOBuffer()) {
-        writer.print(", jint " + byteOffsetArgName(i));
+        unit.emit(", jint " + byteOffsetArgName(i));
         if(forIndirectBufferAndArrayImplementation) {
-            writer.print(", jboolean " + isNIOArgName(i));
+            unit.emit(", jboolean " + isNIOArgName(i));
         }
       } else if (javaArgType.isNIOBufferArray()) {
-        writer.print(", jintArray " +
+        unit.emit(", jintArray " +
                      byteOffsetArrayArgName(i));
       }
     }
@@ -387,25 +390,24 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
 
   @Override
-  protected void emitBody(final PrintWriter writer)  {
-    writer.println(" {");
-//    writer.println("printf(\" - - - - "+ getName() + getImplSuffix() +" - - - -\\n\");");
-    emitBodyVariableDeclarations(writer);
-    emitBodyUserVariableDeclarations(writer);
-    emitBodyVariablePreCallSetup(writer);
-    emitBodyCallCFunction(writer);
-    emitBodyUserVariableAssignments(writer);
-    emitBodyVariablePostCallCleanup(writer);
-    emitBodyReturnResult(writer);
-    writer.println("}");
-    writer.println();
+  protected void emitBody()  {
+    unit.emitln(" {");
+//    unit().emitln("printf(\" - - - - "+ getName() + getImplSuffix() +" - - - -\\n\");");
+    emitBodyVariableDeclarations();
+    emitBodyUserVariableDeclarations();
+    emitBodyVariablePreCallSetup();
+    emitBodyCallCFunction();
+    emitBodyUserVariableAssignments();
+    emitBodyVariablePostCallCleanup();
+    emitBodyReturnResult();
+    unit.emitln("}");
+    unit.emitln();
   }
 
-  protected void emitBodyVariableDeclarations(final PrintWriter writer)  {
+  protected void emitBodyVariableDeclarations()  {
     // Emit declarations for all pointer and String conversion variables
     if (binding.hasContainingType()) {
-      emitPointerDeclaration(writer,
-                             binding.getContainingType(),
+      emitPointerDeclaration(binding.getContainingType(),
                              binding.getContainingCType(),
                              CMethodBindingEmitter.cThisArgumentName(),
                              null);
@@ -423,20 +425,19 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         final String convName = pointerConversionArgumentName(javaArgName);
         // handle array/buffer argument types
         final boolean needsDataCopy =
-          emitPointerDeclaration(writer,
-                                 type,
+          emitPointerDeclaration(type,
                                  binding.getCArgumentType(i),
                                  convName, javaArgName);
         if (needsDataCopy && !emittedDataCopyTemps) {
           // emit loop counter and array length variables used during data
           // copy
-          writer.println("  jobject _tmpObj;");
-          writer.println("  int _copyIndex;");
-          writer.println("  jsize _tmpArrayLen;");
+          unit.emitln("  jobject _tmpObj;");
+          unit.emitln("  int _copyIndex;");
+          unit.emitln("  jsize _tmpArrayLen;");
 
           // Pointer to the data in the Buffer, taking the offset into account
           if(type.isNIOBufferArray()) {
-            writer.println("  int * _offsetHandle = NULL;");
+            unit.emitln("  int * _offsetHandle = NULL;");
           }
 
           emittedDataCopyTemps = true;
@@ -444,13 +445,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       } else if (type.isString()) {
         final Type cType = binding.getCArgumentType(i);
         if (isUTF8Type(cType)) {
-          writer.print("  const char* ");
+          unit.emit("  const char* ");
         } else {
-          writer.print("  jchar* ");
+          unit.emit("  jchar* ");
         }
-        writer.print(STRING_CHARS_PREFIX);
-        writer.print(binding.getArgumentName(i));
-        writer.println(" = NULL;");
+        unit.emit(STRING_CHARS_PREFIX);
+        unit.emit(binding.getArgumentName(i));
+        unit.emitln(" = NULL;");
       }
 
     }
@@ -460,27 +461,27 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
     final JavaType javaReturnType = binding.getJavaReturnType();
     if (!cReturnType.isVoid()) {
-      writer.print("  ");
+      unit.emit("  ");
       // Note we respect const/volatile in the function return type.
       // However, we cannot have it 'const' for our local variable.
       // See cast in emitBodyCallCFunction(..)!
-      writer.print(binding.getCSymbol().getReturnType().getCName(false));
-      writer.println(" _res;");
+      unit.emit(binding.getCSymbol().getReturnType().getCName(false));
+      unit.emitln(" _res;");
       if (javaReturnType.isNIOByteBufferArray() ||
           javaReturnType.isArrayOfCompoundTypeWrappers()) {
-        writer.print("  int ");
-        writer.print(arrayResLength);
-        writer.println(";");
-        writer.print("  int ");
-        writer.print(arrayIdx);
-        writer.println(";");
-        writer.print("  jobjectArray ");
-        writer.print(arrayRes);
-        writer.println(";");
+        unit.emit("  int ");
+        unit.emit(arrayResLength);
+        unit.emitln(";");
+        unit.emit("  int ");
+        unit.emit(arrayIdx);
+        unit.emitln(";");
+        unit.emit("  jobjectArray ");
+        unit.emit(arrayRes);
+        unit.emitln(";");
       } else if (javaReturnType.isArray()) {
-        writer.print("  int ");
-        writer.print(arrayResLength);
-        writer.println(";");
+        unit.emit("  int ");
+        unit.emit(arrayResLength);
+        unit.emitln(";");
 
         final Class<?> componentType = javaReturnType.getJavaClass().getComponentType();
         if (componentType.isArray()) {
@@ -489,22 +490,22 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         final String javaTypeName = componentType.getName();
         final String javaArrayTypeName = "j" + javaTypeName + "Array";
-        writer.print("  ");
-        writer.print(javaArrayTypeName);
-        writer.print(" ");
-        writer.print(arrayRes);
-        writer.println(";");
+        unit.emit("  ");
+        unit.emit(javaArrayTypeName);
+        unit.emit(" ");
+        unit.emit(arrayRes);
+        unit.emitln(";");
       }
     }
   }
 
   /** Emits the user-defined C variable declarations from the
       TemporaryCVariableDeclarations directive in the .cfg file. */
-  protected void emitBodyUserVariableDeclarations(final PrintWriter writer) {
+  protected void emitBodyUserVariableDeclarations() {
     if (temporaryCVariableDeclarations != null) {
       for (final String val : temporaryCVariableDeclarations) {
-        writer.print("  ");
-        writer.println(val);
+        unit.emit("  ");
+        unit.emitln(val);
       }
     }
   }
@@ -545,13 +546,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
    * emitBodyVariableDeclarations(), PRIOR TO calling the actual C
    * function.
    */
-  protected void emitBodyVariablePreCallSetup(final PrintWriter writer)  {
+  protected void emitBodyVariablePreCallSetup()  {
 
     // Convert all Buffers to pointers first so we don't have to
     // call ReleasePrimitiveArrayCritical for any arrays if any
     // incoming buffers aren't direct
     if (binding.hasContainingType()) {
-        emitPointerConversion(writer, binding,
+        emitPointerConversion(binding,
                               binding.getContainingType(),
                               binding.getContainingCType(),
                               JavaMethodBindingEmitter.javaThisArgumentName(),
@@ -570,7 +571,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
       if (javaArgType.isCompoundTypeWrapper() ||
           (javaArgType.isNIOBuffer() && !forIndirectBufferAndArrayImplementation ) ) {
-        emitPointerConversion(writer, binding, javaArgType,
+        emitPointerConversion(binding, javaArgType,
                               binding.getCArgumentType(i), javaArgName,
                               pointerConversionArgumentName(javaArgName),
                               byteOffsetArgName(i));
@@ -579,7 +580,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                  ( javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation ) ) {
         final boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
 
-        writer.println("  if ( NULL != " + javaArgName + " ) {");
+        unit.emitln("  if ( NULL != " + javaArgName + " ) {");
 
         final Type cArgType = binding.getCArgumentType(i);
         String cArgTypeName = cArgType.getCName();
@@ -587,17 +588,17 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         final String convName = pointerConversionArgumentName(javaArgName);
 
         if (!needsDataCopy) {
-          writer.print("    ");
-          writer.print(convName);
-          writer.print(" = (");
+          unit.emit("    ");
+          unit.emit(convName);
+          unit.emit(" = (");
           if (javaArgType.isStringArray()) {
             // java-side type is String[]
             cArgTypeName = "jstring *";
           }
-          writer.print(cArgTypeName);
-          writer.print(") ( JNI_TRUE == " + isNIOArgName(i) + " ? ");
-          writer.print(" (*env)->GetDirectBufferAddress(env, " + javaArgName + ") : ");
-          writer.print(" (*env)->GetPrimitiveArrayCritical(env, " + javaArgName + ", NULL) );");
+          unit.emit(cArgTypeName);
+          unit.emit(") ( JNI_TRUE == " + isNIOArgName(i) + " ? ");
+          unit.emit(" (*env)->GetDirectBufferAddress(env, " + javaArgName + ") : ");
+          unit.emit(" (*env)->GetPrimitiveArrayCritical(env, " + javaArgName + ", NULL) );");
         } else {
           // Handle the case where the array elements are of a type that needs a
           // data copy operation to convert from the java memory model to the C
@@ -618,16 +619,16 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               "\": support for non-const ptr-to-ptr types not implemented: "+binding, binding.getCSymbol().getASTLocusTag());
           }
 
-          writer.println();
-          writer.println("    /* Copy contents of " + javaArgName + " into " + convName + "_copy */");
+          unit.emitln();
+          unit.emitln("    /* Copy contents of " + javaArgName + " into " + convName + "_copy */");
 
           // get length of array being copied
           final String arrayLenName = "_tmpArrayLen";
-          writer.print("    ");
-          writer.print(arrayLenName);
-          writer.print(" = (*env)->GetArrayLength(env, ");
-          writer.print(javaArgName);
-          writer.println(");");
+          unit.emit("    ");
+          unit.emit(arrayLenName);
+          unit.emit(" = (*env)->GetArrayLength(env, ");
+          unit.emit(javaArgName);
+          unit.emitln(");");
 
           // allocate an array to hold each element
           final Type cArgElementType, cArgElementType2;
@@ -666,7 +667,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               }
           }
           emitMalloc(
-            writer,
             convName+"_copy",
             cArgElementType.getCName(),
             cArgType.isBaseTypeConst(),
@@ -679,33 +679,31 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           // GetObjectArrayElement while in a critical section. May
           // need to do another loop and add in the offsets.
           if (javaArgType.isNIOBufferArray()) {
-            writer.println
+            unit.emitln
               ("    _offsetHandle = (int *) (*env)->GetPrimitiveArrayCritical(env, " +
                byteOffsetArrayArgName(i) +
                ", NULL);");
           }
 
           // process each element in the array
-          writer.println("    for (_copyIndex = 0; _copyIndex < "+arrayLenName+"; ++_copyIndex) {");
+          unit.emitln("    for (_copyIndex = 0; _copyIndex < "+arrayLenName+"; ++_copyIndex) {");
 
           // get each array element
-          writer.println("      /* get each element of the array argument \"" + javaArgName + "\" */");
-          writer.print("      _tmpObj = (*env)->GetObjectArrayElement(env, ");
-          writer.print(javaArgName);
-          writer.println(", _copyIndex);");
+          unit.emitln("      /* get each element of the array argument \"" + javaArgName + "\" */");
+          unit.emit("      _tmpObj = (*env)->GetObjectArrayElement(env, ");
+          unit.emit(javaArgName);
+          unit.emitln(", _copyIndex);");
 
           if (javaArgType.isStringArray()) {
-            writer.print("  ");
-            emitGetStringChars(writer,
-                               "(jstring) _tmpObj",
+            unit.emit("  ");
+            emitGetStringChars("(jstring) _tmpObj",
                                convName+"_copy[_copyIndex]",
                                isUTF8Type(cArgType),
                                true);
           } else if (javaArgType.isNIOBufferArray()) {
             /* We always assume an integer "byte offset" argument follows any Buffer
                in the method binding. */
-            emitGetDirectBufferAddress(writer,
-                                       "_tmpObj",
+            emitGetDirectBufferAddress("_tmpObj",
                                        cArgElementType.getCName(),
                                        convName + "_copy[_copyIndex]",
                                        true,
@@ -714,8 +712,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // These come down in similar fashion to an array of NIO
             // Buffers only we do not pass down any integer byte
             // offset argument
-            emitGetDirectBufferAddress(writer,
-                                       "_tmpObj",
+            emitGetDirectBufferAddress("_tmpObj",
                                        cArgElementType.getCName(),
                                        "("+convName + "_copy + _copyIndex)",
                                        false /* !receivingIsPtrPtr -> linear layout -> use memcpy */,
@@ -730,10 +727,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // assign it to the appropriate elements at pointer depth 1?
             // Probably depends on const-ness of the argument.
             // Malloc enough space to hold a copy of each sub-array
-            writer.print("      ");
-            emitMalloc(
-                       writer,
-                       convName+"_copy[_copyIndex]",
+            unit.emit("      ");
+            emitMalloc(convName+"_copy[_copyIndex]",
                        cArgElementType2.getCName(), // assumes cArgPtrType is ptr-to-ptr-to-primitive !!
                        cArgType.isBaseTypeConst(),
                        "(*env)->GetArrayLength(env, _tmpObj)",
@@ -746,22 +741,22 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             }
 
           }
-          writer.println("    }");
+          unit.emitln("    }");
 
           if (javaArgType.isNIOBufferArray()) {
-            writer.println
+            unit.emitln
               ("    (*env)->ReleasePrimitiveArrayCritical(env, " +
                byteOffsetArrayArgName(i) +
                ", _offsetHandle, JNI_ABORT);");
           }
 
-          writer.println();
+          unit.emitln();
         } // end of data copy
 
-        writer.println("  }");
+        unit.emitln("  }");
 
       } else if (javaArgType.isString()) {
-        emitGetStringChars(writer, javaArgName,
+        emitGetStringChars(javaArgName,
                            STRING_CHARS_PREFIX + javaArgName,
                            isUTF8Type(binding.getCArgumentType(i)),
                            false);
@@ -774,7 +769,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
    * Code to clean up any variables that were declared in
    * emitBodyVariableDeclarations(), AFTER calling the actual C function.
    */
-  protected void emitBodyVariablePostCallCleanup(final PrintWriter writer) {
+  protected void emitBodyVariablePostCallCleanup() {
 
     // Release primitive arrays and temporary UTF8 strings if necessary
     for (int i = 0; i < binding.getNumArguments(); i++) {
@@ -794,13 +789,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         final String convName = pointerConversionArgumentName(javaArgName);
 
         if (!needsDataCopy) {
-          writer.println("  if ( JNI_FALSE == " + isNIOArgName(i) + " && NULL != " + javaArgName + " ) {");
+          unit.emitln("  if ( JNI_FALSE == " + isNIOArgName(i) + " && NULL != " + javaArgName + " ) {");
 
           // Release array
           final String modeFlag = cArgType.isBaseTypeConst() ? "JNI_ABORT" : "0" ;
-          writer.print("    (*env)->ReleasePrimitiveArrayCritical(env, " + javaArgName + ", " + convName + ", "+modeFlag+");");
+          unit.emit("    (*env)->ReleasePrimitiveArrayCritical(env, " + javaArgName + ", " + convName + ", "+modeFlag+");");
         } else {
-          writer.println("  if ( NULL != " + javaArgName + " ) {");
+          unit.emitln("  if ( NULL != " + javaArgName + " ) {");
 
           // clean up the case where the array elements are of a type that needed
           // a data copy operation to convert from the java memory model to the
@@ -815,16 +810,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // method for details).
             if (javaArgType.isArrayOfCompoundTypeWrappers()) {
               // This is the only form of cleanup we handle right now
-              writer.println("    _tmpArrayLen = (*env)->GetArrayLength(env, " + javaArgName + ");");
-              writer.println("    for (_copyIndex = 0; _copyIndex < _tmpArrayLen; ++_copyIndex) {");
-              writer.println("      _tmpObj = (*env)->GetObjectArrayElement(env, " + javaArgName + ", _copyIndex);");
-              emitReturnDirectBufferAddress(writer,
-                                          "_tmpObj",
-                                          cArgType.asArray().getBaseElementType().getCName(),
-                                          "("+convName + "_copy + _copyIndex)",
-                                          false /* receivingIsPtrPtr */,
-                                          null);
-              writer.println("    }");
+              unit.emitln("    _tmpArrayLen = (*env)->GetArrayLength(env, " + javaArgName + ");");
+              unit.emitln("    for (_copyIndex = 0; _copyIndex < _tmpArrayLen; ++_copyIndex) {");
+              unit.emitln("      _tmpObj = (*env)->GetObjectArrayElement(env, " + javaArgName + ", _copyIndex);");
+              emitReturnDirectBufferAddress("_tmpObj",
+                                            cArgType.asArray().getBaseElementType().getCName(),
+                                            "("+convName + "_copy + _copyIndex)",
+                                            false /* receivingIsPtrPtr */,
+                                            null);
+              unit.emitln("    }");
             } else {
               throw new GlueGenException(
                 "Cannot clean up copied data for ptr-to-ptr arg type \"" + cArgType.getDebugString() +
@@ -833,7 +827,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             }
           }
 
-          writer.println("    /* Clean up " + convName + "_copy */");
+          unit.emitln("    /* Clean up " + convName + "_copy */");
 
           // Only need to perform cleanup for individual array
           // elements if they are not direct buffers
@@ -841,11 +835,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               !javaArgType.isArrayOfCompoundTypeWrappers()) {
             // Re-fetch length of array that was copied
             final String arrayLenName = "_tmpArrayLen";
-            writer.print("    ");
-            writer.print(arrayLenName);
-            writer.print(" = (*env)->GetArrayLength(env, ");
-            writer.print(javaArgName);
-            writer.println(");");
+            unit.emit("    ");
+            unit.emit(arrayLenName);
+            unit.emit(" = (*env)->GetArrayLength(env, ");
+            unit.emit(javaArgName);
+            unit.emitln(");");
 
             // free each element
             final PointerType cArgPtrType = cArgType.asPointer();
@@ -857,61 +851,61 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             }
 
             // process each element in the array
-            writer.println("    for (_copyIndex = 0; _copyIndex < " + arrayLenName +"; ++_copyIndex) {");
+            unit.emitln("    for (_copyIndex = 0; _copyIndex < " + arrayLenName +"; ++_copyIndex) {");
 
             // get each array element
-            writer.println("      /* free each element of " +convName +"_copy */");
-            writer.print("      _tmpObj = (*env)->GetObjectArrayElement(env, ");
-            writer.print(javaArgName);
-            writer.println(", _copyIndex);");
+            unit.emitln("      /* free each element of " +convName +"_copy */");
+            unit.emit("      _tmpObj = (*env)->GetObjectArrayElement(env, ");
+            unit.emit(javaArgName);
+            unit.emitln(", _copyIndex);");
 
             if (javaArgType.isStringArray()) {
-              writer.print("     (*env)->ReleaseStringUTFChars(env, ");
-              writer.print("(jstring) _tmpObj");
-              writer.print(", ");
-              writer.print(convName+"_copy[_copyIndex]");
-              writer.println(");");
+              unit.emit("     (*env)->ReleaseStringUTFChars(env, ");
+              unit.emit("(jstring) _tmpObj");
+              unit.emit(", ");
+              unit.emit(convName+"_copy[_copyIndex]");
+              unit.emitln(");");
             } else {
               throw new GlueGenException(
                 "Cannot yet handle type \"" + cArgType.getDebugString() +
                 "\"; need to add support for cleaning up copied ptr-to-ptr-to-primitiveType subarrays",
                 binding.getCSymbol().getASTLocusTag());
             }
-            writer.println("    }");
+            unit.emitln("    }");
           }
 
           // free the main array
-          writer.print("    free((void*) ");
-          writer.print(convName+"_copy");
-          writer.println(");");
+          unit.emit("    free((void*) ");
+          unit.emit(convName+"_copy");
+          unit.emitln(");");
         } // end of cleaning up copied data
 
-        writer.println("  }");
+        unit.emitln("  }");
 
       } else if (javaArgType.isString()) {
-        writer.println("  if ( NULL != " + javaArgName + " ) {");
+        unit.emitln("  if ( NULL != " + javaArgName + " ) {");
 
         if (isUTF8Type(cArgType)) {
-          writer.print("    (*env)->ReleaseStringUTFChars(env, ");
-          writer.print(javaArgName);
-          writer.print(", " + STRING_CHARS_PREFIX);
-          writer.print(javaArgName);
-          writer.println(");");
+          unit.emit("    (*env)->ReleaseStringUTFChars(env, ");
+          unit.emit(javaArgName);
+          unit.emit(", " + STRING_CHARS_PREFIX);
+          unit.emit(javaArgName);
+          unit.emitln(");");
         } else {
-          writer.println("    free((void*) " + STRING_CHARS_PREFIX + javaArgName + ");");
+          unit.emitln("    free((void*) " + STRING_CHARS_PREFIX + javaArgName + ");");
         }
 
-        writer.println("  }");
+        unit.emitln("  }");
       }
     }
   }
 
   /** Returns the number of arguments passed so calling code knows
       whether to print a comma */
-  protected int emitBodyPassCArguments(final PrintWriter writer) {
+  protected int emitBodyPassCArguments() {
     for (int i = 0; i < binding.getNumArguments(); i++) {
       if (i != 0) {
-        writer.print(", ");
+        unit.emit(", ");
       }
       final JavaType javaArgType = binding.getJavaArgumentType(i);
       // Handle case where only param is void.
@@ -923,40 +917,40 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       }
 
       if (javaArgType.isJNIEnv()) {
-        writer.print("env");
+        unit.emit("env");
       } else if (binding.isArgumentThisPointer(i)) {
-        writer.print(CMethodBindingEmitter.cThisArgumentName());
+        unit.emit(CMethodBindingEmitter.cThisArgumentName());
       } else {
-        writer.print("(");
+        unit.emit("(");
         final Type cArgType = binding.getCArgumentType(i);
         final boolean needsDataCopy = javaArgTypeNeedsDataCopy(javaArgType);
         final boolean needsArrayOffset = !needsDataCopy && (
                                      javaArgType.isArray() ||
                                      javaArgType.isArrayOfCompoundTypeWrappers() ||
                                      ( javaArgType.isNIOBuffer() && forIndirectBufferAndArrayImplementation ) );
-        writer.print(cArgType.getCName(true));
-        writer.print(") ");
+        unit.emit(cArgType.getCName(true));
+        unit.emit(") ");
 
         if (cArgType.isPointer() && javaArgType.isPrimitive()) {
-          writer.print("(intptr_t) ");
+          unit.emit("(intptr_t) ");
         }
         if (javaArgType.isArray() || javaArgType.isNIOBuffer() ||
             javaArgType.isCompoundTypeWrapper() || javaArgType.isArrayOfCompoundTypeWrappers()) {
           if( needsArrayOffset ) {
-              writer.print("(((char *) ");
+              unit.emit("(((char *) ");
           } else if( !cArgType.isPointer() && javaArgType.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
-              writer.print("*");
+              unit.emit("*");
           }
-          writer.print(pointerConversionArgumentName(binding.getArgumentName(i)));
+          unit.emit(pointerConversionArgumentName(binding.getArgumentName(i)));
           if ( needsDataCopy ) {
-            writer.print("_copy");
+            unit.emit("_copy");
           }
           if( needsArrayOffset ) {
-              writer.print(") + " + byteOffsetArgName(i) + ")");
+              unit.emit(") + " + byteOffsetArgName(i) + ")");
           }
         } else {
-          if (javaArgType.isString()) { writer.print(STRING_CHARS_PREFIX); }
-          writer.print(binding.getArgumentName(i));
+          if (javaArgType.isString()) { unit.emit(STRING_CHARS_PREFIX); }
+          unit.emit(binding.getArgumentName(i));
         }
       }
     }
@@ -974,9 +968,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       isCStructFunctionPointer = v;
   }
 
-  protected void emitBodyCallCFunction(final PrintWriter writer) {
+  protected void emitBodyCallCFunction() {
     // Make the call to the actual C function
-    writer.print("  ");
+    unit.emit("  ");
 
     // WARNING: this code assumes that the return type has already been
     // typedef-resolved.
@@ -986,32 +980,32 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       // Note we respect const/volatile in the function return type.
       // However, we cannot have it 'const' for our local variable.
       // See return type in emitBodyVariableDeclarations(..)!
-      writer.print("_res = (");
-      writer.print(cReturnType.getCName(false));
-      writer.print(") ");
+      unit.emit("_res = (");
+      unit.emit(cReturnType.getCName(false));
+      unit.emit(") ");
     }
     if ( isCStructFunctionPointer && binding.hasContainingType() ) {
       // Call through function pointer
-      writer.print(CMethodBindingEmitter.cThisArgumentName() + "->");
+      unit.emit(CMethodBindingEmitter.cThisArgumentName() + "->");
     }
-    writer.print(getNativeName());
-    writer.print("(");
-    emitBodyPassCArguments(writer);
-    writer.println(");");
+    unit.emit(getNativeName());
+    unit.emit("(");
+    emitBodyPassCArguments();
+    unit.emitln(");");
   }
 
   /** Emits the user-defined C variable assignments from the
       TemporaryCVariableAssignments directive in the .cfg file. */
-  protected void emitBodyUserVariableAssignments(final PrintWriter writer) {
+  protected void emitBodyUserVariableAssignments() {
     if (temporaryCVariableAssignments != null) {
       for (final String val : temporaryCVariableAssignments) {
-        writer.print("  ");
-        writer.println(val);
+        unit.emit("  ");
+        unit.emitln(val);
       }
     }
   }
 
-  protected void emitBodyReturnResult(final PrintWriter writer)
+  protected void emitBodyReturnResult()
   {
     // WARNING: this code assumes that the return type has already been
     // typedef-resolved.
@@ -1021,28 +1015,29 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     if (!cReturnType.isVoid()) {
       final JavaType javaReturnType = binding.getJavaReturnType();
       if (javaReturnType.isPrimitive()) {
-        writer.print("  return ");
+        unit.emit("  return ");
         if (cReturnType.isPointer()) {
           // Pointer being converted to int or long: cast this result
           // (through intptr_t to avoid compiler warnings with gcc)
-          writer.print("(" + javaReturnType.jniTypeName() + ") (intptr_t) ");
+          unit.emit("(" + javaReturnType.jniTypeName() + ") (intptr_t) ");
         }
-        writer.println("_res;");
-      } else if ( !cReturnType.isPointer() && javaReturnType.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
+        unit.emitln("_res;");
+      } else if ( !cReturnType.isPointer() && javaReturnType.isCompoundTypeWrapper() ) { // isReturnCompoundByValue()
         final String returnSizeOf;
         if (returnValueCapacityExpression != null) {
             returnSizeOf = returnValueCapacityExpression.format(argumentNameArray());
         } else {
             returnSizeOf = "sizeof(" + cReturnType.getCName() + ")";
         }
-        writer.println("  return JVMUtil_NewDirectByteBufferCopy(env, &_res, "+returnSizeOf+");");
+        unit.emitln("  return JVMUtil_NewDirectByteBufferCopy(env, _clazzBuffers, &_res, "+returnSizeOf+");");
+        unit.addTailCode(CCodeUnit.NewDirectByteBufferCopyUnitCode);
       } else if (javaReturnType.isNIOBuffer() || javaReturnType.isCompoundTypeWrapper()) {
-        writer.println("  if (NULL == _res) return NULL;");
-        writer.print("  return (*env)->NewDirectByteBuffer(env, (void *)_res, ");
+        unit.emitln("  if (NULL == _res) return NULL;");
+        unit.emit("  return (*env)->NewDirectByteBuffer(env, (void *)_res, ");
 
         // See whether capacity has been specified
         if (returnValueCapacityExpression != null) {
-          writer.println( returnValueCapacityExpression.format( argumentNameArray() ) + ");");
+          unit.emitln( returnValueCapacityExpression.format( argumentNameArray() ) + ");");
         } else {
           final Type cReturnTargetType = cReturnType.isPointer() ? cReturnType.getTargetType() : null;
           int mode = 0;
@@ -1062,22 +1057,22 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                         binding.getCSymbol().getASTLocusTag()
                       );
                     }
-                    writer.println("sizeof(" + cReturnTargetType.getCName() + ") );");
+                    unit.emitln("sizeof(" + cReturnTargetType.getCName() + ") );");
                     mode = 10;
                 } else if( cReturnTargetType.asCompound().getNumFields() == 0 ) {
                     // anonymous struct pointer: pass pointer
-                    writer.println("sizeof(" + cReturnType.getCName() + ") );");
+                    unit.emitln("sizeof(" + cReturnType.getCName() + ") );");
                     mode = 11;
                 }
             }
             if( 0 == mode ) {
                 if( cReturnTargetType.isPrimitive() ) {
                     // primitive pointer: pass primitive
-                    writer.println("sizeof(" + cReturnTargetType.getCName() + ") );");
+                    unit.emitln("sizeof(" + cReturnTargetType.getCName() + ") );");
                     mode = 20;
                 } else if( cReturnTargetType.isVoid() ) {
                     // void pointer: pass pointer
-                    writer.println("sizeof(" + cReturnType.getCName() + ") );");
+                    unit.emitln("sizeof(" + cReturnType.getCName() + ") );");
                     mode = 21;
                 }
             }
@@ -1085,37 +1080,37 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           if( 0 == mode ) {
             if( null != cfg.typeInfo(cReturnType) ) { // javaReturnType.isOpaqued() covered above via isPrimitive()
                 // Opaque
-                writer.println("sizeof(" + cReturnType.getCName()  + ") );");
+                unit.emitln("sizeof(" + cReturnType.getCName()  + ") );");
                 mode = 88;
             } else {
                 final String wmsg = "Assumed return size of equivalent C return type";
-                writer.println("sizeof(" + cReturnType.getCName()  + ") ); // WARNING: "+wmsg);
+                unit.emitln("sizeof(" + cReturnType.getCName()  + ") ); // WARNING: "+wmsg);
                 mode = 99;
                 LOG.warning(binding.getCSymbol().getASTLocusTag(),
                   "No capacity specified for java.nio.Buffer return " +
                   "value for function \"" + binding.getName() + "\". " + wmsg + " (sizeof(" + cReturnType.getCName() + ")): " + binding);
             }
           }
-          writer.println("  /** ");
-          writer.println("   * mode: "+mode);
-          writer.println("   * cReturnType: "+cReturnType.getDebugString());
-          writer.println("   * cReturnTargetType: "+cReturnTargetType.getDebugString());
-          writer.println("   * javaReturnType: "+javaReturnType.getDebugString());
-          writer.println("   */");
+          unit.emitln("  /** ");
+          unit.emitln("   * mode: "+mode);
+          unit.emitln("   * cReturnType: "+cReturnType.getDebugString());
+          unit.emitln("   * cReturnTargetType: "+cReturnTargetType.getDebugString());
+          unit.emitln("   * javaReturnType: "+javaReturnType.getDebugString());
+          unit.emitln("   */");
         }
       } else if (javaReturnType.isString()) {
-        writer.println("  if (NULL == _res) return NULL;");
-        writer.println("  return (*env)->NewStringUTF(env, (const char *)_res);");
+        unit.emitln("  if (NULL == _res) return NULL;");
+        unit.emitln("  return (*env)->NewStringUTF(env, (const char *)_res);");
       } else if (javaReturnType.isArrayOfCompoundTypeWrappers() ||
                  (javaReturnType.isArray() && javaReturnType.isNIOByteBufferArray())) {
-        writer.println("  if (NULL == _res) return NULL;");
+        unit.emitln("  if (NULL == _res) return NULL;");
         if (returnValueLengthExpression == null) {
           throw new GlueGenException("Error while generating C code: no length specified for array returned from function " +
                                       binding, binding.getCSymbol().getASTLocusTag());
         }
-        writer.println("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNameArray()) + ";");
-        writer.println("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
-        writer.println("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
+        unit.emitln("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNameArray()) + ";");
+        unit.emitln("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
+        unit.emitln("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
         final Type retType = binding.getCSymbol().getReturnType();
         Type pointerType;
         if (retType.isPointer()) {
@@ -1123,10 +1118,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         } else {
           pointerType = retType.asArray().getBaseElementType();
         }
-        writer.println("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
+        unit.emitln("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
                        ", (*env)->NewDirectByteBuffer(env, (void *)_res[" + arrayIdx + "], sizeof(" + pointerType.getCName() + ")));");
-        writer.println("  }");
-        writer.println("  return " + arrayRes + ";");
+        unit.emitln("  }");
+        unit.emitln("  return " + arrayRes + ";");
       } else if (javaReturnType.isArray()) {
         // FIXME: must have user provide length of array in .cfg file
         // by providing a constant value, input parameter, or
@@ -1140,23 +1135,23 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
         // FIXME: This is approximately what will be required here
         //
-        //writer.print("  ");
-        //writer.print(arrayRes);
-        //writer.print(" = (*env)->New");
-        //writer.print(capitalizedComponentType);
-        //writer.print("Array(env, ");
-        //writer.print(arrayResLength);
-        //writer.println(");");
-        //writer.print("  (*env)->Set");
-        //writer.print(capitalizedComponentType);
-        //writer.print("ArrayRegion(env, ");
-        //writer.print(arrayRes);
-        //writer.print(", 0, ");
-        //writer.print(arrayResLength);
-        //writer.println(", _res);");
-        //writer.print("  return ");
-        //writer.print(arrayRes);
-        //writer.println(";");
+        //unit().emit("  ");
+        //unit().emit(arrayRes);
+        //unit().emit(" = (*env)->New");
+        //unit().emit(capitalizedComponentType);
+        //unit().emit("Array(env, ");
+        //unit().emit(arrayResLength);
+        //unit().emitln(");");
+        //unit().emit("  (*env)->Set");
+        //unit().emit(capitalizedComponentType);
+        //unit().emit("ArrayRegion(env, ");
+        //unit().emit(arrayRes);
+        //unit().emit(", 0, ");
+        //unit().emit(arrayResLength);
+        //unit().emitln(", _res);");
+        //unit().emit("  return ");
+        //unit().emit(arrayRes);
+        //unit().emitln(";");
       } else {
         throw new GlueGenException("Unhandled return type: "+javaReturnType.getDebugString()+" for "+binding,
                                    binding.getCSymbol().getReturnType().getASTLocusTag());
@@ -1173,6 +1168,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     buf.append(JavaEmitter.jniMangle(getImplName()));
     buf.append(getImplSuffix());
     buf.append("__");
+    if (binding.isReturnCompoundByValue()) {
+        jniMangle(Class.class, buf, true);
+    }
     if (binding.hasContainingType()) {
       // "this" argument always comes down in argument 0 as direct buffer
       jniMangle(java.nio.ByteBuffer.class, buf, true);
@@ -1276,77 +1274,74 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  private void emitOutOfMemoryCheck(final PrintWriter writer, final String varName, final String errorMessage)  {
-    writer.println("  if ( NULL == " + varName + " ) {");
-    writer.println("      (*env)->ThrowNew(env, (*env)->FindClass(env, \"java/lang/OutOfMemoryError\"),");
-    writer.print("                       \"" + errorMessage);
-    writer.print(" in native dispatcher for \\\"");
-    writer.print(getInterfaceName());
-    writer.println("\\\"\");");
-    writer.print("      return");
+  private void emitOutOfMemoryCheck(final String varName, final String errorMessage)  {
+    unit.emitln("  if ( NULL == " + varName + " ) {");
+    unit.emitln("      (*env)->ThrowNew(env, (*env)->FindClass(env, \"java/lang/OutOfMemoryError\"),");
+    unit.emit("                       \"" + errorMessage);
+    unit.emit(" in native dispatcher for \\\"");
+    unit.emit(getInterfaceName());
+    unit.emitln("\\\"\");");
+    unit.emit("      return");
     if (!binding.getJavaReturnType().isVoid()) {
-      writer.print(" 0");
+      unit.emit(" 0");
     }
-    writer.println(";");
-    writer.println("    }");
+    unit.emitln(";");
+    unit.emitln("    }");
   }
 
-  private void emitMalloc(final PrintWriter writer,
-                          final String targetVarName,
+  private void emitMalloc(final String targetVarName,
                           final String elementTypeString,
                           final boolean elementTypeIsConst,
                           final String numElementsExpression,
                           final String mallocFailureErrorString)  {
-    writer.print("    ");
-    writer.print(targetVarName);
-    writer.print(" = (");
+    unit.emit("    ");
+    unit.emit(targetVarName);
+    unit.emit(" = (");
     if(elementTypeIsConst) {
-        writer.print("const ");
+        unit.emit("const ");
     }
-    writer.print(elementTypeString);
-    writer.print(" *) malloc(");
-    writer.print(numElementsExpression);
-    writer.print(" * sizeof(");
-    writer.print(elementTypeString);
-    writer.println("));");
+    unit.emit(elementTypeString);
+    unit.emit(" *) malloc(");
+    unit.emit(numElementsExpression);
+    unit.emit(" * sizeof(");
+    unit.emit(elementTypeString);
+    unit.emitln("));");
     // Catch memory allocation failure
-    emitOutOfMemoryCheck( writer, targetVarName, mallocFailureErrorString);
+    emitOutOfMemoryCheck( targetVarName, mallocFailureErrorString);
   }
 
-  private void emitCalloc(final PrintWriter writer,
-                          final String targetVarName,
+  private void emitCalloc(final String targetVarName,
                           final String elementTypeString,
                           final String numElementsExpression,
                           final String mallocFailureErrorString)  {
-    writer.print("    ");
-    writer.print(targetVarName);
-    writer.print(" = (");
-    writer.print(elementTypeString);
-    writer.print(" *) calloc(");
-    writer.print(numElementsExpression);
-    writer.print(", sizeof(");
-    writer.print(elementTypeString);
-    writer.println("));");
+    unit.emit("    ");
+    unit.emit(targetVarName);
+    unit.emit(" = (");
+    unit.emit(elementTypeString);
+    unit.emit(" *) calloc(");
+    unit.emit(numElementsExpression);
+    unit.emit(", sizeof(");
+    unit.emit(elementTypeString);
+    unit.emitln("));");
     // Catch memory allocation failure
-    emitOutOfMemoryCheck( writer, targetVarName, mallocFailureErrorString);
+    emitOutOfMemoryCheck( targetVarName, mallocFailureErrorString);
   }
 
-  private void emitGetStringChars(final PrintWriter writer,
-                                  final String sourceVarName,
+  private void emitGetStringChars(final String sourceVarName,
                                   final String receivingVarName,
                                   final boolean isUTF8,
                                   final boolean emitElseClause)  {
-    writer.println("  if ( NULL != " + sourceVarName + " ) {");
+    unit.emitln("  if ( NULL != " + sourceVarName + " ) {");
 
     if (isUTF8) {
-      writer.print("    ");
-      writer.print(receivingVarName);
-      writer.print(" = (*env)->GetStringUTFChars(env, ");
-      writer.print(sourceVarName);
-      writer.println(", (jboolean*)NULL);");
+      unit.emit("    ");
+      unit.emit(receivingVarName);
+      unit.emit(" = (*env)->GetStringUTFChars(env, ");
+      unit.emit(sourceVarName);
+      unit.emitln(", (jboolean*)NULL);");
       // Catch memory allocation failure in the event that the VM didn't pin
       // the String and failed to allocate a copy
-      emitOutOfMemoryCheck( writer, receivingVarName, "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
+      emitOutOfMemoryCheck( receivingVarName, "Failed to get UTF-8 chars for argument \\\""+sourceVarName+"\\\"");
     } else {
       // The UTF-16 case is basically Windows specific. Unix platforms
       // tend to use only the UTF-8 encoding. On Windows the problem
@@ -1355,82 +1350,78 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       // null-terminated Unicode string. For this reason we explicitly
       // calloc our buffer, including the null terminator, and use
       // GetStringRegion to fetch the string's characters.
-      emitCalloc(writer,
-                 receivingVarName,
+      emitCalloc(receivingVarName,
                  "jchar",
                  "(*env)->GetStringLength(env, " + sourceVarName + ") + 1",
                  "Could not allocate temporary buffer for copying string argument \\\""+sourceVarName+"\\\"");
-      writer.println("    (*env)->GetStringRegion(env, " + sourceVarName + ", 0, (*env)->GetStringLength(env, " + sourceVarName + "), " + receivingVarName + ");");
+      unit.emitln("    (*env)->GetStringRegion(env, " + sourceVarName + ", 0, (*env)->GetStringLength(env, " + sourceVarName + "), " + receivingVarName + ");");
     }
-    writer.print("  }");
+    unit.emit("  }");
     if (emitElseClause) {
-      writer.print(" else {");
-      writer.print("      ");
-      writer.print(receivingVarName);
-      writer.println(" = NULL;");
-      writer.println("  }");
+      unit.emit(" else {");
+      unit.emit("      ");
+      unit.emit(receivingVarName);
+      unit.emitln(" = NULL;");
+      unit.emitln("  }");
     } else {
-      writer.println();
+      unit.emitln();
     }
   }
 
-  private void emitGetDirectBufferAddress(final PrintWriter writer,
-                                          final String sourceVarName,
+  private void emitGetDirectBufferAddress(final String sourceVarName,
                                           final String receivingVarTypeString,
                                           final String receivingVarName,
                                           final boolean receivingIsPtrPtr,
                                           final String byteOffsetVarName, final boolean emitElseClause) {
-    writer.println("    if ( NULL != " + sourceVarName + " ) {");
-    writer.print("    ");
-    writer.print("    ");
+    unit.emitln("    if ( NULL != " + sourceVarName + " ) {");
+    unit.emit("    ");
+    unit.emit("    ");
     if( receivingIsPtrPtr ) {
-        writer.print(receivingVarName+" = ("+receivingVarTypeString+") (((char*) (*env)->GetDirectBufferAddress(env, "+sourceVarName+"))");
-        writer.println(" + " + ((byteOffsetVarName != null) ? byteOffsetVarName : "0") + ");");
+        unit.emit(receivingVarName+" = ("+receivingVarTypeString+") (((char*) (*env)->GetDirectBufferAddress(env, "+sourceVarName+"))");
+        unit.emitln(" + " + ((byteOffsetVarName != null) ? byteOffsetVarName : "0") + ");");
     } else {
         // linear layout -> use memcpy
-        writer.println("memcpy((void *)"+receivingVarName+", (*env)->GetDirectBufferAddress(env, "+sourceVarName+"), sizeof("+receivingVarTypeString+"));");
+        unit.emitln("memcpy((void *)"+receivingVarName+", (*env)->GetDirectBufferAddress(env, "+sourceVarName+"), sizeof("+receivingVarTypeString+"));");
     }
 
     if (emitElseClause) {
-      writer.println("    } else {");
-      writer.print("    ");
-      writer.print("    ");
+      unit.emitln("    } else {");
+      unit.emit("    ");
+      unit.emit("    ");
       if( receivingIsPtrPtr ) {
-          writer.print(receivingVarName);
-          writer.println(" = NULL;");
+          unit.emit(receivingVarName);
+          unit.emitln(" = NULL;");
       } else {
-          writer.println("memset((void *)"+receivingVarName+", 0, sizeof("+receivingVarTypeString+"));");
+          unit.emitln("memset((void *)"+receivingVarName+", 0, sizeof("+receivingVarTypeString+"));");
       }
     }
-    writer.println("    }");
-    writer.println();
+    unit.emitln("    }");
+    unit.emitln();
   }
 
-  private void emitReturnDirectBufferAddress(final PrintWriter writer,
-                                          final String sourceVarName,
-                                          final String receivingVarTypeString,
-                                          final String receivingVarName,
-                                          final boolean receivingIsPtrPtr,
-                                          final String byteOffsetVarName) {
-    writer.print("    ");
-    writer.print("    ");
+  private void emitReturnDirectBufferAddress(final String sourceVarName,
+                                             final String receivingVarTypeString,
+                                             final String receivingVarName,
+                                             final boolean receivingIsPtrPtr,
+                                             final String byteOffsetVarName) {
+    unit.emit("    ");
+    unit.emit("    ");
     if( receivingIsPtrPtr ) {
-        writer.print("(((char*) (*env)->GetDirectBufferAddress(env, "+sourceVarName+"))");
-        writer.println(" + " + ((byteOffsetVarName != null) ? byteOffsetVarName : "0") + ") = "+receivingVarName+";");
+        unit.emit("(((char*) (*env)->GetDirectBufferAddress(env, "+sourceVarName+"))");
+        unit.emitln(" + " + ((byteOffsetVarName != null) ? byteOffsetVarName : "0") + ") = "+receivingVarName+";");
         throw new RuntimeException("incomplete implementation"); // FIXME doesn't work, currently unused
     } else {
         // linear layout -> use memcpy
-        writer.println("memcpy((*env)->GetDirectBufferAddress(env, "+sourceVarName+"), "+receivingVarName+", sizeof("+receivingVarTypeString+"));");
+        unit.emitln("memcpy((*env)->GetDirectBufferAddress(env, "+sourceVarName+"), "+receivingVarName+", sizeof("+receivingVarTypeString+"));");
     }
-    writer.println();
+    unit.emitln();
   }
 
   // Note: if the data in the Type needs to be converted from the Java memory
   // model to the C memory model prior to calling any C-side functions, then
   // an extra variable named XXX_copy (where XXX is the value of the
   // cVariableName argument) will be emitted and TRUE will be returned.
-  private boolean emitPointerDeclaration(final PrintWriter writer,
-                                         final JavaType javaType,
+  private boolean emitPointerDeclaration(final JavaType javaType,
                                          final Type cType,
                                          final String cVariableName,
                                          final String javaArgumentName) {
@@ -1472,17 +1463,17 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       ptrTypeString = cType.getCName();
     }
 
-    writer.print("  ");
+    unit.emit("  ");
     if (!needsDataCopy) {
       // declare the pointer variable
-      writer.print(ptrTypeString);
+      unit.emit(ptrTypeString);
       if( !cType.isPointer() && javaType.isCompoundTypeWrapper() ) { // FIXME: Compound call-by-value
-          writer.print(" * ");
+          unit.emit(" * ");
       } else {
-          writer.print(" ");
+          unit.emit(" ");
       }
-      writer.print(cVariableName);
-      writer.println(" = NULL;");
+      unit.emit(cVariableName);
+      unit.emitln(" = NULL;");
     } else {
       // Declare a variable to hold a copy of the argument data in which the
       // incoming data has been properly laid out in memory to match the C
@@ -1494,27 +1485,26 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             cElementTypeName = cPtrType.getTargetType().asPointer().getCName();
         }
         if (cType.isBaseTypeConst()) {
-            writer.print("const ");
+            unit.emit("const ");
         }
-        writer.print(cElementTypeName+" *");
+        unit.emit(cElementTypeName+" *");
       } else {
         if (cType.isBaseTypeConst()) {
-            writer.print("const ");
+            unit.emit("const ");
         }
-        writer.print(ptrTypeString);
+        unit.emit(ptrTypeString);
       }
-      writer.print(" ");
-      writer.print(cVariableName);
-      writer.print("_copy = NULL; /* copy of data in ");
-      writer.print(javaArgumentName);
-      writer.println(", laid out according to C memory model */");
+      unit.emit(" ");
+      unit.emit(cVariableName);
+      unit.emit("_copy = NULL; /* copy of data in ");
+      unit.emit(javaArgumentName);
+      unit.emitln(", laid out according to C memory model */");
     }
 
     return needsDataCopy;
   }
 
-  private void emitPointerConversion(final PrintWriter writer,
-                                     final MethodBinding binding,
+  private void emitPointerConversion(final MethodBinding binding,
                                      final JavaType type,
                                      final Type cType,
                                      final String incomingArgumentName,
@@ -1531,8 +1521,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     } else {
         cVariableType = cType.getCName();
     }
-    emitGetDirectBufferAddress(writer,
-                               incomingArgumentName,
+    emitGetDirectBufferAddress(incomingArgumentName,
                                cVariableType,
                                cVariableName,
                                true,

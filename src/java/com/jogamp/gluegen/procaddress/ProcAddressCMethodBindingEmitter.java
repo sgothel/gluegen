@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,12 +41,11 @@
 package com.jogamp.gluegen.procaddress;
 
 import com.jogamp.gluegen.CMethodBindingEmitter;
-import com.jogamp.gluegen.MethodBinding;
 import com.jogamp.gluegen.JavaType;
-
-import java.io.*;
-
-import com.jogamp.gluegen.cgram.types.*;
+import com.jogamp.gluegen.MethodBinding;
+import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.PointerType;
+import com.jogamp.gluegen.cgram.types.Type;
 
 public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
 
@@ -74,7 +74,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                         }
                     }
                 },
-                methodToWrap.getDefaultOutput(),
+                methodToWrap.getUnit(),
                 methodToWrap.getJavaPackageName(),
                 methodToWrap.getJavaClassName(),
                 methodToWrap.getIsOverloadedBinding(),
@@ -102,14 +102,14 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected int emitArguments(final PrintWriter writer) {
-        int numEmitted = super.emitArguments(writer);
+    protected int emitArguments() {
+        int numEmitted = super.emitArguments();
         if (callThroughProcAddress) {
             if (numEmitted > 0) {
-                writer.print(", ");
+                unit.emit(", ");
             }
-            writer.print(procAddressJavaTypeName);
-            writer.print(" procAddress");
+            unit.emit(procAddressJavaTypeName);
+            unit.emit(" procAddress");
             ++numEmitted;
         }
 
@@ -117,7 +117,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected void emitBodyVariableDeclarations(final PrintWriter writer) {
+    protected void emitBodyVariableDeclarations() {
         if (callThroughProcAddress) {
             // create variable for the function pointer with the right type, and set
             // it to the value of the passed-in proc address
@@ -138,23 +138,23 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             }
             final PointerType funcPtrType = new PointerType(null, cSym.getType(), 0);
 
-            writer.print("  typedef ");
-            writer.print(funcPtrType.toString(funcPointerTypedefLocalName, localTypedefCallingConvention));
-            writer.println(";");
+            unit.emit("  typedef ");
+            unit.emit(funcPtrType.toString(funcPointerTypedefLocalName, localTypedefCallingConvention));
+            unit.emitln(";");
 
-            writer.print("  ");
-            writer.print(funcPointerTypedefName); // Uses public typedef if available!
-            writer.print(" ptr_");
-            writer.print(getNativeName());
-            writer.println(";");
+            unit.emit("  ");
+            unit.emit(funcPointerTypedefName); // Uses public typedef if available!
+            unit.emit(" ptr_");
+            unit.emit(getNativeName());
+            unit.emitln(";");
         }
 
-        super.emitBodyVariableDeclarations(writer);
+        super.emitBodyVariableDeclarations();
     }
 
     @Override
-    protected void emitBodyVariablePreCallSetup(final PrintWriter writer) {
-        super.emitBodyVariablePreCallSetup(writer);
+    protected void emitBodyVariablePreCallSetup() {
+        super.emitBodyVariablePreCallSetup();
 
         if (callThroughProcAddress) {
             // set the function pointer to the value of the passed-in procAddress
@@ -171,25 +171,25 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             final String ptrVarName = "ptr_" + getNativeName();
 
             if (hasProcAddrTypedef) {
-                writer.println("  // implicit type validation of "+funcPointerTypedefLocalName+" -> "+funcPointerTypedefName);
+                unit.emitln("  // implicit type validation of "+funcPointerTypedefLocalName+" -> "+funcPointerTypedefName);
             }
-            writer.print("  ");
-            writer.print(ptrVarName);
-            writer.print(" = (");
-            writer.print(funcPointerTypedefLocalName);
-            writer.println(") (intptr_t) procAddress;");
+            unit.emit("  ");
+            unit.emit(ptrVarName);
+            unit.emit(" = (");
+            unit.emit(funcPointerTypedefLocalName);
+            unit.emitln(") (intptr_t) procAddress;");
 
-            writer.println("  assert(" + ptrVarName + " != NULL);");
+            unit.emitln("  assert(" + ptrVarName + " != NULL);");
         }
     }
 
     @Override
-    protected void emitBodyCallCFunction(final PrintWriter writer) {
+    protected void emitBodyCallCFunction() {
         if (!callThroughProcAddress) {
-            super.emitBodyCallCFunction(writer);
+            super.emitBodyCallCFunction();
         } else {
             // Make the call to the actual C function
-            writer.print("  ");
+            unit.emit("  ");
 
             // WARNING: this code assumes that the return type has already been
             // typedef-resolved.
@@ -199,9 +199,9 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 // Note we respect const/volatile in the function return type.
                 // However, we cannot have it 'const' for our local variable.
                 // See return type in CMethodBindingEmitter.emitBodyVariableDeclarations(..)!
-                writer.print("_res = (");
-                writer.print(cReturnType.getCName(false));
-                writer.print(") ");
+                unit.emit("_res = (");
+                unit.emit(cReturnType.getCName(false));
+                unit.emit(") ");
             }
             final MethodBinding mBinding = getBinding();
             if (mBinding.hasContainingType()) {
@@ -211,12 +211,12 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
             }
 
             // call throught the run-time function pointer
-            writer.print("(* ptr_");
-            writer.print(getNativeName());
-            writer.print(") ");
-            writer.print("(");
-            emitBodyPassCArguments(writer);
-            writer.println(");");
+            unit.emit("(* ptr_");
+            unit.emit(getNativeName());
+            unit.emit(") ");
+            unit.emit("(");
+            emitBodyPassCArguments();
+            unit.emitln(");");
         }
     }
 

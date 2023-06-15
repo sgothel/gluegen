@@ -28,7 +28,9 @@
 package com.jogamp.gluegen.structgen;
 
 import com.jogamp.common.util.PropertyAccess;
+import com.jogamp.gluegen.CCodeUnit;
 import com.jogamp.gluegen.GlueGen;
+import com.jogamp.gluegen.JavaCodeUnit;
 import com.jogamp.gluegen.JavaEmitter;
 
 import java.io.BufferedReader;
@@ -282,12 +284,10 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
 
     public static class AnnotationProcessorJavaStructEmitter extends JavaEmitter {
 
-        @Override
-        protected PrintWriter openFile(final String filename, final String simpleClassName) throws IOException {
-
+        private boolean filter(final String simpleClassName) {
             if( generatedStructs.contains(simpleClassName) ) {
                 System.err.println("skipping -> " + simpleClassName);
-                return null;
+                return false;
             }
 
             // look for recursive generated structs... keep it DRY
@@ -296,9 +296,31 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                 System.err.println("generating -> " + simpleClassName);
                 generatedStructs.add(simpleClassName);
             }
-            return super.openFile(filename, simpleClassName);
+            return true;
         }
 
+        @Override
+        protected CCodeUnit openCUnit(final String filename, final String cUnitName) throws IOException {
+            if( !filter(cUnitName) ) {
+                return null;
+            }
+            return super.openCUnit(filename, cUnitName);
+        }
+
+        /**
+         * @param filename the class's full filename to open w/ write access
+         * @param packageName the package name of the class
+         * @param simpleClassName the simple class name, i.e. w/o package name or c-file basename
+         * @param generator informal optional object that is creating this unit, used to be mentioned in a warning message if not null.
+         * @throws IOException
+         */
+        @Override
+        protected JavaCodeUnit openJavaUnit(final String filename, final String packageName, final String simpleClassName) throws IOException {
+            if( !filter(simpleClassName) ) {
+                return null;
+            }
+            return super.openJavaUnit(filename, packageName, simpleClassName);
+        }
     }
 
 }

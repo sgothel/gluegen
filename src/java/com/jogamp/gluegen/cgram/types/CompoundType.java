@@ -179,6 +179,16 @@ public abstract class CompoundType extends MemoryLayoutType implements Cloneable
     return fields.get(i);
   }
 
+  /** Returns the <i>name</i> matching field of this type. */
+  public Field getField(final String name) {
+    for(final Field f : fields ) {
+        if( f.getName().equals(name) ) {
+            return f;
+        }
+    }
+    return null;
+  }
+
   /** Adds a field to this type. */
   public void addField(final Field f) {
     if (bodyParsed) {

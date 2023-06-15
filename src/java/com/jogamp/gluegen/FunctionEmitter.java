@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,12 +40,14 @@
 
 package com.jogamp.gluegen;
 
-import java.util.*;
-import java.io.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
-import com.jogamp.gluegen.cgram.types.Type;
 
+/**
+ * Generic function emitter to produce C (JNI) or Java code stubs to its {@link CodeUnit}, invoking a native function as described via {@link MethodBinding}.
+ */
 public abstract class FunctionEmitter {
 
   public static final EmissionModifier STATIC = new EmissionModifier("static");
@@ -52,18 +55,20 @@ public abstract class FunctionEmitter {
   private final boolean isInterface;
   private final ArrayList<EmissionModifier> modifiers;
   private CommentEmitter commentEmitter = null;
-  private final PrintWriter defaultOutput;
+  protected final MethodBinding binding;
+  protected final CodeUnit unit;
   // Only present to provide more clear comments
   protected final JavaConfiguration cfg;
 
   /**
    * Constructs the FunctionEmitter with a CommentEmitter that emits nothing.
    */
-  public FunctionEmitter(final PrintWriter defaultOutput, final boolean isInterface, final JavaConfiguration configuration)  {
-    assert(defaultOutput != null);
+  public FunctionEmitter(final MethodBinding binding, final CodeUnit unit, final boolean isInterface, final JavaConfiguration configuration)  {
+    assert(unit != null);
     this.isInterface = isInterface;
     this.modifiers = new ArrayList<EmissionModifier>();
-    this.defaultOutput = defaultOutput;
+    this.binding = binding;
+    this.unit = unit;
     this.cfg = configuration;
   }
 
@@ -74,13 +79,15 @@ public abstract class FunctionEmitter {
     isInterface = arg.isInterface;
     modifiers      = new ArrayList<EmissionModifier>(arg.modifiers);
     commentEmitter = arg.commentEmitter;
-    defaultOutput  = arg.defaultOutput;
+    binding        = arg.binding;
+    unit           = arg.unit;
     cfg            = arg.cfg;
   }
 
-  public boolean isInterface() { return isInterface; }
+  public final boolean isInterface() { return isInterface; }
 
-  public PrintWriter getDefaultOutput() { return defaultOutput; }
+  public final MethodBinding getBinding() { return binding; }
+  public final CodeUnit getUnit() { return unit; }
 
   public void addModifiers(final Iterator<EmissionModifier> mi)  {
     while (mi.hasNext())  {
@@ -104,31 +111,18 @@ public abstract class FunctionEmitter {
   public abstract FunctionSymbol getCSymbol();
 
   /**
-   * Emit the function to the specified output (instead of the default
-   * output).
-   */
-  public void emit(final PrintWriter output)  {
-    emitDocComment(output);
-    //output.println("  // Emitter: " + getClass().getName());
-    emitSignature(output);
-    emitBody(output);
-  }
-
-  /**
-   * Emit the function to the default output (the output that was passed to
-   * the constructor)
+   * Emit the function to the {@link #getUnit()}
    */
   public final void emit()  {
-    emit(getDefaultOutput());
+    emitDocComment();
+    //output.println("  // Emitter: " + getClass().getName());
+    emitSignature();
+    emitBody();
   }
 
-  /** Returns, as a String, whatever {@link #emit} would output. */
   @Override
   public String toString()  {
-    final StringWriter sw = new StringWriter(500);
-    final PrintWriter w = new PrintWriter(sw);
-    emit(w);
-    return sw.toString();
+    return getClass().getSimpleName()+"["+binding.toString()+"]";
   }
 
   /**
@@ -145,47 +139,47 @@ public abstract class FunctionEmitter {
    */
   public CommentEmitter getCommentEmitter() { return commentEmitter; }
 
-  protected void emitDocComment(final PrintWriter writer) {
+  protected void emitDocComment() {
 
     if (commentEmitter != null)    {
-      writer.print(getBaseIndentString()); //indent
+      unit.emit(getBaseIndentString()); //indent
 
-      writer.print(getCommentStartString());
+      unit.emit(getCommentStartString());
 
-      commentEmitter.emit(this, writer);
+      commentEmitter.emit(this, unit.output);
 
-      writer.print(getBaseIndentString()); //indent
+      unit.emit(getBaseIndentString()); //indent
 
-      writer.println(getCommentEndString());
+      unit.emitln(getCommentEndString());
     }
   }
 
-  protected void emitSignature(final PrintWriter writer)  {
+  protected void emitSignature()  {
 
-    writer.print(getBaseIndentString()); // indent method
+    unit.emit(getBaseIndentString()); // indent method
 
-    final int numEmitted = emitModifiers(writer);
+    final int numEmitted = emitModifiers();
     if (numEmitted > 0)  {
-      writer.print(" ");
+      unit.emit(" ");
     }
 
-    emitReturnType(writer);
-    writer.print(" ");
+    emitReturnType();
+    unit.emit(" ");
 
-    emitName(writer);
-    writer.print("(");
+    emitName();
+    unit.emit("(");
 
-    emitArguments(writer);
-    writer.print(")");
+    emitArguments();
+    unit.emit(")");
   }
 
-  protected int emitModifiers(final PrintWriter writer)  {
+  protected int emitModifiers()  {
     int numEmitted = 0;
     for (final Iterator<EmissionModifier> it = getModifiers(); it.hasNext(); )   {
-      writer.print(it.next());
+      unit.emit(it.next().toString());
       ++numEmitted;
       if (it.hasNext())  {
-        writer.print(" ");
+        unit.emit(" ");
       }
     }
     return numEmitted;
@@ -196,11 +190,11 @@ public abstract class FunctionEmitter {
   protected String getCommentStartString() { return "/* "; }
   protected String getCommentEndString() { return " */"; }
 
-  protected abstract void emitReturnType(PrintWriter writer);
-  protected abstract void emitName(PrintWriter writer);
+  protected abstract void emitReturnType();
+  protected abstract void emitName();
   /** Returns the number of arguments emitted. */
-  protected abstract int emitArguments(PrintWriter writer);
-  protected abstract void emitBody(PrintWriter writer);
+  protected abstract int emitArguments();
+  protected abstract void emitBody();
 
   public static class EmissionModifier  {
 

@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003-2005 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,15 +91,15 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected int emitArguments(final PrintWriter writer) {
-        int numEmitted = super.emitArguments(writer);
+    protected int emitArguments() {
+        int numEmitted = super.emitArguments();
         if (callThroughProcAddress) {
             if (changeNameAndArguments) {
                 if (numEmitted > 0) {
-                    writer.print(", ");
+                    unit.emit(", ");
                 }
 
-                writer.print("long procAddress");
+                unit.emit("long procAddress");
                 ++numEmitted;
             }
         }
@@ -116,27 +117,27 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected void emitPreCallSetup(final MethodBinding binding, final PrintWriter writer) {
-        super.emitPreCallSetup(binding, writer);
+    protected void emitPreCallSetup(final MethodBinding binding) {
+        super.emitPreCallSetup(binding);
 
         if (callThroughProcAddress) {
             final String procAddressVariable = ProcAddressEmitter.PROCADDRESS_VAR_PREFIX + binding.getNativeName();
-            writer.println("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
-            writer.println("    if (__addr_ == 0) {");
-            writer.format("      throw new %s(String.format(\"Method \\\"%%s\\\" not available\", \"%s\"));%n",
+            unit.emitln("    final long __addr_ = " + getProcAddressTableExpr + "." + procAddressVariable + ";");
+            unit.emitln("    if (__addr_ == 0) {");
+            unit.emitf("      throw new %s(String.format(\"Method \\\"%%s\\\" not available\", \"%s\"));%n",
                           emitter.unsupportedExceptionType(), binding.getName());
-            writer.println("    }");
+            unit.emitln("    }");
         }
     }
 
     @Override
-    protected int emitCallArguments(final MethodBinding binding, final PrintWriter writer) {
-        int numEmitted = super.emitCallArguments(binding, writer);
+    protected int emitCallArguments(final MethodBinding binding) {
+        int numEmitted = super.emitCallArguments(binding);
         if (callThroughProcAddress) {
             if (numEmitted > 0) {
-                writer.print(", ");
+                unit.emit(", ");
             }
-            writer.print("__addr_");
+            unit.emit("__addr_");
             ++numEmitted;
         }
 
