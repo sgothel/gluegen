@@ -98,12 +98,15 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
     }
 
     private static final String STRUCTGENOUTPUT_OPTION = "structgen.output";
+    private static final String STRUCTGENPRAGMA_ONCE = "structgen.enable.pragma.once";
     private static final String STRUCTGENOUTPUT = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENOUTPUT_OPTION, true, "gensrc");
+    private static final String STRUCTGENPRAGMAONCE = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENPRAGMA_ONCE, true, "false");
 
     private Filer filer;
     private Messager messager;
     private Elements eltUtils;
     private String outputPath;
+    private boolean enablePragmaOnce;
 
     private final static Set<String> generatedStructs = new HashSet<String>();
 
@@ -118,6 +121,9 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
 
         outputPath = processingEnv.getOptions().get(STRUCTGENOUTPUT_OPTION);
         outputPath = outputPath == null ? STRUCTGENOUTPUT : outputPath;
+
+        final String enablePragmaOnceOpt = processingEnv.getOptions().get(STRUCTGENPRAGMAONCE);
+        enablePragmaOnce = Boolean.parseBoolean(enablePragmaOnceOpt == null ? STRUCTGENPRAGMAONCE : enablePragmaOnceOpt);
     }
 
     private File locateSource(final String packageName, final String relativeName) {
@@ -211,7 +217,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                 headerParent = root0.substring(0, root0.length()-headerFile.getName().length()-1);
                 rootOut = headerParent.substring(0, headerParent.length()-packageName.length()) + "..";
             }
-            System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", headerParent "+headerParent+", rootOut "+rootOut);
+            System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", headerParent "+headerParent+", rootOut "+rootOut+", enablePragmaOnce"+enablePragmaOnce);
 
             generateStructBinding(element, struct, isPackageOrType, rootOut, packageName, headerFile, headerParent);
         } catch (final IOException ex) {
@@ -276,7 +282,8 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
             GlueGen.setDebug(true);
         }
         new GlueGen().run(reader, filename, AnnotationProcessorJavaStructEmitter.class,
-                          includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */);
+                          includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */,
+                          enablePragmaOnce /* enablePragmaOnce */);
 
         configFile.delete();
         generatedStructs.add(finalType);

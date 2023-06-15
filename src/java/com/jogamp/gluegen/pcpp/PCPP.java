@@ -87,18 +87,21 @@ public class PCPP implements GenericCPP {
 
     /** List containing the #include paths as Strings */
     private final List<String> includePaths;
+    private final List<String> alreadyIncludedFiles = new ArrayList<String>();
 
     private ParseState  state;
 
     private final boolean enableDebugPrint;
     private final boolean enableCopyOutput2Stderr;
+    private final boolean enablePragmaOnce;
 
-    public PCPP(final List<String> includePaths, final boolean debug, final boolean copyOutput2Stderr) {
+    public PCPP(final List<String> includePaths, final boolean debug, final boolean copyOutput2Stderr, final boolean pragmaOnce) {
         LOG = Logging.getLogger(PCPP.class.getPackage().getName(), PCPP.class.getSimpleName());
         this.includePaths = includePaths;
         setOut(System.out);
         enableDebugPrint = debug;
         enableCopyOutput2Stderr = copyOutput2Stderr;
+        enablePragmaOnce = pragmaOnce;
     }
 
     @Override
@@ -449,6 +452,9 @@ public class PCPP implements GenericCPP {
             shouldPrint = false;
         } else if (w.equals("include")) {
             handleInclude();
+            shouldPrint = false;
+        } else if (w.equals("pragma")){
+            handlePragma();
             shouldPrint = false;
         } else {
             int line = -1;
@@ -1019,11 +1025,26 @@ public class PCPP implements GenericCPP {
             if (fullname == null) {
                 throw new RuntimeException("Can't find #include file \"" + filename + "\" at file " + filename() + ", line " + lineNumber());
             }
-            // Process this file in-line
-            final Reader reader = new BufferedReader(new FileReader(fullname));
-            run(reader, fullname);
+            if ((!enablePragmaOnce || !alreadyIncludedFiles.contains(fullname))) {
+                // Process this file in-line
+                final Reader reader = new BufferedReader(new FileReader(fullname));
+                run(reader, fullname);
+            } else {
+                //System.err.println("INACTIVE BLOCK, SKIPPING " + filename);
+            }
         } else {
             //System.err.println("INACTIVE BLOCK, SKIPPING " + filename);
+        }
+    }
+
+    /////////////////////////////////////
+    // Handling of #pragma directives //
+    /////////////////////////////////////
+
+    private void handlePragma() throws IOException {
+        final String msg = nextWordOrString();
+        if (enablePragmaOnce && msg.equals("once")) {
+            alreadyIncludedFiles.add(filename());
         }
     }
 
@@ -1128,6 +1149,7 @@ public class PCPP implements GenericCPP {
         System.err.println("Output goes to standard output. Standard input can be used as input");
         System.err.println("by passing '-' as the argument.");
         System.err.println("  --debug enables debug mode");
+        System.err.println("  --enablePragmaOnce enables pragma once management");
         System.exit(1);
     }
 
@@ -1135,6 +1157,7 @@ public class PCPP implements GenericCPP {
         Reader reader = null;
         String filename = null;
         boolean debug = false;
+        boolean enablePragmaOnce = false;
 
         if (args.length == 0) {
             usage();
@@ -1151,6 +1174,8 @@ public class PCPP implements GenericCPP {
                     }
                 } else if (arg.equals("--debug")) {
                     debug = true;
+                } else if (arg.equals("--enablePragmaOnce")) {
+                    enablePragmaOnce = true;
                 } else {
                     usage();
                 }
@@ -1169,7 +1194,7 @@ public class PCPP implements GenericCPP {
             }
         }
 
-        new PCPP(includePaths, debug, debug).run(reader, filename);
+        new PCPP(includePaths, debug, debug, enablePragmaOnce).run(reader, filename);
     }
 
 }

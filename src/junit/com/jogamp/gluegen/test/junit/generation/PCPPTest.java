@@ -62,13 +62,23 @@ public class PCPPTest extends SingletonJunitCase {
     }
 
     @Test
-    public void pcppMacroDefinitionTest() throws FileNotFoundException, IOException {
-        final PCPP pp = new PCPP(Collections.<String>emptyList(), false, false);
+    public void pcppMacroDefinitionTestWithoutPragmaOnce() throws FileNotFoundException, IOException {
+        pcppMacroDefinitionTest(false);
+    }
+
+    @Test
+    public void pcppMacroDefinitionTestWithPragmaOnce() throws FileNotFoundException, IOException {
+        pcppMacroDefinitionTest(true);
+    }
+
+    public void pcppMacroDefinitionTest(final boolean pragmaOnce) throws FileNotFoundException, IOException {
+        final String folderpath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation";
+        final PCPP pp = new PCPP(Collections.<String>singletonList(folderpath), false, false, pragmaOnce);
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
 
         final String filename = "pcpptest.h";
-        final String filepath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation/" + filename ;
+        final String filepath = folderpath + "/" + filename ;
         pp.run(new BufferedReader(new FileReader(filepath)), filename);
 
         final String expected =   "# 1 \"pcpptest.h\""+
@@ -95,7 +105,20 @@ public class PCPPTest extends SingletonJunitCase {
                             "#128\"pcpptest.h\""+
                             "#130\"pcpptest.h\""+
                             "#134\"pcpptest.h\""+
-                            "#136\"pcpptest.h\"";
+                            "#1\""+folderpath+"/pcpptest-included.h\""+
+                            "# define EXAMPLE 42"+
+                            "#134\"pcpptest.h\""+
+                            (!pragmaOnce ?
+                                    (
+                                            "#1\""+folderpath+"/pcpptest-included.h\""+
+                                            "# define EXAMPLE 42"+
+                                            "#135\"pcpptest.h\""
+                                    ):
+                                    ""
+                            )+
+                            "#137\"pcpptest.h\""+
+                            "#139\"pcpptest.h\""
+        ;
 
 
         output.flush();

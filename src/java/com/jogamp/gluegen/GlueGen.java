@@ -104,7 +104,7 @@ public class GlueGen implements GlueEmitterControls {
     public static final String __GLUEGEN__ = "__GLUEGEN__";
 
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyCPPOutput2Stderr) {
+    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyCPPOutput2Stderr, final boolean enablePragmaOnce) {
 
         try {
             if(debug) {
@@ -131,8 +131,8 @@ public class GlueGen implements GlueEmitterControls {
             final File out = File.createTempFile("CPPTemp", ".cpp");
             final FileOutputStream outStream = new FileOutputStream(out);
 
-            // preprocessor = new PCPP(includePaths, debug, copyCPPOutput2Stderr);
-            preprocessor = new JCPP(includePaths, debug, copyCPPOutput2Stderr);
+            // preprocessor = new PCPP(includePaths, debug, copyCPPOutput2Stderr, enablePragmaOnce);
+            preprocessor = new JCPP(includePaths, debug, copyCPPOutput2Stderr, enablePragmaOnce);
             final String cppName = preprocessor.getClass().getSimpleName();
             if(debug) {
                 System.err.println("CPP <"+cppName+"> output at (persistent): " + out.getAbsolutePath());
@@ -375,6 +375,7 @@ public class GlueGen implements GlueEmitterControls {
         String outputRootDir = null;
         final List<String> cfgFiles = new ArrayList<String>();
         boolean copyCPPOutput2Stderr = false;
+        boolean enablePragmaOnce = false;
 
         final List<String> includePaths = new ArrayList<String>();
         for (int i = 0; i < args.length; i++) {
@@ -396,6 +397,8 @@ public class GlueGen implements GlueEmitterControls {
                     debug=true;
                 } else if (arg.equals("--dumpCPP")) {
                     copyCPPOutput2Stderr=true;
+                } else if (arg.equals("--enablePragmaOnce")) {
+                    enablePragmaOnce=true;
                 } else {
                     usage();
                 }
@@ -420,7 +423,7 @@ public class GlueGen implements GlueEmitterControls {
 
         try {
             final Class<?> emitterClass = emitterFQN == null ? null : Class.forName(emitterFQN);
-            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, copyCPPOutput2Stderr);
+            new GlueGen().run(reader, filename, emitterClass, includePaths, cfgFiles, outputRootDir, copyCPPOutput2Stderr, enablePragmaOnce);
         } catch (final ClassNotFoundException ex) {
             throw new RuntimeException("specified emitter class was not in the classpath", ex);
         }
@@ -445,6 +448,7 @@ public class GlueGen implements GlueEmitterControls {
         out.println("-Cjava-emitter.cfg.");
         out.println("  --debug enables debug mode");
         out.println("  --dumpCPP directs CPP to dump all output to stderr as well");
+        out.println("  --enablePragmaOnce allow handle of #pragma once directive during parsing");
         exit(1);
     }
 }
