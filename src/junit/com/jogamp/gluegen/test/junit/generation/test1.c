@@ -636,112 +636,418 @@ MYAPI void MYAPIENTRY addByte(const char summands[2], char result[1]) {
     result[0] = summands[0] + summands[1];
 }
 
-MYAPI TK_ModelMutable * MYAPIENTRY createModelMutable() {
+typedef struct {
+    // Primitive.ConstValue.intxx 2A + 5P = 7
+    int  constIntxxArrayConstOneElem[1];
+    int  constIntxxArrayConstLen[3];         // [3]
+    int* constIntxxPointerConstOneElem;      //
+    int* constIntxxPointerMaxOneElem;        //
+    int* constIntxxPointerConstLen;          // [3]
+    int* constIntxxPointerVariaLen;
+    int* constIntxxPointerCustomLen;
+    int  constIntxxPointerCustomLenElemCount;
+
+    // Primitive.VariaValue.intxx 2A + 5P = 7
+    int  variaIntxxArrayConstOneElem[1];
+    int  variaIntxxArrayConstLen[3];         // [3]
+    int* variaIntxxPointerConstOneElem;      //
+    int* variaIntxxPointerMaxOneElem;        //
+    int* variaIntxxPointerConstLen;          // [3]
+    int* variaIntxxPointerVariaLen;
+    int* variaIntxxPointerCustomLen;
+    int  variaIntxxPointerCustomLenElemCount;
+
+    int32_t  constInt32Element;
+    int32_t  variaInt32Element;
+
+    // Primitive.ConstValue 2A + 5P = 7
+    int32_t  constInt32ArrayConstOneElem[1];
+    int32_t  constInt32ArrayConstLen[3];
+    int32_t* constInt32PointerConstOneElem;
+    int32_t* constInt32PointerMaxOneElem;
+    int32_t* constInt32PointerConstLen;
+    int32_t* constInt32PointerVariaLen;
+    int32_t* constInt32PointerCustomLen;
+    int32_t  constInt32PointerCustomLenElemCount;
+
+    // Primitive.VariaValue 2A + 5P = 7
+    int32_t  variaInt32ArrayConstOneElem[1];
+    int32_t  variaInt32ArrayConstLen[3];
+    int32_t* variaInt32PointerConstOneElem;
+    int32_t* variaInt32PointerMaxOneElem;
+    int32_t* variaInt32PointerConstLen;
+    int32_t* variaInt32PointerVariaLen;
+    int32_t* variaInt32PointerCustomLen;
+    int32_t  variaInt32PointerCustomLenElemCount;
+
+    // Struct.ConstValue 2A + 5P = 7
+    TK_Dimension  constStructArrayConstOneElem[1];
+    TK_Dimension  constStructArrayConstLen[3];
+    TK_Dimension* constStructPointerConstOneElem;
+    TK_Dimension* constStructPointerMaxOneElem;
+    TK_Dimension* constStructPointerConstLen;
+    TK_Dimension* constStructPointerVariaLen;
+    TK_Dimension* constStructPointerCustomLen;
+    int32_t       constStructPointerCustomLenElemCount;
+
+    // Struct.VariaValue 2A + 5P = 7
+    TK_Dimension  variaStructArrayConstOneElem[1];
+    TK_Dimension  variaStructArrayConstLen[3];
+    TK_Dimension* variaStructPointerConstOneElem;
+    TK_Dimension* variaStructPointerMaxOneElem;
+    TK_Dimension* variaStructPointerConstLen;
+    TK_Dimension* variaStructPointerVariaLen;
+    TK_Dimension* variaStructPointerCustomLen;
+    int32_t       variaStructPointerCustomLenElemCount;
+
+    // String.ConstValue 1A + 3P = 4
+    char  constCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* constCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* constCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* constCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constCharPointerCustomLenElemCount;
+
+    // String.VariaValue 1A + 3P = 4
+    char  variaCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaCharPointerCustomLenElemCount;
+
+    // StringOnly.ConstValue 1A + 3P = 4
+    char  constStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* constStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* constStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* constStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constStringOnlyPointerCustomLenElemCount;
+
+    // StringOnly.VariaValue 1A + 3P = 4
+    char  variaStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaStringOnlyPointerCustomLenElemCount;
+
+} TK_FieldMutable;
+
+
+static TK_FieldMutable * createTKFieldMutable() {
+    TK_FieldMutable * s = calloc(1, sizeof(TK_FieldMutable));
+
+    // Primitive.ConstValue.intxx 2A + 5P = 7
+    s->constIntxxArrayConstOneElem[0] = 88;
+    s->constIntxxArrayConstLen[0] = 1;
+    s->constIntxxArrayConstLen[1] = 2;
+    s->constIntxxArrayConstLen[2] = 3;
+    s->constIntxxPointerConstOneElem = calloc(1, sizeof(int));
+    s->constIntxxPointerConstOneElem[0] = 10;
+    s->constIntxxPointerMaxOneElem = NULL;
+    s->constIntxxPointerConstLen = calloc(3, sizeof(int));
+    s->constIntxxPointerConstLen[0] = 21;
+    s->constIntxxPointerConstLen[1] = 22;
+    s->constIntxxPointerConstLen[2] = 23;
+    s->constIntxxPointerVariaLen = NULL;
+    s->constIntxxPointerCustomLen = calloc(4, sizeof(int));
+    s->constIntxxPointerCustomLen[0] = 31;
+    s->constIntxxPointerCustomLen[1] = 32;
+    s->constIntxxPointerCustomLen[2] = 33;
+    s->constIntxxPointerCustomLen[3] = 34;
+    s->constIntxxPointerCustomLenElemCount = 4;
+
+    // Primitive.VariaValue.intxx 2A + 5P = 7
+    s->variaIntxxArrayConstOneElem[0] = 88;
+    s->variaIntxxArrayConstLen[0] = 1;
+    s->variaIntxxArrayConstLen[1] = 2;
+    s->variaIntxxArrayConstLen[2] = 3;
+    s->variaIntxxPointerConstOneElem = calloc(1, sizeof(int));
+    s->variaIntxxPointerConstOneElem[0] = 10;
+    s->variaIntxxPointerMaxOneElem = NULL;
+    s->variaIntxxPointerConstLen = calloc(3, sizeof(int));
+    s->variaIntxxPointerConstLen[0] = 21;
+    s->variaIntxxPointerConstLen[1] = 22;
+    s->variaIntxxPointerConstLen[2] = 23;
+    s->variaIntxxPointerVariaLen = NULL;
+    s->variaIntxxPointerCustomLen = calloc(4, sizeof(int));
+    s->variaIntxxPointerCustomLen[0] = 31;
+    s->variaIntxxPointerCustomLen[1] = 32;
+    s->variaIntxxPointerCustomLen[2] = 33;
+    s->variaIntxxPointerCustomLen[3] = 34;
+    s->variaIntxxPointerCustomLenElemCount = 4;
+
+    // Primitive.ConstValue.int32 2A + 5P = 7
+    s->constInt32ArrayConstOneElem[0] = 88;
+    s->constInt32ArrayConstLen[0] = 1;
+    s->constInt32ArrayConstLen[1] = 2;
+    s->constInt32ArrayConstLen[2] = 3;
+    s->constInt32PointerConstOneElem = calloc(1, sizeof(int32_t));
+    s->constInt32PointerConstOneElem[0] = 10;
+    s->constInt32PointerMaxOneElem = NULL;
+    s->constInt32PointerConstLen = calloc(3, sizeof(int32_t));
+    s->constInt32PointerConstLen[0] = 21;
+    s->constInt32PointerConstLen[1] = 22;
+    s->constInt32PointerConstLen[2] = 23;
+    s->constInt32PointerVariaLen = NULL;
+    s->constInt32PointerCustomLen = calloc(4, sizeof(int32_t));
+    s->constInt32PointerCustomLen[0] = 31;
+    s->constInt32PointerCustomLen[1] = 32;
+    s->constInt32PointerCustomLen[2] = 33;
+    s->constInt32PointerCustomLen[3] = 34;
+    s->constInt32PointerCustomLenElemCount = 4;
+
+    // Primitive.VariaValue.int32 2A + 5P = 7
+    s->variaInt32ArrayConstOneElem[0] = 88;
+    s->variaInt32ArrayConstLen[0] = 1;
+    s->variaInt32ArrayConstLen[1] = 2;
+    s->variaInt32ArrayConstLen[2] = 3;
+    s->variaInt32PointerConstOneElem = calloc(1, sizeof(int32_t));
+    s->variaInt32PointerConstOneElem[0] = 10;
+    s->variaInt32PointerMaxOneElem = NULL;
+    s->variaInt32PointerConstLen = calloc(3, sizeof(int32_t));
+    s->variaInt32PointerConstLen[0] = 21;
+    s->variaInt32PointerConstLen[1] = 22;
+    s->variaInt32PointerConstLen[2] = 23;
+    s->variaInt32PointerVariaLen = NULL;
+    s->variaInt32PointerCustomLen = calloc(4, sizeof(int32_t));
+    s->variaInt32PointerCustomLen[0] = 31;
+    s->variaInt32PointerCustomLen[1] = 32;
+    s->variaInt32PointerCustomLen[2] = 33;
+    s->variaInt32PointerCustomLen[3] = 34;
+    s->variaInt32PointerCustomLenElemCount = 4;
+
+    // Struct.ConstValue.TK_Dimension 2A + 5P = 7
+    s->constStructArrayConstOneElem[0].x = 51;
+    s->constStructArrayConstOneElem[0].y = 52;
+    s->constStructArrayConstOneElem[0].width = 53;
+    s->constStructArrayConstOneElem[0].height = 54;
+    s->constStructArrayConstLen[0].x = 61;
+    s->constStructArrayConstLen[0].y = 62;
+    s->constStructArrayConstLen[0].width = 63;
+    s->constStructArrayConstLen[0].height = 64;
+    s->constStructArrayConstLen[1].x = 71;
+    s->constStructArrayConstLen[1].y = 72;
+    s->constStructArrayConstLen[1].width = 73;
+    s->constStructArrayConstLen[1].height = 74;
+    s->constStructArrayConstLen[2].x = 81;
+    s->constStructArrayConstLen[2].y = 82;
+    s->constStructArrayConstLen[2].width = 83;
+    s->constStructArrayConstLen[2].height = 84;
+    s->constStructPointerConstOneElem = calloc(1, sizeof(TK_Dimension));
+    s->constStructPointerConstOneElem[0].x = 91;
+    s->constStructPointerConstOneElem[0].y = 92;
+    s->constStructPointerConstOneElem[0].width = 93;
+    s->constStructPointerConstOneElem[0].height = 94;
+    s->constStructPointerMaxOneElem = NULL;
+    s->constStructPointerConstLen = calloc(3, sizeof(TK_Dimension));
+    s->constStructPointerConstLen[0].x = 101;
+    s->constStructPointerConstLen[0].y = 102;
+    s->constStructPointerConstLen[0].width = 103;
+    s->constStructPointerConstLen[0].height = 104;
+    s->constStructPointerConstLen[1].x = 111;
+    s->constStructPointerConstLen[1].y = 112;
+    s->constStructPointerConstLen[1].width = 113;
+    s->constStructPointerConstLen[1].height = 114;
+    s->constStructPointerConstLen[2].x = 121;
+    s->constStructPointerConstLen[2].y = 123;
+    s->constStructPointerConstLen[2].width = 124;
+    s->constStructPointerConstLen[2].height = 125;
+    s->constStructPointerVariaLen = NULL;
+    s->constStructPointerCustomLen = calloc(4, sizeof(TK_Dimension));
+    s->constStructPointerCustomLen[0].x = 131;
+    s->constStructPointerCustomLen[0].y = 132;
+    s->constStructPointerCustomLen[0].width = 133;
+    s->constStructPointerCustomLen[0].height = 134;
+    s->constStructPointerCustomLen[1].x = 141;
+    s->constStructPointerCustomLen[1].y = 142;
+    s->constStructPointerCustomLen[1].width = 143;
+    s->constStructPointerCustomLen[1].height = 144;
+    s->constStructPointerCustomLen[2].x = 151;
+    s->constStructPointerCustomLen[2].y = 152;
+    s->constStructPointerCustomLen[2].width = 153;
+    s->constStructPointerCustomLen[2].height = 154;
+    s->constStructPointerCustomLen[3].x = 161;
+    s->constStructPointerCustomLen[3].y = 162;
+    s->constStructPointerCustomLen[3].width = 163;
+    s->constStructPointerCustomLen[3].height = 164;
+    s->constStructPointerCustomLenElemCount = 4;
+
+    // Struct.VariaValue.TK_Dimension 2A + 5P = 7
+    s->variaStructArrayConstOneElem[0].x = 51;
+    s->variaStructArrayConstOneElem[0].y = 52;
+    s->variaStructArrayConstOneElem[0].width = 53;
+    s->variaStructArrayConstOneElem[0].height = 54;
+    s->variaStructArrayConstLen[0].x = 61;
+    s->variaStructArrayConstLen[0].y = 62;
+    s->variaStructArrayConstLen[0].width = 63;
+    s->variaStructArrayConstLen[0].height = 64;
+    s->variaStructArrayConstLen[1].x = 71;
+    s->variaStructArrayConstLen[1].y = 72;
+    s->variaStructArrayConstLen[1].width = 73;
+    s->variaStructArrayConstLen[1].height = 74;
+    s->variaStructArrayConstLen[2].x = 81;
+    s->variaStructArrayConstLen[2].y = 82;
+    s->variaStructArrayConstLen[2].width = 83;
+    s->variaStructArrayConstLen[2].height = 84;
+    s->variaStructPointerConstOneElem = calloc(1, sizeof(TK_Dimension));
+    s->variaStructPointerConstOneElem[0].x = 91;
+    s->variaStructPointerConstOneElem[0].y = 92;
+    s->variaStructPointerConstOneElem[0].width = 93;
+    s->variaStructPointerConstOneElem[0].height = 94;
+    s->variaStructPointerMaxOneElem = NULL;
+    s->variaStructPointerConstLen = calloc(3, sizeof(TK_Dimension));
+    s->variaStructPointerConstLen[0].x = 101;
+    s->variaStructPointerConstLen[0].y = 102;
+    s->variaStructPointerConstLen[0].width = 103;
+    s->variaStructPointerConstLen[0].height = 104;
+    s->variaStructPointerConstLen[1].x = 111;
+    s->variaStructPointerConstLen[1].y = 112;
+    s->variaStructPointerConstLen[1].width = 113;
+    s->variaStructPointerConstLen[1].height = 114;
+    s->variaStructPointerConstLen[2].x = 121;
+    s->variaStructPointerConstLen[2].y = 123;
+    s->variaStructPointerConstLen[2].width = 124;
+    s->variaStructPointerConstLen[2].height = 125;
+    s->variaStructPointerVariaLen = NULL;
+    s->variaStructPointerCustomLen = calloc(4, sizeof(TK_Dimension));
+    s->variaStructPointerCustomLen[0].x = 131;
+    s->variaStructPointerCustomLen[0].y = 132;
+    s->variaStructPointerCustomLen[0].width = 133;
+    s->variaStructPointerCustomLen[0].height = 134;
+    s->variaStructPointerCustomLen[1].x = 141;
+    s->variaStructPointerCustomLen[1].y = 142;
+    s->variaStructPointerCustomLen[1].width = 143;
+    s->variaStructPointerCustomLen[1].height = 144;
+    s->variaStructPointerCustomLen[2].x = 151;
+    s->variaStructPointerCustomLen[2].y = 152;
+    s->variaStructPointerCustomLen[2].width = 153;
+    s->variaStructPointerCustomLen[2].height = 154;
+    s->variaStructPointerCustomLen[3].x = 161;
+    s->variaStructPointerCustomLen[3].y = 162;
+    s->variaStructPointerCustomLen[3].width = 163;
+    s->variaStructPointerCustomLen[3].height = 164;
+    s->variaStructPointerCustomLenElemCount = 4;
+
+    // String.ConstValue 1A + 3P = 4
+    strncpy(s->constCharArrayConstLen, "Hello Array1", sizeof(s->constCharArrayConstLen));
+    s->constCharPointerConstLen = calloc(14+1, sizeof(char));
+    strncpy(s->constCharPointerConstLen, "Hello CString1", 14+1);
+    s->constCharPointerVariaLen = NULL;
+    s->constCharPointerCustomLen = calloc(14+1, sizeof(char));
+    strncpy(s->constCharPointerCustomLen, "Hello CString3", 14+1);
+    s->constCharPointerCustomLenElemCount = 14+1;
+
+    // String.VariaValue 1A + 3P = 4
+    strncpy(s->variaCharArrayConstLen, "Hello Array1", sizeof(s->variaCharArrayConstLen));
+    s->variaCharPointerConstLen = calloc(14+1, sizeof(char));
+    strncpy(s->variaCharPointerConstLen, "Hello CString1", 14+1);
+    s->variaCharPointerVariaLen = NULL;
+    s->variaCharPointerCustomLen = calloc(14+1, sizeof(char));
+    strncpy(s->variaCharPointerCustomLen, "Hello CString3", 14+1);
+    s->variaCharPointerCustomLenElemCount = 14+1;
+
+    // StringOnly.ConstValue 1A + 3P = 4
+    strncpy(s->constStringOnlyArrayConstLen, "Hello Array1", sizeof(s->constStringOnlyArrayConstLen));
+    s->constStringOnlyPointerConstLen = calloc(14+1, sizeof(char));
+    strncpy(s->constStringOnlyPointerConstLen, "Hello CString1", 14+1);
+    s->constStringOnlyPointerVariaLen = NULL;
+    s->constStringOnlyPointerCustomLen = calloc(14+1, sizeof(char));
+    strncpy(s->constStringOnlyPointerCustomLen, "Hello CString3", 14+1);
+    s->constStringOnlyPointerCustomLenElemCount = 14+1;
+
+    // StringOnly.VariaValue 1A + 3P = 4
+    strncpy(s->variaStringOnlyArrayConstLen, "Hello Array1", sizeof(s->variaStringOnlyArrayConstLen));
+    s->variaStringOnlyPointerConstLen = calloc(14+1, sizeof(char));
+    strncpy(s->variaStringOnlyPointerConstLen, "Hello CString1", 14+1);
+    s->variaStringOnlyPointerVariaLen = NULL;
+    s->variaStringOnlyPointerCustomLen = calloc(14+1, sizeof(char));
+    strncpy(s->variaStringOnlyPointerCustomLen, "Hello CString3", 14+1);
+    s->variaStringOnlyPointerCustomLenElemCount = 14+1;
+
+    return s;
+}
+
+static void destroyTKFieldMutable(TK_FieldMutable * s) {
+    assert(NULL!=s);
+
+    assert(NULL!=s->constIntxxPointerConstOneElem);
+    free(s->constIntxxPointerConstOneElem);
+    assert(NULL!=s->constIntxxPointerConstLen);
+    free(s->constIntxxPointerConstLen);
+    if( 0 < s->constIntxxPointerCustomLenElemCount && NULL!=s->constIntxxPointerCustomLen ) {
+        // NOTE Ownership is ambiguous
+        free(s->constIntxxPointerCustomLen);
+    }
+    
+    assert(NULL!=s->constInt32PointerConstOneElem);
+    free(s->constInt32PointerConstOneElem);
+    assert(NULL!=s->constInt32PointerConstLen);
+    free(s->constInt32PointerConstLen);
+    if( 0 < s->constInt32PointerCustomLenElemCount && NULL!=s->constInt32PointerCustomLen ) {
+        // NOTE Ownership is ambiguous
+        free(s->constInt32PointerCustomLen);
+    }
+    
+    assert(NULL!=s->constStructPointerConstOneElem);
+    free(s->constStructPointerConstOneElem);
+    assert(NULL!=s->constStructPointerConstLen);
+    free(s->constStructPointerConstLen);
+    if( 0 < s->constStructPointerCustomLenElemCount && NULL!=s->constStructPointerCustomLen ) {
+        // NOTE Ownership is ambiguous
+        free(s->constStructPointerCustomLen);
+    }
+    
+    assert(NULL!=s->constCharPointerConstLen);
+    free(s->constCharPointerConstLen);
+    if( 0 < s->constCharPointerCustomLenElemCount && NULL!=s->constCharPointerCustomLen ) {
+        // NOTE Ownership is ambiguous
+        free(s->constCharPointerCustomLen);
+    }
+
+    assert(NULL!=s->constStringOnlyPointerConstLen);
+    free(s->constStringOnlyPointerConstLen);
+    if( 0 < s->constStringOnlyPointerCustomLenElemCount && NULL!=s->constStringOnlyPointerCustomLen ) {
+        // NOTE Ownership is ambiguous
+        free(s->constStringOnlyPointerCustomLen);
+    }
+
+    free(s);
+}
+
+MYAPI TK_FieldImmutable * MYAPIENTRY createTKFieldImmutable() {
+    return (TK_FieldImmutable*) createTKFieldMutable();
+}
+MYAPI void MYAPIENTRY destroyTKFieldImmutable(TK_FieldImmutable * s) {
+    destroyTKFieldMutable((TK_FieldMutable*) s);
+}
+
+MYAPI TK_StructImmutable * MYAPIENTRY createTKStructImmutable() {
+    return (TK_StructImmutable*) createTKFieldMutable();
+}
+MYAPI void MYAPIENTRY destroyTKStructImmutable(TK_StructImmutable * s) {
+    destroyTKFieldMutable((TK_FieldMutable*) s);
+}
+
+MYAPI TK_Field * MYAPIENTRY createTKField() {
+    return (TK_Field*) createTKFieldMutable();
+}
+MYAPI void MYAPIENTRY destroyTKField(TK_Field * s) {
+    destroyTKFieldMutable((TK_FieldMutable*) s);
+}
+
+MYAPI TK_ModelMixed* MYAPIENTRY createTKModelMixed() {
     int i, j;
-    TK_ModelMutable * s = calloc(1, sizeof(TK_ModelMutable));
-
-    s->intxxArrayFixedLen[0]=1;
-    s->intxxArrayFixedLen[1]=2;
-    s->intxxArrayFixedLen[2]=3;
-    
-    s->intxxPointerCustomLen = calloc(3, sizeof(int));
-    s->intxxPointerCustomLen[0] = 11;
-    s->intxxPointerCustomLen[1] = 12;
-    s->intxxPointerCustomLen[2] = 13;
-    s->intxxPointerCustomLenVal=3;
-
-    s->int32ArrayFixedLen[0] = 21;
-    s->int32ArrayFixedLen[1] = 22;
-    s->int32ArrayFixedLen[2] = 23;
-
-    s->int32ArrayOneElem[0] = 30;
-    
-    s->int32PointerCustomLen = calloc(3, sizeof(int));
-    s->int32PointerCustomLen[0] = 31;
-    s->int32PointerCustomLen[1] = 32;
-    s->int32PointerCustomLen[2] = 33;
-    s->int32PointerCustomLenVal=3;
-
-    s->int32PointerOneElem = calloc(1, sizeof(int));
-    s->int32PointerOneElem[0] = 41;
+    TK_ModelMixed * s = calloc(1, sizeof(TK_ModelMixed));
 
     for(i=0; i<4; i++) {
         for(j=0; j<4; j++) {
             s->mat4x4[i][j] = i*4 + j;
         }
     }
-
-    s->structArrayFixedLen[0].x      = 51;
-    s->structArrayFixedLen[0].y      = 52;
-    s->structArrayFixedLen[0].width  = 53;
-    s->structArrayFixedLen[0].height = 54;
-    s->structArrayFixedLen[1].x      = 61;
-    s->structArrayFixedLen[1].y      = 62;
-    s->structArrayFixedLen[1].width  = 63;
-    s->structArrayFixedLen[1].height = 64;
-    s->structArrayFixedLen[2].x      = 71;
-    s->structArrayFixedLen[2].y      = 72;
-    s->structArrayFixedLen[2].width  = 73;
-    s->structArrayFixedLen[2].height = 74;
-
-    s->structArrayOneElem[0].x      = 81;
-    s->structArrayOneElem[0].y      = 82;
-    s->structArrayOneElem[0].width  = 83;
-    s->structArrayOneElem[0].height = 84;
-
-    s->structPointerCustomLen = (TK_Dimension *) calloc(3, sizeof(TK_Dimension));
-    s->structPointerCustomLen[0].x      = 91;
-    s->structPointerCustomLen[0].y      = 92;
-    s->structPointerCustomLen[0].width  = 93;
-    s->structPointerCustomLen[0].height = 94;
-    s->structPointerCustomLen[1].x      = 101;
-    s->structPointerCustomLen[1].y      = 102;
-    s->structPointerCustomLen[1].width  = 103;
-    s->structPointerCustomLen[1].height = 104;
-    s->structPointerCustomLen[2].x      = 111;
-    s->structPointerCustomLen[2].y      = 112;
-    s->structPointerCustomLen[2].width  = 113;
-    s->structPointerCustomLen[2].height = 114;
-    s->structPointerCustomLenVal = 3;
-
-    s->structPointerOneElem = (TK_Dimension *) calloc(1, sizeof(TK_Dimension));
-    s->structPointerOneElem[0].x      = 121;
-    s->structPointerOneElem[0].y      = 122;
-    s->structPointerOneElem[0].width  = 123;
-    s->structPointerOneElem[0].height = 124;
-
     s->ctx = (void *) 0x123456789abcdef0UL;
-
-    strncpy(s->modelNameArrayFixedLen, "Hello Array", sizeof(s->modelNameArrayFixedLen));
-
-    s->modelNamePointerCString = calloc(13+1, sizeof(char));
-    strncpy(s->modelNamePointerCString, "Hello CString", 13+1);
-
-    s->modelNamePointerCustomLen = calloc(13+1, sizeof(char));
-    strncpy(s->modelNamePointerCustomLen, "Hello Pointer", 13+1);
-    s->modelNamePointerCustomLenVal = 13+1;
-
     return s;
 }
 
-MYAPI void MYAPIENTRY destroyModelMutable(TK_ModelMutable * s) {
+MYAPI void MYAPIENTRY destroyTKModelMixed(TK_ModelMixed * s) {
     assert(NULL!=s);
-    assert(NULL!=s->intxxPointerCustomLen);
-    assert(NULL!=s->int32PointerCustomLen);
-    assert(NULL!=s->int32PointerOneElem);
-    assert(NULL!=s->structPointerCustomLen);
-    free(s->intxxPointerCustomLen);
-    free(s->int32PointerCustomLen);
-    free(s->int32PointerOneElem);
-    free(s->structPointerCustomLen);
-    free(s->modelNamePointerCString);
-    free(s->modelNamePointerCustomLen);
     free(s);
 }
 
-MYAPI TK_ModelConst * MYAPIENTRY createModelConst() {
-    return (TK_ModelConst *)createModelMutable();
-}
-MYAPI void MYAPIENTRY destroyModelConst(TK_ModelConst * s) {
-    destroyModelMutable((TK_ModelMutable *)s);
-}

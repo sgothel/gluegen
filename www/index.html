@@ -10,7 +10,7 @@
     <body>
         <div id="container">
             <div id="header">
-                <div id="slogan">JNI binding code generator</div>
+                <div id="slogan">Native Binding Generator for Java™</div>
                 <div id="logo"><a href="http://jogamp.org/">Gluegen</a></div>
             </div>
             <div id="menu">
@@ -30,34 +30,48 @@
                 <div id="sidebar">
                     <h3>Useful Links</h3>
                     <ul>
+                        <li><a href="https://jogamp.org/cgit/gluegen.git/about/">GlueGen Git Repo</a></li>
+                        <li><a href="../../deployment/jogamp-next/javadoc/gluegen/javadoc/">GlueGen API-Doc</a></li>
+                        <li><a href="../doc/GlueGen_Mapping.html">GlueGen Native Data & Function Mapping</a></li>
                         <li><a href="../doc/manual/">GlueGen Manual</a></li>
-                        <li><a href="../../deployment/jogamp-next/javadoc/gluegen/javadoc/">GlueGen Runtime JavaDoc</a></li>
+                        <li><a href="../doc/HowToBuild.html">How To Build</a></li>
+                        <li><a href="../doc/JogAmpMacOSVersions.html">JogAmp's MacOS Version Support</a></li>
                     </ul>
 
                 </div>
                 <div id="text" class="fill">
                     <p>
-                        GlueGen is a tool which automatically generates the Java and JNI code
-                        necessary to call C libraries.
+                        GlueGen is a compiler for function and data-structure declarations, 
+                        generating Java™ and JNI C code offline at compile time 
+                        and allows using native libraries within your Java™ application.
                     </p>
                     <p>
-                        It reads as input ANSI C header files
+                        It reads ANSI C header files
                         and separate configuration files which provide control over many
                         aspects of the glue code generation. GlueGen uses a complete ANSI C
                         parser and an internal representation (IR) capable of representing all
                         C types to represent the APIs for which it generates interfaces. It
                         has the ability to perform significant transformations on the IR
-                        before glue code emission. GlueGen is currently powerful enough to
-                        bind even low-level APIs such as the Java Native Interface (JNI) and
-                        the AWT Native Interface (JAWT) back up to the Java programming
-                        language.
+                        before glue code emission. 
+                    </p>
+                    <p>
+                        GlueGen can produce native foreign function bindings to Java™ as well as
+                        map native data structures to be fully accessible from Java™ including 
+                        potential calls to embedded function pointer.
+                    </p>
+                    <p>
+                        GlueGen is also capable to bind even low-level APIs such as the Java™ Native Interface (JNI) and
+                        the AWT Native Interface (JAWT) back up to the Java™ programming language.
                     </p>
 
                     <p>
-                        GlueGen is currently used for the projects
-                        <a href="../../jogl/www/">JOGL</a>,
-                        <a href="../../jocl/www/">JOCL</a> and
-                        <a href="../../joal/www/">JOAL</a>.
+                        GlueGen utilizes <a href="https://jogamp.org/cgit/jcpp.git/about/">JCPP</a>, migrated C preprocessor written in Java™.
+                    </p>
+                    <p>
+                        GlueGen is used for the JogAmp projects
+                        <a href="../../joal/www/">JOAL</a>,
+                        <a href="../../jogl/www/">JOGL</a> and
+                        <a href="../../jocl/www/">JOCL</a>.
                     </p>
 
                 </div>

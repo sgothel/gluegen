@@ -145,19 +145,24 @@ public class Test1p1JavaEmitter extends BaseClass {
     }
 
     /**
-     * Test compound access read-only
-     */
-    @Test
-    public void chapter12TestStructArrayModelConst() throws Exception {
-        chapter12TestStructArrayModelConst(new Bindingtest1p1Impl());
-    }
-
-    /**
      * Test compound access read-write
      */
     @Test
-    public void chapter13TestStructArrayModelMutable() throws Exception {
-        chapter13TestStructArrayModelMutable(new Bindingtest1p1Impl());
+    public void chapter12TestTKField() throws Exception {
+        chapter12TestTKField(new Bindingtest1p1Impl());
+    }
+
+    /**
+     * Test compound access read-only
+     */
+    @Test
+    public void chapter13TestTKFieldImmutable() throws Exception {
+        chapter13TestTKFieldImmutable(new Bindingtest1p1Impl());
+    }
+
+    @Test
+    public void chapter15TestTKMixed() throws Exception {
+        chapter15TestTKMixed(new Bindingtest1p1Impl());
     }
 
     public static void main(final String args[]) throws IOException {

@@ -1,6 +1,6 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -48,13 +48,13 @@ import static com.jogamp.gluegen.JavaEmitter.MethodAccess.PUBLIC_ABSTRACT;
 import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.INFO;
 import static java.util.logging.Level.WARNING;
+import static java.util.logging.Level.SEVERE;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -78,12 +78,9 @@ import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.Logging.LoggerIf;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.ArrayType;
-import com.jogamp.gluegen.cgram.types.CVAttributes;
 import com.jogamp.gluegen.cgram.types.CompoundType;
 import com.jogamp.gluegen.cgram.types.Field;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
-import com.jogamp.gluegen.cgram.types.FunctionType;
-import com.jogamp.gluegen.cgram.types.IntType;
 import com.jogamp.gluegen.cgram.types.PointerType;
 import com.jogamp.gluegen.cgram.types.SizeThunk;
 import com.jogamp.gluegen.cgram.types.StructLayout;
@@ -106,7 +103,6 @@ public class JavaEmitter implements GlueEmitter {
   private StructLayout layout;
   private Map<Type, Type> canonMap;
   protected JavaConfiguration cfg;
-  private boolean requiresStaticInitialization = false;
 
   /**
    * Style of code emission. Can emit everything into one class
@@ -130,11 +126,9 @@ public class JavaEmitter implements GlueEmitter {
       private final String javaName;
   }
 
-  private String javaFileName;        // of  javaWriter or javaImplWriter
-  private PrintWriter javaWriter;     // Emits either interface or, in AllStatic mode, everything
-  private PrintWriter javaImplWriter; // Only used in non-AllStatic modes for impl class
-  private String cFileName;           // of cWriter
-  private PrintWriter cWriter;
+  private JavaCodeUnit javaUnit;      // Covers either interface or, in AllStatic mode, everything
+  private JavaCodeUnit javaImplUnit;  // Only used in non-AllStatic modes for impl class
+  private CCodeUnit cUnit;
   private final MachineDataInfo machDescJava = MachineDataInfo.StaticConfig.LP64_UNIX.md;
   private final MachineDataInfo.StaticConfig[] machDescTargetConfigs = MachineDataInfo.StaticConfig.values();
 
@@ -262,7 +256,7 @@ public class JavaEmitter implements GlueEmitter {
 
         if ( !cfg.structsOnly() ) {
             try {
-                openWriters();
+                openCodeUnits();
             } catch (final Exception e) {
                 throw new RuntimeException("Unable to open files for writing", e);
             }
@@ -286,7 +280,7 @@ public class JavaEmitter implements GlueEmitter {
   @Override
   public void beginDefines() throws Exception {
     if ( ( cfg.allStatic() || cfg.emitInterface() ) && !cfg.structsOnly() ) {
-      javaWriter().println();
+      javaUnit().emitln();
     }
   }
 
@@ -317,18 +311,18 @@ public class JavaEmitter implements GlueEmitter {
       if ( !cfg.shouldIgnoreInInterface(def) ) {
         final ConstantDefinition.JavaExpr constExpr = def.computeJavaExpr(constMap);
         constMap.put(def.getName(), constExpr);
-        javaWriter().print("  /** ");
+        javaUnit().emit("  /** ");
         if (optionalComment != null && optionalComment.length() != 0) {
-            javaWriter().print(optionalComment);
-            javaWriter().print(" - ");
+            javaUnit().emit(optionalComment);
+            javaUnit().emit(" - ");
         }
-        javaWriter().print("CType: ");
+        javaUnit().emit("CType: ");
         if( constExpr.resultType.isUnsigned ) {
-            javaWriter().print("unsigned ");
+            javaUnit().emit("unsigned ");
         }
-        javaWriter().print(constExpr.resultJavaTypeName);
-        javaWriter().println(" */");
-        javaWriter().println("  public static final " + constExpr.resultJavaTypeName +
+        javaUnit().emit(constExpr.resultJavaTypeName);
+        javaUnit().emitln(" */");
+        javaUnit().emitln("  public static final " + constExpr.resultJavaTypeName +
                              " " + def.getName() + " = " + constExpr.javaExpression + ";");
       }
     }
@@ -345,10 +339,9 @@ public class JavaEmitter implements GlueEmitter {
 
     // this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
-    this.requiresStaticInitialization = false; // reset
 
     if ( ( cfg.allStatic() || cfg.emitInterface() ) && !cfg.structsOnly() ) {
-      javaWriter().println();
+      javaUnit().emitln();
     }
   }
 
@@ -377,7 +370,7 @@ public class JavaEmitter implements GlueEmitter {
                 final FunctionSymbol cFunc = emitter.getCSymbol();
                 if ( !emitter.isInterface() || !cfg.shouldIgnoreInInterface(cFunc) ) {
                     emitter.emit();
-                    emitter.getDefaultOutput().println(); // put newline after method body
+                    emitter.getUnit().emitln(); // put newline after method body
                     LOG.log(INFO, cFunc.getASTLocusTag(), "Non-Ignored Intf[{0}]: {1}", i++, cFunc);
                 }
               } catch (final Exception e) {
@@ -453,11 +446,11 @@ public class JavaEmitter implements GlueEmitter {
       final boolean emitBody = !signatureOnly && needsBody;
       final boolean isNativeMethod = !isUnimplemented && !needsBody && !signatureOnly;
 
-      final PrintWriter writer = ((signatureOnly || cfg.allStatic()) ? javaWriter() : javaImplWriter());
+      final CodeUnit unit = ((signatureOnly || cfg.allStatic()) ? javaUnit() : javaImplUnit());
 
       final JavaMethodBindingEmitter emitter =
               new JavaMethodBindingEmitter(binding,
-                      writer,
+                      unit,
                       cfg.runtimeExceptionType(),
                       cfg.unsupportedExceptionType(),
                       emitBody,        // emitBody
@@ -512,7 +505,6 @@ public class JavaEmitter implements GlueEmitter {
               cfg.javaEpilogueForMethod(binding, false, false) != null ;
 
       if ( !cfg.isUnimplemented( cSymbol ) ) {
-
           // If we already generated a public native entry point for this
           // method, don't emit another one
           //
@@ -524,12 +516,12 @@ public class JavaEmitter implements GlueEmitter {
                ( binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue )
              )
           {
-              final PrintWriter writer = (cfg.allStatic() ? javaWriter() : javaImplWriter());
+              final CodeUnit unit = (cfg.allStatic() ? javaUnit() : javaImplUnit());
 
               // (Always) emit the entry point taking only direct buffers
               final JavaMethodBindingEmitter emitter =
                       new JavaMethodBindingEmitter(binding,
-                              writer,
+                              unit,
                               cfg.runtimeExceptionType(),
                               cfg.unsupportedExceptionType(),
                               false, // emitBody
@@ -563,7 +555,7 @@ public class JavaEmitter implements GlueEmitter {
               // Generate a binding without mixed access (NIO-direct, -indirect, array)
               final CMethodBindingEmitter cEmitter =
                       new CMethodBindingEmitter(binding,
-                              cWriter(),
+                              cUnit(),
                               cfg.implPackageName(),
                               cfg.implClassName(),
                               true, // NOTE: we always disambiguate with a suffix now, so this is optional
@@ -714,18 +706,10 @@ public class JavaEmitter implements GlueEmitter {
   public void endFunctions() throws Exception {
     if ( !cfg.structsOnly() ) {
         if (cfg.allStatic() || cfg.emitInterface()) {
-            emitCustomJavaCode(javaWriter(), cfg.className());
+            emitCustomJavaCode(javaUnit(), cfg.className());
         }
         if (!cfg.allStatic() && cfg.emitImpl()) {
-            emitCustomJavaCode(javaImplWriter(), cfg.implClassName());
-        }
-        if ( cfg.allStatic() ) {
-            emitJavaInitCode(javaWriter(), cfg.className());
-        } else if ( cfg.emitImpl() ) {
-            emitJavaInitCode(javaImplWriter(), cfg.implClassName());
-        }
-        if ( cfg.emitImpl() ) {
-            emitCInitCode(cWriter(), getImplPackageName(), cfg.implClassName());
+            emitCustomJavaCode(javaImplUnit(), cfg.implClassName());
         }
     }
   }
@@ -750,6 +734,7 @@ public class JavaEmitter implements GlueEmitter {
   @Override
   public void emitStruct(final CompoundType structCType, final Type structCTypedefPtr) throws Exception {
     final String structCTypeName, typedefedName;
+    final boolean immutableStruct;
     {
         final String _name = structCType.getName();
         if ( null != structCTypedefPtr && null != structCTypedefPtr.getName() ) {
@@ -778,6 +763,7 @@ public class JavaEmitter implements GlueEmitter {
                     "skipping emission of ignored \"{0}\": {1}", aliases, structCType);
             return;
         }
+        immutableStruct = cfg.immutableAccess(aliases);
     }
 
     if( null != structCTypedefPtr && isOpaque(structCTypedefPtr) ) {
@@ -827,8 +813,6 @@ public class JavaEmitter implements GlueEmitter {
                 "emission of \"{0}\" with zero fields {1}", containingJTypeName, structCType);
     }
 
-    this.requiresStaticInitialization = false; // reset
-
     // machDescJava global MachineDataInfo is the one used to determine
     // the sizes of the primitive types seen in the public API in Java.
     // For example, if a C long is an element of a struct, it is the size
@@ -854,16 +838,16 @@ public class JavaEmitter implements GlueEmitter {
     for (int i = 0; i < structCType.getNumFields(); i++) {
       final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
-
       final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, field.getName());
 
       if (!cfg.shouldIgnoreInInterface(cfgFieldName0)) {
-
         final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
         final String fieldName = renamed==null ? field.getName() : renamed;
         final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName);
+        final TypeInfo opaqueField = cfg.canonicalNameOpaque(cfgFieldName1);
+        final boolean isOpaqueField = null != opaqueField;
 
-        if ( fieldType.isFunctionPointer() || fieldType.isPointer() || requiresGetCStringLength(fieldType, cfgFieldName1) ) {
+        if ( fieldType.isFunctionPointer() && !isOpaqueField ) {
             needsNativeCode = true;
             break;
         }
@@ -871,76 +855,84 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     final String structClassPkgName = cfg.packageForStruct(structCTypeName);
-    final PrintWriter javaWriter;
-    final PrintWriter jniWriter;
+    final JavaCodeUnit javaUnit;
+    final CCodeUnit jniUnit;
     try  {
-        javaWriter = openFile(cfg.javaOutputDir() + File.separator +
-                              CodeGenUtils.packageAsPath(structClassPkgName) +
-                              File.separator + containingJTypeName + ".java", containingJTypeName);
-        if( null == javaWriter ) {
+        {
+            final String javaFileName = cfg.javaOutputDir() + File.separator +
+                                        CodeGenUtils.packageAsPath(structClassPkgName) +
+                                        File.separator + containingJTypeName + ".java";
+
+            javaUnit = openJavaUnit(javaFileName, structClassPkgName, containingJTypeName);
+        }
+
+        if( null == javaUnit ) {
             // suppress output if openFile deliberately returns null.
             return;
         }
-        CodeGenUtils.emitAutogeneratedWarning(javaWriter, this);
         if (needsNativeCode) {
             String nRoot = cfg.nativeOutputDir();
             if (cfg.nativeOutputUsesJavaHierarchy()) {
                 nRoot += File.separator + CodeGenUtils.packageAsPath(cfg.packageName());
             }
-            jniWriter = openFile(nRoot + File.separator + containingJTypeName + "_JNI.c", containingJTypeName);
-            CodeGenUtils.emitAutogeneratedWarning(jniWriter, this);
-            emitCHeader(jniWriter, structClassPkgName, containingJTypeName);
+            final String cUnitName = containingJTypeName + "_JNI.c";
+            final String fname = nRoot + File.separator + cUnitName;
+            jniUnit = openCUnit(fname, cUnitName);
+            // jniUnit.emitHeader(structClassPkgName, containingJTypeName, Collections.emptyList());
+            jniUnit.emitHeader(structClassPkgName, containingJTypeName, cfg.customCCode());
         } else {
-            jniWriter = null;
+            jniUnit = null;
         }
     } catch(final Exception e)   {
         throw new RuntimeException("Unable to open files for emission of struct class", e);
     }
 
-    javaWriter.println();
-    javaWriter.println("package " + structClassPkgName + ";");
-    javaWriter.println();
-    javaWriter.println("import java.nio.*;");
-    javaWriter.println();
+    javaUnit.emitln();
+    javaUnit.emitln("package " + structClassPkgName + ";");
+    javaUnit.emitln();
+    javaUnit.emitln("import java.nio.*;");
+    javaUnit.emitln("import java.nio.charset.Charset;");
+    javaUnit.emitln("import java.nio.charset.StandardCharsets;");
+    javaUnit.emitln();
 
-    javaWriter.println("import " + cfg.gluegenRuntimePackage() + ".*;");
-    javaWriter.println("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
-    javaWriter.println("import " + Buffers.class.getPackage().getName() + ".*;");
-    javaWriter.println("import " + MachineDataInfoRuntime.class.getName() + ";");
-    javaWriter.println();
+    javaUnit.emitln("import " + cfg.gluegenRuntimePackage() + ".*;");
+    javaUnit.emitln("import " + DynamicLookupHelper.class.getPackage().getName() + ".*;");
+    javaUnit.emitln("import " + Buffers.class.getPackage().getName() + ".*;");
+    javaUnit.emitln("import " + MachineDataInfoRuntime.class.getName() + ";");
+    javaUnit.emitln();
     final List<String> imports = cfg.imports();
     for (final String str : imports) {
-      javaWriter.print("import ");
-      javaWriter.print(str);
-      javaWriter.println(";");
+      javaUnit.emit("import ");
+      javaUnit.emit(str);
+      javaUnit.emitln(";");
     }
-    javaWriter.println();
+    javaUnit.emitln();
     final List<String> javadoc = cfg.javadocForClass(containingJTypeName);
     for (final String doc : javadoc) {
-      javaWriter.println(doc);
+      javaUnit.emitln(doc);
     }
-    javaWriter.print("public class " + containingJTypeName + " ");
+    javaUnit.emit("public final class " + containingJTypeName + " ");
     boolean firstIteration = true;
     final List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingJTypeName);
     for (final String userInterface : userSpecifiedInterfaces) {
       if (firstIteration) {
-        javaWriter.print("implements ");
+        javaUnit.emit("implements ");
       }
       firstIteration = false;
-      javaWriter.print(userInterface);
-      javaWriter.print(" ");
+      javaUnit.emit(userInterface);
+      javaUnit.emit(" ");
     }
-    javaWriter.println("{");
-    javaWriter.println();
-    javaWriter.println("  StructAccessor accessor;");
-    javaWriter.println();
+    javaUnit.emitln("{");
+    javaUnit.emitln();
+    javaUnit.emitln("  StructAccessor accessor;");
+    javaUnit.emitln();
     final String cfgMachDescrIdxCode = cfg.returnStructMachineDataInfoIndex(containingJTypeName);
     final String machDescrIdxCode = null != cfgMachDescrIdxCode ? cfgMachDescrIdxCode : "private static final int mdIdx = MachineDataInfoRuntime.getStatic().ordinal();";
-    javaWriter.println("  "+machDescrIdxCode);
-    javaWriter.println("  private final MachineDataInfo md;");
-    javaWriter.println();
+    javaUnit.emitln("  "+machDescrIdxCode);
+    javaUnit.emitln("  private final MachineDataInfo md;");
+    javaUnit.emitln();
     // generate all offset and size arrays
-    generateOffsetAndSizeArrays(javaWriter, "  ", containingJTypeName, structCType, null, null); /* w/o offset */
+    generateOffsetAndSizeArrays(javaUnit, "  ", containingJTypeName, structCType, null, null); /* w/o offset */
     if( GlueGen.debug() ) {
         System.err.printf("SE.__: structCType %s%n", structCType.getDebugString());
         System.err.printf("SE.__: contCTypeName %s%n", containingCType.getDebugString());
@@ -970,14 +962,15 @@ public class JavaEmitter implements GlueEmitter {
           if( GlueGen.debug() ) {
             System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "compound");
           }
-          generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field, null);
+          generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, fieldType, field, null);
         } else if (fieldType.isArray()) {
             final Type baseElementType = field.getType().asArray().getBaseElementType();
             if( GlueGen.debug() ) {
                 System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "array");
                 System.err.printf("SE.os.%02d: baseType %s%n", (i+1), baseElementType.getDebugString());
             }
-            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, fieldType, field, null);
+            generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, null, field, null); /* w/o size */
+            generateOffsetAndSizeArrays(javaUnit, "//", fieldName, fieldType, null, null);
         } else {
           final JavaType externalJavaType;
           try {
@@ -992,52 +985,74 @@ public class JavaEmitter implements GlueEmitter {
           }
           if (externalJavaType.isPrimitive()) {
             // Primitive type
-            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
-            generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, null, null);
+            generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, null, field, null); /* w/o size */
+            generateOffsetAndSizeArrays(javaUnit, "//", fieldName, fieldType, null, null);
           } else if (externalJavaType.isCPrimitivePointerType()) {
             if( requiresGetCStringLength(fieldType, cfgFieldName1) ) {
-                generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
-                generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, null, "// "+externalJavaType.getDebugString());
+                generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, null, field, null); /* w/o size */
+                generateOffsetAndSizeArrays(javaUnit, "//", fieldName, fieldType, null, "// "+externalJavaType.getDebugString());
             } else {
-                generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, field, "// "+externalJavaType.getDebugString());
+                generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, null, field, null); /* w/o size */
+                generateOffsetAndSizeArrays(javaUnit, "//", fieldName, fieldType, field, "// "+externalJavaType.getDebugString());
             }
           } else {
-            generateOffsetAndSizeArrays(javaWriter, "  ", fieldName, null, field, null); /* w/o size */
-            generateOffsetAndSizeArrays(javaWriter, "//", fieldName, fieldType, null, "// "+externalJavaType.getDebugString());
+            generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, null, field, null); /* w/o size */
+            generateOffsetAndSizeArrays(javaUnit, "//", fieldName, fieldType, null, "// "+externalJavaType.getDebugString());
           }
         }
       } else if( GlueGen.debug() ) {
         System.err.printf("SE.os.%02d: %s, %s (IGNORED)%n", (i+1), field, fieldType.getDebugString());
       }
     }
-    javaWriter.println();
+    javaUnit.emitln();
+    javaUnit.emitln("  /** Returns true if this generated implementation uses native code, otherwise false. */");
+    javaUnit.emitln("  public static boolean usesNativeCode() {");
+    javaUnit.emitln("    return "+needsNativeCode+";");
+    javaUnit.emitln("  }");
+    javaUnit.emitln();
+
     // getDelegatedImplementation
     if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, "size")) ) {
-        javaWriter.println("  public static int size() {");
-        javaWriter.println("    return "+containingJTypeName+"_size[mdIdx];");
-        javaWriter.println("  }");
-        javaWriter.println();
+        javaUnit.emitln("  /** Returns the aligned total size of a native instance. */");
+        javaUnit.emitln("  public static int size() {");
+        javaUnit.emitln("    return "+containingJTypeName+"_size[mdIdx];");
+        javaUnit.emitln("  }");
+        javaUnit.emitln();
     }
     if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, "create")) ) {
-        javaWriter.println("  public static " + containingJTypeName + " create() {");
-        javaWriter.println("    return create(Buffers.newDirectByteBuffer(size()));");
-        javaWriter.println("  }");
-        javaWriter.println();
-        javaWriter.println("  public static " + containingJTypeName + " create(java.nio.ByteBuffer buf) {");
-        javaWriter.println("      return new " + containingJTypeName + "(buf);");
-        javaWriter.println("  }");
-        javaWriter.println();
+        javaUnit.emitln("  /** Returns a new instance with all bytes set to zero. */");
+        javaUnit.emitln("  public static " + containingJTypeName + " create() {");
+        javaUnit.emitln("    return create(Buffers.newDirectByteBuffer(size()));");
+        javaUnit.emitln("  }");
+        javaUnit.emitln();
+        javaUnit.emitln("  /** Returns a new instance using the given ByteBuffer having at least {#link size()} bytes capacity. The ByteBuffer will be {@link ByteBuffer#rewind()} and native-order set. */");
+        javaUnit.emitln("  public static " + containingJTypeName + " create(java.nio.ByteBuffer buf) {");
+        javaUnit.emitln("      return new " + containingJTypeName + "(buf);");
+        javaUnit.emitln("  }");
+        javaUnit.emitln();
     }
+    javaUnit.emitln("  /** Returns new instance dereferencing ByteBuffer at given native address `addr` with size {@link #size()}. */");
+    javaUnit.emitln("  public static " + containingJTypeName + " derefPointer(final long addr) {");
+    javaUnit.emitln("      return create( ElementBuffer.derefPointer(size(), 1, addr).getByteBuffer() );");
+    javaUnit.emitln("  }");
+    javaUnit.emitln();
     if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, containingJTypeName)) ) {
-        javaWriter.println("  " + containingJTypeName + "(java.nio.ByteBuffer buf) {");
-        javaWriter.println("    md = MachineDataInfo.StaticConfig.values()[mdIdx].md;");
-        javaWriter.println("    accessor = new StructAccessor(buf);");
-        javaWriter.println("  }");
-        javaWriter.println();
+        javaUnit.emitln("  " + containingJTypeName + "(java.nio.ByteBuffer buf) {");
+        javaUnit.emitln("    md = MachineDataInfo.StaticConfig.values()[mdIdx].md;");
+        javaUnit.emitln("    accessor = new StructAccessor(buf);");
+        javaUnit.emitln("  }");
+        javaUnit.emitln();
     }
-    javaWriter.println("  public java.nio.ByteBuffer getBuffer() {");
-    javaWriter.println("    return accessor.getBuffer();");
-    javaWriter.println("  }");
+    javaUnit.emitln("  /** Return the underlying native direct ByteBuffer */");
+    javaUnit.emitln("  public final java.nio.ByteBuffer getBuffer() {");
+    javaUnit.emitln("    return accessor.getBuffer();");
+    javaUnit.emitln("  }");
+    javaUnit.emitln();
+    javaUnit.emitln("  /** Returns the native address of the underlying native ByteBuffer {@link #getBuffer()} */");
+    javaUnit.emitln("  public final long getDirectBufferAddress() {");
+    javaUnit.emitln("    return accessor.getDirectBufferAddress();");
+    javaUnit.emitln("  }");
+    javaUnit.emitln();
 
     final Set<MethodBinding> methodBindingSet = new HashSet<MethodBinding>();
 
@@ -1045,26 +1060,27 @@ public class JavaEmitter implements GlueEmitter {
       final Field field = structCType.getField(i);
       final Type fieldType = field.getType();
 
-      final String cfgFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, field.getName());
-      if (!cfg.shouldIgnoreInInterface(cfgFieldName0)) {
-        final String renamed = cfg.getJavaSymbolRename(cfgFieldName0);
+      final String fqStructFieldName0 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, field.getName()); // containingJTypeName.field.getName()
+      if (!cfg.shouldIgnoreInInterface(fqStructFieldName0)) {
+        final String renamed = cfg.getJavaSymbolRename(fqStructFieldName0);
         final String fieldName = renamed==null ? field.getName() : renamed;
-        final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName);
+        final String fqStructFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName); // containingJTypeName.fieldName
         final TypeInfo opaqueFieldType = cfg.typeInfo(fieldType);
         final boolean isOpaqueFieldType = null != opaqueFieldType;
-        final TypeInfo opaqueField = cfg.canonicalNameOpaque(cfgFieldName1);
+        final TypeInfo opaqueField = cfg.canonicalNameOpaque(fqStructFieldName1);
         final boolean isOpaqueField = null != opaqueField;
+        final boolean immutableField = immutableStruct || cfg.immutableAccess(fqStructFieldName1);
 
         if( GlueGen.debug() ) {
-          System.err.printf("SE.ac.%02d: %s / %s (opaque %b), %s (opaque %b)%n", (i+1),
-                  (i+1), field, cfgFieldName1, isOpaqueField, fieldType.getDebugString(), isOpaqueFieldType);
+          System.err.printf("SE.ac.%02d: %s / %s (opaque %b), %s (opaque %b), immutable[struct %b, field %b]%n", (i+1),
+                  (i+1), field, fqStructFieldName1, isOpaqueField, fieldType.getDebugString(), isOpaqueFieldType,
+                  immutableStruct, immutableField);
         }
         if ( fieldType.isFunctionPointer() && !isOpaqueField ) {
             final FunctionSymbol func = new FunctionSymbol(field.getName(), fieldType.asPointer().getTargetType().asFunction());
             func.rename(renamed); // null is OK
-            generateFunctionPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
-                                        containingCType, containingJType, i,
-                                        func, cfgFieldName1);
+            generateFunctionPointerCode(methodBindingSet, javaUnit, jniUnit, structCTypeName,
+                                        containingCType, containingJType, i, func, fqStructFieldName1);
         } else if ( fieldType.isCompound() && !isOpaqueField ) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate a name?)
@@ -1073,17 +1089,15 @@ public class JavaEmitter implements GlueEmitter {
                                        field + "\" in type \"" + structCTypeName + "\")",
                                        fieldType.getASTLocusTag());
           }
-          javaWriter.println();
-          generateGetterSignature(javaWriter, fieldType, false, false, fieldType.getName(), fieldName, capitalizeString(fieldName), null, null);
-          javaWriter.println(" {");
-          javaWriter.println("    return " + fieldType.getName() + ".create( accessor.slice( " +
+          generateGetterSignature(javaUnit, fieldType, false, false, fieldType.getName(), fieldName, capitalizeString(fieldName), null, false, null);
+          javaUnit.emitln(" {");
+          javaUnit.emitln("    return " + fieldType.getName() + ".create( accessor.slice( " +
                            fieldName+"_offset[mdIdx], "+fieldName+"_size[mdIdx] ) );");
-          javaWriter.println(" }");
-
+          javaUnit.emitln("  }");
+          javaUnit.emitln();
         } else if ( ( fieldType.isArray() || fieldType.isPointer() ) && !isOpaqueField ) {
-            generateArrayGetterSetterCode(methodBindingSet, javaWriter, jniWriter, structCType, structCTypeName,
-                                          structClassPkgName, containingCType,
-                                          containingJType, i, field, fieldName, cfgFieldName1);
+          generateArrayGetterSetterCode(javaUnit, structCType, containingJType,
+                                        i, field, fieldName, immutableField, fqStructFieldName1);
         } else {
           final JavaType javaType;
           try {
@@ -1112,51 +1126,43 @@ public class JavaEmitter implements GlueEmitter {
                     "Java.StructEmitter.Primitive: "+field.getName()+", "+fieldType+", "+javaTypeName+", "+
                     ", fixedSize "+fieldTypeNativeSizeFixed+", opaque[t "+isOpaqueFieldType+", f "+isOpaqueField+"], sizeDenominator "+sizeDenominator);
 
-            if( !fieldType.isConst() ) {
+            if( !immutableField && !fieldType.isConst() ) {
                 // Setter
-                javaWriter.println();
-                generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, fieldName, capFieldName, null, javaTypeName, null, null);
-                javaWriter.println(" {");
+                generateSetterSignature(javaUnit, fieldType, MethodAccess.PUBLIC, false, false, containingJTypeName, fieldName, capFieldName, null, javaTypeName, null, false, null);
+                javaUnit.emitln(" {");
                 if( fieldTypeNativeSizeFixed ) {
-                    javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val);");
+                    javaUnit.emitln("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], src);");
                 } else {
-                    javaWriter.println("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], val, md."+sizeDenominator+"SizeInBytes());");
+                    javaUnit.emitln("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], src, md."+sizeDenominator+"SizeInBytes());");
                 }
-                javaWriter.println("    return this;");
-                javaWriter.println("  }");
+                javaUnit.emitln("    return this;");
+                javaUnit.emitln("  }");
+                javaUnit.emitln();
             }
 
             // Getter
-            javaWriter.println();
-            generateGetterSignature(javaWriter, fieldType, false, false, javaTypeName, fieldName, capFieldName, null, null);
-            javaWriter.println(" {");
-            javaWriter.print  ("    return ");
+            generateGetterSignature(javaUnit, fieldType, false, false, javaTypeName, fieldName, capFieldName, null, false, null);
+            javaUnit.emitln(" {");
+            javaUnit.emit  ("    return ");
             if( fieldTypeNativeSizeFixed ) {
-                javaWriter.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx]);");
+                javaUnit.emitln("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx]);");
             } else {
-                javaWriter.println("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], md."+sizeDenominator+"SizeInBytes());");
+                javaUnit.emitln("accessor.get" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], md."+sizeDenominator+"SizeInBytes());");
             }
-            javaWriter.println("  }");
+            javaUnit.emitln("  }");
           } else {
-            javaWriter.println();
-            javaWriter.println("  /** UNKNOWN: "+cfgFieldName1 +": "+fieldType.getDebugString()+", "+javaType.getDebugString()+" */");
+            javaUnit.emitln("  /** UNKNOWN: "+fqStructFieldName1 +": "+fieldType.getDebugString()+", "+javaType.getDebugString()+" */");
           }
+          javaUnit.emitln();
         }
       }
     }
-    emitCustomJavaCode(javaWriter, containingJTypeName);
+    emitCustomJavaCode(javaUnit, containingJTypeName);
+    javaUnit.emitTailCode();
+    javaUnit.emitln("}");
+    javaUnit.close();
     if (needsNativeCode) {
-        javaWriter.println();
-        emitJavaInitCode(javaWriter, containingJTypeName);
-        javaWriter.println();
-    }
-    javaWriter.println("}");
-    javaWriter.flush();
-    javaWriter.close();
-    if (needsNativeCode) {
-      emitCInitCode(jniWriter, structClassPkgName, containingJTypeName);
-      jniWriter.flush();
-      jniWriter.close();
+      jniUnit.close();
     }
     if( GlueGen.debug() ) {
         System.err.printf("SE.XX: structCType %s%n", structCType.getDebugString());
@@ -1195,78 +1201,104 @@ public class JavaEmitter implements GlueEmitter {
   // Internals only below this point
   //
 
-  private void generateGetterSignature(final PrintWriter writer, final Type origFieldType,
+  private void generateIsNullSignature(final CodeUnit unit, final Type origFieldType,
                                        final boolean staticMethod, final boolean abstractMethod,
-                                       final String returnTypeName, final String fieldName,
-                                       final String capitalizedFieldName, final String customArgs, final String arrayLengthExpr) {
-      writer.print("  /** Getter for native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
-      if( null != arrayLengthExpr ) {
-          writer.print(", with array length of <code>"+arrayLengthExpr+"</code>");
+                                       final String fieldName, final String capitalizedFieldName,
+                                       final boolean constElemCount, final String elemCountExpr) {
+      unit.emit("  /** Is 'null' for native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
+      if( null != elemCountExpr ) {
+          unit.emit(", with "+(constElemCount?"fixed":"initial")+" array length of <code>"+elemCountExpr+"</code>");
       }
-      writer.println(" */");
-      writer.print("  public " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
+      unit.emitln(" */");
+      unit.emit("  public final " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + "boolean is" + capitalizedFieldName + "Null()");
+  }
+  private void generateReleaseSignature(final CodeUnit unit, final Type origFieldType,
+                                        final boolean abstractMethod,
+                                        final String returnTypeName, final String fieldName, final String capitalizedFieldName,
+                                        final boolean constElemCount, final String elemCountExpr) {
+      unit.emit("  /** Release for native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
+      if( null != elemCountExpr ) {
+          unit.emit(", with "+(constElemCount?"fixed":"initial")+" array length of <code>"+elemCountExpr+"</code>");
+      }
+      unit.emitln(" */");
+      unit.emit("  public final " + (abstractMethod ? "abstract " : "") + returnTypeName + " release" + capitalizedFieldName + "()");
+  }
+  private void generateGetterSignature(final CodeUnit unit, final Type origFieldType,
+                                       final boolean staticMethod, final boolean abstractMethod,
+                                       final String returnTypeName, final String fieldName, final String capitalizedFieldName,
+                                       final String customArgs, final boolean constElemCount, final String elemCountExpr) {
+      unit.emit("  /** Getter for native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
+      if( null != elemCountExpr ) {
+          unit.emit(", with "+(constElemCount?"fixed":"initial")+" array length of <code>"+elemCountExpr+"</code>");
+      }
+      unit.emitln(" */");
+      unit.emit("  public final " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
       if( null != customArgs ) {
-          writer.print(customArgs);
+          unit.emit(customArgs);
       }
-      writer.print(")");
+      unit.emit(")");
   }
 
-  private void generateSetterSignature(final PrintWriter writer, final Type origFieldType, final boolean abstractMethod,
-                                       final String returnTypeName, final String fieldName,
-                                       final String capitalizedFieldName, final String customArgsPre, final String paramTypeName,
-                                       final String customArgsPost, final String arrayLengthExpr) {
-      writer.print("  /** Setter for native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
-      if( null != arrayLengthExpr ) {
-          writer.print(", with array length of <code>"+arrayLengthExpr+"</code>");
+  private void generateSetterAPIDoc(final CodeUnit unit, final String action,
+                                    final Type origFieldType, final String fieldName,
+                                    final boolean constElemCount, final String elemCountExpr) {
+      unit.emit("  /** "+action+" native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
+      if( null != elemCountExpr ) {
+          unit.emit(", with "+(constElemCount?"fixed native-ownership":"initial")+" array length of <code>"+elemCountExpr+"</code>");
       }
-      writer.println(" */");
-      writer.print("  public " + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(");
+      unit.emitln(" */");
+  }
+  private void generateSetterSignature(final CodeUnit unit, final Type origFieldType, final MethodAccess accessMod,
+                                       final boolean staticMethod, final boolean abstractMethod,
+                                       final String returnTypeName, final String fieldName, final String capitalizedFieldName,
+                                       final String customArgsPre, final String paramTypeName, final String customArgsPost, final boolean constElemCount, final String elemCountExpr) {
+      generateSetterAPIDoc(unit, "Setter for", origFieldType, fieldName, constElemCount, elemCountExpr);
+      unit.emit("  "+accessMod.getJavaName()+" final " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(");
       if( null != customArgsPre ) {
-          writer.print(customArgsPre+", ");
+          unit.emit(customArgsPre+", ");
       }
-      writer.print(paramTypeName + " val");
+      unit.emit(paramTypeName + " src");
       if( null != customArgsPost ) {
-          writer.print(", "+customArgsPost);
+          unit.emit(", "+customArgsPost);
       }
-      writer.print(")");
+      unit.emit(")");
   }
 
-  private void generateOffsetAndSizeArrays(final PrintWriter writer, final String prefix,
+  private void generateOffsetAndSizeArrays(final CodeUnit unit, final String prefix,
                                            final String fieldName, final Type fieldType,
                                            final Field field, final String postfix) {
       if(null != field) {
-          writer.print(prefix+"private static final int[] "+fieldName+"_offset = new int[] { ");
+          unit.emit(prefix+"private static final int[] "+fieldName+"_offset = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
               if(0<i) {
-                  writer.print(", ");
+                  unit.emit(", ");
               }
-              writer.print(field.getOffset(machDescTargetConfigs[i].md) +
+              unit.emit(field.getOffset(machDescTargetConfigs[i].md) +
                            " /* " + machDescTargetConfigs[i].name() + " */");
           }
-          writer.println(" };");
+          unit.emitln(" };");
       }
       if(null!=fieldType) {
-          writer.print(prefix+"private static final int[] "+fieldName+"_size = new int[] { ");
+          unit.emit(prefix+"private static final int[] "+fieldName+"_size = new int[] { ");
           for( int i=0; i < machDescTargetConfigs.length; i++ ) {
               if(0<i) {
-                  writer.print(", ");
+                  unit.emit(", ");
               }
-              writer.print(fieldType.getSize(machDescTargetConfigs[i].md) +
+              unit.emit(fieldType.getSize(machDescTargetConfigs[i].md) +
                            " /* " + machDescTargetConfigs[i].name() + " */");
           }
-          writer.print("  };");
+          unit.emit("  };");
           if( null != postfix ) {
-              writer.println(postfix);
+              unit.emitln(postfix);
           } else {
-              writer.println();
+              unit.emitln();
           }
       }
   }
 
   private void generateFunctionPointerCode(final Set<MethodBinding> methodBindingSet,
-          final PrintWriter javaWriter, final PrintWriter jniWriter,
-          final String structCTypeName, final String structClassPkgName,
-          final Type containingCType, final JavaType containingJType,
+          final JavaCodeUnit javaUnit, final CCodeUnit jniUnit,
+          final String structCTypeName, final Type containingCType, final JavaType containingJType,
           final int i, final FunctionSymbol funcSym, final String returnSizeLookupName) {
       // Emit method call and associated native code
       final MethodBinding  mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, containingJType, containingCType);
@@ -1284,11 +1316,10 @@ public class JavaEmitter implements GlueEmitter {
               // skip .. already exisiting binding ..
               continue;
           }
-          javaWriter.println();
           // Emit public Java entry point for calling this function pointer
           JavaMethodBindingEmitter emitter =
                   new JavaMethodBindingEmitter(binding,
-                          javaWriter,
+                          javaUnit,
                           cfg.runtimeExceptionType(),
                           cfg.unsupportedExceptionType(),
                           true,  // emitBody
@@ -1305,11 +1336,12 @@ public class JavaEmitter implements GlueEmitter {
                           cfg);
           emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
           emitter.emit();
+          javaUnit.emitln();
 
           // Emit private native Java entry point for calling this function pointer
           emitter =
                   new JavaMethodBindingEmitter(binding,
-                          javaWriter,
+                          javaUnit,
                           cfg.runtimeExceptionType(),
                           cfg.unsupportedExceptionType(),
                           false, // emitBody
@@ -1326,12 +1358,13 @@ public class JavaEmitter implements GlueEmitter {
           emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
           emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
           emitter.emit();
+          javaUnit.emitln();
 
           // Emit (private) C entry point for calling this function pointer
           final CMethodBindingEmitter cEmitter =
                   new CMethodBindingEmitter(binding,
-                          jniWriter,
-                          structClassPkgName,
+                          jniUnit,
+                          javaUnit.pkgName,
                           containingJType.getName(),
                           true, // FIXME: this is optional at this point
                           false,
@@ -1341,91 +1374,7 @@ public class JavaEmitter implements GlueEmitter {
           cEmitter.setIsCStructFunctionPointer(true);
           prepCEmitter(returnSizeLookupName, binding.getJavaReturnType(), cEmitter);
           cEmitter.emit();
-      }
-  }
-
-  private void generateArrayPointerCode(final Set<MethodBinding> methodBindingSet,
-          final PrintWriter javaWriter, final PrintWriter jniWriter,
-          final String structCTypeName, final String structClassPkgName,
-          final Type containingCType, final JavaType containingJType,
-          final int i, final FunctionSymbol funcSym,
-          final String returnSizeLookupName, final String docArrayLenExpr, final String nativeArrayLenExpr) {
-      // Emit method call and associated native code
-      final MethodBinding  mb = bindFunction(funcSym, true /* forInterface */, machDescJava, containingJType, containingCType);
-      mb.findThisPointer(); // FIXME: need to provide option to disable this on per-function basis
-
-      // JavaTypes representing C pointers in the initial
-      // MethodBinding have not been lowered yet to concrete types
-      final List<MethodBinding> bindings = expandMethodBinding(mb);
-
-      final boolean useNIOOnly = true;
-      final boolean useNIODirectOnly = true;
-
-      for (final MethodBinding binding : bindings) {
-          if(!methodBindingSet.add(binding)) {
-              // skip .. already exisiting binding ..
-              continue;
-          }
-          JavaMethodBindingEmitter emitter;
-
-          // Emit private native Java entry point for calling this function pointer
-          emitter =
-                  new JavaMethodBindingEmitter(binding,
-                          javaWriter,
-                          cfg.runtimeExceptionType(),
-                          cfg.unsupportedExceptionType(),
-                          false,                  // emitBody
-                          cfg.tagNativeBinding(), // tagNativeBinding
-                          true,                   // eraseBufferAndArrayTypes
-                          useNIOOnly,
-                          useNIODirectOnly,
-                          false,                  // forDirectBufferImplementation
-                          false,                  // forIndirectBufferAndArrayImplementation
-                          false,                  // isUnimplemented
-                          true,                   // isInterface
-                          true,                   // isNativeMethod
-                          true,                   // isPrivateNativeMethod
-                          cfg);
-          if( null != docArrayLenExpr ) {
-              emitter.setReturnedArrayLengthExpression(docArrayLenExpr, true);
-          }
-          emitter.addModifier(JavaMethodBindingEmitter.PRIVATE);
-          emitter.addModifier(JavaMethodBindingEmitter.NATIVE);
-          emitter.emit();
-
-          // Emit (private) C entry point for calling this function pointer
-          final CMethodBindingEmitter cEmitter =
-                  new CMethodBindingEmitter(binding,
-                          jniWriter,
-                          structClassPkgName,
-                          containingJType.getName(),
-                          true, // FIXME: this is optional at this point
-                          false,
-                          true,
-                          false, // forIndirectBufferAndArrayImplementation
-                          machDescJava, getConfiguration());
-          cEmitter.setIsCStructFunctionPointer(false);
-          final String lenExprSet;
-          if( null != nativeArrayLenExpr ) {
-              final JavaType javaReturnType = binding.getJavaReturnType();
-              if (javaReturnType.isNIOBuffer() ||
-                      javaReturnType.isCompoundTypeWrapper()) {
-                  final Type retType = funcSym.getReturnType();
-                  final Type baseType = retType.getBaseElementType();
-                  lenExprSet = nativeArrayLenExpr+" * sizeof("+baseType.getName()+")";
-                  cEmitter.setReturnValueCapacityExpression( new MessageFormat(lenExprSet) );
-              } else if (javaReturnType.isArray() ||
-                      javaReturnType.isArrayOfCompoundTypeWrappers()) {
-                  lenExprSet = nativeArrayLenExpr;
-                  cEmitter.setReturnValueLengthExpression( new MessageFormat(lenExprSet) );
-              } else {
-                  lenExprSet = null;
-              }
-          } else {
-              lenExprSet = null;
-          }
-          prepCEmitter(returnSizeLookupName, binding.getJavaReturnType(), cEmitter);
-          cEmitter.emit();
+          jniUnit.emitln();
       }
   }
 
@@ -1466,39 +1415,29 @@ public class JavaEmitter implements GlueEmitter {
           return null;
       }
   }
-  private String getPointerArrayLengthExpr(final PointerType type, final String returnSizeLookupName) {
-      final String cfgVal = cfg.returnedArrayLength(returnSizeLookupName);
-      if( null != cfgVal ) {
-          return cfgVal;
-      }
-      return null;
-  }
-
-  private static final String dummyFuncTypeName = "null *";
-  private static final Type int32Type = new IntType("int32_t", SizeThunk.INT32, false, CVAttributes.CONST);
-  // private static final Type int8Type = new IntType("char", SizeThunk.INT8, false, 0);
-  // private static final Type int8PtrType = new PointerType(SizeThunk.POINTER, int8Type, 0);
-  private static final String nativeArrayLengthArg = "arrayLength";
-  private static final String nativeArrayLengthONE = "1";
-  private static final String nativeArrayElemOffsetArg = "elem_offset";
 
   private boolean requiresGetCStringLength(final Type fieldType, final String returnSizeLookupName) {
-      if( !cfg.returnsString(returnSizeLookupName) ) {
+      if( !cfg.returnsString(returnSizeLookupName) && !cfg.returnsStringOnly(returnSizeLookupName) ) {
           return false;
       }
       final PointerType pointerType = fieldType.asPointer();
       if( null != pointerType ) {
-          return null == getPointerArrayLengthExpr(pointerType, returnSizeLookupName);
+          return null == cfg.returnedArrayLength(returnSizeLookupName);
       }
       return false;
   }
 
-  private void generateArrayGetterSetterCode(final Set<MethodBinding> methodBindingSet,
-                                             final PrintWriter javaWriter, final PrintWriter jniWriter,
+  private static final String SetArrayArgs = "final int srcPos, final int destPos, final int length";
+  private static final String SetArrayArgsCheck = "    if( 0 > srcPos || 0 > destPos || 0 > length || srcPos + length > src.length ) { throw new IndexOutOfBoundsException(\"src[pos \"+srcPos+\", length \"+src.length+\"], destPos \"+destPos+\", length \"+length); }";
+  private static final String GetArrayArgs = "final int destPos, final int length";
+  private static final String GetArrayArgsCheck = "    if( 0 > srcPos || 0 > destPos || 0 > length || destPos + length > dest.length ) { throw new IndexOutOfBoundsException(\"dest[pos \"+destPos+\", length \"+dest.length+\"], srcPos \"+srcPos+\", length \"+length); }";
+
+
+  private void generateArrayGetterSetterCode(final JavaCodeUnit unit,
                                              final CompoundType structCType,
-                                             final String structCTypeName, final String structClassPkgName,
-                                             final Type containingCType, final JavaType containingJType,
+                                             final JavaType containingJType,
                                              final int i, final Field field, final String fieldName,
+                                             final boolean immutableAccess,
                                              final String returnSizeLookupName) throws Exception {
       final Type fieldType = field.getType();
       final JavaType javaType;
@@ -1517,421 +1456,697 @@ public class JavaEmitter implements GlueEmitter {
       //
       final String containingJTypeName = containingJType.getName();
       final boolean isOpaque = isOpaque(fieldType);
-      final boolean isString = cfg.returnsString(returnSizeLookupName); // FIXME: Allow custom Charset ? US-ASCII, UTF-8 or UTF-16 ?
-      final boolean useGetCStringLength;
-      final String arrayLengthExpr;
-      final boolean arrayLengthExprIsConst;
-      final int[] arrayLengths;
-      final boolean useFixedTypeLen[] = { false };
+      final boolean isStringOnly = cfg.returnsStringOnly(returnSizeLookupName); // exclude alternative ByteBuffer representation to String
+      final boolean isString = isStringOnly || cfg.returnsString(returnSizeLookupName);
+      if( isString ) {
+          unit.addTailCode(optStringCharsetCode);
+      }
       final boolean isPointer;
       final boolean isPrimitive;
-      final boolean isConst;
+      final boolean isConstValue; // Immutable 'const type value', immutable array 'const type value[]', or as mutable pointer 'const type * value'
+      final MethodAccess accessMod = MethodAccess.PUBLIC;
+      final String elemCountExpr;
+      final boolean constElemCount; // if true, implies native ownership of pointer referenced memory!
+      final boolean staticElemCount;
       final JavaType baseJElemType;
       final String baseJElemTypeName;
-      final boolean hasSingleElement;
-      final String capitalFieldName;
-      final String baseJElemTypeNameC;
-      final String baseJElemTypeNameU;
-      final boolean isByteBuffer;
-      final boolean baseCElemNativeSizeFixed;
+      final boolean primCElemFixedSize; // Is Primitive element size fixed? If not, use md.*_Size[]
       final String baseCElemSizeDenominator;
-      {
-          final Type baseCElemType;
+      final boolean useGetCStringLength;
+      final boolean maxOneElement; // zero or one element
+      if( isOpaque || javaType.isPrimitive() ) {
+          // Overridden by JavaConfiguration.typeInfo(..), i.e. Opaque!
+          // Emulating array w/ 1 element
+          isPrimitive = true;
+          isPointer = false;
+          isConstValue = fieldType.isConst();
+          elemCountExpr = "1";
+          constElemCount = true;
+          staticElemCount = true;
+          baseJElemType = null;
+          baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
+          primCElemFixedSize = false;
+          baseCElemSizeDenominator = fieldType.isPointer() ? "pointer" : baseJElemTypeName ;
+          useGetCStringLength = false;
+          maxOneElement = true;
+      } else {
           final ArrayType arrayType = fieldType.asArray();
-          String _arrayLengthExpr = null;
-          boolean _arrayLengthExprIsConst = false;
-          if( isOpaque || javaType.isPrimitive() ) {
-              // Overridden by JavaConfiguration.typeInfo(..), i.e. Opaque!
-              // Emulating array w/ 1 element
-              isPrimitive = true;
-              _arrayLengthExpr = nativeArrayLengthONE;
-              _arrayLengthExprIsConst = true;
-              arrayLengths = new int[] { 1 };
-              baseCElemType = null;
+          final Type baseCElemType;
+          if( null != arrayType ) {
+              final int[][] arrayLengthRes = new int[1][];
+              final boolean[] _useFixedArrayLen = { false };
+              elemCountExpr = getArrayArrayLengthExpr(arrayType, returnSizeLookupName, _useFixedArrayLen, arrayLengthRes);
+              // final int arrayLength = arrayLengthRes[0][0];
+              constElemCount = _useFixedArrayLen[0];
+              staticElemCount = constElemCount;
+              baseCElemType = arrayType.getBaseElementType();
               isPointer = false;
-              isConst = fieldType.isConst();
-              baseJElemType = null;
-              baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
-              baseCElemNativeSizeFixed = false;
-              baseCElemSizeDenominator = fieldType.isPointer() ? "pointer" : baseJElemTypeName ;
+              useGetCStringLength = false;
           } else {
-              if( null != arrayType ) {
-                  final int[][] lengthRes = new int[1][];
-                  _arrayLengthExpr = getArrayArrayLengthExpr(arrayType, returnSizeLookupName, useFixedTypeLen, lengthRes);
-                  _arrayLengthExprIsConst = true;
-                  arrayLengths = lengthRes[0];
-                  baseCElemType = arrayType.getBaseElementType();
-                  isPointer = false;
-              } else {
-                  final PointerType pointerType = fieldType.asPointer();
-                  _arrayLengthExpr = getPointerArrayLengthExpr(pointerType, returnSizeLookupName);
-                  _arrayLengthExprIsConst = false;
-                  arrayLengths = null;
-                  baseCElemType = pointerType.getBaseElementType();
-                  isPointer = true;
-                  if( 1 != pointerType.pointerDepth() ) {
-                      javaWriter.println();
-                      final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+returnSizeLookupName +": "+fieldType;
-                      javaWriter.println("  // "+msg);
-                      LOG.log(WARNING, structCType.getASTLocusTag(), msg);
-                      return;
-                  }
-              }
-              if( GlueGen.debug() ) {
-                  System.err.printf("SE.ac.%02d: baseCType %s%n", (i+1), baseCElemType.getDebugString());
-              }
-              isPrimitive = baseCElemType.isPrimitive();
-              isConst = baseCElemType.isConst();
-              try {
-                  baseJElemType = typeToJavaType(baseCElemType, machDescJava);
-              } catch (final Exception e ) {
-                  throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
-                                              returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(),
-                                              fieldType.getASTLocusTag(), e);
-              }
-              baseJElemTypeName = baseJElemType.getName();
-              baseCElemNativeSizeFixed = baseCElemType.isPrimitive() ? baseCElemType.getSize().hasFixedNativeSize() : true;
-              baseCElemSizeDenominator = baseCElemType.isPointer() ? "pointer" : baseJElemTypeName ;
-
-              if( !baseCElemNativeSizeFixed ) {
-                  javaWriter.println();
-                  final String msg = "SKIP primitive w/ platform dependent sized type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
-                  javaWriter.println("  // "+msg);
+              final PointerType pointerType = fieldType.asPointer();
+              final String _elemCountExpr = cfg.returnedArrayLength(returnSizeLookupName);
+              baseCElemType = pointerType.getBaseElementType();
+              isPointer = true;
+              if( 1 != pointerType.pointerDepth() ) {
+                  final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+returnSizeLookupName +": "+fieldType;
+                  unit.emitln("  // "+msg);
+                  unit.emitln();
                   LOG.log(WARNING, structCType.getASTLocusTag(), msg);
                   return;
               }
+              if( null == _elemCountExpr && isString ) {
+                  useGetCStringLength = true;
+                  unit.addTailCode(optStringMaxStrnlenCode);
+                  elemCountExpr = "Buffers.strnlen(pString, _max_strnlen)+1";
+                  constElemCount = false;
+                  staticElemCount = constElemCount;
+              } else if( null == _elemCountExpr ) {
+                  useGetCStringLength = false;
+                  elemCountExpr = "0";
+                  constElemCount = false;
+                  staticElemCount = constElemCount;
+              } else {
+                  useGetCStringLength = false;
+                  elemCountExpr = _elemCountExpr;
+                  boolean _constElemCount = false;
+                  boolean _staticElemCount = false;
+
+                  if( null != elemCountExpr ) {
+                      // try constant intenger 1st
+                      try {
+                          Integer.parseInt(elemCountExpr);
+                          _constElemCount = true;
+                          _staticElemCount = true;
+                      } catch (final Exception e ) {}
+                      if( !_constElemCount ) {
+                          // check for const length field
+                          if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
+                              final String lenFieldName = decapitalizeString( elemCountExpr.substring(3, elemCountExpr.length()-2) );
+                              final Field lenField = structCType.getField(lenFieldName);
+                              if( null != lenField ) {
+                                  _constElemCount = lenField.getType().isConst();
+                              }
+                              LOG.log(INFO, structCType.getASTLocusTag(),
+                                      unit.className+": elemCountExpr "+elemCountExpr+", lenFieldName "+lenFieldName+" -> "+lenField.toString()+", isConst "+_constElemCount);
+                          }
+                      }
+                  }
+                  constElemCount = _constElemCount;
+                  staticElemCount = _staticElemCount;
+              }
           }
-          if( GlueGen.debug() ) {
-              System.err.printf("SE.ac.%02d: baseJElemType %s%n", (i+1), (null != baseJElemType ? baseJElemType.getDebugString() : null));
-          }
-          capitalFieldName = capitalizeString(fieldName);
-          baseJElemTypeNameC = capitalizeString(baseJElemTypeName);
-          baseJElemTypeNameU = baseJElemTypeName.toUpperCase();
-          isByteBuffer = "Byte".equals(baseJElemTypeNameC);
-          if( null == _arrayLengthExpr && isString && isPointer ) {
-              useGetCStringLength = true;
-              _arrayLengthExpr = "getCStringLengthImpl(pString)+1";
-              _arrayLengthExprIsConst = false;
-              this.requiresStaticInitialization = true;
-              LOG.log(INFO, structCType.getASTLocusTag(), "StaticInit Trigger.3 \"{0}\"", returnSizeLookupName);
-          } else {
-              useGetCStringLength = false;
-          }
-          arrayLengthExpr = _arrayLengthExpr;
-          arrayLengthExprIsConst = _arrayLengthExprIsConst;
-          if( null == arrayLengthExpr ) {
-              javaWriter.println();
+          if( null == elemCountExpr ) {
               final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
-              javaWriter.println("  // "+msg);
+              unit.emitln("  // "+msg);
+              unit.emitln();
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
               return;
           }
-          boolean _hasSingleElement=false;
+          boolean _maxOneElement = cfg.maxOneElement(returnSizeLookupName);
+          if( !_maxOneElement ) {
+              try {
+                  _maxOneElement = 1 == Integer.parseInt(elemCountExpr);
+              } catch (final Exception e ) {}
+          }
+          maxOneElement = _maxOneElement;
+          if( GlueGen.debug() ) {
+              System.err.printf("SE.ac.%02d: baseCType %s%n", (i+1), baseCElemType.getDebugString());
+          }
+
+          isPrimitive = baseCElemType.isPrimitive();
+          isConstValue = baseCElemType.isConst();
           try {
-              _hasSingleElement = 1 ==Integer.parseInt(_arrayLengthExpr);
-          } catch (final Exception e ) {}
-          hasSingleElement = _hasSingleElement;
+              baseJElemType = typeToJavaType(baseCElemType, machDescJava);
+          } catch (final Exception e ) {
+              throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
+                                          returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(),
+                                          fieldType.getASTLocusTag(), e);
+          }
+          baseJElemTypeName = baseJElemType.getName();
+          primCElemFixedSize = isPrimitive ? baseCElemType.getSize().hasFixedNativeSize() : true;
+          baseCElemSizeDenominator = baseCElemType.isPointer() ? "pointer" : baseJElemTypeName ;
+
+          if( !primCElemFixedSize ) {
+              final String msg = "SKIP primitive w/ platform dependent sized type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
+              unit.emitln("  // "+msg);
+              unit.emitln();
+              LOG.log(WARNING, structCType.getASTLocusTag(), msg);
+              return;
+          }
       }
       if( GlueGen.debug() ) {
-          System.err.printf("SE.ac.%02d: baseJElemTypeName %s, array-lengths %s%n", (i+1), baseJElemTypeName, Arrays.toString(arrayLengths));
-          System.err.printf("SE.ac.%02d: arrayLengthExpr: %s (const %b), hasSingleElement %b, isByteBuffer %b, isString %b, isPointer %b, isPrimitive %b, isOpaque %b, baseCElemNativeSizeFixed %b, baseCElemSizeDenominator %s, isConst %b, useGetCStringLength %b%n",
-                  (i+1), arrayLengthExpr, arrayLengthExprIsConst, hasSingleElement, isByteBuffer, isString, isPointer, isPrimitive, isOpaque,
-                  baseCElemNativeSizeFixed, baseCElemSizeDenominator,
-                  isConst, useGetCStringLength);
+          System.err.printf("SE.ac.%02d: baseJElemType %s%n", (i+1), (null != baseJElemType ? baseJElemType.getDebugString() : null));
+      }
+      // Collect fixed primitive-type mapping metrics
+      final Class<? extends Buffer> primJElemTypeBufferClazz;
+      final String primJElemTypeBufferName;
+      final int primElemSize;
+      final String primElemSizeExpr;
+      final boolean isByteBuffer;
+      if( isPrimitive ) {
+          primJElemTypeBufferClazz = Buffers.typeNameToBufferClass(baseJElemTypeName);
+          if( null == primJElemTypeBufferClazz ) {
+              final String msg = "Failed to map '"+baseJElemTypeName+"' to Buffer class, field "+field+", j-type "+baseJElemType;
+              unit.emitln("  // ERROR: "+msg);
+              unit.emitln();
+              LOG.log(SEVERE, structCType.getASTLocusTag(), msg);
+              throw new InternalError(msg);
+          }
+          primJElemTypeBufferName = primJElemTypeBufferClazz.getSimpleName();
+          primElemSize = Buffers.sizeOfBufferElem(primJElemTypeBufferClazz);
+          isByteBuffer = null != primJElemTypeBufferClazz ? ByteBuffer.class.isAssignableFrom(primJElemTypeBufferClazz) : false;
+      } else {
+          primJElemTypeBufferClazz = null;
+          primJElemTypeBufferName = null;
+          primElemSize = 0;
+          isByteBuffer = false;
+      }
+      if( primCElemFixedSize ) {
+          primElemSizeExpr = String.valueOf(primElemSize);
+      } else {
+          primElemSizeExpr = "md."+baseCElemSizeDenominator+"SizeInBytes()";
+      }
+
+      final String capitalFieldName = capitalizeString(fieldName);
+      final boolean ownElemCountHandling;
+      final String getElemCountFuncExpr, setElemCountLengthFunc;
+      if( constElemCount ) {
+          ownElemCountHandling = true;
+          getElemCountFuncExpr = "get"+capitalFieldName+"ElemCount()";
+          setElemCountLengthFunc = null;
+      } else {
+          if( useGetCStringLength ) {
+              ownElemCountHandling = true;
+              getElemCountFuncExpr = "get"+capitalFieldName+"ElemCount()";
+              setElemCountLengthFunc = null;
+          } else if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
+              ownElemCountHandling = false;
+              getElemCountFuncExpr = elemCountExpr;
+              setElemCountLengthFunc = "set" + elemCountExpr.substring(3, elemCountExpr.length()-2);
+          } else {
+              ownElemCountHandling = true;
+              getElemCountFuncExpr = "get"+capitalFieldName+"ElemCount()";
+              setElemCountLengthFunc = "set"+capitalFieldName+"ElemCount";
+          }
+      }
+      if( GlueGen.debug() ) {
+          System.err.printf("SE.ac.%02d: baseJElemTypeName %s%n", (i+1), baseJElemTypeName);
+          System.err.printf("SE.ac.%02d: elemCountExpr: %s (const %b), ownArrayLen %b, maxOneElement %b, "+
+                            "Primitive[buffer %s, fixedSize %b, elemSize %d, sizeDenom %s, sizeExpr %s, isByteBuffer %b], "+
+                            "isString[%b, only %b, strnlen %b], isPointer %b, isPrimitive %b, isOpaque %b, constVal %b, immutableAccess %b%n",
+                  (i+1), elemCountExpr, constElemCount, ownElemCountHandling, maxOneElement,
+                  primJElemTypeBufferName, primCElemFixedSize, primElemSize, baseCElemSizeDenominator, primElemSizeExpr, isByteBuffer,
+                  isString, isStringOnly, useGetCStringLength,
+                  isPointer, isPrimitive, isOpaque, isConstValue, immutableAccess);
       }
 
       //
       // Emit ..
       //
-      if( !hasSingleElement && useFixedTypeLen[0] ) {
-          javaWriter.println();
-          generateGetterSignature(javaWriter, fieldType, arrayLengthExprIsConst, false, "final int", fieldName, capitalFieldName+"ArrayLength", null, arrayLengthExpr);
-          javaWriter.println(" {");
-          javaWriter.println("    return "+arrayLengthExpr+";");
-          javaWriter.println("  }");
+      if( ownElemCountHandling ) {
+          if( constElemCount ) {
+              generateGetterSignature(unit, fieldType, staticElemCount, false, "int", fieldName, capitalFieldName+"ElemCount", null, constElemCount, elemCountExpr);
+              unit.emitln(" { return "+elemCountExpr+"; }");
+          } else if( useGetCStringLength ) {
+              generateGetterSignature(unit, fieldType, staticElemCount, false, "int", fieldName, capitalFieldName+"ElemCount", null, constElemCount, elemCountExpr);
+              unit.emitln(" {");
+              unit.emitln("    final long pString = PointerBuffer.wrap( accessor.slice(" + fieldName+"_offset[mdIdx],  PointerBuffer.POINTER_SIZE) ).get(0);");
+              unit.emitln("    return 0 != pString ? "+elemCountExpr+" : 0;");
+              unit.emitln("  }");
+          } else {
+              unit.emitln("  private int _"+fieldName+"ArrayLen = "+elemCountExpr+"; // "+(constElemCount ? "const" : "initial")+" array length");
+              generateGetterSignature(unit, fieldType, staticElemCount, false, "int", fieldName, capitalFieldName+"ElemCount", null, constElemCount, elemCountExpr);
+              unit.emitln("  { return _"+fieldName+"ArrayLen; }");
+              if( !immutableAccess ) {
+                  generateSetterSignature(unit, fieldType, MethodAccess.PRIVATE, staticElemCount, false, "void", fieldName, capitalFieldName+"ElemCount", null, "int", null, constElemCount, elemCountExpr);
+                  unit.emitln("  { _"+fieldName+"ArrayLen = src; }");
+              }
+          }
+          unit.emitln();
       }
-      if( !isConst ) {
-          // Setter
-          javaWriter.println();
-          if( isPrimitive ) {
-              // Setter Primitive
+
+      // Null query for pointer
+      if( isPointer ) {
+          generateIsNullSignature(unit, fieldType, false, false, fieldName, capitalFieldName, constElemCount, elemCountExpr);
+          unit.emitln(" {");
+          unit.emitln("    return 0 == PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], 1).get(0);");
+          unit.emitln("  }");
+          unit.emitln();
+          if( !constElemCount && !immutableAccess ) {
+              generateReleaseSignature(unit, fieldType, false, containingJTypeName, fieldName, capitalFieldName, constElemCount, elemCountExpr);
+              unit.emitln(" {");
+              unit.emitln("    accessor.setLongAt("+fieldName+"_offset[mdIdx], 0, md.pointerSizeInBytes()); // write nullptr");
+              unit.emitln("    _eb"+capitalFieldName+" = null;");
+              emitSetElemCount(unit, setElemCountLengthFunc, "0", !useGetCStringLength, capitalFieldName, structCType, "    ");
+              unit.emitln("    return this;");
+              unit.emitln("  }");
+              unit.emitln();
+          }
+      }
+
+      // Setter
+      if( immutableAccess ) {
+          generateSetterAPIDoc(unit, "SKIP setter for immutable", fieldType, fieldName, constElemCount, elemCountExpr);
+          unit.emitln();
+      } else if( isPointer && isConstValue && constElemCount ) {
+          generateSetterAPIDoc(unit, "SKIP setter for constValue constElemCount Pointer w/ native ownership", fieldType, fieldName, constElemCount, elemCountExpr);
+          unit.emitln();
+      } else if( !isPointer && isConstValue ) {
+          generateSetterAPIDoc(unit, "SKIP setter for constValue Array", fieldType, fieldName, constElemCount, elemCountExpr);
+          unit.emitln();
+      } else if( isPrimitive ) {
+          // Setter Primitive
+          if( maxOneElement ) {
+              // Setter Primitive Single Pointer + Array
               if( isPointer ) {
-                  // Setter Primitive Pointer
-                  final String msg = "SKIP setter for primitive-pointer type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
-                  javaWriter.println("  // "+msg);
-                  LOG.log(INFO, structCType.getASTLocusTag(), msg);
-              } else {
-                  // Setter Primitive Array
-                  if( hasSingleElement ) {
-                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null, arrayLengthExpr);
-                      javaWriter.println(" {");
-                      if( baseCElemNativeSizeFixed ) {
-                          javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val);");
-                      } else {
-                          javaWriter.println("    accessor.set" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], val, md."+baseCElemSizeDenominator+"SizeInBytes());");
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null, constElemCount, elemCountExpr);
+                  if( isConstValue ) {
+                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      unit.emitln(" {");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
+                      unit.emit  ("    eb.getByteBuffer()");
+                      if( !isByteBuffer ) {
+                          unit.emit(".as"+primJElemTypeBufferName+"()");
                       }
-                      javaWriter.println("    return this;");
-                      javaWriter.println("  }");
+                      unit.emitln(".put(0, src);");
+                      unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    _eb"+capitalFieldName+" = eb;");
+                      emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
+                      unit.emitln("    return this;");
+                      unit.emitln("  }");
+                      unit.emitln("  @SuppressWarnings(\"unused\")");
+                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                   } else {
-                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, fieldName, capitalFieldName, "final int offset", baseJElemTypeName+"[]", null, arrayLengthExpr);
-                      javaWriter.println(" {");
-                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                      javaWriter.println("    if( offset + val.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + val.length \"+val.length+\" > array-length \"+arrayLength); };");
-                      javaWriter.println("    final int elemSize = Buffers.SIZEOF_"+baseJElemTypeNameU+";");
-                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
-                      javaWriter.println("    final int bTotal = arrayLength * elemSize;");
-                      javaWriter.println("    if( bTotal > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"bTotal \"+bTotal+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
-                      javaWriter.println("    final int bLimes = bOffset + bTotal;");
-                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("    bOffset += elemSize * offset;");
-                      javaWriter.println("    accessor.set" + baseJElemTypeNameC + "sAt(bOffset, val);");
-                      javaWriter.println("    return this;");
-                      javaWriter.println("  }");
+                      unit.emitln(" {");
+                      unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                      unit.emitln("    if( 1 == elemCount ) {");
+                      unit.emitln("      ElementBuffer.derefPointer("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emit  ("        .getByteBuffer()");
+                      if( !isByteBuffer ) {
+                          unit.emit(".as"+primJElemTypeBufferName+"()");
+                      }
+                      unit.emitln(".put(0, src);");
+                      unit.emitln("    } else {");
+                      if( constElemCount ) {
+                          unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of constElemCount and maxOneElement has elemCount \"+elemCount);");
+                          unit.emitln("    }");
+                          unit.emitln("    return this;");
+                          unit.emitln("  }");
+                      } else {
+                          unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
+                          unit.emit  ("      eb.getByteBuffer()");
+                          if( !isByteBuffer ) {
+                              unit.emit(".as"+primJElemTypeBufferName+"()");
+                          }
+                          unit.emitln(".put(0, src);");
+                          unit.emitln("      eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                          unit.emitln("      _eb"+capitalFieldName+" = eb;");
+                          emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
+                          unit.emitln("    }");
+                          unit.emitln("    return this;");
+                          unit.emitln("  }");
+                          unit.emitln("  @SuppressWarnings(\"unused\")");
+                          unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+                      }
+                  }
+              } else { // array && !isConstValue
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln("    ElementBuffer.wrap("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                  unit.emit  ("      .getByteBuffer()");
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
+                  unit.emitln(".put(0, src);");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+              } // else SKIP setter for constValue Array
+              unit.emitln();
+          } else {
+              // Setter Primitive n Pointer + Array
+              boolean addedElementBufferCache = false;
+              boolean doneString = false;
+
+              if( isString && isByteBuffer && isPointer ) { // isConst is OK
+                  // isConst && constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, "String", null, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln("    final byte[] srcBytes = src.getBytes(_charset);");
+                  if( constElemCount ) {
+                      unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                      unit.emitln("    if( srcBytes.length + 1 != elemCount ) { throw new IllegalArgumentException(\"strlen+1 \"+(srcBytes.length+1)+\" != const elemCount \"+elemCount); };");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  } else {
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", srcBytes.length + 1);");
+                  }
+                  unit.emitln("    eb.getByteBuffer().put(srcBytes, 0, srcBytes.length).put((byte)0).rewind(); // w/ EOS");
+                  if( !constElemCount ) {
+                      unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    _eb"+capitalFieldName+" = eb;");
+                      emitSetElemCount(unit, setElemCountLengthFunc, "srcBytes.length + 1", !useGetCStringLength, capitalFieldName, structCType, "    ");
+                  }
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+                  if( !constElemCount ) {
+                      unit.emitln("  @SuppressWarnings(\"unused\")");
+                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+                      addedElementBufferCache = true;
+                      doneString = true;
+                  }
+                  unit.emitln();
+              }
+              if( doneString && isStringOnly ) {
+                  generateSetterAPIDoc(unit, "SKIP setter for String alternative (ByteBuffer)", fieldType, fieldName, constElemCount, elemCountExpr);
+              } else if( isConstValue ) {
+                  if( isPointer ) {
+                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
+                      unit.emitln(" {");
+                      unit.emitln(SetArrayArgsCheck);
+                      unit.emitln("    final int newElemCount = destPos + length;");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", newElemCount);");
+                      unit.emit  ("    ( ( "+primJElemTypeBufferName+")(eb.getByteBuffer()");
+                      if( !isByteBuffer ) {
+                          unit.emit(".as"+primJElemTypeBufferName+"()");
+                      }
+                      unit.emitln(".position(destPos) ) ).put(src, srcPos, length).rewind();");
+                      unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    _eb"+capitalFieldName+" = eb;");
+                      emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "    ");
+                      unit.emitln("    return this;");
+                      unit.emitln("  }");
+                      if( !addedElementBufferCache ) {
+                          unit.emitln("  @SuppressWarnings(\"unused\")");
+                          unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+                      }
+                  } // else SKIP setter for constValue Array
+              } else if( constElemCount || !isPointer ) {
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln(SetArrayArgsCheck);
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  unit.emitln("    if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
+                  if( isPointer ) {
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  } else {
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  }
+                  unit.emit  ("    ( ( "+primJElemTypeBufferName+")(eb.getByteBuffer()");
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
+                  unit.emitln(".position(destPos) ) ).put(src, srcPos, length).rewind();");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+              } else /* if( !constElemCount && isPointer ) */ {
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln(SetArrayArgsCheck);
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  unit.emitln("    if( destPos + length <= elemCount ) {");
+                  unit.emitln("      final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emit  ("      ( ( "+primJElemTypeBufferName+")(eb.getByteBuffer()");
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
+                  unit.emitln(".position(destPos) ) ).put(src, srcPos, length).rewind();");
+                  unit.emitln("    } else {");
+                  unit.emitln("      final int newElemCount = destPos + length;");
+                  unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", newElemCount);");
+                  unit.emit  ("      ( ( "+primJElemTypeBufferName+")(eb.getByteBuffer()");
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
+                  unit.emitln(".position(destPos) ) ).put(src, srcPos, length).rewind();");
+                  unit.emitln("      eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("      _eb"+capitalFieldName+" = eb;");
+                  emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "      ");
+                  unit.emitln("    }");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+                  if( !addedElementBufferCache ) {
+                      unit.emitln("  @SuppressWarnings(\"unused\")");
+                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                   }
               }
-          } else {
-              // Setter Struct
+              unit.emitln();
+          }
+      } else {
+          // Setter Struct
+          if( maxOneElement ) {
+              // Setter Struct Single Pointer + Array
               if( isPointer ) {
-                  // Setter Struct Pointer
-                  final String msg = "SKIP setter for complex-pointer type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
-                  javaWriter.println("  // "+msg);
-                  LOG.log(INFO, structCType.getASTLocusTag(), msg);
-              } else {
-                  // Setter Struct Array
-                  if( hasSingleElement ) {
-                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null, arrayLengthExpr);
-                      javaWriter.println(" {");
-                      javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
-                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
-                      javaWriter.println("    if( elemSize > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"elemSize \"+elemSize+\" > size \"+"+fieldName+"_size[mdIdx]); };");
-                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
-                      javaWriter.println("    final int bLimes = bOffset + elemSize;");
-                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize); };");
-                      javaWriter.println("    final ByteBuffer sourceB = val.getBuffer();");
-                      javaWriter.println("    for(int f=0; f<elemSize; f++) {");
-                      javaWriter.println("      if( bOffset >= bLimes ) { throw new IndexOutOfBoundsException(\"elem-byte[0][\"+f+\"]: bOffset \"+bOffset+\" >= bLimes \"+bLimes+\", elemSize \"+elemSize); };");
-                      javaWriter.println("      destB.put(bOffset++, sourceB.get(f));");
-                      javaWriter.println("    }");
-                      javaWriter.println("    return this;");
-                      javaWriter.println("  }");
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null, constElemCount, elemCountExpr);
+                  if( isConstValue ) {
+                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      unit.emitln(" {");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), 1);");
+                      unit.emitln("    eb.put(0, src.getBuffer());");
+                      unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    _eb"+capitalFieldName+" = eb;");
+                      emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
+                      unit.emitln("    return this;");
+                      unit.emitln("  }");
+                      unit.emitln("  @SuppressWarnings(\"unused\")");
+                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                   } else {
-                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, fieldName, capitalFieldName, "final int offset", baseJElemTypeName+"[]", null, arrayLengthExpr);
-                      javaWriter.println(" {");
-                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                      javaWriter.println("    if( offset + val.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + val.length \"+val.length+\" > array-length \"+arrayLength); };");
-                      javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
-                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
-                      javaWriter.println("    final int bTotal = arrayLength * elemSize;");
-                      javaWriter.println("    if( bTotal > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"bTotal \"+bTotal+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
-                      javaWriter.println("    final int bLimes = bOffset + bTotal;");
-                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("    bOffset += elemSize * offset;");
-                      javaWriter.println("    for(int index=0; index<val.length; index++) {");
-                      javaWriter.println("      final ByteBuffer sourceB = val[index].getBuffer();");
-                      javaWriter.println("      for(int f=0; f<elemSize; f++) {");
-                      javaWriter.println("        if( bOffset >= bLimes ) { throw new IndexOutOfBoundsException(\"elem-byte[\"+(offset+index)+\"][\"+f+\"]: bOffset \"+bOffset+\" >= bLimes \"+bLimes+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("        destB.put(bOffset++, sourceB.get(f));");
-                      javaWriter.println("      }");
-                      javaWriter.println("    }");
-                      javaWriter.println("    return this;");
-                      javaWriter.println("  }");
-                      javaWriter.println();
-                      generateSetterSignature(javaWriter, fieldType, false, containingJTypeName, fieldName, capitalFieldName, "final int index", baseJElemTypeName, null, arrayLengthExpr);
-                      javaWriter.println(" {");
-                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                      javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
-                      javaWriter.println("    final ByteBuffer destB = getBuffer();");
-                      javaWriter.println("    final int bTotal = arrayLength * elemSize;");
-                      javaWriter.println("    if( bTotal > "+fieldName+"_size[mdIdx] ) { throw new IndexOutOfBoundsException(\"bTotal \"+bTotal+\" > size \"+"+fieldName+"_size[mdIdx]+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx];");
-                      javaWriter.println("    final int bLimes = bOffset + bTotal;");
-                      javaWriter.println("    if( bLimes > destB.limit() ) { throw new IndexOutOfBoundsException(\"bLimes \"+bLimes+\" > buffer.limit \"+destB.limit()+\", elemOff \"+bOffset+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("    bOffset += elemSize * index;");
-                      javaWriter.println("    final ByteBuffer sourceB = val.getBuffer();");
-                      javaWriter.println("    for(int f=0; f<elemSize; f++) {");
-                      javaWriter.println("      if( bOffset >= bLimes ) { throw new IndexOutOfBoundsException(\"elem-byte[\"+index+\"][\"+f+\"]: bOffset \"+bOffset+\" >= bLimes \"+bLimes+\", elemSize \"+elemSize+\" * \"+arrayLength); };");
-                      javaWriter.println("      destB.put(bOffset++, sourceB.get(f));");
-                      javaWriter.println("    }");
-                      javaWriter.println("    return this;");
-                      javaWriter.println("  }");
+                      unit.emitln(" {");
+                      unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                      unit.emitln("    if( 1 == elemCount ) {");
+                      unit.emitln("      ElementBuffer.derefPointer("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emitln("        .put(0, src.getBuffer());");
+                      unit.emitln("    } else {");
+                      if( constElemCount ) {
+                          unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of constElemCount and maxOneElement has elemCount \"+elemCount);");
+                          unit.emitln("    }");
+                          unit.emitln("    return this;");
+                          unit.emitln("  }");
+                      } else {
+                          unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), 1);");
+                          unit.emitln("      eb.put(0, src.getBuffer());");
+                          unit.emitln("      eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                          unit.emitln("      _eb"+capitalFieldName+" = eb;");
+                          emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
+                          unit.emitln("    }");
+                          unit.emitln("    return this;");
+                          unit.emitln("  }");
+                          unit.emitln("  @SuppressWarnings(\"unused\")");
+                          unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+                      }
                   }
+              } else if( !isConstValue ) { // array && !isConstValue
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                  unit.emitln("      .put(0, src.getBuffer());");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+              } // else SKIP setter for constValue Array
+              unit.emitln();
+          } else {
+              // Setter Struct n Pointer + Array
+              if( isConstValue ) {
+                  if( isPointer ) {
+                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
+                      unit.emitln(" {");
+                      unit.emitln(SetArrayArgsCheck);
+                      unit.emitln("    final int newElemCount = destPos + length;");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), newElemCount);");
+                      unit.emitln("    for(int i=0; i<length; ++i) {");
+                      unit.emitln("      eb.put(destPos+i, src[srcPos+i].getBuffer());");
+                      unit.emitln("    }");
+                      unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    _eb"+capitalFieldName+" = eb;");
+                      emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "    ");
+                      unit.emitln("    return this;");
+                      unit.emitln("  }");
+                      unit.emitln("  @SuppressWarnings(\"unused\")");
+                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+                  } // else SKIP setter for constValue Array
+              } else if( constElemCount || !isPointer ) {
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln(SetArrayArgsCheck);
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  unit.emitln("    if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
+                  if( isPointer ) {
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  } else {
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  }
+                  unit.emitln("    for(int i=0; i<length; ++i) {");
+                  unit.emitln("      eb.put(destPos+i, src[srcPos+i].getBuffer());");
+                  unit.emitln("    }");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+              } else /* if( !constElemCount && isPointer ) */ {
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln(SetArrayArgsCheck);
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  unit.emitln("    if( destPos + length <= elemCount ) {");
+                  unit.emitln("      final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("      for(int i=0; i<length; ++i) {");
+                  unit.emitln("        eb.put(destPos+i, src[srcPos+i].getBuffer());");
+                  unit.emitln("      }");
+                  unit.emitln("    } else {");
+                  unit.emitln("      final int newElemCount = destPos + length;");
+                  unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), newElemCount);");
+                  unit.emitln("      for(int i=0; i<length; ++i) {");
+                  unit.emitln("        eb.put(destPos+i, src[srcPos+i].getBuffer());");
+                  unit.emitln("      }");
+                  unit.emitln("      eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("      _eb"+capitalFieldName+" = eb;");
+                  emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "      ");
+                  unit.emitln("    }");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+                  unit.emitln("  @SuppressWarnings(\"unused\")");
+                  unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+              }
+              unit.emitln();
+              if( !isConstValue ) {
+                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, "final int destPos", baseJElemTypeName, null, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  unit.emitln("    if( destPos + 1 > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + 1 > elemCount \"+elemCount); };");
+                  if( isPointer ) {
+                      unit.emitln("    ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                  } else {
+                      unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                  }
+                  unit.emitln("      .put(destPos, src.getBuffer());");
+                  unit.emitln("    return this;");
+                  unit.emitln("  }");
+                  unit.emitln();
               }
           }
       }
+
       // Getter
-      javaWriter.println();
       if( isPrimitive ) {
-          // Getter Primitive
-          if( isPointer ) {
-              // Getter Primitive Pointer
-              final FunctionType ft = new FunctionType(dummyFuncTypeName, SizeThunk.POINTER, fieldType, 0);
-              ft.addArgument(containingCType.newCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
-                             CMethodBindingEmitter.cThisArgumentName());
-              ft.addArgument(int32Type, nativeArrayLengthArg);
-              final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
-              jniWriter.println();
-              jniWriter.print("static "+fs.toString(false));
-              jniWriter.println("{");
-              jniWriter.println("  return "+CMethodBindingEmitter.cThisArgumentName()+"->"+field.getName()+";");
-              jniWriter.println("}");
-              jniWriter.println();
-              generateArrayPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
-                                       containingCType, containingJType, i, fs, returnSizeLookupName, arrayLengthExpr, nativeArrayLengthArg);
-              javaWriter.println();
-              generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeNameC+"Buffer", fieldName, capitalFieldName, null, arrayLengthExpr);
-              javaWriter.println(" {");
-              if( useGetCStringLength ) {
-                  javaWriter.println("    final int arrayLength = get"+capitalFieldName+"ArrayLength();");
+          // Getter Primitive Pointer + Array
+          if( maxOneElement ) {
+              generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null, constElemCount, elemCountExpr);
+              unit.emitln(" {");
+              if( isPointer ) {
+                  unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
               } else {
-                  javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
+                  unit.emitln("    return ElementBuffer.wrap("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
               }
-              javaWriter.println("    final ByteBuffer _res = get"+capitalFieldName+"0(getBuffer(), arrayLength);");
-              javaWriter.println("    if (_res == null) return null;");
-              javaWriter.print("    return Buffers.nativeOrder(_res)");
+              unit.emit  ("             .getByteBuffer()");
               if( !isByteBuffer ) {
-                  javaWriter.print(".as"+baseJElemTypeNameC+"Buffer()");
+                  unit.emit(".as"+primJElemTypeBufferName+"()");
               }
-              javaWriter.println(";");
-              javaWriter.println("  }");
-              if( isString && isByteBuffer ) {
-                  javaWriter.println();
-                  generateGetterSignature(javaWriter, fieldType, false, false, "String", fieldName, capitalFieldName+"AsString", null, arrayLengthExpr);
-                  javaWriter.println(" {");
-                  if( useGetCStringLength ) {
-                      javaWriter.println("    final int arrayLength = get"+capitalFieldName+"ArrayLength();");
-                  } else {
-                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                  }
-                  javaWriter.println("    final ByteBuffer bb = get"+capitalFieldName+"0(getBuffer(), arrayLength);");
-                  javaWriter.println("    if (bb == null) return null;");
-                  javaWriter.println("    final byte[] ba = new byte[arrayLength];");
-                  javaWriter.println("    int i = -1;");
-                  javaWriter.println("    while( ++i < arrayLength ) {");
-                  javaWriter.println("      ba[i] = bb.get(i);");
-                  javaWriter.println("      if( (byte)0 == ba[i] ) break;");
-                  javaWriter.println("    }");
-                  javaWriter.println("    return new String(ba, 0, i);");
-                  javaWriter.println("  }");
-              }
-              if( useGetCStringLength ) {
-                  javaWriter.println();
-                  generateGetterSignature(javaWriter, fieldType, false, false, "final int", fieldName, capitalFieldName+"ArrayLength", null, arrayLengthExpr);
-                  javaWriter.println(" {");
-                  javaWriter.println("    final long pString = PointerBuffer.wrap( accessor.slice(" + fieldName+"_offset[mdIdx],  PointerBuffer.ELEMENT_SIZE) ).get(0);");
-                  javaWriter.println("    return "+arrayLengthExpr+";");
-                  javaWriter.println("  }");
-              }
+              unit.emitln(".get(0);");
+              unit.emitln("  }");
+              unit.emitln();
           } else {
-              // Getter Primitive Array
-              if( hasSingleElement ) {
-                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null, arrayLengthExpr);
-                  javaWriter.println(" {");
-                  if( baseCElemNativeSizeFixed ) {
-                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx]);");
+              boolean doneString = false;
+              if( isString && isByteBuffer ) {
+                  generateGetterSignature(unit, fieldType, false, false, "String", fieldName, capitalFieldName+(isStringOnly?"":"AsString"), null, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  if( isPointer ) {
+                      unit.emitln("    final ByteBuffer bb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer();");
                   } else {
-                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "At(" + fieldName+"_offset[mdIdx], md."+baseCElemSizeDenominator+"SizeInBytes());");
+                      unit.emitln("    final ByteBuffer bb = ElementBuffer.wrap("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer();");
                   }
-                  javaWriter.println("  }");
-                  javaWriter.println();
+                  unit.emitln("    final byte[] ba = new byte[elemCount];");
+                  unit.emitln("    int i = -1;");
+                  unit.emitln("    while( ++i < elemCount ) {");
+                  unit.emitln("      ba[i] = bb.get(i);");
+                  unit.emitln("      if( (byte)0 == ba[i] ) break;");
+                  unit.emitln("    }");
+                  unit.emitln("    return new String(ba, 0, i, _charset);");
+                  unit.emitln("  }");
+                  unit.emitln();
+                  doneString = true;
+              }
+              if( doneString && isStringOnly ) {
+                  generateSetterAPIDoc(unit, "SKIP getter for String alternative (ByteBuffer)", fieldType, fieldName, constElemCount, elemCountExpr);
+                  unit.emitln();
               } else {
-                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeNameC+"Buffer", fieldName, capitalFieldName, null, arrayLengthExpr);
-                  javaWriter.println(" {");
-                  javaWriter.print("    return accessor.slice(" + fieldName+"_offset[mdIdx],  Buffers.SIZEOF_"+baseJElemTypeNameU+" * "+arrayLengthExpr+")");
-                  if( !isByteBuffer ) {
-                      javaWriter.print(".as"+baseJElemTypeNameC+"Buffer()");
-                  }
-                  javaWriter.println(";");
-                  javaWriter.println("  }");
-                  javaWriter.println();
-                  if( isString && isByteBuffer ) {
-                      generateGetterSignature(javaWriter, fieldType, false, false, "String", fieldName, capitalFieldName+"AsString", null, arrayLengthExpr);
-                      javaWriter.println(" {");
-                      javaWriter.println("    final int offset = " + fieldName+"_offset[mdIdx];");
-                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                      javaWriter.println("    final ByteBuffer bb = getBuffer();");
-                      javaWriter.println("    final byte[] ba = new byte[arrayLength];");
-                      javaWriter.println("    int i = -1;");
-                      javaWriter.println("    while( ++i < arrayLength ) {");
-                      javaWriter.println("      ba[i] = bb.get(offset+i);");
-                      javaWriter.println("      if( (byte)0 == ba[i] ) break;");
-                      javaWriter.println("    }");
-                      javaWriter.println("    return new String(ba, 0, i);");
-                      javaWriter.println("  }");
+                  generateGetterSignature(unit, fieldType, false, false, primJElemTypeBufferName, fieldName, capitalFieldName, null, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  if( isPointer ) {
+                      unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", "+getElemCountFuncExpr+", getBuffer(), "+fieldName+"_offset[mdIdx])");
                   } else {
-                      generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
-                      javaWriter.println(" {");
-                      javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                      javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
-                      javaWriter.println("    return accessor.get" + baseJElemTypeNameC + "sAt(" + fieldName+"_offset[mdIdx] + (Buffers.SIZEOF_"+baseJElemTypeNameU+" * offset), result);");
-                      javaWriter.println("  }");
-                      javaWriter.println();
+                      unit.emitln("    return ElementBuffer.wrap("+primElemSizeExpr+", "+getElemCountFuncExpr+", getBuffer(), "+fieldName+"_offset[mdIdx])");
                   }
+                  unit.emit  ("             .getByteBuffer()");
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
+                  unit.emitln(";");
+                  unit.emitln("  }");
+                  unit.emitln();
+              }
+              if( !doneString ) {
+                  generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs, constElemCount, elemCountExpr);
+                  unit.emitln(" {");
+                  unit.emitln(GetArrayArgsCheck);
+                  unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+                  unit.emitln("    if( srcPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"srcPos \"+srcPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
+                  unit.emit  ("    ( ("+primJElemTypeBufferName+")( ");
+                  if( isPointer ) {
+                      unit.emit("ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer()");
+                  } else {
+                      unit.emit("ElementBuffer.wrap("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer()");
+                  }
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
+                  unit.emitln(".position(srcPos) ) )");
+                  unit.emitln("      .get(dest, destPos, length).rewind();");
+                  unit.emitln("    return dest;");
+                  unit.emitln("  }");
+                  unit.emitln();
               }
           }
       } else {
-          // Getter Struct
-          if( isPointer ) {
-              // Getter Struct Pointer
-              final FunctionType ft = new FunctionType(dummyFuncTypeName, SizeThunk.POINTER, fieldType, 0);
-              ft.addArgument(containingCType.newCVVariant(containingCType.getCVAttributes() | CVAttributes.CONST),
-                             CMethodBindingEmitter.cThisArgumentName());
-              ft.addArgument(int32Type, nativeArrayElemOffsetArg);
-              final FunctionSymbol fs = new FunctionSymbol("get"+capitalFieldName, ft);
-              jniWriter.println();
-              jniWriter.print("static "+fs.toString(false));
-              jniWriter.println("{");
-              jniWriter.println("  return "+CMethodBindingEmitter.cThisArgumentName()+"->"+field.getName()+"+"+nativeArrayElemOffsetArg+";");
-              jniWriter.println("}");
-              jniWriter.println();
-              generateArrayPointerCode(methodBindingSet, javaWriter, jniWriter, structCTypeName, structClassPkgName,
-                                       containingCType, containingJType, i, fs, returnSizeLookupName, arrayLengthExpr, nativeArrayLengthONE);
-              javaWriter.println();
-              if( hasSingleElement ) {
-                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null, arrayLengthExpr);
-                  javaWriter.println(" {");
-                  javaWriter.println("    final ByteBuffer source = getBuffer();");
-                  javaWriter.println("    final ByteBuffer _res = get"+capitalFieldName+"0(source, 0);");
-                  javaWriter.println("    if (_res == null) return null;");
-                  javaWriter.println("    return "+baseJElemTypeName+".create(_res);");
-                  javaWriter.println("  }");
+          // Getter Struct Pointer + Array
+          if( maxOneElement ) {
+              generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null, constElemCount, elemCountExpr);
+              unit.emitln(" {");
+              unit.emitln("    return "+baseJElemTypeName+".create(");
+              if( isPointer ) {
+                  unit.emitln("             ElementBuffer.derefPointer("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer() );");
               } else {
-                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
-                  javaWriter.println(" {");
-                  javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                  javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
-                  javaWriter.println("    final ByteBuffer source = getBuffer();");
-                  javaWriter.println("    for(int index=0; index<result.length; index++) {");
-                  javaWriter.println("      final ByteBuffer _res = get"+capitalFieldName+"0(source, offset+index);");
-                  javaWriter.println("      if (_res == null) return null;");
-                  javaWriter.println("      result[index] = "+baseJElemTypeName+".create(_res);");
-                  javaWriter.println("    }");
-                  javaWriter.println("    return result;");
-                  javaWriter.println("  }");
+                  unit.emitln("             ElementBuffer.wrap("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer() );");
               }
+              unit.emitln("  }");
+              unit.emitln();
           } else {
-              // Getter Struct Array
-              if( hasSingleElement ) {
-                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null, arrayLengthExpr);
-                  javaWriter.println(" {");
-                  javaWriter.println("    return "+baseJElemTypeName+".create(accessor.slice("+fieldName+"_offset[mdIdx], "+baseJElemTypeName+".size()));");
-                  javaWriter.println("  }");
+              generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs, constElemCount, elemCountExpr);
+              unit.emitln(" {");
+              unit.emitln(GetArrayArgsCheck);
+              unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
+              unit.emitln("    if( srcPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"srcPos \"+srcPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
+              if( isPointer ) {
+                  unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
               } else {
-                  generateGetterSignature(javaWriter, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int offset, "+baseJElemTypeName+" result[]", arrayLengthExpr);
-                  javaWriter.println(" {");
-                  javaWriter.println("    final int arrayLength = "+arrayLengthExpr+";");
-                  javaWriter.println("    if( offset + result.length > arrayLength ) { throw new IndexOutOfBoundsException(\"offset \"+offset+\" + result.length \"+result.length+\" > array-length \"+arrayLength); };");
-                  javaWriter.println("    final int elemSize = "+baseJElemTypeName+".size();");
-                  javaWriter.println("    int bOffset = "+fieldName+"_offset[mdIdx] + ( elemSize * offset );");
-                  javaWriter.println("    for(int index=0; index<result.length; index++) {");
-                  javaWriter.println("      result[index] = "+baseJElemTypeName+".create(accessor.slice(bOffset, elemSize));");
-                  javaWriter.println("      bOffset += elemSize;");
-                  javaWriter.println("    }");
-                  javaWriter.println("    return result;");
-                  javaWriter.println("  }");
+                  unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
               }
+              unit.emitln("    for(int i=0; i<length; ++i) {");
+              unit.emitln("      dest[destPos+i] = "+baseJElemTypeName+".create( eb.slice(srcPos+i, 1) );");
+              unit.emitln("    }");
+              unit.emitln("    return dest;");
+              unit.emitln("  }");
+              unit.emitln();
           }
+      }
+  }
+  private void emitSetElemCount(final JavaCodeUnit unit, final String setElemCountFunc, final String newElemCountExpr, final boolean mandatory, final String capitalFieldName, final Type structCType, final String indentation) {
+      if( null != setElemCountFunc ) {
+          unit.emitln(indentation+setElemCountFunc+"( "+newElemCountExpr+" );");
+      } else if( mandatory ) {
+          final String msg = "Missing set"+capitalFieldName+"ElemCount( "+newElemCountExpr+" )";
+          unit.emitln(indentation+"// ERROR: "+msg);
+          unit.emitln();
+          LOG.log(SEVERE, structCType.getASTLocusTag(), msg);
+          throw new RuntimeException(msg);
       }
   }
 
@@ -2180,18 +2395,23 @@ public class JavaEmitter implements GlueEmitter {
 
   /**
    * @param filename the class's full filename to open w/ write access
-   * @param simpleClassName the simple class name, i.e. w/o package name
-   * @return a {@link PrintWriter} instance to write the class source file or <code>null</code> to suppress output!
+   * @param cUnitName the base c-unit name, i.e. c-file basename with suffix
+   * @param generator informal optional object that is creating this unit, used to be mentioned in a warning message if not null.
    * @throws IOException
    */
-  protected PrintWriter openFile(final String filename, final String simpleClassName) throws IOException {
-    //System.out.println("Trying to open: " + filename);
-    final File file = new File(filename);
-    final String parentDir = file.getParent();
-    if (parentDir != null) {
-        new File(parentDir).mkdirs();
-    }
-    return new PrintWriter(new BufferedWriter(new FileWriter(file)));
+  protected CCodeUnit openCUnit(final String filename, final String cUnitName) throws IOException {
+    return new CCodeUnit(filename, cUnitName, this);
+  }
+
+  /**
+   * @param filename the class's full filename to open w/ write access
+   * @param packageName the package name of the class
+   * @param simpleClassName the simple class name, i.e. w/o package name or c-file basename
+   * @param generator informal optional object that is creating this unit, used to be mentioned in a warning message if not null.
+   * @throws IOException
+   */
+  protected JavaCodeUnit openJavaUnit(final String filename, final String packageName, final String simpleClassName) throws IOException {
+    return new JavaCodeUnit(filename, packageName, simpleClassName, this);
   }
 
   private boolean isOpaque(final Type type) {
@@ -2217,7 +2437,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  private void openWriters() throws IOException {
+  private void openCodeUnits() throws IOException {
     String jRoot = null;
     if (cfg.allStatic() || cfg.emitInterface()) {
       jRoot = cfg.javaOutputDir() + File.separator +
@@ -2237,74 +2457,54 @@ public class JavaEmitter implements GlueEmitter {
     }
 
     if (cfg.allStatic() || cfg.emitInterface()) {
-      javaFileName = jRoot + File.separator + cfg.className() + ".java";
-      javaWriter = openFile(javaFileName, cfg.className());
+      final String javaFileName = jRoot + File.separator + cfg.className() + ".java";
+      javaUnit = openJavaUnit(javaFileName, cfg.packageName(), cfg.className());
     }
     if (!cfg.allStatic() && cfg.emitImpl()) {
-      javaFileName = jImplRoot + File.separator + cfg.implClassName() + ".java";
-      javaImplWriter = openFile(javaFileName, cfg.implClassName());
+      final String javaFileName = jImplRoot + File.separator + cfg.implClassName() + ".java";
+      javaImplUnit = openJavaUnit(javaFileName, cfg.implPackageName(), cfg.implClassName());
     }
     if (cfg.emitImpl()) {
-      cFileName = nRoot + File.separator + cfg.implClassName() + "_JNI.c";
-      cWriter = openFile(cFileName, cfg.implClassName());
-    }
-
-    if (javaWriter != null) {
-      CodeGenUtils.emitAutogeneratedWarning(javaWriter, this);
-    }
-    if (javaImplWriter != null) {
-      CodeGenUtils.emitAutogeneratedWarning(javaImplWriter, this);
-    }
-    if (cWriter != null) {
-      CodeGenUtils.emitAutogeneratedWarning(cWriter, this);
+      final String cUnitName = cfg.implClassName() + "_JNI.c";
+      final String cFileName = nRoot + File.separator + cUnitName;
+      cUnit = openCUnit(cFileName, cUnitName);
     }
   }
 
-  /** For {@link #javaWriter} or {@link #javaImplWriter} */
-  protected String javaFileName() { return javaFileName; }
-
-  protected PrintWriter javaWriter() {
+  protected JavaCodeUnit javaUnit() {
     if (!cfg.allStatic() && !cfg.emitInterface()) {
       throw new InternalError("Should not call this");
     }
-    return javaWriter;
+    return javaUnit;
   }
 
-  protected PrintWriter javaImplWriter() {
+  protected JavaCodeUnit javaImplUnit() {
     if (cfg.allStatic() || !cfg.emitImpl()) {
       throw new InternalError("Should not call this");
     }
-    return javaImplWriter;
+    return javaImplUnit;
   }
 
-  /** For {@link #cImplWriter} */
-  protected String cFileName() { return cFileName; }
-
-  protected PrintWriter cWriter() {
+  protected CCodeUnit cUnit() {
     if (!cfg.emitImpl()) {
       throw new InternalError("Should not call this");
     }
-    return cWriter;
-  }
-
-  private void closeWriter(final PrintWriter writer) throws IOException {
-    writer.flush();
-    writer.close();
+    return cUnit;
   }
 
   private void closeWriters() throws IOException {
-    if (javaWriter != null) {
-      closeWriter(javaWriter);
+    if( javaUnit != null ) {
+        javaUnit.close();
+        javaUnit = null;
     }
-    if (javaImplWriter != null) {
-      closeWriter(javaImplWriter);
+    if( javaImplUnit != null ) {
+        javaImplUnit.close();
+        javaImplUnit = null;
     }
-    if (cWriter != null) {
-      closeWriter(cWriter);
+    if( cUnit != null ) {
+        cUnit.close();
+        cUnit = null;
     }
-    javaWriter = null;
-    javaImplWriter = null;
-    cWriter = null;
   }
 
   /**
@@ -2335,17 +2535,17 @@ public class JavaEmitter implements GlueEmitter {
    * Emit all the strings specified in the "CustomJavaCode" parameters of
    * the configuration file.
    */
-  protected void emitCustomJavaCode(final PrintWriter writer, final String className) throws Exception  {
+  protected void emitCustomJavaCode(final CodeUnit unit, final String className) throws Exception  {
     final List<String> code = cfg.customJavaCodeForClass(className);
     if (code.isEmpty())
       return;
 
-    writer.println();
-    writer.println("  // --- Begin CustomJavaCode .cfg declarations");
+    unit.emitln();
+    unit.emitln("  // --- Begin CustomJavaCode .cfg declarations");
     for (final String line : code) {
-      writer.println(line);
+      unit.emitln(line);
     }
-    writer.println("  // ---- End CustomJavaCode .cfg declarations");
+    unit.emitln("  // ---- End CustomJavaCode .cfg declarations");
   }
 
   public String[] getClassAccessModifiers(final String classFQName) {
@@ -2371,11 +2571,13 @@ public class JavaEmitter implements GlueEmitter {
    */
   protected void emitAllFileHeaders() throws IOException {
     try {
-        final List<String> imports = new ArrayList<String>(cfg.imports());
-        imports.add(cfg.gluegenRuntimePackage()+".*");
-        imports.add(DynamicLookupHelper.class.getPackage().getName()+".*");
-        imports.add(Buffers.class.getPackage().getName()+".*");
-        imports.add(Buffer.class.getPackage().getName()+".*");
+      final List<String> imports = new ArrayList<String>(cfg.imports());
+      imports.add(cfg.gluegenRuntimePackage()+".*");
+      imports.add(DynamicLookupHelper.class.getPackage().getName()+".*");
+      imports.add(Buffers.class.getPackage().getName()+".*");
+      imports.add(Buffer.class.getPackage().getName()+".*");
+      imports.add("java.nio.charset.Charset");
+      imports.add("java.nio.charset.StandardCharsets");
 
       if (cfg.allStatic() || cfg.emitInterface()) {
 
@@ -2402,7 +2604,7 @@ public class JavaEmitter implements GlueEmitter {
 
         final String[] accessModifiers = getClassAccessModifiers(cfg.className());
         CodeGenUtils.emitJavaHeaders(
-          javaWriter,
+          javaUnit().output,
           cfg.packageName(),
           cfg.className(),
           cfg.allStatic() ? true : false,
@@ -2440,7 +2642,7 @@ public class JavaEmitter implements GlueEmitter {
 
         final String[] accessModifiers = getClassAccessModifiers(cfg.implClassName());
         CodeGenUtils.emitJavaHeaders(
-          javaImplWriter,
+          javaImplUnit().output,
           cfg.implPackageName(),
           cfg.implClassName(),
           true,
@@ -2452,7 +2654,7 @@ public class JavaEmitter implements GlueEmitter {
       }
 
       if (cfg.emitImpl()) {
-        emitCHeader(cWriter(), getImplPackageName(), cfg.implClassName());
+        cUnit().emitHeader(getImplPackageName(), cfg.implClassName(), cfg.customCCode());
       }
     } catch (final Exception e) {
       throw new RuntimeException(
@@ -2463,153 +2665,18 @@ public class JavaEmitter implements GlueEmitter {
 
   }
 
-  protected void emitCHeader(final PrintWriter cWriter, final String packageName, final String className) {
-    cWriter.println("#include <jni.h>");
-    cWriter.println("#include <stdlib.h>");
-    cWriter.println("#include <string.h>");
-    cWriter.println();
-
-    if (getConfig().emitImpl()) {
-      cWriter.println("#include <assert.h>");
-      cWriter.println("#include <stddef.h>");
-      cWriter.println();
-      cWriter.println("static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, size_t capacity); /* forward decl. */");
-      cWriter.println();
-    }
-    for (final String code : cfg.customCCode()) {
-      cWriter.println(code);
-    }
-    cWriter.println();
-  }
-
-  private static final String staticClassInitCodeCCode = "\n"+
-         "static const char * clazzNameBuffers = \"com/jogamp/common/nio/Buffers\";\n"+
-         "static const char * clazzNameBuffersStaticNewCstrName = \"newDirectByteBuffer\";\n"+
-         "static const char * clazzNameBuffersStaticNewCstrSignature = \"(I)Ljava/nio/ByteBuffer;\";\n"+
-         "static const char * sFatalError = \"FatalError:\";\n"+
-         "static jclass clazzBuffers = NULL;\n"+
-         "static jmethodID cstrBuffersNew = NULL;\n"+
-         "static jboolean _initClazzAccessDone = JNI_FALSE;\n"+
-         "\n"+
-         "static jboolean _initClazzAccess(JNIEnv *env) {\n"+
-         "    jclass c;\n"+
-         "\n"+
-         "    if(NULL!=cstrBuffersNew) return JNI_TRUE;\n"+
-         "\n"+
-         "    c = (*env)->FindClass(env, clazzNameBuffers);\n"+
-         "    if(NULL==c) {\n"+
-         "        fprintf(stderr, \"%s Can't find %s\\n\", sFatalError, clazzNameBuffers);\n"+
-         "        (*env)->FatalError(env, clazzNameBuffers);\n"+
-         "        return JNI_FALSE;\n"+
-         "    }\n"+
-         "    clazzBuffers = (jclass)(*env)->NewGlobalRef(env, c);\n"+
-         "    if(NULL==clazzBuffers) {\n"+
-         "        fprintf(stderr, \"%s Can't use %s\\n\", sFatalError, clazzNameBuffers);\n"+
-         "        (*env)->FatalError(env, clazzNameBuffers);\n"+
-         "        return JNI_FALSE;\n"+
-         "    }\n"+
-         "\n"+
-         "    cstrBuffersNew = (*env)->GetStaticMethodID(env, clazzBuffers,\n"+
-         "                            clazzNameBuffersStaticNewCstrName, clazzNameBuffersStaticNewCstrSignature);\n"+
-         "    if(NULL==cstrBuffersNew) {\n"+
-         "        fprintf(stderr, \"%s can't create %s.%s %s\\n\", sFatalError,\n"+
-         "            clazzNameBuffers,\n"+
-         "            clazzNameBuffersStaticNewCstrName, clazzNameBuffersStaticNewCstrSignature);\n"+
-         "        (*env)->FatalError(env, clazzNameBuffersStaticNewCstrName);\n"+
-         "        return JNI_FALSE;\n"+
-         "    }\n"+
-         "    _initClazzAccessDone = JNI_TRUE;\n"+
-         "    return JNI_TRUE;\n"+
-         "}\n"+
-         "\n"+
-         "#define JINT_MAX_VALUE ((size_t)0x7fffffffU)\n"+
-         "static const char * sNewBufferImplNotCalled = \"initializeImpl() not called\";\n"+
-         "static const char * sNewBufferMAX_INT = \"capacity > MAX_INT\";\n"+
-         "static const char * sNewBufferEXCPT = \"New direct ByteBuffer threw Exception\";\n"+
-         "static const char * sNewBufferNULL = \"New direct ByteBuffer is NULL\";\n"+
-         "\n"+
-         "static jobject JVMUtil_NewDirectByteBufferCopy(JNIEnv *env, void * source_address, size_t capacity) {\n"+
-         "    jobject jbyteBuffer;\n"+
-         "    void * byteBufferPtr;\n"+
-         "\n"+
-         "    if( JNI_FALSE == _initClazzAccessDone ) {\n"+
-         "        fprintf(stderr, \"%s %s\\n\", sFatalError, sNewBufferImplNotCalled);\n"+
-         "        (*env)->FatalError(env, sNewBufferImplNotCalled);\n"+
-         "        return NULL;\n"+
-         "    }\n"+
-         "    if( JINT_MAX_VALUE < capacity ) {\n"+
-         "        fprintf(stderr, \"%s %s: %lu\\n\", sFatalError, sNewBufferMAX_INT, (unsigned long)capacity);\n"+
-         "        (*env)->FatalError(env, sNewBufferMAX_INT);\n"+
-         "        return NULL;\n"+
-         "    }\n"+
-         "    jbyteBuffer  = (*env)->CallStaticObjectMethod(env, clazzBuffers, cstrBuffersNew, (jint)capacity);\n"+
-         "    if( (*env)->ExceptionCheck(env) ) {\n"+
-         "        (*env)->ExceptionDescribe(env);\n"+
-         "        (*env)->ExceptionClear(env);\n"+
-         "        (*env)->FatalError(env, sNewBufferEXCPT);\n"+
-         "        return NULL;\n"+
-         "    }\n"+
-         "    if( NULL == jbyteBuffer ) {\n"+
-         "        fprintf(stderr, \"%s %s: size %lu\\n\", sFatalError, sNewBufferNULL, (unsigned long)capacity);\n"+
-         "        (*env)->FatalError(env, sNewBufferNULL);\n"+
-         "        return NULL;\n"+
-         "    }\n"+
-         "    if( 0 < capacity ) {\n"+
-         "        byteBufferPtr = (*env)->GetDirectBufferAddress(env, jbyteBuffer);\n"+
-         "        memcpy(byteBufferPtr, source_address, capacity);\n"+
-         "    }\n"+
-         "    return jbyteBuffer;\n"+
-         "}\n"+
-         "\n";
-
-  private static final String staticClassInitCallJavaCode = "\n"+
-         "  static {\n"+
-         "    if( !initializeImpl() ) {\n"+
-         "      throw new RuntimeException(\"Initialization failure\");\n"+
-         "    }\n"+
-         "  }\n"+
-         "\n";
-
-  protected void emitCInitCode(final PrintWriter cWriter, final String packageName, final String className) {
-    if ( requiresStaticInitialization(className) ) {
-      cWriter.println(staticClassInitCodeCCode);
-      cWriter.println("JNIEXPORT jboolean JNICALL "+JavaEmitter.getJNIMethodNamePrefix(packageName, className)+"_initializeImpl(JNIEnv *env, jclass _unused) {");
-      cWriter.println("    return _initClazzAccess(env);");
-      cWriter.println("}");
-      cWriter.println();
-      cWriter.println("JNIEXPORT jint JNICALL "+JavaEmitter.getJNIMethodNamePrefix(packageName, className)+"_getCStringLengthImpl(JNIEnv *env, jclass _unused, jlong pString) {");
-      cWriter.println("    return 0 != pString ? strlen((const char*)(intptr_t)pString) : 0;");
-      cWriter.println("}");
-      cWriter.println();
-    }
-  }
-
-  protected void emitJavaInitCode(final PrintWriter jWriter, final String className) {
-    if( null != jWriter && requiresStaticInitialization(className) ) {
-        jWriter.println();
-        jWriter.println("  private static native boolean initializeImpl();");
-        jWriter.println();
-        jWriter.println();
-        jWriter.println("  private static native int getCStringLengthImpl(final long pString);");
-        jWriter.println();
-        if( !cfg.manualStaticInitCall(className) ) {
-            jWriter.println(staticClassInitCallJavaCode);
-        }
-    }
-  }
-
   /**
    * Write out any footer information for the output files (closing brace of
    * class definition, etc).
    */
   protected void emitAllFileFooters() {
     if (cfg.allStatic() || cfg.emitInterface()) {
-      javaWriter().println();
-      javaWriter().println("} // end of class " + cfg.className());
+      javaUnit.emitTailCode();
+      javaUnit().emitln("} // end of class " + cfg.className());
     }
     if (!cfg.allStatic() && cfg.emitImpl())  {
-      javaImplWriter().println();
-      javaImplWriter().println("} // end of class " + cfg.implClassName());
+      javaImplUnit.emitTailCode();
+      javaImplUnit().emitln("} // end of class " + cfg.implClassName());
     }
   }
 
@@ -2854,4 +2921,28 @@ public class JavaEmitter implements GlueEmitter {
   private final String capitalizeString(final String string) {
       return Character.toUpperCase(string.charAt(0)) + string.substring(1);
   }
+  /**
+   * Converts first letter to lower case.
+   */
+  private final String decapitalizeString(final String string) {
+      return Character.toLowerCase(string.charAt(0)) + string.substring(1);
+  }
+
+  private static final String optStringCharsetCode =
+          "  private static Charset _charset = StandardCharsets.UTF_8;\n" +
+          "\n"+
+          "  /** Returns the Charset for this class's String mapping, default is StandardCharsets.UTF_8. */\n"+
+          "  public static Charset getCharset() { return _charset; };\n"+
+          "\n"+
+          "  /** Sets the Charset for this class's String mapping, default is StandardCharsets.UTF_8. */\n"+
+          "  public static void setCharset(Charset cs) { _charset = cs; }\n";
+
+  private static final String optStringMaxStrnlenCode =
+          "  private static int _max_strnlen = 8192;\n"+
+          "\n"+
+          "  /** Returns the maximum number of bytes to read to determine native string length using `strnlen(..)`, default is 8192. */\n"+
+          "  public static int getMaxStrnlen() { return _max_strnlen; };\n"+
+          "\n"+
+          "  /** Sets the maximum number of bytes to read to determine native string length using `strnlen(..)`, default is 8192. */\n"+
+          "  public static void setMaxStrnlen(int v) { _max_strnlen = v; }\n";
 }

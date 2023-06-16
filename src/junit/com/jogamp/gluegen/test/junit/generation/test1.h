@@ -437,71 +437,320 @@ MYAPI void MYAPIENTRY intToRgba(int irgba, char rgbaSink[4]);
 MYAPI void MYAPIENTRY addInt(const int summands[2], int result[1]);
 MYAPI void MYAPIENTRY addByte(const char summands[2], char result[1]);
 
-typedef struct {
-    const int intxxArrayFixedLen[3];
-    
-    const int * intxxPointerCustomLen;
-    const int intxxPointerCustomLenVal;
-
-    const int32_t int32ArrayFixedLen[3];
-    const int32_t int32ArrayOneElem[1];
-    
-    const int32_t * int32PointerCustomLen;
-    const int32_t int32PointerCustomLenVal;
-
-    const int32_t * int32PointerOneElem;
-
-    const float mat4x4[4][4];
-
-    const TK_Dimension structArrayFixedLen[3];
-    const TK_Dimension structArrayOneElem[1];
-    
-    const TK_Dimension * structPointerCustomLen;
-    const int32_t structPointerCustomLenVal;
-    const TK_Dimension * structPointerOneElem;
-
-    TK_Context ctx;
-
-    char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
-    char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
-    const char * modelNamePointerCustomLen;  /* 'Hello Pointer' len=13+1 */
-    const int modelNamePointerCustomLenVal;  /* 13+1 */
-
-} TK_ModelConst;
+//
+// TK_FieldImmutable
+//
 
 typedef struct {
-    int intxxArrayFixedLen[3];
-    
-    int * intxxPointerCustomLen;
-    int intxxPointerCustomLenVal;
+    // Primitive.ConstValue.intxx 2A + 5P = 7
+    const int  constIntxxArrayConstOneElem[1];
+    const int  constIntxxArrayConstLen[3];         // [3]
+    const int* constIntxxPointerConstOneElem;      // [1]
+    const int* constIntxxPointerMaxOneElem;        // null
+    const int* constIntxxPointerConstLen;          // [3]
+    const int* constIntxxPointerVariaLen;          // null
+    const int* constIntxxPointerCustomLen;         // [4]
+    int        constIntxxPointerCustomLenElemCount;
 
-    int32_t int32ArrayFixedLen[3];
-    int32_t int32ArrayOneElem[1];
-    
-    int32_t * int32PointerCustomLen;
-    int32_t int32PointerCustomLenVal;
+    // Primitive.VariaValue.intxx 2A + 5P = 7
+    int  variaIntxxArrayConstOneElem[1];
+    int  variaIntxxArrayConstLen[3];         // [3]
+    int* variaIntxxPointerConstOneElem;      // [1]
+    int* variaIntxxPointerMaxOneElem;        // null
+    int* variaIntxxPointerConstLen;          // [3]
+    int* variaIntxxPointerVariaLen;          // null
+    int* variaIntxxPointerCustomLen;         // [4]
+    int  variaIntxxPointerCustomLenElemCount;
 
-    int32_t * int32PointerOneElem;
+    const int32_t  constInt32Element;
+    int32_t        variaInt32Element;
 
+    // Primitive.ConstValue.int32 2A + 5P = 7
+    const int32_t  constInt32ArrayConstOneElem[1];
+    const int32_t  constInt32ArrayConstLen[3];
+    const int32_t* constInt32PointerConstOneElem;
+    const int32_t* constInt32PointerMaxOneElem;
+    const int32_t* constInt32PointerConstLen;
+    const int32_t* constInt32PointerVariaLen;
+    const int32_t* constInt32PointerCustomLen;
+    int32_t        constInt32PointerCustomLenElemCount;
+
+    // Primitive.VariaValue.int32 2A + 5P = 7
+    int32_t  variaInt32ArrayConstOneElem[1];
+    int32_t  variaInt32ArrayConstLen[3];
+    int32_t* variaInt32PointerConstOneElem;
+    int32_t* variaInt32PointerMaxOneElem;
+    int32_t* variaInt32PointerConstLen;
+    int32_t* variaInt32PointerVariaLen;
+    int32_t* variaInt32PointerCustomLen;
+    int32_t  variaInt32PointerCustomLenElemCount;
+
+    // Struct.ConstValue.TK_Dimension 2A + 5P = 7
+    const TK_Dimension  constStructArrayConstOneElem[1];
+    const TK_Dimension  constStructArrayConstLen[3];
+    const TK_Dimension* constStructPointerConstOneElem;
+    const TK_Dimension* constStructPointerMaxOneElem;
+    const TK_Dimension* constStructPointerConstLen;
+    const TK_Dimension* constStructPointerVariaLen;
+    const TK_Dimension* constStructPointerCustomLen;
+    int32_t             constStructPointerCustomLenElemCount;
+
+    // Struct.VariaValue 2A + 5P = 7
+    TK_Dimension  variaStructArrayConstOneElem[1];
+    TK_Dimension  variaStructArrayConstLen[3];
+    TK_Dimension* variaStructPointerConstOneElem;
+    TK_Dimension* variaStructPointerMaxOneElem;
+    TK_Dimension* variaStructPointerConstLen;
+    TK_Dimension* variaStructPointerVariaLen;
+    TK_Dimension* variaStructPointerCustomLen;
+    int32_t       variaStructPointerCustomLenElemCount;
+
+    // String.ConstValue 1A + 3P = 4
+    const char  constCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    const char* constCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    const char* constCharPointerVariaLen;   // null
+    const char* constCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constCharPointerCustomLenElemCount;
+
+    // String.VariaValue 1A + 3P = 4
+    char  variaCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaCharPointerCustomLenElemCount;
+
+    // StringOnly.ConstValue 1A + 3P = 4
+    const char  constStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    const char* constStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    const char* constStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    const char* constStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constStringOnlyPointerCustomLenElemCount;
+
+    // StringOnly.VariaValue 1A + 3P = 4
+    char  variaStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaStringOnlyPointerCustomLenElemCount;
+
+} TK_FieldImmutable;
+
+MYAPI TK_FieldImmutable * MYAPIENTRY createTKFieldImmutable();
+MYAPI void MYAPIENTRY destroyTKFieldImmutable(TK_FieldImmutable * s);
+
+//
+// TK_StructImmutable
+//
+
+typedef struct {
+    // Primitive.ConstValue.intxx 2A + 5P = 7
+    const int  constIntxxArrayConstOneElem[1];
+    const int  constIntxxArrayConstLen[3];         // [3]
+    const int* constIntxxPointerConstOneElem;      //
+    const int* constIntxxPointerMaxOneElem;        //
+    const int* constIntxxPointerConstLen;          // [3]
+    const int* constIntxxPointerVariaLen;
+    const int* constIntxxPointerCustomLen;
+    int        constIntxxPointerCustomLenElemCount;
+
+    // Primitive.VariaValue.intxx 2A + 5P = 7
+    int  variaIntxxArrayConstOneElem[1];
+    int  variaIntxxArrayConstLen[3];         // [3]
+    int* variaIntxxPointerConstOneElem;      //
+    int* variaIntxxPointerMaxOneElem;        //
+    int* variaIntxxPointerConstLen;          // [3]
+    int* variaIntxxPointerVariaLen;
+    int* variaIntxxPointerCustomLen;
+    int  variaIntxxPointerCustomLenElemCount;
+
+    const int32_t  constInt32Element;
+    int32_t        variaInt32Element;
+
+    // Primitive.ConstValue 2A + 5P = 7
+    const int32_t  constInt32ArrayConstOneElem[1];
+    const int32_t  constInt32ArrayConstLen[3];
+    const int32_t* constInt32PointerConstOneElem;
+    const int32_t* constInt32PointerMaxOneElem;
+    const int32_t* constInt32PointerConstLen;
+    const int32_t* constInt32PointerVariaLen;
+    const int32_t* constInt32PointerCustomLen;
+    int32_t        constInt32PointerCustomLenElemCount;
+
+    // Primitive.VariaValue 2A + 5P = 7
+    int32_t  variaInt32ArrayConstOneElem[1];
+    int32_t  variaInt32ArrayConstLen[3];
+    int32_t* variaInt32PointerConstOneElem;
+    int32_t* variaInt32PointerMaxOneElem;
+    int32_t* variaInt32PointerConstLen;
+    int32_t* variaInt32PointerVariaLen;
+    int32_t* variaInt32PointerCustomLen;
+    int32_t  variaInt32PointerCustomLenElemCount;
+
+    // Struct.ConstValue 2A + 5P = 7
+    const TK_Dimension  constStructArrayConstOneElem[1];
+    const TK_Dimension  constStructArrayConstLen[3];
+    const TK_Dimension* constStructPointerConstOneElem;
+    const TK_Dimension* constStructPointerMaxOneElem;
+    const TK_Dimension* constStructPointerConstLen;
+    const TK_Dimension* constStructPointerVariaLen;
+    const TK_Dimension* constStructPointerCustomLen;
+    int32_t             constStructPointerCustomLenElemCount;
+
+    // Struct.VariaValue 2A + 5P = 7
+    TK_Dimension  variaStructArrayConstOneElem[1];
+    TK_Dimension  variaStructArrayConstLen[3];
+    TK_Dimension* variaStructPointerConstOneElem;
+    TK_Dimension* variaStructPointerMaxOneElem;
+    TK_Dimension* variaStructPointerConstLen;
+    TK_Dimension* variaStructPointerVariaLen;
+    TK_Dimension* variaStructPointerCustomLen;
+    int32_t       variaStructPointerCustomLenElemCount;
+
+    // String.ConstValue 1A + 3P = 4
+    const char  constCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    const char* constCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    const char* constCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    const char* constCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constCharPointerCustomLenElemCount;
+
+    // String.VariaValue 1A + 3P = 4
+    char  variaCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaCharPointerCustomLenElemCount;
+
+    // StringOnly.ConstValue 1A + 3P = 4
+    const char  constStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    const char* constStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    const char* constStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    const char* constStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constStringOnlyPointerCustomLenElemCount;
+
+    // StringOnly.VariaValue 1A + 3P = 4
+    char  variaStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaStringOnlyPointerCustomLenElemCount;
+
+} TK_StructImmutable;
+
+MYAPI TK_StructImmutable * MYAPIENTRY createTKStructImmutable();
+MYAPI void MYAPIENTRY destroyTKStructImmutable(TK_StructImmutable * s);
+
+//
+// TK_Field
+//
+
+typedef struct {
+    // Primitive.ConstValue.intxx 2A + 5P = 7
+    const int  constIntxxArrayConstOneElem[1];
+    const int  constIntxxArrayConstLen[3];         // [3]
+    const int* constIntxxPointerConstOneElem;      //
+    const int* constIntxxPointerMaxOneElem;        //
+    const int* constIntxxPointerConstLen;          // [3]
+    const int* constIntxxPointerVariaLen;
+    const int* constIntxxPointerCustomLen;
+    int        constIntxxPointerCustomLenElemCount;
+
+    // Primitive.VariaValue.intxx 2A + 5P = 7
+    int  variaIntxxArrayConstOneElem[1];
+    int  variaIntxxArrayConstLen[3];         // [3]
+    int* variaIntxxPointerConstOneElem;      //
+    int* variaIntxxPointerMaxOneElem;        //
+    int* variaIntxxPointerConstLen;          // [3]
+    int* variaIntxxPointerVariaLen;
+    int* variaIntxxPointerCustomLen;
+    int  variaIntxxPointerCustomLenElemCount;
+
+    const int32_t  constInt32Element;
+    int32_t        variaInt32Element;
+
+    // Primitive.ConstValue 2A + 5P = 7
+    const int32_t  constInt32ArrayConstOneElem[1];
+    const int32_t  constInt32ArrayConstLen[3];
+    const int32_t* constInt32PointerConstOneElem;
+    const int32_t* constInt32PointerMaxOneElem;
+    const int32_t* constInt32PointerConstLen;
+    const int32_t* constInt32PointerVariaLen;
+    const int32_t* constInt32PointerCustomLen;
+    int32_t        constInt32PointerCustomLenElemCount;
+
+    // Primitive.VariaValue 2A + 5P = 7
+    int32_t  variaInt32ArrayConstOneElem[1];
+    int32_t  variaInt32ArrayConstLen[3];
+    int32_t* variaInt32PointerConstOneElem;
+    int32_t* variaInt32PointerMaxOneElem;
+    int32_t* variaInt32PointerConstLen;
+    int32_t* variaInt32PointerVariaLen;
+    int32_t* variaInt32PointerCustomLen;
+    int32_t  variaInt32PointerCustomLenElemCount;
+
+    // Struct.ConstValue 2A + 5P = 7
+    const TK_Dimension  constStructArrayConstOneElem[1];
+    const TK_Dimension  constStructArrayConstLen[3];
+    const TK_Dimension* constStructPointerConstOneElem;
+    const TK_Dimension* constStructPointerMaxOneElem;
+    const TK_Dimension* constStructPointerConstLen;
+    const TK_Dimension* constStructPointerVariaLen;
+    const TK_Dimension* constStructPointerCustomLen;
+    int32_t             constStructPointerCustomLenElemCount;
+
+    // Struct.VariaValue 2A + 5P = 7
+    TK_Dimension  variaStructArrayConstOneElem[1];
+    TK_Dimension  variaStructArrayConstLen[3];
+    TK_Dimension* variaStructPointerConstOneElem;
+    TK_Dimension* variaStructPointerMaxOneElem;
+    TK_Dimension* variaStructPointerConstLen;
+    TK_Dimension* variaStructPointerVariaLen;
+    TK_Dimension* variaStructPointerCustomLen;
+    int32_t       variaStructPointerCustomLenElemCount;
+
+    // String.ConstValue 1A + 3P = 4
+    const char  constCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    const char* constCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    const char* constCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    const char* constCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constCharPointerCustomLenElemCount;
+
+    // String.VariaValue 1A + 3P = 4
+    char  variaCharArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaCharPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaCharPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaCharPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaCharPointerCustomLenElemCount;
+
+    // StringOnly.ConstValue 1A + 3P = 4
+    const char  constStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    const char* constStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    const char* constStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    const char* constStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int         constStringOnlyPointerCustomLenElemCount;
+
+    // StringOnly.VariaValue 1A + 3P = 4
+    char  variaStringOnlyArrayConstLen[13]; /* 'Hello Array1' len=12+1 */
+    char* variaStringOnlyPointerConstLen;   /* 'Hello CString1' len=14+1 */
+    char* variaStringOnlyPointerVariaLen;   /* 'Hello CString2' len=14+1 */
+    char* variaStringOnlyPointerCustomLen;  /* 'Hello CString3' len=14+1 */
+    int   variaStringOnlyPointerCustomLenElemCount;
+
+} TK_Field;
+
+MYAPI TK_Field * MYAPIENTRY createTKField();
+MYAPI void MYAPIENTRY destroyTKField(TK_Field * s);
+
+//
+//
+//
+
+typedef struct {
     float mat4x4[4][4];
 
-    TK_Dimension structArrayFixedLen[3];
-    TK_Dimension structArrayOneElem[1];
-    
-    TK_Dimension * structPointerCustomLen;
-    int32_t structPointerCustomLenVal;
-    TK_Dimension * structPointerOneElem;
-
     TK_Context ctx;
 
-    char modelNameArrayFixedLen[12]; /* 'Hello Array' len=11+1 */
-    char * modelNamePointerCString;    /* 'Hello CString' len=13+1 */
-    char * modelNamePointerCustomLen;  /* 'Hello Pointer' len=13+1 */
-    int modelNamePointerCustomLenVal;  /* 13+1 */
+} TK_ModelMixed;
 
-} TK_ModelMutable;
+MYAPI TK_ModelMixed* MYAPIENTRY createTKModelMixed();
+MYAPI void MYAPIENTRY destroyTKModelMixed(TK_ModelMixed* s);
 
-MYAPI TK_ModelConst * MYAPIENTRY createModelConst();
-MYAPI void MYAPIENTRY destroyModelConst(TK_ModelConst * s);
-MYAPI TK_ModelMutable * MYAPIENTRY createModelMutable();
-MYAPI void MYAPIENTRY destroyModelMutable(TK_ModelMutable * s);

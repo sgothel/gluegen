@@ -165,6 +165,7 @@
         <javac destdir="${build_t.java}" 
                fork="yes"
                includeAntRuntime="false"
+               nativeheaderdir="${build_t.gen}/native/"
                memoryMaximumSize="${javac.memorymax}"
                encoding="UTF-8"
                source="${target.sourcelevel}" 
@@ -522,9 +523,9 @@ chmod 644 ${results}/* \${line.separator}
 
       -->
 
-    <target name="java.generate" depends="junit.test1.java.generate"/>
+    <target name="java.generate" depends="junit.test1.java.generate, junit.test2.java.generate"/>
 
-    <target name="native.build" depends="c.configure, junit.test1.c.build" unless="build.javaonly">
+    <target name="native.build" depends="c.configure, junit.test1.c.build, junit.test2.c.build" unless="build.javaonly">
       <antcall target="gluegen.cpptasks.striplibs" inheritRefs="true">
           <param name="libdir" value="${build_t.lib}"/>
       </antcall>
@@ -562,8 +563,8 @@ chmod 644 ${results}/* \${line.separator}
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  dumpCPP="false"
-                 debug="false"
-                 logLevel="WARNING">
+                 debug="true"
+                 logLevel="INFO">
             <classpath refid="gluegen.classpath" />
         </gluegen>
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
@@ -588,7 +589,7 @@ chmod 644 ${results}/* \${line.separator}
                  emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter"
                  dumpCPP="false"
                  debug="false"
-                 logLevel="INFO">
+                 logLevel="WARNING">
             <classpath refid="gluegen.classpath" />
         </gluegen>
     </target>
@@ -656,6 +657,64 @@ chmod 644 ${results}/* \${line.separator}
         junit.test2
 
       -->
+
+    <target name="junit.test2.java.generate">
+        <echo message=" - - - junit.test2.java.generate" />
+
+        <dirset id="stub.includes.fileset.test" dir=".">
+            <include name="${test.junit.generation.dir}/**"/>
+            <include name="${stub.includes.dir}/gluegen" />
+            <include name="${stub.includes.dir}/macosx" />
+            <include name="${stub.includes.dir}/unix" />
+            <include name="${stub.includes.dir}/windows" />
+        </dirset>
+
+        <gluegen src="${test.junit.generation.dir}/test2.h"
+                 outputRootDir="${build_t.gen}"
+                 config="${test.junit.generation.dir}/test2.cfg"
+                 literalInclude="${test.junit.generation.dir}"
+                 includeRefid="stub.includes.fileset.test"
+                 emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter"
+                 dumpCPP="false"
+                 debug="false"
+                 logLevel="WARNING">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+    </target>
+
+    <target name="junit.test2.c.build">
+        <!-- this is the test2 implementation -->
+        <patternset id="junit.test2.implc.src.files">
+          <include name="src/junit/${test.junit.generation.rel}/test2.c"/>
+        </patternset>
+
+        <!-- Windows hacks ro make a proper DLL -->
+        <linker id="linker.test2.dll.cfg.id" extends="${linker.cfg.id}">
+        </linker>
+
+        <c.build c.compiler.src.files="junit.test2.implc.src.files"
+                 output.lib.name="test2"
+                 compiler.cfg.id="${compiler.cfg.id}"
+                 linker.cfg.id="linker.test2.dll.cfg.id"/>
+
+        <!-- this is a dynamic lookup binding to the test1 implementation -->
+        <linker id="linker.test2.runtime.cfg.id" extends="${linker.cfg.id}">
+        </linker>
+
+        <patternset id="junit.test2.jnic.src.files">
+          <include name="${build_t.gen.rootrel}/native/BindingtestT2Impl_JNI.c"/>
+          <!-- include name="${build_t.gen.rootrel}/native/TK_Surface_JNI.c"/ -->
+          <!-- include name="${build_t.gen.rootrel}/native/TK_ModelConst_JNI.c"/ -->
+          <!-- include name="${build_t.gen.rootrel}/native/TK_ModelMutable_JNI.c"/ -->
+        </patternset>
+
+        <c.build c.compiler.src.files="junit.test2.jnic.src.files"
+                 output.lib.name="Bindingtest2"
+                 compiler.cfg.id="${compiler.cfg.id}"
+                 linker.cfg.id="linker.test1.runtime.cfg.id"/>
+    </target>
+
 
     <!-- updates / create the test results zip file -->
     <target name="test-zip-archive" depends="init">

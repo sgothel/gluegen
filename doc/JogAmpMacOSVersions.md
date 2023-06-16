@@ -1,4 +1,10 @@
-# MacOS Versions Related to JogAmp
+<style>
+table, th, td {
+   border: 1px solid black;
+}
+</style>
+
+# JogAmp's MacOS Version Support
 
 References
 
