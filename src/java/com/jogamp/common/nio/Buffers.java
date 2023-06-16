@@ -2068,7 +2068,6 @@ public class Buffers {
      * @return newly created direct {@link ByteBuffer} holding the copied bytes
      */
     public static ByteBuffer copyNativeToDirectByteBuffer(final long source_address, final long len) {
-        final Method id;
         if( Integer.MAX_VALUE < len ) {
             throw new IllegalArgumentException("length "+len+" > MAX_INT");
         }
