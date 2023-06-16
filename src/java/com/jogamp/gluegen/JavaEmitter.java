@@ -1700,6 +1700,8 @@ public class JavaEmitter implements GlueEmitter {
               emitSetElemCount(unit, setElemCountLengthFunc, "0", !useGetCStringLength, capitalFieldName, structCType, "    ");
               unit.emitln("    return this;");
               unit.emitln("  }");
+              unit.emitln("  @SuppressWarnings(\"unused\")");
+              unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
               unit.emitln();
           }
       }
@@ -1734,8 +1736,6 @@ public class JavaEmitter implements GlueEmitter {
                       emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
                       unit.emitln("    return this;");
                       unit.emitln("  }");
-                      unit.emitln("  @SuppressWarnings(\"unused\")");
-                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                   } else {
                       unit.emitln(" {");
                       unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -1765,8 +1765,6 @@ public class JavaEmitter implements GlueEmitter {
                           unit.emitln("    }");
                           unit.emitln("    return this;");
                           unit.emitln("  }");
-                          unit.emitln("  @SuppressWarnings(\"unused\")");
-                          unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                       }
                   }
               } else { // array && !isConstValue
@@ -1784,7 +1782,6 @@ public class JavaEmitter implements GlueEmitter {
               unit.emitln();
           } else {
               // Setter Primitive n Pointer + Array
-              boolean addedElementBufferCache = false;
               boolean doneString = false;
 
               if( isString && isByteBuffer && isPointer ) { // isConst is OK
@@ -1807,13 +1804,8 @@ public class JavaEmitter implements GlueEmitter {
                   }
                   unit.emitln("    return this;");
                   unit.emitln("  }");
-                  if( !constElemCount ) {
-                      unit.emitln("  @SuppressWarnings(\"unused\")");
-                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
-                      addedElementBufferCache = true;
-                      doneString = true;
-                  }
                   unit.emitln();
+                  doneString = true;
               }
               if( doneString && isStringOnly ) {
                   generateSetterAPIDoc(unit, "SKIP setter for String alternative (ByteBuffer)", fieldType, fieldName, constElemCount, elemCountExpr);
@@ -1835,10 +1827,6 @@ public class JavaEmitter implements GlueEmitter {
                       emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "    ");
                       unit.emitln("    return this;");
                       unit.emitln("  }");
-                      if( !addedElementBufferCache ) {
-                          unit.emitln("  @SuppressWarnings(\"unused\")");
-                          unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
-                      }
                   } // else SKIP setter for constValue Array
               } else if( constElemCount || !isPointer ) {
                   generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
@@ -1884,10 +1872,6 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    }");
                   unit.emitln("    return this;");
                   unit.emitln("  }");
-                  if( !addedElementBufferCache ) {
-                      unit.emitln("  @SuppressWarnings(\"unused\")");
-                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
-                  }
               }
               unit.emitln();
           }
@@ -1907,8 +1891,6 @@ public class JavaEmitter implements GlueEmitter {
                       emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
                       unit.emitln("    return this;");
                       unit.emitln("  }");
-                      unit.emitln("  @SuppressWarnings(\"unused\")");
-                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                   } else {
                       unit.emitln(" {");
                       unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -1930,8 +1912,6 @@ public class JavaEmitter implements GlueEmitter {
                           unit.emitln("    }");
                           unit.emitln("    return this;");
                           unit.emitln("  }");
-                          unit.emitln("  @SuppressWarnings(\"unused\")");
-                          unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                       }
                   }
               } else if( !isConstValue ) { // array && !isConstValue
@@ -1961,8 +1941,6 @@ public class JavaEmitter implements GlueEmitter {
                       emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "    ");
                       unit.emitln("    return this;");
                       unit.emitln("  }");
-                      unit.emitln("  @SuppressWarnings(\"unused\")");
-                      unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
                   } // else SKIP setter for constValue Array
               } else if( constElemCount || !isPointer ) {
                   generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]", SetArrayArgs, constElemCount, elemCountExpr);
@@ -2002,8 +1980,6 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    }");
                   unit.emitln("    return this;");
                   unit.emitln("  }");
-                  unit.emitln("  @SuppressWarnings(\"unused\")");
-                  unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
               }
               unit.emitln();
               if( !isConstValue ) {

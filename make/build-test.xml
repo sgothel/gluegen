@@ -563,8 +563,8 @@ chmod 644 ${results}/* \${line.separator}
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.jogamp.gluegen.JavaEmitter"
                  dumpCPP="false"
-                 debug="true"
-                 logLevel="INFO">
+                 debug="false"
+                 logLevel="WARNING">
             <classpath refid="gluegen.classpath" />
         </gluegen>
         <antcall target="java.generate.copy2temp" inheritRefs="true" />
