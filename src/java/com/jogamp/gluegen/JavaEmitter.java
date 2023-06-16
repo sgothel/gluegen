@@ -911,7 +911,7 @@ public class JavaEmitter implements GlueEmitter {
     for (final String doc : javadoc) {
       javaUnit.emitln(doc);
     }
-    javaUnit.emit("public final class " + containingJTypeName + " ");
+    javaUnit.emit("public class " + containingJTypeName + " ");
     boolean firstIteration = true;
     final List<String> userSpecifiedInterfaces = cfg.implementedInterfaces(containingJTypeName);
     for (final String userInterface : userSpecifiedInterfaces) {
@@ -1202,15 +1202,15 @@ public class JavaEmitter implements GlueEmitter {
   //
 
   private void generateIsNullSignature(final CodeUnit unit, final Type origFieldType,
-                                       final boolean staticMethod, final boolean abstractMethod,
-                                       final String fieldName, final String capitalizedFieldName,
-                                       final boolean constElemCount, final String elemCountExpr) {
+                                       final boolean abstractMethod, final String fieldName,
+                                       final String capitalizedFieldName, final boolean constElemCount,
+                                       final String elemCountExpr) {
       unit.emit("  /** Is 'null' for native field <code>"+fieldName+"</code>: "+origFieldType.getDebugString());
       if( null != elemCountExpr ) {
           unit.emit(", with "+(constElemCount?"fixed":"initial")+" array length of <code>"+elemCountExpr+"</code>");
       }
       unit.emitln(" */");
-      unit.emit("  public final " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + "boolean is" + capitalizedFieldName + "Null()");
+      unit.emit("  public " + (abstractMethod ? "abstract " : "final ") + "boolean is" + capitalizedFieldName + "Null()");
   }
   private void generateReleaseSignature(final CodeUnit unit, final Type origFieldType,
                                         final boolean abstractMethod,
@@ -1221,7 +1221,7 @@ public class JavaEmitter implements GlueEmitter {
           unit.emit(", with "+(constElemCount?"fixed":"initial")+" array length of <code>"+elemCountExpr+"</code>");
       }
       unit.emitln(" */");
-      unit.emit("  public final " + (abstractMethod ? "abstract " : "") + returnTypeName + " release" + capitalizedFieldName + "()");
+      unit.emit("  public " + (abstractMethod ? "abstract " : "final ") + returnTypeName + " release" + capitalizedFieldName + "()");
   }
   private void generateGetterSignature(final CodeUnit unit, final Type origFieldType,
                                        final boolean staticMethod, final boolean abstractMethod,
@@ -1232,7 +1232,7 @@ public class JavaEmitter implements GlueEmitter {
           unit.emit(", with "+(constElemCount?"fixed":"initial")+" array length of <code>"+elemCountExpr+"</code>");
       }
       unit.emitln(" */");
-      unit.emit("  public final " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
+      unit.emit("  public " + (staticMethod ? "static " : "final ") + (abstractMethod ? "abstract " : "") + returnTypeName + " get" + capitalizedFieldName + "(");
       if( null != customArgs ) {
           unit.emit(customArgs);
       }
@@ -1253,7 +1253,7 @@ public class JavaEmitter implements GlueEmitter {
                                        final String returnTypeName, final String fieldName, final String capitalizedFieldName,
                                        final String customArgsPre, final String paramTypeName, final String customArgsPost, final boolean constElemCount, final String elemCountExpr) {
       generateSetterAPIDoc(unit, "Setter for", origFieldType, fieldName, constElemCount, elemCountExpr);
-      unit.emit("  "+accessMod.getJavaName()+" final " + (staticMethod ? "static " : "") + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(");
+      unit.emit("  "+accessMod.getJavaName() + " " + (staticMethod ? "static " : "final ") + (abstractMethod ? "abstract " : "") + returnTypeName + " set" + capitalizedFieldName + "(");
       if( null != customArgsPre ) {
           unit.emit(customArgsPre+", ");
       }
@@ -1687,7 +1687,7 @@ public class JavaEmitter implements GlueEmitter {
 
       // Null query for pointer
       if( isPointer ) {
-          generateIsNullSignature(unit, fieldType, false, false, fieldName, capitalFieldName, constElemCount, elemCountExpr);
+          generateIsNullSignature(unit, fieldType, false, fieldName, capitalFieldName, constElemCount, elemCountExpr);
           unit.emitln(" {");
           unit.emitln("    return 0 == PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], 1).get(0);");
           unit.emitln("  }");
