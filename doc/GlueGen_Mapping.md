@@ -297,10 +297,6 @@ A direct C code `char` array or indirect array via pointer can be interpreted as
   See [ReturnedArrayLength Setting](#returnedarraylength-symbol-expression) above.
 
 * To release native memory with *java ownership*, i.e. a native ByteBuffer, `releaseVal()` can be used.
-
-* To shrink a *Pointer* & *VariaElemCount* pointer-array elemCount size with *java ownership* , 
-  the memory must be cleared with `releaseVal()` first. This is due to `setVal(src, srcPos, destPos, len)`
-  reusing the existing memory in case `destPos + len < elemCount`.
     
 ### Struct Java Signature Table
 
