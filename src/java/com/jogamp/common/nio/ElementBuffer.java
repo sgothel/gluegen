@@ -110,27 +110,36 @@ public class ElementBuffer extends AbstractBuffer<ElementBuffer> {
         if (0 > offset || offset + length > capacity) {
             throw new IndexOutOfBoundsException("idx "+offset+" + elementCount "+length+" not within [0.."+capacity+"), "+this);
         }
-        final ByteBuffer src = (ByteBuffer)buffer;
+        final ByteBuffer src = getByteBuffer();
         final int oldPos = src.position();
         final int oldLimit = src.limit();
-        src.position(elementSize*offset);
-        src.limit(elementSize * (offset + length));
+        src.position( elementSize * offset ).limit(elementSize * (offset + length));
         final ByteBuffer ref = src.slice().order(src.order()); // slice and duplicate may change byte order
-        src.position(oldPos);
-        src.limit(oldLimit);
+        src.position( oldPos ).limit( oldLimit );
         return ref;
     }
 
-    /** Absolute get method. Copy the element-bytes at the given index, storing them into `destElemBytes`. */
-    public final ByteBuffer get(final int idx, final ByteBuffer destElemBytes) {
-        if (0 > idx || idx >= capacity) {
-            throw new IndexOutOfBoundsException("idx "+idx+" not within [0.."+capacity+"), "+this);
+    /** Absolute get method. Get element-bytes for `elementCount` elements from this buffer at `srcElemPos` into `destElemBytes` at the given element-index `destElemPos` */
+    public final ByteBuffer get(final int srcElemPos, final ByteBuffer destElemBytes, final int destElemPos, final int elementCount) {
+        if (0 > srcElemPos || srcElemPos + elementCount > capacity || 0 > elementCount ||
+            0 > destElemPos || elementSize * ( destElemPos + elementCount ) > destElemBytes.limit() )
+        {
+            throw new IndexOutOfBoundsException("destElemPos "+destElemPos+", srcElemPos "+srcElemPos+", elementCount "+elementCount+
+                                                ", srcCapacity "+capacity+", destLimit "+(destElemBytes.limit()/elementSize)+", "+this);
         }
-        final ByteBuffer bBuffer = (ByteBuffer)buffer;
-        for(int i=0; i<elementSize; ++i) {
-            destElemBytes.put(i, bBuffer.get(elementSize*idx+i));
-        }
+        final ByteBuffer srcElemBytes = getByteBuffer();
+        final int oldSrcLim = srcElemBytes.limit();
+        srcElemBytes.position( srcElemPos * elementSize ).limit( ( srcElemPos + elementCount ) * elementSize ); // remaining = elementCount * elementSize
+        final int oldDestPos = destElemBytes.position();
+        destElemBytes.position( destElemPos * elementSize );
+        destElemBytes.put(srcElemBytes).position(oldDestPos);
+        srcElemBytes.limit(oldSrcLim).rewind();
         return destElemBytes;
+    }
+
+    /** Absolute get method. Copy the element-bytes from this buffer at the given element-index `srcElemPos`, storing them into `destElemBytes`. */
+    public final ByteBuffer get(final int srcElemPos, final ByteBuffer destElemBytes) {
+        return get(srcElemPos, destElemBytes, 0, 1);
     }
     /** Relative get method. Copy the element-bytes at the current position and increment the position by one, storing the element-bytes into `destElemBytes`. */
     public final ByteBuffer get(final ByteBuffer destElemBytes) {
@@ -156,16 +165,26 @@ public class ElementBuffer extends AbstractBuffer<ElementBuffer> {
         return this;
     }
 
-    /** Absolute put method. Put the element-bytes at the given element-index */
-    public final ElementBuffer put(final int idx, final ByteBuffer srcElemBytes) {
-        if (0 > idx || idx >= capacity) {
-            throw new IndexOutOfBoundsException("idx "+idx+" not within [0.."+capacity+"), "+this);
+    /** Absolute put method. Put element-bytes for `elementCount` elements from `srcElemBytes` at `srcElemPos` into this buffer at the given element-index `destElemPos` */
+    public final ElementBuffer put(final ByteBuffer srcElemBytes, final int srcElemPos, final int destElemPos, final int elementCount) {
+        if (0 > destElemPos || destElemPos + elementCount > capacity || 0 > elementCount ||
+            0 > srcElemPos || elementSize * ( srcElemPos + elementCount ) > srcElemBytes.limit() )
+        {
+            throw new IndexOutOfBoundsException("srcElemPos "+srcElemPos+", destElemPos "+destElemPos+", elementCount "+elementCount+
+                                                ", destCapacity "+capacity+", srcLimit "+(srcElemBytes.limit()/elementSize)+", "+this);
         }
-        final ByteBuffer bBuffer = (ByteBuffer)buffer;
-        for(int i=0; i<elementSize; ++i) {
-            bBuffer.put(elementSize*idx+i, srcElemBytes.get(i));
-        }
+        final ByteBuffer destElemBytes = getByteBuffer();
+        final int oldSrcPos = srcElemBytes.position();
+        final int oldSrcLim = srcElemBytes.limit();
+        srcElemBytes.position( srcElemPos * elementSize ).limit( ( srcElemPos + elementCount ) * elementSize ); // remaining = elementCount * elementSize
+        destElemBytes.position( elementSize * destElemPos );
+        destElemBytes.put(srcElemBytes).rewind();
+        srcElemBytes.limit(oldSrcLim).position(oldSrcPos);
         return this;
+    }
+    /** Absolute put method. Put element-bytes from `srcElemBytes` into the given element-index `destElemPos` */
+    public final ElementBuffer put(final int destElemPos, final ByteBuffer srcElemBytes) {
+        return put(srcElemBytes, 0, destElemPos, 1);
     }
     /** Relative put method. Put the element-bytes at the current position and increment the position by one. */
     public final ElementBuffer put(final ByteBuffer srcElemBytes) {
