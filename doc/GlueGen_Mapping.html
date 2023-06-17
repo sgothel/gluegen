@@ -1,407 +1,22 @@
-<style>
-div#header, header
-    {
-
-    border-bottom: 1px solid #aaa;
-    margin-bottom: 0.5em;
-    }
-
-.title
-    {
-    text-align: center;
-    }
-
-.author, .date
-    {
-    text-align: center;
-    }
-
-div#TOC, nav#TOC
-    {
-
-    border-bottom: 1px solid #aaa;
-    margin-bottom: 0.5em;
-    }
-
-nav#TOC {
-  margin-bottom: var(--line-height);
-
-  padding-bottom: 0.5rem;
-}
-
-nav#TOC input {
-  display: none;
-}
-
-nav#TOC label {
-  color: var(--color-link);
-  cursor: pointer;
-}
-
-nav#TOC > ul {
-  display: none;
-}
-
-nav#TOC > input:checked + ul {
-  display: block;
-}
-
-@media print
-    {
-    div#TOC, nav#TOC
-        {
-
-        display: none;
-        }
-    }
-
-div.content
-    {
-        color: #111111;
-        font-size: 14px;
-        line-height: 1.6;
-    }
-
-div#cgit a
-    {
-        color: #1212a0;
-    }
-
-div#cgit a.sourceLine
-    {
-        color: #111111;
-    }
-
-h1, h2, h3, h4, h5, h6
-{
-    font-family: "Helvetica Neue", Helvetica, "Liberation Sans", Calibri, Arial, sans-serif;
-
-    page-break-after: avoid;
-
-    margin: 20px 0 10px;
-    padding: 0;
-}
-
-h2 {
-    border-bottom: 1px solid #ccc;
-}
-
-div div
-    {
-
-    }
-
-section section
-    {
-    margin-left: 2em;
-    }
-
-p {}
-
-blockquote
-    {
-    font-style: italic;
-    }
-
-li
-    {
-    }
-
-li > p
-    {
-    margin-top: 1em;
-    }
-
-ul
-    {
-    }
-
-ul li
-    {
-    }
-
-ol
-    {
-    }
-
-ol li
-    {
-    }
-
-hr {}
-
-sub
-    {
-    }
-
-sup
-    {
-    }
-
-em
-    {
-    }
-
-em > em
-    {
-    font-style: normal;
-    }
-
-strong
-    {
-    }
-
-a
-    {
-
-    text-decoration: none;
-    }
-
-@media screen
-    {
-    a:hover
-        {
-
-        text-decoration: underline;
-        }
-    }
-
-@media print
-    {
-    a {
-
-        color: black;
-        background: transparent;
-        }
-
-    a[href^="http://"]:after, a[href^="https://"]:after
-        {
-
-        content: " (" attr(href) ") ";
-        font-size: 90%;
-        }
-    }
-
-img
-    {
-
-    vertical-align: middle;
-    }
-
-div.figure
-    {
-
-    margin-left: auto;
-    margin-right: auto;
-    text-align: center;
-    font-style: italic;
-    }
-
-p.caption
-    {
-
-    }
-
-pre, code
-    {
-    background-color: #f8f8f8;
-
-    white-space: pre-wrap;
-    white-space: -moz-pre-wrap !important;
-    white-space: -pre-wrap;
-    white-space: -o-pre-wrap;
-    word-wrap: break-word;
-
-    }
-
-pre
-    {
-
-    padding: 0.5em;
-    border-radius: 5px;
-
-    background-color: #f8f8f8;
-    border: 1px solid #ccc;
-    font-size: 13px;
-    line-height: 19px;
-    overflow: auto;
-    padding: 6px 10px;
-
-    margin-left: 0.5em;
-    margin-right: 0.5em;
-    }
-
-@media screen
-    {
-    pre
-        {
-
-        white-space: pre;
-        overflow: auto;
-
-        border: 1px dotted #777;
-        }
-    }
-
-code
-    {
-    }
-
-p > code, li > code
-    {
-
-    padding-left: 2px;
-    padding-right: 2px;
-    }
-
-li > p code
-    {
-
-    padding: 2px;
-    }
-
-span.math
-    {
-
-    }
-
-div.math
-    {
-    }
-
-span.LaTeX
-    {
-    }
-
-eq
-    {
-    }
-
-table
-    {
-    border-collapse: collapse;
-    border-spacing: 0;
-
-    margin-left: auto;
-    margin-right: auto;
-    }
-
-thead
-    {
-    border-bottom: 1pt solid #000;
-    background-color: #eee;
-    }
-
-tr.header
-    {
-    }
-
-tbody
-    {
-    }
-
-tr {
-    }
-tr.odd:hover, tr.even:hover
-    {
-    background-color: #eee;
-    }
-
-tr.odd {}
-tr.even {}
-
-td, th
-    {
-    vertical-align: top;
-    vertical-align: baseline;
-    padding-left: 0.5em;
-    padding-right: 0.5em;
-    padding-top: 0.2em;
-    padding-bottom: 0.2em;
-    }
-th
-    {
-    font-weight: bold;
-    }
-
-tfoot
-    {
-    }
-
-caption
-    {
-    caption-side: top;
-    border: none;
-    font-size: 0.9em;
-    font-style: italic;
-    text-align: center;
-    margin-bottom: 0.3em;
-    padding-bottom: 0.2em;
-    }
-
-dl
-    {
-    border-top: 2pt solid black;
-    padding-top: 0.5em;
-    border-bottom: 2pt solid black;
-    }
-
-dt
-    {
-    font-weight: bold;
-    }
-
-dd+dt
-    {
-    border-top: 1pt solid black;
-    padding-top: 0.5em;
-    }
-
-dd
-    {
-    margin-bottom: 0.5em;
-    }
-
-dd+dd
-    {
-    border-top: 1px solid black;
-    }
-
-a.footnote, a.footnoteRef {
-    font-size: small;
-    vertical-align: text-top;
-}
-
-a[href^="#fnref"], a.reversefootnote
-    {
-    }
-
-@media print
-    {
-    a[href^="#fnref"], a.reversefootnote
-        {
-
-        display: none;
-        }
-    }
-
-div.footnotes
-    {
-    }
-
-div.footnotes li[id^="fn"]
-    {
-    }
-
-@media print
-    {
-    .noprint
-        {
-        display:none;
-        }
-    }
-</style>
-
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>GlueGen_Mapping.md</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="/usr/local/projects/Text_Processing/pandoc-buttondown-cgit/pandoc-data/css/cgit-buttondown.css" />
+</head>
+<body>
 <nav id="TOC" role="doc-toc">
     <strong>Contents</strong><label for="contents">⊕</label>
   <input type="checkbox" id="contents">
@@ -432,7 +47,6 @@ div.footnotes li[id^="fn"]
   </ul></li>
   </ul>
 </nav>
-
 <style>
 table, th, td {
    border: 1px solid black;
@@ -1151,7 +765,10 @@ getBuffer()</td>
 <tr class="odd">
 <td style="text-align: left;">[const]</td>
 <td style="text-align: left;">int32_t* val</td>
-<td style="text-align: left;">setVal(int v) <br> releaseVal()</td>
+<td style="text-align: left;">setVal(int v) [<a
+href="#signature-int32_t--maxoneelement-java-owned">1</a>][<a
+href="#signature-const-int32_t--maxoneelement-java-owned">2</a>] <br>
+releaseVal()</td>
 <td style="text-align: left;">int getVal() <br> boolean isValNull() <br>
 int getValElemCount()</td>
 <td style="text-align: left;"><strong>MaxOneElement</strong></td>
@@ -1228,7 +845,19 @@ static int getValElemCount()</td>
 <td style="text-align: left;">Const element count 3</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">[const]</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">int32_t* val</td>
+<td style="text-align: left;">setVal(boolean subset, int[] src, int
+srcPos, int destPos, int len) <br> releaseVal()</td>
+<td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
+srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br>
+int getValElemCount()</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">Java</td>
+<td style="text-align: left;">Starts w/ null elements</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">const</td>
 <td style="text-align: left;">int32_t* val</td>
 <td style="text-align: left;">setVal(int[] src, int srcPos, int destPos,
 int len) <br> releaseVal()</td>
@@ -1239,7 +868,7 @@ int getValElemCount()</td>
 <td style="text-align: left;">Java</td>
 <td style="text-align: left;">Starts w/ null elements</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">[const]</td>
 <td style="text-align: left;">int32_t* val</td>
 <td style="text-align: left;">setVal(int[] src, int srcPos, int destPos,
@@ -1252,7 +881,7 @@ getValCount()</strong></td>
 <td style="text-align: left;">Variable element count<br>using field
 <em>valCount</em>,<br>which has getter and setter</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">[const]</td>
 <td style="text-align: left;">char* name</td>
 <td style="text-align: left;">setName(String srcVal) <br>
@@ -1263,7 +892,7 @@ releaseVal()</td>
 <td style="text-align: left;">Java</td>
 <td style="text-align: left;">String only, w/ EOS</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td style="text-align: left;">[const]</td>
 <td style="text-align: left;">char* name</td>
 <td style="text-align: left;">setName(String srcVal) <br> setName(byte[]
@@ -1276,6 +905,62 @@ getName() <br> boolean isNameNull() <br> int getNameElemCount()</td>
 </tr>
 </tbody>
 </table>
+<h4 id="signature-int32_t--maxoneelement-java-owned">Signature
+<code>int32_t *</code> MaxOneElement, Java owned</h4>
+<pre><code>  /**
+   * Setter for native field &lt;code&gt;variaInt32PointerMaxOneElem&lt;/code&gt;, referencing an array with initial element count of &lt;code&gt;0&lt;/code&gt;. Maximum element count is &lt;code&gt;1&lt;/code&gt;.
+   * &lt;p&gt;
+   * NativeSig &lt;code&gt;(PointerType) &#39;int32_t *&#39; -&gt; (int32_t) * , size [fixed false, lnx64 8], const[false], pointer*1&lt;/code&gt;
+   * &lt;/p&gt;
+   */
+  public final TK_Field setVariaInt32PointerMaxOneElem(int src) { .. }</code></pre>
+<p>Will reuse memory if existing, otherwise allocating memory.</p>
+<h4 id="signature-const-int32_t--maxoneelement-java-owned">Signature
+<code>const int32_t *</code> MaxOneElement, Java owned</h4>
+<pre><code>  /**
+   * Setter for native field &lt;code&gt;constInt32PointerMaxOneElem&lt;/code&gt;, referencing an array with initial element count of &lt;code&gt;0&lt;/code&gt;. Maximum element count is &lt;code&gt;1&lt;/code&gt;.
+   * &lt;p&gt;
+   * NativeSig &lt;code&gt;(PointerType) &#39;int32_t *&#39; -&gt; (const int32_t) * , size [fixed false, lnx64 8], const[false], pointer*1&lt;/code&gt;
+   * &lt;/p&gt;
+   */
+  public final TK_Field setConstInt32PointerMaxOneElem(int src) { .. }
+  </code></pre>
+<p>Always replaces memory due to <code>const</code> value modifier.</p>
+<h4 id="signature-int32_t--constelemcount-3-natively-owned">Signature
+<code>int32_t *</code> ConstElemCount 3, Natively owned</h4>
+<pre><code>  /**
+   * Setter for native field &lt;code&gt;variaInt32PointerConstLen&lt;/code&gt;, referencing a natively owned array with fixed element count of &lt;code&gt;3&lt;/code&gt;.
+   * &lt;p&gt;
+   * NativeSig &lt;code&gt;(PointerType) &#39;int32_t *&#39; -&gt; (int32_t) * , size [fixed false, lnx64 8], const[false], pointer*1&lt;/code&gt;
+   * &lt;/p&gt;
+   * &lt;p&gt;
+   * Copies the given source elements into the respective field&#39;s existing memory.
+   * &lt;/p&gt;
+   * @param src the source array of elements
+   * @param srcPos starting element position within the source array with &#39;srcPos &gt;= 0` &amp;&amp;  `srcPos + length &lt;= src.length`, otherwise an {@link IndexOutOfBoundsException} is thrown
+   * @param destPos starting element position within the destination with &#39;destPos &gt;= 0` &amp;&amp; `destPos + length &lt;= elemCount`, otherwise an exception is thrown
+   * @param length the element count to be copied with &#39;length &gt;= 0` &amp;&amp;  `srcPos + length &lt;= src.length` &amp;&amp; `destPos + length &lt;= elemCount`, otherwise an {@link IndexOutOfBoundsException} is thrown
+   * @return this instance of chaining
+   */
+  public final TK_Field setVariaInt32PointerConstLen(int[] src, final int srcPos, final int destPos, final int length) { .. }</code></pre>
+<h4 id="signature-int32_t--freesize-java-owned">Signature
+<code>int32_t *</code> FreeSize, Java owned</h4>
+<pre><code>  /**
+   * Setter for native field &lt;code&gt;variaInt32PointerVariaLen&lt;/code&gt;, referencing an array with initial element count of &lt;code&gt;0&lt;/code&gt;.
+   * &lt;p&gt;
+   * NativeSig &lt;code&gt;(PointerType) &#39;int32_t *&#39; -&gt; (int32_t) * , size [fixed false, lnx64 8], const[false], pointer*1&lt;/code&gt;
+   * &lt;/p&gt;
+   * &lt;p&gt;
+   * Copies the given source elements into the respective field, either writing into the existing memory or creating a new memory and referencing it.
+   * &lt;/p&gt;
+   * @param subset if `true` keeps the underlying memory and only allows to set up to `elemCount` elements. Otherwise may replace the underlying memory if `destPos + length != elemCount`.
+   * @param src the source array of elements
+   * @param srcPos starting element position within the source array with &#39;srcPos &gt;= 0` &amp;&amp;  `srcPos + length &lt;= src.length`, otherwise an {@link IndexOutOfBoundsException} is thrown
+   * @param destPos starting element position within the destination with &#39;destPos &gt;= 0`. If `subset == true`, `destPos + length &lt;= elemCount` also must be be `true`. Otherwise an exception is thrown
+   * @param length the element count to be copied with &#39;length &gt;= 0` &amp;&amp;  `srcPos + length &lt;= src.length`, otherwise an {@link IndexOutOfBoundsException} is thrown
+   * @return this instance of chaining
+   */
+  public final TK_Field setVariaInt32PointerVariaLen(final boolean subset, int[] src, final int srcPos, final int destPos, final int length) { .. }  </code></pre>
 <h3 id="struct-setter-pseudo-code">Struct Setter Pseudo-Code</h3>
 <ul>
 <li><em>ImmutableAccess</em>: Drops setter, immutable</li>
@@ -1370,3 +1055,5 @@ folder to your GlueGen <code>includeRefid</code> element:</p>
 <p>To identity a GlueGen code generation run, GlueGen defines the
 following macros:</p>
 <pre><code>     #define __GLUEGEN__ 2</code></pre>
+</body>
+</html>

@@ -170,11 +170,11 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
       sb.append(val);
       return sb;
   }
-  // For debugging
-  public final String getDebugString() {
-    final StringBuilder sb = new StringBuilder();
+  public final StringBuilder getSignature(StringBuilder sb) {
+    if( null == sb ) {
+        sb = new StringBuilder();
+    }
     boolean prepComma = false;
-    sb.append("CType[");
     sb.append("(").append(getClass().getSimpleName()).append(") ");
     if( isTypedef() ) {
         sb.append("typedef ");
@@ -211,7 +211,6 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
     } else {
         sb.append(" ZERO");
     }
-    append(sb, "[", prepComma); prepComma=false;
     {
         append(sb, "const[", prepComma); prepComma=false;
         {
@@ -268,8 +267,15 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
         if( isVoid() ) {
             append(sb, "void", prepComma); prepComma=true;
         }
-        sb.append("]");
     }
+    return sb;
+  }
+
+  // For debugging
+  public final String getDebugString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("CType[");
+    getSignature(sb);
     sb.append("]");
     return sb.toString();
   }

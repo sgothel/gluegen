@@ -1481,7 +1481,6 @@ public class BaseClass extends SingletonJunitCase {
     }
 
     /** Primitive.ConstValue.int32.Pointer - write access */
-    @SuppressWarnings("unused")
     private void chapter12_03bTestTKFieldConstValueInt32WriteAccess(final TK_Field model) {
         Assert.assertEquals(0, model.getConstInt32PointerMaxOneElemElemCount());
         Assert.assertEquals(true, model.isConstInt32PointerMaxOneElemNull());
@@ -1545,7 +1544,7 @@ public class BaseClass extends SingletonJunitCase {
             // write 1 via int[] set, also actually allocating initial memory
             {
                 final int[] ia = { 220, 221, 222, 223, 224 };
-                model.setConstInt32PointerVariaLen(ia, 0, 0, ia.length);
+                model.setConstInt32PointerVariaLen(ia, 0, ia.length);
             }
             // verify 1
             {
@@ -1620,7 +1619,7 @@ public class BaseClass extends SingletonJunitCase {
             // write 2 via int[] set
             {
                 final int[] ia = { 0, 220, 221, 222, 223, 224, 0 };
-                model.setConstInt32PointerCustomLen(ia, 1 /* srcPos */, 0 /* destPos */, ia.length-2);
+                model.setConstInt32PointerCustomLen(ia, 1 /* srcPos */, ia.length-2);
             }
             // verify 2
             {
@@ -1735,7 +1734,6 @@ public class BaseClass extends SingletonJunitCase {
     }
 
     /** Primitive.VariaValue.int32.Pointer - write access */
-    @SuppressWarnings("unused")
     private void chapter12_04bTestTKFieldVariaValueInt32WriteAccess(final TK_Field model) {
         Assert.assertEquals(1, TK_Field.getVariaInt32PointerConstOneElemElemCount());
         Assert.assertEquals(false, model.isVariaInt32PointerConstOneElemNull());
@@ -1801,18 +1799,10 @@ public class BaseClass extends SingletonJunitCase {
                     Assert.assertEquals(220 + i, s[0]);
                 }
             }
-            {
-            }
             // write 3 via int[] single set @ offset
-            if( false ) {
             {
-                final int[] ia = { 0, 320, 321, 322 };
-                for(int i=0; i<3; i++) {
-                    model.setVariaInt32PointerConstLen(ia, i+1, i, 3-i);
-                }
-                model.setVariaInt32PointerConstLen(new int[]{ 0, 320,   0,   0 }, 0+1 /* srcPos */, 0 /* destPos */, 3);
-                model.setVariaInt32PointerConstLen(new int[]{ 0,   0, 321,   0 }, 1+1 /* srcPos */, 1 /* destPos */, 2);
-                model.setVariaInt32PointerConstLen(new int[]{ 0,   0,   0, 322 }, 2+1 /* srcPos */, 2 /* destPos */, 1);
+                final int[] ia = { 0, 321, 322 };
+                model.setVariaInt32PointerConstLen(ia, 1, 1, 2);
             }
             // verify 3
             {
@@ -1822,13 +1812,18 @@ public class BaseClass extends SingletonJunitCase {
                 final IntBuffer allB = model.getVariaInt32PointerConstLen();
                 Assert.assertEquals(size, all.length);
                 Assert.assertEquals(size, allB.limit());
-                for(int i=0; i<size; i++) {
+                for(int i=0; i<1; i++) {
+                    Assert.assertEquals(220 + i, all[i]);
+                    Assert.assertEquals(220 + i, allB.get(i));
+                    final int[] s = model.getVariaInt32PointerConstLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(220 + i, s[0]);
+                }
+                for(int i=1; i<size; i++) {
                     Assert.assertEquals(320 + i, all[i]);
                     Assert.assertEquals(320 + i, allB.get(i));
                     final int[] s = model.getVariaInt32PointerConstLen(i, new int[1], 0, 1);
                     Assert.assertEquals(320 + i, s[0]);
                 }
-            }
             }
         }
 
@@ -1855,7 +1850,7 @@ public class BaseClass extends SingletonJunitCase {
             // write 1 via int[] set, also actually allocating initial memory
             {
                 final int[] ia = { 220, 221, 222, 223, 224 };
-                model.setVariaInt32PointerVariaLen(ia, 0, 0, ia.length);
+                model.setVariaInt32PointerVariaLen(false /* subset */, ia, 0, 0, ia.length);
             }
             // verify 1
             {
@@ -1927,10 +1922,36 @@ public class BaseClass extends SingletonJunitCase {
                     Assert.assertEquals(120 + i, s[0]);
                 }
             }
-            // write 2 via int[] set
+            // write 2 via int[] set all, keep 1st element by writing to destPos 1, 5 elements total, 4 written
             {
                 final int[] ia = { 0, 220, 221, 222, 223, 224, 0 };
-                model.setVariaInt32PointerCustomLen(ia, 1 /* srcPos */, 0 /* destPos */, ia.length-2);
+                model.setVariaInt32PointerCustomLen(false /* subset */, ia, 2 /* srcPos */, 1 /* destPos */, ia.length-1-2);
+            }
+            // verify 2
+            {
+                final int size = model.getVariaInt32PointerCustomLenElemCount();
+                Assert.assertEquals(5, size);
+                final int[] all = model.getVariaInt32PointerCustomLen(0, new int[size], 0, size);
+                final IntBuffer allB = model.getVariaInt32PointerCustomLen();
+                Assert.assertEquals(size, all.length);
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<1; i++) {
+                    Assert.assertEquals(120 + i, all[i]);
+                    Assert.assertEquals(120 + i, allB.get(i));
+                    final int[] s = model.getVariaInt32PointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(120 + i, s[0]);
+                }
+                for(int i=1; i<size; i++) {
+                    Assert.assertEquals(220 + i, all[i]);
+                    Assert.assertEquals(220 + i, allB.get(i));
+                    final int[] s = model.getVariaInt32PointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(220 + i, s[0]);
+                }
+            }
+            // write 3 via int[] set a subset only
+            {
+                final int[] ia = { 0, 0, 322, 323, 324, 0, 0 };
+                model.setVariaInt32PointerCustomLen(true /* subset */, ia, 2 /* srcPos */, 2 /* destPos */, 3);
             }
             // verify 2
             {
@@ -1941,10 +1962,25 @@ public class BaseClass extends SingletonJunitCase {
                 Assert.assertEquals(size, all.length);
                 Assert.assertEquals(size, allB.limit());
                 for(int i=0; i<size; i++) {
+                    System.err.printf("%d/%d: A %d, B %d%n", i, size, all[i], allB.get(i));
+                }
+                for(int i=0; i<1; i++) {
+                    Assert.assertEquals(120 + i, all[i]);
+                    Assert.assertEquals(120 + i, allB.get(i));
+                    final int[] s = model.getVariaInt32PointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(120 + i, s[0]);
+                }
+                for(int i=1; i<2; i++) {
                     Assert.assertEquals(220 + i, all[i]);
                     Assert.assertEquals(220 + i, allB.get(i));
-                    final int[] s = model.getVariaInt32PointerCustomLen(i, new int[1], 0, 1);
-                    Assert.assertEquals(220 + i, s[0]);
+                    final int[] s = model.getVariaInt32PointerCustomLen(i, new int[3], 1, 1);
+                    Assert.assertEquals(220 + i, s[1]);
+                }
+                for(int i=2; i<size; i++) {
+                    Assert.assertEquals(320 + i, all[i]);
+                    Assert.assertEquals(320 + i, allB.get(i));
+                    final int[] s = model.getVariaInt32PointerCustomLen(i, new int[3], 2, 1);
+                    Assert.assertEquals(320 + i, s[2]);
                 }
             }
             model.releaseVariaInt32PointerCustomLen(); // FIXME: Ownership is ambiguous, may leak native allocated memory, not free'ed!
@@ -1955,7 +1991,7 @@ public class BaseClass extends SingletonJunitCase {
 
 
     /** Struct */
-    private void chapter12_05aTestTKFieldStruct(final TK_Field model) {
+    private void chapter12_05aTestTKFieldConstValueStructReadAccess(final TK_Field model) {
         // field: structArrayOneElem
         //        CType['TK_Dimension *', size [fixed false, lnx64 16], [array*1]], with array length of 1
         {
@@ -1990,6 +2026,261 @@ public class BaseClass extends SingletonJunitCase {
             Assert.assertEquals(94, all.getHeight());
 
         }
+    }
+
+    private static TK_Dimension createTKDim(final int x, final int y, final int w, final int h) {
+        return TK_Dimension.create().setX(x).setY(y).setWidth(w).setHeight(h);
+    }
+    private static boolean equals(final TK_Dimension a, final TK_Dimension b) {
+        if( a == b ) {
+            return true;
+        }
+        return a.getX() == b.getX() &&
+               a.getY() == b.getY() &&
+               a.getWidth() == b.getWidth() &&
+               a.getHeight() == b.getHeight();
+    }
+
+    /** Primitive.VariaValue.Struct.Pointer - write access */
+    private void chapter12_06bTestTKFieldVariaValueStructWriteAccess(final TK_Field model) {
+        Assert.assertEquals(1, TK_Field.getVariaStructPointerConstOneElemElemCount());
+        Assert.assertEquals(false, model.isVariaStructPointerConstOneElemNull());
+        {
+            final TK_Dimension val = createTKDim(10, 11, 100, 111);
+            model.setVariaStructPointerConstOneElem(val);
+            Assert.assertTrue( equals(val, model.getVariaStructPointerConstOneElem()) );
+        }
+
+        Assert.assertEquals(0, model.getVariaStructPointerMaxOneElemElemCount());
+        Assert.assertEquals(true, model.isVariaStructPointerMaxOneElemNull());
+        {
+            final TK_Dimension val = createTKDim(20, 21, 200, 211);
+            model.setVariaStructPointerMaxOneElem(val);
+            Assert.assertEquals(1, model.getVariaStructPointerMaxOneElemElemCount());
+            Assert.assertEquals(false, model.isVariaStructPointerMaxOneElemNull());
+            Assert.assertTrue( equals(val, model.getVariaStructPointerMaxOneElem()) );
+            model.releaseVariaStructPointerMaxOneElem();
+            Assert.assertEquals(0, model.getVariaStructPointerMaxOneElemElemCount());
+            Assert.assertEquals(true, model.isVariaStructPointerMaxOneElemNull());
+        }
+
+        Assert.assertEquals(3, TK_Field.getVariaStructPointerConstLenElemCount());
+        Assert.assertEquals(false, model.isVariaStructPointerConstLenNull());
+        {
+            // No write/verify 1 via ByteBuffer reference
+
+            // write 2 via TK_Dimension[] set
+            {
+                final TK_Dimension[] all = new TK_Dimension[3];
+                for(int i=0; i<3; ++i) {
+                    all[i] = createTKDim(i*10, i*10+1, 100+i*10, 100+i*10+1);
+                }
+                model.setVariaStructPointerConstLen(all, 0, 0, 3);
+            }
+            // verify 2
+            {
+                final int size = TK_Field.getVariaStructPointerConstLenElemCount();
+                Assert.assertEquals(3, size);
+                final TK_Dimension[] all = model.getVariaStructPointerConstLen(0, new TK_Dimension[3], 0, 3);
+                Assert.assertEquals(size, all.length);
+                for(int i=0; i<size; i++) {
+                    final TK_Dimension val = createTKDim(i*10, i*10+1, 100+i*10, 100+i*10+1);
+                    Assert.assertTrue( equals(val, all[i]) );
+                    final TK_Dimension[] s = model.getVariaStructPointerConstLen(i, new TK_Dimension[1], 0, 1);
+                    Assert.assertTrue( equals(val, s[0]) );
+                }
+            }
+            // write 3 via int[] single set @ offset
+            {
+                final TK_Dimension[] all = new TK_Dimension[3];
+                for(int i=1; i<3; ++i) {
+                    all[i] = createTKDim(i*20, i*20+1, 100+i*20, 100+i*20+1);
+                }
+                model.setVariaStructPointerConstLen(all, 1, 1, 2);
+            }
+            // verify 3
+            {
+                final int size = TK_Field.getVariaStructPointerConstLenElemCount();
+                Assert.assertEquals(3, size);
+                final TK_Dimension[] all = model.getVariaStructPointerConstLen(0, new TK_Dimension[3], 0, 3);
+                Assert.assertEquals(size, all.length);
+                for(int i=0; i<1; i++) {
+                    final TK_Dimension val = createTKDim(i*10, i*10+1, 100+i*10, 100+i*10+1);
+                    Assert.assertTrue( equals(val, all[i]) );
+                    final TK_Dimension[] s = model.getVariaStructPointerConstLen(i, new TK_Dimension[1], 0, 1);
+                    Assert.assertTrue( equals(val, s[0]) );
+                }
+                for(int i=1; i<size; i++) {
+                    final TK_Dimension val = createTKDim(i*20, i*20+1, 100+i*20, 100+i*20+1);
+                    Assert.assertTrue( equals(val, all[i]) );
+                    final TK_Dimension[] s = model.getVariaStructPointerConstLen(i, new TK_Dimension[1], 0, 1);
+                    Assert.assertTrue( equals(val, s[0]) );
+                }
+            }
+        }
+
+        Assert.assertEquals(0, model.getVariaStructPointerVariaLenElemCount());
+        Assert.assertEquals(true, model.isVariaStructPointerVariaLenNull());
+        /**
+        {
+            Exception e1 = null;
+            try {
+                @SuppressWarnings("unused")
+                final IntBuffer ib = model.getVariaStructPointerVariaLen(); // NULL -> exception
+            } catch(final Exception _e) { e1 = _e; }
+            Assert.assertNotNull(e1);
+            System.err.println("Expected exception-1: "+e1);
+
+            Exception e2 = null;
+            try {
+                @SuppressWarnings("unused")
+                final int[] ia = model.getVariaStructPointerVariaLen(0, new int[0], 0, 0); // NULL -> exception
+            } catch(final Exception _e) { e2 = _e; }
+            Assert.assertNotNull(e2);
+            System.err.println("Expected exception-2: "+e2);
+        }
+        {
+            // write 1 via int[] set, also actually allocating initial memory
+            {
+                final int[] ia = { 220, 221, 222, 223, 224 };
+                model.setVariaStructPointerVariaLen(false, ia, 0, 0, ia.length);
+            }
+            // verify 1
+            {
+                final int size = model.getVariaStructPointerVariaLenElemCount();
+                Assert.assertEquals(5, size);
+                final int[] all = model.getVariaStructPointerVariaLen(0, new int[size], 0, size);
+                final IntBuffer allB = model.getVariaStructPointerVariaLen();
+                Assert.assertEquals(size, all.length);
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(220 + i, all[i]);
+                    Assert.assertEquals(220 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerVariaLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(220 + i, s[0]);
+                }
+            }
+            // write 2 via IntBuffer reference get
+            {
+                final IntBuffer ib = model.getVariaStructPointerVariaLen();
+                Assert.assertEquals(5, ib.limit());
+                for(int i=0; i<5; ++i) {
+                    ib.put(i, 120+i);
+                }
+            }
+            // verify 2
+            {
+                final int size = model.getVariaStructPointerVariaLenElemCount();
+                Assert.assertEquals(5, size);
+                final int[] all = model.getVariaStructPointerVariaLen(0, new int[size], 0, size);
+                final IntBuffer allB = model.getVariaStructPointerVariaLen();
+                Assert.assertEquals(size, all.length);
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(120 + i, all[i]);
+                    Assert.assertEquals(120 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerVariaLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(120 + i, s[0]);
+                }
+            }
+            model.releaseVariaStructPointerVariaLen();
+            Assert.assertEquals(0, model.getVariaStructPointerVariaLenElemCount());
+            Assert.assertEquals(true, model.isVariaStructPointerVariaLenNull());
+        }
+
+        {
+            // write 1 via IntBuffer reference get
+            {
+                final int size = model.getVariaStructPointerCustomLenElemCount();
+                Assert.assertEquals(4, size);
+                Assert.assertEquals(false, model.isVariaStructPointerCustomLenNull());
+                final IntBuffer ib = model.getVariaStructPointerCustomLen();
+                Assert.assertEquals(size, ib.limit());
+                for(int i=0; i<size; ++i) {
+                    ib.put(i, 120+i);
+                }
+            }
+            // verify 1
+            {
+                final int size = model.getVariaStructPointerCustomLenElemCount();
+                Assert.assertEquals(4, size);
+                final int[] all = model.getVariaStructPointerCustomLen(0, new int[size], 0, size);
+                final IntBuffer allB = model.getVariaStructPointerCustomLen();
+                Assert.assertEquals(size, all.length);
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<size; i++) {
+                    Assert.assertEquals(120 + i, all[i]);
+                    Assert.assertEquals(120 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(120 + i, s[0]);
+                }
+            }
+            // write 2 via int[] set all, keep 1st element by writing to destPos 1, 5 elements total, 4 written
+            {
+                final int[] ia = { 0, 220, 221, 222, 223, 224, 0 };
+                model.setVariaStructPointerCustomLen(false, ia, 2, 1, ia.length-1-2);
+            }
+            // verify 2
+            {
+                final int size = model.getVariaStructPointerCustomLenElemCount();
+                Assert.assertEquals(5, size);
+                final int[] all = model.getVariaStructPointerCustomLen(0, new int[size], 0, size);
+                final IntBuffer allB = model.getVariaStructPointerCustomLen();
+                Assert.assertEquals(size, all.length);
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<1; i++) {
+                    Assert.assertEquals(120 + i, all[i]);
+                    Assert.assertEquals(120 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(120 + i, s[0]);
+                }
+                for(int i=1; i<size; i++) {
+                    Assert.assertEquals(220 + i, all[i]);
+                    Assert.assertEquals(220 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(220 + i, s[0]);
+                }
+            }
+            // write 3 via int[] set a subset only
+            {
+                final int[] ia = { 0, 0, 322, 323, 324, 0, 0 };
+                model.setVariaStructPointerCustomLen(true, ia, 2, 2, 3);
+            }
+            // verify 2
+            {
+                final int size = model.getVariaStructPointerCustomLenElemCount();
+                Assert.assertEquals(5, size);
+                final int[] all = model.getVariaStructPointerCustomLen(0, new int[size], 0, size);
+                final IntBuffer allB = model.getVariaStructPointerCustomLen();
+                Assert.assertEquals(size, all.length);
+                Assert.assertEquals(size, allB.limit());
+                for(int i=0; i<size; i++) {
+                    System.err.printf("%d/%d: A %d, B %d%n", i, size, all[i], allB.get(i));
+                }
+                for(int i=0; i<1; i++) {
+                    Assert.assertEquals(120 + i, all[i]);
+                    Assert.assertEquals(120 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerCustomLen(i, new int[1], 0, 1);
+                    Assert.assertEquals(120 + i, s[0]);
+                }
+                for(int i=1; i<2; i++) {
+                    Assert.assertEquals(220 + i, all[i]);
+                    Assert.assertEquals(220 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerCustomLen(i, new int[3], 1, 1);
+                    Assert.assertEquals(220 + i, s[1]);
+                }
+                for(int i=2; i<size; i++) {
+                    Assert.assertEquals(320 + i, all[i]);
+                    Assert.assertEquals(320 + i, allB.get(i));
+                    final int[] s = model.getVariaStructPointerCustomLen(i, new int[3], 2, 1);
+                    Assert.assertEquals(320 + i, s[2]);
+                }
+            }
+            model.releaseVariaStructPointerCustomLen(); // FIXME: Ownership is ambiguous, may leak native allocated memory, not free'ed!
+            Assert.assertEquals(0, model.getVariaStructPointerCustomLenElemCount());
+            Assert.assertEquals(true, model.isVariaStructPointerCustomLenNull());
+        }
+        */
     }
 
     private static ByteBuffer toEOSByteBuffer(final String val, final Charset cs) {
@@ -2188,7 +2479,8 @@ public class BaseClass extends SingletonJunitCase {
         chapter12_03bTestTKFieldConstValueInt32WriteAccess(model0);
         chapter12_04aTestTKFieldVariaValueInt32ReadAccess(model0);
         chapter12_04bTestTKFieldVariaValueInt32WriteAccess(model0);
-        chapter12_05aTestTKFieldStruct(model0);
+        chapter12_05aTestTKFieldConstValueStructReadAccess(model0);
+        chapter12_06bTestTKFieldVariaValueStructWriteAccess(model0);
         chapter12_10aTestTKFieldConstStringReadAccess(model0);
         chapter12_11aTestTKFieldConstStringOnlyReadAccess(model0);
         chapter12_11bTestTKFieldConstStringOnlyWriteAccess(model0);
