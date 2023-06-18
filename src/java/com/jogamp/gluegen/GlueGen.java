@@ -411,8 +411,6 @@ public class GlueGen implements GlueEmitterControls {
                     debug=true;
                 } else if (arg.equals("--dumpCPP")) {
                     copyCPPOutput2Stderr=true;
-                } else if (arg.equals("--enablePragmaOnce")) {
-                    enablePragmaOnce=true;
                 } else if (arg.equals("--disablePragmaOnce")) {
                     enablePragmaOnce=false;
                 } else if (arg.equals("--preserveGeneratedCPP")) {
@@ -466,8 +464,7 @@ public class GlueGen implements GlueEmitterControls {
         out.println("-Cjava-emitter.cfg.");
         out.println("  --debug enables debug mode");
         out.println("  --dumpCPP directs CPP to dump all output to stderr as well");
-        out.println("  --enablePragmaOnce allow handle of #pragma once directive during parsing (default)");
-        out.println("  --disablePragmaOnce disable handling of #pragma once directive during parsing");
+        out.println("  --disablePragmaOnce disable handling of #pragma once directive during parsing (enabled by default)");
         out.println("  --preserveGeneratedCPP preserve generated CPP file during generation (File it's already preserved by debug mode)");
         exit(1);
     }
