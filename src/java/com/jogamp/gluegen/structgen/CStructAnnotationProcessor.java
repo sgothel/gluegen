@@ -283,8 +283,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
         }
         new GlueGen().run(reader, filename, AnnotationProcessorJavaStructEmitter.class,
                           includePaths, cfgFiles, outputPath1, false /* copyCPPOutput2Stderr */,
-                          enablePragmaOnce /* enablePragmaOnce */);
-
+                          enablePragmaOnce /* enablePragmaOnce */, false /* preserveGeneratedCPP */);
         configFile.delete();
         generatedStructs.add(finalType);
     }
