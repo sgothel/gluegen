@@ -172,7 +172,15 @@ public class GlueGen implements GlueEmitterControls {
             try {
                 parser.translationUnit();
             } catch (final RecognitionException e) {
-                throw new RuntimeException("Fatal IO error", e);
+                throw new RuntimeException(String.format(
+                        "Fatal error during translation (Localisation : %s:%s:%s)",
+                        e.getFilename(), e.getLine(), e.getColumn()
+                ), e);
+            } catch (final TokenStreamRecognitionException e) {
+                throw new RuntimeException(String.format(
+                        "Fatal error during translation (Localisation : %s:%s:%s)",
+                        e.recog.getFilename(), e.recog.getLine(), e.recog.getColumn()
+                ), e);
             } catch (final TokenStreamException e) {
                 throw new RuntimeException("Fatal IO error", e);
             }
