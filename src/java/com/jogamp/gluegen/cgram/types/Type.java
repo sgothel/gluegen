@@ -215,10 +215,10 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
         append(sb, "const[", prepComma); prepComma=false;
         {
             if( isConstTypedef() ) {
-                append(sb, "type ", prepComma);  prepComma=true;
+                append(sb, "typedef", prepComma);  prepComma=true;
             }
             if( isConstRaw() ) {
-                append(sb, "inst -> ", prepComma);  prepComma=false;
+                append(sb, "native", prepComma);  prepComma=true;
             }
             if( isConst() ) {
                 append(sb, "true]", prepComma);
@@ -342,6 +342,9 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
   public final boolean isTypedef() {
     return isTypedef;
   }
+
+  /** Returns true if {@link #getSize()} is not null, otherwise false. */
+  public final boolean hasSize() { return null != size; }
 
   /** SizeThunk which computes size of this type in bytes. */
   public final SizeThunk getSize()    { return size; }
