@@ -327,13 +327,14 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
 | [const] | int32_t* val  | setVal(int v) \[[1](#signature-int32_t--maxoneelement-java-owned)\]\[[2](#signature-const-int32_t--maxoneelement-java-owned)\] <br> releaseVal() | int getVal() <br> boolean isValNull() <br> int getValElemCount()  | **MaxOneElement**  | Java      | Starts w/ null elements,<br>max 1 element |
 |  const  | int32_t* val  | *none*                                                           | int getVal() <br> boolean isValNull() <br> static int getValElemCount()  | **ReturnedArrayLength 1** | Native | Const element count 1 |
 |         | int32_t* val  | setVal(int v)                                                    | int getVal() <br> boolean isValNull() <br> static int getValElemCount()  | **ReturnedArrayLength 1** | Native | Const element count 1 |                     |
-|         | int32_t val[3]| setVal(int[] src, int srcPos, int destPos, int len)              | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len)   | | Parent |           |
+|         | int32_t val[3]| setVal(int[] src, int srcPos, int destPos, int len) \[[3](#signature-int32_t3-constelemcount-3-parent-owned)\] | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len)   | | Parent | Reuses parent memory,<br>fixed size. |
 |  const  | int32_t val[3]| *none*                                                           | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len)   | | Parent | Read only |
 |  const  | int32_t* val  | *none*                                                           | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> static int getValElemCount() | **ReturnedArrayLength 3** | Native | Read only <br> Const element count 3 |
-|         | int32_t* val  | setVal(int[] src, int srcPos, int destPos, int len) \[[2](#signature-int32_t--constelemcount-3-natively-owned)\] | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> static int getValElemCount() | **ReturnedArrayLength 3** | Native | Const element count 3 |
-|         | int32_t* val  | setVal(boolean subset, int[] src, int srcPos, int destPos, int len) \[[3](#signature-int32_t--freesize-java-owned)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> int getValElemCount() |  | Java | Starts w/ null elements |
-|  const  | int32_t* val  | setVal(int[] src, int srcPos, int destPos, int len) \[[4](#signature-const-int32_t--freesize-java-owned)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> int getValElemCount() |  | Java | Starts w/ null elements |
-| [const] | int32_t* val  | setVal(int[] src, int srcPos, int destPos, int len) \[[5](#signature-const-int32_t--customsize-ambiguous-java-owned)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() | **ReturnedArrayLength getValCount()** | **Ambiguous** | Variable element count<br>using field *valCount*,<br>which has getter and setter  |
+|         | int32_t* val  | setVal(int[] src, int srcPos, int destPos, int len) \[[4](#signature-int32_t--constelemcount-3-natively-owned)\] | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> static int getValElemCount() | **ReturnedArrayLength 3** | Native | Const element count 3.<br>Reuses native memory,<br>fixed size. |
+|         | int32_t* val  | setVal(boolean subset, int[] src, int srcPos, int destPos, int len) \[[5](#signature-int32_t--freesize-java-owned)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> int getValElemCount() |  | Java | Starts w/ null elements.<br>Reuses or replaces Java memory,<br>variable size.  |
+|  const  | int32_t* val  | setVal(int[] src, int srcPos, int len) \[[6](#signature-const-int32_t--freesize-java-owned)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br> int getValElemCount() |  | Java | Starts w/ null elements.<br>Replaces Java memory,<br>variable size. |
+|         | int32_t* val  | setVal(boolean subset, int[] src, int srcPos, int destPos, int len) \[[7](#signature-int32_t--customsize-ambiguous-ownership)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() | **ReturnedArrayLength getValCount()** | **Ambiguous** | Variable element count<br>using field *valCount*,<br>which has getter and setter  |
+|  const  | int32_t* val  | setVal(int[] src, int srcPos, int len) \[[8](#signature-const-int32_t--customsize-ambiguous-ownership)\] <br> releaseVal() | IntBuffer getVal() <br> int[] getVal(int srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() | **ReturnedArrayLength getValCount()** | **Ambiguous** | Variable element count<br>using field *valCount*,<br>which has getter and setter  |
 | [const] | char* name    | setName(String srcVal) <br> releaseVal()                         | String getName() <br> boolean isNameNull() <br> int getNameElemCount() | **ReturnsStringOnly** | Java | String only, w/ EOS  |
 | [const] | char* name    | setName(String srcVal) <br> setName(byte[] src, int srcPos, int destPos, int len) <br> releaseVal() | String getNameAsString() <br> ByteBuffer getName() <br> boolean isNameNull() <br> int getNameElemCount() | **ReturnsString** | Java | String and byte access, w/ EOS|
 
@@ -366,6 +367,24 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     * referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4], const[native, true], int
 
     Always replaces memory due to `const` value modifier.
+    
+#### Signature `int32_t[3]` ConstElemCount 3, Parent owned     
+* `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32ArrayConstLen(int[] src, int srcPos, int destPos, int length)`
+
+    Setter for native field variaInt32ArrayConstLen, being an array with fixed element count of 3 elements.
+
+    Native Field Signature (ArrayType) 'int32_t *', size [fixed false, lnx64 12], const[false], array*1
+
+    Copies the given source elements into the respective field's existing memory.
+
+    Parameters:
+    * src the source array of elements
+    * srcPos starting element position within the source array with 'srcPos >= 0` && `srcPos + length <= src.length`, otherwise an IndexOutOfBoundsException is thrown
+    * destPos starting element position within the destination with 'destPos >= 0` && `destPos + length <= elemCount`, otherwise an exception is thrown
+    * length the element count to be copied with 'length >= 0` && `srcPos + length <= src.length` && `destPos + length <= elemCount`, otherwise an IndexOutOfBoundsException is thrown
+    
+    Returns:
+    * this instance of chaining
 
 #### Signature `int32_t *` ConstElemCount 3, Natively owned 
 
@@ -428,7 +447,28 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     Returns:
     * this instance of chaining
 
-#### Signature `const int32_t *` CustomSize, Ambiguous, Java owned 
+#### Signature `int32_t *` CustomSize, Ambiguous ownership
+* `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32PointerCustomLen(boolean subset, int[] src, int srcPos, int destPos, int length)`
+
+    Setter for native field variaInt32PointerCustomLen, referencing a mixed and ambigously owned (warning) array with variable element count of getVariaInt32PointerCustomLenElemCount() elements.
+
+    Native Signature:
+    * field-type (PointerType) 'int32_t *' -> (int32_t) * , size [fixed false, lnx64 8], const[false], pointer*1
+    * referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4], const[false], int
+    
+    Copies the given source elements into the respective field, either writing into the existing memory or creating a new memory and referencing it.
+
+    Parameters:
+    * subset if `true` keeps the underlying memory and only allows to set up to `elemCount` elements. Otherwise may replace the underlying memory if `destPos + length != elemCount`.
+    * src the source array of elements
+    * srcPos starting element position within the source array with 'srcPos >= 0` && `srcPos + length <= src.length`, otherwise an IndexOutOfBoundsException is thrown
+    * destPos starting element position within the destination with 'destPos >= 0`. If `subset == true`, `destPos + length <= elemCount` also must be be `true`. Otherwise an exception is thrown
+    * length the element count to be copied with 'length >= 0` && `srcPos + length <= src.length`, otherwise an IndexOutOfBoundsException is thrown
+    
+    Returns:
+    * this instance of chaining  
+    
+#### Signature `const int32_t *` CustomSize, Ambiguous ownership
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setConstInt32PointerCustomLen(int[] src, int srcPos, int length)`
 
   Setter for native field constIntxxPointerCustomLen, referencing a mixed and ambigously owned (**warning**) array with variable element count of getConstIntxxPointerCustomLenElemCount() elements.

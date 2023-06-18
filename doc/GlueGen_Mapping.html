@@ -1202,12 +1202,13 @@ static int getValElemCount()</td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">int32_t val[3]</td>
 <td style="text-align: left;">setVal(int[] src, int srcPos, int destPos,
-int len)</td>
+int len) [<a
+href="#signature-int32_t3-constelemcount-3-parent-owned">3</a>]</td>
 <td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
 srcPos, int[] dest, int destPos, int len)</td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Parent</td>
-<td style="text-align: left;"></td>
+<td style="text-align: left;">Reuses parent memory,<br>fixed size.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">const</td>
@@ -1236,49 +1237,52 @@ static int getValElemCount()</td>
 <td style="text-align: left;">int32_t* val</td>
 <td style="text-align: left;">setVal(int[] src, int srcPos, int destPos,
 int len) [<a
-href="#signature-int32_t--constelemcount-3-natively-owned">2</a>]</td>
+href="#signature-int32_t--constelemcount-3-natively-owned">4</a>]</td>
 <td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
 srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br>
 static int getValElemCount()</td>
 <td style="text-align: left;"><strong>ReturnedArrayLength
 3</strong></td>
 <td style="text-align: left;">Native</td>
-<td style="text-align: left;">Const element count 3</td>
+<td style="text-align: left;">Const element count 3.<br>Reuses native
+memory,<br>fixed size.</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">int32_t* val</td>
 <td style="text-align: left;">setVal(boolean subset, int[] src, int
 srcPos, int destPos, int len) [<a
-href="#signature-int32_t--freesize-java-owned">3</a>] <br>
+href="#signature-int32_t--freesize-java-owned">5</a>] <br>
 releaseVal()</td>
 <td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
 srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br>
 int getValElemCount()</td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Java</td>
-<td style="text-align: left;">Starts w/ null elements</td>
+<td style="text-align: left;">Starts w/ null elements.<br>Reuses or
+replaces Java memory,<br>variable size.</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">const</td>
 <td style="text-align: left;">int32_t* val</td>
-<td style="text-align: left;">setVal(int[] src, int srcPos, int destPos,
-int len) [<a href="#signature-const-int32_t--freesize-java-owned">4</a>]
-<br> releaseVal()</td>
+<td style="text-align: left;">setVal(int[] src, int srcPos, int len) [<a
+href="#signature-const-int32_t--freesize-java-owned">6</a>] <br>
+releaseVal()</td>
 <td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
 srcPos, int[] dest, int destPos, int len) <br> boolean isValNull() <br>
 int getValElemCount()</td>
 <td style="text-align: left;"></td>
 <td style="text-align: left;">Java</td>
-<td style="text-align: left;">Starts w/ null elements</td>
+<td style="text-align: left;">Starts w/ null elements.<br>Replaces Java
+memory,<br>variable size.</td>
 </tr>
 <tr class="even">
-<td style="text-align: left;">[const]</td>
+<td style="text-align: left;"></td>
 <td style="text-align: left;">int32_t* val</td>
-<td style="text-align: left;">setVal(int[] src, int srcPos, int destPos,
-int len) [<a
-href="#signature-const-int32_t--customsize-ambiguous-java-owned">5</a>]
-<br> releaseVal()</td>
+<td style="text-align: left;">setVal(boolean subset, int[] src, int
+srcPos, int destPos, int len) [<a
+href="#signature-int32_t--customsize-ambiguous-ownership">7</a>] <br>
+releaseVal()</td>
 <td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
 srcPos, int[] dest, int destPos, int len) <br> boolean isValNull()</td>
 <td style="text-align: left;"><strong>ReturnedArrayLength
@@ -1288,6 +1292,20 @@ getValCount()</strong></td>
 <em>valCount</em>,<br>which has getter and setter</td>
 </tr>
 <tr class="odd">
+<td style="text-align: left;">const</td>
+<td style="text-align: left;">int32_t* val</td>
+<td style="text-align: left;">setVal(int[] src, int srcPos, int len) [<a
+href="#signature-const-int32_t--customsize-ambiguous-ownership">8</a>]
+<br> releaseVal()</td>
+<td style="text-align: left;">IntBuffer getVal() <br> int[] getVal(int
+srcPos, int[] dest, int destPos, int len) <br> boolean isValNull()</td>
+<td style="text-align: left;"><strong>ReturnedArrayLength
+getValCount()</strong></td>
+<td style="text-align: left;"><strong>Ambiguous</strong></td>
+<td style="text-align: left;">Variable element count<br>using field
+<em>valCount</em>,<br>which has getter and setter</td>
+</tr>
+<tr class="even">
 <td style="text-align: left;">[const]</td>
 <td style="text-align: left;">char* name</td>
 <td style="text-align: left;">setName(String srcVal) <br>
@@ -1298,7 +1316,7 @@ releaseVal()</td>
 <td style="text-align: left;">Java</td>
 <td style="text-align: left;">String only, w/ EOS</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td style="text-align: left;">[const]</td>
 <td style="text-align: left;">char* name</td>
 <td style="text-align: left;">setName(String srcVal) <br> setName(byte[]
@@ -1345,6 +1363,35 @@ const[native, true], int</li>
 </ul>
 <p>Always replaces memory due to <code>const</code> value
 modifier.</p></li>
+</ul>
+<h4 id="signature-int32_t3-constelemcount-3-parent-owned">Signature
+<code>int32_t[3]</code> ConstElemCount 3, Parent owned</h4>
+<ul>
+<li><p><code>TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32ArrayConstLen(int[] src, int srcPos, int destPos, int length)</code></p>
+<p>Setter for native field variaInt32ArrayConstLen, being an array with
+fixed element count of 3 elements.</p>
+<p>Native Field Signature (ArrayType) 'int32_t <em>', size [fixed false,
+lnx64 12], const[false], array</em>1</p>
+<p>Copies the given source elements into the respective field's existing
+memory.</p>
+<p>Parameters:</p>
+<ul>
+<li>src the source array of elements</li>
+<li>srcPos starting element position within the source array with
+'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+otherwise an IndexOutOfBoundsException is thrown</li>
+<li>destPos starting element position within the destination with
+'destPos &gt;= 0<code>&amp;&amp;</code>destPos + length &lt;=
+elemCount`, otherwise an exception is thrown</li>
+<li>length the element count to be copied with 'length &gt;=
+0<code>&amp;&amp;</code>srcPos + length &lt;=
+src.length<code>&amp;&amp;</code>destPos + length &lt;= elemCount`,
+otherwise an IndexOutOfBoundsException is thrown</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>this instance of chaining</li>
+</ul></li>
 </ul>
 <h4 id="signature-int32_t--constelemcount-3-natively-owned">Signature
 <code>int32_t *</code> ConstElemCount 3, Natively owned</h4>
@@ -1449,9 +1496,49 @@ IndexOutOfBoundsException is thrown</li>
 <li>this instance of chaining</li>
 </ul></li>
 </ul>
+<h4 id="signature-int32_t--customsize-ambiguous-ownership">Signature
+<code>int32_t *</code> CustomSize, Ambiguous ownership</h4>
+<ul>
+<li><p><code>TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32PointerCustomLen(boolean subset, int[] src, int srcPos, int destPos, int length)</code></p>
+<p>Setter for native field variaInt32PointerCustomLen, referencing a
+mixed and ambigously owned (warning) array with variable element count
+of getVariaInt32PointerCustomLenElemCount() elements.</p>
+<p>Native Signature:</p>
+<ul>
+<li>field-type (PointerType) 'int32_t <em>' -&gt; (int32_t) * , size
+[fixed false, lnx64 8], const[false], pointer</em>1</li>
+<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+const[false], int</li>
+</ul>
+<p>Copies the given source elements into the respective field, either
+writing into the existing memory or creating a new memory and
+referencing it.</p>
+<p>Parameters:</p>
+<ul>
+<li>subset if <code>true</code> keeps the underlying memory and only
+allows to set up to <code>elemCount</code> elements. Otherwise may
+replace the underlying memory if
+<code>destPos + length != elemCount</code>.</li>
+<li>src the source array of elements</li>
+<li>srcPos starting element position within the source array with
+'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+otherwise an IndexOutOfBoundsException is thrown</li>
+<li>destPos starting element position within the destination with
+'destPos &gt;= 0<code>. If </code>subset == true<code>, </code>destPos +
+length &lt;= elemCount<code>also must be be</code>true`. Otherwise an
+exception is thrown</li>
+<li>length the element count to be copied with 'length &gt;=
+0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`, otherwise an
+IndexOutOfBoundsException is thrown</li>
+</ul>
+<p>Returns:</p>
+<ul>
+<li>this instance of chaining</li>
+</ul></li>
+</ul>
 <h4
-id="signature-const-int32_t--customsize-ambiguous-java-owned">Signature
-<code>const int32_t *</code> CustomSize, Ambiguous, Java owned</h4>
+id="signature-const-int32_t--customsize-ambiguous-ownership">Signature
+<code>const int32_t *</code> CustomSize, Ambiguous ownership</h4>
 <ul>
 <li><p><code>TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setConstInt32PointerCustomLen(int[] src, int srcPos, int length)</code></p>
 <p>Setter for native field constIntxxPointerCustomLen, referencing a
