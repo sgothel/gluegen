@@ -1632,6 +1632,14 @@ public class JavaEmitter implements GlueEmitter {
               System.err.printf("SE.ac.%02d: baseCType %s%n", (i+1), baseCElemType.getDebugString());
           }
 
+          if( !baseCElemType.hasSize() ) { // like 'void*' -> 'void'
+              final String msg = "SKIP unsized field in struct: "+returnSizeLookupName+": fieldType "+fieldType.getSignature(null).toString()+", baseType "+baseCElemType.getSignature(null).toString();
+              unit.emitln("  // "+msg);
+              unit.emitln();
+              LOG.log(WARNING, structCType.getASTLocusTag(), msg);
+              return;
+          }
+
           isPrimitive = baseCElemType.isPrimitive();
           isConstValue = baseCElemType.isConst();
           try {
