@@ -380,7 +380,7 @@ public class GlueGen implements GlueEmitterControls {
         String outputRootDir = null;
         final List<String> cfgFiles = new ArrayList<String>();
         boolean copyCPPOutput2Stderr = false;
-        boolean enablePragmaOnce = false;
+        boolean enablePragmaOnce = true;
 
         final List<String> includePaths = new ArrayList<String>();
         for (int i = 0; i < args.length; i++) {
@@ -403,6 +403,8 @@ public class GlueGen implements GlueEmitterControls {
                 } else if (arg.equals("--dumpCPP")) {
                     copyCPPOutput2Stderr=true;
                 } else if (arg.equals("--enablePragmaOnce")) {
+                    enablePragmaOnce=true;
+                } else if (arg.equals("--disablePragmaOnce")) {
                     enablePragmaOnce=true;
                 } else {
                     usage();
@@ -453,7 +455,8 @@ public class GlueGen implements GlueEmitterControls {
         out.println("-Cjava-emitter.cfg.");
         out.println("  --debug enables debug mode");
         out.println("  --dumpCPP directs CPP to dump all output to stderr as well");
-        out.println("  --enablePragmaOnce allow handle of #pragma once directive during parsing");
+        out.println("  --enablePragmaOnce allow handle of #pragma once directive during parsing (default)");
+        out.println("  --disablePragmaOnce disable handling of #pragma once directive during parsing");
         exit(1);
     }
 }

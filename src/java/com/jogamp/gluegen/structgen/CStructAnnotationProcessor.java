@@ -100,7 +100,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
     private static final String STRUCTGENOUTPUT_OPTION = "structgen.output";
     private static final String STRUCTGENPRAGMA_ONCE = "structgen.enable.pragma.once";
     private static final String STRUCTGENOUTPUT = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENOUTPUT_OPTION, true, "gensrc");
-    private static final String STRUCTGENPRAGMAONCE = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENPRAGMA_ONCE, true, "false");
+    private static final String STRUCTGENPRAGMAONCE = PropertyAccess.getProperty("jogamp.gluegen."+STRUCTGENPRAGMA_ONCE, true, "true");
 
     private Filer filer;
     private Messager messager;
