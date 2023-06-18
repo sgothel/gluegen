@@ -1868,6 +1868,9 @@ public class JavaEmitter implements GlueEmitter {
                                           null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   if( isConstValue ) {
                       // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      if( Ownership.Native == ownership ) {
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                      }
                       unit.emitln(" {");
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
                       unit.emit  ("    eb.getByteBuffer()");
@@ -1962,6 +1965,9 @@ public class JavaEmitter implements GlueEmitter {
                       // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
                       generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
                                               baseJElemTypeName+"[]", SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
+                      if( Ownership.Native == ownership ) {
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                      }
                       unit.emitln(" {");
                       unit.emitln(SetReplaceArrayArgsCheck);
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", length);");
@@ -1998,6 +2004,9 @@ public class JavaEmitter implements GlueEmitter {
               } else /* if( !constElemCount && isPointer ) */ {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, SetArrayArgsPre,
                                           baseJElemTypeName+"[]", SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
+                  if( Ownership.Native == ownership ) {
+                      throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                  }
                   unit.emitln(" {");
                   unit.emitln(SetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -2097,6 +2106,9 @@ public class JavaEmitter implements GlueEmitter {
                       // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
                       generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
                                               baseJElemTypeName+"[]", SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
+                      if( Ownership.Native == ownership ) {
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                      }
                       unit.emitln(" {");
                       unit.emitln(SetReplaceArrayArgsCheck);
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), length);");
@@ -2129,6 +2141,9 @@ public class JavaEmitter implements GlueEmitter {
               } else /* if( !constElemCount && isPointer ) */ {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, SetArrayArgsPre,
                                           baseJElemTypeName+"[]", SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
+                  if( Ownership.Native == ownership ) {
+                      throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                  }
                   unit.emitln(" {");
                   unit.emitln(SetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
