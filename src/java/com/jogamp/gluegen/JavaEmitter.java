@@ -126,6 +126,20 @@ public class JavaEmitter implements GlueEmitter {
       private final String javaName;
   }
 
+  /**
+   * Resource ownership.
+   */
+  public enum Ownership {
+      /** Parent ownership of resource, i.e. derived-from and shared-with compounding parent resource. */
+      Parent,
+      /** Java ownership of resource. */
+      Java,
+      /** Native ownership of resource. */
+      Native,
+      /** Ambiguous mixed ownership of resource, i.e. {@Link #Java} or {@link #Native}. */
+      Mixed;
+  }
+
   private JavaCodeUnit javaUnit;      // Covers either interface or, in AllStatic mode, everything
   private JavaCodeUnit javaImplUnit;  // Only used in non-AllStatic modes for impl class
   private CCodeUnit cUnit;
@@ -1089,7 +1103,7 @@ public class JavaEmitter implements GlueEmitter {
                                        field + "\" in type \"" + structCTypeName + "\")",
                                        fieldType.getASTLocusTag());
           }
-          generateGetterSignature(javaUnit, fieldType, false, false, fieldType.getName(), fieldName, capitalizeString(fieldName), null, false, false, null, null);
+          generateGetterSignature(javaUnit, false, false, fieldName, fieldType, Ownership.Parent, fieldType.getName(), capitalizeString(fieldName), null, false, false, null, null);
           javaUnit.emitln(" {");
           javaUnit.emitln("    return " + fieldType.getName() + ".create( accessor.slice( " +
                            fieldName+"_offset[mdIdx], "+fieldName+"_size[mdIdx] ) );");
@@ -1128,7 +1142,7 @@ public class JavaEmitter implements GlueEmitter {
 
             if( !immutableField && !fieldType.isConst() ) {
                 // Setter
-                generateSetterSignature(javaUnit, fieldType, MethodAccess.PUBLIC, false, false, containingJTypeName, fieldName, capFieldName, null, javaTypeName, null, false, false, null, null, null);
+                generateSetterSignature(javaUnit, MethodAccess.PUBLIC, false, false, fieldName, fieldType, Ownership.Parent, containingJTypeName, capFieldName, null, javaTypeName, null, false, false, null, null, null);
                 javaUnit.emitln(" {");
                 if( fieldTypeNativeSizeFixed ) {
                     javaUnit.emitln("    accessor.set" + capJavaTypeName + "At(" + fieldName+"_offset[mdIdx], src);");
@@ -1141,7 +1155,7 @@ public class JavaEmitter implements GlueEmitter {
             }
 
             // Getter
-            generateGetterSignature(javaUnit, fieldType, false, false, javaTypeName, fieldName, capFieldName, null, false, false, null, null);
+            generateGetterSignature(javaUnit, false, false, fieldName, fieldType, Ownership.Parent, javaTypeName, capFieldName, null, false, false, null, null);
             javaUnit.emitln(" {");
             javaUnit.emit  ("    return ");
             if( fieldTypeNativeSizeFixed ) {
@@ -1201,58 +1215,115 @@ public class JavaEmitter implements GlueEmitter {
   // Internals only below this point
   //
   private void generateArrayFieldNote(final CodeUnit unit, final String leadIn, final String leadOut,
-                                      final Type origFieldType, final String fieldName,
-                                      final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr) {
+                                      final String fieldName, final Type fieldType, final Ownership ownership,
+                                      final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr,
+                                      final boolean multiline, final boolean startNewPara) {
+      final boolean isPointer;
+      final Type referencedType;
+      {
+          final PointerType pointerType = fieldType.asPointer();
+          if( null != pointerType ) {
+              isPointer = true;
+              referencedType = pointerType.getBaseElementType();
+          } else {
+              isPointer = false;
+              referencedType = null;
+          }
+      }
+      // isPointer = true;
+      if( multiline ) {
+          if( startNewPara ) {
+              unit.emitln("   * <p>");
+          }
+          unit.emit  ("   * ");
+      }
       if( null != leadIn ) {
           unit.emit(leadIn+" ");
       }
-      unit.emit("native field <code>"+fieldName+"</code>, referencing ");
+      final String ownershipTerm;
+      switch( ownership ) {
+          case Parent: ownershipTerm = "an"; break;
+          case Java: ownershipTerm = "a <i>Java</i> owned"; break;
+          case Native: ownershipTerm = "a <i>natively</i> owned"; break;
+          default: ownershipTerm = "a <i>mixed and ambigously</i> owned (<b>warning</b>)"; break;
+      }
+      final String relationship = isPointer ? "referencing" : "being";
+
+      unit.emit("native field <code>"+fieldName+"</code>, "+relationship+" "+ownershipTerm+" array with "+(constElemCount?"fixed":"variable")+" element count");
       if( null != elemCountExpr ) {
-          unit.emit((constElemCount?"a natively owned array with fixed":"an array with initial")+" element count of <code>"+elemCountExpr+"</code>.");
+          if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
+              unit.emit(" of {@link #"+elemCountExpr+"} ");
+          } else {
+              unit.emit(" of <code>"+elemCountExpr+"</code> ");
+          }
+          if( constElemCount || Ownership.Mixed == ownership ) {
+              unit.emit("elements.");
+          } else {
+              unit.emit("initial elements.");
+          }
       } else {
-          unit.emit((constElemCount?"a natively owned":"an")+" array.");
+          unit.emit(".");
+      }
+      if( multiline ) {
+          unit.emitln();
+          if( startNewPara ) {
+              unit.emitln("   * </p>");
+          }
       }
       if( maxOneElem ) {
-          unit.emit(" Maximum element count is <code>1</code>.");
+          if( multiline ) {
+              unit.emitln("   * <p>");
+              unit.emitln("   * Maximum element count is <code>1</code>.");
+              unit.emitln("   * </p>");
+          } else {
+              unit.emit(" Maximum element count is <code>1</code>.");
+          }
       }
-      if( null == leadOut ) {
-          unit.emitln();
+      if( multiline ) {
           unit.emitln("   * <p>");
-          unit.emitln("   * NativeSig <code>"+origFieldType.getSignature(null).toString()+"</code>");
+          if( null == referencedType ) {
+              unit.emitln("   * Native Field Signature <code>"+fieldType.getSignature(null).toString()+"</code>");
+          } else {
+              unit.emitln("   * Native Signature:");
+              unit.emitln("   * <ul>");
+              unit.emitln("   *   <li>field-type <code>"+fieldType.getSignature(null).toString()+"</code></li>");
+              unit.emitln("   *   <li>referenced <code>"+referencedType.getSignature(null).toString()+"</code></li>");
+              unit.emitln("   * </ul>");
+          }
           unit.emitln("   * </p>");
       } else {
-          unit.emit(" NativeSig <code>"+origFieldType.getSignature(null).toString()+"</code>");
+          unit.emit(" NativeSig <code>"+fieldType.getSignature(null).toString()+"</code>");
+      }
+      if( null != leadOut ) {
           unit.emit(" "+leadOut);
+      }
+      if( !multiline) {
           unit.emitln();
       }
   }
-  private void generateIsNullSignature(final CodeUnit unit, final Type origFieldType,
-                                       final boolean abstractMethod, final String fieldName,
-                                       final String capitalizedFieldName,
-                                       final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr) {
+  private void generateIsNullSignature(final CodeUnit unit, final boolean abstractMethod,
+                                       final String fieldName, final Type fieldType, final Ownership ownership,
+                                       final String capitalizedFieldName, final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr) {
       unit.emitln("  /**");
       unit.emitln("   * Returns `true` if native pointer <code>"+fieldName+"</code> is `null`, otherwise `false`.");
-      unit.emitln("   * <p>");
-      generateArrayFieldNote(unit, "   * Corresponds to", null, origFieldType, fieldName, constElemCount, maxOneElem, elemCountExpr);
-      unit.emitln("   * </p>");
+      generateArrayFieldNote(unit, "Corresponds to", null, fieldName, fieldType, ownership, constElemCount, maxOneElem, elemCountExpr, true, true);
       unit.emitln("   */");
       unit.emit("  public " + (abstractMethod ? "abstract " : "final ") + "boolean is" + capitalizedFieldName + "Null()");
   }
-  private void generateReleaseSignature(final CodeUnit unit, final Type origFieldType,
-                                        final boolean abstractMethod,
-                                        final String returnTypeName, final String fieldName, final String capitalizedFieldName,
-                                        final boolean constElemCount, final boolean maxOneElement, final String elemCountExpr) {
+  private void generateReleaseSignature(final CodeUnit unit, final boolean abstractMethod,
+                                        final String fieldName, final Type fieldType, final Ownership ownership, final String returnTypeName,
+                                        final String capitalizedFieldName, final boolean constElemCount, final boolean maxOneElement, final String elemCountExpr) {
       unit.emitln("  /**");
-      generateArrayFieldNote(unit, "   * Releases memory referenced by", null, origFieldType, fieldName, constElemCount, maxOneElement, elemCountExpr);
+      generateArrayFieldNote(unit, "Releases memory referenced by", null, fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, true, false);
       unit.emitln("   */");
       unit.emit("  public " + (abstractMethod ? "abstract " : "final ") + returnTypeName + " release" + capitalizedFieldName + "()");
   }
-  private void generateGetterSignature(final CodeUnit unit, final Type origFieldType,
-                                       final boolean staticMethod, final boolean abstractMethod,
-                                       final String returnTypeName, final String fieldName, final String capitalizedFieldName, final String customArgs,
-                                       final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr, final String apiDocTail) {
+  private void generateGetterSignature(final CodeUnit unit, final boolean staticMethod, final boolean abstractMethod,
+                                       final String fieldName, final Type fieldType, final Ownership ownership, final String returnTypeName,
+                                       final String capitalizedFieldName, final String customArgs, final boolean constElemCount,
+                                       final boolean maxOneElem, final String elemCountExpr, final String apiDocTail) {
       unit.emitln("  /**");
-      generateArrayFieldNote(unit, "   * Getter for", null, origFieldType, fieldName, constElemCount, maxOneElem, elemCountExpr);
+      generateArrayFieldNote(unit, "Getter for", null, fieldName, fieldType, ownership, constElemCount, maxOneElem, elemCountExpr, true, false);
       if( null != apiDocTail ) {
           unit.emitln("   * "+apiDocTail);
       }
@@ -1263,14 +1334,13 @@ public class JavaEmitter implements GlueEmitter {
       }
       unit.emit(")");
   }
-  private void generateSetterSignature(final CodeUnit unit, final Type origFieldType, final MethodAccess accessMod,
-                                       final boolean staticMethod, final boolean abstractMethod,
-                                       final String returnTypeName, final String fieldName, final String capitalizedFieldName,
-                                       final String customArgsPre, final String paramTypeName, final String customArgsPost,
-                                       final boolean constElemCount, final boolean maxOneElem,
-                                       final String elemCountExpr, final String apiDocDetail, final String apiDocArgs) {
+  private void generateSetterSignature(final CodeUnit unit, final MethodAccess accessMod, final boolean staticMethod, final boolean abstractMethod,
+                                       final String fieldName, final Type fieldType, final Ownership ownership, final String returnTypeName,
+                                       final String capitalizedFieldName, final String customArgsPre, final String paramTypeName,
+                                       final String customArgsPost, final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr,
+                                       final String apiDocDetail, final String apiDocArgs) {
       unit.emitln("  /**");
-      generateArrayFieldNote(unit, "   * Setter for", null, origFieldType, fieldName, constElemCount, maxOneElem, elemCountExpr);
+      generateArrayFieldNote(unit, "Setter for", null, fieldName, fieldType, ownership, constElemCount, maxOneElem, elemCountExpr, true, false);
       if( null != apiDocDetail ) {
           unit.emitln("   * <p>");
           unit.emitln("   * "+apiDocDetail);
@@ -1507,7 +1577,10 @@ public class JavaEmitter implements GlueEmitter {
                                    returnSizeLookupName + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
       }
       if( GlueGen.debug() ) {
-          System.err.printf("SE.ac.%02d: javaType  %s%n", (i+1), javaType.getDebugString());
+          System.err.printf("SE.ac.%02d: fieldName %s%n", (i+1), fieldName);
+          System.err.printf("SE.ac.%02d: structCType %s, %s%n", (i+1), structCType.toString(), structCType.getSignature(null).toString());
+          System.err.printf("SE.ac.%02d: fieldType   %s, %s%n", (i+1), fieldType.toString(), fieldType.getSignature(null).toString());
+          System.err.printf("SE.ac.%02d: javaType    %s, %s%n", (i+1), javaType.toString(), javaType.getSignature(null).toString());
       }
 
       //
@@ -1524,8 +1597,9 @@ public class JavaEmitter implements GlueEmitter {
       final boolean isPrimitive;
       final boolean isConstValue; // Immutable 'const type value', immutable array 'const type value[]', or as mutable pointer 'const type * value'
       final MethodAccess accessMod = MethodAccess.PUBLIC;
+      final Ownership ownership;
       final String elemCountExpr;
-      final boolean constElemCount; // if true, implies native ownership of pointer referenced memory!
+      final boolean constElemCount; // if true, implies native ownership for pointer referenced memory!
       final boolean staticElemCount;
       final JavaType baseJElemType;
       final String baseJElemTypeName;
@@ -1541,6 +1615,7 @@ public class JavaEmitter implements GlueEmitter {
           isConstValue = fieldType.isConst();
           elemCountExpr = "1";
           constElemCount = true;
+          ownership = Ownership.Parent;
           staticElemCount = true;
           baseJElemType = null;
           baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
@@ -1557,6 +1632,7 @@ public class JavaEmitter implements GlueEmitter {
               elemCountExpr = getArrayArrayLengthExpr(arrayType, returnSizeLookupName, _useFixedArrayLen, arrayLengthRes);
               // final int arrayLength = arrayLengthRes[0][0];
               constElemCount = _useFixedArrayLen[0];
+              ownership = Ownership.Parent; // a fixed linear array
               staticElemCount = constElemCount;
               baseCElemType = arrayType.getBaseElementType();
               isPointer = false;
@@ -1578,44 +1654,50 @@ public class JavaEmitter implements GlueEmitter {
                   unit.addTailCode(optStringMaxStrnlenCode);
                   elemCountExpr = "Buffers.strnlen(pString, _max_strnlen)+1";
                   constElemCount = false;
+                  ownership = Ownership.Java;
                   staticElemCount = constElemCount;
               } else if( null == _elemCountExpr ) {
                   useGetCStringLength = false;
                   elemCountExpr = "0";
                   constElemCount = false;
+                  ownership = Ownership.Java;
                   staticElemCount = constElemCount;
               } else {
+                  // null != _elemCountExpr
                   useGetCStringLength = false;
                   elemCountExpr = _elemCountExpr;
                   boolean _constElemCount = false;
                   boolean _staticElemCount = false;
 
-                  if( null != elemCountExpr ) {
-                      // try constant intenger 1st
-                      try {
-                          Integer.parseInt(elemCountExpr);
-                          _constElemCount = true;
-                          _staticElemCount = true;
-                      } catch (final Exception e ) {}
-                      if( !_constElemCount ) {
-                          // check for const length field
-                          if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
-                              final String lenFieldName = decapitalizeString( elemCountExpr.substring(3, elemCountExpr.length()-2) );
-                              final Field lenField = structCType.getField(lenFieldName);
-                              if( null != lenField ) {
-                                  _constElemCount = lenField.getType().isConst();
-                              }
-                              LOG.log(INFO, structCType.getASTLocusTag(),
-                                      unit.className+": elemCountExpr "+elemCountExpr+", lenFieldName "+lenFieldName+" -> "+lenField.toString()+", isConst "+_constElemCount);
+                  // try constant intenger 1st
+                  try {
+                      Integer.parseInt(elemCountExpr);
+                      _constElemCount = true;
+                      _staticElemCount = true;
+                  } catch (final Exception e ) {}
+                  if( !_constElemCount ) {
+                      // check for const length field
+                      if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
+                          final String lenFieldName = decapitalizeString( elemCountExpr.substring(3, elemCountExpr.length()-2) );
+                          final Field lenField = structCType.getField(lenFieldName);
+                          if( null != lenField ) {
+                              _constElemCount = lenField.getType().isConst();
                           }
+                          LOG.log(INFO, structCType.getASTLocusTag(),
+                                  unit.className+": elemCountExpr "+elemCountExpr+", lenFieldName "+lenFieldName+" -> "+lenField.toString()+", isConst "+_constElemCount);
                       }
                   }
                   constElemCount = _constElemCount;
+                  if( constElemCount ) {
+                      ownership = Ownership.Native;
+                  } else {
+                      ownership = Ownership.Mixed;
+                  }
                   staticElemCount = _staticElemCount;
               }
           }
           if( null == elemCountExpr ) {
-              final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
+              final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getSignature(null).toString();
               unit.emitln("  // "+msg);
               unit.emitln();
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
@@ -1629,7 +1711,7 @@ public class JavaEmitter implements GlueEmitter {
           }
           maxOneElement = _maxOneElement;
           if( GlueGen.debug() ) {
-              System.err.printf("SE.ac.%02d: baseCType %s%n", (i+1), baseCElemType.getDebugString());
+              System.err.printf("SE.ac.%02d: baseCType ownership %s, %s%n", (i+1), ownership, baseCElemType.getSignature(null).toString());
           }
 
           if( !baseCElemType.hasSize() ) { // like 'void*' -> 'void'
@@ -1711,10 +1793,10 @@ public class JavaEmitter implements GlueEmitter {
       }
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: baseJElemTypeName %s%n", (i+1), baseJElemTypeName);
-          System.err.printf("SE.ac.%02d: elemCountExpr: %s (const %b), ownArrayLen %b, maxOneElement %b, "+
+          System.err.printf("SE.ac.%02d: elemCountExpr: %s (const %b, ownership %s), ownArrayLenCpde %b, maxOneElement %b, "+
                             "Primitive[buffer %s, fixedSize %b, elemSize %d, sizeDenom %s, sizeExpr %s, isByteBuffer %b], "+
                             "isString[%b, only %b, strnlen %b], isPointer %b, isPrimitive %b, isOpaque %b, constVal %b, immutableAccess %b%n",
-                  (i+1), elemCountExpr, constElemCount, ownElemCountHandling, maxOneElement,
+                  (i+1), elemCountExpr, constElemCount, ownership, ownElemCountHandling, maxOneElement,
                   primJElemTypeBufferName, primCElemFixedSize, primElemSize, baseCElemSizeDenominator, primElemSizeExpr, isByteBuffer,
                   isString, isStringOnly, useGetCStringLength,
                   isPointer, isPrimitive, isOpaque, isConstValue, immutableAccess);
@@ -1725,21 +1807,21 @@ public class JavaEmitter implements GlueEmitter {
       //
       if( ownElemCountHandling ) {
           if( constElemCount ) {
-              generateGetterSignature(unit, fieldType, staticElemCount, false, "int", fieldName, capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
+              generateGetterSignature(unit, staticElemCount, false, fieldName, fieldType, ownership, "int", capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
               unit.emitln(" { return "+elemCountExpr+"; }");
           } else if( useGetCStringLength ) {
-              generateGetterSignature(unit, fieldType, staticElemCount, false, "int", fieldName, capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
+              generateGetterSignature(unit, staticElemCount, false, fieldName, fieldType, ownership, "int", capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
               unit.emitln(" {");
               unit.emitln("    final long pString = PointerBuffer.wrap( accessor.slice(" + fieldName+"_offset[mdIdx],  PointerBuffer.POINTER_SIZE) ).get(0);");
               unit.emitln("    return 0 != pString ? "+elemCountExpr+" : 0;");
               unit.emitln("  }");
           } else {
               unit.emitln("  private int _"+fieldName+"ArrayLen = "+elemCountExpr+"; // "+(constElemCount ? "const" : "initial")+" array length");
-              generateGetterSignature(unit, fieldType, staticElemCount, false, "int", fieldName, capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
+              generateGetterSignature(unit, staticElemCount, false, fieldName, fieldType, ownership, "int", capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
               unit.emitln("  { return _"+fieldName+"ArrayLen; }");
               if( !immutableAccess ) {
-                  generateSetterSignature(unit, fieldType, MethodAccess.PRIVATE, staticElemCount, false, "void", fieldName, capitalFieldName+"ElemCount", null, "int", null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  generateSetterSignature(unit, MethodAccess.PRIVATE, staticElemCount, false, fieldName, fieldType, ownership, "void", capitalFieldName+"ElemCount", null, "int",
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln("  { _"+fieldName+"ArrayLen = src; }");
               }
           }
@@ -1748,13 +1830,13 @@ public class JavaEmitter implements GlueEmitter {
 
       // Null query for pointer
       if( isPointer ) {
-          generateIsNullSignature(unit, fieldType, false, fieldName, capitalFieldName, constElemCount, maxOneElement, elemCountExpr);
+          generateIsNullSignature(unit, false, fieldName, fieldType, ownership, capitalFieldName, constElemCount, maxOneElement, elemCountExpr);
           unit.emitln(" {");
           unit.emitln("    return 0 == PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], 1).get(0);");
           unit.emitln("  }");
           unit.emitln();
           if( !constElemCount && !immutableAccess ) {
-              generateReleaseSignature(unit, fieldType, false, containingJTypeName, fieldName, capitalFieldName, constElemCount, maxOneElement, elemCountExpr);
+              generateReleaseSignature(unit, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, constElemCount, maxOneElement, elemCountExpr);
               unit.emitln(" {");
               unit.emitln("    accessor.setLongAt("+fieldName+"_offset[mdIdx], 0, md.pointerSizeInBytes()); // write nullptr");
               unit.emitln("    _eb"+capitalFieldName+" = null;");
@@ -1769,23 +1851,23 @@ public class JavaEmitter implements GlueEmitter {
 
       // Setter
       if( immutableAccess ) {
-          generateArrayFieldNote(unit, "  /** SKIP setter for immutable", " */", fieldType, fieldName, constElemCount, maxOneElement, elemCountExpr);
+          generateArrayFieldNote(unit, "  /** SKIP setter for immutable", " */", fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, false, false);
           unit.emitln();
-      } else if( isPointer && isConstValue && constElemCount ) {
-          generateArrayFieldNote(unit, "  /** SKIP setter for constValue constElemCount Pointer w/ native ownership", " */", fieldType, fieldName, constElemCount, maxOneElement, elemCountExpr);
+      } else if( isPointer && isConstValue && ( Ownership.Native == ownership || constElemCount ) ) {
+          generateArrayFieldNote(unit, "  /** SKIP setter for constValue constElemCount Pointer w/ native ownership", " */", fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, false, false);
           unit.emitln();
       } else if( !isPointer && isConstValue ) {
-          generateArrayFieldNote(unit, "  /** SKIP setter for constValue Array", " */", fieldType, fieldName, constElemCount, maxOneElement, elemCountExpr);
+          generateArrayFieldNote(unit, "  /** SKIP setter for constValue Array", " */", fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, false, false);
           unit.emitln();
       } else if( isPrimitive ) {
           // Setter Primitive
           if( maxOneElement ) {
               // Setter Primitive Single Pointer + Array
               if( isPointer ) {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, baseJElemTypeName,
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   if( isConstValue ) {
-                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
                       unit.emitln(" {");
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
                       unit.emit  ("    eb.getByteBuffer()");
@@ -1809,8 +1891,9 @@ public class JavaEmitter implements GlueEmitter {
                       }
                       unit.emitln(".put(0, src);");
                       unit.emitln("    } else {");
-                      if( constElemCount ) {
-                          unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of constElemCount and maxOneElement has elemCount \"+elemCount);");
+                      if( constElemCount || Ownership.Native == ownership ) {
+                          unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of "+ownership+" ownership and maxOneElement has "
+                                                  +(constElemCount?"const":"")+"elemCount \"+elemCount);");
                           unit.emitln("    }");
                           unit.emitln("    return this;");
                           unit.emitln("  }");
@@ -1830,8 +1913,8 @@ public class JavaEmitter implements GlueEmitter {
                       }
                   }
               } else { // array && !isConstValue
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, baseJElemTypeName,
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln(" {");
                   unit.emitln("    ElementBuffer.wrap("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
                   unit.emit  ("      .getByteBuffer()");
@@ -1848,14 +1931,15 @@ public class JavaEmitter implements GlueEmitter {
               boolean doneString = false;
 
               if( isString && isByteBuffer && isPointer ) { // isConst is OK
-                  // isConst && constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, "String", null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  // isConst && constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, "String",
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln(" {");
                   unit.emitln("    final byte[] srcBytes = src.getBytes(_charset);");
-                  if( constElemCount ) {
+                  if( constElemCount || Ownership.Native == ownership ) {
                       unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
-                      unit.emitln("    if( srcBytes.length + 1 != elemCount ) { throw new IllegalArgumentException(\"strlen+1 \"+(srcBytes.length+1)+\" != const elemCount \"+elemCount); };");
+                      unit.emitln("    if( srcBytes.length + 1 != elemCount ) { throw new IllegalArgumentException(\"strlen+1 \"+(srcBytes.length+1)+\" != "
+                                      +(constElemCount?"const":"")+" elemCount \"+elemCount+\" of "+ownership+" ownership\"); };");
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
                   } else {
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", srcBytes.length + 1);");
@@ -1872,12 +1956,12 @@ public class JavaEmitter implements GlueEmitter {
                   doneString = true;
               }
               if( doneString && isStringOnly ) {
-                  generateArrayFieldNote(unit, "  /** SKIP setter for String alternative (ByteBuffer)", " */", fieldType, fieldName, constElemCount, maxOneElement, elemCountExpr);
+                  generateArrayFieldNote(unit, "  /** SKIP setter for String alternative (ByteBuffer)", " */", fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, false, false);
               } else if( isConstValue ) {
                   if( isPointer ) {
-                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
-                      generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]",
-                                              SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
+                      // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
+                                              baseJElemTypeName+"[]", SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
                       unit.emitln(" {");
                       unit.emitln(SetReplaceArrayArgsCheck);
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", length);");
@@ -1893,8 +1977,8 @@ public class JavaEmitter implements GlueEmitter {
                       unit.emitln("  }");
                   } // else SKIP setter for constValue Array
               } else if( constElemCount || !isPointer ) {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]",
-                                          SetSubArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetSubArrayApiDocDetail, SetSubArrayApiDocArgs);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
+                                          baseJElemTypeName+"[]", SetSubArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetSubArrayApiDocDetail, SetSubArrayApiDocArgs);
                   unit.emitln(" {");
                   unit.emitln(SetSubArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -1912,8 +1996,8 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    return this;");
                   unit.emitln("  }");
               } else /* if( !constElemCount && isPointer ) */ {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, SetArrayArgsPre, baseJElemTypeName+"[]",
-                                          SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, SetArrayArgsPre,
+                                          baseJElemTypeName+"[]", SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
                   unit.emitln(" {");
                   unit.emitln(SetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -1957,10 +2041,13 @@ public class JavaEmitter implements GlueEmitter {
           if( maxOneElement ) {
               // Setter Struct Single Pointer + Array
               if( isPointer ) {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, baseJElemTypeName,
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   if( isConstValue ) {
-                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      if( Ownership.Native == ownership ) {
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                      }
                       unit.emitln(" {");
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), 1);");
                       unit.emitln("    eb.put(0, src.getBuffer());");
@@ -1976,8 +2063,9 @@ public class JavaEmitter implements GlueEmitter {
                       unit.emitln("      ElementBuffer.derefPointer("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
                       unit.emitln("        .put(0, src.getBuffer());");
                       unit.emitln("    } else {");
-                      if( constElemCount ) {
-                          unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of constElemCount and maxOneElement has elemCount \"+elemCount);");
+                      if( constElemCount || Ownership.Native == ownership ) {
+                          unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of "+ownership+" ownership and maxOneElement has "
+                                                  +(constElemCount?"const":"")+"elemCount \"+elemCount);");
                           unit.emitln("    }");
                           unit.emitln("    return this;");
                           unit.emitln("  }");
@@ -1993,8 +2081,8 @@ public class JavaEmitter implements GlueEmitter {
                       }
                   }
               } else if( !isConstValue ) { // array && !isConstValue
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName, null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, baseJElemTypeName,
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln(" {");
                   unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
                   unit.emitln("      .put(0, src.getBuffer());");
@@ -2006,9 +2094,9 @@ public class JavaEmitter implements GlueEmitter {
               // Setter Struct n Pointer + Array
               if( isConstValue ) {
                   if( isPointer ) {
-                      // constElemCount excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
-                      generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]",
-                                              SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
+                      // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
+                      generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
+                                              baseJElemTypeName+"[]", SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
                       unit.emitln(" {");
                       unit.emitln(SetReplaceArrayArgsCheck);
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), length);");
@@ -2022,8 +2110,8 @@ public class JavaEmitter implements GlueEmitter {
                       unit.emitln("  }");
                   } // else SKIP setter for constValue Array
               } else if( constElemCount || !isPointer ) {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, null, baseJElemTypeName+"[]",
-                                          SetSubArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetSubArrayApiDocDetail, SetSubArrayApiDocArgs);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
+                                          baseJElemTypeName+"[]", SetSubArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetSubArrayApiDocDetail, SetSubArrayApiDocArgs);
                   unit.emitln(" {");
                   unit.emitln(SetSubArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -2039,8 +2127,8 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    return this;");
                   unit.emitln("  }");
               } else /* if( !constElemCount && isPointer ) */ {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, SetArrayArgsPre, baseJElemTypeName+"[]",
-                                          SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, SetArrayArgsPre,
+                                          baseJElemTypeName+"[]", SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
                   unit.emitln(" {");
                   unit.emitln(SetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -2070,8 +2158,8 @@ public class JavaEmitter implements GlueEmitter {
               }
               unit.emitln();
               if( !isConstValue ) {
-                  generateSetterSignature(unit, fieldType, accessMod, false, false, containingJTypeName, fieldName, capitalFieldName, "final int destPos", baseJElemTypeName, null,
-                                          constElemCount, maxOneElement, elemCountExpr, null, null);
+                  generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, "final int destPos", baseJElemTypeName,
+                                          null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln(" {");
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   unit.emitln("    if( destPos + 1 > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + 1 > elemCount \"+elemCount); };");
@@ -2092,8 +2180,8 @@ public class JavaEmitter implements GlueEmitter {
       if( isPrimitive ) {
           // Getter Primitive Pointer + Array
           if( maxOneElement ) {
-              generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null,
-                                      constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
+              generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, baseJElemTypeName, capitalFieldName,
+                                      null, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
               unit.emitln(" {");
               if( isPointer ) {
                   unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
@@ -2110,8 +2198,8 @@ public class JavaEmitter implements GlueEmitter {
           } else {
               boolean doneString = false;
               if( isString && isByteBuffer ) {
-                  generateGetterSignature(unit, fieldType, false, false, "String", fieldName, capitalFieldName+(isStringOnly?"":"AsString"), null,
-                                          constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
+                  generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, "String", capitalFieldName+(isStringOnly?"":"AsString"),
+                                          null, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
                   unit.emitln(" {");
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   if( isPointer ) {
@@ -2131,11 +2219,11 @@ public class JavaEmitter implements GlueEmitter {
                   doneString = true;
               }
               if( doneString && isStringOnly ) {
-                  generateArrayFieldNote(unit, "  /** SKIP getter for String alternative (ByteBuffer)", " */", fieldType, fieldName, constElemCount, maxOneElement, elemCountExpr);
+                  generateArrayFieldNote(unit, "  /** SKIP getter for String alternative (ByteBuffer)", " */", fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, false, false);
                   unit.emitln();
               } else {
-                  generateGetterSignature(unit, fieldType, false, false, primJElemTypeBufferName, fieldName, capitalFieldName, null,
-                                          constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
+                  generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, primJElemTypeBufferName, capitalFieldName,
+                                          null, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
                   unit.emitln(" {");
                   if( isPointer ) {
                       unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", "+getElemCountFuncExpr+", getBuffer(), "+fieldName+"_offset[mdIdx])");
@@ -2151,8 +2239,8 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln();
               }
               if( !doneString ) {
-                  generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs,
-                                          constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
+                  generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, baseJElemTypeName+"[]", capitalFieldName,
+                                          "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
                   unit.emitln(" {");
                   unit.emitln(GetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
@@ -2176,8 +2264,8 @@ public class JavaEmitter implements GlueEmitter {
       } else {
           // Getter Struct Pointer + Array
           if( maxOneElement ) {
-              generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName, fieldName, capitalFieldName, null,
-                                      constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
+              generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, baseJElemTypeName, capitalFieldName,
+                                      null, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
               unit.emitln(" {");
               unit.emitln("    return "+baseJElemTypeName+".create(");
               if( isPointer ) {
@@ -2188,8 +2276,8 @@ public class JavaEmitter implements GlueEmitter {
               unit.emitln("  }");
               unit.emitln();
           } else {
-              generateGetterSignature(unit, fieldType, false, false, baseJElemTypeName+"[]", fieldName, capitalFieldName, "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs,
-                                      constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
+              generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, baseJElemTypeName+"[]", capitalFieldName,
+                                      "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
               unit.emitln(" {");
               unit.emitln(GetArrayArgsCheck);
               unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
