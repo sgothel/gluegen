@@ -1650,16 +1650,8 @@ public class JavaEmitter implements GlueEmitter {
                                           fieldType.getASTLocusTag(), e);
           }
           baseJElemTypeName = baseJElemType.getName();
-          primCElemFixedSize = isPrimitive ? baseCElemType.getSize().hasFixedNativeSize() : true;
+          primCElemFixedSize = isPrimitive ? baseCElemType.getSize().hasFixedNativeSize() : false;
           baseCElemSizeDenominator = baseCElemType.isPointer() ? "pointer" : baseJElemTypeName ;
-
-          if( !primCElemFixedSize ) {
-              final String msg = "SKIP primitive w/ platform dependent sized type in struct: "+returnSizeLookupName+": "+fieldType.getDebugString();
-              unit.emitln("  // "+msg);
-              unit.emitln();
-              LOG.log(WARNING, structCType.getASTLocusTag(), msg);
-              return;
-          }
       }
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: baseJElemType %s%n", (i+1), (null != baseJElemType ? baseJElemType.getDebugString() : null));
@@ -1682,16 +1674,17 @@ public class JavaEmitter implements GlueEmitter {
           primJElemTypeBufferName = primJElemTypeBufferClazz.getSimpleName();
           primElemSize = Buffers.sizeOfBufferElem(primJElemTypeBufferClazz);
           isByteBuffer = null != primJElemTypeBufferClazz ? ByteBuffer.class.isAssignableFrom(primJElemTypeBufferClazz) : false;
+          if( primCElemFixedSize ) {
+              primElemSizeExpr = String.valueOf(primElemSize);
+          } else {
+              primElemSizeExpr = "md."+baseCElemSizeDenominator+"SizeInBytes()";
+          }
       } else {
           primJElemTypeBufferClazz = null;
           primJElemTypeBufferName = null;
           primElemSize = 0;
           isByteBuffer = false;
-      }
-      if( primCElemFixedSize ) {
-          primElemSizeExpr = String.valueOf(primElemSize);
-      } else {
-          primElemSizeExpr = "md."+baseCElemSizeDenominator+"SizeInBytes()";
+          primElemSizeExpr = null;
       }
 
       final String capitalFieldName = capitalizeString(fieldName);
