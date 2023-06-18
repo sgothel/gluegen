@@ -8,6 +8,8 @@ typedef void* ( * T2_ReallocateMemoryFunc)(void* Pointer, size_t SizeInBytes, si
 
 typedef void ( * T2_ReleaseMemoryFunc)(void* Pointer);
 
+typedef void ( * T2_CustomFunc)(void* Pointer);
+
 typedef struct {
     int32_t ApiVersion;
     uint64_t NetworkWork;
@@ -28,7 +30,9 @@ typedef struct {
     
     const char* ProductVersion;
     
-    void* Reserved;
+    void* Reserved1;
+    void* Reserved2;
+    T2_CustomFunc CustomFunc2;
     
     T2_ThreadAffinity* OverrideThreadAffinity;
 } T2_InitializeOptions;
