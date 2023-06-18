@@ -510,10 +510,10 @@ public class JavaType {
       }
       sb.append(val);
   }
-  // For debugging
-  public String getDebugString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("JType[");
+  public final StringBuilder getSignature(StringBuilder sb) {
+    if( null == sb ) {
+        sb = new StringBuilder();
+    }
     boolean prepComma = false;
     {
         final String javaTypeName = getName();
@@ -571,7 +571,16 @@ public class JavaType {
             append(sb, "C-Primitive-Pointer", prepComma); prepComma=true;
         }
     }
-    append(sb, "], descriptor '"+getDescriptor()+"']", prepComma); prepComma=true;
+    append(sb, "], descriptor '"+getDescriptor()+"'", prepComma); prepComma=true;
+    return sb;
+  }
+
+  // For debugging
+  public String getDebugString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("JType[");
+    getSignature(sb);
+    sb.append("]");
     return sb.toString();
   }
 
