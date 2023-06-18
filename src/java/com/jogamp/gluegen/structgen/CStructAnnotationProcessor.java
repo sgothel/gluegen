@@ -217,7 +217,7 @@ public class CStructAnnotationProcessor extends AbstractProcessor {
                 headerParent = root0.substring(0, root0.length()-headerFile.getName().length()-1);
                 rootOut = headerParent.substring(0, headerParent.length()-packageName.length()) + "..";
             }
-            System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", headerParent "+headerParent+", rootOut "+rootOut+", enablePragmaOnce"+enablePragmaOnce);
+            System.err.println("CStruct: "+headerFile+", abs: "+headerFile.isAbsolute()+", headerParent "+headerParent+", rootOut "+rootOut+", enablePragmaOnce "+enablePragmaOnce);
 
             generateStructBinding(element, struct, isPackageOrType, rootOut, packageName, headerFile, headerParent);
         } catch (final IOException ex) {

@@ -104,11 +104,16 @@ public class GlueGen implements GlueEmitterControls {
     public static final String __GLUEGEN__ = "__GLUEGEN__";
 
     @SuppressWarnings("unchecked")
-    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir, final boolean copyCPPOutput2Stderr, final boolean enablePragmaOnce) {
-
+    public void run(final Reader reader, final String filename, final Class<?> emitterClass, final List<String> includePaths, final List<String> cfgFiles, final String outputRootDir,
+                    final boolean copyCPPOutput2Stderr, final boolean enablePragmaOnce)
+    {
         try {
             if(debug) {
                 Logging.getLogger().setLevel(Level.ALL);
+                System.err.println("GlueGen.run: filename: "+filename+", emitter: "+emitterClass.getName()+", outputRootDir "+outputRootDir+
+                                   ", copyCPPOutput2Stderr "+copyCPPOutput2Stderr+", enablePragmaOnce "+enablePragmaOnce);
+                System.err.println("GlueGen.run: includePaths "+includePaths);
+                System.err.println("GlueGen.run: cfgFiles "+cfgFiles);
             } else if( null != logLevel ) {
                 Logging.getLogger().setLevel(logLevel);
             }
