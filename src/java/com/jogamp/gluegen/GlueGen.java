@@ -405,7 +405,7 @@ public class GlueGen implements GlueEmitterControls {
                 } else if (arg.equals("--enablePragmaOnce")) {
                     enablePragmaOnce=true;
                 } else if (arg.equals("--disablePragmaOnce")) {
-                    enablePragmaOnce=true;
+                    enablePragmaOnce=false;
                 } else {
                     usage();
                 }
