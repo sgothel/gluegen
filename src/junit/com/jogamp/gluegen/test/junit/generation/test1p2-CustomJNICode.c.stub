@@ -1,0 +1,5 @@
+
+JNIEXPORT jint JNICALL Java_com_jogamp_gluegen_test_junit_generation_impl_Bindingtest1p2Impl_returnFooImpl(JNIEnv *env, jobject _unused) {
+  return FOO_VALUE;
+}
+

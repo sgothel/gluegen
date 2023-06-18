@@ -722,8 +722,12 @@ public class JavaEmitter implements GlueEmitter {
         if (cfg.allStatic() || cfg.emitInterface()) {
             emitCustomJavaCode(javaUnit(), cfg.className());
         }
+        if( cfg.allStatic() && cfg.emitImpl()) {
+            emitCustomJNICode(cUnit(), cfg.className());
+        }
         if (!cfg.allStatic() && cfg.emitImpl()) {
             emitCustomJavaCode(javaImplUnit(), cfg.implClassName());
+            emitCustomJNICode(cUnit(), cfg.implClassName());
         }
     }
   }
