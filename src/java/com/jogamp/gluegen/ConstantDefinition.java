@@ -760,7 +760,7 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
     public final static Pattern patternIntegerNumber;
 
     /**
-     * One of: {@code +} {@code -} {@code *} {@code /} {@code |} {@code &} {@code (} {@code )} {@code <<} {@code >>}
+     * One of: {@code +} {@code -} {@code *} {@code /} {@code |} {@code &} {@code (} {@code )} {@code <<} {@code >>} {@code ~}
      * <p>
      * Expression excludes {@link #patternDecimalOrIntNumber}.
      * </p>
@@ -949,6 +949,6 @@ public class ConstantDefinition extends AliasedSymbolImpl implements AliasedSema
              ")" +
              WhiteSpace // Optional trailing "whitespace"
              ;
-        patternCPPOperand = Pattern.compile("(?!"+fpOrIntRegex2+")[\\+\\-\\*\\/\\|\\&\\(\\)]|(\\<\\<)|(\\>\\>)");
+        patternCPPOperand = Pattern.compile("(?!"+fpOrIntRegex2+")[\\+\\-\\*\\/\\|\\&\\(\\)]|(\\<\\<)|(\\>\\>)|(\\~)");
     }
 }
