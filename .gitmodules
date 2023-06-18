@@ -1,3 +1,4 @@
 [submodule "jcpp"]
 	path = jcpp
 	url = ../jcpp
+	branch = feature/enable_pragma_once
