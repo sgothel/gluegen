@@ -103,7 +103,7 @@ public class StructLayout {
       } else if (ft.isArray()) {
         final ArrayType arrayType = ft.asArray();
         if(!arrayType.isLayouted()) {
-            final CompoundType compoundElementType = arrayType.getBaseElementType().asCompound();
+            final CompoundType compoundElementType = arrayType.getBaseType().asCompound();
             if (compoundElementType != null) {
               if(!compoundElementType.isLayouted()) {
                   StructLayout.layout(0, compoundElementType);

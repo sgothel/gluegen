@@ -982,7 +982,7 @@ public class JavaEmitter implements GlueEmitter {
           }
           generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, fieldType, field, null);
         } else if (fieldType.isArray()) {
-            final Type baseElementType = field.getType().asArray().getBaseElementType();
+            final Type baseElementType = field.getType().asArray().getBaseType();
             if( GlueGen.debug() ) {
                 System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "array");
                 System.err.printf("SE.os.%02d: baseType %s%n", (i+1), baseElementType.getDebugString());
@@ -1229,7 +1229,7 @@ public class JavaEmitter implements GlueEmitter {
           final PointerType pointerType = fieldType.asPointer();
           if( null != pointerType ) {
               isPointer = true;
-              referencedType = pointerType.getBaseElementType();
+              referencedType = pointerType.getBaseType();
           } else {
               isPointer = false;
               referencedType = null;
@@ -1498,7 +1498,7 @@ public class JavaEmitter implements GlueEmitter {
               hasFixedTypeLen[0] = false;
           }
           if( null != typeIter ) {
-              typeIter = typeIter.getElementType().asArray();
+              typeIter = typeIter.getTargetType().asArray();
           }
       }
       final String cfgVal = cfg.returnedArrayLength(returnSizeLookupName);
@@ -1639,13 +1639,13 @@ public class JavaEmitter implements GlueEmitter {
               constElemCount = _useFixedArrayLen[0];
               ownership = Ownership.Parent; // a fixed linear array
               staticElemCount = constElemCount;
-              baseCElemType = arrayType.getBaseElementType();
+              baseCElemType = arrayType.getBaseType();
               isPointer = false;
               useGetCStringLength = false;
           } else {
               final PointerType pointerType = fieldType.asPointer();
               final String _elemCountExpr = cfg.returnedArrayLength(returnSizeLookupName);
-              baseCElemType = pointerType.getBaseElementType();
+              baseCElemType = pointerType.getBaseType();
               isPointer = true;
               if( 1 != pointerType.pointerDepth() ) {
                   final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+returnSizeLookupName +": "+fieldType;
@@ -2356,7 +2356,7 @@ public class JavaEmitter implements GlueEmitter {
           targetType = cType.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = cType.asArray().getBaseElementType();
+          targetType = cType.asArray().getBaseType();
         }
         if (cType.pointerDepth() == 2 || cType.arrayDimension() == 2) {
           // Get the target type of the target type (targetType was computer earlier
@@ -2401,7 +2401,7 @@ public class JavaEmitter implements GlueEmitter {
           targetType = cType.asPointer().getTargetType();
         } else {
           // t is <type>[], we need to get <type>
-          targetType = cType.asArray().getBaseElementType();
+          targetType = cType.asArray().getBaseType();
         }
 
         // Handle Types of form pointer-to-type or array-of-type, like
@@ -2479,7 +2479,7 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.forNIOPointerBufferClass();
           } else if(targetType.isArray()) {
             // t is<type>[][], targetType is <type>[], we need to get <type>
-            bottomType = targetType.asArray().getBaseElementType();
+            bottomType = targetType.asArray().getBaseType();
             if( GlueGen.debug() ) {
                 LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr.array): {0}, targetType: {1}, bottomType: {2}",
                         cType.getDebugString(), targetType, bottomType);

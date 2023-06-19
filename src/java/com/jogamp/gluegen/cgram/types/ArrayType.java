@@ -111,13 +111,14 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   @Override
   public final ArrayType asArray()      { return this; }
 
-  public Type    getElementType() { return elementType; }
+  @Override
+  public final Type getTargetType() { return elementType; }
   public int     getLength()      { return length;      }
   public boolean hasLength()      { return length >= 0; }
 
   @Override
-  public final Type getBaseElementType() {
-    return elementType.getBaseElementType();
+  public final Type getBaseType() {
+    return elementType.getBaseType();
   }
 
   @Override
@@ -128,7 +129,7 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   /** Recompute the size of this array if necessary. This needs to be
       done when the base element type is a compound type after layouting. */
   void recomputeSize() {
-    final ArrayType arrayElementType = getElementType().asArray();
+    final ArrayType arrayElementType = getTargetType().asArray();
     if (arrayElementType != null) {
       arrayElementType.recomputeSize();
     }

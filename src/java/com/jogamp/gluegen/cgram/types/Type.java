@@ -428,7 +428,7 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
    * </p>
    */
   public final boolean isBaseTypeConst() {
-    return getBaseElementType().isConst();
+    return getBaseType().isConst();
   }
 
   /** Hashcode for Types. */
@@ -568,13 +568,18 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
    * If this is a multidimensional array or pointer method returns the bottom-most element type,
    * otherwise this.
    * </p>
+   * @see #getTargetType()
    */
-  public Type getBaseElementType() {
+  public Type getBaseType() {
       return this;
   }
 
   /**
    * Helper method to returns the target type of this type, in case another type is being referenced.
+   * <p>
+   * If this is an array or pointer method returns the next target element type, otherwise this.
+   * </p>
+   * @see #getBaseType()
    */
   public Type getTargetType() {
       return this;

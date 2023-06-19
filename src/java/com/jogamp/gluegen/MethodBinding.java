@@ -373,7 +373,7 @@ public class MethodBinding {
     if (cRetType.isArray()) {
       // Needs checking of array lengths
       signatureUsesCArrays = true;
-      if (cRetType.asArray().getElementType().isPrimitive()) {
+      if (cRetType.asArray().getTargetType().isPrimitive()) {
         signatureUsesCPrimitivePointers = true;
       }
     }
@@ -415,7 +415,7 @@ public class MethodBinding {
       if (cArgType.isArray()) {
         // Needs checking of array lengths
         signatureUsesCArrays = true;
-        if (cArgType.asArray().getElementType().isPrimitive()) {
+        if (cArgType.asArray().getTargetType().isPrimitive()) {
           signatureUsesCPrimitivePointers = true;
         }
       }

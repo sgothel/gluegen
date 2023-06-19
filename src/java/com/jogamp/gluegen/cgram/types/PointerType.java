@@ -124,13 +124,11 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public final Type getTargetType() {
-        return targetType;
-    }
+    public final Type getTargetType() { return targetType; }
 
     @Override
-    public final Type getBaseElementType() {
-        return targetType.getBaseElementType();
+    public final Type getBaseType() {
+        return targetType.getBaseType();
     }
 
     @Override

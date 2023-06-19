@@ -525,7 +525,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         if (arrt == null) {
           throw new IllegalArgumentException("Type " + type + " should have been a pointer or array type");
         }
-        type = arrt.getElementType();
+        type = arrt.getTargetType();
       }
     }
     if (type.isVoid()) {
@@ -652,7 +652,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                       }
                   }
               } else if( cArgType.isArray() ) {
-                  cArgElementType = cArgType.asArray().getBaseElementType();
+                  cArgElementType = cArgType.asArray().getBaseType();
                   cArgElementType2 = null;
               } else {
                   cArgElementType = null;
@@ -814,7 +814,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               unit.emitln("    for (_copyIndex = 0; _copyIndex < _tmpArrayLen; ++_copyIndex) {");
               unit.emitln("      _tmpObj = (*env)->GetObjectArrayElement(env, " + javaArgName + ", _copyIndex);");
               emitReturnDirectBufferAddress("_tmpObj",
-                                            cArgType.asArray().getBaseElementType().getCName(),
+                                            cArgType.asArray().getBaseType().getCName(),
                                             "("+convName + "_copy + _copyIndex)",
                                             false /* receivingIsPtrPtr */,
                                             null);
@@ -1116,7 +1116,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         if (retType.isPointer()) {
           pointerType = retType.asPointer().getTargetType();
         } else {
-          pointerType = retType.asArray().getBaseElementType();
+          pointerType = retType.asArray().getBaseType();
         }
         unit.emitln("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
                        ", (*env)->NewDirectByteBuffer(env, (void *)_res[" + arrayIdx + "], sizeof(" + pointerType.getCName() + ")));");
