@@ -2,14 +2,12 @@
 #include <gluegen_stdint.h>
 #include <gluegen_stddef.h>
 
+typedef struct T2_Anonymous* T2_AnonPtr;
+
 typedef struct {
     int32_t ApiVersion;
     uint64_t NetworkWork;
-    uint64_t StorageIo;
-    uint64_t WebSocketIo;
-    uint64_t P2PIo;
-    uint64_t HttpRequestIo;
-    uint64_t RTCIo;
+    T2_AnonPtr anonPtr;
 } T2_ThreadAffinity;
 
 typedef struct {
