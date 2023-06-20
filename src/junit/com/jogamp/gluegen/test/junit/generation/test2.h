@@ -29,7 +29,7 @@ typedef struct {
     
     void* Reserved1;
     T2_CustomFuncA CustomFuncA1;
-    T2_CustomFuncA CustomFuncA2;
+    const T2_CustomFuncA CustomFuncA2;
     T2_CustomFuncB CustomFuncB1;
     T2_CustomFuncB CustomFuncB2;
     

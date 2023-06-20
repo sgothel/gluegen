@@ -1098,15 +1098,8 @@ public class JavaEmitter implements GlueEmitter {
         if ( fieldType.isFunctionPointer() && !isOpaqueField ) {
             final FunctionSymbol func = new FunctionSymbol(field.getName(), fieldType.asPointer().getTargetType().asFunction());
             func.rename(renamed); // null is OK
-            generateFunctionPointerCode(methodBindingSet, javaUnit, jniUnit, structCTypeName,
-                                        containingCType, containingJType, i, func, fqStructFieldName1);
             final String javaTypeName = "long";
             final String capFieldName = capitalizeString(fieldName);
-            generateIsNullSignature(javaUnit, false, fieldName, fieldType, Ownership.Parent, capFieldName, false, false, null);
-            javaUnit.emitln(" {");
-            javaUnit.emitln("    return 0 == accessor.getLongAt(" + fieldName+"_offset[mdIdx], md.pointerSizeInBytes());");
-            javaUnit.emitln("  }");
-            javaUnit.emitln();
             if( !immutableField && !fieldType.isConst() ) {
                 // Setter
                 generateSetterSignature(javaUnit, MethodAccess.PUBLIC, false, false, fieldName, fieldType, Ownership.Parent, containingJTypeName, capFieldName, null, javaTypeName, null, false, false, null, null, null);
@@ -1122,6 +1115,8 @@ public class JavaEmitter implements GlueEmitter {
             javaUnit.emitln("    return accessor.getLongAt(" + fieldName+"_offset[mdIdx], md.pointerSizeInBytes());");
             javaUnit.emitln("  }");
             javaUnit.emitln();
+            generateFunctionPointerCode(methodBindingSet, javaUnit, jniUnit, structCTypeName,
+                                        containingCType, containingJType, i, func, fqStructFieldName1);
         } else if ( fieldType.isCompound() && !isOpaqueField ) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate a name?)

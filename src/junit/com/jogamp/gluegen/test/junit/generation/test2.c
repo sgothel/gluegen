@@ -24,13 +24,13 @@ static int32_t CustomFuncB2(T2_UserData* pUserData) {
 int Initialize(T2_InitializeOptions* Options) {
     Options->ProductName = calloc(100, sizeof(char));
     Options->ProductVersion = calloc(100, sizeof(char));
-    strncpy(Options->ProductName, "Product Name", 100);
-    strncpy(Options->ProductVersion, "Product Version", 100);
+    strncpy((char*)Options->ProductName, "Product Name", 100); // yuck: nonsense-warning
+    strncpy((char*)Options->ProductVersion, "Product Version", 100); // yuck: nonsense-warning
     Options->ApiVersion = 1;
 
     Options->Reserved1 = NULL;
     Options->CustomFuncA1 = CustomFuncA1;
-    Options->CustomFuncA2 = CustomFuncA2;
+    *( (T2_CustomFuncA*) &Options->CustomFuncA2 ) = CustomFuncA2; // yuck: real yuck
     Options->CustomFuncB1 = CustomFuncB1;
     Options->CustomFuncB2 = CustomFuncB2;
     
@@ -39,15 +39,15 @@ int Initialize(T2_InitializeOptions* Options) {
 
 int Release(T2_InitializeOptions* Options) {
     if( NULL != Options->ProductName ) {
-        free( Options->ProductName );
+        free( (void*) Options->ProductName ); // yuck: nonsense-warning
         Options->ProductName = NULL;
     }
     if( NULL != Options->ProductVersion ) {
-        free( Options->ProductVersion );
+        free( (void*) Options->ProductVersion ); // yuck: nonsense-warning
         Options->ProductVersion = NULL;
     }
     Options->CustomFuncA1 = NULL;
-    Options->CustomFuncA2 = NULL;
+    // Options->CustomFuncA2 = NULL; // keep const
     Options->CustomFuncB1 = NULL;
     Options->CustomFuncB2 = NULL;
 }

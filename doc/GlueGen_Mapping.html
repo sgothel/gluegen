@@ -1689,10 +1689,9 @@ IndexOutOfBoundsException is thrown</li>
 <h3 id="struct-function-pointer-support">Struct Function Pointer
 Support</h3>
 <p>GlueGen supports function pointers as struct fields,<br />
-generating function calls as methods as well as
-<code>is&lt;FuncName&gt;Null()</code> checks<br />
-and function pointer opaque getter and setter as <code>long</code>
-types.</p>
+generating function calls as methods as well function-pointer opaque
+getter and setter as <code>long</code> types.<br />
+The latter only in case if mutable, i.e. non-const.</p>
 <h4 id="example">Example</h4>
 <p>Assume the following C Header file example:</p>
 <pre><code>typedef struct {
@@ -1704,7 +1703,7 @@ typedef int32_t ( * T2_CustomFuncA)(void* aptr);
 typedef int32_t ( * T2_CustomFuncB)(T2_UserData* pUserData);
 
 typedef struct {
-    T2_CustomFuncA CustomFuncA1;
+    const T2_CustomFuncA CustomFuncA1;
     T2_CustomFuncB CustomFuncB1;
 } T2_InitializeOptions;</code></pre>
 <p>and the following GlueGen <em>no-magic</em> configuration</p>
@@ -1716,52 +1715,19 @@ StructPackage T2_UserData com.jogamp.gluegen.test.junit.generation
 EmitStruct T2_InitializeOptions
 StructPackage T2_InitializeOptions com.jogamp.gluegen.test.junit.generation</code></pre>
 <p>This will lead to the following result for
-<code>T2_InitializeOptions.customFuncA1</code></p>
-<pre><code>  /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t CustomFuncA1(void *  aptr)&lt;/code&gt;&lt;br&gt;   */
-  public final int CustomFuncA1(long aptr)  { ... }
-  
-  /**
-   * Returns `true` if native pointer &lt;code&gt;CustomFuncA1&lt;/code&gt; is `null`, otherwise `false`.
-   * &lt;p&gt;
-   * Corresponds to native field &lt;code&gt;CustomFuncA1&lt;/code&gt;, being a &lt;i&gt;struct&lt;/i&gt; owned function pointer.
-   * &lt;/p&gt;
-   * &lt;p&gt;
-   * Native Field Signature &lt;code&gt;(PointerType) typedef &#39;T2_CustomFuncA&#39; -&gt; int32_t (*)(void *  aptr), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer&lt;/code&gt;
-   * &lt;/p&gt;
-   */
-  public final boolean isCustomFuncA1Null() { .. }
-
-  /**
-   * Setter for native field &lt;code&gt;CustomFuncA1&lt;/code&gt;, being a &lt;i&gt;struct&lt;/i&gt; owned function pointer.
-   * &lt;p&gt;
-   * Native Field Signature &lt;code&gt;(PointerType) typedef &#39;T2_CustomFuncA&#39; -&gt; int32_t (*)(void *  aptr), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer&lt;/code&gt;
-   * &lt;/p&gt;
-   */
-  public final T2_InitializeOptions setCustomFuncA1(long src) { .. }
-
-  /**
+<code>const T2_CustomFuncA customFuncA1</code></p>
+<pre><code>  /**
    * Getter for native field &lt;code&gt;CustomFuncA1&lt;/code&gt;, being a &lt;i&gt;struct&lt;/i&gt; owned function pointer.
    * &lt;p&gt;
    * Native Field Signature &lt;code&gt;(PointerType) typedef &#39;T2_CustomFuncA&#39; -&gt; int32_t (*)(void *  aptr), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer&lt;/code&gt;
    * &lt;/p&gt;
    */
-  public final long getCustomFuncA1() { .. }    </code></pre>
-<p>and similar to <code>T2_InitializeOptions.customFuncB1</code></p>
-<pre><code>  /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t CustomFuncB1(T2_UserData *  pUserData)&lt;/code&gt;&lt;br&gt;   */
-  public final int CustomFuncB1(T2_UserData pUserData)  { .. }
+  public final long getCustomFuncA1() { .. }
   
-  /**
-   * Returns `true` if native pointer &lt;code&gt;CustomFuncB1&lt;/code&gt; is `null`, otherwise `false`.
-   * &lt;p&gt;
-   * Corresponds to native field &lt;code&gt;CustomFuncB1&lt;/code&gt;, being a &lt;i&gt;struct&lt;/i&gt; owned function pointer.
-   * &lt;/p&gt;
-   * &lt;p&gt;
-   * Native Field Signature &lt;code&gt;(PointerType) typedef &#39;T2_CustomFuncB&#39; -&gt; int32_t (*)(T2_UserData *  pUserData), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer&lt;/code&gt;
-   * &lt;/p&gt;
-   */
-  public final boolean isCustomFuncB1Null() { .. }
-
-  /**
+  /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t CustomFuncA1(void *  aptr)&lt;/code&gt;&lt;br&gt;   */
+  public final int CustomFuncA1(long aptr)  { ... }  </code></pre>
+<p>and similar to <code>T2_CustomFuncB customFuncB1</code></p>
+<pre><code>  /**
    * Setter for native field &lt;code&gt;CustomFuncB1&lt;/code&gt;, being a &lt;i&gt;struct&lt;/i&gt; owned function pointer.
    * &lt;p&gt;
    * Native Field Signature &lt;code&gt;(PointerType) typedef &#39;T2_CustomFuncB&#39; -&gt; int32_t (*)(T2_UserData *  pUserData), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer&lt;/code&gt;
@@ -1776,7 +1742,9 @@ StructPackage T2_InitializeOptions com.jogamp.gluegen.test.junit.generation</cod
    * &lt;/p&gt;
    */
   public final long getCustomFuncB1() { .. }
-</code></pre>
+  
+  /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t CustomFuncB1(T2_UserData *  pUserData)&lt;/code&gt;&lt;br&gt;   */
+  public final int CustomFuncB1(T2_UserData pUserData)  { .. }  </code></pre>
 <h2 id="platform-header-files">Platform Header Files</h2>
 <p>GlueGen provides convenient platform headers,<br />
 which can be included in your C header files for native compilation and

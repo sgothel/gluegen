@@ -82,20 +82,19 @@ public class Test2 extends BaseClass {
         Assert.assertEquals(true, options.isOverrideThreadAffinityNull());
         Assert.assertEquals(true, options.isProductNameNull());
         Assert.assertEquals(true, options.isProductVersionNull());
-        Assert.assertEquals(true, options.isCustomFuncA1Null());
-        Assert.assertEquals(true, options.isCustomFuncA2Null());
-        Assert.assertEquals(true, options.isCustomFuncB1Null());
-        Assert.assertEquals(true, options.isCustomFuncB2Null());
+        Assert.assertEquals(0, options.getCustomFuncA1());
+        Assert.assertEquals(0, options.getCustomFuncA2());
+        Assert.assertEquals(0, options.getCustomFuncB1());
+        Assert.assertEquals(0, options.getCustomFuncB2());
 
         bt2.Initialize(options);
         Assert.assertEquals(true, options.isOverrideThreadAffinityNull());
         Assert.assertEquals(false, options.isProductNameNull());
         Assert.assertEquals(false, options.isProductVersionNull());
-        Assert.assertEquals(false, options.isCustomFuncA1Null());
-        Assert.assertEquals(false, options.isCustomFuncA2Null());
-        Assert.assertEquals(false, options.isCustomFuncB1Null());
-        Assert.assertEquals(false, options.isCustomFuncB2Null());
-        Assert.assertEquals(false, options.isCustomFuncA1Null());
+        Assert.assertNotEquals(0, options.getCustomFuncA1());
+        Assert.assertNotEquals(0, options.getCustomFuncA2());
+        Assert.assertNotEquals(0, options.getCustomFuncB1());
+        Assert.assertNotEquals(0, options.getCustomFuncB2());
         Assert.assertEquals(1, options.getApiVersion());
         Assert.assertEquals("Product Name", options.getProductName());
         Assert.assertEquals("Product Version", options.getProductVersion());
@@ -135,10 +134,10 @@ public class Test2 extends BaseClass {
         Assert.assertEquals(true, options.isOverrideThreadAffinityNull());
         Assert.assertEquals(true, options.isProductNameNull());
         Assert.assertEquals(true, options.isProductVersionNull());
-        Assert.assertEquals(true, options.isCustomFuncA1Null());
-        Assert.assertEquals(true, options.isCustomFuncA2Null());
-        Assert.assertEquals(true, options.isCustomFuncB1Null());
-        Assert.assertEquals(true, options.isCustomFuncB2Null());
+        Assert.assertEquals(0, options.getCustomFuncA1());
+        // const Assert.assertEquals(0, options.getCustomFuncA2());
+        Assert.assertEquals(0, options.getCustomFuncB1());
+        Assert.assertEquals(0, options.getCustomFuncB2());
     }
 
     public static void main(final String args[]) throws IOException {
