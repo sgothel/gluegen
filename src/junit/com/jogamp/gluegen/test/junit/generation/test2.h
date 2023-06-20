@@ -2,14 +2,6 @@
 #include <gluegen_stdint.h>
 #include <gluegen_stddef.h>
 
-typedef void* ( * T2_AllocateMemoryFunc)(size_t SizeInBytes, size_t Alignment);
-
-typedef void* ( * T2_ReallocateMemoryFunc)(void* Pointer, size_t SizeInBytes, size_t Alignment);
-
-typedef void ( * T2_ReleaseMemoryFunc)(void* Pointer);
-
-typedef void ( * T2_CustomFunc)(void* Pointer);
-
 typedef struct {
     int32_t ApiVersion;
     uint64_t NetworkWork;
@@ -21,21 +13,28 @@ typedef struct {
 } T2_ThreadAffinity;
 
 typedef struct {
-    int32_t ApiVersion;
-    T2_AllocateMemoryFunc AllocateMemoryFunction;
-    T2_ReallocateMemoryFunc ReallocateMemoryFunction;
-    T2_ReleaseMemoryFunc ReleaseMemoryFunction;
-    
+    int32_t balance;
+    const char* name;
+} T2_UserData;
+
+typedef int32_t ( * T2_CustomFuncA)(void* aptr);
+
+typedef int32_t ( * T2_CustomFuncB)(T2_UserData* pUserData);
+
+typedef struct {
     const char* ProductName;
-    
     const char* ProductVersion;
     
+    int32_t ApiVersion;
+    
     void* Reserved1;
-    void* Reserved2;
-    T2_CustomFunc CustomFunc2;
+    T2_CustomFuncA CustomFuncA1;
+    T2_CustomFuncA CustomFuncA2;
+    T2_CustomFuncB CustomFuncB1;
+    T2_CustomFuncB CustomFuncB2;
     
     T2_ThreadAffinity* OverrideThreadAffinity;
 } T2_InitializeOptions;
 
-extern int Initialize(const T2_InitializeOptions* Options);
-extern int Shutdown();
+extern int Initialize(T2_InitializeOptions* Options);
+extern int Release(T2_InitializeOptions* Options);

@@ -537,8 +537,105 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
   Returns:
   * this instance of chaining
 
+### Struct Function Pointer Support
+GlueGen supports function pointers as struct fields,    
+generating function calls as methods as well as `is<FuncName>Null()` checks    
+and function pointer opaque getter and setter as `long` types.
 
+#### Example
+Assume the following C Header file example:
+```
+typedef struct {
+    int32_t balance;
+} T2_UserData;
+
+typedef int32_t ( * T2_CustomFuncA)(void* aptr);
+
+typedef int32_t ( * T2_CustomFuncB)(T2_UserData* pUserData);
+
+typedef struct {
+    T2_CustomFuncA CustomFuncA1;
+    T2_CustomFuncB CustomFuncB1;
+} T2_InitializeOptions;
+```
+
+and the following GlueGen *no-magic* configuration
+```
+Opaque long void* 
+
+EmitStruct T2_UserData
+StructPackage T2_UserData com.jogamp.gluegen.test.junit.generation
     
+EmitStruct T2_InitializeOptions
+StructPackage T2_InitializeOptions com.jogamp.gluegen.test.junit.generation
+```
+
+This will lead to the following result for `T2_InitializeOptions.customFuncA1`
+```
+  /** Interface to C language function: <br> <code>int32_t CustomFuncA1(void *  aptr)</code><br>   */
+  public final int CustomFuncA1(long aptr)  { ... }
+  
+  /**
+   * Returns `true` if native pointer <code>CustomFuncA1</code> is `null`, otherwise `false`.
+   * <p>
+   * Corresponds to native field <code>CustomFuncA1</code>, being a <i>struct</i> owned function pointer.
+   * </p>
+   * <p>
+   * Native Field Signature <code>(PointerType) typedef 'T2_CustomFuncA' -> int32_t (*)(void *  aptr), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer</code>
+   * </p>
+   */
+  public final boolean isCustomFuncA1Null() { .. }
+
+  /**
+   * Setter for native field <code>CustomFuncA1</code>, being a <i>struct</i> owned function pointer.
+   * <p>
+   * Native Field Signature <code>(PointerType) typedef 'T2_CustomFuncA' -> int32_t (*)(void *  aptr), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer</code>
+   * </p>
+   */
+  public final T2_InitializeOptions setCustomFuncA1(long src) { .. }
+
+  /**
+   * Getter for native field <code>CustomFuncA1</code>, being a <i>struct</i> owned function pointer.
+   * <p>
+   * Native Field Signature <code>(PointerType) typedef 'T2_CustomFuncA' -> int32_t (*)(void *  aptr), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer</code>
+   * </p>
+   */
+  public final long getCustomFuncA1() { .. }    
+```
+
+and similar to `T2_InitializeOptions.customFuncB1`
+```
+  /** Interface to C language function: <br> <code>int32_t CustomFuncB1(T2_UserData *  pUserData)</code><br>   */
+  public final int CustomFuncB1(T2_UserData pUserData)  { .. }
+  
+  /**
+   * Returns `true` if native pointer <code>CustomFuncB1</code> is `null`, otherwise `false`.
+   * <p>
+   * Corresponds to native field <code>CustomFuncB1</code>, being a <i>struct</i> owned function pointer.
+   * </p>
+   * <p>
+   * Native Field Signature <code>(PointerType) typedef 'T2_CustomFuncB' -> int32_t (*)(T2_UserData *  pUserData), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer</code>
+   * </p>
+   */
+  public final boolean isCustomFuncB1Null() { .. }
+
+  /**
+   * Setter for native field <code>CustomFuncB1</code>, being a <i>struct</i> owned function pointer.
+   * <p>
+   * Native Field Signature <code>(PointerType) typedef 'T2_CustomFuncB' -> int32_t (*)(T2_UserData *  pUserData), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer</code>
+   * </p>
+   */
+  public final T2_InitializeOptions setCustomFuncB1(long src) { .. }
+
+  /**
+   * Getter for native field <code>CustomFuncB1</code>, being a <i>struct</i> owned function pointer.
+   * <p>
+   * Native Field Signature <code>(PointerType) typedef 'T2_CustomFuncB' -> int32_t (*)(T2_UserData *  pUserData), size [fixed false, lnx64 8], const[false], pointer*1, funcPointer</code>
+   * </p>
+   */
+  public final long getCustomFuncB1() { .. }
+
+```
 
 ## Platform Header Files
 

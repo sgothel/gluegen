@@ -703,16 +703,14 @@ chmod 644 ${results}/* \${line.separator}
         </linker>
 
         <patternset id="junit.test2.jnic.src.files">
-          <include name="${build_t.gen.rootrel}/native/BindingtestT2Impl_JNI.c"/>
-          <!-- include name="${build_t.gen.rootrel}/native/TK_Surface_JNI.c"/ -->
-          <!-- include name="${build_t.gen.rootrel}/native/TK_ModelConst_JNI.c"/ -->
-          <!-- include name="${build_t.gen.rootrel}/native/TK_ModelMutable_JNI.c"/ -->
+          <include name="${build_t.gen.rootrel}/native/Bindingtest2Impl_JNI.c"/>
+          <include name="${build_t.gen.rootrel}/native/T2_InitializeOptions_JNI.c"/>
         </patternset>
 
         <c.build c.compiler.src.files="junit.test2.jnic.src.files"
                  output.lib.name="Bindingtest2"
                  compiler.cfg.id="${compiler.cfg.id}"
-                 linker.cfg.id="linker.test1.runtime.cfg.id"/>
+                 linker.cfg.id="linker.test2.runtime.cfg.id"/>
     </target>
 
 

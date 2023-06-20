@@ -965,10 +965,11 @@ public class JavaEmitter implements GlueEmitter {
         final String fieldName = null==renamed ? field.getName() : renamed;
         final String cfgFieldName1 = JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, fieldName);
         if (fieldType.isFunctionPointer()) {
-          // no offset/size for function pointer ..
           if( GlueGen.debug() ) {
-            System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "SKIP FuncPtr");
+            System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "FuncPtr");
           }
+          generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, null, field, null); /* w/o size */
+          generateOffsetAndSizeArrays(javaUnit, "//", fieldName, fieldType, null, null);
         } else if (fieldType.isCompound()) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate
@@ -1099,6 +1100,28 @@ public class JavaEmitter implements GlueEmitter {
             func.rename(renamed); // null is OK
             generateFunctionPointerCode(methodBindingSet, javaUnit, jniUnit, structCTypeName,
                                         containingCType, containingJType, i, func, fqStructFieldName1);
+            final String javaTypeName = "long";
+            final String capFieldName = capitalizeString(fieldName);
+            generateIsNullSignature(javaUnit, false, fieldName, fieldType, Ownership.Parent, capFieldName, false, false, null);
+            javaUnit.emitln(" {");
+            javaUnit.emitln("    return 0 == accessor.getLongAt(" + fieldName+"_offset[mdIdx], md.pointerSizeInBytes());");
+            javaUnit.emitln("  }");
+            javaUnit.emitln();
+            if( !immutableField && !fieldType.isConst() ) {
+                // Setter
+                generateSetterSignature(javaUnit, MethodAccess.PUBLIC, false, false, fieldName, fieldType, Ownership.Parent, containingJTypeName, capFieldName, null, javaTypeName, null, false, false, null, null, null);
+                javaUnit.emitln(" {");
+                javaUnit.emitln("    accessor.setLongAt(" + fieldName+"_offset[mdIdx], src, md.pointerSizeInBytes());");
+                javaUnit.emitln("    return this;");
+                javaUnit.emitln("  }");
+                javaUnit.emitln();
+            }
+            // Getter
+            generateGetterSignature(javaUnit, false, false, fieldName, fieldType, Ownership.Parent, javaTypeName, capFieldName, null, false, false, null, null);
+            javaUnit.emitln(" {");
+            javaUnit.emitln("    return accessor.getLongAt(" + fieldName+"_offset[mdIdx], md.pointerSizeInBytes());");
+            javaUnit.emitln("  }");
+            javaUnit.emitln();
         } else if ( fieldType.isCompound() && !isOpaqueField ) {
           // FIXME: will need to support this at least in order to
           // handle the union in jawt_Win32DrawingSurfaceInfo (fabricate a name?)
@@ -1223,16 +1246,26 @@ public class JavaEmitter implements GlueEmitter {
                                       final String fieldName, final Type fieldType, final Ownership ownership,
                                       final boolean constElemCount, final boolean maxOneElem, final String elemCountExpr,
                                       final boolean multiline, final boolean startNewPara) {
-      final boolean isPointer;
+      final boolean isArray;
       final Type referencedType;
+      final String relationship;
       {
-          final PointerType pointerType = fieldType.asPointer();
-          if( null != pointerType ) {
-              isPointer = true;
-              referencedType = pointerType.getBaseType();
-          } else {
-              isPointer = false;
+          if( fieldType.isFunctionPointer() ) {
+              isArray = false;
               referencedType = null;
+              relationship = "being";
+          } else if( fieldType.pointerDepth() > 0 ) {
+              isArray = true;
+              referencedType = fieldType.getBaseType();
+              relationship = "referencing";
+          } else if( fieldType.arrayDimension() > 0 ) {
+              isArray = true;
+              referencedType = null;
+              relationship = "being";
+          } else {
+              isArray = false;
+              referencedType = null;
+              relationship = "being";
           }
       }
       // isPointer = true;
@@ -1247,24 +1280,35 @@ public class JavaEmitter implements GlueEmitter {
       }
       final String ownershipTerm;
       switch( ownership ) {
-          case Parent: ownershipTerm = "an"; break;
+          case Parent: ownershipTerm = "a <i>struct</i> owned"; break;
           case Java: ownershipTerm = "a <i>Java</i> owned"; break;
           case Native: ownershipTerm = "a <i>natively</i> owned"; break;
           default: ownershipTerm = "a <i>mixed and ambigously</i> owned (<b>warning</b>)"; break;
       }
-      final String relationship = isPointer ? "referencing" : "being";
-
-      unit.emit("native field <code>"+fieldName+"</code>, "+relationship+" "+ownershipTerm+" array with "+(constElemCount?"fixed":"variable")+" element count");
-      if( null != elemCountExpr ) {
-          if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
-              unit.emit(" of {@link #"+elemCountExpr+"} ");
+      final String what;
+      if( fieldType.isFunctionPointer() ) {
+          what = "function pointer";
+      } else if( isArray ) {
+          what = "array";
+      } else {
+          what = fieldType.getClass().getSimpleName();
+      }
+      unit.emit("native field <code>"+fieldName+"</code>, "+relationship+" "+ownershipTerm+" "+what);
+      if( isArray ) {
+          unit.emit(" with "+(constElemCount?"fixed":"variable")+" element count");
+          if( null != elemCountExpr ) {
+              if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
+                  unit.emit(" of {@link #"+elemCountExpr+"} ");
+              } else {
+                  unit.emit(" of <code>"+elemCountExpr+"</code> ");
+              }
+              if( constElemCount || Ownership.Mixed == ownership ) {
+                  unit.emit("elements.");
+              } else {
+                  unit.emit("initial elements.");
+              }
           } else {
-              unit.emit(" of <code>"+elemCountExpr+"</code> ");
-          }
-          if( constElemCount || Ownership.Mixed == ownership ) {
-              unit.emit("elements.");
-          } else {
-              unit.emit("initial elements.");
+              unit.emit(".");
           }
       } else {
           unit.emit(".");
@@ -1437,6 +1481,7 @@ public class JavaEmitter implements GlueEmitter {
                           false, // isPrivateNativeMethod
                           cfg);
           emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+          emitter.addModifier(JavaMethodBindingEmitter.FINAL);
           emitter.emit();
           javaUnit.emitln();
 
@@ -1572,17 +1617,17 @@ public class JavaEmitter implements GlueEmitter {
                                              final JavaType containingJType,
                                              final int i, final Field field, final String fieldName,
                                              final boolean immutableAccess,
-                                             final String returnSizeLookupName) throws Exception {
+                                             final String fqStructFieldName) throws Exception {
       final Type fieldType = field.getType();
       final JavaType javaType;
       try {
         javaType = typeToJavaType(fieldType, machDescJava);
       } catch (final Exception e) {
         throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
-                                   returnSizeLookupName + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
+                                   fqStructFieldName + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
       }
       if( GlueGen.debug() ) {
-          System.err.printf("SE.ac.%02d: fieldName %s%n", (i+1), fieldName);
+          System.err.printf("SE.ac.%02d: fieldName %s, fqName %s%n", (i+1), fieldName, fqStructFieldName);
           System.err.printf("SE.ac.%02d: structCType %s, %s%n", (i+1), structCType.toString(), structCType.getSignature(null).toString());
           System.err.printf("SE.ac.%02d: fieldType   %s, %s%n", (i+1), fieldType.toString(), fieldType.getSignature(null).toString());
           System.err.printf("SE.ac.%02d: javaType    %s, %s%n", (i+1), javaType.toString(), javaType.getSignature(null).toString());
@@ -1593,8 +1638,8 @@ public class JavaEmitter implements GlueEmitter {
       //
       final String containingJTypeName = containingJType.getName();
       final boolean isOpaque = isOpaque(fieldType);
-      final boolean isStringOnly = cfg.returnsStringOnly(returnSizeLookupName); // exclude alternative ByteBuffer representation to String
-      final boolean isString = isStringOnly || cfg.returnsString(returnSizeLookupName);
+      final boolean isStringOnly = cfg.returnsStringOnly(fqStructFieldName); // exclude alternative ByteBuffer representation to String
+      final boolean isString = isStringOnly || cfg.returnsString(fqStructFieldName);
       if( isString ) {
           unit.addTailCode(optStringCharsetCode);
       }
@@ -1634,7 +1679,7 @@ public class JavaEmitter implements GlueEmitter {
           if( null != arrayType ) {
               final int[][] arrayLengthRes = new int[1][];
               final boolean[] _useFixedArrayLen = { false };
-              elemCountExpr = getArrayArrayLengthExpr(arrayType, returnSizeLookupName, _useFixedArrayLen, arrayLengthRes);
+              elemCountExpr = getArrayArrayLengthExpr(arrayType, fqStructFieldName, _useFixedArrayLen, arrayLengthRes);
               // final int arrayLength = arrayLengthRes[0][0];
               constElemCount = _useFixedArrayLen[0];
               ownership = Ownership.Parent; // a fixed linear array
@@ -1644,11 +1689,11 @@ public class JavaEmitter implements GlueEmitter {
               useGetCStringLength = false;
           } else {
               final PointerType pointerType = fieldType.asPointer();
-              final String _elemCountExpr = cfg.returnedArrayLength(returnSizeLookupName);
+              final String _elemCountExpr = cfg.returnedArrayLength(fqStructFieldName);
               baseCElemType = pointerType.getBaseType();
               isPointer = true;
               if( 1 != pointerType.pointerDepth() ) {
-                  final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+returnSizeLookupName +": "+fieldType;
+                  final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+fqStructFieldName +": "+fieldType;
                   unit.emitln("  // "+msg);
                   unit.emitln();
                   LOG.log(WARNING, structCType.getASTLocusTag(), msg);
@@ -1702,13 +1747,13 @@ public class JavaEmitter implements GlueEmitter {
               }
           }
           if( null == elemCountExpr ) {
-              final String msg = "SKIP unsized array in struct: "+returnSizeLookupName+": "+fieldType.getSignature(null).toString();
+              final String msg = "SKIP unsized array in struct: "+fqStructFieldName+": "+fieldType.getSignature(null).toString();
               unit.emitln("  // "+msg);
               unit.emitln();
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
               return;
           }
-          boolean _maxOneElement = cfg.maxOneElement(returnSizeLookupName);
+          boolean _maxOneElement = cfg.maxOneElement(fqStructFieldName);
           if( !_maxOneElement ) {
               try {
                   _maxOneElement = 1 == Integer.parseInt(elemCountExpr);
@@ -1720,7 +1765,7 @@ public class JavaEmitter implements GlueEmitter {
           }
 
           if( !baseCElemType.hasSize() ) { // like 'void*' -> 'void'
-              final String msg = "SKIP unsized field in struct: "+returnSizeLookupName+": fieldType "+fieldType.getSignature(null).toString()+", baseType "+baseCElemType.getSignature(null).toString();
+              final String msg = "SKIP unsized field in struct: "+fqStructFieldName+": fieldType "+fieldType.getSignature(null).toString()+", baseType "+baseCElemType.getSignature(null).toString();
               unit.emitln("  // "+msg);
               unit.emitln();
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
@@ -1733,7 +1778,7 @@ public class JavaEmitter implements GlueEmitter {
               baseJElemType = typeToJavaType(baseCElemType, machDescJava);
           } catch (final Exception e ) {
               throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
-                                          returnSizeLookupName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(),
+                                          fqStructFieldName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(),
                                           fieldType.getASTLocusTag(), e);
           }
           baseJElemTypeName = baseJElemType.getName();
@@ -1874,7 +1919,7 @@ public class JavaEmitter implements GlueEmitter {
                   if( isConstValue ) {
                       // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
                       if( Ownership.Native == ownership ) {
-                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                       }
                       unit.emitln(" {");
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
@@ -1971,7 +2016,7 @@ public class JavaEmitter implements GlueEmitter {
                       generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
                                               baseJElemTypeName+"[]", SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
                       if( Ownership.Native == ownership ) {
-                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                       }
                       unit.emitln(" {");
                       unit.emitln(SetReplaceArrayArgsCheck);
@@ -2010,7 +2055,7 @@ public class JavaEmitter implements GlueEmitter {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, SetArrayArgsPre,
                                           baseJElemTypeName+"[]", SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
                   if( Ownership.Native == ownership ) {
-                      throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                      throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                   }
                   unit.emitln(" {");
                   unit.emitln(SetArrayArgsCheck);
@@ -2060,7 +2105,7 @@ public class JavaEmitter implements GlueEmitter {
                   if( isConstValue ) {
                       // constElemCount/Ownership.Native excluded: SKIP setter for constValue constElemCount Pointer w/ native ownership
                       if( Ownership.Native == ownership ) {
-                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                       }
                       unit.emitln(" {");
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), 1);");
@@ -2112,7 +2157,7 @@ public class JavaEmitter implements GlueEmitter {
                       generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
                                               baseJElemTypeName+"[]", SetReplaceArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetReplaceArrayApiDocDetail, SetReplaceArrayApiDocArgs);
                       if( Ownership.Native == ownership ) {
-                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                          throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                       }
                       unit.emitln(" {");
                       unit.emitln(SetReplaceArrayArgsCheck);
@@ -2147,7 +2192,7 @@ public class JavaEmitter implements GlueEmitter {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, SetArrayArgsPre,
                                           baseJElemTypeName+"[]", SetArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetArrayApiDocDetail, SetArrayApiDocArgs);
                   if( Ownership.Native == ownership ) {
-                      throw new InternalError("Native ownership but adding potential memory-replacement for '"+returnSizeLookupName+"': "+fieldType.getSignature(null).toString());
+                      throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                   }
                   unit.emitln(" {");
                   unit.emitln(SetArrayArgsCheck);

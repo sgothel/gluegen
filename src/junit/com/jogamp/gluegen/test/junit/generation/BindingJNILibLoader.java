@@ -54,6 +54,16 @@ public class BindingJNILibLoader extends JNILibLoaderBase {
             }
         });
     }
+
+    public static void loadBindingtest2() {
+        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
+            public Object run() {
+                loadLibrary("Bindingtest2", null, true, BindingJNILibLoader.class.getClassLoader());
+                return null;
+            }
+        });
+    }
 }
 
 
