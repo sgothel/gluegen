@@ -2462,7 +2462,8 @@ public class JavaEmitter implements GlueEmitter {
               case 4:  return JavaType.createForCInt32Pointer();
               case 8:  return JavaType.createForCInt64Pointer();
               default: throw new GlueGenException("Unknown integer array type of size " +
-                                                  cType.getSize(curMachDesc) + " and name " + cType.getName()+", "+cType.getDebugString(),
+                                                  cType.getSize(curMachDesc) + " and name " + cType.getName()+", "+cType.getDebugString()+
+                                                  ", target "+targetType.getDebugString(),
                                                   cType.getASTLocusTag());
             }
           } else if (targetType.isFloat()) {
@@ -2490,15 +2491,16 @@ public class JavaEmitter implements GlueEmitter {
                   // .. fall back to pointer type name
                   name = cType.getName();
                   if (name == null) {
-                    throw new GlueGenException("Couldn't find a proper type name for pointer type " + cType.getDebugString(),
+                    throw new GlueGenException("Couldn't find a proper type name for pointer type " + cType.getDebugString()+
+                                               ", target "+targetType.getDebugString(),
                                                 cType.getASTLocusTag());
                   }
                 }
             }
             return JavaType.createForCStruct(cfg.renameJavaType(name));
           } else {
-            throw new GlueGenException("Don't know how to convert pointer/array type \"" +
-                                       cType.getDebugString() + "\"",
+            throw new GlueGenException("Don't know how to convert pointer/array type " +
+                                       cType.getDebugString() + ", target "+targetType.getDebugString(),
                                        cType.getASTLocusTag());
           }
         }
@@ -2514,7 +2516,7 @@ public class JavaEmitter implements GlueEmitter {
             bottomType = targetType.asPointer().getTargetType();
             if( GlueGen.debug() ) {
                 LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr): {0}, targetType: {1}, bottomType: {2}",
-                        cType.getDebugString(), targetType, bottomType);
+                        cType.getDebugString(), targetType.getDebugString(), bottomType.getDebugString());
             }
             return JavaType.forNIOPointerBufferClass();
           } else if(targetType.isArray()) {
@@ -2522,13 +2524,13 @@ public class JavaEmitter implements GlueEmitter {
             bottomType = targetType.asArray().getBaseType();
             if( GlueGen.debug() ) {
                 LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr.array): {0}, targetType: {1}, bottomType: {2}",
-                        cType.getDebugString(), targetType, bottomType);
+                        cType.getDebugString(), targetType.getDebugString(), bottomType.getDebugString());
             }
           } else {
             bottomType = targetType;
             if( GlueGen.debug() ) {
                 LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr.primitive): {0}, targetType: {1}, bottomType: {2}",
-                        cType.getDebugString(), targetType, bottomType);
+                        cType.getDebugString(), targetType.getDebugString(), bottomType.getDebugString());
             }
           }
 
@@ -2562,19 +2564,19 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.createForCArray(bottomType);
           } else {
             throw new GlueGenException(
-              "Could not convert C type \"" + cType.getDebugString() + "\" " +
+              "Could not convert C type " + cType.getDebugString() + " " +
               "to appropriate Java type; need to add more support for " +
-              "depth=2 pointer/array types [debug info: targetType=\"" +
-              targetType + "\"]", cType.getASTLocusTag());
+              "depth=2 pointer/array types [debug info: targetType=" +
+              targetType.getDebugString() + "]", cType.getASTLocusTag());
           }
         } else {
           // can't handle this type of pointer/array argument
           throw new GlueGenException(
-            "Could not convert C pointer/array \"" + cType.getDebugString() + "\" to " +
+            "Could not convert C pointer/array " + cType.getDebugString() + " to " +
             "appropriate Java type; types with pointer/array depth " +
             "greater than 2 are not yet supported [debug info: " +
             "pointerDepth=" + cType.pointerDepth() + " arrayDimension=" +
-            cType.arrayDimension() + " targetType=\"" + targetType + "\"]",
+            cType.arrayDimension() + " targetType=" + targetType.getDebugString() + "]",
             cType.getASTLocusTag());
         }
 
@@ -2590,7 +2592,7 @@ public class JavaEmitter implements GlueEmitter {
         return JavaType.createForCStruct(cfg.renameJavaType(name));
     } else {
         throw new GlueGenException(
-          "Could not convert C type \"" + cType.getDebugString() + "\" (class " +
+          "Could not convert C type " + cType.getDebugString() + " (class " +
           cType.getClass().getName() + ") to appropriate Java type",
           cType.getASTLocusTag());
     }
