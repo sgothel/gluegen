@@ -571,7 +571,7 @@ public class JavaType {
             append(sb, "C-Primitive-Pointer", prepComma); prepComma=true;
         }
     }
-    append(sb, "], descriptor '"+getDescriptor()+"'", prepComma); prepComma=true;
+    append(sb, "], descriptor '"+getDescriptor()+"'", false); prepComma=true;
     return sb;
   }
 
