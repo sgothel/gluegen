@@ -45,7 +45,7 @@ import org.junit.runners.MethodSorters;
  * Test {@link Bindingtest2} with {@link T2_InitializeOptions} instance and function pointer...
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test2 extends BaseClass {
+public class Test2FuncPtr extends BaseClass {
 
     static NativeLibrary dynamicLookupHelper;
 
@@ -55,7 +55,7 @@ public class Test2 extends BaseClass {
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2.class.getClassLoader(), true);
+        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2FuncPtr.class.getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
 
         Bindingtest2Impl.resetProcAddressTable(dynamicLookupHelper);
@@ -141,7 +141,7 @@ public class Test2 extends BaseClass {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = Test2.class.getName();
+        final String tstname = Test2FuncPtr.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }
