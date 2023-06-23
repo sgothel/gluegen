@@ -405,17 +405,17 @@ public class JavaConfiguration {
     for (int i = 0; i <= pointerDepth; i++) {
       String name = type.getName();
       if (DEBUG_TYPE_INFO) {
-        System.err.println(" Type = " + type);
-        System.err.println(" Name = " + name);
+        System.err.printf(" [%2d] Name = %s%n", i, name);
+        System.err.printf(" [%2d] Type = %s, pointerDepth %d, %s%n", i, type, type.pointerDepth(), type.getDebugString());
       }
       if (name != null) {
         final TypeInfo info = closestTypeInfo(name, i + type.pointerDepth());
         if (info != null) {
           final TypeInfo res = promoteTypeInfo(info, i);
           if (DEBUG_TYPE_INFO) {
-            System.err.println(" [1] info.name=" + info.name() + ", name=" + name +
-                               ", info.pointerDepth=" + info.pointerDepth() +
-                               ", type.pointerDepth=" + type.pointerDepth() + " -> "+res);
+            System.err.printf(" [A][%2d] name %s%n", i, name);
+            System.err.printf(" [A][%2d] info %s%n", i, info.toString());
+            System.err.printf(" [A][%2d] res  %s%n", i, res.toString());
           }
           return res;
         }
@@ -429,9 +429,9 @@ public class JavaConfiguration {
           if (info != null) {
             final TypeInfo res = promoteTypeInfo(info, i);
             if (DEBUG_TYPE_INFO) {
-              System.err.println(" [2] info.name=" + info.name() + ", name=" + name +
-                                 ", info.pointerDepth=" + info.pointerDepth() +
-                                 ", type.pointerDepth=" + type.pointerDepth() + " -> "+res);
+              System.err.printf(" [A][%2d] name %s%n", i, name);
+              System.err.printf(" [A][%2d] info %s%n", i, info.toString());
+              System.err.printf(" [A][%2d] res  %s%n", i, res.toString());
             }
             return res;
           }
@@ -453,11 +453,13 @@ public class JavaConfiguration {
     TypeInfo info = typeInfoMap.get(name);
     TypeInfo closest = null;
     while (info != null) {
-      if (DEBUG_TYPE_INFO)
+      if (DEBUG_TYPE_INFO) {
         System.err.println("  Checking TypeInfo for " + name + " at pointerDepth " + pointerDepth);
+      }
       if (info.pointerDepth() <= pointerDepth && (closest == null || info.pointerDepth() > closest.pointerDepth())) {
-        if (DEBUG_TYPE_INFO)
+        if (DEBUG_TYPE_INFO) {
           System.err.println("   Accepted");
+        }
         closest = info;
       }
       info = info.next();
@@ -467,7 +469,8 @@ public class JavaConfiguration {
 
   // Promotes a TypeInfo to a higher pointer type (if necessary)
   private TypeInfo promoteTypeInfo(final TypeInfo info, final int numPointersStripped) {
-    int diff = numPointersStripped - info.pointerDepth();
+    final int pd = info.pointerDepth();
+    int diff = numPointersStripped - pd;
     if (diff == 0) {
       return info;
     }
@@ -479,7 +482,6 @@ public class JavaConfiguration {
     }
 
     Class<?> c = info.javaType().getJavaClass();
-    final int pd = info.pointerDepth();
 
     // Handle single-pointer stripping for types compatible with C
     // integral and floating-point types specially so we end up
