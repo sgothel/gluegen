@@ -497,7 +497,7 @@ public class JavaConfiguration {
       else if (c == Double.TYPE)  jt = JavaType.createForCDoublePointer();
 
       if (jt != null)
-        return new TypeInfo(info.name(), pd + numPointersStripped, jt);
+        return new TypeInfo(info.name(), numPointersStripped, jt);
     }
 
     while (diff > 0) {
