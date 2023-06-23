@@ -114,6 +114,14 @@ public class Test2FuncPtr extends BaseClass {
             Assert.assertEquals(404, ud2.getBalance());
             Assert.assertEquals("Jane Doe", ud2.getName());
         }
+        // Check func-ptr are original
+        {
+            final long[] funcBOrigs = options.getCustomFuncBVariants(0, new long[2], 0, 2);
+            final long funcB1 = options.getCustomFuncB1();
+            final long funcB2 = options.getCustomFuncB2();
+            Assert.assertEquals(funcBOrigs[0], funcB1);
+            Assert.assertEquals(funcBOrigs[1], funcB2);
+        }
         Assert.assertEquals(101, options.CustomFuncB1(ud1));
         Assert.assertEquals(404, options.CustomFuncB1(ud2));
         Assert.assertEquals(-101, options.CustomFuncB2(ud1));
@@ -124,6 +132,14 @@ public class Test2FuncPtr extends BaseClass {
             final long funcB2 = options.getCustomFuncB2();
             options.setCustomFuncB1(funcB2);
             options.setCustomFuncB2(funcB1);
+        }
+        // Check func-ptr are switched
+        {
+            final long[] funcBOrigs = options.getCustomFuncBVariants(0, new long[2], 0, 2);
+            final long funcB1 = options.getCustomFuncB1();
+            final long funcB2 = options.getCustomFuncB2();
+            Assert.assertEquals(funcBOrigs[1], funcB1);
+            Assert.assertEquals(funcBOrigs[0], funcB2);
         }
         Assert.assertEquals(-101, options.CustomFuncB1(ud1));
         Assert.assertEquals(-404, options.CustomFuncB1(ud2));

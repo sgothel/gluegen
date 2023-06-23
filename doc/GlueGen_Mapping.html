@@ -421,6 +421,7 @@
   <li><a href="#overview">Overview</a></li>
   <li><a href="#primitive-mapping">Primitive Mapping</a>
   <ul>
+  <li><a href="#pointer-mapping">Pointer Mapping</a></li>
   <li><a href="#string-mapping">String Mapping</a></li>
   <li><a href="#alignment-for-compound-data">Alignment for Compound
   Data</a></li>
@@ -436,8 +437,12 @@
   Table</a></li>
   <li><a href="#struct-java-signature-examples">Struct Java Signature
   Examples</a></li>
-  <li><a href="#struct-function-pointer-support">Struct Function Pointer
+  <li><a href="#struct-pointer-pointer-support">Struct Pointer-Pointer
   Support</a></li>
+  <li><a href="#struct-function-pointer-support">Struct Function-Pointer
+  Support</a></li>
+  <li><a href="#java-callback-from-native-c-api-support">Java Callback
+  from Native C-API Support</a></li>
   </ul></li>
   <li><a href="#platform-header-files">Platform Header Files</a></li>
   <li><a href="#pre-defined-macros">Pre-Defined Macros</a></li>
@@ -730,6 +735,15 @@ since we don't differentiate the OS and it's bit size is ambiguous.</li>
 to <em>PointerBuffer</em>, to reflect the architecture depending storage
 size.</li>
 </ul>
+<h3 id="pointer-mapping">Pointer Mapping</h3>
+<p><em>Pointer</em> values itself are represented as <code>long</code>
+values on the Java side while using the native pointer-size, e.g. 32-bit
+or 64-bit, on the native end.</p>
+<p>They may simply be accessible via <code>long</code> or
+<code>long[]</code> primitives in Java, or are exposed via
+<code>com.jogamp.common.nio.PointerBuffer</code>.</p>
+<p>See <a href="#struct-pointer-pointer-support">Struct Pointer-Pointer
+Support</a> below.</p>
 <h3 id="string-mapping">String Mapping</h3>
 <h4 id="function-return-string-values">Function return String
 values</h4>
@@ -926,20 +940,28 @@ fields</p>
 <ul>
 <li>See <a href="#primitive-mapping"><em>Primitive Mapping</em></a>
 above.</li>
+<li>See <a href="#pointer-mapping"><em>Pointer Mapping</em></a> for
+<em>pointer-to-pointer</em> values above and <a
+href="#struct-pointer-pointer-support">Struct Pointer-Pointer
+Support</a> below.</li>
 <li>See <a href="#string-mapping"><em>String Mapping</em></a>
 above.</li>
 </ul></li>
-<li><em>Struct</em>, i.e. another compound variable</li>
+<li><em>Struct</em>, i.e. an aggregated or referenced compound
+variable</li>
 <li><em>Function Pointer</em>, a <em>typedef</em>'ed and set callable
-function pointer</li>
+function pointer, see <a href="#struct-function-pointer-support">Struct
+Function-Pointer Support</a> below.</li>
+<li><em>Java Callback from Native Code</em>, see <a
+href="#java-callback-from-native-c-api-support">section below</a></li>
 </ul>
 <p>A field may be a direct aggregation, i.e. instance, within the struct
 including an array or a reference to a single element or array via a
 pointer.</p>
-<p>Both, <em>primitive</em> and <em>struct</em> field type mappings only
-produce pure Java code, utilizing the <em>GlueGen Runtime</em>. Hence no
-additional native code must be compiled nor a resulting additional
-library loaded to use the mapping.</p>
+<p>Both, <em>primitive</em>, <em>struct</em> and <em>pointer</em> field
+type mappings only produce pure Java code, utilizing the <em>GlueGen
+Runtime</em>. Hence no additional native code must be compiled nor a
+resulting additional library loaded to use the mapping.</p>
 <p>Only when mapping <em>function-pointer</em> within <em>structs</em>,
 additional native glue-code is produced to call the underlying native
 function which has to be compiled and its library loaded.</p>
@@ -1686,7 +1708,33 @@ IndexOutOfBoundsException is thrown</li>
 <li>this instance of chaining</li>
 </ul></li>
 </ul>
-<h3 id="struct-function-pointer-support">Struct Function Pointer
+<h3 id="struct-pointer-pointer-support">Struct Pointer-Pointer
+Support</h3>
+<p>See primitive <a href="#pointer-mapping"><em>Pointer Mapping</em></a>
+above.</p>
+<p><em>Pointer</em> are exposed in the following examples</p>
+<pre><code>typedef struct {
+  int32_t* int32PtrArray[10];
+  int32_t** int32PtrPtr;
+
+  ...
+} T2_PointerStorage;</code></pre>
+<p>or via and undefined forward-declared struct</p>
+<pre><code>typedef struct T2_UndefStruct* T2_UndefStructPtr;
+
+typedef struct {
+  ...
+
+  T2_UndefStructPtr undefStructPtr;
+  T2_UndefStructPtr undefStructPtrArray[10];
+  T2_UndefStructPtr* undefStructPtrPtr;
+  const T2_UndefStructPtr* constUndefStructPtrPtr;
+} T2_PointerStorage;</code></pre>
+<p>and the following GlueGen configuration</p>
+<pre><code>Opaque long T2_UndefStruct*
+Ignore T2_UndefStruct</code></pre>
+<p><em>TODO: Enhance documentation</em></p>
+<h3 id="struct-function-pointer-support">Struct Function-Pointer
 Support</h3>
 <p>GlueGen supports function pointers as struct fields,<br />
 generating function calls as methods as well function-pointer opaque
@@ -1703,10 +1751,22 @@ typedef int32_t ( * T2_CustomFuncA)(void* aptr);
 typedef int32_t ( * T2_CustomFuncB)(T2_UserData* pUserData);
 
 typedef struct {
-    const T2_CustomFuncA CustomFuncA1;
-    T2_CustomFuncB CustomFuncB1;
+  ...
+  
+  T2_CustomFuncA customFuncAVariantsArray[10];
+  T2_CustomFuncA* customFuncAVariantsArrayPtr;
+
+  T2_CustomFuncB customFuncBVariantsArray[10];
+  T2_CustomFuncB* customFuncBVariantsArrayPtr;
+} T2_PointerStorage;
+
+typedef struct {
+  ...
+  
+  const T2_CustomFuncA CustomFuncA1;
+  T2_CustomFuncB CustomFuncB1;
 } T2_InitializeOptions;</code></pre>
-<p>and the following GlueGen <em>no-magic</em> configuration</p>
+<p>and the following GlueGen configuration</p>
 <pre><code>Opaque long void* 
 
 EmitStruct T2_UserData
@@ -1745,6 +1805,17 @@ StructPackage T2_InitializeOptions com.jogamp.gluegen.test.junit.generation</cod
   
   /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t CustomFuncB1(T2_UserData *  pUserData)&lt;/code&gt;&lt;br&gt;   */
   public final int CustomFuncB1(T2_UserData pUserData)  { .. }  </code></pre>
+<h3 id="java-callback-from-native-c-api-support">Java Callback from
+Native C-API Support</h3>
+<p>GlueGen supports registering Java callback methods to native C-API
+functions in the form:</p>
+<pre><code>typedef int32_t ( * T_CallbackFunc)(size_t id, size_t msg_len, const char* msg, void* userParam);
+
+void AddMessageCallback(T_CallbackFunc func, void* userParam);
+void RemoveMessageCallback(T_CallbackFunc func, void* userParam);
+void InjectMessageCallback(size_t id, size_t msg_len, const char* msg);</code></pre>
+<p><em>TODO: Work in progress</em></p>
+<h4 id="example-1">Example</h4>
 <h2 id="platform-header-files">Platform Header Files</h2>
 <p>GlueGen provides convenient platform headers,<br />
 which can be included in your C header files for native compilation and

@@ -80,6 +80,15 @@ Gluegen has build-in types (terminal symbols) for:
 * Anonymous void-pointer _void\*_ are mapped to NIO _Buffer_.
 * Pointers to pointer-size types like _intptr\_t\*_, _uintptr\_t\*_, _ptrdiff\_t\*_ and _size\_t\*_ are mapped to _PointerBuffer_, to reflect the architecture depending storage size.
 
+### Pointer Mapping
+*Pointer* values itself are represented as `long` values on the Java side
+while using the native pointer-size, e.g. 32-bit or 64-bit, on the native end.
+
+They may simply be accessible via `long` or `long[]` primitives in Java,
+or are exposed via `com.jogamp.common.nio.PointerBuffer`.
+
+See [Struct Pointer-Pointer Support](#struct-pointer-pointer-support) below.
+
 ### String Mapping
 
 #### Function return String values
@@ -199,14 +208,16 @@ A *Struct* is a C compound type declaration, which can be mapped to a Java class
 A *Struct* may utilize the following data types for its fields
 * *Primitive*, i.e. *char*, *int32_t*, ...
   * See [*Primitive Mapping*](#primitive-mapping) above.
+  * See [*Pointer Mapping*](#pointer-mapping) for *pointer-to-pointer* values above and [Struct Pointer-Pointer Support](#struct-pointer-pointer-support) below.
   * See [*String Mapping*](#string-mapping) above.
-* *Struct*, i.e. another compound variable
-* *Function Pointer*, a *typedef*'ed and set callable function pointer
+* *Struct*, i.e. an aggregated or referenced compound variable
+* *Function Pointer*, a *typedef*'ed and set callable function pointer, see [Struct Function-Pointer Support](#struct-function-pointer-support) below.
+* *Java Callback from Native Code*, see [section below](#java-callback-from-native-c-api-support)
 
 A field may be a direct aggregation, i.e. instance, within the struct including an array
 or a reference to a single element or array via a pointer.
 
-Both, *primitive* and *struct* field type mappings only produce pure Java code, utilizing the *GlueGen Runtime*.
+Both, *primitive*, *struct* and *pointer* field type mappings only produce pure Java code, utilizing the *GlueGen Runtime*.
 Hence no additional native code must be compiled nor a resulting additional library loaded to use the mapping.
 
 Only when mapping *function-pointer* within *structs*, additional native glue-code is produced to 
@@ -537,7 +548,42 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
   Returns:
   * this instance of chaining
 
-### Struct Function Pointer Support
+### Struct Pointer-Pointer Support
+See primitive [*Pointer Mapping*](#pointer-mapping) above.
+
+*Pointer* are exposed in the following examples
+```
+typedef struct {
+  int32_t* int32PtrArray[10];
+  int32_t** int32PtrPtr;
+
+  ...
+} T2_PointerStorage;
+```
+
+or via and undefined forward-declared struct 
+```
+typedef struct T2_UndefStruct* T2_UndefStructPtr;
+
+typedef struct {
+  ...
+
+  T2_UndefStructPtr undefStructPtr;
+  T2_UndefStructPtr undefStructPtrArray[10];
+  T2_UndefStructPtr* undefStructPtrPtr;
+  const T2_UndefStructPtr* constUndefStructPtrPtr;
+} T2_PointerStorage;
+```
+
+and the following GlueGen configuration
+```
+Opaque long T2_UndefStruct*
+Ignore T2_UndefStruct
+```
+
+*TODO: Enhance documentation*
+
+### Struct Function-Pointer Support
 GlueGen supports function pointers as struct fields,    
 generating function calls as methods as well function-pointer opaque getter and setter as `long` types.    
 The latter only in case if mutable, i.e. non-const.
@@ -554,12 +600,24 @@ typedef int32_t ( * T2_CustomFuncA)(void* aptr);
 typedef int32_t ( * T2_CustomFuncB)(T2_UserData* pUserData);
 
 typedef struct {
-    const T2_CustomFuncA CustomFuncA1;
-    T2_CustomFuncB CustomFuncB1;
+  ...
+  
+  T2_CustomFuncA customFuncAVariantsArray[10];
+  T2_CustomFuncA* customFuncAVariantsArrayPtr;
+
+  T2_CustomFuncB customFuncBVariantsArray[10];
+  T2_CustomFuncB* customFuncBVariantsArrayPtr;
+} T2_PointerStorage;
+
+typedef struct {
+  ...
+  
+  const T2_CustomFuncA CustomFuncA1;
+  T2_CustomFuncB CustomFuncB1;
 } T2_InitializeOptions;
 ```
 
-and the following GlueGen *no-magic* configuration
+and the following GlueGen configuration
 ```
 Opaque long void* 
 
@@ -605,6 +663,20 @@ and similar to `T2_CustomFuncB customFuncB1`
   /** Interface to C language function: <br> <code>int32_t CustomFuncB1(T2_UserData *  pUserData)</code><br>   */
   public final int CustomFuncB1(T2_UserData pUserData)  { .. }  
 ```
+
+### Java Callback from Native C-API Support
+GlueGen supports registering Java callback methods to native C-API functions in the form:
+```
+typedef int32_t ( * T_CallbackFunc)(size_t id, size_t msg_len, const char* msg, void* userParam);
+
+void AddMessageCallback(T_CallbackFunc func, void* userParam);
+void RemoveMessageCallback(T_CallbackFunc func, void* userParam);
+void InjectMessageCallback(size_t id, size_t msg_len, const char* msg);
+```
+
+*TODO: Work in progress*
+
+#### Example
 
 ## Platform Header Files
 

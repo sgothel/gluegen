@@ -1052,7 +1052,7 @@ public class JavaEmitter implements GlueEmitter {
     }
     javaUnit.emitln("  /** Returns new instance dereferencing ByteBuffer at given native address `addr` with size {@link #size()}. */");
     javaUnit.emitln("  public static " + containingJTypeName + " derefPointer(final long addr) {");
-    javaUnit.emitln("      return create( ElementBuffer.derefPointer(size(), 1, addr).getByteBuffer() );");
+    javaUnit.emitln("      return create( ElementBuffer.derefPointer(size(), addr, 1).getByteBuffer() );");
     javaUnit.emitln("  }");
     javaUnit.emitln();
     if( !cfg.manuallyImplement(JavaConfiguration.canonicalStructFieldSymbol(containingJTypeName, containingJTypeName)) ) {
@@ -1091,12 +1091,13 @@ public class JavaEmitter implements GlueEmitter {
         final boolean immutableField = immutableStruct || cfg.immutableAccess(fqStructFieldName1);
 
         if( GlueGen.debug() ) {
-          System.err.printf("SE.ac.%02d: %s / %s (opaque %b), %s (opaque %b), immutable[struct %b, field %b]%n", (i+1),
-                  (i+1), field, fqStructFieldName1, isOpaqueField, fieldType.getDebugString(), isOpaqueFieldType,
+          System.err.printf("SE.ac.%02d: field %s / %s / rename %s -> %s / opaque %b, fieldType %s (opaque %b), immutable[struct %b, field %b]%n", (i+1),
+                  field, fqStructFieldName1, renamed, fieldName, isOpaqueField, fieldType.getDebugString(), isOpaqueFieldType,
                   immutableStruct, immutableField);
+          System.err.printf("SE.ac.%02d: opaqueFieldType %s%n", (i+1), opaqueFieldType);
         }
         if ( fieldType.isFunctionPointer() && !isOpaqueField ) {
-            final FunctionSymbol func = new FunctionSymbol(field.getName(), fieldType.asPointer().getTargetType().asFunction());
+            final FunctionSymbol func = new FunctionSymbol(field.getName(), fieldType.getTargetFunction());
             func.rename(renamed); // null is OK
             final String javaTypeName = "long";
             final String capFieldName = capitalizeString(fieldName);
@@ -1251,11 +1252,16 @@ public class JavaEmitter implements GlueEmitter {
               relationship = "being";
           } else if( fieldType.isPointer() ) {
               isArray = true;
-              referencedType = fieldType.getBaseType();
+              referencedType = fieldType.getTargetType();
               relationship = "referencing";
           } else if( fieldType.isArray() ) {
               isArray = true;
-              referencedType = null;
+              final Type t = fieldType.getArrayBaseOrPointerTargetType();
+              if( t != fieldType && t.isPointer() ) {
+                  referencedType = t;
+              } else {
+                  referencedType = null;
+              }
               relationship = "being";
           } else {
               isArray = false;
@@ -1614,25 +1620,21 @@ public class JavaEmitter implements GlueEmitter {
                                              final boolean immutableAccess,
                                              final String fqStructFieldName) throws Exception {
       final Type fieldType = field.getType();
-      final JavaType javaType;
-      try {
-        javaType = typeToJavaType(fieldType, machDescJava);
-      } catch (final Exception e) {
-        throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
-                                   fqStructFieldName + "\", "+fieldType.getDebugString(), fieldType.getASTLocusTag(), e);
-      }
+      final TypeInfo opaqueTypeInfo = cfg.typeInfo(fieldType);
+      final boolean isOpaque = null != opaqueTypeInfo;
+      final Type baseElemType = fieldType.getArrayBaseOrPointerTargetType();
       if( GlueGen.debug() ) {
-          System.err.printf("SE.ac.%02d: fieldName %s, fqName %s%n", (i+1), fieldName, fqStructFieldName);
-          System.err.printf("SE.ac.%02d: structCType %s, %s%n", (i+1), structCType.toString(), structCType.getSignature(null).toString());
-          System.err.printf("SE.ac.%02d: fieldType   %s, %s%n", (i+1), fieldType.toString(), fieldType.getSignature(null).toString());
-          System.err.printf("SE.ac.%02d: javaType    %s, %s%n", (i+1), javaType.toString(), javaType.getSignature(null).toString());
+          System.err.printf("SE.ac.%02d: fieldName    %s, fqName %s%n", (i+1), fieldName, fqStructFieldName);
+          System.err.printf("SE.ac.%02d: structCType  %s, %s%n", (i+1), structCType.toString(), structCType.getSignature(null).toString());
+          System.err.printf("SE.ac.%02d: fieldType    %s, %s%n", (i+1), fieldType.toString(), fieldType.getSignature(null).toString());
+          System.err.printf("SE.ac.%02d: opaqueInfo   %b, %s%n", (i+1), isOpaque, opaqueTypeInfo);
+          System.err.printf("SE.ac.%02d: baseElemType %s, %s%n", (i+1), baseElemType.toString(), baseElemType.getSignature(null).toString());
       }
 
       //
       // Collect all required information including considering Opaque types
       //
       final String containingJTypeName = containingJType.getName();
-      final boolean isOpaque = isOpaque(fieldType);
       final boolean isStringOnly = cfg.returnsStringOnly(fqStructFieldName); // exclude alternative ByteBuffer representation to String
       final boolean isString = isStringOnly || cfg.returnsString(fqStructFieldName);
       if( isString ) {
@@ -1648,11 +1650,12 @@ public class JavaEmitter implements GlueEmitter {
       final boolean staticElemCount;
       final JavaType baseJElemType;
       final String baseJElemTypeName;
-      final boolean primCElemFixedSize; // Is Primitive element size fixed? If not, use md.*_Size[]
-      final String baseCElemSizeDenominator;
+      final boolean primElemFixedSize; // Is Primitive element size fixed? If not, use md.*_Size[]
+      final boolean baseIsPointer; // Is Primitive element a pointer?
+      final String baseElemSizeDenominator;
       final boolean useGetCStringLength;
       final boolean maxOneElement; // zero or one element
-      if( isOpaque || javaType.isPrimitive() ) {
+      if( isOpaque && opaqueTypeInfo.pointerDepth() <= 1 || ( fieldType.isPrimitive() && !baseElemType.isFunctionPointer() ) ) {
           // Overridden by JavaConfiguration.typeInfo(..), i.e. Opaque!
           // Emulating array w/ 1 element
           isPrimitive = true;
@@ -1663,37 +1666,27 @@ public class JavaEmitter implements GlueEmitter {
           ownership = Ownership.Parent;
           staticElemCount = true;
           baseJElemType = null;
-          baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, javaType, machDescJava);
-          primCElemFixedSize = false;
-          baseCElemSizeDenominator = fieldType.isPointer() ? "pointer" : baseJElemTypeName ;
+          baseJElemTypeName = compatiblePrimitiveJavaTypeName(fieldType, machDescJava);
+          primElemFixedSize = false;
+          baseIsPointer = fieldType.isPointer();
+          baseElemSizeDenominator = baseIsPointer ? "pointer" : baseJElemTypeName ;
           useGetCStringLength = false;
           maxOneElement = true;
       } else {
-          final ArrayType arrayType = fieldType.asArray();
-          final Type baseCElemType;
-          if( null != arrayType ) {
+          if( fieldType.arrayDimension() > 0 ) {
               final int[][] arrayLengthRes = new int[1][];
               final boolean[] _useFixedArrayLen = { false };
-              elemCountExpr = getArrayArrayLengthExpr(arrayType, fqStructFieldName, _useFixedArrayLen, arrayLengthRes);
+              elemCountExpr = getArrayArrayLengthExpr(fieldType.asArray(), fqStructFieldName, _useFixedArrayLen, arrayLengthRes);
               // final int arrayLength = arrayLengthRes[0][0];
               constElemCount = _useFixedArrayLen[0];
               ownership = Ownership.Parent; // a fixed linear array
               staticElemCount = constElemCount;
-              baseCElemType = arrayType.getBaseType();
+              // baseCElemType = pointerType.getBaseType();
               isPointer = false;
               useGetCStringLength = false;
           } else {
-              final PointerType pointerType = fieldType.asPointer();
               final String _elemCountExpr = cfg.returnedArrayLength(fqStructFieldName);
-              baseCElemType = pointerType.getBaseType();
               isPointer = true;
-              if( 1 != pointerType.pointerDepth() ) {
-                  final String msg = "SKIP ptr-ptr (depth "+pointerType.pointerDepth()+"): "+fqStructFieldName +": "+fieldType;
-                  unit.emitln("  // "+msg);
-                  unit.emitln();
-                  LOG.log(WARNING, structCType.getASTLocusTag(), msg);
-                  return;
-              }
               if( null == _elemCountExpr && isString ) {
                   useGetCStringLength = true;
                   unit.addTailCode(optStringMaxStrnlenCode);
@@ -1746,7 +1739,8 @@ public class JavaEmitter implements GlueEmitter {
               unit.emitln("  // "+msg);
               unit.emitln();
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
-              return;
+              throw new InternalError(msg);
+              // return; // FIXME: Remove block unreachable
           }
           boolean _maxOneElement = cfg.maxOneElement(fqStructFieldName);
           if( !_maxOneElement ) {
@@ -1756,41 +1750,45 @@ public class JavaEmitter implements GlueEmitter {
           }
           maxOneElement = _maxOneElement;
           if( GlueGen.debug() ) {
-              System.err.printf("SE.ac.%02d: baseCType ownership %s, %s%n", (i+1), ownership, baseCElemType.getSignature(null).toString());
+              System.err.printf("SE.ac.%02d: ownership %s%n", (i+1), ownership);
           }
 
-          if( !baseCElemType.hasSize() ) { // like 'void*' -> 'void'
-              final String msg = "SKIP unsized field in struct: "+fqStructFieldName+": fieldType "+fieldType.getSignature(null).toString()+", baseType "+baseCElemType.getSignature(null).toString();
+          if( !baseElemType.hasSize() ) { // like 'void*' -> 'void'
+              final String msg = "SKIP unsized field in struct: "+fqStructFieldName+": fieldType "+fieldType.getSignature(null).toString()+", baseType "+baseElemType.getSignature(null).toString();
               unit.emitln("  // "+msg);
               unit.emitln();
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
               return;
           }
 
-          isPrimitive = baseCElemType.isPrimitive();
-          isConstValue = baseCElemType.isConst();
-          try {
-              baseJElemType = typeToJavaType(baseCElemType, machDescJava);
-          } catch (final Exception e ) {
-              throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
-                                          fqStructFieldName + "\", baseType "+baseCElemType.getDebugString()+", topType "+fieldType.getDebugString(),
-                                          fieldType.getASTLocusTag(), e);
+          baseIsPointer = baseElemType.isPointer();
+          isConstValue = baseElemType.isConst();
+          if( baseIsPointer ) {
+              baseJElemType = javaType(Long.TYPE); // forced mapping pointer-pointer -> long
+          } else {
+              try {
+                  baseJElemType = typeToJavaType(baseElemType, machDescJava);
+              } catch (final Exception e ) {
+                  throw new GlueGenException("Error occurred while creating array/pointer accessor for field \"" +
+                                              fqStructFieldName + "\", baseType "+baseElemType.getDebugString()+", topType "+fieldType.getDebugString(),
+                                              fieldType.getASTLocusTag(), e);
+              }
           }
           baseJElemTypeName = baseJElemType.getName();
-          primCElemFixedSize = isPrimitive ? baseCElemType.getSize().hasFixedNativeSize() : false;
-          baseCElemSizeDenominator = baseCElemType.isPointer() ? "pointer" : baseJElemTypeName ;
+          isPrimitive = baseJElemType.isPrimitive() || baseElemType.isPrimitive() || baseElemType.isFunctionPointer();
+          primElemFixedSize = isPrimitive ? baseElemType.getSize().hasFixedNativeSize() : false;
+          baseElemSizeDenominator = baseIsPointer ? "pointer" : baseJElemTypeName ;
       }
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: baseJElemType %s%n", (i+1), (null != baseJElemType ? baseJElemType.getDebugString() : null));
       }
       // Collect fixed primitive-type mapping metrics
-      final Class<? extends Buffer> primJElemTypeBufferClazz;
       final String primJElemTypeBufferName;
       final int primElemSize;
       final String primElemSizeExpr;
       final boolean isByteBuffer;
       if( isPrimitive ) {
-          primJElemTypeBufferClazz = Buffers.typeNameToBufferClass(baseJElemTypeName);
+          final Class<? extends Buffer> primJElemTypeBufferClazz = Buffers.typeNameToBufferClass(baseJElemTypeName);
           if( null == primJElemTypeBufferClazz ) {
               final String msg = "Failed to map '"+baseJElemTypeName+"' to Buffer class, field "+field+", j-type "+baseJElemType;
               unit.emitln("  // ERROR: "+msg);
@@ -1801,13 +1799,12 @@ public class JavaEmitter implements GlueEmitter {
           primJElemTypeBufferName = primJElemTypeBufferClazz.getSimpleName();
           primElemSize = Buffers.sizeOfBufferElem(primJElemTypeBufferClazz);
           isByteBuffer = null != primJElemTypeBufferClazz ? ByteBuffer.class.isAssignableFrom(primJElemTypeBufferClazz) : false;
-          if( primCElemFixedSize ) {
+          if( primElemFixedSize ) {
               primElemSizeExpr = String.valueOf(primElemSize);
           } else {
-              primElemSizeExpr = "md."+baseCElemSizeDenominator+"SizeInBytes()";
+              primElemSizeExpr = "md."+baseElemSizeDenominator+"SizeInBytes()";
           }
       } else {
-          primJElemTypeBufferClazz = null;
           primJElemTypeBufferName = null;
           primElemSize = 0;
           isByteBuffer = false;
@@ -1839,12 +1836,12 @@ public class JavaEmitter implements GlueEmitter {
       if( GlueGen.debug() ) {
           System.err.printf("SE.ac.%02d: baseJElemTypeName %s%n", (i+1), baseJElemTypeName);
           System.err.printf("SE.ac.%02d: elemCountExpr: %s (const %b, ownership %s), ownArrayLenCpde %b, maxOneElement %b, "+
-                            "Primitive[buffer %s, fixedSize %b, elemSize %d, sizeDenom %s, sizeExpr %s, isByteBuffer %b], "+
-                            "isString[%b, only %b, strnlen %b], isPointer %b, isPrimitive %b, isOpaque %b, constVal %b, immutableAccess %b%n",
+                            "Primitive[is %b, aptr %b, buffer %s, fixedSize %b, elemSize %d, sizeDenom %s, sizeExpr %s, isByteBuffer %b], "+
+                            "isString[%b, only %b, strnlen %b], isPointer %b, isOpaque %b, constVal %b, immutableAccess %b%n",
                   (i+1), elemCountExpr, constElemCount, ownership, ownElemCountHandling, maxOneElement,
-                  primJElemTypeBufferName, primCElemFixedSize, primElemSize, baseCElemSizeDenominator, primElemSizeExpr, isByteBuffer,
+                  isPrimitive, baseIsPointer, primJElemTypeBufferName, primElemFixedSize, primElemSize, baseElemSizeDenominator, primElemSizeExpr, isByteBuffer,
                   isString, isStringOnly, useGetCStringLength,
-                  isPointer, isPrimitive, isOpaque, isConstValue, immutableAccess);
+                  isPointer, isOpaque, isConstValue, immutableAccess);
       }
 
       //
@@ -1889,7 +1886,11 @@ public class JavaEmitter implements GlueEmitter {
               unit.emitln("    return this;");
               unit.emitln("  }");
               unit.emitln("  @SuppressWarnings(\"unused\")");
-              unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+              if( baseIsPointer ) {
+                  unit.emitln("  private PointerBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+              } else {
+                  unit.emitln("  private ElementBuffer _eb"+capitalFieldName+"; // cache new memory buffer ensuring same lifecycle");
+              }
               unit.emitln();
           }
       }
@@ -1917,12 +1918,17 @@ public class JavaEmitter implements GlueEmitter {
                           throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                       }
                       unit.emitln(" {");
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
-                      unit.emit  ("    eb.getByteBuffer()");
-                      if( !isByteBuffer ) {
-                          unit.emit(".as"+primJElemTypeBufferName+"()");
+                      if( baseIsPointer ) {
+                          unit.emitln("    final PointerBuffer eb = PointerBuffer.allocateDirect(1);");
+                          unit.emitln("    eb.put(0, src);");
+                      } else {
+                          unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
+                          unit.emit  ("    eb.getByteBuffer()");
+                          if( !isByteBuffer ) {
+                              unit.emit(".as"+primJElemTypeBufferName+"()");
+                          }
+                          unit.emitln(".put(0, src);");
                       }
-                      unit.emitln(".put(0, src);");
                       unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
                       unit.emitln("    _eb"+capitalFieldName+" = eb;");
                       emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
@@ -1932,12 +1938,17 @@ public class JavaEmitter implements GlueEmitter {
                       unit.emitln(" {");
                       unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                       unit.emitln("    if( 1 == elemCount ) {");
-                      unit.emitln("      ElementBuffer.derefPointer("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
-                      unit.emit  ("        .getByteBuffer()");
-                      if( !isByteBuffer ) {
-                          unit.emit(".as"+primJElemTypeBufferName+"()");
+                      if( baseIsPointer ) {
+                          unit.emitln("      PointerBuffer.derefPointer(getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                          unit.emitln("        .put(0, src);");
+                      } else {
+                          unit.emitln("      ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                          unit.emit  ("        .getByteBuffer()");
+                          if( !isByteBuffer ) {
+                              unit.emit(".as"+primJElemTypeBufferName+"()");
+                          }
+                          unit.emitln(".put(0, src);");
                       }
-                      unit.emitln(".put(0, src);");
                       unit.emitln("    } else {");
                       if( constElemCount || Ownership.Native == ownership ) {
                           unit.emitln("      throw new RuntimeException(\"Primitive '"+fieldName+"' of "+ownership+" ownership and maxOneElement has "
@@ -1946,12 +1957,17 @@ public class JavaEmitter implements GlueEmitter {
                           unit.emitln("    return this;");
                           unit.emitln("  }");
                       } else {
-                          unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
-                          unit.emit  ("      eb.getByteBuffer()");
-                          if( !isByteBuffer ) {
-                              unit.emit(".as"+primJElemTypeBufferName+"()");
+                          if( baseIsPointer ) {
+                              unit.emitln("      final PointerBuffer eb = PointerBuffer.allocateDirect(1);");
+                              unit.emitln("      eb.put(0, src);");
+                          } else {
+                              unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", 1);");
+                              unit.emit  ("      eb.getByteBuffer()");
+                              if( !isByteBuffer ) {
+                                  unit.emit(".as"+primJElemTypeBufferName+"()");
+                              }
+                              unit.emitln(".put(0, src);");
                           }
-                          unit.emitln(".put(0, src);");
                           unit.emitln("      eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
                           unit.emitln("      _eb"+capitalFieldName+" = eb;");
                           emitSetElemCount(unit, setElemCountLengthFunc, "1", !useGetCStringLength, capitalFieldName, structCType, "      ");
@@ -1964,12 +1980,16 @@ public class JavaEmitter implements GlueEmitter {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, baseJElemTypeName,
                                           null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln(" {");
-                  unit.emitln("    ElementBuffer.wrap("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
-                  unit.emit  ("      .getByteBuffer()");
-                  if( !isByteBuffer ) {
-                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  if( baseIsPointer ) {
+                      unit.emitln("    PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], 1).put(0, src);");
+                  } else {
+                      unit.emitln("    ElementBuffer.wrap("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                      unit.emit  ("      .getByteBuffer()");
+                      if( !isByteBuffer ) {
+                          unit.emit(".as"+primJElemTypeBufferName+"()");
+                      }
+                      unit.emitln(".put(0, src);");
                   }
-                  unit.emitln(".put(0, src);");
                   unit.emitln("    return this;");
                   unit.emitln("  }");
               } // else SKIP setter for constValue Array
@@ -1988,7 +2008,7 @@ public class JavaEmitter implements GlueEmitter {
                       unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                       unit.emitln("    if( srcBytes.length + 1 != elemCount ) { throw new IllegalArgumentException(\"strlen+1 \"+(srcBytes.length+1)+\" != "
                                       +(constElemCount?"const":"")+" elemCount \"+elemCount+\" of "+ownership+" ownership\"); };");
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
                   } else {
                       unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", srcBytes.length + 1);");
                   }
@@ -2014,14 +2034,13 @@ public class JavaEmitter implements GlueEmitter {
                           throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                       }
                       unit.emitln(" {");
-                      unit.emitln(SetReplaceArrayArgsCheck);
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", length);");
-                      unit.emit  ("    eb.getByteBuffer()");
-                      if( !isByteBuffer ) {
-                          unit.emit(".as"+primJElemTypeBufferName+"()");
+                      // JAU01 unit.emitln(SetReplaceArrayArgsCheck);
+                      if( baseIsPointer ) {
+                          unit.emitln("    final PointerBuffer eb = PointerBuffer.allocateDirect(length);");
+                      } else {
+                          unit.emitln("    final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", length);");
                       }
-                      unit.emitln(".put(src, srcPos, length).rewind();");
-                      unit.emitln("    eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    eb.put(src, srcPos, 0, length).storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
                       unit.emitln("    _eb"+capitalFieldName+" = eb;");
                       emitSetElemCount(unit, setElemCountLengthFunc, "length", !useGetCStringLength, capitalFieldName, structCType, "    ");
                       unit.emitln("    return this;");
@@ -2031,19 +2050,23 @@ public class JavaEmitter implements GlueEmitter {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null,
                                           baseJElemTypeName+"[]", SetSubArrayArgsPost, constElemCount, maxOneElement, elemCountExpr, SetSubArrayApiDocDetail, SetSubArrayApiDocArgs);
                   unit.emitln(" {");
-                  unit.emitln(SetSubArrayArgsCheck);
+                  // JAU01 unit.emitln(SetSubArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
-                  unit.emitln("    if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
-                  if( isPointer ) {
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  // JAU01 unit.emitln("    if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
+                  if( baseIsPointer ) {
+                      if( isPointer ) {
+                          unit.emitln("    final PointerBuffer eb = PointerBuffer.derefPointer(getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                      } else {
+                          unit.emitln("    final PointerBuffer eb = PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                      }
                   } else {
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      if( isPointer ) {
+                          unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                      } else {
+                          unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                      }
                   }
-                  unit.emit  ("    ( ("+primJElemTypeBufferName+") eb.getByteBuffer()");
-                  if( !isByteBuffer ) {
-                      unit.emit(".as"+primJElemTypeBufferName+"()");
-                  }
-                  unit.emitln(".position(destPos) ).put(src, srcPos, length).rewind();");
+                  unit.emitln("    eb.put(src, srcPos, destPos, length);");
                   unit.emitln("    return this;");
                   unit.emitln("  }");
               } else /* if( !constElemCount && isPointer ) */ {
@@ -2053,34 +2076,33 @@ public class JavaEmitter implements GlueEmitter {
                       throw new InternalError("Native ownership but adding potential memory-replacement for '"+fqStructFieldName+"': "+fieldType.getSignature(null).toString());
                   }
                   unit.emitln(" {");
-                  unit.emitln(SetArrayArgsCheck);
+                  // JAU01 unit.emitln(SetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   unit.emitln("    if( subset || destPos + length == elemCount ) {");
-                  unit.emitln("      if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"subset \"+subset+\", destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
-                  unit.emitln("      final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
-                  unit.emit  ("      ( ("+primJElemTypeBufferName+") eb.getByteBuffer()");
-                  if( !isByteBuffer ) {
-                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  // JAU01 unit.emitln("      if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"subset \"+subset+\", destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
+                  if( baseIsPointer ) {
+                      unit.emitln("      final PointerBuffer eb = PointerBuffer.derefPointer(getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                  } else {
+                      unit.emitln("      final ElementBuffer eb = ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
                   }
-                  unit.emitln(".position(destPos) ).put(src, srcPos, length).rewind();");
+                  unit.emitln("      eb.put(src, srcPos, destPos, length);");
                   unit.emitln("    } else {");
                   unit.emitln("      final int newElemCount = destPos + length;");
-                  unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", newElemCount);");
-                  unit.emit  ("      final "+primJElemTypeBufferName+" ebBB = eb.getByteBuffer()");
-                  if( !isByteBuffer ) {
-                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  if( baseIsPointer ) {
+                      unit.emitln("      final PointerBuffer eb = PointerBuffer.allocateDirect(newElemCount);");
+                      unit.emitln("      if( 0 < destPos ) {");
+                      unit.emitln("        final PointerBuffer pre_eb = PointerBuffer.derefPointer(getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                      unit.emitln("        pre_eb.position(0).limit(destPos);");
+                      unit.emitln("        eb.put(pre_eb).rewind();");
+                      unit.emitln("      }");
+                  } else {
+                      unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+primElemSizeExpr+", newElemCount);");
+                      unit.emitln("      if( 0 < destPos ) {");
+                      unit.emitln("        final ElementBuffer pre_eb = ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
+                      unit.emitln("        eb.put(pre_eb.getByteBuffer(), 0, 0, destPos);");
+                      unit.emitln("      }");
                   }
-                  unit.emitln(";");
-                  unit.emitln("      if( 0 < destPos ) {");
-                  unit.emitln("        final ElementBuffer pre_eb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
-                  unit.emit  ("        final "+primJElemTypeBufferName+" pre_ebBB = ("+primJElemTypeBufferName+") pre_eb.getByteBuffer()");
-                  if( !isByteBuffer ) {
-                      unit.emit(".as"+primJElemTypeBufferName+"()");
-                  }
-                  unit.emitln(".position(0).limit(destPos);");
-                  unit.emitln("        ebBB.put(pre_ebBB);");
-                  unit.emitln("      }");
-                  unit.emitln("      ebBB.put(src, srcPos, length).rewind();");
+                  unit.emitln("      eb.put(src, srcPos, destPos, length);");
                   unit.emitln("      eb.storeDirectAddress(getBuffer(), "+fieldName+"_offset[mdIdx]);");
                   unit.emitln("      _eb"+capitalFieldName+" = eb;");
                   emitSetElemCount(unit, setElemCountLengthFunc, "newElemCount", !useGetCStringLength, capitalFieldName, structCType, "      ");
@@ -2114,7 +2136,7 @@ public class JavaEmitter implements GlueEmitter {
                       unit.emitln(" {");
                       unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                       unit.emitln("    if( 1 == elemCount ) {");
-                      unit.emitln("      ElementBuffer.derefPointer("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emitln("      ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
                       unit.emitln("        .put(0, src.getBuffer());");
                       unit.emitln("    } else {");
                       if( constElemCount || Ownership.Native == ownership ) {
@@ -2138,7 +2160,7 @@ public class JavaEmitter implements GlueEmitter {
                   generateSetterSignature(unit, accessMod, false, false, fieldName, fieldType, ownership, containingJTypeName, capitalFieldName, null, baseJElemTypeName,
                                           null, constElemCount, maxOneElement, elemCountExpr, null, null);
                   unit.emitln(" {");
-                  unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                  unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
                   unit.emitln("      .put(0, src.getBuffer());");
                   unit.emitln("    return this;");
                   unit.emitln("  }");
@@ -2174,9 +2196,9 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   unit.emitln("    if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
                   if( isPointer ) {
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
                   } else {
-                      unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                      unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
                   }
                   unit.emitln("    for(int i=0; i<length; ++i) {");
                   unit.emitln("      eb.put(destPos+i, src[srcPos+i].getBuffer());");
@@ -2194,7 +2216,7 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   unit.emitln("    if( subset || destPos + length == elemCount ) {");
                   unit.emitln("      if( destPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"subset \"+subset+\", destPos \"+destPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
-                  unit.emitln("      final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("      final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
                   unit.emitln("      for(int i=0; i<length; ++i) {");
                   unit.emitln("        eb.put(destPos+i, src[srcPos+i].getBuffer());");
                   unit.emitln("      }");
@@ -2203,7 +2225,7 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("      final ElementBuffer eb = ElementBuffer.allocateDirect("+baseJElemTypeName+".size(), newElemCount);");
 
                   unit.emitln("      if( 0 < destPos ) {");
-                  unit.emitln("        final ElementBuffer pre_eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("        final ElementBuffer pre_eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
                   unit.emitln("        eb.put(pre_eb.getByteBuffer(), 0, 0, destPos);");
                   unit.emitln("      }");
                   unit.emitln("      for(int i=0; i<length; ++i) {");
@@ -2224,9 +2246,9 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   unit.emitln("    if( destPos + 1 > elemCount ) { throw new IndexOutOfBoundsException(\"destPos \"+destPos+\" + 1 > elemCount \"+elemCount); };");
                   if( isPointer ) {
-                      unit.emitln("    ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emitln("    ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount)");
                   } else {
-                      unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emitln("    ElementBuffer.wrap("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount)");
                   }
                   unit.emitln("      .put(destPos, src.getBuffer());");
                   unit.emitln("    return this;");
@@ -2243,14 +2265,22 @@ public class JavaEmitter implements GlueEmitter {
               generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, baseJElemTypeName, capitalFieldName,
                                       null, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
               unit.emitln(" {");
-              if( isPointer ) {
-                  unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
+              if( baseIsPointer ) {
+                  if( isPointer ) {
+                      unit.emit  ("    return PointerBuffer.derefPointer(getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                  } else {
+                      unit.emit  ("    return PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                  }
               } else {
-                  unit.emitln("    return ElementBuffer.wrap("+primElemSizeExpr+", 1, getBuffer(), "+fieldName+"_offset[mdIdx])");
-              }
-              unit.emit  ("             .getByteBuffer()");
-              if( !isByteBuffer ) {
-                  unit.emit(".as"+primJElemTypeBufferName+"()");
+                  if( isPointer ) {
+                      unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                  } else {
+                      unit.emitln("    return ElementBuffer.wrap("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], 1)");
+                  }
+                  unit.emit  ("             .getByteBuffer()");
+                  if( !isByteBuffer ) {
+                      unit.emit(".as"+primJElemTypeBufferName+"()");
+                  }
               }
               unit.emitln(".get(0);");
               unit.emitln("  }");
@@ -2263,9 +2293,9 @@ public class JavaEmitter implements GlueEmitter {
                   unit.emitln(" {");
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
                   if( isPointer ) {
-                      unit.emitln("    final ByteBuffer bb = ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer();");
+                      unit.emitln("    final ByteBuffer bb = ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount).getByteBuffer();");
                   } else {
-                      unit.emitln("    final ByteBuffer bb = ElementBuffer.wrap("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer();");
+                      unit.emitln("    final ByteBuffer bb = ElementBuffer.wrap("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount).getByteBuffer();");
                   }
                   unit.emitln("    final byte[] ba = new byte[elemCount];");
                   unit.emitln("    int i = -1;");
@@ -2281,14 +2311,14 @@ public class JavaEmitter implements GlueEmitter {
               if( doneString && isStringOnly ) {
                   generateArrayFieldNote(unit, "  /** SKIP getter for String alternative (ByteBuffer)", " */", fieldName, fieldType, ownership, constElemCount, maxOneElement, elemCountExpr, false, false);
                   unit.emitln();
-              } else {
+              } else if( !baseIsPointer ) {
                   generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, primJElemTypeBufferName, capitalFieldName,
                                           null, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
                   unit.emitln(" {");
                   if( isPointer ) {
-                      unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", "+getElemCountFuncExpr+", getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emitln("    return ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], "+getElemCountFuncExpr+")");
                   } else {
-                      unit.emitln("    return ElementBuffer.wrap("+primElemSizeExpr+", "+getElemCountFuncExpr+", getBuffer(), "+fieldName+"_offset[mdIdx])");
+                      unit.emitln("    return ElementBuffer.wrap("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], "+getElemCountFuncExpr+")");
                   }
                   unit.emit  ("             .getByteBuffer()");
                   if( !isByteBuffer ) {
@@ -2302,20 +2332,21 @@ public class JavaEmitter implements GlueEmitter {
                   generateGetterSignature(unit, false, false, fieldName, fieldType, ownership, baseJElemTypeName+"[]", capitalFieldName,
                                           "final int srcPos, "+baseJElemTypeName+" dest[], "+GetArrayArgs, constElemCount, maxOneElement, elemCountExpr, GetElemValueApiDocTail);
                   unit.emitln(" {");
-                  unit.emitln(GetArrayArgsCheck);
                   unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
-                  unit.emitln("    if( srcPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"srcPos \"+srcPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
-                  unit.emit  ("    ( ("+primJElemTypeBufferName+")( ");
-                  if( isPointer ) {
-                      unit.emit("ElementBuffer.derefPointer("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer()");
+                  if( baseIsPointer ) {
+                      if( isPointer ) {
+                          unit.emit  ("    PointerBuffer.derefPointer(getBuffer(), "+fieldName+"_offset[mdIdx], elemCount)");
+                      } else {
+                          unit.emit  ("    PointerBuffer.wrap(getBuffer(), "+fieldName+"_offset[mdIdx], elemCount)");
+                      }
                   } else {
-                      unit.emit("ElementBuffer.wrap("+primElemSizeExpr+", elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer()");
+                      if( isPointer ) {
+                          unit.emit("    ElementBuffer.derefPointer("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount)");
+                      } else {
+                          unit.emit("    ElementBuffer.wrap("+primElemSizeExpr+", getBuffer(), "+fieldName+"_offset[mdIdx], elemCount)");
+                      }
                   }
-                  if( !isByteBuffer ) {
-                      unit.emit(".as"+primJElemTypeBufferName+"()");
-                  }
-                  unit.emitln(".position(srcPos) ) )");
-                  unit.emitln("      .get(dest, destPos, length).rewind();");
+                  unit.emitln(".get(srcPos, dest, destPos, length);");
                   unit.emitln("    return dest;");
                   unit.emitln("  }");
                   unit.emitln();
@@ -2329,9 +2360,9 @@ public class JavaEmitter implements GlueEmitter {
               unit.emitln(" {");
               unit.emitln("    return "+baseJElemTypeName+".create(");
               if( isPointer ) {
-                  unit.emitln("             ElementBuffer.derefPointer("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer() );");
+                  unit.emitln("             ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], 1).getByteBuffer() );");
               } else {
-                  unit.emitln("             ElementBuffer.wrap("+baseJElemTypeName+".size(), 1, getBuffer(), "+fieldName+"_offset[mdIdx]).getByteBuffer() );");
+                  unit.emitln("             ElementBuffer.wrap("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], 1).getByteBuffer() );");
               }
               unit.emitln("  }");
               unit.emitln();
@@ -2343,9 +2374,9 @@ public class JavaEmitter implements GlueEmitter {
               unit.emitln("    final int elemCount = "+getElemCountFuncExpr+";");
               unit.emitln("    if( srcPos + length > elemCount ) { throw new IndexOutOfBoundsException(\"srcPos \"+srcPos+\" + length \"+length+\" > elemCount \"+elemCount); };");
               if( isPointer ) {
-                  unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("    final ElementBuffer eb = ElementBuffer.derefPointer("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
               } else {
-                  unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+baseJElemTypeName+".size(), elemCount, getBuffer(), "+fieldName+"_offset[mdIdx]);");
+                  unit.emitln("    final ElementBuffer eb = ElementBuffer.wrap("+baseJElemTypeName+".size(), getBuffer(), "+fieldName+"_offset[mdIdx], elemCount);");
               }
               unit.emitln("    for(int i=0; i<length; ++i) {");
               unit.emitln("      dest[destPos+i] = "+baseJElemTypeName+".create( eb.slice(srcPos+i, 1) );");
@@ -2438,6 +2469,8 @@ public class JavaEmitter implements GlueEmitter {
         if (cType.pointerDepth() == 1 || cType.arrayDimension() == 1) {
           if (targetType.isVoid()) {
             return JavaType.createForCVoidPointer();
+          } else if( targetType.isFunctionPointer() ) {
+              return javaType(Long.TYPE);
           } else if (targetType.isInt()) {
             final SizeThunk targetSizeThunk = targetType.getSize();
             if( null != targetSizeThunk && SizeThunk.POINTER == targetSizeThunk ) {
@@ -2586,14 +2619,6 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  private static boolean isIntegerType(final Class<?> c) {
-    return ((c == Byte.TYPE) ||
-            (c == Short.TYPE) ||
-            (c == Character.TYPE) ||
-            (c == Integer.TYPE) ||
-            (c == Long.TYPE));
-  }
-
   private StructLayout getLayout() {
     if (layout == null) {
       layout = StructLayout.create(0);
@@ -2627,21 +2652,18 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   private String compatiblePrimitiveJavaTypeName(final Type fieldType,
-                                                 final JavaType javaType,
                                                  final MachineDataInfo curMachDesc) {
-    final Class<?> c = javaType.getJavaClass();
-    if (!isIntegerType(c)) {
-      // FIXME
-      throw new GlueGenException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.): type: "+fieldType+", javaType "+javaType+", javaClass "+c,
-                                 fieldType.getASTLocusTag());
+    if ( !fieldType.isInt() && !fieldType.isPointer() && !fieldType.isArray() ) {
+      throw new GlueGenException("Can't yet handle opaque definitions of structs' fields to non-integer types (byte, short, int, long, etc.): type: "+
+                                 fieldType, fieldType.getASTLocusTag());
     }
     switch ((int) fieldType.getSize(curMachDesc)) {
       case 1:  return "byte";
       case 2:  return "short";
       case 4:  return "int";
       case 8:  return "long";
-      default: throw new GlueGenException("Can't handle opaque definitions if the starting type isn't compatible with integral types",
-                                          fieldType.getASTLocusTag());
+      default: throw new GlueGenException("Can't handle opaque definitions if the starting type isn't compatible with integral types, type "+
+                                          fieldType.getDebugString(), fieldType.getASTLocusTag());
     }
   }
 
