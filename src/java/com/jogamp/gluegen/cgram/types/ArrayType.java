@@ -122,6 +122,15 @@ public class ArrayType extends MemoryLayoutType implements Cloneable {
   }
 
   @Override
+  public Type getArrayBaseOrPointerTargetType() {
+      if( elementType.isPointer() ) {
+          return getTargetType();
+      } else {
+          return getBaseType();
+      }
+  }
+
+  @Override
   public final int arrayDimension() {
     return 1 + elementType.arrayDimension();
   }

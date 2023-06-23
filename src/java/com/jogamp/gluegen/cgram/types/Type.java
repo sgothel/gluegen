@@ -570,25 +570,49 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
   }
 
   /**
-   * Helper method to returns the bottom-most element type of this type.
+   * Helper method to returns the bottom-most element type of this type,
+   * i.e. returns `{@code type}` if this-type is `{@code type}*`, `{@code type}**`, `{@code type}[]` or `{@code type}[][]`.
    * <p>
    * If this is a multidimensional array or pointer method returns the bottom-most element type,
    * otherwise this.
    * </p>
+   * <p>
+   * In case a {@link #isFunctionPointer()} type is reached, traversing ends and the function {@link PointerType} is returned.
+   * </p>
    * @see #getTargetType()
+   * @see #getTargetFunction()
    */
   public Type getBaseType() {
       return this;
   }
 
   /**
-   * Helper method to returns the target type of this type, in case another type is being referenced.
+   * Helper method to returns the target type of this type, in case another type is being referenced,
+   * i.e. returns `{@code type}` if this-type is `{@code type}*` or `{@code type}[]`
+   * and returns `{@code type}*` if this-type is `{@code type}**` or `{@code type}[][]`.
    * <p>
-   * If this is an array or pointer method returns the next target element type, otherwise this.
+   * If this is an array or pointer method returns the next target element type, otherwise `this`.
+   * </p>
+   * <p>
+   * In this is a {@link #isFunctionPointer()} type, `this` function {#link PointerType} is returned.
    * </p>
    * @see #getBaseType()
+   * @see #getTargetFunction()
    */
   public Type getTargetType() {
       return this;
   }
+
+  /**
+   * Return {@link #getBaseType()} if {@link #isArray()} or returns {@link #getTargetType()} otherwise.
+   */
+  public Type getArrayBaseOrPointerTargetType() {
+      return this;
+  }
+
+  /**
+   * Returns the target {@link FunctionType} if this type is {@link #isFunctionPointer()}.
+   */
+  public FunctionType getTargetFunction() { return null; }
+
 }

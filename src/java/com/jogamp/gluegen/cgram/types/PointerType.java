@@ -124,13 +124,36 @@ public class PointerType extends Type implements Cloneable {
     }
 
     @Override
-    public final Type getTargetType() { return targetType; }
+    public final Type getTargetType() {
+        if( isFunctionPointer() ) {
+            return this;
+        } else {
+            return targetType;
+        }
+    }
 
     @Override
     public final Type getBaseType() {
-        return targetType.getBaseType();
+        if( isFunctionPointer() ) {
+            return this;
+        } else {
+            return targetType.getBaseType();
+        }
     }
 
+    @Override
+    public Type getArrayBaseOrPointerTargetType() {
+        return getTargetType();
+    }
+
+    @Override
+    public FunctionType getTargetFunction() {
+        if( isFunctionPointer() ) {
+            return targetType.asFunction();
+        } else {
+            return null;
+        }
+    }
     @Override
     public final boolean isFunctionPointer() {
         return targetType.isFunction();
@@ -150,7 +173,7 @@ public class PointerType extends Type implements Cloneable {
         }
     }
     private String toStringInt() {
-        if (!targetType.isFunction()) {
+        if (!isFunctionPointer()) {
             return targetType.getCName(true) + " * " + getCVAttributesString();
         } else {
             // return toString(null, null); // this is a pointer to an unnamed function
@@ -162,7 +185,7 @@ public class PointerType extends Type implements Cloneable {
     string (i.e., "__stdcall") is optional and is generally only
     needed on Windows. */
     public String toString(final String functionName, final String callingConvention) {
-        if (!targetType.isFunction()) {
+        if (!isFunctionPointer()) {
             throw new RuntimeException("<Internal error or misuse> This method is only for use when printing function pointers");
         }
         return ((FunctionType) targetType).toString(functionName, callingConvention, false, true);

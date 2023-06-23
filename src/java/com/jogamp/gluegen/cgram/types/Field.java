@@ -120,7 +120,7 @@ public class Field implements SemanticEqualityOp {
       }
       return "" + getType() + " " + getName() + ";";
     } else {
-      final FunctionType ft = getType().asPointer().getTargetType().asFunction();
+      final FunctionType ft = getType().getTargetFunction();
       // FIXME: pick up calling convention?
       return ft.toString(getName(), null, false, true) + ";";
     }

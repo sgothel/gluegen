@@ -983,7 +983,7 @@ public class JavaEmitter implements GlueEmitter {
           }
           generateOffsetAndSizeArrays(javaUnit, "  ", fieldName, fieldType, field, null);
         } else if (fieldType.isArray()) {
-            final Type baseElementType = field.getType().asArray().getBaseType();
+            final Type baseElementType = fieldType.getBaseType();
             if( GlueGen.debug() ) {
                 System.err.printf("SE.os.%02d: %s / %s, %s (%s)%n", (i+1), field, cfgFieldName1, fieldType.getDebugString(), "array");
                 System.err.printf("SE.os.%02d: baseType %s%n", (i+1), baseElementType.getDebugString());
@@ -1249,11 +1249,11 @@ public class JavaEmitter implements GlueEmitter {
               isArray = false;
               referencedType = null;
               relationship = "being";
-          } else if( fieldType.pointerDepth() > 0 ) {
+          } else if( fieldType.isPointer() ) {
               isArray = true;
               referencedType = fieldType.getBaseType();
               relationship = "referencing";
-          } else if( fieldType.arrayDimension() > 0 ) {
+          } else if( fieldType.isArray() ) {
               isArray = true;
               referencedType = null;
               relationship = "being";
@@ -2390,14 +2390,8 @@ public class JavaEmitter implements GlueEmitter {
     if (info != null) {
       boolean isPointerPointer = false;
       if (cType.pointerDepth() > 0 || cType.arrayDimension() > 0) {
-        Type targetType; // target type
-        if (cType.isPointer()) {
-          // t is <type>*, we need to get <type>
-          targetType = cType.asPointer().getTargetType();
-        } else {
-          // t is <type>[], we need to get <type>
-          targetType = cType.asArray().getBaseType();
-        }
+        // t is `<type>*`, `<type>[]` or `<type>[][]`, we need to get <type>
+        final Type targetType = cType.getArrayBaseOrPointerTargetType();
         if (cType.pointerDepth() == 2 || cType.arrayDimension() == 2) {
           // Get the target type of the target type (targetType was computer earlier
           // as to be a pointer to the target type, so now we need to get its
@@ -2435,14 +2429,8 @@ public class JavaEmitter implements GlueEmitter {
     } else if (cType.isVoid()) {
       return javaType(Void.TYPE);
     } else if (cType.pointerDepth() > 0 || cType.arrayDimension() > 0) {
-        Type targetType; // target type
-        if (cType.isPointer()) {
-          // t is <type>*, we need to get <type>
-          targetType = cType.asPointer().getTargetType();
-        } else {
-          // t is <type>[], we need to get <type>
-          targetType = cType.asArray().getBaseType();
-        }
+        // <type>[][]
+        final Type targetType = cType.getArrayBaseOrPointerTargetType();
 
         // Handle Types of form pointer-to-type or array-of-type, like
         // char* or int[]; these are expanded out into Java primitive
@@ -2521,7 +2509,7 @@ public class JavaEmitter implements GlueEmitter {
             return JavaType.forNIOPointerBufferClass();
           } else if(targetType.isArray()) {
             // t is<type>[][], targetType is <type>[], we need to get <type>
-            bottomType = targetType.asArray().getBaseType();
+            bottomType = targetType.getBaseType();
             if( GlueGen.debug() ) {
                 LOG.log(INFO, cType.getASTLocusTag(), "typeToJavaType(ptr-ptr.array): {0}, targetType: {1}, bottomType: {2}",
                         cType.getDebugString(), targetType.getDebugString(), bottomType.getDebugString());

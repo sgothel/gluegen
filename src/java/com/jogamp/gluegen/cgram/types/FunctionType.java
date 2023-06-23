@@ -192,8 +192,7 @@ public class FunctionType extends Type implements Cloneable {
         for (int i = 0; i < n; i++) {
             final Type t = getArgumentType(i);
             if (t.isFunctionPointer()) {
-                final Type targetType = t.asPointer().getTargetType();
-                final FunctionType ft = targetType.asFunction();
+                final FunctionType ft = t.getTargetFunction();
                 res.append(ft.toString(getArgumentName(i), callingConvention, false, true));
             } else if (t.isArray()) {
                 res.append(t.asArray().toString(getArgumentName(i)));
