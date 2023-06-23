@@ -96,21 +96,35 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         return create(src);
     }
     /**
-     * Wraps given {@link ByteBuffer} {@code src} @ {@code srcByteOffset} to contain {@code elementCount} pointers.
+     * Wraps given {@link ByteBuffer} {@code src} @ {@code srcByteOffset} to contain {@code elemCount} pointers.
      * @param src
      * @param srcByteOffset
-     * @param elementCount
+     * @param elemCount
      * @return
      */
-    public static PointerBuffer wrap(final ByteBuffer src, final int srcByteOffset, final int elementCount) {
+    public static PointerBuffer wrap(final ByteBuffer src, final int srcByteOffset, final int elemCount) {
         final int oldPos = src.position();
         final int oldLimit = src.limit();
         src.position(srcByteOffset);
-        src.limit(srcByteOffset + POINTER_SIZE*elementCount);
+        src.limit(srcByteOffset + POINTER_SIZE*elemCount);
         final ByteBuffer ref = src.slice().order(src.order()); // slice and duplicate may change byte order
         src.position(oldPos);
         src.limit(oldLimit);
         return create(ref);
+    }
+
+    public static PointerBuffer derefPointer(final long aptr, final int elemCount) {
+        if( 0 == aptr ) {
+            throw new NullPointerException("aptr is null");
+        }
+        final ByteBuffer bb = Buffers.getDirectByteBuffer(aptr, elemCount * POINTER_SIZE);
+        if( null == bb ) {
+            throw new InternalError("Couldn't dereference aptr 0x"+Long.toHexString(aptr)+", size "+elemCount+" * "+POINTER_SIZE);
+        }
+        return create(bb);
+    }
+    public static PointerBuffer derefPointer(final ByteBuffer ptrSrc, final int ptrSrcByteOffset, final int elemCount) {
+        return derefPointer(wrap(ptrSrc, ptrSrcByteOffset, 1).get(0), elemCount);
     }
 
     /**
@@ -163,8 +177,8 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
 
     /** Absolute get method. Get the pointer value at the given index */
     public final long get(final int idx) {
-        if (0 > idx || idx >= capacity) {
-            throw new IndexOutOfBoundsException("idx "+idx+" not within [0.."+capacity+"), "+this);
+        if (0 > idx || idx >= limit()) {
+            throw new IndexOutOfBoundsException("idx "+idx+" not within [0.."+limit()+"), "+this);
         }
         if (Platform.is32Bit()) {
             return ((IntBuffer) buffer).get(idx)  & 0x00000000FFFFFFFFL;
@@ -178,28 +192,45 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         position++;
         return r;
     }
+
+    /** Absolute get method. Get element-bytes for `elemCount` elements from this buffer at `srcElemPos` into `dest` at the given element-index `destElemPos` */
+    public final PointerBuffer get(final int srcElemPos, final long[] dest, final int destElemPos, final int elemCount) {
+        if (0 > srcElemPos || srcElemPos + elemCount > limit() || 0 > elemCount ||
+            0 > destElemPos || destElemPos + elemCount > dest.length )
+        {
+            throw new IndexOutOfBoundsException("destElemPos "+destElemPos+", srcElemPos "+srcElemPos+", elemCount "+elemCount+
+                                                ", srcLimit "+limit()+", destLimit "+dest.length+", "+this);
+        }
+        if (Platform.is32Bit()) {
+            final IntBuffer src = (IntBuffer) buffer;
+            for(int i=0; i<elemCount; ++i) {
+                dest[destElemPos+i] = src.get(srcElemPos+i) & 0x00000000FFFFFFFFL;
+            }
+        } else {
+            final LongBuffer src = (LongBuffer) buffer;
+            final int oldSrcLim = src.limit();
+            final int oldSrcPos = src.position();
+            src.position( srcElemPos ).limit( srcElemPos + elemCount ); // remaining = elemCount
+            src.get(dest, destElemPos, elemCount);
+            src.limit(oldSrcLim).position(oldSrcPos);
+        }
+        return this;
+    }
+
     /**
-     * Relative bulk get method. Copy the pointer values <code> [ position .. position+length [</code>
-     * to the destination array <code> [ dest[offset] .. dest[offset+length] [ </code>
-     * and increment the position by <code>length</code>. */
-    public final PointerBuffer get(final long[] dest, int offset, int length) {
-        if (dest.length<offset+length) {
-            throw new IndexOutOfBoundsException("dest.length "+dest.length+" < (offset "+offset+" + length "+length+")");
-        }
-        if (remaining() < length) {
-            throw new IndexOutOfBoundsException("remaining "+remaining()+" < length "+length+", this "+this);
-        }
-        while(length>0) {
-            dest[offset++] = get(position++);
-            length--;
-        }
+     * Relative bulk get method. Copy the pointer values <code> [ position .. position+elemCount [</code>
+     * to the destination array <code> [ dest[destElemPos] .. dest[destElemPos+elemCount] [ </code>
+     * and increment the position by <code>elemCount</code>. */
+    public final PointerBuffer get(final long[] dest, final int destElemPos, final int elemCount) {
+        get(position, dest, destElemPos, elemCount);
+        position += elemCount;
         return this;
     }
 
     /** Absolute put method. Put the pointer value at the given index */
     public final PointerBuffer put(final int idx, final long v) {
-        if (0 > idx || idx >= capacity) {
-            throw new IndexOutOfBoundsException("idx "+idx+" not within [0.."+capacity+"), "+this);
+        if (0 > idx || idx >= limit()) {
+            throw new IndexOutOfBoundsException("idx "+idx+" not within [0.."+limit()+"), "+this);
         }
         if (Platform.is32Bit()) {
             ((IntBuffer) buffer).put(idx, (int) v);
@@ -214,20 +245,36 @@ public class PointerBuffer extends AbstractBuffer<PointerBuffer> {
         position++;
         return this;
     }
+
+    /** Absolute put method. Put element-bytes for `elemCount` elements from `src` at `srcElemPos` into this buffer at the given element-index `destElemPos` */
+    public final PointerBuffer put(final long[] src, final int srcElemPos, final int destElemPos, final int elemCount) {
+        if (0 > destElemPos || destElemPos + elemCount > limit() || 0 > elemCount ||
+            0 > srcElemPos || srcElemPos + elemCount > src.length )
+        {
+            throw new IndexOutOfBoundsException("srcElemPos "+srcElemPos+", destElemPos "+destElemPos+", elemCount "+elemCount+
+                                                ", destLimit "+limit()+", srcLimit "+src.length+", "+this);
+        }
+        if (Platform.is32Bit()) {
+            final IntBuffer dest = (IntBuffer) buffer;
+            for(int i=0; i<elemCount; ++i) {
+                dest.put(destElemPos+i, (int) src[srcElemPos+i]);
+            }
+        } else {
+            final LongBuffer dest = (LongBuffer) buffer;
+            final int oldDestLim = dest.limit();
+            final int oldDestPos = dest.position();
+            dest.position( destElemPos ).limit( destElemPos + elemCount ); // remaining = elemCount
+            dest.put(src, srcElemPos, elemCount); // remaining = elemCount
+            dest.limit(oldDestLim).position(oldDestPos);
+        }
+        return this;
+    }
     /**
-     * Relative bulk put method. Put the pointer values <code> [ src[offset] .. src[offset+length] [</code>
-     * at the current position and increment the position by <code>length</code>. */
-    public final PointerBuffer put(final long[] src, int offset, int length) {
-        if (src.length<offset+length) {
-            throw new IndexOutOfBoundsException("src.length "+src.length+" < (offset "+offset+" + length "+length+")");
-        }
-        if (remaining() < length) {
-            throw new IndexOutOfBoundsException("remaining "+remaining()+" < length "+length+", this "+this);
-        }
-        while(length>0) {
-            put(position++, src[offset++]);
-            length--;
-        }
+     * Relative bulk put method. Put the pointer values <code> [ src[srcElemPos] .. src[srcElemPos+elemCount] [</code>
+     * at the current position and increment the position by <code>elemCount</code>. */
+    public final PointerBuffer put(final long[] src, final int srcElemPos, final int elemCount) {
+        put(src, srcElemPos, position, elemCount);
+        position += elemCount;
         return this;
     }
 

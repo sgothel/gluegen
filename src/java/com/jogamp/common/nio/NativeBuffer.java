@@ -36,26 +36,50 @@ import java.nio.ByteBuffer;
 
 /**
  * Hardware independent container for various kinds of buffers.
- *
+ * <p>
+ * Implementations follow {@link Buffer} semantics, e.g.
+ * <pre>
+ *       0 <= position <= limit <= capacity
+ * </pre>
+ * </p>
  * @author Sven Gothel
  * @author Michael Bien
  */
 @SuppressWarnings("rawtypes")
 public interface NativeBuffer<B extends NativeBuffer> {
 
+    /** Returns byte size of one element */
     public int elementSize();
 
+    /** Returns this buffer's element limit. */
     public int limit();
 
+    /** Sets this buffer's element limit. */
+    public B limit(int newLim);
+
+    /** Returns this buffer's element capacity. */
     public int capacity();
 
+    /** Returns this buffer's element position. */
     public int position();
 
+    /** Sets this buffer's element position. */
     public B position(int newPos);
 
+    /** Returns this buffer's remaining element, i.e. limit - position. */
     public int remaining();
 
+    /** Returns {@link #remaining()} > 0 */
     public boolean hasRemaining();
+
+    /** Sets the limit to the capacity and the position to zero. */
+    public B clear();
+
+    /** Sets the limit to the current position and the position to zero. */
+    public B flip();
+
+    /** Sets the position to zero. */
+    public B rewind();
 
     /**
      * @return true if this buffer has a primitive backup array, otherwise false
@@ -99,8 +123,6 @@ public interface NativeBuffer<B extends NativeBuffer> {
      * </p>
      **/
     public void storeDirectAddress(final ByteBuffer directDest, final int destOffset);
-
-    public B rewind();
 
     /**
      * Relative bulk get method. Copy the source values <code> src[position .. capacity] [</code>

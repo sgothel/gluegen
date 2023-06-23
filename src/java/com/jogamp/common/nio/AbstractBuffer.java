@@ -31,12 +31,10 @@
  */
 package com.jogamp.common.nio;
 
-import com.jogamp.common.os.*;
-
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
+
+import com.jogamp.common.os.Platform;
 
 /**
  * @author Sven Gothel
@@ -50,6 +48,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
     protected final Buffer buffer;
     protected final int elementSize;
     protected final int capacity;
+    protected int limit;
     protected int position;
 
     static {
@@ -70,6 +69,7 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         this.buffer = buffer;
         this.elementSize = elementSize;
         this.capacity = capacity;
+        this.limit = capacity;
 
         this.position = 0;
     }
@@ -81,7 +81,17 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
 
     @Override
     public final int limit() {
-        return capacity;
+        return limit;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final B limit(final int newLim) {
+        if (0 > newLim || newLim >= capacity) {
+            throw new IllegalArgumentException("New limit "+newLim+" out of bounds [0 .. capacity " +capacity()+"].");
+        }
+        limit = newLim;
+        return (B)this;
     }
 
     @Override
@@ -94,11 +104,11 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
         return position;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public final B position(final int newPos) {
-        if (0 > newPos || newPos >= capacity) {
-            throw new IndexOutOfBoundsException("Sorry to interrupt, but the position "+newPos+" was out of bounds. " +
-                                                "My capacity is "+capacity()+".");
+        if (0 > newPos || newPos > limit) {
+            throw new IllegalArgumentException("New position "+newPos+" out of bounds [0 .. limit " +limit()+"].");
         }
         position = newPos;
         return (B)this;
@@ -106,14 +116,31 @@ public abstract class AbstractBuffer<B extends AbstractBuffer> implements Native
 
     @Override
     public final int remaining() {
-        return capacity - position;
+        return limit - position;
     }
 
     @Override
     public final boolean hasRemaining() {
-        return position < capacity;
+        return limit > position;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public final B clear() {
+        limit = capacity;
+        position = 0;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final B flip() {
+        limit = position;
+        position = 0;
+        return (B) this;
+    }
+
+    @SuppressWarnings("unchecked")
     @Override
     public final B rewind() {
         position = 0;
