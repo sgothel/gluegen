@@ -184,15 +184,18 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
     } else {
         sb.append("ANON");
     }
-    final Type targetType = getTargetType();
-    if( null != targetType && this != targetType ) {
+    if ( isFunctionPointer() ) {
         sb.append(" -> ");
-        if (!targetType.isFunction()) {
+        final FunctionType ft = getTargetFunction();
+        sb.append(ft.toString(null /* functionName */, null /* callingConvention */, false, true));
+    } else {
+        final Type targetType = getTargetType();
+        if( null != targetType && this != targetType ) {
+            sb.append(" -> ");
             sb.append("(" + targetType.toString() + ") * " + getCVAttributesString());
-        } else {
-            sb.append(((FunctionType) targetType).toString(null /* functionName */, null /* callingConvention */, false, true));
         }
     }
+
     if( GlueGen.debug() ) {
         sb.append(", o=0x"+Integer.toHexString(objHash()));
     }
@@ -594,7 +597,7 @@ public abstract class Type implements SemanticEqualityOp, ASTLocusTagProvider {
    * If this is an array or pointer method returns the next target element type, otherwise `this`.
    * </p>
    * <p>
-   * In this is a {@link #isFunctionPointer()} type, `this` function {#link PointerType} is returned.
+   * In this is a {@link #isFunctionPointer()} type, `this` function {@link PointerType} is returned.
    * </p>
    * @see #getBaseType()
    * @see #getTargetFunction()
