@@ -148,6 +148,8 @@ public class JavaConfiguration {
      * converted to String args; value is List of Integer argument indices
      */
     private final Map<String, List<Integer>> argumentsAreString = new HashMap<String, List<Integer>>();
+    private final Map<String, Integer> javaCallbackUserParams = new HashMap<String, Integer>();
+    private final List<String> javaCallbackList = new ArrayList<String>();
     private final Set<String> extendedIntfSymbolsIgnore = new HashSet<String>();
     private final Set<String> extendedIntfSymbolsOnly = new HashSet<String>();
     private final Set<String> extendedImplSymbolsIgnore = new HashSet<String>();
@@ -531,6 +533,32 @@ public class JavaConfiguration {
     return returnsStringOnly.contains(functionName);
   }
 
+  public List<String> getJavaCallbackList() {
+    return javaCallbackList;
+  }
+
+  /** Returns an <code>Integer</code> index of the <code>void*</code>
+      user-param argument that should be converted to <code>Object</code>s for the Java Callback. Returns null if there are no
+      such hints for the given function alias symbol. */
+  public boolean isJavaCallback(final AliasedSymbol symbol) {
+      return -2 < javaCallbackUserParamIdx(symbol);
+  }
+
+  /** Returns an <code>Integer</code> index of the <code>void*</code>
+      user-param argument that should be converted to <code>Object</code>s for the Java Callback. Returns -2 if there are no
+      such hints for the given function alias symbol. */
+  public int javaCallbackUserParamIdx(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+
+      Integer res = javaCallbackUserParams.get(name);
+      if( null == res ) {
+          res = oneInMap(javaCallbackUserParams, aliases);
+      }
+      LOG.log(INFO, getASTLocusTag(symbol), "JavaCallbackDef: {0} -> {1}", symbol, res);
+      return null != res ? res.intValue() : -2;
+  }
+
   /**
    * Returns a MessageFormat string of the Java expression calculating
    * the number of elements in the returned array from the specified function
@@ -562,7 +590,6 @@ public class JavaConfiguration {
   /** Returns a list of <code>Integer</code>s which are the indices of <code>const char*</code>
       arguments that should be converted to <code>String</code>s. Returns null if there are no
       such hints for the given function name. */
-
   public List<Integer> stringArguments(final String functionName) {
     return argumentsAreString.get(functionName);
   }
@@ -1313,6 +1340,8 @@ public class JavaConfiguration {
       readMaxOneElement(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ArgumentIsString")) {
       readArgumentIsString(tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("JavaCallbackDef")) {
+      readJavaCallbackDef(tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsIgnore")) {
       readExtendedIntfImplSymbols(tok, filename, lineNo, true, false, false);
     } else if (cmd.equalsIgnoreCase("ExtendedInterfaceSymbolsOnly")) {
@@ -1554,6 +1583,23 @@ public class JavaConfiguration {
       maxOneElement.add(name);
     } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"MaxOneElement\" command at line " + lineNo +
+        " in file \"" + filename + "\"", e);
+    }
+  }
+
+  protected void readJavaCallbackDef(final StringTokenizer tok, final String filename, final int lineNo) {
+    try {
+      final String name = tok.nextToken();
+      final Integer idx;
+      if( tok.hasMoreTokens() ) {
+          idx = Integer.valueOf(tok.nextToken());
+      } else {
+          idx = Integer.valueOf(-2);
+      }
+      javaCallbackUserParams.put(name, idx);
+      javaCallbackList.add(name);
+    } catch (final NoSuchElementException e) {
+      throw new RuntimeException("Error parsing \"JavaCallbackDef\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
     }
   }
