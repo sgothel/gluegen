@@ -56,7 +56,7 @@ public class DebugEmitter implements GlueEmitter {
   }
 
   @Override
-  public JavaConfiguration getConfiguration() { return cfg; }
+  public JavaConfiguration getConfig() { return cfg; }
 
   @Override
   public void beginEmission(final GlueEmitterControls controls) {

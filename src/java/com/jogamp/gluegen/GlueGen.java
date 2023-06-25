@@ -131,7 +131,7 @@ public class GlueGen implements GlueEmitterControls {
             for (final String config : cfgFiles) {
                 emit.readConfigurationFile(config);
             }
-            final JavaConfiguration cfg = emit.getConfiguration();
+            final JavaConfiguration cfg = emit.getConfig();
 
             final File out = File.createTempFile("CPPTemp", ".cpp");
             final FileOutputStream outStream = new FileOutputStream(out);

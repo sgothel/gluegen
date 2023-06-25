@@ -50,7 +50,7 @@ import com.jogamp.gluegen.cgram.types.*;
 public interface GlueEmitter {
 
   public void readConfigurationFile(String filename) throws Exception;
-  public JavaConfiguration getConfiguration();
+  public JavaConfiguration getConfig();
 
   /**
    * Begin the emission of glue code. This might include opening files,

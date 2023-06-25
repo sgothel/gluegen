@@ -159,7 +159,7 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   @Override
-  public JavaConfiguration getConfiguration() { return cfg; }
+  public JavaConfiguration getConfig() { return cfg; }
 
   class ConstFuncRenamer implements SymbolFilter {
     private List<ConstantDefinition> constants;
@@ -408,13 +408,6 @@ public class JavaEmitter implements GlueEmitter {
   }
 
   /**
-   * Get the configuration information for this JavaEmitter.
-   */
-  protected JavaConfiguration getConfig() {
-    return cfg;
-  }
-
-  /**
    * Generates the public emitters for this MethodBinding which will
    * produce either simply signatures (for the interface class, if
    * any) or function definitions with or without a body (depending on
@@ -576,7 +569,7 @@ public class JavaEmitter implements GlueEmitter {
                               cfg.allStatic(),
                               (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue),
                               !cfg.useNIODirectOnly(binding.getName()),
-                              machDescJava, getConfiguration());
+                              machDescJava, getConfig());
               prepCEmitter(binding.getName(), binding.getJavaReturnType(), cEmitter);
               allEmitters.add(cEmitter);
           }
@@ -1518,7 +1511,7 @@ public class JavaEmitter implements GlueEmitter {
                           false,
                           true,
                           false, // forIndirectBufferAndArrayImplementation
-                          machDescJava, getConfiguration());
+                          machDescJava, getConfig());
           cEmitter.setIsCStructFunctionPointer(true);
           prepCEmitter(returnSizeLookupName, binding.getJavaReturnType(), cEmitter);
           cEmitter.emit();

@@ -82,7 +82,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
                 true,
                 methodToWrap.forIndirectBufferAndArrayImplementation(),
                 methodToWrap.getMachineDataInfo(),
-                emitter.getConfiguration()
+                emitter.getConfig()
         );
         if (methodToWrap.getReturnValueCapacityExpression() != null) {
             setReturnValueCapacityExpression(methodToWrap.getReturnValueCapacityExpression());
