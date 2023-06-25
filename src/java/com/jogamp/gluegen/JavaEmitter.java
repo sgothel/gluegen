@@ -81,6 +81,7 @@ import com.jogamp.gluegen.cgram.types.ArrayType;
 import com.jogamp.gluegen.cgram.types.CompoundType;
 import com.jogamp.gluegen.cgram.types.Field;
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.FunctionType;
 import com.jogamp.gluegen.cgram.types.PointerType;
 import com.jogamp.gluegen.cgram.types.SizeThunk;
 import com.jogamp.gluegen.cgram.types.StructLayout;
@@ -361,6 +362,17 @@ public class JavaEmitter implements GlueEmitter {
 
     if ( ( cfg.allStatic() || cfg.emitInterface() ) && !cfg.structsOnly() ) {
       javaUnit().emitln();
+      if( !cfg.getJavaCallbackList().isEmpty() ) {
+          final List<String> javaCallbacks = cfg.getJavaCallbackList();
+          for(final String javaCallback : javaCallbacks) {
+              final Type funcPtr = typedefDictionary.get(javaCallback);
+              if( null != funcPtr && funcPtr.isFunctionPointer() ) {
+                  generateJavaCallbackCode(javaCallback, funcPtr.getTargetFunction());
+              } else {
+                  LOG.log(WARNING, "JavaCallback '{0}' function-pointer type not available", javaCallback);
+              }
+          }
+      }
     }
   }
 
@@ -1441,6 +1453,100 @@ public class JavaEmitter implements GlueEmitter {
       }
   }
 
+  static class JavaCallback {
+      final String funcName;
+      final FunctionType func;
+      final int userParamIdx;
+      final Type userParamType;
+      final String userParamName;
+
+      JavaCallback(final String funcName, final FunctionType func, final int userParamIdx) {
+          this.funcName = funcName;
+          this.func = func;
+          int paramIdx = -2;
+          Type paramType = null;
+          String paramName = null;
+          if( 0 <= userParamIdx && userParamIdx < func.getNumArguments() ) {
+              final Type t = func.getArgumentType(userParamIdx);
+              if( null != t && t.isPointer() && t.getTargetType().isVoid() ) {
+                  // OK 'void*'
+                  paramIdx = userParamIdx;
+                  paramName = func.getArgumentName(userParamIdx);
+                  paramType = t;
+              }
+          }
+          this.userParamIdx = paramIdx;
+          this.userParamType = paramType;
+          this.userParamName = paramName;
+      }
+
+      @Override
+      public String toString() {
+          return String.format("JavaCallback[%s, userParam[idx %d, '%s', %s], %s]", funcName,
+                  userParamIdx, userParamName, userParamType.getSignature(null).toString(), func.toString(funcName, false, true));
+      }
+  }
+  private final Map<String, JavaCallback> javaCallbackMap = new HashMap<String, JavaCallback>();
+
+  private void generateJavaCallbackCode(final String funcName, final FunctionType funcType) {
+      final FunctionSymbol funcSym = new FunctionSymbol("callback", funcType);
+      funcSym.addAliasedName(funcName);
+      final int userParamIdx = cfg.javaCallbackUserParamIdx(funcSym);
+      final JavaCallback jcb = new JavaCallback(funcName, funcType, userParamIdx);
+      javaCallbackMap.put(funcName, jcb);
+      LOG.log(INFO, "JavaCallback: fSym {0}, userParam {1}", funcSym.getAliasedString(), userParamIdx);
+      LOG.log(INFO, "JavaCallback: Added {0}", jcb);
+
+      javaUnit.emitln("  /** JavaCallback interface: "+funcName+" -> "+funcType.toString(funcName, false, true)+" */");
+      javaUnit.emitln("  public static interface "+funcName+" {");
+      generateFunctionInterfaceCode(javaUnit, funcSym, jcb);
+      javaUnit.emitln("  }");
+      javaUnit.emitln();
+  }
+  private void generateFunctionInterfaceCode(final JavaCodeUnit javaUnit, final FunctionSymbol funcSym, final JavaCallback jcb)  {
+      // Emit method call and associated native code
+      MethodBinding  mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, null, null);
+
+      // Replace optional userParam argument 'void*' with Object
+      if( 0 <= jcb.userParamIdx && jcb.userParamIdx < mb.getNumArguments() ) {
+          final JavaType t = mb.getJavaArgumentType(jcb.userParamIdx);
+          if ( t.isCVoidPointerType() ) {
+              mb = mb.replaceJavaArgumentType(jcb.userParamIdx, JavaType.forObjectClass());
+          }
+      }
+      // JavaTypes representing C pointers in the initial
+      // MethodBinding have not been lowered yet to concrete types
+      final List<MethodBinding> bindings = expandMethodBinding(mb);
+
+      final boolean useNIOOnly = true;
+      final boolean useNIODirectOnly = true;
+
+      for (final MethodBinding binding : bindings) {
+          // Emit public Java entry point for calling this function pointer
+          final JavaMethodBindingEmitter emitter = new JavaMethodBindingEmitter(binding,
+                          javaUnit,
+                          cfg.runtimeExceptionType(),
+                          cfg.unsupportedExceptionType(),
+                          false,  // emitBody
+                          cfg.tagNativeBinding(),
+                          false, // eraseBufferAndArrayTypes
+                          useNIOOnly,
+                          useNIODirectOnly,
+                          false, // forDirectBufferImplementation
+                          false, // forIndirectBufferAndArrayImplementation
+                          true, // isUnimplemented
+                          true,  // isInterface
+                          false, // isNativeMethod
+                          false, // isPrivateNativeMethod
+                          cfg) {
+              @Override
+              protected String getBaseIndentString() { return "    "; }
+          };
+          emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+          emitter.emit();
+      }
+  }
+
   private void generateFunctionPointerCode(final Set<MethodBinding> methodBindingSet,
           final JavaCodeUnit javaUnit, final CCodeUnit jniUnit,
           final String structCTypeName, final Type containingCType, final JavaType containingJType,
@@ -1757,7 +1863,6 @@ public class JavaEmitter implements GlueEmitter {
               LOG.log(WARNING, structCType.getASTLocusTag(), msg);
               return;
           }
-
           baseIsPointer = baseElemType.isPointer();
           isConstValue = baseElemType.isConst();
           if( baseIsPointer ) {
@@ -2947,7 +3052,6 @@ public class JavaEmitter implements GlueEmitter {
         sym = FunctionSymbol.cloneWithDeepAliases(sym);
         sym.addAliasedName(delegationImplName);
     }
-    final String name = sym.getName();
     final JavaType javaReturnType;
 
     if (cfg.returnsString(sym)) {
@@ -2973,16 +3077,41 @@ public class JavaEmitter implements GlueEmitter {
     // List of the indices of the arguments in this function that should be
     // converted from byte[] or short[] to String
     final List<JavaType> javaArgumentTypes = new ArrayList<JavaType>();
-    final List<Integer> stringArgIndices = cfg.stringArguments(name);
+    final List<Integer> stringArgIndices = cfg.stringArguments(sym);
+    JavaCallback javaCallback = null;
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       final Type cArgType = sym.getArgumentType(i);
+      final String cArgName = sym.getArgumentName(i);
       JavaType mappedType = typeToJavaType(cArgType, curMachDesc);
       // System.out.println("C arg type -> \"" + cArgType + "\"" );
       // System.out.println("      Java -> \"" + mappedType + "\"" );
 
-      // Take into account any ArgumentIsString configuration directives that apply
-      if (stringArgIndices != null && stringArgIndices.contains(i)) {
+      final boolean isJavaCallbackArg;
+      if( null == javaCallback ) {
+          final JavaCallback jcb = javaCallbackMap.get( cArgType.getName() );
+          if( null != jcb && null != jcb.userParamName ) {
+              isJavaCallbackArg = true;
+              javaCallback = jcb;
+              LOG.log(INFO, "BindFunc.JavaCallback: Found {0} for {1}", jcb, sym.getType().toString(sym.getName(), false, true));
+          } else {
+              isJavaCallbackArg = false;
+          }
+      } else {
+          isJavaCallbackArg = false;
+      }
+
+      if( isJavaCallbackArg ) {
+          // Replace JavaCallback type with generated interface name
+          mappedType = JavaType.createForCStruct(cArgType.getName());
+      } else if( null != javaCallback && null != javaCallback.userParamName &&
+                 javaCallback.userParamName.equals( cArgName ) &&
+                 cArgType.isPointer() && cArgType.getTargetType().isVoid() )
+      {
+          // Replace optional userParam argument 'void*' with Object
+          mappedType = JavaType.forObjectClass();
+      } else if (stringArgIndices != null && stringArgIndices.contains(i)) {
+        // Take into account any ArgumentIsString configuration directives that apply
         // System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
         if (mappedType.isCVoidPointerType() ||
             mappedType.isCCharPointerType() ||

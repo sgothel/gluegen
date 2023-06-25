@@ -6,7 +6,7 @@
 // struct T2_UndefStruct;  // undefined struct forward declaration, implementation secret
 typedef struct T2_UndefStruct* T2_UndefStructPtr;
 
-typedef int32_t ( * T2_CustomFuncA)(void* aptr);
+typedef int32_t ( * T2_CustomFuncA)(T2_UndefStructPtr aptr);
 
 typedef struct {
     int32_t balance;
@@ -58,8 +58,9 @@ typedef struct {
 extern int Initialize(T2_InitializeOptions* Options);
 extern int Release(T2_InitializeOptions* Options);
 
-typedef int32_t ( * T2_CallbackFunc)(size_t id, size_t msg_len, const char* msg, void* userParam);
+typedef int32_t ( * T2_CallbackFunc)(size_t id, const char* msg, void* userParam);
 
 void AddMessageCallback(T2_CallbackFunc func, void* userParam);
 void RemoveMessageCallback(T2_CallbackFunc func, void* userParam);
-void InjectMessageCallback(size_t id, size_t msg_len, const char* msg);
+void InjectMessageCallback(size_t id, const char* msg);
+
