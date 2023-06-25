@@ -667,11 +667,43 @@ and similar to `T2_CustomFuncB customFuncB1`
 ### Java Callback from Native C-API Support
 GlueGen supports registering Java callback methods to native C-API functions in the form:
 ```
-typedef int32_t ( * T_CallbackFunc)(size_t id, size_t msg_len, const char* msg, void* userParam);
+typedef int32_t ( * T_CallbackFunc)(size_t id, const char* msg, void* userParam);
 
 void AddMessageCallback(T_CallbackFunc func, void* userParam);
 void RemoveMessageCallback(T_CallbackFunc func, void* userParam);
-void InjectMessageCallback(size_t id, size_t msg_len, const char* msg);
+void InjectMessageCallback(size_t id, const char* msg);
+```
+
+and the following GlueGen configuration
+```
+ArgumentIsString T2_CallbackFunc 1
+ArgumentIsString InjectMessageCallback 1
+
+# Define a JavaCallback, enacted on a function-pointer argument `T2_CallbackFunc` and a user-param `void*` for Java Object mapping
+JavaCallbackDef  T2_CallbackFunc 2
+```
+
+This will lead to the following result
+```
+public interface Bindingtest2 {
+
+  /** JavaCallback interface: T2_CallbackFunc -> int32_t (*T2_CallbackFunc)(size_t id, const char *  msg, void *  userParam) */
+  public static interface T2_CallbackFunc {
+    /** Interface to C language function: <br> <code>int32_t callback(size_t id, const char *  msg, void *  userParam)</code><br>Alias for: <code>T2_CallbackFunc</code>     */
+    public int callback(long id, String msg, Object userParam);
+  }
+
+  ...
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void AddMessageCallback(int32_t (*func)(size_t id, const char *  msg, void *  userParam), void *  userParam)</code><br>   */
+  public void AddMessageCallback(T2_CallbackFunc func, Object userParam);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void RemoveMessageCallback(int32_t (*func)(size_t id, const char *  msg, void *  userParam), void *  userParam)</code><br>   */
+  public void RemoveMessageCallback(T2_CallbackFunc func, Object userParam);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void InjectMessageCallback(size_t id, const char *  msg)</code><br>   */
+  public void InjectMessageCallback(long id, String msg);
+
 ```
 
 *TODO: Work in progress*
