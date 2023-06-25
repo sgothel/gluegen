@@ -1675,6 +1675,13 @@ public class JavaEmitter implements GlueEmitter {
               final int[][] arrayLengthRes = new int[1][];
               final boolean[] _useFixedArrayLen = { false };
               elemCountExpr = getArrayArrayLengthExpr(fieldType.asArray(), fqStructFieldName, _useFixedArrayLen, arrayLengthRes);
+              if( null == elemCountExpr ) {
+                  final String msg = "SKIP unsized array in struct: "+fqStructFieldName+": "+fieldType.getSignature(null).toString();
+                  unit.emitln("  // "+msg);
+                  unit.emitln();
+                  LOG.log(WARNING, structCType.getASTLocusTag(), msg);
+                  return;
+              }
               // final int arrayLength = arrayLengthRes[0][0];
               constElemCount = _useFixedArrayLen[0];
               ownership = Ownership.Parent; // a fixed linear array
@@ -1731,14 +1738,6 @@ public class JavaEmitter implements GlueEmitter {
                   }
                   staticElemCount = _staticElemCount;
               }
-          }
-          if( null == elemCountExpr ) {
-              final String msg = "SKIP unsized array in struct: "+fqStructFieldName+": "+fieldType.getSignature(null).toString();
-              unit.emitln("  // "+msg);
-              unit.emitln();
-              LOG.log(WARNING, structCType.getASTLocusTag(), msg);
-              throw new InternalError(msg);
-              // return; // FIXME: Remove block unreachable
           }
           boolean _maxOneElement = cfg.maxOneElement(fqStructFieldName);
           if( !_maxOneElement ) {
