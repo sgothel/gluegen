@@ -152,6 +152,11 @@ public class JavaEmitter implements GlueEmitter {
       LOG = Logging.getLogger(JavaEmitter.class.getPackage().getName(), JavaEmitter.class.getSimpleName());
   }
 
+  public JavaEmitter(final JavaConfiguration cfg) {
+      this();
+      this.cfg = cfg;
+  }
+
   @Override
   public void readConfigurationFile(final String filename) throws Exception {
     cfg = createConfig();
