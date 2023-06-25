@@ -65,6 +65,7 @@ public class JavaType {
   private final C_PTR  primitivePointerType;
   private final boolean opaqued;
 
+  private static JavaType objectType;
   private static JavaType nioBufferType;
   private static JavaType nioByteBufferType;
   private static JavaType nioShortBufferType;
@@ -168,6 +169,13 @@ public class JavaType {
 
   public static JavaType createForJNIEnv() {
     return createForCStruct("JNIEnv");
+  }
+
+  public static JavaType forObjectClass() {
+    if (objectType == null) {
+      objectType = createForClass(java.lang.Object.class);
+    }
+    return objectType;
   }
 
   public static JavaType forNIOBufferClass() {
