@@ -224,7 +224,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     protected String jniMangle(final MethodBinding binding) {
         final StringBuilder buf = new StringBuilder(super.jniMangle(binding));
         if (callThroughProcAddress) {
-            jniMangle(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
+            getJNIMangledArg(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
         }
         return buf.toString();
     }
