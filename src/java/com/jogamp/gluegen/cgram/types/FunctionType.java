@@ -161,6 +161,9 @@ public class FunctionType extends Type implements Cloneable {
     public String toString(final String functionName, final boolean emitNativeTag) {
         return toString(functionName, null, emitNativeTag, false);
     }
+    public String toString(final String functionName, final boolean emitNativeTag, final boolean isPointer) {
+        return toString(functionName, null, emitNativeTag, isPointer);
+    }
 
     String toString(final String functionName, final String callingConvention,
                     final boolean emitNativeTag, final boolean isPointer) {
