@@ -1163,12 +1163,23 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     buf.append(JavaEmitter.jniMangle(getImplName()));
     buf.append(getImplSuffix());
     buf.append("__");
+    return getJNIMangledArgs(binding, forIndirectBufferAndArrayImplementation, buf).toString();
+  }
+
+  /**
+   * Return the mangled JNI argument names of given binding.
+   * @param binding
+   * @param forIndirectBufferAndArrayImplementation If true, this CMethodBindingEmitter implements the case of an indirect buffer or array being passed down to C code, otherwise false.
+   * @param buf
+   * @return
+   */
+  public static StringBuilder getJNIMangledArgs(final MethodBinding binding, final boolean forIndirectBufferAndArrayImplementation, final StringBuilder buf) {
     if (binding.isReturnCompoundByValue()) {
-        jniMangle(Class.class, buf, true);
+        getJNIMangledArg(Class.class, buf, true);
     }
     if (binding.hasContainingType()) {
       // "this" argument always comes down in argument 0 as direct buffer
-      jniMangle(java.nio.ByteBuffer.class, buf, true);
+      getJNIMangledArg(java.nio.ByteBuffer.class, buf, true);
     }
     for (int i = 0; i < binding.getNumArguments(); i++) {
       if (binding.isArgumentThisPointer(i)) {
@@ -1185,29 +1196,29 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       } else {
         Class<?> c = type.getJavaClass();
         if (c != null) {
-          jniMangle(c, buf, false);
+          getJNIMangledArg(c, buf, false);
           // If Buffer offset arguments were added, we need to mangle the JNI for the
           // extra arguments
           if (type.isNIOBuffer()) {
-            jniMangle(Integer.TYPE, buf, false);
+            getJNIMangledArg(Integer.TYPE, buf, false);
             if(forIndirectBufferAndArrayImplementation) {
-                jniMangle(Boolean.TYPE, buf, false);
+                getJNIMangledArg(Boolean.TYPE, buf, false);
             }
           } else if (type.isNIOBufferArray())   {
             final int[] intArrayType = new int[0];
             c = intArrayType.getClass();
-            jniMangle(c , buf, true);
+            getJNIMangledArg(c , buf, true);
           }
           if (type.isPrimitiveArray()) {
-            jniMangle(Integer.TYPE, buf, false);
+            getJNIMangledArg(Integer.TYPE, buf, false);
           }
         } else if (type.isCompoundTypeWrapper()) {
           // Mangle wrappers for C structs as ByteBuffer
-          jniMangle(java.nio.ByteBuffer.class, buf, true);
+          getJNIMangledArg(java.nio.ByteBuffer.class, buf, true);
         } else if (type.isArrayOfCompoundTypeWrappers()) {
           // Mangle arrays of C structs as ByteBuffer[]
           final java.nio.ByteBuffer[] tmp = new java.nio.ByteBuffer[0];
-          jniMangle(tmp.getClass(), buf, true);
+          getJNIMangledArg(tmp.getClass(), buf, true);
         } else if (type.isJNIEnv()) {
           // These are not exposed at the Java level
         } else {
@@ -1217,11 +1228,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         }
       }
     }
-
-    return buf.toString();
+    return buf;
   }
 
-  protected void jniMangle(final Class<?> c, final StringBuilder res, final boolean syntheticArgument) {
+  public static void getJNIMangledArg(final Class<?> c, final StringBuilder res, final boolean syntheticArgument) {
     if (c.isPrimitive()) {
            if (c == Boolean.TYPE)   res.append("Z");
       else if (c == Byte.TYPE)      res.append("B");
@@ -1245,7 +1255,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           final Class<?> componentType = c.getComponentType();
           // Handle arrays of compound type wrappers differently for
           // convenience of the Java-level glue code generation
-          jniMangle(componentType, res,
+          getJNIMangledArg(componentType, res,
                     (componentType == java.nio.ByteBuffer.class));
         } else {
           res.append("L");
@@ -1255,7 +1265,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       } else {
         if (c.isArray()) {
           res.append("_3");
-          jniMangle(c.getComponentType(), res, false);
+          getJNIMangledArg(c.getComponentType(), res, false);
         } else if (c == java.lang.String.class) {
           res.append("L");
           res.append(c.getName().replace('.', '_'));
