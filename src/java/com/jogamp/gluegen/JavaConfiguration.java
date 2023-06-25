@@ -594,6 +594,24 @@ public class JavaConfiguration {
     return argumentsAreString.get(functionName);
   }
 
+  /** Returns a list of <code>Integer</code>s which are the indices of <code>const char*</code>
+      arguments that should be converted to <code>String</code>s. Returns null if there are no
+      such hints for the given function alias symbol. */
+  public List<Integer> stringArguments(final AliasedSymbol symbol) {
+      final String name = symbol.getName();
+      final Set<String> aliases = symbol.getAliasedNames();
+
+      List<Integer> res = argumentsAreString.get(name);
+      if( null == res ) {
+          res = oneInMap(argumentsAreString, aliases);
+          if( null == res ) {
+              return null;
+          }
+      }
+      LOG.log(INFO, getASTLocusTag(symbol), "ArgumentsAreString: {0} -> {1}", symbol, res);
+      return res;
+  }
+
   public boolean isForceUsingNIOOnly4All() { return forceUseNIOOnly4All; }
 
   public void addUseNIOOnly(final String fname ) {
