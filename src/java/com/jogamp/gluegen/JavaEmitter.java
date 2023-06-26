@@ -3103,7 +3103,7 @@ public class JavaEmitter implements GlueEmitter {
 
       if( isJavaCallbackArg ) {
           // Replace JavaCallback type with generated interface name
-          mappedType = JavaType.createForCStruct(cArgType.getName());
+          mappedType = JavaType.createForNamedClass(cArgType.getName());
       } else if( null != javaCallback && null != javaCallback.userParamName &&
                  javaCallback.userParamName.equals( cArgName ) &&
                  cArgType.isPointer() && cArgType.getTargetType().isVoid() )
