@@ -410,6 +410,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         unit.emit(", int " + offsetArgName(i));
       }
     }
+    if( hasModifier(JavaMethodBindingEmitter.NATIVE) &&
+            null != cfg.bindingToJavaCallbackMap.get(binding.getName()) ) {
+        if (needComma) {
+            unit.emit(", ");
+        }
+        unit.emit("String callbackSignature");
+        ++numEmitted;
+    }
     return numEmitted;
   }
 
@@ -724,6 +732,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
       needComma = true;
       ++numArgsEmitted;
+    }
+    final JavaConfiguration.JavaCallback jcb = cfg.bindingToJavaCallbackMap.get(binding.getName());
+    if( null != jcb ) {
+        if (needComma) {
+            unit.emit(", ");
+        }
+        unit.emit("\"" + jcb.methodSignature + "\"");
+        ++numArgsEmitted;
     }
     return numArgsEmitted;
   }
