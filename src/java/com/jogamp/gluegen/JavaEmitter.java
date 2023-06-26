@@ -1455,13 +1455,17 @@ public class JavaEmitter implements GlueEmitter {
 
   static class JavaCallback {
       final String funcName;
+      final String simpleClazzName;
+      final String fqClazzName;
       final FunctionType func;
       final int userParamIdx;
       final Type userParamType;
       final String userParamName;
 
-      JavaCallback(final String funcName, final FunctionType func, final int userParamIdx) {
+      JavaCallback(final JavaConfiguration cfg, final String funcName, final FunctionType func, final int userParamIdx) {
           this.funcName = funcName;
+          this.simpleClazzName = capitalizeString(funcName);
+          this.fqClazzName = cfg.packageName()+"."+cfg.className()+"."+simpleClazzName;
           this.func = func;
           int paramIdx = -2;
           Type paramType = null;
@@ -1482,7 +1486,7 @@ public class JavaEmitter implements GlueEmitter {
 
       @Override
       public String toString() {
-          return String.format("JavaCallback[%s, userParam[idx %d, '%s', %s], %s]", funcName,
+          return String.format("JavaCallback[%s, %s, userParam[idx %d, '%s', %s], %s]", funcName, fqClazzName,
                   userParamIdx, userParamName, userParamType.getSignature(null).toString(), func.toString(funcName, false, true));
       }
   }
@@ -1492,13 +1496,13 @@ public class JavaEmitter implements GlueEmitter {
       final FunctionSymbol funcSym = new FunctionSymbol("callback", funcType);
       funcSym.addAliasedName(funcName);
       final int userParamIdx = cfg.javaCallbackUserParamIdx(funcSym);
-      final JavaCallback jcb = new JavaCallback(funcName, funcType, userParamIdx);
+      final JavaCallback jcb = new JavaCallback(cfg, funcName, funcType, userParamIdx);
       javaCallbackMap.put(funcName, jcb);
       LOG.log(INFO, "JavaCallback: fSym {0}, userParam {1}", funcSym.getAliasedString(), userParamIdx);
       LOG.log(INFO, "JavaCallback: Added {0}", jcb);
 
       javaUnit.emitln("  /** JavaCallback interface: "+funcName+" -> "+funcType.toString(funcName, false, true)+" */");
-      javaUnit.emitln("  public static interface "+funcName+" {");
+      javaUnit.emitln("  public static interface "+jcb.simpleClazzName+" {");
       generateFunctionInterfaceCode(javaUnit, funcSym, jcb);
       javaUnit.emitln("  }");
       javaUnit.emitln();
@@ -3103,7 +3107,7 @@ public class JavaEmitter implements GlueEmitter {
 
       if( isJavaCallbackArg ) {
           // Replace JavaCallback type with generated interface name
-          mappedType = JavaType.createForNamedClass(cArgType.getName());
+          mappedType = JavaType.createForNamedClass( javaCallback.fqClazzName );
       } else if( null != javaCallback && null != javaCallback.userParamName &&
                  javaCallback.userParamName.equals( cArgName ) &&
                  cArgType.isPointer() && cArgType.getTargetType().isVoid() )
@@ -3291,13 +3295,13 @@ public class JavaEmitter implements GlueEmitter {
   /**
    * Converts first letter to upper case.
    */
-  private final String capitalizeString(final String string) {
+  private static String capitalizeString(final String string) {
       return Character.toUpperCase(string.charAt(0)) + string.substring(1);
   }
   /**
    * Converts first letter to lower case.
    */
-  private final String decapitalizeString(final String string) {
+  private static String decapitalizeString(final String string) {
       return Character.toLowerCase(string.charAt(0)) + string.substring(1);
   }
 

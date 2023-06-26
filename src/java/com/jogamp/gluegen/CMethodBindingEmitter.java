@@ -1213,9 +1213,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             getJNIMangledArg(Integer.TYPE, buf, false);
           }
         } else if (type.isNamedClass()) {
-          buf.append("L");
-          buf.append(type.getName().replace('.', '_'));
-          buf.append("_2");
+          buf.append(type.getJNIMethodDesciptor());
         } else if (type.isCompoundTypeWrapper()) {
           // Mangle wrappers for C structs as ByteBuffer
           getJNIMangledArg(java.nio.ByteBuffer.class, buf, true);

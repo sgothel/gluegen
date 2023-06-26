@@ -293,8 +293,7 @@ public class JavaType {
   }
 
   /**
-   * Returns the descriptor (internal type signature) corresponding to
-   * this type.
+   * Returns the descriptor (internal type signature) corresponding to this type.
    */
   public String getDescriptor() {
     // FIXME: this is not completely accurate at this point (for
@@ -316,6 +315,40 @@ public class JavaType {
       return "[" + descriptor(elementType.getName());
     }
     return "ANON_NIO";
+  }
+
+  /**
+   * Returns the native (JNI) method-name descriptor corresponding to this type,
+   * i.e. replacing chars {@link #getDescriptor()} as follows
+   * <ul>
+   *   <li>`_` -> `_1`</li>
+   *   <li>`/` ->  `_`</li>
+   *   <li>`;` -> `_2`</li>
+   *   <li>`[` -> `_3`</li>
+   * </ul>
+   * @see JNI Spec 2, Chapter 2, Resolving Native Method Names
+   * @see #toJNIMethodDescriptor(String)
+   */
+  public String getJNIMethodDesciptor() {
+      return toJNIMethodDescriptor( getDescriptor() );
+  }
+
+  /**
+   * Converts the assumed descriptor (internal type signature) to a native (JNI) method-name descriptor,
+   * i.e. replacing chars {@link #getDescriptor()} as follows
+   * <ul>
+   *   <li>`_` -> `_1`</li>
+   *   <li>`/` ->  `_`</li>
+   *   <li>`;` -> `_2`</li>
+   *   <li>`[` -> `_3`</li>
+   * </ul>
+   * @see JNI Spec 2, Chapter 2, Resolving Native Method Names
+   */
+  public static String toJNIMethodDescriptor(final String descriptor) {
+      return descriptor.replace("_", "_1")
+                       .replace("/",  "_")
+                       .replace(";", "_2")
+                       .replace("[", "_3");
   }
 
   /** Returns the String corresponding to the JNI type for this type,
@@ -745,7 +778,7 @@ public class JavaType {
     return descriptor(clazz.getName());
   }
 
-  private static String descriptor(final String referenceTypeName) {
-    return "L" + referenceTypeName.replace('.', '/') + ";";
+  private static String descriptor(final String clazzName) {
+    return "L" + clazzName.replace('.', '/') + ";";
   }
 }
