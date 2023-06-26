@@ -60,6 +60,7 @@ public class JavaType {
   }
 
   private final Class<?> clazz; // Primitive types and other types representable as Class objects
+  private final String clazzName; // Future (not yet generated or existing) Class objects (existing at runtime)
   private final String structName;  // Types we're generating glue code for (i.e., C structs)
   private final Type   elementType; // Element type if this JavaType represents a C array
   private final C_PTR  primitivePointerType;
@@ -82,24 +83,39 @@ public class JavaType {
       return false;
     }
     final JavaType t = (JavaType) arg;
-    return (this == t ||
-            (t.clazz == clazz &&
-             ((structName == null ? t.structName == null : structName.equals(t.structName)) ||
-              ((structName != null) && (t.structName != null) && (structName.equals(t.structName)))) &&
-             ((elementType == t.elementType) ||
-              (elementType != null) && (t.elementType != null) && (elementType.equals(t.elementType))) &&
-             (primitivePointerType == t.primitivePointerType)));
+    return this == t ||
+            ( t.clazz == clazz &&
+              ( ( clazzName == null ? t.clazzName == null : clazzName.equals(t.clazzName) ) ||
+                ( clazzName != null && t.clazzName != null && clazzName.equals(t.clazzName) )
+              ) &&
+              ( ( structName == null ? t.structName == null : structName.equals(t.structName) ) ||
+                ( structName != null && t.structName != null && structName.equals(t.structName) )
+              ) &&
+              ( elementType == t.elementType ||
+                ( elementType != null && t.elementType != null && elementType.equals(t.elementType) )
+              ) &&
+              primitivePointerType == t.primitivePointerType
+            );
   }
 
   @Override
   public int hashCode() {
-    if (clazz == null) {
-      if (structName == null) {
-        return 0;
-      }
-      return structName.hashCode();
+    if (clazz != null) {
+        return clazz.hashCode();
     }
-    return clazz.hashCode();
+    if (clazzName != null) {
+        return clazzName.hashCode();
+    }
+    if (structName != null) {
+        return structName.hashCode();
+    }
+    if (elementType != null) {
+        return elementType.hashCode();
+    }
+    if (primitivePointerType != null) {
+        return primitivePointerType.hashCode();
+    }
+    return 0;
   }
 
   public JavaType getElementType() {
@@ -125,11 +141,19 @@ public class JavaType {
     return new JavaType(clazz, false);
   }
 
+  /**
+   * Creates a JavaType corresponding to the given named Java class,
+   * not necessarily existing yet.
+   */
+  public static JavaType createForNamedClass(final String name) {
+    return new JavaType(name, null);
+  }
+
   /** Creates a JavaType corresponding to the specified C CompoundType
       name; for example, if "Foo" is supplied, then this JavaType
       represents a "Foo *" by way of a StructAccessor. */
   public static JavaType createForCStruct(final String name) {
-    return new JavaType(name);
+    return new JavaType(null, name);
   }
 
   /** Creates a JavaType corresponding to an array of the given
@@ -259,6 +283,9 @@ public class JavaType {
       }
       return clazz.getName();
     }
+    if( clazzName != null ) {
+        return clazzName;
+    }
     if (elementType != null) {
       return elementType.getName();
     }
@@ -276,14 +303,17 @@ public class JavaType {
     if (clazz != null) {
       return descriptor(clazz);
     }
+    if( null != clazzName ) {
+        return descriptor(clazzName);
+    }
+    if( null != structName ) {
+        return descriptor(structName);
+    }
     if (elementType != null) {
       if(elementType.getName()==null) {
            throw new RuntimeException("elementType.name is null: "+getDebugString());
       }
       return "[" + descriptor(elementType.getName());
-    }
-    if( null != structName ) {
-        return descriptor(structName);
     }
     return "ANON_NIO";
   }
@@ -300,6 +330,10 @@ public class JavaType {
     if (isArrayOfCompoundTypeWrappers()) {
       // These are returned as arrays of ByteBuffers (e.g., jobjectArray)
       return "jobjectArray /* of ByteBuffer */";
+    }
+
+    if ( clazzName != null ) {
+        return "jobject";
     }
 
     if (clazz == null) {
@@ -453,8 +487,12 @@ public class JavaType {
     return (clazz == Void.TYPE);
   }
 
+  public boolean isNamedClass() {
+    return clazzName != null;
+  }
+
   public boolean isCompoundTypeWrapper() {
-    return (clazz == null && structName != null && !isJNIEnv());
+    return structName != null && !isJNIEnv();
   }
 
   public boolean isArrayOfCompoundTypeWrappers() {
@@ -495,12 +533,12 @@ public class JavaType {
   }
 
   public boolean isJNIEnv() {
-    return clazz == null && "JNIEnv".equals(structName);
+    return "JNIEnv".equals(structName);
   }
 
   @Override
   public Object clone() {
-    return new JavaType(primitivePointerType, clazz, structName, elementType);
+    return new JavaType(primitivePointerType, clazz, clazzName, structName, elementType);
   }
 
   @Override
@@ -530,15 +568,15 @@ public class JavaType {
         } else {
             append(sb, "ANON", false);
         }
-        sb.append(" / ");
-        if( null != structName ) {
-            append(sb, "'"+structName+"'", prepComma); prepComma=true;
-        } else {
-            append(sb, "NIL", prepComma); prepComma=true;
-        }
     }
     if( null != clazz ) {
         append(sb, "clazz = "+clazz.getName(), prepComma); prepComma=true;
+    }
+    if( null != clazzName ) {
+        append(sb, "clazzName = "+clazzName, prepComma); prepComma=true;
+    }
+    if( null != structName ) {
+        append(sb, "struct = "+structName, prepComma); prepComma=true;
     }
     if( null != elementType ) {
         append(sb, "elementType = "+elementType, prepComma); prepComma=true;
@@ -597,18 +635,33 @@ public class JavaType {
    * argument.
    */
   private JavaType(final Class<?> clazz, final boolean opaqued) {
+    if( null == clazz ) {
+        throw new IllegalArgumentException("null clazz passed");
+    }
     this.primitivePointerType = null;
     this.clazz = clazz;
+    this.clazzName = null;
     this.structName = null;
     this.elementType = null;
     this.opaqued = opaqued;
   }
 
-  /** Constructs a type representing a named C struct. */
-  private JavaType(final String structName) {
+  /** Constructs a type representing a either a named clazz or a named C struct.*/
+  private JavaType(final String clazzName, final String structName) {
+    if( null != clazzName && null != structName ) {
+      throw new IllegalArgumentException("Both clazzName and structName set");
+    }
+    if( null != clazzName ) {
+        this.clazzName = clazzName;
+        this.structName = null;
+    } else if( null != structName ) {
+        this.clazzName = null;
+        this.structName = structName;
+    } else {
+        throw new IllegalArgumentException("Neither clazzName nor structName set");
+    }
     this.primitivePointerType = null;
     this.clazz = null;
-    this.structName = structName;
     this.elementType = null;
     this.opaqued = false;
   }
@@ -616,8 +669,12 @@ public class JavaType {
   /** Constructs a type representing a pointer to a C primitive
       (integer, floating-point, or void pointer) type. */
   private JavaType(final C_PTR primitivePointerType) {
+    if( null == primitivePointerType ) {
+        throw new IllegalArgumentException("null primitivePointerType passed");
+    }
     this.primitivePointerType = primitivePointerType;
     this.clazz = null;
+    this.clazzName = null;
     this.structName = null;
     this.elementType = null;
     this.opaqued = false;
@@ -625,23 +682,28 @@ public class JavaType {
 
   /** Constructs a type representing an array of C pointers. */
   private JavaType(final Type elementType) {
+    if( null == elementType ) {
+        throw new IllegalArgumentException("null elementType passed");
+    }
     this.primitivePointerType = null;
     this.clazz = null;
+    this.clazzName = null;
     this.structName = null;
     this.elementType = elementType;
     this.opaqued = false;
   }
 
   /** clone only */
-  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String name, final Type elementType) {
+  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String clazzName, final String structName, final Type elementType) {
     this.primitivePointerType = primitivePointerType;
     this.clazz = clazz;
-    this.structName = name;
+    this.clazzName = clazzName;
+    this.structName = structName;
     this.elementType = elementType;
     this.opaqued = false;
   }
 
-  private String arrayName(Class<?> clazz) {
+  private static String arrayName(Class<?> clazz) {
     final StringBuilder buf = new StringBuilder();
     int arrayCount = 0;
     while (clazz.isArray()) {
@@ -655,7 +717,7 @@ public class JavaType {
     return buf.toString();
   }
 
-  private String arrayDescriptor(Class<?> clazz) {
+  private static  String arrayDescriptor(Class<?> clazz) {
     final StringBuilder buf = new StringBuilder();
     while (clazz.isArray()) {
       buf.append("[");
@@ -665,7 +727,7 @@ public class JavaType {
     return buf.toString();
   }
 
-  private String descriptor(final Class<?> clazz) {
+  private static String descriptor(final Class<?> clazz) {
     if (clazz.isPrimitive()) {
       if (clazz == Boolean.TYPE) return "Z";
       if (clazz == Byte.TYPE)    return "B";
@@ -683,7 +745,7 @@ public class JavaType {
     return descriptor(clazz.getName());
   }
 
-  private String descriptor(final String referenceTypeName) {
+  private static String descriptor(final String referenceTypeName) {
     return "L" + referenceTypeName.replace('.', '/') + ";";
   }
 }
