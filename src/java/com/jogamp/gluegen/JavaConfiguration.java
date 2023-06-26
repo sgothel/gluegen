@@ -2223,4 +2223,55 @@ public class JavaConfiguration {
     }
     return true;
   }
+
+  /**
+   * JavaCallback information, produced by {@link JavaEmitter#beginFunctions(TypeDictionary, TypeDictionary, Map)}
+   * from {@link Type#isFunctionPointer() function-pointer} {@link Type}s mapped to {@link JavaConfiguration#getJavaCallbackList()} names via {@link TypeDictionary} (typedef).
+   * @see JavaConfiguration#funcPtrTypeToJavaCallbackMap
+   * @see JavaConfiguration#bindingToJavaCallbackMap
+   */
+  public static class JavaCallback {
+      final String funcName;
+      final String simpleClazzName;
+      final String fqClazzName;
+      final String methodSignature;
+      final FunctionType func;
+      final int userParamIdx;
+      final Type userParamType;
+      final String userParamName;
+
+      public JavaCallback(final String funcName, final String simpleClazzName, final String fqClazzName, final String methodSignature,
+              final FunctionType func, final int userParamIdx) {
+          this.funcName = funcName;
+          this.simpleClazzName = simpleClazzName;
+          this.fqClazzName = fqClazzName;
+          this.methodSignature = methodSignature;
+          this.func = func;
+          int paramIdx = -2;
+          Type paramType = null;
+          String paramName = null;
+          if( 0 <= userParamIdx && userParamIdx < func.getNumArguments() ) {
+              final Type t = func.getArgumentType(userParamIdx);
+              if( null != t && t.isPointer() && t.getTargetType().isVoid() ) {
+                  // OK 'void*'
+                  paramIdx = userParamIdx;
+                  paramName = func.getArgumentName(userParamIdx);
+                  paramType = t;
+              }
+          }
+          this.userParamIdx = paramIdx;
+          this.userParamType = paramType;
+          this.userParamName = paramName;
+      }
+
+      @Override
+      public String toString() {
+          return String.format("JavaCallback[%s, %s%s, userParam[idx %d, '%s', %s], %s]", funcName, fqClazzName, methodSignature,
+                  userParamIdx, userParamName, userParamType.getSignature(null).toString(), func.toString(funcName, false, true));
+      }
+  }
+  /** Mapped function-pointer type name to {@link JavaCallback} */
+  /* pp */ final Map<String, JavaCallback> funcPtrTypeToJavaCallbackMap = new HashMap<String, JavaCallback>();
+  /** Mapped binding name to {@link JavaCallback} */
+  /* pp */ final Map<String, JavaCallback> bindingToJavaCallbackMap = new HashMap<String, JavaCallback>();
 }

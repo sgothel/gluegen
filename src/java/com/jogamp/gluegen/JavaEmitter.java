@@ -1453,71 +1453,49 @@ public class JavaEmitter implements GlueEmitter {
       }
   }
 
-  static class JavaCallback {
-      final String funcName;
-      final String simpleClazzName;
-      final String fqClazzName;
-      final FunctionType func;
-      final int userParamIdx;
-      final Type userParamType;
-      final String userParamName;
-
-      JavaCallback(final JavaConfiguration cfg, final String funcName, final FunctionType func, final int userParamIdx) {
-          this.funcName = funcName;
-          this.simpleClazzName = capitalizeString(funcName);
-          this.fqClazzName = cfg.packageName()+"."+cfg.className()+"."+simpleClazzName;
-          this.func = func;
-          int paramIdx = -2;
-          Type paramType = null;
-          String paramName = null;
-          if( 0 <= userParamIdx && userParamIdx < func.getNumArguments() ) {
-              final Type t = func.getArgumentType(userParamIdx);
-              if( null != t && t.isPointer() && t.getTargetType().isVoid() ) {
-                  // OK 'void*'
-                  paramIdx = userParamIdx;
-                  paramName = func.getArgumentName(userParamIdx);
-                  paramType = t;
-              }
-          }
-          this.userParamIdx = paramIdx;
-          this.userParamType = paramType;
-          this.userParamName = paramName;
-      }
-
-      @Override
-      public String toString() {
-          return String.format("JavaCallback[%s, %s, userParam[idx %d, '%s', %s], %s]", funcName, fqClazzName,
-                  userParamIdx, userParamName, userParamType.getSignature(null).toString(), func.toString(funcName, false, true));
-      }
-  }
-  private final Map<String, JavaCallback> javaCallbackMap = new HashMap<String, JavaCallback>();
-
   private void generateJavaCallbackCode(final String funcName, final FunctionType funcType) {
       final FunctionSymbol funcSym = new FunctionSymbol("callback", funcType);
       funcSym.addAliasedName(funcName);
       final int userParamIdx = cfg.javaCallbackUserParamIdx(funcSym);
-      final JavaCallback jcb = new JavaCallback(cfg, funcName, funcType, userParamIdx);
-      javaCallbackMap.put(funcName, jcb);
       LOG.log(INFO, "JavaCallback: fSym {0}, userParam {1}", funcSym.getAliasedString(), userParamIdx);
-      LOG.log(INFO, "JavaCallback: Added {0}", jcb);
 
+      final String simpleClazzName = capitalizeString(funcName);
+      final String fqClazzName = cfg.packageName()+"."+cfg.className()+"."+simpleClazzName;
+      final StringBuilder methodSignature = new StringBuilder();
       javaUnit.emitln("  /** JavaCallback interface: "+funcName+" -> "+funcType.toString(funcName, false, true)+" */");
-      javaUnit.emitln("  public static interface "+jcb.simpleClazzName+" {");
-      generateFunctionInterfaceCode(javaUnit, funcSym, jcb);
+      javaUnit.emitln("  public static interface "+simpleClazzName+" {");
+      generateFunctionInterfaceCode(javaUnit, funcSym, userParamIdx, methodSignature);
       javaUnit.emitln("  }");
       javaUnit.emitln();
+
+      final JavaConfiguration.JavaCallback jcb = new JavaConfiguration.JavaCallback(funcName, simpleClazzName, fqClazzName,
+                                                                                    methodSignature.toString(), funcType, userParamIdx);
+      cfg.funcPtrTypeToJavaCallbackMap.put(funcName, jcb);
+      LOG.log(INFO, "JavaCallback: Added {0}", jcb);
   }
-  private void generateFunctionInterfaceCode(final JavaCodeUnit javaUnit, final FunctionSymbol funcSym, final JavaCallback jcb)  {
+  private void generateFunctionInterfaceCode(final JavaCodeUnit javaUnit, final FunctionSymbol funcSym, final int userParamIdx, final StringBuilder methodSignature)  {
       // Emit method call and associated native code
-      MethodBinding  mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, null, null);
+      MethodBinding mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, null, null);
 
       // Replace optional userParam argument 'void*' with Object
-      if( 0 <= jcb.userParamIdx && jcb.userParamIdx < mb.getNumArguments() ) {
-          final JavaType t = mb.getJavaArgumentType(jcb.userParamIdx);
+      if( 0 <= userParamIdx && userParamIdx < mb.getNumArguments() ) {
+          final JavaType t = mb.getJavaArgumentType(userParamIdx);
           if ( t.isCVoidPointerType() ) {
-              mb = mb.replaceJavaArgumentType(jcb.userParamIdx, JavaType.forObjectClass());
+              mb = mb.replaceJavaArgumentType(userParamIdx, JavaType.forObjectClass());
           }
       }
+      // Produce the method signature
+      {
+          methodSignature.append("(");
+          for(int i=0; i<mb.getNumArguments(); ++i) {
+              final JavaType t = mb.getJavaArgumentType(i);
+              methodSignature.append(t.getDescriptor());
+          }
+          methodSignature.append(")");
+          final JavaType rt = mb.getJavaReturnType();
+          methodSignature.append(rt.getDescriptor());
+      }
+
       // JavaTypes representing C pointers in the initial
       // MethodBinding have not been lowered yet to concrete types
       final List<MethodBinding> bindings = expandMethodBinding(mb);
@@ -3082,7 +3060,7 @@ public class JavaEmitter implements GlueEmitter {
     // converted from byte[] or short[] to String
     final List<JavaType> javaArgumentTypes = new ArrayList<JavaType>();
     final List<Integer> stringArgIndices = cfg.stringArguments(sym);
-    JavaCallback javaCallback = null;
+    JavaConfiguration.JavaCallback javaCallback = null;
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       final Type cArgType = sym.getArgumentType(i);
@@ -3093,11 +3071,12 @@ public class JavaEmitter implements GlueEmitter {
 
       final boolean isJavaCallbackArg;
       if( null == javaCallback ) {
-          final JavaCallback jcb = javaCallbackMap.get( cArgType.getName() );
+          final JavaConfiguration.JavaCallback jcb = cfg.funcPtrTypeToJavaCallbackMap.get( cArgType.getName() );
           if( null != jcb && null != jcb.userParamName ) {
               isJavaCallbackArg = true;
               javaCallback = jcb;
-              LOG.log(INFO, "BindFunc.JavaCallback: Found {0} for {1}", jcb, sym.getType().toString(sym.getName(), false, true));
+              cfg.bindingToJavaCallbackMap.put(sym.getName(), jcb);
+              LOG.log(INFO, "BindFunc.JavaCallback: {0}: {1}, {2}", sym.getName(), sym.getType().toString(sym.getName(), false, true), jcb);
           } else {
               isJavaCallbackArg = false;
           }
