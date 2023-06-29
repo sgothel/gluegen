@@ -56,14 +56,24 @@
                     </p>
                     <p>
                         GlueGen can produce native foreign function bindings to Java™ as well as
-                        map native data structures to be fully accessible from Java™ including 
-                        potential calls to embedded function pointer.
+                        <a href="../doc/GlueGen_Mapping.html#struct-mapping">map native data structures</a> to be fully accessible from Java™ including 
+                        potential calls to <a href="../doc/GlueGen_Mapping.html#struct-function-pointer-support">embedded function pointer</a>.
                     </p>
                     <p>
-                        GlueGen is also capable to bind even low-level APIs such as the Java™ Native Interface (JNI) and
-                        the AWT Native Interface (JAWT) back up to the Java™ programming language.
+                        GlueGen supports <a href="../doc/GlueGen_Mapping.html#java-callback-from-native-c-api-support">registering Java™ callback methods</a>
+                        to receive asynchronous and off-thread native toolkit events,
+                        where a generated native callback function dispatches the events to Java™.
                     </p>
-
+                    <p>
+                        GlueGen also supports <a href="../doc/GlueGen_Mapping.html#oo-style-api-interface-mapping">producing an OO-Style API mapping</a> like <a href="../jogl/doc/uml/html/index.html">JOGL's incremental OpenGL Profile API levels</a>.
+                    </p>
+                    <p>
+                        GlueGen is capable to bind low-level APIs such as the Java™ Native Interface (JNI) and
+                        the AWT Native Interface (JAWT) back up to the Java programming language.
+                    </p>
+                    <p>
+                        Further, GlueGen supports generating `JNI_OnLoad(..)` for dynamic and `JNI_OnLoad_{LibraryBasename}(..)` for static libraries via <a href="../doc/GlueGen_Mapping.html#libraryonload-librarybasename-for-jni_onload-">`LibraryOnLoad Bindingtest2`</a>, which also provides `JVMUtil_GetJNIEnv(..)` to resolve the `JNIEnv*` as used by <a href="../doc/GlueGen_Mapping.html#java-callback-from-native-c-api-support">Java™ callback methods</a>.
+                    </p>
                     <p>
                         GlueGen utilizes <a href="https://jogamp.org/cgit/jcpp.git/about/">JCPP</a>, migrated C preprocessor written in Java™.
                     </p>

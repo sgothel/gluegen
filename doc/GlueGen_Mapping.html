@@ -499,21 +499,21 @@ uses a complete ANSI C parser and an internal representation (IR)
 capable of representing all C types to represent the APIs for which it
 generates interfaces. It has the ability to perform significant
 transformations on the IR before glue code emission.</p>
-<p>GlueGen can produce native foreign function bindings to Java as well
+<p>GlueGen can produce native foreign function bindings to Java™ as well
 as <a href="#struct-mapping">map native data structures</a> to be fully
-accessible from Java including potential calls to <a
+accessible from Java™ including potential calls to <a
 href="#struct-function-pointer-support">embedded function
 pointer</a>.</p>
 <p>GlueGen supports <a
-href="#java-callback-from-native-c-api-support">registering Java
+href="#java-callback-from-native-c-api-support">registering Java™
 callback methods</a> to receive asynchronous and off-thread native
 toolkit events, where a generated native callback function dispatches
-the events to Java.</p>
+the events to Java™.</p>
 <p>GlueGen also supports <a
 href="#oo-style-api-interface-mapping">producing an OO-Style API
 mapping</a> like <a href="../../jogl/doc/uml/html/index.html">JOGL's
 incremental OpenGL Profile API levels</a>.</p>
-<p>GlueGen is capable to bind low-level APIs such as the Java Native
+<p>GlueGen is capable to bind low-level APIs such as the Java™ Native
 Interface (JNI) and the AWT Native Interface (JAWT) back up to the Java
 programming language.</p>
 <p>Further, GlueGen supports generating <code>JNI_OnLoad(..)</code> for
@@ -522,11 +522,11 @@ static libraries via <a
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>,
 which also provides <code>JVMUtil_GetJNIEnv(..)</code> to resolve the
 <code>JNIEnv*</code> as used by <a
-href="#java-callback-from-native-c-api-support">Java callback
+href="#java-callback-from-native-c-api-support">Java™ callback
 methods</a>.</p>
 <p>GlueGen utilizes <a
 href="https://jogamp.org/cgit/jcpp.git/about/">JCPP</a>, migrated C
-preprocessor written in Java.</p>
+preprocessor written in Java™.</p>
 <p>GlueGen is used for the <a href="https://jogamp.org">JogAmp</a>
 projects <a href="https://jogamp.org/cgit/joal.git/about/">JOAL</a>, <a
 href="https://jogamp.org/cgit/jogl.git/about/">JOGL</a> and <a
