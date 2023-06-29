@@ -28,10 +28,12 @@ has the ability to perform significant transformations on the IR
 before glue code emission. 
 
 GlueGen can produce native foreign function bindings to Java as well as
-map native data structures to be fully accessible from Java including 
-potential calls to embedded function pointer.
+[map native data structures](#struct-mapping) to be fully accessible from Java including 
+potential calls to [embedded function pointer](#struct-function-pointer-support).
 
-GlueGen is also capable to bind even low-level APIs such as the Java Native Interface (JNI) and
+GlueGen also supports [producing an OO-Style API mapping](#oo-style-api-interface-mapping) like [JOGL's incremental OpenGL Profile API levels](../../jogl/doc/uml/html/index.html).
+
+GlueGen is capable to bind low-level APIs such as the Java Native Interface (JNI) and
 the AWT Native Interface (JAWT) back up to the Java programming language.
 
 GlueGen utilizes [JCPP](https://jogamp.org/cgit/jcpp.git/about/), migrated C preprocessor written in Java.
@@ -202,6 +204,75 @@ Runtime query is implemented as follows:
 \- MacOsX-32bit-gcc4  
 ∗ Windows
      
+## OO-Style API Interface Mapping
+GlueGen supports producing an OO-Style API mapping like [JOGL's incremental OpenGL Profile API levels](../../jogl/doc/uml/html/index.html).
+
+### OO-Style Mapping Settings
+
+* `ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java`
+
+    Ignore all extended interface symbols from named Java source file.
+    
+    The named Java source file is parsed and a list of its symbols extracted,
+    allowing GlueGen to ignore these in the generated interface (here GLES3).
+    
+    This complements `Extends` setting, see below.
+
+* `Extends GLES3 GLES2`
+
+    The generated interface GLES3 extends interface GLES2.
+    
+    This complements `ExtendedInterfaceSymbolsIgnore` setting, see above.
+
+* `Implements GLES3Impl GLES3`
+
+    The generated implementation GLES3Impl implements interface GLES3.
+
+### OO-Style Example
+
+Example snippet from JOGL's GLES3 interface config `gl-if-es3.cfg`
+```
+...
+
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GLES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL3ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL4ES3.java
+ExtendedInterfaceSymbolsIgnore ../src/jogl/classes/com/jogamp/opengl/GLBase.java
+
+Package com.jogamp.opengl
+Style InterfaceOnly
+JavaClass GLES3
+Extends GLES3 GLES2
+Extends GLES3 GL4ES3
+...
+```
+
+Example snippet from JOGL's GLES3Impl implementation `gl-es3-impl.cfg`
+```
+...
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GLES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL3ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL4ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GLES3.java
+ExtendedInterfaceSymbolsIgnore ../src/jogl/classes/com/jogamp/opengl/GLBase.java
+
+Style ImplOnly
+ImplPackage jogamp.opengl.es3
+ImplJavaClass GLES3Impl
+Implements GLES3Impl GLES2
+Implements GLES3Impl GLES3
+...
+```
+
+Above produces the GLES3 interface and its implementation as visible in JOGL's UML document [about OpenGL Profiles](../../jogl/doc/uml/html/index.html).
+
+
 ## Struct Mapping
 A *Struct* is a C compound type declaration, which can be mapped to a Java class.
 
