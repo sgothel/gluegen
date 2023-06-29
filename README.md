@@ -26,7 +26,7 @@ GlueGen supports [registering Java™ callback methods](doc/GlueGen_Mapping.md#j
 to receive asynchronous and off-thread native toolkit events,
 where a generated native callback function dispatches the events to Java™.
 
-GlueGen also supports [producing an OO-Style API mapping](doc/GlueGen_Mapping.md#oo-style-api-interface-mapping) like [JOGL's incremental OpenGL Profile API levels](../jogl/doc/uml/html/index.html).
+GlueGen also supports [producing an OO-Style API mapping](doc/GlueGen_Mapping.md#oo-style-api-interface-mapping) like [JOGL's incremental OpenGL Profile API levels](https://jogamp.org/jogl/doc/uml/html/index.html).
 
 GlueGen is capable to bind low-level APIs such as the Java™ Native Interface (JNI) and
 the AWT Native Interface (JAWT) back up to the Java programming language.
@@ -52,7 +52,7 @@ See [LICENSE.txt](LICENSE.txt).
 
 * [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
 * [GlueGen Native Data & Function Mapping for Java™](doc/GlueGen_Mapping.md)
-* [GlueGen Manual](doc/manual/)
+* [GlueGen Manual](doc/manual/index.html)
 * [JogAmp's MacOS Version Support](doc/JogAmpMacOSVersions.md)
 * [How To Build](https://jogamp.org/gluegen/doc/HowToBuild.html)
 
