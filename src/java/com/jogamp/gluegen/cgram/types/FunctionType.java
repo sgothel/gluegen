@@ -42,6 +42,7 @@ package com.jogamp.gluegen.cgram.types;
 import java.util.*;
 
 import com.jogamp.gluegen.ASTLocusTag;
+import com.jogamp.gluegen.CodeGenUtils;
 
 /** Describes a function type, used to model both function
 declarations and (via PointerType) function pointers. */
@@ -136,6 +137,43 @@ public class FunctionType extends Type implements Cloneable {
     }
 
     /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @param callingConvention optional calling-convention
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getParameterList(final StringBuilder buf, final String callingConvention) {
+        final int n = getNumArguments();
+        final boolean[] needsComma = { false };
+        for (int i = 0; i < n; i++) {
+            final Type t = getArgumentType(i);
+            if( t.isVoid() ) {
+                // nop
+            } else if( t.isTypedef() ) {
+                CodeGenUtils.addParameterToList(buf, t.getName(), needsComma);
+                final String argumentName = getArgumentName(i);
+                if (argumentName != null) {
+                    buf.append(" ");
+                    buf.append(argumentName);
+                }
+            } else  if ( t.isFunctionPointer() ) {
+                final FunctionType ft = t.getTargetFunction();
+                CodeGenUtils.addParameterToList(buf, ft.toString(getArgumentName(i), callingConvention, false, true), needsComma);
+            } else if (t.isArray()) {
+                CodeGenUtils.addParameterToList(buf, t.asArray().toString(getArgumentName(i)), needsComma);
+            } else {
+                CodeGenUtils.addParameterToList(buf, t.getCName(true), needsComma);
+                final String argumentName = getArgumentName(i);
+                if (argumentName != null) {
+                    buf.append(" ");
+                    buf.append(argumentName);
+                }
+            }
+        }
+        return buf;
+    }
+
+    /**
      * Add an argument's name and type. Use null for unknown argument names.
      */
     public void addArgument(final Type argumentType, final String argumentName) {
@@ -165,8 +203,8 @@ public class FunctionType extends Type implements Cloneable {
         return toString(functionName, null, emitNativeTag, isPointer);
     }
 
-    String toString(final String functionName, final String callingConvention,
-                    final boolean emitNativeTag, final boolean isPointer) {
+    public String toString(final String functionName, final String callingConvention,
+                           final boolean emitNativeTag, final boolean isPointer) {
         final StringBuilder res = new StringBuilder();
         res.append(getReturnType().getCName(true));
         res.append(" ");
@@ -191,26 +229,7 @@ public class FunctionType extends Type implements Cloneable {
             res.append(")");
         }
         res.append("(");
-        final int n = getNumArguments();
-        for (int i = 0; i < n; i++) {
-            final Type t = getArgumentType(i);
-            if (t.isFunctionPointer()) {
-                final FunctionType ft = t.getTargetFunction();
-                res.append(ft.toString(getArgumentName(i), callingConvention, false, true));
-            } else if (t.isArray()) {
-                res.append(t.asArray().toString(getArgumentName(i)));
-            } else {
-                res.append(t.getCName(true));
-                final String argumentName = getArgumentName(i);
-                if (argumentName != null) {
-                    res.append(" ");
-                    res.append(argumentName);
-                }
-            }
-            if (i < n - 1) {
-                res.append(", ");
-            }
-        }
+        getParameterList(res, callingConvention);
         res.append(")");
         return res.toString();
     }

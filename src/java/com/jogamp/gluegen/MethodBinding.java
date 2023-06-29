@@ -41,6 +41,7 @@
 package com.jogamp.gluegen;
 
 import com.jogamp.gluegen.cgram.types.FunctionSymbol;
+import com.jogamp.gluegen.cgram.types.FunctionType;
 import com.jogamp.gluegen.cgram.types.Type;
 
 import java.util.ArrayList;
@@ -152,6 +153,67 @@ public class MethodBinding {
 
     public Type getCArgumentType(final int i) {
         return sym.getArgumentType(i);
+    }
+
+    /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @param callingConvention optional calling-convention
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getCParameterList(final StringBuilder buf, final String callingConvention) {
+        final int n = getNumArguments();
+        final boolean[] needsComma = { false };
+        for (int i = 0; i < n; i++) {
+            final Type t = getCArgumentType(i);
+            if( t.isVoid() ) {
+                // nop
+            } else if( t.isTypedef() ) {
+                CodeGenUtils.addParameterToList(buf, t.getName(), needsComma);
+                final String argumentName = getArgumentName(i);
+                if (argumentName != null) {
+                    buf.append(" ");
+                    buf.append(argumentName);
+                }
+            } else  if ( t.isFunctionPointer() ) {
+                final FunctionType ft = t.getTargetFunction();
+                CodeGenUtils.addParameterToList(buf, ft.toString(getArgumentName(i), callingConvention, false, true), needsComma);
+            } else if (t.isArray()) {
+                CodeGenUtils.addParameterToList(buf, t.asArray().toString(getArgumentName(i)), needsComma);
+            } else {
+                CodeGenUtils.addParameterToList(buf, t.getCName(true), needsComma);
+                final String argumentName = getArgumentName(i);
+                if (argumentName != null) {
+                    buf.append(" ");
+                    buf.append(argumentName);
+                }
+            }
+        }
+        return buf;
+    }
+
+    /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getJavaParameterList(final StringBuilder buf) {
+        final int n = getNumArguments();
+        final boolean[] needsComma = { false };
+        for (int i = 0; i < n; i++) {
+            final JavaType t = getJavaArgumentType(i);
+            if( t.isVoid() ) {
+                // nop
+            } else {
+                CodeGenUtils.addParameterToList(buf, t.getName(), needsComma);
+                final String argumentName = getArgumentName(i);
+                if (argumentName != null) {
+                    buf.append(" ");
+                    buf.append(argumentName);
+                }
+            }
+        }
+        return buf;
     }
 
     public final boolean isReturnCompoundByValue() {

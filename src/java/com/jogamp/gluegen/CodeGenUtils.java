@@ -57,6 +57,16 @@ public class CodeGenUtils {
         return Character.toLowerCase(string.charAt(0)) + string.substring(1);
     }
 
+    /** Appends `param` to `buf` while prepending a comman separator if `needsComma[0]` is true. Sets `needsComma[0]=true` afterwards. */
+    public static StringBuilder addParameterToList(final StringBuilder buf, final String param, final boolean[] needsComma) {
+        if( needsComma[0] ) {
+            buf.append(", ");
+        }
+        buf.append(param);
+        needsComma[0] = true;
+        return buf;
+    }
+
     /**
      * Given a java package name (e.g., "java.lang"), return the package as a
      * directory path (i.e., "java/lang").
