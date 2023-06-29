@@ -907,7 +907,7 @@ public class JavaEmitter implements GlueEmitter {
             final String fname = nRoot + File.separator + cUnitName;
             jniUnit = openCUnit(fname, cUnitName);
             // jniUnit.emitHeader(structClassPkgName, containingJTypeName, Collections.emptyList());
-            jniUnit.emitHeader(structClassPkgName, containingJTypeName, cfg.customCCode());
+            jniUnit.emitHeader(null, structClassPkgName, containingJTypeName, cfg.customCCode());
         } else {
             jniUnit = null;
         }
@@ -1110,7 +1110,7 @@ public class JavaEmitter implements GlueEmitter {
             final FunctionSymbol func = new FunctionSymbol(field.getName(), fieldType.getTargetFunction());
             func.rename(renamed); // null is OK
             final String javaTypeName = "long";
-            final String capFieldName = capitalizeString(fieldName);
+            final String capFieldName = CodeGenUtils.capitalizeString(fieldName);
             if( !immutableField && !fieldType.isConst() ) {
                 // Setter
                 generateSetterSignature(javaUnit, MethodAccess.PUBLIC, false, false, fieldName, fieldType, Ownership.Parent, containingJTypeName, capFieldName, null, javaTypeName, null, false, false, null, null, null);
@@ -1136,7 +1136,7 @@ public class JavaEmitter implements GlueEmitter {
                                        field + "\" in type \"" + structCTypeName + "\")",
                                        fieldType.getASTLocusTag());
           }
-          generateGetterSignature(javaUnit, false, false, fieldName, fieldType, Ownership.Parent, fieldType.getName(), capitalizeString(fieldName), null, false, false, null, null);
+          generateGetterSignature(javaUnit, false, false, fieldName, fieldType, Ownership.Parent, fieldType.getName(), CodeGenUtils.capitalizeString(fieldName), null, false, false, null, null);
           javaUnit.emitln(" {");
           javaUnit.emitln("    return " + fieldType.getName() + ".create( accessor.slice( " +
                            fieldName+"_offset[mdIdx], "+fieldName+"_size[mdIdx] ) );");
@@ -1165,8 +1165,8 @@ public class JavaEmitter implements GlueEmitter {
             } else {
               javaTypeName = javaType.getName();
             }
-            final String capJavaTypeName = capitalizeString(javaTypeName);
-            final String capFieldName = capitalizeString(fieldName);
+            final String capJavaTypeName = CodeGenUtils.capitalizeString(javaTypeName);
+            final String capFieldName = CodeGenUtils.capitalizeString(fieldName);
             final String sizeDenominator = fieldType.isPointer() ? "pointer" : javaTypeName ;
 
             LOG.log(FINE, structCType.getASTLocusTag(),
@@ -1812,7 +1812,7 @@ public class JavaEmitter implements GlueEmitter {
                   if( !_constElemCount ) {
                       // check for const length field
                       if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
-                          final String lenFieldName = decapitalizeString( elemCountExpr.substring(3, elemCountExpr.length()-2) );
+                          final String lenFieldName = CodeGenUtils.decapitalizeString( elemCountExpr.substring(3, elemCountExpr.length()-2) );
                           final Field lenField = structCType.getField(lenFieldName);
                           if( null != lenField ) {
                               _constElemCount = lenField.getType().isConst();
@@ -1890,7 +1890,7 @@ public class JavaEmitter implements GlueEmitter {
           primElemSizeExpr = null;
       }
 
-      final String capitalFieldName = capitalizeString(fieldName);
+      final String capitalFieldName = CodeGenUtils.capitalizeString(fieldName);
       final boolean ownElemCountHandling;
       final String getElemCountFuncExpr, setElemCountLengthFunc;
       if( constElemCount ) {

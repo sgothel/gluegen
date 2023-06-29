@@ -44,6 +44,20 @@ import java.util.*;
 public class CodeGenUtils {
 
     /**
+     * Converts first letter to upper case.
+     */
+    public static String capitalizeString(final String string) {
+        return Character.toUpperCase(string.charAt(0)) + string.substring(1);
+    }
+
+    /**
+     * Converts first letter to lower case.
+     */
+    public static String decapitalizeString(final String string) {
+        return Character.toLowerCase(string.charAt(0)) + string.substring(1);
+    }
+
+    /**
      * Given a java package name (e.g., "java.lang"), return the package as a
      * directory path (i.e., "java/lang").
      */
