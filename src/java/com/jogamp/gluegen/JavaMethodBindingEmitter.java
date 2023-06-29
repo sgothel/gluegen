@@ -622,6 +622,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     boolean needsResultAssignment = false;
 
     if( null != javaCallback ) {
+        final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
+        unit.emitln("    release"+getInterfaceName()+"("+userParamArgName+"); // Ensure a previously mapped instance is released");
         unit.emitln("    final long[] nativeUserParam = { 0 };");
     }
     if (!returnType.isVoid()) {
@@ -658,9 +660,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         final String funcArgName = binding.getArgumentName(javaCallback.setFuncCBParamIdx);
         final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
         // unit.emitln("    System.err.println(\"ZZZ returned nativeUserParam \"+nativeUserParam[0]);");
-        unit.emitln("    if( 0 == nativeUserParam[0] ) {");
-        unit.emitln("        release"+getInterfaceName()+"("+userParamArgName+");");
-        unit.emitln("    } else {");
+        unit.emitln("    if( 0 != nativeUserParam[0] ) {");
         unit.emitln("        "+javaCallback.cbFuncTypeName+"UsrMap.put("+userParamArgName+", new "+javaCallback.cbFuncTypeName+"UserParam("+funcArgName+", "+userParamArgName+", nativeUserParam[0]));");
         unit.emitln("    }");
     }

@@ -80,14 +80,24 @@ public class Test4JavaCallback extends BaseClass {
 
         final long[] id_res = { -1 };
         final String[] msg_res = { null };
-        final T2_CallbackFunc01 myCallback = new T2_CallbackFunc01() {
+        final T2_CallbackFunc01 myCallback01 = new T2_CallbackFunc01() {
             @Override
             public void callback(final long id, final String msg, final Object userParam) {
                 final MyUserParam myUserParam = (MyUserParam)userParam;
                 id_res[0] = id + myUserParam.i;
                 msg_res[0] = msg;
                 myUserParam.j += id_res[0];
-                System.err.println("chapter10.myCallback: "+id+", '"+msg+"'");
+                System.err.println("chapter10.myCallback01: "+id+", '"+msg+"'");
+            }
+        };
+        final T2_CallbackFunc01 myCallback02 = new T2_CallbackFunc01() {
+            @Override
+            public void callback(final long id, final String msg, final Object userParam) {
+                final MyUserParam myUserParam = (MyUserParam)userParam;
+                id_res[0] = id;
+                msg_res[0] = msg;
+                myUserParam.j += id_res[0];
+                System.err.println("chapter10.myCallback02: "+id+", '"+msg+"'");
             }
         };
         final MyUserParam myUserParam = new MyUserParam(10);
@@ -95,7 +105,7 @@ public class Test4JavaCallback extends BaseClass {
         Assert.assertEquals( 0, myUserParam.j);
         Assert.assertEquals(false, bt2.isMessageCallback01Mapped(myUserParam));
 
-        bt2.MessageCallback01(myCallback, myUserParam);
+        bt2.MessageCallback01(myCallback01, myUserParam);
         Assert.assertEquals(true, bt2.isMessageCallback01Mapped(myUserParam));
         Assert.assertEquals(-1, id_res[0]);
         Assert.assertEquals(null, msg_res[0]);
@@ -118,16 +128,36 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(          10, myUserParam.i);
             Assert.assertEquals(42+10+404+10, myUserParam.j);
         }
+
+        // Switch the callback function
+        // The previously mapped myUserParam01 gets released and remapped to new callback
+        bt2.MessageCallback01(myCallback02, myUserParam);
+        Assert.assertEquals(true, bt2.isMessageCallback01Mapped(myUserParam));
+        Assert.assertEquals(       42+10, id_res[0]);
+        Assert.assertEquals(      msgNo2, msg_res[0]);
+        Assert.assertEquals(          10, myUserParam.i);
+        Assert.assertEquals(42+10+404+10, myUserParam.j);
+
+        final String msgNo3 = "My Third JavaCallback message";
+        {
+            bt2.InjectMessageCallback01(     1, msgNo3);
+            Assert.assertEquals(             1, id_res[0]);
+            Assert.assertEquals(        msgNo3, msg_res[0]);
+            Assert.assertEquals(            10, myUserParam.i);
+            Assert.assertEquals(1+42+10+404+10, myUserParam.j);
+        }
+
+        // Just release the callback and mapped myUserParam01
         bt2.MessageCallback01(null, myUserParam);
         Assert.assertEquals(false, bt2.isMessageCallback01Mapped(myUserParam));
         {
-            final String msgNo3 = "My Third JavaCallback message";
-            bt2.InjectMessageCallback01( 21, msgNo3);
+            final String msgNo4 = "My Fourth JavaCallback message";
+            bt2.InjectMessageCallback01( 21, msgNo4);
             // No callback shall be received, hence old values
-            Assert.assertEquals(       42+10, id_res[0]);
-            Assert.assertEquals(      msgNo2, msg_res[0]);
-            Assert.assertEquals(          10, myUserParam.i);
-            Assert.assertEquals(42+10+404+10, myUserParam.j);
+            Assert.assertEquals(             1, id_res[0]);
+            Assert.assertEquals(        msgNo3, msg_res[0]);
+            Assert.assertEquals(            10, myUserParam.i);
+            Assert.assertEquals(1+42+10+404+10, myUserParam.j);
         }
     }
     private static class MyUserParam {
