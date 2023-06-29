@@ -31,6 +31,10 @@ GlueGen can produce native foreign function bindings to Java as well as
 [map native data structures](#struct-mapping) to be fully accessible from Java including 
 potential calls to [embedded function pointer](#struct-function-pointer-support).
 
+GlueGen supports [registering Java callback methods](#java-callback-from-native-c-api-support)
+to receive asynchronous and off-thread native toolkit events,
+where a generated native callback function dispatches the events to Java.
+
 GlueGen also supports [producing an OO-Style API mapping](#oo-style-api-interface-mapping) like [JOGL's incremental OpenGL Profile API levels](../../jogl/doc/uml/html/index.html).
 
 GlueGen is capable to bind low-level APIs such as the Java Native Interface (JNI) and
@@ -752,49 +756,77 @@ and similar to `T2_CustomFuncB customFuncB1`
   public final int CustomFuncB1(T2_UserData pUserData)  { .. }  
 ```
 
-### Java Callback from Native C-API Support
-GlueGen supports registering Java callback methods to native C-API functions in the form:
-```
-typedef int32_t ( * T_CallbackFunc)(size_t id, const char* msg, void* userParam);
+## Java Callback from Native C-API Support
+GlueGen supports registering Java callback methods
+to receive asynchronous and off-thread native toolkit events,
+where a generated native callback function dispatches the events to Java.
 
-void AddMessageCallback(T_CallbackFunc func, void* userParam);
-void RemoveMessageCallback(T_CallbackFunc func, void* userParam);
-void InjectMessageCallback(size_t id, const char* msg);
+C-API header snippet:
+```
+typedef void ( * T2_CallbackFunc01)(size_t id, const char* msg, void* usrParam);
+
+/** Sets the given `cbFunc` and associated `usrParam` as the callback. Passing NULL for `func` _and_ same `usrParam` removes the callback and its associated resources. */
+void MessageCallback01(T2_CallbackFunc01 cbFunc, void* usrParam);
+
+void InjectMessageCallback01(size_t id, const char* msg);
 ```
 
 and the following GlueGen configuration
 ```
-ArgumentIsString T2_CallbackFunc 1
-ArgumentIsString InjectMessageCallback 1
-
-# Define a JavaCallback, enacted on a function-pointer argument `T2_CallbackFunc` and a user-param `void*` for Java Object mapping
-JavaCallbackDef  T2_CallbackFunc 2
+# JavaCallback requires `JNI_OnLoad*(..)` and `JVMUtil_GetJNIEnv(..)`
+LibraryOnLoad Bindingtest2
+    
+ArgumentIsString T2_CallbackFunc01 1
+ArgumentIsString InjectMessageCallback01 1
+        
+# Define a JavaCallback.
+#   Set JavaCallback via function `MessageCallback01` if `T2_CallbackFunc01` argument is non-null, otherwise removes the callback and associated resources.    
+#   It uses `usrParam` as the resource-key to map to the hidden native-usrParam object,    
+#   hence a matching 'usrParam' must be passed for setting and removal of the callback.
+#
+#   It uses the function-pointer argument `T2_CallbackFunc01` as the callback function type
+#   and marks `T2_CallbackFunc01`s 3rd argument (index 2) as the mandatory user-param for Java Object mapping.
+#
+#   Note: An explicit `isMessageCallback01Mapped(Object usrParam)` is being created to explicitly query whether `usrParam` maps to the associated resources.
+JavaCallbackDef  MessageCallback01 T2_CallbackFunc01 2
 ```
+Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit.
+It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
+or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
 
 This will lead to the following result
 ```
 public interface Bindingtest2 {
 
-  /** JavaCallback interface: T2_CallbackFunc -> int32_t (*T2_CallbackFunc)(size_t id, const char *  msg, void *  userParam) */
-  public static interface T2_CallbackFunc {
-    /** Interface to C language function: <br> <code>int32_t callback(size_t id, const char *  msg, void *  userParam)</code><br>Alias for: <code>T2_CallbackFunc</code>     */
-    public int callback(long id, String msg, Object userParam);
+  /** JavaCallback interface: T2_CallbackFunc01 -> void (*T2_CallbackFunc01)(size_t id, const char *  msg, void *  usrParam) */
+  public static interface T2_CallbackFunc01 {
+    /** Interface to C language function: <br> <code>void callback(size_t id, const char *  msg, void *  usrParam)</code><br>Alias for: <code>T2_CallbackFunc01</code>     */
+    public void callback(long id, String msg, Object usrParam);
   }
 
   ...
+  
+  /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback01(T2_CallbackFunc01 cbFunc, void *  usrParam)</code><br>   */
+  public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam);
+  
+  public boolean isMessageCallback01Mapped(final Object usrParam);
 
-  /** Entry point (through function pointer) to C language function: <br> <code>void AddMessageCallback(int32_t (*func)(size_t id, const char *  msg, void *  userParam), void *  userParam)</code><br>   */
-  public void AddMessageCallback(T2_CallbackFunc func, Object userParam);
-
-  /** Entry point (through function pointer) to C language function: <br> <code>void RemoveMessageCallback(int32_t (*func)(size_t id, const char *  msg, void *  userParam), void *  userParam)</code><br>   */
-  public void RemoveMessageCallback(T2_CallbackFunc func, Object userParam);
-
-  /** Entry point (through function pointer) to C language function: <br> <code>void InjectMessageCallback(size_t id, const char *  msg)</code><br>   */
-  public void InjectMessageCallback(long id, String msg);
-
+  /** Entry point (through function pointer) to C language function: <br> <code>void InjectMessageCallback01(size_t id, const char *  msg)</code><br>   */
+  public void InjectMessageCallback01(long id, String msg);
 ```
 
-*TODO: Work in progress*
+### JavaCallback Constraints
+Please consider the following *currently enabled* constraints using `JavaCallbackDef`
+- Only one interface callback-method binding is allowed for a native callback function, e.g. `T2_CallbackFunc01` (see above).
+- The native callback function can only return no-value, i.e. `void`, or a primitive type. Usually `void` is being used in toolkit APIs.
+- The native callback function argument types must be able to be mapped to JNI Java types as supported for return values of all native functions,
+  the same code path is being used within `CMethodBindingEmitter.emitBodyMapCToJNIType(..)`.
+- To remove a JavaCallback the specified and mapped setter function, e.g. `MessageCallback01`, must be called with `null` for the callback interface
+  but the very same `userParam` instance as previously called to set the callback.
+- Exactly one native code-unit for the library must specify [`LibraryOnLoad libraryBasename`](#libraryonload-librarybasename-for-jni_onload-)
+- ... 
+
+*TODO: Enhance documentation*
 
 ## Misc Configurations
 

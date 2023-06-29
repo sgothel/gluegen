@@ -149,8 +149,26 @@ public class JavaConfiguration {
      * converted to String args; value is List of Integer argument indices
      */
     private final Map<String, List<Integer>> argumentsAreString = new HashMap<String, List<Integer>>();
-    private final Map<String, Integer> javaCallbackUserParams = new HashMap<String, Integer>();
-    private final List<String> javaCallbackList = new ArrayList<String>();
+
+    /** JavaCallback configuration definition (static) */
+    public static class JavaCallbackDef {
+      final String setFuncName;
+      final String cbFuncTypeName;
+      final int userParamIdx;
+      JavaCallbackDef(final String setFuncName, final String cbFuncTypeName, final int userParamIdx) {
+          this.setFuncName = setFuncName;
+          this.cbFuncTypeName = cbFuncTypeName;
+          this.userParamIdx = userParamIdx;
+      }
+      @Override
+      public String toString() {
+          return String.format("JavaCallbackDef[set %s, cb %s, userParamIdx %d]",
+                  setFuncName, cbFuncTypeName, userParamIdx);
+      }
+    }
+    private final List<JavaCallbackDef> javaCallbackList = new ArrayList<JavaCallbackDef>();
+    private final Map<String, JavaCallbackDef> javaCallbackSetFuncToDef = new HashMap<String, JavaCallbackDef>();
+
     private final Set<String> extendedIntfSymbolsIgnore = new HashSet<String>();
     private final Set<String> extendedIntfSymbolsOnly = new HashSet<String>();
     private final Set<String> extendedImplSymbolsIgnore = new HashSet<String>();
@@ -539,30 +557,21 @@ public class JavaConfiguration {
     return returnsStringOnly.contains(functionName);
   }
 
-  public List<String> getJavaCallbackList() {
+  /** Returns the list of all configured JavaCallback definitions. */
+  public List<JavaCallbackDef> getJavaCallbackList() {
     return javaCallbackList;
   }
 
-  /** Returns an <code>Integer</code> index of the <code>void*</code>
-      user-param argument that should be converted to <code>Object</code>s for the Java Callback. Returns null if there are no
-      such hints for the given function alias symbol. */
-  public boolean isJavaCallback(final AliasedSymbol symbol) {
-      return -2 < javaCallbackUserParamIdx(symbol);
-  }
-
-  /** Returns an <code>Integer</code> index of the <code>void*</code>
-      user-param argument that should be converted to <code>Object</code>s for the Java Callback. Returns -2 if there are no
-      such hints for the given function alias symbol. */
-  public int javaCallbackUserParamIdx(final AliasedSymbol symbol) {
+  /** Returns the configured JavaCallback definition mapped to the JavaCallback-Set-Function name. */
+  public JavaCallbackDef javaCallbackSetFuncToDef(final AliasedSymbol symbol) {
       final String name = symbol.getName();
       final Set<String> aliases = symbol.getAliasedNames();
 
-      Integer res = javaCallbackUserParams.get(name);
+      JavaCallbackDef res = javaCallbackSetFuncToDef.get(name);
       if( null == res ) {
-          res = oneInMap(javaCallbackUserParams, aliases);
+          res = oneInMap(javaCallbackSetFuncToDef, aliases);
       }
-      LOG.log(INFO, getASTLocusTag(symbol), "JavaCallbackDef: {0} -> {1}", symbol, res);
-      return null != res ? res.intValue() : -2;
+      return res;
   }
 
   /**
@@ -1615,15 +1624,12 @@ public class JavaConfiguration {
 
   protected void readJavaCallbackDef(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
-      final String name = tok.nextToken();
-      final Integer idx;
-      if( tok.hasMoreTokens() ) {
-          idx = Integer.valueOf(tok.nextToken());
-      } else {
-          idx = Integer.valueOf(-2);
-      }
-      javaCallbackUserParams.put(name, idx);
-      javaCallbackList.add(name);
+      final String setFuncName = tok.nextToken();
+      final String cbFuncTypeName = tok.nextToken();
+      final Integer userParamIdx = Integer.valueOf(tok.nextToken());
+      final JavaCallbackDef jcd = new JavaCallbackDef(setFuncName, cbFuncTypeName, userParamIdx);
+      javaCallbackList.add(jcd);
+      javaCallbackSetFuncToDef.put(setFuncName, jcd);
     } catch (final NoSuchElementException e) {
       throw new RuntimeException("Error parsing \"JavaCallbackDef\" command at line " + lineNo +
         " in file \"" + filename + "\"", e);
@@ -2233,53 +2239,76 @@ public class JavaConfiguration {
   }
 
   /**
-   * JavaCallback information, produced by {@link JavaEmitter#beginFunctions(TypeDictionary, TypeDictionary, Map)}
+   * JavaCallback compile time information, produced by {@link JavaEmitter#beginFunctions(TypeDictionary, TypeDictionary, Map)}
    * from {@link Type#isFunctionPointer() function-pointer} {@link Type}s mapped to {@link JavaConfiguration#getJavaCallbackList()} names via {@link TypeDictionary} (typedef).
    * @see JavaConfiguration#funcPtrTypeToJavaCallbackMap
-   * @see JavaConfiguration#bindingToJavaCallbackMap
+   * @see JavaConfiguration#setFuncToJavaCallbackMap
    */
-  public static class JavaCallback {
-      final String funcName;
-      final String simpleClazzName;
-      final String fqClazzName;
-      final String methodSignature;
-      final FunctionType func;
+  public static class JavaCallbackInfo {
+      final String setFuncName;
+      final String cbFuncTypeName;
+      final String simpleCbClazzName;
+      final String fqCbClazzName;
+      final String cbMethodSignature;
+      final FunctionType cbFuncType;
+      final MethodBinding cbFuncBinding;
       final int userParamIdx;
       final Type userParamType;
       final String userParamName;
+      boolean setFuncProcessed;
+      int setFuncCBParamIdx;
+      int setFuncUserParamIdx;
 
-      public JavaCallback(final String funcName, final String simpleClazzName, final String fqClazzName, final String methodSignature,
-              final FunctionType func, final int userParamIdx) {
-          this.funcName = funcName;
-          this.simpleClazzName = simpleClazzName;
-          this.fqClazzName = fqClazzName;
-          this.methodSignature = methodSignature;
-          this.func = func;
+      public JavaCallbackInfo(final String setFuncName, final String cbFuncTypeName, final String simpleClazzName, final String fqClazzName, final String methodSignature,
+                              final FunctionType cbFuncType, final MethodBinding cbFuncBinding, final int userParamIdx) {
+          this.setFuncName = setFuncName;
+          this.cbFuncTypeName = cbFuncTypeName;
+          this.simpleCbClazzName = simpleClazzName;
+          this.fqCbClazzName = fqClazzName;
+          this.cbMethodSignature = methodSignature;
+          this.cbFuncType = cbFuncType;
+          this.cbFuncBinding = cbFuncBinding;
           int paramIdx = -2;
           Type paramType = null;
           String paramName = null;
-          if( 0 <= userParamIdx && userParamIdx < func.getNumArguments() ) {
-              final Type t = func.getArgumentType(userParamIdx);
-              if( null != t && t.isPointer() && t.getTargetType().isVoid() ) {
-                  // OK 'void*'
+          if( 0 <= userParamIdx && userParamIdx < cbFuncType.getNumArguments() ) {
+              final Type t = cbFuncType.getArgumentType(userParamIdx);
+              if( null != t && t.isPointer() ) {
+                  // OK '<something>*'
                   paramIdx = userParamIdx;
-                  paramName = func.getArgumentName(userParamIdx);
-                  paramType = t;
+                  paramName = cbFuncType.getArgumentName(userParamIdx);
+                  paramType = t.getTargetType();
               }
           }
           this.userParamIdx = paramIdx;
           this.userParamType = paramType;
           this.userParamName = paramName;
+          this.setFuncProcessed = false;
+          this.setFuncCBParamIdx = -1;
+          this.setFuncUserParamIdx = -1;
+      }
+
+      public void setFuncProcessed(final int cbParamIdx, final int userParamIdx) {
+        if( !setFuncProcessed ) {
+            if( 0 <= cbParamIdx && 0 <= userParamIdx ) {
+                setFuncProcessed = true;
+                setFuncCBParamIdx = cbParamIdx;
+                setFuncUserParamIdx = userParamIdx;
+            } else {
+                setFuncCBParamIdx = -1;
+                setFuncUserParamIdx = -1;
+            }
+        }
       }
 
       @Override
       public String toString() {
-          return String.format("JavaCallback[%s, %s%s, userParam[idx %d, '%s', %s], %s]", funcName, fqClazzName, methodSignature,
-                  userParamIdx, userParamName, userParamType.getSignature(null).toString(), func.toString(funcName, false, true));
+          return String.format("JavaCallbackInfo[set %s(ok %b, cbIdx %d, upIdx %d), cb %s%s, userParam[idx %d, '%s', %s], %s]",
+                  setFuncName, setFuncProcessed, setFuncCBParamIdx, setFuncUserParamIdx,
+                  cbFuncTypeName, cbMethodSignature,
+                  userParamIdx, userParamName, userParamType.getSignature(null).toString(), cbFuncType.toString(cbFuncTypeName, false, true));
       }
   }
-  /** Mapped function-pointer type name to {@link JavaCallback} */
-  /* pp */ final Map<String, JavaCallback> funcPtrTypeToJavaCallbackMap = new HashMap<String, JavaCallback>();
-  /** Mapped binding name to {@link JavaCallback} */
-  /* pp */ final Map<String, JavaCallback> bindingToJavaCallbackMap = new HashMap<String, JavaCallback>();
+  /** Mapped binding name to {@link JavaCallbackInfo} */
+  /* pp */ final Map<String, JavaCallbackInfo> setFuncToJavaCallbackMap = new HashMap<String, JavaCallbackInfo>();
 }

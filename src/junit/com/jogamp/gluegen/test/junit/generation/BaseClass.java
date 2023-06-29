@@ -1086,7 +1086,7 @@ public class BaseClass extends SingletonJunitCase {
           }
     }
 
-    void assertAPTR(final long expected, final long actual) {
+    public static void assertAPTR(final long expected, final long actual) {
         System.err.println("0x"+Long.toHexString(expected)+" == 0x"+Long.toHexString(actual));
         if (Platform.is32Bit()) {
             int exp32;

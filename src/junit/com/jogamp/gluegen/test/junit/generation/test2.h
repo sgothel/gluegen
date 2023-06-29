@@ -58,9 +58,24 @@ typedef struct {
 extern int Initialize(T2_InitializeOptions* Options);
 extern int Release(T2_InitializeOptions* Options);
 
-typedef int32_t ( * T2_CallbackFunc)(size_t id, const char* msg, void* userParam);
+//
+// T2_CallbackFunc01
+//
+typedef void ( * T2_CallbackFunc01)(size_t id, const char* msg, void* usrParam);
 
-void AddMessageCallback(T2_CallbackFunc func, void* userParam);
-void RemoveMessageCallback(T2_CallbackFunc func, void* userParam);
-void InjectMessageCallback(size_t id, const char* msg);
+void MessageCallback01(T2_CallbackFunc01 cbFunc, void* usrParam);
+void InjectMessageCallback01(size_t id, const char* msg);
+
+//
+// T2_CallbackFunc02
+//
+typedef struct {
+    int32_t ApiVersion;
+    void* Data;
+} T2_Callback02UserType;
+
+typedef void ( * T2_CallbackFunc02)(const T2_Callback02UserType* usrParam);
+
+void MessageCallback02(T2_CallbackFunc02 cbFunc, const T2_Callback02UserType* usrParam);
+void InjectMessageCallback02(size_t id, const char* msg);
 

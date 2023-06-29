@@ -26,39 +26,6 @@ static int32_t CustomFuncB2(T2_UserData* pUserData) {
     return -pUserData->balance;
 }
 
-int Initialize(T2_InitializeOptions* Options) {
-    Options->ProductName = calloc(100, sizeof(char));
-    Options->ProductVersion = calloc(100, sizeof(char));
-    strncpy((char*)Options->ProductName, "Product Name", 100); // yuck: nonsense-warning
-    strncpy((char*)Options->ProductVersion, "Product Version", 100); // yuck: nonsense-warning
-    Options->ApiVersion = 1;
-
-    Options->Reserved1 = NULL;
-    Options->CustomFuncA1 = CustomFuncA1;
-    *( (T2_CustomFuncA*) &Options->CustomFuncA2 ) = CustomFuncA2; // yuck: real yuck
-    Options->CustomFuncB1 = CustomFuncB1;
-    Options->CustomFuncB2 = CustomFuncB2;
-    Options->customFuncBVariants[0] = CustomFuncB1;
-    Options->customFuncBVariants[1] = CustomFuncB2;
-    
-    Options->OverrideThreadAffinity = NULL;
-}
-
-int Release(T2_InitializeOptions* Options) {
-    if( NULL != Options->ProductName ) {
-        free( (void*) Options->ProductName ); // yuck: nonsense-warning
-        Options->ProductName = NULL;
-    }
-    if( NULL != Options->ProductVersion ) {
-        free( (void*) Options->ProductVersion ); // yuck: nonsense-warning
-        Options->ProductVersion = NULL;
-    }
-    Options->CustomFuncA1 = NULL;
-    // Options->CustomFuncA2 = NULL; // keep const
-    Options->CustomFuncB1 = NULL;
-    Options->CustomFuncB2 = NULL;
-}
-
 static int32_t StaticInt32Array[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 static T2_UndefStruct StaticUndefStructArray[] = { { 0 }, { 1 }, { 2 }, { 3 }, { 4 }, { 5 }, { 6 }, { 7 }, { 8 }, { 9 } };
 
@@ -85,5 +52,55 @@ void destroyT2PointerStorage(T2_PointerStorage * s) {
     assert(NULL!=s);
     memset(s, 0, sizeof(T2_PointerStorage));
     free(s);
+}
+
+int Initialize(T2_InitializeOptions* Options) {
+    Options->ProductName = calloc(100, sizeof(char));
+    Options->ProductVersion = calloc(100, sizeof(char));
+    strncpy((char*)Options->ProductName, "Product Name", 100); // yuck: nonsense-warning
+    strncpy((char*)Options->ProductVersion, "Product Version", 100); // yuck: nonsense-warning
+    Options->ApiVersion = 1;
+    Options->Reserved1 = (void*) 0x0000CAFFEEBEEFUL;
+    Options->CustomFuncA1 = CustomFuncA1;
+    *( (T2_CustomFuncA*) &Options->CustomFuncA2 ) = CustomFuncA2; // yuck: real yuck
+    Options->CustomFuncB1 = CustomFuncB1;
+    Options->CustomFuncB2 = CustomFuncB2;
+    Options->customFuncBVariants[0] = CustomFuncB1;
+    Options->customFuncBVariants[1] = CustomFuncB2;
+    
+    Options->OverrideThreadAffinity = NULL;
+}
+
+int Release(T2_InitializeOptions* Options) {
+    if( NULL != Options->ProductName ) {
+        free( (void*) Options->ProductName ); // yuck: nonsense-warning
+        Options->ProductName = NULL;
+    }
+    if( NULL != Options->ProductVersion ) {
+        free( (void*) Options->ProductVersion ); // yuck: nonsense-warning
+        Options->ProductVersion = NULL;
+    }
+    Options->CustomFuncA1 = NULL;
+    // Options->CustomFuncA2 = NULL; // keep const
+    Options->CustomFuncB1 = NULL;
+    Options->CustomFuncB2 = NULL;
+}
+
+static T2_CallbackFunc01 t2_callback01 = NULL;
+static void* t2_callback01_userparam = NULL;
+
+void MessageCallback01(T2_CallbackFunc01 func, void* userParam) {
+    t2_callback01 = func;
+    t2_callback01_userparam = userParam;
+    fprintf(stderr, "XXX MessageCallback01 func %p, user %p\n", func, userParam);
+    fflush(NULL);
+}
+
+void InjectMessageCallback01(size_t id, const char* msg) {
+    if( NULL != t2_callback01 ) {
+        fprintf(stderr, "XXX InjectMessageCallback01 func %p, user %p\n", t2_callback01, t2_callback01_userparam);
+        fflush(NULL);
+        (*t2_callback01)(id, msg, t2_callback01_userparam);
+    }
 }
 

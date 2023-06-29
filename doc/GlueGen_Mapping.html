@@ -426,11 +426,18 @@
   <li><a href="#alignment-for-compound-data">Alignment for Compound
   Data</a></li>
   </ul></li>
+  <li><a href="#oo-style-api-interface-mapping">OO-Style API Interface
+  Mapping</a>
+  <ul>
+  <li><a href="#oo-style-mapping-settings">OO-Style Mapping
+  Settings</a></li>
+  <li><a href="#oo-style-example">OO-Style Example</a></li>
+  </ul></li>
   <li><a href="#struct-mapping">Struct Mapping</a>
   <ul>
+  <li><a href="#struct-mapping-notes">Struct Mapping Notes</a></li>
   <li><a href="#gluegen-struct-settings">GlueGen Struct
   Settings</a></li>
-  <li><a href="#struct-mapping-notes">Struct Mapping Notes</a></li>
   <li><a href="#struct-setter-pseudo-code">Struct Setter
   Pseudo-Code</a></li>
   <li><a href="#struct-java-signature-table">Struct Java Signature
@@ -441,8 +448,18 @@
   Support</a></li>
   <li><a href="#struct-function-pointer-support">Struct Function-Pointer
   Support</a></li>
+  </ul></li>
   <li><a href="#java-callback-from-native-c-api-support">Java Callback
-  from Native C-API Support</a></li>
+  from Native C-API Support</a>
+  <ul>
+  <li><a href="#javacallback-constraints">JavaCallback
+  Constraints</a></li>
+  </ul></li>
+  <li><a href="#misc-configurations">Misc Configurations</a>
+  <ul>
+  <li><a
+  href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code>
+  for <code>JNI_OnLoad*(..)</code> ...</a></li>
   </ul></li>
   <li><a href="#platform-header-files">Platform Header Files</a></li>
   <li><a href="#pre-defined-macros">Pre-Defined Macros</a></li>
@@ -483,11 +500,30 @@ capable of representing all C types to represent the APIs for which it
 generates interfaces. It has the ability to perform significant
 transformations on the IR before glue code emission.</p>
 <p>GlueGen can produce native foreign function bindings to Java as well
-as map native data structures to be fully accessible from Java including
-potential calls to embedded function pointer.</p>
-<p>GlueGen is also capable to bind even low-level APIs such as the Java
-Native Interface (JNI) and the AWT Native Interface (JAWT) back up to
-the Java programming language.</p>
+as <a href="#struct-mapping">map native data structures</a> to be fully
+accessible from Java including potential calls to <a
+href="#struct-function-pointer-support">embedded function
+pointer</a>.</p>
+<p>GlueGen supports <a
+href="#java-callback-from-native-c-api-support">registering Java
+callback methods</a> to receive asynchronous and off-thread native
+toolkit events, where a generated native callback function dispatches
+the events to Java.</p>
+<p>GlueGen also supports <a
+href="#oo-style-api-interface-mapping">producing an OO-Style API
+mapping</a> like <a href="../../jogl/doc/uml/html/index.html">JOGL's
+incremental OpenGL Profile API levels</a>.</p>
+<p>GlueGen is capable to bind low-level APIs such as the Java Native
+Interface (JNI) and the AWT Native Interface (JAWT) back up to the Java
+programming language.</p>
+<p>Further, GlueGen supports generating <code>JNI_OnLoad(..)</code> for
+dynamic and <code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> for
+static libraries via <a
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>,
+which also provides <code>JVMUtil_GetJNIEnv(..)</code> to resolve the
+<code>JNIEnv*</code> as used by <a
+href="#java-callback-from-native-c-api-support">Java callback
+methods</a>.</p>
 <p>GlueGen utilizes <a
 href="https://jogamp.org/cgit/jcpp.git/about/">JCPP</a>, migrated C
 preprocessor written in Java.</p>
@@ -930,6 +966,68 @@ Window(mingw/mingw64)</h4>
 +armv7l-eabi<br />
 - MacOsX-32bit-gcc4<br />
 ∗ Windows</p>
+<h2 id="oo-style-api-interface-mapping">OO-Style API Interface
+Mapping</h2>
+<p>GlueGen supports producing an OO-Style API mapping like <a
+href="../../jogl/doc/uml/html/index.html">JOGL's incremental OpenGL
+Profile API levels</a>.</p>
+<h3 id="oo-style-mapping-settings">OO-Style Mapping Settings</h3>
+<ul>
+<li><p><code>ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java</code></p>
+<p>Ignore all extended interface symbols from named Java source
+file.</p>
+<p>The named Java source file is parsed and a list of its symbols
+extracted, allowing GlueGen to ignore these in the generated interface
+(here GLES3).</p>
+<p>This complements <code>Extends</code> setting, see below.</p></li>
+<li><p><code>Extends GLES3 GLES2</code></p>
+<p>The generated interface GLES3 extends interface GLES2.</p>
+<p>This complements <code>ExtendedInterfaceSymbolsIgnore</code> setting,
+see above.</p></li>
+<li><p><code>Implements GLES3Impl GLES3</code></p>
+<p>The generated implementation GLES3Impl implements interface
+GLES3.</p></li>
+</ul>
+<h3 id="oo-style-example">OO-Style Example</h3>
+<p>Example snippet from JOGL's GLES3 interface config
+<code>gl-if-es3.cfg</code></p>
+<pre><code>...
+
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GLES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL3ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL4ES3.java
+ExtendedInterfaceSymbolsIgnore ../src/jogl/classes/com/jogamp/opengl/GLBase.java
+
+Package com.jogamp.opengl
+Style InterfaceOnly
+JavaClass GLES3
+Extends GLES3 GLES2
+Extends GLES3 GL4ES3
+...</code></pre>
+<p>Example snippet from JOGL's GLES3Impl implementation
+<code>gl-es3-impl.cfg</code></p>
+<pre><code>...
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GLES2.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL2ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL3ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL4ES3.java
+ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GLES3.java
+ExtendedInterfaceSymbolsIgnore ../src/jogl/classes/com/jogamp/opengl/GLBase.java
+
+Style ImplOnly
+ImplPackage jogamp.opengl.es3
+ImplJavaClass GLES3Impl
+Implements GLES3Impl GLES2
+Implements GLES3Impl GLES3
+...</code></pre>
+<p>Above produces the GLES3 interface and its implementation as visible
+in JOGL's UML document <a
+href="../../jogl/doc/uml/html/index.html">about OpenGL Profiles</a>.</p>
 <h2 id="struct-mapping">Struct Mapping</h2>
 <p>A <em>Struct</em> is a C compound type declaration, which can be
 mapped to a Java class.</p>
@@ -1826,43 +1924,104 @@ StructPackage T2_InitializeOptions com.jogamp.gluegen.test.junit.generation</cod
   
   /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t CustomFuncB1(T2_UserData *  pUserData)&lt;/code&gt;&lt;br&gt;   */
   public final int CustomFuncB1(T2_UserData pUserData)  { .. }  </code></pre>
-<h3 id="java-callback-from-native-c-api-support">Java Callback from
-Native C-API Support</h3>
-<p>GlueGen supports registering Java callback methods to native C-API
-functions in the form:</p>
-<pre><code>typedef int32_t ( * T_CallbackFunc)(size_t id, const char* msg, void* userParam);
+<h2 id="java-callback-from-native-c-api-support">Java Callback from
+Native C-API Support</h2>
+<p>GlueGen supports registering Java callback methods to receive
+asynchronous and off-thread native toolkit events, where a generated
+native callback function dispatches the events to Java.</p>
+<p>C-API header snippet:</p>
+<pre><code>typedef void ( * T2_CallbackFunc01)(size_t id, const char* msg, void* usrParam);
 
-void AddMessageCallback(T_CallbackFunc func, void* userParam);
-void RemoveMessageCallback(T_CallbackFunc func, void* userParam);
-void InjectMessageCallback(size_t id, const char* msg);</code></pre>
+/** Sets the given `cbFunc` and associated `usrParam` as the callback. Passing NULL for `func` _and_ same `usrParam` removes the callback and its associated resources. */
+void MessageCallback01(T2_CallbackFunc01 cbFunc, void* usrParam);
+
+void InjectMessageCallback01(size_t id, const char* msg);</code></pre>
 <p>and the following GlueGen configuration</p>
-<pre><code>ArgumentIsString T2_CallbackFunc 1
-ArgumentIsString InjectMessageCallback 1
-
-# Define a JavaCallback, enacted on a function-pointer argument `T2_CallbackFunc` and a user-param `void*` for Java Object mapping
-JavaCallbackDef  T2_CallbackFunc 2</code></pre>
+<pre><code># JavaCallback requires `JNI_OnLoad*(..)` and `JVMUtil_GetJNIEnv(..)`
+LibraryOnLoad Bindingtest2
+    
+ArgumentIsString T2_CallbackFunc01 1
+ArgumentIsString InjectMessageCallback01 1
+        
+# Define a JavaCallback.
+#   Set JavaCallback via function `MessageCallback01` if `T2_CallbackFunc01` argument is non-null, otherwise removes the callback and associated resources.    
+#   It uses `usrParam` as the resource-key to map to the hidden native-usrParam object,    
+#   hence a matching &#39;usrParam&#39; must be passed for setting and removal of the callback.
+#
+#   It uses the function-pointer argument `T2_CallbackFunc01` as the callback function type
+#   and marks `T2_CallbackFunc01`s 3rd argument (index 2) as the mandatory user-param for Java Object mapping.
+#
+#   Note: An explicit `isMessageCallback01Mapped(Object usrParam)` is being created to explicitly query whether `usrParam` maps to the associated resources.
+JavaCallbackDef  MessageCallback01 T2_CallbackFunc01 2</code></pre>
+<p>Note that <a
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
+must be specified in exactly one native code-unit. It provides code to
+allow the generated native callback-function to attach the current
+thread to the <code>JavaVM*</code> generating a new
+<code>JNIEnv*</code>in daemon mode - or just to retrieve the thread's
+<code>JNIEnv*</code>, if already attached to the
+<code>JavaVM*</code>.</p>
 <p>This will lead to the following result</p>
 <pre><code>public interface Bindingtest2 {
 
-  /** JavaCallback interface: T2_CallbackFunc -&gt; int32_t (*T2_CallbackFunc)(size_t id, const char *  msg, void *  userParam) */
-  public static interface T2_CallbackFunc {
-    /** Interface to C language function: &lt;br&gt; &lt;code&gt;int32_t callback(size_t id, const char *  msg, void *  userParam)&lt;/code&gt;&lt;br&gt;Alias for: &lt;code&gt;T2_CallbackFunc&lt;/code&gt;     */
-    public int callback(long id, String msg, Object userParam);
+  /** JavaCallback interface: T2_CallbackFunc01 -&gt; void (*T2_CallbackFunc01)(size_t id, const char *  msg, void *  usrParam) */
+  public static interface T2_CallbackFunc01 {
+    /** Interface to C language function: &lt;br&gt; &lt;code&gt;void callback(size_t id, const char *  msg, void *  usrParam)&lt;/code&gt;&lt;br&gt;Alias for: &lt;code&gt;T2_CallbackFunc01&lt;/code&gt;     */
+    public void callback(long id, String msg, Object usrParam);
   }
 
   ...
+  
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void MessageCallback01(T2_CallbackFunc01 cbFunc, void *  usrParam)&lt;/code&gt;&lt;br&gt;   */
+  public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam);
+  
+  public boolean isMessageCallback01Mapped(final Object usrParam);
 
-  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void AddMessageCallback(int32_t (*func)(size_t id, const char *  msg, void *  userParam), void *  userParam)&lt;/code&gt;&lt;br&gt;   */
-  public void AddMessageCallback(T2_CallbackFunc func, Object userParam);
-
-  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void RemoveMessageCallback(int32_t (*func)(size_t id, const char *  msg, void *  userParam), void *  userParam)&lt;/code&gt;&lt;br&gt;   */
-  public void RemoveMessageCallback(T2_CallbackFunc func, Object userParam);
-
-  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void InjectMessageCallback(size_t id, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
-  public void InjectMessageCallback(long id, String msg);
-</code></pre>
-<p><em>TODO: Work in progress</em></p>
-<h4 id="example-1">Example</h4>
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void InjectMessageCallback01(size_t id, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
+  public void InjectMessageCallback01(long id, String msg);</code></pre>
+<h3 id="javacallback-constraints">JavaCallback Constraints</h3>
+<p>Please consider the following <em>currently enabled</em> constraints
+using <code>JavaCallbackDef</code></p>
+<ul>
+<li>Only one interface callback-method binding is allowed for a native
+callback function, e.g. <code>T2_CallbackFunc01</code> (see above).</li>
+<li>The native callback function can only return no-value, i.e.
+<code>void</code>, or a primitive type. Usually <code>void</code> is
+being used in toolkit APIs.</li>
+<li>The native callback function argument types must be able to be
+mapped to JNI Java types as supported for return values of all native
+functions, the same code path is being used within
+<code>CMethodBindingEmitter.emitBodyMapCToJNIType(..)</code>.</li>
+<li>To remove a JavaCallback the specified and mapped setter function,
+e.g. <code>MessageCallback01</code>, must be called with
+<code>null</code> for the callback interface but the very same
+<code>userParam</code> instance as previously called to set the
+callback.</li>
+<li>Exactly one native code-unit for the library must specify <a
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad libraryBasename</code></a></li>
+<li>...</li>
+</ul>
+<p><em>TODO: Enhance documentation</em></p>
+<h2 id="misc-configurations">Misc Configurations</h2>
+<h3
+id="libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code>
+for <code>JNI_OnLoad*(..)</code> ...</h3>
+<p><code>LibraryOnLoad &lt;LibraryBasename&gt;</code> generates native
+JNI code <code>JNI_OnLoad(..)</code> used for dynamic libraries,
+<code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> used for static
+libraries, <code>JVMUtil_GetJNIEnv(..)</code> and the instance of
+<code>JavaVM* &lt;LibraryBasename&gt;_jvmHandle</code>.</p>
+<p>The <code>JNI_OnLoad*(..)</code> methods set the
+<code>JavaVM* &lt;LibraryBasename&gt;_jvmHandle</code>, which in turn is
+utilized by <code>JVMUtil_GetJNIEnv(..)</code> to attach a new thread to
+the <code>JavaVM*</code> generating a new <code>JNIEnv*</code>in daemon
+mode - or just to retrieve the thread's <code>JNIEnv*</code>, if already
+attached to the <code>JavaVM*</code>.</p>
+<p>The <code>LibraryBasename</code> parameter is used to generate the
+<code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> variant for
+statically linked libraries. <code>JNI_OnLoad(..)</code>,
+<code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> and
+<code>JVMUtil_GetJNIEnv(..)</code></p>
 <h2 id="platform-header-files">Platform Header Files</h2>
 <p>GlueGen provides convenient platform headers,<br />
 which can be included in your C header files for native compilation and

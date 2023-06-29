@@ -40,6 +40,7 @@
 
 package com.jogamp.gluegen;
 
+import com.jogamp.gluegen.JavaConfiguration.JavaCallbackInfo;
 import com.jogamp.gluegen.cgram.HeaderParser;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.ArrayType;
@@ -94,6 +95,8 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   private String returnedArrayLengthExpression;
   private boolean returnedArrayLengthExpressionOnlyForComments = false;
 
+  private final JavaCallbackInfo javaCallback;
+
   // A suffix used to create a temporary outgoing array of Buffers to
   // represent an array of compound type wrappers
   private static final String COMPOUND_ARRAY_SUFFIX = "_buf_array_copy";
@@ -131,6 +134,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     } else {
       setCommentEmitter(defaultInterfaceCommentEmitter);
     }
+    javaCallback = cfg.setFuncToJavaCallbackMap.get(binding.getName());
     // !forImplementingMethodCall && !isInterface
   }
 
@@ -152,6 +156,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     epilogue                      = arg.epilogue;
     returnedArrayLengthExpression = arg.returnedArrayLengthExpression;
     returnedArrayLengthExpressionOnlyForComments = arg.returnedArrayLengthExpressionOnlyForComments;
+    javaCallback                  = arg.javaCallback;
   }
 
   public boolean isNativeMethod() { return isNativeMethod; }
@@ -411,16 +416,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       }
     }
     if( hasModifier(JavaMethodBindingEmitter.NATIVE) &&
-            null != cfg.bindingToJavaCallbackMap.get(binding.getName()) ) {
+        null != javaCallback )
+    {
         if (needComma) {
             unit.emit(", ");
         }
-        unit.emit("String callbackSignature");
+        unit.emit("String callbackSignature, long[/*1*/] nativeUserParam");
         ++numEmitted;
     }
     return numEmitted;
   }
-
 
   protected String getNativeImplMethodName() {
     return binding.getImplName() + ( useNIODirectOnly ? "0" : "1" );
@@ -467,6 +472,40 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         emitReturnVariableSetupAndCall(mBinding);
       }
       unit.emitln("  }");
+    }
+    if( null != javaCallback && !isPrivateNativeMethod ) {
+        unit.emitln();
+        final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
+        unit.emit("  public boolean is"+getInterfaceName()+"Mapped(final Object "+userParamArgName+")");
+        if( isInterface() ) {
+            unit.emitln(";");
+        } else {
+            unit.emitln(" {");
+            unit.emitln("    return null != "+javaCallback.cbFuncTypeName+"UsrMap.get("+userParamArgName+");");
+            unit.emitln("  }");
+            unit.emitln("  private final void release"+getInterfaceName()+"(final Object "+userParamArgName+") {");
+            unit.emitln("    final "+javaCallback.cbFuncTypeName+"UserParam v = "+javaCallback.cbFuncTypeName+"UsrMap.remove("+userParamArgName+");");
+            // unit.emitln("    System.err.println(\"ZZZ Release v \"+v+\", v.nativeParam 0x\"+Long.toHexString(null!=v?v.nativeParam:0));");
+            unit.emitln("    if( null != v ) {");
+            unit.emitln("      release"+getInterfaceName()+"Impl(v.nativeParam);");
+            unit.emitln("    }");
+            unit.emitln("  }");
+            unit.emitln("  private static class "+javaCallback.cbFuncTypeName+"UserParam {");
+            unit.emitln("    @SuppressWarnings(\"unused\")");
+            unit.emitln("    final "+javaCallback.cbFuncTypeName+" func;");
+            unit.emitln("    @SuppressWarnings(\"unused\")");
+            unit.emitln("    final Object param;");
+            unit.emitln("    @SuppressWarnings(\"unused\")");
+            unit.emitln("    final long nativeParam;");
+            unit.emitln("    "+javaCallback.cbFuncTypeName+"UserParam("+javaCallback.cbFuncTypeName+" func, Object param, long nativeParam) {");
+            unit.emitln("      this.func = func;");
+            unit.emitln("      this.param = param;");
+            unit.emitln("      this.nativeParam = nativeParam;");
+            unit.emitln("    }");
+            unit.emitln("  }");
+            unit.emitln("  private final java.util.Map<Object, "+javaCallback.cbFuncTypeName+"UserParam> "+javaCallback.cbFuncTypeName+"UsrMap = new java.util.HashMap<Object, "+javaCallback.cbFuncTypeName+"UserParam>();");
+            unit.emitln("  private native void release"+getInterfaceName()+"Impl(long nativeUserParam);");
+        }
     }
   }
 
@@ -579,11 +618,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
 
   protected void emitReturnVariableSetupAndCall(final MethodBinding binding) {
-    unit.emit("    ");
     final JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
 
+    if( null != javaCallback ) {
+        unit.emitln("    final long[] nativeUserParam = { 0 };");
+    }
     if (!returnType.isVoid()) {
+      unit.emit("    ");
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOBuffer()) {
         unit.emitln("final ByteBuffer _res;");
@@ -611,6 +653,17 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
     emitCall(binding);
     unit.emitln();
+
+    if( null != javaCallback ) {
+        final String funcArgName = binding.getArgumentName(javaCallback.setFuncCBParamIdx);
+        final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
+        // unit.emitln("    System.err.println(\"ZZZ returned nativeUserParam \"+nativeUserParam[0]);");
+        unit.emitln("    if( 0 == nativeUserParam[0] ) {");
+        unit.emitln("        release"+getInterfaceName()+"("+userParamArgName+");");
+        unit.emitln("    } else {");
+        unit.emitln("        "+javaCallback.cbFuncTypeName+"UsrMap.put("+userParamArgName+", new "+javaCallback.cbFuncTypeName+"UserParam("+funcArgName+", "+userParamArgName+", nativeUserParam[0]));");
+        unit.emitln("    }");
+    }
 
     emitPostCallCleanup(binding);
     emitPrologueOrEpilogue(epilogue);
@@ -733,12 +786,11 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       needComma = true;
       ++numArgsEmitted;
     }
-    final JavaConfiguration.JavaCallback jcb = cfg.bindingToJavaCallbackMap.get(binding.getName());
-    if( null != jcb ) {
+    if( null != javaCallback ) {
         if (needComma) {
             unit.emit(", ");
         }
-        unit.emit("\"" + jcb.methodSignature + "\"");
+        unit.emit("\"" + javaCallback.cbMethodSignature + "\", nativeUserParam");
         ++numArgsEmitted;
     }
     return numArgsEmitted;
