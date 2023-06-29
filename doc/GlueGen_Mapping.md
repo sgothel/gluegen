@@ -40,7 +40,7 @@ GlueGen also supports [producing an OO-Style API mapping](#oo-style-api-interfac
 GlueGen is capable to bind low-level APIs such as the Java™ Native Interface (JNI) and
 the AWT Native Interface (JAWT) back up to the Java programming language.
 
-Further, GlueGen supports generating `JNI_OnLoad(..)` for dynamic and `JNI_OnLoad_<LibraryBasename>(..)` for static libraries via [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-), which also provides `JVMUtil_GetJNIEnv(..)` to resolve the `JNIEnv*` as used by [Java™ callback methods](#java-callback-from-native-c-api-support).
+Further, GlueGen supports generating `JNI_OnLoad(..)` for dynamic and `JNI_OnLoad_<LibraryBasename>(..)` for static libraries via [`LibraryOnLoad LibraryBasename`](#libraryonload-librarybasename-for-jni_onload-), which also provides `JVMUtil_GetJNIEnv(..)` to resolve the `JNIEnv*` as used by [Java™ callback methods](#java-callback-from-native-c-api-support).
 
 GlueGen utilizes [JCPP](https://jogamp.org/cgit/jcpp.git/about/), migrated C preprocessor written in Java™.
 
