@@ -62,6 +62,7 @@ import static com.jogamp.gluegen.JavaEmitter.EmissionStyle.*;
 
 public class JavaConfiguration {
     private int nestedReads;
+    private String libraryOnLoadName;
     private String packageName;
     private String implPackageName;
     private String className;
@@ -283,6 +284,11 @@ public class JavaConfiguration {
   }
 
   public void setOutputRootDir(final String s) { outputRootDir=s; }
+
+    /** Returns the library basename used to {@link CCodeUnit#emitJNIOnLoadJNIEnvCode(String)}. */
+    public String libraryOnLoadName() {
+        return libraryOnLoadName;
+    }
 
     /** Returns the package name parsed from the configuration file. */
     public String packageName() {
@@ -1310,8 +1316,10 @@ public class JavaConfiguration {
 
   protected void dispatch(final String cmd, final StringTokenizer tok, final File file, final String filename, final int lineNo) throws IOException {
     //System.err.println("read cmd = [" + cmd + "]");
-    if (cmd.equalsIgnoreCase("Package")) {
-      packageName = readString("package", tok, filename, lineNo);
+    if (cmd.equalsIgnoreCase("LibraryOnLoad")) {
+      libraryOnLoadName = readString("LibraryOnLoad", tok, filename, lineNo);
+    } else if (cmd.equalsIgnoreCase("Package")) {
+      packageName = readString("Package", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("GlueGenRuntimePackage")) {
       gluegenRuntimePackage = readString("GlueGenRuntimePackage", tok, filename, lineNo);
     } else if (cmd.equalsIgnoreCase("ImplPackage")) {

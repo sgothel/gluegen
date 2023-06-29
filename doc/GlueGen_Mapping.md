@@ -36,6 +36,8 @@ GlueGen also supports [producing an OO-Style API mapping](#oo-style-api-interfac
 GlueGen is capable to bind low-level APIs such as the Java Native Interface (JNI) and
 the AWT Native Interface (JAWT) back up to the Java programming language.
 
+Further, GlueGen supports generating `JNI_OnLoad(..)` for dynamic and `JNI_OnLoad_<LibraryBasename>(..)` for static libraries via [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-), which also provides `JVMUtil_GetJNIEnv(..)` to resolve the `JNIEnv*` as used by [Java callback methods](#java-callback-from-native-c-api-support).
+
 GlueGen utilizes [JCPP](https://jogamp.org/cgit/jcpp.git/about/), migrated C preprocessor written in Java.
 
 GlueGen is used for the [JogAmp](https://jogamp.org) projects
@@ -794,7 +796,20 @@ public interface Bindingtest2 {
 
 *TODO: Work in progress*
 
-#### Example
+## Misc Configurations
+
+### `LibraryOnLoad <LibraryBasename>` for `JNI_OnLoad*(..)` ...
+
+`LibraryOnLoad <LibraryBasename>` generates native JNI code `JNI_OnLoad(..)` used for dynamic libraries, 
+`JNI_OnLoad_<LibraryBasename>(..)` used for static libraries,
+`JVMUtil_GetJNIEnv(..)` and the instance of `JavaVM* <LibraryBasename>_jvmHandle`.
+
+The `JNI_OnLoad*(..)` methods set the `JavaVM* <LibraryBasename>_jvmHandle`, which in turn is utilized by 
+`JVMUtil_GetJNIEnv(..)` to attach a new thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
+or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
+
+The `LibraryBasename` parameter is used to generate the `JNI_OnLoad_<LibraryBasename>(..)` variant for statically linked libraries.
+`JNI_OnLoad(..)`, `JNI_OnLoad_<LibraryBasename>(..)` and `JVMUtil_GetJNIEnv(..)`
 
 ## Platform Header Files
 
