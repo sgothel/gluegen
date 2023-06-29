@@ -399,7 +399,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     emitBodyCallCFunction();
     emitBodyUserVariableAssignments();
     emitBodyVariablePostCallCleanup();
-    emitBodyReturnResult();
+    if( emitBodyMapCToJNIType(-1 /* return value */, true /* addLocalVar */) ) {
+        unit.emitln("  return _res_jni;");
+    }
     unit.emitln("}");
     unit.emitln();
   }
@@ -1005,128 +1007,176 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     }
   }
 
-  protected void emitBodyReturnResult()
+  /**
+   * Emit code, converting a C type into a java JNI-type.
+   * <p>
+   * The resulting JNI value is assigned to a local JNI variable named cArgName+"_jni"
+   * with `cArgName = binding.getArgumentName(argIdx)` or `cArgName = "_res"`.
+   * </p>
+   * @param argIdx -1 is return value, [0..n] is argument index
+   * @param addLocalVar if true, emit instantiating the local JNI variable.
+   * @return true if a non-void result has been produced, otherwise false
+   */
+  protected boolean emitBodyMapCToJNIType(final int argIdx, final boolean addLocalVar)
   {
     // WARNING: this code assumes that the return type has already been
     // typedef-resolved.
-    final Type cReturnType = binding.getCReturnType();
+    final boolean isReturnVal;
+    final Type cType;
+    final JavaType javaType;
+    final String cArgName;
+    if( 0 > argIdx ) {
+        isReturnVal = true;
+        cType = binding.getCReturnType();
+        javaType = binding.getJavaReturnType();
+        cArgName = "_res";
+    } else {
+        isReturnVal = false;
+        cType = binding.getCArgumentType(argIdx);
+        javaType = binding.getJavaArgumentType(argIdx);
+        cArgName = binding.getArgumentName(argIdx);
+    }
+    final String javaArgName = cArgName + "_jni";
 
-    // Return result if necessary
-    if (!cReturnType.isVoid()) {
-      final JavaType javaReturnType = binding.getJavaReturnType();
-      if (javaReturnType.isPrimitive()) {
-        unit.emit("  return ");
-        if (cReturnType.isPointer()) {
-          // Pointer being converted to int or long: cast this result
-          // (through intptr_t to avoid compiler warnings with gcc)
-          unit.emit("(" + javaReturnType.jniTypeName() + ") (intptr_t) ");
+    if ( cType.isVoid() ) {
+        // No result to produce
+        return false;
+    }
+    if (javaType.isPrimitive()) {
+        if( addLocalVar ) {
+            unit.emit("  "+javaType.jniTypeName()+" "+javaArgName+" = ");
+        } else {
+            unit.emit("  "+javaArgName+" = ");
         }
-        unit.emitln("_res;");
-      } else if ( !cReturnType.isPointer() && javaReturnType.isCompoundTypeWrapper() ) { // isReturnCompoundByValue()
+        if (cType.isPointer()) {
+            // Pointer being converted to int or long: cast this result
+            // (through intptr_t to avoid compiler warnings with gcc)
+            unit.emit("(" + javaType.jniTypeName() + ") (intptr_t) ");
+        }
+        unit.emit(cArgName);
+        unit.emitln(";");
+    } else if ( !cType.isPointer() && javaType.isCompoundTypeWrapper() ) { // isReturnCompoundByValue()
+        if( addLocalVar ) {
+            unit.emit("  "+javaType.jniTypeName()+" "+javaArgName+" = ");
+        } else {
+            unit.emit("  "+javaArgName+" = ");
+        }
         final String returnSizeOf;
-        if (returnValueCapacityExpression != null) {
+        if ( isReturnVal && returnValueCapacityExpression != null ) {
             returnSizeOf = returnValueCapacityExpression.format(argumentNameArray());
         } else {
-            returnSizeOf = "sizeof(" + cReturnType.getCName() + ")";
+            returnSizeOf = "sizeof(" + cType.getCName() + ")";
         }
-        unit.emitln("  return JVMUtil_NewDirectByteBufferCopy(env, _clazzBuffers, &_res, "+returnSizeOf+");");
+        unit.emitln("JVMUtil_NewDirectByteBufferCopy(env, _clazzBuffers, &"+cArgName+", "+returnSizeOf+");");
         unit.addTailCode(CCodeUnit.NewDirectByteBufferCopyUnitCode);
-      } else if (javaReturnType.isNIOBuffer() || javaReturnType.isCompoundTypeWrapper()) {
-        unit.emitln("  if (NULL == _res) return NULL;");
-        unit.emit("  return (*env)->NewDirectByteBuffer(env, (void *)_res, ");
+    } else if (javaType.isNIOBuffer() || javaType.isCompoundTypeWrapper()) {
+        if( addLocalVar ) {
+            unit.emit("  "+javaType.jniTypeName()+" "+javaArgName+" = ");
+        } else {
+            unit.emit("  "+javaArgName+" = ");
+        }
+        unit.emit("(NULL == "+cArgName+") ? NULL : (*env)->NewDirectByteBuffer(env, (void *)"+cArgName+", ");
 
         // See whether capacity has been specified
-        if (returnValueCapacityExpression != null) {
-          unit.emitln( returnValueCapacityExpression.format( argumentNameArray() ) + ");");
+        if ( isReturnVal && returnValueCapacityExpression != null) {
+            unit.emitln( returnValueCapacityExpression.format( argumentNameArray() ) + ");");
         } else {
-          final Type cReturnTargetType = cReturnType.isPointer() ? cReturnType.getTargetType() : null;
-          int mode = 0;
-          if ( 1 == cReturnType.pointerDepth() && null != cReturnTargetType ) {
-            if( cReturnTargetType.isCompound() ) {
-                if( !cReturnTargetType.isAnon() &&
-                    cReturnTargetType.asCompound().getNumFields() > 0 )
-                {
-                    // fully declared non-anonymous struct pointer: pass content
-                    if ( cReturnTargetType.getSize() == null ) {
-                      throw new GlueGenException(
-                        "Error emitting code for compound return type "+
-                        "for function \"" + binding + "\": " +
-                        "Structs to be emitted should have been laid out by this point " +
-                        "(type " + cReturnTargetType.getCName() + " / " +
-                        cReturnTargetType.getDebugString() + " was not) for "+binding.getCSymbol(),
-                        binding.getCSymbol().getASTLocusTag()
-                      );
+            final Type cTargetType = cType.isPointer() ? cType.getTargetType() : null;
+            int mode = 0;
+            if ( 1 == cType.pointerDepth() && null != cTargetType ) {
+                if( cTargetType.isCompound() ) {
+                    if( !cTargetType.isAnon() &&
+                        cTargetType.asCompound().getNumFields() > 0 )
+                    {
+                        // fully declared non-anonymous struct pointer: pass content
+                        if ( cTargetType.getSize() == null ) {
+                            throw new GlueGenException(
+                                    "Error emitting code for compound type "+
+                                    "for function \"" + binding + "\": " +
+                                    "Structs to be emitted should have been laid out by this point " +
+                                    "(type " + cTargetType.getCName() + " / " +
+                                    cTargetType.getDebugString() + " was not) for "+binding.getCSymbol(),
+                                    binding.getCSymbol().getASTLocusTag() );
+                        }
+                        unit.emitln("sizeof(" + cTargetType.getCName() + ") );");
+                        mode = 10;
+                    } else if( cTargetType.asCompound().getNumFields() == 0 ) {
+                        // anonymous struct pointer: pass pointer
+                        unit.emitln("sizeof(" + cType.getCName() + ") );");
+                        mode = 11;
                     }
-                    unit.emitln("sizeof(" + cReturnTargetType.getCName() + ") );");
-                    mode = 10;
-                } else if( cReturnTargetType.asCompound().getNumFields() == 0 ) {
-                    // anonymous struct pointer: pass pointer
-                    unit.emitln("sizeof(" + cReturnType.getCName() + ") );");
-                    mode = 11;
+                }
+                if( 0 == mode ) {
+                    if( cTargetType.isPrimitive() ) {
+                        // primitive pointer: pass primitive
+                        unit.emitln("sizeof(" + cTargetType.getCName() + ") );");
+                        mode = 20;
+                    } else if( cTargetType.isVoid() ) {
+                        // void pointer: pass pointer
+                        unit.emitln("sizeof(" + cType.getCName() + ") );");
+                        mode = 21;
+                    }
                 }
             }
             if( 0 == mode ) {
-                if( cReturnTargetType.isPrimitive() ) {
-                    // primitive pointer: pass primitive
-                    unit.emitln("sizeof(" + cReturnTargetType.getCName() + ") );");
-                    mode = 20;
-                } else if( cReturnTargetType.isVoid() ) {
-                    // void pointer: pass pointer
-                    unit.emitln("sizeof(" + cReturnType.getCName() + ") );");
-                    mode = 21;
+                if( null != cfg.typeInfo(cType) ) { // javaReturnType.isOpaqued() covered above via isPrimitive()
+                    // Opaque
+                    unit.emitln("sizeof(" + cType.getCName()  + ") );");
+                    mode = 88;
+                } else {
+                    final String wmsg = "Assumed return size of equivalent C return type";
+                    unit.emitln("sizeof(" + cType.getCName()  + ") ); // WARNING: "+wmsg);
+                    mode = 99;
+                    LOG.warning(binding.getCSymbol().getASTLocusTag(),
+                            "No capacity specified for java.nio.Buffer return " +
+                            "value for function \"" + binding.getName() + "\". " + wmsg + " (sizeof(" + cType.getCName() + ")): " + binding);
                 }
             }
-          }
-          if( 0 == mode ) {
-            if( null != cfg.typeInfo(cReturnType) ) { // javaReturnType.isOpaqued() covered above via isPrimitive()
-                // Opaque
-                unit.emitln("sizeof(" + cReturnType.getCName()  + ") );");
-                mode = 88;
-            } else {
-                final String wmsg = "Assumed return size of equivalent C return type";
-                unit.emitln("sizeof(" + cReturnType.getCName()  + ") ); // WARNING: "+wmsg);
-                mode = 99;
-                LOG.warning(binding.getCSymbol().getASTLocusTag(),
-                  "No capacity specified for java.nio.Buffer return " +
-                  "value for function \"" + binding.getName() + "\". " + wmsg + " (sizeof(" + cReturnType.getCName() + ")): " + binding);
-            }
-          }
-          unit.emitln("  /** ");
-          unit.emitln("   * mode: "+mode);
-          unit.emitln("   * cReturnType: "+cReturnType.getDebugString());
-          unit.emitln("   * cReturnTargetType: "+cReturnTargetType.getDebugString());
-          unit.emitln("   * javaReturnType: "+javaReturnType.getDebugString());
-          unit.emitln("   */");
+            unit.emitln("  /** ");
+            unit.emitln("   * mode: "+mode+", arg #"+argIdx);
+            unit.emitln("   * cType: "+cType.getDebugString());
+            unit.emitln("   * cTargetType: "+cTargetType.getDebugString());
+            unit.emitln("   * javaType: "+javaType.getDebugString());
+            unit.emitln("   */");
         }
-      } else if (javaReturnType.isString()) {
-        unit.emitln("  if (NULL == _res) return NULL;");
-        unit.emitln("  return (*env)->NewStringUTF(env, (const char *)_res);");
-      } else if (javaReturnType.isArrayOfCompoundTypeWrappers() ||
-                 (javaReturnType.isArray() && javaReturnType.isNIOByteBufferArray())) {
-        unit.emitln("  if (NULL == _res) return NULL;");
-        if (returnValueLengthExpression == null) {
-          throw new GlueGenException("Error while generating C code: no length specified for array returned from function " +
-                                      binding, binding.getCSymbol().getASTLocusTag());
+    } else if (javaType.isString()) {
+        if( addLocalVar ) {
+            unit.emit("  "+javaType.jniTypeName()+" "+javaArgName+" = ");
+        } else {
+            unit.emit("  "+javaArgName+" = ");
         }
-        unit.emitln("  " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNameArray()) + ";");
-        unit.emitln("  " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
-        unit.emitln("  for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
+        unit.emitln("(NULL == "+cArgName+") ? NULL : (*env)->NewStringUTF(env, (const char *)"+cArgName+");");
+    } else if (javaType.isArrayOfCompoundTypeWrappers() ||
+              ( javaType.isArray() && javaType.isNIOByteBufferArray() ) )
+    {
+        if( addLocalVar ) {
+            unit.emitln("  "+javaType.jniTypeName()+" "+javaArgName+";");
+        }
+        unit.emitln("  if (NULL == "+cArgName+") { "+javaArgName+" = NULL; } else {");
+        if ( !isReturnVal || returnValueLengthExpression == null ) {
+            throw new GlueGenException("Error while generating C code: No length specified for array returned from function for arg #" +
+                                       argIdx + ", "+cType.getDebugString()+", for "+
+                                       binding, binding.getCSymbol().getASTLocusTag());
+        } // TODO: Perhaps allow usage for non-return types, i.e. configure 'returnValueLengthExpression' for all arguments.
+        unit.emitln("    " + arrayResLength + " = " + returnValueLengthExpression.format(argumentNameArray()) + ";");
+        unit.emitln("    " + arrayRes + " = (*env)->NewObjectArray(env, " + arrayResLength + ", (*env)->FindClass(env, \"java/nio/ByteBuffer\"), NULL);");
+        unit.emitln("    for (" + arrayIdx + " = 0; " + arrayIdx + " < " + arrayResLength + "; " + arrayIdx + "++) {");
         final Type retType = binding.getCSymbol().getReturnType();
         final Type pointerType = retType.getArrayBaseOrPointerTargetType();
-        unit.emitln("    (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
-                       ", (*env)->NewDirectByteBuffer(env, (void *)_res[" + arrayIdx + "], sizeof(" + pointerType.getCName() + ")));");
+        unit.emitln("      (*env)->SetObjectArrayElement(env, " + arrayRes + ", " + arrayIdx +
+                    ", (*env)->NewDirectByteBuffer(env, (void *)"+cArgName+"[" + arrayIdx + "], sizeof(" + pointerType.getCName() + ")));");
+        unit.emitln("    }");
+        unit.emitln("  "+javaArgName+" = " + arrayRes + ";");
         unit.emitln("  }");
-        unit.emitln("  return " + arrayRes + ";");
-      } else if (javaReturnType.isArray()) {
+    } else if (javaType.isArray()) {
         // FIXME: must have user provide length of array in .cfg file
         // by providing a constant value, input parameter, or
         // expression which computes the array size (already present
         // as ReturnValueCapacity, not yet implemented / tested here)
-
         throw new GlueGenException(
-                                   "Could not emit native code for function \"" + binding +
-                                   "\": array return values for non-char types not implemented yet, for "+binding,
-                                   binding.getCSymbol().getASTLocusTag());
+                "Could not emit native code for arg #"+argIdx+", "+cType.getDebugString()+", for " + binding +
+                ": array return values for non-char types not implemented yet.",
+                binding.getCSymbol().getASTLocusTag());
 
         // FIXME: This is approximately what will be required here
         //
@@ -1143,15 +1193,15 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         //unit().emit(arrayRes);
         //unit().emit(", 0, ");
         //unit().emit(arrayResLength);
-        //unit().emitln(", _res);");
+        //unit().emitln(", "+cArgName+");");
         //unit().emit("  return ");
         //unit().emit(arrayRes);
         //unit().emitln(";");
-      } else {
-        throw new GlueGenException("Unhandled return type: "+javaReturnType.getDebugString()+" for "+binding,
+    } else {
+        throw new GlueGenException("Unhandled return type: arg #"+argIdx+", C "+cType.getDebugString()+", java "+javaType.getDebugString()+" for "+binding,
                                    binding.getCSymbol().getReturnType().getASTLocusTag());
-      }
     }
+    return true;
   }
 
   protected static String cThisArgumentName() {
