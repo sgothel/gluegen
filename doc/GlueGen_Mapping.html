@@ -940,6 +940,8 @@ fields</p>
 <ul>
 <li>See <a href="#primitive-mapping"><em>Primitive Mapping</em></a>
 above.</li>
+<li>See <a href="#struct-mapping-notes"><em>Opaque and
+<code>void*</code> notes</em></a> below.</li>
 <li>See <a href="#pointer-mapping"><em>Pointer Mapping</em></a> for
 <em>pointer-to-pointer</em> values above and <a
 href="#struct-pointer-pointer-support">Struct Pointer-Pointer
@@ -969,7 +971,48 @@ function which has to be compiled and its library loaded.</p>
 <code>public static boolean usesNativeCode()</code> can be used to
 validate whether the produced Java class requires a corresponding
 library for additional native code.</p>
+<h3 id="struct-mapping-notes">Struct Mapping Notes</h3>
+<ul>
+<li><p><a href="#opaque-java-primitive-type-symbol"><code>Opaque</code>
+configured pointer-types</a> are treated as <code>long</code> values
+from the Java side<br />
+while maintaining their architecture dependent pointer size within
+native memory.</p></li>
+<li><p>Void pointers, i.e. <code>void*</code>, within a struct are
+handled as <a
+href="#opaque-java-primitive-type-symbol"><code>Opaque</code> configured
+pointer-types</a>.</p></li>
+<li><p><em>ConstElemCount</em> via <strong>ReturnedArrayLength
+&lt;int&gt;</strong> implies <em>native ownership</em> for a
+<em>Pointer</em> referenced <em>native</em> memory if the expression is
+constant. Otherwise the <em>native</em> memory has <em>java
+ownership</em>. See <a
+href="#returnedarraylength-symbol-expression">ReturnedArrayLength
+Setting</a> below.</p></li>
+<li><p>Utilizing a <em>flexible</em> <em>elemCount</em> via
+<strong>ReturnedArrayLength getValElements()</strong> renders us unable
+to determine ownership of pointer referenced <em>native</em> memory
+segment and hence renders ownership <em>mixed or ambiguous</em>, <a
+href="#signature-const-int32_t--customsize-ambiguous-java-owned">see
+[5]</a>. This is due to the fact, that native code may allocate memory
+and writes its <em>elemCount</em> into the designated field
+<em>valElements</em>. In such cases, the user being aware of the
+underlying API shall utilize <code>setVal(..)</code> and
+<code>releaseVal()</code> with care.</p></li>
+<li><p>To release native memory with <em>java ownership</em>, i.e. a
+native ByteBuffer, <code>releaseVal()</code> can be used.</p></li>
+</ul>
 <h3 id="gluegen-struct-settings">GlueGen Struct Settings</h3>
+<h4 id="opaque-java-primitive-type-symbol"><strong>Opaque</strong>
+<em>Java-primitive-type</em> <em>symbol</em></h4>
+<p>See also <a href="manual/index.html#SecOpaque">Opaque section in
+manual</a>.</p>
+<ul>
+<li><p><code>Opaque long T2_UndefStruct*</code></p>
+<p>Pointers to <code>T2_UndefStruct</code> will be handled opaque, i.e.
+as <code>long</code> values from the Java side while maintaining their
+architecture dependent pointer size within native memory.</p></li>
+</ul>
 <h4 id="immutableaccess-symbol"><strong>ImmutableAccess</strong>
 <em>symbol</em></h4>
 <p>Immutable access can be set for a whole struct or a single field of a
@@ -1044,28 +1087,6 @@ variants, a <code>String</code> variant will be produced.</p>
 <p>Sets pseudo-code flags <em>StringOnly</em>, see below.</p>
 <p>See <a href="#string-mapping"><em>String Mapping</em></a>
 above.</p></li>
-</ul>
-<h3 id="struct-mapping-notes">Struct Mapping Notes</h3>
-<ul>
-<li><p><em>ConstElemCount</em> via <strong>ReturnedArrayLength
-&lt;int&gt;</strong> implies <em>native ownership</em> for a
-<em>Pointer</em> referenced <em>native</em> memory if the expression is
-constant. Otherwise the <em>native</em> memory has <em>java
-ownership</em>. See <a
-href="#returnedarraylength-symbol-expression">ReturnedArrayLength
-Setting</a> above.</p></li>
-<li><p>Utilizing a <em>flexible</em> <em>elemCount</em> via
-<strong>ReturnedArrayLength getValElements()</strong> renders us unable
-to determine ownership of pointer referenced <em>native</em> memory
-segment and hence renders ownership <em>mixed or ambiguous</em>, <a
-href="#signature-const-int32_t--customsize-ambiguous-java-owned">see
-[5]</a>. This is due to the fact, that native code may allocate memory
-and writes its <em>elemCount</em> into the designated field
-<em>valElements</em>. In such cases, the user being aware of the
-underlying API shall utilize <code>setVal(..)</code> and
-<code>releaseVal()</code> with care.</p></li>
-<li><p>To release native memory with <em>java ownership</em>, i.e. a
-native ByteBuffer, <code>releaseVal()</code> can be used.</p></li>
 </ul>
 <h3 id="struct-setter-pseudo-code">Struct Setter Pseudo-Code</h3>
 <h4 id="overview-1">Overview</h4>

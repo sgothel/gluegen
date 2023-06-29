@@ -96,6 +96,12 @@ public class Test2FuncPtr extends BaseClass {
         Assert.assertNotEquals(0, options.getCustomFuncB1());
         Assert.assertNotEquals(0, options.getCustomFuncB2());
         Assert.assertEquals(1, options.getApiVersion());
+        Assert.assertEquals(1, T2_InitializeOptions.getReserved1ElemCount());
+        BaseClass.assertAPTR(0x0000CAFFEEBEEFL, options.getReserved1());
+        {
+            options.setReserved1(0xBEEFCAFFEE0DADL);
+            BaseClass.assertAPTR(0xBEEFCAFFEE0DADL, options.getReserved1());
+        }
         Assert.assertEquals("Product Name", options.getProductName());
         Assert.assertEquals("Product Version", options.getProductVersion());
         Assert.assertEquals(0xa001, options.CustomFuncA1(0));

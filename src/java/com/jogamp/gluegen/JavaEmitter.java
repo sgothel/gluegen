@@ -1741,8 +1741,11 @@ public class JavaEmitter implements GlueEmitter {
       final String baseElemSizeDenominator;
       final boolean useGetCStringLength;
       final boolean maxOneElement; // zero or one element
-      if( isOpaque && opaqueTypeInfo.pointerDepth() <= 1 || ( fieldType.isPrimitive() && !baseElemType.isFunctionPointer() ) ) {
-          // Overridden by JavaConfiguration.typeInfo(..), i.e. Opaque!
+      if( isOpaque && opaqueTypeInfo.pointerDepth() <= 1 ||                    // explicit 'Opaque' (config)
+          ( fieldType.isPrimitive() && !baseElemType.isFunctionPointer() ) ||  // a primitive and non-function-ptr
+          ( fieldType.isPointer() && baseElemType.isVoid() )                   // like 'void*' -> 'void'
+        )
+      {
           // Emulating array w/ 1 element
           isPrimitive = true;
           isPointer = false;
@@ -1836,14 +1839,6 @@ public class JavaEmitter implements GlueEmitter {
           maxOneElement = _maxOneElement;
           if( GlueGen.debug() ) {
               System.err.printf("SE.ac.%02d: ownership %s%n", (i+1), ownership);
-          }
-
-          if( !baseElemType.hasSize() ) { // like 'void*' -> 'void'
-              final String msg = "SKIP unsized field in struct: "+fqStructFieldName+": fieldType "+fieldType.getSignature(null).toString()+", baseType "+baseElemType.getSignature(null).toString();
-              unit.emitln("  // "+msg);
-              unit.emitln();
-              LOG.log(WARNING, structCType.getASTLocusTag(), msg);
-              return;
           }
           baseIsPointer = baseElemType.isPointer();
           isConstValue = baseElemType.isConst();

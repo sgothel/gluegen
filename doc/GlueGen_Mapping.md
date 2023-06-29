@@ -208,6 +208,7 @@ A *Struct* is a C compound type declaration, which can be mapped to a Java class
 A *Struct* may utilize the following data types for its fields
 * *Primitive*, i.e. *char*, *int32_t*, ...
   * See [*Primitive Mapping*](#primitive-mapping) above.
+  * See [*Opaque and `void*` notes*](#struct-mapping-notes) below.
   * See [*Pointer Mapping*](#pointer-mapping) for *pointer-to-pointer* values above and [Struct Pointer-Pointer Support](#struct-pointer-pointer-support) below.
   * See [*String Mapping*](#string-mapping) above.
 * *Struct*, i.e. an aggregated or referenced compound variable
@@ -226,7 +227,32 @@ call the underlying native function which has to be compiled and its library loa
 The generated method `public static boolean usesNativeCode()` can be used to validate
 whether the produced Java class requires a corresponding library for additional native code.
 
+### Struct Mapping Notes
+
+* [`Opaque` configured pointer-types](#opaque-java-primitive-type-symbol) are treated as `long` values from the Java side    
+  while maintaining their architecture dependent pointer size within native memory.
+  
+* Void pointers, i.e. `void*`, within a struct are handled as [`Opaque` configured pointer-types](#opaque-java-primitive-type-symbol).
+
+* *ConstElemCount* via **ReturnedArrayLength \<int\>** implies *native ownership* for a *Pointer* referenced *native* memory
+  if the expression is constant. Otherwise the *native* memory has *java ownership*.
+  See [ReturnedArrayLength Setting](#returnedarraylength-symbol-expression) below.
+
+* Utilizing a *flexible* *elemCount* via **ReturnedArrayLength getValElements()** renders us unable to determine ownership
+  of pointer referenced *native* memory segment and hence renders ownership *mixed or ambiguous*, [see \[5\]](#signature-const-int32_t--customsize-ambiguous-java-owned). This is due to the fact, that native code may allocate memory and writes its *elemCount* into the designated field *valElements*. In such cases, the user being aware of the underlying API shall utilize `setVal(..)` and `releaseVal()` with care.
+  
+* To release native memory with *java ownership*, i.e. a native ByteBuffer, `releaseVal()` can be used.
+
 ### GlueGen Struct Settings
+
+#### **Opaque** *Java-primitive-type* *symbol*
+
+See also [Opaque section in manual](manual/index.html#SecOpaque).
+
+* `Opaque long T2_UndefStruct*`
+
+    Pointers to `T2_UndefStruct` will be handled opaque, 
+    i.e. as `long` values from the Java side while maintaining their architecture dependent pointer size within native memory.
 
 #### **ImmutableAccess** *symbol*
 Immutable access can be set for a whole struct or a single field of a struct.
@@ -300,17 +326,6 @@ A direct C code `char` array or indirect array via pointer can be interpreted as
     Sets pseudo-code flags *StringOnly*, see below.
     
     See [*String Mapping*](#string-mapping) above.
-
-### Struct Mapping Notes
-
-* *ConstElemCount* via **ReturnedArrayLength \<int\>** implies *native ownership* for a *Pointer* referenced *native* memory
-  if the expression is constant. Otherwise the *native* memory has *java ownership*.
-  See [ReturnedArrayLength Setting](#returnedarraylength-symbol-expression) above.
-
-* Utilizing a *flexible* *elemCount* via **ReturnedArrayLength getValElements()** renders us unable to determine ownership
-  of pointer referenced *native* memory segment and hence renders ownership *mixed or ambiguous*, [see \[5\]](#signature-const-int32_t--customsize-ambiguous-java-owned). This is due to the fact, that native code may allocate memory and writes its *elemCount* into the designated field *valElements*. In such cases, the user being aware of the underlying API shall utilize `setVal(..)` and `releaseVal()` with care.
-  
-* To release native memory with *java ownership*, i.e. a native ByteBuffer, `releaseVal()` can be used.
 
 ### Struct Setter Pseudo-Code
 #### Overview
