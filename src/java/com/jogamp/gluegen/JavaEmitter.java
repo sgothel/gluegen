@@ -75,7 +75,6 @@ import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.util.ArrayHashMap;
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
-import com.jogamp.gluegen.FunctionEmitter.EmissionModifier;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackDef;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackInfo;
 import com.jogamp.gluegen.Logging.LoggerIf;
@@ -1461,27 +1460,46 @@ public class JavaEmitter implements GlueEmitter {
       funcSym.addAliasedName(jcbd.cbFuncTypeName);
       LOG.log(INFO, "JavaCallback: fSym {0}, {1}", funcSym.getAliasedString(), jcbd);
 
-      final String simpleClazzName = CodeGenUtils.capitalizeString(jcbd.cbFuncTypeName);
-      final String fqClazzName = cfg.packageName()+"."+cfg.className()+"."+simpleClazzName;
-      final StringBuilder methodSignature = new StringBuilder();
-      javaUnit.emitln("  /** JavaCallback interface: "+jcbd.cbFuncTypeName+" -> "+funcType.toString(jcbd.cbFuncTypeName, false, true)+" */");
-      javaUnit.emitln("  public static interface "+simpleClazzName+" {");
-      final List<MethodBinding> mbs = generateFunctionInterfaceCode(javaUnit, funcSym, jcbd.userParamIdx, methodSignature);
-      javaUnit.emitln("  }");
-      javaUnit.emitln();
-      if( 1 != mbs.size() ) {
-          throw new UnsupportedOperationException("Multiple bindings generated where only 1 is allowed for func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
+      final String cbSimpleClazzName = CodeGenUtils.capitalizeString(jcbd.cbFuncTypeName);
+      final String cbFQClazzName = cfg.packageName()+"."+cfg.className()+"."+cbSimpleClazzName;
+
+      final JavaCallbackInfo jcbi0 = javaCallbackInterfaceMap.get(cbFQClazzName);
+      if( null != jcbi0 ) {
+          // Reuse callback-func interface, can't duplicate
+          if( jcbi0.cbFuncUserParamIdx != jcbd.cbFuncUserParamIdx ) {
+              throw new UnsupportedOperationException("Reused FuncTypeName "+jcbd.cbFuncTypeName+" used with different FuncUserParamIdx "+jcbi0.cbFuncUserParamIdx+" -> "+jcbd.cbFuncUserParamIdx+". Func "+
+                      funcType.toString(jcbd.cbFuncTypeName, false, true));
+          }
+          final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, jcbi0.cbMethodSignature,
+                                                              funcType, jcbi0.cbFuncBinding, jcbi0.cbFuncUserParamIdx,
+                                                              jcbd.setFuncName, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
+          cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
+          LOG.log(INFO, "JavaCallbackInfo: Reusing {0} -> {1}", jcbd.setFuncName, jcbi0);
+      } else {
+          final StringBuilder cbMethodSignature = new StringBuilder();
+          javaUnit.emitln("  /** JavaCallback interface: "+jcbd.cbFuncTypeName+" -> "+funcType.toString(jcbd.cbFuncTypeName, false, true)+" */");
+          javaUnit.emitln("  public static interface "+cbSimpleClazzName+" {");
+          final List<MethodBinding> mbs = generateFunctionInterfaceCode(javaUnit, funcSym, jcbd.cbFuncUserParamIdx, cbMethodSignature);
+          javaUnit.emitln("  }");
+          javaUnit.emitln();
+          if( 1 != mbs.size() ) {
+              throw new UnsupportedOperationException("Multiple bindings generated where only 1 is allowed for func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
+          }
+          final MethodBinding cbFuncBinding = mbs.get(0);
+          if( !cbFuncBinding.getJavaReturnType().isVoid() && !cbFuncBinding.getJavaReturnType().isPrimitive() ) {
+              throw new UnsupportedOperationException("Non void or non-primitive callback return types not suppored. Java "+
+                      cbFuncBinding.getJavaReturnType()+", func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
+          }
+          final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, cbMethodSignature.toString(),
+                                                              funcType, cbFuncBinding, jcbd.cbFuncUserParamIdx,
+                                                              jcbd.setFuncName, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
+          cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
+          javaCallbackInterfaceMap.put(cbFQClazzName, jcbi1);
+          LOG.log(INFO, "JavaCallbackInfo: Added {0} -> {1}", jcbd.setFuncName, jcbi1);
       }
-      final MethodBinding mb = mbs.get(0);
-      if( !mb.getJavaReturnType().isVoid() && !mb.getJavaReturnType().isPrimitive() ) {
-          throw new UnsupportedOperationException("Non void or non-primitive callback return types not suppored. Java "+
-                  mb.getJavaReturnType()+", func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
-      }
-      final JavaCallbackInfo jcbi = new JavaCallbackInfo(jcbd.setFuncName, jcbd.cbFuncTypeName, simpleClazzName, fqClazzName,
-                                                         methodSignature.toString(), funcType, mb, jcbd.userParamIdx);
-      cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi);
-      LOG.log(INFO, "JavaCallbackInfo: Added {0}", jcbi);
   }
+  private final Map<String, JavaCallbackInfo> javaCallbackInterfaceMap = new HashMap<String, JavaCallbackInfo>();
+
   private List<MethodBinding> generateFunctionInterfaceCode(final JavaCodeUnit javaUnit, final FunctionSymbol funcSym, final int userParamIdx, final StringBuilder methodSignature)  {
       // Emit method call and associated native code
       MethodBinding mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, null, null);
@@ -3085,7 +3103,7 @@ public class JavaEmitter implements GlueEmitter {
       {
           // Replace JavaCallback type with generated interface name
           jcbiSetFuncCBParamIdx=i;
-          mappedType = JavaType.createForNamedClass( jcbi.fqCbClazzName );
+          mappedType = JavaType.createForNamedClass( jcbi.cbFQClazzName );
       } else if( null != jcbi && jcbi.userParamName.equals( cArgName ) &&
                  ( !jcbi.setFuncProcessed || i == jcbi.setFuncUserParamIdx ) &&
                  cArgType.isPointer() && jcbi.userParamType.equals( cArgType.getTargetType() ) )

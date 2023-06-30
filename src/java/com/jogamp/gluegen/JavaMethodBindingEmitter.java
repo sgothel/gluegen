@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -50,6 +50,8 @@ import com.jogamp.gluegen.cgram.types.Type;
 
 import java.io.PrintWriter;
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -455,6 +457,114 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     return getArgumentName(i) + "_offset";
   }
 
+  private static final boolean DEBUG_JAVACALLBACK = false;
+
+  private final void emitJavaCallbackKeyClass(final String KeyClassName) {
+      unit.emitln("  private static class "+KeyClassName+" {");
+      binding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+          if( !cType.isVoid() && javaCallback.setFuncKeyIndices.contains(idx) ) {
+              unit.emitln("    private final "+jType+" "+name+";");
+              return true;
+          } else {
+              return false;
+          }
+      } );
+      unit.emitln("    "+KeyClassName+"("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+") {");
+      binding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+          if( !cType.isVoid() && javaCallback.setFuncKeyIndices.contains(idx) ) {
+              unit.emitln("      this."+name+" = "+name+";");
+              return true;
+          } else {
+              return false;
+          }
+      } );
+      unit.emitln("    }");
+      unit.emitln("    @Override");
+      unit.emitln("    public boolean equals(final Object o) {");
+      unit.emitln("      if( this == o ) {");
+      unit.emitln("        return true;");
+      unit.emitln("      }");
+      unit.emitln("      if( !(o instanceof "+KeyClassName+") ) {");
+      unit.emitln("        return false;");
+      unit.emitln("      }");
+      {
+          final int count = binding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+              if( !cType.isVoid() && javaCallback.setFuncKeyIndices.contains(idx) ) {
+                  if( 0 == consumedCount ) {
+                      unit.emitln("      final "+KeyClassName+" o2 = ("+KeyClassName+")o;");
+                      unit.emit  ("      return ");
+                  } else {
+                      unit.emitln(" &&");
+                      unit.emit  ("             ");
+                  }
+                  if( jType.isPrimitive() || idx == javaCallback.setFuncUserParamIdx ) {
+                      unit.emit(name+" == o2."+name);
+                  } else {
+                      unit.emit(name+".equals( o2."+name+" )");
+                  }
+                  return true;
+              } else {
+                  return false;
+              }
+          } );
+          if( 0 == count ) {
+              unit.emit("      return true");
+          }
+          unit.emitln(";");
+      }
+      unit.emitln("    }");
+      unit.emitln("    @Override");
+      unit.emitln("    public int hashCode() {");
+      {
+          final int count = binding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+              if( !cType.isVoid() && javaCallback.setFuncKeyIndices.contains(idx) ) {
+                  if( 0 == consumedCount ) {
+                      unit.emitln("      // 31 * x == (x << 5) - x");
+                      unit.emit  ("      int hash = ");
+                  } else {
+                      unit.emit  ("      hash = ((hash << 5) - hash) + ");
+                  }
+                  if( jType.isPrimitive() ) {
+                      if( jType.isLong() ) {
+                          unit.emitln("Long.valueOf( "+name+" ).hashCode();");
+                      } else {
+                          unit.emitln(name+";");
+                      }
+                  } else {
+                      if( idx == javaCallback.setFuncUserParamIdx ) {
+                          unit.emitln("System.identityHashCode( "+name+" );");
+                      } else {
+                          unit.emitln(name+".hashCode();");
+                      }
+                  }
+                  return true;
+              } else {
+                  return false;
+              }
+          } );
+          if( 0 == count ) {
+              unit.emitln("      return 0;");
+          } else {
+              unit.emitln("      return hash;");
+          }
+      }
+      unit.emitln("    }");
+      unit.emitln("  }");
+      unit.emitln();
+  }
+  private final void emitJavaCallbackUsrParamClass(final String UsrParamClassName) {
+      unit.emitln("  private static class "+UsrParamClassName+" {");
+      unit.emitln("    final "+javaCallback.cbFuncTypeName+" func;");
+      unit.emitln("    final Object param;");
+      unit.emitln("    final long nativeParam;");
+      unit.emitln("    "+UsrParamClassName+"("+javaCallback.cbFuncTypeName+" func, Object param, long nativeParam) {");
+      unit.emitln("      this.func = func;");
+      unit.emitln("      this.param = param;");
+      unit.emitln("      this.nativeParam = nativeParam;");
+      unit.emitln("    }");
+      unit.emitln("  }");
+  }
+
   @Override
   protected void emitBody()  {
     if (!emitBody) {
@@ -474,37 +584,68 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       unit.emitln("  }");
     }
     if( null != javaCallback && !isPrivateNativeMethod ) {
+        final String capIfaceName = CodeGenUtils.capitalizeString( getInterfaceName() );
+        final String lowIfaceName = CodeGenUtils.decapitalizeString( getInterfaceName() );
         unit.emitln();
-        final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
-        unit.emit("  public boolean is"+getInterfaceName()+"Mapped(final Object "+userParamArgName+")");
         if( isInterface() ) {
-            unit.emitln(";");
+            unit.emitln("  public boolean is"+capIfaceName+"Mapped("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("  public "+javaCallback.cbFuncTypeName+" get"+capIfaceName+"("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("  public Object get"+capIfaceName+"UserParam("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
         } else {
-            unit.emitln(" {");
-            unit.emitln("    return null != "+javaCallback.cbFuncTypeName+"UsrMap.get("+userParamArgName+");");
+            final String usrMapInstanceName = lowIfaceName+"UsrMap";
+            final boolean customKeyClass;
+            final String KeyClassName;
+            if( null != javaCallback.setFuncKeyClassName ) {
+                customKeyClass = true;;
+                KeyClassName = javaCallback.setFuncKeyClassName;
+            } else {
+                customKeyClass = false;
+                KeyClassName = CodeGenUtils.capitalizeString(capIfaceName+"Key");
+            }
+            final String UsrParamClassName = CodeGenUtils.capitalizeString( javaCallback.cbFuncTypeName+"UserParam" );
+            final String fqUsrParamClassName = cfg.packageName()+"."+cfg.className()+"."+UsrParamClassName;
+            unit.emitln("  public final boolean is"+capIfaceName+"Mapped("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+") {");
+            unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("    return null != "+usrMapInstanceName+".get(key);");
             unit.emitln("  }");
-            unit.emitln("  private final void release"+getInterfaceName()+"(final Object "+userParamArgName+") {");
-            unit.emitln("    final "+javaCallback.cbFuncTypeName+"UserParam v = "+javaCallback.cbFuncTypeName+"UsrMap.remove("+userParamArgName+");");
-            // unit.emitln("    System.err.println(\"ZZZ Release v \"+v+\", v.nativeParam 0x\"+Long.toHexString(null!=v?v.nativeParam:0));");
-            unit.emitln("    if( null != v ) {");
-            unit.emitln("      release"+getInterfaceName()+"Impl(v.nativeParam);");
+            unit.emitln("  public final "+javaCallback.cbFuncTypeName+" get"+capIfaceName+"("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+") {");
+            unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("    final "+UsrParamClassName+" value = "+usrMapInstanceName+".get(key);");
+            unit.emitln("    return null != value ? value.func : null;");
+            unit.emitln("  }");
+            unit.emitln("  public final Object get"+capIfaceName+"UserParam("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+") {");
+            unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("    final "+UsrParamClassName+" value = "+usrMapInstanceName+".get(key);");
+            unit.emitln("    return null != value ? value.param : null;");
+            unit.emitln("  }");
+            unit.emitln("  private final void add"+capIfaceName+"Map("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, true).toString()+UsrParamClassName+" value) {");
+            unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("    "+usrMapInstanceName+".put(key, value);");
+            if( DEBUG_JAVACALLBACK ) {
+                unit.emitln("    System.err.println(\"ZZZ Map \"+key+\" -> value.nativeParam 0x\"+Long.toHexString(null!=value?value.nativeParam:0));");
+            }
+            unit.emitln("  }");
+            unit.emitln("  private final void release"+capIfaceName+"Map("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+") {");
+            unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("    final "+UsrParamClassName+" value = "+usrMapInstanceName+".remove(key);");
+            if( DEBUG_JAVACALLBACK ) {
+                unit.emitln("    System.err.println(\"ZZZ Release \"+key+\" -> value.nativeParam 0x\"+Long.toHexString(null!=value?value.nativeParam:0));");
+            }
+            unit.emitln("    if( null != value ) {");
+            unit.emitln("      release"+capIfaceName+"MapImpl(value.nativeParam);");
             unit.emitln("    }");
             unit.emitln("  }");
-            unit.emitln("  private static class "+javaCallback.cbFuncTypeName+"UserParam {");
-            unit.emitln("    @SuppressWarnings(\"unused\")");
-            unit.emitln("    final "+javaCallback.cbFuncTypeName+" func;");
-            unit.emitln("    @SuppressWarnings(\"unused\")");
-            unit.emitln("    final Object param;");
-            unit.emitln("    @SuppressWarnings(\"unused\")");
-            unit.emitln("    final long nativeParam;");
-            unit.emitln("    "+javaCallback.cbFuncTypeName+"UserParam("+javaCallback.cbFuncTypeName+" func, Object param, long nativeParam) {");
-            unit.emitln("      this.func = func;");
-            unit.emitln("      this.param = param;");
-            unit.emitln("      this.nativeParam = nativeParam;");
-            unit.emitln("    }");
-            unit.emitln("  }");
-            unit.emitln("  private final java.util.Map<Object, "+javaCallback.cbFuncTypeName+"UserParam> "+javaCallback.cbFuncTypeName+"UsrMap = new java.util.HashMap<Object, "+javaCallback.cbFuncTypeName+"UserParam>();");
-            unit.emitln("  private native void release"+getInterfaceName()+"Impl(long nativeUserParam);");
+            unit.emitln("  private native void release"+capIfaceName+"MapImpl(long nativeUserParam);");
+            unit.emitln();
+            if( !customKeyClass ) {
+                emitJavaCallbackKeyClass(KeyClassName);
+            }
+            if( !cfg.emittedJavaCallbackUserParamClasses.contains(fqUsrParamClassName) ) {
+                emitJavaCallbackUsrParamClass(UsrParamClassName);
+                cfg.emittedJavaCallbackUserParamClasses.add(fqUsrParamClassName);
+            }
+            unit.emitln("  private final java.util.Map<"+KeyClassName+", "+UsrParamClassName+"> "+usrMapInstanceName+" = new java.util.HashMap<"+KeyClassName+", "+UsrParamClassName+">();");
+            unit.emitln();
         }
     }
   }
@@ -620,14 +761,18 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
   protected void emitReturnVariableSetupAndCall(final MethodBinding binding) {
     final JavaType returnType = binding.getJavaReturnType();
     boolean needsResultAssignment = false;
+    final String capIfaceName = CodeGenUtils.capitalizeString( getInterfaceName() );
 
     if( null != javaCallback ) {
-        final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
-        unit.emitln("    release"+getInterfaceName()+"("+userParamArgName+"); // Ensure a previously mapped instance is released");
-        unit.emitln("    final long[] nativeUserParam = { 0 };");
+        final String lowIfaceName = CodeGenUtils.decapitalizeString( getInterfaceName() );
+        final String usrMapInstanceName = lowIfaceName+"UsrMap";
+        unit.emitln("    synchronized( "+usrMapInstanceName+" ) {");
+        unit.emitln("      final long[] nativeUserParam = { 0 };");
+        unit.emitln("      release"+capIfaceName+"Map("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+"); // Ensure a previously mapped instance is released");
+        unit.emitln();
     }
     if (!returnType.isVoid()) {
-      unit.emit("    ");
+      unit.emit("      ");
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOBuffer()) {
         unit.emitln("final ByteBuffer _res;");
@@ -645,9 +790,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
 
     if (needsResultAssignment) {
-      unit.emit("    _res = ");
+      unit.emit("      _res = ");
     } else {
-      unit.emit("    ");
+      unit.emit("      ");
       if (!returnType.isVoid()) {
         unit.emit("return ");
       }
@@ -659,10 +804,16 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     if( null != javaCallback ) {
         final String funcArgName = binding.getArgumentName(javaCallback.setFuncCBParamIdx);
         final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
-        // unit.emitln("    System.err.println(\"ZZZ returned nativeUserParam \"+nativeUserParam[0]);");
-        unit.emitln("    if( 0 != nativeUserParam[0] ) {");
-        unit.emitln("        "+javaCallback.cbFuncTypeName+"UsrMap.put("+userParamArgName+", new "+javaCallback.cbFuncTypeName+"UserParam("+funcArgName+", "+userParamArgName+", nativeUserParam[0]));");
-        unit.emitln("    }");
+        final String UsrParamClassName = CodeGenUtils.capitalizeString( javaCallback.cbFuncTypeName+"UserParam" );
+        if( DEBUG_JAVACALLBACK ) {
+            unit.emitln("    System.err.println(\"ZZZ returned nativeUserParam 0x\"+Long.toHexString(nativeUserParam[0]));");
+        }
+        unit.emitln();
+        unit.emitln("      if( 0 != nativeUserParam[0] ) {");
+        unit.emitln("          add"+capIfaceName+"Map("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, true).toString()+
+                                                      "new "+UsrParamClassName+"("+funcArgName+", "+userParamArgName+", nativeUserParam[0]));");
+        unit.emitln("      }");
+        unit.emitln("    } // synchronized ");
     }
 
     emitPostCallCleanup(binding);

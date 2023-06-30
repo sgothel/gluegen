@@ -452,8 +452,16 @@
   <li><a href="#java-callback-from-native-c-api-support">Java Callback
   from Native C-API Support</a>
   <ul>
-  <li><a href="#javacallback-constraints">JavaCallback
-  Constraints</a></li>
+  <li><a href="#required-libraryonload">Required
+  <em>LibraryOnLoad</em></a></li>
+  <li><a href="#javacallback-configuration"><em>JavaCallback</em>
+  Configuration</a></li>
+  <li><a href="#javacallback-notes"><em>JavaCallback</em> Notes</a></li>
+  <li><a href="#javacallback-example-1">JavaCallback Example 1</a></li>
+  <li><a href="#javacallback-example-2a-default-keyclass">JavaCallback
+  Example 2a (Default <em>KeyClass</em>)</a></li>
+  <li><a href="#javacallback-example-2b-custom-keyclass">JavaCallback
+  Example 2b (Custom <em>KeyClass</em>)</a></li>
   </ul></li>
   <li><a href="#misc-configurations">Misc Configurations</a>
   <ul>
@@ -1929,6 +1937,126 @@ Native C-API Support</h2>
 <p>GlueGen supports registering Java callback methods to receive
 asynchronous and off-thread native toolkit events, where a generated
 native callback function dispatches the events to Java.</p>
+<h3 id="required-libraryonload">Required <em>LibraryOnLoad</em></h3>
+<p>Note that <a
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
+must be specified in exactly one native code-unit. It provides code to
+allow the generated native callback-function to attach the current
+thread to the <code>JavaVM*</code> generating a new
+<code>JNIEnv*</code>in daemon mode - or just to retrieve the thread's
+<code>JNIEnv*</code>, if already attached to the
+<code>JavaVM*</code>.</p>
+<h3 id="javacallback-configuration"><em>JavaCallback</em>
+Configuration</h3>
+<p>Configuration directives are as follows:</p>
+<pre><code>JavaCallbackDef  &lt;SetCallbackFunctionName&gt; &lt;CallbackFunctionType&gt; &lt;CallbackFunction-UserParamIndex&gt; [&lt;SetCallback-KeyClassName&gt;]    
+JavaCallbackKey  &lt;SetCallbackFunctionName&gt; (SetCallback-ParamIdx)*</code></pre>
+<p><code>JavaCallbackDef</code> and <code>JavaCallbackKey</code> use the
+name of the <code>SetCallbackFunction</code> as its first attribute, as
+it is core to the semantic mapping of all resources.</p>
+<p><code>JavaCallbackDef</code> attributes:</p>
+<ul>
+<li><code>SetCallbackFunction</code>: <code>SetCallbackFunction</code>
+name of the native toolkit API responsible to set the callback</li>
+<li><code>CallbackFunctionType</code>: The native toolkit API
+typedef-name of the function-pointer-type, aka the callback type
+name</li>
+<li><code>CallbackFunction-UserParamIndex</code>: The
+<code>userParam</code> parameter-index of the
+<code>CallbackFunctionType</code></li>
+<li><code>SetCallback-KeyClassName</code>: Name of an optional
+user-implemented <code>SetCallback-KeyClass</code>, providing the
+hash-map-key - see below</li>
+</ul>
+<p>The <code>SetCallbackFunction</code> is utilized to set the
+<code>CallbackFunction</code> as well as to remove it passing
+<code>null</code> for the <code>CallbackFunction</code>.</p>
+<p>If mapping the <code>CallbackFunction</code> to keys, the user must
+specify the same key arguments when setting and removing the
+``CallbackFunction`.</p>
+<h4 id="javacallback-key-definition"><em>JavaCallback</em> Key
+Definition</h4>
+<p>If no keys are defined via <code>JavaCallbackKey</code>, or manually
+injected using a custom <code>SetCallback-KeyClass</code>, see below,
+the <code>CallbackFunction</code> has global scope.</p>
+<p>Keys allow to limit the scope, i.e. map multiple
+<code>CallbackFunction</code> to the different keys.</p>
+<p>Key arguments must match in <code>SetCallbackFunction</code> to
+remove a previously set <code>CallbackFunction</code>.</p>
+<p><code>JavaCallbackKey</code> attributes</p>
+<ul>
+<li><code>SetCallbackFunction</code>: <code>SetCallbackFunction</code>
+name of the native toolkit API responsible to set the callback</li>
+<li><code>SetCallback-ParamIdx</code>: List of parameter indices of the
+<code>SetCallbackFunction</code>, denoting the key(s) limiting the
+callback scope, i.e. the callback and all resources will be mapped to
+this key. The optional <code>SetCallback-KeyClass</code> may override
+this semantic.</li>
+</ul>
+<p>Beside generating the actual function mapping of the API, additional
+query methods are generated, passing the keys as its paramters</p>
+<ul>
+<li><code>boolean is&lt;SetCallbackFunctionName&gt;Mapped((key-arg)*)</code>
+queries whether <code>SetCallbackFunctionName</code> is mapped.</li>
+<li><code>ALBUFFERCALLBACKTYPESOFT get&lt;SetCallbackFunctionName&gt;((key-arg)*)</code>
+returns the mapped <code>CallbackFunction</code>, null if not
+mapped</li>
+<li><code>Object get&lt;SetCallbackFunctionName&gt;UserParam((key-arg)*)</code>
+returns the mapped <code>userParam</code> object, null if not
+mapped</li>
+</ul>
+<h4 id="custom-setcallback-keyclass">Custom
+<code>SetCallback-KeyClass</code></h4>
+<p>The <code>SetCallback-KeyClass</code> is the optional user-written
+hash-map-key definition and shall handle all key parameter of the
+<code>SetCallbackFunction</code> as defined via
+<code>JavaCallbackKey</code>, see above.</p>
+<p><code>SetCallback-KeyClass</code> may be used to add external
+key-components, e.g. current-thread or a toolkit dependent context.</p>
+<p>The <code>SetCallback-KeyClass</code> shall implement the following
+hash-map-key standard methods</p>
+<ul>
+<li><code>boolean equals(Object)</code></li>
+<li><code>int hashCode()</code></li>
+<li><code>SetCallback-KeyClassName(...)</code> constructor receiving all
+key parameter of <code>SetCallbackFunction</code> as defined via
+<code>JavaCallbackKey</code>, see above.</li>
+</ul>
+<h3 id="javacallback-notes"><em>JavaCallback</em> Notes</h3>
+<p>Please consider the following <em>currently enabled</em> constraints
+using JavaCallback</p>
+<ul>
+<li>Only one interface callback-method binding is allowed for a native
+callback function, e.g. <code>T2_CallbackFunc01</code> (see above)
+<ul>
+<li>Implying that the native single function-pointer typedef must be
+mapped to a single Java method within its interface</li>
+<li>Hence it must be avoided that multiple method variation are
+produced, e.g. due to <code>char*</code> to <code>byte[]</code> and
+<code>String</code> mapping etc.</li>
+</ul></li>
+<li>The native callback function can only return no-value, i.e.
+<code>void</code>, or a primitive type. Usually <code>void</code> is
+being used in toolkit APIs.</li>
+<li>The native callback function argument types must be convertible to
+JNI Java types as (previously) supported for function return values,
+using the same conversion function
+<code>CMethodBindingEmitter.emitBodyMapCToJNIType(..)</code>.</li>
+<li>To remove a JavaCallback the <code>SetCallbackFunction</code> must
+be called with <code>null</code> for the <code>CallbackFunction</code>
+argument but with the same <a
+href="#javacallback-key-definition"><em>key arguments</em> (see
+<code>JavaCallbackKey</code>)</a> as previously called to set the
+callback.</li>
+<li>Exactly one native code-unit for the library must specify <a
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad libraryBasename</code></a></li>
+<li><code>SetCallbackFunction</code> is thread safe</li>
+<li>...</li>
+</ul>
+<h3 id="javacallback-example-1">JavaCallback Example 1</h3>
+<p>This is a generic example.</p>
+<p>The callback <code>T2_CallbackFunc01</code> has global scope, i.e. is
+not mapped to any key and can be only set globally.</p>
 <p>C-API header snippet:</p>
 <pre><code>typedef void ( * T2_CallbackFunc01)(size_t id, const char* msg, void* usrParam);
 
@@ -1942,16 +2070,19 @@ LibraryOnLoad Bindingtest2
     
 ArgumentIsString T2_CallbackFunc01 1
 ArgumentIsString InjectMessageCallback01 1
-        
+
 # Define a JavaCallback.
-#   Set JavaCallback via function `MessageCallback01` if `T2_CallbackFunc01` argument is non-null, otherwise removes the callback and associated resources.    
-#   It uses `usrParam` as the resource-key to map to the hidden native-usrParam object,    
-#   hence a matching &#39;usrParam&#39; must be passed for setting and removal of the callback.
+#   Set JavaCallback via function `MessageCallback01` if `T2_CallbackFunc01` argument is non-null, otherwise removes the mapped callback and associated resources.
 #
 #   It uses the function-pointer argument `T2_CallbackFunc01` as the callback function type
-#   and marks `T2_CallbackFunc01`s 3rd argument (index 2) as the mandatory user-param for Java Object mapping.
+#   and marks `T2_CallbackFunc01`s 3rd argument (index 2) as the mandatory user-param.
 #
-#   Note: An explicit `isMessageCallback01Mapped(Object usrParam)` is being created to explicitly query whether `usrParam` maps to the associated resources.
+#   This callback has no keys defines, rendering it of global scope!
+#
+#   Explicit queries are generated, passing the keys as paramters
+#   - `boolean isMessageCallback01Mapped()` queries whether `MessageCallback0` is mapped globally
+#   - `T2_CallbackFunc01 getMessageCallback01()` returns the global T2_CallbackFunc01, null if not mapped
+#   - `Object getMessageCallback01UserParam()` returns the global `usrParam` object, null if not mapped
 JavaCallbackDef  MessageCallback01 T2_CallbackFunc01 2</code></pre>
 <p>Note that <a
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
@@ -1961,7 +2092,7 @@ thread to the <code>JavaVM*</code> generating a new
 <code>JNIEnv*</code>in daemon mode - or just to retrieve the thread's
 <code>JNIEnv*</code>, if already attached to the
 <code>JavaVM*</code>.</p>
-<p>This will lead to the following result</p>
+<p>This will lead to the following interface</p>
 <pre><code>public interface Bindingtest2 {
 
   /** JavaCallback interface: T2_CallbackFunc01 -&gt; void (*T2_CallbackFunc01)(size_t id, const char *  msg, void *  usrParam) */
@@ -1974,33 +2105,149 @@ thread to the <code>JavaVM*</code> generating a new
   
   /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void MessageCallback01(T2_CallbackFunc01 cbFunc, void *  usrParam)&lt;/code&gt;&lt;br&gt;   */
   public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam);
-  
-  public boolean isMessageCallback01Mapped(final Object usrParam);
+
+  public boolean isMessageCallback01Mapped();
+  public T2_CallbackFunc01 getMessageCallback01();
+  public Object getMessageCallback01UserParam();
 
   /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void InjectMessageCallback01(size_t id, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
   public void InjectMessageCallback01(long id, String msg);</code></pre>
-<h3 id="javacallback-constraints">JavaCallback Constraints</h3>
-<p>Please consider the following <em>currently enabled</em> constraints
-using <code>JavaCallbackDef</code></p>
-<ul>
-<li>Only one interface callback-method binding is allowed for a native
-callback function, e.g. <code>T2_CallbackFunc01</code> (see above).</li>
-<li>The native callback function can only return no-value, i.e.
-<code>void</code>, or a primitive type. Usually <code>void</code> is
-being used in toolkit APIs.</li>
-<li>The native callback function argument types must be able to be
-mapped to JNI Java types as supported for return values of all native
-functions, the same code path is being used within
-<code>CMethodBindingEmitter.emitBodyMapCToJNIType(..)</code>.</li>
-<li>To remove a JavaCallback the specified and mapped setter function,
-e.g. <code>MessageCallback01</code>, must be called with
-<code>null</code> for the callback interface but the very same
-<code>userParam</code> instance as previously called to set the
-callback.</li>
-<li>Exactly one native code-unit for the library must specify <a
-href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad libraryBasename</code></a></li>
-<li>...</li>
-</ul>
+<p>Implementation utilizes the default <code>SetCallback-KeyClass</code>
+implementation for
+<code>void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam)</code>,
+which is key-less and hence minimalistic.</p>
+<pre><code>  private static class MessageCallback01Key {
+    MessageCallback01Key() {
+    }
+    @Override
+    public boolean equals(final Object o) {
+      if( this == o ) {
+        return true;
+      }
+      if( !(o instanceof MessageCallback01Key) ) {
+        return false;
+      }
+      return true;
+    }
+    @Override
+    public int hashCode() {
+      return 0;
+    }
+  }</code></pre>
+<h3 id="javacallback-example-2a-default-keyclass">JavaCallback Example
+2a (Default <em>KeyClass</em>)</h3>
+<p>This examples is derived from OpenAL's
+<code>AL_SOFT_callback_buffer</code> extension.</p>
+<p>The callback <code>ALBUFFERCALLBACKTYPESOFT</code> is mapped to
+<code>buffer</code> name, i.e. one callback can be set for each
+buffer.</p>
+<p>C-API Header snipped</p>
+<pre><code>  typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer, void *userptr, int sampledata, int numbytes);
+  
+  void alBufferCallback0(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr);
+  
+  void alBufferCallback0Inject(int buffer, int sampledata, int numbytes);</code></pre>
+<p>and the following GlueGen configuration</p>
+<pre><code>  # Define a JavaCallback.
+  #   Set JavaCallback via function `alBufferCallback0` if `ALBUFFERCALLBACKTYPESOFT` argument is non-null, otherwise removes the mapped callback and associated resources.
+  #
+  #   It uses the function-pointer argument `ALBUFFERCALLBACKTYPESOFT` as the callback function type
+  #   and marks `ALBUFFERCALLBACKTYPESOFT`s 2nd argument (index 1) as the mandatory user-param.
+  #
+  #   This callback defines one key, `buffer`, index 0 of alBufferCallback0(..) parameter list, limiting it to buffer-name scope!
+  #   The `buffer` key allows setting one callback per buffer-name, compatible with the `AL_SOFT_callback_buffer` spec.
+  # 
+  #   Explicit queries are generated, passing the keys as paramters
+  #   - `boolean isAlBufferCallback0Mapped(int buffer)` queries whether `alBufferCallback0` is mapped to `buffer`.
+  #   - `ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(int buffer)` returns the `buffer` mapped ALEVENTPROCSOFT, null if not mapped
+  #   - `Object getAlBufferCallback0UserParam(int buffer)` returns the `buffer` mapped `userptr` object, null if not mapped
+  JavaCallbackDef  alBufferCallback0 ALBUFFERCALLBACKTYPESOFT 1
+  JavaCallbackKey  alBufferCallback0 0</code></pre>
+<p>leading to the following interface</p>
+<pre><code>  /** JavaCallback interface: ALBUFFERCALLBACKTYPESOFT -&gt; void (*ALBUFFERCALLBACKTYPESOFT)(int buffer, void *  userptr, int sampledata, int numbytes) */
+  public static interface ALBUFFERCALLBACKTYPESOFT {
+    /** Interface to C language function: &lt;br&gt; &lt;code&gt;void callback(int buffer, void *  userptr, int sampledata, int numbytes)&lt;/code&gt;&lt;br&gt;Alias for: &lt;code&gt;ALBUFFERCALLBACKTYPESOFT&lt;/code&gt;     */
+    public void callback(int buffer, Object userptr, int sampledata, int numbytes);
+  }
+  
+  ...
+
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *  userptr)&lt;/code&gt;&lt;br&gt;   */
+  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr);
+
+  public boolean isAlBufferCallback0Mapped(int buffer);
+  public ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(int buffer);
+  public Object getAlBufferCallback0UserParam(int buffer);
+
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void alEventCallbackInject(int eventType, int object, int param, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
+  public void alEventCallbackInject(int eventType, int object, int param, String msg);  </code></pre>
+<p>Implementation utilizes the default <code>SetCallback-KeyClass</code>
+implementation for
+<code>void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code>,
+which uses one key, i.e. <code>buffer</code>.</p>
+<pre><code>  private static class AlBufferCallback0Key {
+    private final int buffer;
+    AlBufferCallback0Key(int buffer) {
+      this.buffer = buffer;
+    }
+    @Override
+    public boolean equals(final Object o) {
+      if( this == o ) {
+        return true;
+      }
+      if( !(o instanceof AlBufferCallback0Key) ) {
+        return false;
+      }
+      final AlBufferCallback0Key o2 = (AlBufferCallback0Key)o;
+      return buffer == o2.buffer;
+    }
+    @Override
+    public int hashCode() {
+      // 31 * x == (x &lt;&lt; 5) - x
+      int hash = buffer;
+      return hash;
+    }
+  }</code></pre>
+<h3 id="javacallback-example-2b-custom-keyclass">JavaCallback Example 2b
+(Custom <em>KeyClass</em>)</h3>
+<p>Same as example 2a, but implementing a custom
+<code>SetCallback-KeyClass</code>.</p>
+<p>Instead of <code>Callback0</code>, the unit <code>test2.*</code> uses
+<code>Callback1</code> to differentiate this case.</p>
+<p>GlueGen configuration snippet with the added option attribute for the
+<code>SetCallback-KeyClass</code> in directive
+<code>JavaCallbackDef</code>.</p>
+<pre><code>JavaCallbackDef  alBufferCallback1 ALBUFFERCALLBACKTYPESOFT 1 com.jogamp.gluegen.test.junit.generation.Test4JavaCallback.CustomAlBufferCallback1Key
+JavaCallbackKey  alBufferCallback1 0</code></pre>
+<p>Implementation utilizes a custom <code>SetCallback-KeyClass</code>
+implementation for
+<code>void alBufferCallback1(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code>,
+which uses one key, i.e. <code>buffer</code>.</p>
+<pre><code>    public static class CustomAlBufferCallback1Key {
+        private final int buffer;
+        public CustomAlBufferCallback1Key(final int buffer) {
+            this.buffer = buffer;
+        }
+        @Override
+        public boolean equals(final Object o) {
+            if( this == o ) {
+                return true;
+            }
+            if( !(o instanceof CustomAlBufferCallback1Key) ) {
+                return false;
+            }
+            final CustomAlBufferCallback1Key o2 = (CustomAlBufferCallback1Key)o;
+            return buffer == o2.buffer;
+        }
+        @Override
+        public int hashCode() {
+            return buffer;
+        }
+        @Override
+        public String toString() {
+            return &quot;CustomALKey[this &quot;+toHexString(System.identityHashCode(this))+&quot;, buffer &quot;+buffer+&quot;]&quot;;
+        }
+    }</code></pre>
 <p><em>TODO: Enhance documentation</em></p>
 <h2 id="misc-configurations">Misc Configurations</h2>
 <h3

@@ -154,7 +154,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
     javaCallback = cfg.setFuncToJavaCallbackMap.get(binding.getName());
     if( null != javaCallback ) {
-        jcbNativeBasename = CodeGenUtils.capitalizeString( javaCallback.setFuncName+javaCallback.simpleCbClazzName.replace("_", "") );
+        jcbNativeBasename = CodeGenUtils.capitalizeString( javaCallback.setFuncName+javaCallback.cbSimpleClazzName.replace("_", "") );
         jcbCMethodEmitter = new CMethodBindingEmitter(javaCallback.cbFuncBinding,
                                                       unit, javaPackageName, javaClassName, isOverloadedBinding,
                                                       isJavaMethodStatic, forImplementingMethodCall,
@@ -324,12 +324,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
    */
   public final MachineDataInfo getMachineDataInfo() { return machDesc; }
 
+  private static final boolean DEBUG_JAVACALLBACK = false;
 
   @Override
   protected void emitReturnType()  {
     if( null != javaCallback ) {
         LOG.log(INFO, "BindCFunc.R.JavaCallback: {0}: {1}", binding.getName(), javaCallback);
-        final String userParamArgName = javaCallback.cbFuncBinding.getArgumentName(javaCallback.userParamIdx);
+        final String userParamArgName = javaCallback.cbFuncBinding.getArgumentName(javaCallback.cbFuncUserParamIdx);
         final Type cReturnType = javaCallback.cbFuncBinding.getCReturnType();
         final JavaType jretType = javaCallback.cbFuncBinding.getJavaReturnType();
         unit.emitln("typedef struct {");
@@ -362,7 +363,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             unit.emitln("  T_"+jcbNativeBasename+"* cb = (T_"+jcbNativeBasename+"*) "+userParamArgName+";");
             unit.emitln("  // C Params: "+javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
             unit.emitln("  // J Params: "+javaCallback.cbFuncBinding.getJavaParameterList(new StringBuilder()).toString());
-            // unit.emitln("  fprintf(stderr, \"YYY Callback01 user %p, id %ld, msg %s\\n\", cb, id, msg);");
 
             if( !cReturnType.isVoid() ) {
                 unit.emit("  "+cReturnType.getCName()+" _res = ("+cReturnType.getCName()+") ");
@@ -371,10 +371,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             }
             unit.emit("(*env)->Call" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cb->cbFunc, cb->cbMethodID, ");
             // javaCallback.cbFuncCEmitter.emitBodyPassCArguments();
-            if( 0 < jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback) ) {
-                unit.emit(", ");
-            }
-            unit.emitln("cb->userParam);");
+            jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback, "cb->userParam");
+            unit.emitln(");");
 
             // javaCallback.cbFuncCEmitter.emitBodyUserVariableAssignments();
             // javaCallback.cbFuncCEmitter.emitBodyVariablePostCallCleanup();
@@ -393,7 +391,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   /* pp */ int emitJavaCallbackBodyCToJavaPreCall(final JavaCallbackInfo jcbi)  {
     int count = 0;
     for (int i = 0; i < binding.getNumArguments(); i++) {
-      if( i == jcbi.userParamIdx ) {
+      if( i == jcbi.cbFuncUserParamIdx ) {
         continue;
       }
       if( emitBodyMapCToJNIType(i, true /* addLocalVar */) ) {
@@ -402,18 +400,19 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     }
     return count;
   }
-  /* pp */ int emitJavaCallbackBodyPassJavaArguments(final JavaCallbackInfo jcbi) {
+  /* pp */ int emitJavaCallbackBodyPassJavaArguments(final JavaCallbackInfo jcbi, final String userParamVarName) {
     int count = 0;
     boolean needsComma = false;
     for (int i = 0; i < binding.getNumArguments(); i++) {
-      if( i == jcbi.userParamIdx ) {
-        continue;
-      }
       if (needsComma) {
         unit.emit(", ");
         needsComma = false;
       }
-      unit.emit( binding.getArgumentName(i) + "_jni" );
+      if( i == jcbi.cbFuncUserParamIdx ) {
+          unit.emit( userParamVarName );
+      } else {
+          unit.emit( binding.getArgumentName(i) + "_jni" );
+      }
       needsComma = true;
       ++count;
     }
@@ -552,7 +551,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("  {");
         unit.emitln("    jlong v = (jlong) (intptr_t) "+nativeUserParamVarName+";");
         unit.emitln("    (*env)->SetLongArrayRegion(env, jnativeUserParam, 0, (jsize)1, &v);");
-        // unit.emitln("    fprintf(stderr, \"YYY MessageCallback01 user %p -> native %p\\n\", "+userParamArgName+", "+nativeUserParamVarName+");");
+        if( DEBUG_JAVACALLBACK ) {
+            unit.emitln("    fprintf(stderr, \"YYY user %p -> native %p\\n\", "+userParamArgName+", "+nativeUserParamVarName+");");
+        }
         unit.emitln("  }");
         unit.emitln();
     }
@@ -565,9 +566,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     unit.emitln("}");
     unit.emitln();
     if( null != jcb ) {
+        final String capIfaceName = CodeGenUtils.capitalizeString( getInterfaceName() );
         unit.emitln("JNIEXPORT void JNICALL");
         unit.emit(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
-        unit.emitln("_release"+getInterfaceName()+"Impl(JNIEnv *env, jobject _unused, jlong jnativeUserParam) {");
+        unit.emitln("_release"+capIfaceName+"MapImpl(JNIEnv *env, jobject _unused, jlong jnativeUserParam) {");
         unit.emitln("  T_"+jcbNativeBasename+"* nativeUserParam = (T_"+jcbNativeBasename+"*) (intptr_t) jnativeUserParam;");
         unit.emitln("  if( NULL != nativeUserParam ) {");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->cbFunc);");

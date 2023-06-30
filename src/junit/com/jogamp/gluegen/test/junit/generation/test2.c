@@ -86,6 +86,10 @@ int Release(T2_InitializeOptions* Options) {
     Options->CustomFuncB2 = NULL;
 }
 
+//
+//
+//
+
 static T2_CallbackFunc01 t2_callback01 = NULL;
 static void* t2_callback01_userparam = NULL;
 
@@ -101,6 +105,82 @@ void InjectMessageCallback01(size_t id, const char* msg) {
         fprintf(stderr, "XXX InjectMessageCallback01 func %p, user %p\n", t2_callback01, t2_callback01_userparam);
         fflush(NULL);
         (*t2_callback01)(id, msg, t2_callback01_userparam);
+    }
+}
+
+//
+//
+//
+
+static ALEVENTPROCSOFT alEventCallback_cb = NULL;
+static void* alEventCallback_up = NULL;
+
+void alEventCallback(ALEVENTPROCSOFT callback, void *userParam) {
+    alEventCallback_cb = callback;
+    alEventCallback_up = userParam;
+}
+void alEventCallbackInject(int eventType, int object, int param, const char* msg) {
+    if( NULL != alEventCallback_cb ) {
+        fprintf(stderr, "XXX InjectMessageCallback01 func %p, user %p\n", alEventCallback_cb, alEventCallback_up);
+        fflush(NULL);
+        (*alEventCallback_cb)(eventType, object, param, strlen(msg), msg, alEventCallback_up);
+    }
+}
+
+//
+//
+//
+
+static const int MAX_AL_BUFFER = 5;
+static ALBUFFERCALLBACKTYPESOFT alBufferCallback0_callback[] = { NULL, NULL, NULL, NULL, NULL };
+static void* alBufferCallback0_userptr[] = { NULL, NULL, NULL, NULL, NULL };
+
+void alBufferCallback0(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr) {
+    if( buffer < 0 || MAX_AL_BUFFER <= buffer ) {
+        fprintf(stderr, "Error: alBufferCallback0: buffer not in range [0..%d), is %d\n", MAX_AL_BUFFER, buffer);
+    } else {
+        alBufferCallback0_callback[buffer] = callback;
+        alBufferCallback0_userptr[buffer] = userptr;
+        fprintf(stderr, "XXX alBufferCallback0 buffer %d -> func %p, user %p\n", buffer, callback, userptr);
+    }
+    fflush(NULL);
+}
+void alBufferCallback0Inject(int buffer, int sampledata, int numbytes) {
+    if( buffer < 0 || MAX_AL_BUFFER <= buffer ) {
+        fprintf(stderr, "Error: alBufferCallback0Inject: buffer not in range [0..%d), is %d\n", MAX_AL_BUFFER, buffer);
+    }
+    if( NULL != alBufferCallback0_callback[buffer] ) {
+        fprintf(stderr, "XXX alBufferCallback0Inject: buffer %d, func %p, user %p\n", buffer, alBufferCallback0_callback[buffer], alBufferCallback0_userptr[buffer]);
+        fflush(NULL);
+        (*alBufferCallback0_callback[buffer])(buffer, alBufferCallback0_userptr[buffer], sampledata, numbytes);
+    }
+}
+
+//
+//
+//
+
+static ALBUFFERCALLBACKTYPESOFT alBufferCallback1_callback[] = { NULL, NULL, NULL, NULL, NULL };
+static void* alBufferCallback1_userptr[] = { NULL, NULL, NULL, NULL, NULL };
+
+void alBufferCallback1(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr) {
+    if( buffer < 0 || MAX_AL_BUFFER <= buffer ) {
+        fprintf(stderr, "Error: alBufferCallback1: buffer not in range [0..%d), is %d\n", MAX_AL_BUFFER, buffer);
+    } else {
+        alBufferCallback1_callback[buffer] = callback;
+        alBufferCallback1_userptr[buffer] = userptr;
+        fprintf(stderr, "XXX alBufferCallback1 buffer %d -> func %p, user %p\n", buffer, callback, userptr);
+    }
+    fflush(NULL);
+}
+void alBufferCallback1Inject(int buffer, int sampledata, int numbytes) {
+    if( buffer < 0 || MAX_AL_BUFFER <= buffer ) {
+        fprintf(stderr, "Error: alBufferCallback1Inject: buffer not in range [0..%d), is %d\n", MAX_AL_BUFFER, buffer);
+    }
+    if( NULL != alBufferCallback1_callback[buffer] ) {
+        fprintf(stderr, "XXX alBufferCallback1Inject: buffer %d, func %p, user %p\n", buffer, alBufferCallback1_callback[buffer], alBufferCallback1_userptr[buffer]);
+        fflush(NULL);
+        (*alBufferCallback1_callback[buffer])(buffer, alBufferCallback1_userptr[buffer], sampledata, numbytes);
     }
 }
 

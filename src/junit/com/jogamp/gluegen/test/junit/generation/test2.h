@@ -67,15 +67,37 @@ void MessageCallback01(T2_CallbackFunc01 cbFunc, void* usrParam);
 void InjectMessageCallback01(size_t id, const char* msg);
 
 //
-// T2_CallbackFunc02
+// ALEVENTPROCSOFT (similar to OpenAL's AL_SOFT_events)
+//
+typedef void ( * ALEVENTPROCSOFT)(int eventType, int object, int param, int length, const char *message, void *userParam);
+
+void alEventCallback(ALEVENTPROCSOFT callback, void *userParam);
+void alEventCallbackInject(int eventType, int object, int param, const char* msg);
+
+//
+// ALBUFFERCALLBACKTYPESOFT (similar to OpenAL's AL_SOFT_callback_buffer)
+//
+// typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer, void *userptr, void *sampledata, int numbytes);
+typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer, void *userptr, int sampledata, int numbytes);
+
+void alBufferCallback0(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr);
+// void alBufferCallback0Inject(int buffer, void *sampledata, int numbytes);
+void alBufferCallback0Inject(int buffer, int sampledata, int numbytes);
+
+void alBufferCallback1(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr);
+// void alBufferCallback1Inject(int buffer, void *sampledata, int numbytes);
+void alBufferCallback1Inject(int buffer, int sampledata, int numbytes);
+
+//
+// T2_CallbackFunc11
 //
 typedef struct {
     int32_t ApiVersion;
     void* Data;
-} T2_Callback02UserType;
+} T2_Callback11UserType;
 
-typedef void ( * T2_CallbackFunc02)(const T2_Callback02UserType* usrParam);
+typedef void ( * T2_CallbackFunc11)(const T2_Callback11UserType* usrParam);
 
-void MessageCallback02(T2_CallbackFunc02 cbFunc, const T2_Callback02UserType* usrParam);
-void InjectMessageCallback02(size_t id, const char* msg);
+void MessageCallback11(T2_CallbackFunc11 cbFunc, const T2_Callback11UserType* usrParam);
+void InjectMessageCallback11(size_t id, const char* msg);
 
