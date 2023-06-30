@@ -1,6 +1,6 @@
-/*
+/**
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2010 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -42,7 +42,6 @@ package com.jogamp.gluegen.cgram.types;
 import java.util.*;
 
 import com.jogamp.gluegen.ASTLocusTag;
-import com.jogamp.gluegen.CodeGenUtils;
 
 /** Describes a function type, used to model both function
 declarations and (via PointerType) function pointers. */
@@ -139,38 +138,75 @@ public class FunctionType extends Type implements Cloneable {
     /**
      * Returns the function parameter list, i.e. a comma separated list of argument type and name.
      * @param buf StringBuilder instance
+     * @param useTypedef if true and type is typedef'ed, use its name
      * @param callingConvention optional calling-convention
      * @return given StringBuilder instance
      */
-    public StringBuilder getParameterList(final StringBuilder buf, final String callingConvention) {
-        final int n = getNumArguments();
-        final boolean[] needsComma = { false };
-        for (int i = 0; i < n; i++) {
-            final Type t = getArgumentType(i);
-            if( t.isVoid() ) {
-                // nop
-            } else if( t.isTypedef() ) {
-                CodeGenUtils.addParameterToList(buf, t.getName(), needsComma);
-                final String argumentName = getArgumentName(i);
-                if (argumentName != null) {
-                    buf.append(" ");
-                    buf.append(argumentName);
+    public StringBuilder getParameterList(final StringBuilder buf, final boolean useTypedef, final String callingConvention) {
+        return getParameterList(buf, useTypedef, callingConvention, null);
+    }
+    /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @param useTypedef if true and type is typedef'ed, use its name
+     * @param callingConvention optional calling-convention
+     * @param exclude optional list of excluded parameter indices
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getParameterList(final StringBuilder buf, final boolean useTypedef, final String callingConvention, final List<Integer> exclude) {
+        forEachParameter( ( final int idx, final int consumedCount, final Type cType, final String name ) -> {
+            if( !cType.isVoid() && ( null == exclude || !exclude.contains(idx) ) ) {
+                if( 0 < consumedCount ) {
+                    buf.append(", ");
                 }
-            } else  if ( t.isFunctionPointer() ) {
-                final FunctionType ft = t.getTargetFunction();
-                CodeGenUtils.addParameterToList(buf, ft.toString(getArgumentName(i), callingConvention, false, true), needsComma);
-            } else if (t.isArray()) {
-                CodeGenUtils.addParameterToList(buf, t.asArray().toString(getArgumentName(i)), needsComma);
+                if( useTypedef && cType.isTypedef() ) {
+                    buf.append( cType.getName() );
+                    if (name != null) {
+                        buf.append(" ");
+                        buf.append(name);
+                    }
+                } else  if ( cType.isFunctionPointer() ) {
+                    final FunctionType ft = cType.getTargetFunction();
+                    buf.append( ft.toString(name, callingConvention, false, true) );
+                } else if (cType.isArray()) {
+                    buf.append( cType.asArray().toString(name) );
+                } else {
+                    buf.append( cType.getCName(true) );
+                    if (name != null) {
+                        buf.append(" ");
+                        buf.append(name);
+                    }
+                }
+                return true;
             } else {
-                CodeGenUtils.addParameterToList(buf, t.getCName(true), needsComma);
-                final String argumentName = getArgumentName(i);
-                if (argumentName != null) {
-                    buf.append(" ");
-                    buf.append(argumentName);
-                }
+                return false;
+            }
+        } );
+        return buf;
+    }
+
+    /** {@link #forEachParameter(ParameterConsumer)} Consumer */
+    public static interface ParameterConsumer  {
+        /**
+         * Accept the arguments of the traversed collection element
+         * and return true if consumed. Consumed elements will increased passed `consumedCount` state.
+         * @param idx index of current element, ranges [0 .. size-1]
+         * @param consumedCount number of consumed elements, useful for e.g. `boolean needsSeparator =  0 < consumedCount`
+         * @param cType C Type of argument
+         * @param name argument name
+         * @return true to signal consumed and have traversing loop increment `consumedCount`, otherwise false
+         */
+        boolean accept(int idx, int consumedCount, Type cType, String name);
+    }
+    public int forEachParameter(final ParameterConsumer c) {
+        final int n = getNumArguments();
+        int consumedCount = 0;
+        for (int i = 0; i < n; i++) {
+            if( c.accept(i, consumedCount, getArgumentType(i), getArgumentName(i)) ) {
+                ++consumedCount;
             }
         }
-        return buf;
+        return consumedCount;
     }
 
     /**
@@ -229,7 +265,7 @@ public class FunctionType extends Type implements Cloneable {
             res.append(")");
         }
         res.append("(");
-        getParameterList(res, callingConvention);
+        getParameterList(res, true, callingConvention);
         res.append(")");
         return res.toString();
     }

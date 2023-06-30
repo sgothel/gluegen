@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,16 +56,6 @@ public class CodeGenUtils {
      */
     public static String decapitalizeString(final String string) {
         return Character.toLowerCase(string.charAt(0)) + string.substring(1);
-    }
-
-    /** Appends `param` to `buf` while prepending a comman separator if `needsComma[0]` is true. Sets `needsComma[0]=true` afterwards. */
-    public static StringBuilder addParameterToList(final StringBuilder buf, final String param, final boolean[] needsComma) {
-        if( needsComma[0] ) {
-            buf.append(", ");
-        }
-        buf.append(param);
-        needsComma[0] = true;
-        return buf;
     }
 
     /**

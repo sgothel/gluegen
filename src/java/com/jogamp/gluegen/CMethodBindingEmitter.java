@@ -341,7 +341,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         // javaCallback.cbFuncCEmitter.emitSignature();
         unit.emit("static "+cReturnType.getCName()+" func"+jcbNativeBasename+"(");
         // javaCallback.cbFuncCEmitter.emitArguments();
-        unit.emit(javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), null).toString());
+        unit.emit(javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
         unit.emitln(") {");
         // javaCallback.cbFuncCEmitter.emitBody();
         {
@@ -360,7 +360,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
             // javaCallback.cbFuncCEmitter.emitBodyCallCFunction();
             unit.emitln("  T_"+jcbNativeBasename+"* cb = (T_"+jcbNativeBasename+"*) "+userParamArgName+";");
-            unit.emitln("  // C Params: "+javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), null).toString());
+            unit.emitln("  // C Params: "+javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
             unit.emitln("  // J Params: "+javaCallback.cbFuncBinding.getJavaParameterList(new StringBuilder()).toString());
             // unit.emitln("  fprintf(stderr, \"YYY Callback01 user %p, id %ld, msg %s\\n\", cb, id, msg);");
 

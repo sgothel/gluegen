@@ -1,4 +1,5 @@
-/*
+/**
+ * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
  * Redistribution and use in source and binary forms, with or without

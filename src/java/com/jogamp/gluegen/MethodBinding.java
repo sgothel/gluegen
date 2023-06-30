@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (c) 2010-2023 JogAmp Community. All rights reserved.
  * Copyright (c) 2003 Sun Microsystems, Inc. All Rights Reserved.
  *
@@ -158,37 +158,50 @@ public class MethodBinding {
     /**
      * Returns the function parameter list, i.e. a comma separated list of argument type and name.
      * @param buf StringBuilder instance
+     * @param useTypedef if true and type is typedef'ed, use its name
      * @param callingConvention optional calling-convention
      * @return given StringBuilder instance
      */
-    public StringBuilder getCParameterList(final StringBuilder buf, final String callingConvention) {
-        final int n = getNumArguments();
-        final boolean[] needsComma = { false };
-        for (int i = 0; i < n; i++) {
-            final Type t = getCArgumentType(i);
-            if( t.isVoid() ) {
-                // nop
-            } else if( t.isTypedef() ) {
-                CodeGenUtils.addParameterToList(buf, t.getName(), needsComma);
-                final String argumentName = getArgumentName(i);
-                if (argumentName != null) {
-                    buf.append(" ");
-                    buf.append(argumentName);
+    public StringBuilder getCParameterList(final StringBuilder buf, final boolean useTypedef, final String callingConvention) {
+        return getCParameterList(buf, useTypedef, callingConvention, null);
+    }
+    /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @param useTypedef if true and type is typedef'ed, use its name
+     * @param callingConvention optional calling-convention
+     * @param exclude optional list of excluded parameter indices
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getCParameterList(final StringBuilder buf, final boolean useTypedef, final String callingConvention, final List<Integer> exclude) {
+        forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+            if( !cType.isVoid() && ( null == exclude || !exclude.contains(idx) ) ) {
+                if( 0 < consumedCount ) {
+                    buf.append(", ");
                 }
-            } else  if ( t.isFunctionPointer() ) {
-                final FunctionType ft = t.getTargetFunction();
-                CodeGenUtils.addParameterToList(buf, ft.toString(getArgumentName(i), callingConvention, false, true), needsComma);
-            } else if (t.isArray()) {
-                CodeGenUtils.addParameterToList(buf, t.asArray().toString(getArgumentName(i)), needsComma);
+                if( useTypedef && cType.isTypedef() ) {
+                    buf.append( cType.getName() );
+                    if (name != null) {
+                        buf.append(" ");
+                        buf.append(name);
+                    }
+                } else if ( cType.isFunctionPointer() ) {
+                    final FunctionType ft = cType.getTargetFunction();
+                    buf.append( ft.toString(name, callingConvention, false, true) );
+                } else if (cType.isArray()) {
+                    buf.append( cType.asArray().toString(name) );
+                } else {
+                    buf.append( cType.getCName(true) );
+                    if (name != null) {
+                        buf.append(" ");
+                        buf.append(name);
+                    }
+                }
+                return true;
             } else {
-                CodeGenUtils.addParameterToList(buf, t.getCName(true), needsComma);
-                final String argumentName = getArgumentName(i);
-                if (argumentName != null) {
-                    buf.append(" ");
-                    buf.append(argumentName);
-                }
+                return false;
             }
-        }
+        } );
         return buf;
     }
 
@@ -198,22 +211,107 @@ public class MethodBinding {
      * @return given StringBuilder instance
      */
     public StringBuilder getJavaParameterList(final StringBuilder buf) {
-        final int n = getNumArguments();
-        final boolean[] needsComma = { false };
-        for (int i = 0; i < n; i++) {
-            final JavaType t = getJavaArgumentType(i);
-            if( t.isVoid() ) {
-                // nop
-            } else {
-                CodeGenUtils.addParameterToList(buf, t.getName(), needsComma);
-                final String argumentName = getArgumentName(i);
-                if (argumentName != null) {
-                    buf.append(" ");
-                    buf.append(argumentName);
+        return getJavaParameterList(buf, null);
+    }
+    /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @param exclude optional list of excluded parameter indices
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getJavaParameterList(final StringBuilder buf, final List<Integer> exclude) {
+        forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+            if( !cType.isVoid() && ( null == exclude || !exclude.contains(idx) ) ) {
+                if( 0 < consumedCount ) {
+                    buf.append(", ");
                 }
+                buf.append(jType+" "+name);
+                return true;
+            } else {
+                return false;
             }
+        } );
+        return buf;
+    }
+    /**
+     * Returns the function parameter list, i.e. a comma separated list of argument type and name.
+     * @param buf StringBuilder instance
+     * @param include list of explicit included parameter indices
+     * @param addTailSeparator add a comma separator in the end if result is not empty
+     * @return given StringBuilder instance
+     */
+    public StringBuilder getJavaSelectParameter(final StringBuilder buf, final List<Integer> include, final boolean addTailSeparator) {
+        forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+            if( !cType.isVoid() && include.contains(idx) ) {
+                if( 0 < consumedCount ) {
+                    buf.append(", ");
+                }
+                buf.append(jType+" "+name);
+                return true;
+            } else {
+                return false;
+            }
+        } );
+        if( addTailSeparator && buf.length() > 0 ) {
+            buf.append(", ");
         }
         return buf;
+    }
+    public StringBuilder getJavaCallArgumentList(final StringBuilder buf, final List<Integer> exclude) {
+        forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+            if( !cType.isVoid() && ( null == exclude || !exclude.contains(idx) ) ) {
+                if( 0 < consumedCount ) {
+                    buf.append(", ");
+                }
+                buf.append(name);
+                return true;
+            } else {
+                return false;
+            }
+        } );
+        return buf;
+    }
+    public StringBuilder getJavaCallSelectArguments(final StringBuilder buf, final List<Integer> include, final boolean addTailSeparator) {
+        forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
+            if( !cType.isVoid() && include.contains(idx) ) {
+                if( 0 < consumedCount ) {
+                    buf.append(", ");
+                }
+                buf.append(name);
+                return true;
+            } else {
+                return false;
+            }
+        } );
+        if( addTailSeparator && buf.length() > 0 ) {
+            buf.append(", ");
+        }
+        return buf;
+    }
+
+    /** {@link #forEachParameter(ParameterConsumer)} Consumer */
+    public static interface ParameterConsumer  {
+        /**
+         * Accept the arguments of the traversed collection element
+         * and return true if consumed. Consumed elements will increased passed `consumedCount` state.
+         * @param idx index of current element, ranges [0 .. size-1]
+         * @param consumedCount number of consumed elements, useful for e.g. `boolean needsSeparator =  0 < consumedCount`
+         * @param cType C Type of argument
+         * @param jType Java Type of argument
+         * @param name argument name
+         * @return true to signal consumed and have traversing loop increment `consumedCount`, otherwise false
+         */
+        boolean accept(int idx, int consumedCount, Type cType, JavaType jType, String name);
+    }
+    public int forEachParameter(final ParameterConsumer c) {
+        final int n = getNumArguments();
+        int consumedCount = 0;
+        for (int i = 0; i < n; i++) {
+            if( c.accept(i, consumedCount, getCArgumentType(i), getJavaArgumentType(i), getArgumentName(i)) ) {
+                ++consumedCount;
+            }
+        }
+        return consumedCount;
     }
 
     public final boolean isReturnCompoundByValue() {
