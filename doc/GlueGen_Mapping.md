@@ -862,7 +862,7 @@ Please consider the following *currently enabled* constraints using JavaCallback
 - To remove a JavaCallback the `SetCallbackFunction` must be called with `null` for the `CallbackFunction` argument
   but with the same [*key arguments* (see `JavaCallbackKey`)](#javacallback-key-definition) as previously called to set the callback.
 - Exactly one native code-unit for the library must specify [`LibraryOnLoad libraryBasename`](#libraryonload-librarybasename-for-jni_onload-)
-- `SetCallbackFunction`, all *maintenance* methods and the native callback dispatcher **is thread safe**
+- `SetCallbackFunction`, all *maintenance* methods and the native callback dispatcher **are thread-safe**
 - ... 
 
 ### JavaCallback Example 1
