@@ -74,6 +74,7 @@ import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.os.DynamicLookupHelper;
 import com.jogamp.common.os.MachineDataInfo;
 import com.jogamp.common.util.ArrayHashMap;
+import com.jogamp.common.util.HashUtil;
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackDef;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackInfo;
@@ -2930,6 +2931,10 @@ public class JavaEmitter implements GlueEmitter {
       imports.add(DynamicLookupHelper.class.getPackage().getName()+".*");
       imports.add(Buffers.class.getPackage().getName()+".*");
       imports.add(Buffer.class.getPackage().getName()+".*");
+      imports.add(HashUtil.class.getPackage().getName()+".*");
+      imports.add("java.util.Set");
+      imports.add("java.util.Map");
+      imports.add("java.util.HashMap");
       imports.add("java.nio.charset.Charset");
       imports.add("java.nio.charset.StandardCharsets");
 

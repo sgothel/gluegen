@@ -2293,6 +2293,7 @@ public class JavaConfiguration {
       boolean setFuncProcessed;
       int setFuncCBParamIdx;
       int setFuncUserParamIdx;
+      boolean keyClassEmitted;
 
       public JavaCallbackInfo(final String cbFuncTypeName, final String cbSimpleClazzName, final String cbFQClazzName, final String cbMethodSignature,
                               final FunctionType cbFuncType, final MethodBinding cbFuncBinding, final int cbFuncUserParamIdx,
@@ -2326,6 +2327,7 @@ public class JavaConfiguration {
           this.setFuncProcessed = false;
           this.setFuncCBParamIdx = -1;
           this.setFuncUserParamIdx = -1;
+          this.keyClassEmitted = false;
       }
 
       public void setFuncProcessed(final int cbParamIdx, final int userParamIdx) {

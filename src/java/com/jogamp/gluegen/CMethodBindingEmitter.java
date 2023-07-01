@@ -569,7 +569,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         final String capIfaceName = CodeGenUtils.capitalizeString( getInterfaceName() );
         unit.emitln("JNIEXPORT void JNICALL");
         unit.emit(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
-        unit.emitln("_release"+capIfaceName+"MapImpl(JNIEnv *env, jobject _unused, jlong jnativeUserParam) {");
+        unit.emitln("_release"+capIfaceName+"Impl(JNIEnv *env, jobject _unused, jlong jnativeUserParam) {");
         unit.emitln("  T_"+jcbNativeBasename+"* nativeUserParam = (T_"+jcbNativeBasename+"*) (intptr_t) jnativeUserParam;");
         unit.emitln("  if( NULL != nativeUserParam ) {");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->cbFunc);");

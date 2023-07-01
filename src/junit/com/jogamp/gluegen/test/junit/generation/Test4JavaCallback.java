@@ -29,9 +29,11 @@
 package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.IOException;
+import java.util.Set;
 
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALBUFFERCALLBACKTYPESOFT;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlBufferCallback0Key;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc01;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
@@ -214,6 +216,9 @@ public class Test4JavaCallback extends BaseClass {
         final int buffer1 = 1;
         final int buffer2 = 2;
         final int buffer3 = 3;
+        final AlBufferCallback0Key buffer1Key = new AlBufferCallback0Key(buffer1);
+        final AlBufferCallback0Key buffer2Key = new AlBufferCallback0Key(buffer2);
+        final AlBufferCallback0Key buffer3Key = new AlBufferCallback0Key(buffer3);
         final MyUserParam02 myUserParam01 = new MyUserParam02( 1);
         final MyUserParam02 myUserParam02 = new MyUserParam02( 2);
         Assert.assertEquals( 1, myUserParam01.i);
@@ -223,33 +228,48 @@ public class Test4JavaCallback extends BaseClass {
         Assert.assertEquals( 0, myUserParam02.j);
         Assert.assertEquals( 0, myUserParam02.buffer);
 
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(0,     bt2.getAlBufferCallback0Keys().size());
 
         // 1st mapping: buffer1 -> myCallback01, myUserParam01
         bt2.alBufferCallback0(buffer1, 0, 0, myCallback01, myUserParam01);
-        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(1,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         // 2nd mapping: buffer2 -> myCallback02, myUserParam02
         bt2.alBufferCallback0(buffer2, 0, 0, myCallback02, myUserParam02);
-        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1));
-        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1));
-        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback0UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1));
-        Assert.assertEquals(myCallback02,  bt2.getAlBufferCallback0(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(myCallback02,  bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(2,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(true,  keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         {
             bt2.alBufferCallback0Inject(buffer1, 10, 100); // buffer1 -> myCallback01, myUserParam01
@@ -274,15 +294,15 @@ public class Test4JavaCallback extends BaseClass {
 
         // Switch the callback function for buffer2 -> myCallback01, myUserParam02
         bt2.alBufferCallback0(buffer2, 0, 0, myCallback01, myUserParam02);
-        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1));
-        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1));
-        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback0UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
 
         {
             bt2.alBufferCallback0Inject(buffer1, 11, 101); // buffer1 -> myCallback01, myUserParam01
@@ -307,27 +327,41 @@ public class Test4JavaCallback extends BaseClass {
 
         // Just release the buffer2 callback and mapped resources
         bt2.alBufferCallback0(buffer2, 0, 0, null, myUserParam02); // usrptr is not key, only buffer is key!
-        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(1,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         // Just release the buffer1 callback and mapped resources
         bt2.alBufferCallback0(buffer1, 0, 0, null, null); // usrptr is not key, only buffer is key!
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(0,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(false, keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         {
             bt2.alBufferCallback0Inject(buffer2,  1,  10); // unmapped, no change in data
@@ -373,6 +407,9 @@ public class Test4JavaCallback extends BaseClass {
         final int buffer1 = 1;
         final int buffer2 = 2;
         final int buffer3 = 3;
+        final CustomAlBufferCallback1Key buffer1Key = new CustomAlBufferCallback1Key(buffer1);
+        final CustomAlBufferCallback1Key buffer2Key = new CustomAlBufferCallback1Key(buffer2);
+        final CustomAlBufferCallback1Key buffer3Key = new CustomAlBufferCallback1Key(buffer3);
         final MyUserParam02 myUserParam01 = new MyUserParam02( 1);
         final MyUserParam02 myUserParam02 = new MyUserParam02( 2);
         Assert.assertEquals( 1, myUserParam01.i);
@@ -382,33 +419,48 @@ public class Test4JavaCallback extends BaseClass {
         Assert.assertEquals( 0, myUserParam02.j);
         Assert.assertEquals( 0, myUserParam02.buffer);
 
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
+        Assert.assertEquals(0,     bt2.getAlBufferCallback1Keys().size());
 
         // 1st mapping: buffer1 -> myCallback01, myUserParam01
         bt2.alBufferCallback1(buffer1, 0, 0, myCallback01, myUserParam01);
-        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3Key));
+        Assert.assertEquals(1,             bt2.getAlBufferCallback1Keys().size());
+        {
+            final Set<CustomAlBufferCallback1Key> keys = bt2.getAlBufferCallback1Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         // 2nd mapping: buffer2 -> myCallback02, myUserParam02
         bt2.alBufferCallback1(buffer2, 0, 0, myCallback02, myUserParam02);
-        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1));
-        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1));
-        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback1UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1));
-        Assert.assertEquals(myCallback02,  bt2.getAlBufferCallback1(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1Key));
+        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback1UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1Key));
+        Assert.assertEquals(myCallback02,  bt2.getAlBufferCallback1(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3Key));
+        Assert.assertEquals(2,             bt2.getAlBufferCallback1Keys().size());
+        {
+            final Set<CustomAlBufferCallback1Key> keys = bt2.getAlBufferCallback1Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(true,  keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         {
             bt2.alBufferCallback1Inject(buffer1, 10, 100); // buffer1 -> myCallback01, myUserParam01
@@ -433,15 +485,15 @@ public class Test4JavaCallback extends BaseClass {
 
         // Switch the callback function for buffer2 -> myCallback01, myUserParam02
         bt2.alBufferCallback1(buffer2, 0, 0, myCallback01, myUserParam02);
-        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1));
-        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1));
-        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback1UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1Key));
+        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback1UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3Key));
 
         {
             bt2.alBufferCallback1Inject(buffer1, 11, 101); // buffer1 -> myCallback01, myUserParam01
@@ -466,27 +518,41 @@ public class Test4JavaCallback extends BaseClass {
 
         // Just release the buffer2 callback and mapped resources
         bt2.alBufferCallback1(buffer2, 0, 0, null, myUserParam02); // usrptr is not key, only buffer is key!
-        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3));
-        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3));
-        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback1UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback1(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3Key));
+        Assert.assertEquals(1,             bt2.getAlBufferCallback1Keys().size());
+        {
+            final Set<CustomAlBufferCallback1Key> keys = bt2.getAlBufferCallback1Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         // Just release the buffer1 callback and mapped resources
         bt2.alBufferCallback1(buffer1, 0, 0, null, null); // usrptr is not key, only buffer is key!
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer1));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2));
-        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer1));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer2));
-        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1UserParam(buffer3Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3Key));
+        Assert.assertEquals(0,             bt2.getAlBufferCallback1Keys().size());
+        {
+            final Set<CustomAlBufferCallback1Key> keys = bt2.getAlBufferCallback1Keys();
+            Assert.assertEquals(false, keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
 
         {
             bt2.alBufferCallback1Inject(buffer2,  1,  10); // unmapped, no change in data
@@ -518,6 +584,166 @@ public class Test4JavaCallback extends BaseClass {
         @Override
         public int hashCode() {
             return System.identityHashCode(this); // we require identity!
+        }
+    }
+
+    /**
+     * Test in depth lifecycle of Bindingtest2 with ALBUFFERCALLBACKTYPESOFT JavaCallback via alBufferCallback1()
+     * using the default AlBufferCallback1Key class.
+     */
+    @Test
+    public void chapter04() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final long[] id_res = { -1 };
+        final ALBUFFERCALLBACKTYPESOFT myCallback01 = new ALBUFFERCALLBACKTYPESOFT() {
+            @Override
+            public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
+                final MyUserParam02 myUserParam = (MyUserParam02)userptr;
+                id_res[0] = sampledata + numbytes + myUserParam.i;
+                myUserParam.j = id_res[0];
+                myUserParam.buffer = buffer;
+                System.err.println("chapter04.myCallback01: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
+            }
+        };
+        final ALBUFFERCALLBACKTYPESOFT myCallback02 = new ALBUFFERCALLBACKTYPESOFT() {
+            @Override
+            public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
+                final MyUserParam02 myUserParam = (MyUserParam02)userptr;
+                id_res[0] = sampledata * numbytes + myUserParam.i;
+                myUserParam.j = id_res[0];
+                myUserParam.buffer = buffer;
+                System.err.println("chapter04.myCallback02: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
+            }
+        };
+        final int buffer1 = 1;
+        final int buffer2 = 2;
+        final int buffer3 = 3;
+        final AlBufferCallback0Key buffer1Key = new AlBufferCallback0Key(buffer1);
+        final AlBufferCallback0Key buffer2Key = new AlBufferCallback0Key(buffer2);
+        final AlBufferCallback0Key buffer3Key = new AlBufferCallback0Key(buffer3);
+        final MyUserParam02 myUserParam01 = new MyUserParam02( 1);
+        final MyUserParam02 myUserParam02 = new MyUserParam02( 2);
+        Assert.assertEquals( 1, myUserParam01.i);
+        Assert.assertEquals( 0, myUserParam01.j);
+        Assert.assertEquals( 0, myUserParam01.buffer);
+        Assert.assertEquals( 2, myUserParam02.i);
+        Assert.assertEquals( 0, myUserParam02.j);
+        Assert.assertEquals( 0, myUserParam02.buffer);
+
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(0,     bt2.getAlBufferCallback0Keys().size());
+
+        // 1st mapping: buffer1 -> myCallback01, myUserParam01
+        bt2.alBufferCallback0(buffer1, 0, 0, myCallback01, myUserParam01);
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(1,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
+
+        // 2nd mapping: buffer2 -> myCallback02, myUserParam02
+        bt2.alBufferCallback0(buffer2, 0, 0, myCallback02, myUserParam02);
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(myCallback02,  bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(2,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(true,  keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
+
+        {
+            bt2.alBufferCallback0Inject(buffer1, 10, 100); // buffer1 -> myCallback01, myUserParam01
+            Assert.assertEquals(10+100+1, id_res[0]);
+            Assert.assertEquals(       1, myUserParam01.i);
+            Assert.assertEquals(10+100+1, myUserParam01.j);
+            Assert.assertEquals(       1, myUserParam01.buffer);
+            Assert.assertEquals(       2, myUserParam02.i);
+            Assert.assertEquals(       0, myUserParam02.j);
+            Assert.assertEquals(       0, myUserParam02.buffer);
+        }
+        {
+            bt2.alBufferCallback0Inject(buffer2, 10, 100); // buffer2 -> myCallback02, myUserParam02
+            Assert.assertEquals(10*100+2, id_res[0]);
+            Assert.assertEquals(       1, myUserParam01.i);
+            Assert.assertEquals(10+100+1, myUserParam01.j);
+            Assert.assertEquals(       1, myUserParam01.buffer);
+            Assert.assertEquals(       2, myUserParam02.i);
+            Assert.assertEquals(10*100+2, myUserParam02.j);
+            Assert.assertEquals(       2, myUserParam02.buffer);
+        }
+
+        // Just release the buffer2 callback and mapped resources
+        bt2.releaseAlBufferCallback0(buffer2Key);
+        // bt2.alBufferCallback0(buffer2, 0, 0, null, myUserParam02); // usrptr is not key, only buffer is key!
+        Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(1,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(true,  keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
+
+        // Just release the buffer1 callback and mapped resources
+        bt2.releaseAlBufferCallback0(buffer1Key);
+        // bt2.alBufferCallback0(buffer1, 0, 0, null, null); // usrptr is not key, only buffer is key!
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+        Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer1Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+        Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        Assert.assertEquals(0,             bt2.getAlBufferCallback0Keys().size());
+        {
+            final Set<AlBufferCallback0Key> keys = bt2.getAlBufferCallback0Keys();
+            Assert.assertEquals(false, keys.contains(buffer1Key));
+            Assert.assertEquals(false, keys.contains(buffer2Key));
+            Assert.assertEquals(false, keys.contains(buffer3Key));
+        }
+
+        if( false ){
+            bt2.alBufferCallback0Inject(buffer2,  1,  10); // unmapped, no change in data
+            Assert.assertEquals( 1+ 10+2, id_res[0]);
+            Assert.assertEquals(       1, myUserParam01.i);
+            Assert.assertEquals(11+101+1, myUserParam01.j);
+            Assert.assertEquals(       1, myUserParam01.buffer);
+            Assert.assertEquals(       2, myUserParam02.i);
+            Assert.assertEquals( 1+ 10+2, myUserParam02.j);
+            Assert.assertEquals(       2, myUserParam02.buffer);
         }
     }
 

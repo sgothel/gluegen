@@ -1994,6 +1994,10 @@ Definition</h4>
 <p>If no keys are defined via <code>JavaCallbackKey</code>, or manually
 injected using a custom <code>SetCallback-KeyClass</code>, see below,
 the <code>CallbackFunction</code> has global scope.</p>
+<p>In case keys are defined via <code>JavaCallbackKey</code> and no
+manually injected custom <code>SetCallback-KeyClass</code> used, a
+public <code>SetCallback-KeyClass</code> is being generated covering the
+defined keys.</p>
 <p>Keys allow to limit the scope, i.e. map multiple
 <code>CallbackFunction</code> to the different keys.</p>
 <p>Key arguments must match in <code>SetCallbackFunction</code> to
@@ -2008,18 +2012,62 @@ callback scope, i.e. the callback and all resources will be mapped to
 this key. The optional <code>SetCallback-KeyClass</code> may override
 this semantic.</li>
 </ul>
-<p>Beside generating the actual function mapping of the API, additional
-query methods are generated, passing the keys as its paramters</p>
+<h4
+id="javacallback-generated-interfaces-classes-and-methods"><em>JavaCallback</em>
+Generated Interfaces, Classes and Methods</h4>
+<p>The public <code>CallbackFunction</code> interface is generated.</p>
+<p>The default public <code>SetCallback-KeyClass</code> is generated if
+keys are used and no custom class is specified, see above.</p>
+<p>The public toolkit API <code>SetCallbackFunction</code> method is
+being generated.</p>
+<p>Additional public <em>maintenance</em> methods are generated. In case
+keys are being used, they expect <code>SetCallback-KeyClass</code> as an
+argument, otherwise they expect no argument for global scope.</p>
+<p>In case keys are defined and hence <code>SetCallback-KeyClass</code>
+used, the additional <em>maintenance</em> methods are:</p>
 <ul>
-<li><code>boolean is&lt;SetCallbackFunctionName&gt;Mapped((key-arg)*)</code>
-queries whether <code>SetCallbackFunctionName</code> is mapped.</li>
-<li><code>ALBUFFERCALLBACKTYPESOFT get&lt;SetCallbackFunctionName&gt;((key-arg)*)</code>
+<li><em>Set&lt;<code>SetCallback-KeyClass</code>&gt;
+get<code>SetCallbackFunctionName</code>Keys()</em></li>
+<li><em>boolean
+is<code>SetCallbackFunctionName</code>Mapped(<code>SetCallback-KeyClass</code>)</em>
+queries whether <code>SetCallbackFunctionName</code> is mapped to
+key.</li>
+<li><em><code>CallbackFunction</code>
+get<code>SetCallbackFunctionName</code>(<code>SetCallback-KeyClass</code>)</em>
 returns the mapped <code>CallbackFunction</code>, null if not
 mapped</li>
-<li><code>Object get&lt;SetCallbackFunctionName&gt;UserParam((key-arg)*)</code>
+<li><em>Object
+get<code>SetCallbackFunctionName</code>UserParam(<code>SetCallback-KeyClass</code>)</em>
 returns the mapped <code>userParam</code> object, null if not
 mapped</li>
+<li><em>void
+release<code>SetCallbackFunctionName</code>(<code>SetCallback-KeyClass</code>)</em>
+releases the mapped <code>CallbackFunction</code> data set associated
+via <code>SetCallbackFunctionName</code>.</li>
+<li><em>int releaseAll<code>SetCallbackFunctionName</code>()</em>
+releases complete mapped <code>CallbackFunction</code> data set
+associated via <code>SetCallbackFunctionName</code>.</li>
 </ul>
+<p>In no keys are defined and hence global scope used, the additional
+<em>maintenance</em> methods are:</p>
+<ul>
+<li><em>boolean is<code>SetCallbackFunctionName</code>Mapped()</em>
+queries whether <code>SetCallbackFunctionName</code> is mapped.</li>
+<li><em><code>CallbackFunction</code>
+get<code>SetCallbackFunctionName</code>()</em> returns the mapped
+<code>CallbackFunction</code>, null if not mapped</li>
+<li><em>Object get<code>SetCallbackFunctionName</code>UserParam()</em>
+returns the mapped <code>userParam</code> object, null if not
+mapped</li>
+<li><em>void release<code>SetCallbackFunctionName</code>()</em> releases
+the mapped <code>CallbackFunction</code> data set associated via
+<code>SetCallbackFunctionName</code>.</li>
+</ul>
+<p>Note that the <em>release<code>SetCallbackFunctionName</code>(*)</em>
+and <em>releaseAll<code>SetCallbackFunctionName</code>()</em> methods
+are not the <em>proper toolkit API way</em> to remove the callback, try
+to use original <code>SetCallbackFunctionName</code> API method instead
+using a <code>null</code> <code>CallbackFunction</code> reference.</p>
 <h4 id="custom-setcallback-keyclass">Custom
 <code>SetCallback-KeyClass</code></h4>
 <p>The <code>SetCallback-KeyClass</code> is the optional user-written
@@ -2094,10 +2142,11 @@ ArgumentIsString InjectMessageCallback01 1
 #
 #   This callback has no keys defines, rendering it of global scope!
 #
-#   Explicit queries are generated, passing the keys as paramters
+#   Explicit maintenance methods are generated, passing the keys as paramters
 #   - `boolean isMessageCallback01Mapped()` queries whether `MessageCallback0` is mapped globally
 #   - `T2_CallbackFunc01 getMessageCallback01()` returns the global T2_CallbackFunc01, null if not mapped
 #   - `Object getMessageCallback01UserParam()` returns the global `usrParam` object, null if not mapped
+#   - `void releaseMessageCallback01()` releases callback data skipping toolkit API. Favor passing `null` callback ref to `MessageCallback01(..)`
 JavaCallbackDef  MessageCallback01 T2_CallbackFunc01 2</code></pre>
 <p>Note that <a
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
@@ -2121,34 +2170,20 @@ thread to the <code>JavaVM*</code> generating a new
   /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void MessageCallback01(T2_CallbackFunc01 cbFunc, void *  usrParam)&lt;/code&gt;&lt;br&gt;   */
   public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam);
 
+  /** Returns if callback is mapped for &lt;br&gt; &lt;code&gt;  public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam)&lt;/code&gt; **/
   public boolean isMessageCallback01Mapped();
+
+  /** Returns T2_CallbackFunc01 callback for &lt;br&gt; &lt;code&gt;  public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam)&lt;/code&gt; **/
   public T2_CallbackFunc01 getMessageCallback01();
+
+  /** Returns user-param for &lt;br&gt; &lt;code&gt;  public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam)&lt;/code&gt; **/
   public Object getMessageCallback01UserParam();
+
+  /** Releases callback data skipping toolkit API. Favor passing `null` callback ref to &lt;br&gt; &lt;code&gt;  public void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam)&lt;/code&gt; **/
+  public void releaseMessageCallback01();
 
   /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void InjectMessageCallback01(size_t id, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
   public void InjectMessageCallback01(long id, String msg);</code></pre>
-<p>Implementation utilizes the default <code>SetCallback-KeyClass</code>
-implementation for
-<code>void MessageCallback01(T2_CallbackFunc01 cbFunc, Object usrParam)</code>,
-which is key-less and hence minimalistic.</p>
-<pre><code>  private static class MessageCallback01Key {
-    MessageCallback01Key() {
-    }
-    @Override
-    public boolean equals(final Object o) {
-      if( this == o ) {
-        return true;
-      }
-      if( !(o instanceof MessageCallback01Key) ) {
-        return false;
-      }
-      return true;
-    }
-    @Override
-    public int hashCode() {
-      return 0;
-    }
-  }</code></pre>
 <h3 id="javacallback-example-2a-default-keyclass">JavaCallback Example
 2a (Default <em>KeyClass</em>)</h3>
 <p>This examples is derived from OpenAL's
@@ -2173,9 +2208,12 @@ buffer.</p>
   #   The `buffer` key allows setting one callback per buffer-name, compatible with the `AL_SOFT_callback_buffer` spec.
   # 
   #   Explicit queries are generated, passing the keys as paramters
-  #   - `boolean isAlBufferCallback0Mapped(int buffer)` queries whether `alBufferCallback0` is mapped to `buffer`.
-  #   - `ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(int buffer)` returns the `buffer` mapped ALEVENTPROCSOFT, null if not mapped
-  #   - `Object getAlBufferCallback0UserParam(int buffer)` returns the `buffer` mapped `userptr` object, null if not mapped
+  #   - `Set&lt;AlBufferCallback0Key&gt; getAlBufferCallback0Keys()` returns set of Key { int buffer }
+  #   - `boolean isAlBufferCallback0Mapped(AlBufferCallback0Key)` queries whether `alBufferCallback0` is mapped to `buffer`.
+  #   - `ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(AlBufferCallback0Key)` returns the `buffer` mapped ALEVENTPROCSOFT, null if not mapped
+  #   - `Object getAlBufferCallback0UserParam(AlBufferCallback0Key)` returns the `buffer` mapped `userptr` object, null if not mapped
+  #   - `void releaseAllAlBufferCallback0()` releases all callback data mapped via Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to `alBufferCallback0(..)`
+  #   - `void releaseAlBufferCallback0(AlBufferCallback0Key)` releases callback data mapped to Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to `alBufferCallback0(..)`
   JavaCallbackDef  alBufferCallback0 ALBUFFERCALLBACKTYPESOFT 1
   JavaCallbackKey  alBufferCallback0 0</code></pre>
 <p>leading to the following interface</p>
@@ -2186,23 +2224,11 @@ buffer.</p>
   }
   
   ...
-
-  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *  userptr)&lt;/code&gt;&lt;br&gt;   */
-  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr);
-
-  public boolean isAlBufferCallback0Mapped(int buffer);
-  public ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(int buffer);
-  public Object getAlBufferCallback0UserParam(int buffer);
-
-  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void alEventCallbackInject(int eventType, int object, int param, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
-  public void alEventCallbackInject(int eventType, int object, int param, String msg);  </code></pre>
-<p>Implementation utilizes the default <code>SetCallback-KeyClass</code>
-implementation for
-<code>void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code>,
-which uses one key, i.e. <code>buffer</code>.</p>
-<pre><code>  private static class AlBufferCallback0Key {
-    private final int buffer;
-    AlBufferCallback0Key(int buffer) {
+  
+  /** Key { int buffer } for &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public static class AlBufferCallback0Key {
+    public final int buffer;
+    public AlBufferCallback0Key(int buffer) {
       this.buffer = buffer;
     }
     @Override
@@ -2222,7 +2248,33 @@ which uses one key, i.e. <code>buffer</code>.</p>
       int hash = buffer;
       return hash;
     }
-  }</code></pre>
+  }
+   
+  ...
+
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *  userptr)&lt;/code&gt;&lt;br&gt;   */
+  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr);
+
+  /** Returns set of Key { int buffer } for &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public Set&lt;AlBufferCallback0Key&gt; getAlBufferCallback0Keys();
+
+  /** Returns whether callback Key { int buffer } is mapped for &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public boolean isAlBufferCallback0Mapped(AlBufferCallback0Key key);
+
+  /** Returns ALBUFFERCALLBACKTYPESOFT callback mapped to Key { int buffer } for &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(AlBufferCallback0Key key);
+
+  /** Returns user-param mapped to Key { int buffer } for &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public Object getAlBufferCallback0UserParam(AlBufferCallback0Key key);
+
+  /** Releases all callback data mapped via Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public int releaseAllAlBufferCallback0();
+
+  /** Releases callback data mapped to Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to &lt;br&gt; &lt;code&gt;  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)&lt;/code&gt; **/
+  public void releaseAlBufferCallback0(AlBufferCallback0Key key);
+
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void alEventCallbackInject(int eventType, int object, int param, const char *  msg)&lt;/code&gt;&lt;br&gt;   */
+  public void alEventCallbackInject(int eventType, int object, int param, String msg);  </code></pre>
 <h3 id="javacallback-example-2b-custom-keyclass">JavaCallback Example 2b
 (Custom <em>KeyClass</em>)</h3>
 <p>Same as example 2a, but implementing a custom
