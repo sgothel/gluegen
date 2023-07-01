@@ -620,10 +620,13 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
             unit.emitln("  }");
             unit.emitln("  private final void add"+capIfaceName+"Map("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, true).toString()+UsrParamClassName+" value) {");
             unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
-            unit.emitln("    "+usrMapInstanceName+".put(key, value);");
+            unit.emitln("    final "+UsrParamClassName+" old = "+usrMapInstanceName+".put(key, value);");
             if( DEBUG_JAVACALLBACK ) {
                 unit.emitln("    System.err.println(\"ZZZ Map \"+key+\" -> value.nativeParam 0x\"+Long.toHexString(null!=value?value.nativeParam:0));");
             }
+            unit.emitln("    if( null != old ) {");
+            unit.emitln("      release"+capIfaceName+"MapImpl(old.nativeParam);");
+            unit.emitln("    }");
             unit.emitln("  }");
             unit.emitln("  private final void release"+capIfaceName+"Map("+binding.getJavaSelectParameter(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+") {");
             unit.emitln("    final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
@@ -768,7 +771,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         final String usrMapInstanceName = lowIfaceName+"UsrMap";
         unit.emitln("    synchronized( "+usrMapInstanceName+" ) {");
         unit.emitln("      final long[] nativeUserParam = { 0 };");
-        unit.emitln("      release"+capIfaceName+"Map("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+"); // Ensure a previously mapped instance is released");
         unit.emitln();
     }
     if (!returnType.isVoid()) {
@@ -810,8 +812,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         }
         unit.emitln();
         unit.emitln("      if( 0 != nativeUserParam[0] ) {");
+        unit.emitln("          // callback registrated -> add will release a previously mapped instance ");
         unit.emitln("          add"+capIfaceName+"Map("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, true).toString()+
                                                       "new "+UsrParamClassName+"("+funcArgName+", "+userParamArgName+", nativeUserParam[0]));");
+        unit.emitln("      } else {");
+        unit.emitln("          // callback released (null func) -> release a previously mapped instance ");
+        unit.emitln("          release"+capIfaceName+"Map("+binding.getJavaCallSelectArguments(new StringBuilder(), javaCallback.setFuncKeyIndices, false).toString()+");");
         unit.emitln("      }");
         unit.emitln("    } // synchronized ");
     }
