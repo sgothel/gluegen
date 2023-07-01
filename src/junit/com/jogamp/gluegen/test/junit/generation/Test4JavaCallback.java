@@ -735,16 +735,24 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(false, keys.contains(buffer3Key));
         }
 
-        if( false ){
-            bt2.alBufferCallback0Inject(buffer2,  1,  10); // unmapped, no change in data
-            Assert.assertEquals( 1+ 10+2, id_res[0]);
-            Assert.assertEquals(       1, myUserParam01.i);
-            Assert.assertEquals(11+101+1, myUserParam01.j);
-            Assert.assertEquals(       1, myUserParam01.buffer);
-            Assert.assertEquals(       2, myUserParam02.i);
-            Assert.assertEquals( 1+ 10+2, myUserParam02.j);
-            Assert.assertEquals(       2, myUserParam02.buffer);
-        }
+        // The native callback is still registered,
+        // we 'just' pulled the resource via release*()!
+        //
+        // So we no only test no-change in data
+        // but also whether the native callback handles this case well,
+        // i.e. detects the released data-resource and *NOT* issuing the java callback.
+        // The latter would end up in a SIGSEGV otherwise!
+        //
+        // Note: After successfully checking a correct jobject reference,
+        // the native callback also enters and leaves the monitor (Object sync/lock).
+        bt2.alBufferCallback0Inject(buffer2,  1,  10);
+        Assert.assertEquals(10*100+2, id_res[0]);
+        Assert.assertEquals(       1, myUserParam01.i);
+        Assert.assertEquals(10+100+1, myUserParam01.j);
+        Assert.assertEquals(       1, myUserParam01.buffer);
+        Assert.assertEquals(       2, myUserParam02.i);
+        Assert.assertEquals(10*100+2, myUserParam02.j);
+        Assert.assertEquals(       2, myUserParam02.buffer);
     }
 
     public static class CustomAlBufferCallback1Key {

@@ -421,7 +421,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         if (needComma) {
             unit.emit(", ");
         }
-        unit.emit("String callbackSignature, long[/*1*/] nativeUserParam");
+        unit.emit("String callbackSignature, Object lockObj, long[/*1*/] nativeUserParam");
         ++numEmitted;
     }
     return numEmitted;
@@ -1095,10 +1095,12 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
       ++numArgsEmitted;
     }
     if( null != javaCallback ) {
+        final String lowIfaceName = CodeGenUtils.decapitalizeString( getInterfaceName() );
+        final String lockInstanceName = lowIfaceName+"Lock";
         if (needComma) {
             unit.emit(", ");
         }
-        unit.emit("\"" + javaCallback.cbMethodSignature + "\", nativeUserParam");
+        unit.emit("\"" + javaCallback.cbMethodSignature + "\", "+lockInstanceName+", nativeUserParam");
         ++numArgsEmitted;
     }
     return numArgsEmitted;

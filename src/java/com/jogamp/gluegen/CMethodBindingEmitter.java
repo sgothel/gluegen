@@ -330,17 +330,20 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   protected void emitReturnType()  {
     if( null != javaCallback ) {
         LOG.log(INFO, "BindCFunc.R.JavaCallback: {0}: {1}", binding.getName(), javaCallback);
+        final String staticCallbackName = "func"+jcbNativeBasename;
+        final Type userParamType = javaCallback.cbFuncBinding.getCArgumentType(javaCallback.cbFuncUserParamIdx);
         final String userParamArgName = javaCallback.cbFuncBinding.getArgumentName(javaCallback.cbFuncUserParamIdx);
         final Type cReturnType = javaCallback.cbFuncBinding.getCReturnType();
         final JavaType jretType = javaCallback.cbFuncBinding.getJavaReturnType();
         unit.emitln("typedef struct {");
+        unit.emitln("  jobject lockObj;");
         unit.emitln("  jobject cbFunc;");
         unit.emitln("  jmethodID cbMethodID;");
         unit.emitln("  jobject userParam;");
         unit.emitln("} T_"+jcbNativeBasename+";");
         unit.emitln();
         // javaCallback.cbFuncCEmitter.emitSignature();
-        unit.emit("static "+cReturnType.getCName()+" func"+jcbNativeBasename+"(");
+        unit.emit("static "+cReturnType.getCName()+" "+staticCallbackName+"(");
         // javaCallback.cbFuncCEmitter.emitArguments();
         unit.emit(javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
         unit.emitln(") {");
@@ -364,22 +367,49 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             unit.emitln("  // C Params: "+javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
             unit.emitln("  // J Params: "+javaCallback.cbFuncBinding.getJavaParameterList(new StringBuilder()).toString());
 
+            final String returnStatement;
             if( !cReturnType.isVoid() ) {
-                unit.emit("  "+cReturnType.getCName()+" _res = ("+cReturnType.getCName()+") ");
+                unit.emit("  "+cReturnType.getCName()+" _res = 0;");
+                returnStatement = "return _res;";
+            } else {
+                returnStatement = "return;";
+            }
+            unit.emitln("  if( NULL == cb ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': NULL "+userParamArgName+", skipping!\\n\"); "+returnStatement+" }");
+            unit.emitln("  T_"+jcbNativeBasename+" cb2 = *cb; // use a copy to avoid data-race between GetObjectRefType() and MonitorEnter()");
+            unit.emitln();
+            unit.emitln("  jobjectRefType refType = (*env)->GetObjectRefType(env, cb2.lockObj);");
+            unit.emitln("  if( 0 == refType ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': User after free(lock), skipping!\\n\"); "+returnStatement+" }");
+            unit.emitln("  jint lockRes = (*env)->MonitorEnter(env, cb2.lockObj);");
+            unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorEnter failed %d, skipping!\\n\", lockRes); "+returnStatement+" }");
+            unit.emitln("  // synchronized block");
+            /**
+             * Since we have acquired the lock, in-sync w/ our Java code, cb2.cbFunc and cb2.userParam could not have been changed!
+             *
+            unit.emitln("  refType = (*env)->GetObjectRefType(env, cb2.userParam);");
+            unit.emitln("  if( 0 == refType ) {");
+            unit.emitln("    fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': User after free(userParam), skipping!\\n\");");
+            unit.emitln("    lockRes = (*env)->MonitorExit(env, cb2.lockObj);");
+            unit.emitln("    if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorExit failed %d\\n\", lockRes); }");
+            unit.emitln("    "+returnStatement);
+            unit.emitln("  }");
+            */
+            if( !cReturnType.isVoid() ) {
+                unit.emit("  _res = ("+cReturnType.getCName()+") ");
             } else {
                 unit.emit("  ");
             }
-            unit.emit("(*env)->Call" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cb->cbFunc, cb->cbMethodID, ");
+            unit.emit("(*env)->Call" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cb2.cbFunc, cb2.cbMethodID, ");
             // javaCallback.cbFuncCEmitter.emitBodyPassCArguments();
-            jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback, "cb->userParam");
+            jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback, "cb2.userParam");
             unit.emitln(");");
 
             // javaCallback.cbFuncCEmitter.emitBodyUserVariableAssignments();
             // javaCallback.cbFuncCEmitter.emitBodyVariablePostCallCleanup();
             // javaCallback.cbFuncCEmitter.emitBodyMapCToJNIType(-1 /* return value */, true /* addLocalVar */)
-            if( !cReturnType.isVoid() ) {
-                unit.emitln("  return _res;");
-            }
+
+            unit.emitln("  lockRes = (*env)->MonitorExit(env, cb2.lockObj);");
+            unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorExit failed %d\\n\", lockRes); }");
+            unit.emitln("  "+returnStatement);
         }
         unit.emitln("}");
         unit.emitln();
@@ -495,7 +525,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     final JavaCallbackInfo jcb = this.javaCallback;
     if( null != jcb ) {
         LOG.log(INFO, "BindCFunc.A.JavaCallback: {0}: {1}", binding.getName(), jcb);
-        unit.emit(", jstring jcallbackSignature, jlongArray jnativeUserParam");
+        unit.emit(", jstring jcallbackSignature, jobject jlockObj, jlongArray jnativeUserParam");
         numEmitted+=2;
     } else {
         LOG.log(INFO, "BindCFunc.JavaCallback: {0}: NONE", binding.getName());
@@ -522,7 +552,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("  // JavaCallback handling");
         unit.emitln("  "+jcb.cbFuncTypeName+" "+nativeCBFuncVarName+";");
         unit.emitln("  T_"+jcbNativeBasename+"* "+nativeUserParamVarName+";");
-        // unit.emit(", jstring jcallbackSignature, jlongArray jnativeUserParam");
+        // unit.emit(", jstring jcallbackSignature, jobject jlockObj, jlongArray jnativeUserParam");
+        unit.emitln("  if( NULL == jlockObj ) { (*env)->FatalError(env, \"Null jlockObj in '"+jcbNativeBasename+"'\"); }");
         unit.emitln("  if( NULL == jnativeUserParam ) { (*env)->FatalError(env, \"Null jnativeUserParam in '"+jcbNativeBasename+"'\"); }");
         unit.emitln("  const size_t jnativeUserParam_size = (*env)->GetArrayLength(env, jnativeUserParam);");
         unit.emitln("  if( 1 > jnativeUserParam_size ) { (*env)->FatalError(env, \"nativeUserParam size < 1 in '"+jcbNativeBasename+"'\"); }");
@@ -530,6 +561,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("    if( NULL == "+userParamArgName+" ) { (*env)->FatalError(env, \"Null "+userParamArgName+" in '"+jcbNativeBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+" = (T_"+jcbNativeBasename+"*) calloc(1, sizeof(T_"+jcbNativeBasename+"));");
         unit.emitln("    if( NULL == "+nativeUserParamVarName+" ) { (*env)->FatalError(env, \"Can't alloc "+nativeUserParamVarName+" in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("    "+nativeUserParamVarName+"->lockObj = (*env)->NewGlobalRef(env, jlockObj);");
+        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->lockObj ) { (*env)->FatalError(env, \"Failed NewGlobalRef(lock) in '"+jcbNativeBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+"->cbFunc = (*env)->NewGlobalRef(env, "+cbFuncArgName+");");
         unit.emitln("    if( NULL == "+nativeUserParamVarName+"->cbFunc ) { (*env)->FatalError(env, \"Failed NewGlobalRef(func) in '"+jcbNativeBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+"->userParam = (*env)->NewGlobalRef(env, "+userParamArgName+");");
@@ -570,8 +603,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("JNIEXPORT void JNICALL");
         unit.emit(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
         unit.emitln("_release"+capIfaceName+"Impl(JNIEnv *env, jobject _unused, jlong jnativeUserParam) {");
+        unit.emitln("  // already locked");
         unit.emitln("  T_"+jcbNativeBasename+"* nativeUserParam = (T_"+jcbNativeBasename+"*) (intptr_t) jnativeUserParam;");
         unit.emitln("  if( NULL != nativeUserParam ) {");
+        unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->lockObj);");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->cbFunc);");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->userParam);");
         unit.emitln("    free(nativeUserParam);");
