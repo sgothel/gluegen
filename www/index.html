@@ -46,7 +46,20 @@
                         and allows using native libraries within your Java™ application.
                     </p>
                     <p>
-                        It reads ANSI C header files
+                        GlueGen also provides a comprehensive <a href="../../deployment/jogamp-next/javadoc/gluegen/javadoc/">runtime library</a> offering 
+                        <ul>
+                          <li>Support for multi-arch and java code fat-jar deployment</li>
+                          <ul>
+                              <li>Native library including JNI bundle handling and Jar file cache</li>
+                              <li>Platform architecture information retrieval, ELF parser, alignment etc</li>
+                          </ul>
+                          <li>Enhanced NIO buffer handling for pointer, arrays, DMA mapping etc</li>
+                          <li>Network Uri RFC 2396, connection and resource handler to simplify asset loading</li>
+                          <li>Bitstream, hash maps, ringbuffer, sha cumulator, reflection and threading utils</li>
+                          <li>Abstract AudioFormat and AudioSink interfaces, concurrent locks .. and more</li>
+                    </p>
+                    <p>
+                        GlueGen's compiler reads ANSI C header files
                         and separate configuration files which provide control over many
                         aspects of the glue code generation. GlueGen uses a complete ANSI C
                         parser and an internal representation (IR) capable of representing all
@@ -72,7 +85,7 @@
                         the AWT Native Interface (JAWT) back up to the Java programming language.
                     </p>
                     <p>
-                        Further, GlueGen supports generating `JNI_OnLoad(..)` for dynamic and `JNI_OnLoad_{LibraryBasename}(..)` for static libraries via <a href="../doc/GlueGen_Mapping.html#libraryonload-librarybasename-for-jni_onload-">`LibraryOnLoad LibraryBasename`</a>, which also provides `JVMUtil_GetJNIEnv(..)` to resolve the `JNIEnv*` as used by <a href="../doc/GlueGen_Mapping.html#java-callback-from-native-c-api-support">Java™ callback methods</a>.
+                        Further, GlueGen supports <a href="../doc/GlueGen_Mapping.html#libraryonload-librarybasename-for-jni_onload-">generating `JNI_OnLoad*(..)` for dynamic and static libraries</a>, also resolving off-thread `JNIEnv*` lookup.
                     </p>
                     <p>
                         GlueGen utilizes <a href="https://jogamp.org/cgit/jcpp.git/about/">JCPP</a>, migrated C preprocessor written in Java™.
