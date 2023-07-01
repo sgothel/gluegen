@@ -772,6 +772,31 @@ public class Test4JavaCallback extends BaseClass {
             return "CustomALKey[this "+toHexString(System.identityHashCode(this))+", buffer "+buffer+"]";
         }
     }
+
+    public static class CustomMessageCallback11Key {
+        public CustomMessageCallback11Key() {
+        }
+        @Override
+        public boolean equals(final Object o) {
+            if( this == o ) {
+                return true;
+            }
+            if( !(o instanceof CustomAlBufferCallback1Key) ) {
+                return false;
+            }
+            final CustomAlBufferCallback1Key o2 = (CustomAlBufferCallback1Key)o;
+            return true;
+        }
+        @Override
+        public int hashCode() {
+            return 0;
+        }
+        @Override
+        public String toString() {
+            return "CustomMessageCallback11Key[this "+toHexString(System.identityHashCode(this))+"]";
+        }
+    }
+
     static private String toHexString(final int v) { return "0x"+Integer.toHexString(v); }
 
     public static void main(final String args[]) throws IOException {

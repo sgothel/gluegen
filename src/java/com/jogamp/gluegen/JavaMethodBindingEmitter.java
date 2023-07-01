@@ -600,15 +600,17 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         final String lockInstanceName = lowIfaceName+"Lock";
         final String dataMapInstanceName = lowIfaceName+"DataMap";
         final String dataInstanceName = lowIfaceName+"Data";
-        final boolean useDataMap = javaCallback.setFuncKeyIndices.size() > 0;
         final boolean customKeyClass;
         final String KeyClassName;
+        final boolean useDataMap;
         if( null != javaCallback.setFuncKeyClassName ) {
             customKeyClass = true;;
             KeyClassName = javaCallback.setFuncKeyClassName;
+            useDataMap = true;
         } else {
             customKeyClass = false;
             KeyClassName = CodeGenUtils.capitalizeString(capIfaceName+"Key");
+            useDataMap = javaCallback.setFuncKeyIndices.size() > 0;
         }
         final String DataClassName = CodeGenUtils.capitalizeString( javaCallback.cbFuncTypeName+"Data" );
         final String fqUsrParamClassName = cfg.packageName()+"."+cfg.className()+"."+DataClassName;
@@ -943,12 +945,14 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         final String funcArgName = binding.getArgumentName(javaCallback.setFuncCBParamIdx);
         final String userParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
         final String DataClassName = CodeGenUtils.capitalizeString( javaCallback.cbFuncTypeName+"Data" );
-        final boolean useDataMap = javaCallback.setFuncKeyIndices.size() > 0;
         final String KeyClassName;
+        final boolean useDataMap;
         if( null != javaCallback.setFuncKeyClassName ) {
             KeyClassName = javaCallback.setFuncKeyClassName;
+            useDataMap = true;
         } else {
             KeyClassName = CodeGenUtils.capitalizeString(capIfaceName+"Key");
+            useDataMap = javaCallback.setFuncKeyIndices.size() > 0;
         }
         if( DEBUG_JAVACALLBACK ) {
             unit.emitln("    System.err.println(\"ZZZ returned nativeUserParam 0x\"+Long.toHexString(nativeUserParam[0]));");

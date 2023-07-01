@@ -1991,9 +1991,9 @@ specify the same key arguments when setting and removing the
 ``CallbackFunction`.</p>
 <h4 id="javacallback-key-definition"><em>JavaCallback</em> Key
 Definition</h4>
-<p>If no keys are defined via <code>JavaCallbackKey</code>, or manually
-injected using a custom <code>SetCallback-KeyClass</code>, see below,
-the <code>CallbackFunction</code> has global scope.</p>
+<p>If no keys are defined via <code>JavaCallbackKey</code> or not
+manually injected using a custom <code>SetCallback-KeyClass</code>, see
+below, the <code>CallbackFunction</code> has global scope.</p>
 <p>In case keys are defined via <code>JavaCallbackKey</code> and no
 manually injected custom <code>SetCallback-KeyClass</code> used, a
 public <code>SetCallback-KeyClass</code> is being generated covering the
@@ -2023,8 +2023,8 @@ being generated.</p>
 <p>Additional public <em>maintenance</em> methods are generated. In case
 keys are being used, they expect <code>SetCallback-KeyClass</code> as an
 argument, otherwise they expect no argument for global scope.</p>
-<p>In case keys are defined and hence <code>SetCallback-KeyClass</code>
-used, the additional <em>maintenance</em> methods are:</p>
+<p>In case a <code>SetCallback-KeyClass</code> is used, the additional
+<em>maintenance</em> methods are:</p>
 <ul>
 <li><em>Set&lt;<code>SetCallback-KeyClass</code>&gt;
 get<code>SetCallbackFunctionName</code>Keys()</em></li>
@@ -2048,7 +2048,7 @@ via <code>SetCallbackFunctionName</code>.</li>
 releases complete mapped <code>CallbackFunction</code> data set
 associated via <code>SetCallbackFunctionName</code>.</li>
 </ul>
-<p>In no keys are defined and hence global scope used, the additional
+<p>If no <code>SetCallback-KeyClass</code> is used, the additional
 <em>maintenance</em> methods are:</p>
 <ul>
 <li><em>boolean is<code>SetCallbackFunctionName</code>Mapped()</em>

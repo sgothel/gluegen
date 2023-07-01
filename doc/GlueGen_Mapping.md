@@ -797,7 +797,7 @@ If mapping the `CallbackFunction` to keys, the user must specify the same key ar
 
 #### *JavaCallback* Key Definition
 
-If no keys are defined via `JavaCallbackKey`, or manually injected using a custom `SetCallback-KeyClass`, see below,
+If no keys are defined via `JavaCallbackKey` or not manually injected using a custom `SetCallback-KeyClass`, see below,
 the `CallbackFunction` has global scope.
 
 In case keys are defined via `JavaCallbackKey` and no manually injected custom `SetCallback-KeyClass` used, 
@@ -821,7 +821,7 @@ The public toolkit API `SetCallbackFunction` method is being generated.
 
 Additional public *maintenance* methods are generated. In case keys are being used, they expect `SetCallback-KeyClass` as an argument, otherwise they expect no argument for global scope.
 
-In case keys are defined and hence `SetCallback-KeyClass` used, the additional *maintenance* methods are:
+In case a `SetCallback-KeyClass` is used, the additional *maintenance* methods are:
 - *Set<`SetCallback-KeyClass`> get`SetCallbackFunctionName`Keys()*
 - *boolean is`SetCallbackFunctionName`Mapped(`SetCallback-KeyClass`)* queries whether `SetCallbackFunctionName` is mapped to key.
 - *`CallbackFunction` get`SetCallbackFunctionName`(`SetCallback-KeyClass`)* returns the mapped `CallbackFunction`, null if not mapped
@@ -829,7 +829,7 @@ In case keys are defined and hence `SetCallback-KeyClass` used, the additional *
 - *void release`SetCallbackFunctionName`(`SetCallback-KeyClass`)* releases the mapped `CallbackFunction` data set associated via `SetCallbackFunctionName`.
 - *int releaseAll`SetCallbackFunctionName`()* releases complete mapped `CallbackFunction` data set associated via `SetCallbackFunctionName`.
 
-In no keys are defined and hence global scope used, the additional *maintenance* methods are:
+If no `SetCallback-KeyClass` is used, the additional *maintenance* methods are:
 - *boolean is`SetCallbackFunctionName`Mapped()* queries whether `SetCallbackFunctionName` is mapped.
 - *`CallbackFunction` get`SetCallbackFunctionName`()* returns the mapped `CallbackFunction`, null if not mapped
 - *Object get`SetCallbackFunctionName`UserParam()* returns the mapped `userParam` object, null if not mapped
