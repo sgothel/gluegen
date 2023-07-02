@@ -378,20 +378,20 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             unit.emitln();
             unit.emitln("  // Use-after-free of '*cb' possible up until after GetObjectRefType() check for a brief moment!");
             unit.emitln("  // Use a copy to avoid data-race between GetObjectRefType() and MonitorEnter()\");");
-            unit.emitln("  T_"+jcbNativeBasename+" cb2 = *cb;");
+            unit.emitln("  jobject lockObj = cb->lockObj;");
             unit.emitln();
-            unit.emitln("  jobjectRefType refType = (*env)->GetObjectRefType(env, cb2.lockObj);");
+            unit.emitln("  jobjectRefType refType = (*env)->GetObjectRefType(env, lockObj);");
             unit.emitln("  if( 0 == refType ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': User after free(lock), skipping!\\n\"); "+returnStatement+" }");
-            unit.emitln("  jint lockRes = (*env)->MonitorEnter(env, cb2.lockObj);");
+            unit.emitln("  jint lockRes = (*env)->MonitorEnter(env, lockObj);");
             unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorEnter failed %d, skipping!\\n\", lockRes); "+returnStatement+" }");
             unit.emitln("  // synchronized block");
             /**
-             * Since we have acquired the lock, in-sync w/ our Java code, cb2.cbFunc and cb2.userParam could not have been changed!
+             * Since we have acquired the lock, in-sync w/ our Java code, cb->cbFunc and cb->userParam could not have been changed!
              *
-            unit.emitln("  refType = (*env)->GetObjectRefType(env, cb2.userParam);");
+            unit.emitln("  refType = (*env)->GetObjectRefType(env, cb->userParam);");
             unit.emitln("  if( 0 == refType ) {");
             unit.emitln("    fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': User after free(userParam), skipping!\\n\");");
-            unit.emitln("    lockRes = (*env)->MonitorExit(env, cb2.lockObj);");
+            unit.emitln("    lockRes = (*env)->MonitorExit(env, cb->lockObj);");
             unit.emitln("    if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorExit failed %d\\n\", lockRes); }");
             unit.emitln("    "+returnStatement);
             unit.emitln("  }");
@@ -401,16 +401,16 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             } else {
                 unit.emit("  ");
             }
-            unit.emit("(*env)->Call" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cb2.cbFunc, cb2.cbMethodID, ");
+            unit.emit("(*env)->Call" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cb->cbFunc, cb->cbMethodID, ");
             // javaCallback.cbFuncCEmitter.emitBodyPassCArguments();
-            jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback, "cb2.userParam");
+            jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback, "cb->userParam");
             unit.emitln(");");
 
             // javaCallback.cbFuncCEmitter.emitBodyUserVariableAssignments();
             // javaCallback.cbFuncCEmitter.emitBodyVariablePostCallCleanup();
             // javaCallback.cbFuncCEmitter.emitBodyMapCToJNIType(-1 /* return value */, true /* addLocalVar */)
 
-            unit.emitln("  lockRes = (*env)->MonitorExit(env, cb2.lockObj);");
+            unit.emitln("  lockRes = (*env)->MonitorExit(env, cb->lockObj);");
             unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorExit failed %d\\n\", lockRes); }");
             unit.emitln("  "+returnStatement);
         }
