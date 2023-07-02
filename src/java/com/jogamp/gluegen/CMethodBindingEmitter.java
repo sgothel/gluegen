@@ -375,7 +375,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                 returnStatement = "return;";
             }
             unit.emitln("  if( NULL == cb ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': NULL "+userParamArgName+", skipping!\\n\"); "+returnStatement+" }");
-            unit.emitln("  T_"+jcbNativeBasename+" cb2 = *cb; // use a copy to avoid data-race between GetObjectRefType() and MonitorEnter()");
+            unit.emitln();
+            unit.emitln("  // Use-after-free of '*cb' possible up until after GetObjectRefType() check for a brief moment!");
+            unit.emitln("  // Use a copy to avoid data-race between GetObjectRefType() and MonitorEnter()\");");
+            unit.emitln("  T_"+jcbNativeBasename+" cb2 = *cb;");
             unit.emitln();
             unit.emitln("  jobjectRefType refType = (*env)->GetObjectRefType(env, cb2.lockObj);");
             unit.emitln("  if( 0 == refType ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': User after free(lock), skipping!\\n\"); "+returnStatement+" }");
@@ -609,6 +612,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->lockObj);");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->cbFunc);");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->userParam);");
+        unit.emitln("    // Ensure even w/ use-after-free jobject refs are NULL and invalid to avoid accidental reuse.");
+        unit.emitln("    memset(nativeUserParam, 0, sizeof(T_"+jcbNativeBasename+"));");
         unit.emitln("    free(nativeUserParam);");
         unit.emitln("  }");
         unit.emitln("}");
