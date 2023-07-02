@@ -382,6 +382,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             unit.emitln("  // Use-after-free of '*cb' possible up until after GetObjectRefType() check for a brief moment!");
             unit.emitln("  // Use a copy to avoid data-race between GetObjectRefType() and MonitorEnter()\");");
             unit.emitln("  jobject lockObj = cb->lockObj;");
+            unit.emitln("  if( 0 == lockObj ) { fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': NULL lock, skipping!\\n\"); "+returnStatement+" }");
             unit.emitln();
             unit.emitln("  jobjectRefType refType = (*env)->GetObjectRefType(env, lockObj);");
             unit.emitln("  if( 0 == refType ) { fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': User after free(lock), skipping!\\n\"); "+returnStatement+" }");
