@@ -84,6 +84,11 @@ public class CCodeUnit extends CodeUnit {
         emitln( getJNIOnLoadJNIEnvCode(libraryBasename) );
     }
 
+    /** Emits {@link #JavaCallbackGlueDataDecl}. */
+    public void emitJavaCallbackGlueDataDecl() {
+        emitln( JavaCallbackGlueDataDecl );
+    }
+
     @Override
     public String toString() { return "CCodeUnit[unit "+cUnitName+", file "+filename+"]"; }
 
@@ -107,6 +112,16 @@ public class CCodeUnit extends CodeUnit {
         "    }\n"+
         "    return jbyteBuffer;\n"+
         "}\n";
+
+    /** JavaCallback Glue Data typedef struct */
+    public static final String JavaCallbackGlueDataDecl =
+        "typedef struct {\n"+
+        "  jobject lockObj;\n"+
+        "  jobject cbFunc;\n"+
+        "  jmethodID cbMethodID;\n"+
+        "  jobject userParam;\n"+
+        "} T_JavaCallbackGlueData;\n"+
+        "\n";
 
     /**
      * Returns native JNI declarations for `JavaVM* {libraryBasename}_jvmHandle`

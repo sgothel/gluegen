@@ -3019,6 +3019,9 @@ public class JavaEmitter implements GlueEmitter {
             LOG.log(WARNING, "JavaCallback used, but no 'LibraryOnLoad' basename specified for JNI_OnLoad(..). Exactly one native code-unit for the library must specify 'LibraryOnLoad' basename");
         }
         cUnit().emitHeader(cfg.libraryOnLoadName(), getImplPackageName(), cfg.implClassName(), cfg.customCCode());
+        if( cfg.getJavaCallbackList().size() > 0 ) {
+            cUnit().emitJavaCallbackGlueDataDecl();
+        }
       }
     } catch (final Exception e) {
       throw new RuntimeException(

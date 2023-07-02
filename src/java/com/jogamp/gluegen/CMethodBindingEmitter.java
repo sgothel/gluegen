@@ -113,6 +113,8 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
   protected static final String STRING_CHARS_PREFIX = "_strchars_";
 
+  protected static final String T_JavaCallbackGlueData = "T_JavaCallbackGlueData";
+
   // We need this in order to compute sizes of certain types
   protected MachineDataInfo machDesc;
 
@@ -338,12 +340,6 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         final String userParamArgName = javaCallback.cbFuncBinding.getArgumentName(javaCallback.cbFuncUserParamIdx);
         final Type cReturnType = javaCallback.cbFuncBinding.getCReturnType();
         final JavaType jretType = javaCallback.cbFuncBinding.getJavaReturnType();
-        unit.emitln("typedef struct {");
-        unit.emitln("  jobject lockObj;");
-        unit.emitln("  jobject cbFunc;");
-        unit.emitln("  jmethodID cbMethodID;");
-        unit.emitln("  jobject userParam;");
-        unit.emitln("} T_"+jcbNativeBasename+";");
         unit.emitln();
         // javaCallback.cbFuncCEmitter.emitSignature();
         unit.emit("static "+cReturnType.getCName()+" "+staticCallbackName+"(");
@@ -366,7 +362,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             jcbCMethodEmitter.emitJavaCallbackBodyCToJavaPreCall(javaCallback);
 
             // javaCallback.cbFuncCEmitter.emitBodyCallCFunction();
-            unit.emitln("  T_"+jcbNativeBasename+"* cb = (T_"+jcbNativeBasename+"*) "+userParamArgName+";");
+            unit.emitln("  "+T_JavaCallbackGlueData+"* cb = ("+T_JavaCallbackGlueData+"*) "+userParamArgName+";");
             unit.emitln("  // C Params: "+javaCallback.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
             unit.emitln("  // J Params: "+javaCallback.cbFuncBinding.getJavaParameterList(new StringBuilder()).toString());
 
@@ -563,7 +559,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln();
         unit.emitln("  // JavaCallback handling");
         unit.emitln("  "+jcb.cbFuncTypeName+" "+nativeCBFuncVarName+";");
-        unit.emitln("  T_"+jcbNativeBasename+"* "+nativeUserParamVarName+";");
+        unit.emitln("  "+T_JavaCallbackGlueData+"* "+nativeUserParamVarName+";");
         // unit.emit(", jstring jcallbackSignature, jobject jlockObj, jlongArray jnativeUserParam");
         unit.emitln("  if( NULL == jlockObj ) { (*env)->FatalError(env, \"Null jlockObj in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("  if( NULL == jnativeUserParam ) { (*env)->FatalError(env, \"Null jnativeUserParam in '"+jcbFriendlyBasename+"'\"); }");
@@ -571,7 +567,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("  if( 1 > jnativeUserParam_size ) { (*env)->FatalError(env, \"nativeUserParam size < 1 in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("  if( NULL != "+cbFuncArgName+" ) {");
         unit.emitln("    if( NULL == "+userParamArgName+" ) { (*env)->FatalError(env, \"Null "+userParamArgName+" in '"+jcbFriendlyBasename+"'\"); }");
-        unit.emitln("    "+nativeUserParamVarName+" = (T_"+jcbNativeBasename+"*) calloc(1, sizeof(T_"+jcbNativeBasename+"));");
+        unit.emitln("    "+nativeUserParamVarName+" = ("+T_JavaCallbackGlueData+"*) calloc(1, sizeof("+T_JavaCallbackGlueData+"));");
         unit.emitln("    if( NULL == "+nativeUserParamVarName+" ) { (*env)->FatalError(env, \"Can't alloc "+nativeUserParamVarName+" in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+"->lockObj = (*env)->NewGlobalRef(env, jlockObj);");
         unit.emitln("    if( NULL == "+nativeUserParamVarName+"->lockObj ) { (*env)->FatalError(env, \"Failed NewGlobalRef(lock) in '"+jcbFriendlyBasename+"'\"); }");
@@ -616,13 +612,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emit(JavaEmitter.getJNIMethodNamePrefix(getJavaPackageName(), getJavaClassName()));
         unit.emitln("_release"+capIfaceName+"Impl(JNIEnv *env, jobject _unused, jlong jnativeUserParam) {");
         unit.emitln("  // already locked");
-        unit.emitln("  T_"+jcbNativeBasename+"* nativeUserParam = (T_"+jcbNativeBasename+"*) (intptr_t) jnativeUserParam;");
+        unit.emitln("  "+T_JavaCallbackGlueData+"* nativeUserParam = ("+T_JavaCallbackGlueData+"*) (intptr_t) jnativeUserParam;");
         unit.emitln("  if( NULL != nativeUserParam ) {");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->lockObj);");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->cbFunc);");
         unit.emitln("    (*env)->DeleteGlobalRef(env, nativeUserParam->userParam);");
         unit.emitln("    // Ensure even w/ use-after-free jobject refs are NULL and invalid to avoid accidental reuse.");
-        unit.emitln("    memset(nativeUserParam, 0, sizeof(T_"+jcbNativeBasename+"));");
+        unit.emitln("    memset(nativeUserParam, 0, sizeof("+T_JavaCallbackGlueData+"));");
         unit.emitln("    free(nativeUserParam);");
         unit.emitln("  }");
         unit.emitln("}");
