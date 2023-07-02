@@ -118,6 +118,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
   private final JavaCallbackInfo javaCallback;
   private final String jcbNativeBasename;
+  private final String jcbFriendlyBasename;
   private final CMethodBindingEmitter jcbCMethodEmitter;
 
   /**
@@ -155,15 +156,16 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     javaCallback = cfg.setFuncToJavaCallbackMap.get(binding.getName());
     if( null != javaCallback ) {
         jcbNativeBasename = CodeGenUtils.capitalizeString( javaCallback.setFuncName+javaCallback.cbSimpleClazzName.replace("_", "") );
+        jcbFriendlyBasename = javaCallback.setFuncName+"("+javaCallback.cbSimpleClazzName+")";
         jcbCMethodEmitter = new CMethodBindingEmitter(javaCallback.cbFuncBinding,
                                                       unit, javaPackageName, javaClassName, isOverloadedBinding,
                                                       isJavaMethodStatic, forImplementingMethodCall,
                                                       forIndirectBufferAndArrayImplementation, machDesc, configuration);
     } else {
         jcbNativeBasename = null;
+        jcbFriendlyBasename = null;
         jcbCMethodEmitter = null;
     }
-
     setCommentEmitter(defaultCommentEmitter);
   }
 
@@ -331,6 +333,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     if( null != javaCallback ) {
         LOG.log(INFO, "BindCFunc.R.JavaCallback: {0}: {1}", binding.getName(), javaCallback);
         final String staticCallbackName = "func"+jcbNativeBasename;
+
         final Type userParamType = javaCallback.cbFuncBinding.getCArgumentType(javaCallback.cbFuncUserParamIdx);
         final String userParamArgName = javaCallback.cbFuncBinding.getArgumentName(javaCallback.cbFuncUserParamIdx);
         final Type cReturnType = javaCallback.cbFuncBinding.getCReturnType();
@@ -374,16 +377,16 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             } else {
                 returnStatement = "return;";
             }
-            unit.emitln("  if( NULL == cb ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': NULL "+userParamArgName+", skipping!\\n\"); "+returnStatement+" }");
+            unit.emitln("  if( NULL == cb ) { fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': NULL "+userParamArgName+", skipping!\\n\"); "+returnStatement+" }");
             unit.emitln();
             unit.emitln("  // Use-after-free of '*cb' possible up until after GetObjectRefType() check for a brief moment!");
             unit.emitln("  // Use a copy to avoid data-race between GetObjectRefType() and MonitorEnter()\");");
             unit.emitln("  jobject lockObj = cb->lockObj;");
             unit.emitln();
             unit.emitln("  jobjectRefType refType = (*env)->GetObjectRefType(env, lockObj);");
-            unit.emitln("  if( 0 == refType ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': User after free(lock), skipping!\\n\"); "+returnStatement+" }");
+            unit.emitln("  if( 0 == refType ) { fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': User after free(lock), skipping!\\n\"); "+returnStatement+" }");
             unit.emitln("  jint lockRes = (*env)->MonitorEnter(env, lockObj);");
-            unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorEnter failed %d, skipping!\\n\", lockRes); "+returnStatement+" }");
+            unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': MonitorEnter failed %d, skipping!\\n\", lockRes); "+returnStatement+" }");
             unit.emitln("  // synchronized block");
             /**
              * Since we have acquired the lock, in-sync w/ our Java code, cb->cbFunc and cb->userParam could not have been changed!
@@ -411,7 +414,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // javaCallback.cbFuncCEmitter.emitBodyMapCToJNIType(-1 /* return value */, true /* addLocalVar */)
 
             unit.emitln("  lockRes = (*env)->MonitorExit(env, cb->lockObj);");
-            unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+staticCallbackName+"(..)': MonitorExit failed %d\\n\", lockRes); }");
+            unit.emitln("  if( 0 != lockRes ) { fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': MonitorExit failed %d\\n\", lockRes); }");
             unit.emitln("  "+returnStatement);
         }
         unit.emitln("}");
@@ -556,28 +559,28 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("  "+jcb.cbFuncTypeName+" "+nativeCBFuncVarName+";");
         unit.emitln("  T_"+jcbNativeBasename+"* "+nativeUserParamVarName+";");
         // unit.emit(", jstring jcallbackSignature, jobject jlockObj, jlongArray jnativeUserParam");
-        unit.emitln("  if( NULL == jlockObj ) { (*env)->FatalError(env, \"Null jlockObj in '"+jcbNativeBasename+"'\"); }");
-        unit.emitln("  if( NULL == jnativeUserParam ) { (*env)->FatalError(env, \"Null jnativeUserParam in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("  if( NULL == jlockObj ) { (*env)->FatalError(env, \"Null jlockObj in '"+jcbFriendlyBasename+"'\"); }");
+        unit.emitln("  if( NULL == jnativeUserParam ) { (*env)->FatalError(env, \"Null jnativeUserParam in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("  const size_t jnativeUserParam_size = (*env)->GetArrayLength(env, jnativeUserParam);");
-        unit.emitln("  if( 1 > jnativeUserParam_size ) { (*env)->FatalError(env, \"nativeUserParam size < 1 in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("  if( 1 > jnativeUserParam_size ) { (*env)->FatalError(env, \"nativeUserParam size < 1 in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("  if( NULL != "+cbFuncArgName+" ) {");
-        unit.emitln("    if( NULL == "+userParamArgName+" ) { (*env)->FatalError(env, \"Null "+userParamArgName+" in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("    if( NULL == "+userParamArgName+" ) { (*env)->FatalError(env, \"Null "+userParamArgName+" in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+" = (T_"+jcbNativeBasename+"*) calloc(1, sizeof(T_"+jcbNativeBasename+"));");
-        unit.emitln("    if( NULL == "+nativeUserParamVarName+" ) { (*env)->FatalError(env, \"Can't alloc "+nativeUserParamVarName+" in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("    if( NULL == "+nativeUserParamVarName+" ) { (*env)->FatalError(env, \"Can't alloc "+nativeUserParamVarName+" in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+"->lockObj = (*env)->NewGlobalRef(env, jlockObj);");
-        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->lockObj ) { (*env)->FatalError(env, \"Failed NewGlobalRef(lock) in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->lockObj ) { (*env)->FatalError(env, \"Failed NewGlobalRef(lock) in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+"->cbFunc = (*env)->NewGlobalRef(env, "+cbFuncArgName+");");
-        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->cbFunc ) { (*env)->FatalError(env, \"Failed NewGlobalRef(func) in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->cbFunc ) { (*env)->FatalError(env, \"Failed NewGlobalRef(func) in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    "+nativeUserParamVarName+"->userParam = (*env)->NewGlobalRef(env, "+userParamArgName+");");
-        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->userParam ) { (*env)->FatalError(env, \"Failed NewGlobalRef(userParam) in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("    if( NULL == "+nativeUserParamVarName+"->userParam ) { (*env)->FatalError(env, \"Failed NewGlobalRef(userParam) in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    {");
         unit.emitln("      jclass cbClazz = (*env)->GetObjectClass(env, "+nativeUserParamVarName+"->cbFunc);");
-        unit.emitln("      if( NULL == cbClazz ) { (*env)->FatalError(env, \"Failed GetObjectClass in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("      if( NULL == cbClazz ) { (*env)->FatalError(env, \"Failed GetObjectClass in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("      const char* callbackSignature = (*env)->GetStringUTFChars(env, jcallbackSignature, (jboolean*)NULL);");
-        unit.emitln("      if( NULL == callbackSignature ) { (*env)->FatalError(env, \"Failed callbackSignature in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("      if( NULL == callbackSignature ) { (*env)->FatalError(env, \"Failed callbackSignature in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("      "+nativeUserParamVarName+"->cbMethodID = (*env)->GetMethodID(env, cbClazz, \"callback\", callbackSignature);");
         unit.emitln("      (*env)->ReleaseStringUTFChars(env, jcallbackSignature, callbackSignature);");
-        unit.emitln("      if( NULL == "+nativeUserParamVarName+"->cbMethodID ) { (*env)->FatalError(env, \"Failed GetMethodID in '"+jcbNativeBasename+"'\"); }");
+        unit.emitln("      if( NULL == "+nativeUserParamVarName+"->cbMethodID ) { (*env)->FatalError(env, \"Failed GetMethodID in '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("    }");
         unit.emitln("    "+nativeCBFuncVarName+" = func"+jcbNativeBasename+";");
         unit.emitln("  } else {");
