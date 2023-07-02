@@ -1957,8 +1957,10 @@ public class JavaEmitter implements GlueEmitter {
       //
       if( ownElemCountHandling ) {
           if( constElemCount ) {
-              generateGetterSignature(unit, staticElemCount, false, fieldName, fieldType, ownership, "int", capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
-              unit.emitln(" { return "+elemCountExpr+"; }");
+              if( !( isPrimitive && !isPointer && staticElemCount && maxOneElement ) ) { // drop useless `static get*ElemCount() { return 1; }`
+                  generateGetterSignature(unit, staticElemCount, false, fieldName, fieldType, ownership, "int", capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
+                  unit.emitln(" { return "+elemCountExpr+"; }");
+              }
           } else if( useGetCStringLength ) {
               generateGetterSignature(unit, staticElemCount, false, fieldName, fieldType, ownership, "int", capitalFieldName+"ElemCount", null, constElemCount, maxOneElement, elemCountExpr, GetElemCountApiDocTail);
               unit.emitln(" {");
