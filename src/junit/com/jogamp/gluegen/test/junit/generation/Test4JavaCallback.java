@@ -272,7 +272,14 @@ public class Test4JavaCallback extends BaseClass {
         }
 
         {
-            bt2.alBufferCallback0Inject(buffer1, 10, 100); // buffer1 -> myCallback01, myUserParam01
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.alBufferCallback0Inject(buffer1, 10, 100); // buffer1 -> myCallback01, myUserParam01
+                }
+            });
+            thread.start();
+            thread.join();
             Assert.assertEquals(10+100+1, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
             Assert.assertEquals(10+100+1, myUserParam01.j);
@@ -315,7 +322,14 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(       2, myUserParam02.buffer);
         }
         {
-            bt2.alBufferCallback0Inject(buffer2,  1,  10); // buffer2 -> myCallback01, myUserParam02
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.alBufferCallback0Inject(buffer2,  1,  10); // buffer2 -> myCallback01, myUserParam02
+                }
+            });
+            thread.start();
+            thread.join();
             Assert.assertEquals( 1+ 10+2, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
             Assert.assertEquals(11+101+1, myUserParam01.j);
@@ -473,7 +487,14 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(       0, myUserParam02.buffer);
         }
         {
-            bt2.alBufferCallback1Inject(buffer2, 10, 100); // buffer2 -> myCallback02, myUserParam02
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.alBufferCallback1Inject(buffer2, 10, 100); // buffer2 -> myCallback02, myUserParam02
+                }
+            });
+            thread.start();
+            thread.join();
             Assert.assertEquals(10*100+2, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
             Assert.assertEquals(10+100+1, myUserParam01.j);
@@ -496,7 +517,14 @@ public class Test4JavaCallback extends BaseClass {
         Assert.assertEquals(null,          bt2.getAlBufferCallback1(buffer3Key));
 
         {
-            bt2.alBufferCallback1Inject(buffer1, 11, 101); // buffer1 -> myCallback01, myUserParam01
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.alBufferCallback1Inject(buffer1, 11, 101); // buffer1 -> myCallback01, myUserParam01
+                }
+            });
+            thread.start();
+            thread.join();
             Assert.assertEquals(11+101+1, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
             Assert.assertEquals(11+101+1, myUserParam01.j);
@@ -569,7 +597,8 @@ public class Test4JavaCallback extends BaseClass {
         final long i;
         long j;
         int buffer;
-        public MyUserParam02(final long i) { this.i = i; j=0; buffer=0; }
+        boolean throwPreAction, throwPostAction;
+        public MyUserParam02(final long i) { this.i = i; j=0; buffer=0; throwPreAction=false; throwPostAction=false; }
 
         @Override
         public boolean equals(final Object o) {
@@ -600,20 +629,36 @@ public class Test4JavaCallback extends BaseClass {
             @Override
             public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
                 final MyUserParam02 myUserParam = (MyUserParam02)userptr;
+                if( myUserParam.throwPreAction ) {
+                    myUserParam.throwPreAction = false;
+                    throw new RuntimeException("Exception test.pre: chapter04.myCallback01");
+                }
                 id_res[0] = sampledata + numbytes + myUserParam.i;
                 myUserParam.j = id_res[0];
                 myUserParam.buffer = buffer;
                 System.err.println("chapter04.myCallback01: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
+                if( myUserParam.throwPostAction ) {
+                    myUserParam.throwPostAction = false;
+                    throw new RuntimeException("Exception test.post: chapter04.myCallback01");
+                }
             }
         };
         final ALBUFFERCALLBACKTYPESOFT myCallback02 = new ALBUFFERCALLBACKTYPESOFT() {
             @Override
             public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
                 final MyUserParam02 myUserParam = (MyUserParam02)userptr;
+                if( myUserParam.throwPreAction ) {
+                    myUserParam.throwPreAction = false;
+                    throw new RuntimeException("Exception test.pre: chapter04.myCallback02");
+                }
                 id_res[0] = sampledata * numbytes + myUserParam.i;
                 myUserParam.j = id_res[0];
                 myUserParam.buffer = buffer;
                 System.err.println("chapter04.myCallback02: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
+                if( myUserParam.throwPostAction ) {
+                    myUserParam.throwPostAction = false;
+                    throw new RuntimeException("Exception test.post: chapter04.myCallback02");
+                }
             }
         };
         final int buffer1 = 1;
@@ -674,7 +719,11 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(false, keys.contains(buffer3Key));
         }
 
+        // Exception text post action, i.e. result as expected
+        // Continuous program flow
+        id_res[0] = -1;
         {
+            myUserParam01.throwPostAction = true;
             bt2.alBufferCallback0Inject(buffer1, 10, 100); // buffer1 -> myCallback01, myUserParam01
             Assert.assertEquals(10+100+1, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
@@ -685,8 +734,49 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(       0, myUserParam02.buffer);
         }
         {
-            bt2.alBufferCallback0Inject(buffer2, 10, 100); // buffer2 -> myCallback02, myUserParam02
+            myUserParam02.throwPostAction = true;
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.alBufferCallback0Inject(buffer2, 10, 100); // buffer2 -> myCallback02, myUserParam02
+                }
+            });
+            thread.start();
+            thread.join();
             Assert.assertEquals(10*100+2, id_res[0]);
+            Assert.assertEquals(       1, myUserParam01.i);
+            Assert.assertEquals(10+100+1, myUserParam01.j);
+            Assert.assertEquals(       1, myUserParam01.buffer);
+            Assert.assertEquals(       2, myUserParam02.i);
+            Assert.assertEquals(10*100+2, myUserParam02.j);
+            Assert.assertEquals(       2, myUserParam02.buffer);
+        }
+
+        // Exception text pre action, i.e. result NOT as expected (unchanged)
+        // Continuous program flow
+        id_res[0] = -1;
+        {
+            myUserParam01.throwPreAction = true;
+            bt2.alBufferCallback0Inject(buffer1, 20, 200); // buffer1 -> myCallback01, myUserParam01
+            Assert.assertEquals(      -1, id_res[0]);
+            Assert.assertEquals(       1, myUserParam01.i);
+            Assert.assertEquals(10+100+1, myUserParam01.j);
+            Assert.assertEquals(       1, myUserParam01.buffer);
+            Assert.assertEquals(       2, myUserParam02.i);
+            Assert.assertEquals(10*100+2, myUserParam02.j);
+            Assert.assertEquals(       2, myUserParam02.buffer);
+        }
+        {
+            myUserParam02.throwPreAction = true;
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.alBufferCallback0Inject(buffer2, 20, 200); // buffer2 -> myCallback02, myUserParam02
+                }
+            });
+            thread.start();
+            thread.join();
+            Assert.assertEquals(      -1, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
             Assert.assertEquals(10+100+1, myUserParam01.j);
             Assert.assertEquals(       1, myUserParam01.buffer);
@@ -745,8 +835,9 @@ public class Test4JavaCallback extends BaseClass {
         //
         // Note: After successfully checking a correct jobject reference,
         // the native callback also enters and leaves the monitor (Object sync/lock).
+        id_res[0] = -1;
         bt2.alBufferCallback0Inject(buffer2,  1,  10);
-        Assert.assertEquals(10*100+2, id_res[0]);
+        Assert.assertEquals(      -1, id_res[0]);
         Assert.assertEquals(       1, myUserParam01.i);
         Assert.assertEquals(10+100+1, myUserParam01.j);
         Assert.assertEquals(       1, myUserParam01.buffer);

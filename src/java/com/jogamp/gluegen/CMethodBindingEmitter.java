@@ -409,6 +409,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             // javaCallback.cbFuncCEmitter.emitBodyPassCArguments();
             jcbCMethodEmitter.emitJavaCallbackBodyPassJavaArguments(javaCallback, "cb->userParam");
             unit.emitln(");");
+            unit.emitln("  if( (*env)->ExceptionCheck(env) ) {");
+            unit.emitln("    fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': Exception in Java Callback caught:\\n\");");
+            unit.emitln("    (*env)->ExceptionDescribe(env);");
+            unit.emitln("    (*env)->ExceptionClear(env);");
+            unit.emitln("  }");
 
             // javaCallback.cbFuncCEmitter.emitBodyUserVariableAssignments();
             // javaCallback.cbFuncCEmitter.emitBodyVariablePostCallCleanup();
