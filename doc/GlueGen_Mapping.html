@@ -2478,9 +2478,10 @@ href="#struct-type-user-param-heterogeneous">heterogeneous
 href="#javacallback-key-definition">key-mapped</a>
 <code>CallbackFunction</code> and <code>UserParam</code>.</p>
 <p>The callback <code>T2_CallbackFunc11</code> is managed by the toolkit
-and passed to the callback function, while user passes a <em>void</em>
-with the registration method <code>MessageCallback11b(..)</code>. The
-toolkit associates the users' <code>void*</code> pointer with the
+and passed to the callback function, while user passes a
+<code>void*</code> as a <code>long</code> value to the registration
+method <code>MessageCallback11b(..)</code>. The toolkit associates the
+users' <code>void*</code> pointer with the
 <code>T2_CallbackFunc11</code>.</p>
 <p>C-API Header snipped</p>
 <pre><code>  typedef struct {

@@ -1197,7 +1197,7 @@ leading to the following interface
 
 This examples demonstrates a [heterogeneous *Struct* `UserParam` mapping](#struct-type-user-param-heterogeneous) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
 
-The callback `T2_CallbackFunc11` is managed by the toolkit and passed to the callback function, while user passes a *void* with the registration method `MessageCallback11b(..)`. The toolkit associates the users' `void*` pointer with the `T2_CallbackFunc11`.
+The callback `T2_CallbackFunc11` is managed by the toolkit and passed to the callback function, while user passes a `void*` as a `long` value to the registration method `MessageCallback11b(..)`. The toolkit associates the users' `void*` pointer with the `T2_CallbackFunc11`.
 
 
 C-API Header snipped
