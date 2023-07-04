@@ -380,9 +380,7 @@ public class JavaType {
           buf.append(c.getName().replace('.', '/'));
           buf.append(";");
         } else {
-          buf.append("L");
-          buf.append("java_lang_Object");
-          buf.append(";");
+          buf.append("Ljava/lang/Object;");
         }
       }
     }
