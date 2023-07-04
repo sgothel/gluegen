@@ -114,6 +114,7 @@ public abstract class FunctionEmitter {
    * Emit the function to the {@link #getUnit()}
    */
   public final void emit()  {
+    emitAdditionalCode();
     emitDocComment();
     //output.println("  // Emitter: " + getClass().getName());
     emitSignature();
@@ -139,6 +140,7 @@ public abstract class FunctionEmitter {
    */
   public CommentEmitter getCommentEmitter() { return commentEmitter; }
 
+  protected void emitAdditionalCode() { }
   protected void emitDocComment() {
 
     if (commentEmitter != null)    {
@@ -154,32 +156,42 @@ public abstract class FunctionEmitter {
     }
   }
 
-  protected void emitSignature()  {
-
-    unit.emit(getBaseIndentString()); // indent method
-
-    final int numEmitted = emitModifiers();
-    if (numEmitted > 0)  {
-      unit.emit(" ");
-    }
-
-    emitReturnType();
-    unit.emit(" ");
-
-    emitName();
-    unit.emit("(");
-
-    emitArguments();
-    unit.emit(")");
+  protected final void emitSignature()  {
+    unit.emit(appendSignature(new StringBuilder()).toString());
   }
 
-  protected int emitModifiers()  {
+  protected StringBuilder appendSignature(final StringBuilder buf)  {
+    buf.append(getBaseIndentString()); // indent method
+
+    final int numEmitted = appendModifiers(buf);
+    if (numEmitted > 0)  {
+      buf.append(" ");
+    }
+
+    appendReturnType(buf);
+    buf.append(" ");
+
+    appendName(buf);
+    buf.append("(");
+
+    appendArguments(buf);
+    buf.append(")");
+    return buf;
+  }
+
+  protected final int emitModifiers()  {
+      final StringBuilder buf = new StringBuilder();
+      final int n = appendModifiers(buf);
+      unit.emit(buf.toString());
+      return n;
+  }
+  protected int appendModifiers(final StringBuilder buf)  {
     int numEmitted = 0;
     for (final Iterator<EmissionModifier> it = getModifiers(); it.hasNext(); )   {
-      unit.emit(it.next().toString());
+      buf.append(it.next().toString());
       ++numEmitted;
       if (it.hasNext())  {
-        unit.emit(" ");
+        buf.append(" ");
       }
     }
     return numEmitted;
@@ -190,10 +202,23 @@ public abstract class FunctionEmitter {
   protected String getCommentStartString() { return "/* "; }
   protected String getCommentEndString() { return " */"; }
 
-  protected abstract void emitReturnType();
-  protected abstract void emitName();
+  protected final void emitReturnType() {
+      unit.emit(appendReturnType(new StringBuilder()).toString());
+  }
+  protected abstract StringBuilder appendReturnType(StringBuilder buf);
+  protected final void emitName() {
+      unit.emit(appendName(new StringBuilder()).toString());
+  }
+  protected abstract StringBuilder appendName(StringBuilder buf);
   /** Returns the number of arguments emitted. */
-  protected abstract int emitArguments();
+  protected final int emitArguments() {
+      final StringBuilder buf = new StringBuilder();
+      final int n = appendArguments(buf);
+      unit.emit(buf.toString());
+      return n;
+  }
+  /** Returns the number of arguments emitted. */
+  protected abstract int appendArguments(StringBuilder buf);
   protected abstract void emitBody();
 
   public static class EmissionModifier  {

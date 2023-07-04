@@ -334,6 +334,84 @@ public class JavaType {
   }
 
   /**
+   * Appends the descriptor (internal type signature) corresponding to the given Class<?> c.
+   * @param buf the StringBuilder sink
+   * @param c the Class<?> to append the descriptor for
+   * @param useTrueType if true, use the actual Class<?> name for non primitives, otherwise java.lang.Object will be used (flattened)
+   * @return the given StringBuilder sink for chaining
+   */
+  public static StringBuilder appendDescriptor(final StringBuilder buf, final Class<?> c, final boolean useTrueType) {
+    if (c.isPrimitive()) {
+           if (c == Boolean.TYPE)   buf.append("Z");
+      else if (c == Byte.TYPE)      buf.append("B");
+      else if (c == Character.TYPE) buf.append("C");
+      else if (c == Short.TYPE)     buf.append("S");
+      else if (c == Integer.TYPE)   buf.append("I");
+      else if (c == Long.TYPE)      buf.append("J");
+      else if (c == Float.TYPE)     buf.append("F");
+      else if (c == Double.TYPE)    buf.append("D");
+      else throw new RuntimeException("Illegal primitive type \"" + c.getName() + "\"");
+    } else {
+      // Arrays and NIO Buffers are always passed down as java.lang.Object.
+      // The only arrays that show up as true arrays in the signature
+      // are the synthetic byte offset arrays created when passing
+      // down arrays of direct Buffers. Compound type wrappers are
+      // passed down as ByteBuffers (no good reason, just to avoid
+      // accidental conflation) so we mangle them differently.
+      if (useTrueType) {
+        if (c.isArray()) {
+          buf.append("[");
+          final Class<?> componentType = c.getComponentType();
+          // Handle arrays of compound type wrappers differently for
+          // convenience of the Java-level glue code generation
+          appendDescriptor(buf, componentType,
+                    (componentType == java.nio.ByteBuffer.class));
+        } else {
+          buf.append("L");
+          buf.append(c.getName().replace('.', '/'));
+          buf.append(";");
+        }
+      } else {
+        if (c.isArray()) {
+          buf.append("[");
+          appendDescriptor(buf, c.getComponentType(), false);
+        } else if (c == java.lang.String.class) {
+          buf.append("L");
+          buf.append(c.getName().replace('.', '/'));
+          buf.append(";");
+        } else {
+          buf.append("L");
+          buf.append("java_lang_Object");
+          buf.append(";");
+        }
+      }
+    }
+    return buf;
+  }
+
+  /**
+   * Appends the native (JNI) method-name descriptor corresponding to the given Class<?> c,
+   * i.e. replacing chars {@link #appendDescriptor(StringBuilder, Class, boolean)} as follows
+   * <ul>
+   *   <li>`_` -> `_1`</li>
+   *   <li>`/` ->  `_`</li>
+   *   <li>`;` -> `_2`</li>
+   *   <li>`[` -> `_3`</li>
+   * </ul>
+   * Only the newly appended segment to the StringBuilder sink will be converted to (JNI) method-name using {@link #toJNIMethodDescriptor(StringBuilder, int)}.
+   * @param buf the StringBuilder sink
+   * @param c the Class<?> to append the descriptor for
+   * @param useTrueType if true, use the actual Class<?> name for non primitives, otherwise java.lang.Object will be used (flattened)
+   * @return the given StringBuilder sink for chaining
+   * @see JNI Spec 2, Chapter 2, Resolving Native Method Names
+   * @see #toJNIMethodDescriptor(StringBuilder)
+   */
+  public static StringBuilder appendJNIDescriptor(final StringBuilder res, final Class<?> c, final boolean useTrueType) {
+      final int start = res.length();
+      return toJNIMethodDescriptor( appendDescriptor(res, c, useTrueType), start );
+  }
+
+  /**
    * Converts the assumed descriptor (internal type signature) to a native (JNI) method-name descriptor,
    * i.e. replacing chars {@link #getDescriptor()} as follows
    * <ul>
@@ -342,6 +420,7 @@ public class JavaType {
    *   <li>`;` -> `_2`</li>
    *   <li>`[` -> `_3`</li>
    * </ul>
+   * @param descriptor the char sequence holding the original descriptor
    * @see JNI Spec 2, Chapter 2, Resolving Native Method Names
    */
   public static String toJNIMethodDescriptor(final String descriptor) {
@@ -349,6 +428,36 @@ public class JavaType {
                        .replace("/",  "_")
                        .replace(";", "_2")
                        .replace("[", "_3");
+  }
+
+  /**
+   * Converts the assumed descriptor (internal type signature) to a native (JNI) method-name descriptor,
+   * i.e. replacing chars {@link #getDescriptor()} as follows
+   * <ul>
+   *   <li>`_` -> `_1`</li>
+   *   <li>`/` ->  `_`</li>
+   *   <li>`;` -> `_2`</li>
+   *   <li>`[` -> `_3`</li>
+   * </ul>
+   * @param descriptor the char buffer holding the original descriptor
+   * @param start start position of the segment to convert, use 0 if whole buffr shall be converted
+   * @return returns passed descriptor buffer for chaining
+   * @see JNI Spec 2, Chapter 2, Resolving Native Method Names
+   */
+  public static StringBuilder toJNIMethodDescriptor(final StringBuilder descriptor, final int start) {
+      replace(descriptor, start, "_", "_1");
+      replace(descriptor, start, "/",  "_");
+      replace(descriptor, start, ";", "_2");
+      replace(descriptor, start, "[", "_3");
+      return descriptor;
+  }
+  private static StringBuilder replace(final StringBuilder buf, int start, final String target, final String replacement) {
+      start = buf.indexOf(target, start);
+      while( 0 <= start ) {
+          buf.replace(start, start + target.length(), replacement);
+          start = buf.indexOf(target, start + replacement.length());
+      }
+      return buf;
   }
 
   /** Returns the String corresponding to the JNI type for this type,

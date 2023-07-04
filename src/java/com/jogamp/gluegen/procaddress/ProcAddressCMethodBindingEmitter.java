@@ -102,17 +102,16 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     }
 
     @Override
-    protected int emitArguments() {
-        int numEmitted = super.emitArguments();
+    protected int appendArguments(final StringBuilder buf) {
+        int numEmitted = super.appendArguments(buf);
         if (callThroughProcAddress) {
             if (numEmitted > 0) {
-                unit.emit(", ");
+                buf.append(", ");
             }
-            unit.emit(procAddressJavaTypeName);
-            unit.emit(" procAddress");
+            buf.append(procAddressJavaTypeName);
+            buf.append(" procAddress");
             ++numEmitted;
         }
-
         return numEmitted;
     }
 
@@ -224,7 +223,7 @@ public class ProcAddressCMethodBindingEmitter extends CMethodBindingEmitter {
     protected String jniMangle(final MethodBinding binding) {
         final StringBuilder buf = new StringBuilder(super.jniMangle(binding));
         if (callThroughProcAddress && 0 <= buf.indexOf("__") ) {
-            getJNIMangledArg(Long.TYPE, buf, false);  // to account for the additional _addr_ parameter
+            JavaType.appendJNIDescriptor(buf, Long.TYPE, false);  // to account for the additional _addr_ parameter
         }
         return buf.toString();
     }

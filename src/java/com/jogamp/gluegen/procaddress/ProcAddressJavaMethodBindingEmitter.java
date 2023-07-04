@@ -91,19 +91,18 @@ public class ProcAddressJavaMethodBindingEmitter extends JavaMethodBindingEmitte
     }
 
     @Override
-    protected int emitArguments() {
-        int numEmitted = super.emitArguments();
+    protected int appendArguments(final StringBuilder buf) {
+        int numEmitted = super.appendArguments(buf);
         if (callThroughProcAddress) {
             if (changeNameAndArguments) {
                 if (numEmitted > 0) {
-                    unit.emit(", ");
+                    buf.append(", ");
                 }
 
-                unit.emit("long procAddress");
+                buf.append("long procAddress");
                 ++numEmitted;
             }
         }
-
         return numEmitted;
     }
 

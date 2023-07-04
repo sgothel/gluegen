@@ -40,7 +40,7 @@ GlueGen can produce native foreign function bindings to Java™ as well as
 [map native data structures](#struct-mapping) to be fully accessible from Java™ including 
 potential calls to [embedded function pointer](#struct-function-pointer-support).
 
-GlueGen supports [registering Java™ callback methods](#java-callback-from-native-c-api-support)
+GlueGen supports [registering Java™ callback methods](#java-callback)
 to receive asynchronous and off-thread native toolkit events,
 where a generated native callback function dispatches the events to Java™.
 
@@ -299,7 +299,7 @@ A *Struct* may utilize the following data types for its fields
   * See [*String Mapping*](#string-mapping) above.
 * *Struct*, i.e. an aggregated or referenced compound variable
 * *Function Pointer*, a *typedef*'ed and set callable function pointer, see [Struct Function-Pointer Support](#struct-function-pointer-support) below.
-* *Java Callback from Native Code*, see [section below](#java-callback-from-native-c-api-support)
+* *Java Callback from Native Code*, see [section below](#java-callback)
 
 A field may be a direct aggregation, i.e. instance, within the struct including an array
 or a reference to a single element or array via a pointer.
@@ -765,21 +765,58 @@ and similar to `T2_CustomFuncB customFuncB1`
   public final int CustomFuncB1(T2_UserData pUserData)  { .. }  
 ```
 
-## Java Callback from Native C-API Support
+## Java Callback
 GlueGen supports registering Java callback methods
 to receive asynchronous and off-thread native toolkit events,
 where a generated native callback function dispatches the events to Java.
 
-### Required *LibraryOnLoad*
-Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit.
-It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
-or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
+### Implementation Details
+Implementation generates a static Java callback dispatcher for each defined `SetCallbackFunction`, which gets invoked by the generated native static counterpart with all arguments required.
+
+The *static callback* utilizes its own synchronization for thread-safety and fetches the required data set stored at `SetCallbackFunction` to dispatch the call to the users' `CallbackFunction`.    
+In case the callback has been removed already, the *static callback* simply bails out quietly.
+
+The native code does not create, release or manage heap memory and therefore is considered safe.
+
+### *JavaCallback* *UserParam* Mapping
+Usually the same `UserParam` type is used in both items (or hooks), `SetCallbackFunctionName` and `CallbackFunctionType`,
+which we call a homogeneous `UserParam` mapping.
+
+Even in a homogeneous `UserParam` mapping, handling of the `UserParam` value might differ in the native binding code.
+
+To specify a non homogeneous `UserParam` mapping, i.e. heterogeneous `UserParam` mapping,
+the `UserParam` index of the `SetCallbackFunction` must be [set in the configuration](#javacallback-configuration).
+
+The following mappings are supported.
+
+#### Pure Java Object User Type (default)
+A pure Java *Object type* is used for both, `SetCallbackFunctionName` and `CallbackFunctionType`.
+
+It's a homogeneous `UserParam` mapping, where the native side receives a simple unique ID and shall not dereference the *pointer*.
+
+The static Java callback dispatcher fetches the Java `UserParam` *Object* from the key-mapped data value.
+
+#### Struct Type User Param (Homogeneous)
+A [GlueGen generated *Struct type*](#struct-mapping) is used for both, `SetCallbackFunctionName` and `CallbackFunctionType`.
+
+It's a homogeneous `UserParam` mapping, where the native side receives the actual native struct address.
+
+The static Java callback dispatcher dereferences the received native struct address (*long*), i.e. rebuilding the *struct Object* to be passed to the users' `CallbackFunction`.
+
+#### Struct Type User Param (Heterogeneous)
+An anonymous pointer (*long*) for `SetCallbackFunctionName` and a [GlueGen generated *struct type*](#struct-mapping) for `CallbackFunctionType` is being used.
+
+It's a heterogeneous `UserParam` mapping, where the toolkit is expected to place the given anonymous pointer inside the defined *struct type* passed to the `CallbackFunction`.
+
+The `SetCallback-UserParamIndex` for the different parameter-type is [set in the configuration](#javacallback-configuration).
+
+The static Java callback dispatcher dereferences the received native struct address (*long*), i.e. rebuilding the *struct Object* to be passed to the users' `CallbackFunction`.
 
 ### *JavaCallback* Configuration
 
 Configuration directives are as follows:
 
-    JavaCallbackDef  <SetCallbackFunctionName> <CallbackFunctionType> <CallbackFunction-UserParamIndex> [<SetCallback-KeyClassName>]    
+    JavaCallbackDef  <SetCallbackFunctionName> [<SetCallback-UserParamIndex>] <CallbackFunctionType> <CallbackFunction-UserParamIndex> [<SetCallback-KeyClassName>]    
     JavaCallbackKey  <SetCallbackFunctionName> (SetCallback-ParamIdx)*
     
 `JavaCallbackDef` and `JavaCallbackKey` use the name of the `SetCallbackFunction` as its first attribute,
@@ -787,6 +824,7 @@ as it is core to the semantic mapping of all resources.
 
 `JavaCallbackDef` attributes:
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
+- `SetCallback-UserParamIndex`: Optional `UserParam` parameter-index of the `SetCallbackFunction`, allowing to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous)
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, aka the callback type name
 - `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`
 - `SetCallback-KeyClassName`: Name of an optional user-implemented `SetCallback-KeyClass`, providing the hash-map-key - see below
@@ -811,7 +849,24 @@ Key arguments must match in `SetCallbackFunction` to remove a previously set `Ca
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
 - `SetCallback-ParamIdx`: List of parameter indices of the `SetCallbackFunction`, denoting the key(s) limiting the callback scope, i.e. the callback and all resources will be mapped to this key. The optional `SetCallback-KeyClass` may override this semantic.
 
-#### *JavaCallback* Generated Interfaces, Classes and Methods
+#### Custom `SetCallback-KeyClass` 
+
+The `SetCallback-KeyClass` is the optional user-written hash-map-key definition 
+and shall handle all key parameter of the `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
+
+`SetCallback-KeyClass` may be used to add external key-components, e.g. current-thread or a toolkit dependent context.
+
+The `SetCallback-KeyClass` shall implement the following hash-map-key standard methods
+- `boolean equals(Object)` 
+- `int hashCode()`
+- `SetCallback-KeyClassName(...)` constructor receiving all key parameter of `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
+
+#### Required *LibraryOnLoad*
+Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit.
+It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
+or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
+
+### *JavaCallback* Generated Interfaces, Classes and Methods
 
 The public `CallbackFunction` interface is generated.
 
@@ -838,19 +893,6 @@ If no `SetCallback-KeyClass` is used, the additional *maintenance* methods are:
 Note that the *release`SetCallbackFunctionName`(\*)* and *releaseAll`SetCallbackFunctionName`()* methods are not the *proper toolkit API way* to remove the callback, 
 try to use original `SetCallbackFunctionName` API method instead using a `null` `CallbackFunction` reference.
 
-#### Custom `SetCallback-KeyClass` 
-
-The `SetCallback-KeyClass` is the optional user-written hash-map-key definition 
-and shall handle all key parameter of the `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
-
-`SetCallback-KeyClass` may be used to add external key-components, e.g. current-thread or a toolkit dependent context.
-
-The `SetCallback-KeyClass` shall implement the following hash-map-key standard methods
-- `boolean equals(Object)` 
-- `int hashCode()`
-- `SetCallback-KeyClassName(...)` constructor receiving all key parameter of `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
-
-
 ### *JavaCallback* Notes
 Please consider the following *currently enabled* constraints using JavaCallback
 - Only one interface callback-method binding is allowed for a native callback function, e.g. `T2_CallbackFunc01` (see above)
@@ -866,7 +908,7 @@ Please consider the following *currently enabled* constraints using JavaCallback
 - ... 
 
 ### JavaCallback Example 1
-This is a generic example.
+This examples demonstrates a [homogeneous *Java Object* `UserParam` mapping](#pure-java-object-user-type-default) with a [globally scoped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
 
 The callback `T2_CallbackFunc01` has global scope, i.e. is not mapped to any key and can be only set globally.
 
@@ -940,6 +982,8 @@ public interface Bindingtest2 {
 ```
 
 ### JavaCallback Example 2a (Default *KeyClass*)
+
+This examples demonstrates a [homogeneous *Java Object* `UserParam` mapping](#pure-java-object-user-type-default) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
 
 This examples is derived from OpenAL's `AL_SOFT_callback_buffer` extension.
 
@@ -1040,6 +1084,8 @@ leading to the following interface
 
 ### JavaCallback Example 2b (Custom *KeyClass*)
 
+This examples demonstrates a [homogeneous *Java Object* `UserParam` mapping](#pure-java-object-user-type-default) with a [custom *KeyClass*](#custom-setcallback-keyclass) to map `CallbackFunction` and `UserParam`.
+
 Same as example 2a, but implementing a custom `SetCallback-KeyClass`.
 
 Instead of `Callback0`, the unit `test2.*` uses `Callback1` to differentiate this case.
@@ -1078,6 +1124,141 @@ which uses one key, i.e. `buffer`.
             return "CustomALKey[this "+toHexString(System.identityHashCode(this))+", buffer "+buffer+"]";
         }
     }
+```
+
+### JavaCallback Example 11a (*Homogeneous Struct Type*)
+
+This examples demonstrates a [homogeneous *Struct* `UserParam` mapping](#struct-type-user-param-homogeneous) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
+
+The callback `T2_CallbackFunc11` is passed by the toolkit to the `CallbackFunction` and by the user to the registration method `MessageCallback11b(..)`.
+
+C-API Header snipped
+```
+  typedef struct {
+    int32_t ApiVersion;
+    void* Data;
+    long i; 
+    long r;
+    size_t id;
+  } T2_Callback11UserType;
+
+  typedef void ( * T2_CallbackFunc11)(size_t id, const T2_Callback11UserType* usrParam, long val);
+
+  void MessageCallback11a(size_t id /* key */, T2_CallbackFunc11 cbFunc, const T2_Callback11UserType* usrParam);
+  void MessageCallback11aInject(size_t id, long val);  
+```
+
+and the following GlueGen configuration
+```
+  JavaCallbackDef  MessageCallback11a T2_CallbackFunc11 1
+  JavaCallbackKey  MessageCallback11a 0
+```
+
+leading to the following interface
+```
+  /** JavaCallback interface: T2_CallbackFunc11 -> void (*T2_CallbackFunc11)(size_t id, const T2_Callback11UserType *  usrParam, long val) */
+  public static interface T2_CallbackFunc11 {
+    /** Interface to C language function: <br> <code>void callback(size_t id, const T2_Callback11UserType *  usrParam, long val)</code><br>Alias for: <code>T2_CallbackFunc11</code>     */
+    public void callback(long id, T2_Callback11UserType usrParam, long val);
+  }
+
+  ...
+  
+  public static class MessageCallback11aKey { ... }
+  
+  ...
+  
+  /** Returns set of Key { long id } for <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
+  public Set<MessageCallback11aKey> getMessageCallback11aKeys();
+
+  /** Returns whether callback Key { long id } is mapped for <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
+  public boolean isMessageCallback11aMapped(MessageCallback11aKey key);
+
+  /** Returns T2_CallbackFunc11 callback mapped to Key { long id } for <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
+  public T2_CallbackFunc11 getMessageCallback11a(MessageCallback11aKey key);
+
+  /** Returns user-param mapped to Key { long id } for <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
+  public Object getMessageCallback11aUserParam(MessageCallback11aKey key);
+
+  /** Releases all callback data mapped via Key { long id } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
+  public int releaseAllMessageCallback11a();
+
+  /** Releases callback data mapped to Key { long id } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
+  public void releaseMessageCallback11a(MessageCallback11aKey key);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11a(size_t id, T2_CallbackFunc11 cbFunc, const T2_Callback11UserType *  usrParam)</code><br>   */
+  public void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11aInject(size_t id, long val)</code><br>   */
+  public void MessageCallback11aInject(long id, long val);    
+```
+
+### JavaCallback Example 11b (*Heterogeneous Pointer/Struct Type*)
+
+This examples demonstrates a [heterogeneous *Struct* `UserParam` mapping](#struct-type-user-param-heterogeneous) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
+
+The callback `T2_CallbackFunc11` is managed by the toolkit and passed to the callback function, while user passes a *void* with the registration method `MessageCallback11b(..)`. The toolkit associates the users' `void*` pointer with the `T2_CallbackFunc11`.
+
+
+C-API Header snipped
+```
+  typedef struct {
+    int32_t ApiVersion;
+    void* Data;
+    long i; 
+    long r;
+    size_t id;
+  } T2_Callback11UserType;
+
+  typedef void ( * T2_CallbackFunc11)(size_t id, const T2_Callback11UserType* usrParam, long val);
+    
+  void MessageCallback11b(size_t id /* key */, T2_CallbackFunc11 cbFunc, void* Data);
+  void MessageCallback11bInject(size_t id, long val);
+```
+
+and the following GlueGen configuration
+```
+  JavaCallbackDef  MessageCallback11b 2 T2_CallbackFunc11 1
+  JavaCallbackKey  MessageCallback11b 0
+```
+
+leading to the following interface
+```
+  /** JavaCallback interface: T2_CallbackFunc11 -> void (*T2_CallbackFunc11)(size_t id, const T2_Callback11UserType *  usrParam, long val) */
+  public static interface T2_CallbackFunc11 {
+    /** Interface to C language function: <br> <code>void callback(size_t id, const T2_Callback11UserType *  usrParam, long val)</code><br>Alias for: <code>T2_CallbackFunc11</code>     */
+    public void callback(long id, T2_Callback11UserType usrParam, long val);
+  }
+
+  ...
+  
+  public static class MessageCallback11bKey { ... }
+  
+  ...
+
+  /** Returns set of Key { long id } for <br> <code>  void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data)</code> */
+  public Set<MessageCallback11bKey> getMessageCallback11bKeys();
+
+  /** Returns whether callback Key { long id } is mapped for <br> <code>  void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data)</code> */
+  public boolean isMessageCallback11bMapped(MessageCallback11bKey key);
+
+  /** Returns T2_CallbackFunc11 callback mapped to Key { long id } for <br> <code>  void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data)</code> */
+  public T2_CallbackFunc11 getMessageCallback11b(MessageCallback11bKey key);
+
+  /** Returns user-param mapped to Key { long id } for <br> <code>  void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data)</code> */
+  public Object getMessageCallback11bUserParam(MessageCallback11bKey key);
+
+  /** Releases all callback data mapped via Key { long id } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data)</code> */
+  public int releaseAllMessageCallback11b();
+
+  /** Releases callback data mapped to Key { long id } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data)</code> */
+  public void releaseMessageCallback11b(MessageCallback11bKey key);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11b(size_t id, T2_CallbackFunc11 cbFunc, void *  Data)</code><br>   */
+  public void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11bInject(size_t id, long val)</code><br>   */
+  public void MessageCallback11bInject(long id, long val);  
 ```
 
 *TODO: Enhance documentation*

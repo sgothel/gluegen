@@ -156,17 +156,19 @@ public class JavaConfiguration {
       final int cbFuncUserParamIdx;
       final String setFuncName;
       final List<Integer> setFuncKeyIndices = new ArrayList<Integer>();
+      final int setFuncUserParamIdx; // optional
       final String setFuncKeyClassName; // optional
-      JavaCallbackDef(final String cbFuncTypeName, final int cbFuncUserParamIdx, final String setFuncName, final String setFuncKeyClassName) {
+      JavaCallbackDef(final String cbFuncTypeName, final int cbFuncUserParamIdx, final String setFuncName, final int setFuncUserParamIdx, final String setFuncKeyClassName) {
           this.cbFuncTypeName = cbFuncTypeName;
           this.cbFuncUserParamIdx = cbFuncUserParamIdx;
           this.setFuncName = setFuncName;
+          this.setFuncUserParamIdx = setFuncUserParamIdx;
           this.setFuncKeyClassName = setFuncKeyClassName;
       }
       @Override
       public String toString() {
-          return String.format("JavaCallbackDef[cbFunc[type %s, userParamIdx %d], set[%s, keys %s, KeyClass %s]]",
-                  cbFuncTypeName, cbFuncUserParamIdx, setFuncName, setFuncKeyIndices.toString(), setFuncKeyClassName);
+          return String.format("JavaCallbackDef[cbFunc[type %s, userParamIdx %d], set[%s, keys %s, userParamIdx %d, KeyClass %s]]",
+                  cbFuncTypeName, cbFuncUserParamIdx, setFuncName, setFuncKeyIndices.toString(), setFuncUserParamIdx, setFuncKeyClassName);
       }
     }
     private final List<JavaCallbackDef> javaCallbackList = new ArrayList<JavaCallbackDef>();
@@ -1630,7 +1632,25 @@ public class JavaConfiguration {
   protected void readJavaCallbackDef(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       final String setFuncName = tok.nextToken();
-      final String cbFuncTypeName = tok.nextToken();
+      final int setFuncUserParamIdx;
+      final String cbFuncTypeName;
+      {
+          final String stok = tok.nextToken();
+          int ival = -1;
+          String sval = null;
+          try {
+              ival = Integer.valueOf(stok);
+          } catch(final NumberFormatException nfe) {
+              sval = stok;
+          }
+          if( null == sval ) {
+              setFuncUserParamIdx = ival;
+              cbFuncTypeName = tok.nextToken();
+          } else {
+              setFuncUserParamIdx = -1;
+              cbFuncTypeName = sval;
+          }
+      }
       final Integer cbFuncUserParamIdx = Integer.valueOf(tok.nextToken());
       final String cbFuncKeyClassName;
       if( tok.hasMoreTokens() ) {
@@ -1638,7 +1658,7 @@ public class JavaConfiguration {
       } else {
           cbFuncKeyClassName = null;
       }
-      final JavaCallbackDef jcd = new JavaCallbackDef(cbFuncTypeName, cbFuncUserParamIdx, setFuncName, cbFuncKeyClassName);
+      final JavaCallbackDef jcd = new JavaCallbackDef(cbFuncTypeName, cbFuncUserParamIdx, setFuncName, setFuncUserParamIdx, cbFuncKeyClassName);
       javaCallbackList.add(jcd);
       javaCallbackSetFuncToDef.put(setFuncName, jcd);
     } catch (final NoSuchElementException e) {
@@ -2279,13 +2299,12 @@ public class JavaConfiguration {
       final String cbFuncTypeName;
       final String cbSimpleClazzName;
       final String cbFQClazzName;
-      final String cbMethodSignature;
+      final String staticCBMethodSignature;
       final FunctionType cbFuncType;
       final MethodBinding cbFuncBinding;
       final int cbFuncUserParamIdx;
-
-      final Type userParamType;
-      final String userParamName;
+      final String cbFuncUserParamName;
+      final Type cbFuncUserParamType;
 
       final String setFuncName;
       final List<Integer> setFuncKeyIndices;
@@ -2295,38 +2314,38 @@ public class JavaConfiguration {
       int setFuncUserParamIdx;
       boolean keyClassEmitted;
 
-      public JavaCallbackInfo(final String cbFuncTypeName, final String cbSimpleClazzName, final String cbFQClazzName, final String cbMethodSignature,
+      public JavaCallbackInfo(final String cbFuncTypeName, final String cbSimpleClazzName, final String cbFQClazzName, final String staticCBMethodSignature,
                               final FunctionType cbFuncType, final MethodBinding cbFuncBinding, final int cbFuncUserParamIdx,
-                              final String setFuncName, final List<Integer> setFuncKeyIndices, final String setFuncKeyClassName) {
+                              final String setFuncName, final int setFuncUserParamIdx, final List<Integer> setFuncKeyIndices, final String setFuncKeyClassName) {
           this.cbFuncTypeName = cbFuncTypeName;
           this.cbSimpleClazzName = cbSimpleClazzName;
           this.cbFQClazzName = cbFQClazzName;
-          this.cbMethodSignature = cbMethodSignature;
+          this.staticCBMethodSignature = staticCBMethodSignature;
           this.cbFuncType = cbFuncType;
           this.cbFuncBinding = cbFuncBinding;
-          int paramIdx = -2;
-          Type paramType = null;
-          String paramName = null;
-          if( 0 <= cbFuncUserParamIdx && cbFuncUserParamIdx < cbFuncType.getNumArguments() ) {
-              final Type t = cbFuncType.getArgumentType(cbFuncUserParamIdx);
-              if( null != t && t.isPointer() ) {
-                  // OK '<something>*'
-                  paramIdx = cbFuncUserParamIdx;
-                  paramName = cbFuncType.getArgumentName(cbFuncUserParamIdx);
-                  paramType = t.getTargetType();
+          {
+              int paramIdx = -2;
+              Type paramType = null;
+              String paramName = null;
+              if( 0 <= cbFuncUserParamIdx && cbFuncUserParamIdx < cbFuncType.getNumArguments() ) {
+                  final Type t = cbFuncType.getArgumentType(cbFuncUserParamIdx);
+                  if( null != t && t.isPointer() ) {
+                      // OK '<something>*'
+                      paramIdx = cbFuncUserParamIdx;
+                      paramName = cbFuncType.getArgumentName(cbFuncUserParamIdx);
+                      paramType = t.getTargetType();
+                  }
               }
+              this.cbFuncUserParamIdx = paramIdx;
+              this.cbFuncUserParamName = paramName;
+              this.cbFuncUserParamType = paramType;
           }
-          this.cbFuncUserParamIdx = paramIdx;
-
-          this.userParamType = paramType;
-          this.userParamName = paramName;
-
           this.setFuncName = setFuncName;
           this.setFuncKeyIndices = setFuncKeyIndices;
           this.setFuncKeyClassName = setFuncKeyClassName;
           this.setFuncProcessed = false;
           this.setFuncCBParamIdx = -1;
-          this.setFuncUserParamIdx = -1;
+          this.setFuncUserParamIdx = setFuncUserParamIdx;
           this.keyClassEmitted = false;
       }
 
@@ -2335,7 +2354,13 @@ public class JavaConfiguration {
             if( 0 <= cbParamIdx && 0 <= userParamIdx ) {
                 setFuncProcessed = true;
                 setFuncCBParamIdx = cbParamIdx;
-                setFuncUserParamIdx = userParamIdx;
+                if( 0 <= setFuncUserParamIdx ) {
+                    if( setFuncUserParamIdx != userParamIdx ) {
+                        throw new IllegalArgumentException("Mismatch pre-set setFuncUserParamIdx "+setFuncUserParamIdx+", given "+userParamIdx+": "+toString());
+                    }
+                } else {
+                    setFuncUserParamIdx = userParamIdx;
+                }
             } else {
                 setFuncCBParamIdx = -1;
                 setFuncUserParamIdx = -1;
@@ -2346,8 +2371,8 @@ public class JavaConfiguration {
       @Override
       public String toString() {
           return String.format("JavaCallbackInfo[cbFunc[%s%s, userParam[idx %d, '%s', %s], set[%s(ok %b, cbIdx %d, upIdx %d, keys %s, KeyClass '%s'], %s]",
-                  cbFuncTypeName, cbMethodSignature,
-                  cbFuncUserParamIdx, userParamName, userParamType.getSignature(null).toString(),
+                  cbFuncTypeName, staticCBMethodSignature,
+                  cbFuncUserParamIdx, cbFuncUserParamName, cbFuncUserParamType.getSignature(null).toString(),
                   setFuncName, setFuncProcessed, setFuncCBParamIdx, setFuncUserParamIdx,
                   setFuncKeyIndices.toString(), setFuncKeyClassName,
                   cbFuncType.toString(cbFuncTypeName, false, true));

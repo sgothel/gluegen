@@ -31,7 +31,7 @@ GlueGen can produce native foreign function bindings to Java™ as well as
 [map native data structures](doc/GlueGen_Mapping.md#struct-mapping) to be fully accessible from Java™ including 
 potential calls to [embedded function pointer](doc/GlueGen_Mapping.md#struct-function-pointer-support).
 
-GlueGen supports [registering Java™ callback methods](doc/GlueGen_Mapping.md#java-callback-from-native-c-api-support)
+GlueGen supports [registering Java™ callback methods](doc/GlueGen_Mapping.md#java-callback)
 to receive asynchronous and off-thread native toolkit events,
 where a generated native callback function dispatches the events to Java™.
 

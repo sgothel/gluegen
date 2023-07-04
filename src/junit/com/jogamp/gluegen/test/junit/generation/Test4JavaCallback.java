@@ -34,7 +34,10 @@ import java.util.Set;
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALBUFFERCALLBACKTYPESOFT;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlBufferCallback0Key;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11aKey;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11bKey;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc01;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc11;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
 import org.junit.AfterClass;
@@ -197,8 +200,9 @@ public class Test4JavaCallback extends BaseClass {
             @Override
             public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
                 final MyUserParam02 myUserParam = (MyUserParam02)userptr;
-                id_res[0] = sampledata + numbytes + myUserParam.i;
-                myUserParam.j = id_res[0];
+                final long res = sampledata + numbytes + myUserParam.i;
+                id_res[0] = res;
+                myUserParam.j = res;
                 myUserParam.buffer = buffer;
                 System.err.println("chapter02.myCallback01: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
             }
@@ -207,8 +211,9 @@ public class Test4JavaCallback extends BaseClass {
             @Override
             public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
                 final MyUserParam02 myUserParam = (MyUserParam02)userptr;
-                id_res[0] = sampledata * numbytes + myUserParam.i;
-                myUserParam.j = id_res[0];
+                final long res = sampledata * numbytes + myUserParam.i;
+                id_res[0] = res;
+                myUserParam.j = res;
                 myUserParam.buffer = buffer;
                 System.err.println("chapter02.myCallback02: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
             }
@@ -402,8 +407,9 @@ public class Test4JavaCallback extends BaseClass {
             @Override
             public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
                 final MyUserParam02 myUserParam = (MyUserParam02)userptr;
-                id_res[0] = sampledata + numbytes + myUserParam.i;
-                myUserParam.j = id_res[0];
+                final long res = sampledata + numbytes + myUserParam.i;
+                id_res[0] = res;
+                myUserParam.j = res;;
                 myUserParam.buffer = buffer;
                 System.err.println("chapter03.myCallback01: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
             }
@@ -412,8 +418,9 @@ public class Test4JavaCallback extends BaseClass {
             @Override
             public void callback(final int buffer, final Object userptr, final int sampledata, final int numbytes) {
                 final MyUserParam02 myUserParam = (MyUserParam02)userptr;
-                id_res[0] = sampledata * numbytes + myUserParam.i;
-                myUserParam.j = id_res[0];
+                final long res = sampledata * numbytes + myUserParam.i;
+                id_res[0] = res;
+                myUserParam.j = res;
                 myUserParam.buffer = buffer;
                 System.err.println("chapter03.myCallback02: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
             }
@@ -633,8 +640,9 @@ public class Test4JavaCallback extends BaseClass {
                     myUserParam.throwPreAction = false;
                     throw new RuntimeException("Exception test.pre: chapter04.myCallback01");
                 }
-                id_res[0] = sampledata + numbytes + myUserParam.i;
-                myUserParam.j = id_res[0];
+                final long res = sampledata + numbytes + myUserParam.i;
+                id_res[0] = res;
+                myUserParam.j = res;
                 myUserParam.buffer = buffer;
                 System.err.println("chapter04.myCallback01: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
                 if( myUserParam.throwPostAction ) {
@@ -651,8 +659,9 @@ public class Test4JavaCallback extends BaseClass {
                     myUserParam.throwPreAction = false;
                     throw new RuntimeException("Exception test.pre: chapter04.myCallback02");
                 }
-                id_res[0] = sampledata * numbytes + myUserParam.i;
-                myUserParam.j = id_res[0];
+                final long res = sampledata * numbytes + myUserParam.i;
+                id_res[0] = res;
+                myUserParam.j = res;
                 myUserParam.buffer = buffer;
                 System.err.println("chapter04.myCallback02: buffer "+buffer+", sampledata "+sampledata+", numbytes "+numbytes);
                 if( myUserParam.throwPostAction ) {
@@ -869,6 +878,404 @@ public class Test4JavaCallback extends BaseClass {
         @Override
         public String toString() {
             return "CustomALKey[this "+toHexString(System.identityHashCode(this))+", buffer "+buffer+"]";
+        }
+    }
+
+    /**
+     * Test Bindingtest2 with T2_CallbackFunc11 JavaCallback via MessageCallback11a()
+     * using the default MessageCallback11aKey class.
+     */
+    @Test
+    public void chapter11a() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final long userParam01Ptr = 0xAFFEBEAFC0FFEEL;
+        final long userParam02Ptr = 0xC0FFEEDEADBEAFL;
+
+        final long[] id_res = { -1 };
+        final T2_CallbackFunc11 myCallback01 = new T2_CallbackFunc11() {
+            @Override
+            public void callback(final long id, final T2_Callback11UserType usrParam, final long val) {
+                Assert.assertEquals(42, usrParam.getApiVersion()); // native toolkit should have set API version
+                if( 1 == id ) {
+                    BaseClass.assertAPTR(userParam01Ptr, usrParam.getData());
+                } else if( 2 == id ) {
+                    BaseClass.assertAPTR(userParam02Ptr, usrParam.getData());
+                }
+                final long res = val + usrParam.getI();
+                id_res[0] = res;
+                usrParam.setR(res);
+                usrParam.setId(id);
+                System.err.println("chapter11a.myCallback01: id "+id+", val "+val);
+            }
+        };
+        final T2_CallbackFunc11 myCallback02 = new T2_CallbackFunc11() {
+            @Override
+            public void callback(final long id, final T2_Callback11UserType usrParam, final long val) {
+                Assert.assertEquals(42, usrParam.getApiVersion()); // native toolkit should have set API version
+                if( 1 == id ) {
+                    BaseClass.assertAPTR(userParam01Ptr, usrParam.getData());
+                } else if( 2 == id ) {
+                    BaseClass.assertAPTR(userParam02Ptr, usrParam.getData());
+                }
+                final long res = val * usrParam.getI();
+                id_res[0] = res;
+                usrParam.setR(res);
+                usrParam.setId(id);
+                System.err.println("chapter11a.myCallback02: id "+id+", val "+val);
+            }
+        };
+        final int id1 = 1;
+        final int id2 = 2;
+        final int id3 = 3;
+        final MessageCallback11aKey id1Key = new MessageCallback11aKey(id1);
+        final MessageCallback11aKey id2Key = new MessageCallback11aKey(id2);
+        final MessageCallback11aKey id3Key = new MessageCallback11aKey(id3);
+        final T2_Callback11UserType userParam01 = T2_Callback11UserType.create(); // native toolkit should set API version
+        userParam01.setData(userParam01Ptr);
+        userParam01.setI(1);
+        final T2_Callback11UserType userParam02 = T2_Callback11UserType.create(); // native toolkit should set API version
+        userParam02.setData(userParam02Ptr);
+        userParam02.setI(2);
+        Assert.assertEquals( 1, userParam01.getI());
+        Assert.assertEquals( 0, userParam01.getR());
+        Assert.assertEquals( 0, userParam01.getId());
+        Assert.assertEquals( 2, userParam02.getI());
+        Assert.assertEquals( 0, userParam02.getR());
+        Assert.assertEquals( 0, userParam02.getId());
+
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id3Key));
+        Assert.assertEquals(0,     bt2.getMessageCallback11aKeys().size());
+
+        // 1st mapping: buffer1 -> myCallback01, userParam01
+        bt2.MessageCallback11a(id1, myCallback01, userParam01);
+        Assert.assertEquals(true,  bt2.isMessageCallback11aMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id3Key));
+        Assert.assertEquals(userParam01, bt2.getMessageCallback11aUserParam(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11a(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id3Key));
+        Assert.assertEquals(1,             bt2.getMessageCallback11aKeys().size());
+        {
+            final Set<MessageCallback11aKey> keys = bt2.getMessageCallback11aKeys();
+            Assert.assertEquals(true,  keys.contains(id1Key));
+            Assert.assertEquals(false, keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        // 2nd mapping: buffer2 -> myCallback02, userParam02
+        bt2.MessageCallback11a(id2, myCallback02, userParam02);
+        Assert.assertEquals(true,  bt2.isMessageCallback11aMapped(id1Key));
+        Assert.assertEquals(true,  bt2.isMessageCallback11aMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id3Key));
+        Assert.assertEquals(userParam01, bt2.getMessageCallback11aUserParam(id1Key));
+        Assert.assertEquals(userParam02, bt2.getMessageCallback11aUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11a(id1Key));
+        Assert.assertEquals(myCallback02,  bt2.getMessageCallback11a(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id3Key));
+        Assert.assertEquals(2,             bt2.getMessageCallback11aKeys().size());
+        {
+            final Set<MessageCallback11aKey> keys = bt2.getMessageCallback11aKeys();
+            Assert.assertEquals(true,  keys.contains(id1Key));
+            Assert.assertEquals(true,  keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        {
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.MessageCallback11aInject(id1, 10); // buffer1 -> myCallback01, userParam01
+                }
+            });
+            thread.start();
+            thread.join();
+            Assert.assertEquals(    10+1, id_res[0]);
+            Assert.assertEquals(       1, userParam01.getI());
+            Assert.assertEquals(    10+1, userParam01.getR());
+            Assert.assertEquals(       1, userParam01.getId());
+            Assert.assertEquals(       2, userParam02.getI());
+            Assert.assertEquals(       0, userParam02.getR());
+            Assert.assertEquals(       0, userParam02.getId());
+        }
+        {
+            bt2.MessageCallback11aInject(id2, 10); // buffer2 -> myCallback02, userParam02
+            Assert.assertEquals(    10*2, id_res[0]);
+            Assert.assertEquals(       1, userParam01.getI());
+            Assert.assertEquals(    10+1, userParam01.getR());
+            Assert.assertEquals(       1, userParam01.getId());
+            Assert.assertEquals(       2, userParam02.getI());
+            Assert.assertEquals(    10*2, userParam02.getR());
+            Assert.assertEquals(       2, userParam02.getId());
+        }
+
+        // Switch the callback function for buffer2 -> myCallback01, userParam02
+        bt2.MessageCallback11a(id2, myCallback01, userParam02);
+        Assert.assertEquals(true,  bt2.isMessageCallback11aMapped(id1Key));
+        Assert.assertEquals(true,  bt2.isMessageCallback11aMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id3Key));
+        Assert.assertEquals(userParam01, bt2.getMessageCallback11aUserParam(id1Key));
+        Assert.assertEquals(userParam02, bt2.getMessageCallback11aUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11a(id1Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11a(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id3Key));
+
+        {
+            bt2.MessageCallback11aInject(id1, 11); // buffer1 -> myCallback01, userParam01
+            Assert.assertEquals(    11+1, id_res[0]);
+            Assert.assertEquals(       1, userParam01.getI());
+            Assert.assertEquals(    11+1, userParam01.getR());
+            Assert.assertEquals(       1, userParam01.getId());
+            Assert.assertEquals(       2, userParam02.getI());
+            Assert.assertEquals(    10*2, userParam02.getR());
+            Assert.assertEquals(       2, userParam02.getId());
+        }
+        {
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.MessageCallback11aInject(id2, 22); // buffer2 -> myCallback01, userParam02
+                }
+            });
+            thread.start();
+            thread.join();
+            Assert.assertEquals(    22+2, id_res[0]);
+            Assert.assertEquals(       1, userParam01.getI());
+            Assert.assertEquals(    11+1, userParam01.getR());
+            Assert.assertEquals(       1, userParam01.getId());
+            Assert.assertEquals(       2, userParam02.getI());
+            Assert.assertEquals(    22+2, userParam02.getR());
+            Assert.assertEquals(       2, userParam02.getId());
+        }
+
+        // Just release the buffer2 callback and mapped resources
+        bt2.MessageCallback11a(id2, null, userParam02); // usrptr is not key, only id is key!
+        Assert.assertEquals(true,  bt2.isMessageCallback11aMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id3Key));
+        Assert.assertEquals(userParam01, bt2.getMessageCallback11aUserParam(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11a(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id3Key));
+        Assert.assertEquals(1,             bt2.getMessageCallback11aKeys().size());
+        {
+            final Set<MessageCallback11aKey> keys = bt2.getMessageCallback11aKeys();
+            Assert.assertEquals(true,  keys.contains(id1Key));
+            Assert.assertEquals(false, keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        // Just release the buffer1 callback and mapped resources
+        bt2.MessageCallback11a(id1, null, null); // usrptr is not key, only id is key!
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11aMapped(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11aUserParam(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11a(id3Key));
+        Assert.assertEquals(0,             bt2.getMessageCallback11aKeys().size());
+        {
+            final Set<MessageCallback11aKey> keys = bt2.getMessageCallback11aKeys();
+            Assert.assertEquals(false, keys.contains(id1Key));
+            Assert.assertEquals(false, keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        {
+            bt2.MessageCallback11aInject(id2, 5); // unmapped, no change in data
+            Assert.assertEquals(    22+2, id_res[0]);
+            Assert.assertEquals(       1, userParam01.getI());
+            Assert.assertEquals(    11+1, userParam01.getR());
+            Assert.assertEquals(       1, userParam01.getId());
+            Assert.assertEquals(       2, userParam02.getI());
+            Assert.assertEquals(    22+2, userParam02.getR());
+            Assert.assertEquals(       2, userParam02.getId());
+        }
+    }
+
+    /**
+     * Test Bindingtest2 with T2_CallbackFunc11 JavaCallback via MessageCallback11b()
+     * using the default MessageCallback11bKey class.
+     */
+    @Test
+    public void chapter11b() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final long userParam01Ptr = 0xAFFEBEAFC0FFEEL;
+        final long userParam02Ptr = 0xC0FFEEDEADBEAFL;
+
+        final long[] id_res = { -1 };
+        final T2_CallbackFunc11 myCallback01 = new T2_CallbackFunc11() {
+            @Override
+            public void callback(final long id, final T2_Callback11UserType usrParam, final long val) {
+                Assert.assertEquals(42, usrParam.getApiVersion()); // native toolkit should have set API version
+                if( 1 == id ) {
+                    BaseClass.assertAPTR(userParam01Ptr, usrParam.getData());
+                } else if( 2 == id ) {
+                    BaseClass.assertAPTR(userParam02Ptr, usrParam.getData());
+                }
+                final long res = val + id;
+                id_res[0] = res;
+                usrParam.setR(res);
+                usrParam.setId(id);
+                System.err.println("chapter11b.myCallback01: id "+id+", val "+val);
+            }
+        };
+        final T2_CallbackFunc11 myCallback02 = new T2_CallbackFunc11() {
+            @Override
+            public void callback(final long id, final T2_Callback11UserType usrParam, final long val) {
+                Assert.assertEquals(42, usrParam.getApiVersion()); // native toolkit should have set API version
+                if( 1 == id ) {
+                    BaseClass.assertAPTR(userParam01Ptr, usrParam.getData());
+                } else if( 2 == id ) {
+                    BaseClass.assertAPTR(userParam02Ptr, usrParam.getData());
+                }
+                final long res = val * id;
+                id_res[0] = res;
+                usrParam.setR(res);
+                usrParam.setId(id);
+                System.err.println("chapter11b.myCallback02: id "+id+", val "+val);
+            }
+        };
+        final int id1 = 1;
+        final int id2 = 2;
+        final int id3 = 3;
+        final MessageCallback11bKey id1Key = new MessageCallback11bKey(id1);
+        final MessageCallback11bKey id2Key = new MessageCallback11bKey(id2);
+        final MessageCallback11bKey id3Key = new MessageCallback11bKey(id3);
+
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id3Key));
+        Assert.assertEquals(0,     bt2.getMessageCallback11bKeys().size());
+
+        // 1st mapping: buffer1 -> myCallback01, userParam01Ptr
+        bt2.MessageCallback11b(id1, myCallback01, userParam01Ptr);
+        Assert.assertEquals(true,  bt2.isMessageCallback11bMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11b(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id3Key));
+        Assert.assertEquals(1,             bt2.getMessageCallback11bKeys().size());
+        {
+            final Set<MessageCallback11bKey> keys = bt2.getMessageCallback11bKeys();
+            Assert.assertEquals(true,  keys.contains(id1Key));
+            Assert.assertEquals(false, keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        // 2nd mapping: buffer2 -> myCallback02, userParam02Ptr
+        bt2.MessageCallback11b(id2, myCallback02, userParam02Ptr);
+        Assert.assertEquals(true,  bt2.isMessageCallback11bMapped(id1Key));
+        Assert.assertEquals(true,  bt2.isMessageCallback11bMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id3Key));
+        Assert.assertEquals(2,             bt2.getMessageCallback11bKeys().size());
+        {
+            final Set<MessageCallback11bKey> keys = bt2.getMessageCallback11bKeys();
+            Assert.assertEquals(true,  keys.contains(id1Key));
+            Assert.assertEquals(true,  keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        {
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.MessageCallback11bInject(id1, 10); // buffer1 -> myCallback01, userParam01
+                }
+            });
+            thread.start();
+            thread.join();
+            Assert.assertEquals(    10+1, id_res[0]);
+        }
+        {
+            bt2.MessageCallback11bInject(id2, 10); // buffer2 -> myCallback02, userParam02
+            Assert.assertEquals(    10*2, id_res[0]);
+        }
+
+        // Switch the callback function for buffer2 -> myCallback01, userParam02Ptr
+        bt2.MessageCallback11b(id2, myCallback01, userParam02Ptr);
+        Assert.assertEquals(true,  bt2.isMessageCallback11bMapped(id1Key));
+        Assert.assertEquals(true,  bt2.isMessageCallback11bMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11b(id1Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11b(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id3Key));
+
+        {
+            bt2.MessageCallback11bInject(id1, 11); // buffer1 -> myCallback01, userParam01
+            Assert.assertEquals(    11+1, id_res[0]);
+        }
+        {
+            final Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    bt2.MessageCallback11bInject(id2, 22); // buffer2 -> myCallback01, userParam02
+                }
+            });
+            thread.start();
+            thread.join();
+            Assert.assertEquals(    22+2, id_res[0]);
+        }
+
+        // Just release the buffer2 callback and mapped resources
+        bt2.MessageCallback11b(id2, null, userParam02Ptr); // usrptr is not key, only id is key!
+        Assert.assertEquals(true,  bt2.isMessageCallback11bMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id3Key));
+        Assert.assertEquals(myCallback01,  bt2.getMessageCallback11b(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id3Key));
+        Assert.assertEquals(1,             bt2.getMessageCallback11bKeys().size());
+        {
+            final Set<MessageCallback11bKey> keys = bt2.getMessageCallback11bKeys();
+            Assert.assertEquals(true,  keys.contains(id1Key));
+            Assert.assertEquals(false, keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        // Just release the buffer1 callback and mapped resources
+        bt2.MessageCallback11b(id1, null, 0); // usrptr is not key, only id is key!
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id1Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id2Key));
+        Assert.assertEquals(false, bt2.isMessageCallback11bMapped(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11bUserParam(id3Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id1Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id2Key));
+        Assert.assertEquals(null,          bt2.getMessageCallback11b(id3Key));
+        Assert.assertEquals(0,             bt2.getMessageCallback11bKeys().size());
+        {
+            final Set<MessageCallback11bKey> keys = bt2.getMessageCallback11bKeys();
+            Assert.assertEquals(false, keys.contains(id1Key));
+            Assert.assertEquals(false, keys.contains(id2Key));
+            Assert.assertEquals(false, keys.contains(id3Key));
+        }
+
+        {
+            bt2.MessageCallback11bInject(id2, 5); // unmapped, no change in data
+            Assert.assertEquals(    22+2, id_res[0]);
         }
     }
 

@@ -89,15 +89,21 @@ void alBufferCallback1(int buffer /* key */, int format, int freq, ALBUFFERCALLB
 void alBufferCallback1Inject(int buffer, int sampledata, int numbytes);
 
 //
-// T2_CallbackFunc11
+// T2_CallbackFunc11[ab]
 //
 typedef struct {
     int32_t ApiVersion;
     void* Data;
+    long i;
+    long r;
+    size_t id;
 } T2_Callback11UserType;
 
-typedef void ( * T2_CallbackFunc11)(const T2_Callback11UserType* usrParam);
+typedef void ( * T2_CallbackFunc11)(size_t id, const T2_Callback11UserType* usrParam, long val);
 
-void MessageCallback11(T2_CallbackFunc11 cbFunc, const T2_Callback11UserType* usrParam);
-void InjectMessageCallback11(size_t id, const char* msg);
+void MessageCallback11a(size_t id /* key */, T2_CallbackFunc11 cbFunc, const T2_Callback11UserType* usrParam);
+void MessageCallback11aInject(size_t id, long val);
+
+void MessageCallback11b(size_t id /* key */, T2_CallbackFunc11 cbFunc, void* Data);
+void MessageCallback11bInject(size_t id, long val);
 
