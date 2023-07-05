@@ -65,6 +65,7 @@ public class JavaType {
   private final Type   elementType; // Element type if this JavaType represents a C array
   private final C_PTR  primitivePointerType;
   private final boolean opaqued;
+  private final boolean pascalString;
 
   private static JavaType objectType;
   private static JavaType nioBufferType;
@@ -130,7 +131,7 @@ public class JavaType {
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
   public static JavaType createForOpaqueClass(final Class<?> clazz) {
-    return new JavaType(clazz, true);
+    return new JavaType(clazz, true, false);
   }
 
   /** Creates a JavaType corresponding to the given Java type. This
@@ -138,7 +139,11 @@ public class JavaType {
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
   public static JavaType createForClass(final Class<?> clazz) {
-    return new JavaType(clazz, false);
+    return new JavaType(clazz, false, false);
+  }
+
+  public static JavaType createForStringClass(final Class<?> clazz, final boolean pascalString) {
+    return new JavaType(clazz, false, pascalString);
   }
 
   /**
@@ -558,6 +563,12 @@ public class JavaType {
     return (clazz == java.lang.String.class);
   }
 
+  public boolean isPascalStringVariant() { return pascalString; }
+
+  public boolean isPascalString() {
+    return isString() && this.pascalString;
+  }
+
   public boolean isArray() {
     return ((clazz != null) && clazz.isArray());
   }
@@ -590,6 +601,9 @@ public class JavaType {
      return (clazz != null && clazz.isArray() && clazz.getComponentType() == java.lang.String.class);
   }
 
+  public boolean isPascalStringArray() {
+    return isStringArray() && this.pascalString;
+  }
 
   public boolean isPrimitive() {
     return ((clazz != null) && !isArray() && clazz.isPrimitive() && (clazz != Void.TYPE));
@@ -678,7 +692,7 @@ public class JavaType {
 
   @Override
   public Object clone() {
-    return new JavaType(primitivePointerType, clazz, clazzName, structName, elementType);
+    return new JavaType(primitivePointerType, clazz, clazzName, structName, elementType, pascalString);
   }
 
   @Override
@@ -729,7 +743,18 @@ public class JavaType {
         if( isOpaqued() ) {
             append(sb, "opaque", prepComma); prepComma=true;
         }
-        if( isArray() ) {
+        if( isString() ) {
+            if( pascalString ) {
+                sb.append("pascal ");
+            }
+            append(sb, "string", prepComma); prepComma=true;
+        }
+        if( isStringArray() ) {
+            if( pascalString ) {
+                sb.append("pascal ");
+            }
+            append(sb, "stringArray", prepComma); prepComma=true;
+        } else if( isArray() ) {
             append(sb, "array", prepComma); prepComma=true;
         }
         if( isArrayOfCompoundTypeWrappers() ) {
@@ -737,9 +762,6 @@ public class JavaType {
         }
         if( isCompoundTypeWrapper() ) {
             append(sb, "compound", prepComma); prepComma=true;
-        }
-        if( isArray() ) {
-            append(sb, "array", prepComma); prepComma=true;
         }
         if( isPrimitive() ) {
             append(sb, "primitive", prepComma); prepComma=true;
@@ -774,7 +796,7 @@ public class JavaType {
    * Constructs a representation for a type corresponding to the given Class
    * argument.
    */
-  private JavaType(final Class<?> clazz, final boolean opaqued) {
+  private JavaType(final Class<?> clazz, final boolean opaqued, final boolean pascalString) {
     if( null == clazz ) {
         throw new IllegalArgumentException("null clazz passed");
     }
@@ -784,6 +806,7 @@ public class JavaType {
     this.structName = null;
     this.elementType = null;
     this.opaqued = opaqued;
+    this.pascalString = pascalString;
   }
 
   /** Constructs a type representing a either a named clazz or a named C struct.*/
@@ -804,6 +827,7 @@ public class JavaType {
     this.clazz = null;
     this.elementType = null;
     this.opaqued = false;
+    this.pascalString = false;
   }
 
   /** Constructs a type representing a pointer to a C primitive
@@ -818,6 +842,7 @@ public class JavaType {
     this.structName = null;
     this.elementType = null;
     this.opaqued = false;
+    this.pascalString = false;
   }
 
   /** Constructs a type representing an array of C pointers. */
@@ -831,16 +856,18 @@ public class JavaType {
     this.structName = null;
     this.elementType = elementType;
     this.opaqued = false;
+    this.pascalString = false;
   }
 
   /** clone only */
-  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String clazzName, final String structName, final Type elementType) {
+  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String clazzName, final String structName, final Type elementType, final boolean pascalString) {
     this.primitivePointerType = primitivePointerType;
     this.clazz = clazz;
     this.clazzName = clazzName;
     this.structName = structName;
     this.elementType = elementType;
     this.opaqued = false;
+    this.pascalString = pascalString;
   }
 
   private static String arrayName(Class<?> clazz) {

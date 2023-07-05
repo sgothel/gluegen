@@ -78,6 +78,7 @@ import com.jogamp.common.util.HashUtil;
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackDef;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackInfo;
+import com.jogamp.gluegen.JavaConfiguration.PascalStringIdx;
 import com.jogamp.gluegen.Logging.LoggerIf;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.ArrayType;
@@ -3049,6 +3050,9 @@ public class JavaEmitter implements GlueEmitter {
   private JavaType javaType(final Class<?> c) {
     return JavaType.createForClass(c);
   }
+  private JavaType javaStringType(final Class<?> c, final boolean pascalString) {
+    return JavaType.createForStringClass(c, pascalString);
+  }
 
   /** Maps the C types in the specified function to Java types through
       the MethodBinding interface. Note that the JavaTypes in the
@@ -3081,7 +3085,7 @@ public class JavaEmitter implements GlueEmitter {
           "\". ReturnsString requires native method to have return type \"char *\"",
           sym.getASTLocusTag());
       }
-      javaReturnType = javaType(java.lang.String.class);
+      javaReturnType = javaStringType(java.lang.String.class, false);
     } else {
       final JavaType r = cfg.getOpaqueReturnType(sym);
       if( null != r ) {
@@ -3094,7 +3098,11 @@ public class JavaEmitter implements GlueEmitter {
     // List of the indices of the arguments in this function that should be
     // converted from byte[] or short[] to String
     final List<JavaType> javaArgumentTypes = new ArrayList<JavaType>();
-    final List<Integer> stringArgIndices = cfg.stringArguments(sym);
+    List<Integer> stringArgIndices = cfg.stringArguments(sym);
+    final List<PascalStringIdx> pascalStringArgs = cfg.pascalStringArgument(sym);
+    if( null != pascalStringArgs ) {
+        stringArgIndices = PascalStringIdx.pushValueIndex(pascalStringArgs, stringArgIndices);
+    }
     final JavaCallbackInfo jcbi = cfg.setFuncToJavaCallbackMap.get( sym.getName() );
     int jcbiSetFuncCBParamIdx=-1, jcbiSetFuncUserParamIdx=-1;
 
@@ -3134,7 +3142,7 @@ public class JavaEmitter implements GlueEmitter {
                   mappedType = JavaType.forObjectClass();
               }
           }
-      } else if (stringArgIndices != null && stringArgIndices.contains(i)) {
+      } else if ( stringArgIndices != null && stringArgIndices.contains(i) ) {
         // Take into account any ArgumentIsString configuration directives that apply
         // System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
         if (mappedType.isCVoidPointerType() ||
@@ -3147,10 +3155,11 @@ public class JavaEmitter implements GlueEmitter {
           // convert mapped type from:
           //   void*, byte[], and short[] to String
           //   ByteBuffer[] and ShortBuffer[] to String[]
+          final boolean pascalString = cfg.pascalStringLengthIndex(sym, i) >= 0;
           if (mappedType.isArray() || mappedType.isNIOPointerBuffer()) {
-            mappedType = javaType(ArrayTypes.stringArrayClass);
+            mappedType = javaStringType(ArrayTypes.stringArrayClass, pascalString);
           } else {
-            mappedType = javaType(String.class);
+            mappedType = javaStringType(String.class, pascalString);
           }
         }
         else {

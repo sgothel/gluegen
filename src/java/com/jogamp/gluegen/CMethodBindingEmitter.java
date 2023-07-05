@@ -1176,12 +1176,36 @@ public class CMethodBindingEmitter extends FunctionEmitter {
             unit.emitln("   */");
         }
     } else if (javaType.isString()) {
-        if( addLocalVar ) {
-            unit.emit("  "+javaType.jniTypeName()+" "+javaArgName+" = ");
+        final boolean pascalString = javaType.isPascalStringVariant();
+        final String lenArgName;
+        if( pascalString ) {
+            final int lenIdx = cfg.pascalStringLengthIndex(getCSymbol(), argIdx);
+            lenArgName = 0 <= lenIdx ? binding.getArgumentName(lenIdx) : null;
         } else {
-            unit.emit("  "+javaArgName+" = ");
+            lenArgName = null;
         }
-        unit.emitln("(NULL == "+cArgName+") ? NULL : (*env)->NewStringUTF(env, (const char *)"+cArgName+");");
+        if( addLocalVar ) {
+            unit.emitln("  "+javaType.jniTypeName()+" "+javaArgName+";");
+        }
+        if( null != lenArgName ) {
+            unit.emitln("  if (NULL == "+cArgName+" || 0 >= "+lenArgName+" ) {");
+        } else {
+            unit.emitln("  if (NULL == "+cArgName+") {");
+        }
+        unit.emitln("    "+javaArgName+" = NULL;");
+        unit.emitln("  } else {");
+        if( null != lenArgName ) {
+            unit.emitln("    char* "+cArgName+"_cstr = calloc("+lenArgName+"+1, sizeof(char)); // PascalString -> Add EOS");
+            unit.emitln("    memcpy("+cArgName+"_cstr, "+cArgName+", "+lenArgName+");");
+        }
+        unit.emit  ("    "+javaArgName+" = ");
+        if( null != lenArgName ) {
+            unit.emitln("(*env)->NewStringUTF(env, (const char *)"+cArgName+"_cstr);");
+            unit.emitln("    free("+cArgName+"_cstr);");
+        } else {
+            unit.emitln("(*env)->NewStringUTF(env, (const char *)"+cArgName+");");
+        }
+        unit.emitln("  }");
     } else if (javaType.isArrayOfCompoundTypeWrappers() ||
               ( javaType.isArray() && javaType.isNIOByteBufferArray() ) )
     {
