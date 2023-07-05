@@ -961,11 +961,11 @@
 
                         <dt><strong><a name="ArgumentIsString">ArgumentIsPascalString</a></strong></dt>
                         <dd> Syntax: <code>ArgumentIsString [function name]
-                                [indice-tuples...]</code>, with each tuple being index for the <code>int length</code>
-                                and the <code>const char* value</code> argument with index 0 for the the first argument<br/>
+                                [indice-tuples...]</code>, with each tuple being the argument-index for the '<code>int length</code>'
+                                and the '<code>char* value</code>' argument with index 0 for the the first argument<br/>
 
                             (optional) For a C function with one or more outgoing
-                            <code>int length</code> and <code>char* value</code> (or compatible data type) arguments, 
+                            '<code>int length</code>' and '<code>char* value</code>' (or compatible data type) arguments, 
                             indicates that those arguments are semantically non-null-terminated Pascal strings rather than
                             null-terminated C strings or arbitrary arrays of bytes. The generated glue code will be modified to
                             emit those arguments as java.lang.String objects rather than
