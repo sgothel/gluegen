@@ -419,7 +419,7 @@ public final class JavaCallbackEmitter {
     }
 
     public final int appendJavaAdditionalJNIParameter(final StringBuilder buf) {
-        buf.append("Class<?> clazz, String callbackSignature, long nativeUserParam");
+        buf.append("Class<?> staticCBClazz, String callbackSignature, long nativeUserParam");
         return 3;
     }
     public final int appendJavaAdditionalJNIArguments(final StringBuilder buf) {
@@ -502,7 +502,7 @@ public final class JavaCallbackEmitter {
     //
 
     public int appendCAdditionalParameter(final StringBuilder buf) {
-        buf.append(", jclass clazz, jstring jcallbackSignature, jlong jnativeUserParam");
+        buf.append(", jclass staticCBClazz, jstring jcallbackSignature, jlong jnativeUserParam");
         return 3;
     }
 
@@ -513,7 +513,7 @@ public final class JavaCallbackEmitter {
     }
 
     public void appendCAdditionalJNIDescriptor(final StringBuilder buf) {
-        JavaType.appendJNIDescriptor(buf, Class.class, false);  // to account for the additional 'jclass clazz' parameter
+        JavaType.appendJNIDescriptor(buf, Class.class, false);  // to account for the additional 'jclass staticCBClazz' parameter
         JavaType.appendJNIDescriptor(buf, String.class, false);  // to account for the additional 'jstring jcallbackSignature' parameter
         JavaType.appendJNIDescriptor(buf, long.class, false);  // to account for the additional 'long nativeUserParam' parameter
     }
@@ -522,8 +522,8 @@ public final class JavaCallbackEmitter {
         final String jcbNativeBasename = CodeGenUtils.capitalizeString( info.setFuncName );
         final String jcbFriendlyBasename = info.setFuncName+"("+info.cbSimpleClazzName+")";
         final String staticBindingMethodName = "invoke"+jcbNativeBasename;
-        final String staticBindingClazzVarName = "clazz"+jcbNativeBasename;
-        final String staticBindingMethodIDVarName = "method"+jcbNativeBasename;
+        final String staticBindingClazzVarName = "staticCBClazz"+jcbNativeBasename;
+        final String staticBindingMethodIDVarName = "staticCBMethod"+jcbNativeBasename;
         final String cbFuncArgName = binding.getArgumentName(info.setFuncCBParamIdx);
         final String userParamTypeName = info.cbFuncUserParamType.getCName();
         final String userParamArgName = binding.getArgumentName(info.setFuncUserParamIdx);
@@ -531,21 +531,25 @@ public final class JavaCallbackEmitter {
         final String nativeUserParamVarName = userParamArgName+"_native";
         unit.emitln();
         unit.emitln("  // JavaCallback handling");
-        unit.emitln("  if( NULL == clazz ) { (*env)->FatalError(env, \"NULL clazz passed to '"+jcbFriendlyBasename+"'\"); }");
+        unit.emitln("  if( NULL == staticCBClazz ) { (*env)->FatalError(env, \"NULL staticCBClazz passed to '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("  "+info.cbFuncTypeName+" "+nativeCBFuncVarName+";");
         unit.emitln("  "+userParamTypeName+"* "+nativeUserParamVarName+";");
         unit.emitln("  if( NULL != "+cbFuncArgName+" ) {");
-        unit.emitln("    const char* callbackSignature = (*env)->GetStringUTFChars(env, jcallbackSignature, (jboolean*)NULL);");
-        unit.emitln("    if( NULL == callbackSignature ) { (*env)->FatalError(env, \"Failed callbackSignature in '"+jcbFriendlyBasename+"'\"); }");
-        unit.emitln("    jmethodID cbMethodID = (*env)->GetStaticMethodID(env, clazz, \""+staticBindingMethodName+"\", callbackSignature);");
-        unit.emitln("    if( NULL == cbMethodID ) {");
-        unit.emitln("      char cmsg[400];");
-        unit.emitln("      snprintf(cmsg, 400, \"Failed GetStaticMethodID of '"+staticBindingMethodName+"(%s)' in '"+jcbFriendlyBasename+"'\", callbackSignature);");
-        unit.emitln("      (*env)->FatalError(env, cmsg);");
+        unit.emitln("    if( NULL == "+staticBindingClazzVarName+" || NULL == "+staticBindingMethodIDVarName+" ) {");
+        unit.emitln("      jclass staticCBClazz2 = (*env)->NewGlobalRef(env, staticCBClazz);");
+        unit.emitln("      if( NULL == staticCBClazz2 ) { (*env)->FatalError(env, \"Failed NewGlobalRef(staticCBClazz) in '"+jcbFriendlyBasename+"'\"); }");
+        unit.emitln("      const char* callbackSignature = (*env)->GetStringUTFChars(env, jcallbackSignature, (jboolean*)NULL);");
+        unit.emitln("      if( NULL == callbackSignature ) { (*env)->FatalError(env, \"Failed callbackSignature in '"+jcbFriendlyBasename+"'\"); }");
+        unit.emitln("      jmethodID cbMethodID = (*env)->GetStaticMethodID(env, staticCBClazz2, \""+staticBindingMethodName+"\", callbackSignature);");
+        unit.emitln("      if( NULL == cbMethodID ) {");
+        unit.emitln("        char cmsg[400];");
+        unit.emitln("        snprintf(cmsg, 400, \"Failed GetStaticMethodID of '"+staticBindingMethodName+"(%s)' in '"+jcbFriendlyBasename+"'\", callbackSignature);");
+        unit.emitln("        (*env)->FatalError(env, cmsg);");
+        unit.emitln("      }");
+        unit.emitln("      (*env)->ReleaseStringUTFChars(env, jcallbackSignature, callbackSignature);");
+        unit.emitln("      "+staticBindingClazzVarName+" = staticCBClazz2;");
+        unit.emitln("      "+staticBindingMethodIDVarName+" = cbMethodID;");
         unit.emitln("    }");
-        unit.emitln("    (*env)->ReleaseStringUTFChars(env, jcallbackSignature, callbackSignature);");
-        unit.emitln("    "+staticBindingClazzVarName+" = clazz;");
-        unit.emitln("    "+staticBindingMethodIDVarName+" = cbMethodID;");
         unit.emitln("    "+nativeCBFuncVarName+" = func"+jcbNativeBasename+";");
         unit.emitln("    "+nativeUserParamVarName+" = ("+userParamTypeName+"*) jnativeUserParam;");
         unit.emitln("  } else {");
@@ -559,8 +563,8 @@ public final class JavaCallbackEmitter {
     public void emitCAdditionalCode(final CodeUnit unit, final CMethodBindingEmitter jcbCMethodEmitter) {
         final String jcbNativeBasename = CodeGenUtils.capitalizeString( info.setFuncName );
         final String jcbFriendlyBasename = info.setFuncName+"("+info.cbSimpleClazzName+")";
-        final String staticBindingClazzVarName = "clazz"+jcbNativeBasename;
-        final String staticBindingMethodIDVarName = "method"+jcbNativeBasename;
+        final String staticBindingClazzVarName = "staticCBClazz"+jcbNativeBasename;
+        final String staticBindingMethodIDVarName = "staticCBMethod"+jcbNativeBasename;
         final String staticCallbackName = "func"+jcbNativeBasename;
         // final Type userParamType = javaCallback.cbFuncBinding.getCArgumentType(javaCallback.cbFuncUserParamIdx);
         final String userParamTypeName = info.cbFuncUserParamType.getCName();
