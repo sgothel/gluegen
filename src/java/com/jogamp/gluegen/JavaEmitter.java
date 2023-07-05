@@ -910,7 +910,7 @@ public class JavaEmitter implements GlueEmitter {
             final String fname = nRoot + File.separator + cUnitName;
             jniUnit = openCUnit(fname, cUnitName);
             // jniUnit.emitHeader(structClassPkgName, containingJTypeName, Collections.emptyList());
-            jniUnit.emitHeader(null, structClassPkgName, containingJTypeName, cfg.customCCode());
+            jniUnit.emitHeader(structClassPkgName, containingJTypeName, cfg.customCCode());
         } else {
             jniUnit = null;
         }
@@ -3018,7 +3018,7 @@ public class JavaEmitter implements GlueEmitter {
         if( !cfg.getJavaCallbackList().isEmpty() && null == cfg.libraryOnLoadName() ) {
             LOG.log(WARNING, "JavaCallback used, but no 'LibraryOnLoad' basename specified for JNI_OnLoad(..). Exactly one native code-unit for the library must specify 'LibraryOnLoad' basename");
         }
-        cUnit().emitHeader(cfg.libraryOnLoadName(), getImplPackageName(), cfg.implClassName(), cfg.customCCode());
+        cUnit().emitHeader(getImplPackageName(), cfg.implClassName(), cfg.customCCode());
       }
     } catch (final Exception e) {
       throw new RuntimeException(

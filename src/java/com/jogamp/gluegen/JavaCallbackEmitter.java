@@ -578,7 +578,8 @@ public final class JavaCallbackEmitter {
         unit.emitln(") {");
         // javaCallback.cbFuncCEmitter.emitBody();
         {
-            unit.emitln("  JNIEnv* env = JVMUtil_GetJNIEnv();");
+            unit.emitln("  int detachJVM = 0;");
+            unit.emitln("  JNIEnv* env = JVMUtil_GetJNIEnv(1 /* daemon */, &detachJVM);");
             unit.emitln("  jclass cbClazz = "+staticBindingClazzVarName+";");
             unit.emitln("  jmethodID cbMethod = "+staticBindingMethodIDVarName+";");
             unit.emitln("  if( NULL == env || NULL == cbClazz || NULL == cbMethod ) {");
@@ -623,7 +624,7 @@ public final class JavaCallbackEmitter {
             // javaCallback.cbFuncCEmitter.emitBodyUserVariableAssignments();
             // javaCallback.cbFuncCEmitter.emitBodyVariablePostCallCleanup();
             // javaCallback.cbFuncCEmitter.emitBodyMapCToJNIType(-1 /* return value */, true /* addLocalVar */)
-
+            unit.emitln("  JVMUtil_ReleaseJNIEnv(env, detachJVM);");
             unit.emitln("  "+returnStatement);
         }
         unit.emitln("}");

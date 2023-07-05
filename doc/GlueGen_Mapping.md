@@ -862,9 +862,9 @@ The `SetCallback-KeyClass` shall implement the following hash-map-key standard m
 - `SetCallback-KeyClassName(...)` constructor receiving all key parameter of `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
 
 #### Required *LibraryOnLoad*
-Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit.
-It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
-or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
+Note that [`LibraryOnLoad <LibraryBasename>`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit within one native library.
+
+It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*`, retrieving a valid `JNIEnv*`, see [`LibraryOnLoad <LibraryBasename>`](#libraryonload-librarybasename-for-jni_onload-) for details.
 
 ### *JavaCallback* Generated Interfaces, Classes and Methods
 
@@ -903,7 +903,7 @@ Please consider the following *currently enabled* constraints using JavaCallback
   using the same conversion function `CMethodBindingEmitter.emitBodyMapCToJNIType(..)`.
 - To remove a JavaCallback the `SetCallbackFunction` must be called with `null` for the `CallbackFunction` argument
   but with the same [*key arguments* (see `JavaCallbackKey`)](#javacallback-key-definition) as previously called to set the callback.
-- Exactly one native code-unit for the library must specify [`LibraryOnLoad libraryBasename`](#libraryonload-librarybasename-for-jni_onload-)
+- Exactly one native code-unit within the library must specify [`LibraryOnLoad libraryBasename`](#libraryonload-librarybasename-for-jni_onload-)
 - `SetCallbackFunction`, all *maintenance* methods and the native callback dispatcher **are thread-safe**
 - ... 
 
@@ -946,7 +946,7 @@ ArgumentIsString InjectMessageCallback01 1
 JavaCallbackDef  MessageCallback01 T2_CallbackFunc01 2
 ```
 
-Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit.
+Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit within the library.
 It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
 or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
 
@@ -1267,16 +1267,19 @@ leading to the following interface
 
 ### `LibraryOnLoad <LibraryBasename>` for `JNI_OnLoad*(..)` ...
 
-`LibraryOnLoad <LibraryBasename>` generates native JNI code `JNI_OnLoad(..)` used for dynamic libraries, 
-`JNI_OnLoad_<LibraryBasename>(..)` used for static libraries,
-`JVMUtil_GetJNIEnv(..)` and the instance of `JavaVM* <LibraryBasename>_jvmHandle`.
+`LibraryOnLoad <LibraryBasename>` *can* be specified in one native code-unit within one native library maximum, otherwise multiple function definitions would occur. 
 
-The `JNI_OnLoad*(..)` methods set the `JavaVM* <LibraryBasename>_jvmHandle`, which in turn is utilized by 
-`JVMUtil_GetJNIEnv(..)` to attach a new thread to the `JavaVM*` generating a new `JNIEnv*`in daemon mode -
-or just to retrieve the thread's `JNIEnv*`, if already attached to the `JavaVM*`.
+In case [Java™ callback methods are used](#java-callback), it is required to have `LibraryOnLoad <LibraryBasename>` specified in exactly one native code-unit within one native library.
 
-The `LibraryBasename` parameter is used to generate the `JNI_OnLoad_<LibraryBasename>(..)` variant for statically linked libraries.
-`JNI_OnLoad(..)`, `JNI_OnLoad_<LibraryBasename>(..)` and `JVMUtil_GetJNIEnv(..)`
+`LibraryOnLoad <LibraryBasename>` generates native JNI code to handle the `JavaVM*` instance
+- `JavaVM* JVMUtil_GetJavaVM()` returning the static `JavaVM*` instance for `LibraryBasename` set by `JNI_OnLoad*()`
+- `JNI_OnLoad(..)` setting the static `JavaVM*` instance for `LibraryBasename`, used for dynamic libraries, 
+- `JNI_OnLoad_<LibraryBasename>(..)` setting the static `JavaVM*` instance for `LibraryBasename`, used for static libraries,
+
+Further the following functions are produced to attach and detach the current thread to and from the JVM, getting and releasing the `JNIEnv*`
+- `JNIEnv* JVMUtil_GetJNIEnv(int asDaemon, int* jvmAttached)` returns the `JNIEnv*` with current thread being newly attached to the `JavaVM*` **if** result `*jvmAttached == true`, otherwise the current thread was already attached to the `JavaVM*`
+- `void JVMUtil_ReleaseJNIEnv(JNIEnv* env, int detachJVM)` releases the `JNIEnv*`, i.e. detaching the current thread from the `JavaVM*` **if** `detachJVM == true`, otherwise funtion does nothing.
+
 
 ## Platform Header Files
 

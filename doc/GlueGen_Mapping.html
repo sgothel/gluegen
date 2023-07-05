@@ -2099,13 +2099,14 @@ key parameter of <code>SetCallbackFunction</code> as defined via
 </ul>
 <h4 id="required-libraryonload">Required <em>LibraryOnLoad</em></h4>
 <p>Note that <a
-href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
-must be specified in exactly one native code-unit. It provides code to
-allow the generated native callback-function to attach the current
-thread to the <code>JavaVM*</code> generating a new
-<code>JNIEnv*</code>in daemon mode - or just to retrieve the thread's
-<code>JNIEnv*</code>, if already attached to the
-<code>JavaVM*</code>.</p>
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code></a>
+must be specified in exactly one native code-unit within one native
+library.</p>
+<p>It provides code to allow the generated native callback-function to
+attach the current thread to the <code>JavaVM*</code>, retrieving a
+valid <code>JNIEnv*</code>, see <a
+href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code></a>
+for details.</p>
 <h3
 id="javacallback-generated-interfaces-classes-and-methods"><em>JavaCallback</em>
 Generated Interfaces, Classes and Methods</h3>
@@ -2188,7 +2189,7 @@ argument but with the same <a
 href="#javacallback-key-definition"><em>key arguments</em> (see
 <code>JavaCallbackKey</code>)</a> as previously called to set the
 callback.</li>
-<li>Exactly one native code-unit for the library must specify <a
+<li>Exactly one native code-unit within the library must specify <a
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad libraryBasename</code></a></li>
 <li><code>SetCallbackFunction</code>, all <em>maintenance</em> methods
 and the native callback dispatcher <strong>are thread-safe</strong></li>
@@ -2232,9 +2233,9 @@ ArgumentIsString InjectMessageCallback01 1
 JavaCallbackDef  MessageCallback01 T2_CallbackFunc01 2</code></pre>
 <p>Note that <a
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
-must be specified in exactly one native code-unit. It provides code to
-allow the generated native callback-function to attach the current
-thread to the <code>JavaVM*</code> generating a new
+must be specified in exactly one native code-unit within the library. It
+provides code to allow the generated native callback-function to attach
+the current thread to the <code>JavaVM*</code> generating a new
 <code>JNIEnv*</code>in daemon mode - or just to retrieve the thread's
 <code>JNIEnv*</code>, if already attached to the
 <code>JavaVM*</code>.</p>
@@ -2540,22 +2541,40 @@ users' <code>void*</code> pointer with the
 <h3
 id="libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code>
 for <code>JNI_OnLoad*(..)</code> ...</h3>
+<p><code>LibraryOnLoad &lt;LibraryBasename&gt;</code> <em>can</em> be
+specified in one native code-unit within one native library maximum,
+otherwise multiple function definitions would occur.</p>
+<p>In case <a href="#java-callback">Java™ callback methods are used</a>,
+it is required to have
+<code>LibraryOnLoad &lt;LibraryBasename&gt;</code> specified in exactly
+one native code-unit within one native library.</p>
 <p><code>LibraryOnLoad &lt;LibraryBasename&gt;</code> generates native
-JNI code <code>JNI_OnLoad(..)</code> used for dynamic libraries,
-<code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> used for static
-libraries, <code>JVMUtil_GetJNIEnv(..)</code> and the instance of
-<code>JavaVM* &lt;LibraryBasename&gt;_jvmHandle</code>.</p>
-<p>The <code>JNI_OnLoad*(..)</code> methods set the
-<code>JavaVM* &lt;LibraryBasename&gt;_jvmHandle</code>, which in turn is
-utilized by <code>JVMUtil_GetJNIEnv(..)</code> to attach a new thread to
-the <code>JavaVM*</code> generating a new <code>JNIEnv*</code>in daemon
-mode - or just to retrieve the thread's <code>JNIEnv*</code>, if already
-attached to the <code>JavaVM*</code>.</p>
-<p>The <code>LibraryBasename</code> parameter is used to generate the
-<code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> variant for
-statically linked libraries. <code>JNI_OnLoad(..)</code>,
-<code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> and
-<code>JVMUtil_GetJNIEnv(..)</code></p>
+JNI code to handle the <code>JavaVM*</code> instance</p>
+<ul>
+<li><code>JavaVM* JVMUtil_GetJavaVM()</code> returning the static
+<code>JavaVM*</code> instance for <code>LibraryBasename</code> set by
+<code>JNI_OnLoad*()</code></li>
+<li><code>JNI_OnLoad(..)</code> setting the static <code>JavaVM*</code>
+instance for <code>LibraryBasename</code>, used for dynamic
+libraries,</li>
+<li><code>JNI_OnLoad_&lt;LibraryBasename&gt;(..)</code> setting the
+static <code>JavaVM*</code> instance for <code>LibraryBasename</code>,
+used for static libraries,</li>
+</ul>
+<p>Further the following functions are produced to attach and detach the
+current thread to and from the JVM, getting and releasing the
+<code>JNIEnv*</code></p>
+<ul>
+<li><code>JNIEnv* JVMUtil_GetJNIEnv(int asDaemon, int* jvmAttached)</code>
+returns the <code>JNIEnv*</code> with current thread being newly
+attached to the <code>JavaVM*</code> <strong>if</strong> result
+<code>*jvmAttached == true</code>, otherwise the current thread was
+already attached to the <code>JavaVM*</code></li>
+<li><code>void JVMUtil_ReleaseJNIEnv(JNIEnv* env, int detachJVM)</code>
+releases the <code>JNIEnv*</code>, i.e. detaching the current thread
+from the <code>JavaVM*</code> <strong>if</strong>
+<code>detachJVM == true</code>, otherwise funtion does nothing.</li>
+</ul>
 <h2 id="platform-header-files">Platform Header Files</h2>
 <p>GlueGen provides convenient platform headers,<br />
 which can be included in your C header files for native compilation and
