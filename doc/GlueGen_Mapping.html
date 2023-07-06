@@ -2046,9 +2046,7 @@ typedef-name of the function-pointer-type, aka the callback type
 name</li>
 <li><code>CallbackFunction-UserParamIndex</code>: The
 <code>userParam</code> parameter-index of the
-<code>CallbackFunctionType</code>, allowing to accommodate a potential
-parameter-type collision between <code>SetCallbackFunction</code> and
-<code>CallbackFunction</code>. It also allows to <a
+<code>CallbackFunctionType</code>, which allows to <a
 href="#struct-type-user-param-heterogeneous">indicate a heterogeneous
 <code>UserParam</code></a></li>
 <li><code>SetCallback-KeyClassName</code>: Optional name of a
@@ -2088,11 +2086,7 @@ typedef-name of the function-pointer-type, the same callback type name
 as defined in <code>JavaCallbackDef</code></li>
 <li><code>CallbackFunction-ParamIndex</code>: List of parameter indices
 of the <code>CallbackFunctionType</code>, matching the semantic
-parameter of <code>SetCallback-ParamIndex</code> to accommodate
-potential different parameter order or argument names between
-<code>SetCallbackFunction</code> and <code>CallbackFunction</code>. The
-indexed parameters must be semantical equivalent as specified by the
-<code>SetCallback-ParamIndex</code> list.</li>
+parameter of <code>SetCallback-ParamIndex</code>.</li>
 </ul>
 <h4 id="custom-setcallback-keyclass">Custom
 <code>SetCallback-KeyClass</code></h4>

@@ -826,7 +826,7 @@ as it is core to the semantic mapping of all resources. They also have to use th
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
 - `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction`
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, aka the callback type name
-- `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, allowing to accommodate a potential parameter-type collision between `SetCallbackFunction` and `CallbackFunction`. It also allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous)
+- `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous)
 - `SetCallback-KeyClassName`: Optional name of a user-implemented `SetCallback-KeyClass`, providing the hash-map-key - see below
 
 The `SetCallbackFunction` is utilized to set the `CallbackFunction` as well as to remove it passing `null` for the `CallbackFunction`.
@@ -849,7 +849,7 @@ To remove a previously set `CallbackFunction` via `SetCallbackFunction`, the key
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
 - `SetCallback-ParamIndex`: List of parameter indices of the `SetCallbackFunction`, denoting the key(s) limiting the callback scope, i.e. the callback and all resources will be mapped to this key. The optional `SetCallback-KeyClass` may override this semantic.
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, the same callback type name as defined in `JavaCallbackDef`
-- `CallbackFunction-ParamIndex`: List of parameter indices of the `CallbackFunctionType`, matching the semantic parameter of `SetCallback-ParamIndex` to accommodate potential different parameter order or argument names between `SetCallbackFunction` and `CallbackFunction`. The indexed parameters must be semantical equivalent as specified by the `SetCallback-ParamIndex` list.
+- `CallbackFunction-ParamIndex`: List of parameter indices of the `CallbackFunctionType`, matching the semantic parameter of `SetCallback-ParamIndex`.
 
 
 #### Custom `SetCallback-KeyClass` 
