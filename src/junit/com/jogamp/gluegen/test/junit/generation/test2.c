@@ -165,7 +165,7 @@ void alBufferCallback0Inject(int buffer, int sampledata, int numbytes) {
 static ALBUFFERCALLBACKTYPESOFT alBufferCallback1_callback[] = { NULL, NULL, NULL, NULL, NULL };
 static void* alBufferCallback1_userptr[] = { NULL, NULL, NULL, NULL, NULL };
 
-void alBufferCallback1(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr) {
+void alBufferCallback1(void* userptr, int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback) {
     if( buffer < 0 || MAX_AL_BUFFER <= buffer ) {
         fprintf(stderr, "Error: alBufferCallback1: buffer not in range [0..%d), is %d\n", MAX_AL_BUFFER, buffer);
     } else {

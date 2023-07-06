@@ -1473,7 +1473,7 @@ public class JavaEmitter implements GlueEmitter {
                       funcType.toString(jcbd.cbFuncTypeName, false, true));
           }
           final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, jcbi0.staticCBMethodSignature,
-                                                              funcType, jcbi0.cbFuncBinding, jcbi0.cbFuncUserParamIdx,
+                                                              funcType, jcbi0.cbFuncBinding, jcbi0.cbFuncUserParamIdx, jcbi0.cbFuncKeyIndices,
                                                               jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
           cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
           LOG.log(INFO, "JavaCallbackInfo: Reusing {0} -> {1}", jcbd.setFuncName, jcbi0);
@@ -1493,7 +1493,7 @@ public class JavaEmitter implements GlueEmitter {
                       cbFuncBinding.getJavaReturnType()+", func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
           }
           final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, cbMethodSignature.toString(),
-                                                              funcType, cbFuncBinding, jcbd.cbFuncUserParamIdx,
+                                                              funcType, cbFuncBinding, jcbd.cbFuncUserParamIdx, jcbd.cbFuncKeyIndices,
                                                               jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
           cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
           javaCallbackInterfaceMap.put(cbFQClazzName, jcbi1);
@@ -3104,7 +3104,7 @@ public class JavaEmitter implements GlueEmitter {
         stringArgIndices = PascalStringIdx.pushValueIndex(pascalStringArgs, stringArgIndices);
     }
     final JavaCallbackInfo jcbi = cfg.setFuncToJavaCallbackMap.get( sym.getName() );
-    int jcbiSetFuncCBParamIdx=-1, jcbiSetFuncUserParamIdx=-1;
+    int jcbiSetFuncCBParamIdx=-1;
 
     for (int i = 0; i < sym.getNumArguments(); i++) {
       final Type cArgType = sym.getArgumentType(i);
@@ -3121,20 +3121,6 @@ public class JavaEmitter implements GlueEmitter {
           mappedType = JavaType.createForNamedClass( jcbi.cbFQClazzName );
       } else if( null != jcbi && i == jcbi.setFuncUserParamIdx && cArgType.isPointer() ) {
           // Replace userParam argument '<userParamType>*' if 'void*' with Object
-          jcbiSetFuncUserParamIdx=i;
-          if( cArgType.getTargetType().isVoid() ) {
-              if( jcbi.cbFuncUserParamType.isCompound() ) {
-                  mappedType = JavaType.createForClass(long.class);
-              } else {
-                  mappedType = JavaType.forObjectClass();
-              }
-          }
-      } else if( null != jcbi && jcbi.cbFuncUserParamName.equals( cArgName ) &&
-                 ( !jcbi.setFuncProcessed || i == jcbi.setFuncUserParamIdx ) &&
-                 cArgType.isPointer() && jcbi.cbFuncUserParamType.equals( cArgType.getTargetType() ) )
-      {
-          // Replace userParam argument '<userParamType>*' if 'void*' with Object
-          jcbiSetFuncUserParamIdx=i;
           if( cArgType.getTargetType().isVoid() ) {
               if( jcbi.cbFuncUserParamType.isCompound() ) {
                   mappedType = JavaType.createForClass(long.class);
@@ -3174,9 +3160,9 @@ public class JavaEmitter implements GlueEmitter {
       //System.out.println("During binding of [" + sym + "], added mapping from C type: " + cArgType + " to Java type: " + mappedType);
     }
     if( null != jcbi ) {
-        jcbi.setFuncProcessed(jcbiSetFuncCBParamIdx, jcbiSetFuncUserParamIdx);
-        LOG.log(INFO, "BindFunc.JavaCallback: {0}: set[cbParamIdx {1}, userParamIdx {2}], {3}, {4}",
-                sym.getName(), jcbiSetFuncCBParamIdx, jcbiSetFuncUserParamIdx, sym.getType().toString(sym.getName(), false, true), jcbi);
+        jcbi.setFuncProcessed(sym.getType(), jcbiSetFuncCBParamIdx);
+        LOG.log(INFO, "BindFunc.JavaCallback: {0}: set[cbParamIdx {1}], {3}, {4}",
+                sym.getName(), jcbiSetFuncCBParamIdx, sym.getType().toString(sym.getName(), false, true), jcbi);
     }
     final MethodBinding mb = new MethodBinding(sym, delegationImplName,
                                                javaReturnType, javaArgumentTypes,

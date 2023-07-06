@@ -453,14 +453,10 @@ public final class JavaCallbackEmitter {
         if( mapNativePtrToCompound[0] ) {
             unit.emitln("    final "+origUserParamJType[0]+" "+info.cbFuncUserParamName+" = "+origUserParamJType[0]+".derefPointer(nativeUserParamPtr);");
         }
-        if( useDataMap ) {
-            unit.emitln("    final "+DataClassName+" value;");
-        } else {
-            unit.emitln("    final "+DataClassName+" value;");
-        }
+        unit.emitln("    final "+DataClassName+" value;");
         unit.emitln("    synchronized( "+lockInstanceName+" ) {");
         if( useDataMap ) {
-            unit.emitln("      final "+KeyClassName+" key = new "+KeyClassName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), info.setFuncKeyIndices, false).toString()+");");
+            unit.emitln("      final "+KeyClassName+" key = new "+KeyClassName+"("+info.cbFuncBinding.getJavaCallSelectArguments(new StringBuilder(), info.cbFuncKeyIndices, false).toString()+");");
             unit.emitln("      value = "+dataMapInstanceName+".get(key);");
         } else {
             unit.emitln("      value = "+dataInstanceName+";");

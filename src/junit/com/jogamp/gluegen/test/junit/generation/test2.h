@@ -84,7 +84,7 @@ void alBufferCallback0(int buffer /* key */, int format, int freq, ALBUFFERCALLB
 // void alBufferCallback0Inject(int buffer, void *sampledata, int numbytes);
 void alBufferCallback0Inject(int buffer, int sampledata, int numbytes);
 
-void alBufferCallback1(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr);
+void alBufferCallback1(void* user_ptr, int buffer_key /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback);
 // void alBufferCallback1Inject(int buffer, void *sampledata, int numbytes);
 void alBufferCallback1Inject(int buffer, int sampledata, int numbytes);
 

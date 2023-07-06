@@ -446,7 +446,7 @@ public class Test4JavaCallback extends BaseClass {
         Assert.assertEquals(0,     bt2.getAlBufferCallback1Keys().size());
 
         // 1st mapping: buffer1 -> myCallback01, myUserParam01
-        bt2.alBufferCallback1(buffer1, 0, 0, myCallback01, myUserParam01);
+        bt2.alBufferCallback1(myUserParam01, buffer1, 0, 0, myCallback01);
         Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
@@ -465,7 +465,7 @@ public class Test4JavaCallback extends BaseClass {
         }
 
         // 2nd mapping: buffer2 -> myCallback02, myUserParam02
-        bt2.alBufferCallback1(buffer2, 0, 0, myCallback02, myUserParam02);
+        bt2.alBufferCallback1(myUserParam02, buffer2, 0, 0, myCallback02);
         Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
         Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer2Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
@@ -512,7 +512,7 @@ public class Test4JavaCallback extends BaseClass {
         }
 
         // Switch the callback function for buffer2 -> myCallback01, myUserParam02
-        bt2.alBufferCallback1(buffer2, 0, 0, myCallback01, myUserParam02);
+        bt2.alBufferCallback1(myUserParam02, buffer2, 0, 0, myCallback01);
         Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
         Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer2Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
@@ -552,7 +552,7 @@ public class Test4JavaCallback extends BaseClass {
         }
 
         // Just release the buffer2 callback and mapped resources
-        bt2.alBufferCallback1(buffer2, 0, 0, null, myUserParam02); // usrptr is not key, only buffer is key!
+        bt2.alBufferCallback1(myUserParam02, buffer2, 0, 0, null); // usrptr is not key, only buffer is key!
         Assert.assertEquals(true,  bt2.isAlBufferCallback1Mapped(buffer1Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
@@ -571,7 +571,7 @@ public class Test4JavaCallback extends BaseClass {
         }
 
         // Just release the buffer1 callback and mapped resources
-        bt2.alBufferCallback1(buffer1, 0, 0, null, null); // usrptr is not key, only buffer is key!
+        bt2.alBufferCallback1(null, buffer1, 0, 0, null); // usrptr is not key, only buffer is key!
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer1Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer2Key));
         Assert.assertEquals(false, bt2.isAlBufferCallback1Mapped(buffer3Key));
