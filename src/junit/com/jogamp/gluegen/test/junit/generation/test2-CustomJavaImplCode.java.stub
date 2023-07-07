@@ -1,0 +1,46 @@
+  public void alEventCallback0Inject(Object userParam, int eventType, int object, int param, String message)  {
+    final Object userParam2;
+    final AlEventCallback0Data value;
+    synchronized( alEventCallback0Lock ) {
+      final AlEventCallback0Data value0 = alEventCallback0DataMap.get( new AlEventCallback0Key( userParam ) );
+      if( null != value0 ) {
+        userParam2 = alEventCallback0UserObjIDMap.get(value0.paramID);
+        if( userParam != userParam2 ) {
+            throw new InternalError("Impl issue-1: Arg userParam "+userParam+" != "+userParam2);
+        }
+        final AlEventCallback0Key key = new AlEventCallback0Key(userParam2);
+        value = alEventCallback0DataMap.get( key );
+      } else {
+        userParam2 = null;
+        value = null;
+      }
+    } // synchronized 
+    if( null == value ) {
+        return;
+    }
+    value.func.callback(eventType, object, param, message.length(), message, userParam2);
+  }
+
+  public void alEventCallback1Inject(Object userParam, int eventType, int object, int param, String message)  {
+    final Object userParam2;
+    final AlEventCallback1Data value;
+    synchronized( alEventCallback1Lock ) {
+      final AlEventCallback1Data value0 = alEventCallback1DataMap.get( new AlEventCallback1Key( object, userParam ) );
+      if( null != value0 ) {
+        userParam2 = alEventCallback1UserObjIDMap.get(value0.paramID);
+        if( userParam != userParam2 ) {
+            throw new InternalError("Impl issue-1: Arg userParam "+userParam+" != "+userParam2);
+        }
+        final AlEventCallback1Key key = new AlEventCallback1Key(object, userParam2);
+        value = alEventCallback1DataMap.get( key );
+      } else {
+        userParam2 = null;
+        value = null;
+      }
+    } // synchronized 
+    if( null == value ) {
+        return;
+    }
+    value.func.callback(eventType, object, param, message.length(), message, userParam2);
+  }
+

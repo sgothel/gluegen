@@ -112,25 +112,6 @@ void InjectMessageCallback01(size_t id, const char* msg) {
 //
 //
 
-static ALEVENTPROCSOFT alEventCallback_cb = NULL;
-static void* alEventCallback_up = NULL;
-
-void alEventCallback(ALEVENTPROCSOFT callback, void *userParam) {
-    alEventCallback_cb = callback;
-    alEventCallback_up = userParam;
-}
-void alEventCallbackInject(int eventType, int object, int param, const char* msg) {
-    if( NULL != alEventCallback_cb ) {
-        fprintf(stderr, "XXX InjectMessageCallback01 func %p, user %p\n", alEventCallback_cb, alEventCallback_up);
-        fflush(NULL);
-        (*alEventCallback_cb)(eventType, object, param, strlen(msg), msg, alEventCallback_up);
-    }
-}
-
-//
-//
-//
-
 static const int MAX_AL_BUFFER = 5;
 static ALBUFFERCALLBACKTYPESOFT alBufferCallback0_callback[] = { NULL, NULL, NULL, NULL, NULL };
 static void* alBufferCallback0_userptr[] = { NULL, NULL, NULL, NULL, NULL };
@@ -192,6 +173,94 @@ void alBufferCallback1Inject(int buffer, int sampledata, int numbytes) {
 //
 //
 
+// typedef void ( * ALEVENTPROCSOFT)(int eventType, int object, int param, int length, const char *message, void *userParam);
+static const int MAX_EVENTCB_BUFFER = 5;
+
+static ALEVENTPROCSOFT ALEvent_callback0[] = { NULL, NULL, NULL, NULL, NULL };
+static void* ALEvent_userptr0[] = { NULL, NULL, NULL, NULL, NULL };
+
+void alEventCallback0(ALEVENTPROCSOFT callback, void *userParam /* key */) {
+    int idx;
+    if( NULL == callback ) {
+        // try matching key
+        for(idx = 0; idx<MAX_EVENTCB_BUFFER; ++idx) {
+            if( ALEvent_userptr0[idx] == userParam ) {
+                break;
+            }
+        }
+    } else {
+        // try matching callback first
+        for(idx = 0; idx<MAX_EVENTCB_BUFFER; ++idx) {
+            if( ALEvent_callback0[idx] == callback ) {
+                break;
+            }
+        }
+        if( MAX_EVENTCB_BUFFER <= idx ) {
+            // find free slot
+            for(idx = 0; idx<MAX_EVENTCB_BUFFER; ++idx) {
+                if( ALEvent_callback0[idx] == NULL ) {
+                    break;
+                }
+            }
+        }
+    }
+    if( idx < 0 || MAX_EVENTCB_BUFFER <= idx ) {
+        fprintf(stderr, "Error: alEventCallback0: idx not in range [0..%d), is %d\n", MAX_EVENTCB_BUFFER, idx);
+    } else {
+        ALEvent_callback0[idx] = callback;
+        ALEvent_userptr0[idx] = (ALEVENTPROCSOFT*)userParam;
+        fprintf(stderr, "XXX alEventCallback0 idx %d -> func %p, user %p\n", idx, callback, userParam);
+    }
+    fflush(NULL);
+}
+
+//
+//
+//
+
+static ALEVENTPROCSOFT ALEvent_callback1[] = { NULL, NULL, NULL, NULL, NULL };
+static void* ALEvent_userptr1[] = { NULL, NULL, NULL, NULL, NULL };
+
+void alEventCallback1(int object /* key */, ALEVENTPROCSOFT callback, void *userParam /* key */) {
+    // TODO: Track object key
+    int idx;
+    if( NULL == callback ) {
+        // try matching key
+        for(idx = 0; idx<MAX_EVENTCB_BUFFER; ++idx) {
+            if( ALEvent_userptr1[idx] == userParam ) {
+                break;
+            }
+        }
+    } else {
+        // try matching callback first
+        for(idx = 0; idx<MAX_EVENTCB_BUFFER; ++idx) {
+            if( ALEvent_callback1[idx] == callback ) {
+                break;
+            }
+        }
+        if( MAX_EVENTCB_BUFFER <= idx ) {
+            // find free slot
+            for(idx = 0; idx<MAX_EVENTCB_BUFFER; ++idx) {
+                if( ALEvent_callback1[idx] == NULL ) {
+                    break;
+                }
+            }
+        }
+    }
+    if( idx < 0 || MAX_EVENTCB_BUFFER <= idx ) {
+        fprintf(stderr, "Error: alEventCallback1: idx not in range [0..%d), is %d\n", MAX_EVENTCB_BUFFER, idx);
+    } else {
+        ALEvent_callback1[idx] = callback;
+        ALEvent_userptr1[idx] = (ALEVENTPROCSOFT*)userParam;
+        fprintf(stderr, "XXX alEventCallback1 idx %d -> func %p, user %p\n", idx, callback, userParam);
+    }
+    fflush(NULL);
+}
+
+//
+//
+//
+
 static const int MAX_C11_BUFFER = 5;
 
 static T2_CallbackFunc11 MessageCallback11a_callback[] = { NULL, NULL, NULL, NULL, NULL };
@@ -228,7 +297,7 @@ void MessageCallback11aInject(size_t id, long val) {
 //
 
 static T2_CallbackFunc11 MessageCallback11b_callback[] = { NULL, NULL, NULL, NULL, NULL };
-static T2_Callback11UserType MessageCallback11b_userptr[];
+static T2_Callback11UserType MessageCallback11b_userptr[5];
 
 void MessageCallback11b(size_t id /* key */, T2_CallbackFunc11 cbFunc, void* Data) {
     if( id < 0 || MAX_C11_BUFFER <= id ) {

@@ -1473,7 +1473,7 @@ public class JavaEmitter implements GlueEmitter {
                       funcType.toString(jcbd.cbFuncTypeName, false, true));
           }
           final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, jcbi0.staticCBMethodSignature,
-                                                              funcType, jcbi0.cbFuncBinding, jcbi0.cbFuncUserParamIdx, jcbi0.cbFuncKeyIndices,
+                                                              funcType, jcbi0.cbFuncBinding, jcbi0.cbFuncUserParamIdx, jcbd.cbFuncKeyIndices,
                                                               jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
           cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
           LOG.log(INFO, "JavaCallbackInfo: Reusing {0} -> {1}", jcbd.setFuncName, jcbi0);

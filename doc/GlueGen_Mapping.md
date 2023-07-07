@@ -1135,6 +1135,57 @@ which uses one key, i.e. `buffer`.
     }
 ```
 
+### JavaCallback Example 5b (UserParam part of 2 component-key)
+
+Similar example as example 2a, but having the `UserParam` as part of the 2 component-key.
+
+C-API Header snipped
+```
+  typedef void ( * ALEVENTPROCSOFT)(int eventType, int object, int param, int length, const char *message, void *userParam /* key */);
+
+  void alEventCallback1(int object /* key */, ALEVENTPROCSOFT callback, void *userParam /* key */);
+```
+
+GlueGen configuration snippet with the added option attribute for the `SetCallback-KeyClass` in directive `JavaCallbackDef`.
+```
+ArgumentIsPascalString ALEVENTPROCSOFT 3 4
+
+JavaCallbackDef  alEventCallback1 2 ALEVENTPROCSOFT 5
+JavaCallbackKey  alEventCallback1 0 2 ALEVENTPROCSOFT 1 5
+```
+
+Resulting to the default `KeyClass`
+```
+  /** Key { int object, java.lang.Object userParam } for <br> <code>  void alEventCallback1(int object, ALEVENTPROCSOFT callback, Object userParam)</code> */
+  public static class AlEventCallback1Key {
+    public final int object;
+    public final java.lang.Object userParam;
+    public AlEventCallback1Key(int object, java.lang.Object userParam) {
+      this.object = object;
+      this.userParam = userParam;
+    }
+    @Override
+    public boolean equals(final Object o) {
+      if( this == o ) {
+        return true;
+      }
+      if( !(o instanceof AlEventCallback1Key) ) {
+        return false;
+      }
+      final AlEventCallback1Key o2 = (AlEventCallback1Key)o;
+      return object == o2.object &&
+             userParam == o2.userParam;
+    }
+    @Override
+    public int hashCode() {
+      // 31 * x == (x << 5) - x
+      int hash = object;
+      hash = ((hash << 5) - hash) + System.identityHashCode( userParam );
+      return hash;
+    }
+  }
+```
+
 ### JavaCallback Example 11a (*Homogeneous Struct Type*)
 
 This example demonstrates a [homogeneous *Struct* `UserParam` mapping](#struct-type-user-param-homogeneous) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.

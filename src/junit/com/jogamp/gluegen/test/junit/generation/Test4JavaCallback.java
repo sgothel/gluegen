@@ -33,7 +33,10 @@ import java.util.Set;
 
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALBUFFERCALLBACKTYPESOFT;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALEVENTPROCSOFT;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlBufferCallback0Key;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlEventCallback0Key;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlEventCallback1Key;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11aKey;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11bKey;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc01;
@@ -363,6 +366,48 @@ public class Test4JavaCallback extends BaseClass {
             Assert.assertEquals(false, keys.contains(buffer3Key));
         }
 
+        // Switch the callback function for buffer2 -> myCallback01, myUserParam02
+        {
+            // pre-condition
+            Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+            Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+            Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+            Assert.assertEquals(myUserParam01, bt2.getAlBufferCallback0UserParam(buffer1Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+            Assert.assertEquals(myCallback01,  bt2.getAlBufferCallback0(buffer1Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+            Assert.assertEquals(1,             bt2.getAlBufferCallback0Keys().size());
+        }
+        bt2.alBufferCallback0(buffer1, 0, 0, myCallback02, myUserParam02);
+        {
+            // post-state
+            Assert.assertEquals(true,  bt2.isAlBufferCallback0Mapped(buffer1Key));
+            Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer2Key));
+            Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer3Key));
+            Assert.assertEquals(myUserParam02, bt2.getAlBufferCallback0UserParam(buffer1Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer2Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0UserParam(buffer3Key));
+            Assert.assertEquals(myCallback02,  bt2.getAlBufferCallback0(buffer1Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer2Key));
+            Assert.assertEquals(null,          bt2.getAlBufferCallback0(buffer3Key));
+        }
+        {
+            myUserParam01.j = 0;
+            myUserParam01.buffer = 0;
+            myUserParam02.j = 0;
+            myUserParam02.buffer = 0;
+            bt2.alBufferCallback0Inject(buffer1, 2, 10); // buffer1 -> myCallback01, myUserParam01
+            Assert.assertEquals(  2*10+2, id_res[0]);
+            Assert.assertEquals(       1, myUserParam01.i);
+            Assert.assertEquals(       0, myUserParam01.j);
+            Assert.assertEquals(       0, myUserParam01.buffer);
+            Assert.assertEquals(       2, myUserParam02.i);
+            Assert.assertEquals(  2*10+2, myUserParam02.j);
+            Assert.assertEquals(       1, myUserParam02.buffer);
+        }
+
         // Just release the buffer1 callback and mapped resources
         bt2.alBufferCallback0(buffer1, 0, 0, null, null); // usrptr is not key, only buffer is key!
         Assert.assertEquals(false, bt2.isAlBufferCallback0Mapped(buffer1Key));
@@ -383,14 +428,19 @@ public class Test4JavaCallback extends BaseClass {
         }
 
         {
+            id_res[0] = 0;
+            myUserParam01.j = 0;
+            myUserParam01.buffer = 0;
+            myUserParam02.j = 0;
+            myUserParam02.buffer = 0;
             bt2.alBufferCallback0Inject(buffer2,  1,  10); // unmapped, no change in data
-            Assert.assertEquals( 1+ 10+2, id_res[0]);
+            Assert.assertEquals(       0, id_res[0]);
             Assert.assertEquals(       1, myUserParam01.i);
-            Assert.assertEquals(11+101+1, myUserParam01.j);
-            Assert.assertEquals(       1, myUserParam01.buffer);
+            Assert.assertEquals(       0, myUserParam01.j);
+            Assert.assertEquals(       0, myUserParam01.buffer);
             Assert.assertEquals(       2, myUserParam02.i);
-            Assert.assertEquals( 1+ 10+2, myUserParam02.j);
-            Assert.assertEquals(       2, myUserParam02.buffer);
+            Assert.assertEquals(       0, myUserParam02.j);
+            Assert.assertEquals(       0, myUserParam02.buffer);
         }
     }
 
@@ -878,6 +928,264 @@ public class Test4JavaCallback extends BaseClass {
         @Override
         public String toString() {
             return "CustomALKey[this "+toHexString(System.identityHashCode(this))+", buffer "+buffer+"]";
+        }
+    }
+
+    /**
+     * Test Bindingtest2 with ALEVENTPROCSOFT JavaCallback
+     * on alEventCallback0(..) having the 'Object userParam` as single key.
+     */
+    @Test
+    public void chapter05a() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final int[] id_res = { -1 };
+        final String[] msg_res = { null };
+        final ALEVENTPROCSOFT myCallback01 = new ALEVENTPROCSOFT() {
+            @Override
+            public void callback(final int eventType, final int object, final int param, final int length, final String message, final Object userParam) {
+                id_res[0] = object;
+                msg_res[0] = message;
+                System.err.println("chapter05a.myCallback01: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
+                        Integer.toHexString(System.identityHashCode(userParam)));
+            }
+        };
+        final ALEVENTPROCSOFT myCallback02 = new ALEVENTPROCSOFT() {
+            @Override
+            public void callback(final int eventType, final int object, final int param, final int length, final String message, final Object userParam) {
+                id_res[0] = 1000 * object;
+                msg_res[0] = message;
+                System.err.println("chapter05a.myCallback02: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
+                        Integer.toHexString(System.identityHashCode(userParam)));
+            }
+        };
+        final Object myUserParam01 = new Object();
+        final Object myUserParam02 = new Object();
+        final AlEventCallback0Key myKey01 = new AlEventCallback0Key(myUserParam01);
+        final AlEventCallback0Key myKey02 = new AlEventCallback0Key(myUserParam02);
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey02));
+
+        bt2.alEventCallback0(myCallback01, myUserParam01);
+        Assert.assertEquals(true,  bt2.isAlEventCallback0Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey02));
+        {
+            final Set<AlEventCallback0Key> keys = bt2.getAlEventCallback0Keys();
+            Assert.assertEquals(1, keys.size());
+            Assert.assertEquals(true,  keys.contains(myKey01));
+            Assert.assertEquals(false, keys.contains(myKey02));
+        }
+        Assert.assertEquals(myCallback01, bt2.getAlEventCallback0(myKey01));
+        Assert.assertEquals(null, bt2.getAlEventCallback0(myKey02));
+        Assert.assertEquals(-1, id_res[0]);
+        Assert.assertEquals(null, msg_res[0]);
+
+        {
+            final String msgNo1 = "First message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback0Inject(myUserParam01, 0, 1, 0, msgNo1);
+            Assert.assertEquals(     1, id_res[0]);
+            Assert.assertEquals(msgNo1, msg_res[0]);
+        }
+        {
+            final String msgNo2 = "Second message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback0Inject(myUserParam02, 0, 2, 0, msgNo2);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback0Inject(myUserParam01, 0, 2, 0, msgNo2);
+            Assert.assertEquals(     2, id_res[0]);
+            Assert.assertEquals(  msgNo2, msg_res[0]);
+        }
+
+        // Switch the callback function
+        // The previously mapped myCallback01 (myUserParam01) gets released
+        // and remapped to myCallback02 + ( myUserParam01 )(key)
+        bt2.alEventCallback0(myCallback02, myUserParam01);
+        Assert.assertEquals(true,  bt2.isAlEventCallback0Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey02));
+        {
+            final Set<AlEventCallback0Key> keys = bt2.getAlEventCallback0Keys();
+            Assert.assertEquals(1, keys.size());
+            Assert.assertEquals(true,  keys.contains(myKey01));
+            Assert.assertEquals(false, keys.contains(myKey02));
+        }
+        Assert.assertEquals(myCallback02, bt2.getAlEventCallback0(myKey01));
+        Assert.assertEquals(null,         bt2.getAlEventCallback0(myKey02));
+
+        {
+            final String msgNo3 = "Third message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback0Inject(myUserParam02, 0, 3, 0, msgNo3);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback0Inject(myUserParam01, 0, 3, 0, msgNo3);
+            Assert.assertEquals(    3000, id_res[0]);
+            Assert.assertEquals(  msgNo3, msg_res[0]);
+        }
+
+        // Fake release (wrong key)
+        bt2.alEventCallback0(null, myUserParam02);
+        Assert.assertEquals(true,  bt2.isAlEventCallback0Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey02));
+
+        // Just release the callback and mapped myUserParam01
+        bt2.alEventCallback0(null, myUserParam01);
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback0Mapped(myKey02));
+        Assert.assertEquals(0, bt2.getAlEventCallback0Keys().size());
+
+        {
+            final String msgNo4 = "Forth message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback0Inject(myUserParam01, 0, 4, 0, msgNo4);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback0Inject(myUserParam02, 0, 4, 0, msgNo4);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+        }
+    }
+
+    /**
+     * Test Bindingtest2 with ALEVENTPROCSOFT JavaCallback
+     * on alEventCallback0(..) having the 'Object userParam` and `int object` as keys.
+     */
+    @Test
+    public void chapter05b() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final int[] id_res = { -1 };
+        final String[] msg_res = { null };
+        final ALEVENTPROCSOFT myCallback01 = new ALEVENTPROCSOFT() {
+            @Override
+            public void callback(final int eventType, final int object, final int param, final int length, final String message, final Object userParam) {
+                id_res[0] = object;
+                msg_res[0] = message;
+                System.err.println("chapter05.myCallback01: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
+                        Integer.toHexString(System.identityHashCode(userParam)));
+            }
+        };
+        final ALEVENTPROCSOFT myCallback02 = new ALEVENTPROCSOFT() {
+            @Override
+            public void callback(final int eventType, final int object, final int param, final int length, final String message, final Object userParam) {
+                id_res[0] = 1000 * object;
+                msg_res[0] = message;
+                System.err.println("chapter05.myCallback02: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
+                        Integer.toHexString(System.identityHashCode(userParam)));
+            }
+        };
+        final Object myUserParam01 = new Object();
+        final Object myUserParam02 = new Object();
+        final AlEventCallback1Key myKey01 = new AlEventCallback1Key(1, myUserParam01);
+        final AlEventCallback1Key myKey02 = new AlEventCallback1Key(2, myUserParam02);
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey02));
+
+        bt2.alEventCallback1(1, myCallback01, myUserParam01);
+        Assert.assertEquals(true,  bt2.isAlEventCallback1Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey02));
+        {
+            final Set<AlEventCallback1Key> keys = bt2.getAlEventCallback1Keys();
+            Assert.assertEquals(1, keys.size());
+            Assert.assertEquals(true,  keys.contains(myKey01));
+            Assert.assertEquals(false, keys.contains(myKey02));
+        }
+        Assert.assertEquals(myCallback01, bt2.getAlEventCallback1(myKey01));
+        Assert.assertEquals(null, bt2.getAlEventCallback1(myKey02));
+        Assert.assertEquals(-1, id_res[0]);
+        Assert.assertEquals(null, msg_res[0]);
+
+        {
+            final String msgNo1 = "First message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback1Inject(myUserParam01, 0, 1, 0, msgNo1);
+            Assert.assertEquals(     1, id_res[0]);
+            Assert.assertEquals(msgNo1, msg_res[0]);
+        }
+        {
+            final String msgNo2 = "Second message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback1Inject(myUserParam02, 0, 2, 0, msgNo2);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback1Inject(myUserParam01, 0, 2, 0, msgNo2);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback1Inject(myUserParam01, 0, 1, 0, msgNo2);
+            Assert.assertEquals(     1, id_res[0]);
+            Assert.assertEquals(  msgNo2, msg_res[0]);
+        }
+
+        // Switch the callback function
+        // The previously mapped myCallback01 (1, myUserParam01) gets released
+        // and remapped to myCallback02 + ( 1, myUserParam01 )(key)
+        bt2.alEventCallback1(1, myCallback02, myUserParam01);
+        Assert.assertEquals(true,  bt2.isAlEventCallback1Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey02));
+        {
+            final Set<AlEventCallback1Key> keys = bt2.getAlEventCallback1Keys();
+            Assert.assertEquals(1, keys.size());
+            Assert.assertEquals(true,  keys.contains(myKey01));
+            Assert.assertEquals(false, keys.contains(myKey02));
+        }
+        Assert.assertEquals(myCallback02, bt2.getAlEventCallback1(myKey01));
+        Assert.assertEquals(null,         bt2.getAlEventCallback1(myKey02));
+
+        {
+            final String msgNo3 = "Third message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback1Inject(myUserParam02, 0, 2, 0, msgNo3);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback1Inject(myUserParam01, 0, 2, 0, msgNo3);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback1Inject(myUserParam01, 0, 1, 0, msgNo3);
+            Assert.assertEquals(    1000, id_res[0]);
+            Assert.assertEquals(  msgNo3, msg_res[0]);
+        }
+
+        // Fake release (wrong key)
+        bt2.alEventCallback1(2, null, myUserParam02);
+        Assert.assertEquals(true,  bt2.isAlEventCallback1Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey02));
+
+        bt2.alEventCallback1(2, null, myUserParam01);
+        Assert.assertEquals(true,  bt2.isAlEventCallback1Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey02));
+
+        // Just release the callback and mapped myUserParam01
+        bt2.alEventCallback1(1, null, myUserParam01);
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey01));
+        Assert.assertEquals(false, bt2.isAlEventCallback1Mapped(myKey02));
+        Assert.assertEquals(0, bt2.getAlEventCallback1Keys().size());
+
+        {
+            final String msgNo4 = "Forth message";
+            id_res[0] = -1;
+            msg_res[0] = null;
+            bt2.alEventCallback1Inject(myUserParam01, 0, 4, 0, msgNo4);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
+
+            bt2.alEventCallback1Inject(myUserParam02, 0, 4, 0, msgNo4);
+            Assert.assertEquals(    -1, id_res[0]);
+            Assert.assertEquals(  null, msg_res[0]);
         }
     }
 

@@ -468,6 +468,9 @@
   Example 2b (Custom <em>KeyClass</em>, different key-parameter
   order)</a></li>
   <li><a
+  href="#javacallback-example-5b-userparam-part-of-2-component-key">JavaCallback
+  Example 5b (UserParam part of 2 component-key)</a></li>
+  <li><a
   href="#javacallback-example-11a-homogeneous-struct-type">JavaCallback
   Example 11a (<em>Homogeneous Struct Type</em>)</a></li>
   <li><a
@@ -2421,6 +2424,51 @@ which uses one key, i.e. <code>buffer</code>.</p>
             return &quot;CustomALKey[this &quot;+toHexString(System.identityHashCode(this))+&quot;, buffer &quot;+buffer+&quot;]&quot;;
         }
     }</code></pre>
+<h3
+id="javacallback-example-5b-userparam-part-of-2-component-key">JavaCallback
+Example 5b (UserParam part of 2 component-key)</h3>
+<p>Similar example as example 2a, but having the <code>UserParam</code>
+as part of the 2 component-key.</p>
+<p>C-API Header snipped</p>
+<pre><code>  typedef void ( * ALEVENTPROCSOFT)(int eventType, int object, int param, int length, const char *message, void *userParam /* key */);
+
+  void alEventCallback1(int object /* key */, ALEVENTPROCSOFT callback, void *userParam /* key */);</code></pre>
+<p>GlueGen configuration snippet with the added option attribute for the
+<code>SetCallback-KeyClass</code> in directive
+<code>JavaCallbackDef</code>.</p>
+<pre><code>ArgumentIsPascalString ALEVENTPROCSOFT 3 4
+
+JavaCallbackDef  alEventCallback1 2 ALEVENTPROCSOFT 5
+JavaCallbackKey  alEventCallback1 0 2 ALEVENTPROCSOFT 1 5</code></pre>
+<p>Resulting to the default <code>KeyClass</code></p>
+<pre><code>  /** Key { int object, java.lang.Object userParam } for &lt;br&gt; &lt;code&gt;  void alEventCallback1(int object, ALEVENTPROCSOFT callback, Object userParam)&lt;/code&gt; */
+  public static class AlEventCallback1Key {
+    public final int object;
+    public final java.lang.Object userParam;
+    public AlEventCallback1Key(int object, java.lang.Object userParam) {
+      this.object = object;
+      this.userParam = userParam;
+    }
+    @Override
+    public boolean equals(final Object o) {
+      if( this == o ) {
+        return true;
+      }
+      if( !(o instanceof AlEventCallback1Key) ) {
+        return false;
+      }
+      final AlEventCallback1Key o2 = (AlEventCallback1Key)o;
+      return object == o2.object &amp;&amp;
+             userParam == o2.userParam;
+    }
+    @Override
+    public int hashCode() {
+      // 31 * x == (x &lt;&lt; 5) - x
+      int hash = object;
+      hash = ((hash &lt;&lt; 5) - hash) + System.identityHashCode( userParam );
+      return hash;
+    }
+  }</code></pre>
 <h3 id="javacallback-example-11a-homogeneous-struct-type">JavaCallback
 Example 11a (<em>Homogeneous Struct Type</em>)</h3>
 <p>This example demonstrates a <a

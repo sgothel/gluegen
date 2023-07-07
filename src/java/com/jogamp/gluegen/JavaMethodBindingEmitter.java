@@ -604,7 +604,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         javaCallbackEmitter.emitJavaSetFuncPreCall(unit);
     }
     if (!returnType.isVoid()) {
-      unit.emit("      ");
+      unit.emit("    ");
       if (returnType.isCompoundTypeWrapper() ||
           returnType.isNIOBuffer()) {
         unit.emitln("final ByteBuffer _res;");
@@ -622,9 +622,9 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
 
     if (needsResultAssignment) {
-      unit.emit("      _res = ");
+      unit.emit("    _res = ");
     } else {
-      unit.emit("      ");
+      unit.emit("    ");
       if (!returnType.isVoid()) {
         unit.emit("return ");
       }
@@ -632,11 +632,6 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
 
     emitCall(binding);
     unit.emitln();
-
-    if( null != javaCallbackEmitter ) {
-        unit.emitln();
-        javaCallbackEmitter.emitJavaSetFuncPostCall(unit);
-    }
 
     emitPostCallCleanup(binding);
     emitPrologueOrEpilogue(epilogue);

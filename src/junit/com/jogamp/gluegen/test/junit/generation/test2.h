@@ -67,14 +67,6 @@ void MessageCallback01(T2_CallbackFunc01 cbFunc, void* usrParam);
 void InjectMessageCallback01(size_t id, const char* msg);
 
 //
-// ALEVENTPROCSOFT (similar to OpenAL's AL_SOFT_events)
-//
-typedef void ( * ALEVENTPROCSOFT)(int eventType, int object, int param, int length, const char *message, void *userParam);
-
-void alEventCallback(ALEVENTPROCSOFT callback, void *userParam);
-void alEventCallbackInject(int eventType, int object, int param, const char* msg);
-
-//
 // ALBUFFERCALLBACKTYPESOFT (similar to OpenAL's AL_SOFT_callback_buffer)
 //
 // typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer, void *userptr, void *sampledata, int numbytes);
@@ -87,6 +79,15 @@ void alBufferCallback0Inject(int buffer, int sampledata, int numbytes);
 void alBufferCallback1(void* user_ptr, int buffer_key /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback);
 // void alBufferCallback1Inject(int buffer, void *sampledata, int numbytes);
 void alBufferCallback1Inject(int buffer, int sampledata, int numbytes);
+
+//
+// ALEVENTPROCSOFT (similar to OpenAL's AL_SOFT_events)
+//
+typedef void ( * ALEVENTPROCSOFT)(int eventType, int object, int param, int length, const char *message, void *userParam /* key */);
+
+void alEventCallback0(ALEVENTPROCSOFT callback, void *userParam /* key */);
+
+void alEventCallback1(int object /* key */, ALEVENTPROCSOFT callback, void *userParam /* key */);
 
 //
 // T2_CallbackFunc11[ab]
