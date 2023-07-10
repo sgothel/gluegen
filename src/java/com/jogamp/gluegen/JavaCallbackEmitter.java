@@ -55,6 +55,7 @@ public final class JavaCallbackEmitter {
     final boolean userParamIsMappedToID;
     final String userParamIDMapInstanceName;
 
+    final String userParamClassName;
     final boolean customKeyClass;
     final String KeyClassName;
     final boolean useDataMap;
@@ -98,9 +99,17 @@ public final class JavaCallbackEmitter {
             userParamIDMapInstanceName = null;
         }
 
-        if( null != javaCallback.setFuncKeyClassName ) {
+        if( userParamIsCompound ) {
+            userParamClassName = setFuncUserParamTypeName;
+        } else if( null != javaCallback.userParamClassName ) {
+            userParamClassName = javaCallback.userParamClassName;
+        } else {
+            userParamClassName = "Object";
+        }
+
+        if( null != javaCallback.customKeyClassName ) {
             customKeyClass = true;;
-            KeyClassName = javaCallback.setFuncKeyClassName;
+            KeyClassName = javaCallback.customKeyClassName;
             useDataMap = true;
         } else {
             customKeyClass = false;
@@ -127,7 +136,7 @@ public final class JavaCallbackEmitter {
                 unit.emitln("  public "+info.cbFuncTypeName+" get"+capIfaceName+"("+KeyClassName+" key);");
                 unit.emitln();
                 emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public Object get"+capIfaceName+"UserParam("+KeyClassName+" key);");
+                unit.emitln("  public "+userParamClassName+" get"+capIfaceName+"UserParam("+KeyClassName+" key);");
                 unit.emitln();
                 emitJavaBriefAPIDoc(unit, "Releases all callback data ", "mapped via ", "", "skipping toolkit API. Favor passing `null` callback ref to ");
                 unit.emitln("  public int releaseAll"+capIfaceName+"();");
@@ -143,7 +152,7 @@ public final class JavaCallbackEmitter {
                 unit.emitln("  public "+info.cbFuncTypeName+" get"+capIfaceName+"();");
                 unit.emitln();
                 emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public Object get"+capIfaceName+"UserParam();");
+                unit.emitln("  public "+userParamClassName+" get"+capIfaceName+"UserParam();");
                 unit.emitln();
                 emitJavaBriefAPIDoc(unit, "Releases callback data ", "", "", "skipping toolkit API. Favor passing `null` callback ref to ");
                 unit.emitln("  public void release"+capIfaceName+"();");
@@ -181,7 +190,7 @@ public final class JavaCallbackEmitter {
                 unit.emitln();
 
                 emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public final Object get"+capIfaceName+"UserParam("+KeyClassName+" key) {");
+                unit.emitln("  public final "+userParamClassName+" get"+capIfaceName+"UserParam("+KeyClassName+" key) {");
                 unit.emitln("    synchronized( "+lockInstanceName+" ) {");
                 unit.emitln("      final "+DataClassName+" value = "+dataMapInstanceName+".get(key);");
                 unit.emitln("      return null != value ? value.param : null;");
@@ -234,7 +243,7 @@ public final class JavaCallbackEmitter {
                 unit.emitln();
 
                 emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public final Object get"+capIfaceName+"UserParam() {");
+                unit.emitln("  public final "+userParamClassName+" get"+capIfaceName+"UserParam() {");
                 unit.emitln("    synchronized( "+lockInstanceName+" ) {");
                 unit.emitln("      final "+DataClassName+" value = "+dataInstanceName+";");
                 unit.emitln("      return null != value ? value.param : null;");
@@ -524,12 +533,12 @@ public final class JavaCallbackEmitter {
             unit.emitln("    final "+origUserParamJType[0]+" "+info.cbFuncUserParamName+" = "+origUserParamJType[0]+".derefPointer(nativeUserParam);");
             useParamLocal[0] = true;
         } else if( userParamIsMappedToID && userParamIsKey ) {
-            unit.emitln("    final Object "+info.cbFuncUserParamName+";");
+            unit.emitln("    final "+userParamClassName+" "+info.cbFuncUserParamName+";");
         }
         unit.emitln("    final "+DataClassName+" value;");
         unit.emitln("    synchronized( "+lockInstanceName+" ) {");
         if( userParamIsMappedToID && userParamIsKey && !mapNativePtrToCompound[0] ) {
-            unit.emitln("      "+info.cbFuncUserParamName+" = "+userParamIDMapInstanceName+".get(nativeUserParam);");
+            unit.emitln("      "+info.cbFuncUserParamName+" = ("+userParamClassName+") "+userParamIDMapInstanceName+".get(nativeUserParam);");
             useParamLocal[0] = true;
         }
         if( useDataMap ) {

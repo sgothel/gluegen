@@ -1474,14 +1474,15 @@ public class JavaEmitter implements GlueEmitter {
           }
           final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, jcbi0.staticCBMethodSignature,
                                                               funcType, jcbi0.cbFuncBinding, jcbi0.cbFuncUserParamIdx, jcbd.cbFuncKeyIndices,
-                                                              jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
+                                                              jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices,
+                                                              jcbd.userParamClassName, jcbd.customKeyClassName);
           cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
           LOG.log(INFO, "JavaCallbackInfo: Reusing {0} -> {1}", jcbd.setFuncName, jcbi0);
       } else {
           final StringBuilder cbMethodSignature = new StringBuilder();
           javaUnit.emitln("  /** JavaCallback interface: "+jcbd.cbFuncTypeName+" -> "+funcType.toString(jcbd.cbFuncTypeName, false, true)+" */");
           javaUnit.emitln("  public static interface "+cbSimpleClazzName+" {");
-          final List<MethodBinding> mbs = generateFunctionInterfaceCode(javaUnit, funcSym, jcbd.cbFuncUserParamIdx, cbMethodSignature);
+          final List<MethodBinding> mbs = generateFunctionInterfaceCode(javaUnit, funcSym, jcbd, cbMethodSignature);
           javaUnit.emitln("  }");
           javaUnit.emitln();
           if( 1 != mbs.size() ) {
@@ -1494,7 +1495,8 @@ public class JavaEmitter implements GlueEmitter {
           }
           final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, cbMethodSignature.toString(),
                                                               funcType, cbFuncBinding, jcbd.cbFuncUserParamIdx, jcbd.cbFuncKeyIndices,
-                                                              jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices, jcbd.setFuncKeyClassName);
+                                                              jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices,
+                                                              jcbd.userParamClassName, jcbd.customKeyClassName);
           cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
           javaCallbackInterfaceMap.put(cbFQClazzName, jcbi1);
           LOG.log(INFO, "JavaCallbackInfo: Added {0} -> {1}", jcbd.setFuncName, jcbi1);
@@ -1502,15 +1504,23 @@ public class JavaEmitter implements GlueEmitter {
   }
   private final Map<String, JavaCallbackInfo> javaCallbackInterfaceMap = new HashMap<String, JavaCallbackInfo>();
 
-  private List<MethodBinding> generateFunctionInterfaceCode(final JavaCodeUnit javaUnit, final FunctionSymbol funcSym, final int userParamIdx, final StringBuilder methodSignature)  {
+  private List<MethodBinding> generateFunctionInterfaceCode(final JavaCodeUnit javaUnit, final FunctionSymbol funcSym, final JavaCallbackDef jcbd, final StringBuilder methodSignature)  {
       // Emit method call and associated native code
       MethodBinding mb = bindFunction(funcSym, true  /* forInterface */, machDescJava, null, null);
 
       // Replace optional userParam argument 'void*' with Object
+      final int userParamIdx = jcbd.cbFuncUserParamIdx;
       if( 0 <= userParamIdx && userParamIdx < mb.getNumArguments() ) {
           final JavaType t = mb.getJavaArgumentType(userParamIdx);
           if ( t.isCVoidPointerType() ) {
-              mb = mb.replaceJavaArgumentType(userParamIdx, JavaType.forObjectClass());
+              final JavaType mappedType;
+              if( null != jcbd.userParamClassName ) {
+                  mappedType = JavaType.createForNamedClass( jcbd.userParamClassName );
+                  mb = mb.replaceJavaArgumentType(userParamIdx, JavaType.forObjectClass());
+              } else {
+                  mappedType = JavaType.forObjectClass();
+              }
+              mb = mb.replaceJavaArgumentType(userParamIdx, mappedType);
           }
       }
       // Produce the method signature
@@ -3124,6 +3134,8 @@ public class JavaEmitter implements GlueEmitter {
           if( cArgType.getTargetType().isVoid() ) {
               if( jcbi.cbFuncUserParamType.isCompound() ) {
                   mappedType = JavaType.createForClass(long.class);
+              } else if( null != jcbi.userParamClassName ) {
+                  mappedType = JavaType.createForNamedClass( jcbi.userParamClassName );
               } else {
                   mappedType = JavaType.forObjectClass();
               }

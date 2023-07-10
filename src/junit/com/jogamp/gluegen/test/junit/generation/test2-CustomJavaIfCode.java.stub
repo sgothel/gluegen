@@ -1,4 +1,4 @@
-  public void alEventCallback0Inject(Object userParam, int eventType, int object, int param, String message);
+  public void alEventCallback0Inject(ALCcontext userParam, int eventType, int object, int param, String message);
 
-  public void alEventCallback1Inject(Object userParam, int eventType, int object, int param, String message);
+  public void alEventCallback1Inject(ALCcontext userParam, int eventType, int object, int param, String message);
 

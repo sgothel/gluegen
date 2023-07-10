@@ -796,6 +796,8 @@ It's a homogeneous `UserParam` mapping, where the native side receives a simple 
 
 The static Java callback dispatcher fetches the Java `UserParam` *Object* from the key-mapped data value.
 
+Instead of using the default plain Java `Object` type, a [custom *UserParam*](#custom-callback-userparamclass) can be specified [in the configuration](#javacallback-configuration), which is recommended for more clarity in the resulting API.
+
 #### Struct Type User Param (Homogeneous)
 A [GlueGen generated *Struct type*](#struct-mapping) is used for both, `SetCallbackFunctionName` and `CallbackFunctionType`.
 
@@ -816,7 +818,7 @@ The static Java callback dispatcher dereferences the received native struct addr
 
 Configuration directives are as follows:
 
-    JavaCallbackDef  <SetCallbackFunctionName> <SetCallback-UserParamIndex> <CallbackFunctionType> <CallbackFunction-UserParamIndex> [<SetCallback-KeyClassName>]    
+    JavaCallbackDef  <SetCallbackFunctionName> <SetCallback-UserParamIndex> <CallbackFunctionType> <CallbackFunction-UserParamIndex> [<Callback-UserParamClass> [<Callback-KeyClass>]]
     JavaCallbackKey  <SetCallbackFunctionName> <SetCallback-ParamIndex>* <CallbackFunctionType> <CallbackFunction-ParamIndex>*
     
 `JavaCallbackDef` and `JavaCallbackKey` use the name of the `SetCallbackFunction` as its first attribute,
@@ -827,7 +829,8 @@ as it is core to the semantic mapping of all resources. They also have to use th
 - `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction`
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, aka the callback type name
 - `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous)
-- `SetCallback-KeyClassName`: Optional name of a user-implemented `SetCallback-KeyClass`, providing the hash-map-key - see below
+- `Callback-UserParamClass`: Optional [custom *UserParam*](#custom-callback-userparamclass) overriding the default `Object` for non-compound `UserParam` types.
+- `Callback-KeyClass`: Optional [custom *KeyClass*](#custom-callback-keyclass), providing the hash-map-key.
 
 The `SetCallbackFunction` is utilized to set the `CallbackFunction` as well as to remove it passing `null` for the `CallbackFunction`.
 
@@ -835,11 +838,11 @@ If mapping the `CallbackFunction` to keys, the user must specify the same key ar
 
 #### *JavaCallback* Key Definition
 
-If no keys are defined via `JavaCallbackKey` or not manually injected using a custom `SetCallback-KeyClass`, see below,
+If no keys are defined via `JavaCallbackKey` or not manually injected using a custom `Callback-KeyClass`, see below,
 the `CallbackFunction` has global scope.
 
-In case keys are defined via `JavaCallbackKey` and no manually injected custom `SetCallback-KeyClass` used, 
-a public `SetCallback-KeyClass` is being generated covering the defined keys.
+In case keys are defined via `JavaCallbackKey` and no manually injected custom `Callback-KeyClass` used, 
+a public `Callback-KeyClass` is being generated covering the defined keys.
 
 Keys allow to limit the scope, i.e. map multiple `CallbackFunction` to the different keys.
 
@@ -847,22 +850,25 @@ To remove a previously set `CallbackFunction` via `SetCallbackFunction`, the key
 
 `JavaCallbackKey` attributes
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
-- `SetCallback-ParamIndex`: List of parameter indices of the `SetCallbackFunction`, denoting the key(s) limiting the callback scope, i.e. the callback and all resources will be mapped to this key. The optional `SetCallback-KeyClass` may override this semantic.
+- `SetCallback-ParamIndex`: List of parameter indices of the `SetCallbackFunction`, denoting the key(s) limiting the callback scope, i.e. the callback and all resources will be mapped to this key. The optional `Callback-KeyClass` may override this semantic.
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, the same callback type name as defined in `JavaCallbackDef`
 - `CallbackFunction-ParamIndex`: List of parameter indices of the `CallbackFunctionType`, matching the semantic parameter of `SetCallback-ParamIndex`.
 
+#### Custom `Callback-UserParamClass`
 
-#### Custom `SetCallback-KeyClass` 
+Instead of using the default plain Java `Object` for non-compound `UserParam` types, a custom `Callback-UserParamClass` can be specified [in the configuration](#javacallback-configuration), which produces more clarity in the resulting API.
 
-The `SetCallback-KeyClass` is the optional user-written hash-map-key definition 
+#### Custom `Callback-KeyClass`
+
+The `Callback-KeyClass` is the optional user-written hash-map-key definition 
 and shall handle all key parameter of the `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
 
-`SetCallback-KeyClass` may be used to add external key-components, e.g. current-thread or a toolkit dependent context.
+`Callback-KeyClass` may be used to add external key-components, e.g. current-thread or a toolkit dependent context.
 
-The `SetCallback-KeyClass` shall implement the following hash-map-key standard methods
+The `Callback-KeyClass` shall implement the following hash-map-key standard methods
 - `boolean equals(Object)` 
 - `int hashCode()`
-- `SetCallback-KeyClassName(...)` constructor receiving all key parameter of `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
+- `Callback-KeyClassName(...)` constructor receiving all key parameter of `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
 
 #### Required *LibraryOnLoad*
 Note that [`LibraryOnLoad <LibraryBasename>`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit within one native library.
@@ -873,24 +879,24 @@ It provides code to allow the generated native callback-function to attach the c
 
 The public `CallbackFunction` interface is generated.
 
-The default public `SetCallback-KeyClass` is generated if keys are used and no custom class is specified, see above.
+The default public `Callback-KeyClass` is generated if keys are used and no custom class is specified, see above.
 
 The public toolkit API `SetCallbackFunction` method is being generated.
 
-Additional public *maintenance* methods are generated. In case keys are being used, they expect `SetCallback-KeyClass` as an argument, otherwise they expect no argument for global scope.
+Additional public *maintenance* methods are generated. In case keys are being used, they expect `Callback-KeyClass` as an argument, otherwise they expect no argument for global scope.
 
-In case a `SetCallback-KeyClass` is used, the additional *maintenance* methods are:
-- *Set<`SetCallback-KeyClass`> get`SetCallbackFunctionName`Keys()*
-- *boolean is`SetCallbackFunctionName`Mapped(`SetCallback-KeyClass`)* queries whether `SetCallbackFunctionName` is mapped to key.
-- *`CallbackFunction` get`SetCallbackFunctionName`(`SetCallback-KeyClass`)* returns the mapped `CallbackFunction`, null if not mapped
-- *Object get`SetCallbackFunctionName`UserParam(`SetCallback-KeyClass`)* returns the mapped `userParam` object, null if not mapped
-- *void release`SetCallbackFunctionName`(`SetCallback-KeyClass`)* releases the mapped `CallbackFunction` data set associated via `SetCallbackFunctionName`.
+In case a `Callback-KeyClass` is used, the additional *maintenance* methods are:
+- *Set<`Callback-KeyClass`> get`SetCallbackFunctionName`Keys()*
+- *boolean is`SetCallbackFunctionName`Mapped(`Callback-KeyClass`)* queries whether `SetCallbackFunctionName` is mapped to key.
+- *`CallbackFunction` get`SetCallbackFunctionName`(`Callback-KeyClass`)* returns the mapped `CallbackFunction`, null if not mapped
+- *`Callback-UserParamClass` get`SetCallbackFunctionName`UserParam(`Callback-KeyClass`)* returns the mapped `userParam` object, null if not mapped
+- *void release`SetCallbackFunctionName`(`Callback-KeyClass`)* releases the mapped `CallbackFunction` data set associated via `SetCallbackFunctionName`.
 - *int releaseAll`SetCallbackFunctionName`()* releases complete mapped `CallbackFunction` data set associated via `SetCallbackFunctionName`.
 
-If no `SetCallback-KeyClass` is used, the additional *maintenance* methods are:
+If no `Callback-KeyClass` is used, the additional *maintenance* methods are:
 - *boolean is`SetCallbackFunctionName`Mapped()* queries whether `SetCallbackFunctionName` is mapped.
 - *`CallbackFunction` get`SetCallbackFunctionName`()* returns the mapped `CallbackFunction`, null if not mapped
-- *Object get`SetCallbackFunctionName`UserParam()* returns the mapped `userParam` object, null if not mapped
+- *`Callback-UserParamClass` get`SetCallbackFunctionName`UserParam()* returns the mapped `userParam` object, null if not mapped
 - *void release`SetCallbackFunctionName`()* releases the mapped `CallbackFunction` data set associated via `SetCallbackFunctionName`.
 
 Note that the *release`SetCallbackFunctionName`(\*)* and *releaseAll`SetCallbackFunctionName`()* methods are not the *proper toolkit API way* to remove the callback, 
@@ -988,6 +994,8 @@ public interface Bindingtest2 {
 
 This example demonstrates a [homogeneous *Java Object* `UserParam` mapping](#pure-java-object-user-type-default) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
 
+Additionally a [custom *UserParam*](#custom-callback-userparamclass) type `ALCcontext` is being used for more clarity in the resulting API.
+
 This example is derived from OpenAL's `AL_SOFT_callback_buffer` extension.
 
 The callback `ALBUFFERCALLBACKTYPESOFT` is mapped to `buffer` name, i.e. one callback can be set for each buffer.
@@ -1016,10 +1024,10 @@ and the following GlueGen configuration
   #   - `Set<AlBufferCallback0Key> getAlBufferCallback0Keys()` returns set of Key { int buffer }
   #   - `boolean isAlBufferCallback0Mapped(AlBufferCallback0Key)` queries whether `alBufferCallback0` is mapped to `buffer`.
   #   - `ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(AlBufferCallback0Key)` returns the `buffer` mapped ALEVENTPROCSOFT, null if not mapped
-  #   - `Object getAlBufferCallback0UserParam(AlBufferCallback0Key)` returns the `buffer` mapped `userptr` object, null if not mapped
+  #   - `ALCcontext getAlBufferCallback0UserParam(AlBufferCallback0Key)` returns the `buffer` mapped `userptr` object, null if not mapped
   #   - `void releaseAllAlBufferCallback0()` releases all callback data mapped via Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to `alBufferCallback0(..)`
   #   - `void releaseAlBufferCallback0(AlBufferCallback0Key)` releases callback data mapped to Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to `alBufferCallback0(..)`
-  JavaCallbackDef  alBufferCallback0 4 ALBUFFERCALLBACKTYPESOFT 1
+  JavaCallbackDef  alBufferCallback0 4 ALBUFFERCALLBACKTYPESOFT 1 ALCcontext
   JavaCallbackKey  alBufferCallback0 0 ALBUFFERCALLBACKTYPESOFT 0
 ```
 
@@ -1028,7 +1036,7 @@ leading to the following interface
   /** JavaCallback interface: ALBUFFERCALLBACKTYPESOFT -> void (*ALBUFFERCALLBACKTYPESOFT)(int buffer, void *  userptr, int sampledata, int numbytes) */
   public static interface ALBUFFERCALLBACKTYPESOFT {
     /** Interface to C language function: <br> <code>void callback(int buffer, void *  userptr, int sampledata, int numbytes)</code><br>Alias for: <code>ALBUFFERCALLBACKTYPESOFT</code>     */
-    public void callback(int buffer, Object userptr, int sampledata, int numbytes);
+    public void callback(int buffer, ALCcontext userptr, int sampledata, int numbytes);
   }
   
   ...
@@ -1060,34 +1068,34 @@ leading to the following interface
    
   ...
 
-  /** Entry point (through function pointer) to C language function: <br> <code>void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *  userptr)</code><br>   */
-  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr);
-
-  /** Returns set of Key { int buffer } for <br> <code>  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code> **/
+  /** Returns set of Key { int buffer } for <br> <code>  void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code> */
   public Set<AlBufferCallback0Key> getAlBufferCallback0Keys();
 
-  /** Returns whether callback Key { int buffer } is mapped for <br> <code>  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code> **/
+  /** Returns whether callback Key { int buffer } is mapped for <br> <code>  void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code> */
   public boolean isAlBufferCallback0Mapped(AlBufferCallback0Key key);
 
-  /** Returns ALBUFFERCALLBACKTYPESOFT callback mapped to Key { int buffer } for <br> <code>  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code> **/
+  /** Returns ALBUFFERCALLBACKTYPESOFT callback mapped to Key { int buffer } for <br> <code>  void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code> */
   public ALBUFFERCALLBACKTYPESOFT getAlBufferCallback0(AlBufferCallback0Key key);
 
-  /** Returns user-param mapped to Key { int buffer } for <br> <code>  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code> **/
-  public Object getAlBufferCallback0UserParam(AlBufferCallback0Key key);
+  /** Returns user-param mapped to Key { int buffer } for <br> <code>  void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code> */
+  public ALCcontext getAlBufferCallback0UserParam(AlBufferCallback0Key key);
 
-  /** Releases all callback data mapped via Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code> **/
+  /** Releases all callback data mapped via Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code> */
   public int releaseAllAlBufferCallback0();
 
-  /** Releases callback data mapped to Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)</code> **/
+  /** Releases callback data mapped to Key { int buffer } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code> */
   public void releaseAlBufferCallback0(AlBufferCallback0Key key);
 
-  /** Entry point (through function pointer) to C language function: <br> <code>void alEventCallbackInject(int eventType, int object, int param, const char *  msg)</code><br>   */
-  public void alEventCallbackInject(int eventType, int object, int param, String msg);  
+  /** Entry point (through function pointer) to C language function: <br> <code>void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *  userptr)</code><br>   */
+  public void alBufferCallback0(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void alBufferCallback0Inject(int buffer, int sampledata, int numbytes)</code><br>   */
+  public void alBufferCallback0Inject(int buffer, int sampledata, int numbytes);
 ```
 
 ### JavaCallback Example 2b (Custom *KeyClass*, different key-parameter order)
 
-Similar example as example 2a, but using a [custom *KeyClass*](#custom-setcallback-keyclass) to map `CallbackFunction` and `UserParam` and also accommodating a different key-parameter order between `SetCallbackFunction` and `CallbackFunction`.
+Similar example as example 2a, but using a [custom *KeyClass*](#custom-callback-keyclass) to map `CallbackFunction` and `UserParam` and also accommodating a different key-parameter order between `SetCallbackFunction` and `CallbackFunction`.
 
 C-API Header snipped
 ```
@@ -1098,14 +1106,14 @@ C-API Header snipped
   void alBufferCallback1Inject(int buffer, int sampledata, int numbytes);
 ```
 
-GlueGen configuration snippet with the added option attribute for the `SetCallback-KeyClass` in directive `JavaCallbackDef`.
+GlueGen configuration snippet with the added option attribute for the `Callback-KeyClass` in directive `JavaCallbackDef`.
 ```
-JavaCallbackDef  alBufferCallback1 0 ALBUFFERCALLBACKTYPESOFT 1 com.jogamp.gluegen.test.junit.generation.Test4JavaCallback.CustomAlBufferCallback1Key
+JavaCallbackDef  alBufferCallback1 0 ALBUFFERCALLBACKTYPESOFT 1 ALCcontext com.jogamp.gluegen.test.junit.generation.Test4JavaCallback.CustomAlBufferCallback1Key
 JavaCallbackKey  alBufferCallback1 1 ALBUFFERCALLBACKTYPESOFT 0
 
 ```
 
-Implementation utilizes a custom `SetCallback-KeyClass` implementation for `void alBufferCallback1(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, Object userptr)`, 
+Implementation utilizes a custom `Callback-KeyClass` implementation for `void alBufferCallback1(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)`, 
 which uses one key, i.e. `buffer`.
 ```
     public static class CustomAlBufferCallback1Key {
@@ -1137,7 +1145,8 @@ which uses one key, i.e. `buffer`.
 
 ### JavaCallback Example 5b (UserParam part of 2 component-key)
 
-Similar example as example 2a, but having the `UserParam` as part of the 2 component-key.
+Similar example as example 2a, but having the `UserParam` as part of the 2 component-key
+*and* defining `Callback-UserParamClass` class as `ALCcontext`.
 
 C-API Header snipped
 ```
@@ -1146,21 +1155,21 @@ C-API Header snipped
   void alEventCallback1(int object /* key */, ALEVENTPROCSOFT callback, void *userParam /* key */);
 ```
 
-GlueGen configuration snippet with the added option attribute for the `SetCallback-KeyClass` in directive `JavaCallbackDef`.
+GlueGen configuration snippet with the added option attribute for the `Callback-UserParamClass` in directive `JavaCallbackDef`.
 ```
 ArgumentIsPascalString ALEVENTPROCSOFT 3 4
 
-JavaCallbackDef  alEventCallback1 2 ALEVENTPROCSOFT 5
+JavaCallbackDef  alEventCallback1 2 ALEVENTPROCSOFT 5 ALCcontext
 JavaCallbackKey  alEventCallback1 0 2 ALEVENTPROCSOFT 1 5
 ```
 
 Resulting to the default `KeyClass`
 ```
-  /** Key { int object, java.lang.Object userParam } for <br> <code>  void alEventCallback1(int object, ALEVENTPROCSOFT callback, Object userParam)</code> */
+  /** Key { int object, ALCcontext userParam } for <br> <code>  void alEventCallback1(int object, ALEVENTPROCSOFT callback, ALCcontext userParam)</code> */
   public static class AlEventCallback1Key {
     public final int object;
-    public final java.lang.Object userParam;
-    public AlEventCallback1Key(int object, java.lang.Object userParam) {
+    public final ALCcontext userParam;
+    public AlEventCallback1Key(int object, ALCcontext userParam) {
       this.object = object;
       this.userParam = userParam;
     }
@@ -1238,7 +1247,7 @@ leading to the following interface
   public T2_CallbackFunc11 getMessageCallback11a(MessageCallback11aKey key);
 
   /** Returns user-param mapped to Key { long id } for <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
-  public Object getMessageCallback11aUserParam(MessageCallback11aKey key);
+  public T2_Callback11UserType getMessageCallback11aUserParam(MessageCallback11aKey key);
 
   /** Releases all callback data mapped via Key { long id } skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam)</code> */
   public int releaseAllMessageCallback11a();
@@ -1250,7 +1259,7 @@ leading to the following interface
   public void MessageCallback11a(long id, T2_CallbackFunc11 cbFunc, T2_Callback11UserType usrParam);
 
   /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11aInject(size_t id, long val)</code><br>   */
-  public void MessageCallback11aInject(long id, long val);    
+  public void MessageCallback11aInject(long id, long val);
 ```
 
 ### JavaCallback Example 11b (*Heterogeneous Pointer/Struct Type*)
@@ -1318,7 +1327,7 @@ leading to the following interface
   public void MessageCallback11b(long id, T2_CallbackFunc11 cbFunc, long Data);
 
   /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11bInject(size_t id, long val)</code><br>   */
-  public void MessageCallback11bInject(long id, long val);  
+  public void MessageCallback11bInject(long id, long val);
 ```
 
 *TODO: Enhance documentation*

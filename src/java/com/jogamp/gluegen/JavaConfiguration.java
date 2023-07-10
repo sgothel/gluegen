@@ -192,19 +192,23 @@ public class JavaConfiguration {
       final String setFuncName;
       final int setFuncUserParamIdx; // optional
       final List<Integer> cbFuncKeyIndices = new ArrayList<Integer>();
-      final String setFuncKeyClassName; // optional
+      final String userParamClassName; // optional
+      final String customKeyClassName; // optional
       final List<Integer> setFuncKeyIndices = new ArrayList<Integer>();
-      JavaCallbackDef(final String cbFuncTypeName, final int cbFuncUserParamIdx, final String setFuncName, final int setFuncUserParamIdx, final String setFuncKeyClassName) {
+      JavaCallbackDef(final String cbFuncTypeName, final int cbFuncUserParamIdx, final String setFuncName, final int setFuncUserParamIdx,
+                      final String userParamClassName, final String customKeyClassName) {
           this.cbFuncTypeName = cbFuncTypeName;
           this.cbFuncUserParamIdx = cbFuncUserParamIdx;
           this.setFuncName = setFuncName;
           this.setFuncUserParamIdx = setFuncUserParamIdx;
-          this.setFuncKeyClassName = setFuncKeyClassName;
+          this.userParamClassName = userParamClassName;
+          this.customKeyClassName = customKeyClassName;
       }
       @Override
       public String toString() {
-          return String.format("JavaCallbackDef[cbFunc[type %s, userParamIdx %d, keys %s], set[%s, keys %s, userParamIdx %d, KeyClass %s]]",
-                  cbFuncTypeName, cbFuncUserParamIdx, cbFuncKeyIndices.toString(), setFuncName, setFuncKeyIndices.toString(), setFuncUserParamIdx, setFuncKeyClassName);
+          return String.format("JavaCallbackDef[cbFunc[type %s, userParamIdx %d, keys %s], set[%s, keys %s, userParamIdx %d], Class[UserParam %s, Key %s]]",
+                  cbFuncTypeName, cbFuncUserParamIdx, cbFuncKeyIndices.toString(), setFuncName, setFuncKeyIndices.toString(), setFuncUserParamIdx,
+                  userParamClassName, customKeyClassName);
       }
     }
     private final List<JavaCallbackDef> javaCallbackList = new ArrayList<JavaCallbackDef>();
@@ -1696,13 +1700,26 @@ public class JavaConfiguration {
       final int setFuncUserParamIdx = Integer.parseInt(tok.nextToken());
       final String cbFuncTypeName = tok.nextToken();
       final int cbFuncUserParamIdx = Integer.parseInt(tok.nextToken());
-      final String cbFuncKeyClassName;
+      final String userParamClassName;
+      final String customKeyClassName;
       if( tok.hasMoreTokens() ) {
-          cbFuncKeyClassName = tok.nextToken();
+          final String s = tok.nextToken();
+          if( s.length() == 0 || s.equals("null") ) {
+              userParamClassName = null;
+          } else {
+              userParamClassName = s;
+          }
+          if( tok.hasMoreTokens() ) {
+              customKeyClassName = tok.nextToken();
+          } else {
+              customKeyClassName = null;
+          }
       } else {
-          cbFuncKeyClassName = null;
+          userParamClassName = null;
+          customKeyClassName = null;
       }
-      final JavaCallbackDef jcd = new JavaCallbackDef(cbFuncTypeName, cbFuncUserParamIdx, setFuncName, setFuncUserParamIdx, cbFuncKeyClassName);
+      final JavaCallbackDef jcd = new JavaCallbackDef(cbFuncTypeName, cbFuncUserParamIdx, setFuncName, setFuncUserParamIdx,
+                                                      userParamClassName, customKeyClassName);
       javaCallbackList.add(jcd);
       javaCallbackSetFuncToDef.put(setFuncName, jcd);
     } catch (final NoSuchElementException e) {
@@ -2408,15 +2425,17 @@ public class JavaConfiguration {
 
       final String setFuncName;
       final List<Integer> setFuncKeyIndices;
-      final String setFuncKeyClassName;
       final int setFuncUserParamIdx;
+      final String userParamClassName; // optional
+      final String customKeyClassName; // optional
       boolean setFuncProcessed;
       int setFuncCBParamIdx;
       boolean keyClassEmitted;
 
       public JavaCallbackInfo(final String cbFuncTypeName, final String cbSimpleClazzName, final String cbFQClazzName, final String staticCBMethodSignature,
                               final FunctionType cbFuncType, final MethodBinding cbFuncBinding, final int cbFuncUserParamIdx, final List<Integer> cbFuncKeyIndices,
-                              final String setFuncName, final int setFuncUserParamIdx, final List<Integer> setFuncKeyIndices, final String setFuncKeyClassName) {
+                              final String setFuncName, final int setFuncUserParamIdx, final List<Integer> setFuncKeyIndices,
+                              final String userParamClassName, final String customKeyClassName) {
           this.cbFuncTypeName = cbFuncTypeName;
           this.cbSimpleClazzName = cbSimpleClazzName;
           this.cbFQClazzName = cbFQClazzName;
@@ -2443,8 +2462,9 @@ public class JavaConfiguration {
           }
           this.setFuncName = setFuncName;
           this.setFuncKeyIndices = setFuncKeyIndices;
-          this.setFuncKeyClassName = setFuncKeyClassName;
           this.setFuncUserParamIdx = setFuncUserParamIdx;
+          this.userParamClassName = userParamClassName;
+          this.customKeyClassName = customKeyClassName;
           this.setFuncProcessed = false;
           this.setFuncCBParamIdx = -1;
           this.keyClassEmitted = false;
@@ -2479,11 +2499,11 @@ public class JavaConfiguration {
 
       @Override
       public String toString() {
-          return String.format("JavaCallbackInfo[cbFunc[%s%s, userParam[idx %d, '%s', %s, keys %s], set[%s(ok %b, cbIdx %d, upIdx %d, keys %s, KeyClass '%s'], %s]",
+          return String.format("JavaCallbackInfo[cbFunc[%s%s, userParam[idx %d, '%s', %s, keys %s], set[%s(ok %b, cbIdx %d, upIdx %d, keys %s], Class[UserParam '%s', Key '%s'], %s]",
                   cbFuncTypeName, staticCBMethodSignature,
                   cbFuncUserParamIdx, cbFuncUserParamName, cbFuncUserParamType.getSignature(null).toString(), cbFuncKeyIndices.toString(),
                   setFuncName, setFuncProcessed, setFuncCBParamIdx, setFuncUserParamIdx,
-                  setFuncKeyIndices.toString(), setFuncKeyClassName,
+                  setFuncKeyIndices.toString(), userParamClassName, customKeyClassName,
                   cbFuncType.toString(cbFuncTypeName, false, true));
       }
   }
