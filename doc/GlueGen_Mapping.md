@@ -829,7 +829,7 @@ as it is core to the semantic mapping of all resources. They also have to use th
 - `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction`
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, aka the callback type name
 - `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous)
-- `Callback-UserParamClass`: Optional [custom *UserParam*](#custom-callback-userparamclass) overriding the default `Object` for non-compound `UserParam` types.
+- `Callback-UserParamClass`: Optional [custom *UserParamClass*](#custom-callback-userparamclass) overriding the default `Object` for non-compound `UserParam` types.
 - `Callback-KeyClass`: Optional [custom *KeyClass*](#custom-callback-keyclass), providing the hash-map-key.
 
 The `SetCallbackFunction` is utilized to set the `CallbackFunction` as well as to remove it passing `null` for the `CallbackFunction`.
