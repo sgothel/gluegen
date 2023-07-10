@@ -796,7 +796,7 @@ It's a homogeneous `UserParam` mapping, where the native side receives a simple 
 
 The static Java callback dispatcher fetches the Java `UserParam` *Object* from the key-mapped data value.
 
-Instead of using the default plain Java `Object` type, a [custom *UserParam*](#custom-callback-userparamclass) can be specified [in the configuration](#javacallback-configuration), which is recommended for more clarity in the resulting API.
+Instead of using the default plain Java `Object` type, a [custom *UserParamClass*](#custom-callback-userparamclass) can be specified [in the configuration](#javacallback-configuration), which is recommended for more clarity in the resulting API.
 
 #### Struct Type User Param (Homogeneous)
 A [GlueGen generated *Struct type*](#struct-mapping) is used for both, `SetCallbackFunctionName` and `CallbackFunctionType`.
@@ -994,7 +994,7 @@ public interface Bindingtest2 {
 
 This example demonstrates a [homogeneous *Java Object* `UserParam` mapping](#pure-java-object-user-type-default) with a [key-mapped](#javacallback-key-definition) `CallbackFunction` and `UserParam`.
 
-Additionally a [custom *UserParam*](#custom-callback-userparamclass) type `ALCcontext` is being used for more clarity in the resulting API.
+Additionally a [custom *UserParamClass*](#custom-callback-userparamclass) type `ALCcontext` is being used for more clarity in the resulting API.
 
 This example is derived from OpenAL's `AL_SOFT_callback_buffer` extension.
 
