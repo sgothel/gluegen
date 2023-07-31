@@ -108,3 +108,27 @@ void MessageCallback11aInject(size_t id, long val);
 void MessageCallback11b(size_t id /* key */, T2_CallbackFunc11 cbFunc, void* Data);
 void MessageCallback11bInject(size_t id, long val);
 
+//
+// T2_CallbackFunc12
+//
+
+typedef enum {
+	LOG_Off = 0,
+	LOG_Fatal = 100,
+	LOG_Error = 200,
+	LOG_Warning = 300,
+	LOG_Info = 400,
+	LOG_Verbose = 500,
+	LOG_VeryVerbose = 600
+} LogLevel;
+
+typedef struct {
+    const char* Category;
+    const char* Message;
+    LogLevel Level;
+} LogMessage;
+
+typedef void ( * T2_CallbackFunc12)(const LogMessage* usrParam);
+
+void SetLogCallBack(T2_CallbackFunc12 cbFunc);
+void LogCallBackInject(const LogMessage* message);

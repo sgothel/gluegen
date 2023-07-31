@@ -30,6 +30,8 @@ package com.jogamp.gluegen;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackInfo;
 import com.jogamp.gluegen.cgram.types.Type;
 
+import java.nio.ByteBuffer;
+
 public final class JavaCallbackEmitter {
     final JavaConfiguration cfg;
     final MethodBinding binding;
@@ -44,6 +46,8 @@ public final class JavaCallbackEmitter {
     final String fqUsrParamClassName;
     final JavaType cbFuncJavaReturnType;
     final String jcbNextIDVarName;
+
+    final boolean userParamDefined;
 
     final String setFuncCBArgName;
     final Type setFuncUserParamCType;
@@ -77,13 +81,24 @@ public final class JavaCallbackEmitter {
         jcbNextIDVarName = "NEXT_"+capIfaceName+"_ID";
 
         setFuncCBArgName = binding.getArgumentName(javaCallback.setFuncCBParamIdx);
-        setFuncUserParamCType = mb.getCArgumentType(javaCallback.setFuncUserParamIdx);
-        setFuncUserParamJType = mb.getJavaArgumentType(javaCallback.setFuncUserParamIdx);
-        setFuncUserParamTypeName = setFuncUserParamJType.getName();
-        setFuncUserParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
 
-        userParamIsKey = info.setFuncKeyIndices.contains(info.setFuncUserParamIdx);
-        if( !setFuncUserParamJType.isLong() ) {
+        userParamDefined = javaCallback.setFuncUserParamIdx >= 0;
+        if( !userParamDefined ) {
+            setFuncUserParamCType = null;
+            setFuncUserParamJType = null;
+            setFuncUserParamTypeName = null;
+            setFuncUserParamArgName = null;
+
+            userParamIsKey = false;
+        } else {
+            setFuncUserParamCType = mb.getCArgumentType(javaCallback.setFuncUserParamIdx);
+            setFuncUserParamJType = mb.getJavaArgumentType(javaCallback.setFuncUserParamIdx);
+            setFuncUserParamTypeName = setFuncUserParamJType.getName();
+            setFuncUserParamArgName = binding.getArgumentName(javaCallback.setFuncUserParamIdx);
+
+            userParamIsKey = info.setFuncKeyIndices.contains(info.setFuncUserParamIdx);
+        }
+        if( null != setFuncUserParamJType && !setFuncUserParamJType.isLong() ) {
             if( setFuncUserParamJType.isCompoundTypeWrapper() ) {
                 userParamIsCompound = true;
                 userParamIsMappedToID = false;
@@ -99,16 +114,20 @@ public final class JavaCallbackEmitter {
             userParamIDMapInstanceName = null;
         }
 
-        if( userParamIsCompound ) {
-            userParamClassName = setFuncUserParamTypeName;
-        } else if( null != javaCallback.userParamClassName ) {
-            userParamClassName = javaCallback.userParamClassName;
+        if( userParamDefined ) {
+            if( userParamIsCompound ) {
+                userParamClassName = setFuncUserParamTypeName;
+            } else if( null != javaCallback.userParamClassName ) {
+                userParamClassName = javaCallback.userParamClassName;
+            } else {
+                userParamClassName = "Object";
+            }
         } else {
-            userParamClassName = "Object";
+            userParamClassName = null;
         }
 
         if( null != javaCallback.customKeyClassName ) {
-            customKeyClass = true;;
+            customKeyClass = true;
             KeyClassName = javaCallback.customKeyClassName;
             useDataMap = true;
         } else {
@@ -135,9 +154,11 @@ public final class JavaCallbackEmitter {
                 emitJavaBriefAPIDoc(unit, "Returns "+info.cbFuncTypeName+" callback ", "mapped to ", "", "for ");
                 unit.emitln("  public "+info.cbFuncTypeName+" get"+capIfaceName+"("+KeyClassName+" key);");
                 unit.emitln();
-                emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public "+userParamClassName+" get"+capIfaceName+"UserParam("+KeyClassName+" key);");
-                unit.emitln();
+                if( userParamDefined ) {
+                    emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
+                    unit.emitln("  public "+userParamClassName+" get"+capIfaceName+"UserParam("+KeyClassName+" key);");
+                    unit.emitln();
+                }
                 emitJavaBriefAPIDoc(unit, "Releases all callback data ", "mapped via ", "", "skipping toolkit API. Favor passing `null` callback ref to ");
                 unit.emitln("  public int releaseAll"+capIfaceName+"();");
                 unit.emitln();
@@ -151,9 +172,11 @@ public final class JavaCallbackEmitter {
                 emitJavaBriefAPIDoc(unit, "Returns "+info.cbFuncTypeName+" callback ", "mapped to ", "", "for ");
                 unit.emitln("  public "+info.cbFuncTypeName+" get"+capIfaceName+"();");
                 unit.emitln();
-                emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public "+userParamClassName+" get"+capIfaceName+"UserParam();");
-                unit.emitln();
+                if( userParamDefined ) {
+                    emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
+                    unit.emitln("  public "+userParamClassName+" get"+capIfaceName+"UserParam();");
+                    unit.emitln();
+                }
                 emitJavaBriefAPIDoc(unit, "Releases callback data ", "", "", "skipping toolkit API. Favor passing `null` callback ref to ");
                 unit.emitln("  public void release"+capIfaceName+"();");
                 unit.emitln();
@@ -189,14 +212,16 @@ public final class JavaCallbackEmitter {
                 unit.emitln("  }");
                 unit.emitln();
 
-                emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public final "+userParamClassName+" get"+capIfaceName+"UserParam("+KeyClassName+" key) {");
-                unit.emitln("    synchronized( "+lockInstanceName+" ) {");
-                unit.emitln("      final "+DataClassName+" value = "+dataMapInstanceName+".get(key);");
-                unit.emitln("      return null != value ? value.param : null;");
-                unit.emitln("    }");
-                unit.emitln("  }");
-                unit.emitln();
+                if( userParamDefined ) {
+                    emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
+                    unit.emitln("  public final "+userParamClassName+" get"+capIfaceName+"UserParam("+KeyClassName+" key) {");
+                    unit.emitln("    synchronized( "+lockInstanceName+" ) {");
+                    unit.emitln("      final "+DataClassName+" value = "+dataMapInstanceName+".get(key);");
+                    unit.emitln("      return null != value ? value.param : null;");
+                    unit.emitln("    }");
+                    unit.emitln("  }");
+                    unit.emitln();
+                }
                 emitJavaBriefAPIDoc(unit, "Releases all callback data ", "mapped via ", "", "skipping toolkit API. Favor passing `null` callback ref to ");
                 unit.emitln("  public final int releaseAll"+capIfaceName+"() {");
                 unit.emitln("    synchronized( "+lockInstanceName+" ) {");
@@ -242,14 +267,16 @@ public final class JavaCallbackEmitter {
                 unit.emitln("  }");
                 unit.emitln();
 
-                emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
-                unit.emitln("  public final "+userParamClassName+" get"+capIfaceName+"UserParam() {");
-                unit.emitln("    synchronized( "+lockInstanceName+" ) {");
-                unit.emitln("      final "+DataClassName+" value = "+dataInstanceName+";");
-                unit.emitln("      return null != value ? value.param : null;");
-                unit.emitln("    }");
-                unit.emitln("  }");
-                unit.emitln();
+                if( userParamDefined ) {
+                    emitJavaBriefAPIDoc(unit, "Returns user-param ", "mapped to ", "", "for ");
+                    unit.emitln("  public final "+userParamClassName+" get"+capIfaceName+"UserParam() {");
+                    unit.emitln("    synchronized( "+lockInstanceName+" ) {");
+                    unit.emitln("      final "+DataClassName+" value = "+dataInstanceName+";");
+                    unit.emitln("      return null != value ? value.param : null;");
+                    unit.emitln("    }");
+                    unit.emitln("  }");
+                    unit.emitln();
+                }
 
                 emitJavaBriefAPIDoc(unit, "Releases callback data ", "", "", "skipping toolkit API. Favor passing `null` callback ref to ");
                 unit.emitln("  public final void release"+capIfaceName+"() {");
@@ -416,23 +443,32 @@ public final class JavaCallbackEmitter {
 
     private final void emitJavaDataClass(final CodeUnit unit) {
         unit.emitln("  private static class "+DataClassName+" {");
-        unit.emitln("    // userParamArgCType "+setFuncUserParamCType);
-        unit.emitln("    // userParamArgJType "+setFuncUserParamJType);
-        unit.emitln("    final "+info.cbFuncTypeName+" func;");
-        if( userParamIsMappedToID ) {
-            unit.emitln("    final long paramID;");
+        unit.emitln("    final " + info.cbFuncTypeName + " func;");
+        if( userParamDefined ) {
+            unit.emitln("    // userParamArgCType "+setFuncUserParamCType);
+            unit.emitln("    // userParamArgJType "+setFuncUserParamJType);
+            unit.emitln("    final "+setFuncUserParamTypeName+" param;");
+            if( userParamIsMappedToID ) {
+                unit.emitln("    final long paramID;");
+            }
+        } else {
+            unit.emitln("    // No user param defined.");
         }
-        unit.emitln("    final "+setFuncUserParamTypeName+" param;");
-        unit.emit  ("    "+DataClassName+"(final "+info.cbFuncTypeName+" func, ");
-        if( userParamIsMappedToID ) {
-            unit.emit("final long paramID, ");
+        unit.emit  ("    "+DataClassName+"(final "+info.cbFuncTypeName+" func");
+        if( userParamDefined ) {
+            if( userParamIsMappedToID ) {
+                unit.emit(", final long paramID");
+            }
+            unit.emit(", final "+setFuncUserParamTypeName+" param");
         }
-        unit.emitln("final "+setFuncUserParamTypeName+" param) {");
+        unit.emitln(") {");
         unit.emitln("      this.func = func;");
-        if( userParamIsMappedToID ) {
-            unit.emitln("      this.paramID = paramID;");
+        if( userParamDefined ) {
+            if( userParamIsMappedToID ) {
+                unit.emitln("      this.paramID = paramID;");
+            }
+            unit.emitln("      this.param = param;");
         }
-        unit.emitln("      this.param = param;");
         unit.emitln("    }");
         unit.emitln("  }");
     }
@@ -445,7 +481,7 @@ public final class JavaCallbackEmitter {
                 if( idx == info.cbFuncUserParamIdx ) {
                     buf.append("J");
                 } else {
-                    buf.append(jType.getDescriptor());
+                    buf.append(jType.getDescriptor(cfg));
                 }
                 return true;
             } else {
@@ -453,45 +489,60 @@ public final class JavaCallbackEmitter {
             }
         } );
         buf.append(")");
-        buf.append(cbFuncJavaReturnType.getDescriptor());
+        buf.append(cbFuncJavaReturnType.getDescriptor(cfg));
         return buf.toString();
     }
 
     public final int appendJavaAdditionalJNIParameter(final StringBuilder buf) {
-        buf.append("Class<?> staticCBClazz, String callbackSignature, long nativeUserParam");
+        buf.append("Class<?> staticCBClazz, String callbackSignature");
+        if( !userParamDefined ) {
+            return 2;
+        }
+        buf.append(", long nativeUserParam");
         return 3;
     }
     public final int appendJavaAdditionalJNIArguments(final StringBuilder buf) {
-        buf.append("this.getClass(), \"" + getJavaStaticCallbackSignature()+ "\", nativeUserParam");
+        buf.append("this.getClass(), \"" + getJavaStaticCallbackSignature() + "\"");
+        if( !userParamDefined ) {
+            return 2;
+        }
+        buf.append(", nativeUserParam");
         return 3;
     }
 
     public void emitJavaSetFuncPreCall(final CodeUnit unit) {
-        unit.emitln("    final long nativeUserParam;");
+        if( userParamDefined ) {
+            unit.emitln("    final long nativeUserParam;");
+        }
         unit.emitln("    synchronized( "+lockInstanceName+" ) {");
-        if( setFuncUserParamJType.isLong() ) {
-            unit.emitln("      nativeUserParam = "+setFuncUserParamArgName+";");
-        } else {
-            unit.emitln("      if( null != "+setFuncUserParamArgName+" ) {");
-            if( setFuncUserParamJType.isCompoundTypeWrapper() ) {
-                // userParamIsCompound == true
-                unit.emitln("        nativeUserParam = "+setFuncUserParamArgName+".getDirectBufferAddress();");
+        if( userParamDefined ) {
+            if( setFuncUserParamJType.isLong() ) {
+                unit.emitln("      nativeUserParam = "+setFuncUserParamArgName+";");
             } else {
-                // userParamIsMappedToID == true
-                unit.emitln("        nativeUserParam = "+jcbNextIDVarName+"++;");
-                unit.emitln("        if( 0 >= "+jcbNextIDVarName+" ) { "+jcbNextIDVarName+" = 1; }");
+                unit.emitln("      if( null != "+setFuncUserParamArgName+" ) {");
+                if( setFuncUserParamJType.isCompoundTypeWrapper() ) {
+                    // userParamIsCompound == true
+                    unit.emitln("        nativeUserParam = "+setFuncUserParamArgName+".getDirectBufferAddress();");
+                } else {
+                    // userParamIsMappedToID == true
+                    unit.emitln("        nativeUserParam = "+jcbNextIDVarName+"++;");
+                    unit.emitln("        if( 0 >= "+jcbNextIDVarName+" ) { "+jcbNextIDVarName+" = 1; }");
+                }
+                unit.emitln("      } else {");
+                unit.emitln("        nativeUserParam = 0;");
+                unit.emitln("      }");
             }
-            unit.emitln("      } else {");
-            unit.emitln("        nativeUserParam = 0;");
-            unit.emitln("      }");
         }
         unit.emitln("      if( null != "+setFuncCBArgName+" ) {");
         unit.emit  ("        add"+capIfaceName+"("+binding.getJavaCallSelectArguments(new StringBuilder(), info.setFuncKeyIndices, true).toString()+
-                "new "+DataClassName+"("+setFuncCBArgName+", ");
-        if( userParamIsMappedToID ) {
-            unit.emit("nativeUserParam, ");
+                "new "+DataClassName+"("+setFuncCBArgName);
+        if( userParamDefined ) {
+            if( userParamIsMappedToID ) {
+                unit.emit(", nativeUserParam");
+            }
+            unit.emit(", "+setFuncUserParamArgName);
         }
-        unit.emitln(setFuncUserParamArgName+"));");
+        unit.emitln("));");
         unit.emitln("      } else { ");
         unit.emitln("        // release a previously mapped instance ");
         if( useDataMap ) {
@@ -529,17 +580,21 @@ public final class JavaCallbackEmitter {
         } );
         unit.emitln(") {");
         final boolean useParamLocal[] = { false };
-        if( mapNativePtrToCompound[0] ) {
-            unit.emitln("    final "+origUserParamJType[0]+" "+info.cbFuncUserParamName+" = "+origUserParamJType[0]+".derefPointer(nativeUserParam);");
-            useParamLocal[0] = true;
-        } else if( userParamIsMappedToID && userParamIsKey ) {
-            unit.emitln("    final "+userParamClassName+" "+info.cbFuncUserParamName+";");
+        if( userParamDefined ) {
+            if( mapNativePtrToCompound[0] ) {
+                unit.emitln("    final "+origUserParamJType[0]+" "+info.cbFuncUserParamName+" = "+origUserParamJType[0]+".derefPointer(nativeUserParam);");
+                useParamLocal[0] = true;
+            } else if( userParamIsMappedToID && userParamIsKey ) {
+                unit.emitln("    final "+userParamClassName+" "+info.cbFuncUserParamName+";");
+            }
         }
         unit.emitln("    final "+DataClassName+" value;");
         unit.emitln("    synchronized( "+lockInstanceName+" ) {");
-        if( userParamIsMappedToID && userParamIsKey && !mapNativePtrToCompound[0] ) {
-            unit.emitln("      "+info.cbFuncUserParamName+" = ("+userParamClassName+") "+userParamIDMapInstanceName+".get(nativeUserParam);");
-            useParamLocal[0] = true;
+        if( userParamDefined ) {
+            if( userParamIsMappedToID && userParamIsKey && !mapNativePtrToCompound[0] ) {
+                unit.emitln("      "+info.cbFuncUserParamName+" = ("+userParamClassName+") "+userParamIDMapInstanceName+".get(nativeUserParam);");
+                useParamLocal[0] = true;
+            }
         }
         if( useDataMap ) {
             unit.emitln("      final "+KeyClassName+" key = new "+KeyClassName+"("+info.cbFuncBinding.getJavaCallSelectArguments(new StringBuilder(), info.cbFuncKeyIndices, false).toString()+");");
@@ -584,7 +639,11 @@ public final class JavaCallbackEmitter {
     //
 
     public int appendCAdditionalParameter(final StringBuilder buf) {
-        buf.append(", jclass staticCBClazz, jstring jcallbackSignature, jlong jnativeUserParam");
+        buf.append(", jclass staticCBClazz, jstring jcallbackSignature");
+        if( !userParamDefined ) {
+            return 2;
+        }
+        buf.append(", jlong jnativeUserParam");
         return 3;
     }
 
@@ -597,25 +656,29 @@ public final class JavaCallbackEmitter {
     public void appendCAdditionalJNIDescriptor(final StringBuilder buf) {
         JavaType.appendJNIDescriptor(buf, Class.class, false);  // to account for the additional 'jclass staticCBClazz' parameter
         JavaType.appendJNIDescriptor(buf, String.class, false);  // to account for the additional 'jstring jcallbackSignature' parameter
-        JavaType.appendJNIDescriptor(buf, long.class, false);  // to account for the additional 'long nativeUserParam' parameter
+        if( userParamDefined ) {
+            JavaType.appendJNIDescriptor(buf, long.class, false);  // to account for the additional 'long nativeUserParam' parameter
+        }
     }
 
-    public void emitCSetFuncPreCall(final CodeUnit unit) {
+    public void emitCSetFuncPreCall(final CodeUnit unit, final CMethodBindingEmitter jcbCMethodEmitter) {
         final String jcbNativeBasename = CodeGenUtils.capitalizeString( info.setFuncName );
         final String jcbFriendlyBasename = info.setFuncName+"("+info.cbSimpleClazzName+")";
         final String staticBindingMethodName = "invoke"+jcbNativeBasename;
         final String staticBindingClazzVarName = "staticCBClazz"+jcbNativeBasename;
         final String staticBindingMethodIDVarName = "staticCBMethod"+jcbNativeBasename;
         final String cbFuncArgName = binding.getArgumentName(info.setFuncCBParamIdx);
-        final String userParamTypeName = info.cbFuncUserParamType.getCName();
-        final String userParamArgName = binding.getArgumentName(info.setFuncUserParamIdx);
+        final String userParamTypeName = userParamDefined ? info.cbFuncUserParamType.getCName() : null;
+        final String userParamArgName = userParamDefined ? binding.getArgumentName(info.setFuncUserParamIdx) : null;
         final String nativeCBFuncVarName = cbFuncArgName+"_native";
-        final String nativeUserParamVarName = userParamArgName+"_native";
+        final String nativeUserParamVarName = userParamDefined ? userParamArgName+"_native" : null;
         unit.emitln();
         unit.emitln("  // JavaCallback handling");
         unit.emitln("  if( NULL == staticCBClazz ) { (*env)->FatalError(env, \"NULL staticCBClazz passed to '"+jcbFriendlyBasename+"'\"); }");
         unit.emitln("  "+info.cbFuncTypeName+" "+nativeCBFuncVarName+";");
-        unit.emitln("  "+userParamTypeName+"* "+nativeUserParamVarName+";");
+        if( userParamDefined ) {
+            unit.emitln("  "+userParamTypeName+"* "+nativeUserParamVarName+";");
+        }
         unit.emitln("  if( NULL != "+cbFuncArgName+" ) {");
         unit.emitln("    if( NULL == "+staticBindingClazzVarName+" || NULL == "+staticBindingMethodIDVarName+" ) {");
         unit.emitln("      jclass staticCBClazz2 = (*env)->NewGlobalRef(env, staticCBClazz);");
@@ -632,11 +695,39 @@ public final class JavaCallbackEmitter {
         unit.emitln("      "+staticBindingClazzVarName+" = staticCBClazz2;");
         unit.emitln("      "+staticBindingMethodIDVarName+" = cbMethodID;");
         unit.emitln("    }");
+        final JavaType bbjt = JavaType.createForClass(ByteBuffer.class);
+        for (int i = 0; i < jcbCMethodEmitter.binding.getNumArguments(); i++) {
+            final String baseArgName = jcbCMethodEmitter.binding.getArgumentName(i);
+            final JavaType currentJavaType = jcbCMethodEmitter.binding.getJavaArgumentType(i);
+            if( i != info.setFuncUserParamIdx && i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
+                final String staticBindingClazzArgVarName = "staticCBArg" + baseArgName + "Clazz"+jcbNativeBasename;
+                final String staticBindingMethodIDArgVarName = "staticCBArg" + baseArgName + "Method"+jcbNativeBasename;
+                unit.emitln("    if( NULL == "+staticBindingClazzArgVarName+" || NULL == "+staticBindingMethodIDArgVarName+" ) {");
+                final String argClassDescriptor = currentJavaType.getDescriptor(cfg);
+                final String argClassRef = currentJavaType.getName(cfg);
+                final String argClassLocation = argClassRef.replace(".", "/");
+                unit.emitln("      jclass "+staticBindingClazzArgVarName+"2 = (*env)->FindClass(env, \""+argClassLocation+"\");");
+                unit.emitln("      if( NULL == "+staticBindingClazzArgVarName+"2 ) { (*env)->FatalError(env, \"Failed FindClass("+argClassLocation+") in '"+jcbFriendlyBasename+"'\"); }");
+                unit.emitln("      jmethodID "+staticBindingMethodIDArgVarName+"2 = (*env)->GetStaticMethodID(env, "+staticBindingClazzArgVarName+"2, \"create\", \"("+bbjt.getDescriptor()+")"+argClassDescriptor+"\");");
+                unit.emitln("      if( NULL == "+staticBindingMethodIDArgVarName+"2 ) {");
+                unit.emitln("        char cmsg[400];");
+                unit.emitln("        snprintf(cmsg, 400, \"Failed GetStaticMethodID of '"+argClassRef+".create("+bbjt.getDescriptor()+")"+argClassDescriptor+" in "+jcbFriendlyBasename+"'\");");
+                unit.emitln("        (*env)->FatalError(env, cmsg);");
+                unit.emitln("      }");
+                unit.emitln("      "+staticBindingClazzArgVarName+" = "+staticBindingClazzArgVarName+"2;");
+                unit.emitln("      "+staticBindingMethodIDArgVarName+" = "+staticBindingMethodIDArgVarName+"2;");
+                unit.emitln("    }");
+            }
+        }
         unit.emitln("    "+nativeCBFuncVarName+" = func"+jcbNativeBasename+";");
-        unit.emitln("    "+nativeUserParamVarName+" = ("+userParamTypeName+"*) jnativeUserParam;");
+        if( userParamDefined ) {
+            unit.emitln("    "+nativeUserParamVarName+" = ("+userParamTypeName+"*) jnativeUserParam;");
+        }
         unit.emitln("  } else {");
         unit.emitln("    "+nativeCBFuncVarName+" = NULL;");
-        unit.emitln("    "+nativeUserParamVarName+" = NULL;");
+        if( userParamDefined ) {
+            unit.emitln("    "+nativeUserParamVarName+" = NULL;");
+        }
         unit.emitln("  }");
         unit.emitln();
 
@@ -649,13 +740,23 @@ public final class JavaCallbackEmitter {
         final String staticBindingMethodIDVarName = "staticCBMethod"+jcbNativeBasename;
         final String staticCallbackName = "func"+jcbNativeBasename;
         // final Type userParamType = javaCallback.cbFuncBinding.getCArgumentType(javaCallback.cbFuncUserParamIdx);
-        final String userParamTypeName = info.cbFuncUserParamType.getCName();
-        final String userParamArgName = info.cbFuncBinding.getArgumentName(info.cbFuncUserParamIdx);
+        final String userParamTypeName = userParamDefined ? info.cbFuncUserParamType.getCName() : null ;
+        final String userParamArgName = userParamDefined ? info.cbFuncBinding.getArgumentName(info.cbFuncUserParamIdx) : null;
         final Type cReturnType = info.cbFuncBinding.getCReturnType();
         final JavaType jretType = info.cbFuncBinding.getJavaReturnType();
         unit.emitln();
         unit.emitln("static jclass "+staticBindingClazzVarName+" = NULL;");
         unit.emitln("static jmethodID "+staticBindingMethodIDVarName+" = NULL;");
+        for (int i = 0; i < jcbCMethodEmitter.binding.getNumArguments(); i++) {
+            final String baseArgName = jcbCMethodEmitter.binding.getArgumentName(i);
+            final JavaType currentJavaType = jcbCMethodEmitter.binding.getJavaArgumentType(i);
+            if( i != info.setFuncUserParamIdx && i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
+                final String staticBindingClazzArgVarName = "staticCBArg" + baseArgName + "Clazz"+jcbNativeBasename;
+                final String staticBindingMethodIDArgVarName = "staticCBArg" + baseArgName + "Method"+jcbNativeBasename;
+                unit.emitln("static jclass "+staticBindingClazzArgVarName+" = NULL;");
+                unit.emitln("static jmethodID "+staticBindingMethodIDArgVarName+" = NULL;");
+            }
+        }
         unit.emitln();
         // javaCallback.cbFuncCEmitter.emitSignature();
         unit.emit("static "+cReturnType.getCName()+" "+staticCallbackName+"(");
@@ -668,6 +769,16 @@ public final class JavaCallbackEmitter {
             unit.emitln("  JNIEnv* env = JVMUtil_GetJNIEnv(1 /* daemon */, &detachJVM);");
             unit.emitln("  jclass cbClazz = "+staticBindingClazzVarName+";");
             unit.emitln("  jmethodID cbMethod = "+staticBindingMethodIDVarName+";");
+            for (int i = 0; i < jcbCMethodEmitter.binding.getNumArguments(); i++) {
+                final String baseArgName = jcbCMethodEmitter.binding.getArgumentName(i);
+                final JavaType currentJavaType = jcbCMethodEmitter.binding.getJavaArgumentType(i);
+                if( i != info.setFuncUserParamIdx && i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
+                    final String staticBindingClazzArgVarName = "staticCBArg" + baseArgName + "Clazz"+jcbNativeBasename;
+                    final String staticBindingMethodIDArgVarName = "staticCBArg" + baseArgName + "Method"+jcbNativeBasename;
+                    unit.emitln("  jclass cbClazzArg" + baseArgName+" = "+staticBindingClazzArgVarName+";");
+                    unit.emitln("  jmethodID cbMethodArg" + baseArgName+" = "+staticBindingMethodIDArgVarName+";");
+                }
+            }
             unit.emitln("  if( NULL == env || NULL == cbClazz || NULL == cbMethod ) {");
             if( !cReturnType.isVoid() ) {
                 unit.emitln("    return 0;");
@@ -681,7 +792,9 @@ public final class JavaCallbackEmitter {
             emitJavaCallbackBodyCToJavaPreCall(jcbCMethodEmitter);
 
             // javaCallback.cbFuncCEmitter.emitBodyCallCFunction();
-            unit.emitln("  "+userParamTypeName+"* "+userParamArgName+"_jni = ("+userParamTypeName+"*) "+userParamArgName+";");
+            if( userParamDefined ) {
+                unit.emitln("  "+userParamTypeName+"* "+userParamArgName+"_jni = ("+userParamTypeName+"*) "+userParamArgName+";");
+            }
             unit.emitln("  // C Params: "+info.cbFuncBinding.getCParameterList(new StringBuilder(), false, null).toString());
             unit.emitln("  // J Params: "+info.cbFuncBinding.getJavaParameterList(new StringBuilder()).toString());
 
@@ -741,7 +854,13 @@ public final class JavaCallbackEmitter {
             if( i == info.cbFuncUserParamIdx && null != userParamVarName ) {
                 unit.emit( userParamVarName );
             } else {
-                unit.emit( binding.getArgumentName(i) + "_jni" );
+                final String baseArgName = binding.getArgumentName(i);
+                final JavaType currentJavaType = binding.getJavaArgumentType(i);
+                if( i != info.setFuncUserParamIdx && i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
+                    unit.emit( "(*env)->CallStaticObjectMethod(env, cbClazzArg" + baseArgName + ", cbMethodArg" + baseArgName + ", " + baseArgName + "_jni)" );
+                } else {
+                    unit.emit( baseArgName + "_jni" );
+                }
             }
             needsComma = true;
             ++count;
