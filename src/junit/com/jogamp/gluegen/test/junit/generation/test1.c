@@ -690,7 +690,8 @@ typedef struct {
     TK_Dimension* constStructPointerCustomLen;
     int32_t       constStructPointerCustomLenElemCount;
 
-    // Struct.VariaValue 2A + 5P = 7
+    // Struct.VariaValue 1S + 2A + 5P = 8
+    TK_Dimension  variaStructElement;
     TK_Dimension  variaStructArrayConstOneElem[1];
     TK_Dimension  variaStructArrayConstLen[3];
     TK_Dimension* variaStructPointerConstOneElem;
@@ -870,7 +871,11 @@ static TK_FieldMutable * createTKFieldMutable() {
     s->constStructPointerCustomLen[3].height = 164;
     s->constStructPointerCustomLenElemCount = 4;
 
-    // Struct.VariaValue.TK_Dimension 2A + 5P = 7
+    // Struct.VariaValue.TK_Dimension 1S + 2A + 5P = 8
+    s->variaStructElement.x = 47;
+    s->variaStructElement.y = 48;
+    s->variaStructElement.width = 49;
+    s->variaStructElement.height = 50;
     s->variaStructArrayConstOneElem[0].x = 51;
     s->variaStructArrayConstOneElem[0].y = 52;
     s->variaStructArrayConstOneElem[0].width = 53;

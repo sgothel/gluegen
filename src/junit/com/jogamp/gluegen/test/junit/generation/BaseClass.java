@@ -2052,6 +2052,12 @@ public class BaseClass extends SingletonJunitCase {
 
     /** Primitive.VariaValue.Struct.Pointer - write access */
     private void chapter12_06bTestTKFieldVariaValueStructWriteAccess(final TK_Field model) {
+        {
+            final TK_Dimension val = createTKDim(0, 1, 50, 61);
+            model.setVariaStructElement(val);
+            Assert.assertTrue( equals(val, model.getVariaStructElement()) );
+        }
+
         Assert.assertEquals(1, TK_Field.getVariaStructPointerConstOneElemElemCount());
         Assert.assertEquals(false, model.isVariaStructPointerConstOneElemNull());
         {

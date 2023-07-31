@@ -1140,6 +1140,20 @@ public class JavaEmitter implements GlueEmitter {
                                        field + "\" in type \"" + structCTypeName + "\")",
                                        fieldType.getASTLocusTag());
           }
+          if( !immutableField && !fieldType.isConst() ) {
+              // Setter
+              generateSetterSignature(javaUnit, MethodAccess.PUBLIC, false, false, fieldName, fieldType, Ownership.Parent, containingJTypeName, CodeGenUtils.capitalizeString(fieldName), null, fieldType.getName(), null, false, false, null, null, null);
+              javaUnit.emitln(" {");
+              javaUnit.emitln("    final ByteBuffer bb = src.getBuffer();");
+              javaUnit.emitln("    final int size = "+fieldName+"_size[mdIdx];");
+              javaUnit.emitln("    final byte[] content = new byte[size];");
+              javaUnit.emitln("    bb.get(content, 0, size);");
+              javaUnit.emitln("    accessor.setBytesAt("+fieldName+"_offset[mdIdx], content);");
+              javaUnit.emitln("    return this;");
+              javaUnit.emitln("  }");
+              javaUnit.emitln();
+          }
+          // Getter
           generateGetterSignature(javaUnit, false, false, fieldName, fieldType, Ownership.Parent, fieldType.getName(), CodeGenUtils.capitalizeString(fieldName), null, false, false, null, null);
           javaUnit.emitln(" {");
           javaUnit.emitln("    return " + fieldType.getName() + ".create( accessor.slice( " +

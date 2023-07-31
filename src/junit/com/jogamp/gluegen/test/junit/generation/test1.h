@@ -505,7 +505,8 @@ typedef struct {
     const TK_Dimension* constStructPointerCustomLen;
     int32_t             constStructPointerCustomLenElemCount;
 
-    // Struct.VariaValue 2A + 5P = 7
+    // Struct.VariaValue 1S + 2A + 5P = 8
+    TK_Dimension  variaStructElement;
     TK_Dimension  variaStructArrayConstOneElem[1];
     TK_Dimension  variaStructArrayConstLen[3];
     TK_Dimension* variaStructPointerConstOneElem;
@@ -606,7 +607,8 @@ typedef struct {
     const TK_Dimension* constStructPointerCustomLen;
     int32_t             constStructPointerCustomLenElemCount;
 
-    // Struct.VariaValue 2A + 5P = 7
+    // Struct.VariaValue 1S + 2A + 5P = 8
+    TK_Dimension  variaStructElement;
     TK_Dimension  variaStructArrayConstOneElem[1];
     TK_Dimension  variaStructArrayConstLen[3];
     TK_Dimension* variaStructPointerConstOneElem;
@@ -707,7 +709,8 @@ typedef struct {
     const TK_Dimension* constStructPointerCustomLen;
     int32_t             constStructPointerCustomLenElemCount;
 
-    // Struct.VariaValue 2A + 5P = 7
+    // Struct.VariaValue 1S + 2A + 5P = 8
+    TK_Dimension  variaStructElement;
     TK_Dimension  variaStructArrayConstOneElem[1];
     TK_Dimension  variaStructArrayConstLen[3];
     TK_Dimension* variaStructPointerConstOneElem;
