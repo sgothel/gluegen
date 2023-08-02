@@ -826,9 +826,9 @@ as it is core to the semantic mapping of all resources. They also have to use th
 
 `JavaCallbackDef` attributes:
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
-- `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction`
+- `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction` or negative index to disable UserParam management
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, aka the callback type name
-- `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous)
+- `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous) or negative index to disable UserParam management
 - `Callback-UserParamClass`: Optional [custom *UserParamClass*](#custom-callback-userparamclass) overriding the default `Object` for non-compound `UserParam` types.
 - `Callback-KeyClass`: Optional [custom *KeyClass*](#custom-callback-keyclass), providing the hash-map-key.
 
@@ -1328,6 +1328,72 @@ leading to the following interface
 
   /** Entry point (through function pointer) to C language function: <br> <code>void MessageCallback11bInject(size_t id, long val)</code><br>   */
   public void MessageCallback11bInject(long id, long val);
+```
+
+### JavaCallback Example 12 (Without UserParam)
+
+This example demonstrates a JavaCallBack without user param and only a global key. 
+
+The callback `T2_CallbackFunc12` is managed by the toolkit and passed to the callback function, while user passes JavaCallback to the registration method `SetLogCallBack(..)`.
+
+
+C-API Header snipped
+```
+  typedef enum {
+    LOG_Off = 0,
+    LOG_Fatal = 100,
+    LOG_Error = 200,
+    LOG_Warning = 300,
+    LOG_Info = 400,
+    LOG_Verbose = 500,
+    LOG_VeryVerbose = 600
+  } LogLevel;
+
+  typedef struct {
+    const char* Category;
+    const char* Message;
+    LogLevel Level;
+  } LogMessage;
+
+  typedef void ( * T2_CallbackFunc12)(const LogMessage* usrParam);
+
+  void SetLogCallBack(T2_CallbackFunc12 cbFunc);
+  void LogCallBackInject(const LogMessage* message);
+```
+
+and the following GlueGen configuration
+```
+  ReturnsStringOnly LogMessage.Category
+  ReturnsStringOnly LogMessage.Message
+
+  JavaCallbackDef SetLogCallBack -1 T2_CallbackFunc12 -1
+```
+
+leading to the following interface
+```
+
+  /** JavaCallback interface: T2_CallbackFunc12 -> void (*T2_CallbackFunc12)(const LogMessage *  usrParam) */
+  public static interface T2_CallbackFunc12 {
+    /** Interface to C language function: <br> <code>void callback(const LogMessage *  usrParam)</code><br>Alias for: <code>T2_CallbackFunc12</code>     */
+    public void callback(LogMessage usrParam);
+  }
+  
+  ...
+
+  /** Returns if callback is mapped for <br> <code>  void SetLogCallBack(T2_CallbackFunc12 cbFunc)</code> */
+  public boolean isSetLogCallBackMapped();
+
+  /** Returns T2_CallbackFunc12 callback for <br> <code>  void SetLogCallBack(T2_CallbackFunc12 cbFunc)</code> */
+  public T2_CallbackFunc12 getSetLogCallBack();
+
+  /** Releases callback data skipping toolkit API. Favor passing `null` callback ref to <br> <code>  void SetLogCallBack(T2_CallbackFunc12 cbFunc)</code> */
+  public void releaseSetLogCallBack();
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void SetLogCallBack(T2_CallbackFunc12 cbFunc)</code><br>   */
+  public void SetLogCallBack(T2_CallbackFunc12 cbFunc);
+
+  /** Entry point (through function pointer) to C language function: <br> <code>void LogCallBackInject(const LogMessage *  message)</code><br>   */
+  public void LogCallBackInject(LogMessage message);
 ```
 
 *TODO: Enhance documentation*

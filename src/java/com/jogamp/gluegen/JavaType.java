@@ -282,6 +282,10 @@ public class JavaType {
    * Returns the Java type name corresponding to this type.
    */
   public String getName() {
+    return getName(null);
+  }
+
+  public String getName(final JavaConfiguration cfg) {
     if (clazz != null) {
       if (clazz.isArray()) {
         return arrayName(clazz);
@@ -289,29 +293,29 @@ public class JavaType {
       return clazz.getName();
     }
     if( clazzName != null ) {
-        return clazzName;
+        return (null != cfg ? (cfg.packageForStruct(clazzName) + ".") : "") + clazzName;
     }
     if (elementType != null) {
       return elementType.getName();
     }
-    return structName;
+    return (null != cfg ? (cfg.packageForStruct(clazzName) + ".") : "") + structName;
   }
 
   /**
    * Returns the descriptor (internal type signature) corresponding to this type.
    */
   public String getDescriptor() {
-    // FIXME: this is not completely accurate at this point (for
-    // example, it knows nothing about the packages for compound
-    // types)
+    return getDescriptor(null);
+  }
+  public String getDescriptor(final JavaConfiguration cfg) {
     if (clazz != null) {
       return descriptor(clazz);
     }
     if( null != clazzName ) {
-        return descriptor(clazzName);
+        return descriptor((null != cfg ? (cfg.packageForStruct(clazzName) + ".") : "") + clazzName);
     }
     if( null != structName ) {
-        return descriptor(structName);
+        return descriptor((null != cfg ? (cfg.packageForStruct(structName) + ".") : "") + structName);
     }
     if (elementType != null) {
       if(elementType.getName()==null) {

@@ -323,3 +323,21 @@ void MessageCallback11bInject(size_t id, long val) {
     }
 }
 
+
+//
+//
+
+static T2_CallbackFunc12 LogCallBack = NULL;
+
+void SetLogCallBack(T2_CallbackFunc12 cbFunc) {
+    LogCallBack = cbFunc;
+}
+
+void LogCallBackInject(const LogMessage* message) {
+    if ( NULL != LogCallBack ) {
+        fprintf(stderr, "XXX LogCallBackInject: func %p, message %p\n", &LogCallBack, &message);
+        fflush(NULL);
+        (*LogCallBack)(message);
+    }
+}
+

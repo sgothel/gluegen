@@ -2423,6 +2423,8 @@ public class JavaConfiguration {
       final String cbFuncUserParamName;
       final Type cbFuncUserParamType;
 
+      final boolean cbUserParamIsDefined;
+
       final String setFuncName;
       final List<Integer> setFuncKeyIndices;
       final int setFuncUserParamIdx;
@@ -2442,7 +2444,8 @@ public class JavaConfiguration {
           this.staticCBMethodSignature = staticCBMethodSignature;
           this.cbFuncType = cbFuncType;
           this.cbFuncBinding = cbFuncBinding;
-          {
+          this.cbUserParamIsDefined = setFuncUserParamIdx >= 0;
+          if( cbUserParamIsDefined ) {
               int paramIdx = -2;
               Type paramType = null;
               String paramName = null;
@@ -2456,10 +2459,14 @@ public class JavaConfiguration {
                   }
               }
               this.cbFuncUserParamIdx = paramIdx;
-              this.cbFuncKeyIndices = cbFuncKeyIndices;
               this.cbFuncUserParamName = paramName;
               this.cbFuncUserParamType = paramType;
+          } else {
+              this.cbFuncUserParamIdx = -1;
+              this.cbFuncUserParamName = null;
+              this.cbFuncUserParamType = null;
           }
+          this.cbFuncKeyIndices = cbFuncKeyIndices;
           this.setFuncName = setFuncName;
           this.setFuncKeyIndices = setFuncKeyIndices;
           this.setFuncUserParamIdx = setFuncUserParamIdx;
@@ -2499,9 +2506,9 @@ public class JavaConfiguration {
 
       @Override
       public String toString() {
-          return String.format("JavaCallbackInfo[cbFunc[%s%s, userParam[idx %d, '%s', %s, keys %s], set[%s(ok %b, cbIdx %d, upIdx %d, keys %s], Class[UserParam '%s', Key '%s'], %s]",
+          return String.format("JavaCallbackInfo[cbFunc[%s%s, userParam[defined %b, idx %d, '%s', %s, keys %s], set[%s(ok %b, cbIdx %d, upIdx %d, keys %s], Class[UserParam '%s', Key '%s'], %s]",
                   cbFuncTypeName, staticCBMethodSignature,
-                  cbFuncUserParamIdx, cbFuncUserParamName, cbFuncUserParamType.getSignature(null).toString(), cbFuncKeyIndices.toString(),
+                  cbUserParamIsDefined, cbFuncUserParamIdx, cbFuncUserParamName, cbUserParamIsDefined ? cbFuncUserParamType.getSignature(null).toString() : null, cbFuncKeyIndices.toString(),
                   setFuncName, setFuncProcessed, setFuncCBParamIdx, setFuncUserParamIdx,
                   setFuncKeyIndices.toString(), userParamClassName, customKeyClassName,
                   cbFuncType.toString(cbFuncTypeName, false, true));

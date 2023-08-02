@@ -30,6 +30,7 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALBUFFERCALLBACKTYPESOFT;
@@ -41,6 +42,7 @@ import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11aK
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11bKey;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc01;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc11;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
 import org.junit.AfterClass;
@@ -1606,6 +1608,55 @@ public class Test4JavaCallback extends BaseClass {
         @Override
         public String toString() {
             return "CustomMessageCallback11Key[this "+toHexString(System.identityHashCode(this))+"]";
+        }
+    }
+
+    /**
+     * Test Bindingtest2 with T2_CallbackFunc12 JavaCallback via SetLogCallBack()
+     */
+    @Test
+    public void chapter12() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final AtomicReference<LogMessage> messageSupplied = new AtomicReference<>(null);
+        final T2_CallbackFunc12 logCallBack = new T2_CallbackFunc12() {
+            @Override
+            public void callback(final LogMessage usrParam) {
+                Assert.assertEquals(messageSupplied.get(), usrParam);
+            }
+        };
+        bt2.SetLogCallBack(logCallBack);
+
+        {
+            final LogMessage logMessage = LogMessage.create();
+            logMessage.setCategory("TEST");
+            logMessage.setMessage("Example");
+            logMessage.setLevel(Bindingtest2.LOG_Info);
+            messageSupplied.set(logMessage);
+
+            bt2.LogCallBackInject(logMessage);
+        }
+
+        {
+            final LogMessage logMessage = LogMessage.create();
+            logMessage.setCategory("IDK");
+            logMessage.setMessage("John Doe is absent.");
+            logMessage.setLevel(Bindingtest2.LOG_Warning);
+            messageSupplied.set(logMessage);
+
+            bt2.LogCallBackInject(logMessage);
+        }
+
+        bt2.SetLogCallBack(null);
+
+        {
+            final LogMessage logMessage = LogMessage.create();
+            logMessage.setCategory("SANITY");
+            logMessage.setMessage("Callback is now unset");
+            logMessage.setLevel(Bindingtest2.LOG_Fatal);
+            messageSupplied.set(logMessage);
+
+            bt2.LogCallBackInject(logMessage);
         }
     }
 
