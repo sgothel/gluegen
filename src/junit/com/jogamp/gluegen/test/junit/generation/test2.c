@@ -327,17 +327,34 @@ void MessageCallback11bInject(size_t id, long val) {
 //
 //
 
-static T2_CallbackFunc12 LogCallBack = NULL;
+static T2_CallbackFunc12a LogCallBack12a = NULL;
 
-void SetLogCallBack(T2_CallbackFunc12 cbFunc) {
-    LogCallBack = cbFunc;
+void SetLogCallBack12a(T2_CallbackFunc12a cbFunc) {
+    LogCallBack12a = cbFunc;
 }
 
-void LogCallBackInject(const LogMessage* message) {
-    if ( NULL != LogCallBack ) {
-        fprintf(stderr, "XXX LogCallBackInject: func %p, message %p\n", &LogCallBack, &message);
+void LogCallBack12aInject(const T2_Callback12LogMessage* message) {
+    if ( NULL != LogCallBack12a ) {
+        fprintf(stderr, "XXX LogCallBack12aInject: func %p, message %p\n", LogCallBack12a, message);
         fflush(NULL);
-        (*LogCallBack)(message);
+        (*LogCallBack12a)(message);
+    }
+}
+
+//
+//
+
+static T2_CallbackFunc12b LogCallBack12b = NULL;
+
+void SetLogCallBack12b(T2_CallbackFunc12b cbFunc) {
+    LogCallBack12b = cbFunc;
+}
+
+void LogCallBack12bInject(const T2_Callback12LogMessage* message, int param0) {
+    if ( NULL != LogCallBack12b ) {
+        fprintf(stderr, "XXX LogCallBack12bInject: func %p, message %p\n", LogCallBack12b, message);
+        fflush(NULL);
+        (*LogCallBack12b)(param0, message);
     }
 }
 

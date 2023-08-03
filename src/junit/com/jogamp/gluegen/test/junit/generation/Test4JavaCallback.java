@@ -42,7 +42,8 @@ import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11aK
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11bKey;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc01;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc11;
-import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12a;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12b;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
 import org.junit.AfterClass;
@@ -1612,52 +1613,126 @@ public class Test4JavaCallback extends BaseClass {
     }
 
     /**
-     * Test Bindingtest2 with T2_CallbackFunc12 JavaCallback via SetLogCallBack()
+     * Test Bindingtest2 with T2_CallbackFunc12a JavaCallback via SetLogCallBack12a()
      */
     @Test
-    public void chapter12() throws Exception {
+    public void chapter12a() throws Exception {
         final Bindingtest2 bt2 = new Bindingtest2Impl();
 
-        final AtomicReference<LogMessage> messageSupplied = new AtomicReference<>(null);
-        final T2_CallbackFunc12 logCallBack = new T2_CallbackFunc12() {
+        final AtomicReference<T2_Callback12LogMessage> messageExpected = new AtomicReference<>(null);
+        final AtomicReference<String> messageReturned = new AtomicReference<>(null);
+        final T2_CallbackFunc12a logCallBack = new T2_CallbackFunc12a() {
             @Override
-            public void callback(final LogMessage usrParam) {
-                Assert.assertEquals(messageSupplied.get(), usrParam);
+            public void callback(final T2_Callback12LogMessage usrParam) {
+                assertEquals(messageExpected.get(), usrParam); // compare value, not object hash value (reference)
+                messageReturned.set("Result-"+usrParam.getMessage());
             }
         };
-        bt2.SetLogCallBack(logCallBack);
 
+        bt2.SetLogCallBack12a(logCallBack);
+        messageReturned.set(null);
         {
-            final LogMessage logMessage = LogMessage.create();
+            final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
             logMessage.setCategory("TEST");
             logMessage.setMessage("Example");
             logMessage.setLevel(Bindingtest2.LOG_Info);
-            messageSupplied.set(logMessage);
+            messageExpected.set(logMessage);
 
-            bt2.LogCallBackInject(logMessage);
+            bt2.LogCallBack12aInject(logMessage);
+            Assert.assertEquals(messageReturned.get(), "Result-Example");
         }
 
+        messageReturned.set(null);
         {
-            final LogMessage logMessage = LogMessage.create();
+            final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
             logMessage.setCategory("IDK");
             logMessage.setMessage("John Doe is absent.");
             logMessage.setLevel(Bindingtest2.LOG_Warning);
-            messageSupplied.set(logMessage);
+            messageExpected.set(logMessage);
 
-            bt2.LogCallBackInject(logMessage);
+            bt2.LogCallBack12aInject(logMessage);
+            Assert.assertEquals(messageReturned.get(), "Result-John Doe is absent.");
         }
 
-        bt2.SetLogCallBack(null);
-
+        bt2.SetLogCallBack12a(null);
+        messageReturned.set(null);
         {
-            final LogMessage logMessage = LogMessage.create();
+            final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
             logMessage.setCategory("SANITY");
             logMessage.setMessage("Callback is now unset");
             logMessage.setLevel(Bindingtest2.LOG_Fatal);
-            messageSupplied.set(logMessage);
+            messageExpected.set(logMessage);
 
-            bt2.LogCallBackInject(logMessage);
+            bt2.LogCallBack12aInject(logMessage);
+            Assert.assertEquals(messageReturned.get(), null);
         }
+    }
+    /**
+     * Test Bindingtest2 with T2_CallbackFunc12a JavaCallback via SetLogCallBack12a()
+     */
+    @Test
+    public void chapter12b() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        final AtomicReference<T2_Callback12LogMessage> messageExpected = new AtomicReference<>(null);
+        final AtomicReference<String> messageReturned = new AtomicReference<>(null);
+        final T2_CallbackFunc12b logCallBack = new T2_CallbackFunc12b() {
+            int expParam0 = 1;
+            @Override
+            public void callback(final int param0, final T2_Callback12LogMessage usrParam) {
+                assertEquals(messageExpected.get(), usrParam); // compare value, not object hash value (reference)
+                messageReturned.set("Result-"+usrParam.getMessage());
+                Assert.assertEquals(expParam0++, param0);
+            }
+        };
+
+        bt2.SetLogCallBack12b(logCallBack);
+        messageReturned.set(null);
+        {
+            final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
+            logMessage.setCategory("TEST");
+            logMessage.setMessage("Example");
+            logMessage.setLevel(Bindingtest2.LOG_Info);
+            messageExpected.set(logMessage);
+
+            bt2.LogCallBack12bInject(logMessage, 1);
+            Assert.assertEquals(messageReturned.get(), "Result-Example");
+        }
+
+        messageReturned.set(null);
+        {
+            final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
+            logMessage.setCategory("IDK");
+            logMessage.setMessage("John Doe is absent.");
+            logMessage.setLevel(Bindingtest2.LOG_Warning);
+            messageExpected.set(logMessage);
+
+            bt2.LogCallBack12bInject(logMessage, 2);
+            Assert.assertEquals(messageReturned.get(), "Result-John Doe is absent.");
+        }
+
+        bt2.SetLogCallBack12b(null);
+        messageReturned.set(null);
+        {
+            final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
+            logMessage.setCategory("SANITY");
+            logMessage.setMessage("Callback is now unset");
+            logMessage.setLevel(Bindingtest2.LOG_Fatal);
+            messageExpected.set(logMessage);
+
+            bt2.LogCallBack12bInject(logMessage, 3);
+            Assert.assertEquals(messageReturned.get(), null);
+        }
+    }
+    private static void assertEquals(final T2_Callback12LogMessage exp, final T2_Callback12LogMessage has) {
+        if( null == exp ) {
+            Assert.assertNull(has);
+        } else {
+            Assert.assertNotNull(has);
+        }
+        Assert.assertEquals(exp.getCategory(), has.getCategory());
+        Assert.assertEquals(exp.getMessage(), has.getMessage());
+        Assert.assertEquals(exp.getLevel(), has.getLevel());
     }
 
     static private String toHexString(final int v) { return "0x"+Integer.toHexString(v); }

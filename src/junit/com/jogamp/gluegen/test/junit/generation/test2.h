@@ -120,15 +120,21 @@ typedef enum {
 	LOG_Info = 400,
 	LOG_Verbose = 500,
 	LOG_VeryVerbose = 600
-} LogLevel;
+} T2_Callback12LogLevel;
 
 typedef struct {
     const char* Category;
     const char* Message;
-    LogLevel Level;
-} LogMessage;
+    T2_Callback12LogLevel Level;
+} T2_Callback12LogMessage;
 
-typedef void ( * T2_CallbackFunc12)(const LogMessage* usrParam);
+typedef void ( * T2_CallbackFunc12a)(const T2_Callback12LogMessage* usrParam);
 
-void SetLogCallBack(T2_CallbackFunc12 cbFunc);
-void LogCallBackInject(const LogMessage* message);
+void SetLogCallBack12a(T2_CallbackFunc12a cbFunc);
+void LogCallBack12aInject(const T2_Callback12LogMessage* message);
+
+typedef void ( * T2_CallbackFunc12b)(int param0, const T2_Callback12LogMessage* usrParam1);
+
+void SetLogCallBack12b(T2_CallbackFunc12b cbFunc);
+void LogCallBack12bInject(const T2_Callback12LogMessage* message, int param0);
+
