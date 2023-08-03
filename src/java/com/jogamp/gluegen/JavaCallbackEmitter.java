@@ -823,7 +823,7 @@ public final class JavaCallbackEmitter {
             }
             unit.emit("(*env)->CallStatic" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cbClazz, cbMethod, ");
             // javaCallback.cbFuncCEmitter.emitBodyPassCArguments();
-            emitJavaCallbackBodyPassJavaArguments(unit, jcbFuncCMethodEmitter.binding);
+            emitJavaCallbackBodyPassJavaArguments(unit);
             unit.emitln(");");
             unit.emitln("  if( (*env)->ExceptionCheck(env) ) {");
             unit.emitln("    fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': Exception in Java Callback caught:\\n\");");
@@ -854,16 +854,16 @@ public final class JavaCallbackEmitter {
         return count;
     }
 
-    private int emitJavaCallbackBodyPassJavaArguments(final CodeUnit unit, final MethodBinding jcbFuncCMethodBinding) {
+    private int emitJavaCallbackBodyPassJavaArguments(final CodeUnit unit) {
         int count = 0;
         boolean needsComma = false;
-        for (int i = 0; i < jcbFuncCMethodBinding.getNumArguments(); i++) {
+        for (int i = 0; i < info.cbFuncBinding.getNumArguments(); i++) {
             if (needsComma) {
                 unit.emit(", ");
                 needsComma = false;
             }
-            final String baseArgName = jcbFuncCMethodBinding.getArgumentName(i);
-            final JavaType currentJavaType = jcbFuncCMethodBinding.getJavaArgumentType(i);
+            final String baseArgName = info.cbFuncBinding.getArgumentName(i);
+            final JavaType currentJavaType = info.cbFuncBinding.getJavaArgumentType(i);
             if( i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
                 final String cBaseArgName = CodeGenUtils.capitalizeString( baseArgName );
                 unit.emit( "(*env)->CallStaticObjectMethod(env, cbClazzArg" + cBaseArgName + ", cbMethodArg" + cBaseArgName + ", " + baseArgName + "_jni)" );
