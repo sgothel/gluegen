@@ -427,7 +427,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     emitBodyUserVariableDeclarations();
     emitBodyVariablePreCallSetup();
     if( null != javaCallbackEmitter ) {
-        javaCallbackEmitter.emitCSetFuncPreCall(unit, jcbFuncCMethodEmitter);
+        javaCallbackEmitter.emitCSetFuncPreCall(unit);
     }
     emitBodyCallCFunction();
     emitBodyUserVariableAssignments();
