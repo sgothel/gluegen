@@ -668,10 +668,15 @@ public final class JavaCallbackEmitter {
         final String staticBindingClazzVarName = "staticCBClazz"+jcbNativeBasename;
         final String staticBindingMethodIDVarName = "staticCBMethod"+jcbNativeBasename;
         final String cbFuncArgName = binding.getArgumentName(info.setFuncCBParamIdx);
-        final String userParamTypeName = userParamDefined ? info.cbFuncUserParamType.getCName() : null;
-        final String userParamArgName = userParamDefined ? binding.getArgumentName(info.setFuncUserParamIdx) : null;
         final String nativeCBFuncVarName = cbFuncArgName+"_native";
-        final String nativeUserParamVarName = userParamDefined ? userParamArgName+"_native" : null;
+        final String userParamTypeName, nativeUserParamVarName;
+        if( userParamDefined ) {
+            userParamTypeName = info.cbFuncUserParamType.getCName();
+            nativeUserParamVarName = binding.getArgumentName(info.setFuncUserParamIdx)+"_native";
+        } else {
+            userParamTypeName = null;
+            nativeUserParamVarName = null;
+        }
         unit.emitln();
         unit.emitln("  // JavaCallback handling");
         unit.emitln("  if( NULL == staticCBClazz ) { (*env)->FatalError(env, \"NULL staticCBClazz passed to '"+jcbFriendlyBasename+"'\"); }");
@@ -739,9 +744,15 @@ public final class JavaCallbackEmitter {
         final String staticBindingClazzVarName = "staticCBClazz"+jcbNativeBasename;
         final String staticBindingMethodIDVarName = "staticCBMethod"+jcbNativeBasename;
         final String staticCallbackName = "func"+jcbNativeBasename;
-        // final Type userParamType = javaCallback.cbFuncBinding.getCArgumentType(javaCallback.cbFuncUserParamIdx);
-        final String userParamTypeName = userParamDefined ? info.cbFuncUserParamType.getCName() : null ;
-        final String userParamArgName = userParamDefined ? info.cbFuncBinding.getArgumentName(info.cbFuncUserParamIdx) : null;
+        final String userParamTypeName, userParamArgName;
+        if( userParamDefined ) {
+            // final Type userParamType = javaCallback.cbFuncBinding.getCArgumentType(javaCallback.cbFuncUserParamIdx);
+            userParamTypeName = info.cbFuncUserParamType.getCName();
+            userParamArgName = info.cbFuncBinding.getArgumentName(info.cbFuncUserParamIdx);
+        } else {
+            userParamTypeName = null;
+            userParamArgName = null;
+        }
         final Type cReturnType = info.cbFuncBinding.getCReturnType();
         final JavaType jretType = info.cbFuncBinding.getJavaReturnType();
         unit.emitln();
