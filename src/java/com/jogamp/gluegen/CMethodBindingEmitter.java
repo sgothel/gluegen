@@ -1107,11 +1107,14 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.addTailCode(CCodeUnit.NewDirectByteBufferCopyUnitCode);
     } else if (javaType.isNIOBuffer() || javaType.isCompoundTypeWrapper()) {
         if( addLocalVar ) {
-            unit.emit("  "+javaType.jniTypeName()+" "+javaArgName+" = ");
+            unit.emitln("  "+javaType.jniTypeName()+" "+javaArgName+";");
         } else {
-            unit.emit("  "+javaArgName+" = ");
+            unit.emitln("  "+javaArgName+";");
         }
-        unit.emit("(NULL == "+cArgName+") ? NULL : (*env)->NewDirectByteBuffer(env, (void *)"+cArgName+", ");
+        unit.emitln("  if(NULL == "+cArgName+") {");
+        unit.emitln("    "+javaArgName+" = NULL;");
+        unit.emitln("  } else {");
+        unit.emit  ("    "+javaArgName+" = (*env)->NewDirectByteBuffer(env, (void *)"+cArgName+", ");
 
         // See whether capacity has been specified
         if ( isReturnVal && returnValueCapacityExpression != null) {
@@ -1168,13 +1171,14 @@ public class CMethodBindingEmitter extends FunctionEmitter {
                             "value for function \"" + binding.getName() + "\". " + wmsg + " (sizeof(" + cType.getCName() + ")): " + binding);
                 }
             }
-            unit.emitln("  /** ");
-            unit.emitln("   * mode: "+mode+", arg #"+argIdx);
-            unit.emitln("   * cType: "+cType.getDebugString());
-            unit.emitln("   * cTargetType: "+cTargetType.getDebugString());
-            unit.emitln("   * javaType: "+javaType.getDebugString());
-            unit.emitln("   */");
+            unit.emitln("    /** ");
+            unit.emitln("     * mode: "+mode+", arg #"+argIdx);
+            unit.emitln("     * cType: "+cType.getDebugString());
+            unit.emitln("     * cTargetType: "+cTargetType.getDebugString());
+            unit.emitln("     * javaType: "+javaType.getDebugString());
+            unit.emitln("     */");
         }
+        unit.emitln("  }");
     } else if (javaType.isString()) {
         final boolean pascalString = javaType.isPascalStringVariant();
         final String lenArgName;
