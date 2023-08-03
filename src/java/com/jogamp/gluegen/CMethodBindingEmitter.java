@@ -116,7 +116,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   // We need this in order to compute sizes of certain types
   protected MachineDataInfo machDesc;
 
-  private final CMethodBindingEmitter jcbCMethodEmitter;
+  private final CMethodBindingEmitter jcbFuncCMethodEmitter;
   private final JavaCallbackEmitter javaCallbackEmitter;
 
   /**
@@ -154,13 +154,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     final JavaCallbackInfo javaCallback = cfg.setFuncToJavaCallbackMap.get(binding.getName());
     if( null != javaCallback ) {
         // jcbNativeBasename = CodeGenUtils.capitalizeString( javaCallback.setFuncName+javaCallback.cbSimpleClazzName.replace("_", "") );
-        jcbCMethodEmitter = new CMethodBindingEmitter(javaCallback.cbFuncBinding,
-                                                      unit, javaPackageName, javaClassName, isOverloadedBinding,
-                                                      isJavaMethodStatic, forImplementingMethodCall,
-                                                      forIndirectBufferAndArrayImplementation, machDesc, configuration);
+        jcbFuncCMethodEmitter = new CMethodBindingEmitter(javaCallback.cbFuncBinding,
+                                                          unit, javaPackageName, javaClassName, isOverloadedBinding,
+                                                          isJavaMethodStatic, forImplementingMethodCall,
+                                                          forIndirectBufferAndArrayImplementation, machDesc, configuration);
         javaCallbackEmitter = new JavaCallbackEmitter(cfg, binding, javaCallback, null);
     } else {
-        jcbCMethodEmitter = null;
+        jcbFuncCMethodEmitter = null;
         javaCallbackEmitter = null;
     }
     setCommentEmitter(defaultCommentEmitter);
@@ -415,7 +415,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   @Override
   protected void emitAdditionalCode() {
     if( null != javaCallbackEmitter ) {
-        javaCallbackEmitter.emitCAdditionalCode(unit, jcbCMethodEmitter);
+        javaCallbackEmitter.emitCAdditionalCode(unit, jcbFuncCMethodEmitter);
     }
   }
 
@@ -427,7 +427,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
     emitBodyUserVariableDeclarations();
     emitBodyVariablePreCallSetup();
     if( null != javaCallbackEmitter ) {
-        javaCallbackEmitter.emitCSetFuncPreCall(unit, jcbCMethodEmitter);
+        javaCallbackEmitter.emitCSetFuncPreCall(unit, jcbFuncCMethodEmitter);
     }
     emitBodyCallCFunction();
     emitBodyUserVariableAssignments();
