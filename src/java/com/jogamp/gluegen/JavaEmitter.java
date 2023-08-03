@@ -465,12 +465,11 @@ public class JavaEmitter implements GlueEmitter {
       final boolean isUnimplemented = cfg.isUnimplemented(cSymbol);
       final List<String> prologue = cfg.javaPrologueForMethod(binding, false, false);
       final List<String> epilogue = cfg.javaEpilogueForMethod(binding, false, false);
-      final JavaCallbackInfo jcbi = cfg.setFuncToJavaCallbackMap.get(binding.getName());
-      final boolean needsIntermediateOperation = null != jcbi && !jcbi.cbUserParamIsDefined;
+      final boolean needsJavaCallbackCode = cfg.requiresJavaCallbackCode( binding.getName() );
       final boolean needsBody = isUnimplemented ||
                                 binding.needsNIOWrappingOrUnwrapping() ||
                                 binding.signatureUsesJavaPrimitiveArrays() ||
-                                needsIntermediateOperation ||
+                                needsJavaCallbackCode ||
                                 null != prologue  ||
                                 null != epilogue;
 
@@ -534,8 +533,7 @@ public class JavaEmitter implements GlueEmitter {
       final boolean hasPrologueOrEpilogue =
               cfg.javaPrologueForMethod(binding, false, false) != null ||
               cfg.javaEpilogueForMethod(binding, false, false) != null ;
-      final JavaCallbackInfo jcbi = cfg.setFuncToJavaCallbackMap.get(binding.getName());
-      final boolean needsIntermediateOperation = null != jcbi && !jcbi.cbUserParamIsDefined;
+      final boolean needsJavaCallbackCode = cfg.requiresJavaCallbackCode( binding.getName() );
 
       if ( !cfg.isUnimplemented( cSymbol ) ) {
           // If we already generated a public native entry point for this
@@ -546,7 +544,7 @@ public class JavaEmitter implements GlueEmitter {
           //   the private native entry point for it along with the version
           //   taking only NIO buffers
           if ( !binding.signatureUsesJavaPrimitiveArrays() &&
-               ( binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue || needsIntermediateOperation )
+               ( binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue || needsJavaCallbackCode )
              )
           {
               final CodeUnit unit = (cfg.allStatic() ? javaUnit() : javaImplUnit());
@@ -593,7 +591,7 @@ public class JavaEmitter implements GlueEmitter {
                               cfg.implClassName(),
                               true, // NOTE: we always disambiguate with a suffix now, so this is optional
                               cfg.allStatic(),
-                              (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue || needsIntermediateOperation),
+                              (binding.needsNIOWrappingOrUnwrapping() || hasPrologueOrEpilogue || needsJavaCallbackCode),
                               !cfg.useNIODirectOnly(binding.getName()),
                               machDescJava, getConfig());
               prepCEmitter(binding.getName(), binding.getJavaReturnType(), cEmitter);

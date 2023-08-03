@@ -2518,4 +2518,10 @@ public class JavaConfiguration {
   /* pp */ final Map<String, JavaCallbackInfo> setFuncToJavaCallbackMap = new HashMap<String, JavaCallbackInfo>();
   final Set<String> emittedJavaCallbackUserParamClasses = new HashSet<String>();
 
+  /** Returns true if a method binding requires specific java callback code */
+  final boolean requiresJavaCallbackCode(final String bindingName) {
+      final JavaCallbackInfo jcbi = setFuncToJavaCallbackMap.get(bindingName);
+      return null != jcbi && !jcbi.cbUserParamIsDefined;
+  }
+
 }
