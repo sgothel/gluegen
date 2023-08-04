@@ -66,6 +66,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import jogamp.common.os.MachineDataInfoRuntime;
@@ -359,7 +360,8 @@ public class JavaEmitter implements GlueEmitter {
   @Override
   public void beginFunctions(final TypeDictionary typedefDictionary,
                              final TypeDictionary structDictionary,
-                             final Map<Type, Type> canonMap) throws Exception {
+                             final Map<Type, Type> canonMap,
+                             final List<FunctionSymbol> cFunctions) throws Exception {
 
     // this.typedefDictionary = typedefDictionary;
     this.canonMap          = canonMap;
@@ -371,7 +373,14 @@ public class JavaEmitter implements GlueEmitter {
           for(final JavaCallbackDef jcbd : javaCallbacks) {
               final Type funcPtr = typedefDictionary.get(jcbd.cbFuncTypeName);
               if( null != funcPtr && funcPtr.isFunctionPointer() ) {
-                  generateJavaCallbackCode(jcbd, funcPtr.getTargetFunction());
+                  final Optional<FunctionSymbol> setter = cFunctions.stream()
+                          .filter(cFunction -> jcbd.setFuncName.equals(cFunction.getName()))
+                          .findFirst();
+                  if( setter.isPresent() ) {
+                      generateJavaCallbackCode(jcbd, funcPtr.getTargetFunction());
+                  } else {
+                      LOG.log(WARNING, "JavaCallback '{0}' setter not available", jcbd);
+                  }
               } else {
                   LOG.log(WARNING, "JavaCallback '{0}' function-pointer type not available", jcbd);
               }
