@@ -1869,11 +1869,22 @@ public class JavaEmitter implements GlueEmitter {
                   if( !_constElemCount ) {
                       // check for const length field
                       if( elemCountExpr.startsWith("get") && elemCountExpr.endsWith("()") ) {
-                          final String lenFieldName = CodeGenUtils.decapitalizeString( elemCountExpr.substring(3, elemCountExpr.length()-2) );
-                          final Field lenField = structCType.getField(lenFieldName);
-                          if( null != lenField ) {
-                              _constElemCount = lenField.getType().isConst();
+                          final String baseLenFieldName = elemCountExpr.substring(3, elemCountExpr.length()-2);
+                          String lenFieldName = CodeGenUtils.decapitalizeString( baseLenFieldName );
+                          Field lenField = structCType.getField(lenFieldName);
+                          if( null == lenField ) {
+                              lenFieldName = baseLenFieldName;
+                              lenField = structCType.getField(lenFieldName);
                           }
+                          if( null == lenField ) {
+                              throw new GlueGenException("Unable to creating array accessors for field \"" +
+                                      fqStructFieldName + "\", because elemCountExpr specify following getter \"" +
+                                      elemCountExpr + "\" and host structure doesn't contain following field \"" +
+                                      CodeGenUtils.decapitalizeString( baseLenFieldName ) + "\" or \"" +
+                                      baseLenFieldName + "\"",
+                                      fieldType.getASTLocusTag());
+                          }
+                          _constElemCount = lenField.getType().isConst();
                           LOG.log(INFO, structCType.getASTLocusTag(),
                                   unit.className+": elemCountExpr "+elemCountExpr+", lenFieldName "+lenFieldName+" -> "+lenField.toString()+", isConst "+_constElemCount);
                       }
