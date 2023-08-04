@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -28,52 +28,50 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import com.jogamp.common.jvm.JNILibLoaderBase;
-import com.jogamp.common.util.SecurityUtil;
+import com.jogamp.common.os.NativeLibrary;
+import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2p2Impl;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 
-import java.security.*;
+import java.io.IOException;
 
-public class BindingJNILibLoader extends JNILibLoaderBase {
+/**
+ * Test {@link Bindingtest2p1} with {@link T2_InitializeOptions} instance and function pointer...
+ */
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+public class Test2p2FuncPtr extends BaseTest2FuncPtr {
 
-    public static void loadBindingtest1p1() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest1p1", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+    static NativeLibrary dynamicLookupHelper;
+
+    /**
+     * Verifies loading of the new library.
+     */
+    @BeforeClass
+    public static void chapter__TestLoadLibrary() throws Exception {
+        BindingJNILibLoader.loadBindingtest2p2();
+        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2p2FuncPtr.class.getClassLoader(), true);
+        Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
+
+        Bindingtest2p2Impl.resetProcAddressTable(dynamicLookupHelper);
     }
 
-    public static void loadBindingtest1p2() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest1p2", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+    /**
+     * Verifies unloading of the new library.
+     */
+    @AfterClass
+    public static void chapter0XTestUnloadLibrary() throws Exception {
+        Assert.assertNotNull(dynamicLookupHelper);
+        dynamicLookupHelper.close();
+        dynamicLookupHelper = null;
     }
 
-    public static void loadBindingtest2p1() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest2p1", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+    @Test
+    public void chapter01() throws Exception {
+        chapter01(new Bindingtest2p2Impl());
     }
 
-    public static void loadBindingtest2p2() {
-        SecurityUtil.doPrivileged(new PrivilegedAction<Object>() {
-            @Override
-            public Object run() {
-                loadLibrary("Bindingtest2p2", null, true, BindingJNILibLoader.class.getClassLoader());
-                return null;
-            }
-        });
+    public static void main(final String args[]) throws IOException {
+        final String tstname = Test2p2FuncPtr.class.getName();
+        org.junit.runner.JUnitCore.main(tstname);
     }
 }
-
-

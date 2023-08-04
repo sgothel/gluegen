@@ -152,9 +152,12 @@ function onetest() {
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
 onetest com.jogamp.gluegen.test.junit.generation.Test1p2DynamicLibraryBundle 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test2FuncPtr 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test3PtrStorage 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test4JavaCallback 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test2p1FuncPtr 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test2p2FuncPtr 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test3p1PtrStorage 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test3p2PtrStorage 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test4p1JavaCallback 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test4p2JavaCallback 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen02 2>&1 | tee -a $LOG
 

@@ -46,7 +46,6 @@ import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc11;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12a;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12b;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc13;
-import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -59,31 +58,7 @@ import org.junit.runners.MethodSorters;
 /**
  * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer..
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test4JavaCallback extends BaseClass {
-    static NativeLibrary dynamicLookupHelper;
-
-    /**
-     * Verifies loading of the new library.
-     */
-    @BeforeClass
-    public static void chapter__TestLoadLibrary() throws Exception {
-        BindingJNILibLoader.loadBindingtest2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2FuncPtr.class.getClassLoader(), true);
-        Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
-
-        Bindingtest2Impl.resetProcAddressTable(dynamicLookupHelper);
-    }
-
-    /**
-     * Verifies unloading of the new library.
-     */
-    @AfterClass
-    public static void chapter0XTestUnloadLibrary() throws Exception {
-        Assert.assertNotNull(dynamicLookupHelper);
-        dynamicLookupHelper.close();
-        dynamicLookupHelper = null;
-    }
+public class BaseTest4JavaCallback extends BaseClass {
 
     private static class MyUserParam01 {
         final long i;
@@ -109,10 +84,7 @@ public class Test4JavaCallback extends BaseClass {
     /**
      * Test Bindingtest2 with T2_CallbackFunc JavaCallback
      */
-    @Test
-    public void chapter01() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter01(final Bindingtest2 bt2) throws Exception {
         final long[] id_res = { -1 };
         final String[] msg_res = { null };
         final T2_CallbackFunc01 myCallback01 = new T2_CallbackFunc01() {
@@ -225,10 +197,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test Bindingtest2 with ALBUFFERCALLBACKTYPESOFT JavaCallback via alBufferCallback1()
      * using the default AlBufferCallback1Key class.
      */
-    @Test
-    public void chapter02() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter02(final Bindingtest2 bt2) throws Exception {
         final long[] id_res = { -1 };
         final ALBUFFERCALLBACKTYPESOFT myCallback01 = new ALBUFFERCALLBACKTYPESOFT() {
             @Override
@@ -477,10 +446,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test Bindingtest2 with ALBUFFERCALLBACKTYPESOFT JavaCallback via alBufferCallback1()
      * using our custom CustomAlBufferCallback1Key class.
      */
-    @Test
-    public void chapter03() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter03(final Bindingtest2 bt2) throws Exception {
         final long[] id_res = { -1 };
         final ALBUFFERCALLBACKTYPESOFT myCallback01 = new ALBUFFERCALLBACKTYPESOFT() {
             @Override
@@ -682,10 +648,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test in depth lifecycle of Bindingtest2 with ALBUFFERCALLBACKTYPESOFT JavaCallback via alBufferCallback1()
      * using the default AlBufferCallback1Key class.
      */
-    @Test
-    public void chapter04() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter04(final Bindingtest2 bt2) throws Exception {
         final long[] id_res = { -1 };
         final ALBUFFERCALLBACKTYPESOFT myCallback01 = new ALBUFFERCALLBACKTYPESOFT() {
             @Override
@@ -938,10 +901,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test Bindingtest2 with ALEVENTPROCSOFT JavaCallback
      * on alEventCallback0(..) having the 'Object userParam` as single key.
      */
-    @Test
-    public void chapter05a() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter05a(final Bindingtest2 bt2) throws Exception {
         final int[] id_res = { -1 };
         final String[] msg_res = { null };
         final ALEVENTPROCSOFT myCallback01 = new ALEVENTPROCSOFT() {
@@ -1061,10 +1021,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test Bindingtest2 with ALEVENTPROCSOFT JavaCallback
      * on alEventCallback0(..) having the 'Object userParam` and `int object` as keys.
      */
-    @Test
-    public void chapter05b() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter05b(final Bindingtest2 bt2) throws Exception {
         final int[] id_res = { -1 };
         final String[] msg_res = { null };
         final ALEVENTPROCSOFT myCallback01 = new ALEVENTPROCSOFT() {
@@ -1196,10 +1153,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test Bindingtest2 with T2_CallbackFunc11 JavaCallback via MessageCallback11a()
      * using the default MessageCallback11aKey class.
      */
-    @Test
-    public void chapter11a() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter11a(final Bindingtest2 bt2) throws Exception {
         final long userParam01Ptr = 0xAFFEBEAFC0FFEEL;
         final long userParam02Ptr = 0xC0FFEEDEADBEAFL;
 
@@ -1420,10 +1374,7 @@ public class Test4JavaCallback extends BaseClass {
      * Test Bindingtest2 with T2_CallbackFunc11 JavaCallback via MessageCallback11b()
      * using the default MessageCallback11bKey class.
      */
-    @Test
-    public void chapter11b() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter11b(final Bindingtest2 bt2) throws Exception {
         final long userParam01Ptr = 0xAFFEBEAFC0FFEEL;
         final long userParam02Ptr = 0xC0FFEEDEADBEAFL;
 
@@ -1617,10 +1568,7 @@ public class Test4JavaCallback extends BaseClass {
     /**
      * Test Bindingtest2 with T2_CallbackFunc12a JavaCallback via SetLogCallBack12a()
      */
-    @Test
-    public void chapter12a() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter12a(final Bindingtest2 bt2) throws Exception {
         final AtomicReference<T2_Callback12LogMessage> messageExpected = new AtomicReference<>(null);
         final AtomicReference<String> messageReturned = new AtomicReference<>(null);
         final T2_CallbackFunc12a logCallBack = new T2_CallbackFunc12a() {
@@ -1672,10 +1620,7 @@ public class Test4JavaCallback extends BaseClass {
     /**
      * Test Bindingtest2 with T2_CallbackFunc12a JavaCallback via SetLogCallBack12a()
      */
-    @Test
-    public void chapter12b() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter12b(final Bindingtest2 bt2) throws Exception {
         final AtomicReference<T2_Callback12LogMessage> expMessage = new AtomicReference<>(null);
         final AtomicReference<String> hasReturnedMsg = new AtomicReference<>(null);
         final T2_CallbackFunc12b logCallBack = new T2_CallbackFunc12b() {
@@ -1740,10 +1685,7 @@ public class Test4JavaCallback extends BaseClass {
     /**
      * Test Bindingtest2 with T2_CallbackFunc13 JavaCallback via MessageCallback13()
      */
-    @Test
-    public void chapter13() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter13(final Bindingtest2 bt2) throws Exception {
         //
         // Key 1
         //
@@ -1907,8 +1849,4 @@ public class Test4JavaCallback extends BaseClass {
 
     static private String toHexString(final int v) { return "0x"+Integer.toHexString(v); }
 
-    public static void main(final String args[]) throws IOException {
-        final String tstname = Test4JavaCallback.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
-    }
 }

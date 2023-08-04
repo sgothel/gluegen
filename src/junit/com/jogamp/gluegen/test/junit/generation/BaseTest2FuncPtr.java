@@ -28,56 +28,17 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import java.io.IOException;
-
-import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
-import com.jogamp.common.os.NativeLibrary;
-
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 
 /**
  * Test {@link Bindingtest2} with {@link T2_InitializeOptions} instance and function pointer...
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test2FuncPtr extends BaseClass {
-
-    static NativeLibrary dynamicLookupHelper;
-
-    /**
-     * Verifies loading of the new library.
-     */
-    @BeforeClass
-    public static void chapter__TestLoadLibrary() throws Exception {
-        BindingJNILibLoader.loadBindingtest2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2FuncPtr.class.getClassLoader(), true);
-        Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
-
-        Bindingtest2Impl.resetProcAddressTable(dynamicLookupHelper);
-    }
-
-    /**
-     * Verifies unloading of the new library.
-     */
-    @AfterClass
-    public static void chapter0XTestUnloadLibrary() throws Exception {
-        Assert.assertNotNull(dynamicLookupHelper);
-        dynamicLookupHelper.close();
-        dynamicLookupHelper = null;
-    }
+public class BaseTest2FuncPtr extends BaseClass {
 
     /**
      * Test Bindingtest2 with T2_InitializeOptions instance and function pointer
      */
-    @Test
-    public void chapter01() throws Exception {
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
-
+    public void chapter01(final Bindingtest2 bt2) throws Exception {
         final T2_InitializeOptions options = T2_InitializeOptions.create();
         Assert.assertEquals(true, options.isOverrideThreadAffinityNull());
         Assert.assertEquals(true, options.isProductNameNull());
@@ -162,8 +123,4 @@ public class Test2FuncPtr extends BaseClass {
         Assert.assertEquals(0, options.getCustomFuncB2());
     }
 
-    public static void main(final String args[]) throws IOException {
-        final String tstname = Test2FuncPtr.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
-    }
 }

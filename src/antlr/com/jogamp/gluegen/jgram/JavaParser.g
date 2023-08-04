@@ -171,9 +171,35 @@ tokens {
         return functionNames;
     }
 
+    /** Clears the list of inner interfaces this HeaderParser has parsed.
+        Useful when reusing the same HeaderParser for more than one
+        header file. */
+    public void clearParsedInnerInterfacesNames() {
+        innerInterfacesNames.clear();
+    }
+
+    /** Returns the list of inner interfaces this HeaderParser has parsed. */
+    public Set<String> getParsedInnerInterfacesNames() {
+        return innerInterfacesNames;
+    }
+
+    /** Clears the list of inner classes this HeaderParser has parsed.
+        Useful when reusing the same HeaderParser for more than one
+        header file. */
+    public void clearParsedInnerClassesNames() {
+        innerClassesNames.clear();
+    }
+
+    /** Returns the list of inner classes this HeaderParser has parsed. */
+    public Set<String> getParsedInnerClassesNames() {
+        return innerClassesNames;
+    }
+
     private Set<String> functionNames = new HashSet<String>();
     // hash from name of an enumerated value to the EnumType to which it belongs
     private Set<String> enumNames = new HashSet<String>();
+    private Set<String> innerInterfacesNames = new HashSet<String>();
+    private Set<String> innerClassesNames = new HashSet<String>();
 
     private int blockDepth = 0;
 }
@@ -213,9 +239,11 @@ importDefinition
 // A type definition in a file is either a class or interface definition.
 typeDefinition
     options {defaultErrorHandler = true;}
-    :    m:modifiers!
-        ( classDefinition[#m]
-        | interfaceDefinition[#m]
+    :   antsBefore:annotations
+        m:modifiers!
+        antsAfter:annotations
+        ( classDefinition[#antsBefore,#m,#antsAfter]
+        | interfaceDefinition[#antsBefore,#m,#antsAfter]
         )
     |    SEMI!
     ;
@@ -224,7 +252,7 @@ typeDefinition
  *  Create a separate Type/Var tree for each var in the var list.
  */
 declaration!
-    :    m:modifiers t:typeSpec[false] v:variableDefinitions[#m,#t]
+    :    antsBefore:annotations m:modifiers antsAfter:annotations t:typeSpec[false] v:variableDefinitions[#antsBefore,#m,#antsAfter,#t]
         {#declaration = #v;}
     ;
 
@@ -238,7 +266,7 @@ typeSpec[boolean addImagNode]
 // A class type specification is a class type with possible brackets afterwards
 //   (which would make it an array type).
 classTypeSpec[boolean addImagNode]
-    :    identifier (lb:LBRACK^ {#lb.setType(ARRAY_DECLARATOR);} RBRACK!)*
+    :    identifier (LT gen:classTypeSpec[false] GT)? (lb:LBRACK^ {#lb.setType(ARRAY_DECLARATOR);} RBRACK!)*
         {
             if ( addImagNode ) {
                 #classTypeSpec = #(#[TYPE,"TYPE"], #classTypeSpec);
@@ -316,8 +344,8 @@ modifier
     ;
 
 // Definition of a Java class
-classDefinition![AST modifiers]
-    :    "class" IDENT
+classDefinition![AST antsBefore, AST modifiers, AST antsAfter]
+    :    "class" cn:IDENT
         // it _might_ have a superclass...
         sc:superClassClause
         // it might implement some interfaces...
@@ -325,7 +353,9 @@ classDefinition![AST modifiers]
         // now parse the body of the class
         cb:classBlock
         {#classDefinition = #(#[CLASS_DEF,"CLASS_DEF"],
-                               modifiers,IDENT,sc,ic,cb);}
+                               antsBefore,modifiers,antsAfter,cn,sc,ic,cb);
+             if(blockDepth==1) {
+                innerClassesNames.add(cn.getText()); } }
     ;
 
 superClassClause!
@@ -334,14 +364,16 @@ superClassClause!
     ;
 
 // Definition of a Java Interface
-interfaceDefinition![AST modifiers]
-    :    "interface" IDENT
+interfaceDefinition![AST antsBefore, AST modifiers, AST antsAfter]
+    :    "interface" in:IDENT
         // it might extend some other interfaces
         ie:interfaceExtends
         // now parse the body of the interface (looks like a class...)
         cb:classBlock
         {#interfaceDefinition = #(#[INTERFACE_DEF,"INTERFACE_DEF"],
-                                    modifiers,IDENT,ie,cb);}
+                                    antsBefore,modifiers,antsAfter,in,ie,cb);
+             if(blockDepth==1) {
+                innerInterfacesNames.add(in.getText()); } }
     ;
 
 
@@ -379,14 +411,16 @@ implementsClause
 //   need to be some semantic checks to make sure we're doing the right thing...
 field!
     :    // method, constructor, or variable declaration
+        antsBefore:annotations
         mods:modifiers
+        antsAfter:annotations
         (    h:ctorHead s:constructorBody // constructor
-            {#field = #(#[CTOR_DEF,"CTOR_DEF"], mods, h, s);}
+            {#field = #(#[CTOR_DEF,"CTOR_DEF"], antsBefore, mods, antsAfter, h, s);}
 
-        |    cd:classDefinition[#mods]       // inner class
+        |    cd:classDefinition[#antsBefore,#mods,#antsAfter]       // inner class
             {#field = #cd;}
 
-        |    id:interfaceDefinition[#mods]   // inner interface
+        |    id:interfaceDefinition[#antsBefore,#mods,#antsAfter]   // inner interface
             {#field = #id;}
 
         |    t:typeSpec[false]  // method or variable declaration(s)
@@ -403,7 +437,9 @@ field!
 
                 ( s2:compoundStatement | SEMI )
                 {#field = #(#[METHOD_DEF,"METHOD_DEF"],
+                             antsBefore,
                              mods,
+                             antsAfter,
                              #(#[TYPE,"TYPE"],rt),
                              fn,
                              param,
@@ -411,7 +447,7 @@ field!
                              s2);
                   if(blockDepth==1) {
                     functionNames.add(fn.getText()); } }
-            |    v:variableDefinitions[#mods,#t] SEMI
+            |    v:variableDefinitions[#antsBefore,#mods,#antsAfter,#t] SEMI
 //                {#field = #(#[VARIABLE_DEF,"VARIABLE_DEF"], v);}
                 {#field = #v;}
             )
@@ -441,11 +477,15 @@ explicitConstructorInvocation
         {#lp2.setType(SUPER_CTOR_CALL);}
     ;
 
-variableDefinitions[AST mods, AST t]
-    :    variableDeclarator[getASTFactory().dupTree(mods),
-                           getASTFactory().dupTree(t)]
+variableDefinitions[AST antsBefore, AST mods, AST antsAfter, AST t]
+    :    variableDeclarator[getASTFactory().dupTree(antsBefore),
+                            getASTFactory().dupTree(mods),
+                            getASTFactory().dupTree(antsAfter),
+                            getASTFactory().dupTree(t)]
         (    COMMA!
-            variableDeclarator[getASTFactory().dupTree(mods),
+            variableDeclarator[getASTFactory().dupTree(antsBefore),
+                               getASTFactory().dupTree(mods),
+                               getASTFactory().dupTree(antsAfter),
                                getASTFactory().dupTree(t)]
         )*
     ;
@@ -454,11 +494,11 @@ variableDefinitions[AST mods, AST t]
  *   or a local variable in a method
  * It can also include possible initialization.
  */
-variableDeclarator![AST mods, AST t]
+variableDeclarator![AST antsBefore, AST mods, AST antsAfter, AST t]
     :    id:IDENT d:declaratorBrackets[t] v:varInitializer
-        {#variableDeclarator = #(#[VARIABLE_DEF,"VARIABLE_DEF"], mods, #(#[TYPE,"TYPE"],d), id, v);
-         if(blockDepth==1) { 
-            enumNames.add(id.getText()); 
+        {#variableDeclarator = #(#[VARIABLE_DEF,"VARIABLE_DEF"], antsBefore, mods, antsAfter, #(#[TYPE,"TYPE"],d), id, v);
+         if(blockDepth==1) {
+            enumNames.add(id.getText());
          }
         }
     ;
@@ -528,10 +568,11 @@ parameterDeclarationList
 
 // A formal parameter.
 parameterDeclaration!
-    :    pm:parameterModifier t:typeSpec[false] id:IDENT
+    :   antsBefore:annotations pm:parameterModifier antsAfter:annotations
+        t:typeSpec[false] id:IDENT
         pd:declaratorBrackets[#t]
         {#parameterDeclaration = #(#[PARAMETER_DEF,"PARAMETER_DEF"],
-                                    pm, #([TYPE,"TYPE"],pd), id);}
+                                    antsBefore, pm, antsAfter, #([TYPE,"TYPE"],pd), id);}
     ;
 
 parameterModifier
@@ -572,7 +613,7 @@ statement
     |    expression SEMI!
 
     // class definition
-    |    m:modifiers! classDefinition[#m]
+    |    antsBefore:annotations m:modifiers! antsAfter:annotations classDefinition[#antsBefore,#m,#antsAfter]
 
     // Attach a label to the front of a statement
     |    IDENT c:COLON^ {#c.setType(LABELED_STAT);} statement
@@ -693,6 +734,27 @@ finallyClause
 // an exception handler
 handler
     :    "catch"^ LPAREN! parameterDeclaration RPAREN! compoundStatement
+    ;
+
+annotations
+    :    ( annotation )*
+    ;
+
+annotation
+    : ( AT type:typeSpec[false] (
+            LPAREN
+                (
+                    content:primaryExpression
+                |
+                    identPrimary ASSIGN primaryExpression
+                    (
+                        COMMA
+                        identPrimary ASSIGN primaryExpression
+                    )*
+                )
+            RPAREN
+        )?
+    )
     ;
 
 
@@ -1079,52 +1141,53 @@ options {
 }
 
 // OPERATORS
-QUESTION        :    '?'        ;
-LPAREN            :    '('        ;
-RPAREN            :    ')'        ;
-LBRACK            :    '['        ;
-RBRACK            :    ']'        ;
-LCURLY            :    '{'        ;
-RCURLY            :    '}'        ;
-COLON            :    ':'        ;
-COMMA            :    ','        ;
-//DOT            :    '.'        ;
-ASSIGN            :    '='        ;
-EQUAL            :    "=="    ;
-LNOT            :    '!'        ;
-BNOT            :    '~'        ;
-NOT_EQUAL        :    "!="    ;
-DIV                :    '/'        ;
-DIV_ASSIGN        :    "/="    ;
-PLUS            :    '+'        ;
-PLUS_ASSIGN        :    "+="    ;
-INC                :    "++"    ;
-MINUS            :    '-'        ;
-MINUS_ASSIGN    :    "-="    ;
-DEC                :    "--"    ;
-STAR            :    '*'        ;
-STAR_ASSIGN        :    "*="    ;
-MOD                :    '%'        ;
-MOD_ASSIGN        :    "%="    ;
-SR                :    ">>"    ;
-SR_ASSIGN        :    ">>="    ;
-BSR                :    ">>>"    ;
+QUESTION          :    '?'       ;
+LPAREN            :    '('       ;
+RPAREN            :    ')'       ;
+LBRACK            :    '['       ;
+RBRACK            :    ']'       ;
+LCURLY            :    '{'       ;
+RCURLY            :    '}'       ;
+COLON             :    ':'       ;
+COMMA             :    ','       ;
+//DOT             :    '.'       ;
+ASSIGN            :    '='       ;
+EQUAL             :    "=="      ;
+LNOT              :    '!'       ;
+BNOT              :    '~'       ;
+NOT_EQUAL         :    "!="      ;
+DIV               :    '/'       ;
+DIV_ASSIGN        :    "/="      ;
+PLUS              :    '+'       ;
+PLUS_ASSIGN       :    "+="      ;
+INC               :    "++"      ;
+MINUS             :    '-'       ;
+MINUS_ASSIGN      :    "-="      ;
+DEC               :    "--"      ;
+STAR              :    '*'       ;
+STAR_ASSIGN       :    "*="      ;
+MOD               :    '%'       ;
+MOD_ASSIGN        :    "%="      ;
+SR                :    ">>"      ;
+SR_ASSIGN         :    ">>="     ;
+BSR               :    ">>>"     ;
 BSR_ASSIGN        :    ">>>="    ;
-GE                :    ">="    ;
-GT                :    ">"        ;
-SL                :    "<<"    ;
-SL_ASSIGN        :    "<<="    ;
-LE                :    "<="    ;
-LT                :    '<'        ;
-BXOR            :    '^'        ;
-BXOR_ASSIGN        :    "^="    ;
-BOR                :    '|'        ;
-BOR_ASSIGN        :    "|="    ;
-LOR                :    "||"    ;
-BAND            :    '&'        ;
-BAND_ASSIGN        :    "&="    ;
-LAND            :    "&&"    ;
-SEMI            :    ';'        ;
+GE                :    ">="      ;
+GT                :    ">"       ;
+SL                :    "<<"      ;
+SL_ASSIGN         :    "<<="     ;
+LE                :    "<="      ;
+LT                :    '<'       ;
+BXOR              :    '^'       ;
+BXOR_ASSIGN       :    "^="      ;
+BOR               :    '|'       ;
+BOR_ASSIGN        :    "|="      ;
+LOR               :    "||"      ;
+BAND              :    '&'       ;
+BAND_ASSIGN       :    "&="      ;
+LAND              :    "&&"      ;
+SEMI              :    ';'       ;
+AT                :    '@'       ;
 
 
 // Whitespace -- ignored

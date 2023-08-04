@@ -28,61 +28,24 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import java.io.IOException;
 import java.nio.IntBuffer;
 
 import com.jogamp.common.nio.Buffers;
 import com.jogamp.common.nio.ElementBuffer;
-import com.jogamp.common.os.NativeLibrary;
-import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 
 /**
  * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer..
  */
-@FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test3PtrStorage extends BaseClass {
-
-    static NativeLibrary dynamicLookupHelper;
-
-    /**
-     * Verifies loading of the new library.
-     */
-    @BeforeClass
-    public static void chapter__TestLoadLibrary() throws Exception {
-        BindingJNILibLoader.loadBindingtest2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2FuncPtr.class.getClassLoader(), true);
-        Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
-
-        Bindingtest2Impl.resetProcAddressTable(dynamicLookupHelper);
-    }
-
-    /**
-     * Verifies unloading of the new library.
-     */
-    @AfterClass
-    public static void chapter0XTestUnloadLibrary() throws Exception {
-        Assert.assertNotNull(dynamicLookupHelper);
-        dynamicLookupHelper.close();
-        dynamicLookupHelper = null;
-    }
-
+public class BaseTest3PtrStorage extends BaseClass {
 
     /**
      * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer
      */
-    @Test
-    public void chapter01() throws Exception {
+    public void chapter01(final Bindingtest2 bt2) throws Exception {
         Assert.assertEquals(false, T2_PointerStorage.usesNativeCode());
 
-        final Bindingtest2 bt2 = new Bindingtest2Impl();
         final T2_PointerStorage store = bt2.createT2PointerStorage();
         // final T2_PointerStorage store = T2_PointerStorage.create();
         final long[] int32PtrArray = store.getInt32PtrArray(0, new long[10], 0, 10); // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
@@ -132,8 +95,4 @@ public class Test3PtrStorage extends BaseClass {
         bt2.destroyT2PointerStorage(store);
     }
 
-    public static void main(final String args[]) throws IOException {
-        final String tstname = Test3PtrStorage.class.getName();
-        org.junit.runner.JUnitCore.main(tstname);
-    }
 }

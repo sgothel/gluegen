@@ -348,6 +348,8 @@ public final class JavaCallbackEmitter {
     }
 
     private final void emitJavaKeyClass(final CodeUnit unit) {
+        if( cfg.shouldIgnoreInInterface(KeyClassName) ) return;
+
         emitJavaBriefAPIDoc(unit, "", "", "", "for ");
         unit.emitln("  public static class "+KeyClassName+" {");
         binding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
