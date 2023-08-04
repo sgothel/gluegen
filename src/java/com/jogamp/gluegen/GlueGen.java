@@ -362,7 +362,7 @@ public class GlueGen implements GlueEmitterControls {
 
             if ( !cfg.structsOnly() ) {
                 // emit java and C code to interface with the native functions
-                emit.beginFunctions(td, sd, headerParser.getCanonMap());
+                emit.beginFunctions(td, sd, headerParser.getCanonMap(), allFunctions);
                 emit.emitFunctions(allFunctions);
                 emit.endFunctions();
             }

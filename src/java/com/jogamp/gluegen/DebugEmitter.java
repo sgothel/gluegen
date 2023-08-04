@@ -84,7 +84,8 @@ public class DebugEmitter implements GlueEmitter {
   @Override
   public void beginFunctions(final TypeDictionary typedefDictionary,
                              final TypeDictionary structDictionary,
-                             final Map<Type, Type> canonMap) {
+                             final Map<Type, Type> canonMap,
+                             List<FunctionSymbol> cFunctions) {
     final Set<String> keys = typedefDictionary.keySet();
     for (final String key: keys) {
       final Type value = typedefDictionary.get(key);

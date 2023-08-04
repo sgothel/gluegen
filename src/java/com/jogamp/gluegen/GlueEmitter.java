@@ -75,7 +75,8 @@ public interface GlueEmitter {
 
   public void beginFunctions(TypeDictionary typedefDictionary,
                              TypeDictionary structDictionary,
-                             Map<Type, Type> canonMap) throws Exception;
+                             Map<Type, Type> canonMap,
+                             List<FunctionSymbol> cFunctions) throws Exception;
 
   /** Emit glue code for the list of FunctionSymbols. */
   public Iterator<FunctionSymbol> emitFunctions(List<FunctionSymbol> cFunctions) throws Exception;

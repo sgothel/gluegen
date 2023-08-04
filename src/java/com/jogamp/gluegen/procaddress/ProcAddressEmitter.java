@@ -78,13 +78,14 @@ public class ProcAddressEmitter extends JavaEmitter {
     protected String tableClassName;
 
     @Override
-    public void beginFunctions(final TypeDictionary typedefDictionary, final TypeDictionary structDictionary, final Map<Type, Type>  canonMap) throws Exception {
+    public void beginFunctions(final TypeDictionary typedefDictionary, final TypeDictionary structDictionary,
+                               final Map<Type, Type>  canonMap, final List<FunctionSymbol> cFunctions) throws Exception {
         this.typedefDictionary = typedefDictionary;
 
         if (getProcAddressConfig().emitProcAddressTable()) {
             beginProcAddressTable();
         }
-        super.beginFunctions(typedefDictionary, structDictionary, canonMap);
+        super.beginFunctions(typedefDictionary, structDictionary, canonMap, cFunctions);
     }
 
     @Override
