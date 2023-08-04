@@ -3137,8 +3137,7 @@ public class JavaEmitter implements GlueEmitter {
       final Type cArgType = sym.getArgumentType(i);
       final String cArgName = sym.getArgumentName(i);
       JavaType mappedType = typeToJavaType(cArgType, curMachDesc);
-      // System.out.println("C arg type -> \"" + cArgType + "\"" );
-      // System.out.println("      Java -> \"" + mappedType + "\"" );
+      int mapMode = 0;
 
       if( null != jcbi && jcbi.cbFuncTypeName.equals( cArgType.getName() ) &&
           ( !jcbi.setFuncProcessed || i == jcbi.setFuncCBParamIdx ) )
@@ -3146,47 +3145,58 @@ public class JavaEmitter implements GlueEmitter {
           // Replace JavaCallback type with generated interface name
           jcbiSetFuncCBParamIdx=i;
           mappedType = JavaType.createForNamedClass( jcbi.cbFQClazzName );
+          mapMode = 10;
       } else if( null != jcbi && i == jcbi.setFuncUserParamIdx && cArgType.isPointer() ) {
           // Replace userParam argument '<userParamType>*' if 'void*' with Object
           if( cArgType.getTargetType().isVoid() ) {
               if( jcbi.cbFuncUserParamType.isCompound() ) {
                   mappedType = JavaType.createForClass(long.class);
+                  mapMode = 20;
               } else if( null != jcbi.userParamClassName ) {
                   mappedType = JavaType.createForNamedClass( jcbi.userParamClassName );
+                  mapMode = 21;
               } else {
                   mappedType = JavaType.forObjectClass();
+                  mapMode = 22;
               }
+          } else {
+              // fallthrough intended
           }
-      } else if ( stringArgIndices != null && stringArgIndices.contains(i) ) {
+      }
+      if ( 0 == mapMode && stringArgIndices != null && stringArgIndices.contains(i) ) {
         // Take into account any ArgumentIsString configuration directives that apply
         // System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
-        if (mappedType.isCVoidPointerType() ||
-            mappedType.isCCharPointerType() ||
-            mappedType.isCShortPointerType() ||
-            mappedType.isNIOPointerBuffer() ||
-            (mappedType.isArray() &&
-             (mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass) ||
-             (mappedType.getJavaClass() == ArrayTypes.shortBufferArrayClass))) {
+        if ( mappedType.isCVoidPointerType() ||
+             mappedType.isCCharPointerType() ||
+             mappedType.isCShortPointerType() ||
+             mappedType.isNIOPointerBuffer() ||
+             ( mappedType.isArray() &&
+               ( mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass ) ||
+               ( mappedType.getJavaClass() == ArrayTypes.shortBufferArrayClass ) ) )
+        {
           // convert mapped type from:
           //   void*, byte[], and short[] to String
           //   ByteBuffer[] and ShortBuffer[] to String[]
           final boolean pascalString = cfg.pascalStringLengthIndex(sym, i) >= 0;
           if (mappedType.isArray() || mappedType.isNIOPointerBuffer()) {
             mappedType = javaStringType(ArrayTypes.stringArrayClass, pascalString);
+            mapMode = 30;
           } else {
             mappedType = javaStringType(String.class, pascalString);
+            mapMode = 31;
           }
-        }
-        else {
-        throw new GlueGenException(
-          "Cannot apply ArgumentIsString configuration directive to " +
-          "argument " + i + " of \"" + sym + "\": argument type is not " +
-          "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent",
-          sym.getASTLocusTag());
+        } else {
+            mapMode = 99;
+            throw new GlueGenException(
+              "Cannot apply ArgumentIsString configuration directive to " +
+              "argument " + i + " of \"" + sym + "\": argument type is not " +
+              "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent",
+              sym.getASTLocusTag());
         }
       }
       javaArgumentTypes.add(mappedType);
-      //System.out.println("During binding of [" + sym + "], added mapping from C type: " + cArgType + " to Java type: " + mappedType);
+      LOG.log(INFO, "BindFunc: {0}: added mapping ({1}) for {2} from C type: {3} to Java type: {4}",
+              sym.getName(), mapMode, cArgName, cArgType, mappedType);
     }
     if( null != jcbi ) {
         jcbi.setFuncProcessed(sym.getType(), jcbiSetFuncCBParamIdx);
