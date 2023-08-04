@@ -826,9 +826,9 @@ as it is core to the semantic mapping of all resources. They also have to use th
 
 `JavaCallbackDef` attributes:
 - `SetCallbackFunction`: `SetCallbackFunction` name of the native toolkit API responsible to set the callback
-- `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction` or negative index to disable UserParam management
+- `SetCallback-UserParamIndex`: `UserParam` parameter-index of the `SetCallbackFunction` or `<0` to disable `UserParam`
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, aka the callback type name
-- `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous) or negative index to disable UserParam management
+- `CallbackFunction-UserParamIndex`: The `userParam` parameter-index of the `CallbackFunctionType`, which allows to [indicate a heterogeneous `UserParam`](#struct-type-user-param-heterogeneous) or `<0` to disable `UserParam`
 - `Callback-UserParamClass`: Optional [custom *UserParamClass*](#custom-callback-userparamclass) overriding the default `Object` for non-compound `UserParam` types.
 - `Callback-KeyClass`: Optional [custom *KeyClass*](#custom-callback-keyclass), providing the hash-map-key.
 

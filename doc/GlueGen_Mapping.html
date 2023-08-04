@@ -476,6 +476,8 @@
   <li><a
   href="#javacallback-example-11b-heterogeneous-pointerstruct-type">JavaCallback
   Example 11b (<em>Heterogeneous Pointer/Struct Type</em>)</a></li>
+  <li><a href="#javacallback-example-12-without-userparam">JavaCallback
+  Example 12 (Without UserParam)</a></li>
   </ul></li>
   <li><a href="#misc-configurations">Misc Configurations</a>
   <ul>
@@ -2048,7 +2050,8 @@ use the same <code>CallbackFunctionType</code>.</p>
 <li><code>SetCallbackFunction</code>: <code>SetCallbackFunction</code>
 name of the native toolkit API responsible to set the callback</li>
 <li><code>SetCallback-UserParamIndex</code>: <code>UserParam</code>
-parameter-index of the <code>SetCallbackFunction</code></li>
+parameter-index of the <code>SetCallbackFunction</code> or
+<code>&lt;0</code> to disable <code>UserParam</code></li>
 <li><code>CallbackFunctionType</code>: The native toolkit API
 typedef-name of the function-pointer-type, aka the callback type
 name</li>
@@ -2056,7 +2059,8 @@ name</li>
 <code>userParam</code> parameter-index of the
 <code>CallbackFunctionType</code>, which allows to <a
 href="#struct-type-user-param-heterogeneous">indicate a heterogeneous
-<code>UserParam</code></a></li>
+<code>UserParam</code></a> or <code>&lt;0</code> to disable
+<code>UserParam</code></li>
 <li><code>Callback-UserParamClass</code>: Optional <a
 href="#custom-callback-userparamclass">custom
 <em>UserParamClass</em></a> overriding the default <code>Object</code>
@@ -2618,6 +2622,63 @@ users' <code>void*</code> pointer with the
 
   /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void MessageCallback11bInject(size_t id, long val)&lt;/code&gt;&lt;br&gt;   */
   public void MessageCallback11bInject(long id, long val);</code></pre>
+<h3 id="javacallback-example-12-without-userparam">JavaCallback Example
+12 (Without UserParam)</h3>
+<p>This example demonstrates a JavaCallBack without user param and only
+a global key.</p>
+<p>The callback <code>T2_CallbackFunc12</code> is managed by the toolkit
+and passed to the callback function, while user passes JavaCallback to
+the registration method <code>SetLogCallBack(..)</code>.</p>
+<p>C-API Header snipped</p>
+<pre><code>  typedef enum {
+    LOG_Off = 0,
+    LOG_Fatal = 100,
+    LOG_Error = 200,
+    LOG_Warning = 300,
+    LOG_Info = 400,
+    LOG_Verbose = 500,
+    LOG_VeryVerbose = 600
+  } LogLevel;
+
+  typedef struct {
+    const char* Category;
+    const char* Message;
+    LogLevel Level;
+  } LogMessage;
+
+  typedef void ( * T2_CallbackFunc12)(const LogMessage* usrParam);
+
+  void SetLogCallBack(T2_CallbackFunc12 cbFunc);
+  void LogCallBackInject(const LogMessage* message);</code></pre>
+<p>and the following GlueGen configuration</p>
+<pre><code>  ReturnsStringOnly LogMessage.Category
+  ReturnsStringOnly LogMessage.Message
+
+  JavaCallbackDef SetLogCallBack -1 T2_CallbackFunc12 -1</code></pre>
+<p>leading to the following interface</p>
+<pre><code>
+  /** JavaCallback interface: T2_CallbackFunc12 -&gt; void (*T2_CallbackFunc12)(const LogMessage *  usrParam) */
+  public static interface T2_CallbackFunc12 {
+    /** Interface to C language function: &lt;br&gt; &lt;code&gt;void callback(const LogMessage *  usrParam)&lt;/code&gt;&lt;br&gt;Alias for: &lt;code&gt;T2_CallbackFunc12&lt;/code&gt;     */
+    public void callback(LogMessage usrParam);
+  }
+  
+  ...
+
+  /** Returns if callback is mapped for &lt;br&gt; &lt;code&gt;  void SetLogCallBack(T2_CallbackFunc12 cbFunc)&lt;/code&gt; */
+  public boolean isSetLogCallBackMapped();
+
+  /** Returns T2_CallbackFunc12 callback for &lt;br&gt; &lt;code&gt;  void SetLogCallBack(T2_CallbackFunc12 cbFunc)&lt;/code&gt; */
+  public T2_CallbackFunc12 getSetLogCallBack();
+
+  /** Releases callback data skipping toolkit API. Favor passing `null` callback ref to &lt;br&gt; &lt;code&gt;  void SetLogCallBack(T2_CallbackFunc12 cbFunc)&lt;/code&gt; */
+  public void releaseSetLogCallBack();
+
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void SetLogCallBack(T2_CallbackFunc12 cbFunc)&lt;/code&gt;&lt;br&gt;   */
+  public void SetLogCallBack(T2_CallbackFunc12 cbFunc);
+
+  /** Entry point (through function pointer) to C language function: &lt;br&gt; &lt;code&gt;void LogCallBackInject(const LogMessage *  message)&lt;/code&gt;&lt;br&gt;   */
+  public void LogCallBackInject(LogMessage message);</code></pre>
 <p><em>TODO: Enhance documentation</em></p>
 <h2 id="misc-configurations">Misc Configurations</h2>
 <h3
