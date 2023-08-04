@@ -984,9 +984,11 @@ public class CMethodBindingEmitter extends FunctionEmitter {
               unit.emit(") + " + byteOffsetArgName(i) + ")");
           }
         } else {
-          if (javaArgType.isString()) { unit.emit(STRING_CHARS_PREFIX); }
+          if ( javaArgType.isString() ) {
+              unit.emit(STRING_CHARS_PREFIX);
+          }
           unit.emit(binding.getArgumentName(i));
-          if( null != javaCallbackEmitter ) {
+          if( !javaArgType.isString() && null != javaCallbackEmitter ) {
               javaCallbackEmitter.emitCOptArgumentSuffix(unit, i);
           }
         }
