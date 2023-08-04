@@ -1494,11 +1494,17 @@ public class JavaEmitter implements GlueEmitter {
           LOG.log(INFO, "JavaCallbackInfo: Reusing {0} -> {1}", jcbd.setFuncName, jcbi0);
       } else {
           final StringBuilder cbMethodSignature = new StringBuilder();
-          javaUnit.emitln("  /** JavaCallback interface: "+jcbd.cbFuncTypeName+" -> "+funcType.toString(jcbd.cbFuncTypeName, false, true)+" */");
-          javaUnit.emitln("  public static interface "+cbSimpleClazzName+" {");
-          final List<MethodBinding> mbs = generateFunctionInterfaceCode(javaUnit, funcSym, jcbd, cbMethodSignature);
-          javaUnit.emitln("  }");
-          javaUnit.emitln();
+          final List<MethodBinding> mbs;
+          if( !cfg.shouldIgnoreInInterface(jcbd.cbFuncTypeName) ) {
+              javaUnit.emitln("  /** JavaCallback interface: "+jcbd.cbFuncTypeName+" -> "+funcType.toString(jcbd.cbFuncTypeName, false, true)+" */");
+              javaUnit.emitln("  public static interface "+cbSimpleClazzName+" {");
+              mbs = generateFunctionInterfaceCode(javaUnit, funcSym, jcbd, cbMethodSignature);
+              javaUnit.emitln("  }");
+              javaUnit.emitln();
+          } else {
+              LOG.log(WARNING, "JavaCallbackInfo: Java Configuration indicate current JavaCallback must be ignored so assume JavaCallback meet presents requirements of {0}", jcbd.setFuncName);
+              mbs = generateFunctionInterfaceCode(null, funcSym, jcbd, cbMethodSignature);
+          }
           if( 1 != mbs.size() ) {
               throw new UnsupportedOperationException("Multiple bindings generated where only 1 is allowed for func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
           }
@@ -1508,9 +1514,9 @@ public class JavaEmitter implements GlueEmitter {
                       cbFuncBinding.getJavaReturnType()+", func "+funcType.toString(jcbd.cbFuncTypeName, false, true));
           }
           final JavaCallbackInfo jcbi1 = new JavaCallbackInfo(jcbd.cbFuncTypeName, cbSimpleClazzName, cbFQClazzName, cbMethodSignature.toString(),
-                                                              funcType, cbFuncBinding, jcbd.cbFuncUserParamIdx, jcbd.cbFuncKeyIndices,
-                                                              jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices,
-                                                              jcbd.userParamClassName, jcbd.customKeyClassName);
+                  funcType, cbFuncBinding, jcbd.cbFuncUserParamIdx, jcbd.cbFuncKeyIndices,
+                  jcbd.setFuncName, jcbd.setFuncUserParamIdx, jcbd.setFuncKeyIndices,
+                  jcbd.userParamClassName, jcbd.customKeyClassName);
           cfg.setFuncToJavaCallbackMap.put(jcbd.setFuncName, jcbi1);
           javaCallbackInterfaceMap.put(cbFQClazzName, jcbi1);
           LOG.log(INFO, "JavaCallbackInfo: Added {0} -> {1}", jcbd.setFuncName, jcbi1);
@@ -1556,29 +1562,31 @@ public class JavaEmitter implements GlueEmitter {
       final boolean useNIOOnly = true;
       final boolean useNIODirectOnly = true;
 
-      for (final MethodBinding binding : bindings) {
-          // Emit public Java entry point for calling this function pointer
-          final JavaMethodBindingEmitter emitter = new JavaMethodBindingEmitter(binding,
-                          javaUnit,
-                          cfg.runtimeExceptionType(),
-                          cfg.unsupportedExceptionType(),
-                          false,  // emitBody
-                          cfg.tagNativeBinding(),
-                          false, // eraseBufferAndArrayTypes
-                          useNIOOnly,
-                          useNIODirectOnly,
-                          false, // forDirectBufferImplementation
-                          false, // forIndirectBufferAndArrayImplementation
-                          true, // isUnimplemented
-                          true,  // isInterface
-                          false, // isNativeMethod
-                          false, // isPrivateNativeMethod
-                          cfg) {
-              @Override
-              protected String getBaseIndentString() { return "    "; }
-          };
-          emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
-          emitter.emit();
+      if( null != javaUnit) {
+          for (final MethodBinding binding : bindings) {
+              // Emit public Java entry point for calling this function pointer
+              final JavaMethodBindingEmitter emitter = new JavaMethodBindingEmitter(binding,
+                              javaUnit,
+                              cfg.runtimeExceptionType(),
+                              cfg.unsupportedExceptionType(),
+                              false,  // emitBody
+                              cfg.tagNativeBinding(),
+                              false, // eraseBufferAndArrayTypes
+                              useNIOOnly,
+                              useNIODirectOnly,
+                              false, // forDirectBufferImplementation
+                              false, // forIndirectBufferAndArrayImplementation
+                              true, // isUnimplemented
+                              true,  // isInterface
+                              false, // isNativeMethod
+                              false, // isPrivateNativeMethod
+                              cfg) {
+                  @Override
+                  protected String getBaseIndentString() { return "    "; }
+              };
+              emitter.addModifier(JavaMethodBindingEmitter.PUBLIC);
+              emitter.emit();
+          }
       }
       return bindings;
   }

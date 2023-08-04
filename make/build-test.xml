@@ -671,7 +671,32 @@ chmod 644 ${results}/* \${line.separator}
 
         <gluegen src="${test.junit.generation.dir}/test2.h"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.generation.dir}/test2.cfg"
+                 config="${test.junit.generation.dir}/test2-gluegen.cfg"
+                 literalInclude="${test.junit.generation.dir}"
+                 includeRefid="stub.includes.fileset.test"
+                 emitter="com.jogamp.gluegen.JavaEmitter"
+                 dumpCPP="false"
+                 debug="false"
+                 logLevel="WARNING">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+        <antcall target="java.generate.copy2temp" inheritRefs="true" />
+
+        <gluegen src="${test.junit.generation.dir}/test2.h"
+                 outputRootDir="${build_t.gen}"
+                 config="${test.junit.generation.dir}/test2p1.cfg"
+                 literalInclude="${test.junit.generation.dir}"
+                 includeRefid="stub.includes.fileset.test"
+                 emitter="com.jogamp.gluegen.JavaEmitter"
+                 dumpCPP="false"
+                 debug="false"
+                 logLevel="WARNING">
+            <classpath refid="gluegen.classpath" />
+        </gluegen>
+
+        <gluegen src="${test.junit.generation.dir}/test2.h"
+                 outputRootDir="${build_t.gen}"
+                 config="${test.junit.generation.dir}/test2p2.cfg"
                  literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.jogamp.gluegen.procaddress.ProcAddressEmitter"
@@ -680,35 +705,56 @@ chmod 644 ${results}/* \${line.separator}
                  logLevel="WARNING">
             <classpath refid="gluegen.classpath" />
         </gluegen>
-        <antcall target="java.generate.copy2temp" inheritRefs="true" />
     </target>
 
-    <target name="junit.test2.c.build">
-        <!-- this is the test2 implementation -->
-        <patternset id="junit.test2.implc.src.files">
-          <include name="src/junit/${test.junit.generation.rel}/test2.c"/>
+    <target name="junit.test2.c.build" depends="junit.test2i.c.build, junit.test2p1.c.build, junit.test2p2.c.build" unless="build.javaonly" />
+
+    <!-- this is the test2 implementation -->
+    <target name="junit.test2i.c.build">
+        <patternset id="junit.test2i.c.src.files">
+            <include name="src/junit/${test.junit.generation.rel}/test2.c"/>
         </patternset>
 
         <!-- Windows hacks ro make a proper DLL -->
         <linker id="linker.test2.dll.cfg.id" extends="${linker.cfg.id}">
         </linker>
 
-        <c.build c.compiler.src.files="junit.test2.implc.src.files"
+        <c.build c.compiler.src.files="junit.test2i.c.src.files"
                  output.lib.name="test2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test2.dll.cfg.id"/>
 
-        <!-- this is a dynamic lookup binding to the test1 implementation -->
+    </target>
+
+    <!-- this is a fixed binding to the test2 implementation -->
+    <target name="junit.test2p1.c.build">
+        <linker id="linker.test2.fixed.cfg.id" extends="${linker.cfg.id}">
+            <syslibset dir="${build_t.lib}" libs="test1"/>
+        </linker>
+
+        <patternset id="junit.test2p1.c.src.files">
+            <include name="${build_t.gen.rootrel}/native/Bindingtest2p1Impl_JNI.c"/>
+            <include name="${build_t.gen.rootrel}/native/T2_InitializeOptions_JNI.c"/>
+        </patternset>
+
+        <c.build c.compiler.src.files="junit.test2p1.c.src.files"
+                 output.lib.name="Bindingtest2p1"
+                 compiler.cfg.id="${compiler.cfg.id}"
+                 linker.cfg.id="linker.test2.fixed.cfg.id"/>
+    </target>
+
+    <!-- this is a dynamic lookup binding to the test2 implementation -->
+    <target name="junit.test2p2.c.build">
         <linker id="linker.test2.runtime.cfg.id" extends="${linker.cfg.id}">
         </linker>
 
-        <patternset id="junit.test2.jnic.src.files">
-          <include name="${build_t.gen.rootrel}/native/Bindingtest2Impl_JNI.c"/>
-          <include name="${build_t.gen.rootrel}/native/T2_InitializeOptions_JNI.c"/>
+        <patternset id="junit.test2p2.c.src.files">
+            <include name="${build_t.gen.rootrel}/native/Bindingtest2p2Impl_JNI.c"/>
+            <include name="${build_t.gen.rootrel}/native/T2_InitializeOptions_JNI.c"/>
         </patternset>
 
-        <c.build c.compiler.src.files="junit.test2.jnic.src.files"
-                 output.lib.name="Bindingtest2"
+        <c.build c.compiler.src.files="junit.test2p2.c.src.files"
+                 output.lib.name="Bindingtest2p2"
                  compiler.cfg.id="${compiler.cfg.id}"
                  linker.cfg.id="linker.test2.runtime.cfg.id"/>
     </target>

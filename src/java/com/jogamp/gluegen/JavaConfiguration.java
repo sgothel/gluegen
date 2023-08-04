@@ -1808,23 +1808,33 @@ public class JavaConfiguration {
 
     final Set<String> parsedEnumNames = parser.getParsedEnumNames();
     final Set<String> parsedFuncNames = parser.getParsedFunctionNames();
+    final Set<String> parsedInnerInterfaces = parser.getParsedInnerInterfacesNames();
+    final Set<String> parsedInnerClasses = parser.getParsedInnerClassesNames();
 
     if(forInterface) {
         if(onlyList) {
             extendedIntfSymbolsOnly.addAll(parsedEnumNames);
             extendedIntfSymbolsOnly.addAll(parsedFuncNames);
+            extendedIntfSymbolsOnly.addAll(parsedInnerInterfaces);
+            extendedIntfSymbolsOnly.addAll(parsedInnerClasses);
         } else {
             extendedIntfSymbolsIgnore.addAll(parsedEnumNames);
             extendedIntfSymbolsIgnore.addAll(parsedFuncNames);
+            extendedIntfSymbolsIgnore.addAll(parsedInnerInterfaces);
+            extendedIntfSymbolsIgnore.addAll(parsedInnerClasses);
         }
     }
     if(forImplementation) {
         if(onlyList) {
             extendedImplSymbolsOnly.addAll(parsedEnumNames);
             extendedImplSymbolsOnly.addAll(parsedFuncNames);
+            extendedImplSymbolsOnly.addAll(parsedInnerInterfaces);
+            extendedImplSymbolsOnly.addAll(parsedInnerClasses);
         } else {
             extendedImplSymbolsIgnore.addAll(parsedEnumNames);
             extendedImplSymbolsIgnore.addAll(parsedFuncNames);
+            extendedImplSymbolsIgnore.addAll(parsedInnerInterfaces);
+            extendedImplSymbolsIgnore.addAll(parsedInnerClasses);
         }
     }
   }
