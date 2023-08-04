@@ -40,10 +40,12 @@ import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlEventCallback0Key
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlEventCallback1Key;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11aKey;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback11bKey;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.MessageCallback13Key;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc01;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc11;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12a;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12b;
+import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc13;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2Impl;
 
 import org.junit.AfterClass;
@@ -1674,54 +1676,54 @@ public class Test4JavaCallback extends BaseClass {
     public void chapter12b() throws Exception {
         final Bindingtest2 bt2 = new Bindingtest2Impl();
 
-        final AtomicReference<T2_Callback12LogMessage> messageExpected = new AtomicReference<>(null);
-        final AtomicReference<String> messageReturned = new AtomicReference<>(null);
+        final AtomicReference<T2_Callback12LogMessage> expMessage = new AtomicReference<>(null);
+        final AtomicReference<String> hasReturnedMsg = new AtomicReference<>(null);
         final T2_CallbackFunc12b logCallBack = new T2_CallbackFunc12b() {
             int expParam0 = 1;
             @Override
             public void callback(final int param0, final T2_Callback12LogMessage usrParam) {
-                assertEquals(messageExpected.get(), usrParam); // compare value, not object hash value (reference)
-                messageReturned.set("Result-"+usrParam.getMessage());
+                assertEquals(expMessage.get(), usrParam); // compare value, not object hash value (reference)
+                hasReturnedMsg.set("Result-"+usrParam.getMessage());
                 Assert.assertEquals(expParam0++, param0);
             }
         };
 
         bt2.SetLogCallBack12b(logCallBack);
-        messageReturned.set(null);
+        hasReturnedMsg.set(null);
         {
             final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
             logMessage.setCategory("TEST");
             logMessage.setMessage("Example");
             logMessage.setLevel(Bindingtest2.LOG_Info);
-            messageExpected.set(logMessage);
+            expMessage.set(logMessage);
 
             bt2.LogCallBack12bInject(logMessage, 1);
-            Assert.assertEquals(messageReturned.get(), "Result-Example");
+            Assert.assertEquals("Result-Example", hasReturnedMsg.get());
         }
 
-        messageReturned.set(null);
+        hasReturnedMsg.set(null);
         {
             final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
             logMessage.setCategory("IDK");
             logMessage.setMessage("John Doe is absent.");
             logMessage.setLevel(Bindingtest2.LOG_Warning);
-            messageExpected.set(logMessage);
+            expMessage.set(logMessage);
 
             bt2.LogCallBack12bInject(logMessage, 2);
-            Assert.assertEquals(messageReturned.get(), "Result-John Doe is absent.");
+            Assert.assertEquals("Result-John Doe is absent.", hasReturnedMsg.get());
         }
 
         bt2.SetLogCallBack12b(null);
-        messageReturned.set(null);
+        hasReturnedMsg.set(null);
         {
             final T2_Callback12LogMessage logMessage = T2_Callback12LogMessage.create();
             logMessage.setCategory("SANITY");
             logMessage.setMessage("Callback is now unset");
             logMessage.setLevel(Bindingtest2.LOG_Fatal);
-            messageExpected.set(logMessage);
+            expMessage.set(logMessage);
 
             bt2.LogCallBack12bInject(logMessage, 3);
-            Assert.assertEquals(messageReturned.get(), null);
+            Assert.assertEquals(null, hasReturnedMsg.get());
         }
     }
     private static void assertEquals(final T2_Callback12LogMessage exp, final T2_Callback12LogMessage has) {
@@ -1733,6 +1735,174 @@ public class Test4JavaCallback extends BaseClass {
         Assert.assertEquals(exp.getCategory(), has.getCategory());
         Assert.assertEquals(exp.getMessage(), has.getMessage());
         Assert.assertEquals(exp.getLevel(), has.getLevel());
+    }
+
+    /**
+     * Test Bindingtest2 with T2_CallbackFunc13 JavaCallback via MessageCallback13()
+     */
+    @Test
+    public void chapter13() throws Exception {
+        final Bindingtest2 bt2 = new Bindingtest2Impl();
+
+        //
+        // Key 1
+        //
+        final AtomicReference<String> hasReturnedMsgKey1 = new AtomicReference<>(null);
+        final T2_CallbackFunc13 callbackKey1 = new T2_CallbackFunc13() {
+            int localCallCount = 1;
+
+            @Override
+            public void callback(final String msg1, final T2_Callback13UserType info, final String msg2, final T2_Callback13UserKey1 usrParamKey1, final long usrKey2) {
+                Assert.assertEquals(localCallCount, info.getANumber());
+                final String strKey1 = String.valueOf( usrParamKey1.getKeyValue1() );
+                final String strKey2 = String.valueOf( usrKey2 );
+                Assert.assertEquals(strKey1, msg1);
+                Assert.assertEquals(strKey2, msg2);
+                hasReturnedMsgKey1.set("Result1-"+localCallCount+"-"+strKey1+"."+strKey2);
+                System.err.println("Callback: "+hasReturnedMsgKey1.get());
+                localCallCount++;
+            }
+        };
+
+        // key 1 + 1 = ibdex 2
+        final T2_Callback13UserKey1 key1a = T2_Callback13UserKey1.create();
+        key1a.setKeyValue1(1);
+        final long key1b = 1;
+        final MessageCallback13Key expKey1 = new MessageCallback13Key(key1a, key1b);
+        bt2.MessageCallback13("a debug message - key2", callbackKey1, key1a, key1b);
+
+        //
+        // Key 2
+        //
+        final AtomicReference<String> hasReturnedMsgKey2 = new AtomicReference<>(null);
+        final T2_CallbackFunc13 callbackKey2 = new T2_CallbackFunc13() {
+            int localCallCount = 1;
+
+            @Override
+            public void callback(final String msg1, final T2_Callback13UserType info, final String msg2, final T2_Callback13UserKey1 usrParamKey2, final long usrKey2) {
+                Assert.assertEquals(localCallCount, info.getANumber());
+                final String strKey1 = String.valueOf( usrParamKey2.getKeyValue1() );
+                final String strKey2 = String.valueOf( usrKey2 );
+                Assert.assertEquals(strKey1, msg1);
+                Assert.assertEquals(strKey2, msg2);
+                hasReturnedMsgKey2.set("Result2-"+localCallCount+"-"+strKey1+"."+strKey2);
+                System.err.println("Callback: "+hasReturnedMsgKey2.get());
+                localCallCount++;
+            }
+        };
+
+        // key 2 + 2 = ibdex 4
+        final T2_Callback13UserKey1 key2a = T2_Callback13UserKey1.create();
+        key2a.setKeyValue1(2);
+        final long key2b = 2;
+        final MessageCallback13Key expKey2 = new MessageCallback13Key(key2a, key2b);
+        bt2.MessageCallback13("a debug message - key2", callbackKey2, key2a, key2b);
+
+        // Check keys
+        final Set<MessageCallback13Key> keys = bt2.getMessageCallback13Keys();
+        Assert.assertNotNull(keys);
+        Assert.assertEquals(2, keys.size());
+        {
+            System.err.println("XXX expKey1[key1a 0x"+Long.toHexString(key1a.getDirectBufferAddress())+", hash 0x"+Integer.toHexString(System.identityHashCode(key1a))+"]");
+            System.err.println("XXX expKey1 hash 0x"+Integer.toHexString(expKey1.hashCode()));
+
+            System.err.println("XXX expKey2[key1a 0x"+Long.toHexString(key2a.getDirectBufferAddress())+", hash 0x"+Integer.toHexString(System.identityHashCode(key2a))+"]");
+            System.err.println("XXX expKey2 hash 0x"+Integer.toHexString(expKey2.hashCode()));
+
+            final MessageCallback13Key[] keys0 = keys.toArray(new MessageCallback13Key[2]);
+            Assert.assertEquals(2, keys0.length);
+            final MessageCallback13Key hasKey1, hasKey2;
+            if( 1 == keys0[0].usrKey2 ) {
+                // keys0[0] -> hasKey1, keys0[1] -> hasKey2
+                hasKey1 = keys0[0];
+                hasKey2 = keys0[1];
+            } else {
+                // keys0[0] -> hasKey2, keys0[1] -> hasKey1
+                hasKey1 = keys0[1];
+                hasKey2 = keys0[0];
+            }
+            System.err.println("XXX hasKey1 hash 0x"+Integer.toHexString(hasKey1.hashCode()));
+            System.err.println("XXX hasKey2 hash 0x"+Integer.toHexString(hasKey2.hashCode()));
+
+            Assert.assertEquals(key1a.getDirectBufferAddress(), hasKey1.usrParamKey1.getDirectBufferAddress());
+            Assert.assertEquals(key1b, hasKey1.usrKey2);
+            Assert.assertEquals(expKey1, hasKey1);
+            Assert.assertEquals(expKey1.hashCode(), hasKey1.hashCode());
+            final T2_CallbackFunc13 cb1 = bt2.getMessageCallback13(hasKey1);
+            Assert.assertNotNull(cb1);
+            final T2_Callback13UserKey1 up1 = bt2.getMessageCallback13UserParam(hasKey1);
+            Assert.assertNotNull(up1);
+
+            Assert.assertEquals(key2a.getDirectBufferAddress(), hasKey2.usrParamKey1.getDirectBufferAddress());
+            Assert.assertEquals(key2b, hasKey2.usrKey2);
+            Assert.assertEquals(expKey2, hasKey2);
+            Assert.assertEquals(expKey2.hashCode(), hasKey2.hashCode());
+            final T2_CallbackFunc13 cb2 = bt2.getMessageCallback13(hasKey2);
+            Assert.assertNotNull(cb2);
+            final T2_Callback13UserKey1 up2 = bt2.getMessageCallback13UserParam(hasKey2);
+            Assert.assertNotNull(up2);
+        }
+
+        // Send -> Key1
+        int key1CallCount = 1;
+        final T2_Callback13UserType info1 = T2_Callback13UserType.create();
+        hasReturnedMsgKey1.set(null);
+        {
+            final String expReturnedMsg = "Result1-"+key1CallCount+"-"+String.valueOf(key1a.getKeyValue1())+"."+String.valueOf(key1b);
+            info1.setANumber(key1CallCount);
+            bt2.InjectMessageCallback13(String.valueOf(key1a.getKeyValue1()), info1, String.valueOf(key1b), key1a, key1b);
+            Assert.assertEquals(expReturnedMsg, hasReturnedMsgKey1.get());
+            key1CallCount++;
+        }
+        // Send -> Key2
+        int key2CallCount = 1;
+        final T2_Callback13UserType info2 = T2_Callback13UserType.create();
+        hasReturnedMsgKey2.set(null);
+        {
+            final String expReturnedMsg = "Result2-"+key2CallCount+"-"+String.valueOf(key2a.getKeyValue1())+"."+String.valueOf(key2b);
+            info2.setANumber(key2CallCount);
+            bt2.InjectMessageCallback13(String.valueOf(key2a.getKeyValue1()), info2, String.valueOf(key2b), key2a, key2b);
+            Assert.assertEquals(expReturnedMsg, hasReturnedMsgKey2.get());
+            key2CallCount++;
+        }
+
+        // Send -> Key1
+        hasReturnedMsgKey1.set(null);
+        {
+            final String expReturnedMsg = "Result1-"+key1CallCount+"-"+String.valueOf(key1a.getKeyValue1())+"."+String.valueOf(key1b);
+            info1.setANumber(key1CallCount);
+            bt2.InjectMessageCallback13(String.valueOf(key1a.getKeyValue1()), info1, String.valueOf(key1b), key1a, key1b);
+            Assert.assertEquals(expReturnedMsg, hasReturnedMsgKey1.get());
+            key1CallCount++;
+        }
+        // Send -> Key2
+        hasReturnedMsgKey2.set(null);
+        {
+            final String expReturnedMsg = "Result2-"+key2CallCount+"-"+String.valueOf(key2a.getKeyValue1())+"."+String.valueOf(key2b);
+            info2.setANumber(key2CallCount);
+            bt2.InjectMessageCallback13(String.valueOf(key2a.getKeyValue1()), info2, String.valueOf(key2b), key2a, key2b);
+            Assert.assertEquals(expReturnedMsg, hasReturnedMsgKey2.get());
+            key2CallCount++;
+        }
+
+        // Send -> Key1 -> nil
+        bt2.MessageCallback13("turned off - key1", null, key1a, key1b);
+        hasReturnedMsgKey1.set(null);
+        {
+            final String expReturnedMsg = null;
+            info1.setANumber(key1CallCount);
+            bt2.InjectMessageCallback13(String.valueOf(key1a.getKeyValue1()), info1, String.valueOf(key1b), key1a, key1b);
+            Assert.assertEquals(expReturnedMsg, hasReturnedMsgKey1.get());
+        }
+        // Send -> Key2 -> nil
+        bt2.MessageCallback13("turned off - key1", null, key2a, key2b);
+        hasReturnedMsgKey2.set(null);
+        {
+            final String expReturnedMsg = null;
+            info2.setANumber(key2CallCount);
+            bt2.InjectMessageCallback13(String.valueOf(key2a.getKeyValue1()), info2, String.valueOf(key2b), key2a, key2b);
+            Assert.assertEquals(expReturnedMsg, hasReturnedMsgKey2.get());
+        }
     }
 
     static private String toHexString(final int v) { return "0x"+Integer.toHexString(v); }

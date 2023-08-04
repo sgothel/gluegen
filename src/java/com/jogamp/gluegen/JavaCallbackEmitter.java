@@ -386,7 +386,9 @@ public final class JavaCallbackEmitter {
                         unit.emitln(" &&");
                         unit.emit  ("             ");
                     }
-                    if( jType.isPrimitive() || idx == info.setFuncUserParamIdx ) {
+                    if( jType.isCompoundTypeWrapper() ) {
+                        unit.emit(name+".getDirectBufferAddress() == o2."+name+".getDirectBufferAddress()");
+                    } else if( jType.isPrimitive() || idx == info.setFuncUserParamIdx ) {
                         unit.emit(name+" == o2."+name);
                     } else {
                         unit.emit(name+".equals( o2."+name+" )");
@@ -419,6 +421,8 @@ public final class JavaCallbackEmitter {
                         } else {
                             unit.emitln(name+";");
                         }
+                    } else if( jType.isCompoundTypeWrapper() ) {
+                            unit.emitln("HashUtil.getAddrHash32_EqualDist( "+name+".getDirectBufferAddress() );");
                     } else {
                         if( idx == info.setFuncUserParamIdx ) {
                             unit.emitln("System.identityHashCode( "+name+" );");

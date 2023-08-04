@@ -70,7 +70,7 @@ void InjectMessageCallback01(size_t id, const char* msg);
 // ALBUFFERCALLBACKTYPESOFT (similar to OpenAL's AL_SOFT_callback_buffer)
 //
 // typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer, void *userptr, void *sampledata, int numbytes);
-typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer, void *userptr, int sampledata, int numbytes);
+typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer /* key */, void *userptr, int sampledata, int numbytes);
 
 void alBufferCallback0(int buffer /* key */, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, void *userptr);
 // void alBufferCallback0Inject(int buffer, void *sampledata, int numbytes);
@@ -100,7 +100,7 @@ typedef struct {
     size_t id;
 } T2_Callback11UserType;
 
-typedef void ( * T2_CallbackFunc11)(size_t id, const T2_Callback11UserType* usrParam, long val);
+typedef void ( * T2_CallbackFunc11)(size_t id /* key */, const T2_Callback11UserType* usrParam, long val);
 
 void MessageCallback11a(size_t id /* key */, T2_CallbackFunc11 cbFunc, const T2_Callback11UserType* usrParam);
 void MessageCallback11aInject(size_t id, long val);
@@ -137,4 +137,20 @@ typedef void ( * T2_CallbackFunc12b)(int param0, const T2_Callback12LogMessage* 
 
 void SetLogCallBack12b(T2_CallbackFunc12b cbFunc);
 void LogCallBack12bInject(const T2_Callback12LogMessage* message, int param0);
+
+//
+// T2_CallbackFunc13
+//
+typedef struct {
+    int aNumber;
+} T2_Callback13UserType;
+
+typedef struct {
+    int keyValue1;
+} T2_Callback13UserKey1;
+
+typedef void ( * T2_CallbackFunc13)(const char* msg1, const T2_Callback13UserType* info, const char* msg2, const T2_Callback13UserKey1* usrParamKey1 /* key */, size_t usrKey2 /* key */);
+
+void MessageCallback13(const char* debugMsg, T2_CallbackFunc13 cbFunc, const T2_Callback13UserKey1* usrParamKey1 /* key */, size_t usrKey2 /* key */);
+void InjectMessageCallback13(const char* msg1, const T2_Callback13UserType* info, const char* msg2, const T2_Callback13UserKey1* usrParamKey1 /* key */, size_t usrKey2 /* key */);
 

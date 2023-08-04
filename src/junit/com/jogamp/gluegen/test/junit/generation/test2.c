@@ -358,3 +358,36 @@ void LogCallBack12bInject(const T2_Callback12LogMessage* message, int param0) {
     }
 }
 
+//
+//
+
+static const int MAX_C13_BUFFER = 10;
+
+static T2_CallbackFunc13 MessageCallback13_callback[] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+
+void MessageCallback13(const char* debugMsg, T2_CallbackFunc13 cbFunc, const T2_Callback13UserKey1* usrParamKey1 /* key */, size_t usrKey2 /* key */) {
+    int id = usrParamKey1->keyValue1 + usrKey2;
+    if( id < 0 || MAX_C13_BUFFER <= id ) {
+        fprintf(stderr, "Error: MessageCallback13: id not in range [0..%d), is %d\n", MAX_C13_BUFFER, id);
+    } else {
+        MessageCallback13_callback[id] = cbFunc;
+        fprintf(stderr, "XXX MessageCallback13 id %d -> func %p, user %p, debugMsg '%s'\n", id, cbFunc, usrParamKey1, debugMsg);
+    }
+    fflush(NULL);
+}
+
+void InjectMessageCallback13(const char* msg1, const T2_Callback13UserType* info, const char* msg2, const T2_Callback13UserKey1* usrParamKey1 /* key */, size_t usrKey2 /* key */) {
+    int id = usrParamKey1->keyValue1 + usrKey2;
+    if( id < 0 || MAX_C13_BUFFER <= id ) {
+        fprintf(stderr, "Error: InjectMessageCallback13: id not in range [0..%d), is %d\n", MAX_C13_BUFFER, id);
+        fflush(NULL);
+        return;
+    }
+    if( NULL != MessageCallback13_callback[id] ) {
+        fprintf(stderr, "XXX InjectMessageCallback13: id %d, func %p, user %p, msg1 '%s', msg2 '%s', key1 %d, key2 %zd\n", 
+            id, MessageCallback13_callback[id], usrParamKey1, msg1, msg2, usrParamKey1->keyValue1, usrKey2);
+        fflush(NULL);
+        (*MessageCallback13_callback[id])(msg1, info, msg2, usrParamKey1, usrKey2);
+    }
+}
+
