@@ -34,7 +34,7 @@ import org.junit.Ignore;
 import static org.junit.Assert.*;
 
 /**
- * this file will not compile unless {@link com.jogamp.gluegen.StructAccessorTest} has been run.
+ * this file will not compile unless {@link com.jogamp.gluegen.TestStructAccessor} has been run.
  * @author Michael Bien
  */
 @Ignore

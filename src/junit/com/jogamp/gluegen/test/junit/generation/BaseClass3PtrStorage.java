@@ -38,7 +38,7 @@ import org.junit.Assert;
 /**
  * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer..
  */
-public class BaseTest3PtrStorage extends BaseClass {
+public class BaseClass3PtrStorage extends BaseClass {
 
     /**
      * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer

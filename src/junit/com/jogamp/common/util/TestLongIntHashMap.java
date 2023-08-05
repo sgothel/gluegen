@@ -55,7 +55,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class LongIntHashMapTest extends SingletonJunitCase {
+public class TestLongIntHashMap extends SingletonJunitCase {
 
     private static int iterations;
     private static LongIntUniqueRndValues pairs;
@@ -206,7 +206,7 @@ public class LongIntHashMapTest extends SingletonJunitCase {
     }
 
     public static void main(final String args[]) throws IOException {
-        org.junit.runner.JUnitCore.main(LongIntHashMapTest.class.getName());
+        org.junit.runner.JUnitCore.main(TestLongIntHashMap.class.getName());
     }
 
 }

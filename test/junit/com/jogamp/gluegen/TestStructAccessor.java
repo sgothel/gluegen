@@ -54,7 +54,7 @@ import static com.jogamp.gluegen.BuildUtil.*;
  *
  * @author Michael Bien
  */
-public class StructAccessorTest {
+public class TestStructAccessor {
 
     @Test
     public void generateStruct() {

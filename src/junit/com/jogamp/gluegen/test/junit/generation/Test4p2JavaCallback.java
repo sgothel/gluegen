@@ -39,7 +39,7 @@ import java.io.IOException;
  * Test {@link Bindingtest2p2} with {@link T2_PointerStorage} instance and pointer pointer..
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test4p2JavaCallback extends BaseTest4JavaCallback {
+public class Test4p2JavaCallback extends BaseClass4JavaCallback {
 
     static NativeLibrary dynamicLookupHelper;
 

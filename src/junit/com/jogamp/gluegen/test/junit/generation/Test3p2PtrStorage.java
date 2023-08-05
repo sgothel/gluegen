@@ -39,7 +39,7 @@ import java.io.IOException;
  * Test {@link Bindingtest2p2} with {@link T2_PointerStorage} instance and pointer pointer..
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test3p2PtrStorage extends BaseTest3PtrStorage {
+public class Test3p2PtrStorage extends BaseClass3PtrStorage {
 
     static NativeLibrary dynamicLookupHelper;
 

@@ -58,7 +58,7 @@ import org.junit.runners.MethodSorters;
 /**
  * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer..
  */
-public class BaseTest4JavaCallback extends BaseClass {
+public class BaseClass4JavaCallback extends BaseClass {
 
     private static class MyUserParam01 {
         final long i;

@@ -53,7 +53,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class IntObjectHashMapTest extends SingletonJunitCase {
+public class TestIntObjectHashMap extends SingletonJunitCase {
 
     private static int iterations;
     private static IntIntObjUniqueRndValues pairs;
@@ -176,7 +176,7 @@ public class IntObjectHashMapTest extends SingletonJunitCase {
     }
 
     public static void main(final String args[]) throws IOException {
-        org.junit.runner.JUnitCore.main(IntObjectHashMapTest.class.getName());
+        org.junit.runner.JUnitCore.main(TestIntObjectHashMap.class.getName());
     }
 
 }

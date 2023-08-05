@@ -39,7 +39,7 @@ import java.io.IOException;
  * Test {@link Bindingtest2p1} with {@link T2_InitializeOptions} instance and function pointer...
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test2p2FuncPtr extends BaseTest2FuncPtr {
+public class Test2p2FuncPtr extends BaseClass2FuncPtr {
 
     static NativeLibrary dynamicLookupHelper;
 

@@ -39,7 +39,7 @@ import java.io.IOException;
  * Test {@link Bindingtest2p1} with {@link T2_PointerStorage} instance and pointer pointer..
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class Test3p1PtrStorage extends BaseTest3PtrStorage {
+public class Test3p1PtrStorage extends BaseClass3PtrStorage {
 
     /**
      * Verifies loading of the new library.

@@ -51,7 +51,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class PCPPTest extends SingletonJunitCase {
+public class TestPCPP extends SingletonJunitCase {
 
     @BeforeClass
     public static void init() {
@@ -145,7 +145,7 @@ public class PCPPTest extends SingletonJunitCase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = PCPPTest.class.getName();
+        final String tstname = TestPCPP.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

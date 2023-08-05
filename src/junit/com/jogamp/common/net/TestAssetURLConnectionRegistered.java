@@ -15,13 +15,13 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class AssetURLConnectionRegisteredTest extends AssetURLConnectionBase {
+public class TestAssetURLConnectionRegistered extends AssetURLConnectionBase {
 
     @BeforeClass
     public static void assetRegistration() throws Exception {
         try {
             System.err.println("******* Asset URL Stream Handler Registration: PRE");
-            Assert.assertTrue("GenericURLStreamHandlerFactory.register() failed", AssetURLContext.registerHandler(AssetURLConnectionRegisteredTest.class.getClassLoader()));
+            Assert.assertTrue("GenericURLStreamHandlerFactory.register() failed", AssetURLContext.registerHandler(TestAssetURLConnectionRegistered.class.getClassLoader()));
             Assert.assertNotNull(AssetURLContext.getRegisteredHandler());
             System.err.println("******* Asset URL Stream Handler Registration: POST");
         } catch (final Exception e) {
@@ -85,7 +85,7 @@ public class AssetURLConnectionRegisteredTest extends AssetURLConnectionBase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = AssetURLConnectionRegisteredTest.class.getName();
+        final String tstname = TestAssetURLConnectionRegistered.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

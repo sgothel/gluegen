@@ -33,7 +33,7 @@ import org.junit.Assert;
 /**
  * Test {@link Bindingtest2} with {@link T2_InitializeOptions} instance and function pointer...
  */
-public class BaseTest2FuncPtr extends BaseClass {
+public class BaseClass2FuncPtr extends BaseClass {
 
     /**
      * Test Bindingtest2 with T2_InitializeOptions instance and function pointer

@@ -21,7 +21,7 @@ public class TestUri02Composing extends SingletonJunitCase {
     public static void assetRegistration() throws Exception {
         try {
             System.err.println("******* Asset URL Stream Handler Registration: PRE");
-            Assert.assertTrue("GenericURLStreamHandlerFactory.register() failed", AssetURLContext.registerHandler(AssetURLConnectionRegisteredTest.class.getClassLoader()));
+            Assert.assertTrue("GenericURLStreamHandlerFactory.register() failed", AssetURLContext.registerHandler(TestAssetURLConnectionRegistered.class.getClassLoader()));
             Assert.assertNotNull(AssetURLContext.getRegisteredHandler());
             System.err.println("******* Asset URL Stream Handler Registration: POST");
         } catch (final Exception e) {

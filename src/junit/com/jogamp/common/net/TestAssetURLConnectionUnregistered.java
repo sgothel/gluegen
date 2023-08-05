@@ -14,7 +14,7 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class AssetURLConnectionUnregisteredTest extends AssetURLConnectionBase {
+public class TestAssetURLConnectionUnregistered extends AssetURLConnectionBase {
     @Test
     public void assetUnregisteredURLConnection_RT2() throws IOException {
         testAssetConnection(createAssetURLConnection(test_asset_rt2_url, this.getClass().getClassLoader()), test_asset_rt_entry);
@@ -58,7 +58,7 @@ public class AssetURLConnectionUnregisteredTest extends AssetURLConnectionBase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = AssetURLConnectionUnregisteredTest.class.getName();
+        final String tstname = TestAssetURLConnectionUnregistered.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }
