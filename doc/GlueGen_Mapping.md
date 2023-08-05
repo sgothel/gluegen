@@ -1108,7 +1108,7 @@ C-API Header snipped
 
 GlueGen configuration snippet with the added option attribute for the `Callback-KeyClass` in directive `JavaCallbackDef`.
 ```
-JavaCallbackDef  alBufferCallback1 0 ALBUFFERCALLBACKTYPESOFT 1 ALCcontext com.jogamp.gluegen.test.junit.generation.BaseTest4JavaCallback.CustomAlBufferCallback1Key
+JavaCallbackDef  alBufferCallback1 0 ALBUFFERCALLBACKTYPESOFT 1 ALCcontext com.jogamp.gluegen.test.junit.generation.BaseClass4JavaCallback.CustomAlBufferCallback1Key
 JavaCallbackKey  alBufferCallback1 1 ALBUFFERCALLBACKTYPESOFT 0
 
 ```
