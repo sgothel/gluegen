@@ -48,7 +48,7 @@ public class Test4p2JavaCallback extends BaseTest4JavaCallback {
      */
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
-        BindingJNILibLoader.loadBindingtest2p1();
+        BindingJNILibLoader.loadBindingtest2p2();
         dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test4p2JavaCallback.class.getClassLoader(), true);
         Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
 
