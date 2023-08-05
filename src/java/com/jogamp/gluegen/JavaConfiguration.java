@@ -2531,7 +2531,7 @@ public class JavaConfiguration {
   /** Returns true if a method binding requires specific java callback code */
   final boolean requiresJavaCallbackCode(final String bindingName) {
       final JavaCallbackInfo jcbi = setFuncToJavaCallbackMap.get(bindingName);
-      return null != jcbi && !jcbi.cbUserParamIsDefined;
+      return null != jcbi;
   }
 
 }
