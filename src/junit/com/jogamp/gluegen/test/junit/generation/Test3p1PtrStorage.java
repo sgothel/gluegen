@@ -28,7 +28,6 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.gluegen.test.junit.generation.impl.Bindingtest2p1Impl;
 import org.junit.*;
 import org.junit.runners.MethodSorters;

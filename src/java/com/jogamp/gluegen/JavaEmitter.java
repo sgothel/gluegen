@@ -374,7 +374,7 @@ public class JavaEmitter implements GlueEmitter {
               final Type funcPtr = typedefDictionary.get(jcbd.cbFuncTypeName);
               if( null != funcPtr && funcPtr.isFunctionPointer() ) {
                   final Optional<FunctionSymbol> setter = cFunctions.stream()
-                          .filter(cFunction -> jcbd.setFuncName.equals(cFunction.getName()))
+                          .filter( cFunction -> jcbd.setFuncName.equals(cFunction.getName()) )
                           .findFirst();
                   if( setter.isPresent() ) {
                       generateJavaCallbackCode(jcbd, funcPtr.getTargetFunction());

@@ -28,11 +28,9 @@
 
 package com.jogamp.gluegen.test.junit.generation;
 
-import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.jogamp.common.os.NativeLibrary;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALBUFFERCALLBACKTYPESOFT;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.ALEVENTPROCSOFT;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.AlBufferCallback0Key;
@@ -47,13 +45,7 @@ import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12a;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc12b;
 import com.jogamp.gluegen.test.junit.generation.Bindingtest2.T2_CallbackFunc13;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import org.junit.FixMethodOrder;
-import org.junit.runners.MethodSorters;
 
 /**
  * Test {@link Bindingtest2} with {@link T2_PointerStorage} instance and pointer pointer..
