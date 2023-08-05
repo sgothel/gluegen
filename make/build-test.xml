@@ -726,10 +726,10 @@ chmod 644 ${results}/* \${line.separator}
 
     </target>
 
-    <!-- this is a fixed binding to the test2 implementation -->
+    <!-- this is a fixed binding to the test2p1 implementation -->
     <target name="junit.test2p1.c.build">
         <linker id="linker.test2.fixed.cfg.id" extends="${linker.cfg.id}">
-            <syslibset dir="${build_t.lib}" libs="test1"/>
+            <syslibset dir="${build_t.lib}" libs="test2"/>
         </linker>
 
         <patternset id="junit.test2p1.c.src.files">
@@ -743,7 +743,7 @@ chmod 644 ${results}/* \${line.separator}
                  linker.cfg.id="linker.test2.fixed.cfg.id"/>
     </target>
 
-    <!-- this is a dynamic lookup binding to the test2 implementation -->
+    <!-- this is a dynamic lookup binding to the test2p2 implementation -->
     <target name="junit.test2p2.c.build">
         <linker id="linker.test2.runtime.cfg.id" extends="${linker.cfg.id}">
         </linker>
