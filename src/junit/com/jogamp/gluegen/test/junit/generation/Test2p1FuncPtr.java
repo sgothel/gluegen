@@ -41,16 +41,12 @@ import java.io.IOException;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Test2p1FuncPtr extends BaseTest2FuncPtr {
 
-    static NativeLibrary dynamicLookupHelper;
-
     /**
      * Verifies loading of the new library.
      */
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest2p1();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2p1FuncPtr.class.getClassLoader(), true);
-        Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
     }
 
     /**
@@ -58,9 +54,6 @@ public class Test2p1FuncPtr extends BaseTest2FuncPtr {
      */
     @AfterClass
     public static void chapter0XTestUnloadLibrary() throws Exception {
-        Assert.assertNotNull(dynamicLookupHelper);
-        dynamicLookupHelper.close();
-        dynamicLookupHelper = null;
     }
 
     @Test

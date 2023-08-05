@@ -54,6 +54,10 @@ import org.junit.Assert;
  */
 public class BaseClass extends SingletonJunitCase {
 
+    static {
+        Platform.initSingleton(); // 1st initialize GlueGen itself
+    }
+
     /**
      * Verifies the existence and creation of the generated class.
      */
