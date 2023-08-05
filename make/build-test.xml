@@ -671,7 +671,7 @@ chmod 644 ${results}/* \${line.separator}
 
         <gluegen src="${test.junit.generation.dir}/test2.h"
                  outputRootDir="${build_t.gen}"
-                 config="${test.junit.generation.dir}/test2-gluegen.cfg"
+                 config="${test.junit.generation.dir}/test2-if.cfg"
                  literalInclude="${test.junit.generation.dir}"
                  includeRefid="stub.includes.fileset.test"
                  emitter="com.jogamp.gluegen.JavaEmitter"
