@@ -41,8 +41,14 @@ rm -f $LOG
 
 GLUEGEN_ROOT=`dirname $builddir`
 ROOTREL_BUILD=`basename $builddir`
+builddirAbs=`readlink -f $builddir`
+
+# MODULE_ARGS="--illegal-access=warn"
+# MODULE_ARGS="--add-opens java.base/java.lang=ALL-UNNAMED --add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
+MODULE_ARGS="--add-opens java.desktop/sun.awt=ALL-UNNAMED --add-opens java.desktop/sun.java2d=ALL-UNNAMED"
 
 X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
+
 #D_ARGS="-Djogamp.debug.ProcAddressHelper -Djogamp.debug.NativeLibrary -Djogamp.debug.NativeLibrary.Lookup"
 #D_ARGS="-Djogamp.debug.TraceLock"
 #D_ARGS="-Djogamp.debug.Platform -Djogamp.debug.NativeLibrary"
@@ -55,6 +61,7 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.Uri -Djogamp.debug.Uri.ShowFix"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.gluegen.UseTempJarCache=false"
 #D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.TempJarCache"
+#D_ARGS="-Djogamp.debug.JNILibLoader -Djogamp.debug.NativeLibrary"
 #D_ARGS="-Djogamp.debug.JNILibLoader"
 #D_ARGS="-Djogamp.debug.JNILibLoader.Perf"
 #D_ARGS="-Djogamp.debug.Lock"
@@ -74,17 +81,18 @@ function onetest() {
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
     USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
-    libspath="$builddir"/test/build/natives
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes
-    #libspath="$builddir"/obj:"$builddir"/test/build/natives:
-    LD_LIBRARY_PATH=$libspath:$LD_LIBRARY_PATH
-    DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+    #libspath="${builddirAbs}"/test/build/natives
+    libspath="${builddirAbs}"/obj:"${builddirAbs}"/test/build/natives
+    LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libspath
+    DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:$libspath
     export LD_LIBRARY_PATH DYLD_LIBRARY_PATH
     echo LD_LIBRARY_PATH $LD_LIBRARY_PATH
+    echo DYLD_LIBRARY_PATH $DYLD_LIBRARY_PATH
     echo USE_CLASSPATH $USE_CLASSPATH
     which java
-    echo java -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS -Djava.library.path=$libspath $*
-    java -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS -Djava.library.path="$libspath" $*
+    echo java $MODULE_ARGS $X_ARGS -Djava.library.path=$libspath -cp "$USE_CLASSPATH" $D_ARGS $*
+    java $MODULE_ARGS $X_ARGS -Djava.library.path="$libspath" -cp "$USE_CLASSPATH" $D_ARGS $*
     #echo java -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS $*
     #java -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS $*
     #j3 -cp "$USE_CLASSPATH" $X_ARGS $D_ARGS $*
