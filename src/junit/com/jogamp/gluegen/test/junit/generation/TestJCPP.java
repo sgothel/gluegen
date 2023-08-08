@@ -29,7 +29,7 @@
 package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.os.AndroidVersion;
-import com.jogamp.gluegen.pcpp.PCPP;
+import com.jogamp.gluegen.jcpp.JCPP;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 import java.io.BufferedReader;
@@ -51,12 +51,12 @@ import org.junit.FixMethodOrder;
 import org.junit.runners.MethodSorters;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class TestPCPP extends SingletonJunitCase {
+public class TestJCPP extends SingletonJunitCase {
 
     @BeforeClass
     public static void init() {
         if(AndroidVersion.isAvailable) {
-            // PCPP is n/a on Android - GlueGen Runtime only
+            // JCPP is n/a on Android - GlueGen Runtime only
             setTestSupported(false);
         }
     }
@@ -73,51 +73,32 @@ public class TestPCPP extends SingletonJunitCase {
 
     public void pcppMacroDefinitionTest(final boolean pragmaOnce) throws FileNotFoundException, IOException {
         final String folderpath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation";
-        final PCPP pp = new PCPP(Collections.<String>singletonList(folderpath), false, false, pragmaOnce);
+        final JCPP pp = new JCPP(Collections.<String>singletonList(folderpath), false, false, pragmaOnce);
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
 
-        final String filename = "pcpptest.h";
+        final String filename = "cpptest.h";
         final String filepath = folderpath + "/" + filename ;
         pp.run(new BufferedReader(new FileReader(filepath)), filename);
 
-        final String expected =   "# 1 \"pcpptest.h\""+
-                            "# define CL_SCHAR_MIN (-127-1)"+
-                            "# define __YES__ 1"+
-                            "# 16 \"pcpptest.h\""+
-                            "# 26 \"pcpptest.h\""+
-                            "# 36 \"pcpptest.h\""+
-                            " cl_char  GOOD_A;"+
-                            " int GOOD_B;"+
-                            " int GOOD_C;"+
-                            "# 40 \"pcpptest.h\""+
-                            "#54\"pcpptest.h\""+
-                            " int TEST_D_GOOD;"+
-                            "#60\"pcpptest.h\""+
-                            "#70\"pcpptest.h\""+
-                            "#77\"pcpptest.h\""+
-                            "#105\"pcpptest.h\""+
-                            "#123\"pcpptest.h\""+
-                            " int GOOD_F_1;"+
-                            " int GOOD_F_2;"+
-                            "#126\"pcpptest.h\""+
-                            " int GOOD_G;"+
-                            "#128\"pcpptest.h\""+
-                            "#130\"pcpptest.h\""+
-                            "#134\"pcpptest.h\""+
-                            "#1\""+folderpath+"/pcpptest-included.h\""+
-                            "# define EXAMPLE 42"+
-                            "#134\"pcpptest.h\""+
-                            (!pragmaOnce ?
-                                    (
-                                            "#1\""+folderpath+"/pcpptest-included.h\""+
-                                            "# define EXAMPLE 42"+
-                                            "#135\"pcpptest.h\""
-                                    ):
-                                    ""
-                            )+
-                            "#137\"pcpptest.h\""+
-                            "#139\"pcpptest.h\""
+        final String expected =   "#line 1 \"cpptest.h\" 1"+
+                            ""+
+                            "cl_char  GOOD_A;"+
+                            "int GOOD_B;"+
+                            "int GOOD_C;"+
+                            ""+
+                            "    int TEST_D_GOOD;"+
+                            ""+
+                            "/***"+
+                            " ** STD API file .."+
+                            " */"+
+                            ""+
+                            "int GOOD_F_1;"+
+                            "int GOOD_F_2;"+
+                            ""+
+                            "int GOOD_G;"+
+                            "#line 1\""+folderpath+"/cpptest-included.h\" 1"+
+                            ""
         ;
 
 
@@ -145,7 +126,7 @@ public class TestPCPP extends SingletonJunitCase {
     }
 
     public static void main(final String args[]) throws IOException {
-        final String tstname = TestPCPP.class.getName();
+        final String tstname = TestJCPP.class.getName();
         org.junit.runner.JUnitCore.main(tstname);
     }
 }

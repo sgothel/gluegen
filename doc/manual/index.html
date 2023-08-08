@@ -29,7 +29,7 @@
                 <div id="text"  class="fill">
                     <h1>GlueGen Manual</h1>
 
-                    <i>Disclaimer: This documented is slightly outdated and may require an update.</i>
+                    <i>Disclaimer: This documented shall be synchronized with source code, especially the confifuration options.</i>
                     <p>
                     Please also consider reading <a href="../GlueGen_Mapping.html">GlueGen Native Data &amp; Function Mapping</a> for details on native data and function mappings.
                     </p>
@@ -53,7 +53,7 @@
                         </li>
                         <li> <a href = "#SecBasic">Basic Operation</a></li>
                         <li> <a href = "#SecAnt">Running GlueGen as an Ant Task</a></li>
-                        <li> <a href = "#SecPCPP">PCPP</a></li>
+                        <li> <a href = "#SecJCPP">JCPP</a></li>
                         <li> <a href = "#SecError">Error Reporting</a></li>
                         <li> <a href = "#SecStub">Stub Headers</a></li>
                         <li> <a href = "#Sec32">32- and 64-bit Considerations</a></li>
@@ -462,74 +462,27 @@
                     concrete, though non-trivial, examples of how to invoke GlueGen via
                     Ant.
 
-                    <h3><a name="SecPCPP">PCPP</a></h3>
+                    <h3><a name="SecJCPP">JCPP</a></h3>
 
                     <p>
 
-                        GlueGen contains and uses a minimal C preprocessor called the "Pseudo
-                        C Pre-Processor", or PCPP. A slightly specialized C preprocessor is
-                        required for correct glue code generation with most libraries.
+                        GlueGen contains and uses the <a href="https://jogamp.org/cgit/jcpp.git/about/">C preprocessor JCPP</a>,
+                        see <a href="https://www.anarres.org/projects/jcpp/">original homepage</a>.
+                    </p>
+                    <p>
                         Constant values intended for use by end users are defined in many C
                         libraries' headers using <code>#define</code>s rather than constant
-                        int declarations, and if the header is processed by a full C
-                        preprocessor then the #define statements will be stripped become
+                        int declarations. If the header would be processed by a full C
+                        preprocessor, the <code>#define</code> statement's macro name become
                         unavailable for processing by the glue code generator.
-
+                        Using JCPP allows us to utilize the <code>#define</code> macro names and values.
                     </p>
                     <p>
-
-                        PCPP is largely an invisible part of the glue code generation process;
-                        however, it has certain limitations which make it difficult to parse
-                        certain header files. First, it does not support macro evaluation in
-                        any form, so if a header relies on macro evaluation in order to
-                        generate code, PCPP will fail. It is possible that PCPP may fail
-                        silently in this situation, causing GlueGen to simply not produce code
-                        for the associated constructs. If GlueGen's output is not as expected
-                        and there is heavy use of the C preprocessor in the header, run PCPP
-                        against the header directly (PCPP takes simply the -I and filename
+                        JCPP is largely an invisible part of the glue code generation process.
+                        If GlueGen's output is not as expected
+                        and there is heavy use of the C preprocessor in the header, run JCPP
+                        against the header directly (JCPP takes simply the -I and filename
                         arguments accepted by GlueGen) and examine the output.
-
-                    </p>
-                    <p>
-
-                        Second, PCPP contains only limited support for <code>#if</code>
-                        clauses. Generally speaking, its handling of <code>#if defined(foo) ||
-                            defined(bar)</code> constructs is limited to approximately what is
-                        required to handle the OpenGL header files. If the header being parsed
-                        relies on moderately complicated expressions being evaluated by the C
-                        preprocessor, check the output from PCPP and ensure it is as expected.
-
-                    </p>
-                    <p>
-
-                        Contributions to PCPP would be especially welcome. It would be very
-                        desirable to turn it into a full-blown C preprocessor with simply the
-                        option of passing through #define statements unchanged.
-
-                    </p>
-
-                    <h3><a name="SecError">Error Reporting</a></h3>
-
-                    <p>
-
-                        Error reporting by GlueGen's parser is currently less than ideal.
-                        Because PCPP makes <code>#include</code> directives disappear
-                        completely with respect to the C parser (it appears that the
-                        <code>#line</code> directives it emits are not being consumed properly
-                        -- an area which needs more investigation), the line numbers reported
-                        in parse failures are incorrect in all but the simplest cases. This
-                        makes it difficult to determine in exactly what header file and on
-                        exactly what construct the C parser failed.
-
-                    </p>
-                    <p>
-
-                        Fortunately, there is a relatively simple workaround. PCPP can be run
-                        with all of the same -I arguments passed to GlueGen and the result
-                        piped to a new .c file. GlueGen can then be invoked on that .c file
-                        (now containing no <code>#include</code> directives) and the line
-                        numbers on any parse failures will be correct.
-
                     </p>
 
                     <h3><a name="SecStub">Stub Headers</a></h3>
@@ -612,7 +565,7 @@
                         undesirable to try to parse the real <code>windows.h</code> just to
                         pick up these typedefs; not only does this header contain thousands of
                         unneeded APIs, but it also uses certain macro constructs not supported
-                        by GlueGen's <a href="#SecPCPP">minimal C preprocessor</a>. To avoid
+                        by GlueGen's contained <a href="#SecJCPP">C preprocessor</a>. To avoid
                         these problems, a "stub" <code>windows.h</code> header is placed in
                         GlueGen's include path containing only the necessary typedefs:
                     </p>
@@ -1550,7 +1503,7 @@
                         well as the function pointer typedef. Some headers, in particular the
                         OpenAL headers, have their <code>#ifdefs</code> structured in such a
                         way that either the declaration or the typedef is visible, but not
-                        both simultaneously. Because the <a href="#SecPCPP">PCPP</a> C
+                        both simultaneously. Because the <a href="#SecJCPP">JCPP</a> C
                         preprocessor GlueGen uses obeys <code>#ifdefs</code>, it is in a
                         situation like this that the headers would have to be modified to
                         allow GlueGen to see both declarations.

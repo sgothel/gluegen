@@ -150,7 +150,7 @@ function onetest() {
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
-#onetest com.jogamp.gluegen.test.junit.generation.TestPCPP 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.TestJCPP 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.CppReaderTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.ErrorTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
@@ -158,7 +158,7 @@ function onetest() {
 #onetest com.jogamp.gluegen.jcpp.JoinReaderTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.LexerSourceTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.NumericValueTest 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.jcpp.PragmaTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.PragmaTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.PreprocessorTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.RegressionTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.TokenPastingWhitespaceTest 2>&1 | tee -a $LOG

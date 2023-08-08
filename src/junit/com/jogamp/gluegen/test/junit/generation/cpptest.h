@@ -131,8 +131,8 @@ int TEST_G_VAL;
 }
 #endif
 
-#include <pcpptest-included.h>
-#include <pcpptest-included.h>
+#include <cpptest-included.h>
+#include <cpptest-included.h>
 
 #endif /*  __test_h_ */
 
