@@ -266,7 +266,13 @@ typeSpec[boolean addImagNode]
 // A class type specification is a class type with possible brackets afterwards
 //   (which would make it an array type).
 classTypeSpec[boolean addImagNode]
-    :    identifier (LT gen:classTypeSpec[false] GT)? (lb:LBRACK^ {#lb.setType(ARRAY_DECLARATOR);} RBRACK!)*
+    :    identifier (LT
+            (
+                classTypeSpec[false]
+            |
+                QUESTION ("extends" classTypeSpec[false] (BAND classTypeSpec[false])*)?
+            ) GT
+        )? (lb:LBRACK^ {#lb.setType(ARRAY_DECLARATOR);} RBRACK!)*
         {
             if ( addImagNode ) {
                 #classTypeSpec = #(#[TYPE,"TYPE"], #classTypeSpec);
