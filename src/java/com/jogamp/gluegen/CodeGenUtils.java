@@ -130,6 +130,7 @@ public class CodeGenUtils {
             if (classExtended != null) {
                 w.print("extends ");
                 w.print(classExtended);
+                w.print(' ');
             }
         } else {
             if (classExtended != null) {
