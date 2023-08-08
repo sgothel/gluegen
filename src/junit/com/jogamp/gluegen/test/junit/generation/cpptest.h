@@ -132,7 +132,7 @@ int TEST_G_VAL;
 #endif
 
 #include <cpptest-included.h>
-#include <cpptest-included.h>
+#include <sub-inc/-cpptest-included2.h>
 
 #endif /*  __test_h_ */
 

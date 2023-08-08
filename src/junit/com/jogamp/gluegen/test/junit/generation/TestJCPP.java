@@ -30,6 +30,7 @@ package com.jogamp.gluegen.test.junit.generation;
 
 import com.jogamp.common.os.AndroidVersion;
 import com.jogamp.gluegen.jcpp.JCPP;
+import com.jogamp.gluegen.jcpp.LexerException;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 import java.io.BufferedReader;
@@ -62,18 +63,21 @@ public class TestJCPP extends SingletonJunitCase {
     }
 
     @Test
-    public void pcppMacroDefinitionTestWithoutPragmaOnce() throws FileNotFoundException, IOException {
-        pcppMacroDefinitionTest(false);
+    public void test01MacroAndIncWithoutPragmaOnce() throws FileNotFoundException, IOException, LexerException {
+        testMacroAndInc(false);
     }
 
     @Test
-    public void pcppMacroDefinitionTestWithPragmaOnce() throws FileNotFoundException, IOException {
-        pcppMacroDefinitionTest(true);
+    public void test02MacroAndIncWithPragmaOnce() throws FileNotFoundException, IOException, LexerException {
+        testMacroAndInc(true);
     }
 
-    public void pcppMacroDefinitionTest(final boolean pragmaOnce) throws FileNotFoundException, IOException {
+    public void testMacroAndInc(final boolean pragmaOnce) throws FileNotFoundException, IOException, LexerException {
         final String folderpath = BuildEnvironment.gluegenRoot + "/src/junit/com/jogamp/gluegen/test/junit/generation";
         final JCPP pp = new JCPP(Collections.<String>singletonList(folderpath), false, false, pragmaOnce);
+        if( pragmaOnce ) {
+            pp.addDefine("PRAGMA_ONCE_ENABLED", "1");
+        }
         final ByteArrayOutputStream output = new ByteArrayOutputStream();
         pp.setOut(output);
 
@@ -81,7 +85,8 @@ public class TestJCPP extends SingletonJunitCase {
         final String filepath = folderpath + "/" + filename ;
         pp.run(new BufferedReader(new FileReader(filepath)), filename);
 
-        final String expected =   "#line 1 \"cpptest.h\" 1"+
+        final String expected =
+                            "#line 1 \"cpptest.h\" 1"+
                             ""+
                             "cl_char  GOOD_A;"+
                             "int GOOD_B;"+
@@ -97,7 +102,26 @@ public class TestJCPP extends SingletonJunitCase {
                             "int GOOD_F_2;"+
                             ""+
                             "int GOOD_G;"+
-                            "#line 1\""+folderpath+"/cpptest-included.h\" 1"+
+                            ""+
+                            "#line 1 \""+folderpath+"/cpptest-included.h\" 1"+
+                            ""+
+                            ( pragmaOnce ?
+                                    "    const int pragma_once_enabled = 1;"
+                              :     "    const int pragma_once_enabled = 0;"
+                            )+
+                            ""+
+                            "    // pragma-once or macro-defined test, i.e. should not be included recursively"+
+                            "#line 1 \""+folderpath+"/cpptest-included.h\" 1"+
+                            ""+
+                            "#line 13 \""+folderpath+"/cpptest-included.h\" 2"+
+                            ""+
+                            "const int GOOD_H = 42;"+
+                            ""+
+                            "#line 135 \"cpptest.h\" 2"+
+                            "#line 1 \""+folderpath+"/sub-inc/-cpptest-included2.h\" 1"+
+                            ""+
+                            "const int GOOD_I = 43;"+
+                            "#line 136 \"cpptest.h\" 2"+
                             ""
         ;
 
@@ -113,6 +137,7 @@ public class TestJCPP extends SingletonJunitCase {
         System.err.println();
         System.err.println("Result: ");
         System.err.println("-------------------------------");
+        // System.err.println(result);
         System.err.println(killWhitespace(result));
         System.err.println("-------------------------------");
         System.err.println();
