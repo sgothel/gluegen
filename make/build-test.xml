@@ -37,6 +37,7 @@
         <property name="test.junit.generation.dir" value="${test.base.dir}/${test.junit.generation.rel}" />
 
         <property name="test.jcpp.base.dir" value="${project.root}/jcpp/src/test/java" />
+        <property name="test.jcpp.guava.jar"  value="${project.root}/jcpp/lib/guava-32.1.2-jre.jar" />
 
         <property name="tempdir"      value="${project.root}/build-temp" />
         <property name="build"        location="${project.root}/${rootrel.build}" />
@@ -81,20 +82,27 @@
         </path>
 
         <path id="junit.compile.classpath">
-            <pathelement location="${junit.jar}" />
             <pathelement location="${semver.jar}" />
+            <pathelement location="${junit.jar}" />
             <pathelement location="${gluegen.jar}" />
         </path>
-
-        <path id="junit.run.classpath">
-            <pathelement location="${junit.jar}" />
+        <path id="jcpp.junit.compile.classpath">
             <pathelement location="${semver.jar}" />
+            <pathelement location="${junit.jar}" />
+            <pathelement location="${gluegen.jar}" />
+            <pathelement location="${test.jcpp.guava.jar}" />
+        </path>
+        <path id="junit.run.classpath">
+            <pathelement location="${semver.jar}" />
+            <pathelement location="${junit.jar}" />
             <pathelement location="${TestJarsInJar.jar}" />
             <pathelement location="${gluegen-rt.jar}" />
             <pathelement location="${gluegen.jar}" />
             <pathelement location="${gluegen-test-util.jar}" />
             <pathelement location="${gluegen-test.jar}" />
+            <pathelement location="${test.jcpp.guava.jar}" />
         </path>
+
         <property name="junit.run.jars" value="${junit.jar}${path.separator}${ant.jar}${path.separator}${semver.jar}${path.separator}${TestJarsInJar.jar}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build}/gluegen-test-util.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.jars" value="${junit.jar}${path.separator}${env.TARGET_ANT_HOME}/lib/ant.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit.jar${path.separator}${env.TARGET_ANT_HOME}/lib/ant-junit4.jar${path.separator}${semver.jar}${path.separator}${gluegen.root}/make/lib/TestJarsInJar.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt.jar${path.separator}${gluegen.root}/${rootrel.build}/gluegen.jar${path.separator}${build}/gluegen-test-util.jar${path.separator}${build_t}/gluegen-test.jar"/>
         <property name="junit.run.remote.apks" value="${gluegen.root}/${rootrel.build}/jogamp-android-launcher.apk${path.separator}${ant-junit-all.apk}${path.separator}${gluegen.root}/${rootrel.build}/gluegen-rt-android-${android.abi}.apk${path.separator}${build_t}/gluegen-test.apk${path.separator}${gluegen.root}/make/lib/TestJarsInJar.apk"/>
@@ -160,7 +168,7 @@
             <src path="${build_t.gen}/classes/com/jogamp/gluegen/test/junit/structgen" />
         </javac>
 
-        <!-- Javac All - Third -->
+        <!-- GlueGen Tests - Third -->
         <!-- This has a hard Java8 target spec test: source, target + bootclasspath -->
         <javac destdir="${build_t.java}" 
                fork="yes"
@@ -175,6 +183,21 @@
             <classpath refid="junit.compile.classpath"/>
             <compilerarg value="-proc:none"/>
             <src path="${test.base.dir}"/>
+            <src path="${build_t.gen}" />
+        </javac>
+
+        <!-- JCPP Tests - Fourth -->
+        <!-- This has a soft Java8 bytecote target only (Using some build time APIs): target -->
+        <javac destdir="${build_t.java}" 
+               fork="yes"
+               includeAntRuntime="false"
+               memoryMaximumSize="${javac.memorymax}"
+               encoding="UTF-8"
+               source="${target.sourcelevel}" 
+               target="${target.targetlevel}" 
+               debug="${javacdebug}" debuglevel="${javacdebuglevel}">
+            <classpath refid="jcpp.junit.compile.classpath"/>
+            <compilerarg value="-proc:none"/>
             <src path="${test.jcpp.base.dir}"/>
             <src path="${build_t.gen}" />
         </javac>

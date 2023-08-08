@@ -78,10 +78,10 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.Logging"
 
 function onetest() {
-    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
-    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar
-    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar
-    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:../jcpp/lib/guava-32.1.2-jre.jar
+    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar:../jcpp/lib/guava-32.1.2-jre.jar
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:../jcpp/lib/guava-32.1.2-jre.jar
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes:../jcpp/lib/guava-32.1.2-jre.jar
     #libspath="${builddirAbs}"/test/build/natives
     libspath="${builddirAbs}"/obj:"${builddirAbs}"/test/build/natives
     LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$libspath
@@ -151,21 +151,30 @@ function onetest() {
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.TestPCPP 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.CppReaderTest 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.jcpp.TokenPastingWhitespaceTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.ErrorTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.JavaFileSystemTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.JoinReaderTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.LexerSourceTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.NumericValueTest 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.jcpp.PragmaTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.PreprocessorTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.RegressionTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.TokenPastingWhitespaceTest 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.jcpp.VaArgsPastingTest 2>&1 | tee -a $LOG
+
 
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test1p2DynamicLibraryBundle 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test2p1FuncPtr 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test2p2FuncPtr 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test3p1PtrStorage 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test3p2PtrStorage 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test4p1JavaCallback 2>&1 | tee -a $LOG
-onetest com.jogamp.gluegen.test.junit.generation.Test4p2JavaCallback 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p2DynamicLibraryBundle 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test2p1FuncPtr 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test2p2FuncPtr 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test3p1PtrStorage 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test3p2PtrStorage 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test4p1JavaCallback 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test4p2JavaCallback 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen01 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.structgen.TestStructGen02 2>&1 | tee -a $LOG
 

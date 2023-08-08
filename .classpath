@@ -33,5 +33,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Android-24"/>
+	<classpathentry kind="lib" path="jcpp/lib/guava-32.1.2-jre.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>

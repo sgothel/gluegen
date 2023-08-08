@@ -38,9 +38,10 @@ import static java.lang.System.*;
  */
 public final class BuildEnvironment {
 
+    public static final String rootrel_build;
     public static final String gluegenRoot;
     public static final String testOutput;
-    public static final String rootrel_build;
+    public static final String build;
 
     static {
 
@@ -63,8 +64,10 @@ public final class BuildEnvironment {
         gluegenRoot = gluegen_root_tmp;
         out.println("gluegen.root: " + gluegenRoot);
 
-        testOutput   = gluegenRoot + "/" + rootrel_build + "/test";
+        build        = gluegenRoot + "/" + rootrel_build;
+        out.println("build: " + build);
 
+        testOutput   = build + "/test";
         out.println("testOutput: "+testOutput);
         out.println(" - - - - - - - - - - - - ");
     }
