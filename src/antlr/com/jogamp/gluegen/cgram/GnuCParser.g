@@ -35,7 +35,9 @@ options
         exportVocab = GNUC;
         buildAST = true;
         ASTLabelType = "TNode";
-
+        
+        genHashLines = true;
+        
         // Copied following options from java grammar.
         codeGenMakeSwitchThreshold = 2;
         codeGenBitsetTestThreshold = 3;
@@ -51,7 +53,7 @@ options
 
     // source for names to unnamed scopes
     protected int unnamedScopeCounter = 0;
-
+    
     public boolean isTypedefName(String name) {
       boolean returnValue = false;
       TNode node = symbolTable.lookupNameInCurrentScope(name);
@@ -77,6 +79,16 @@ options
       symbolTable.popScope();
     }
 
+    protected boolean debugging = false;    
+
+    public boolean getDebug() {
+        return debugging;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debugging = debug;
+    }
+    
         int traceDepth = 0;
         public void reportError(RecognitionException ex) {
           try {
@@ -94,9 +106,7 @@ options
         public void reportWarning(String s) {
             System.err.println("ANTLR Parsing Warning from String: " + s);
         }
-        public void match(int t) throws MismatchedTokenException {
-          boolean debugging = false;
-          
+        public void match(int t) throws MismatchedTokenException {          
           if ( debugging ) {
            for (int x=0; x<traceDepth; x++) System.out.print(" ");
            try {
