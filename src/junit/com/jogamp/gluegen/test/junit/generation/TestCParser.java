@@ -102,7 +102,7 @@ public class TestCParser extends SingletonJunitCase {
         assertNull(ex);
     }
 
-    // @Test
+    @Test
     public void test10_cc() {
         Exception ex = null;
         try {
