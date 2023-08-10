@@ -2,6 +2,26 @@
 #include <gluegen_stdint.h>
 #include <gluegen_stddef.h>
 
+typedef enum SomeEnum {
+  ConstEnumValue00 = 16,
+  ConstEnumValue01 = (1 << ConstEnumValue00) - 1,
+  ConstEnumValue02 = 10-1,
+  ConstEnumValue03 = 10 - 1,
+  ConstEnumValue04 = 10 - 11,
+  ConstEnumValue05 = -2,
+  ConstEnumValue06 = - 2,
+  ConstEnumValueXX = 0
+} SomeEnum;
+
+#define ConstDefValue00 16
+#define ConstDefValue01 ((1 << ConstDefValue00) - 1)
+#define ConstDefValue02 (10-1)
+#define ConstDefValue03 (10 - 1)
+#define ConstDefValue04 10 - 11
+#define ConstDefValue05 -2
+#define ConstDefValue06 - 2
+#define ConstDefValueXX 0
+
 // Opaque long T2_UndefStruct*
 // struct T2_UndefStruct;  // undefined struct forward declaration, implementation secret
 typedef struct T2_UndefStruct* T2_UndefStructPtr;

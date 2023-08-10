@@ -33,6 +33,7 @@
    #define  TEST_C   GOOD_C
 #endif
 
+typedef char cl_char;
 cl_char  TEST_A(2);
 int TEST_B;
 int TEST_C;
@@ -133,6 +134,41 @@ int TEST_G_VAL;
 
 #include <cpptest-included.h>
 #include <sub-inc/-cpptest-included2.h>
+
+typedef enum SomeEnum {
+  ConstEnumValue00 = 16,
+  ConstEnumValue01 = (1 << ConstEnumValue00) - 1,
+  ConstEnumValue02 = (10-1),
+  ConstEnumValue03 = (10 - 2),
+  ConstEnumValue04 = ( 10 - 3 ),
+  ConstEnumValue05 = 10-4,
+  ConstEnumValue06 = 10 - 11,
+  ConstEnumValue07 = -2,
+  ConstEnumValue08 = - 2,
+  ConstEnumValueXX = 0
+} SomeEnum;
+
+#define ConstDefValue00 16
+#define ConstDefValue01 ((1 << ConstDefValue00) - 1)
+#define ConstDefValue02 (10-1)
+#define ConstDefValue03 (10 - 2)
+#define ConstDefValue04 ( 10 - 3 )
+#define ConstDefValue05 10-4
+#define ConstDefValue06 10 - 11
+#define ConstDefValue07 -2
+#define ConstDefValue08 - 2
+#define ConstDefValueXX 0
+
+const int constInt00 = ConstDefValue00;
+const int constInt01 = ConstDefValue01;
+const int constInt02 = ConstDefValue02;
+const int constInt03 = ConstDefValue03;
+const int constInt04 = ConstDefValue04;
+const int constInt05 = ConstDefValue05;
+const int constInt06 = ConstDefValue06;
+const int constInt07 = ConstDefValue07;
+const int constInt08 = ConstDefValue08;
+const int constIntXX = ConstDefValueXX;
 
 #endif /*  __test_h_ */
 

@@ -699,7 +699,7 @@
     -->
   <target name="generate.java">
     <!-- Generate the Java files -->
-    <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}">
+    <antlr target="${output.dir}/${target}" outputdirectory="${output.dir}" debug="no" trace="no">
       <classpath refid="antlr.classpath" />
     </antlr>
   </target>
@@ -715,7 +715,7 @@
    -->
   <target name="generate.java.override">
     <!-- Generate the Java files -->
-    <antlr target="${output.dir}/${target}" glib="${output.dir}/${override}" outputdirectory="${output.dir}">
+    <antlr target="${output.dir}/${target}" glib="${output.dir}/${override}" outputdirectory="${output.dir}" debug="no" trace="no">
       <classpath refid="antlr.classpath" />
     </antlr>
   </target>

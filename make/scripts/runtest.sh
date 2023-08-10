@@ -150,7 +150,8 @@ function onetest() {
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
-onetest com.jogamp.gluegen.test.junit.generation.TestJCPP 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.TestJCPP $* 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.TestCParser $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.CppReaderTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.ErrorTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.IncludeAbsoluteTest 2>&1 | tee -a $LOG
