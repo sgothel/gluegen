@@ -339,7 +339,7 @@ public class JavaEmitter implements GlueEmitter {
         javaUnit().emit("  /** ");
         if (optionalComment != null && optionalComment.length() != 0) {
             javaUnit().emit(optionalComment);
-            javaUnit().emit(" - ");
+            javaUnit().emit(", ");
         }
         javaUnit().emit("CType: ");
         if( constExpr.resultType.isUnsigned ) {

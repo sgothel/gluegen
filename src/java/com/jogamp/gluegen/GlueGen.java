@@ -290,14 +290,19 @@ public class GlueGen implements GlueEmitterControls {
                             }
                             comment.append("</code>");
                         }
+                        if (comment.length() > 0) {
+                            comment.append("<br>\n");
+                        }
                         if (def.getEnumName() != null) {
-                            if (comment.length() > 0)
-                                comment.append("<br>\n");
-
                             comment.append("Defined as part of enum type \"");
                             comment.append(def.getEnumName());
                             comment.append("\"");
+                        } else {
+                            comment.append("Define \"");
+                            comment.append(def.getName());
+                            comment.append("\"");
                         }
+                        comment.append(" from expression '<code>"+def.getNativeExpr()+"</code>'");
                         if (comment.length() > 0) {
                             emit.emitDefine(def, comment.toString());
                             comment.setLength(0);
