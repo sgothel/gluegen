@@ -302,7 +302,7 @@ public class GlueGen implements GlueEmitterControls {
                             comment.append(def.getName());
                             comment.append("\"");
                         }
-                        comment.append(" from expression '<code>"+def.getNativeExpr()+"</code>'");
+                        comment.append(" with expression '<code>"+def.getNativeExpr()+"</code>'");
                         if (comment.length() > 0) {
                             emit.emitDefine(def, comment.toString());
                             comment.setLength(0);
