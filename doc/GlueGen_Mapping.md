@@ -1,3 +1,17 @@
+<!---
+We convert markdown using pandoc using `gfm` (GitHub-Flavored Markdown) as source format
+and `html5+smart` with a custom template as the target.
+
+Recipe:
+```
+  ~/pandoc-buttondown-cgit/pandoc_md2html_local.sh GlueGen_Mapping.md > GlueGen_Mapping.html
+```  
+
+Git repos:
+- https://jausoft.com/cgit/users/sgothel/pandoc-buttondown-cgit.git/about/
+- https://github.com/sgothel/pandoc-buttondown-cgit
+-->
+
 <style>
 table, th, td {
    border: 1px solid black;
@@ -6,13 +20,19 @@ table, th, td {
 
 # GlueGen Native Data & Function Mapping for Java™
 
+*Disclaimer: This documented shall be synchronized with source code,
+especially the configuration options.*
+
+Please also consider reading [GlueGen Manual](manual/index.html) for details on native data and
+function mappings.
+
 ## References
 
 - [GlueGen Git Repo](https://jogamp.org/cgit/gluegen.git/about/)
 - [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
-- [GlueGen Manual](https://jogamp.org/gluegen/doc/manual/)
+- [GlueGen Manual](manual/index.html)
 - [GlueGen Project Page](https://jogamp.org/gluegen/www/)
-- [How To Build](https://jogamp.org/gluegen/doc/HowToBuild.html)
+- [How To Build](HowToBuild.html)
 
 ## Overview
 [GlueGen](https://jogamp.org/gluegen/www/) is a compiler for function and data-structure declarations, 

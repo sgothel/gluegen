@@ -490,6 +490,20 @@
   </ul></li>
   </ul>
 </nav>
+<!---
+We convert markdown using pandoc using `gfm` (GitHub-Flavored Markdown) as source format
+and `html5+smart` with a custom template as the target.
+
+Recipe:
+```
+  ~/pandoc-buttondown-cgit/pandoc_md2html_local.sh GlueGen_Mapping.md > GlueGen_Mapping.html
+```  
+
+Git repos:
+- https://jausoft.com/cgit/users/sgothel/pandoc-buttondown-cgit.git/about/
+- https://github.com/sgothel/pandoc-buttondown-cgit
+-->
+
 <style>
 table, th, td {
    border: 1px solid black;
@@ -498,6 +512,10 @@ table, th, td {
 
 <h1 id="gluegen-native-data--function-mapping-for-java">GlueGen Native
 Data &amp; Function Mapping for Java™</h1>
+<p><em>Disclaimer: This documented shall be synchronized with source
+code, especially the configuration options.</em></p>
+<p>Please also consider reading <a href="manual/index.html">GlueGen
+Manual</a> for details on native data and function mappings.</p>
 <h2 id="references">References</h2>
 <ul>
 <li><a href="https://jogamp.org/cgit/gluegen.git/about/">GlueGen Git
@@ -505,12 +523,10 @@ Repo</a></li>
 <li><a
 href="https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/">GlueGen
 Java™ API-Doc</a></li>
-<li><a href="https://jogamp.org/gluegen/doc/manual/">GlueGen
-Manual</a></li>
+<li><a href="manual/index.html">GlueGen Manual</a></li>
 <li><a href="https://jogamp.org/gluegen/www/">GlueGen Project
 Page</a></li>
-<li><a href="https://jogamp.org/gluegen/doc/HowToBuild.html">How To
-Build</a></li>
+<li><a href="HowToBuild.html">How To Build</a></li>
 </ul>
 <h2 id="overview">Overview</h2>
 <p><a href="https://jogamp.org/gluegen/www/">GlueGen</a> is a compiler

@@ -10,10 +10,23 @@ Note, the above problem does not occur when using GlueGen's ProcAddressTable,
 i.e. loading the underlying tool library `libtest2.dylib` w/ dlopen
 and passing all symbols to the JNI library `libBindingtest1p2.dylib`.
 
-## Can't pass `DYLD_LIBRARY_PATH` to `java`
+## Can't pass `DYLD_LIBRARY_PATH` to `/usr/bin/java`
 This is supposed to be related to MacOS's `System Integrity Protect (SIP)`.
 
-## Workaround inability to pass `DYLD_LIBRARY_PATH` to `java`
+## Workaround inability to pass `DYLD_LIBRARY_PATH` to `/usr/bin/java`
+
+### Use explicit OpenJDK/Temurin JDK `java` executable path
+
+Interestingly passing `DYLD_LIBRARY_PATH` works using the 
+explicit `java` executable path, set by default as follows:
+
+```
+# MacOS: Select JVM path to allow DYLD_LIBRARY_PATH
+JAVA_HOME=`/usr/libexec/java_home -version 17`
+PATH=$JAVA_HOME/bin:$PATH
+export JAVA_HOME PATH
+```        
+
 
 ### Using ``@loader_path` within dependent library
 Set location of referenced library `libtest1.dylib` to same path of dependent library `libBindingtest1p1.dylib`
