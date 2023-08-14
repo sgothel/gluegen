@@ -31,7 +31,7 @@ function mappings.
 
 - [GlueGen Git Repo](https://jogamp.org/cgit/gluegen.git/about/)
 - [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
-* [GlueGen Native Data & Function Mapping for Java™](../GlueGen_Mapping.html)
+- [GlueGen Native Data & Function Mapping for Java™](../GlueGen_Mapping.html)
 - [GlueGen Project Page](https://jogamp.org/gluegen/www/)
 - [How To Build](../HowToBuild.html)
 
