@@ -23,8 +23,7 @@ table, th, td {
 *Disclaimer: This documented shall be synchronized with source code,
 especially the configuration options.*
 
-Please also consider reading [GlueGen Manual](manual/index.html) for details on native data and
-function mappings.
+Please also consider reading [GlueGen Manual](manual/index.html) for general usage and configuration options.
 
 ## References
 
