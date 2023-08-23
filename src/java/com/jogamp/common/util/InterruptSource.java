@@ -89,6 +89,13 @@ public interface InterruptSource {
             super();
         }
         /**
+         * See {@link Thread#Thread(Runnable)} for details.
+         * @param target explicit {@link Runnable}, may be {@code null}
+         */
+        public Thread(final Runnable target) {
+            super(target);
+        }
+        /**
          * See {@link Thread#Thread(ThreadGroup, Runnable)} for details.
          * @param tg explicit {@link ThreadGroup}, may be {@code null}
          * @param target explicit {@link Runnable}, may be {@code null}
