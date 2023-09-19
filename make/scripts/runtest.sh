@@ -119,6 +119,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestLongIntHashMap 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestPlatform01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestRunnableTask01 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestWorkerThread01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIOUtil01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestTempJarCache 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestJarUtil 2>&1 | tee -a $LOG
@@ -150,7 +151,7 @@ function onetest() {
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
-onetest com.jogamp.gluegen.test.junit.generation.TestJCPP $* 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.TestJCPP $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.TestCParser $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.CppReaderTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.ErrorTest 2>&1 | tee -a $LOG
