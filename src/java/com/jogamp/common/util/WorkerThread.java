@@ -50,7 +50,6 @@ public class WorkerThread {
 
     private volatile boolean shallPause = true;
     private volatile boolean shallStop = false;
-    private Exception streamErr = null;
     private final Duration minPeriod;
     private final boolean useMinPeriod;
     private final Callback cbWork;
@@ -238,6 +237,7 @@ public class WorkerThread {
             }
 
             while( !shallStop ) {
+                Exception streamErr = null;
                 try {
                     if( shallPause ) {
                         synchronized ( WorkerThread.this ) {
