@@ -53,7 +53,6 @@ public class WorkerThread {
     private volatile boolean shallStop = false;
     private final Duration minPeriod;
     private final Duration minDelay;
-    private final long minDelayMS;
     private final boolean useMinimum;
     private final Callback cbWork;
     private final Runnable cbInitLocked;
@@ -85,8 +84,7 @@ public class WorkerThread {
     public WorkerThread(final Duration minPeriod, final Duration minDelay, final boolean daemonThread, final Callback work, final Runnable init, final Runnable end) {
         this.minPeriod = null != minPeriod ? minPeriod : Duration.ZERO;
         this.minDelay = null != minDelay ? minDelay : Duration.ZERO;
-        this.minDelayMS = this.minDelay.toMillis();
-        this.useMinimum = this.minPeriod.toMillis() > 0 || this.minDelayMS > 0;
+        this.useMinimum = this.minPeriod.toMillis() > 0 || this.minDelay.toMillis() > 0;
         this.cbWork = work;
         this.cbInitLocked = init;
         this.cbEndLocked = end;
@@ -279,6 +277,7 @@ public class WorkerThread {
                         }
                         isBlocked = false;
                         if( useMinimum ) {
+                            final long minDelayMS = minDelay.toMillis();
                             final Instant t1 = Instant.now();
                             final Duration td = Duration.between(t0, t1);
                             if( minPeriod.compareTo(td) > 0 ) {
