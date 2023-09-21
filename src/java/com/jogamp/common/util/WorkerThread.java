@@ -85,7 +85,7 @@ public class WorkerThread {
     public WorkerThread(final Duration minPeriod, final Duration minDelay, final boolean daemonThread, final Callback work, final Runnable init, final Runnable end) {
         this.minPeriod = null != minPeriod ? minPeriod : Duration.ZERO;
         this.minDelay = null != minDelay ? minDelay : Duration.ZERO;
-        this.minDelayMS = minDelay.toMillis();
+        this.minDelayMS = this.minDelay.toMillis();
         this.useMinimum = this.minPeriod.toMillis() > 0 || this.minDelayMS > 0;
         this.cbWork = work;
         this.cbInitLocked = init;
