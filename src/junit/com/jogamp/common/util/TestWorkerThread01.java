@@ -98,10 +98,11 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         System.err.println("WT Resume.X: "+wt);
     }
 
-    public void testAction(final long periodMS, final long actionMS) throws IOException, InterruptedException, InvocationTargetException {
+    public void testAction(final long periodMS, final long minDelayMS, final long actionMS) throws IOException, InterruptedException, InvocationTargetException {
         final Action action = new Action( 0 < actionMS ? Duration.of(actionMS, ChronoUnit.MILLIS) : Duration.ZERO);
-        final WorkerThread wt =new WorkerThread(Duration.of(periodMS, ChronoUnit.MILLIS), true /* daemonThread */, action);
-        final long maxPeriodMS = Math.max(periodMS, actionMS);
+        final WorkerThread wt =new WorkerThread(Duration.of(periodMS, ChronoUnit.MILLIS),
+                                                Duration.of(minDelayMS, ChronoUnit.MILLIS), true /* daemonThread */, action);
+        final long maxPeriodMS = Math.max(minDelayMS+actionMS, Math.max(periodMS, actionMS));
         int counterA = action.counter.get();
         checkStopped(wt);
         start(wt);
@@ -110,9 +111,10 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         {
             final Duration td = action.td;
             final Duration wt_slept = wt.getSleptDuration();
+            final long minEps = 4;
             final long actionMS_d = td.minus( wt_slept ).toMillis() - actionMS;
-            System.err.println("actionMS_d "+actionMS_d+" = td "+td.toMillis()+"ms - wt_slept "+wt_slept.toMillis()+"ms - actionMS "+actionMS+"ms");
-            Assert.assertTrue(Math.abs(actionMS_d) < 4);
+            System.err.println("actionMS_d "+actionMS_d+" = td "+td.toMillis()+"ms - wt_slept "+wt_slept.toMillis()+"ms - actionMS "+actionMS+"ms < minEps "+minEps+"ms");
+            Assert.assertTrue(Math.abs(actionMS_d) < minEps);
         }
 
         checkStarted(wt, false /* isPaused */);
@@ -149,22 +151,32 @@ public class TestWorkerThread01 extends SingletonJunitCase {
 
     @Test
     public void test01ZeroAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(16 /* periodMS */, 0 /* actionMS*/);
+        testAction(16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/);
     }
 
     @Test
     public void test02MidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(16 /* periodMS */, 8 /* actionMS*/);
+        testAction(16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
     }
 
     @Test
     public void test03HeavyAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(16 /* periodMS */, 20 /* actionMS*/);
+        testAction(16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/);
     }
 
     @Test
     public void test03ZeroMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(0 /* periodMS */, 8 /* actionMS*/);
+        testAction(0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+    }
+
+    @Test
+    public void test04ZeroMinDelayMidAction() throws IOException, InterruptedException, InvocationTargetException {
+        testAction(0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/);
+    }
+
+    @Test
+    public void test05MinDelayMidAction() throws IOException, InterruptedException, InvocationTargetException {
+        testAction(8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/);
     }
 
     public static void main(final String args[]) throws IOException {

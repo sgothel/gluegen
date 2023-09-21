@@ -29,6 +29,7 @@ package com.jogamp.common.util;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -51,7 +52,9 @@ public class WorkerThread {
     private volatile boolean shallPause = true;
     private volatile boolean shallStop = false;
     private final Duration minPeriod;
-    private final boolean useMinPeriod;
+    private final Duration minDelay;
+    private final long minDelayMS;
+    private final boolean useMinimum;
     private final Callback cbWork;
     private final Runnable cbInitLocked;
     private final Runnable cbEndLocked;
@@ -62,24 +65,28 @@ public class WorkerThread {
     /**
      * Instantiates a new {@link WorkerThread}.
      * @param minPeriod minimum work-loop-period to throttle execution or {@code null} if unthrottled, see {@link #getSleptDuration()}
+     * @param minDelay minimum work-loop-delay to throttle execution or {@code null} if unthrottled, see {@link #getSleptDuration()}
      * @param daemonThread argument for {@link Thread#setDaemon(boolean)}
      * @param work the actual work {@link Callback} to perform.
      */
-    public WorkerThread(final Duration minPeriod, final boolean daemonThread, final Callback work) {
-        this(minPeriod, daemonThread, work, null, null);
+    public WorkerThread(final Duration minPeriod, final Duration minDelay, final boolean daemonThread, final Callback work) {
+        this(minPeriod, minDelay, daemonThread, work, null, null);
     }
 
     /**
      * Instantiates a new {@link WorkerThread}.
      * @param minPeriod minimum work-loop-period to throttle execution or {@code null} if unthrottled, see {@link #getSleptDuration()}
+     * @param minDelay minimum work-loop-delay to throttle execution or {@code null} if unthrottled, see {@link #getSleptDuration()}
      * @param daemonThread argument for {@link Thread#setDaemon(boolean)}
      * @param work the actual work {@link Callback} to perform.
      * @param init optional initialization {@link Runnable} called at {@link #start()} while locked
      * @param end optional release {@link Runnable} called at {@link #stop()} while locked
      */
-    public WorkerThread(final Duration minPeriod, final boolean daemonThread, final Callback work, final Runnable init, final Runnable end) {
+    public WorkerThread(final Duration minPeriod, final Duration minDelay, final boolean daemonThread, final Callback work, final Runnable init, final Runnable end) {
         this.minPeriod = null != minPeriod ? minPeriod : Duration.ZERO;
-        this.useMinPeriod = this.minPeriod.toMillis() > 0;
+        this.minDelay = null != minDelay ? minDelay : Duration.ZERO;
+        this.minDelayMS = minDelay.toMillis();
+        this.useMinimum = this.minPeriod.toMillis() > 0 || this.minDelayMS > 0;
         this.cbWork = work;
         this.cbInitLocked = init;
         this.cbEndLocked = end;
@@ -205,9 +212,17 @@ public class WorkerThread {
     public final Duration getMinPeriod() { return minPeriod; }
 
     /**
-     * Returns the slept {@link Duration} delta of {@link #getMinPeriod()} and consumed {@link Callback#run()} duration.
+     * Returns enforced minimum work-loop-delay or {@link Duration#ZERO} for none.
+     * @see #getSleptDuration()
+     */
+    public final Duration getMinDelay() { return minDelay; }
+
+    /**
+     * Returns the slept {@link Duration} delta of {@link #getMinPeriod()} and consumed {@link Callback#run()} duration,
+     * which minimum is {@link #getMinDelay()}.
      * <p>
-     * Returns {@link Duration#ZERO zero} for {@link Duration#ZERO zero} {@link #getMinPeriod()} or exceeding {@link Callback#run()} duration.
+     * Returns {@link Duration#ZERO zero} for {@link Duration#ZERO zero} {@link #getMinPeriod()} and {@link #getMinDelay()} or exceeding {@link Callback#run()} duration
+     * without {@link #getMinDelay()}.
      * </p>
      */
     public final Duration getSleptDuration() { return sleptDuration; }
@@ -217,7 +232,7 @@ public class WorkerThread {
         synchronized(this) {
             return "Worker[running "+isRunning+", active "+isActive+", blocked "+isBlocked+
                     ", shall[pause "+shallPause+", stop "+shallStop+
-                    "], minPeriod[set "+minPeriod.toMillis()+"ms, sleptDelta "+sleptDuration.toMillis()+
+                    "], minDelay "+minDelay.toMillis()+"ms, minPeriod[set "+minPeriod.toMillis()+"ms, sleptDelta "+sleptDuration.toMillis()+
                     "ms], daemon "+isDaemonThread+", thread "+thread+"]";
         }
     }
@@ -263,19 +278,26 @@ public class WorkerThread {
                             cbWork.run();
                         }
                         isBlocked = false;
-                        if( useMinPeriod ) {
+                        if( useMinimum ) {
                             final Instant t1 = Instant.now();
                             final Duration td = Duration.between(t0, t1);
                             if( minPeriod.compareTo(td) > 0 ) {
-                                final Duration sleepMinPeriodDelta = minPeriod.minus(td);
-                                final long tdMinMS = sleepMinPeriodDelta.toMillis();
-                                if( tdMinMS > 0 ) {
-                                    sleptDuration = sleepMinPeriodDelta;
-                                    java.lang.Thread.sleep( tdMinMS );
+                                final Duration minPeriodDelta = minPeriod.minus(td);
+                                final long minPeriodDeltaMS = minPeriodDelta.toMillis();
+                                if( minPeriodDeltaMS > 0 ) {
+                                    final long minSleepMS = Math.max(minDelayMS, minPeriodDeltaMS);
+                                    sleptDuration = Duration.of(minSleepMS, ChronoUnit.MILLIS);
+                                    java.lang.Thread.sleep( minSleepMS );
+                                } else if( minDelayMS > 0 ) {
+                                    sleptDuration = minDelay;
+                                    java.lang.Thread.sleep( minDelayMS );
                                 } else {
                                     sleptDuration = Duration.ZERO;
                                 }
                                 // java.util.concurrent.locks.LockSupport.parkNanos(tdMin.toNanos());
+                            } else if( minDelayMS > 0 ) {
+                                sleptDuration = minDelay;
+                                java.lang.Thread.sleep( minDelayMS );
                             } else {
                                 sleptDuration = Duration.ZERO;
                             }
@@ -311,5 +333,4 @@ public class WorkerThread {
                 WorkerThread.this.notifyAll(); // wake-up doStop()
             }
         } };
-
 }
