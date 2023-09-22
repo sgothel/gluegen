@@ -475,6 +475,7 @@ public class Uri {
         public ASCIIEncoded(final String unicode) {
             super(encodeToASCIIString(unicode));
         }
+        @Override
         public boolean isASCII() { return true; }
     }
 
@@ -1167,6 +1168,26 @@ public class Uri {
         return valueOf(url.toURI());
     }
 
+    /**
+     * Return first successful resulting {@link Uri}.
+     * Try {@link #cast(String)} first, then {@link #valueOfFilepath(String)} and {@link #valueOf(File)} at last.
+     * @param uri_s a hopefully usable Uri location
+     * @return a valid Uri instance or {@code null}
+     */
+    public static Uri tryUriOrFile(final String uri_s) {
+        try {
+            return Uri.cast( uri_s );
+        } catch(final Throwable t) { }
+        try {
+            return valueOfFilepath( uri_s );
+        } catch(final Throwable t) { }
+        try {
+            final File file = new File(uri_s);
+            return Uri.valueOf(file);
+        } catch(final Throwable t) { }
+        return null;
+    }
+
     //
     // All string fields are encoded!
     //
@@ -1233,6 +1254,29 @@ public class Uri {
     /** Returns true, if this instance is a {@code file} {@code scheme}, otherwise false. */
     public final boolean isFileScheme() {
         return null != scheme && FILE_SCHEME.equals( scheme.get() );
+    }
+
+    public static boolean isFileScheme(final String uri) {
+        final String scheme  = getScheme(uri);
+        return scheme.equals(FILE_SCHEME);
+    }
+    public static boolean isHttpxScheme(final String uri) {
+        final String scheme  = getScheme(uri);
+        return scheme.equals(HTTP_SCHEME) || scheme.equals(HTTPS_SCHEME);
+    }
+    public static String getScheme(final String uri) {
+        if( null == uri ) {
+            return "";
+        }
+        final int pos = uri.indexOf(SCHEME_SEPARATOR);
+        if (0 > pos ) {
+            return "";
+        }
+        final String scheme = uri.substring(0, pos);
+        if( ! isValidScheme( scheme ) ) {
+            return "";
+        }
+        return scheme;
     }
 
     /**
@@ -2162,6 +2206,18 @@ public class Uri {
         if( 0 <= errIdx ) {
             fail(uri, "invalid scheme", index+errIdx);
         }
+    }
+    public static boolean isValidScheme(final String scheme) {
+        // first char needs to be an alpha char
+        final char ch = scheme.charAt(0);
+        if ( !((ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')) ) {
+            return false;
+        }
+        final int errIdx = validateAlphaNum(scheme, "+-.");
+        if( 0 <= errIdx ) {
+            return false;
+        }
+        return true;
     }
 
     private static void validateSsp(final Encoded uri, final String ssp, final int index) throws URISyntaxException {
