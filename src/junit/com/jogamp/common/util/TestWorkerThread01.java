@@ -48,7 +48,7 @@ public class TestWorkerThread01 extends SingletonJunitCase {
 
     static class Action implements WorkerThread.Callback {
         final Duration sleep;
-        AtomicInteger counter = new AtomicInteger(0);
+        final AtomicInteger counter = new AtomicInteger(0);
         Instant tlast = Instant.now();
         volatile Duration td = Duration.ZERO;
 
@@ -57,56 +57,107 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         }
 
         @Override
-        public void run() throws InterruptedException {
+        public void run(final WorkerThread self) throws InterruptedException {
             {
                 java.lang.Thread.sleep(sleep.toMillis());
                 // java.util.concurrent.locks.LockSupport.parkNanos(sleep.toNanos());
             }
             final Instant t1 = Instant.now();
             td = Duration.between(tlast, t1);
-            System.err.println("action period "+td.toMillis()+"ms, counter "+counter.getAndIncrement());
+            final int v = counter.incrementAndGet();
+            // System.err.println("action period "+td.toMillis()+"ms, counter "+v+": "+self);
             tlast = t1;
+        }
+    }
+    static class StateCB implements WorkerThread.StateCallback {
+        final AtomicInteger initCounter = new AtomicInteger(0);
+        final AtomicInteger pausedCounter = new AtomicInteger(0);
+        final AtomicInteger resumedCounter = new AtomicInteger(0);
+        final AtomicInteger endCounter = new AtomicInteger(0);
+
+        @Override
+        public void run(final WorkerThread self, final State cause) throws InterruptedException {
+            // System.err.println("WT-"+cause+": "+self);
+            switch( cause ) {
+                case END:
+                    endCounter.incrementAndGet();
+                    break;
+                case INIT:
+                    initCounter.incrementAndGet();
+                    break;
+                case PAUSED:
+                    pausedCounter.incrementAndGet();
+                    break;
+                case RESUMED:
+                    resumedCounter.incrementAndGet();
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
     static void checkStarted(final WorkerThread wt, final boolean isPaused) {
-        Assert.assertTrue(wt.isRunning());
-        Assert.assertEquals(!isPaused, wt.isActive());
+        Assert.assertTrue(wt.toString(), wt.isRunning());
+        Assert.assertEquals("isPaused "+isPaused+", "+wt.toString(), !isPaused, wt.isActive());
+        Assert.assertNotNull(wt.toString(), wt.getThread());
     }
     static void checkStopped(final WorkerThread wt) {
-        Assert.assertFalse(wt.isRunning());
-        Assert.assertFalse(wt.isActive());
+        Assert.assertFalse(wt.toString(), wt.isRunning());
+        Assert.assertFalse(wt.toString(), wt.isActive());
+        Assert.assertNull(wt.toString(), wt.getThread());
     }
-    static void start(final WorkerThread wt) {
-        System.err.println("WT Start.0: "+wt);
-        wt.start();
-        System.err.println("WT Start.X: "+wt);
+    static void start(final WorkerThread wt, final boolean paused) {
+        // System.err.println("WT Start.0: paused "+paused+", "+wt);
+        wt.start(paused);
+        // System.err.println("WT Start.X: "+wt);
     }
-    static void stop(final WorkerThread wt) {
-        System.err.println("WT Stop.0: "+wt);
-        wt.stop();
-        System.err.println("WT Stop.X: "+wt);
+    static void stop(final WorkerThread wt, final boolean wait) {
+        // System.err.println("WT Stop.0: wait "+wait+", "+wt);
+        wt.stop(wait);
+        // System.err.println("WT Stop.X: wait "+wait+", "+wt);
     }
     static void pause(final WorkerThread wt, final boolean wait) {
-        System.err.println("WT Pause.0: wait "+wait+", "+wt);
+        // System.err.println("WT Pause.0: wait "+wait+", "+wt);
         wt.pause(wait);
-        System.err.println("WT Pause.X: wait "+wait+", "+wt);
+        // System.err.println("WT Pause.X: wait "+wait+", "+wt);
     }
     static void resume(final WorkerThread wt) {
-        System.err.println("WT Resume.0: "+wt);
+        // System.err.println("WT Resume.0: "+wt);
         wt.resume();
-        System.err.println("WT Resume.X: "+wt);
+        // System.err.println("WT Resume.X: "+wt);
     }
 
-    public void testAction(final long periodMS, final long minDelayMS, final long actionMS) throws IOException, InterruptedException, InvocationTargetException {
+    public void testAction(final boolean startPaused, final long periodMS, final long minDelayMS, final long actionMS) throws IOException, InterruptedException, InvocationTargetException {
         final Action action = new Action( 0 < actionMS ? Duration.of(actionMS, ChronoUnit.MILLIS) : Duration.ZERO);
+        final StateCB stateCB = new StateCB();
         final WorkerThread wt =new WorkerThread(Duration.of(periodMS, ChronoUnit.MILLIS),
-                                                Duration.of(minDelayMS, ChronoUnit.MILLIS), true /* daemonThread */, action);
+                                                Duration.of(minDelayMS, ChronoUnit.MILLIS), true /* daemonThread */, action, stateCB);
+
         final long maxPeriodMS = Math.max(minDelayMS+actionMS, Math.max(periodMS, actionMS));
+        System.err.println("testAction: startPaused "+startPaused+", maxPeriodMS "+maxPeriodMS+", actionMS "+actionMS+", "+wt);
+
         int counterA = action.counter.get();
         checkStopped(wt);
-        start(wt);
-        checkStarted(wt, false /* isPaused */);
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, action.counter.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        start(wt, startPaused);
+        checkStarted(wt, startPaused /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?1:0, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?0:0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        if( startPaused ) {
+            wt.resume();
+            checkStarted(wt, false /* isPaused */);
+            Assert.assertEquals(1, stateCB.initCounter.get());
+            Assert.assertEquals(1, stateCB.pausedCounter.get());
+            Assert.assertEquals(1, stateCB.resumedCounter.get());
+            Assert.assertEquals(0, stateCB.endCounter.get());
+        }
         Thread.sleep(maxPeriodMS*3);
         {
             final Duration td = action.td;
@@ -118,65 +169,365 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         }
 
         checkStarted(wt, false /* isPaused */);
-        stop(wt);
+        stop(wt, true); // running -> stop
         checkStopped(wt);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?1:0, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?1:0, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
         int counterB = action.counter.get();
         Assert.assertTrue(counterB > counterA);
 
         counterA = action.counter.get();
         checkStopped(wt);
-        start(wt);
-        checkStarted(wt, false /* isPaused */);
+        start(wt, startPaused); // stop -> running
+        checkStarted(wt, startPaused /* isPaused */);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?2:0, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?1:0, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
+        if( startPaused ) {
+            wt.resume();
+            checkStarted(wt, false /* isPaused */);
+            Assert.assertEquals(2, stateCB.initCounter.get());
+            Assert.assertEquals(startPaused?2:0, stateCB.pausedCounter.get());
+            Assert.assertEquals(startPaused?2:0, stateCB.resumedCounter.get());
+            Assert.assertEquals(1, stateCB.endCounter.get());
+        }
         Thread.sleep(maxPeriodMS*3);
 
         checkStarted(wt, false /* isPaused */);
-        pause(wt, true /* wait */);
+        pause(wt, true /* wait */); // running -> pause
         checkStarted(wt, true /* isPaused */);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?3:1, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?2:0, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
         counterB = action.counter.get();
         Assert.assertTrue(counterB > counterA);
 
+        Thread.sleep(maxPeriodMS);
         counterA = action.counter.get();
         Assert.assertTrue(counterB == counterA);
-        Thread.sleep(maxPeriodMS);
-        resume(wt);
+        resume(wt); // pause -> running
         checkStarted(wt, false /* isPaused */);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?3:1, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?3:1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
         Thread.sleep(maxPeriodMS*3);
 
         checkStarted(wt, false /* isPaused */);
-        stop(wt);
-        checkStopped(wt);
+        pause(wt, true /* wait */); // running -> pause
+        checkStarted(wt, true /* isPaused */);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?3:1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
         counterB = action.counter.get();
         Assert.assertTrue(counterB > counterA);
+        counterA = counterB;
+
+        checkStarted(wt, true /* isPaused */);
+        stop(wt, true); // pause -> stop
+        checkStopped(wt);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.resumedCounter.get());
+        Assert.assertEquals(2, stateCB.endCounter.get());
+        counterB = action.counter.get();
+        Assert.assertTrue(counterB == counterA);
+
+        resume(wt); // stop -> stop
+        checkStopped(wt);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.resumedCounter.get());
+        Assert.assertEquals(2, stateCB.endCounter.get());
+
+        pause(wt, true /* wait */); // stop -> stop
+        checkStopped(wt);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.pausedCounter.get());
+        Assert.assertEquals(startPaused?4:2, stateCB.resumedCounter.get());
+        Assert.assertEquals(2, stateCB.endCounter.get());
     }
 
     @Test
     public void test01ZeroAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/);
+        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/);
+        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/);
     }
 
     @Test
     public void test02MidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
     }
 
     @Test
     public void test03HeavyAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/);
+        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/);
+        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/);
     }
 
     @Test
     public void test03ZeroMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(true, 0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
     }
 
     @Test
     public void test04ZeroMinDelayMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(true, 0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/);
     }
 
     @Test
     public void test05MinDelayMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(true, 8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/);
+    }
+
+    @Test
+    public void test10InitEnd01() throws IOException, InterruptedException, InvocationTargetException {
+        // Issuing stop not in the worker-thread
+        final AtomicInteger actionLatch = new AtomicInteger(0);
+        final WorkerThread.Callback action = (final WorkerThread self) -> {
+            java.lang.Thread.sleep(1);
+            final boolean v = actionLatch.compareAndSet(0, 1);
+            // System.err.println("action set "+v+": "+self);
+        };
+        final StateCB stateCB = new StateCB();
+
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionLatch.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        final long minPeriodMS = 2;
+        final long maxPeriodMS = 4;
+        final WorkerThread wt =new WorkerThread(Duration.of(minPeriodMS, ChronoUnit.MILLIS),
+                                                Duration.of(0, ChronoUnit.MILLIS), true /* daemonThread */,
+                                                action, stateCB);
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionLatch.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        checkStopped(wt);
+
+        start(wt, true);
+        checkStarted(wt, true /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        wt.resume();
+        checkStarted(wt, false /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        // maybe: Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        Thread.sleep(maxPeriodMS);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        checkStarted(wt, false /* isPaused */);
+        stop(wt, true);
+        checkStopped(wt);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
+
+        actionLatch.set(0);
+        Assert.assertEquals(0, actionLatch.get());
+        start(wt, false);
+        checkStarted(wt, false/* isPaused */);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        // maybe: Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
+
+        Thread.sleep(maxPeriodMS);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
+
+        checkStarted(wt, false /* isPaused */);
+        stop(wt, true);
+        checkStopped(wt);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(2, stateCB.endCounter.get());
+    }
+
+    @Test
+    public void test11InitEnd02() throws IOException, InterruptedException, InvocationTargetException {
+        // Issuing stop on the worker-thread
+        final AtomicInteger actionCounter = new AtomicInteger(0);
+        final WorkerThread.Callback action = (final WorkerThread self) -> {
+            java.lang.Thread.sleep(1);
+            final int v = actionCounter.incrementAndGet();
+            // System.err.println("action cntr "+v+": "+self);
+            if( 8 == v ) {
+                stop(self, true);
+            }
+        };
+        final StateCB stateCB = new StateCB();
+
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionCounter.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        final long minPeriodMS = 2;
+        final long maxPeriodMS = 16;
+        final WorkerThread wt =new WorkerThread(Duration.of(minPeriodMS, ChronoUnit.MILLIS),
+                                                Duration.of(0, ChronoUnit.MILLIS), true /* daemonThread */,
+                                                action, stateCB);
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionCounter.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        checkStopped(wt);
+
+        start(wt, true);
+        checkStarted(wt, true /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionCounter.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        wt.resume();
+        checkStarted(wt, false /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        // maybe Assert.assertEquals(1, actionCounter.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        Thread.sleep(maxPeriodMS);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertTrue(0 < actionCounter.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
+        checkStopped(wt);
+
+        actionCounter.set(0);
+        Assert.assertEquals(0, actionCounter.get());
+        start(wt, false);
+        checkStarted(wt, false/* isPaused */);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        // maybe: Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
+
+        Thread.sleep(maxPeriodMS);
+        Assert.assertEquals(2, stateCB.initCounter.get());
+        Assert.assertTrue(0 < actionCounter.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(2, stateCB.endCounter.get());
+        checkStopped(wt);
+    }
+
+    @Test
+    public void test20ExceptionAtWork() throws IOException, InterruptedException, InvocationTargetException {
+        final AtomicInteger actionCounter = new AtomicInteger(0);
+        final WorkerThread.Callback action = (final WorkerThread self) -> {
+            java.lang.Thread.sleep(1);
+            final int v = actionCounter.incrementAndGet();
+            // System.err.println("action cntr "+v+": "+self);
+            if( 8 == v ) {
+                throw new RuntimeException("Test exception from worker action: "+self);
+            }
+        };
+        final StateCB stateCB = new StateCB();
+
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionCounter.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        final long minPeriodMS = 2;
+        final long maxPeriodMS = 16;
+        final WorkerThread wt =new WorkerThread(Duration.of(minPeriodMS, ChronoUnit.MILLIS),
+                                                Duration.of(0, ChronoUnit.MILLIS), true /* daemonThread */,
+                                                action, stateCB);
+        Assert.assertEquals(0, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionCounter.get());
+        Assert.assertEquals(0, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        checkStopped(wt);
+
+        start(wt, true);
+        checkStarted(wt, true /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertEquals(0, actionCounter.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(0, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        wt.resume();
+        checkStarted(wt, false /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        // maybe: Assert.assertEquals(1, actionLatch.get());
+        Assert.assertEquals(1, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+
+        Thread.sleep(maxPeriodMS);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertTrue(0 < actionCounter.get());
+        Assert.assertEquals(2, stateCB.pausedCounter.get());
+        Assert.assertEquals(1, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        checkStarted(wt, true /* isPaused */);
+        Assert.assertTrue(wt.hasError());
+        Assert.assertNotNull(wt.getError(true));
+        final int counterA = actionCounter.get();
+
+        wt.resume();
+        checkStarted(wt, false /* isPaused */);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertTrue(0 < actionCounter.get());
+        Assert.assertEquals(2, stateCB.pausedCounter.get());
+        Assert.assertEquals(2, stateCB.resumedCounter.get());
+        Assert.assertEquals(0, stateCB.endCounter.get());
+        Thread.sleep(maxPeriodMS);
+
+        stop(wt, true);
+        checkStopped(wt);
+        final int counterB = actionCounter.get();
+        Assert.assertTrue(counterB > counterA);
+        Assert.assertEquals(1, stateCB.initCounter.get());
+        Assert.assertTrue(0 < actionCounter.get());
+        Assert.assertEquals(2, stateCB.pausedCounter.get());
+        Assert.assertEquals(2, stateCB.resumedCounter.get());
+        Assert.assertEquals(1, stateCB.endCounter.get());
     }
 
     public static void main(final String args[]) throws IOException {
