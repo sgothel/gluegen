@@ -168,7 +168,7 @@ public class WorkerThread {
                 while( !isSet(RUNNING) && null != thread && !isSet(SHALL_STOP) ) {
                     this.wait();  // wait until started
                 }
-                while( isSet(RUNNING) && isSet(ACTIVE) && null != thread && !isSet(SHALL_STOP) ) {
+                while( isSet(RUNNING | ACTIVE) && null != thread && !isSet(SHALL_STOP) ) {
                     this.wait();  // wait until paused
                 }
             }
