@@ -1232,7 +1232,7 @@
       />
   </target>
 
-  <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifacts.properties" 
+  <target name="base.compile" description="Base compile ensuring valid build results w/o tampering the artifact.properties" 
                               depends="clean-temp, android-launcher.build, gluegen.build.java, gluegen.build.native, gluegen.build.shasum, gluegen.package.java, gluegen.package.native, android-launcher.package" />
 
   <target name="all.no_junit" description="Release build" depends="base.compile, tag.build, android.package, developer-zip-archive" >
