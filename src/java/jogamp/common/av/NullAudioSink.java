@@ -127,7 +127,7 @@ public final class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
+    public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int queueSize) {
         chosenFormat = requestedFormat;
         return true;
     }
@@ -153,8 +153,7 @@ public final class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public void flush() {
-    }
+    public void flush() { }
 
     @Override
     public void destroy() {
@@ -163,42 +162,31 @@ public final class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public final int getEnqueuedFrameCount() {
-        return 0;
-    }
+    public final int getEnqueuedFrameCount() { return 0; }
 
     @Override
-    public int getFrameCount() {
-        return 0;
-    }
+    public int getFrameCount() { return 0; }
 
     @Override
-    public int getQueuedFrameCount() {
-        return 0;
-    }
+    public int getQueuedFrameCount() { return 0; }
 
     @Override
-    public int getQueuedByteCount() {
-        return 0;
-    }
+    public int getQueuedByteCount() { return 0; }
 
     @Override
-    public float getQueuedTime() {
-        return 0f;
-    }
+    public float getQueuedTime() { return 0f; }
 
     @Override
-    public float getAvgFrameDuration() {
-        return 0f;
-    }
+    public float getAvgFrameDuration() { return 0f; }
 
     @Override
     public final int getPTS() { return playingPTS; }
 
     @Override
-    public int getFreeFrameCount() {
-        return 1;
-    }
+    public int getLastBufferedPTS() { return 0; }
+
+    @Override
+    public int getFreeFrameCount() { return 1; }
 
     @Override
     public AudioFrame enqueueData(final int pts, final ByteBuffer bytes, final int byteCount) {

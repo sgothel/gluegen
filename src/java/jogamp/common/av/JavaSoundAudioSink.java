@@ -179,7 +179,7 @@ public final class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int initialQueueSize, final int queueGrowAmount, final int queueLimit) {
+    public boolean init(final AudioFormat requestedFormat, final int frameDuration, final int queueSize) {
         if( !staticAvailable ) {
             return false;
         }
@@ -316,5 +316,8 @@ public final class JavaSoundAudioSink implements AudioSink {
 
     @Override
     public final int getPTS() { return 0; } // FIXME
+
+    @Override
+    public int getLastBufferedPTS() { return 0; } // FIXME
 
 }

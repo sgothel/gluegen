@@ -37,14 +37,10 @@ public interface AudioSink {
     /** Default frame duration in millisecond, i.e. 1 {@link AudioFrame} per {@value} ms. */
     public static final int DefaultFrameDuration = 32;
 
-    /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
-    public static final int DefaultInitialQueueSize = 16 * 32; // 512 ms
-    /** Audio queue grow size in milliseconds. {@value} ms, i.e. 16 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
-    public static final int DefaultQueueGrowAmount = 16 * 32; // 512 ms
-    /** Audio queue limit w/ video in milliseconds. {@value} ms, i.e. 96 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
-    public static final int DefaultQueueLimitWithVideo =  96 * 32; // 3072 ms
-    /** Audio queue limit w/o video in milliseconds. {@value} ms, i.e. 32 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int, int, int)}.*/
-    public static final int DefaultQueueLimitAudioOnly =  32 * 32; // 1024 ms
+    /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int)}.*/
+    public static final int DefaultQueueSize = 16 * 32; // 512 ms
+    /** Audio queue size w/ video in milliseconds. {@value} ms, i.e. 24 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int)}.*/
+    public static final int DefaultQueueSizeWithVideo =  24 * 32; // 768 ms
 
     /** Default {@link AudioFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, !planar, littleEndian]. */
     public static final AudioFormat DefaultFormat = new AudioFormat(44100, 16, 2, true /* signed */,
@@ -233,7 +229,7 @@ public interface AudioSink {
      * <p>
      * May return {@link AudioSink#DefaultFormat} if undefined.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public AudioFormat getNativeFormat();
 
@@ -251,7 +247,7 @@ public interface AudioSink {
      * </ul>
      * </p>
      * @see #getNativeFormat()
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      * @see #setChannelLimit(int)
      * @see #isSupported(AudioFormat)
      */
@@ -260,7 +256,7 @@ public interface AudioSink {
     /**
      * Limit maximum supported audio channels by user.
      * <p>
-     * Must be set before {@link #getPreferredFormat()}, {@link #isSupported(AudioFormat)} and naturally {@link #init(AudioFormat, int, int, int, int)}.
+     * Must be set before {@link #getPreferredFormat()}, {@link #isSupported(AudioFormat)} and naturally {@link #init(AudioFormat, int, int)}.
      * </p>
      * <p>
      * May be utilized to enforce 1 channel (mono) downsampling
@@ -270,7 +266,7 @@ public interface AudioSink {
      * @see #getNativeFormat()
      * @see #getPreferredFormat()
      * @see #isSupported(AudioFormat)
-     * @see #init(AudioFormat, int, int, int, int)
+     * @see #init(AudioFormat, int, int)
      */
     public void setChannelLimit(final int cc);
 
@@ -279,7 +275,7 @@ public interface AudioSink {
      * <p>
      * The {@link #getPreferredFormat()} is used to validate compatibility with the given format.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      * @see #getPreferredFormat()
      */
     public boolean isSupported(AudioFormat format);
@@ -296,35 +292,28 @@ public interface AudioSink {
      * </p>
      * @param requestedFormat the requested {@link AudioFormat}.
      * @param frameDurationHint average {@link AudioFrame} duration hint in milliseconds.
-     *                      May assist to shape the {@link AudioFrame} initial queue size using `initialQueueSize`.
      *                      May assist to adjust latency of the backend, as currently used for JOAL's ALAudioSink.
      *                      A value below 30ms or {@link #DefaultFrameDuration} may increase the audio processing load.
      *                      Assumed as {@link #DefaultFrameDuration}, if <code>frameDuration < 1 ms</code>.
-     * @param initialQueueSize initial queue size in milliseconds, see {@link #DefaultInitialQueueSize}.
-     *                        May use `frameDurationHint` to determine initial {@link AudioFrame} queue size.
-     * @param queueGrowAmount queue grow size in milliseconds if queue is full, see {@link #DefaultQueueGrowAmount}.
-     *                        May use {@link #getAvgFrameDuration()} to determine {@link AudioFrame} queue growth amount.
-     * @param queueLimit maximum time in milliseconds the queue can hold (and grow), see {@link #DefaultQueueLimitWithVideo} and {@link #DefaultQueueLimitAudioOnly}.
-     *                        May use {@link #getAvgFrameDuration()} to determine {@link AudioFrame} queue limit.
+     * @param queueSize queue size in milliseconds, see {@link #DefaultQueueSize}.
      * @return true if successful, otherwise false
      * @see #enqueueData(int, ByteBuffer, int)
      * @see #getAvgFrameDuration()
      */
-    public boolean init(AudioFormat requestedFormat, int frameDurationHint,
-                        int initialQueueSize, int queueGrowAmount, int queueLimit);
+    public boolean init(AudioFormat requestedFormat, int frameDurationHint, int queueSize);
 
     /**
-     * Returns the {@link AudioFormat} as chosen by {@link #init(AudioFormat, float, int, int, int)},
+     * Returns the {@link AudioFormat} as chosen by {@link #init(AudioFormat, float, int)},
      * i.e. it shall match the <i>requestedFormat</i>.
      */
     public AudioFormat getChosenFormat();
 
     /**
-     * Returns the (minimum) latency in seconds of this sink as set by {@link #init(AudioFormat, float, int, int, int)}, see {@link #getDefaultLatency()}.
+     * Returns the (minimum) latency in seconds of this sink as set by {@link #init(AudioFormat, float, int)}, see {@link #getDefaultLatency()}.
      * <p>
      * Latency might be the reciprocal mixer-refresh-interval [Hz], e.g. 50 Hz refresh-rate = 20ms minimum latency.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public float getLatency();
 
@@ -353,12 +342,12 @@ public interface AudioSink {
     /**
      * Flush all queued buffers, implies {@link #pause()}.
      * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
+     * {@link #init(AudioFormat, float, int)} must be called first.
      * </p>
      * @see #play()
      * @see #pause()
      * @see #enqueueData(AudioFrame)
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public void flush();
 
@@ -367,41 +356,41 @@ public interface AudioSink {
 
     /**
      * Returns the number of allocated buffers as requested by
-     * {@link #init(AudioFormat, float, int, int, int)}.
-     * @see #init(AudioFormat, float, int, int, int)
+     * {@link #init(AudioFormat, float, int)}.
+     * @see #init(AudioFormat, float, int)
      */
     public int getFrameCount();
 
     /**
-     * Returns the current enqueued frames count since {@link #init(AudioFormat, float, int, int, int)}.
-     * @see #init(AudioFormat, float, int, int, int)
+     * Returns the current enqueued frames count since {@link #init(AudioFormat, float, int)}.
+     * @see #init(AudioFormat, float, int)
      */
     public int getEnqueuedFrameCount();
 
     /**
      * Returns the current number of frames queued for playing.
      * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
+     * {@link #init(AudioFormat, float, int)} must be called first.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public int getQueuedFrameCount();
 
     /**
      * Returns the current number of bytes queued for playing.
      * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
+     * {@link #init(AudioFormat, float, int)} must be called first.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public int getQueuedByteCount();
 
     /**
      * Returns the current queued frame time in seconds for playing.
      * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
+     * {@link #init(AudioFormat, float, int)} must be called first.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public float getQueuedTime();
 
@@ -419,26 +408,31 @@ public interface AudioSink {
     public int getPTS();
 
     /**
+     * Return the last buffered audio presentation timestamp (PTS) in milliseconds.
+     */
+    public int getLastBufferedPTS();
+
+    /**
      * Returns the current number of frames in the sink available for writing.
      * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
+     * {@link #init(AudioFormat, float, int)} must be called first.
      * </p>
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public int getFreeFrameCount();
 
     /**
      * Enqueue <code>byteCount</code> bytes as a new {@link AudioFrame} to this sink.
      * <p>
-     * The data must comply with the chosen {@link AudioFormat} as set via {@link #init(AudioFormat, float, int, int, int)}.
+     * The data must comply with the chosen {@link AudioFormat} as set via {@link #init(AudioFormat, float, int)}.
      * </p>
      * <p>
-     * {@link #init(AudioFormat, float, int, int, int)} must be called first.
+     * {@link #init(AudioFormat, float, int)} must be called first.
      * </p>
      * @param pts presentation time stamp in milliseconds for the newly enqueued {@link AudioFrame}
      * @param bytes audio data for the newly enqueued {@link AudioFrame}
      * @returns the enqueued internal {@link AudioFrame}.
-     * @see #init(AudioFormat, float, int, int, int)
+     * @see #init(AudioFormat, float, int)
      */
     public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount);
 }
