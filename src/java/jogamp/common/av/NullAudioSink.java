@@ -174,13 +174,16 @@ public final class NullAudioSink implements AudioSink {
     public int getQueuedByteCount() { return 0; }
 
     @Override
-    public float getQueuedTime() { return 0f; }
+    public float getQueuedDuration() { return 0f; }
 
     @Override
     public float getAvgFrameDuration() { return 0f; }
 
     @Override
     public final int getPTS() { return playingPTS; }
+
+    @Override
+    public final int updateQueue() { return playingPTS; }
 
     @Override
     public int getLastBufferedPTS() { return 0; }

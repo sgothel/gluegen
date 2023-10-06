@@ -305,7 +305,7 @@ public final class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public float getQueuedTime() {
+    public float getQueuedDuration() {
         return chosenFormat.getBytesDuration( getQueuedByteCount() );
     }
 
@@ -316,6 +316,9 @@ public final class JavaSoundAudioSink implements AudioSink {
 
     @Override
     public final int getPTS() { return 0; } // FIXME
+
+    @Override
+    public final int updateQueue() { return 0; } // FIXME
 
     @Override
     public int getLastBufferedPTS() { return 0; } // FIXME

@@ -392,12 +392,12 @@ public interface AudioSink {
      * </p>
      * @see #init(AudioFormat, float, int)
      */
-    public float getQueuedTime();
+    public float getQueuedDuration();
 
     /**
      * Returns average frame duration last assessed @ {@link #enqueueData(int, ByteBuffer, int)} when queue was full.
      * <pre>
-     *   avgFrameDuration = {@link #getQueuedTime()} / {@link #getQueuedFrameCount()}
+     *   avgFrameDuration = {@link #getQueuedDuration()} / {@link #getQueuedFrameCount()}
      * </pre>
      */
     public float getAvgFrameDuration();
@@ -446,4 +446,16 @@ public interface AudioSink {
      * @see #init(AudioFormat, float, int)
      */
     public AudioFrame enqueueData(int pts, ByteBuffer bytes, int byteCount);
+
+    /**
+     * Update queue beyond {@link #enqueueData(int, ByteBuffer, int)} including audio PTS.
+     * <p>
+     * Useful in case implementation only updates the buffer passively via {@link #enqueueData(int, ByteBuffer, int) enqueueing data}
+     * to add new data to the queue and not on a event basis.
+     * </p>
+     * @return the updated current audio PTS
+     * @see #getPTS()
+     * @see #enqueueData(int, ByteBuffer, int)
+     */
+    public int updateQueue();
 }
