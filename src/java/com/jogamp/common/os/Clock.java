@@ -144,8 +144,23 @@ public class Clock {
     }
 
     /**
-     * Returns current monotonic time in milliseconds.
-     *
+     * Returns current monotonic milliseconds since start of this application.
+     * <p>
+     * Monotonic time shall be used for high-performance measurements of durations,
+     * since the underlying OS shall support fast calls.
+     * </p>
+     * @see #getMonotonicStartupTime()
+     * @see #currentNanos()
+     * @see #getMonotonicNanos()
+     */
+    public static native long currentMillis();
+
+    /**
+     * Returns the unix based current monotonic time in milliseconds.
+     * <p>
+     * Monotonic time shall be used for high-performance measurements of durations,
+     * since the underlying OS shall support fast calls.
+     * </p>
      * @see #getMonotonicStartupTime()
      * @see #currentNanos()
      * @see #getMonotonicNanos()

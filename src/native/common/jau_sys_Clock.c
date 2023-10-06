@@ -133,13 +133,42 @@ Java_com_jogamp_common_os_Clock_currentNanos(JNIEnv *env, jclass clazz) {
 
     struct timespec t = { .tv_sec = 0, .tv_nsec = 0 };
     if( 0 == clock_gettime(CLOCK_MONOTONIC, &t) ) {
-        struct timespec d = { .tv_sec = t.tv_sec - startup_t.tv_sec,
-                              .tv_nsec = t.tv_nsec - startup_t.tv_nsec };
-        if ( 0 > d.tv_nsec ) {
-            d.tv_nsec += NanoPerSec;
-            d.tv_sec  -= 1;
+        t.tv_sec -= startup_t.tv_sec;
+        t.tv_nsec -= startup_t.tv_nsec;
+        if ( 0 > t.tv_nsec ) {
+            t.tv_nsec += NanoPerSec;
+            t.tv_sec  -= 1;
         }
-        return (jlong) ( (int64_t)d.tv_sec * NanoPerSec + (int64_t)d.tv_nsec );
+        return (jlong) ( (int64_t)t.tv_sec * NanoPerSec + (int64_t)t.tv_nsec );
+    } else {
+        return 0;
+    }
+}
+
+/**
+ * See <http://man7.org/linux/man-pages/man2/clock_gettime.2.html>
+ * <p>
+ * Regarding avoiding kernel via VDSO,
+ * see <http://man7.org/linux/man-pages/man7/vdso.7.html>,
+ * clock_gettime seems to be well supported at least on kernel >= 4.4.
+ * Only bfin and sh are missing, while ia64 seems to be complicated.
+ */
+JNIEXPORT jlong JNICALL
+Java_com_jogamp_common_os_Clock_currentMillis(JNIEnv *env, jclass clazz) {
+    (void)env;
+    (void)clazz;
+
+    struct timespec t = { .tv_sec = 0, .tv_nsec = 0 };
+    if( 0 == clock_gettime(CLOCK_MONOTONIC, &t) ) {
+        t.tv_sec -= startup_t.tv_sec;
+        t.tv_nsec -= startup_t.tv_nsec;
+        if ( 0 > t.tv_nsec ) {
+            t.tv_nsec += NanoPerSec;
+            t.tv_sec  -= 1;
+        }
+        int64_t res = (int64_t)t.tv_sec  * MilliPerOne +
+                      (int64_t)t.tv_nsec / NanoPerMilli;
+        return (jlong)res;
     } else {
         return 0;
     }

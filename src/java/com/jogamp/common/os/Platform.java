@@ -521,7 +521,23 @@ public class Platform extends PlatformPropsImpl {
     //
 
     /**
-     * Returns the unix based current time in milliseconds, see {@link Clock#currentTimeMillis()}.
+     * Returns current monotonic milliseconds since start of this application.
+     * <p>
+     * Monotonic time shall be used for high-performance measurements of durations,
+     * since the underlying OS shall support fast calls.
+     * </p>
+     * @see Clock#currentMillis()
+     */
+    public static long currentMillis() {
+        return Clock.currentMillis();
+    }
+
+    /**
+     * Returns the unix based current monotonic time in milliseconds.
+     * <p>
+     * Monotonic time shall be used for high-performance measurements of durations,
+     * since the underlying OS shall support fast calls.
+     * </p>
      * @see Clock#currentTimeMillis()
      */
     public static long currentTimeMillis() {
