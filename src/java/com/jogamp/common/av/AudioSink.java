@@ -404,11 +404,22 @@ public interface AudioSink {
 
     /**
      * Return the current audio presentation timestamp (PTS) in milliseconds.
+     * <p>
+     * In case implementation updates the audio buffer passively, consider using {@link #updateQueue()}.
+     * </p>
+     * <p>
+     * The relative millisecond PTS since start of the presentation stored in integer
+     * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
+     * or 2'147'483 seconds or 24.855 days.
+     * </p>
+     * @see #updateQueue()
+     * @see #enqueueData(int, ByteBuffer, int)
      */
     public int getPTS();
 
     /**
      * Return the last buffered audio presentation timestamp (PTS) in milliseconds.
+     * @see #getPTS()
      */
     public int getLastBufferedPTS();
 

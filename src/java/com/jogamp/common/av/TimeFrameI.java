@@ -34,7 +34,7 @@ package com.jogamp.common.av;
  * and characteristics of audio / video streaming and animations.
  * Milliseconds of type integer with a maximum value of {@link Integer#MAX_VALUE}
  * will allow tracking time up 2,147,483.647 seconds or
- * 24 days 20 hours 31 minutes and 23 seconds.
+ * 24 days 20 hours 31 minutes and 23 seconds, see {@link #getPTS()} and {@link #getDuration()}.
  * </p>
  * <p>
  * Milliseconds granularity is also more than enough to deal with A-V synchronization,
@@ -65,21 +65,42 @@ public class TimeFrameI {
     }
     /**
      * Create a new instance
-     * @param pts frame pts in milliseconds
-     * @param duration frame duration in milliseconds
+     * @param pts frame pts in milliseconds, see {@link #getPTS()}
+     * @param duration frame duration in milliseconds, see {@link #getDuration()}
+     * @see #getPTS()
+     * @see #getDuration()
      */
     public TimeFrameI(final int pts, final int duration) {
         this.pts = pts;
         this.duration = duration;
     }
 
-    /** Get this frame's presentation timestamp (PTS) in milliseconds. */
+    /**
+     * Returns this frame's presentation timestamp (PTS) in milliseconds.
+     * <p>
+     * The relative millisecond PTS since start of the presentation stored in integer
+     * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
+     * or 2'147'483 seconds or 24.855 days.
+     * </p>
+     */
     public final int getPTS() { return pts; }
-    /** Set this frame's presentation timestamp (PTS) in milliseconds. */
+    /**
+     * Set this frame's presentation timestamp (PTS) in milliseconds.
+     * @see #getPTS()
+     */
     public final void setPTS(final int pts) { this.pts = pts; }
-    /** Get this frame's duration in milliseconds. */
+    /**
+     * Get this frame's duration in milliseconds.
+     * <p>
+     * The duration stored in integer covers 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
+     * or 2'147'483 seconds or 24.855 days.
+     * </p>
+     */
     public final int getDuration() { return duration; }
-    /** Set this frame's duration in milliseconds. */
+    /**
+     * Set this frame's duration in milliseconds.
+     * @see #getDuration()
+     */
     public final void setDuration(final int duration) { this.duration = duration; }
 
     @Override
