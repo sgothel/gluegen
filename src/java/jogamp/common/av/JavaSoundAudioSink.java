@@ -36,6 +36,9 @@ import javax.sound.sampled.SourceDataLine;
 
 import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
+import com.jogamp.common.av.PTS;
+import com.jogamp.common.av.TimeFrameI;
+import com.jogamp.common.os.Clock;
 
 /***
  * JavaSound Audio Sink
@@ -65,8 +68,8 @@ public final class JavaSoundAudioSink implements AudioSink {
     private int userMaxChannels = 8;
     private AudioFormat preferredFormat = null;
     private AudioFormat chosenFormat = null;
-
     private volatile boolean playRequested = false;
+    private final PTS pts = new PTS( () -> { return playRequested ? 1f : 0f; } );
     private float volume = 1.0f;
 
     static {
@@ -243,6 +246,7 @@ public final class JavaSoundAudioSink implements AudioSink {
     public void flush() {
         if( null != auline ) {
             playRequested = false;
+            pts.set(0, TimeFrameI.INVALID_PTS);
             auline.stop();
             auline.flush();
         }
@@ -290,6 +294,7 @@ public final class JavaSoundAudioSink implements AudioSink {
             bytesLeft -= len;
             written += len;
         }
+        this.pts.set(Clock.currentMillis(), pts);
         playImpl();
         return new AudioDataFrame(pts, Math.round(1000f*chosenFormat.getBytesDuration(byteCount)), byteBuffer, byteCount);
     }
@@ -315,10 +320,10 @@ public final class JavaSoundAudioSink implements AudioSink {
     }
 
     @Override
-    public final int getPTS() { return 0; } // FIXME
+    public final PTS getPTS() { return pts; }
 
     @Override
-    public final int updateQueue() { return 0; } // FIXME
+    public final PTS updateQueue() { return pts; } // FIXME
 
     @Override
     public int getLastBufferedPTS() { return 0; } // FIXME

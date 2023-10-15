@@ -31,12 +31,15 @@ import java.nio.ByteBuffer;
 
 import com.jogamp.common.av.AudioFormat;
 import com.jogamp.common.av.AudioSink;
+import com.jogamp.common.av.PTS;
+import com.jogamp.common.av.TimeFrameI;
+import com.jogamp.common.os.Clock;
 
 public final class NullAudioSink implements AudioSink {
 
     private volatile float playSpeed = 1.0f;
     private volatile boolean playRequested = false;
-    private volatile int playingPTS = AudioFrame.INVALID_PTS;
+    private final PTS pts = new PTS( () -> { return playRequested ? 1f : 0f; } );
     private float volume = 1.0f;
 
     private AudioFormat chosenFormat;
@@ -153,7 +156,7 @@ public final class NullAudioSink implements AudioSink {
     }
 
     @Override
-    public void flush() { }
+    public void flush() { pts.set(0, TimeFrameI.INVALID_PTS); }
 
     @Override
     public void destroy() {
@@ -180,10 +183,10 @@ public final class NullAudioSink implements AudioSink {
     public float getAvgFrameDuration() { return 0f; }
 
     @Override
-    public final int getPTS() { return playingPTS; }
+    public final PTS getPTS() { return pts; }
 
     @Override
-    public final int updateQueue() { return playingPTS; }
+    public final PTS updateQueue() { return pts; }
 
     @Override
     public int getLastBufferedPTS() { return 0; }
@@ -196,7 +199,7 @@ public final class NullAudioSink implements AudioSink {
         if( !available || null == chosenFormat ) {
             return null;
         }
-        playingPTS = pts;
+        this.pts.set(Clock.currentMillis(), pts);
         return null;
     }
 }

@@ -39,8 +39,8 @@ public interface AudioSink {
 
     /** Initial audio queue size in milliseconds. {@value} ms, i.e. 16 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int)}.*/
     public static final int DefaultQueueSize = 16 * 32; // 512 ms
-    /** Audio queue size w/ video in milliseconds. {@value} ms, i.e. 24 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int)}.*/
-    public static final int DefaultQueueSizeWithVideo =  24 * 32; // 768 ms
+    /** Audio queue size w/ video in milliseconds. {@value} ms, i.e. 32 {@link AudioFrame}s per 32 ms. See {@link #init(AudioFormat, float, int)}.*/
+    public static final int DefaultQueueSizeWithVideo =  32 * 32; // 1024 ms
 
     /** Default {@link AudioFormat}, [type PCM, sampleRate 44100, sampleSize 16, channelCount 2, signed, fixedP, !planar, littleEndian]. */
     public static final AudioFormat DefaultFormat = new AudioFormat(44100, 16, 2, true /* signed */,
@@ -403,19 +403,14 @@ public interface AudioSink {
     public float getAvgFrameDuration();
 
     /**
-     * Return the current audio presentation timestamp (PTS) in milliseconds.
+     * Return the audio presentation timestamp ({@link PTS}).
      * <p>
      * In case implementation updates the audio buffer passively, consider using {@link #updateQueue()}.
-     * </p>
-     * <p>
-     * The relative millisecond PTS since start of the presentation stored in integer
-     * covers a time span of 2'147'483'647 ms (see {@link Integer#MAX_VALUE}
-     * or 2'147'483 seconds or 24.855 days.
      * </p>
      * @see #updateQueue()
      * @see #enqueueData(int, ByteBuffer, int)
      */
-    public int getPTS();
+    public PTS getPTS();
 
     /**
      * Return the last buffered audio presentation timestamp (PTS) in milliseconds.
@@ -453,9 +448,9 @@ public interface AudioSink {
      * Useful in case implementation only updates the buffer passively via {@link #enqueueData(int, ByteBuffer, int) enqueueing data}
      * to add new data to the queue and not on a event basis.
      * </p>
-     * @return the updated current audio PTS
+     * @return the updated {@link PTS} instance
      * @see #getPTS()
      * @see #enqueueData(int, ByteBuffer, int)
      */
-    public int updateQueue();
+    public PTS updateQueue();
 }
