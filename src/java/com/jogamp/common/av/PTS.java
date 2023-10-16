@@ -70,6 +70,11 @@ public final class PTS {
         this.speed = speed;
         set(scr, pts);
     }
+    /** Copy constructor */
+    public PTS(final PTS other) {
+        this.speed = other.speed;
+        set(other);
+    }
 
     /** Returns true if {@link #getLast()} is unequal to {@link TimeFrameI#INVALID_PTS}. */
     public boolean isValid() { return TimeFrameI.INVALID_PTS != pts; }
