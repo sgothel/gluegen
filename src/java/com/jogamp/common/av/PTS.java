@@ -111,13 +111,13 @@ public final class PTS {
     /**
      * Returns the {@link #getLast() last updated PTS}, interpolated by {@link #getSCR() System Clock Reference (SCR)} delta to given {@code currentMillis} and playback {@link #getSpeed() speed}.
      * <pre>
-     *      last_pts + ( currentMillis - SCR ) * speed
+     *      last_pts + (int) ( ( currentMillis - SCR ) * speed + 0.5f )
      * </pre>
      * @param currentMillis current system clock in milliseconds, i.e. {@link Clock#currentMillis()}.
      * @see #set(long, int)
      */
     public int get(final long currentMillis) {
-        return pts + (int) ( ( currentMillis - scr ) * speed.get() );
+        return pts + (int) ( ( currentMillis - scr ) * speed.get() + 0.5f );
     }
 
     /** Returns {@link #getLast()} - rhs.{@link #getLast()}. */
