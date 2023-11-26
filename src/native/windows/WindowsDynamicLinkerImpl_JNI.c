@@ -94,4 +94,20 @@ Java_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryW(JNIEnv *env, jclass 
   return (jlong) (intptr_t) _res;
 }
 
+/*
+ * Class:     jogamp_common_os_WindowsDynamicLinkerImpl
+ * Method:    GetModuleFileNameA
+ * Signature: (J)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL 
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_GetModuleFileNameA(JNIEnv *env, jclass _unused, jlong hModule) {
+  TCHAR  tpath[PATH_MAX+1];
+  memset(tpath, 0, PATH_MAX+1);
+  DWORD size = GetModuleFileNameA((HANDLE) (intptr_t) hModule, (LPTSTR)&tpath, PATH_MAX);
+  if( 0 == size ) {
+    return NULL;
+  }
+  return (*env)->NewStringUTF(env, tpath);
+}
+
 

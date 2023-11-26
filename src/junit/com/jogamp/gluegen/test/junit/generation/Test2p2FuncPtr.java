@@ -49,8 +49,9 @@ public class Test2p2FuncPtr extends BaseClass2FuncPtr {
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest2p2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2p2FuncPtr.class.getClassLoader(), true);
+        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test2p2FuncPtr.class.getClassLoader(), true, "textXID");
         Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
+        System.err.println("Loaded: "+dynamicLookupHelper);
 
         Bindingtest2p2Impl.resetProcAddressTable(dynamicLookupHelper);
     }

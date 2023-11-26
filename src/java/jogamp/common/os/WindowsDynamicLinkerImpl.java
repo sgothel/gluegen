@@ -41,6 +41,9 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   /** Interface to C language function: <br> <code> HANDLE LoadLibraryW(LPCWSTR lpLibFileName); </code>    */
   private static native long LoadLibraryW(java.lang.String lpLibFileName);
 
+  /** Interface to C language function: <br> <code> PROC GetModuleFileNameA(HANDLE hModule, LPSTR lpFilename, DWORD nSize); </code>    */
+  private static native java.lang.String GetModuleFileNameA(long hModule);
+
   @Override
   protected final long openLibraryLocalImpl(final String libraryName) throws SecurityException {
     // How does that work under Windows ?
@@ -51,6 +54,12 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
   @Override
   protected final long openLibraryGlobalImpl(final String libraryName) throws SecurityException {
     return LoadLibraryW(libraryName);
+  }
+
+  @Override
+  protected final String lookupLibraryPathnameImpl(final long libraryHandle, final String symbolName) throws SecurityException {
+      // symbolName is not required
+      return 0 != libraryHandle ? GetModuleFileNameA(libraryHandle) : null;
   }
 
   @Override

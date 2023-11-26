@@ -1,41 +1,30 @@
-/*
- * Copyright (c) 2006 Sun Microsystems, Inc. All Rights Reserved.
- * Copyright (c) 2011 JogAmp Community. All rights reserved.
+/**
+ * Copyright 2011-2023 JogAmp Community. All rights reserved.
+ * Copyright 2006 Sun Microsystems, Inc. All Rights Reserved.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are
- * met:
+ * Redistribution and use in source and binary forms, with or without modification, are
+ * permitted provided that the following conditions are met:
  *
- * - Redistribution of source code must retain the above copyright
- *   notice, this list of conditions and the following disclaimer.
+ *    1. Redistributions of source code must retain the above copyright notice, this list of
+ *       conditions and the following disclaimer.
  *
- * - Redistribution in binary form must reproduce the above copyright
- *   notice, this list of conditions and the following disclaimer in the
- *   documentation and/or other materials provided with the distribution.
+ *    2. Redistributions in binary form must reproduce the above copyright notice, this list
+ *       of conditions and the following disclaimer in the documentation and/or other materials
+ *       provided with the distribution.
  *
- * Neither the name of Sun Microsystems, Inc. or the names of
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED BY JogAmp Community ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ * FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL JogAmp Community OR
+ * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
- * This software is provided "AS IS," without a warranty of any kind. ALL
- * EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES,
- * INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A
- * PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE HEREBY EXCLUDED. SUN
- * MICROSYSTEMS, INC. ("SUN") AND ITS LICENSORS SHALL NOT BE LIABLE FOR
- * ANY DAMAGES SUFFERED BY LICENSEE AS A RESULT OF USING, MODIFYING OR
- * DISTRIBUTING THIS SOFTWARE OR ITS DERIVATIVES. IN NO EVENT WILL SUN OR
- * ITS LICENSORS BE LIABLE FOR ANY LOST REVENUE, PROFIT OR DATA, OR FOR
- * DIRECT, INDIRECT, SPECIAL, CONSEQUENTIAL, INCIDENTAL OR PUNITIVE
- * DAMAGES, HOWEVER CAUSED AND REGARDLESS OF THE THEORY OF LIABILITY,
- * ARISING OUT OF THE USE OF OR INABILITY TO USE THIS SOFTWARE, EVEN IF
- * SUN HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
- *
- * You acknowledge that this software is not designed or intended for use
- * in the design, construction, operation or maintenance of any nuclear
- * facility.
- *
- * Sun gratefully acknowledges that this software was originally authored
- * and developed by Kenneth Bradley Russell and Christopher John Kline.
+ * The views and conclusions contained in the software and documentation are those of the
+ * authors and should not be interpreted as representing official policies, either expressed
+ * or implied, of JogAmp Community.
  */
 
 package com.jogamp.common.os;
@@ -126,13 +115,17 @@ public final class NativeLibrary implements DynamicLookupHelper {
   // May as well keep around the path to the library we opened
   private final String libraryPath;
 
+  // Native library path of the opened native libraryHandle, maybe null
+  private final String nativeLibraryPath;
+
   private final boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
-  private NativeLibrary(final DynamicLinker dynLink, final long libraryHandle, final String libraryPath, final boolean global) {
+  private NativeLibrary(final DynamicLinker dynLink, final long libraryHandle, final String libraryPath, final boolean global, final String symbolName) {
     this.dynLink = dynLink;
     this.libraryHandle = libraryHandle;
     this.libraryPath   = libraryPath;
+    this.nativeLibraryPath = dynLink.lookupLibraryPathname(libraryHandle, symbolName);
     this.global        = global;
     if (DEBUG) {
       System.err.println("NativeLibrary.open(): Successfully loaded: " + this);
@@ -141,7 +134,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
   @Override
   public final String toString() {
-    return "NativeLibrary[" + dynLink.getClass().getSimpleName() + ", " + libraryPath + ", 0x" + Long.toHexString(libraryHandle) + ", global " + global + "]";
+    final String nlp_s = null != nativeLibraryPath ? ", native '"+nativeLibraryPath+"'" : "";
+    return "NativeLibrary[" + dynLink.getClass().getSimpleName() + ", path[given '" + libraryPath + "'"+nlp_s+"], 0x" +
+           Long.toHexString(libraryHandle) + ", global " + global + "]";
   }
 
   /**
@@ -198,7 +193,36 @@ public final class NativeLibrary implements DynamicLookupHelper {
                                          final boolean searchSystemPath,
                                          final boolean searchSystemPathFirst,
                                          final ClassLoader loader, final boolean global) throws SecurityException {
-    return open(libName, libName, libName, searchSystemPath, searchSystemPathFirst, loader, global);
+    return open(libName, libName, libName, searchSystemPath, searchSystemPathFirst, loader, global, null);
+  }
+
+  /** Opens the given native library, assuming it has the same base
+      name on all platforms.
+      <p>
+      The {@code searchSystemPath} argument changes the behavior to
+      either use the default system path or not at all.
+      </p>
+      <p>
+      Assuming {@code searchSystemPath} is {@code true},
+      the {@code searchSystemPathFirst} argument changes the behavior to first
+      search the default system path rather than searching it last.
+      </p>
+   * @param libName library name, with or without prefix and suffix
+   * @param searchSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+   * @param searchSystemPathFirst if {@code true} system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
+   *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
+   * @param loader {@link ClassLoader} to locate the library
+   * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
+   * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
+   * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
+   * @throws SecurityException if user is not granted access for the named library.
+   * @since 2.4.0
+   */
+  public static final NativeLibrary open(final String libName,
+                                         final boolean searchSystemPath,
+                                         final boolean searchSystemPathFirst,
+                                         final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
+    return open(libName, libName, libName, searchSystemPath, searchSystemPathFirst, loader, global, symbolName);
   }
 
   /** Opens the given native library, assuming it has the given base
@@ -230,6 +254,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
    *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
    * @param loader {@link ClassLoader} to locate the library
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
+   * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
    * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
    * @throws SecurityException if user is not granted access for the named library.
    */
@@ -238,7 +263,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
                                          final String macOSXLibName,
                                          final boolean searchSystemPath,
                                          final boolean searchSystemPathFirst,
-                                         final ClassLoader loader, final boolean global) throws SecurityException {
+                                         final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
     final List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
                                                        unixLibName,
                                                        macOSXLibName,
@@ -267,7 +292,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
             res = 0;
         }
         if ( 0 != res ) {
-            return new NativeLibrary(dynLink, res, path, global);
+            return new NativeLibrary(dynLink, res, path, global, symbolName);
         } else if( DEBUG ) {
             if( null != t ) {
                 System.err.println("NativeLibrary.open: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
@@ -364,6 +389,11 @@ public final class NativeLibrary implements DynamicLookupHelper {
   /** Retrieves the path under which this library was opened. */
   public final String getLibraryPath() {
     return libraryPath;
+  }
+
+  /** Returns the native library path of the opened native {@link #getLibraryHandle()}, maybe null if not supported by OS. */
+  public final String getNativeLibraryPath() {
+    return nativeLibraryPath;
   }
 
   /** Closes this native library. Further lookup operations are not

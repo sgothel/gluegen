@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -61,11 +61,12 @@ import com.jogamp.common.util.RunnableExecutor;
 public class DynamicLibraryBundle implements DynamicLookupHelper {
     private final DynamicLibraryBundleInfo info;
 
-    protected final List<NativeLibrary> nativeLibraries;
-    private final DynamicLinker dynLinkGlobal;
     private final List<List<String>> toolLibNames;
+    protected final List<NativeLibrary> toolLibraries;
+    private final List<String> toolLibSymbolNames;
     private final List<String> glueLibNames;
     private final boolean[] toolLibLoaded;
+    private final DynamicLinker dynLinkGlobal;
 
     private int toolLibLoadedNumber;
 
@@ -97,8 +98,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         if(DEBUG) {
             System.err.println(Thread.currentThread().getName()+" - DynamicLibraryBundle.init start with: "+info.getClass().getName());
         }
-        nativeLibraries = new ArrayList<NativeLibrary>();
         toolLibNames = info.getToolLibNames();
+        toolLibraries = new ArrayList<NativeLibrary>(toolLibNames.size());
+        toolLibSymbolNames = info.getSymbolForToolLibPath();
         glueLibNames = info.getGlueLibNames();
         toolLibLoaded = new boolean[toolLibNames.size()];
         if(DEBUG) {
@@ -143,7 +145,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             System.err.println("DynamicLibraryBundle.init Summary: "+info.getClass().getName());
             System.err.println("     toolGetProcAddressFuncNameList: "+toolGetProcAddressFuncNameList+", complete: "+toolGetProcAddressComplete+", 0x"+Long.toHexString(toolGetProcAddressHandle));
             System.err.println("     Tool Lib Names : "+toolLibNames);
+            System.err.println("     Tool Lib Symbol: "+toolLibSymbolNames);
             System.err.println("     Tool Lib Loaded: "+getToolLibLoadedNumber()+"/"+getToolLibNumber()+" "+Arrays.toString(toolLibLoaded)+", complete "+isToolLibComplete());
+            System.err.println("     Tool Libraries : "+toolLibraries);
             System.err.println("     Glue Lib Names : "+glueLibNames);
             System.err.println("     Glue Lib Loaded: "+getGlueLibLoadedNumber()+"/"+getGlueLibNumber()+" "+Arrays.toString(glueLibLoaded)+", complete "+isGlueLibComplete());
             System.err.println("     All Complete: "+isLibComplete());
@@ -159,10 +163,13 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         toolGetProcAddressFuncNameSet = null;
         toolGetProcAddressHandle = 0;
         toolGetProcAddressComplete = false;
-        for(int i = 0; i<nativeLibraries.size(); i++) {
-            nativeLibraries.get(i).close();
+        for(int i = 0; i<toolLibraries.size(); i++) {
+            final NativeLibrary lib = toolLibraries.get(i);
+            if( null != lib ) {
+                lib.close();
+            }
         }
-        nativeLibraries.clear();
+        toolLibraries.clear();
         toolLibNames.clear();
         glueLibNames.clear();
         if(DEBUG) {
@@ -205,6 +212,12 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         }
         return false;
     }
+
+    /**
+     * Returns list of {@link NativeLibrary}s for each {@link DynamicLibraryBundleInfo#getToolLibNames()} in the same size and order.
+     * May contain elements with {@code null} for not loaded libs.
+     */
+    public final List<NativeLibrary> getToolLibraries() { return toolLibraries; }
 
     public final int getGlueLibNumber() {
         return glueLibNames.size();
@@ -252,9 +265,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     protected static final NativeLibrary loadFirstAvailable(final List<String> libNames,
                                                             final boolean searchSystemPath,
                                                             final boolean searchSystemPathFirst,
-                                                            final ClassLoader loader, final boolean global) throws SecurityException {
+                                                            final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
         for (int i=0; i < libNames.size(); i++) {
-            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), searchSystemPath, searchSystemPathFirst, loader, global);
+            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), searchSystemPath, searchSystemPathFirst, loader, global, symbolName);
             if (lib != null) {
                 return lib;
             }
@@ -271,11 +284,13 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
         for (i=0; i < toolLibNames.size(); i++) {
             final List<String> libNames = toolLibNames.get(i);
+            final String symbolName = toolLibSymbolNames.get(i);
             if( null != libNames && libNames.size() > 0 ) {
                 lib = loadFirstAvailable(libNames,
                                          info.searchToolLibInSystemPath(),
                                          info.searchToolLibSystemPathFirst(),
-                                         cl, info.shallLinkGlobal());
+                                         cl, info.shallLinkGlobal(), symbolName);
+                toolLibraries.add(lib);
                 if ( null == lib ) {
                     if(DEBUG) {
                         System.err.println("Unable to load any Tool library of: "+libNames);
@@ -284,13 +299,14 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
                     if( null == dynLinkGlobal ) {
                         dynLinkGlobal = lib.dynamicLinker();
                     }
-                    nativeLibraries.add(lib);
-                    toolLibLoaded[i]=true;
+                    toolLibLoaded[i] = true;
                     toolLibLoadedNumber++;
                     if(DEBUG) {
                         System.err.println("Loaded Tool library: "+lib);
                     }
                 }
+            } else {
+                toolLibraries.add(null); // same size and order as toolLibNames!
             }
         }
         if( toolLibNames.size() > 0 && !isToolLibLoaded() ) {
@@ -347,16 +363,19 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
             addr = dynLinkGlobal.lookupSymbolGlobal(funcName);
         }
         // Look up this function name in all known libraries
-        for (int i=0; 0==addr && i < nativeLibraries.size(); i++) {
-            lib = nativeLibraries.get(i);
-            addr = lib.dynamicLookupFunction(funcName);
+        for (int i=0; 0==addr && i < toolLibraries.size(); i++) {
+            final NativeLibrary lib0 = toolLibraries.get(i);
+            if( null != lib0 ) {
+                lib = lib0;
+                addr = lib0.dynamicLookupFunction(funcName);
+            }
         }
         if(DEBUG_LOOKUP) {
             final String libName = ( null == lib ) ? "GLOBAL" : lib.toString();
             if(0!=addr) {
                 System.err.println("Lookup-Native: <" + funcName + "> 0x" + Long.toHexString(addr) + " in lib " + libName );
             } else {
-                System.err.println("Lookup-Native: <" + funcName + "> ** FAILED ** in libs " + nativeLibraries);
+                System.err.println("Lookup-Native: <" + funcName + "> ** FAILED ** in libs " + toolLibraries);
             }
         }
         return addr;
@@ -377,14 +396,20 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     @Override
     public final void claimAllLinkPermission() throws SecurityException {
-        for (int i=0; i < nativeLibraries.size(); i++) {
-            nativeLibraries.get(i).claimAllLinkPermission();
+        for(int i = 0; i<toolLibraries.size(); i++) {
+            final NativeLibrary lib = toolLibraries.get(i);
+            if( null != lib ) {
+                lib.claimAllLinkPermission();
+            }
         }
     }
     @Override
     public final void releaseAllLinkPermission() throws SecurityException {
-        for (int i=0; i < nativeLibraries.size(); i++) {
-            nativeLibraries.get(i).releaseAllLinkPermission();
+        for(int i = 0; i<toolLibraries.size(); i++) {
+            final NativeLibrary lib = toolLibraries.get(i);
+            if( null != lib ) {
+                lib.releaseAllLinkPermission();
+            }
         }
     }
 

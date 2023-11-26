@@ -1,5 +1,5 @@
 /**
- * Copyright 2013 JogAmp Community. All rights reserved.
+ * Copyright 2013-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -70,6 +70,19 @@ public interface DynamicLinker {
    * @throws SecurityException if user is not granted access for the named library.
    */
   public long openLibraryLocal(String pathname, boolean debug) throws SecurityException;
+
+  /**
+   * Security checks are implicit by previous call of
+   * {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}
+   * retrieving the <code>librarHandle</code>.
+   *
+   * @param libraryHandle a library handle previously retrieved via {@link #openLibraryLocal(String, boolean)} or {@link #openLibraryGlobal(String, boolean)}.
+   * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
+   * @return the library pathname if found and supported by OS or {@code null}.
+   * @throws IllegalArgumentException in case case <code>libraryHandle</code> is unknown.
+   * @throws SecurityException if user is not granted access for the given library handle
+   */
+  public String lookupLibraryPathname(long libraryHandle, String symbolName) throws SecurityException;
 
   /**
    * If a {@link SecurityManager} is installed, user needs link permissions

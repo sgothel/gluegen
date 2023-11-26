@@ -57,8 +57,9 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest1p2();
-        dynamicLookupHelper = NativeLibrary.open("test1", false, false, Test1p2ProcAddressEmitter.class.getClassLoader(), true);
+        dynamicLookupHelper = NativeLibrary.open("test1", false, false, Test1p2ProcAddressEmitter.class.getClassLoader(), true, "testXID");
         Assert.assertNotNull("NativeLibrary.open(test1) failed", dynamicLookupHelper);
+        System.err.println("Loaded: "+dynamicLookupHelper);
 
         Bindingtest1p2Impl.resetProcAddressTable(dynamicLookupHelper);
     }

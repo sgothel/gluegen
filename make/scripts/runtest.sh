@@ -149,7 +149,7 @@ function onetest() {
 #onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
-onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.TestJCPP $* 2>&1 | tee -a $LOG
@@ -171,7 +171,7 @@ onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
-#onetest com.jogamp.gluegen.test.junit.generation.Test1p2DynamicLibraryBundle 2>&1 | tee -a $LOG
+onetest com.jogamp.gluegen.test.junit.generation.Test1p2DynamicLibraryBundle 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test2p1FuncPtr 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test2p2FuncPtr 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test3p1PtrStorage 2>&1 | tee -a $LOG

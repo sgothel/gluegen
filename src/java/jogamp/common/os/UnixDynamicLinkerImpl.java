@@ -47,6 +47,20 @@ package jogamp.common.os;
   /** Interface to C language function: <br> <code> void *  dlsym(void * , const char * ); </code>    */
   protected static native long dlsym(long arg0, java.lang.String arg1);
 
+  /** Interface to C language function: <br> <code> int dladdr(void * , Dl_info *); </code>, returning the <code>Dl_info.dli_fname</code> */
+  protected static native java.lang.String dladdr_fname(long arg0);
+
+  @Override
+  protected final String lookupLibraryPathnameImpl(final long libraryHandle, final String symbolName) throws SecurityException {
+      if( 0 != libraryHandle && null != symbolName && symbolName.length() > 0 ) {
+          final long addr = dlsym(libraryHandle, symbolName);
+          if( 0 != addr ) {
+              return dladdr_fname(addr);
+          }
+      }
+      return null;
+  }
+
   @Override
   protected final long lookupSymbolLocalImpl(final long libraryHandle, final String symbolName) throws SecurityException {
       return 0 != libraryHandle ? dlsym(libraryHandle, symbolName) : 0;

@@ -49,8 +49,9 @@ public class Test3p2PtrStorage extends BaseClass3PtrStorage {
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest2p2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test3p2PtrStorage.class.getClassLoader(), true);
+        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test3p2PtrStorage.class.getClassLoader(), true, "textXID");
         Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
+        System.err.println("Loaded: "+dynamicLookupHelper);
 
         Bindingtest2p2Impl.resetProcAddressTable(dynamicLookupHelper);
     }

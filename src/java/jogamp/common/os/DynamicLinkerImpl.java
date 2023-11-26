@@ -45,6 +45,7 @@ import com.jogamp.common.util.SecurityUtil;
   /**
    * @throws SecurityException if user is not granted global access
    */
+  @Override
   public final void claimAllLinkPermission() throws SecurityException {
       synchronized( secSync ) {
           allLinkPermissionGranted = true;
@@ -54,6 +55,7 @@ import com.jogamp.common.util.SecurityUtil;
   /**
    * @throws SecurityException if user is not granted global access
    */
+  @Override
   public final void releaseAllLinkPermission() throws SecurityException {
       synchronized( secSync ) {
           allLinkPermissionGranted = false;
@@ -118,6 +120,17 @@ import com.jogamp.common.util.SecurityUtil;
     return handle;
   }
   protected abstract long openLibraryLocalImpl(final String pathname) throws SecurityException;
+
+  @Override
+  public final String lookupLibraryPathname(final long libraryHandle, final String symbolName) throws SecurityException {
+    checkLinkPermission(libraryHandle);
+    final String fname = lookupLibraryPathnameImpl(libraryHandle, symbolName);
+    if(DEBUG_LOOKUP) {
+        System.err.println("DynamicLinkerImpl.lookupLibraryPathname(0x"+Long.toHexString(libraryHandle)+", "+symbolName+") -> '"+fname+"'");
+    }
+    return fname;
+  }
+  protected abstract String lookupLibraryPathnameImpl(final long libraryHandle, String symbolName) throws SecurityException;
 
   @Override
   public final long lookupSymbolGlobal(final String symbolName) throws SecurityException {

@@ -37,6 +37,7 @@ import com.jogamp.common.util.RunnableExecutor;
 import com.jogamp.common.util.TestIOUtil01;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -58,6 +59,7 @@ public class Test1p2DynamicLibraryBundle extends BaseClass {
     public static void chapter__TestLoadLibrary() throws Exception {
         dlb = new DynamicLibraryBundle(new Test1DynLibBundleInfo());
         Assert.assertTrue("DynamicLibraryBundle failed", dlb.isLibComplete());
+        System.err.println("Loaded: "+dlb.getToolLibraries());
 
         Bindingtest1p2Impl.resetProcAddressTable(dlb);
     }
@@ -260,6 +262,9 @@ public class Test1p2DynamicLibraryBundle extends BaseClass {
 
             return libNamesList;
         }
+
+        @Override
+        public List<String> getSymbolForToolLibPath() { return Arrays.asList("testXID"); }
 
         @Override
         public final List<String> getToolGetProcAddressFuncNameList() {

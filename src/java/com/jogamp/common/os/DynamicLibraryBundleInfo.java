@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -63,6 +63,11 @@ public interface DynamicLibraryBundleInfo {
      * </pre>
      */
     public List<List<String>> getToolLibNames();
+
+    /**
+     * Returns optional list of optional symbol names per {@link #getToolLibNames()} in same order for an OS which requires the symbol's address to retrieve the path of the containing library.
+     */
+    public List<String> getSymbolForToolLibPath();
 
     /**
      * If a {@link SecurityManager} is installed, user needs link permissions

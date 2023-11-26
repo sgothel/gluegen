@@ -49,8 +49,9 @@ public class Test4p2JavaCallback extends BaseClass4JavaCallback {
     @BeforeClass
     public static void chapter__TestLoadLibrary() throws Exception {
         BindingJNILibLoader.loadBindingtest2p2();
-        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test4p2JavaCallback.class.getClassLoader(), true);
+        dynamicLookupHelper = NativeLibrary.open("test2", false, false, Test4p2JavaCallback.class.getClassLoader(), true, "textXID");
         Assert.assertNotNull("NativeLibrary.open(test2) failed", dynamicLookupHelper);
+        System.err.println("Loaded: "+dynamicLookupHelper);
 
         Bindingtest2p2Impl.resetProcAddressTable(dynamicLookupHelper);
     }
