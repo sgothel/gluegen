@@ -800,6 +800,14 @@ public class IOUtil {
               return "#!/bin/true"+PlatformPropsImpl.NEWLINE;
         }
     }
+    private static String getExeNativePath(final String canonicalPath) {
+        switch(PlatformPropsImpl.OS_TYPE) {
+            case WINDOWS:
+              return "\""+canonicalPath+"\"";
+            default:
+              return canonicalPath;
+        }
+    }
     private static String[] getExeTestCommandArgs(final String scriptFile) {
         switch(PlatformPropsImpl.OS_TYPE) {
             case WINDOWS:
@@ -1045,7 +1053,7 @@ public class IOUtil {
                 existingExe = false;
                 fillExeTestFile(exeTestFile);
             }
-            exeNativePath = "\""+exeTestFile.getCanonicalPath()+"\"";
+            exeNativePath = getExeNativePath( exeTestFile.getCanonicalPath() );
         } catch (final SecurityException se) {
             throw se; // fwd Security exception
         } catch (final IOException e) {
