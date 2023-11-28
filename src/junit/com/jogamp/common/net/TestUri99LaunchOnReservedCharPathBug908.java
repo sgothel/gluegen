@@ -110,6 +110,11 @@ public class TestUri99LaunchOnReservedCharPathBug908 extends SingletonJunitCase 
          */
 
     }
+    @Test
+    public void test02TempJarCacheOddPath() throws IOException, IllegalArgumentException, URISyntaxException {
+        // Bug 1474, issues w/ windows file path char: ( )
+        testTempJarCacheOddJarPathImpl("Users/(ABC)abc/AppData/Local/Temp/");
+    }
     private void testTempJarCacheOddJarPathImpl(final String subPathUTF) throws IOException, IllegalArgumentException, URISyntaxException {
         if(AndroidVersion.isAvailable) { System.err.println("n/a on Android"); return; }
 

@@ -1,14 +1,15 @@
-REM set TEMP=C:\Documents and Settings\jogamp\temp-exec
-REM set TMP=C:\Documents and Settings\jogamp\temp-exec
-REM set TEMP=C:\Users\jogamp\temp-exec
-REM set TMP=C:\Users\jogamp\temp-exec
+REM set TEMP=C:\Documents and Settings\test\temp-exec
+REM set TMP=C:\Documents and Settings\test\temp-exec
+REM set TEMP=C:\Users\test\temp-exec
+REM set TMP=C:\Users\test\temp-exec
+REM set TMP=C:\Users\test\(ABC)abc\temp
 
-REM scripts\java-win64.bat com.jogamp.common.GlueGenVersion 
+scripts\java-win64.bat com.jogamp.common.GlueGenVersion 
 REM scripts\java-win64.bat com.jogamp.common.util.TestVersionInfo
 
 REM scripts\java-win64.bat com.jogamp.gluegen.jcpp.IncludeAbsoluteTest
 
-scripts\java-win64.bat com.jogamp.gluegen.test.junit.generation.TestJCPP
+REM scripts\java-win64.bat com.jogamp.gluegen.test.junit.generation.TestJCPP
 REM scripts\java-win64.bat com.jogamp.gluegen.test.junit.generation.TestCParser
 
 REM scripts\java-win64.bat com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter

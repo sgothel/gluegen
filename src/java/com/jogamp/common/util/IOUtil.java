@@ -1033,6 +1033,7 @@ public class IOUtil {
 
         final long t0 = debug ? System.currentTimeMillis() : 0;
         final File exeTestFile;
+        String exeNativePath;
         final boolean existingExe;
         try {
             final File permExeTestFile = DEBUG_EXE_EXISTING_FILE ? new File(dir, "jogamp_exe_tst"+getExeTestFileSuffix()) : null;
@@ -1044,6 +1045,7 @@ public class IOUtil {
                 existingExe = false;
                 fillExeTestFile(exeTestFile);
             }
+            exeNativePath = "\""+exeTestFile.getCanonicalPath()+"\"";
         } catch (final SecurityException se) {
             throw se; // fwd Security exception
         } catch (final IOException e) {
@@ -1072,7 +1074,7 @@ public class IOUtil {
                     // Using 'Process.exec(String[])' avoids StringTokenizer of 'Process.exec(String)'
                     // and hence splitting up command by spaces!
                     // Note: All no-exec cases throw an IOExceptions at ProcessBuilder.start(), i.e. below exec() call!
-                    pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeTestFile.getCanonicalPath() ), null, null );
+                    pr = Runtime.getRuntime().exec( getExeTestCommandArgs( exeNativePath ), null, null );
                     if( DEBUG_EXE && !DEBUG_EXE_NOSTREAM ) {
                         new StreamMonitor(new InputStream[] { pr.getInputStream(), pr.getErrorStream() }, System.err, "Exe-Tst: ");
                     }
@@ -1089,7 +1091,7 @@ public class IOUtil {
                     t2 = debug ? System.currentTimeMillis() : 0;
                     res = -3;
                     if( debug ) {
-                        System.err.println("IOUtil.testDirExec: <"+exeTestFile.getAbsolutePath()+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
+                        System.err.println("IOUtil.testDirExec: <"+exeNativePath+">: Caught "+t.getClass().getSimpleName()+": "+t.getMessage());
                         t.printStackTrace();
                     }
                 } finally {
@@ -1115,7 +1117,7 @@ public class IOUtil {
         }
         if( debug ) {
             final long t3 = System.currentTimeMillis();
-            System.err.println("IOUtil.testDirExec(): test-exe <"+exeTestFile.getAbsolutePath()+">, existingFile "+existingExe+", isNioExec "+isNioExec+", returned "+exitValue);
+            System.err.println("IOUtil.testDirExec(): test-exe <"+exeNativePath+">, existingFile "+existingExe+", isNioExec "+isNioExec+", returned "+exitValue);
             System.err.println("IOUtil.testDirExec(): abs-path <"+dir.getAbsolutePath()+">: res "+res+" -> "+ok);
             System.err.println("IOUtil.testDirExec(): total "+(t3-t0)+"ms, create "+(t1-t0)+"ms, fill "+(t2-t1)+"ms, execute "+(t3-t2)+"ms");
         }
