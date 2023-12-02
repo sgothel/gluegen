@@ -627,8 +627,6 @@ public final class JavaCallbackEmitter {
                 if( 0 < consumedCount ) { unit.emit(", "); }
                 if( idx == info.cbFuncUserParamIdx && !useParamLocal[0] ) {
                     unit.emit("value.param");
-                } else if( jType.isPascalLen() ){
-                    unit.emit( "/* "+name+" */");
                 } else {
                     unit.emit(name);
                 }
