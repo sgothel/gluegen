@@ -648,7 +648,7 @@ this case is most useful in conjunction with
 
 **<span id="ArgumentIsString">ArgumentIsString</span>**  
 Syntax:
-`ArgumentIsString [function name]                                 [indices...]`
+`ArgumentIsString [function name] [indices...]`
 where the first argument index is 0  
 (optional) For a C function with one or more outgoing `char*` (or
 compatible data type) arguments, indicates that those arguments are
@@ -658,7 +658,7 @@ as java.lang.String objects rather than `byte[]` or `ByteBuffer`.
 
 **<span id="ArgumentIsPascalString">ArgumentIsPascalString</span>**  
 Syntax:
-`ArgumentIsPascalString [function name]                                 [indice-tuples...]`,
+`ArgumentIsPascalString [function name] [indice-tuples...]`,
 with each tuple being the argument-index for the '`int length`' and the
 '`char* value`' argument with index 0 for the the first argument  
 (optional) For a C function with one or more outgoing '`int length`' and
@@ -666,7 +666,8 @@ with each tuple being the argument-index for the '`int length`' and the
 those arguments are semantically non-null-terminated Pascal strings
 rather than null-terminated C strings or arbitrary arrays of bytes. The
 generated glue code will be modified to emit those arguments as
-java.lang.String objects rather than `byte[]` or `ByteBuffer`.
+java.lang.String objects rather than `byte[]` or `ByteBuffer`
+as well as dropping the redundant '`int length`' argument on the Java side.
 
 **<span id="ClassJavadoc">ClassJavadoc</span>**  
 Syntax: `ClassJavadoc [class name] [code...]`  

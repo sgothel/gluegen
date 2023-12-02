@@ -385,7 +385,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
         continue;
       }
 
-      if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
+      if ( type.isJNIEnv() || type.isPascalLen() || binding.isArgumentThisPointer(i) ) {
         // Don't need to expose these at the Java level
         continue;
       }
@@ -661,7 +661,7 @@ public class JavaMethodBindingEmitter extends FunctionEmitter {
     }
     for (int i = 0; i < binding.getNumArguments(); i++) {
       final JavaType type = binding.getJavaArgumentType(i);
-      if (type.isJNIEnv() || binding.isArgumentThisPointer(i)) {
+      if (type.isJNIEnv() || type.isPascalLen() || binding.isArgumentThisPointer(i)) {
         // Don't need to expose these at the Java level
         continue;
       }

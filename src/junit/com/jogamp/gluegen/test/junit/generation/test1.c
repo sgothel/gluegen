@@ -1056,3 +1056,14 @@ MYAPI void MYAPIENTRY destroyTKModelMixed(TK_ModelMixed * s) {
     free(s);
 }
 
+MYAPI int addStrlenAndPascalStrLen(int length, const char* val) {
+    if( NULL == val ) {
+        fprintf(stderr, "addStrlenAndPascalStrLen: %d + %d of NULL\n", 0, length);
+        return length;
+    } else {
+        int len2 = (int)strlen(val);
+        fprintf(stderr, "addStrlenAndPascalStrLen: %d + %d of '%s'\n", len2, length, val);
+        return len2 + length;
+    }
+}
+

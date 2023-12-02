@@ -1078,9 +1078,8 @@ using <a href="#CustomJavaCode">CustomJavaCode</a> to write the exposed
 API. In this case is most useful in conjunction with <a
 href="#RenameJavaMethod">RenameJavaMethod</a>.</p>
 <p><strong><span id="ArgumentIsString">ArgumentIsString</span></strong><br />
-Syntax:
-<code>ArgumentIsString [function name]                                 [indices...]</code>
-where the first argument index is 0<br />
+Syntax: <code>ArgumentIsString [function name] [indices...]</code> where
+the first argument index is 0<br />
 (optional) For a C function with one or more outgoing <code>char*</code>
 (or compatible data type) arguments, indicates that those arguments are
 semantically null-terminated C strings rather than arbitrary arrays of
@@ -1089,7 +1088,7 @@ as java.lang.String objects rather than <code>byte[]</code> or
 <code>ByteBuffer</code>.</p>
 <p><strong><span id="ArgumentIsPascalString">ArgumentIsPascalString</span></strong><br />
 Syntax:
-<code>ArgumentIsPascalString [function name]                                 [indice-tuples...]</code>,
+<code>ArgumentIsPascalString [function name] [indice-tuples...]</code>,
 with each tuple being the argument-index for the
 '<code>int length</code>' and the '<code>char* value</code>' argument
 with index 0 for the the first argument<br />
@@ -1099,7 +1098,8 @@ data type) arguments, indicates that those arguments are semantically
 non-null-terminated Pascal strings rather than null-terminated C strings
 or arbitrary arrays of bytes. The generated glue code will be modified
 to emit those arguments as java.lang.String objects rather than
-<code>byte[]</code> or <code>ByteBuffer</code>.</p>
+<code>byte[]</code> or <code>ByteBuffer</code> as well as dropping the
+redundant '<code>int length</code>' argument on the Java side.</p>
 <p><strong><span id="ClassJavadoc">ClassJavadoc</span></strong><br />
 Syntax: <code>ClassJavadoc [class name] [code...]</code><br />
 (optional) Causes the specified line of code to be emitted in the

@@ -161,16 +161,21 @@ public class Test1p1JavaEmitter extends BaseClass {
     }
 
     @Test
-    public void chapter15TestTKMixed() throws Exception {
-        chapter15TestTKMixed(new Bindingtest1p1Impl());
+    public void chapter14TestTKMixed() throws Exception {
+        chapter14TestTKMixed(new Bindingtest1p1Impl());
     }
 
     /**
      * Test Custom JNI Code invocation
      */
     @Test
-    public void chapter14TestCustomJNICode() throws Exception {
-        chapter14TestCustomJNICode(new Bindingtest1p1Impl());
+    public void chapter15TestCustomJNICode() throws Exception {
+        chapter15TestCustomJNICode(new Bindingtest1p1Impl());
+    }
+
+    @Test
+    public void chapter16TestPascalString() throws Exception {
+        chapter16TestPascalString(new Bindingtest1p1Impl());
     }
 
     public static void main(final String args[]) throws IOException {

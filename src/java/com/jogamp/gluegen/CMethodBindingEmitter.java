@@ -384,7 +384,7 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         assert(binding.getNumArguments() == 1);
         continue;
       }
-      if (javaArgType.isJNIEnv() || binding.isArgumentThisPointer(i)) {
+      if (javaArgType.isJNIEnv() || javaArgType.isPascalLen() || binding.isArgumentThisPointer(i)) {
         continue;
       }
       buf.append(", ");
@@ -730,11 +730,16 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           unit.emitln(", _copyIndex);");
 
           if (javaArgType.isStringArray()) {
+            if ( javaArgType.isPascalStr() ) {
+                throw new GlueGenException(
+                  "Cannot handle String[] of type PascalString java " + javaArgType.getDebugString() + ", c "+  cArgType.getDebugString() +
+                  "\": "+binding, binding.getCSymbol().getASTLocusTag());
+            }
             unit.emit("  ");
             emitGetStringChars("(jstring) _tmpObj",
                                convName+"_copy[_copyIndex]",
                                isUTF8Type(cArgType),
-                               true);
+                               false, true);
           } else if (javaArgType.isNIOBufferArray()) {
             /* We always assume an integer "byte offset" argument follows any Buffer
                in the method binding. */
@@ -791,10 +796,13 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         unit.emitln("  }");
 
       } else if (javaArgType.isString()) {
+        if ( javaArgType.isPascalStr() ) {
+          unit.emitln("  size_t "+STRING_CHARS_PREFIX + javaArgName + "_len;");
+        }
         emitGetStringChars(javaArgName,
                            STRING_CHARS_PREFIX + javaArgName,
                            isUTF8Type(binding.getCArgumentType(i)),
-                           false);
+                           javaArgType.isPascalStr(), false);
       }
     }
   }
@@ -953,6 +961,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
 
       if (javaArgType.isJNIEnv()) {
         unit.emit("env");
+      } else if( javaArgType.isPascalLen() ) {
+        final Type cArgType = binding.getCArgumentType(i);
+        unit.emit("  ("+cArgType.getCName(true)+") "+STRING_CHARS_PREFIX + binding.getArgumentName(javaArgType.pascalStrElem.valueIdx) + "_len");
       } else if (binding.isArgumentThisPointer(i)) {
         unit.emit(CMethodBindingEmitter.cThisArgumentName());
       } else {
@@ -1182,11 +1193,10 @@ public class CMethodBindingEmitter extends FunctionEmitter {
         }
         unit.emitln("  }");
     } else if (javaType.isString()) {
-        final boolean pascalString = javaType.isPascalStringVariant();
+        final boolean pascalString = javaType.isPascalStrElem();
         final String lenArgName;
         if( pascalString ) {
-            final int lenIdx = cfg.pascalStringLengthIndex(getCSymbol(), argIdx);
-            lenArgName = 0 <= lenIdx ? binding.getArgumentName(lenIdx) : null;
+            lenArgName = binding.getArgumentName( javaType.pascalStrElem.lengthIdx );
         } else {
             lenArgName = null;
         }
@@ -1315,7 +1325,9 @@ public class CMethodBindingEmitter extends FunctionEmitter {
           throw new GlueGenException("Saw illegal \"void\" argument while emitting arg "+i+" of "+binding,
                                      binding.getCArgumentType(i).getASTLocusTag());
         }
-      } else {
+      } else if ( type.isPascalLen() ) {
+          // drop
+      } else  {
         Class<?> c = type.getJavaClass();
         if (c != null) {
           JavaType.appendJNIDescriptor(buf, c, false);
@@ -1411,10 +1423,19 @@ public class CMethodBindingEmitter extends FunctionEmitter {
   private void emitGetStringChars(final String sourceVarName,
                                   final String receivingVarName,
                                   final boolean isUTF8,
+                                  final boolean addLengthVar,
                                   final boolean emitElseClause)  {
     unit.emitln("  if ( NULL != " + sourceVarName + " ) {");
 
+    if( addLengthVar ) {
+      unit.emit("    "+receivingVarName+"_len = (size_t) ");
+    }
     if (isUTF8) {
+      if( addLengthVar ) {
+          unit.emit(" (*env)->GetStringUTFLength(env, ");
+          unit.emit(sourceVarName);
+          unit.emitln(");");
+      }
       unit.emit("    ");
       unit.emit(receivingVarName);
       unit.emit(" = (*env)->GetStringUTFChars(env, ");
@@ -1431,11 +1452,25 @@ public class CMethodBindingEmitter extends FunctionEmitter {
       // null-terminated Unicode string. For this reason we explicitly
       // calloc our buffer, including the null terminator, and use
       // GetStringRegion to fetch the string's characters.
-      emitCalloc(receivingVarName,
-                 "jchar",
-                 "(*env)->GetStringLength(env, " + sourceVarName + ") + 1",
-                 "Could not allocate temporary buffer for copying string argument \\\""+sourceVarName+"\\\"");
+      if( addLengthVar ) {
+          unit.emit(" (*env)->GetStringLength(env, ");
+          unit.emit(sourceVarName);
+          unit.emitln(");");
+          emitCalloc(receivingVarName,
+                     "jchar",
+                     receivingVarName+"_len + 1",
+                     "Could not allocate temporary buffer for copying string argument \\\""+sourceVarName+"\\\"");
+      } else {
+          emitCalloc(receivingVarName,
+                     "jchar",
+                     "(*env)->GetStringLength(env, " + sourceVarName + ") + 1",
+                     "Could not allocate temporary buffer for copying string argument \\\""+sourceVarName+"\\\"");
+      }
       unit.emitln("    (*env)->GetStringRegion(env, " + sourceVarName + ", 0, (*env)->GetStringLength(env, " + sourceVarName + "), " + receivingVarName + ");");
+    }
+    if( addLengthVar ) {
+        unit.emitln("  } else {");
+        unit.emitln("    "+receivingVarName+"_len = 0;");
     }
     unit.emit("  }");
     if (emitElseClause) {

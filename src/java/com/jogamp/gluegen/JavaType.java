@@ -41,6 +41,8 @@
 package com.jogamp.gluegen;
 
 import java.nio.*;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.jogamp.gluegen.cgram.types.*;
 
@@ -59,13 +61,67 @@ public class JavaType {
       VOID, CHAR, SHORT, INT32, INT64, FLOAT, DOUBLE;
   }
 
-  private final Class<?> clazz; // Primitive types and other types representable as Class objects
+  /** Pascal string argument index tuple for length and value. */
+public static class PascalStringElem {
+    public final int lengthIdx;
+    public final int valueIdx;
+
+    PascalStringElem(final int lenIdx, final int valIdx) {
+        lengthIdx = lenIdx;
+        valueIdx = valIdx;
+    }
+
+    public static final List<Integer> pushValueIndex(final List<PascalStringElem> source, List<Integer> indices) {
+        if( null == indices ) {
+            indices = new ArrayList<Integer>(2);
+        }
+        for(final PascalStringElem p : source) {
+            indices.add(p.valueIdx);
+        }
+        return indices;
+    }
+    public static final List<Integer> pushLengthIndex(final List<PascalStringElem> source) {
+        final List<Integer> lengths = new ArrayList<Integer>(2);
+        for(final PascalStringElem p : source) {
+            lengths.add(p.lengthIdx);
+        }
+        return lengths;
+    }
+
+    public static PascalStringElem getByValueIdx(final List<PascalStringElem> pascals, final int valueIdx) {
+        if( null != pascals ) {
+            for(final PascalStringElem p : pascals) {
+                if( valueIdx == p.valueIdx ) {
+                    return p;
+                }
+            }
+        }
+        return null;
+    }
+    public static PascalStringElem getByLengthIdx(final List<PascalStringElem> pascals, final int lengthIdx) {
+        if( null != pascals ) {
+            for(final PascalStringElem p : pascals) {
+                if( lengthIdx == p.lengthIdx ) {
+                    return p;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        return "PascalStr[lenIdx "+lengthIdx+", valIdx "+valueIdx+"]";
+    }
+}
+
+private final Class<?> clazz; // Primitive types and other types representable as Class objects
   private final String clazzName; // Future (not yet generated or existing) Class objects (existing at runtime)
   private final String structName;  // Types we're generating glue code for (i.e., C structs)
   private final Type   elementType; // Element type if this JavaType represents a C array
   private final C_PTR  primitivePointerType;
   private final boolean opaqued;
-  private final boolean pascalString;
+  public final PascalStringElem pascalStrElem;
 
   private static JavaType objectType;
   private static JavaType nioBufferType;
@@ -131,7 +187,7 @@ public class JavaType {
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
   public static JavaType createForOpaqueClass(final Class<?> clazz) {
-    return new JavaType(clazz, true, false);
+    return new JavaType(clazz, true, null);
   }
 
   /** Creates a JavaType corresponding to the given Java type. This
@@ -139,11 +195,10 @@ public class JavaType {
       the emitters understand how to perform proper conversion from
       the corresponding C type. */
   public static JavaType createForClass(final Class<?> clazz) {
-    return new JavaType(clazz, false, false);
+    return new JavaType(clazz, false, null);
   }
-
-  public static JavaType createForStringClass(final Class<?> clazz, final boolean pascalString) {
-    return new JavaType(clazz, false, pascalString);
+  public static JavaType createForStringClass(final Class<?> clazz, final PascalStringElem pascalStrElem) {
+    return new JavaType(clazz, false, pascalStrElem);
   }
 
   /**
@@ -567,11 +622,11 @@ public class JavaType {
     return (clazz == java.lang.String.class);
   }
 
-  public boolean isPascalStringVariant() { return pascalString; }
+  public boolean isPascalStrElem() { return null != pascalStrElem; }
 
-  public boolean isPascalString() {
-    return isString() && this.pascalString;
-  }
+  public boolean isPascalStr() { return isPascalStrElem() && isString() ; }
+
+  public boolean isPascalLen() { return isPascalStrElem() && !isString() ; }
 
   public boolean isArray() {
     return ((clazz != null) && clazz.isArray());
@@ -605,9 +660,7 @@ public class JavaType {
      return (clazz != null && clazz.isArray() && clazz.getComponentType() == java.lang.String.class);
   }
 
-  public boolean isPascalStringArray() {
-    return isStringArray() && this.pascalString;
-  }
+  public boolean isPascalStrArray() { return isPascalStrElem() && isStringArray() ; }
 
   public boolean isPrimitive() {
     return ((clazz != null) && !isArray() && clazz.isPrimitive() && (clazz != Void.TYPE));
@@ -696,7 +749,7 @@ public class JavaType {
 
   @Override
   public Object clone() {
-    return new JavaType(primitivePointerType, clazz, clazzName, structName, elementType, pascalString);
+    return new JavaType(primitivePointerType, clazz, clazzName, structName, elementType, pascalStrElem);
   }
 
   @Override
@@ -747,16 +800,13 @@ public class JavaType {
         if( isOpaqued() ) {
             append(sb, "opaque", prepComma); prepComma=true;
         }
+        if( isPascalStrElem() ) {
+            sb.append("pascal ");
+        }
         if( isString() ) {
-            if( pascalString ) {
-                sb.append("pascal ");
-            }
             append(sb, "string", prepComma); prepComma=true;
         }
         if( isStringArray() ) {
-            if( pascalString ) {
-                sb.append("pascal ");
-            }
             append(sb, "stringArray", prepComma); prepComma=true;
         } else if( isArray() ) {
             append(sb, "array", prepComma); prepComma=true;
@@ -800,7 +850,7 @@ public class JavaType {
    * Constructs a representation for a type corresponding to the given Class
    * argument.
    */
-  private JavaType(final Class<?> clazz, final boolean opaqued, final boolean pascalString) {
+  private JavaType(final Class<?> clazz, final boolean opaqued, final PascalStringElem pascalStrElem) {
     if( null == clazz ) {
         throw new IllegalArgumentException("null clazz passed");
     }
@@ -810,7 +860,7 @@ public class JavaType {
     this.structName = null;
     this.elementType = null;
     this.opaqued = opaqued;
-    this.pascalString = pascalString;
+    this.pascalStrElem = pascalStrElem;
   }
 
   /** Constructs a type representing a either a named clazz or a named C struct.*/
@@ -831,7 +881,7 @@ public class JavaType {
     this.clazz = null;
     this.elementType = null;
     this.opaqued = false;
-    this.pascalString = false;
+    this.pascalStrElem = null;
   }
 
   /** Constructs a type representing a pointer to a C primitive
@@ -846,7 +896,7 @@ public class JavaType {
     this.structName = null;
     this.elementType = null;
     this.opaqued = false;
-    this.pascalString = false;
+    this.pascalStrElem = null;
   }
 
   /** Constructs a type representing an array of C pointers. */
@@ -860,18 +910,28 @@ public class JavaType {
     this.structName = null;
     this.elementType = elementType;
     this.opaqued = false;
-    this.pascalString = false;
+    this.pascalStrElem = null;
   }
 
   /** clone only */
-  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String clazzName, final String structName, final Type elementType, final boolean pascalString) {
+  private JavaType(final C_PTR primitivePointerType, final Class<?> clazz, final String clazzName, final String structName, final Type elementType,
+                   final PascalStringElem pascalStrElem)
+  {
     this.primitivePointerType = primitivePointerType;
     this.clazz = clazz;
     this.clazzName = clazzName;
     this.structName = structName;
     this.elementType = elementType;
     this.opaqued = false;
-    this.pascalString = pascalString;
+    this.pascalStrElem = pascalStrElem;
+  }
+  /** Copy ctor */
+  public JavaType(final JavaType o) {
+      this(o.primitivePointerType, o.clazz, o.clazzName, o.structName, o.elementType, o.pascalStrElem);
+  }
+  /** Copy ctor w/ pascalString variant override */
+  public JavaType(final JavaType o, final PascalStringElem pascalStrElem) {
+      this(o.primitivePointerType, o.clazz, o.clazzName, o.structName, o.elementType, pascalStrElem);
   }
 
   private static String arrayName(Class<?> clazz) {

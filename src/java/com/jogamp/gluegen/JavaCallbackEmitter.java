@@ -483,7 +483,7 @@ public final class JavaCallbackEmitter {
         final StringBuilder buf = new StringBuilder();
         buf.append("(");
         info.cbFuncBinding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
-            if( !cType.isVoid() ) {
+            if( !cType.isVoid() && !jType.isPascalLen() ) {
                 if( idx == info.cbFuncUserParamIdx ) {
                     buf.append("J");
                 } else {
@@ -568,7 +568,7 @@ public final class JavaCallbackEmitter {
         final boolean[] mapNativePtrToCompound = { false };
         final JavaType[] origUserParamJType = { null };
         info.cbFuncBinding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
-            if( !cType.isVoid() ) {
+            if( !cType.isVoid() && !jType.isPascalLen() ) {
                 if( 0 < consumedCount ) { unit.emit(", "); }
                 if( idx == info.cbFuncUserParamIdx ) {
                     unit.emit("long nativeUserParam");
@@ -623,10 +623,12 @@ public final class JavaCallbackEmitter {
         }
         unit.emit("value.func.callback(");
         info.cbFuncBinding.forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
-            if( !cType.isVoid() ) {
+            if( !cType.isVoid() && !jType.isPascalLen() ) {
                 if( 0 < consumedCount ) { unit.emit(", "); }
                 if( idx == info.cbFuncUserParamIdx && !useParamLocal[0] ) {
                     unit.emit("value.param");
+                } else if( jType.isPascalLen() ){
+                    unit.emit( "/* "+name+" */");
                 } else {
                     unit.emit(name);
                 }
@@ -834,7 +836,7 @@ public final class JavaCallbackEmitter {
             }
             unit.emit("(*env)->CallStatic" + CodeGenUtils.capitalizeString( jretType.getName() ) +"Method(env, cbClazz, cbMethod, ");
             // javaCallback.cbFuncCEmitter.emitBodyPassCArguments();
-            emitJavaCallbackBodyPassJavaArguments(unit);
+            emitCBodyPassArguments(unit);
             unit.emitln(");");
             unit.emitln("  if( (*env)->ExceptionCheck(env) ) {");
             unit.emitln("    fprintf(stderr, \"Info: Callback '"+jcbFriendlyBasename+"': Exception in Java Callback caught:\\n\");");
@@ -865,24 +867,26 @@ public final class JavaCallbackEmitter {
         return count;
     }
 
-    private int emitJavaCallbackBodyPassJavaArguments(final CodeUnit unit) {
+    private int emitCBodyPassArguments(final CodeUnit unit) {
         int count = 0;
         boolean needsComma = false;
         for (int i = 0; i < info.cbFuncBinding.getNumArguments(); i++) {
-            if (needsComma) {
-                unit.emit(", ");
-                needsComma = false;
-            }
-            final String baseArgName = info.cbFuncBinding.getArgumentName(i);
             final JavaType currentJavaType = info.cbFuncBinding.getJavaArgumentType(i);
-            if( i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
-                final String cBaseArgName = CodeGenUtils.capitalizeString( baseArgName );
-                unit.emit( "(*env)->CallStaticObjectMethod(env, cbClazzArg" + cBaseArgName + ", cbMethodArg" + cBaseArgName + ", " + baseArgName + "_jni)" );
-            } else {
-                unit.emit( baseArgName + "_jni" );
+            if( !currentJavaType.isPascalLen() ) {
+                if (needsComma) {
+                    unit.emit(", ");
+                    needsComma = false;
+                }
+                final String baseArgName = info.cbFuncBinding.getArgumentName(i);
+                if( i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
+                    final String cBaseArgName = CodeGenUtils.capitalizeString( baseArgName );
+                    unit.emit( "(*env)->CallStaticObjectMethod(env, cbClazzArg" + cBaseArgName + ", cbMethodArg" + cBaseArgName + ", " + baseArgName + "_jni)" );
+                } else {
+                    unit.emit( baseArgName + "_jni" );
+                }
+                needsComma = true;
+                ++count;
             }
-            needsComma = true;
-            ++count;
         }
         return count;
     }

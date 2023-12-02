@@ -144,35 +144,6 @@ public class JavaConfiguration {
     private final Map<String, String> returnedArrayLengths = new HashMap<String, String>();
     private final Set<String> maxOneElement = new HashSet<String>();
 
-    /** Pascal string argument index tuple for length and value. */
-    public static class PascalStringIdx {
-        public final int lengthIndex;
-        public final int valueIndex;
-
-        PascalStringIdx(final int lenIdx, final int valIdx) {
-            lengthIndex = lenIdx;
-            valueIndex = valIdx;
-        }
-
-        public void pushValueIndex(final List<Integer> indices) {
-            indices.add(valueIndex);
-        }
-        public static final List<Integer> pushValueIndex(final List<PascalStringIdx> source, List<Integer> indices) {
-            if( null == indices ) {
-                indices = new ArrayList<Integer>(2);
-            }
-            for(final PascalStringIdx p : source) {
-                p.pushValueIndex(indices);
-            }
-            return indices;
-        }
-
-        @Override
-        public String toString() {
-            return "PascalString[lenIdx "+lengthIndex+", valIdx "+valueIndex+"]";
-        }
-    }
-
     /**
      * Key is function that has some byte[] or short[] arguments that should be
      * converted to String args; value is List of Integer argument indices
@@ -183,7 +154,7 @@ public class JavaConfiguration {
      * Key is function that has a pascal string, i.e. length and some byte[] or short[] arguments that should be
      * converted to String args; value is a list of PascalStringArg
      */
-    private final Map<String, List<PascalStringIdx>> argumentsArePascalString = new HashMap<String, List<PascalStringIdx>>();
+    private final Map<String, List<JavaType.PascalStringElem>> argumentsArePascalString = new HashMap<String, List<JavaType.PascalStringElem>>();
 
     /** JavaCallback configuration definition (static) */
     public static class JavaCallbackDef {
@@ -668,11 +639,11 @@ public class JavaConfiguration {
   /** Returns a list of PascalStringIdx which are tuples of indices of <code>int len, const char*</code>
       arguments that should be converted to <code>String</code>s. Returns null if there are no
       such hints for the given function alias symbol. */
-  public List<PascalStringIdx> pascalStringArgument(final AliasedSymbol symbol) {
+  public List<JavaType.PascalStringElem> pascalStringArgument(final AliasedSymbol symbol) {
       final String name = symbol.getName();
       final Set<String> aliases = symbol.getAliasedNames();
 
-      List<PascalStringIdx> res = argumentsArePascalString.get(name);
+      List<JavaType.PascalStringElem> res = argumentsArePascalString.get(name);
       if( null == res ) {
           res = oneInMap(argumentsArePascalString, aliases);
           if( null == res ) {
@@ -681,18 +652,6 @@ public class JavaConfiguration {
       }
       LOG.log(INFO, getASTLocusTag(symbol), "ArgumentIsPascalString: {0} -> {1}", symbol, res);
       return res;
-  }
-
-  public int pascalStringLengthIndex(final AliasedSymbol symbol, final int valueIndex) {
-      final List<PascalStringIdx> pascals = pascalStringArgument(symbol);
-      if( null != pascals ) {
-          for(final PascalStringIdx p : pascals) {
-              if( valueIndex == p.valueIndex ) {
-                  return p.lengthIndex;
-              }
-          }
-      }
-      return -1;
   }
 
   public boolean isForceUsingNIOOnly4All() { return forceUseNIOOnly4All; }
@@ -2058,11 +2017,11 @@ public class JavaConfiguration {
   protected void readArgumentIsPascalString(final StringTokenizer tok, final String filename, final int lineNo) {
     try {
       final String methodName = tok.nextToken();
-      final List<PascalStringIdx> pascalTuples = new ArrayList<PascalStringIdx>(2);
+      final List<JavaType.PascalStringElem> pascalTuples = new ArrayList<JavaType.PascalStringElem>(2);
       while (tok.countTokens() >= 2) {
           final int lenIdx = Integer.valueOf(tok.nextToken()).intValue();
           final int valIdx = Integer.valueOf(tok.nextToken()).intValue();
-          pascalTuples.add(new PascalStringIdx(lenIdx, valIdx));
+          pascalTuples.add(new JavaType.PascalStringElem(lenIdx, valIdx));
       }
       if( pascalTuples.size() > 0 ) {
           argumentsArePascalString.put(methodName, pascalTuples);

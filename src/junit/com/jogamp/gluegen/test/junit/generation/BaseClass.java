@@ -1,5 +1,5 @@
 /**
- * Copyright 2010 JogAmp Community. All rights reserved.
+ * Copyright 2010-2023 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -48,10 +48,6 @@ import jogamp.common.os.MachineDataInfoRuntime;
 import org.junit.Assert;
 
 
-/**
- * @author Michael Bien
- * @author Sven Gothel
- */
 public class BaseClass extends SingletonJunitCase {
 
     static {
@@ -214,6 +210,8 @@ public class BaseClass extends SingletonJunitCase {
           l = binding.typeTestPtrDiffT(l, l);
           l = binding.typeTestIntPtrT(l, l);
           l = binding.typeTestUIntPtrT(l, l);
+
+          i = binding.addStrlenAndPascalStrLen("lala");
     }
 
     /**
@@ -2523,7 +2521,7 @@ public class BaseClass extends SingletonJunitCase {
         binding.destroyTKFieldImmutable(model);
     }
 
-    public void chapter15TestTKMixed(final Bindingtest1 binding) throws Exception {
+    public void chapter14TestTKMixed(final Bindingtest1 binding) throws Exception {
         Assert.assertEquals(false, TK_ModelMixed.usesNativeCode());
 
         final TK_ModelMixed model = binding.createTKModelMixed();
@@ -2568,7 +2566,16 @@ public class BaseClass extends SingletonJunitCase {
         assertAPTR(surfaceContext, model.getCtx());
     }
 
-    public void chapter14TestCustomJNICode(final Bindingtest1 binding) throws Exception {
+    public void chapter15TestCustomJNICode(final Bindingtest1 binding) throws Exception {
         Assert.assertEquals(Bindingtest1.FOO_VALUE, binding.getFoo());
     }
+
+    public void chapter16TestPascalString(final Bindingtest1 binding) throws Exception {
+        Assert.assertEquals(false, TK_ModelMixed.usesNativeCode());
+        Assert.assertEquals( 2, binding.addStrlenAndPascalStrLen("1"));
+        Assert.assertEquals( 8, binding.addStrlenAndPascalStrLen("1234"));
+        Assert.assertEquals(10, binding.addStrlenAndPascalStrLen("12345"));
+        Assert.assertEquals( 0, binding.addStrlenAndPascalStrLen(null));
+    }
+
 }

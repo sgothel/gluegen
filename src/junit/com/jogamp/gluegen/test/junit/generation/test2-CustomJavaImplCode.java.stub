@@ -18,7 +18,7 @@
     if( null == value ) {
         return;
     }
-    value.func.callback(eventType, object, param, message.length(), message, userParam2);
+    value.func.callback(eventType, object, param, message, userParam2);
   }
 
   public void alEventCallback1Inject(ALCcontext userParam, int eventType, int object, int param, String message)  {
@@ -41,6 +41,6 @@
     if( null == value ) {
         return;
     }
-    value.func.callback(eventType, object, param, message.length(), message, userParam2);
+    value.func.callback(eventType, object, param, message, userParam2);
   }
 

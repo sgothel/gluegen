@@ -767,3 +767,6 @@ typedef struct {
 MYAPI TK_ModelMixed* MYAPIENTRY createTKModelMixed();
 MYAPI void MYAPIENTRY destroyTKModelMixed(TK_ModelMixed* s);
 
+// Pascal String test
+MYAPI int addStrlenAndPascalStrLen(int length, const char* val);
+

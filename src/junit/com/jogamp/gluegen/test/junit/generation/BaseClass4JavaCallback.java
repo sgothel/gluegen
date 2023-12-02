@@ -898,7 +898,7 @@ public class BaseClass4JavaCallback extends BaseClass {
         final String[] msg_res = { null };
         final ALEVENTPROCSOFT myCallback01 = new ALEVENTPROCSOFT() {
             @Override
-            public void callback(final int eventType, final int object, final int param, final int length, final String message, final ALCcontext context) {
+            public void callback(final int eventType, final int object, final int param, final String message, final ALCcontext context) {
                 id_res[0] = object;
                 msg_res[0] = message;
                 System.err.println("chapter05a.myCallback01: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
@@ -907,7 +907,7 @@ public class BaseClass4JavaCallback extends BaseClass {
         };
         final ALEVENTPROCSOFT myCallback02 = new ALEVENTPROCSOFT() {
             @Override
-            public void callback(final int eventType, final int object, final int param, final int length, final String message, final ALCcontext context) {
+            public void callback(final int eventType, final int object, final int param, final String message, final ALCcontext context) {
                 id_res[0] = 1000 * object;
                 msg_res[0] = message;
                 System.err.println("chapter05a.myCallback02: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
@@ -1018,7 +1018,7 @@ public class BaseClass4JavaCallback extends BaseClass {
         final String[] msg_res = { null };
         final ALEVENTPROCSOFT myCallback01 = new ALEVENTPROCSOFT() {
             @Override
-            public void callback(final int eventType, final int object, final int param, final int length, final String message, final ALCcontext context) {
+            public void callback(final int eventType, final int object, final int param, final String message, final ALCcontext context) {
                 id_res[0] = object;
                 msg_res[0] = message;
                 System.err.println("chapter05.myCallback01: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+
@@ -1027,7 +1027,7 @@ public class BaseClass4JavaCallback extends BaseClass {
         };
         final ALEVENTPROCSOFT myCallback02 = new ALEVENTPROCSOFT() {
             @Override
-            public void callback(final int eventType, final int object, final int param, final int length, final String message, final ALCcontext context) {
+            public void callback(final int eventType, final int object, final int param, final String message, final ALCcontext context) {
                 id_res[0] = 1000 * object;
                 msg_res[0] = message;
                 System.err.println("chapter05.myCallback02: type "+eventType+", obj "+object+", param "+param+", '"+message+"', userParam 0x"+

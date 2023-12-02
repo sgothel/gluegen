@@ -221,7 +221,7 @@ public class MethodBinding {
      */
     public StringBuilder getJavaParameterList(final StringBuilder buf, final List<Integer> exclude) {
         forEachParameter( ( final int idx, final int consumedCount, final Type cType, final JavaType jType, final String name ) -> {
-            if( !cType.isVoid() && ( null == exclude || !exclude.contains(idx) ) ) {
+            if( !cType.isVoid() && !jType.isPascalLen() && ( null == exclude || !exclude.contains(idx) ) ) {
                 if( 0 < consumedCount ) {
                     buf.append(", ");
                 }
@@ -731,7 +731,7 @@ public class MethodBinding {
         assert(getNumArguments() == 1);
         continue;
       }
-      if (type.isJNIEnv() || isArgumentThisPointer(i)) {
+      if (type.isJNIEnv() || type.isPascalLen() || isArgumentThisPointer(i)) {
         // Don't need to expose these at the Java level
         continue;
       }

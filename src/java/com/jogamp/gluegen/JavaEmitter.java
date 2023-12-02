@@ -79,7 +79,7 @@ import com.jogamp.common.util.HashUtil;
 import com.jogamp.gluegen.ASTLocusTag.ASTLocusTagProvider;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackDef;
 import com.jogamp.gluegen.JavaConfiguration.JavaCallbackInfo;
-import com.jogamp.gluegen.JavaConfiguration.PascalStringIdx;
+import com.jogamp.gluegen.JavaType.PascalStringElem;
 import com.jogamp.gluegen.Logging.LoggerIf;
 import com.jogamp.gluegen.cgram.types.AliasedSymbol;
 import com.jogamp.gluegen.cgram.types.ArrayType;
@@ -309,7 +309,7 @@ public class JavaEmitter implements GlueEmitter {
     }
   }
 
-  /** Mangle a class, package or function name for JNI usage, i.e. replace all '.' w/ '_' */
+  /** Mangle a class, package or function name for JNI usage, i.e. replace all '_' w/ '_1' and '.' w/ '_' */
   protected static String jniMangle(final String name) {
     return name.replaceAll("_", "_1").replace('.', '_');
   }
@@ -3105,8 +3105,8 @@ public class JavaEmitter implements GlueEmitter {
   private JavaType javaType(final Class<?> c) {
     return JavaType.createForClass(c);
   }
-  private JavaType javaStringType(final Class<?> c, final boolean pascalString) {
-    return JavaType.createForStringClass(c, pascalString);
+  private JavaType javaStringType(final Class<?> c, final PascalStringElem pascalStrElem) {
+    return JavaType.createForStringClass(c, pascalStrElem);
   }
 
   /** Maps the C types in the specified function to Java types through
@@ -3140,7 +3140,7 @@ public class JavaEmitter implements GlueEmitter {
           "\". ReturnsString requires native method to have return type \"char *\"",
           sym.getASTLocusTag());
       }
-      javaReturnType = javaStringType(java.lang.String.class, false);
+      javaReturnType = javaStringType(java.lang.String.class, null);
     } else {
       final JavaType r = cfg.getOpaqueReturnType(sym);
       if( null != r ) {
@@ -3153,10 +3153,10 @@ public class JavaEmitter implements GlueEmitter {
     // List of the indices of the arguments in this function that should be
     // converted from byte[] or short[] to String
     final List<JavaType> javaArgumentTypes = new ArrayList<JavaType>();
-    List<Integer> stringArgIndices = cfg.stringArguments(sym);
-    final List<PascalStringIdx> pascalStringArgs = cfg.pascalStringArgument(sym);
+    List<Integer> stringValueIndices = cfg.stringArguments(sym);
+    final List<JavaType.PascalStringElem> pascalStringArgs = cfg.pascalStringArgument(sym);
     if( null != pascalStringArgs ) {
-        stringArgIndices = PascalStringIdx.pushValueIndex(pascalStringArgs, stringArgIndices);
+        stringValueIndices = JavaType.PascalStringElem.pushValueIndex(pascalStringArgs, stringValueIndices);
     }
     final JavaCallbackInfo jcbi = cfg.setFuncToJavaCallbackMap.get( sym.getName() );
     int jcbiSetFuncCBParamIdx=-1;
@@ -3191,36 +3191,45 @@ public class JavaEmitter implements GlueEmitter {
               // fallthrough intended
           }
       }
-      if ( 0 == mapMode && stringArgIndices != null && stringArgIndices.contains(i) ) {
-        // Take into account any ArgumentIsString configuration directives that apply
-        // System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
-        if ( mappedType.isCVoidPointerType() ||
-             mappedType.isCCharPointerType() ||
-             mappedType.isCShortPointerType() ||
-             mappedType.isNIOPointerBuffer() ||
-             ( mappedType.isArray() &&
-               ( mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass ) ||
-               ( mappedType.getJavaClass() == ArrayTypes.shortBufferArrayClass ) ) )
-        {
-          // convert mapped type from:
-          //   void*, byte[], and short[] to String
-          //   ByteBuffer[] and ShortBuffer[] to String[]
-          final boolean pascalString = cfg.pascalStringLengthIndex(sym, i) >= 0;
-          if (mappedType.isArray() || mappedType.isNIOPointerBuffer()) {
-            mappedType = javaStringType(ArrayTypes.stringArrayClass, pascalString);
-            mapMode = 30;
-          } else {
-            mappedType = javaStringType(String.class, pascalString);
-            mapMode = 31;
+      if( 0 == mapMode ) {
+          if ( stringValueIndices != null && stringValueIndices.contains(i) ) {
+            // Take into account any ArgumentIsString configuration directives that apply
+            // System.out.println("Forcing conversion of " + binding.getName() + " arg #" + i + " from byte[] to String ");
+            if ( mappedType.isCVoidPointerType() ||
+                 mappedType.isCCharPointerType() ||
+                 mappedType.isCShortPointerType() ||
+                 mappedType.isNIOPointerBuffer() ||
+                 ( mappedType.isArray() &&
+                   ( mappedType.getJavaClass() == ArrayTypes.byteBufferArrayClass ) ||
+                   ( mappedType.getJavaClass() == ArrayTypes.shortBufferArrayClass ) ) )
+            {
+              // convert mapped type from:
+              //   void*, byte[], and short[] to String
+              //   ByteBuffer[] and ShortBuffer[] to String[]
+              final JavaType.PascalStringElem pascalStrElem = JavaType.PascalStringElem.getByValueIdx(pascalStringArgs, i);
+              if (mappedType.isArray() || mappedType.isNIOPointerBuffer()) {
+                mappedType = javaStringType(ArrayTypes.stringArrayClass, pascalStrElem);
+                mapMode = 30;
+              } else {
+                mappedType = javaStringType(String.class, pascalStrElem);
+                mapMode = 31;
+              }
+            } else {
+              mapMode = 99;
+              throw new GlueGenException(
+                "Cannot apply ArgumentIsString configuration directive to " +
+                "argument " + i + " of \"" + sym + "\": argument type is not " +
+                "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent",
+                sym.getASTLocusTag());
+            }
+          } else if ( ( mappedType.isInt() || mappedType.isLong() ) && null != pascalStringArgs ) {
+              final JavaType.PascalStringElem pascalStrElem = JavaType.PascalStringElem.getByLengthIdx(pascalStringArgs, i);
+              if( null != pascalStrElem ) {
+                  // mark pascal-string length in Java API to be erased for using Java String length
+                  mapMode = 40;
+                  mappedType = new JavaType(mappedType, pascalStrElem);
+              }
           }
-        } else {
-            mapMode = 99;
-            throw new GlueGenException(
-              "Cannot apply ArgumentIsString configuration directive to " +
-              "argument " + i + " of \"" + sym + "\": argument type is not " +
-              "a \"void*\", \"char *\", \"short *\", \"char**\", or \"short**\" equivalent",
-              sym.getASTLocusTag());
-        }
       }
       javaArgumentTypes.add(mappedType);
       LOG.log(INFO, "BindFunc: {0}: added mapping ({1}) for {2} from C type: {3} to Java type: {4}",

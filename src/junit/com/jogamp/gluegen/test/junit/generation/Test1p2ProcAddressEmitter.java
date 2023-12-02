@@ -172,7 +172,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
 
     @Test
     public void chapter15TestTKMixed() throws Exception {
-        chapter15TestTKMixed(new Bindingtest1p2Impl());
+        chapter14TestTKMixed(new Bindingtest1p2Impl());
     }
 
     /**
@@ -180,7 +180,7 @@ public class Test1p2ProcAddressEmitter extends BaseClass {
      */
     @Test
     public void chapter14TestCustomJNICode() throws Exception {
-        chapter14TestCustomJNICode(new Bindingtest1p2Impl());
+        chapter15TestCustomJNICode(new Bindingtest1p2Impl());
     }
 
     /**
