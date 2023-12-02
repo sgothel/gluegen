@@ -1,5 +1,6 @@
 package com.jogamp.gluegen.test.junit.structgen;
 
+import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
 import org.junit.Assert;
@@ -16,6 +17,7 @@ public class TestStructGen02 extends SingletonJunitCase {
         // Enforce dependency,
         // i.e. CStruct annotation processor to generate the types 'RenderingConfig' etc.
         BuildStruct01.initSingleton();
+        Platform.initSingleton();
     }
 
     @Test
