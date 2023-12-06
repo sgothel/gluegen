@@ -878,7 +878,8 @@ public final class JavaCallbackEmitter {
                 final String baseArgName = info.cbFuncBinding.getArgumentName(i);
                 if( i != info.cbFuncUserParamIdx && currentJavaType.isCompoundTypeWrapper() ) {
                     final String cBaseArgName = CodeGenUtils.capitalizeString( baseArgName );
-                    unit.emit( "(*env)->CallStaticObjectMethod(env, cbClazzArg" + cBaseArgName + ", cbMethodArg" + cBaseArgName + ", " + baseArgName + "_jni)" );
+                    final String jniArgName = baseArgName + "_jni";
+                    unit.emit( jniArgName + " != NULL ? " + "(*env)->CallStaticObjectMethod(env, cbClazzArg" + cBaseArgName + ", cbMethodArg" + cBaseArgName + ", " + jniArgName + ") : NULL" );
                 } else {
                     unit.emit( baseArgName + "_jni" );
                 }
