@@ -27,6 +27,8 @@
  */
 package com.jogamp.common.av;
 
+import java.util.concurrent.TimeUnit;
+
 import com.jogamp.common.os.Clock;
 
 /**
@@ -84,8 +86,17 @@ public final class PTS {
 
     /** Returns the System Clock Reference (SCR) in milliseconds of last PTS update via {@link #set(long, int)}. */
     public long getSCR() { return scr; }
+    /** Returns {@link #getSCR()} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
+    public String getSCRTimeStr(final boolean addFractions) {
+        return millisToTimeStr(getSCR(), addFractions);
+    }
     /** Returns the last updated PTS value via {@link #set(long, int)} w/o System Clock Reference (SCR) interpolation. */
     public int getLast() { return pts; }
+    /** Returns {@link #getLast()} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
+    public String getLastTimeStr(final boolean addFractions) {
+        return millisToTimeStr(getLast(), addFractions);
+    }
+
     /** Returns the external playback speed. */
     public float getSpeed() { return speed.get(); }
 
@@ -125,6 +136,11 @@ public final class PTS {
         return pts + (int) ( ( currentMillis - scr ) * speed.get() + 0.5f );
     }
 
+    /** Returns {@link #get(long)} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
+    public String getTimeStr(final long currentMillis, final boolean addFractions) {
+        return millisToTimeStr(get(currentMillis), addFractions);
+    }
+
     /** Returns {@link #getLast()} - rhs.{@link #getLast()}. */
     public int diffLast(final PTS rhs) {
         return this.pts - rhs.getLast();
@@ -139,4 +155,55 @@ public final class PTS {
     public String toString() { return String.valueOf(pts); }
 
     public String toString(final long currentMillis) { return "last "+pts+" ms, current "+get(currentMillis)+" ms"; }
+
+    /**
+     * Returns a time string representation '[hh:]mm:ss[.sss]', dropping unused hour quantities and fractions of seconds optionally.
+     * @param millis complete time in milliseconds
+     * @param addFractions toggle for fractions of seconds
+     * @see #millisToTimeStr(long)
+     */
+    public static String millisToTimeStr(final long millis, final boolean addFractions) {
+        final long h = TimeUnit.MILLISECONDS.toHours(millis);
+        final long m = TimeUnit.MILLISECONDS.toMinutes(millis);
+        if( addFractions ) {
+            if( 0 < h ) {
+                return String.format("%02d:%02d:%02d.%03d",
+                    h,
+                    m - TimeUnit.HOURS.toMinutes(h),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m),
+                    millis%1000);
+            } else {
+                return String.format("%02d:%02d.%03d",
+                    m,
+                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m),
+                    millis%1000);
+            }
+        } else {
+            if( 0 < h ) {
+                return String.format("%02d:%02d:%02d",
+                    h,
+                    m - TimeUnit.HOURS.toMinutes(h),
+                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m));
+            } else {
+                return String.format("%02d:%02d",
+                    m,
+                    TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m));
+            }
+        }
+    }
+
+    /**
+     * Returns a full time string representation 'hh:mm:ss.sss'.
+     * @param millis complete time in milliseconds
+     * @see #millisToTimeStr(long, boolean)
+     */
+    public static String millisToTimeStr(final long millis) {
+        final long h = TimeUnit.MILLISECONDS.toHours(millis);
+        final long m = TimeUnit.MILLISECONDS.toMinutes(millis);
+        return String.format("%02d:%02d:%02d.%03d",
+            h,
+            m - TimeUnit.HOURS.toMinutes(h),
+            TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m),
+            millis%1000);
+    }
 }
