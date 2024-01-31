@@ -135,6 +135,8 @@ public final class PTS {
     public int get(final long currentMillis) {
         return pts + (int) ( ( currentMillis - scr ) * speed.get() + 0.5f );
     }
+    /** Returns {@link #get(long)} passing {@link Clock#currentMillis()}. */
+    public int getCurrent() { return get( Clock.currentMillis() ); }
 
     /** Returns {@link #get(long)} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
     public String getTimeStr(final long currentMillis, final boolean addFractions) {
