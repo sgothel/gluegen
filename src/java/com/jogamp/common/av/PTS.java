@@ -89,15 +89,15 @@ public final class PTS {
 
     /** Returns the System Clock Reference (SCR) in milliseconds of last PTS update via {@link #set(long, int)}. */
     public long getSCR() { return scr; }
-    /** Returns {@link #getSCR()} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
+    /** Returns {@link #getSCR()} as time string representation via {@link #toTimeStr(long, boolean)}. */
     public String getSCRTimeStr(final boolean addFractions) {
-        return millisToTimeStr(getSCR(), addFractions);
+        return toTimeStr(getSCR(), addFractions);
     }
     /** Returns the last updated PTS value via {@link #set(long, int)} w/o System Clock Reference (SCR) interpolation. */
     public int getLast() { return pts; }
-    /** Returns {@link #getLast()} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
+    /** Returns {@link #getLast()} as time string representation via {@link #toTimeStr(long, boolean)}. */
     public String getLastTimeStr(final boolean addFractions) {
-        return millisToTimeStr(getLast(), addFractions);
+        return toTimeStr(getLast(), addFractions);
     }
 
     /** Returns the external playback speed. */
@@ -141,9 +141,9 @@ public final class PTS {
     /** Returns {@link #get(long)} passing {@link Clock#currentMillis()}. */
     public int getCurrent() { return get( Clock.currentMillis() ); }
 
-    /** Returns {@link #get(long)} as time string representation via {@link #millisToTimeStr(long, boolean)}. */
+    /** Returns {@link #get(long)} as time string representation via {@link #toTimeStr(long, boolean)}. */
     public String getTimeStr(final long currentMillis, final boolean addFractions) {
-        return millisToTimeStr(get(currentMillis), addFractions);
+        return toTimeStr(get(currentMillis), addFractions);
     }
 
     /** Returns {@link #getLast()} - rhs.{@link #getLast()}. */
@@ -165,9 +165,9 @@ public final class PTS {
      * Returns a time string representation '[HH:]mm:ss[.SSS]', dropping unused hour quantities and fractions of seconds optionally.
      * @param millis complete time in milliseconds
      * @param addFractions toggle for fractions of seconds
-     * @see #millisToTimeStr(long)
+     * @see #toTimeStr(long)
      */
-    public static String millisToTimeStr(final long millis, final boolean addFractions) {
+    public static String toTimeStr(final long millis, final boolean addFractions) {
         final long h = TimeUnit.MILLISECONDS.toHours(millis);
         final long m = TimeUnit.MILLISECONDS.toMinutes(millis);
         if( addFractions ) {
@@ -200,9 +200,9 @@ public final class PTS {
     /**
      * Returns a full time string representation 'HH:mm:ss.SSS'.
      * @param millis complete time in milliseconds
-     * @see #millisToTimeStr(long, boolean)
+     * @see #toTimeStr(long, boolean)
      */
-    public static String millisToTimeStr(final long millis) {
+    public static String toTimeStr(final long millis) {
         final long h = TimeUnit.MILLISECONDS.toHours(millis);
         final long m = TimeUnit.MILLISECONDS.toMinutes(millis);
         return String.format("%02d:%02d:%02d.%03d",
