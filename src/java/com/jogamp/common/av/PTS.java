@@ -1,5 +1,5 @@
 /**
- * Copyright 2023 JogAmp Community. All rights reserved.
+ * Copyright 2023-2024 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -27,6 +27,9 @@
  */
 package com.jogamp.common.av;
 
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoField;
 import java.util.concurrent.TimeUnit;
 
 import com.jogamp.common.os.Clock;
@@ -159,7 +162,7 @@ public final class PTS {
     public String toString(final long currentMillis) { return "last "+pts+" ms, current "+get(currentMillis)+" ms"; }
 
     /**
-     * Returns a time string representation '[hh:]mm:ss[.sss]', dropping unused hour quantities and fractions of seconds optionally.
+     * Returns a time string representation '[HH:]mm:ss[.SSS]', dropping unused hour quantities and fractions of seconds optionally.
      * @param millis complete time in milliseconds
      * @param addFractions toggle for fractions of seconds
      * @see #millisToTimeStr(long)
@@ -195,7 +198,7 @@ public final class PTS {
     }
 
     /**
-     * Returns a full time string representation 'hh:mm:ss.sss'.
+     * Returns a full time string representation 'HH:mm:ss.SSS'.
      * @param millis complete time in milliseconds
      * @see #millisToTimeStr(long, boolean)
      */
@@ -208,4 +211,26 @@ public final class PTS {
             TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(m),
             millis%1000);
     }
+
+    /**
+     * Returns milliseconds from given string representation in '[H[H]:]m[m]:s[s][.S*]'
+     * @param v the timestamp string to parse.
+     * @param throwException if {@code true}, forwards {@link DateTimeParseException} to caller, otherwise return {@code -1}.
+     */
+    public static int toMillis(final String v, final boolean throwException) {
+        try {
+            return Timestamp.parse(v).get(ChronoField.MILLI_OF_DAY);
+        } catch(final DateTimeParseException pe) {
+            if( throwException ) {
+                throw pe;
+            } else {
+                return -1;
+            }
+        }
+    }
+    /** Returns milliseconds from given string representation in '[H[H]:]m[m]:s[s][.S*]' or {@code -1} for parsing error. */
+    public static int toMillis(final String v) { return toMillis(v, false); }
+
+    private static final DateTimeFormatter Timestamp =  DateTimeFormatter.ofPattern(
+                "[H:]m:s[.[SSSSSSSSS][SSSSSSSS][SSSSSSS][SSSSSS][SSSSS][SSSS][SSS][SS][S]]");
 }
