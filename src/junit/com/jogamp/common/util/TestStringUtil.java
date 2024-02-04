@@ -69,54 +69,54 @@ public class TestStringUtil {
     }
 
     @Test
-    public void test03Strip() {
+    public void test03Trim() {
         {
-            Assert.assertEquals("", StringUtil.strip(null, null, null));
-            Assert.assertEquals("", StringUtil.strip("", null, null));
-            Assert.assertEquals("Hello", StringUtil.strip("Hello", null, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("Hello JogAmp", null, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip(" Hello JogAmp ", null, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("Hello  JogAmp", null, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("  Hello  JogAmp  ", null, null));
+            Assert.assertEquals("", StringUtil.trim(null, null, null));
+            Assert.assertEquals("", StringUtil.trim("", null, null));
+            Assert.assertEquals("Hello", StringUtil.trim("Hello", null, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("Hello JogAmp", null, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim(" Hello JogAmp ", null, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("Hello  JogAmp", null, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("  Hello  JogAmp  ", null, null));
 
             final String seperators = " \t\n\r";
-            Assert.assertEquals("", StringUtil.strip(null, seperators, null));
-            Assert.assertEquals("", StringUtil.strip("", seperators, null));
-            Assert.assertEquals("Hello", StringUtil.strip("Hello", seperators, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("Hello JogAmp", seperators, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip(" Hello JogAmp ", seperators, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("Hello  JogAmp", seperators, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("  Hello  JogAmp  ", seperators, null));
+            Assert.assertEquals("", StringUtil.trim(null, seperators, null));
+            Assert.assertEquals("", StringUtil.trim("", seperators, null));
+            Assert.assertEquals("Hello", StringUtil.trim("Hello", seperators, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("Hello JogAmp", seperators, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim(" Hello JogAmp ", seperators, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("Hello  JogAmp", seperators, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("  Hello  JogAmp  ", seperators, null));
 
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("\tHello JogAmp\n", seperators, null));
-            Assert.assertEquals("Hello\tJogAmp", StringUtil.strip("Hello\t\tJogAmp", seperators, null));
-            Assert.assertEquals("Hello JogAmp", StringUtil.strip("Hello \tJogAmp", seperators, null));
-            Assert.assertEquals("Hello\nJogAmp", StringUtil.strip("\t Hello\n\tJogAmp \n", seperators, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("\tHello JogAmp\n", seperators, null));
+            Assert.assertEquals("Hello\tJogAmp", StringUtil.trim("Hello\t\tJogAmp", seperators, null));
+            Assert.assertEquals("Hello JogAmp", StringUtil.trim("Hello \tJogAmp", seperators, null));
+            Assert.assertEquals("Hello\nJogAmp", StringUtil.trim("\t Hello\n\tJogAmp \n", seperators, null));
         }
         {
             final String replacement = "Z";
-            Assert.assertEquals("", StringUtil.strip(null, null, replacement));
-            Assert.assertEquals("", StringUtil.strip("", null, replacement));
-            Assert.assertEquals("Hello", StringUtil.strip("Hello", null, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("Hello JogAmp", null, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip(" Hello JogAmp ", null, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("Hello  JogAmp", null, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("  Hello  JogAmp  ", null, replacement));
+            Assert.assertEquals("", StringUtil.trim(null, null, replacement));
+            Assert.assertEquals("", StringUtil.trim("", null, replacement));
+            Assert.assertEquals("Hello", StringUtil.trim("Hello", null, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("Hello JogAmp", null, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim(" Hello JogAmp ", null, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("Hello  JogAmp", null, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("  Hello  JogAmp  ", null, replacement));
 
             final String IDIOSPC = String.valueOf(Character.toChars(0x3000));
             final String seperators = StringUtil.WHITESPACE;
-            Assert.assertEquals("", StringUtil.strip(null, seperators, replacement));
-            Assert.assertEquals("", StringUtil.strip("", seperators, replacement));
-            Assert.assertEquals("Hello", StringUtil.strip("Hello", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("Hello JogAmp", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip(" Hello"+IDIOSPC+"JogAmp ", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("Hello  JogAmp", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("  Hello  JogAmp  ", seperators, replacement));
+            Assert.assertEquals("", StringUtil.trim(null, seperators, replacement));
+            Assert.assertEquals("", StringUtil.trim("", seperators, replacement));
+            Assert.assertEquals("Hello", StringUtil.trim("Hello", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("Hello JogAmp", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim(" Hello"+IDIOSPC+"JogAmp ", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("Hello  JogAmp", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("  Hello  JogAmp  ", seperators, replacement));
 
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("\tHello JogAmp\n", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("Hello\t\tJogAmp", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("Hello \tJogAmp", seperators, replacement));
-            Assert.assertEquals("HelloZJogAmp", StringUtil.strip("\t Hello\n\tJogAmp \n", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("\tHello JogAmp\n", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("Hello\t\tJogAmp", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("Hello \tJogAmp", seperators, replacement));
+            Assert.assertEquals("HelloZJogAmp", StringUtil.trim("\t Hello\n\tJogAmp \n", seperators, replacement));
         }
     }
 

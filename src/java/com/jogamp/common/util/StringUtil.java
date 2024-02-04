@@ -177,9 +177,11 @@ public class StringUtil {
     }
 
     /**
-     * Remove all given separator unicode characters from given text,
-     * i.e. all leading, all ending as well as duplicate consecutive separator within.
-     * The latter reduces the separator to just a single one.
+     * Remove all leading, trailing and duplicate-within {@code separators} unicode character from the {@code text}.
+     * <p>
+     * Duplicate {@code separators} unicode character within the {@code text} are reduced to one occurrence
+     * and might be replaced with {@code replacement} if not {@code null}.
+     * </p>
      * @param text the source text
      * @param separators separator unicode characters, pass {@code null} for {@link Character#isWhitespace(int) whitespace}.
      *                   Consider using {@link #WHITESPACE} to cover all unicode space character.
@@ -187,7 +189,7 @@ public class StringUtil {
      *                    If {@code null}, the first found separator is used.
      * @return stripped text
      */
-    public static String strip(final String text, final String separators, final String replacement) {
+    public static String trim(final String text, final String separators, final String replacement) {
         if (text == null ) {
             return "";
         }
