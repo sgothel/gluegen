@@ -132,6 +132,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestStringUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUriQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUri01 2>&1 | tee -a $LOG
@@ -167,8 +168,7 @@ function onetest() {
 #onetest com.jogamp.gluegen.jcpp.TokenPastingWhitespaceTest 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.jcpp.VaArgsPastingTest 2>&1 | tee -a $LOG
 
-
-onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
+#onetest com.jogamp.gluegen.test.junit.generation.Test1p1JavaEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2ProcAddressEmitter 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2LoadJNIAndImplLib 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.generation.Test1p2DynamicLibraryBundle 2>&1 | tee -a $LOG
