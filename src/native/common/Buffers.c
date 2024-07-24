@@ -25,6 +25,6 @@ Java_com_jogamp_common_nio_Buffers_strnlenImpl(JNIEnv *env, jclass _unused, jlon
 
 JNIEXPORT jlong JNICALL 
 Java_com_jogamp_common_nio_Buffers_memcpyImpl(JNIEnv *env, jclass _unused, jlong jdest, jlong jsrc, jlong jlen) {
-    return ( 0 != jdest && 0 != jsrc && 0 < jlen ) ? memcpy((void *)(intptr_t)jdest, (void *)(intptr_t)jsrc, (size_t)jlen) : jdest;
+    return ( 0 != jdest && 0 != jsrc && 0 < jlen ) ? (jlong) (intptr_t) memcpy((void *)(intptr_t)jdest, (void *)(intptr_t)jsrc, (size_t)jlen) : jdest;
 }
 
