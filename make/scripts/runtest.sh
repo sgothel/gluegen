@@ -3,7 +3,7 @@
 builddir="$1"
 shift
 
-if [ -z "$builddir" ] ; then 
+if [ -z "$builddir" ] ; then
     echo Usage $0 build-dir
     exit 1
 fi
@@ -99,7 +99,7 @@ function onetest() {
     echo
 }
 #
-#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -132,7 +132,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestBitstream02 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream03 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestBitstream04 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestStringUtil 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestStringUtil 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUrisWithAssetHandler 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUriQueryProps 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.net.TestUri01 2>&1 | tee -a $LOG
