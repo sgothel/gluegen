@@ -508,10 +508,19 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
 
     if( searchSystemPath && searchSystemPathFirst ) {
+        // Utilize system's library path environment variable first
+        {
+            final List<String> sysLibPaths = getSystemEnvLibraryPaths();
+            int count = 0;
+            for(final String sysLibPath : sysLibPaths) {
+                addRelPaths("add.ssp_path_"+count, sysLibPath, baseNames, paths);
+                ++count;
+            }
+        }
         // Add just the library names to use the OS's search algorithm
         for (int i = 0; i < baseNames.length; i++) {
             if (DEBUG) {
-                System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_1st: "+baseNames[i]);
+                System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_default: "+baseNames[i]);
             }
             paths.add(baseNames[i]);
         }
@@ -568,10 +577,12 @@ public final class NativeLibrary implements DynamicLookupHelper {
           }
         });
     if ( null != javaLibraryPaths ) {
+        int count = 0;
         for( int i=0; i < javaLibraryPaths.length; i++ ) {
             final StringTokenizer tokenizer = new StringTokenizer(javaLibraryPaths[i], File.pathSeparator);
             while (tokenizer.hasMoreTokens()) {
-                addRelPaths("add.java.library.path", tokenizer.nextToken(), baseNames, paths);
+                addRelPaths("add.java.library.path_"+count, tokenizer.nextToken(), baseNames, paths);
+                ++count;
             }
         }
     }
@@ -591,10 +602,19 @@ public final class NativeLibrary implements DynamicLookupHelper {
     addAbsPaths("add.user.dir.fat", userDir+File.separator+"natives"+File.separator+PlatformPropsImpl.os_and_arch, baseNames, paths);
 
     if( searchSystemPath && !searchSystemPathFirst ) {
+        // Utilize system's library path environment variable first
+        {
+            final List<String> sysLibPaths = getSystemEnvLibraryPaths();
+            int count = 0;
+            for(final String sysLibPath : sysLibPaths) {
+                addRelPaths("add.ssp_path_"+count, sysLibPath, baseNames, paths);
+                ++count;
+            }
+        }
         // Add just the library names to use the OS's search algorithm
         for (int i = 0; i < baseNames.length; i++) {
             if (DEBUG) {
-                System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_lst: "+baseNames[i]);
+                System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_default: "+baseNames[i]);
             }
             paths.add(baseNames[i]);
         }
