@@ -156,6 +156,11 @@
          <equals arg1="${env.JOGAMP_JAR_CODEBASE}" arg2="$${env.JOGAMP_JAR_CODEBASE}" casesensitive="true" />
         </not>
     </condition>
+
+  	<property name="target.sourcelevel" value="1.8"/>
+  	<property name="target.targetlevel" value="1.8"/>
+  	<!-- property name="target.rt.jar" value="jre1.8.0_212/lib/rt.jar"/ -->
+
     <property name="jogamp.jar.codebase"      value=""/> <!-- A jogamp build uses value "Codebase: *.jogamp.org" -->
     <echo message="jogamp.jar.codebase        ${jogamp.jar.codebase}"/>
 
@@ -246,13 +251,14 @@
     <echo message="target.releaselevel        ${target.releaselevel}"/>
     <echo message="target.rt.jar              ${target.rt.jar}"/>
 
+  	<!--
     <fail message="You need to specify all properties 'target.sourcelevel', 'target.targetlevel' and 'target.rt.jar'.">
       <condition>
         <not>
-          <istrue value="${target.user.set}"/> 
+          <istrue value="${target.user.set}"/>
         </not>
       </condition>
-    </fail>
+    </fail> -->
 
     <fail message="Unsupported Target Java sourcelevel: ${target.sourcelevel}. Make sure that the sourcelevel is set to 1.8 (8.0).">
         <condition>
