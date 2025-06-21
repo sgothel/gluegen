@@ -678,7 +678,8 @@ generated classes, so this is the mechanism by which a user can emit
 Javadoc for these classes. The specified Javadoc undergoes no
 transformation by GlueGen, so the initial `/**` and trailing `*/` must
 be included in the correct place. Each line of Javadoc is emitted in the
-order encountered during parsing of the configuration files.
+order encountered during parsing of the configuration files. See also :
+[MethodJavadoc](#MethodJavadoc)
 
 **<span id="CustomCCode">CustomCCode</span>**  
 Syntax: `CustomCCode [code...]`  
@@ -709,6 +710,14 @@ AllStatic [Style](#Style)), or any of the Java classes corresponding to
 referenced C structs in the parsed headers. This usage is somewhat
 verbose, and the [IncludeAs](#IncludeAs) directive provides a more
 concise way of including large bodies of C code into the generated code.
+
+**<span id="DelegateImplementation">DelegateImplementation</span>**
+Syntax: `DelegateImplementation [delegated method name] [method name for original implementation]`
+(optional) Causes the specified method will not be bind to related C
+function but will be bind to second method name provided.
+The first method name provided shall be manually delegated by the end user
+with [CustomJavaCode](#CustomJavaCode) (except if [Style](#Style) is
+defined with `InterfaceOnly` ofc)
 
 **<span id="EmitStruct">EmitStruct</span>**  
 Syntax: `EmitStruct [C struct type name]`  
@@ -851,6 +860,13 @@ Syntax: `Import [package name]` (no trailing semicolon)
 (optional) Adds an import statement at the top of each generated Java
 source file.
 
+**<span id="ImmutableAccess">ImmutableAccess</span>**
+Syntax: `ImmutableAccess [C struct or field of C struct (Struct and field are dot separated)]`
+(optional) Suppress generating setter in the Java code and hence also
+reduces the footprint of the generated Java class for such struct.
+Cf here for more information :
+[GlueGen_Mapping](../GlueGen_Mapping.html#immutableaccess-symbol)
+
 **<span id="Include">Include</span>**  
 Syntax: `Include [filename]`  
 (optional) Causes another configuration file to be read at the current
@@ -867,6 +883,23 @@ example, [CustomJavaCode](#CustomJavaCode) to be stored as Java source
 rather than in the configuration file; in this example the configuration
 file might contain
 `IncludeAs CustomJavaCode                                 MyClass MyClass-CustomJavaCode.java`.
+
+**<span id="JavaCallbackDef">JavaCallbackDef</span>**
+Syntax: `JavaCallbackDef  [<SetCallbackFunctionName>] [<SetCallback-UserParamIndex>] [<CallbackFunctionType>] [<CallbackFunction-UserParamIndex>] [[<Callback-UserParamClass>] [[<Callback-KeyClass>]]]`
+(optional) Adds Java interface allow to create Java callback for
+Java binding of setCallbackFunctionName. Callback supplied can receive
+asynchronous  and off-thread natives event (converted on the fly before
+passing converted value to Java callback)
+Must be used with [LibraryOnLoad](#LibraryOnLoad).
+Cf here for more information :
+[GlueGen_Mapping](../GlueGen_Mapping.html#java-callback)
+
+**<span id="JavaCallbackKey">JavaCallbackKey</span>**
+Syntax: `JavaCallbackKey  [<SetCallbackFunctionName>] [<SetCallback-ParamIndex>]* [<CallbackFunctionType>] [<CallbackFunction-ParamIndex>]*]`
+(optional) Adds callback key for Java binding of setCallbackFunctionName.
+Must be used with [JavaCallbackDef](#JavaCallbackDef).
+Cf here for more information :
+[GlueGen_Mapping](../GlueGen_Mapping.html#java-callback)
 
 **<span id="JavaClass">JavaClass</span>**  
 Syntax: `JavaClass [class name]`  
@@ -902,6 +935,14 @@ function is called via the native method. As in the
 MessageFormat expressions in the specified code. See also
 [JavaEpilogue](#JavaEpilogue).
 
+**<span id="LibraryOnLoad">LibraryOnLoad</span>**  
+Syntax: `LibraryOnLoad [Library base name]
+(optional) Indicates to GlueGen to produce native JNI code to handle
+the `JavaVM*` instance. In particular, it is required when
+[Java™ callback methods are used](../GlueGen_Mapping.html#java-callback).
+Cf here for more information :
+[GlueGen_Mapping](../GlueGen_Mapping.html#libraryonload-librarybasename-for-jni_onload-)
+
 **<span id="ManuallyImplement">ManuallyImplement</span>**  
 Syntax: `ManuallyImplement [function name]`  
 (optional) Indicates to GlueGen to not produce a method into the
@@ -918,6 +959,18 @@ type actually returns a pointer like int\* but isn't an array.
 Cf here for more information :
 [GlueGen_Mapping](../GlueGen_Mapping.html#gluegen-struct-settings)
 
+**<span id="MethodJavadoc">MethodJavadoc</span>**
+Syntax: `MethodJavadoc [method name] [code...]`  
+(optional) Causes the specified line of code to be emitted in the
+appropriate place in the generated code to become the per-method Javadoc
+for the specified method. By default GlueGen produces basic Javadoc for its
+generated method, notably name of c binding related, so this is the
+mechanism by which a user can emit Javadoc for these methods. The
+specified Javadoc undergoes no transformation by GlueGen,so the initial
+`/**` and trailing `*/` must  be included in the correct place. Each
+line of Javadoc is emitted in the order encountered during parsing
+of the configuration files. See also : [ClassJavadoc](#ClassJavadoc)
+
 **<span id="NativeOutputDir">NativeOutputDir</span>**  
 Syntax: `NativeOutputDir [directory name]`  
 (optional) Specifies the root directory into which the emitted JNI code
@@ -926,7 +979,7 @@ directory. See also
 [HierarchicalNativeOutput](#HierarchicalNativeOutput).
 
 **<span id="NioDirectOnly">NioDirectOnly</span>**  
-Syntax: `NioDirectOnly [function name]`  
+Syntax: `NioDirectOnly [function name|__ALL__]`  
 (required when necessary) When passing a pointer down to a C API, it is
 semantically undefined whether the underlying C code expects to treat
 that pointer as a persistent pointer, living past the point of return of
@@ -943,7 +996,15 @@ either expects to hold on to this pointer past the point of the function
 call, or if it can block while holding on to the pointer, the
 `NioDirectOnly` directive **must** be specified for this C function in
 order for the generated glue code to be correct. Failing to observe this
-requirement may cause JVM hangs or crashes.
+requirement may cause JVM hangs or crashes. See also [NIOOnly](#NIOOnly).
+
+**<span id="NIOOnly">NIOOnly</span>**
+Syntax: `NIOOnly [function name|__ALL__]`
+(optional) Cause fonction specified (or all) should only create a
+`java.nio` variant, and no array variants, for `void*` and other
+C primitive pointers. NIO only still allows usage of array backed
+not direct Buffers. See also : [NioDirectOnly](#NioDirectOnly), same
+effect but disallow usage of array backed not direct Buffers.
 
 **<span id="Opaque">Opaque</span>**  
 Syntax:
@@ -1006,6 +1067,11 @@ being bound to Java is only one potential implementation of the public
 API, or when a considerable amount of Java-side custom code is desired
 to wrap the underlying C native method entry point.
 
+**<span id="RenameJavaSymbol">RenameJavaSymbol</span>**
+Syntax: `RenameJavaSymbol [from name] [to name]`
+(optional) Cause the specified C symbol to be emitted under a
+different name in the Java binding. (Like [RenameJavaMethod](#RenameJavaMethod))
+
 **<span id="RenameJavaType">RenameJavaType</span>**  
 Syntax: `RenameJavaType [from name] [to name]`  
 (optional) Causes the specified C struct to be exposed as a Java class
@@ -1014,6 +1080,11 @@ corresponding to C structs encountered during glue code generation; full
 control is provided over the name of the top-level classes associated
 with the set of C functions via the [JavaClass](#JavaClass) and
 [ImplJavaClass](#ImplJavaClass) directives.
+
+**<span id="RelaxedEqualSemanticsTest">RelaxedEqualSemanticsTest</span>**
+Syntax: `RelaxedEqualSemanticsTest [true|false]`
+(optional) Define if binding must shall attempt to perform a relaxed semantic
+equality test, e.g. skip the `const` and `volatile` qualifier or not (by default).
 
 **<span id="ReturnedArrayLength">ReturnedArrayLength</span>**  
 Syntax:
@@ -1031,6 +1102,12 @@ subtly from [ReturnValueCapacity](#ReturnValueCapacity) and
 ReturnValueLength. It is also sometimes most useful in conjunction with
 the [TemporaryCVariableDeclaration](#TemporaryCVariableDeclaration) and
 TemporaryCVariableAssignment directives.
+
+**<span id="ReturnsOpaque">ReturnsOpaque</span>**
+Syntax: `ReturnsOpaque [function name]`  
+(optional) Indicates that the specified C function which returns an opaque pointer,
+so return value of method are exposed as `long` in Java generated API.
+Cf here for more information about opaque pointers : [Opaque](#Opaque)
 
 **<span id="ReturnsString">ReturnsString</span>**  
 Syntax: `ReturnsString [function name]`  
@@ -1083,6 +1160,12 @@ code, for example if a non-direct Buffer is passed to a method for which
 [NioDirectOnly](#NioDirectOnly) was specified. Defaults to
 `RuntimeException`.
 
+**<span id="StructMachineDataInfoIndex">StructMachineDataInfoIndex</span>**
+Syntax: `StructMachineDataInfoIndex [C struct type name] [code...]`
+(optional) Specify `mdIdx`  i.e. the index of the static MachineDescriptor
+index for structs. If undefined, code generation uses the default expression:
+`private static final int mdIdx = MachineDataInfoRuntime.getStatic().ordinal();`
+
 **<span id="StructPackage">StructPackage</span>**  
 Syntax:
 `StructPackage [C struct type name] [package                                 name]`.
@@ -1111,6 +1194,12 @@ are useful when generating a public API in which certain operations are
 unimplemented on certain platforms; platform-specific implementation
 classes can be generated which implement or leave unimplemented various
 parts of the API.
+
+**<span id="TagNativeBinding">TagNativeBinding</span>**
+Syntax: `TagNativeBinding [true|false]`
+(optional) Define if  the comment of a native method binding will include
+a `@native` tag  to allow taglets to augment the javadoc with additional
+information regarding the mapped C function. Defaults to false.
 
 **<span id="TemporaryCVariableAssignment">TemporaryCVariableAssignment</span>**  
 Syntax: `TemporaryCVariableAssignment [C function name][code...]`  
@@ -1155,6 +1244,12 @@ regexp to have bodies generated which throw the stated
 function is unimplemented. This is most useful when an API contains
 certain functions that are not supported on all platforms and there are
 multiple implementing classes being generated, one per platform.
+
+**<span id="UnsupportedExceptionType">UnsupportedExceptionType</span>**
+Syntax `UnsupportedExceptionType [type]`
+(optional) Change type of exception thrown by binding when some method
+are unsupported (if native method are missing in ABI for example). Default
+exception type are (java.lang.)UnsupportedOperationException.
 
 #### <span id="SecProcAddressEmitter">ProcAddressEmitter Configuration</span>
 
