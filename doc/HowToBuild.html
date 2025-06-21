@@ -76,8 +76,9 @@
                         <li> <b>GNU Linux</b> x86_64 as well as Arm64, etc<br/>
                             You may have to install a few developer packages ...
                             <ul>
-                                <li> <b>Debian</b> 11 or later
+                                <li> <b>Debian</b> 12 or later
                                     <ul>
+                                        <li>build-essential</li>
                                         <li>openjdk-17-jre</li>
                                         <li>openjdk-17-jdk</li>
                                         <li>ant</li>
@@ -89,15 +90,11 @@
                                     </ul>
                                     One liner install command:
                                     <ul>
-                                      <li><b>Debian</b> 11 Bullseye
+                                      <li><b>Debian</b> 12
                                       <pre>
-apt-get install openjdk-17-jre openjdk-17-jdk ant git-all gawk p7zip-full gcc cmake
+apt-get install build-essential openjdk-17-jre openjdk-17-jdk ant git-all gawk p7zip-full gcc cmake
                                       </pre></li>
                                     </ul>
-                                    Optional: Add <i>kernel</i> build utilities:
-                                    <pre>
-apt-get install kernel-package build-essential 
-                                    </pre>
                                 </li>
                                 <li> <b>OpenSuSE</b> 15.0 or later
                                     <ul>

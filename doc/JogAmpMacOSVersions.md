@@ -25,6 +25,9 @@ References
 | 12            | Monterey     | 21             | Build node 12.6.5, w/ Xcode 14.2, `x86_64` |
 | 13            | Ventura      | 22             | Test node 13.1, `arm64`                    |
 
+Exceptions:
+- JOAL's build-in OpenAL-Soft requires MacOS 10.13
+
 ## OpenJDK
 
 Available Java(tm) VMs
