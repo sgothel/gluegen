@@ -11,14 +11,14 @@
      Official production builds are performed _on_ OpenJDK 11 or 17
      and a Java JDK 11 or greater is required!
 
-     Target Java 8 baseline is chosen today, June 2019, 
-     since OpenJDK 1.8 is well supported on desktop, 
-     mobile support is given w/ OpenJDK 9 and 
+     Target Java 8 baseline is chosen today, June 2019,
+     since OpenJDK 1.8 is well supported on desktop,
+     mobile support is given w/ OpenJDK 9 and
      Android also support these language features for almost 3 years.
 
      +++
-     
-     Android 7.0 Nougat, API level 24 supports Java 1.8, 
+
+     Android 7.0 Nougat, API level 24 supports Java 1.8,
      see <https://developer.android.com/studio/write/java8-support>.
 
      However, we need to set the APK's manifest SDK min version to 21 (Android 5)
@@ -33,7 +33,7 @@
      One example is OpenAL-Soft.
 
      It is strongly recommended to test with the x86 emulator
-     using the latest API level. 
+     using the latest API level.
      On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
 
      Further testing should be performed from Android 5, API 21, to Android 9, API 28,
@@ -86,7 +86,7 @@
             <equals arg1="${ant.java.version}" arg2="28"/>
         </or>
     </condition>
-    <echo message="minJava21                  ${minJava21}"/> 
+    <echo message="minJava21                  ${minJava21}"/>
 
     <condition property="minJava17" value="true">
         <or>
@@ -97,7 +97,7 @@
             <istrue value="${minJava21}"/>
         </or>
     </condition>
-    <echo message="minJava17                  ${minJava17}"/> 
+    <echo message="minJava17                  ${minJava17}"/>
 
     <condition property="minJava11" value="true">
         <or>
@@ -110,7 +110,7 @@
             <istrue value="${minJava17}"/>
         </or>
     </condition>
-    <echo message="minJava11                  ${minJava11}"/> 
+    <echo message="minJava11                  ${minJava11}"/>
 
     <condition property="minJava9" value="true">
         <or>
@@ -118,7 +118,7 @@
             <istrue value="${minJava11}"/>
         </or>
     </condition>
-    <echo message="minJava9                   ${minJava9}"/> 
+    <echo message="minJava9                   ${minJava9}"/>
 
     <condition property="minJava8" value="true">
         <or>
@@ -126,7 +126,7 @@
             <istrue value="${minJava9}"/>
         </or>
     </condition>
-    <echo message="minJava8                   ${minJava8}"/> 
+    <echo message="minJava8                   ${minJava8}"/>
 
     <!-- Only for junit runtime tests Java [8-10] is allowed, for building Java 11 is required. -->
     <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 1.8 or greater.">
@@ -290,11 +290,11 @@
         </condition>
     </fail -->
 
-    <property name="javacdebug"       value="true" /> 
-    <property name="javacdebuglevel"  value="source,lines" /> 
-    <!--property name="javacdebuglevel"  value="source,lines,vars" /--> 
+    <property name="javacdebug"       value="true" />
+    <property name="javacdebuglevel"  value="source,lines" />
+    <!--property name="javacdebuglevel"  value="source,lines,vars" /-->
     <!-- property name="javac.memorymax"  value="128m" /-->  <!-- I ran out of memory with these .. linux x86_64 6u14 -->
-    <property name="javac.memorymax"  value="1024m" /> 
+    <property name="javac.memorymax"  value="1024m" />
 
     <echo message="javacdebug                 ${javacdebug}"/>
     <echo message="javacdebuglevel            ${javacdebuglevel}"/>
