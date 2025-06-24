@@ -424,10 +424,9 @@
   <ul>
   <li><a href="#macos-1265-monterey-darwin-21-x86_64">MacOS 12.6.5
   (Monterey), Darwin 21, <code>x86_64</code></a></li>
-  <li><a href="#macos-10136-high-sierra-darwin-17-x86_64">MacOS 10.13.6
-  (High Sierra), Darwin 17, <code>x86_64</code></a></li>
-  <li><a href="#macos-131-ventura-darwin-22-arm64">MacOS 13.1 (Ventura),
-  Darwin 22, <code>arm64</code></a></li>
+  <li><a href="#macos-155-sequoia-darwin-24-arm64">MacOS 15.5 (Sequoia),
+  Darwin 24, <code>arm64</code></a></li>
+  <li><a href="#retired">Retired</a></li>
   </ul></li>
   <li><a href="#change-history">Change History</a></li>
   </ul></li>
@@ -476,8 +475,8 @@ Version Comparison Table (wiki)</a></li>
 <td style="text-align: left;">10.13</td>
 <td style="text-align: left;">High Sierra</td>
 <td style="text-align: left;">17</td>
-<td style="text-align: left;">Test node 10.13.6,
-<code>x86_64</code></td>
+<td style="text-align: left;">Test node 10.13.6, <code>x86_64</code>
+(retired)</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">10.14</td>
@@ -514,10 +513,21 @@ Version Comparison Table (wiki)</a></li>
 <td style="text-align: left;">13</td>
 <td style="text-align: left;">Ventura</td>
 <td style="text-align: left;">22</td>
-<td style="text-align: left;">Test node 13.1, <code>arm64</code></td>
+<td style="text-align: left;">Test node 13.1, <code>arm64</code>
+(retired)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">15</td>
+<td style="text-align: left;">Sequoia</td>
+<td style="text-align: left;">24</td>
+<td style="text-align: left;">Test node 15.5, <code>arm64</code></td>
 </tr>
 </tbody>
 </table>
+<p>Exceptions:</p>
+<ul>
+<li>JOAL's build-in OpenAL-Soft requires MacOS 10.13</li>
+</ul>
 <h2 id="openjdk">OpenJDK</h2>
 <p>Available Java(tm) VMs</p>
 <ul>
@@ -527,7 +537,7 @@ href="https://adoptium.net/temurin/releases/">Adoptium</a>
 <li><a href="https://adoptium.net/supported-platforms/">Adoptium
 Supported MacOS Versions</a>
 <ul>
-<li>MacOS 10.15, 11, 12, 13 for <code>x86_64</code> and
+<li>MacOS 10.15, 11, 12, 13, 15 for <code>x86_64</code> and
 <code>arm64</code></li>
 </ul></li>
 </ul></li>
@@ -543,19 +553,29 @@ Darwin 21, <code>x86_64</code></h3>
 <li><code>-mmacosx-version-min=10.7</code> (<em>Miniumum deployment
 target</em>)</li>
 </ul></li>
-<li>OpenJDK Temurin 17.0.5+8</li>
+<li>OpenJDK Temurin 21.0.7+6-LTS</li>
 </ul>
-<h3 id="macos-10136-high-sierra-darwin-17-x86_64">MacOS 10.13.6 (High
-Sierra), Darwin 17, <code>x86_64</code></h3>
+<h3 id="macos-155-sequoia-darwin-24-arm64">MacOS 15.5 (Sequoia), Darwin
+24, <code>arm64</code></h3>
+<ul>
+<li>Test machine</li>
+<li>OpenJDK Temurin 21.0.7+6-LTS</li>
+</ul>
+<h3 id="retired">Retired</h3>
+<p>Currently not tested anymore, but should still work.</p>
+<h4 id="macos-10136-high-sierra-darwin-17-x86_64">MacOS 10.13.6 (High
+Sierra), Darwin 17, <code>x86_64</code></h4>
 <ul>
 <li>Test machine</li>
 <li>OpenJDK Temurin 17.0.5+8</li>
+<li>Retired</li>
 </ul>
-<h3 id="macos-131-ventura-darwin-22-arm64">MacOS 13.1 (Ventura), Darwin
-22, <code>arm64</code></h3>
+<h4 id="macos-131-ventura-darwin-22-arm64">MacOS 13.1 (Ventura), Darwin
+22, <code>arm64</code></h4>
 <ul>
 <li>Test machine</li>
 <li>OpenJDK Temurin 17.0.5+8</li>
+<li>Retired</li>
 </ul>
 <h2 id="change-history">Change History</h2>
 <table>
@@ -570,6 +590,10 @@ Sierra), Darwin 17, <code>x86_64</code></h3>
 <td style="text-align: left;">2023-05-06</td>
 <td style="text-align: left;">Initial Version for JogAmp Release
 2.5.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">2025-06-21</td>
+<td style="text-align: left;">JogAmp Release 2.6.0</td>
 </tr>
 </tbody>
 </table>
