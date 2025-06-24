@@ -24,8 +24,28 @@ if [ ! -z "$J2RE_HOME" -a ! -z "$JAVA_HOME" ] ; then
         PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
         export J2RE_HOME JAVA_HOME
         FOUND_JAVA=1
-    fi 
-fi 
+    fi
+fi
+
+if [ -z "$FOUND_JAVA" ] ; then
+    if [ -e /usr/lib/jvm/java-21-openjdk-amd64 ] ; then
+        J2RE_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+        JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+        PATH=$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi
+fi
+
+if [ -z "$FOUND_JAVA" ] ; then
+    if [ -e /opt-linux-x86_64/jdk21/lib/libjava.so ] ; then
+        J2RE_HOME=/opt-linux-x86_64/jdk21
+        JAVA_HOME=/opt-linux-x86_64/jdk21
+        PATH=$JAVA_HOME/bin:$PATH
+        export J2RE_HOME JAVA_HOME
+        FOUND_JAVA=1
+    fi
+fi
 
 if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /usr/lib/jvm/java-17-openjdk-amd64 ] ; then
@@ -34,8 +54,8 @@ if [ -z "$FOUND_JAVA" ] ; then
         PATH=$JAVA_HOME/bin:$PATH
         export J2RE_HOME JAVA_HOME
         FOUND_JAVA=1
-    fi 
-fi 
+    fi
+fi
 
 if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /usr/lib/jvm/java-11-openjdk-amd64 ] ; then
@@ -44,8 +64,8 @@ if [ -z "$FOUND_JAVA" ] ; then
         PATH=$JAVA_HOME/bin:$PATH
         export J2RE_HOME JAVA_HOME
         FOUND_JAVA=1
-    fi 
-fi 
+    fi
+fi
 
 if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /opt-linux-x86_64/jre11 -a -e /opt-linux-x86_64/jdk11 ] ; then
@@ -54,8 +74,8 @@ if [ -z "$FOUND_JAVA" ] ; then
         PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
         export J2RE_HOME JAVA_HOME
         FOUND_JAVA=1
-    fi 
-fi 
+    fi
+fi
 
 if [ -z "$FOUND_JAVA" ] ; then
     if [ -e /usr/java/jre/bin/amd64 -a -e /usr/java/bin/amd64 ] ; then
@@ -91,8 +111,8 @@ if [ -z "$FOUND_JAVA" ] ; then
         PATH=$J2RE_HOME/bin:$JAVA_HOME/bin:$PATH
         export J2RE_HOME JAVA_HOME
         FOUND_JAVA=1
-    fi 
-fi 
+    fi
+fi
 
 
 export PATH

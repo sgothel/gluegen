@@ -4,7 +4,7 @@ if [ -e /usr/local/etc/profile.ant ] ; then
     . /usr/local/etc/profile.ant
 fi
 
-#    -Dc.compiler.debug=true 
+#    -Dc.compiler.debug=true
 #
 #    -Dtarget.sourcelevel=1.6 \
 #    -Dtarget.targetlevel=1.6 \
@@ -13,7 +13,7 @@ fi
 # Force OSX SDK 10.6, if desired
 # export SDKROOT=macosx10.6
 
-JAVA_HOME=`/usr/libexec/java_home -version 17`
+JAVA_HOME=`/usr/libexec/java_home -version 21`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 

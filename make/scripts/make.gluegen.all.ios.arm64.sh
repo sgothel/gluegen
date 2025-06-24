@@ -4,7 +4,7 @@ if [ -e /usr/local/etc/profile.ant ] ; then
     . /usr/local/etc/profile.ant
 fi
 
-#    -Dc.compiler.debug=true 
+#    -Dc.compiler.debug=true
 #
 #    -Dtarget.sourcelevel=1.6 \
 #    -Dtarget.targetlevel=1.6 \
@@ -16,11 +16,11 @@ fi
 export SDKROOT=iphoneos13.2
 xcrun --show-sdk-path
 
-JAVA_HOME=`/usr/libexec/java_home -version 17`
+JAVA_HOME=`/usr/libexec/java_home -version 21`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH
 which java
-java -version 
+java -version
 
 export SOURCE_LEVEL=1.8
 export TARGET_LEVEL=1.8

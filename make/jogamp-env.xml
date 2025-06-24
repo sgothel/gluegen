@@ -8,8 +8,8 @@
         - Java 1.8 (Level 8.0)
         - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
-     Official production builds are performed _on_ OpenJDK 11 or 17
-     and a Java JDK 11 or greater is required!
+     Official production builds are performed _on_ OpenJDK 21
+     and a Java JDK 17 or greater is required!
 
      Target Java 8 baseline is chosen today, June 2019,
      since OpenJDK 1.8 is well supported on desktop,

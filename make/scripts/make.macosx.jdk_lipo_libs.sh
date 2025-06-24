@@ -9,13 +9,13 @@
 # - temurin-xy.jdk.arm64.lib/
 #
 # Now we can run this script producing fat lipo dylib files,
-# placed into 
+# placed into
 # - temurin-xy.jdk.fat.lib
 #
 
-amd64_dir=$HOME/temurin-17.jdk.amd64.lib
-arm64_dir=$HOME/temurin-17.jdk.arm64.lib
-fat_dir=$HOME/temurin-17.jdk.fat.lib
+amd64_dir=$HOME/temurin-21.jdk.amd64.lib
+arm64_dir=$HOME/temurin-21.jdk.arm64.lib
+fat_dir=$HOME/temurin-21.jdk.fat.lib
 
 rm -rf $fat_dir
 mkdir $fat_dir
