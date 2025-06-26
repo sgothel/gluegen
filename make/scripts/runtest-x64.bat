@@ -20,7 +20,8 @@ REM scripts\java-win64.bat com.jogamp.common.util.TestTempJarCache
 REM scripts\java-win64.bat com.jogamp.common.os.TestElfReader01
 REM scripts\java-win64.bat com.jogamp.common.util.TestPlatform01
 
-scripts\java-win64.bat com.jogamp.common.util.TestWorkerThread01
+scripts\java-win64.bat com.jogamp.common.util.TestIntIntHashMap
+REM scripts\java-win64.bat com.jogamp.common.util.TestWorkerThread01
 
 REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtil01
 REM scripts\java-win64.bat com.jogamp.common.util.TestJarUtil

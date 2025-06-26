@@ -43,6 +43,8 @@ import com.jogamp.common.os.Clock;
 import com.jogamp.common.os.Platform;
 import com.jogamp.junit.util.SingletonJunitCase;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 import static org.junit.Assert.*;
 import static java.lang.System.*;
 
@@ -242,6 +244,7 @@ public class TestIntIntHashMap extends SingletonJunitCase {
     @Test
     public void benchmark() {
         benchmark(true);
+        benchmark(true);
         benchmark(false);
     }
 
@@ -260,14 +263,16 @@ public class TestIntIntHashMap extends SingletonJunitCase {
             intmap.put(pairs.keys[i], pairs.values[i]);
         }
         final long intmapPutTime = (Clock.currentNanos() - time);
-        out.println("   iimap: " + intmapPutTime/1000000.0f+"ms");
+        out.println("      iimap: " + intmapPutTime/1000000.0f+"ms");
 
         time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             map.put(pairs.keys[i], pairs.values[i]);
         }
         final long mapPutTime = (Clock.currentNanos() - time);
-        out.println("   map:   " + mapPutTime/1000000.0f+"ms");
+        final double putRatio = (double)intmapPutTime/(double)mapPutTime;
+        out.println("        map:   " + mapPutTime/1000000.0f+"ms");
+        out.println("  iimap/map:   " + putRatio);
 
 
         System.out.println();
@@ -277,15 +282,16 @@ public class TestIntIntHashMap extends SingletonJunitCase {
             intmap.get(pairs.keys[i]);
         }
         final long intmapGetTime = (Clock.currentNanos() - time);
-        out.println("   iimap: " + intmapGetTime/1000000.0f+"ms");
+        out.println("      iimap: " + intmapGetTime/1000000.0f+"ms");
 
         time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
             map.get(pairs.keys[i]);
         }
         final long mapGetTime = (Clock.currentNanos() - time);
-        out.println("   map:   " + mapGetTime/1000000.0f+"ms");
-
+        final double getRatio = (double)intmapGetTime/(double)mapGetTime;
+        out.println("        map:   " + mapGetTime/1000000.0f+"ms");
+        out.println("  iimap/map:   " + getRatio);
 
         out.println();
         out.println("remove");
@@ -295,7 +301,7 @@ public class TestIntIntHashMap extends SingletonJunitCase {
         }
         assertEquals(0, intmap.size());
         final long intmapRemoveTime = (Clock.currentNanos() - time);
-        out.println("   iimap: " + intmapRemoveTime/1000000.0f+"ms");
+        out.println("      iimap: " + intmapRemoveTime/1000000.0f+"ms");
 
         time = Clock.currentNanos();
         for (int i = 0; i < iterations; i++) {
@@ -303,15 +309,22 @@ public class TestIntIntHashMap extends SingletonJunitCase {
         }
         assertEquals(0, map.size());
         final long mapRemoveTime = (Clock.currentNanos() - time);
-        out.println("   map:   " + mapRemoveTime/1000000.0f+"ms");
+        final double removeRatio = (double)intmapRemoveTime/(double)mapRemoveTime;
+        out.println("        map:   " + mapRemoveTime/1000000.0f+"ms");
+        out.println("  iimap/map:   " + removeRatio);
+
+
+        // JDK-8309361: JDK-21 perf-issue (?): 1.5 ratio margin suffice for JDK < 21, but 4x for JDK 21
+        // See <https://bugs.openjdk.org/browse/JDK-8309361>
+        final double ratioTolerance = PlatformPropsImpl.JAVA_21 ? 4 : 1.5;
 
         if(!warmup) {
             // In case the 1st class map magically improves
             // we add a tolerance around 50% since this would be hardly a bug.
             // The main goal of this primitve map is memory efficiency.
             // high and not O(1) assertTrue("'put' too slow", intmapPutTime <= mapPutTime + mapPutTime/4 );
-            assertTrue("'get' too slow", intmapGetTime <= mapGetTime + mapGetTime/2 );
-            assertTrue("'remove' too slow", intmapRemoveTime <= mapRemoveTime + mapRemoveTime/2 );
+            assertTrue("'get' too slow", getRatio < ratioTolerance );
+            assertTrue("'remove' too slow", removeRatio < ratioTolerance );
         }
     }
 
