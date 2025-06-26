@@ -37,6 +37,8 @@ import org.junit.runners.MethodSorters;
 import com.jogamp.common.util.TSPrinter;
 import com.jogamp.junit.util.JunitTracer;
 
+import jogamp.common.os.PlatformPropsImpl;
+
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestClock01 extends JunitTracer {
     TSPrinter logout = TSPrinter.stderr();
@@ -100,9 +102,12 @@ public class TestClock01 extends JunitTracer {
         TSPrinter.printf(System.err, "mono ts ms: tr0 rel %d, ta0 abs %d, diff %d\n", tr0, ta0, td_ar);
         TSPrinter.printf(System.err, "mono td ms: tr* rel %d, ta* abs %d\n", td_r, td_a);
 
+        // JDK-8309361: JDK-21 perf-issue: 10% error margin suffice for JDK < 21, but 20% for JDK 21
+        // See <https://bugs.openjdk.org/browse/JDK-8309361>
+        final long toleranceMS = PlatformPropsImpl.JAVA_21 ? 20 : 10;
         Assert.assertTrue(td_ar >= 0);
-        Assert.assertTrue(Math.abs(td_r - 100) < 20); // generous 20% error margin
-        Assert.assertTrue(Math.abs(td_a - 100) < 20); // ditto
+        Assert.assertTrue(Math.abs(td_r - 100) < toleranceMS);
+        Assert.assertTrue(Math.abs(td_a - 100) < toleranceMS);
     }
 
     public static void main(final String args[]) {
