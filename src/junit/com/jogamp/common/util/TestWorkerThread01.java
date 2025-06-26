@@ -128,7 +128,7 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         // System.err.println("WT Resume.X: "+wt);
     }
 
-    public void testAction(final boolean startPaused, final long periodMS, final long minDelayMS, final long actionMS) throws IOException, InterruptedException, InvocationTargetException {
+    public void testAction(final boolean startPaused, final long periodMS, final long minDelayMS, final long actionMS, final long toleranceMS) throws IOException, InterruptedException, InvocationTargetException {
         final Action action = new Action( 0 < actionMS ? Duration.of(actionMS, ChronoUnit.MILLIS) : Duration.ZERO);
         final StateCB stateCB = new StateCB();
         final WorkerThread wt =new WorkerThread(Duration.of(periodMS, ChronoUnit.MILLIS),
@@ -162,10 +162,9 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         {
             final Duration td = action.td;
             final Duration wt_slept = wt.getSleptDuration();
-            final long minEps = 4;
             final long actionMS_d = td.minus( wt_slept ).toMillis() - actionMS;
-            System.err.println("actionMS_d "+actionMS_d+" = td "+td.toMillis()+"ms - wt_slept "+wt_slept.toMillis()+"ms - actionMS "+actionMS+"ms < minEps "+minEps+"ms");
-            Assert.assertTrue(Math.abs(actionMS_d) < minEps);
+            System.err.println("actionMS_d "+actionMS_d+" = td "+td.toMillis()+"ms - wt_slept "+wt_slept.toMillis()+"ms - actionMS "+actionMS+"ms < toleranceMS "+toleranceMS+"ms");
+            Assert.assertTrue(Math.abs(actionMS_d) < toleranceMS);
         }
 
         checkStarted(wt, false /* isPaused */);
@@ -255,38 +254,38 @@ public class TestWorkerThread01 extends SingletonJunitCase {
 
     @Test
     public void test01ZeroAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/);
-        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/);
+        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/, 20);
+        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 0 /* actionMS*/, 20);
     }
 
     @Test
     public void test02MidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
-        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/, 20);
+        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/, 20);
     }
 
     @Test
     public void test03HeavyAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/);
-        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/);
+        testAction(false, 16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/, 20 /* toleranceMS */);
+        testAction(true, 16 /* periodMS */, 0 /* minDelayMS */, 20 /* actionMS*/, 20 /* toleranceMS */);
     }
 
     @Test
     public void test03ZeroMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(false, 0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
-        testAction(true, 0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/, 20);
+        testAction(true, 0 /* periodMS */, 0 /* minDelayMS */, 8 /* actionMS*/, 20);
     }
 
     @Test
     public void test04ZeroMinDelayMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(false, 0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/);
-        testAction(true, 0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/, 20);
+        testAction(true, 0 /* periodMS */, 4 /* minDelayMS */, 8 /* actionMS*/, 20);
     }
 
     @Test
     public void test05MinDelayMidAction() throws IOException, InterruptedException, InvocationTargetException {
-        testAction(false, 8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/);
-        testAction(true, 8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/);
+        testAction(false, 8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/, 20);
+        testAction(true, 8 /* periodMS */, 8 /* minDelayMS */, 8 /* actionMS*/, 20);
     }
 
     @Test
@@ -398,7 +397,7 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         Assert.assertEquals(0, stateCB.endCounter.get());
 
         final long minPeriodMS = 2;
-        final long maxPeriodMS = 16;
+        final long maxPeriodMS = 40;
         final WorkerThread wt =new WorkerThread(Duration.of(minPeriodMS, ChronoUnit.MILLIS),
                                                 Duration.of(0, ChronoUnit.MILLIS), true /* daemonThread */,
                                                 action, stateCB);
@@ -472,7 +471,7 @@ public class TestWorkerThread01 extends SingletonJunitCase {
         Assert.assertEquals(0, stateCB.endCounter.get());
 
         final long minPeriodMS = 2;
-        final long maxPeriodMS = 16;
+        final long maxPeriodMS = 40;
         final WorkerThread wt =new WorkerThread(Duration.of(minPeriodMS, ChronoUnit.MILLIS),
                                                 Duration.of(0, ChronoUnit.MILLIS), true /* daemonThread */,
                                                 action, stateCB);

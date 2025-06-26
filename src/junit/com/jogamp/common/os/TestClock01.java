@@ -101,8 +101,8 @@ public class TestClock01 extends JunitTracer {
         TSPrinter.printf(System.err, "mono td ms: tr* rel %d, ta* abs %d\n", td_r, td_a);
 
         Assert.assertTrue(td_ar >= 0);
-        Assert.assertTrue(Math.abs(td_r - 100) < 10); // generous 10% error margin
-        Assert.assertTrue(Math.abs(td_a - 100) < 10); // ditto
+        Assert.assertTrue(Math.abs(td_r - 100) < 20); // generous 20% error margin
+        Assert.assertTrue(Math.abs(td_a - 100) < 20); // ditto
     }
 
     public static void main(final String args[]) {

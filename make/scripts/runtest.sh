@@ -99,7 +99,7 @@ function onetest() {
     echo
 }
 #
-onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
@@ -150,7 +150,7 @@ onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
+onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.TestJCPP $* 2>&1 | tee -a $LOG
