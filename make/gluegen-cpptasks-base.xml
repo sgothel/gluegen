@@ -36,6 +36,7 @@
    -   isAndroidARMv6Armel (set in gluegen.cpptasks.detected.os.2)
    -   isAndroidARMv6Armhf (set in gluegen.cpptasks.detected.os.2)
    -   isAndroidX86
+   -   isAndroidX86_64
    -   isLinux
    -   isLinuxAMD64
    -   isLinuxIA64
@@ -359,6 +360,12 @@
       <and>
         <istrue value="${isAndroid}" />
         <os arch="x86" />
+      </and>
+    </condition>
+    <condition property="isAndroidX86_64">
+      <and>
+        <istrue value="${isAndroid}" />
+        <os arch="x86_64" />
       </and>
     </condition>
     <condition property="isLinuxARMv6">
@@ -721,7 +728,11 @@
     <property name="os.and.arch" value="android-x86" />
   </target>
 
-  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv6.armel,gluegen.cpptasks.detect.os.linux.armv6.armhf,gluegen.cpptasks.detect.os.android.armv6.armel,gluegen.cpptasks.detect.os.linux.aarch64,gluegen.cpptasks.detect.os.android.armv6.armhf,gluegen.cpptasks.detect.os.android.aarch64,gluegen.cpptasks.detect.os.android.x86,gluegen.cpptasks.detect.os.linux.alpha,gluegen.cpptasks.detect.os.linux.hppa,gluegen.cpptasks.detect.os.linux.mips,gluegen.cpptasks.detect.os.linux.mipsel,gluegen.cpptasks.detect.os.linux.ppc,gluegen.cpptasks.detect.os.linux.ppc64,gluegen.cpptasks.detect.os.linux.ppc64le,gluegen.cpptasks.detect.os.linux.riscv64,gluegen.cpptasks.detect.os.linux.s390,gluegen.cpptasks.detect.os.linux.s390x,gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" />
+  <target name="gluegen.cpptasks.detect.os.android.x86_64" unless="gluegen.cpptasks.detected.os.2" if="isAndroidX86_64">
+    <property name="os.and.arch" value="android-x86_64" />
+  </target>
+
+  <target name="gluegen.cpptasks.detect.os.linux" depends="gluegen.cpptasks.detect.os.linux.amd64,gluegen.cpptasks.detect.os.linux.ia64,gluegen.cpptasks.detect.os.linux.x86,gluegen.cpptasks.detect.os.linux.armv6.armel,gluegen.cpptasks.detect.os.linux.armv6.armhf,gluegen.cpptasks.detect.os.android.armv6.armel,gluegen.cpptasks.detect.os.linux.aarch64,gluegen.cpptasks.detect.os.android.armv6.armhf,gluegen.cpptasks.detect.os.android.aarch64,gluegen.cpptasks.detect.os.android.x86,gluegen.cpptasks.detect.os.android.x86_64,gluegen.cpptasks.detect.os.linux.alpha,gluegen.cpptasks.detect.os.linux.hppa,gluegen.cpptasks.detect.os.linux.mips,gluegen.cpptasks.detect.os.linux.mipsel,gluegen.cpptasks.detect.os.linux.ppc,gluegen.cpptasks.detect.os.linux.ppc64,gluegen.cpptasks.detect.os.linux.ppc64le,gluegen.cpptasks.detect.os.linux.riscv64,gluegen.cpptasks.detect.os.linux.s390,gluegen.cpptasks.detect.os.linux.s390x,gluegen.cpptasks.detect.os.linux.sparc" unless="gluegen.cpptasks.detected.os.2" />
 
   <target name="gluegen.cpptasks.detect.os.osx" unless="gluegen.cpptasks.detected.os.2" if="isOSX">
     <property name="native.library.prefix"     value="lib" />
@@ -851,6 +862,7 @@
     <echo message="AndroidARMv6Armel=${isAndroidARMv6Armel}" />
     <echo message="AndroidARMv6Armhf=${isAndroidARMv6Armhf}" />
     <echo message="AndroidX86=${isAndroidX86}" />
+    <echo message="AndroidX86_64=${isAndroidX86_64}" />
     <echo message="Linux=${isLinux}" />
     <echo message="LinuxAMD64=${isLinuxAMD64}" />
     <echo message="LinuxIA64=${isLinuxIA64}" />
@@ -1968,8 +1980,7 @@
            includeAntRuntime="false"
            encoding="UTF-8"
            source="${target.sourcelevel}" 
-           target="${target.targetlevel}" 
-           bootclasspath="${target.rt.jar}">
+           target="${target.targetlevel}">
         <src path="${nativejarfile.tmpdir}/java" />
       </javac>
       <jar destfile="@{nativejarfile}" manifest="@{manifestfile}" filesonly="true">

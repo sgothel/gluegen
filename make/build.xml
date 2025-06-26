@@ -782,7 +782,6 @@
            encoding="UTF-8"
            source="${target.sourcelevel}" 
            target="${target.targetlevel}" 
-           bootclasspath="${target.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
@@ -1014,7 +1013,6 @@
            encoding="UTF-8"
            source="${target.sourcelevel}" 
            target="${target.targetlevel}" 
-           bootclasspath="${target.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <src path="${src.generated.java}" />
@@ -1151,7 +1149,6 @@
            encoding="UTF-8"
            source="${target.sourcelevel}" 
            target="${target.targetlevel}" 
-           bootclasspath="${target.rt.jar}"
            debug="${javacdebug}" debuglevel="${javacdebuglevel}">
       <src path="${src.java}" />
       <classpath refid="android.classpath" />

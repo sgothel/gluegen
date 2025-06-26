@@ -6,13 +6,13 @@ if [ -e ${SDIR}/setenv-build-jogamp-x86_64.sh ] ; then
     . ${SDIR}/setenv-build-jogamp-x86_64.sh
 fi
 
-LOGF=make.gluegen.all.android-x86-cross.log
+LOGF=make.gluegen.all.android-x86_64-cross.log
 rm -f ${LOGF}
 
 export ANDROID_HOME=/opt-linux-x86_64/android-sdk-linux_x86_64
 export ANDROID_API_LEVEL=24
 export ANDROID_HOST_TAG=linux-x86_64
-export ANDROID_ABI=x86
+export ANDROID_ABI=x86_64
 
 if [ -e ${SDIR}/setenv-android-tools.sh ] ; then
     . ${SDIR}/setenv-android-tools.sh >> $LOGF 2>&1
@@ -21,7 +21,7 @@ else
     exit 1
 fi
 
-export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-android-x86.xml"
+export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-android-x86_64.xml"
 export PATH=${ANDROID_TOOLCHAIN_ROOT}/${ANDROID_TOOLCHAIN_NAME}/bin:${ANDROID_TOOLCHAIN_ROOT}/bin:${ANDROID_HOME}/platform-tools:${ANDROID_BUILDTOOLS_ROOT}:${PATH}
 echo PATH ${PATH} 2>&1 | tee -a ${LOGF}
 echo clang `which clang` 2>&1 | tee -a ${LOGF}
@@ -50,7 +50,7 @@ export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
 #BUILD_ARCHIVE=true \
 ant \
-    -Drootrel.build=build-android-x86 \
+    -Drootrel.build=build-android-x86_64 \
     -Dgcc.compat.compiler=clang \
     $* 2>&1 | tee -a ${LOGF}
 

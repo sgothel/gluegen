@@ -9,24 +9,22 @@
         -Dgluegen-cpptasks.file=`pwd`/lib/gluegen-cpptasks-linux-32bit.xml
 
     In case you want to compile for 32bit on a 64bit machine,
-    you might also need to set the 'os.arch' to 'x86'.
-    Example: gluegen/make/make.gluegen.all.linux-x86.sh
+    you might also need to set the 'os.arch' to 'x86_64'.
+    Example: gluegen/make/make.gluegen.all.linux-x86_64.sh
       -->
 
-<project name="GlueGen-cpptasks-android-aarch64" basedir="." >
+<project name="GlueGen-cpptasks-android-x86_64" basedir="." >
 
 <!-- Set OS and ARCH for crosscompilation compiler configuration -->
 <target name="gluegen.cpptasks.detect.os.custom">
     <property name="gluegen.cpptasks.detected.os"     value="true" /> 
-    <property name="is64Bit"                          value="true" /> 
     <property name="isUnix"                           value="true" /> 
     <property name="isAndroid"                        value="true" /> 
-    <property name="isAndroidARM64"                   value="true" /> 
+    <property name="isAndroidX86_64"                  value="true" /> 
     <property name="jvmDataModel.arg"                 value="-Djnlp.no.jvm.data.model.set=true" /> 
     <property name="isCrosscompilation"               value="true" />
-    <property name="android.abi"                      value="${env.ANDROID_ABI}" /> <!-- arm64-v8a -->
-    <property name="isAbiEabiGnuArmel"                value="true" />
-    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-aarch64' done"/>
+    <property name="android.abi"                      value="${env.ANDROID_ABI}" /> <!-- x86_64 -->
+    <echo message="gluegen.cpptasks.detect.os.custom: GLUEGEN_CPPTASKS_FILE 'gluegen-cpptasks-android-x86_64' done"/>
 </target>
 
 <import file="${gluegen.root.abs-path}/make/gluegen-cpptasks-base.xml" optional="false" />
@@ -57,13 +55,13 @@
       <compilerarg value="-Wa,--noexecstack" /> 
 
       <compilerarg value="-target" />
-      <compilerarg value="${env.ANDROID_LLVM_TRIPLE}" /> <!-- aarch64-none-linux-android -->
-      <!-- compilerarg value="-mabi=lp64" />
-      <compilerarg value="-mlittle-endian" />
-      <compilerarg value="-march=armv8-a" / -->
-      <!-- compilerarg value="-mfloat-abi=softfp" / -->
+      <compilerarg value="${env.ANDROID_LLVM_TRIPLE}" /> <!-- i686-none-linux-android -->
+      <!-- compilerarg value="-mtune=atom" />
+      <compilerarg value="-mssse3" />
+      <compilerarg value="-mfpmath=sse" />
+      <compilerarg value="-mlong-double-80" / -->
 
-      <!-- Generic ARM Flags -->
+      <!-- Generic Flags -->
       <compilerarg value="-fno-strict-aliasing"/> <!-- be safe -->
 
       <compilerarg value="-O2"                  unless="c.compiler.use-debug" /> 
@@ -79,8 +77,6 @@
       <!-- includepath path="${env.ANDROID_TOOLCHAIN_SYSROOT1_INC}" / -->
       <defineset>
         <define name="__unix__" />
-        <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
-        <define name="__aarch64__" />  <!-- default pre-defined macro for armv8-a, 64bit -->
 
         <define name="ANDROID" />
         <define name="_DEBUG"   if="c.compiler.use-debug"/>        
@@ -100,7 +96,6 @@
 
       <!-- from sdk cmake start -->
       <linkerarg value="-Wl,--build-id" /> 
-      <!-- linkerarg value="-Wl,- -no-warn-shared-textrel" / unrecognized option -->  
       <linkerarg value="-Wl,--fatal-warnings" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-nostdlib++" />
@@ -109,11 +104,11 @@
       <linkerarg value="-fno-use-linker-plugin" /> 
 
       <linkerarg value="-target" />
-      <linkerarg value="${env.ANDROID_LLVM_TRIPLE}" /> <!-- aarch64-none-linux-android -->
-      <!-- linkerarg value="-mabi=lp64" />
-      <linkerarg value="-mlittle-endian" />
-      <linkerarg value="-march=armv8-a" / -->
-      <!-- linkerarg value="-mfloat-abi=softfp" / -->
+      <linkerarg value="${env.ANDROID_LLVM_TRIPLE}" /> <!-- i686-none-linux-android -->
+      <!-- linkerarg value="-mtune=atom" />
+      <linkerarg value="-mssse3" />
+      <linkerarg value="-mfpmath=sse" />
+      <linkerarg value="-mlong-double-80" / -->
 
       <linkerarg value="-Bdynamic" />
       <linkerarg value="-Wl,-dynamic-linker,/system/bin/linker" />
@@ -128,14 +123,14 @@
 </target>
 
 <target name="gluegen.cpptasks.declare.compiler" depends="setup.java.home.dir">
-  <echo message="Custom forced Linux.x86 cross compile android" />
+  <echo message="Custom forced Linux.x86_64 cross compile android" />
   <property name="compiler.cfg.id.base"          value="compiler.cfg.android" /> 
   <property name="linker.cfg.id.base"            value="linker.cfg.android" /> 
   <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
-  <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386" 
-                                                 file="${java.home.dir}/jre/lib/i386/libjava.so"/>
-  <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"     
-                                                 file="${java.home.dir}/lib/i386/libjava.so"/>
+  <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/amd64" 
+                                                  file="${java.home.dir}/jre/lib/amd64/libjava.so"/>
+  <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/amd64"     
+                                                  file="${java.home.dir}/lib/amd64/libjava.so"/>
   <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
 </target>
 

@@ -9,7 +9,7 @@
 
     <uses-library android:name="com.jogamp.common" android:required="true" />
 
-    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28"/>
+    <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34"/>
 
     <application android:icon="@drawable/icon" 
                  android:label="@string/app_test_name"
@@ -21,6 +21,7 @@
                   android:launchMode="singleTop"
                   android:label="@string/activity_v_name"
                   android:description="@string/activity_v_descr"
+                  android:exported="true"
                   >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

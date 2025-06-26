@@ -1,43 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!-- Current runtime requirements are:
-        - Java 1.8 (Level 8.0)
+        - Java 11 (class file 55)
         - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
-     Official production builds are performed _for_ Java 1.8.
-        - Java 1.8 (Level 8.0)
+     We dropped previously supported Java 8 (class file 52), 
+     since OpenJDK 21 signals its end-of-life.
+
+     Official production builds are performed _for_ Java 11
+        - Java 11 (class file 55)
         - Android SDK API level 24 (Version 7.0 Nougat, released August 2016)
 
      Official production builds are performed _on_ OpenJDK 21
      and a Java JDK 17 or greater is required!
 
-     Target Java 8 baseline is chosen today, June 2019,
-     since OpenJDK 1.8 is well supported on desktop,
-     mobile support is given w/ OpenJDK 9 and
-     Android also support these language features for almost 3 years.
+     Target Java 11 baseline is chosen today, June 2025,
+     since OpenJDK 11 is well supported on desktop and mobile devices.
 
      +++
 
-     Android 7.0 Nougat, API level 24 supports Java 1.8,
-     see <https://developer.android.com/studio/write/java8-support>.
+     Android: Aligned with Android SDK build-tools 36 and NDK 29 as of 2025-06-25
 
-     However, we need to set the APK's manifest SDK min version to 21 (Android 5)
-     and target version to 28 (Android 9), as required as of 2019-08-01
-     <https://support.google.com/googleplay/android-developer/answer/113469#targetsdk>
+     Android supports Java 11 language features 
+     either directly since API 32 (Version 12)
+     <https://developer.android.com/build/jdks>
+     or via desugar in the d8 dex-tool.
+     <https://developer.android.com/studio/write/java11-default-support-table>
 
-         <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="28"/>
+     On 2024-08-31: Android 14 (API level 34) or higher is required for stored apps.
+     <https://developer.android.com/google/play/requirements/target-sdk>
 
-     Due to certain libc compatibility issues of Android API > 22,
-     we compile certain native libraries @ API 22,
-     see <https://github.com/android/ndk/issues/964>.
-     One example is OpenAL-Soft.
+     Hence, we need to set the APK's manifest SDK min version to 24 (Android 7, Nougat)
+     and target version to 34 (Android 14), as required as of 2024-08-31
 
-     It is strongly recommended to test with the x86 emulator
+         <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34"/>
+
+     It is strongly recommended to test with the x86_64 and maybe x86 emulator
      using the latest API level.
-     On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
+     On 2025-06-25 we have tested using Android 14, API 34 on the x86_64 emulator.
 
-     Further testing should be performed from Android 5, API 21, to Android 9, API 28,
-     as well as on aarch64 and armv7a devices.
+     Old:
+       On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
+       Further testing should be performed from Android 5, API 21, to Android 9, API 28,
+       as well as on aarch64 and armv7a devices.
 
      +++
 
@@ -128,11 +133,11 @@
     </condition>
     <echo message="minJava8                   ${minJava8}"/>
 
-    <!-- Only for junit runtime tests Java [8-10] is allowed, for building Java 11 is required. -->
-    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 1.8 or greater.">
+    <!-- Only for junit runtime tests Java 11 is allowed, for building Java 11 is required. -->
+    <fail message="Unsupported Java version: ${ant.java.version}. Make sure that the version of Java is 11 or greater.">
         <condition>
             <not>
-                <istrue value="${minJava8}"/>
+                <istrue value="${minJava11}"/>
             </not>
         </condition>
     </fail>
@@ -157,9 +162,8 @@
         </not>
     </condition>
 
-  	<property name="target.sourcelevel" value="1.8"/>
-  	<property name="target.targetlevel" value="1.8"/>
-  	<!-- property name="target.rt.jar" value="jre1.8.0_212/lib/rt.jar"/ -->
+  	<property name="target.sourcelevel" value="11"/>
+  	<property name="target.targetlevel" value="11"/>
 
     <property name="jogamp.jar.codebase"      value=""/> <!-- A jogamp build uses value "Codebase: *.jogamp.org" -->
     <echo message="jogamp.jar.codebase        ${jogamp.jar.codebase}"/>
@@ -174,7 +178,7 @@
     <echo message="jogamp.version             ${jogamp.version}"/>
 
     <!-- This is the Android version: xxyyzzz, xx=API yy screen-from-to zzz app-version-->
-    <property name="jogamp.version.int"   value="2414020"/>
+    <property name="jogamp.version.int"   value="2414030"/>
     <echo message="jogamp.version.int         ${jogamp.version.int}"/>
 
     <!-- only set 'junit.is.disabled' if set in environment as 'true' to disable JUNIT tests -->
@@ -231,28 +235,20 @@
         </not>
     </condition>
 
-    <condition property="target.rt.jar" value="${env.TARGET_RT_JAR}">
-        <not>
-         <equals arg1="${env.TARGET_RT_JAR}" arg2="$${env.TARGET_RT_JAR}" casesensitive="true" />
-        </not>
-    </condition>
-
     <condition property="target.user.set" value="true">
           <and>
               <isset property="target.sourcelevel"/>
               <isset property="target.targetlevel"/>
               <!-- isset property="target.releaselevel"/ -->
-              <isset property="target.rt.jar"/>
           </and>
     </condition>
     <echo message="target.user.set            ${target.user.set}"/>
     <echo message="target.sourcelevel         ${target.sourcelevel}"/>
     <echo message="target.targetlevel         ${target.targetlevel}"/>
     <echo message="target.releaselevel        ${target.releaselevel}"/>
-    <echo message="target.rt.jar              ${target.rt.jar}"/>
 
   	<!--
-    <fail message="You need to specify all properties 'target.sourcelevel', 'target.targetlevel' and 'target.rt.jar'.">
+    <fail message="You need to specify all properties 'target.sourcelevel' and 'target.targetlevel'.">
       <condition>
         <not>
           <istrue value="${target.user.set}"/>
@@ -260,23 +256,17 @@
       </condition>
     </fail> -->
 
-    <fail message="Unsupported Target Java sourcelevel: ${target.sourcelevel}. Make sure that the sourcelevel is set to 1.8 (8.0).">
+    <fail message="Unsupported Target Java sourcelevel: ${target.sourcelevel}. Make sure that the sourcelevel is set to 11.">
         <condition>
             <not>
-                <or>
-                    <contains string="${target.sourcelevel}" substring="1.8" casesensitive="false" />
-                    <contains string="${target.sourcelevel}" substring="8" casesensitive="false" />
-                </or>
+                <contains string="${target.sourcelevel}" substring="11" casesensitive="false" />
             </not>
         </condition>
     </fail>
-    <fail message="Unsupported Target Java targetlevel: ${target.targetlevel}. Make sure that the targetlevel is set to 1.8 (8.0).">
+    <fail message="Unsupported Target Java targetlevel: ${target.targetlevel}. Make sure that the targetlevel is set to 11.">
         <condition>
             <not>
-                <or>
-                    <contains string="${target.targetlevel}" substring="1.8" casesensitive="false" />
-                    <contains string="${target.targetlevel}" substring="8" casesensitive="false" />
-                </or>
+                <contains string="${target.targetlevel}" substring="11" casesensitive="false" />
             </not>
         </condition>
     </fail>

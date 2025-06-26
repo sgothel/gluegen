@@ -16,10 +16,6 @@ export TARGET_JAVA_LIBS=/usr/lib/jvm/java-7-openjdk-$ARCH/jre/lib/$MACHINE
 
 export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-$MACHINE.xml"
 
-export SOURCE_LEVEL=1.8
-export TARGET_LEVEL=1.8
-export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
-
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 

@@ -86,7 +86,6 @@
     </compiler>
 
     <linker id="linker.cfg.android" name="clang">
-      <linkerarg value="--sysroot=${env.ANDROID_TOOLCHAIN_SYSROOT0}" /> <!-- libs in std FS layout, but no include files -->
       <linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT1_LIB1}" />
       <linkerarg value="-Wl,-rpath-link=${env.ANDROID_TOOLCHAIN_SYSROOT1_LIB1}" />
       <linkerarg value="-L${env.ANDROID_TOOLCHAIN_SYSROOT1_LIB2}" />
@@ -97,7 +96,6 @@
 
       <!-- from sdk cmake start -->
       <linkerarg value="-Wl,--build-id" /> 
-      <linkerarg value="-Wl,--no-warn-shared-textrel" /> 
       <linkerarg value="-Wl,--fatal-warnings" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-nostdlib++" />

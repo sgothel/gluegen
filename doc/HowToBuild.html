@@ -39,9 +39,9 @@
                         <li> <b>Java</b>
                            <ul>
                               <li>Build &amp; Runtime: An <a href="http://openjdk.java.net/">OpenJDK</a> 17 compliant SDK.</li>
-                              <li>Runtime: An OpenJDK 8 compliant JRE.</li>
+                              <li>Runtime: An OpenJDK 11 compliant JRE.</li>
                            </ul>
-                           You may find an appropriate <a href="http://openjdk.java.net/">OpenJDK</a> build @ <a href="https://adoptium.net/temurin/releases/">Adoptium</a>.<br/>
+                           JogAmp builds are currently performed using an <a href="http://openjdk.java.net/">OpenJDK 21</a> build @ <a href="https://adoptium.net/temurin/releases/">Adoptium</a>.<br/>
                            <br/>
                            Or you may try one of the following SDK's and/or Runtimes:
                            <ul>
@@ -123,8 +123,11 @@ apt-get install build-essential openjdk-17-jre openjdk-17-jdk ant git-all gawk p
                         <li> <b>Android/Linux</b> Version 7.0 Nougat API Level 24 or later<br/>
                             <ul>
                                 <li>any of the above GNU/Linux x86_64 hosts for crosscompilation</li>
-                                <li>android ndk <i>(todo: detail instructions)</i></li>
-                                <li>android sdk <i>(todo: detail instructions)</i></li>
+                                <li>android ndk <i>(version 29)</i></li>
+                                <li>android sdk <i>(build-tools version 36)</i></li>
+                                <li>android:minSdkVersion: 24 (Android 7, Nougat)</li>
+                                <li>android:targetSdkVersion=: 34 (Android 14), as required as of 2024-08-31</li>
+                                <li>for details, see make/jogamp-env.xml and make/scripts/setenv-android-tools.sh</li>
                             </ul>
                         </li>
                         <li> <b><a href="https://en.wikipedia.org/wiki/OpenSolaris#Derivatives">OpenSolaris Derivatives</a></b> SPARC and x86, 32- and 64-bit

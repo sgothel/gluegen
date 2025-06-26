@@ -38,10 +38,6 @@ export GLUEGEN_CPPTASKS_FILE="lib/gluegen-cpptasks-linux-armv6hf.xml"
 #export JUNIT_DISABLED="true"
 export JUNIT_RUN_ARG0="-Dnewt.test.Screen.disableScreenMode"
 
-export SOURCE_LEVEL=1.8
-export TARGET_LEVEL=1.8
-export TARGET_RT_JAR=/opt-share/jre1.8.0_212/lib/rt.jar
-
 #export JOGAMP_JAR_CODEBASE="Codebase: *.jogamp.org"
 export JOGAMP_JAR_CODEBASE="Codebase: *.goethel.localnet"
 
