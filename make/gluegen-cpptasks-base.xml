@@ -831,7 +831,7 @@
     </condition>
 
     <!-- NOTE: the value of the c.strip.tool and c.strip.args attribute will not be overridden if already set externally -->
-    <property name="c.strip.tool"     value="strip" /> 
+    <condition property="c.strip.tool" value="llvm-strip" else="strip"><isset property="isAndroid"/></condition>
     <condition property="c.strip.args" value="-S -x"><isset property="isOSX"/></condition>
     <condition property="c.strip.args" value="-S -x"><isset property="isIOS"/></condition>
     <property name="c.strip.args"     value="" /> 
