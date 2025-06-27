@@ -6,6 +6,7 @@ REM set TMP=C:\Users\test\(ABC)abc\temp
 
 REM scripts\java-win64.bat com.jogamp.common.GlueGenVersion 
 REM scripts\java-win64.bat com.jogamp.common.util.TestVersionInfo
+scripts\java-win64.bat com.jogamp.common.util.TestVersionSemantics
 
 REM scripts\java-win64.bat com.jogamp.gluegen.jcpp.IncludeAbsoluteTest
 
@@ -20,7 +21,7 @@ REM scripts\java-win64.bat com.jogamp.common.util.TestTempJarCache
 REM scripts\java-win64.bat com.jogamp.common.os.TestElfReader01
 REM scripts\java-win64.bat com.jogamp.common.util.TestPlatform01
 
-scripts\java-win64.bat com.jogamp.common.util.TestIntIntHashMap
+REM scripts\java-win64.bat com.jogamp.common.util.TestIntIntHashMap
 REM scripts\java-win64.bat com.jogamp.common.util.TestWorkerThread01
 
 REM scripts\java-win64.bat com.jogamp.common.util.TestIOUtil01

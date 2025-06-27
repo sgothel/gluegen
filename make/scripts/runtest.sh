@@ -78,9 +78,9 @@ X_ARGS="-Drootrel.build=$ROOTREL_BUILD -Dgluegen.root=$GLUEGEN_ROOT"
 #D_ARGS="-Djogamp.debug.Logging"
 
 function onetest() {
-    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:../jcpp/lib/guava-32.1.2-jre.jar
-    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar:../jcpp/lib/guava-32.1.2-jre.jar
-    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/semantic-versioning/semver.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:../jcpp/lib/guava-32.1.2-jre.jar
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/japicmp/japicmp-with-dependencies.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:../jcpp/lib/guava-32.1.2-jre.jar
+    USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/japicmp/japicmp-with-dependencies.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:"$builddir"/gluegen-rt-natives.jar:../jcpp/lib/guava-32.1.2-jre.jar
+    #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:lib/japicmp/japicmp-with-dependencies.jar:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/gluegen-rt-alt.jar:"$builddir"/gluegen.jar:"$builddir"/gluegen-test-util.jar:"$builddir"/test/build/gluegen-test.jar:../jcpp/lib/guava-32.1.2-jre.jar
     #USE_CLASSPATH=lib/junit.jar:$ANT_JARS:"$builddir"/../make/lib/TestJarsInJar.jar:"$builddir"/classes:"$builddir"/test/build/classes:../jcpp/lib/guava-32.1.2-jre.jar
     #libspath="${builddirAbs}"/test/build/natives
     libspath="${builddirAbs}"/obj:"${builddirAbs}"/test/build/natives
@@ -103,7 +103,7 @@ function onetest() {
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
-#onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
+onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG
@@ -150,7 +150,7 @@ function onetest() {
 #onetest com.jogamp.common.nio.TestByteBufferOutputStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.nio.TestByteBufferCopyStream 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.os.TestElfReader01 $* 2>&1 | tee -a $LOG
-onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.os.TestClock01 $* 2>&1 | tee -a $LOG
 #onetest com.jogamp.gluegen.test.junit.internals.TestType 2>&1 | tee -a $LOG
 
 #onetest com.jogamp.gluegen.test.junit.generation.TestJCPP $* 2>&1 | tee -a $LOG

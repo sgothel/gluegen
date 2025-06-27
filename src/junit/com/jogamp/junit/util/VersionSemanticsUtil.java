@@ -30,50 +30,124 @@ package com.jogamp.junit.util;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Assert;
-import org.osjava.jardiff.DiffCriteria;
-import org.semver.Comparer;
-import org.semver.Delta;
-import org.semver.Dumper;
 
 import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.VersionNumberString;
 
+import japicmp.config.Options;
+import japicmp.model.JApiChangeStatus;
+import japicmp.model.JApiClass;
+import japicmp.output.markdown.MarkdownOutputGenerator;
+import japicmp.output.markdown.config.MarkdownOptions;
+import japicmp.cmp.JarArchiveComparator;
+import japicmp.cmp.JarArchiveComparatorOptions;
+import japicmp.cmp.JApiCmpArchive;
+
 public class VersionSemanticsUtil {
 
-    public static void testVersion(final DiffCriteria diffCriteria,
-                                   final Delta.CompatibilityType expectedCompatibilityType,
-                                   final File previousJar, final VersionNumberString preVersionNumber,
-                                   final Class<?> currentJarClazz, final ClassLoader currentJarCL, final VersionNumberString curVersionNumber,
-                                   final Set<String> excludesRegExp)
-                                       throws IllegalArgumentException, IOException, URISyntaxException
+    /**
+     * Library compatibility type. From most compatible to less compatible.
+     */
+    public enum CompatibilityType {
+
+        /**
+         * No (public) changes.
+         */
+        BACKWARD_COMPATIBLE_IMPLEMENTER,
+
+        /**
+         * Only <i>added</i> and <i>deprecated</i> changes,
+         * i.e. source compatible changes.
+         */
+        BACKWARD_COMPATIBLE_SOURCE,
+
+        /**
+         * Contains binary compatible changes,
+         * but may not be fully source compatible
+         * and may contain changed values of fields.
+         */
+        BACKWARD_COMPATIBLE_BINARY,
+
+        /**
+         * Contains non binary compatible changes.
+         */
+        NON_BACKWARD_COMPATIBLE
+    }
+
+    public static void testVersion2(final CompatibilityType expectedCompatibilityType,
+                                    final File previousJar, final VersionNumberString preVersionNumber,
+                                    final Class<?> currentJarClazz, final ClassLoader currentJarCL, final VersionNumberString curVersionNumber,
+                                    final Set<String> excludesRegExp) throws IllegalArgumentException, URISyntaxException, IOException
     {
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
         final Uri currentJarUri = JarUtil.getJarUri(currentJarClazz.getName(), currentJarCL).getContainedUri();
-        testVersion(diffCriteria, expectedCompatibilityType,
+        testVersion2(expectedCompatibilityType,
                     previousJar, preVersionNumber,
                     currentJarUri.toFile(), curVersionNumber,
                     excludesRegExp);
     }
 
-    public static void testVersion(final DiffCriteria diffCriteria,
-                                   final Delta.CompatibilityType expectedCompatibilityType,
-                                   final File previousJar, final VersionNumberString preVersionNumber,
-                                   final File currentJar, final VersionNumberString curVersionNumber,
-                                   final Set<String> excludesRegExp)
-                                       throws IllegalArgumentException, IOException, URISyntaxException
+    public static void testVersion2(final CompatibilityType expectedCompatibilityType,
+                                    final File previousJar, final VersionNumberString preVersionNumber,
+                                    final File currentJar, final VersionNumberString curVersionNumber,
+                                    final Set<String> excludesRegExp) throws IllegalArgumentException, IOException, URISyntaxException
     {
-        final Set<String> includesRegExp = new HashSet<String>();
+        final JApiCmpArchive previous = new JApiCmpArchive(previousJar, preVersionNumber.getVersionString());
+        final JApiCmpArchive current = new JApiCmpArchive(currentJar, curVersionNumber.getVersionString());
+        final JarArchiveComparatorOptions comparatorOptions = new JarArchiveComparatorOptions();
+        final JarArchiveComparator jarArchiveComparator = new JarArchiveComparator(comparatorOptions);
 
-        final Comparer comparer = new Comparer(diffCriteria, previousJar, currentJar, includesRegExp, true, excludesRegExp, true);
-        final Delta delta = comparer.diff();
+        CompatibilityType detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_IMPLEMENTER;
+        final List<JApiClass> jApiClasses1 = jarArchiveComparator.compare(previous, current);
+        final List<JApiClass> jApiClasses2 = new ArrayList<JApiClass>(jApiClasses1.size());
+        for(final JApiClass jApiClass : jApiClasses1) {
+            jApiClass.isBinaryCompatible();
+            jApiClass.isSourceCompatible();
+            final boolean unchanged = jApiClass.getChangeStatus() == JApiChangeStatus.UNCHANGED && jApiClass.getChangeStatus() != JApiChangeStatus.MODIFIED;
+            if( !unchanged ) {
+                jApiClasses2.add(jApiClass);
+            }
+            switch( detectedCompatibilityType ) {
+                case BACKWARD_COMPATIBLE_IMPLEMENTER:
+                    if( !unchanged ) {
+                        if( !jApiClass.isBinaryCompatible() ) {
+                            detectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
+                        } else if( !jApiClass.isSourceCompatible() ) {
+                            detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
+                        } else {
+                            detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_SOURCE;
+                        }
+                    }
+                    break;
+                case BACKWARD_COMPATIBLE_SOURCE:
+                    if( !unchanged ) {
+                        if( !jApiClass.isBinaryCompatible() ) {
+                            detectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
+                        } else if( !jApiClass.isSourceCompatible() ) {
+                            detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
+                        }
+                    }
+                    break;
+                case BACKWARD_COMPATIBLE_BINARY:
+                    if( !unchanged ) {
+                        if( !jApiClass.isBinaryCompatible() ) {
+                            detectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
+                        }
+                    }
+                    break;
+                case NON_BACKWARD_COMPATIBLE:
+                    // NOP
+                    break;
+            }
+        }
 
-        //Validates that computed and provided compatibility type are compatible.
-        final Delta.CompatibilityType detectedCompatibilityType = delta.computeCompatibilityType();
         final int comp = detectedCompatibilityType.compareTo(expectedCompatibilityType);
         final boolean compOK = 0 >= comp;
         final String compS;
@@ -85,11 +159,9 @@ public class VersionSemanticsUtil {
             compS = "> ";
         }
 
-        System.err.println("Semantic Version Test");
-        System.err.println(" criteria: "+diffCriteria);
+        System.err.println("Semantic Version Test (japicmp)");
         System.err.println(" Previous version: "+preVersionNumber+" - "+previousJar.toString());
         System.err.println(" Current  version: "+curVersionNumber+" - "+currentJar.toString());
-        System.err.println(" Field values changed: "+delta.fieldCompatChanged());
         System.err.println(" Compat. expected: "+expectedCompatibilityType);
         System.err.println(" Compat. detected: "+detectedCompatibilityType);
         System.err.println(" Compat. result:   detected "+compS+" expected -> "+(compOK ? "OK" : "ERROR"));
@@ -102,11 +174,11 @@ public class VersionSemanticsUtil {
         System.err.println(resS);
         System.err.printf("%n%n");
 
-        Dumper.dumpFullStats(delta, 4, System.err);
-
-        // Also dump sorted by class name
-        System.err.printf("%n%nClass Order%n%n");
-        Dumper.dump(delta, System.err);
+        final Options opts = Options.newDefault();
+        opts.setReportOnlySummary(true);
+        final MarkdownOptions mdOpts = MarkdownOptions.newDefault(opts);
+        final MarkdownOutputGenerator mdGen = new MarkdownOutputGenerator(mdOpts, jApiClasses2);
+        System.err.println(mdGen.generate());
 
         Assert.assertTrue(resS, compOK);
 

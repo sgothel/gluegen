@@ -26,7 +26,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Ant"/>
 	<classpathentry kind="lib" path="make/lib/antlr.jar" sourcepath="make/lib/antlr-src.zip"/>
 	<classpathentry kind="lib" path="make/lib/junit.jar" sourcepath="make/lib/junit-sources.jar"/>
-	<classpathentry kind="lib" path="make/lib/semantic-versioning/semver.jar" sourcepath="make/lib/semantic-versioning/semver-src.zip"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -34,5 +33,6 @@
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Android-24"/>
 	<classpathentry kind="lib" path="jcpp/lib/guava-32.1.2-jre.jar"/>
+	<classpathentry kind="lib" path="make/lib/japicmp/japicmp-with-dependencies.jar" sourcepath="make/lib/japicmp/japicmp-sources.jar"/>
 	<classpathentry kind="output" path="build/eclipse-classes"/>
 </classpath>

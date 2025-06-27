@@ -31,12 +31,12 @@
          This requires the user-defined "antlr.jar" property. -->
     <path id="cc_gluegen.classpath">
       <pathelement location="${antlr.jar}" />
-      <pathelement location="${semver.jar}" />
+      <pathelement location="${japicmp.jar}" />
     </path>
     <path id="javadoc_gluegen.classpath">
       <pathelement location="${ant.jar}" />
       <pathelement location="${antlr.jar}" />
-      <pathelement location="${semver.jar}" />
+      <pathelement location="${japicmp.jar}" />
       <pathelement location="${gluegen.jar}" />
     </path>
   </target>
