@@ -213,6 +213,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         return false;
     }
 
+    @Override
+    public final boolean isOpen() { return isToolLibLoaded(); }
+
     /**
      * Returns list of {@link NativeLibrary}s for each {@link DynamicLibraryBundleInfo#getToolLibNames()} in the same size and order.
      * May contain elements with {@code null} for not loaded libs.
@@ -365,7 +368,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         // Look up this function name in all known libraries
         for (int i=0; 0==addr && i < toolLibraries.size(); i++) {
             final NativeLibrary lib0 = toolLibraries.get(i);
-            if( null != lib0 ) {
+            if( null != lib0 && lib0.isOpen() ) {
                 lib = lib0;
                 addr = lib0.dynamicLookupFunction(funcName);
             }

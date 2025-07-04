@@ -386,6 +386,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
     return libraryHandle;
   }
 
+  @Override
+  public final boolean isOpen() { return 0 != libraryHandle; }
+
   /** Retrieves the path under which this library was opened. */
   public final String getLibraryPath() {
     return libraryPath;

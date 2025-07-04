@@ -59,6 +59,9 @@ public interface DynamicLookupHelper {
    */
   public void releaseAllLinkPermission() throws SecurityException;
 
+  /** Returns true if library is loaded and open, otherwise false. */
+  public boolean isOpen();
+
   /**
    * Returns the function handle for function 'funcName'.
    * @throws SecurityException if user is not granted access for the library set.
