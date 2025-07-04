@@ -134,7 +134,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
         toolGetProcAddressFuncNameList = info.getToolGetProcAddressFuncNameList();
         if( null != toolGetProcAddressFuncNameList ) {
             toolGetProcAddressFuncNameSet = new HashSet<String>(toolGetProcAddressFuncNameList);
-            toolGetProcAddressHandle = getToolGetProcAddressHandle();
+            toolGetProcAddressHandle = retrieveToolGetProcAddressHandle();
             toolGetProcAddressComplete = 0 != toolGetProcAddressHandle;
         } else {
             toolGetProcAddressFuncNameSet = new HashSet<String>();
@@ -222,6 +222,17 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
      */
     public final List<NativeLibrary> getToolLibraries() { return toolLibraries; }
 
+    /**
+     * Returns {@link NativeLibrary} at given index of all {@link DynamicLibraryBundleInfo#getToolLibNames()} in the same size and order.
+     * May return {@code null} if not loaded.
+     */
+    public final NativeLibrary getToolLibrary(final int i) {
+        if(0 <= i && i < toolLibraries.size()) {
+            return toolLibraries.get(i);
+        }
+        return null;
+    }
+
     public final int getGlueLibNumber() {
         return glueLibNames.size();
     }
@@ -250,7 +261,9 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
     public final DynamicLibraryBundleInfo getBundleInfo() { return info; }
 
-    protected final long getToolGetProcAddressHandle() throws SecurityException {
+    public final long getToolGetProcAddressHandle() { return toolGetProcAddressHandle; }
+
+    protected final long retrieveToolGetProcAddressHandle() throws SecurityException {
         if(!isToolLibLoaded()) {
             return 0;
         }
