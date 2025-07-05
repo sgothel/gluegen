@@ -255,13 +255,6 @@ apt-get install build-essential openjdk-17-jre openjdk-17-jdk ant git-all gawk p
                             with the given properties as follows
                             <pre>
     cd /home/dude/projects/jogamp/gluegen/make/
-    ant -Dtarget.sourcelevel=1.8 -Dtarget.targetlevel=1.8 -Dtarget.rt.jar=/your/openjdk8/lib/rt.jar
-                            </pre>
-                            Alternatively you can also use environment variables instead of properties
-                            <pre>
-    export SOURCE_LEVEL=1.8
-    export TARGET_LEVEL=1.8
-    export TARGET_RT_JAR=/your/openjdk8/lib/rt.jar
     ant
                             </pre>
                             Optionally you can also set certain build features via properites or environment variables
