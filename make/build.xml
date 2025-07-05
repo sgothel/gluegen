@@ -65,15 +65,22 @@
 
     <!-- The source and build directories. -->
     <property name="project.root"  value=".." />
+    <property name="project.root.abs-path"      location="${project.root}" />
     <property name="src.java" value="${project.root}/src/java" />
     <property name="src.antlr" value="${project.root}/src/antlr" />
     <property name="src.jcpp" value="${project.root}/jcpp/src/main/java" />
 
     <property name="build"    location="${project.root}/${rootrel.build}" />
+    <property name="build.abs-path"       location="${build}" />
+
+    <property name="doxygen.root.path"    location="${build}/doxygen" />
+    <property name="doxygen.gluegen.public.path" location="${doxygen.root.path}/gluegen/doxygen" />
+    <property name="doxygen.gluegen.dev.path" location="${doxygen.root.path}/gluegen/doxygen_dev" />
+
     <property name="javadoc.root.path"    location="${build}/javadoc" />
     <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
-    <property name="gluegen.lib.dir" value="${build}/obj"/>
 
+    <property name="gluegen.lib.dir" value="${build}/obj"/>
     <property name="gluegen.build.number" value="manual"/>
     <property name="gluegen.build.id"     value="${version.timestamp}"/>
     <mkdir dir="${build}" />
@@ -1278,6 +1285,60 @@
   <target name="junit.run" depends="init,junit.compile">
     <ant antfile="build-test.xml" target="junit.run"/>
   </target>
+
+  <target name="doxygen.all.zip" depends="doxygen.public, doxygen.all, doxygen.zip"/>
+  <target name="doxygen.public.zip" depends="doxygen.public, doxygen.zip"/>
+
+  <target name="doxygen.public" depends="init">
+    <!-- Build the general public Javadoc in the target folder hierarchy doxygen/gluegen/doxygen -->
+    <delete dir="${doxygen.gluegen.public.path}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+    <mkdir dir="${doxygen.gluegen.public.path}" />
+    <copy file="${project.root}/doxygen/doxygen-awesome.css" todir="${build}" overwrite="true"/>
+    <copy file="${project.root}/doxygen/Doxyfile.javapublic.in"
+        tofile="${build}/Doxyfile.javapublic"
+        overwrite="true">
+        <filterset>
+            <filter token="BUILD_DIR" value="${build.abs-path}"/>
+            <filter token="CURRENT_SOURCE_DIR" value="${project.root.abs-path}"/>
+            <filter token="GLUEGEN_VERSION_LONG" value="${jogamp.version}"/>
+            <filter token="GLUEGEN_DOCS_DIR" value="${doxygen.gluegen.public.path}"/>
+        </filterset>
+    </copy>
+    <exec dir="${build}" executable="doxygen"
+         vmlauncher="false"
+         failonerror="false">
+        <arg line="Doxyfile.javapublic"/>
+    </exec>
+  </target>
+
+  <target name="doxygen.all" depends="init">
+    <!-- Build the general developer Javadoc in the target folder hierarchy doxygen/gluegen/doxygen_dev -->
+    <delete dir="${doxygen.gluegen.dev.path}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+    <mkdir dir="${doxygen.gluegen.dev.path}" />
+    <copy file="${project.root}/doxygen/doxygen-awesome.css" todir="${build}" overwrite="true"/>
+    <copy file="${project.root}/doxygen/Doxyfile.javaall.in"
+        tofile="${build}/Doxyfile.javaall"
+        overwrite="true">
+        <filterset>
+            <filter token="BUILD_DIR" value="${build.abs-path}"/>
+            <filter token="CURRENT_SOURCE_DIR" value="${project.root.abs-path}"/>
+            <filter token="GLUEGEN_VERSION_LONG" value="${jogamp.version}"/>
+            <filter token="GLUEGEN_DOCS_DIR" value="${doxygen.gluegen.dev.path}"/>
+        </filterset>
+    </copy>
+    <exec dir="${build}" executable="doxygen"
+         vmlauncher="false"
+         failonerror="false">
+        <arg line="Doxyfile.javaall"/>
+    </exec>
+  </target>
+
+  <target name="doxygen.zip" depends="init">
+    <archive.7z destfile="${build}/doxygen.7z"
+         basedir="${doxygen.root.path}"
+         includes="gluegen/**" />
+  </target>
+
 
   <target name="javadoc" depends="init">
     <!-- Build the general public Javadoc in the target folder hierarchy javadoc/gluegen/javadoc -->
