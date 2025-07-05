@@ -73,8 +73,8 @@
         <var name="m.aapt.apkbasename" unset="true"/>
         <var name="m.aapt.build.apk" unset="true"/>
         <var name="m.aapt.dex.file" unset="true"/>
+        <var name="m.aapt.raw.file.name" unset="true"/>
         <var name="m.aapt.unsigned.file.name" unset="true"/>
-        <var name="m.aapt.unsigned-aligned.file.name" unset="true"/>
         <var name="m.aapt.release.file.name" unset="true"/>
         <var name="m.aapt.keystore.file" unset="true"/>
         <var name="m.aapt.java.encoding" unset="true"/>
@@ -105,8 +105,8 @@
 
         <property name="m.aapt.build.apk" value="@{jarbuilddir}/${m.aapt.apkbasename}.apk.d" />
         <property name="m.aapt.dex.file" location="${m.aapt.build.apk}/image/classes.dex" />
+        <property name="m.aapt.raw.file.name" value="@{jarbuilddir}/${m.aapt.apkbasename}-raw.apk" />
         <property name="m.aapt.unsigned.file.name" value="@{jarbuilddir}/${m.aapt.apkbasename}-unsigned.apk" />
-        <property name="m.aapt.unsigned-aligned.file.name" value="@{jarbuilddir}/${m.aapt.apkbasename}-unsigned-aligned.apk" />
         <property name="m.aapt.release.file.name" value="@{jarbuilddir}/${m.aapt.apkbasename}.apk" />
 
         <property name="m.aapt.java.encoding" value="UTF-8" />
@@ -115,6 +115,8 @@
             <available file="@{keystore.file}"/>
         </condition>
 
+        <delete file="${m.aapt.raw.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <delete file="${m.aapt.unsigned.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete file="${m.aapt.release.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
 
@@ -225,7 +227,7 @@
             <arg value="@{version.name}"/>
 
             <arg line="-F" />
-            <arg value="${m.aapt.unsigned.file.name}"/>
+            <arg value="${m.aapt.raw.file.name}"/>
 
             <arg line="${m.aapt.build.apk}/image/"/>
         </exec>
@@ -266,8 +268,8 @@
             <arg line="-f" />
             <arg line="-v" />
             <arg line="4" />
+            <arg path="${m.aapt.raw.file.name}" />
             <arg path="${m.aapt.unsigned.file.name}" />
-            <arg path="${m.aapt.unsigned-aligned.file.name}" />
         </exec>
 
         <echo>aapt.signed ${m.aapt.apkbasename}: signing w/ key @{keystore.alias} @ ${m.aapt.keystore.file}</echo>
@@ -291,10 +293,11 @@
             <arg value="${m.aapt.release.file.name}" />
 
             <arg value="--in" />
-            <arg value="${m.aapt.unsigned-aligned.file.name}" />
+            <arg value="${m.aapt.unsigned.file.name}" />
         </exec>
 
         <delete dir="${m.aapt.build.apk}" includeEmptyDirs="true" quiet="true" failonerror="false" />
+        <delete file="${m.aapt.raw.file.name}" includeEmptyDirs="true" quiet="true" failonerror="false" />
     </sequential>
   </macrodef>  
 </project>
