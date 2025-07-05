@@ -300,7 +300,7 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
 
         for (i=0; i < toolLibNames.size(); i++) {
             final List<String> libNames = toolLibNames.get(i);
-            final String symbolName = toolLibSymbolNames.get(i);
+            final String symbolName = i < toolLibSymbolNames.size() ? toolLibSymbolNames.get(i) : null;
             if( null != libNames && libNames.size() > 0 ) {
                 lib = loadFirstAvailable(libNames,
                                          info.searchToolLibInSystemPath(),
