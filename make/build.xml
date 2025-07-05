@@ -73,9 +73,9 @@
     <property name="build"    location="${project.root}/${rootrel.build}" />
     <property name="build.abs-path"       location="${build}" />
 
-    <property name="doxygen.root.path"    location="${build}/doxygen" />
-    <property name="doxygen.gluegen.public.path" location="${doxygen.root.path}/gluegen/doxygen" />
-    <property name="doxygen.gluegen.dev.path" location="${doxygen.root.path}/gluegen/doxygen_dev" />
+    <property name="doxygen.root.path"    location="${build}/javadoc" />
+    <property name="doxygen.gluegen.public.path" location="${doxygen.root.path}/gluegen/javadoc" />
+    <property name="doxygen.gluegen.dev.path" location="${doxygen.root.path}/gluegen/javadoc_dev" />
 
     <property name="javadoc.root.path"    location="${build}/javadoc" />
     <property name="javadoc.gluegen.path" location="${javadoc.root.path}/gluegen/javadoc" />
@@ -1334,7 +1334,7 @@
   </target>
 
   <target name="doxygen.zip" depends="init">
-    <archive.7z destfile="${build}/doxygen.7z"
+    <archive.7z destfile="${build}/javadoc.7z"
          basedir="${doxygen.root.path}"
          includes="gluegen/**" />
   </target>
