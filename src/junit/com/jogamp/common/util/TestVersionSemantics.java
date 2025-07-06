@@ -67,10 +67,9 @@ public class TestVersionSemantics extends SingletonJunitCase {
     static final JogampVersion curVersion = GlueGenVersion.getInstance();
     static final VersionNumberString curVersionNumber = new VersionNumberString(curVersion.getImplementationVersion());
 
-    static final Set<String> excludesDefault;
+    static final String excludesDefault;
     static {
-        excludesDefault = new HashSet<String>();
-        excludesDefault.add("^\\Qjogamp/\\E.*$");
+        excludesDefault = "jogamp";
     }
 
     @Test
@@ -89,7 +88,7 @@ public class TestVersionSemantics extends SingletonJunitCase {
     }
 
     void testVersions(final CompatibilityType expectedCompatibilityType,
-                      final String v1, final String v2, final Set<String> excludes)
+                      final String v1, final String v2, final String excludes)
                               throws IllegalArgumentException, IOException, URISyntaxException {
         final VersionNumberString preVersionNumber = new VersionNumberString(v1);
         final File previousJar = new File("lib/v"+v1+"/"+jarFile);
@@ -99,7 +98,7 @@ public class TestVersionSemantics extends SingletonJunitCase {
 
         VersionSemanticsUtil.testVersion2(expectedCompatibilityType,
                                           previousJar, preVersionNumber,
-                                          currentJar, curVersionNumber, excludes);
+                                          currentJar, curVersionNumber, excludes, true);
     }
 
     @Test
@@ -115,7 +114,7 @@ public class TestVersionSemantics extends SingletonJunitCase {
 
         VersionSemanticsUtil.testVersion2(expectedCompatibilityType,
                                           previousJar, preVersionNumber,
-                                          curVersion.getClass(), currentCL, curVersionNumber, excludesDefault);
+                                          curVersion.getClass(), currentCL, curVersionNumber, excludesDefault, true);
     }
 
     public static void main(final String args[]) throws IOException {

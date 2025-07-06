@@ -31,9 +31,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
 import org.junit.Assert;
 
@@ -41,14 +40,14 @@ import com.jogamp.common.net.Uri;
 import com.jogamp.common.util.JarUtil;
 import com.jogamp.common.util.VersionNumberString;
 
-import japicmp.config.Options;
-import japicmp.model.JApiChangeStatus;
-import japicmp.model.JApiClass;
-import japicmp.output.markdown.MarkdownOutputGenerator;
-import japicmp.output.markdown.config.MarkdownOptions;
 import japicmp.cmp.JarArchiveComparator;
 import japicmp.cmp.JarArchiveComparatorOptions;
+import japicmp.config.Options;
 import japicmp.cmp.JApiCmpArchive;
+import japicmp.model.JApiChangeStatus;
+import japicmp.model.JApiClass;
+import japicmp.output.stdout.StdoutOutputGenerator;
+import japicmp.versioning.SemanticVersion;
 
 public class VersionSemanticsUtil {
 
@@ -84,39 +83,46 @@ public class VersionSemanticsUtil {
     public static void testVersion2(final CompatibilityType expectedCompatibilityType,
                                     final File previousJar, final VersionNumberString preVersionNumber,
                                     final Class<?> currentJarClazz, final ClassLoader currentJarCL, final VersionNumberString curVersionNumber,
-                                    final Set<String> excludesRegExp) throws IllegalArgumentException, URISyntaxException, IOException
+                                    final String excludesArgOption, final boolean summaryOnly) throws IllegalArgumentException, URISyntaxException, IOException
     {
         // Get containing JAR file "TestJarsInJar.jar" and add it to the TempJarCache
         final Uri currentJarUri = JarUtil.getJarUri(currentJarClazz.getName(), currentJarCL).getContainedUri();
         testVersion2(expectedCompatibilityType,
                     previousJar, preVersionNumber,
                     currentJarUri.toFile(), curVersionNumber,
-                    excludesRegExp);
+                    excludesArgOption, summaryOnly);
     }
 
     public static void testVersion2(final CompatibilityType expectedCompatibilityType,
                                     final File previousJar, final VersionNumberString preVersionNumber,
                                     final File currentJar, final VersionNumberString curVersionNumber,
-                                    final Set<String> excludesRegExp) throws IllegalArgumentException, IOException, URISyntaxException
+                                    final String excludesArgOption, final boolean summaryOnly) throws IllegalArgumentException, IOException, URISyntaxException
     {
+        final Options options = Options.newDefault();
+        options.setSemanticVersioning(true);
+        options.setIgnoreMissingClasses(true);
+        options.setReportOnlySummary(summaryOnly);
+        options.setOutputOnlyBinaryIncompatibleModifications(true);
+        if( null != excludesArgOption && excludesArgOption.length() > 0 ) {
+            options.addExcludeFromArgument(Optional.ofNullable(excludesArgOption), false);
+        }
+
         final JApiCmpArchive previous = new JApiCmpArchive(previousJar, preVersionNumber.getVersionString());
         final JApiCmpArchive current = new JApiCmpArchive(currentJar, curVersionNumber.getVersionString());
-        final JarArchiveComparatorOptions comparatorOptions = new JarArchiveComparatorOptions();
+        final Optional<SemanticVersion> previousVersion = previous.getVersion().getSemanticVersion();
+        final Optional<SemanticVersion> currentVersion = current.getVersion().getSemanticVersion();
+        final JarArchiveComparatorOptions comparatorOptions = JarArchiveComparatorOptions.of(options);
         final JarArchiveComparator jarArchiveComparator = new JarArchiveComparator(comparatorOptions);
 
         CompatibilityType detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_IMPLEMENTER;
         final List<JApiClass> jApiClasses1 = jarArchiveComparator.compare(previous, current);
         final List<JApiClass> jApiClasses2 = new ArrayList<JApiClass>(jApiClasses1.size());
         for(final JApiClass jApiClass : jApiClasses1) {
-            jApiClass.isBinaryCompatible();
-            jApiClass.isSourceCompatible();
             final boolean unchanged = jApiClass.getChangeStatus() == JApiChangeStatus.UNCHANGED && jApiClass.getChangeStatus() != JApiChangeStatus.MODIFIED;
             if( !unchanged ) {
                 jApiClasses2.add(jApiClass);
-            }
-            switch( detectedCompatibilityType ) {
-                case BACKWARD_COMPATIBLE_IMPLEMENTER:
-                    if( !unchanged ) {
+                switch( detectedCompatibilityType ) {
+                    case BACKWARD_COMPATIBLE_IMPLEMENTER:
                         if( !jApiClass.isBinaryCompatible() ) {
                             detectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
                         } else if( !jApiClass.isSourceCompatible() ) {
@@ -124,27 +130,23 @@ public class VersionSemanticsUtil {
                         } else {
                             detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_SOURCE;
                         }
-                    }
-                    break;
-                case BACKWARD_COMPATIBLE_SOURCE:
-                    if( !unchanged ) {
+                        break;
+                    case BACKWARD_COMPATIBLE_SOURCE:
                         if( !jApiClass.isBinaryCompatible() ) {
                             detectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
                         } else if( !jApiClass.isSourceCompatible() ) {
                             detectedCompatibilityType = CompatibilityType.BACKWARD_COMPATIBLE_BINARY;
                         }
-                    }
-                    break;
-                case BACKWARD_COMPATIBLE_BINARY:
-                    if( !unchanged ) {
+                        break;
+                    case BACKWARD_COMPATIBLE_BINARY:
                         if( !jApiClass.isBinaryCompatible() ) {
                             detectedCompatibilityType = CompatibilityType.NON_BACKWARD_COMPATIBLE;
                         }
-                    }
-                    break;
-                case NON_BACKWARD_COMPATIBLE:
-                    // NOP
-                    break;
+                        break;
+                    case NON_BACKWARD_COMPATIBLE:
+                        // NOP
+                        break;
+                }
             }
         }
 
@@ -160,8 +162,8 @@ public class VersionSemanticsUtil {
         }
 
         System.err.println("Semantic Version Test (japicmp)");
-        System.err.println(" Previous version: "+preVersionNumber+" - "+previousJar.toString());
-        System.err.println(" Current  version: "+curVersionNumber+" - "+currentJar.toString());
+        System.err.println(" Previous version: "+previousVersion+" - "+previousJar.toString());
+        System.err.println(" Current  version: "+currentVersion+" - "+currentJar.toString());
         System.err.println(" Compat. expected: "+expectedCompatibilityType);
         System.err.println(" Compat. detected: "+detectedCompatibilityType);
         System.err.println(" Compat. result:   detected "+compS+" expected -> "+(compOK ? "OK" : "ERROR"));
@@ -174,11 +176,11 @@ public class VersionSemanticsUtil {
         System.err.println(resS);
         System.err.printf("%n%n");
 
-        final Options opts = Options.newDefault();
-        opts.setReportOnlySummary(true);
-        final MarkdownOptions mdOpts = MarkdownOptions.newDefault(opts);
-        final MarkdownOutputGenerator mdGen = new MarkdownOutputGenerator(mdOpts, jApiClasses2);
-        System.err.println(mdGen.generate());
+        final StdoutOutputGenerator out = new StdoutOutputGenerator(options, jApiClasses2);
+        System.err.println(out.generate());
+        // final MarkdownOptions mdOpts = MarkdownOptions.newDefault(options);
+        // final MarkdownOutputGenerator mdGen = new MarkdownOutputGenerator(mdOpts, jApiClasses2);
+        // System.err.println(mdGen.generate());
 
         Assert.assertTrue(resS, compOK);
 
