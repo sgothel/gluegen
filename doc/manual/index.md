@@ -1,5 +1,5 @@
 <!---
-We convert markdown using pandoc using `gfm` (GitHub-Flavored Markdown) as source format
+We convert markdown using pandoc using `markdown+lists_without_preceding_blankline` as source format
 and `html5+smart` with a custom template as the target.
 
 Recipe:
