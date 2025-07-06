@@ -414,8 +414,8 @@
     <strong>Contents</strong><label for="contents">⊕</label>
   <input type="checkbox" id="contents">
   <ul>
-  <li><a href="#gluegen-native-data--function-mapping-for-java">GlueGen
-  Native Data &amp; Function Mapping for Java™</a>
+  <li><a href="#gluegen-data-func-mapping">GlueGen Native Data &amp;
+  Function Mapping for Java™</a>
   <ul>
   <li><a href="#references">References</a></li>
   <li><a href="#overview">Overview</a></li>
@@ -483,7 +483,7 @@
   <ul>
   <li><a
   href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code>
-  for <code>JNI_OnLoad*(..)</code> ...</a></li>
+  for <code>JNI_OnLoad*(..)</code> …</a></li>
   </ul></li>
   <li><a href="#platform-header-files">Platform Header Files</a></li>
   <li><a href="#pre-defined-macros">Pre-Defined Macros</a></li>
@@ -503,19 +503,18 @@ Git repos:
 - https://jausoft.com/cgit/users/sgothel/pandoc-buttondown-cgit.git/about/
 - https://github.com/sgothel/pandoc-buttondown-cgit
 -->
-
 <style>
 table, th, td {
    border: 1px solid black;
 }
 </style>
-
-<h1 id="gluegen-native-data--function-mapping-for-java">GlueGen Native
-Data &amp; Function Mapping for Java™</h1>
+<h1 id="gluegen-data-func-mapping">GlueGen Native Data &amp; Function
+Mapping for Java™</h1>
 <p><em>Disclaimer: This documented shall be synchronized with source
 code, especially the configuration options.</em></p>
-<p>Please also consider reading <a href="manual/index.html">GlueGen
-Manual</a> for general usage and configuration options.</p>
+<p>Please also consider reading <a
+href="https://jogamp.org/gluegen/doc/manual/">GlueGen Manual</a> for
+general usage and configuration options.</p>
 <h2 id="references">References</h2>
 <ul>
 <li><a href="https://jogamp.org/cgit/gluegen.git/about/">GlueGen Git
@@ -523,7 +522,8 @@ Repo</a></li>
 <li><a
 href="https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/">GlueGen
 Java™ API-Doc</a></li>
-<li><a href="manual/index.html">GlueGen Manual</a></li>
+<li><a href="https://jogamp.org/gluegen/doc/manual/">GlueGen
+Manual</a></li>
 <li><a href="https://jogamp.org/gluegen/www/">GlueGen Project
 Page</a></li>
 <li><a href="HowToBuild.html">How To Build</a></li>
@@ -544,7 +544,7 @@ library</a> offering</p>
 etc</li>
 </ul></li>
 <li>Enhanced NIO buffer handling for pointer, arrays, DMA mapping
-etc</li></li>
+etc</li>
 <li>Network Uri RFC 2396, connection and resource handler to simplify
 asset loading</li>
 <li>Bitstream, hash maps, ringbuffer, sha cumulator, reflection and
@@ -552,7 +552,7 @@ threading utils</li>
 <li>Abstract AudioFormat and AudioSink interfaces, concurrent locks ..
 and more</li>
 </ul>
-<p>GlueGen's compiler reads ANSI C header files and separate
+<p>GlueGen’s compiler reads ANSI C header files and separate
 configuration files which provide control over many aspects of the glue
 code generation. GlueGen uses a complete ANSI C parser and an internal
 representation (IR) capable of representing all C types to represent the
@@ -569,7 +569,8 @@ events, where a generated native callback function dispatches the events
 to Java™.</p>
 <p>GlueGen also supports <a
 href="#oo-style-api-interface-mapping">producing an OO-Style API
-mapping</a> like <a href="../../jogl/doc/uml/html/index.html">JOGL's
+mapping</a> like <a
+href="https://jogamp.org/jogl/doc/uml/html/index.html">JOGL’s
 incremental OpenGL Profile API levels</a>.</p>
 <p>GlueGen is capable to bind low-level APIs such as the Java™ Native
 Interface (JNI) and the AWT Native Interface (JAWT) back up to the Java
@@ -590,12 +591,21 @@ project</a>.</p>
 <h2 id="primitive-mapping">Primitive Mapping</h2>
 <p>Gluegen has build-in types (terminal symbols) for:</p>
 <table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 15%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 12%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">type</th>
-<th style="text-align: left;">java-bits</th>
-<th style="text-align: left;">native-bits <br> x32</th>
-<th style="text-align: left;">native bits <br> x64</th>
+<th style="text-align: right;">java-bits</th>
+<th style="text-align: right;">native-x32</th>
+<th style="text-align: right;">native-x64</th>
 <th style="text-align: left;">type</th>
 <th style="text-align: left;">signed</th>
 <th style="text-align: left;">origin</th>
@@ -604,207 +614,207 @@ project</a>.</p>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">void</td>
-<td style="text-align: left;">0</td>
-<td style="text-align: left;">0</td>
-<td style="text-align: left;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
 <td style="text-align: left;">void</td>
 <td style="text-align: left;">void</td>
 <td style="text-align: left;">ANSI-C</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">char</td>
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">ANSI-C</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">short</td>
-<td style="text-align: left;">16</td>
-<td style="text-align: left;">16</td>
-<td style="text-align: left;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">ANSI-C</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">int</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">ANSI-C</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">long</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;"><strong>32</strong>†</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;"><strong>32</strong>†</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">ANSI-C - Windows</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">long</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;"><strong>64</strong></td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;"><strong>64</strong></td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">ANSI-C - Unix</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">float</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: left;">float</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">ANSI-C</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">double</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">double</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">ANSI-C</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">__int32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">windows</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">__int64</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">any</td>
 <td style="text-align: left;">windows</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">int8_t</td>
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">uint8_t</td>
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">8</td>
-<td style="text-align: left;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">8</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">unsigned</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">int16_t</td>
-<td style="text-align: left;">16</td>
-<td style="text-align: left;">16</td>
-<td style="text-align: left;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">uint16_t</td>
-<td style="text-align: left;">16</td>
-<td style="text-align: left;">16</td>
-<td style="text-align: left;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">16</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">unsigned</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">int32_t</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">uint32_t</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">unsigned</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">int64_t</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">uint64_t</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">unsigned</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">intptr_t</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">uintptr_t</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">unsigned</td>
 <td style="text-align: left;">stdint.h</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">ptrdiff_t</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stddef.h</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">size_t</td>
-<td style="text-align: left;">64</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">64</td>
+<td style="text-align: right;">64</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">64</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">unsigned</td>
 <td style="text-align: left;">stddef.h</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">wchar_t</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
-<td style="text-align: left;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
+<td style="text-align: right;">32</td>
 <td style="text-align: left;">integer</td>
 <td style="text-align: left;">signed</td>
 <td style="text-align: left;">stddef.h</td>
@@ -817,7 +827,7 @@ Windows!<br />
 <strong>Notes:</strong></p>
 <ul>
 <li>† Type <strong>long</strong> will result in broken code on Windows,
-since we don't differentiate the OS and it's bit size is ambiguous.</li>
+since we don’t differentiate the OS and it’s bit size is ambiguous.</li>
 <li>Anonymous void-pointer <em>void*</em> are mapped to NIO
 <em>Buffer</em>.</li>
 <li>Pointers to pointer-size types like <em>intptr_t*</em>,
@@ -827,7 +837,7 @@ size.</li>
 </ul>
 <h3 id="pointer-mapping">Pointer Mapping</h3>
 <p><em>Pointer</em> values itself are represented as <code>long</code>
-values on the Java side while using the native pointer-size, e.g. 32-bit
+values on the Java side while using the native pointer-size, e.g. 32-bit
 or 64-bit, on the native end.</p>
 <p>They may simply be accessible via <code>long</code> or
 <code>long[]</code> primitives in Java, or are exposed via
@@ -838,26 +848,20 @@ Support</a> below.</p>
 <h4 id="function-return-string-values">Function return String
 values</h4>
 <p>Function return values are currently mapped from <code>char*</code>
-to Java String using <em>UTF-8</em> via JNI function</p>
-<blockquote>
-<p><code>jstring NewStringUTF(JNIEnv *env, const char *bytes)</code></p>
-</blockquote>
+to Java String using <em>UTF-8</em> via JNI function &gt;
+<code>jstring NewStringUTF(JNIEnv *env, const char *bytes)</code></p>
 <p><em>FIXME</em>: This might need more flexibility in case UTF-8 is not
 suitable for 8-bit wide <code>char</code> mappings or wide characters,
-e.g. for UTF-16 needs to be supported.</p>
+e.g. for UTF-16 needs to be supported.</p>
 <h4 id="function-argument-string-values">Function argument String
 values</h4>
 <p>Function argument values are either mapped from <code>char*</code> to
-Java String using <em>UTF-8</em> via JNI function</p>
-<blockquote>
-<p><code>const char * GetStringUTFChars(JNIEnv *env, jstring string, jboolean *isCopy)</code>.</p>
-</blockquote>
+Java String using <em>UTF-8</em> via JNI function &gt;
+<code>const char * GetStringUTFChars(JNIEnv *env, jstring string, jboolean *isCopy)</code>.</p>
 <p>Alternatively, if a 16-bit wide <em>character</em> type has been
-detected, i.e. <em>short</em>, the native <em>character</em> are mapped
-to Java using <em>UTF-16</em> via JNI function</p>
-<blockquote>
-<p><code>void GetStringRegion(JNIEnv *env, jstring str, jsize start, jsize len, jchar *buf)</code>.</p>
-</blockquote>
+detected, i.e. <em>short</em>, the native <em>character</em> are mapped
+to Java using <em>UTF-16</em> via JNI function &gt;
+<code>void GetStringRegion(JNIEnv *env, jstring str, jsize start, jsize len, jchar *buf)</code>.</p>
 <h4 id="struct-string-mapping">Struct String mapping</h4>
 <p>String value mapping for <code>Struct</code> fields is performed
 solely from the Java side using <em>Charset</em> and is hence most
@@ -883,13 +887,13 @@ The maximum length default for the <code>strnlen(..)</code> operation is
   /** Sets the maximum number of bytes to read to determine native string length using `strnlen(..)`, default is 8192. */
   public static void setMaxStrnlen(int v) { _max_strnlen = v; }</code></pre>
 <p><em>FIXME</em>: This only works reliable using an 8-bit Charset
-encoding, e.g. the default <em>UTF-8</em>.</p>
+encoding, e.g. the default <em>UTF-8</em>.</p>
 <h3 id="alignment-for-compound-data">Alignment for Compound Data</h3>
-<p>In general, depending on CPU and it's configuration (OS), alignment
+<p>In general, depending on CPU and it’s configuration (OS), alignment
 is set up for each type (char, short, int, long, ..).</p>
-<p>Compounds (structures) are aligned naturally, i.e. their inner
+<p>Compounds (structures) are aligned naturally, i.e. their inner
 components are aligned<br />
-and are itself aligned to it's largest element.</p>
+and are itself aligned to it’s largest element.</p>
 <p>See:</p>
 <ul>
 <li><a
@@ -928,7 +932,7 @@ aligned_offset = offset + padding ;</p>
 <p>See
 <code>com.jogamp.gluegen.cgram.types.SizeThunk.align(..)</code>.</p>
 <h4
-id="type-size--alignment-for-x86-x86_64-armv6l-32bit-eabi-and-windowmingwmingw64">Type
+id="type-size-alignment-for-x86-x86_64-armv6l-32bit-eabi-and-windowmingwmingw64">Type
 Size &amp; Alignment for x86, x86_64, armv6l-32bit-eabi and
 Window(mingw/mingw64)</h4>
 <p>Runtime query is implemented as follows:</p>
@@ -941,6 +945,13 @@ Window(mingw/mingw64)</h4>
              padding_0 = sizeof(test_struct_type_t) - sizeof(type_t) - sizeof(char) ;
    alignmentOf(type_t) = sizeof(test_struct_type_t) - sizeof(type_t) ;</code></pre>
 <table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 19%" />
+<col style="width: 24%" />
+<col style="width: 19%" />
+<col style="width: 24%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">type</th>
@@ -1023,8 +1034,8 @@ Window(mingw/mingw64)</h4>
 <h2 id="oo-style-api-interface-mapping">OO-Style API Interface
 Mapping</h2>
 <p>GlueGen supports producing an OO-Style API mapping like <a
-href="../../jogl/doc/uml/html/index.html">JOGL's incremental OpenGL
-Profile API levels</a>.</p>
+href="https://jogamp.org/jogl/doc/uml/html/index.html">JOGL’s
+incremental OpenGL Profile API levels</a>.</p>
 <h3 id="oo-style-mapping-settings">OO-Style Mapping Settings</h3>
 <ul>
 <li><p><code>ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java</code></p>
@@ -1043,7 +1054,7 @@ see above.</p></li>
 GLES3.</p></li>
 </ul>
 <h3 id="oo-style-example">OO-Style Example</h3>
-<p>Example snippet from JOGL's GLES3 interface config
+<p>Example snippet from JOGL’s GLES3 interface config
 <code>gl-if-es3.cfg</code></p>
 <pre><code>...
 
@@ -1061,7 +1072,7 @@ JavaClass GLES3
 Extends GLES3 GLES2
 Extends GLES3 GL4ES3
 ...</code></pre>
-<p>Example snippet from JOGL's GLES3Impl implementation
+<p>Example snippet from JOGL’s GLES3Impl implementation
 <code>gl-es3-impl.cfg</code></p>
 <pre><code>...
 ExtendedInterfaceSymbolsIgnore ../build-temp/gensrc/classes/com/jogamp/opengl/GL.java
@@ -1080,15 +1091,16 @@ Implements GLES3Impl GLES2
 Implements GLES3Impl GLES3
 ...</code></pre>
 <p>Above produces the GLES3 interface and its implementation as visible
-in JOGL's UML document <a
-href="../../jogl/doc/uml/html/index.html">about OpenGL Profiles</a>.</p>
+in JOGL’s UML document <a
+href="https://jogamp.org/jogl/doc/uml/html/index.html">about OpenGL
+Profiles</a>.</p>
 <h2 id="struct-mapping">Struct Mapping</h2>
 <p>A <em>Struct</em> is a C compound type declaration, which can be
 mapped to a Java class.</p>
 <p>A <em>Struct</em> may utilize the following data types for its
 fields</p>
 <ul>
-<li><em>Primitive</em>, i.e. <em>char</em>, <em>int32_t</em>, ...
+<li><em>Primitive</em>, i.e. <em>char</em>, <em>int32_t</em>, …
 <ul>
 <li>See <a href="#primitive-mapping"><em>Primitive Mapping</em></a>
 above.</li>
@@ -1101,15 +1113,15 @@ Support</a> below.</li>
 <li>See <a href="#string-mapping"><em>String Mapping</em></a>
 above.</li>
 </ul></li>
-<li><em>Struct</em>, i.e. an aggregated or referenced compound
+<li><em>Struct</em>, i.e. an aggregated or referenced compound
 variable</li>
-<li><em>Function Pointer</em>, a <em>typedef</em>'ed and set callable
+<li><em>Function Pointer</em>, a <em>typedef</em>’ed and set callable
 function pointer, see <a href="#struct-function-pointer-support">Struct
 Function-Pointer Support</a> below.</li>
 <li><em>Java Callback from Native Code</em>, see <a
 href="#java-callback">section below</a></li>
 </ul>
-<p>A field may be a direct aggregation, i.e. instance, within the struct
+<p>A field may be a direct aggregation, i.e. instance, within the struct
 including an array or a reference to a single element or array via a
 pointer.</p>
 <p>Both, <em>primitive</em>, <em>struct</em> and <em>pointer</em> field
@@ -1130,7 +1142,7 @@ configured pointer-types</a> are treated as <code>long</code> values
 from the Java side<br />
 while maintaining their architecture dependent pointer size within
 native memory.</p></li>
-<li><p>Void pointers, i.e. <code>void*</code>, within a struct are
+<li><p>Void pointers, i.e. <code>void*</code>, within a struct are
 handled as <a
 href="#opaque-java-primitive-type-symbol"><code>Opaque</code> configured
 pointer-types</a>.</p></li>
@@ -1145,25 +1157,26 @@ Setting</a> below.</p></li>
 <strong>ReturnedArrayLength getValElements()</strong> renders us unable
 to determine ownership of pointer referenced <em>native</em> memory
 segment and hence renders ownership <em>mixed or ambiguous</em>, <a
-href="#signature-const-int32_t--customsize-ambiguous-java-owned">see
+href="#signature-const-int32_t--customsize-ambiguous-ownership">see
 [5]</a>. This is due to the fact, that native code may allocate memory
 and writes its <em>elemCount</em> into the designated field
 <em>valElements</em>. In such cases, the user being aware of the
 underlying API shall utilize <code>setVal(..)</code> and
 <code>releaseVal()</code> with care.</p></li>
-<li><p>To release native memory with <em>java ownership</em>, i.e. a
+<li><p>To release native memory with <em>java ownership</em>, i.e. a
 native ByteBuffer, <code>releaseVal()</code> can be used.</p></li>
 </ul>
 <h3 id="gluegen-struct-settings">GlueGen Struct Settings</h3>
 <h4 id="opaque-java-primitive-type-symbol"><strong>Opaque</strong>
 <em>Java-primitive-type</em> <em>symbol</em></h4>
-<p>See also <a href="manual/index.html#SecOpaque">Opaque section in
-manual</a>.</p>
+<p>See also <a
+href="https://jogamp.org/gluegen/doc/manual/index.html#SecOpaque">Opaque
+section in manual</a>.</p>
 <ul>
 <li><p><code>Opaque long T2_UndefStruct*</code></p>
-<p>Pointers to <code>T2_UndefStruct</code> will be handled opaque, i.e.
-as <code>long</code> values from the Java side while maintaining their
-architecture dependent pointer size within native memory.</p></li>
+<p>Pointers to <code>T2_UndefStruct</code> will be handled opaque,
+i.e. as <code>long</code> values from the Java side while maintaining
+their architecture dependent pointer size within native memory.</p></li>
 </ul>
 <h4 id="immutableaccess-symbol"><strong>ImmutableAccess</strong>
 <em>symbol</em></h4>
@@ -1244,7 +1257,7 @@ above.</p></li>
 <h4 id="overview-1">Overview</h4>
 <p>In general we have the following few cases</p>
 <ul>
-<li><p>Array owned by parent struct itself</p>
+<li>Array owned by parent struct itself
 <ul>
 <li><code>int32_t val[10]</code>
 <ul>
@@ -1255,7 +1268,7 @@ above.</p></li>
 <li>No setter allowed due to const value</li>
 </ul></li>
 </ul></li>
-<li><p>Referenced Memory (array) owned by Java</p>
+<li>Referenced Memory (array) owned by Java
 <ul>
 <li><code>int32_t* val</code>
 <ul>
@@ -1267,8 +1280,8 @@ above.</p></li>
 const</li>
 </ul></li>
 </ul></li>
-<li><p>Referenced Memory (array) owned by Native Code due to set
-<em>ConstElemCount</em></p>
+<li>Referenced Memory (array) owned by Native Code due to set
+<em>ConstElemCount</em>
 <ul>
 <li><code>int32_t* val</code>
 <ul>
@@ -1353,19 +1366,28 @@ otherwise allocate new <em>native</em> memory</li>
 </ul></li>
 </ul></li>
 </ul></li>
-<li><em>Struct</em> ...</li>
+<li><em>Struct</em> …</li>
 </ul>
 <h3 id="struct-java-signature-table">Struct Java Signature Table</h3>
 <p>Please find below signature table as generated by the <em>C
-Declaration</em> including its <em>C Modifier</em>, e.g.
-<code>const</code> for constant, <code>[const]</code> for const and
+Declaration</em> including its <em>C Modifier</em>,
+e.g. <code>const</code> for constant, <code>[const]</code> for const and
 non-const and <code>empty</code> for non-const (variable).</p>
 <p>Further, the <em>GlueGen Setting</em> (see above) impacts the code
 generation as well.</p>
 <p>Below table demonstrates <em>primitive</em> types being mapped within
 a <code>struct</code> named <code>TK_Struct</code>. A similar mapping is
-produced for <code>struct</code> types, i.e. <em>compounds</em>.</p>
+produced for <code>struct</code> types, i.e. <em>compounds</em>.</p>
 <table>
+<colgroup>
+<col style="width: 4%" />
+<col style="width: 7%" />
+<col style="width: 33%" />
+<col style="width: 19%" />
+<col style="width: 24%" />
+<col style="width: 5%" />
+<col style="width: 5%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th style="text-align: left;">C Mod</th>
@@ -1652,9 +1674,9 @@ Java owned array with variable element count of 0 initial elements.</p>
 <p>Maximum element count is 1.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (int32_t) * , size
-[fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (int32_t) </em> , size
+[fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[false], int</li>
 </ul>
 <p>Will reuse memory if existing, otherwise allocating memory.</p></li>
@@ -1668,9 +1690,9 @@ Java owned array with variable element count of 0 initial elements.</p>
 <p>Maximum element count is 1.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (const int32_t) * ,
-size [fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (const int32_t) </em>
+, size [fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[native, true], int</li>
 </ul>
 <p>Always replaces memory due to <code>const</code> value
@@ -1682,20 +1704,20 @@ modifier.</p></li>
 <li><p><code>TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32ArrayConstLen(int[] src, int srcPos, int destPos, int length)</code></p>
 <p>Setter for native field variaInt32ArrayConstLen, being an array with
 fixed element count of 3 elements.</p>
-<p>Native Field Signature (ArrayType) 'int32_t <em>', size [fixed false,
+<p>Native Field Signature (ArrayType) ’int32_t <em>’, size [fixed false,
 lnx64 12], const[false], array</em>1</p>
-<p>Copies the given source elements into the respective field's existing
+<p>Copies the given source elements into the respective field’s existing
 memory.</p>
 <p>Parameters:</p>
 <ul>
 <li>src the source array of elements</li>
 <li>srcPos starting element position within the source array with
-'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+’srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
 otherwise an IndexOutOfBoundsException is thrown</li>
 <li>destPos starting element position within the destination with
-'destPos &gt;= 0<code>&amp;&amp;</code>destPos + length &lt;=
+’destPos &gt;= 0<code>&amp;&amp;</code>destPos + length &lt;=
 elemCount`, otherwise an exception is thrown</li>
-<li>length the element count to be copied with 'length &gt;=
+<li>length the element count to be copied with ’length &gt;=
 0<code>&amp;&amp;</code>srcPos + length &lt;=
 src.length<code>&amp;&amp;</code>destPos + length &lt;= elemCount`,
 otherwise an IndexOutOfBoundsException is thrown</li>
@@ -1713,23 +1735,23 @@ otherwise an IndexOutOfBoundsException is thrown</li>
 natively owned array with fixed element count of 3 elements.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (int32_t) * , size
-[fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (int32_t) </em> , size
+[fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[false], int</li>
 </ul>
-<p>Copies the given source elements into the respective field's existing
+<p>Copies the given source elements into the respective field’s existing
 memory.</p>
 <p>Parameters:</p>
 <ul>
 <li>src the source array of elements</li>
 <li>srcPos starting element position within the source array with
-'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+’srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
 otherwise an IndexOutOfBoundsException is thrown</li>
 <li>destPos starting element position within the destination with
-'destPos &gt;= 0<code>&amp;&amp;</code>destPos + length &lt;=
+’destPos &gt;= 0<code>&amp;&amp;</code>destPos + length &lt;=
 elemCount`, otherwise an exception is thrown</li>
-<li>length the element count to be copied with 'length &gt;=
+<li>length the element count to be copied with ’length &gt;=
 0<code>&amp;&amp;</code>srcPos + length &lt;=
 src.length<code>&amp;&amp;</code>destPos + length &lt;= elemCount`,
 otherwise an IndexOutOfBoundsException is thrown</li>
@@ -1747,9 +1769,9 @@ otherwise an IndexOutOfBoundsException is thrown</li>
 owned array with variable element count of 0 initial elements.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (int32_t) * , size
-[fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (int32_t) </em> , size
+[fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[false], int</li>
 </ul>
 <p>Copies the given source elements into the respective field, either
@@ -1763,13 +1785,13 @@ replace the underlying memory if
 <code>destPos + length != elemCount</code>.</li>
 <li>src the source array of elements</li>
 <li>srcPos starting element position within the source array with
-'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+’srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
 otherwise an IndexOutOfBoundsException is thrown</li>
 <li>destPos starting element position within the destination with
-'destPos &gt;= 0<code>. If </code>subset == true<code>, </code>destPos +
+’destPos &gt;= 0<code>. If</code>subset == true<code>,</code>destPos +
 length &lt;= elemCount<code>also must be be</code>true`. Otherwise an
 exception is thrown</li>
-<li>length the element count to be copied with 'length &gt;=
+<li>length the element count to be copied with ’length &gt;=
 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`, otherwise an
 IndexOutOfBoundsException is thrown</li>
 </ul>
@@ -1786,20 +1808,20 @@ IndexOutOfBoundsException is thrown</li>
 owned array with variable element count of 0 initial elements.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (const int32_t) * ,
-size [fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (const int32_t) </em>
+, size [fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[native, true], int</li>
 </ul>
-<p>Replaces the respective field's memory with a new memory segment
+<p>Replaces the respective field’s memory with a new memory segment
 containing given source elements and referencing it.</p>
 <p>Parameters:</p>
 <ul>
 <li>src the source array of elements</li>
 <li>srcPos starting element position within the source array with
-'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+’srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
 otherwise an IndexOutOfBoundsException is thrown</li>
-<li>length the element count to be copied with 'length &gt;=
+<li>length the element count to be copied with ’length &gt;=
 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`, otherwise an
 IndexOutOfBoundsException is thrown</li>
 </ul>
@@ -1817,9 +1839,9 @@ mixed and ambigously owned (warning) array with variable element count
 of getVariaInt32PointerCustomLenElemCount() elements.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (int32_t) * , size
-[fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (int32_t) </em> , size
+[fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[false], int</li>
 </ul>
 <p>Copies the given source elements into the respective field, either
@@ -1833,13 +1855,13 @@ replace the underlying memory if
 <code>destPos + length != elemCount</code>.</li>
 <li>src the source array of elements</li>
 <li>srcPos starting element position within the source array with
-'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+’srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
 otherwise an IndexOutOfBoundsException is thrown</li>
 <li>destPos starting element position within the destination with
-'destPos &gt;= 0<code>. If </code>subset == true<code>, </code>destPos +
+’destPos &gt;= 0<code>. If</code>subset == true<code>,</code>destPos +
 length &lt;= elemCount<code>also must be be</code>true`. Otherwise an
 exception is thrown</li>
-<li>length the element count to be copied with 'length &gt;=
+<li>length the element count to be copied with ’length &gt;=
 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`, otherwise an
 IndexOutOfBoundsException is thrown</li>
 </ul>
@@ -1859,20 +1881,20 @@ variable element count of getConstIntxxPointerCustomLenElemCount()
 elements.</p>
 <p>Native Signature:</p>
 <ul>
-<li>field-type (PointerType) 'int32_t <em>' -&gt; (const int32_t) * ,
-size [fixed false, lnx64 8], const[false], pointer</em>1</li>
-<li>referenced (IntType) typedef 'int32_t', size [fixed true, lnx64 4],
+<li>field-type (PointerType) ’int32_t <em>’ -&gt; (const int32_t) </em>
+, size [fixed false, lnx64 8], const[false], pointer*1</li>
+<li>referenced (IntType) typedef ‘int32_t’, size [fixed true, lnx64 4],
 const[native, true], int</li>
 </ul>
-<p>Replaces the respective field's memory with a new memory segment
+<p>Replaces the respective field’s memory with a new memory segment
 containing given source elements and referencing it.</p>
 <p>Parameters:</p>
 <ul>
 <li>src the source array of elements</li>
 <li>srcPos starting element position within the source array with
-'srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
+’srcPos &gt;= 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`,
 otherwise an IndexOutOfBoundsException is thrown</li>
-<li>length the element count to be copied with 'length &gt;=
+<li>length the element count to be copied with ’length &gt;=
 0<code>&amp;&amp;</code>srcPos + length &lt;= src.length`, otherwise an
 IndexOutOfBoundsException is thrown</li>
 </ul>
@@ -1912,7 +1934,7 @@ Support</h3>
 <p>GlueGen supports function pointers as struct fields,<br />
 generating function calls as methods as well function-pointer opaque
 getter and setter as <code>long</code> types.<br />
-The latter only in case if mutable, i.e. non-const.</p>
+The latter only in case if mutable, i.e. non-const.</p>
 <h4 id="example">Example</h4>
 <p>Assume the following C Header file example:</p>
 <pre><code>typedef struct {
@@ -1988,7 +2010,7 @@ defined <code>SetCallbackFunction</code>, which gets invoked by the
 generated native static counterpart with all arguments required.</p>
 <p>The <em>static callback</em> utilizes its own synchronization for
 thread-safety and fetches the required data set stored at
-<code>SetCallbackFunction</code> to dispatch the call to the users'
+<code>SetCallbackFunction</code> to dispatch the call to the users’
 <code>CallbackFunction</code>.<br />
 In case the callback has been removed already, the <em>static
 callback</em> simply bails out quietly.</p>
@@ -2003,17 +2025,18 @@ therefore is considered safe.</p>
 <p>Even in a homogeneous <code>UserParam</code> mapping, handling of the
 <code>UserParam</code> value might differ in the native binding
 code.</p>
-<p>To specify a non homogeneous <code>UserParam</code> mapping, i.e.
-heterogeneous <code>UserParam</code> mapping, the <code>UserParam</code>
-index of the <code>SetCallbackFunction</code> must be <a
-href="#javacallback-configuration">set in the configuration</a>.</p>
+<p>To specify a non homogeneous <code>UserParam</code> mapping,
+i.e. heterogeneous <code>UserParam</code> mapping, the
+<code>UserParam</code> index of the <code>SetCallbackFunction</code>
+must be <a href="#javacallback-configuration">set in the
+configuration</a>.</p>
 <p>The following mappings are supported.</p>
 <h4 id="pure-java-object-user-type-default">Pure Java Object User Type
 (default)</h4>
 <p>A pure Java <em>Object type</em> is used for both,
 <code>SetCallbackFunctionName</code> and
 <code>CallbackFunctionType</code>.</p>
-<p>It's a homogeneous <code>UserParam</code> mapping, where the native
+<p>It’s a homogeneous <code>UserParam</code> mapping, where the native
 side receives a simple unique ID and shall not dereference the
 <em>pointer</em>.</p>
 <p>The static Java callback dispatcher fetches the Java
@@ -2029,11 +2052,11 @@ recommended for more clarity in the resulting API.</p>
 <p>A <a href="#struct-mapping">GlueGen generated <em>Struct
 type</em></a> is used for both, <code>SetCallbackFunctionName</code> and
 <code>CallbackFunctionType</code>.</p>
-<p>It's a homogeneous <code>UserParam</code> mapping, where the native
+<p>It’s a homogeneous <code>UserParam</code> mapping, where the native
 side receives the actual native struct address.</p>
 <p>The static Java callback dispatcher dereferences the received native
-struct address (<em>long</em>), i.e. rebuilding the <em>struct
-Object</em> to be passed to the users'
+struct address (<em>long</em>), i.e. rebuilding the <em>struct
+Object</em> to be passed to the users’
 <code>CallbackFunction</code>.</p>
 <h4 id="struct-type-user-param-heterogeneous">Struct Type User Param
 (Heterogeneous)</h4>
@@ -2041,7 +2064,7 @@ Object</em> to be passed to the users'
 <code>SetCallbackFunctionName</code> and a <a
 href="#struct-mapping">GlueGen generated <em>struct type</em></a> for
 <code>CallbackFunctionType</code> is being used.</p>
-<p>It's a heterogeneous <code>UserParam</code> mapping, where the
+<p>It’s a heterogeneous <code>UserParam</code> mapping, where the
 toolkit is expected to place the given anonymous pointer inside the
 defined <em>struct type</em> passed to the
 <code>CallbackFunction</code>.</p>
@@ -2049,8 +2072,8 @@ defined <em>struct type</em> passed to the
 parameter-type is <a href="#javacallback-configuration">set in the
 configuration</a>.</p>
 <p>The static Java callback dispatcher dereferences the received native
-struct address (<em>long</em>), i.e. rebuilding the <em>struct
-Object</em> to be passed to the users'
+struct address (<em>long</em>), i.e. rebuilding the <em>struct
+Object</em> to be passed to the users’
 <code>CallbackFunction</code>.</p>
 <h3 id="javacallback-configuration"><em>JavaCallback</em>
 Configuration</h3>
@@ -2100,7 +2123,7 @@ below, the <code>CallbackFunction</code> has global scope.</p>
 manually injected custom <code>Callback-KeyClass</code> used, a public
 <code>Callback-KeyClass</code> is being generated covering the defined
 keys.</p>
-<p>Keys allow to limit the scope, i.e. map multiple
+<p>Keys allow to limit the scope, i.e. map multiple
 <code>CallbackFunction</code> to the different keys.</p>
 <p>To remove a previously set <code>CallbackFunction</code> via
 <code>SetCallbackFunction</code>, the key arguments must match.</p>
@@ -2110,7 +2133,7 @@ keys.</p>
 name of the native toolkit API responsible to set the callback</li>
 <li><code>SetCallback-ParamIndex</code>: List of parameter indices of
 the <code>SetCallbackFunction</code>, denoting the key(s) limiting the
-callback scope, i.e. the callback and all resources will be mapped to
+callback scope, i.e. the callback and all resources will be mapped to
 this key. The optional <code>Callback-KeyClass</code> may override this
 semantic.</li>
 <li><code>CallbackFunctionType</code>: The native toolkit API
@@ -2134,7 +2157,7 @@ hash-map-key definition and shall handle all key parameter of the
 <code>SetCallbackFunction</code> as defined via
 <code>JavaCallbackKey</code>, see above.</p>
 <p><code>Callback-KeyClass</code> may be used to add external
-key-components, e.g. current-thread or a toolkit dependent context.</p>
+key-components, e.g. current-thread or a toolkit dependent context.</p>
 <p>The <code>Callback-KeyClass</code> shall implement the following
 hash-map-key standard methods</p>
 <ul>
@@ -2215,17 +2238,17 @@ using a <code>null</code> <code>CallbackFunction</code> reference.</p>
 using JavaCallback</p>
 <ul>
 <li>Only one interface callback-method binding is allowed for a native
-callback function, e.g. <code>T2_CallbackFunc01</code> (see above)
+callback function, e.g. <code>T2_CallbackFunc01</code> (see above)
 <ul>
 <li>Implying that the native single function-pointer typedef must be
 mapped to a single Java method within its interface</li>
 <li>Hence it must be avoided that multiple method variation are
-produced, e.g. due to <code>char*</code> to <code>byte[]</code> and
+produced, e.g. due to <code>char*</code> to <code>byte[]</code> and
 <code>String</code> mapping etc.</li>
 </ul></li>
-<li>The native callback function can only return no-value, i.e.
-<code>void</code>, or a primitive type. Usually <code>void</code> is
-being used in toolkit APIs.</li>
+<li>The native callback function can only return no-value,
+i.e. <code>void</code>, or a primitive type. Usually <code>void</code>
+is being used in toolkit APIs.</li>
 <li>The native callback function argument types must be convertible to
 JNI Java types as (previously) supported for function return values,
 using the same conversion function
@@ -2240,7 +2263,7 @@ callback.</li>
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad libraryBasename</code></a></li>
 <li><code>SetCallbackFunction</code>, all <em>maintenance</em> methods
 and the native callback dispatcher <strong>are thread-safe</strong></li>
-<li>...</li>
+<li>…</li>
 </ul>
 <h3 id="javacallback-example-1">JavaCallback Example 1</h3>
 <p>This example demonstrates a <a
@@ -2248,7 +2271,7 @@ href="#pure-java-object-user-type-default">homogeneous <em>Java
 Object</em> <code>UserParam</code> mapping</a> with a <a
 href="#javacallback-key-definition">globally scoped</a>
 <code>CallbackFunction</code> and <code>UserParam</code>.</p>
-<p>The callback <code>T2_CallbackFunc01</code> has global scope, i.e. is
+<p>The callback <code>T2_CallbackFunc01</code> has global scope, i.e. is
 not mapped to any key and can be only set globally.</p>
 <p>C-API header snippet:</p>
 <pre><code>typedef void ( * T2_CallbackFunc01)(size_t id, const char* msg, void* usrParam);
@@ -2258,7 +2281,8 @@ void MessageCallback01(T2_CallbackFunc01 cbFunc, void* usrParam);
 
 void InjectMessageCallback01(size_t id, const char* msg);</code></pre>
 <p>and the following GlueGen configuration</p>
-<pre><code># JavaCallback requires `JNI_OnLoad*(..)` and `JVMUtil_GetJNIEnv(..)`
+<pre><code>
+# JavaCallback requires `JNI_OnLoad*(..)` and `JVMUtil_GetJNIEnv(..)`
 LibraryOnLoad Bindingtest2
     
 ArgumentIsString T2_CallbackFunc01 1
@@ -2277,13 +2301,14 @@ ArgumentIsString InjectMessageCallback01 1
 #   - `T2_CallbackFunc01 getMessageCallback01()` returns the global T2_CallbackFunc01, null if not mapped
 #   - `Object getMessageCallback01UserParam()` returns the global `usrParam` object, null if not mapped
 #   - `void releaseMessageCallback01()` releases callback data skipping toolkit API. Favor passing `null` callback ref to `MessageCallback01(..)`
-JavaCallbackDef  MessageCallback01 1 T2_CallbackFunc01 2</code></pre>
+JavaCallbackDef  MessageCallback01 1 T2_CallbackFunc01 2
+</code></pre>
 <p>Note that <a
 href="#libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad Bindingtest2</code></a>
 must be specified in exactly one native code-unit within the library. It
 provides code to allow the generated native callback-function to attach
 the current thread to the <code>JavaVM*</code> generating a new
-<code>JNIEnv*</code>in daemon mode - or just to retrieve the thread's
+<code>JNIEnv*</code>in daemon mode - or just to retrieve the thread’s
 <code>JNIEnv*</code>, if already attached to the
 <code>JavaVM*</code>.</p>
 <p>This will lead to the following interface</p>
@@ -2324,10 +2349,10 @@ href="#javacallback-key-definition">key-mapped</a>
 <p>Additionally a <a href="#custom-callback-userparamclass">custom
 <em>UserParamClass</em></a> <code>ALCcontext</code> is being used for
 more clarity in the resulting API.</p>
-<p>This example is derived from OpenAL's
+<p>This example is derived from OpenAL’s
 <code>AL_SOFT_callback_buffer</code> extension.</p>
 <p>The callback <code>ALBUFFERCALLBACKTYPESOFT</code> is mapped to
-<code>buffer</code> name, i.e. one callback can be set for each
+<code>buffer</code> name, i.e. one callback can be set for each
 buffer.</p>
 <p>C-API Header snipped</p>
 <pre><code>  typedef void ( * ALBUFFERCALLBACKTYPESOFT)(int buffer /* key */, void *userptr, int sampledata, int numbytes);
@@ -2437,7 +2462,7 @@ JavaCallbackKey  alBufferCallback1 1 ALBUFFERCALLBACKTYPESOFT 0
 <p>Implementation utilizes a custom <code>Callback-KeyClass</code>
 implementation for
 <code>void alBufferCallback1(int buffer, int format, int freq, ALBUFFERCALLBACKTYPESOFT callback, ALCcontext userptr)</code>,
-which uses one key, i.e. <code>buffer</code>.</p>
+which uses one key, i.e. <code>buffer</code>.</p>
 <pre><code>    public static class CustomAlBufferCallback1Key {
         private final int buffer;
         public CustomAlBufferCallback1Key(final int buffer) {
@@ -2584,7 +2609,7 @@ href="#javacallback-key-definition">key-mapped</a>
 and passed to the callback function, while user passes a
 <code>void*</code> as a <code>long</code> value to the registration
 method <code>MessageCallback11b(..)</code>. The toolkit associates the
-users' <code>void*</code> pointer with the
+users’ <code>void*</code> pointer with the
 <code>T2_CallbackFunc11</code>.</p>
 <p>C-API Header snipped</p>
 <pre><code>  typedef struct {
@@ -2699,7 +2724,7 @@ the registration method <code>SetLogCallBack(..)</code>.</p>
 <h2 id="misc-configurations">Misc Configurations</h2>
 <h3
 id="libraryonload-librarybasename-for-jni_onload-"><code>LibraryOnLoad &lt;LibraryBasename&gt;</code>
-for <code>JNI_OnLoad*(..)</code> ...</h3>
+for <code>JNI_OnLoad*(..)</code> …</h3>
 <p><code>LibraryOnLoad &lt;LibraryBasename&gt;</code> <em>can</em> be
 specified in one native code-unit within one native library maximum,
 otherwise multiple function definitions would occur.</p>
@@ -2730,7 +2755,7 @@ attached to the <code>JavaVM*</code> <strong>if</strong> result
 <code>*jvmAttached == true</code>, otherwise the current thread was
 already attached to the <code>JavaVM*</code></li>
 <li><code>void JVMUtil_ReleaseJNIEnv(JNIEnv* env, int detachJVM)</code>
-releases the <code>JNIEnv*</code>, i.e. detaching the current thread
+releases the <code>JNIEnv*</code>, i.e. detaching the current thread
 from the <code>JavaVM*</code> <strong>if</strong>
 <code>detachJVM == true</code>, otherwise funtion does nothing.</li>
 </ul>

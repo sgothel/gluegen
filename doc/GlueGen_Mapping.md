@@ -18,22 +18,22 @@ table, th, td {
 }
 </style>
 
-# GlueGen Native Data & Function Mapping for Java™
+# GlueGen Native Data & Function Mapping for Java™ {#gluegen-data-func-mapping}
 
 *Disclaimer: This documented shall be synchronized with source code,
 especially the configuration options.*
 
-Please also consider reading [GlueGen Manual](manual/index.html) for general usage and configuration options.
+Please also consider reading [GlueGen Manual](https://jogamp.org/gluegen/doc/manual/) for general usage and configuration options.
 
 ## References
 
 - [GlueGen Git Repo](https://jogamp.org/cgit/gluegen.git/about/)
 - [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
-- [GlueGen Manual](manual/index.html)
+- [GlueGen Manual](https://jogamp.org/gluegen/doc/manual/)
 - [GlueGen Project Page](https://jogamp.org/gluegen/www/)
 - [How To Build](HowToBuild.html)
 
-## Overview
+## Overview {#overview}
 [GlueGen](https://jogamp.org/gluegen/www/) is a compiler for function and data-structure declarations, 
 generating Java and JNI C code offline at compile time 
 and allows using native libraries within your Java application.
@@ -42,7 +42,7 @@ GlueGen also provides a comprehensive [runtime library](https://jogamp.org/deplo
 - Support for multi-arch and java code fat-jar deployment
   - Native library including JNI bundle handling and Jar file cache
   - Platform architecture information retrieval, ELF parser, alignment etc
-- Enhanced NIO buffer handling for pointer, arrays, DMA mapping etc</li>
+- Enhanced NIO buffer handling for pointer, arrays, DMA mapping etc
 - Network Uri RFC 2396, connection and resource handler to simplify asset loading
 - Bitstream, hash maps, ringbuffer, sha cumulator, reflection and threading utils
 - Abstract AudioFormat and AudioSink interfaces, concurrent locks .. and more
@@ -63,7 +63,7 @@ GlueGen supports [registering Java™ callback methods](#java-callback)
 to receive asynchronous and off-thread native toolkit events,
 where a generated native callback function dispatches the events to Java™.
 
-GlueGen also supports [producing an OO-Style API mapping](#oo-style-api-interface-mapping) like [JOGL's incremental OpenGL Profile API levels](../../jogl/doc/uml/html/index.html).
+GlueGen also supports [producing an OO-Style API mapping](#oo-style-api-interface-mapping) like [JOGL's incremental OpenGL Profile API levels](https://jogamp.org/jogl/doc/uml/html/index.html).
 
 GlueGen is capable to bind low-level APIs such as the Java™ Native Interface (JNI) and
 the AWT Native Interface (JAWT) back up to the Java programming language.
@@ -79,35 +79,35 @@ GlueGen is used for the [JogAmp](https://jogamp.org) projects
 
 GlueGen is part of [the JogAmp project](https://jogamp.org).
 
-## Primitive Mapping
+## Primitive Mapping {#primitive-mapping}
 
 Gluegen has build-in types (terminal symbols) for:
 
-| type | java-bits | native-bits <br> x32   | native bits <br> x64 | type    | signed | origin |
-|:-----|:----------|:-----------------------|:---------------------|:--------|:-------|:-------|
-| void | 0         | 0                      | 0                    | void    | void   | ANSI-C |
-| char | 8         | 8                      | 8                    | integer | any    | ANSI-C |
-| short | 16 | 16 | 16 | integer | any | ANSI-C |
-| int | 32 | 32 | 32 | integer | any | ANSI-C |
-| long | 64 | 32 | **32**† | integer | any | ANSI-C - Windows |
-| long | 64 | 32 | **64** | integer | any | ANSI-C - Unix |
-| float | 32 | 32 | 32 | float | signed | ANSI-C |
-| double | 64 | 64 | 64 | double | signed | ANSI-C |
-| \_\_int32 | 32 | 32 | 32 | integer | any | windows |
-| \_\_int64 | 64 | 64 | 64 | integer | any | windows |
-| int8\_t | 8 | 8 | 8 | integer | signed | stdint.h |
-| uint8\_t | 8 | 8 | 8 | integer | unsigned | stdint.h |
-| int16\_t | 16 | 16 | 16 | integer | signed | stdint.h |
-| uint16\_t | 16 | 16 | 16 | integer | unsigned | stdint.h |
-| int32\_t | 32 | 32 | 32 | integer | signed | stdint.h |
-| uint32\_t | 32 | 32 | 32 | integer | unsigned | stdint.h |
-| int64\_t | 64 | 64 | 64 | integer | signed | stdint.h |
-| uint64\_t | 64 | 64 | 64 | integer | unsigned | stdint.h |
-| intptr\_t | 64 | 32 | 64 | integer | signed | stdint.h |
-| uintptr\_t | 64 | 32 | 64 | integer | unsigned | stdint.h |
-| ptrdiff\_t | 64 | 32 | 64 | integer | signed | stddef.h |
-| size\_t | 64 | 32 | 64 | integer | unsigned | stddef.h |
-| wchar\_t | 32 | 32 | 32 | integer | signed | stddef.h |
+| type       | java-bits | native-x32 | native-x64 | type    | signed | origin |
+|:-----------|----------:|-----------:|-----------:|:--------|:-------|:-------|
+| void       |  0        |  0 |  0      | void    | void   | ANSI-C |
+| char       |  8        |  8 |  8      | integer | any    | ANSI-C |
+| short      | 16        | 16 | 16      | integer | any | ANSI-C |
+| int        | 32        | 32 | 32      | integer | any | ANSI-C |
+| long       | 64        | 32 | **32**† | integer | any | ANSI-C - Windows |
+| long       | 64        | 32 | **64**  | integer | any | ANSI-C - Unix |
+| float      | 32        | 32 | 32      | float   | signed | ANSI-C |
+| double     | 64        | 64 | 64      | double  | signed | ANSI-C |
+| \_\_int32  | 32        | 32 | 32      | integer | any | windows |
+| \_\_int64  | 64        | 64 | 64      | integer | any | windows |
+| int8\_t    |  8        |  8 |  8      | integer | signed | stdint.h |
+| uint8\_t   |  8        |  8 |  8      | integer | unsigned | stdint.h |
+| int16\_t   | 16        | 16 | 16      | integer | signed | stdint.h |
+| uint16\_t  | 16        | 16 | 16      | integer | unsigned | stdint.h |
+| int32\_t   | 32        | 32 | 32      | integer | signed | stdint.h |
+| uint32\_t  | 32        | 32 | 32      | integer | unsigned | stdint.h |
+| int64\_t   | 64        | 64 | 64      | integer | signed | stdint.h |
+| uint64\_t  | 64        | 64 | 64      | integer | unsigned | stdint.h |
+| intptr\_t  | 64        | 32 | 64      | integer | signed | stdint.h |
+| uintptr\_t | 64        | 32 | 64      | integer | unsigned | stdint.h |
+| ptrdiff\_t | 64        | 32 | 64      | integer | signed | stddef.h |
+| size\_t    | 64        | 32 | 64      | integer | unsigned | stddef.h |
+| wchar\_t   | 32        | 32 | 32      | integer | signed | stddef.h |
 
 **Warning:** Try to avoid unspecified bit sized types, especially **long**, since it differs on Unix and Windows!  
 **Notes:**
@@ -116,7 +116,7 @@ Gluegen has build-in types (terminal symbols) for:
 * Anonymous void-pointer _void\*_ are mapped to NIO _Buffer_.
 * Pointers to pointer-size types like _intptr\_t\*_, _uintptr\_t\*_, _ptrdiff\_t\*_ and _size\_t\*_ are mapped to _PointerBuffer_, to reflect the architecture depending storage size.
 
-### Pointer Mapping
+### Pointer Mapping {#pointer-mapping}
 *Pointer* values itself are represented as `long` values on the Java side
 while using the native pointer-size, e.g. 32-bit or 64-bit, on the native end.
 
@@ -125,7 +125,7 @@ or are exposed via `com.jogamp.common.nio.PointerBuffer`.
 
 See [Struct Pointer-Pointer Support](#struct-pointer-pointer-support) below.
 
-### String Mapping
+### String Mapping {#string-mapping}
 
 #### Function return String values
 Function return values are currently mapped from `char*` to Java String using *UTF-8*
@@ -146,7 +146,7 @@ via JNI function
 > `void GetStringRegion(JNIEnv *env, jstring str, jsize start, jsize len, jchar *buf)`.
 
 
-#### Struct String mapping
+#### Struct String mapping {#struct-string-mapping}
 
 String value mapping for `Struct` fields is performed solely from the Java side using *Charset* and is hence most flexible.
 
@@ -173,7 +173,7 @@ The maximum length default for the `strnlen(..)` operation is 8192 bytes and can
 ```
 *FIXME*: This only works reliable using an 8-bit Charset encoding, e.g. the default *UTF-8*.
 
-### Alignment for Compound Data
+### Alignment for Compound Data {#alignment-for-compound-data}
 
 In general, depending on CPU and it's configuration (OS), alignment is set up for each type (char, short, int, long, ..).
 
@@ -238,8 +238,8 @@ Runtime query is implemented as follows:
 \- MacOsX-32bit-gcc4  
 ∗ Windows
      
-## OO-Style API Interface Mapping
-GlueGen supports producing an OO-Style API mapping like [JOGL's incremental OpenGL Profile API levels](../../jogl/doc/uml/html/index.html).
+## OO-Style API Interface Mapping {#oo-style-api-interface-mapping}
+GlueGen supports producing an OO-Style API mapping like [JOGL's incremental OpenGL Profile API levels](https://jogamp.org/jogl/doc/uml/html/index.html).
 
 ### OO-Style Mapping Settings
 
@@ -262,7 +262,7 @@ GlueGen supports producing an OO-Style API mapping like [JOGL's incremental Open
 
     The generated implementation GLES3Impl implements interface GLES3.
 
-### OO-Style Example
+### OO-Style Example {#oo-style-example}
 
 Example snippet from JOGL's GLES3 interface config `gl-if-es3.cfg`
 ```
@@ -304,10 +304,10 @@ Implements GLES3Impl GLES3
 ...
 ```
 
-Above produces the GLES3 interface and its implementation as visible in JOGL's UML document [about OpenGL Profiles](../../jogl/doc/uml/html/index.html).
+Above produces the GLES3 interface and its implementation as visible in JOGL's UML document [about OpenGL Profiles](https://jogamp.org/jogl/doc/uml/html/index.html).
 
 
-## Struct Mapping
+## Struct Mapping {#struct-mapping}
 A *Struct* is a C compound type declaration, which can be mapped to a Java class.
 
 A *Struct* may utilize the following data types for its fields
@@ -332,7 +332,7 @@ call the underlying native function which has to be compiled and its library loa
 The generated method `public static boolean usesNativeCode()` can be used to validate
 whether the produced Java class requires a corresponding library for additional native code.
 
-### Struct Mapping Notes
+### Struct Mapping Notes {#struct-mapping-notes}
 
 * [`Opaque` configured pointer-types](#opaque-java-primitive-type-symbol) are treated as `long` values from the Java side    
   while maintaining their architecture dependent pointer size within native memory.
@@ -344,22 +344,22 @@ whether the produced Java class requires a corresponding library for additional 
   See [ReturnedArrayLength Setting](#returnedarraylength-symbol-expression) below.
 
 * Utilizing a *flexible* *elemCount* via **ReturnedArrayLength getValElements()** renders us unable to determine ownership
-  of pointer referenced *native* memory segment and hence renders ownership *mixed or ambiguous*, [see \[5\]](#signature-const-int32_t--customsize-ambiguous-java-owned). This is due to the fact, that native code may allocate memory and writes its *elemCount* into the designated field *valElements*. In such cases, the user being aware of the underlying API shall utilize `setVal(..)` and `releaseVal()` with care.
-  
+  of pointer referenced *native* memory segment and hence renders ownership *mixed or ambiguous*, [see \[5\]](#signature-const-int32_t--customsize-ambiguous-ownership). This is due to the fact, that native code may allocate memory and writes its *elemCount* into the designated field *valElements*. In such cases, the user being aware of the underlying API shall utilize `setVal(..)` and `releaseVal()` with care.
+
 * To release native memory with *java ownership*, i.e. a native ByteBuffer, `releaseVal()` can be used.
 
 ### GlueGen Struct Settings
 
-#### **Opaque** *Java-primitive-type* *symbol*
+#### **Opaque** *Java-primitive-type* *symbol* {#opaque-java-primitive-type-symbol}
 
-See also [Opaque section in manual](manual/index.html#SecOpaque).
+See also [Opaque section in manual](https://jogamp.org/gluegen/doc/manual/index.html#SecOpaque).
 
 * `Opaque long T2_UndefStruct*`
 
     Pointers to `T2_UndefStruct` will be handled opaque, 
     i.e. as `long` values from the Java side while maintaining their architecture dependent pointer size within native memory.
 
-#### **ImmutableAccess** *symbol*
+#### **ImmutableAccess** *symbol* {#immutableaccess-symbol}
 Immutable access can be set for a whole struct or a single field of a struct.
 
 Immutable access will simply suppress generating setters in the Java code
@@ -377,7 +377,7 @@ and hence also reduces the footprint of the generated Java class for such struct
     
     Sets pseudo-code flag *ImmutableAccess*, see below.
 
-#### **MaxOneElement** *symbol*
+#### **MaxOneElement** *symbol* {#maxoneelement-symbol}
 * `MaxOneElement TK_Struct.val`
 
     Sets field pointer `val`
@@ -385,7 +385,7 @@ and hence also reduces the footprint of the generated Java class for such struct
 
     Sets pseudo-code flag *MaxOneElement*, see below.
 
-#### **ReturnedArrayLength** *symbol* *expression*
+#### **ReturnedArrayLength** *symbol* *expression* {#returnedarraylength-symbol-expression}
 * `ReturnedArrayLength TK_Struct.val 3`
 
     Sets field pointer `val` to point to a array with three elements.
@@ -409,7 +409,7 @@ and hence also reduces the footprint of the generated Java class for such struct
 
     Sets pseudo-code flag *VariaElemCount*, see below.
 
-#### **ReturnsString** *symbol*
+#### **ReturnsString** *symbol* {#returnsstring-symbol}
 A direct C code `char` array or indirect array via pointer can be interpreted as a Java `String`.
 
 * `ReturnsString TK_Struct.name`
@@ -421,7 +421,7 @@ A direct C code `char` array or indirect array via pointer can be interpreted as
     
     See [*String Mapping*](#string-mapping) above.
 
-#### **ReturnsStringOnly** *symbol*
+#### **ReturnsStringOnly** *symbol* {#returnsstringonly-symbol}
 
 * `ReturnsStringOnly TK_Struct.name`
 
@@ -432,7 +432,7 @@ A direct C code `char` array or indirect array via pointer can be interpreted as
     
     See [*String Mapping*](#string-mapping) above.
 
-### Struct Setter Pseudo-Code
+### Struct Setter Pseudo-Code {#struct-setter-pseudo-code}
 #### Overview
 In general we have the following few cases
 * Array owned by parent struct itself
@@ -482,7 +482,7 @@ In general we have the following few cases
       * *Pointer* & *VariaElemCount*: Reuse *native* memory and store value with <= *elemCount*, otherwise allocate new *native* memory
 * *Struct* ...
 
-### Struct Java Signature Table
+### Struct Java Signature Table {#struct-java-signature-table}
 
 Please find below signature table as generated by the *C Declaration* including its *C Modifier*, 
 e.g. `const` for constant, `[const]` for const and non-const and `empty` for non-const (variable).
@@ -519,9 +519,9 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
 | [const] | char* name    | setName(String srcVal) <br> releaseVal()                         | String getName() <br> boolean isNameNull() <br> int getNameElemCount() | **ReturnsStringOnly** | Java | String only, w/ EOS  |
 | [const] | char* name    | setName(String srcVal) <br> setName(byte[] src, int srcPos, int destPos, int len) <br> releaseVal() | String getNameAsString() <br> ByteBuffer getName() <br> boolean isNameNull() <br> int getNameElemCount() | **ReturnsString** | Java | String and byte access, w/ EOS|
 
-### Struct Java Signature Examples
+### Struct Java Signature Examples {#struct-java-signature-examples}
 
-#### Signature `int32_t *` MaxOneElement, Java owned 
+#### Signature `int32_t *` MaxOneElement, Java owned {#signature-int32_t--maxoneelement-java-owned}
 
 * `void com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32PointerMaxOneElemElemCount(int src)`
 
@@ -535,7 +535,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
 
     Will reuse memory if existing, otherwise allocating memory.
 
-#### Signature `const int32_t *` MaxOneElement, Java owned 
+#### Signature `const int32_t *` MaxOneElement, Java owned {#signature-const-int32_t--maxoneelement-java-owned}
 
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setConstInt32PointerMaxOneElem(int src)`
 
@@ -549,7 +549,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
 
     Always replaces memory due to `const` value modifier.
     
-#### Signature `int32_t[3]` ConstElemCount 3, Parent owned     
+#### Signature `int32_t[3]` ConstElemCount 3, Parent owned {#signature-int32_t3-constelemcount-3-parent-owned}
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32ArrayConstLen(int[] src, int srcPos, int destPos, int length)`
 
     Setter for native field variaInt32ArrayConstLen, being an array with fixed element count of 3 elements.
@@ -567,7 +567,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     Returns:
     * this instance of chaining
 
-#### Signature `int32_t *` ConstElemCount 3, Natively owned 
+#### Signature `int32_t *` ConstElemCount 3, Natively owned {#signature-int32_t--constelemcount-3-natively-owned}
 
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32PointerConstLen(int[] src, int srcPos, int destPos, int length)`
 
@@ -588,7 +588,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     Returns:
     * this instance of chaining
 
-#### Signature `int32_t *` FreeSize, Java owned 
+#### Signature `int32_t *` FreeSize, Java owned {#signature-int32_t--freesize-java-owned}
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32PointerVariaLen(boolean subset, int[] src, int srcPos, int destPos, int length)`
 
     Setter for native field variaInt32PointerVariaLen, referencing a Java owned array with variable element count of 0 initial elements.
@@ -609,7 +609,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     Returns:
     * this instance of chaining
 
-#### Signature `const int32_t *` FreeSize, Java owned 
+#### Signature `const int32_t *` FreeSize, Java owned {#signature-const-int32_t--freesize-java-owned}
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setConstInt32PointerVariaLen(int[] src, int srcPos, int length)`
 
     Setter for native field constInt32PointerVariaLen, referencing a Java owned array with variable element count of 0 initial elements.
@@ -628,7 +628,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     Returns:
     * this instance of chaining
 
-#### Signature `int32_t *` CustomSize, Ambiguous ownership
+#### Signature `int32_t *` CustomSize, Ambiguous ownership {#signature-int32_t--customsize-ambiguous-ownership}
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setVariaInt32PointerCustomLen(boolean subset, int[] src, int srcPos, int destPos, int length)`
 
     Setter for native field variaInt32PointerCustomLen, referencing a mixed and ambigously owned (warning) array with variable element count of getVariaInt32PointerCustomLenElemCount() elements.
@@ -649,7 +649,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
     Returns:
     * this instance of chaining  
     
-#### Signature `const int32_t *` CustomSize, Ambiguous ownership
+#### Signature `const int32_t *` CustomSize, Ambiguous ownership {#signature-const-int32_t--customsize-ambiguous-ownership}
 * `TK_Field com.jogamp.gluegen.test.junit.generation.TK_Field.setConstInt32PointerCustomLen(int[] src, int srcPos, int length)`
 
   Setter for native field constIntxxPointerCustomLen, referencing a mixed and ambigously owned (**warning**) array with variable element count of getConstIntxxPointerCustomLenElemCount() elements.
@@ -668,7 +668,7 @@ A similar mapping is produced for `struct` types, i.e. *compounds*.
   Returns:
   * this instance of chaining
 
-### Struct Pointer-Pointer Support
+### Struct Pointer-Pointer Support {#struct-pointer-pointer-support}
 See primitive [*Pointer Mapping*](#pointer-mapping) above.
 
 *Pointer* are exposed in the following examples
@@ -703,7 +703,7 @@ Ignore T2_UndefStruct
 
 *TODO: Enhance documentation*
 
-### Struct Function-Pointer Support
+### Struct Function-Pointer Support {#struct-function-pointer-support}
 GlueGen supports function pointers as struct fields,    
 generating function calls as methods as well function-pointer opaque getter and setter as `long` types.    
 The latter only in case if mutable, i.e. non-const.
@@ -784,7 +784,7 @@ and similar to `T2_CustomFuncB customFuncB1`
   public final int CustomFuncB1(T2_UserData pUserData)  { .. }  
 ```
 
-## Java Callback
+## Java Callback {#java-callback}
 GlueGen supports registering Java callback methods
 to receive asynchronous and off-thread native toolkit events,
 where a generated native callback function dispatches the events to Java.
@@ -808,7 +808,7 @@ the `UserParam` index of the `SetCallbackFunction` must be [set in the configura
 
 The following mappings are supported.
 
-#### Pure Java Object User Type (default)
+#### Pure Java Object User Type (default) {#pure-java-object-user-type-default}
 A pure Java *Object type* is used for both, `SetCallbackFunctionName` and `CallbackFunctionType`.
 
 It's a homogeneous `UserParam` mapping, where the native side receives a simple unique ID and shall not dereference the *pointer*.
@@ -817,14 +817,14 @@ The static Java callback dispatcher fetches the Java `UserParam` *Object* from t
 
 Instead of using the default plain Java `Object` type, a [custom *UserParamClass*](#custom-callback-userparamclass) can be specified [in the configuration](#javacallback-configuration), which is recommended for more clarity in the resulting API.
 
-#### Struct Type User Param (Homogeneous)
+#### Struct Type User Param (Homogeneous) {#struct-type-user-param-homogeneous}
 A [GlueGen generated *Struct type*](#struct-mapping) is used for both, `SetCallbackFunctionName` and `CallbackFunctionType`.
 
 It's a homogeneous `UserParam` mapping, where the native side receives the actual native struct address.
 
 The static Java callback dispatcher dereferences the received native struct address (*long*), i.e. rebuilding the *struct Object* to be passed to the users' `CallbackFunction`.
 
-#### Struct Type User Param (Heterogeneous)
+#### Struct Type User Param (Heterogeneous) {#struct-type-user-param-heterogeneous}
 An anonymous pointer (*long*) for `SetCallbackFunctionName` and a [GlueGen generated *struct type*](#struct-mapping) for `CallbackFunctionType` is being used.
 
 It's a heterogeneous `UserParam` mapping, where the toolkit is expected to place the given anonymous pointer inside the defined *struct type* passed to the `CallbackFunction`.
@@ -833,7 +833,7 @@ The `SetCallback-UserParamIndex` for the different parameter-type is [set in the
 
 The static Java callback dispatcher dereferences the received native struct address (*long*), i.e. rebuilding the *struct Object* to be passed to the users' `CallbackFunction`.
 
-### *JavaCallback* Configuration
+### *JavaCallback* Configuration {#javacallback-configuration}
 
 Configuration directives are as follows:
 
@@ -855,7 +855,7 @@ The `SetCallbackFunction` is utilized to set the `CallbackFunction` as well as t
 
 If mapping the `CallbackFunction` to keys, the user must specify the same key arguments when setting and removing the `CallbackFunction`.
 
-#### *JavaCallback* Key Definition
+#### *JavaCallback* Key Definition {#javacallback-key-definition}
 
 If no keys are defined via `JavaCallbackKey` or not manually injected using a custom `Callback-KeyClass`, see below,
 the `CallbackFunction` has global scope.
@@ -873,11 +873,11 @@ To remove a previously set `CallbackFunction` via `SetCallbackFunction`, the key
 - `CallbackFunctionType`: The native toolkit API typedef-name of the function-pointer-type, the same callback type name as defined in `JavaCallbackDef`
 - `CallbackFunction-ParamIndex`: List of parameter indices of the `CallbackFunctionType`, matching the semantic parameter of `SetCallback-ParamIndex`.
 
-#### Custom `Callback-UserParamClass`
+#### Custom `Callback-UserParamClass` {#custom-callback-userparamclass}
 
 Instead of using the default plain Java `Object` for non-compound `UserParam` types, a custom `Callback-UserParamClass` can be specified [in the configuration](#javacallback-configuration), which produces more clarity in the resulting API.
 
-#### Custom `Callback-KeyClass`
+#### Custom `Callback-KeyClass` {#custom-callback-keyclass}
 
 The `Callback-KeyClass` is the optional user-written hash-map-key definition 
 and shall handle all key parameter of the `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
@@ -889,7 +889,7 @@ The `Callback-KeyClass` shall implement the following hash-map-key standard meth
 - `int hashCode()`
 - `Callback-KeyClassName(...)` constructor receiving all key parameter of `SetCallbackFunction` as defined via `JavaCallbackKey`, see above.
 
-#### Required *LibraryOnLoad*
+#### Required *LibraryOnLoad* {#required-libraryonload}
 Note that [`LibraryOnLoad <LibraryBasename>`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit within one native library.
 
 It provides code to allow the generated native callback-function to attach the current thread to the `JavaVM*`, retrieving a valid `JNIEnv*`, see [`LibraryOnLoad <LibraryBasename>`](#libraryonload-librarybasename-for-jni_onload-) for details.
@@ -952,6 +952,7 @@ void InjectMessageCallback01(size_t id, const char* msg);
 
 and the following GlueGen configuration
 ```
+
 # JavaCallback requires `JNI_OnLoad*(..)` and `JVMUtil_GetJNIEnv(..)`
 LibraryOnLoad Bindingtest2
     
@@ -972,6 +973,7 @@ ArgumentIsString InjectMessageCallback01 1
 #   - `Object getMessageCallback01UserParam()` returns the global `usrParam` object, null if not mapped
 #   - `void releaseMessageCallback01()` releases callback data skipping toolkit API. Favor passing `null` callback ref to `MessageCallback01(..)`
 JavaCallbackDef  MessageCallback01 1 T2_CallbackFunc01 2
+
 ```
 
 Note that [`LibraryOnLoad Bindingtest2`](#libraryonload-librarybasename-for-jni_onload-) must be specified in exactly one native code-unit within the library.
@@ -1419,7 +1421,7 @@ leading to the following interface
 
 ## Misc Configurations
 
-### `LibraryOnLoad <LibraryBasename>` for `JNI_OnLoad*(..)` ...
+### `LibraryOnLoad <LibraryBasename>` for `JNI_OnLoad*(..)` ... {#libraryonload-librarybasename-for-jni_onload-}
 
 `LibraryOnLoad <LibraryBasename>` *can* be specified in one native code-unit within one native library maximum, otherwise multiple function definitions would occur. 
 

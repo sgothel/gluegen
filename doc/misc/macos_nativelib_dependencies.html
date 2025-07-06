@@ -415,12 +415,12 @@
   <input type="checkbox" id="contents">
   <ul>
   <li><a href="#loading-a-macos-native-librarys-dependencies">Loading a
-  MacOS Native Library's Dependencies</a>
+  MacOS Native Library’s Dependencies</a>
   <ul>
   <li><a
   href="#just-use-dynamic-loading-via-gluegens-procaddresstable">Just
-  use dynamic loading via GlueGen's ProcAddressTable</a></li>
-  <li><a href="#cant-pass-dyld_library_path-to-usrbinjava">Can't pass
+  use dynamic loading via GlueGen’s ProcAddressTable</a></li>
+  <li><a href="#cant-pass-dyld_library_path-to-usrbinjava">Can’t pass
   <code>DYLD_LIBRARY_PATH</code> to <code>/usr/bin/java</code></a></li>
   <li><a
   href="#workaround-inability-to-pass-dyld_library_path-to-usrbinjava">Workaround
@@ -432,27 +432,27 @@
   explicit OpenJDK/Temurin JDK <code>java</code> executable
   path</a></li>
   <li><a href="#using-loader_path-within-dependent-library">Using
-  ``@loader_path` within dependent library</a></li>
+  `<code>@loader_path</code> within dependent library</a></li>
   </ul></li>
   </ul></li>
   </ul>
 </nav>
 <h1 id="loading-a-macos-native-librarys-dependencies">Loading a MacOS
-Native Library's Dependencies</h1>
+Native Library’s Dependencies</h1>
 <p>Assume we have <code>libBindingtest1p1.dylib</code>, which links to
-<code>libtest1.dylib</code>, i.e. requires the OS native library to load
+<code>libtest1.dylib</code>, i.e. requires the OS native library to load
 <code>libtest1.dylib</code> to resolve symbols.</p>
 <p>Usually we just se <code>DYLD_LIBRARY_PATH</code> including the path
 where <code>libtest1.dylib</code> is located and we are good to go.</p>
 <h2 id="just-use-dynamic-loading-via-gluegens-procaddresstable">Just use
-dynamic loading via GlueGen's ProcAddressTable</h2>
-<p>Note, the above problem does not occur when using GlueGen's
-ProcAddressTable, i.e. loading the underlying tool library
+dynamic loading via GlueGen’s ProcAddressTable</h2>
+<p>Note, the above problem does not occur when using GlueGen’s
+ProcAddressTable, i.e. loading the underlying tool library
 <code>libtest2.dylib</code> w/ dlopen and passing all symbols to the JNI
 library <code>libBindingtest1p2.dylib</code>.</p>
-<h2 id="cant-pass-dyld_library_path-to-usrbinjava">Can't pass
+<h2 id="cant-pass-dyld_library_path-to-usrbinjava">Can’t pass
 <code>DYLD_LIBRARY_PATH</code> to <code>/usr/bin/java</code></h2>
-<p>This is supposed to be related to MacOS's
+<p>This is supposed to be related to MacOS’s
 <code>System Integrity Protect (SIP)</code>.</p>
 <h2
 id="workaround-inability-to-pass-dyld_library_path-to-usrbinjava">Workaround
@@ -468,7 +468,7 @@ JAVA_HOME=`/usr/libexec/java_home -version 17`
 PATH=$JAVA_HOME/bin:$PATH
 export JAVA_HOME PATH</code></pre>
 <h3 id="using-loader_path-within-dependent-library">Using
-``@loader_path` within dependent library</h3>
+`<code>@loader_path</code> within dependent library</h3>
 <p>Set location of referenced library <code>libtest1.dylib</code> to
 same path of dependent library <code>libBindingtest1p1.dylib</code>
 using <code>@loader_path</code>.</p>
@@ -480,6 +480,6 @@ otool -L libBindingtest1p1.dylib </code></pre>
 <code>@rpath</code>.</p>
 <p>See <a
 href="https://www.joyfulbikeshedding.com/blog/2021-01-13-alternative-to-macos-dyld-library-path.html">An
-alternative to macOS's DYLD_LIBRARY_PATH</a>.</p>
+alternative to macOS’s DYLD_LIBRARY_PATH</a>.</p>
 </body>
 </html>
