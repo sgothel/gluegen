@@ -27,22 +27,23 @@
      or via desugar in the d8 dex-tool.
      <https://developer.android.com/studio/write/java11-default-support-table>
 
-     On 2024-08-31: Android 14 (API level 34) or higher is required for stored apps.
+     On 2025-08-31: Android 15 (API level 35) or higher is required for stored apps.
      <https://developer.android.com/google/play/requirements/target-sdk>
 
      Hence, we need to set the APK's manifest SDK min version to 24 (Android 7, Nougat)
-     and target version to 34 (Android 14), as required as of 2024-08-31
+     and target version to 35 (Android 15), as required as of 2025-08-31
 
-         <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="34"/>
+         <uses-sdk android:minSdkVersion="24" android:targetSdkVersion="35"/>
 
      It is strongly recommended to test with the x86_64 and maybe x86 emulator
      using the latest API level.
-     On 2025-06-25 we have tested using Android 14, API 34 on the x86_64 emulator.
+     On 2025-07-11 we have tested using Android 15, API 35 on the x86_64 emulator.
 
      Old:
-       On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
-       Further testing should be performed from Android 5, API 21, to Android 9, API 28,
-       as well as on aarch64 and armv7a devices.
+       - On 2025-06-25 we have tested using Android 14, API 34 on the x86_64 emulator.
+       - On 2019-12-25 we have tested using Android 10, API 29 on the x86 emulator.
+       - Further testing should be performed from Android 5, API 21, to Android 9, API 28,
+         as well as on aarch64 and armv7a devices.
 
      +++
 
