@@ -194,10 +194,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
           isAbsolute = _isAbsolute;
           addToSearchPath = _addToSearchPath;
           searchPathPrepend = _searchPathPrepend;
+          fixedHashCode = calcHashCode();
       }
-
-      @Override
-      public int hashCode() {
+      private int calcHashCode() {
           // 31 * x == (x << 5) - x
           int hash = path.hashCode();
           if(null != searchPathPrepend) {
@@ -207,6 +206,10 @@ public final class NativeLibrary implements DynamicLookupHelper {
           hash = ((hash << 5) - hash) + (addToSearchPath? 1 : 0);
           return hash;
       }
+      private final int fixedHashCode;
+
+      @Override
+      public int hashCode() { return fixedHashCode; }
 
       @Override
       public boolean equals(final Object o) {
