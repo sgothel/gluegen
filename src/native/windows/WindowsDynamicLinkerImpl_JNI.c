@@ -94,6 +94,60 @@ Java_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryW(JNIEnv *env, jclass 
   return (jlong) (intptr_t) _res;
 }
 
+/*   Java->C glue code:
+ *   Java package: jogamp.common.os.WindowsDynamicLinkerImpl
+ *    Java method: long LoadLibraryExW(java.lang.String lpLibFileName, int dwFlags)
+ *     C function: HANDLE LoadLibraryExW(LPCWSTR lpLibFileName, HANDLE hFile, DWORD jdwFlags);
+ */
+JNIEXPORT jlong JNICALL
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_LoadLibraryExW(JNIEnv *env, jclass _unused, jstring lpLibFileName, jint jdwFlags) {
+  DWORD   dwFlags = (DWORD)jdwFlags;
+  jchar* _strchars_lpLibFileName = NULL;
+  HANDLE _res;
+  if (lpLibFileName != NULL) {
+    _strchars_lpLibFileName = (jchar *) calloc((*env)->GetStringLength(env, lpLibFileName) + 1, sizeof(jchar));
+    if (_strchars_lpLibFileName == NULL) {
+      (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/OutOfMemoryError"),
+                       "Could not allocate temporary buffer for copying string argument \"lpLibFileName\" in native dispatcher for \"LoadLibraryExW\"");
+      return 0;
+    }
+    (*env)->GetStringRegion(env, lpLibFileName, 0, (*env)->GetStringLength(env, lpLibFileName), _strchars_lpLibFileName);
+  }
+  _res = LoadLibraryExW((LPCWSTR) _strchars_lpLibFileName, NULL, dwFlags);
+  if (lpLibFileName != NULL) {
+    free((void*) _strchars_lpLibFileName);
+  }
+  return (jlong) (intptr_t) _res;
+}
+
+// private static native long AddDllDirectory(java.lang.String lpLibFileName);
+JNIEXPORT jlong JNICALL
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_AddDllDirectory(JNIEnv *env, jclass _unused, jstring lpLibFileName) {
+  jchar* _strchars_lpLibFileName = NULL;
+  DLL_DIRECTORY_COOKIE _res;
+  if (lpLibFileName != NULL) {
+    _strchars_lpLibFileName = (jchar *) calloc((*env)->GetStringLength(env, lpLibFileName) + 1, sizeof(jchar));
+    if (_strchars_lpLibFileName == NULL) {
+      (*env)->ThrowNew(env, (*env)->FindClass(env, "java/lang/OutOfMemoryError"),
+                       "Could not allocate temporary buffer for copying string argument \"lpLibFileName\" in native dispatcher for \"AddDllDirectory\"");
+      return 0;
+    }
+    (*env)->GetStringRegion(env, lpLibFileName, 0, (*env)->GetStringLength(env, lpLibFileName), _strchars_lpLibFileName);
+  }
+  _res = AddDllDirectory((LPCWSTR) _strchars_lpLibFileName);
+  if (lpLibFileName != NULL) {
+    free((void*) _strchars_lpLibFileName);
+  }
+  return (jlong) (intptr_t) _res;
+}
+
+// private static native boolean RemoveDllDirectory(long dllDir);
+JNIEXPORT jboolean JNICALL
+Java_jogamp_common_os_WindowsDynamicLinkerImpl_RemoveDllDirectory(JNIEnv *env, jclass _unused, jlong jdllDir) {
+  BOOL _res = RemoveDllDirectory((DLL_DIRECTORY_COOKIE) (intptr_t) jdllDir);
+  return _res ? JNI_TRUE : JNI_FALSE;
+}
+
 /*
  * Class:     jogamp_common_os_WindowsDynamicLinkerImpl
  * Method:    GetModuleFileNameA

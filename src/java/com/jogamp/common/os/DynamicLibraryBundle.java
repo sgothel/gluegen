@@ -279,11 +279,11 @@ public class DynamicLibraryBundle implements DynamicLookupHelper {
     }
 
     protected static final NativeLibrary loadFirstAvailable(final List<String> libNames,
-                                                            final boolean searchSystemPath,
+                                                            final boolean searchOSSystemPath,
                                                             final boolean searchSystemPathFirst,
                                                             final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
         for (int i=0; i < libNames.size(); i++) {
-            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), searchSystemPath, searchSystemPathFirst, loader, global, symbolName);
+            final NativeLibrary lib = NativeLibrary.open(libNames.get(i), searchOSSystemPath, searchSystemPathFirst, loader, global, symbolName);
             if (lib != null) {
                 return lib;
             }

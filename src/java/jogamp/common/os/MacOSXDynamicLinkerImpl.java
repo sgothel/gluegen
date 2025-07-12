@@ -27,6 +27,8 @@
  */
 package jogamp.common.os;
 
+import com.jogamp.common.os.NativeLibrary.LibPath;
+
 /**
  * Mac OS X specialization of {@link UnixDynamicLinkerImpl}
  * utilizing OS X 's non POSIX flags and mode values.
@@ -42,13 +44,13 @@ public final class MacOSXDynamicLinkerImpl extends UnixDynamicLinkerImpl {
   private static final int RTLD_GLOBAL   = 0x00008;
 
   @Override
-  protected final long openLibraryLocalImpl(final String pathname) throws SecurityException {
-    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
+  protected final long openLibraryLocalImpl(final LibPath libpath) throws SecurityException {
+    return dlopen(libpath.path, RTLD_LAZY | RTLD_LOCAL);
   }
 
   @Override
-  protected final long openLibraryGlobalImpl(final String pathname) throws SecurityException {
-    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
+  protected final long openLibraryGlobalImpl(final LibPath libpath) throws SecurityException {
+    return dlopen(libpath.path, RTLD_LAZY | RTLD_GLOBAL);
   }
 
   @Override

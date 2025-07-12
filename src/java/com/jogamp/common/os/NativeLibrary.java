@@ -34,7 +34,6 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URISyntaxException;
 import java.security.PrivilegedAction;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -48,23 +47,68 @@ import jogamp.common.os.PosixDynamicLinkerImpl;
 import jogamp.common.os.WindowsDynamicLinkerImpl;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.util.ArrayHashSet;
 import com.jogamp.common.util.IOUtil;
 import com.jogamp.common.util.SecurityUtil;
 import com.jogamp.common.util.cache.TempJarCache;
 
-/** Provides low-level, relatively platform-independent access to
-    shared ("native") libraries. The core library routines
-    <code>System.load()</code> and <code>System.loadLibrary()</code>
-    in general provide suitable functionality for applications using
-    native code, but are not flexible enough to support certain kinds
-    of glue code generation and deployment strategies. This class
-    supports direct linking of native libraries to other shared
-    objects not necessarily installed on the system (in particular,
-    via the use of dlopen(RTLD_GLOBAL) on Unix platforms) as well as
-    manual lookup of function names to support e.g. GlueGen's
-    ProcAddressTable glue code generation style without additional
-    supporting code needed in the generated library. */
-
+/**
+ * Provides low-level, relatively platform-independent access to
+ * shared ("native") libraries.
+ *
+ * The core library routines `System.load()` and `System.loadLibrary()`
+ * in general provide suitable functionality for applications using
+ * native code, but are not flexible enough to support certain kinds
+ * of glue code generation and deployment strategies.
+ *
+ * This class supports direct linking of native libraries to other shared
+ * objects not necessarily installed on the system (in particular,
+ * via the use of `dlopen(RTLD_GLOBAL)` on Unix platforms) as well as
+ * manual lookup of function names to support e.g. GlueGen's
+ * ProcAddressTable glue code generation style without additional
+ * supporting code needed in the generated library.
+ *
+ * ## System Search Resolution
+ * System search's behavior depends on `searchOSSystemPath` and `searchSystemPathFirst`.
+ *
+ * ### OS System Search
+ * - System search path direct lookup (absolute path)
+ *   - Windows: `PATH`
+ *   - MacOS: `DYLD_LIBRARY_PATH`
+ *   - Unix: `LD_LIBRARY_PATH`
+ * - System search path implicit lookup (relative path)
+ * - OSX System search path direct lookup (absolute path)
+ *   - `/Library/Frameworks/`
+ *   - `/System/Library/Frameworks/`
+ *
+ * ### System Search
+ * - if `searchSystemPathFirst`
+ *   - If `searchOSSystemPath`
+ *     - Perform described `OS System Search` above
+ *   - Java's ClassLoader `findLibrary` mechanism
+ *   - Java's Java system library path property
+ *     - `sun.boot.library.path`
+ * - if `!searchSystemPathFirst`
+ *   - Java's Java system library path property
+ *     - `sun.boot.library.path`
+ *   - Java's ClassLoader `findLibrary` mechanism
+ *   - If `searchOSSystemPath`
+ *     - Perform described `OS System Search` above
+ *
+ * ## Native Library Search Resolution
+ * - Absolute path only, if given
+ * - JogAmp's optional primary search path from Java property `jogamp.primary.library.path`
+ *   - path is separated via `File.pathseparator`
+ * - if `searchSystemPathFirst`
+ *   - Perform described `System Search Resolution` above
+ * - Java's Java user library path property
+ *   - `java.library.path`
+ * - Java's Java user current working directory
+ *   - user: `user.dir`
+ *   - user+fat: `user.dir` + File.separator + `natives` + File.separator + `PlatformPropsImpl.os_and_arch`
+ * - if `!searchSystemPathFirst`
+ *   - Perform described `System Search Resolution` above
+ */
 public final class NativeLibrary implements DynamicLookupHelper {
   private static final String[] prefixes;
   private static final String[] suffixes;
@@ -105,6 +149,82 @@ public final class NativeLibrary implements DynamicLookupHelper {
     }
   }
 
+  /** Native Library Path Specification */
+  public static class LibPath {
+      /** Relative or absolute library path. */
+      public final String path;
+
+      /** True if path is an absolute path */
+      public final boolean isAbsolute;
+
+      /**
+       * True if directory of absolute library path shall be added to the linker search path.
+       *
+       * May not be supported on all systems.
+       *
+       * Supported OS: Windows.
+       *
+       * @see #searchPathPrepend
+       */
+      public final boolean addToSearchPath;
+
+      /**
+       * Search path prepend directories, separated by OS {@link File#pathSeparator}.
+       *
+       * @see #addToSearchPath
+       */
+      public final String searchPathPrepend;
+
+      /** Returns new instance with relative path in system linker search path */
+      public static LibPath createRelative(final String p) { return new LibPath(p, false, false, null); }
+
+      /** Returns new instance with absolute path in system linker search path */
+      public static LibPath createAbsolute(final String p) { return new LibPath(p, true, false, null); }
+
+      /**
+       * Returns new instance with absolute path not in system linker search path.
+       * @see #addToSearchPath
+       */
+      public static LibPath createExtra(final String p, final String searchPathPrepend) { return new LibPath(p, true, true, searchPathPrepend); }
+
+      private LibPath(final String _path, final boolean _isAbsolute, final boolean _addToSearchPath, final String _searchPathPrepend) {
+          path = _path;
+          isAbsolute = _isAbsolute;
+          addToSearchPath = _addToSearchPath;
+          searchPathPrepend = _searchPathPrepend;
+      }
+
+      @Override
+      public int hashCode() {
+          // 31 * x == (x << 5) - x
+          int hash = path.hashCode();
+          if(null != searchPathPrepend) {
+              hash = ((hash << 5) - hash) + searchPathPrepend.hashCode();
+          }
+          hash = ((hash << 5) - hash) + (isAbsolute? 1 : 0);
+          hash = ((hash << 5) - hash) + (addToSearchPath? 1 : 0);
+          return hash;
+      }
+
+      @Override
+      public boolean equals(final Object o) {
+          if(!(o instanceof LibPath)) {
+              return false;
+          }
+          final LibPath o2 = (LibPath)o;
+          return path.equals(o2.path) &&
+                 isAbsolute == o2.isAbsolute &&
+                 addToSearchPath == o2.addToSearchPath &&
+                 ( ( searchPathPrepend == null && o2.searchPathPrepend == null ) ||
+                   ( searchPathPrepend != null && o2.searchPathPrepend != null && searchPathPrepend.equals(o2.searchPathPrepend) ) );
+      }
+
+      @Override
+      public String toString() {
+          return "LibPath['"+path+"', "+(isAbsolute?"abs":"rel")+", "+(addToSearchPath?"xsp "+searchPathPrepend:"sys")+"]";
+      }
+  }
+
   private final DynamicLinker dynLink;
 
   // Platform-specific representation for the handle to the open
@@ -113,7 +233,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private long libraryHandle;
 
   // May as well keep around the path to the library we opened
-  private final String libraryPath;
+  private final LibPath libraryPath;
 
   // Native library path of the opened native libraryHandle, maybe null
   private final String nativeLibraryPath;
@@ -121,7 +241,7 @@ public final class NativeLibrary implements DynamicLookupHelper {
   private final boolean global;
 
   // Private constructor to prevent arbitrary instances from floating around
-  private NativeLibrary(final DynamicLinker dynLink, final long libraryHandle, final String libraryPath, final boolean global, final String symbolName) {
+  private NativeLibrary(final DynamicLinker dynLink, final long libraryHandle, final LibPath libraryPath, final boolean global, final String symbolName) {
     this.dynLink = dynLink;
     this.libraryHandle = libraryHandle;
     this.libraryPath   = libraryPath;
@@ -148,41 +268,79 @@ public final class NativeLibrary implements DynamicLookupHelper {
   public static final String getSystemEnvLibraryPathVarname() { return sys_env_lib_path_varname; }
 
   /**
-   * Returns a list of system paths, from the {@link #getSystemEnvLibraryPathVarname()} variable.
+   * Returns a system paths separated with {@link File#pathSeparator}, from the {@link #getSystemEnvLibraryPathVarname()} variable.
    */
-  public static final List<String> getSystemEnvLibraryPaths() {
-      final String paths =
-              SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-                  @Override
-                  public String run() {
-                      return System.getenv(getSystemEnvLibraryPathVarname());
-                  }
-              });
-      final List<String> res = new ArrayList<String>();
-      if( null != paths && paths.length() > 0 ) {
-          final StringTokenizer st = new StringTokenizer(paths, File.pathSeparator);
-          while (st.hasMoreTokens()) {
-              res.add(st.nextToken());
+  public static final String getSystemEnvLibraryPaths() {
+      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
+          @Override
+          public String run() {
+              return System.getenv(getSystemEnvLibraryPathVarname());
           }
-      }
-      return res;
+      });
+  }
+
+  /** Returns JogAmp's primary library path `jogamp.primary.library.path` separated with {@link File#pathSeparator}. */
+  public static final String getJogAmpPrimaryLibraryPaths() {
+      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
+          @Override
+          public String run() {
+              return System.getProperty("jogamp.primary.library.path");
+          }
+      });
+  }
+
+  /** Returns Java library system path `sun.boot.library.path` separated with {@link File#pathSeparator}. */
+  private static final String getJavaLibrarySystemPaths() {
+      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
+          @Override
+          public String run() {
+            final String p = System.getProperty("sun.boot.library.path");
+            if(null != p && !p.isEmpty()) {
+                return p;
+            }
+            return null;
+          }
+        });
+  }
+  /** Returns Java library user path `java.library.path` separated with {@link File#pathSeparator}. */
+  private static final String getJavaLibraryUserPaths() {
+      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
+          @Override
+          public String run() {
+            final String p = System.getProperty("java.library.path");
+            if(null != p && !p.isEmpty()) {
+                return p;
+            }
+            return null;
+          }
+        });
+  }
+
+  /** Returns Java library user path `user.dir` */
+  private static final String getJavaCurrentWorkingDir() {
+      return SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
+          @Override
+          public String run() {
+              return System.getProperty("user.dir");
+          }
+      });
   }
 
   /** Opens the given native library, assuming it has the same base
       name on all platforms.
       <p>
-      The {@code searchSystemPath} argument changes the behavior to
+      The {@code searchOSSystemPath} argument changes the behavior to
       either use the default system path or not at all.
       </p>
       <p>
-      Assuming {@code searchSystemPath} is {@code true},
+      Assuming {@code searchOSSystemPath} is {@code true},
       the {@code searchSystemPathFirst} argument changes the behavior to first
       search the default system path rather than searching it last.
       </p>
    * @param libName library name, with or without prefix and suffix
-   * @param searchSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+   * @param searchOSSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
    * @param searchSystemPathFirst if {@code true} system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
-   *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
+   *                              if {@code searchOSSystemPath} is {@code true} this includes the order of the OS system path as well.
    * @param loader {@link ClassLoader} to locate the library
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
    * @return {@link NativeLibrary} instance or {@code null} if library could not be loaded.
@@ -190,27 +348,27 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @since 2.4.0
    */
   public static final NativeLibrary open(final String libName,
-                                         final boolean searchSystemPath,
+                                         final boolean searchOSSystemPath,
                                          final boolean searchSystemPathFirst,
                                          final ClassLoader loader, final boolean global) throws SecurityException {
-    return open(libName, libName, libName, searchSystemPath, searchSystemPathFirst, loader, global, null);
+    return open(libName, libName, libName, searchOSSystemPath, searchSystemPathFirst, loader, global, null);
   }
 
   /** Opens the given native library, assuming it has the same base
       name on all platforms.
       <p>
-      The {@code searchSystemPath} argument changes the behavior to
+      The {@code searchOSSystemPath} argument changes the behavior to
       either use the default system path or not at all.
       </p>
       <p>
-      Assuming {@code searchSystemPath} is {@code true},
+      Assuming {@code searchOSSystemPath} is {@code true},
       the {@code searchSystemPathFirst} argument changes the behavior to first
       search the default system path rather than searching it last.
       </p>
    * @param libName library name, with or without prefix and suffix
-   * @param searchSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+   * @param searchOSSystemPath if {@code true} library shall be searched in the OS system path <i>(default)</i>, otherwise {@code false}.
    * @param searchSystemPathFirst if {@code true} system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
-   *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
+   *                              if {@code searchOSSystemPath} is {@code true} this includes the order of the OS system path as well.
    * @param loader {@link ClassLoader} to locate the library
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
    * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
@@ -219,10 +377,10 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @since 2.4.0
    */
   public static final NativeLibrary open(final String libName,
-                                         final boolean searchSystemPath,
+                                         final boolean searchOSSystemPath,
                                          final boolean searchSystemPathFirst,
                                          final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
-    return open(libName, libName, libName, searchSystemPath, searchSystemPathFirst, loader, global, symbolName);
+    return open(libName, libName, libName, searchOSSystemPath, searchSystemPathFirst, loader, global, symbolName);
   }
 
   /** Opens the given native library, assuming it has the given base
@@ -231,11 +389,11 @@ public final class NativeLibrary implements DynamicLookupHelper {
       context of the specified ClassLoader, which is used to help find
       the library in the case of e.g. Java Web Start.
       <p>
-      The {@code searchSystemPath} argument changes the behavior to
-      either use the default system path or not at all.
+      The {@code searchOSSystemPath} argument changes the behavior to
+      either use the default OS system path or not at all.
       </p>
       <p>
-      Assuming {@code searchSystemPath} is {@code true},
+      Assuming {@code searchOSSystemPath} is {@code true},
       the {@code searchSystemPathFirst} argument changes the behavior to first
       search the default system path rather than searching it last.
       </p>
@@ -249,9 +407,9 @@ public final class NativeLibrary implements DynamicLookupHelper {
    * @param windowsLibName windows library name, with or without prefix and suffix
    * @param unixLibName unix library name, with or without prefix and suffix
    * @param macOSXLibName mac-osx library name, with or without prefix and suffix
-   * @param searchSystemPath if {@code true} library shall be searched in the system path <i>(default)</i>, otherwise {@code false}.
+   * @param searchOSSystemPath if {@code true} library shall be searched in the OS system path <i>(default)</i>, otherwise {@code false}.
    * @param searchSystemPathFirst if {@code true} system path shall be searched <i>first</i> <i>(default)</i>, rather than searching it last.
-   *                              if {@code searchSystemPath} is {@code false} this argument is ignored.
+   *                              if {@code searchOSSystemPath} is {@code true} this includes the order of the OS system path as well.
    * @param loader {@link ClassLoader} to locate the library
    * @param global if {@code true} allows system wide access of the loaded library, otherwise access is restricted to the process.
    * @param symbolName optional symbol name for an OS which requires the symbol's address to retrieve the path of the containing library
@@ -261,21 +419,21 @@ public final class NativeLibrary implements DynamicLookupHelper {
   public static final NativeLibrary open(final String windowsLibName,
                                          final String unixLibName,
                                          final String macOSXLibName,
-                                         final boolean searchSystemPath,
+                                         final boolean searchOSSystemPath,
                                          final boolean searchSystemPathFirst,
                                          final ClassLoader loader, final boolean global, final String symbolName) throws SecurityException {
-    final List<String> possiblePaths = enumerateLibraryPaths(windowsLibName,
-                                                       unixLibName,
-                                                       macOSXLibName,
-                                                       searchSystemPath, searchSystemPathFirst,
-                                                       loader);
+    final List<LibPath> possiblePaths = enumerateLibraryPaths(windowsLibName,
+                                                              unixLibName,
+                                                              macOSXLibName,
+                                                              searchOSSystemPath, searchSystemPathFirst,
+                                                              loader);
     Platform.initSingleton(); // loads native gluegen_rt library
 
     final DynamicLinker dynLink = getDynamicLinker();
 
     // Iterate down these and see which one if any we can actually find.
-    for (final Iterator<String> iter = possiblePaths.iterator(); iter.hasNext(); ) {
-        final String path = iter.next();
+    for (final Iterator<LibPath> iter = possiblePaths.iterator(); iter.hasNext(); ) {
+        final LibPath path = iter.next();
         if (DEBUG) {
             System.err.println("NativeLibrary.open(global "+global+"): Trying to load " + path);
         }
@@ -391,6 +549,11 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
   /** Retrieves the path under which this library was opened. */
   public final String getLibraryPath() {
+    return libraryPath.path;
+  }
+
+  /** Retrieves the path under which this library was opened. */
+  public final LibPath getLibPath() {
     return libraryPath;
   }
 
@@ -456,40 +619,41 @@ public final class NativeLibrary implements DynamicLookupHelper {
 
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
-      the indicated native library on the system not using the system path. */
-  public static final List<String> enumerateLibraryPaths(final String windowsLibName,
-                                                   final String unixLibName,
-                                                   final String macOSXLibName,
-                                                   final ClassLoader loader) {
+      the indicated native library on the system not using the OS system path. */
+  public static final List<LibPath> enumerateLibraryPaths(final String windowsLibName,
+                                                          final String unixLibName,
+                                                          final String macOSXLibName,
+                                                          final ClassLoader loader) {
       return enumerateLibraryPaths(windowsLibName, unixLibName, macOSXLibName,
-                                  false /* searchSystemPath */, false /* searchSystemPathFirst */,
+                                  false /* searchOSSystemPath */, false /* searchSystemPathFirst */,
                                   loader);
   }
   /** Given the base library names (no prefixes/suffixes) for the
       various platforms, enumerate the possible locations and names of
-      the indicated native library on the system using the system path. */
-  public static final List<String> enumerateLibraryPaths(final String windowsLibName,
-                                                   final String unixLibName,
-                                                   final String macOSXLibName,
-                                                   final boolean searchSystemPathFirst,
-                                                   final ClassLoader loader) {
+      the indicated native library on the system using the OS system path. */
+  public static final List<LibPath> enumerateLibraryPaths(final String windowsLibName,
+                                                          final String unixLibName,
+                                                          final String macOSXLibName,
+                                                          final boolean searchSystemPathFirst,
+                                                          final ClassLoader loader) {
       return enumerateLibraryPaths(windowsLibName, unixLibName, macOSXLibName,
-                                  true /* searchSystemPath */, searchSystemPathFirst,
+                                  true /* searchOSSystemPath */, searchSystemPathFirst,
                                   loader);
   }
-  private static final List<String> enumerateLibraryPaths(final String windowsLibName,
-                                                   final String unixLibName,
-                                                   final String macOSXLibName,
-                                                   final boolean searchSystemPath,
-                                                   final boolean searchSystemPathFirst,
-                                                   final ClassLoader loader) {
-    final List<String> paths = new ArrayList<String>();
+
+  private static final List<LibPath> enumerateLibraryPaths(final String windowsLibName,
+                                                           final String unixLibName,
+                                                           final String macOSXLibName,
+                                                           final boolean searchOSSystemPath,
+                                                           final boolean searchSystemPathFirst,
+                                                           final ClassLoader loader) {
+    final ArrayHashSet<LibPath> paths = new ArrayHashSet<LibPath>(false, ArrayHashSet.DEFAULT_INITIAL_CAPACITY, ArrayHashSet.DEFAULT_LOAD_FACTOR);
     final String libName = selectName(windowsLibName, unixLibName, macOSXLibName);
-    if (libName == null) {
+    if (libName == null || libName.isEmpty()) {
         if (DEBUG) {
             System.err.println("NativeLibrary.enumerateLibraryPaths: empty, no libName selected");
         }
-        return paths;
+        return paths.getData();
     }
     if (DEBUG) {
         System.err.println("NativeLibrary.enumerateLibraryPaths: libName '"+libName+"'");
@@ -498,11 +662,22 @@ public final class NativeLibrary implements DynamicLookupHelper {
     // Allow user's full path specification to override our building of paths
     final File file = new File(libName);
     if (file.isAbsolute()) {
-        paths.add(libName);
-        if (DEBUG) {
-            System.err.println("NativeLibrary.enumerateLibraryPaths: done, absolute path found '"+libName+"'");
+        File cfile;
+        try {
+            cfile = file.getCanonicalFile();
+        } catch (final IOException e) {
+            System.err.println("NativeLibrary.enumerateLibraryPaths: absolute path: Exception "+e.getMessage()+", from path '"+libName+"'");
+            return paths.getData();
         }
-        return paths;
+        if( cfile.exists() ) {
+            final LibPath lp = LibPath.createExtra(cfile.getPath(), cfile.getParent());
+            if( paths.add(lp) ) {
+                if (DEBUG) {
+                    System.err.println("NativeLibrary.enumerateLibraryPaths: absolute path: Done, found '"+lp+"'");
+                }
+            }
+            return paths.getData();
+        }
     }
 
     final String[] baseNames = buildNames(libName);
@@ -510,131 +685,126 @@ public final class NativeLibrary implements DynamicLookupHelper {
         System.err.println("NativeLibrary.enumerateLibraryPaths: baseNames: "+Arrays.toString(baseNames));
     }
 
-    if( searchSystemPath && searchSystemPathFirst ) {
-        // Utilize system's library path environment variable first
-        {
-            final List<String> sysLibPaths = getSystemEnvLibraryPaths();
-            int count = 0;
-            for(final String sysLibPath : sysLibPaths) {
-                addRelPaths("add.ssp_path_"+count, sysLibPath, baseNames, paths);
-                ++count;
-            }
+    // Add priority entries from jogamp.primary.library.path
+    addMultiLibPathsLibraries("jogamp.primary.library", getJogAmpPrimaryLibraryPaths(), libName, baseNames, paths, true);
+
+    if( searchSystemPathFirst ) {
+        if( searchOSSystemPath ) {
+            addOSSystemLibraryPaths(libName, baseNames, paths);
         }
-        // Add just the library names to use the OS's search algorithm
-        for (int i = 0; i < baseNames.length; i++) {
-            if (DEBUG) {
-                System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_default: "+baseNames[i]);
-            }
-            paths.add(baseNames[i]);
-        }
-        // Add probable Mac OS X-specific paths
-        if ( isOSX ) {
-            // Add historical location
-            addAbsPaths("add.ssp_1st_macos_old", "/Library/Frameworks/" + libName + ".framework", baseNames, paths);
-            // Add current location
-            addAbsPaths("add.ssp_1st_macos_cur", "/System/Library/Frameworks/" + libName + ".framework", baseNames, paths);
+        addClassLoaderPaths(libName, paths, loader);
+        addMultiLibPathsLibraries("sun.boot.library", getJavaLibrarySystemPaths(), libName, baseNames, paths, true);
+    }
+
+    // user path
+    addMultiLibPathsLibraries("java.library", getJavaLibraryUserPaths(), libName, baseNames, paths, true);
+
+    // Add current working directory
+    final String userDir = getJavaCurrentWorkingDir();
+    if(null != userDir && !userDir.isEmpty()) {
+        addCanonicalPaths("add.user.dir.std", userDir, baseNames, paths, true);
+
+        // Add current working directory + natives/os-arch/ + library names
+        // to handle Bug 1145 cc1 using an unpacked fat-jar
+        addCanonicalPaths("add.user.dir.fat", userDir+File.separator+"natives"+File.separator+PlatformPropsImpl.os_and_arch, baseNames, paths, true);
+    }
+
+    if( !searchSystemPathFirst ) {
+        addMultiLibPathsLibraries("sun.boot.library", getJavaLibrarySystemPaths(), libName, baseNames, paths, true);
+        addClassLoaderPaths(libName, paths, loader);
+        if( searchOSSystemPath ) {
+            addOSSystemLibraryPaths(libName, baseNames, paths);
         }
     }
 
+    if (DEBUG) {
+        System.err.println("NativeLibrary.enumerateLibraryPaths: done: "+paths.toString());
+    }
+    return paths.getData();
+  }
+
+  /** Add OS system library path, if found */
+  private static final void addOSSystemLibraryPaths(final String libName, final String[] baseNames, final List<LibPath> paths) {
+      // Utilize system's library path environment variable first
+      addMultiLibPathsLibraries("system", getSystemEnvLibraryPaths(), libName, baseNames, paths, false);
+
+      // Add just the library names to use the OS's search algorithm
+      for (int i = 0; i < baseNames.length; i++) {
+          final LibPath lp = LibPath.createRelative(baseNames[i]);
+          if( paths.add( lp ) ) {
+              if (DEBUG) {
+                  System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_default: " + lp);
+              }
+          }
+      }
+      // Add probable Mac OS X-specific paths
+      if (isOSX) {
+          // Add historical location
+          addCanonicalPaths("add.ssp_1st_macos_old", "/Library/Frameworks/" + libName + ".framework", baseNames, paths, false);
+          // Add current location
+          addCanonicalPaths("add.ssp_1st_macos_cur", "/System/Library/Frameworks/" + libName + ".framework", baseNames, paths, false);
+      }
+  }
+  /** Add Java ClassLoader library path, if found */
+  private static final void addClassLoaderPaths(final String libName, final List<LibPath> paths, final ClassLoader loader) {
     // The idea to ask the ClassLoader to find the library is borrowed
     // from the LWJGL library
     final String clPath = findLibrary(libName, loader);
     if (clPath != null) {
-        if (DEBUG) {
-            System.err.println("NativeLibrary.enumerateLibraryPaths: add.clp: "+clPath);
-        }
-        paths.add(clPath);
-    }
-
-    // Add entries from java.library.path
-    final String[] javaLibraryPaths =
-      SecurityUtil.doPrivileged(new PrivilegedAction<String[]>() {
-          @Override
-          public String[] run() {
-            int count = 0;
-            final String usrPath = System.getProperty("java.library.path");
-            if(null != usrPath) {
-                count++;
-            }
-            final String sysPath;
-            if( searchSystemPath ) {
-                sysPath = System.getProperty("sun.boot.library.path");
-                if(null != sysPath) {
-                    count++;
-                }
-            } else {
-                sysPath = null;
-            }
-            final String[] res = new String[count];
-            int i=0;
-            if( null != sysPath && searchSystemPathFirst ) {
-                res[i++] = sysPath;
-            }
-            if(null != usrPath) {
-                res[i++] = usrPath;
-            }
-            if( null != sysPath && !searchSystemPathFirst ) {
-                res[i++] = sysPath;
-            }
-            return res;
-          }
-        });
-    if ( null != javaLibraryPaths ) {
-        int count = 0;
-        for( int i=0; i < javaLibraryPaths.length; i++ ) {
-            final StringTokenizer tokenizer = new StringTokenizer(javaLibraryPaths[i], File.pathSeparator);
-            while (tokenizer.hasMoreTokens()) {
-                addRelPaths("add.java.library.path_"+count, tokenizer.nextToken(), baseNames, paths);
-                ++count;
-            }
-        }
-    }
-
-    // Add current working directory
-    final String userDir =
-      SecurityUtil.doPrivileged(new PrivilegedAction<String>() {
-          @Override
-          public String run() {
-            return System.getProperty("user.dir");
-          }
-        });
-    addAbsPaths("add.user.dir.std", userDir, baseNames, paths);
-
-    // Add current working directory + natives/os-arch/ + library names
-    // to handle Bug 1145 cc1 using an unpacked fat-jar
-    addAbsPaths("add.user.dir.fat", userDir+File.separator+"natives"+File.separator+PlatformPropsImpl.os_and_arch, baseNames, paths);
-
-    if( searchSystemPath && !searchSystemPathFirst ) {
-        // Utilize system's library path environment variable first
-        {
-            final List<String> sysLibPaths = getSystemEnvLibraryPaths();
-            int count = 0;
-            for(final String sysLibPath : sysLibPaths) {
-                addRelPaths("add.ssp_path_"+count, sysLibPath, baseNames, paths);
-                ++count;
-            }
-        }
-        // Add just the library names to use the OS's search algorithm
-        for (int i = 0; i < baseNames.length; i++) {
+        final LibPath lp = LibPath.createAbsolute(clPath);
+        if( paths.add( lp ) ) {
             if (DEBUG) {
-                System.err.println("NativeLibrary.enumerateLibraryPaths: add.ssp_default: "+baseNames[i]);
+                System.err.println("NativeLibrary.enumerateLibraryPaths: add.clp: "+clPath);
             }
-            paths.add(baseNames[i]);
-        }
-        // Add probable Mac OS X-specific paths
-        if ( isOSX ) {
-            // Add historical location
-            addAbsPaths("add.ssp_lst_macos_old", "/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
-            // Add current location
-            addAbsPaths("add.ssp_lst_macos_cur", "/System/Library/Frameworks/" + libName + ".Framework", baseNames, paths);
         }
     }
-    if (DEBUG) {
-        System.err.println("NativeLibrary.enumerateLibraryPaths: done: "+paths.toString());
-    }
-    return paths;
+  }
+  private static final void addMultiLibPathsLibraries(final String id, final String multidirs, final String libName, final String[] baseNames, final List<LibPath> paths,
+                                                      final boolean addToSearchPath)
+  {
+      if( null == multidirs || multidirs.isEmpty() ) {
+          return;
+      }
+      int count = 0;
+      final StringTokenizer tokenizer = new StringTokenizer(multidirs, File.pathSeparator);
+      while (tokenizer.hasMoreTokens()) {
+          addAbstractPaths("add."+id+".path_"+count, tokenizer.nextToken(), baseNames, paths, addToSearchPath);
+          ++count;
+      }
   }
 
+  private static final void addAbstractPaths(final String cause, final String parent, final String[] baseNames, final List<LibPath> paths, final boolean addToSearchPath) {
+      if( null == parent || parent.isEmpty() ) {
+          return;
+      }
+      addCanonicalPaths(cause, new File(parent), baseNames, paths, addToSearchPath); // we canonicalize again in addCanonicalPaths
+  }
+  private static final void addCanonicalPaths(final String cause, final String parent, final String[] baseNames, final List<LibPath> paths, final boolean addToSearchPath) {
+      if( null == parent || parent.isEmpty() ) {
+          return;
+      }
+      addCanonicalPaths(cause, new File(parent), baseNames, paths, addToSearchPath);
+  }
+  private static final void addCanonicalPaths(final String cause, final File can_parent, final String[] baseNames, final List<LibPath> paths, final boolean addToSearchPath) {
+      for (int j = 0; j < baseNames.length; j++) {
+          final String ps = can_parent.getPath() + File.separator + baseNames[j];
+          File fps;
+          try {
+              fps = new File(ps).getCanonicalFile(); // be sure with complete path
+          } catch (final IOException e) {
+              System.err.println("NativeLibrary.addCanonicalPaths: "+cause+": Exception "+e.getMessage()+", from path '"+ps+"'");
+              return;
+          }
+          if( fps.exists() ) {
+              final LibPath p = addToSearchPath ? LibPath.createExtra(fps.getPath(), fps.getParent()) : LibPath.createAbsolute(fps.getPath());
+              if( paths.add(p) ) {
+                  if (DEBUG) {
+                      System.err.println("NativeLibrary.addCanonicalPaths: "+cause+": Added "+p+", from path '"+ps+"'");
+                  }
+              }
+          }
+      }
+  }
 
   private static final String selectName(final String windowsLibName,
                                    final String unixLibName,
@@ -709,29 +879,6 @@ public final class NativeLibrary implements DynamicLookupHelper {
           res[idx++] = libName;
       }
       return res;
-  }
-
-  private static final void addRelPaths(final String cause, final String path, final String[] baseNames, final List<String> paths) {
-      final String abs_path;
-      try {
-          final File fpath = new File(path);
-          abs_path = fpath.getCanonicalPath();
-      } catch( final IOException ioe ) {
-          if (DEBUG) {
-              System.err.println("NativeLibrary.enumerateLibraryPaths: "+cause+": Exception "+ioe.getMessage()+", from path "+path);
-          }
-          return;
-      }
-      addAbsPaths(cause, abs_path, baseNames, paths);
-  }
-  private static final void addAbsPaths(final String cause, final String abs_path, final String[] baseNames, final List<String> paths) {
-      for (int j = 0; j < baseNames.length; j++) {
-          final String p = abs_path + File.separator + baseNames[j];
-          if (DEBUG) {
-              System.err.println("NativeLibrary.enumerateLibraryPaths: "+cause+": "+p+", from path "+abs_path);
-          }
-          paths.add(p);
-      }
   }
 
   private static boolean initializedFindLibraryMethod = false;

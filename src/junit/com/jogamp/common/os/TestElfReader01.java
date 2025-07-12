@@ -38,10 +38,10 @@ public class TestElfReader01 extends SingletonJunitCase {
     }
     static File findJVMLib(final String libName) {
         final ClassLoader cl = TestElfReader01.class.getClassLoader();
-        final List<String> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
+        final List<NativeLibrary.LibPath> possibleLibPaths = NativeLibrary.enumerateLibraryPaths(libName, libName, libName, true, cl);
         for(int i=0; i<possibleLibPaths.size(); i++) {
-            final String libPath = possibleLibPaths.get(i);
-            final File lib = new File(libPath);
+            final NativeLibrary.LibPath libPath = possibleLibPaths.get(i);
+            final File lib = new File(libPath.path);
             System.err.println("XXX2 #"+i+": test "+lib);
             if( checkFileReadAccess(lib) ) {
                 return lib;

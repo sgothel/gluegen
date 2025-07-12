@@ -614,15 +614,15 @@ public class JNILibLoaderBase {
                   if(DEBUG) {
                       System.err.println("ERROR mode 3 - "+ex1.getMessage());
                   }
-                  final List<String> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, cl);
+                  final List<NativeLibrary.LibPath> possiblePaths = NativeLibrary.enumerateLibraryPaths(libraryName, libraryName, libraryName, cl);
                   // Iterate down these and see which one if any we can actually find.
-                  for (final Iterator<String> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
-                      final String path = iter.next();
+                  for (final Iterator<NativeLibrary.LibPath> iter = possiblePaths.iterator(); 0 == mode && iter.hasNext(); ) {
+                      final NativeLibrary.LibPath path = iter.next();
                       if (DEBUG) {
                           System.err.println("JNILibLoaderBase: System.load("+path+") - mode 4");
                       }
                       try {
-                          System.load(path);
+                          System.load(path.path);
                           mode = 4;
                       } catch (final UnsatisfiedLinkError ex2) {
                           if(DEBUG) {

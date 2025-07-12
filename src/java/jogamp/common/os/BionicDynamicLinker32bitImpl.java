@@ -27,6 +27,8 @@
  */
 package jogamp.common.os;
 
+import com.jogamp.common.os.NativeLibrary.LibPath;
+
 /**
  * Bionic 32bit specialization of {@link UnixDynamicLinkerImpl}
  * utilizing Bionic's non POSIX flags and mode values.
@@ -47,13 +49,13 @@ public final class BionicDynamicLinker32bitImpl extends UnixDynamicLinkerImpl {
   //      static final long RTLD_NEXT    = 0xfffffffeL;
 
   @Override
-  protected final long openLibraryLocalImpl(final String pathname) throws SecurityException {
-    return dlopen(pathname, RTLD_LAZY | RTLD_LOCAL);
+  protected final long openLibraryLocalImpl(final LibPath libpath) throws SecurityException {
+    return dlopen(libpath.path, RTLD_LAZY | RTLD_LOCAL);
   }
 
   @Override
-  protected final long openLibraryGlobalImpl(final String pathname) throws SecurityException {
-    return dlopen(pathname, RTLD_LAZY | RTLD_GLOBAL);
+  protected final long openLibraryGlobalImpl(final LibPath libpath) throws SecurityException {
+    return dlopen(libpath.path, RTLD_LAZY | RTLD_GLOBAL);
   }
 
   @Override

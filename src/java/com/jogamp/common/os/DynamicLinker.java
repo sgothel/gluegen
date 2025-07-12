@@ -28,6 +28,8 @@
 
 package com.jogamp.common.os;
 
+import com.jogamp.common.os.NativeLibrary.LibPath;
+
 /** Low level secure dynamic linker access. */
 public interface DynamicLinker {
   public static final boolean DEBUG = NativeLibrary.DEBUG;
@@ -50,12 +52,12 @@ public interface DynamicLinker {
    * Opens the named library, allowing system wide access for other <i>users</i>.
    * </p>
    *
-   * @param pathname the full pathname for the library to open
+   * @param libpath the LibPath for the library to open
    * @param debug set to true to enable debugging
    * @return the library handle, maybe 0 if not found.
    * @throws SecurityException if user is not granted access for the named library.
    */
-  public long openLibraryGlobal(String pathname, boolean debug) throws SecurityException;
+  public long openLibraryGlobal(LibPath libpath, boolean debug) throws SecurityException;
 
   /**
    * If a {@link SecurityManager} is installed, user needs link permissions
@@ -64,12 +66,12 @@ public interface DynamicLinker {
    * Opens the named library, restricting access to this process.
    * </p>
    *
-   * @param pathname the full pathname for the library to open
+   * @param libpath the LibPath for the library to open
    * @param debug set to true to enable debugging
    * @return the library handle, maybe 0 if not found.
    * @throws SecurityException if user is not granted access for the named library.
    */
-  public long openLibraryLocal(String pathname, boolean debug) throws SecurityException;
+  public long openLibraryLocal(LibPath libpath, boolean debug) throws SecurityException;
 
   /**
    * Security checks are implicit by previous call of
