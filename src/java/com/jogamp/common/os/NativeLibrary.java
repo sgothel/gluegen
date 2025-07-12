@@ -171,6 +171,8 @@ public final class NativeLibrary implements DynamicLookupHelper {
       /**
        * Search path prepend directories, separated by OS {@link File#pathSeparator}.
        *
+       * May be used independent to `addToSearchPath`.
+       *
        * @see #addToSearchPath
        */
       public final String searchPathPrepend;

@@ -101,23 +101,21 @@ public final class WindowsDynamicLinkerImpl extends DynamicLinkerImpl {
     }
     int dwFlags = 0; // defaults to LoadLibraryW
     final List<Long> addedDllDirs = new ArrayList<Long>();
-    if( libpath.addToSearchPath ) {
-        if (!libpath.searchPathPrepend.isEmpty()) {
-            final StringTokenizer st = new StringTokenizer(libpath.searchPathPrepend, File.pathSeparator);
-            while (st.hasMoreTokens()) {
-                final String dir = st.nextToken();
-                final long dllDir = AddDllDirectory(dir);
-                if( TRACE ) {
-                    System.err.println("- AddDllDirectory: '"+dir+"' -> 0x"+Long.toHexString(dllDir));
-                }
-                if( 0 != dllDir ) {
-                    addedDllDirs.add( dllDir );
-                }
+    if ( null != libpath.searchPathPrepend && !libpath.searchPathPrepend.isEmpty() ) {
+        final StringTokenizer st = new StringTokenizer(libpath.searchPathPrepend, File.pathSeparator);
+        while (st.hasMoreTokens()) {
+            final String dir = st.nextToken();
+            final long dllDir = AddDllDirectory(dir);
+            if( TRACE ) {
+                System.err.println("- AddDllDirectory: '"+dir+"' -> 0x"+Long.toHexString(dllDir));
+            }
+            if( 0 != dllDir ) {
+                addedDllDirs.add( dllDir );
             }
         }
-        if (libpath.isAbsolute) {
-            dwFlags |= LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS;
-        }
+    }
+    if( libpath.addToSearchPath && libpath.isAbsolute) {
+        dwFlags |= LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_DEFAULT_DIRS;
     }
     final long handle = LoadLibraryExW(libpath.path, dwFlags);
     if( TRACE ) {
