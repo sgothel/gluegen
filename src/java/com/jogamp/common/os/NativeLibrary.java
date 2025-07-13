@@ -68,7 +68,7 @@ import com.jogamp.common.util.cache.TempJarCache;
  * ProcAddressTable glue code generation style without additional
  * supporting code needed in the generated library.
  *
- * ## System Search Resolution
+ * ## System Search Subroutines
  * System search's behavior depends on `searchOSSystemPath` and `searchSystemPathFirst`.
  *
  * ### OS System Search
@@ -81,33 +81,33 @@ import com.jogamp.common.util.cache.TempJarCache;
  *   - `/Library/Frameworks/`
  *   - `/System/Library/Frameworks/`
  *
- * ### System Search
- * - if `searchSystemPathFirst`
- *   - If `searchOSSystemPath`
- *     - Perform described `OS System Search` above
- *   - Java's ClassLoader `findLibrary` mechanism
- *   - Java's Java system library path property
- *     - `sun.boot.library.path`
- * - if `!searchSystemPathFirst`
- *   - Java's Java system library path property
- *     - `sun.boot.library.path`
- *   - Java's ClassLoader `findLibrary` mechanism
- *   - If `searchOSSystemPath`
- *     - Perform described `OS System Search` above
+ * ### System Search First
+ * - If `searchOSSystemPath`
+ *   - Perform described `OS System Search` above
+ * - Java's ClassLoader `findLibrary` mechanism
+ * - Java's Java system library path property
+ *   - `sun.boot.library.path`
+ *
+ * ### System Search Last
+ * - Java's Java system library path property
+ *   - `sun.boot.library.path`
+ * - Java's ClassLoader `findLibrary` mechanism
+ * - If `searchOSSystemPath`
+ *   - Perform described `OS System Search` above
  *
  * ## Native Library Search Resolution
  * - Absolute path only, if given
  * - JogAmp's optional primary search path from Java property `jogamp.primary.library.path`
  *   - path is separated via `File.pathseparator`
  * - if `searchSystemPathFirst`
- *   - Perform described `System Search Resolution` above
+ *   - Perform described `System Search First` above
  * - Java's Java user library path property
  *   - `java.library.path`
  * - Java's Java user current working directory
  *   - user: `user.dir`
  *   - user+fat: `user.dir` + File.separator + `natives` + File.separator + `PlatformPropsImpl.os_and_arch`
  * - if `!searchSystemPathFirst`
- *   - Perform described `System Search Resolution` above
+ *   - Perform described `System Search Last` above
  */
 public final class NativeLibrary implements DynamicLookupHelper {
   private static final String[] prefixes;
