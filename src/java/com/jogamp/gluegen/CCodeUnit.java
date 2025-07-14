@@ -148,7 +148,7 @@ public class CCodeUnit extends CodeUnit {
         if( GlueGen.debug() ) {
             sb.append("  fprintf(stderr, \"ON_LOAD_0 lib '").append(libraryBasename).append("'\\n\");\n");
         }
-        sb.append("  return JNI_VERSION_1_8;\n");
+        sb.append("  return JNI_VERSION_1_6;\n");
         sb.append("}\n");
         sb.append("JNIEXPORT jint JNICALL JNI_OnLoad_").append(libraryBasename).append("(JavaVM *initVM, void *reserved) {\n");
         sb.append("  (void)reserved;\n");
@@ -156,7 +156,7 @@ public class CCodeUnit extends CodeUnit {
         if( GlueGen.debug() ) {
             sb.append("  fprintf(stderr, \"ON_LOAD_1 lib '").append(libraryBasename).append("'\\n\");\n");
         }
-        sb.append("  return JNI_VERSION_1_8;\n");
+        sb.append("  return JNI_VERSION_1_6;\n");
         sb.append("}\n");
         sb.append("\n");
         sb.append("JNIEXPORT void JNICALL JNI_OnUnload(JavaVM *vm, void *reserved) {\n");
@@ -191,7 +191,7 @@ public class CCodeUnit extends CodeUnit {
         sb.append("    }\n");
         sb.append("\n");
         sb.append("    // retrieve this thread's JNIEnv curEnv - or detect it's detached\n");
-        sb.append("    envRes = (*").append(jvmHandleName).append(")->GetEnv(").append(jvmHandleName).append(", (void **) &curEnv, JNI_VERSION_1_8) ;\n");
+        sb.append("    envRes = (*").append(jvmHandleName).append(")->GetEnv(").append(jvmHandleName).append(", (void **) &curEnv, JNI_VERSION_1_6) ;\n");
         sb.append("    if( JNI_EDETACHED == envRes ) {\n");
         sb.append("        // detached thread - attach to JVM as daemon, w/o need to be detached!\n");
         sb.append("        if( asDaemon ) {\n");
