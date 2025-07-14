@@ -168,11 +168,12 @@ public class ClassLoaderUtil {
                        final File dst = new File(userAPK);
                        try {
                            copyFile(src, dst);
+                           dst.setReadOnly();
                        } catch (final IOException e) {
                            Log.d(TAG, "error copying <"+src+"> -> <"+dst+">: "+e, e);
                            return null;
                        }
-                       Log.d(TAG, "APK["+apkCount+"] copied: <"+src+"> -> <"+dst+">");
+                       Log.d(TAG, "APK["+apkCount+"] copied: <"+src+"> -> <"+dst+">, writable="+dst.canWrite());
                    }
                    apks.append(userAPK);
                    Log.d(TAG, "APK["+apkCount+"] found: <"+lastUserPackageName+"> -> <"+userAPK+">");
