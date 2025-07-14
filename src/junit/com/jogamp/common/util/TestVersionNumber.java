@@ -41,35 +41,23 @@ import org.junit.runners.MethodSorters;
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class TestVersionNumber extends SingletonJunitCase {
 
+    static void validate(final String vs, final VersionNumber vexp) {
+        final VersionNumber vhas = new VersionNumber(vs);
+        System.err.println("Exp: "+vexp);
+        System.err.println("Has: "+vhas);
+        Assert.assertEquals(vexp.hasMajor(), vhas.hasMajor());
+        Assert.assertEquals(vexp.hasMinor(), vhas.hasMinor());
+        Assert.assertEquals(vexp.hasSub(), vhas.hasSub());
+        Assert.assertEquals(vexp, vhas);
+    }
     @Test
     public void test01() {
-        final String vs00 = "1.0.16";
-        final String vs01 = "OpenGL ES GLSL ES 1.0.16";
-        final String vs02 = "1.0.16 OpenGL ES GLSL ES";
-        final VersionNumber vn0 = new VersionNumber(1, 0, 16);
-        Assert.assertTrue(vn0.hasMajor());
-        Assert.assertTrue(vn0.hasMinor());
-        Assert.assertTrue(vn0.hasSub());
-
-        VersionNumber vn;
-
-        vn = new VersionNumber(vs00);
-        Assert.assertTrue(vn.hasMajor());
-        Assert.assertTrue(vn.hasMinor());
-        Assert.assertTrue(vn.hasSub());
-        Assert.assertEquals(vn0, vn);
-
-        vn = new VersionNumber(vs01);
-        Assert.assertTrue(vn.hasMajor());
-        Assert.assertTrue(vn.hasMinor());
-        Assert.assertTrue(vn.hasSub());
-        Assert.assertEquals(vn0, vn);
-
-        vn = new VersionNumber(vs02);
-        Assert.assertTrue(vn.hasMajor());
-        Assert.assertTrue(vn.hasMinor());
-        Assert.assertTrue(vn.hasSub());
-        Assert.assertEquals(vn0, vn);
+        final VersionNumber vexp_1_0_16 = new VersionNumber(1, 0, 16);
+        final VersionNumber vexp_3_10_0 = new VersionNumber(3, 10);
+        validate("1.0.16", vexp_1_0_16);
+        validate("1.0.16 OpenGL ES GLSL ES", vexp_1_0_16);
+        validate("OpenGL ES GLSL ES 1.0.16", vexp_1_0_16);
+        validate("OpenGL ES GLSL ES 3.10", vexp_3_10_0);
     }
     @Test
     public void test01b() {

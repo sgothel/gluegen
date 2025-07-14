@@ -121,6 +121,15 @@ public class VersionNumber implements Comparable<Object> {
     }
 
     /**
+     * Explicit version number instantiation, with major and minor components defined explicitly, no sub.
+     * @see #hasMajor()
+     * @see #hasMinor()
+     */
+    public VersionNumber(final int majorRev, final int minorRev) {
+        this(majorRev, minorRev, 0, -1, (short)(HAS_MAJOR | HAS_MINOR));
+    }
+
+    /**
      * String derived version number instantiation.
      * <p>
      * Utilizing the default {@link java.util.regex.Pattern pattern} parser with delimiter "<b>.</b>", see {@link #getDefaultVersionNumberPattern()}.
