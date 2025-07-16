@@ -214,14 +214,17 @@ public class JNILibLoaderBase {
         final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(nativeJarBasename) );
 
         if (DEBUG) {
-            System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: module: %s -> %s%n", nativeJarBasename, nativeJarURI);
+            System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-1: module: %s -> %s%n", nativeJarBasename, nativeJarURI);
         }
 
         try {
             ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath);
+            if (DEBUG) {
+                System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-1: OK "+ok+": %s -> %s%n", nativeJarURI, nativeLibraryPath);
+            }
         } catch(final Exception e) {
             if(DEBUG) {
-                System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
+                System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-1: Caught %s%n", e.getMessage());
                 e.printStackTrace();
             }
         }
@@ -235,18 +238,18 @@ public class JNILibLoaderBase {
             if (null != nativeLibraryURI) {
                 final Uri nativeJarURI = JarUtil.getJarFileUri( jarSubUriRoot.getEncoded().concat(jarBasename) );
                 try {
-                    if( TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath) ) {
-                        ok = true;
-                        if (DEBUG) {
-                            System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: fat: %s -> %s%n", jarBasename, nativeJarURI);
-                        }
+                    ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarURI, nativeLibraryPath);
+                    if (DEBUG) {
+                        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-2: OK "+ok+", fat: %s -> %s%n", nativeJarURI, nativeLibraryPath);
                     }
                 } catch(final Exception e) {
                     if(DEBUG) {
-                        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
+                        System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-2: Caught %s%n", e.getMessage());
                         e.printStackTrace();
                     }
                 }
+            } else if (DEBUG) {
+                System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-2: CL couldn't locate %s in %s%n", nativeLibraryPath, jarBasename);
             }
         }
         if (!ok) {
@@ -267,17 +270,20 @@ public class JNILibLoaderBase {
             final String nativeJarTagClassName = nativeJarTagPackage + "." + moduleName + "." + os_and_arch_dot + ".TAG"; // TODO: sync with gluegen-cpptasks-base.xml
             try {
                 if(DEBUG) {
-                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ClassLoader/TAG: Locating module %s, os.and.arch %s: %s%n",
+                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-3: ClassLoader/TAG: Locating module %s, os.and.arch %s: %s%n",
                             moduleName, os_and_arch_dot, nativeJarTagClassName);
                 }
                 final Uri nativeJarTagClassJarURI = JarUtil.getJarUri(nativeJarTagClassName, cl);
                 if (DEBUG) {
-                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: ClassLoader/TAG: %s -> %s%n", nativeJarTagClassName, nativeJarTagClassJarURI);
+                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-3: ClassLoader/TAG: %s -> %s%n", nativeJarTagClassName, nativeJarTagClassJarURI);
                 }
                 ok = TempJarCache.addNativeLibs(classFromJavaJar, nativeJarTagClassJarURI, nativeLibraryPath);
+                if (DEBUG) {
+                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-3: OK "+ok+": %s -> %s%n", nativeJarTagClassJarURI, nativeLibraryPath);
+                }
             } catch (final Exception e ) {
                 if(DEBUG) {
-                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl: Caught %s%n", e.getMessage());
+                    System.err.printf("JNILibLoaderBase: addNativeJarLibsImpl-3: Caught %s%n", e.getMessage());
                     e.printStackTrace();
                 }
             }
