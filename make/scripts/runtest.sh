@@ -99,11 +99,11 @@ function onetest() {
     echo
 }
 #
-#onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
+onetest com.jogamp.common.GlueGenVersion 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestSystemPropsAndEnvs 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionInfo 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestVersionNumber 2>&1 | tee -a $LOG
-onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
+#onetest com.jogamp.common.util.TestVersionSemantics 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.TestIteratorIndexCORE 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveLock01 2>&1 | tee -a $LOG
 #onetest com.jogamp.common.util.locks.TestRecursiveThreadGroupLock01 2>&1 | tee -a $LOG

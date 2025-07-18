@@ -65,6 +65,13 @@
     #define GLIBC_COMPAT_SYMBOL(FFF)
 #endif
 
+// Build on Debian 12 hardlinked against GLIBC_2.34, e.g. `U dlsym@GLIBC_2.34`
 GLIBC_COMPAT_SYMBOL(memcpy)
+
+GLIBC_COMPAT_SYMBOL(dladdr)
+GLIBC_COMPAT_SYMBOL(dlclose)
+GLIBC_COMPAT_SYMBOL(dlerror)
+GLIBC_COMPAT_SYMBOL(dlopen)
+GLIBC_COMPAT_SYMBOL(dlsym)
  
 #endif /*__GLIBC_COMPAT_SYMBOLS_H__*/
