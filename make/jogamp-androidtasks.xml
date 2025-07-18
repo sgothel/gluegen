@@ -11,7 +11,7 @@
         <property name="jarbasename" value="gluegen-rt-android" />
         <propertyregex property="m.aapt.apkbasename0"
               input="${jarbasename}"
-              regexp="(.*)(-android$)"
+              regexp="(.*)(-android.*$)"
               select="\1"
               casesensitive="true" />
         <condition property="m.aapt.apkbasename1" value="${m.aapt.apkbasename0}" else="${jarbasename}">
@@ -89,7 +89,7 @@
           -->
         <propertyregex property="m.aapt.apkbasename0"
               input="@{jarbasename}"
-              regexp="(.*)(-android$)"
+              regexp="(.*)(-android.*$)"
               select="\1"
               casesensitive="true" />
         <condition property="m.aapt.apkbasename1" value="${m.aapt.apkbasename0}" else="@{jarbasename}">
@@ -131,6 +131,9 @@
         </copy>
 
         <copy todir="${m.aapt.build.apk}/image/assets" failonerror="false" includeEmptyDirs="false">
+            <zipfileset src="@{jarbuilddir}/@{jarbasename}.jar"
+                     includes="**"
+                     excludes="**/*.java **/*.class **/*.h **/*.c **/*.m **/*.sh **/*.MF"/>
             <fileset dir="@{jarsrcdir}"
                      includes="**"
                      excludes="**/*.java **/*.class **/*.h **/*.c **/*.m **/*.sh"/>
