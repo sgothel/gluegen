@@ -289,6 +289,12 @@ public class VersionNumber implements Comparable<Object> {
 
     @Override
     public String toString() {
-        return major + "." + minor + "." + sub ;
+        if( hasSub() ) {
+            return major + "." + minor + "." + sub ;
+        } else if( hasMinor() ) {
+            return major + "." + minor ;
+        } else {
+            return Integer.toString(major);
+        }
     }
 }

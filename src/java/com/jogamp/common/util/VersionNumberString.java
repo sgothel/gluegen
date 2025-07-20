@@ -50,10 +50,25 @@ public class VersionNumberString extends VersionNumber {
     }
 
     /**
+     * Create VersionNumberString instance, adding a version string to given VersionNumber w/o validation.
+     * @see VersionNumber#VersionNumber(int, int, int)
+     */
+    public VersionNumberString(final VersionNumber vn, final String versionString) {
+        this(vn.major, vn.minor, vn.sub, -1, vn.state, versionString);
+    }
+
+    /**
      * See {@link VersionNumber#VersionNumber(int, int, int)}.
      */
     public VersionNumberString(final int majorRev, final int minorRev, final int subMinorRev, final String versionString) {
         this(majorRev, minorRev, subMinorRev, -1, (short)(HAS_MAJOR | HAS_MINOR | HAS_SUB), versionString);
+    }
+
+    /**
+     * See {@link VersionNumber#VersionNumber(int, int)}.
+     */
+    public VersionNumberString(final int majorRev, final int minorRev, final String versionString) {
+        this(majorRev, minorRev, 0, -1, (short)(HAS_MAJOR | HAS_MINOR ), versionString);
     }
 
     /**
