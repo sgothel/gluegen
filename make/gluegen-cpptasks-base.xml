@@ -1242,7 +1242,7 @@
     <!-- 
         MacOSX compiler configuration.
 
-        See and sync-with doc/HowToBuild.html and doc/JogAmpMacOSVersions.md
+        See and sync-with doc/HowToBuild.html and doc/JogAmpPlatforms.md
     -->
     <compiler id="compiler.cfg.macosx" name="${gcc.compat.compiler}">
       <compilerarg value="-arch" if="use.macosx64"/>

@@ -8,4 +8,4 @@ rdir=$sdir/../..
 pandoc_md2html_local.sh $rdir/doc/GlueGen_Mapping.md                   > $rdir/doc/GlueGen_Mapping.html
 pandoc_md2html_local.sh $rdir/doc/manual/index.md                      > $rdir/doc/manual/index.html
 pandoc_md2html_local.sh $rdir/doc/misc/macos_nativelib_dependencies.md > $rdir/doc/misc/macos_nativelib_dependencies.html
-pandoc_md2html_local.sh $rdir/doc/JogAmpMacOSVersions.md               > $rdir/doc/JogAmpMacOSVersions.html
+pandoc_md2html_local.sh $rdir/doc/JogAmpPlatforms.md                   > $rdir/doc/JogAmpPlatforms.html

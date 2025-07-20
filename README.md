@@ -6,11 +6,11 @@
 This project's canonical repositories is hosted on [JogAmp](https://jogamp.org/cgit/gluegen.git/).
 
 ## Overview
-[GlueGen](https://jogamp.org/gluegen/www/) is a compiler for function and data-structure declarations, 
-generating Java™ and JNI C code offline at compile time 
+[GlueGen](https://jogamp.org/gluegen/www/) is a compiler for function and data-structure declarations,
+generating Java™ and JNI C code offline at compile time
 and allows using native libraries within your Java™ application.
 
-GlueGen also provides a comprehensive [runtime library](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/) offering 
+GlueGen also provides a comprehensive [runtime library](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/) offering
 - Support for multi-arch and java code fat-jar deployment
   - Native library including JNI bundle handling and Jar file cache
   - Platform architecture information retrieval, ELF parser, alignment etc
@@ -25,10 +25,10 @@ aspects of the glue code generation. GlueGen uses a complete ANSI C
 parser and an internal representation (IR) capable of representing all
 C types to represent the APIs for which it generates interfaces. It
 has the ability to perform significant transformations on the IR
-before glue code emission. 
+before glue code emission.
 
 GlueGen can produce native foreign function bindings to Java™ as well as
-[map native data structures](doc/GlueGen_Mapping.md#struct-mapping) to be fully accessible from Java™ including 
+[map native data structures](doc/GlueGen_Mapping.md#struct-mapping) to be fully accessible from Java™ including
 potential calls to [embedded function pointer](doc/GlueGen_Mapping.md#struct-function-pointer-support).
 
 GlueGen supports [registering Java™ callback methods](doc/GlueGen_Mapping.md#java-callback)
@@ -62,7 +62,7 @@ See [LICENSE.txt](LICENSE.txt).
 * [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
 * [GlueGen Native Data & Function Mapping for Java™](doc/GlueGen_Mapping.md)
 * [GlueGen Manual](doc/manual/index.html)
-* [JogAmp's MacOS Version Support](doc/JogAmpMacOSVersions.md)
+* [JogAmp's Supported Platforms](doc/JogAmpPlatforms.md)
 * [How To Build](https://jogamp.org/gluegen/doc/HowToBuild.html)
 
 ## Build Requirements

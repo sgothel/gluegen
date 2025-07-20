@@ -35,6 +35,8 @@
                     Here is a list of platforms and components, we were able to build GlueGen on,<br/>
                     if not stated otherwise.<br/>
 
+                    See <a href="JogAmpPlatforms.html">JogAmp's Supported Platforms</a>.
+
                     <ul>
                         <li> <b>Java</b>
                            <ul>
@@ -155,7 +157,7 @@ apt-get install build-essential openjdk-17-jre openjdk-17-jdk ant git-all gawk p
                                     <li>Install symlinks to <i>/usr/local/bin</i>, run: <i>sudo "/Applications/CMake.app/Contents/bin/cmake-gui" --install</i></li>
                                 </ul></li>
                                 <li><a href="https://7-zip.org/">7-Zip 21.07</a> x86_64 and arm64 version</li>
-                                <li>See also <a href="JogAmpMacOSVersions.md">MacOS Versions Related to JogAmp</a></li>
+                                <li>See also <a href="JogAmpPlatforms.html">MacOS Versions Related to JogAmp</a></li>
                             </ul>
                             Prepare fat universal OpenJDK libraries
                             <ul>
@@ -236,7 +238,7 @@ apt-get install build-essential openjdk-17-jre openjdk-17-jdk ant git-all gawk p
                             </pre>
                             <p>
                             Note-1: The GlueGen source must be fetched using <i>-recurse-submodules</i>,
-                                    which imports <i>JCPP</i>, now used as the default C preprocessor. 
+                                    which imports <i>JCPP</i>, now used as the default C preprocessor.
                             </p>
                         </li>
 
@@ -251,7 +253,7 @@ apt-get install build-essential openjdk-17-jre openjdk-17-jdk ant git-all gawk p
                             copy <b>gluegen/make/gluegen.properties</b> into your home directory (pointed to by the Java system property <b>user.home</b>). <br/></li>
 
                         <li> <b>Build the source tree:</b> <br/>
-                            Open a command shell in the "gluegen/make" directory of the source tree and invoke <code>ant</code> 
+                            Open a command shell in the "gluegen/make" directory of the source tree and invoke <code>ant</code>
                             with the given properties as follows
                             <pre>
     cd /home/dude/projects/jogamp/gluegen/make/
