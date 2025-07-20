@@ -5,19 +5,19 @@
    - project file is not intended to be executed standalone, but imported
    - by other projects which use GlueGen to generate native code and
    - need to compile that native code.
-   - 
-   - Before importing this file, the properties "gluegen.root" must be defined; 
+   -
+   - Before importing this file, the properties "gluegen.root" must be defined;
    - this is the relative path from the current working
    - directory (e.g., from which the parent project's build.xml is being
    - executed) to the top of the checked-out GlueGen workspace.
-   - 
+   -
    - The property "gluegen.root.abs-path" must be defined as well;
    - this is the absolute path of "gluegen.root", see above.
-   - 
+   -
    - The gluegen.cpptasks.detect.os target sets the following
    - properties appropriately. They are only set to "true" if the OS/CPU
    - configuration is exactly as specified.
-   - 
+   -
    -   isI386
    -   isAMD64
    -   is64Bit
@@ -82,7 +82,7 @@
 
    -
    - isX11 is set if: !isWindows && !isOSX !isIOS && !noX11
-   - 
+   -
    - It also sets the following properties which are useful for
    - building native library jar files for Java Web Start and
    - understanding on what OS and architecture things are being built.
@@ -90,7 +90,7 @@
    -   os.and.arch (i.e., "windows-i586")
    -   native.library.prefix (i.e.., "lib", "")
    -   native.library.suffix (i.e.., "so", "dll", "dylib")
-   - 
+   -
    - The gluegen.cpptasks.setup.compiler target is the preferred target
    - to depend upon in your build.xml. It depends on gluegen.cpptasks.detect.compiler
    - and gluegen.cpptasks.configure.compiler, below, and also sets up the following
@@ -110,11 +110,11 @@
    - configuration, you may be able to simply refer to the
    - gluegen.cpptasks.setup.compiler target and avoid any platform-
    - specific compiler subclassing.
-   - 
+   -
    - The gluegen.cpptasks.detect.compiler target sets the following
    - properties appropriately. They are only set to "true" if the OS/compiler
    - configuration is exactly as specified.
-   - 
+   -
    -   isGCC
    -   isCLANG
    -   isVCFamily
@@ -126,17 +126,17 @@
    -   isVC9
    -   isMingW32 (isMingW)
    -   isMingW64 (isMingW)
-   - 
+   -
    - The gluegen.cpptasks.configure.compiler target initializes several
    - cpptasks compiler and linker configurations designed to support
    - compilation of C code on multiple platforms. Generally if it is
    - necessary to set up include paths, link paths, etc., then these
-   - compilers and linkers will need to be subclassed in sub-projects. 
+   - compilers and linkers will need to be subclassed in sub-projects.
    - However, at least the base-level configuration does not need to
    - be replicated.
-   - 
+   -
    - The following compiler and linker IDs are defined by this target:
-   - 
+   -
    -   compiler.cfg.linux
    -   compiler.cfg.linux.x86
    -   compiler.cfg.linux.amd64
@@ -191,7 +191,7 @@
    -   linker.cfg.ios.amd64
    -   linker.cfg.ios.arm64
    -   linker.cfg.hpux
-   - 
+   -
    - This project file also defines a macrodef called "msvc.manifest"
    - which helps insert manifests into DLLs compiled with MSVC 8.0 and
    - later. Example usage is:
@@ -205,15 +205,15 @@
     <echo message="os.version=${os.version}" />
     <echo message="os.arch=${os.arch}" />
 
-    <property name="nativejartag.package"    value="jogamp.nativetag" /> 
-    <property name="nativejartag.prefix"     value="jogamp/nativetag" /> 
+    <property name="nativejartag.package"    value="jogamp.nativetag" />
+    <property name="nativejartag.prefix"     value="jogamp/nativetag" />
     <echo message="nativejartag.prefix = ${nativejartag.prefix}" />
 
     <!-- NOTE: the value of the debug attribute will not be overridden if already set externally -->
-    <property name="c.compiler.debug"     value="false" /> 
+    <property name="c.compiler.debug"     value="false" />
     <condition property="c.compiler.use-debug"><istrue value="${c.compiler.debug}"/></condition>
-    <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } --> 
-    <property name="c.compiler.optimise"  value="none" /> 
+    <!-- Optimise flags one of { none, size, speed, minimal, full, aggressive, extreme, unsafe } -->
+    <property name="c.compiler.optimise"  value="none" />
 
     <echo message="c.compiler.debug=${c.compiler.debug}" />
     <echo message="c.compiler.use-debug=${c.compiler.use-debug}" />
@@ -234,9 +234,9 @@
     </condition>
   </target>
 
-  <!-- Custom target which can be overwritten 
-       by a custom file set in property 'gluegen-cpptasks.file' 
-       or environment var 'GLUEGEN_CPPTASKS_FILE' 
+  <!-- Custom target which can be overwritten
+       by a custom file set in property 'gluegen-cpptasks.file'
+       or environment var 'GLUEGEN_CPPTASKS_FILE'
 
        See 'lib/gluegen-cpptasks-linux-armv6hf.xml' which sets OS and ARCH
        for crosscompilation.
@@ -263,8 +263,8 @@
     <condition property="is64Bit">
       <or>
         <istrue value="${isAMD64}" />
-        <istrue value="${isIOSAmd64}"/> 
-        <istrue value="${isIOSArm64}"/> 
+        <istrue value="${isIOSAmd64}"/>
+        <istrue value="${isIOSArm64}"/>
         <os arch="IA64" />
         <os arch="sparcv9" />
         <os arch="armv8a" />
@@ -274,8 +274,8 @@
 
     <condition property="isIOS">
       <or>
-          <istrue value="${isIOSAmd64}"/> 
-          <istrue value="${isIOSArm64}"/> 
+          <istrue value="${isIOSAmd64}"/>
+          <istrue value="${isIOSArm64}"/>
       </or>
     </condition>
     <condition property="isOSX">
@@ -283,7 +283,7 @@
         <os family="mac"/>
         <os family="unix"/>
         <not>
-          <istrue value="${isIOS}"/> 
+          <istrue value="${isIOS}"/>
         </not>
       </and>
     </condition>
@@ -815,26 +815,26 @@
     <!-- Set the OS search library environment variable -->
     <condition property="system.env.library.path"
                value="DYLD_LIBRARY_PATH">
-      <isset property="isOSX"/> 
+      <isset property="isOSX"/>
     </condition>
     <condition property="system.env.library.path"
                value="DYLD_LIBRARY_PATH">
-      <isset property="isIOS"/> 
+      <isset property="isIOS"/>
     </condition>
     <condition property="system.env.library.path"
                value="LD_LIBRARY_PATH">
-      <isset property="isUnix"/> 
+      <isset property="isUnix"/>
     </condition>
     <condition property="system.env.library.path"
                value="PATH">
-      <isset property="isWindows"/> 
+      <isset property="isWindows"/>
     </condition>
 
     <!-- NOTE: the value of the c.strip.tool and c.strip.args attribute will not be overridden if already set externally -->
     <condition property="c.strip.tool" value="llvm-strip" else="strip"><isset property="isAndroid"/></condition>
     <condition property="c.strip.args" value="-S -x"><isset property="isOSX"/></condition>
     <condition property="c.strip.args" value="-S -x"><isset property="isIOS"/></condition>
-    <property name="c.strip.args"     value="" /> 
+    <property name="c.strip.args"     value="" />
 
     <condition property="awk_executable" value="gawk" else="awk"><isset property="isWindows"/></condition>
 
@@ -901,10 +901,10 @@
     <echo message="X11=${isX11}" />
     <echo message="os=${os.name}" />
     <echo message="os=${os.version}" />
-    <echo message="arch=${os.arch}" /> 
-    <echo message="build.dynamiclibs=${build.dynamiclibs}" /> 
-    <echo message="build.staticlibs=${build.staticlibs}" /> 
-    <echo message="output.lib.type=${output.lib.type}" /> 
+    <echo message="arch=${os.arch}" />
+    <echo message="build.dynamiclibs=${build.dynamiclibs}" />
+    <echo message="build.staticlibs=${build.staticlibs}" />
+    <echo message="output.lib.type=${output.lib.type}" />
   </target>
 
   <!-- Detect compiler setup, in particular on Windows; separated
@@ -1034,20 +1034,20 @@
   </target>
 
     <!-- ================================================================== -->
-    <!-- 
-       - Set up 'java.home.dir' appropriately on all platforms. 
-       - Used to be the directory above 'java.home' jre path, 
+    <!--
+       - Set up 'java.home.dir' appropriately on all platforms.
+       - Used to be the directory above 'java.home' jre path,
        - since the <java-install-dir>'s underlying jre was selected for ANT's 'java.home'.
        - JDK 9 and later's installation layout should no more contain '<java-install-dir>/jre',
        - hence java.home.dir' should be equal to ANT's 'java.home'.
        - However, we still probe for the traditional installation layout, to enable individual setups.
-       - Hence we still probe for '${java.home}/../jre' to define 'java.home.dir' 
+       - Hence we still probe for '${java.home}/../jre' to define 'java.home.dir'
        - and also probe for '${java.home.dir}/jre/lib' to define 'java.lib.dir.platform' below.
       -->
   <target name="setup.java.home.dir">
       <property name="java.home.dir" value="${java.home}" />
       <condition property="java.home.dir"
-                 value="${java.home}/.." 
+                 value="${java.home}/.."
                  else="${java.home}" >
                  <available file="${java.home}/../jre" type="dir" />
       </condition>
@@ -1076,9 +1076,9 @@
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
       </defineset>
       <compilerarg value="-include"/>
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
@@ -1089,9 +1089,9 @@
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
       </defineset>
       <compilerarg value="-include"/>
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
@@ -1105,34 +1105,34 @@
 
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
       </defineset>
       <compilerarg value="-include"/>
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <!-- Using default compiler settings - utilize:
-           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
-           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp)
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit)
          for official JogAmp builds! -->
     <compiler id="compiler.cfg.linux.armv6" name="${gcc.compat.compiler}">
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
       </defineset>
-      <compilerarg value="-fpic" /> 
+      <compilerarg value="-fpic" />
       <compilerarg value="-include"/>
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
 
     <!-- Using default compiler settings - utilize:
-           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
-           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp)
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit)
          for official JogAmp builds! -->
     <compiler id="compiler.cfg.linux.aarch64" name="${gcc.compat.compiler}">
       <defineset>
@@ -1141,11 +1141,11 @@
 
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
       </defineset>
-      <compilerarg value="-fpic" /> 
+      <compilerarg value="-fpic" />
       <compilerarg value="-include"/>
       <compilerarg value="${gluegen.root.abs-path}/make/stub_includes/platform/glibc-compat-symbols.h" />
     </compiler>
@@ -1168,66 +1168,66 @@
 
     <compiler id="compiler.cfg.hpux" name="aCC">
       <!-- Interpret source as ANSI C89 (not C++) -->
-      <compilerarg value="-Ae"/> 
+      <compilerarg value="-Ae"/>
       <!-- Dereferences are performed with four-byte loads and stores. -->
       <compilerarg value="+u4"/>
-      <!-- Suppress warnings: 
+      <!-- Suppress warnings:
                942: signed/unsigned assignment compatibility
                129: redeclarations in stub_includes -->
       <compilerarg value="+W942,129"/>
       <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
-        <!-- aCC doesn't seem to define a generic system macro, a la 
+        <!-- aCC doesn't seem to define a generic system macro, a la
              "__sun". The documentation claims it defines the following,
-             but don't seem to work: __HP_aCC, __LP64__, __RISC_0__. 
-             HP-UX docs on JNI say to use the defs below 
+             but don't seem to work: __HP_aCC, __LP64__, __RISC_0__.
+             HP-UX docs on JNI say to use the defs below
              (http://www.hp.com/products1/unix/java/infolibrary/prog_guide/JNI_java2.html) -->
         <!-- Single underscore prefix, as recommended by aCC docs... -->
-        <define name="_HPUX"/> 
+        <define name="_HPUX"/>
         <define name="_POSIX_C_SOURCE" value="199506L"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
       </defineset>
     </compiler>
- 
-    <!-- SOLARIS compiler configuration --> 
 
-    <compiler id="compiler.cfg.solaris" name="${gcc.compat.compiler}"> 
+    <!-- SOLARIS compiler configuration -->
+
+    <compiler id="compiler.cfg.solaris" name="${gcc.compat.compiler}">
       <compilerarg value="-m32"/>
-      <defineset> 
+      <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
-        <define name="SOLARIS" /> 
-      </defineset> 
-    </compiler> 
+        <define name="SOLARIS" />
+      </defineset>
+    </compiler>
 
-    <compiler id="compiler.cfg.solaris.sparcv9" name="${gcc.compat.compiler}"> 
-      <compilerarg value="-fast" /> 
-      <compilerarg value="-xchip=ultra" /> 
-      <compilerarg value="-xarch=v9a" /> 
-      <defineset> 
+    <compiler id="compiler.cfg.solaris.sparcv9" name="${gcc.compat.compiler}">
+      <compilerarg value="-fast" />
+      <compilerarg value="-xchip=ultra" />
+      <compilerarg value="-xarch=v9a" />
+      <defineset>
         <define name="__unix__"/>
         <define name="__X11__"  if="isX11"/>
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
-        <define name="SOLARIS" /> 
-      </defineset> 
-    </compiler> 
+        <define name="SOLARIS" />
+      </defineset>
+    </compiler>
 
-    <compiler id="compiler.cfg.solaris.amd64" name="${gcc.compat.compiler}"> 
+    <compiler id="compiler.cfg.solaris.amd64" name="${gcc.compat.compiler}">
       <compilerarg value="-fPIC"/>
       <compilerarg value="-m64"/>
-      <!-- compilerarg value="-fast" /--> 
-      <!-- compilerarg value="-xchip=opteron" / --> 
-      <!-- compilerarg value="-xarch=amd64" / --> 
-      <!-- compilerarg value="-xcache=64/64/2:1024/64/16" / --> 
-      <defineset> 
+      <!-- compilerarg value="-fast" /-->
+      <!-- compilerarg value="-xchip=opteron" / -->
+      <!-- compilerarg value="-xarch=amd64" / -->
+      <!-- compilerarg value="-xcache=64/64/2:1024/64/16" / -->
+      <defineset>
         <define name="__LP64__" />     <!-- default pre-defined macro for 64bit unix -->
 
         <define name="__unix__"/>
@@ -1235,11 +1235,11 @@
         <define name="_DEBUG"   if="c.compiler.use-debug"/>
         <define name="DEBUG"    if="c.compiler.use-debug"/>
         <define name="NDEBUG"   unless="c.compiler.use-debug"/>
-        <define name="SOLARIS" /> 
-      </defineset> 
+        <define name="SOLARIS" />
+      </defineset>
     </compiler>
 
-    <!-- 
+    <!--
         MacOSX compiler configuration.
 
         See and sync-with doc/HowToBuild.html and doc/JogAmpPlatforms.md
@@ -1304,16 +1304,16 @@
     </compiler>
 
     <compiler id="compiler.cfg.win32.mingw" name="${gcc.compat.compiler}">
-      <compilerarg value="-g" if="c.compiler.use-debug"/> 
-      <compilerarg value="-O0" if="c.compiler.use-debug"/> 
+      <compilerarg value="-g" if="c.compiler.use-debug"/>
+      <compilerarg value="-O0" if="c.compiler.use-debug"/>
       <compilerarg value="-O2" unless="c.compiler.use-debug"/>
       <defineset>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
 
         <define name="DBUILD_DLL" />
-        <define name="_STRICT_ANSI" /> 
+        <define name="_STRICT_ANSI" />
         <define name="_JNI_IMPLEMENTATION_" />
         <define name="WINVER"         value="0x0601"/> <!-- set windows version to >= Windows 7 -->
         <define name="_WIN32_WINNT"   value="0x0601"/> <!-- set windows version to >= Windows 7 -->
@@ -1321,16 +1321,16 @@
     </compiler>
 
     <compiler id="compiler.cfg.win64.mingw" name="${gcc.compat.compiler}">
-      <compilerarg value="-g" if="c.compiler.use-debug"/> 
-      <compilerarg value="-O0" if="c.compiler.use-debug"/> 
+      <compilerarg value="-g" if="c.compiler.use-debug"/>
+      <compilerarg value="-O0" if="c.compiler.use-debug"/>
       <compilerarg value="-O2" unless="c.compiler.use-debug"/>
       <defineset>
-        <define name="_DEBUG"   if="c.compiler.use-debug"/>        
-        <define name="DEBUG"    if="c.compiler.use-debug"/>        
-        <define name="NDEBUG"   unless="c.compiler.use-debug"/>        
+        <define name="_DEBUG"   if="c.compiler.use-debug"/>
+        <define name="DEBUG"    if="c.compiler.use-debug"/>
+        <define name="NDEBUG"   unless="c.compiler.use-debug"/>
 
         <define name="DBUILD_DLL" />
-        <define name="_STRICT_ANSI" /> 
+        <define name="_STRICT_ANSI" />
         <define name="_JNI_IMPLEMENTATION_" />
         <define name="WINVER"         value="0x0601"/> <!-- set windows version to >= Windows 7 -->
         <define name="_WIN32_WINNT"   value="0x0601"/> <!-- set windows version to >= Windows 7 -->
@@ -1364,7 +1364,7 @@
     </compiler>
 
     <!-- linker configuration -->
- 
+
     <!-- Unix linker configuration -->
 
     <linker id="linker.cfg.linux" name="${gcc.compat.compiler}">
@@ -1385,11 +1385,11 @@
     </linker>
 
     <!-- Using default compiler settings - utilize:
-           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
-           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp)
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit)
          for official JogAmp builds! -->
     <linker id="linker.cfg.linux.armv6" name="${gcc.compat.compiler}">
-      <linkerarg value="-fpic" /> 
+      <linkerarg value="-fpic" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
       <linkerarg value="-static-libgcc" if="isGCC"/>
@@ -1397,11 +1397,11 @@
     </linker>
 
     <!-- Using default compiler settings - utilize:
-           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp) 
-           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit) 
+           - lib/gluegen-cpptasks-linux-armv6hf.xml (armv6   + hardfp)
+           - lib/gluegen-cpptasks-linux-aarch64.xml (armv8 64bit)
          for official JogAmp builds! -->
     <linker id="linker.cfg.linux.aarch64" name="${gcc.compat.compiler}">
-      <linkerarg value="-fpic" /> 
+      <linkerarg value="-fpic" />
       <linkerarg value="-nostdlib" />
       <linkerarg value="-Bdynamic" />
       <linkerarg value="-static-libgcc" if="isGCC"/>
@@ -1456,25 +1456,25 @@
       <linkerarg value="-m64"/>
     </linker>
 
-    <!-- SOLARIS linker configuration --> 
+    <!-- SOLARIS linker configuration -->
 
-    <linker id="linker.cfg.solaris" name="${gcc.compat.compiler}"> 
+    <linker id="linker.cfg.solaris" name="${gcc.compat.compiler}">
       <linkerarg value="-m32"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
-    </linker> 
+    </linker>
 
-    <linker id="linker.cfg.solaris.sparcv9" name="${gcc.compat.compiler}"> 
-      <linkerarg value="-xarch=v9a" /> 
+    <linker id="linker.cfg.solaris.sparcv9" name="${gcc.compat.compiler}">
+      <linkerarg value="-xarch=v9a" />
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
-    </linker> 
+    </linker>
 
-    <linker id="linker.cfg.solaris.amd64" name="${gcc.compat.compiler}"> 
+    <linker id="linker.cfg.solaris.amd64" name="${gcc.compat.compiler}">
       <linkerarg value="-m64"/>
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
-      <!-- linkerarg value="-xarch=amd64" / --> 
+      <!-- linkerarg value="-xarch=amd64" / -->
     </linker>
 
     <!-- MacOSX linker configuration -->
@@ -1516,7 +1516,7 @@
       <linkerarg value="-static-libgcc" if="isGCC"/>
       <linkerarg value="-static-libstdc++" if="isGCC"/>
     </linker>
-    
+
     <!--linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.Gcc32Linker"-->
     <linker id="linker.cfg.linux64.mingw32" classname="net.sf.antcontrib.cpptasks.gcc.GccLinker">
       <linkerarg value="-m32"/>
@@ -1571,13 +1571,13 @@
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="gluegen.cpptasks.declare.compiler.win32.vc7" if="isVC7">
       <echo message="Win32.VC7" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="gluegen.cpptasks.declare.compiler.win32.vc8" if="isVC8">
       <echo message="Win32.VC8" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
@@ -1589,7 +1589,7 @@
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
       <property name="linker.cfg.id.base"            value="linker.cfg.win32.msvc" />
     </target>
-    
+
     <target name="gluegen.cpptasks.declare.compiler.win32.vc9" if="isVC9">
       <echo message="Win32.VC9" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.win32.msvc" />
@@ -1616,110 +1616,110 @@
 
     <target name="gluegen.cpptasks.declare.compiler.linux.x86" if="isLinuxX86">
       <echo message="Linux.x86" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.x86" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.x86" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.x86" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.x86" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386"
                                                       file="${java.home.dir}/jre/lib/i386/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"
                                                       file="${java.home.dir}/lib/i386/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.amd64" if="isLinuxAMD64">
       <echo message="Linux.AMD64" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.amd64" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/amd64" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.amd64" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.amd64" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/amd64"
                                                       file="${java.home.dir}/jre/lib/amd64/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/amd64"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/amd64"
                                                       file="${java.home.dir}/lib/amd64/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.alpha" if="isLinuxAlpha">
       <echo message="Linux.alpha" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.alpha" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.alpha" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/alpha" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.alpha" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.alpha" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/alpha"
                                                       file="${java.home.dir}/jre/lib/alpha/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/alpha"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/alpha"
                                                       file="${java.home.dir}/lib/alpha/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.armv6" if="isLinuxARMv6">
       <echo message="Linux.armv6" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv6" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv6" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/arm" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.armv6" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.armv6" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/arm"
                                                       file="${java.home.dir}/jre/lib/arm/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/arm"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/arm"
                                                       file="${java.home.dir}/lib/arm/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.aarch64" if="isLinuxARM64">
       <echo message="Linux.aarch64" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.aarch64" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux.aarch64" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/aarch64" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux.aarch64" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux.aarch64" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/aarch64"
                                                       file="${java.home.dir}/jre/lib/aarch64/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/aarch64"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/aarch64"
                                                       file="${java.home.dir}/lib/aarch64/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.ia64" if="isLinuxIA64">
       <echo message="Linux.IA64" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ia64" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ia64"
                                                       file="${java.home.dir}/jre/lib/ia64/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ia64"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ia64"
                                                       file="${java.home.dir}/lib/ia64/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.hppa" if="isLinuxHppa">
       <echo message="Linux.hppa" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/hppa" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/hppa"
                                                       file="${java.home.dir}/jre/lib/hppa/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/hppa"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/hppa"
                                                       file="${java.home.dir}/lib/hppa/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.mips" if="isLinuxMips">
       <echo message="Linux.Mips" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/mips" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/mips"
                                                       file="${java.home.dir}/jre/lib/mips/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/mips"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/mips"
                                                       file="${java.home.dir}/lib/mips/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.mipsel" if="isLinuxMipsel">
       <echo message="Linux.Mipsel" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/mipsel" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/mipsel"
                                                       file="${java.home.dir}/jre/lib/mipsel/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/mipsel"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/mipsel"
                                                       file="${java.home.dir}/lib/mipsel/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.ppc" if="isLinuxPpc">
       <echo message="Linux.Ppc" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ppc" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ppc"
                                                       file="${java.home.dir}/jre/lib/ppc/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ppc"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ppc"
                                                       file="${java.home.dir}/lib/ppc/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1728,9 +1728,9 @@
       <echo message="Linux.Ppc64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
       <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ppc64" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ppc64"
                                                       file="${java.home.dir}/jre/lib/ppc64/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ppc64"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ppc64"
                                                       file="${java.home.dir}/lib/ppc64/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1739,9 +1739,9 @@
       <echo message="Linux.Ppc64le" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
       <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ppc64le" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/ppc64le"
                                                       file="${java.home.dir}/jre/lib/ppc64le/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ppc64le"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/ppc64le"
                                                       file="${java.home.dir}/lib/ppc64le/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1750,42 +1750,42 @@
       <echo message="Linux.RiscV64" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
       <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/riscv64" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/riscv64"
                                                       file="${java.home.dir}/jre/lib/riscv64/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/riscv64"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/riscv64"
                                                       file="${java.home.dir}/lib/riscv64/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.s390" if="isLinuxs390">
       <echo message="Linux.s390" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/s390" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/s390"
                                                       file="${java.home.dir}/jre/lib/s390/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/s390"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/s390"
                                                       file="${java.home.dir}/lib/s390/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.s390x" if="isLinuxs390x">
       <echo message="Linux.s390x" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/s390x" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/s390x"
                                                       file="${java.home.dir}/jre/lib/s390x/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/s390x"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/s390x"
                                                       file="${java.home.dir}/lib/s390x/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.linux.sparc" if="isLinuxSparc">
       <echo message="Linux.Sparc" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.linux" /> 
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/sparc" 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.linux" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.linux" />
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/sparc"
                                                       file="${java.home.dir}/jre/lib/sparc/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/sparc"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/sparc"
                                                       file="${java.home.dir}/lib/sparc/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1796,8 +1796,8 @@
 
     <target name="gluegen.cpptasks.declare.compiler.solaris32" if="isSolaris32Bit">
       <echo message="Solaris" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.solaris" /> 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.solaris" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.solaris.sparcv9" if="isSolarisSparcv9">
@@ -1808,23 +1808,23 @@
 
     <target name="gluegen.cpptasks.declare.compiler.solaris.amd64" if="isSolarisAMD64">
       <echo message="SolarisAMD64" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris.amd64" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.solaris.amd64" /> 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.solaris.amd64" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.solaris.amd64" />
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.solaris" depends="gluegen.cpptasks.declare.compiler.solaris32,gluegen.cpptasks.declare.compiler.solaris.sparcv9,gluegen.cpptasks.declare.compiler.solaris.amd64" if="isSolaris">
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/${solaris.cpu}" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/${solaris.cpu}"
                                                       file="${java.home.dir}/jre/lib/${solaris.cpu}/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/${solaris.cpu}"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/${solaris.cpu}"
                                                       file="${java.home.dir}/lib/${solaris.cpu}/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
 
     <target name="gluegen.cpptasks.declare.compiler.macosx" if="isOSX">
       <echo message="MacOSX" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.macosx" /> 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.macosx" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.macosx" />
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/macosx" />
       <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib"
                                                       file="${java.home.dir}/jre/lib/libjava.so"/>
@@ -1833,8 +1833,8 @@
 
     <target name="gluegen.cpptasks.declare.compiler.ios.amd64" if="isIOSAmd64">
       <echo message="iOSAmd64" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.ios.amd64" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.ios.amd64" /> 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.ios.amd64" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.ios.amd64" />
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/macosx" />
       <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib"
                                                       file="${java.home.dir}/jre/lib/libjava.a"/>
@@ -1843,8 +1843,8 @@
 
     <target name="gluegen.cpptasks.declare.compiler.ios.arm64" if="isIOSArm64">
       <echo message="iOSArm64" />
-      <property name="compiler.cfg.id.base"          value="compiler.cfg.ios.arm64" /> 
-      <property name="linker.cfg.id.base"            value="linker.cfg.ios.arm64" /> 
+      <property name="compiler.cfg.id.base"          value="compiler.cfg.ios.arm64" />
+      <property name="linker.cfg.id.base"            value="linker.cfg.ios.arm64" />
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/macosx" />
       <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib"
                                                       file="${java.home.dir}/jre/lib/libjava.a"/>
@@ -1855,9 +1855,9 @@
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
       <property name="linker.cfg.id.base"            value="linker.cfg.freebsd.x86" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/i386"
                                                       file="${java.home.dir}/jre/lib/i386/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/i386"
                                                       file="${java.home.dir}/lib/i386/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1866,9 +1866,9 @@
       <echo message="FreeBSD" />
       <property name="compiler.cfg.id.base"          value="compiler.cfg.freebsd" />
       <property name="linker.cfg.id.base"            value="linker.cfg.freebsd.amd64" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/amd64" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/amd64"
                                                       file="${java.home.dir}/jre/lib/amd64/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/amd64"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/amd64"
                                                       file="${java.home.dir}/lib/amd64/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1882,9 +1882,9 @@
       <property name="compiler.cfg.id.base"          value="compiler.cfg.hpux" />
       <property name="linker.cfg.id.base"            value="linker.cfg.hpux" />
       <property name="java.includes.dir.platform"    value="${java.includes.dir}/x11" />
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/PA_RISC2.0" 
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/jre/lib/PA_RISC2.0"
                                                       file="${java.home.dir}/jre/lib/PA_RISC2.0/libjava.so"/>
-      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/PA_RISC2.0"     
+      <available property="java.lib.dir.platform"    value="${java.home.dir}/lib/PA_RISC2.0"
                                                       file="${java.home.dir}/lib/PA_RISC2.0/libjava.so"/>
       <property name="java.lib.dir.platform"         value="${java.home.dir}/lib"/> <!-- new default -->
     </target>
@@ -1904,7 +1904,7 @@
       -->
     <target name="gluegen.cpptasks.striplibs" depends="gluegen.cpptasks.initialize" if="c.strip.libraries">
       <echo message="Strip symbols from libs in ${libdir}" />
-      <apply dir="${libdir}" executable="${c.strip.tool}" parallel="false" 
+      <apply dir="${libdir}" executable="${c.strip.tool}" parallel="false"
              failonerror="true">
         <arg line="${c.strip.args}"/>
         <fileset dir="${libdir}">
@@ -1979,7 +1979,7 @@
            includes="${nativejartag.prefix}/@{module}/**"
            includeAntRuntime="false"
            encoding="UTF-8"
-           source="${target.sourcelevel}" 
+           source="${target.sourcelevel}"
            target="${target.targetlevel}">
         <src path="${nativejarfile.tmpdir}/java" />
       </javac>
@@ -1992,7 +1992,7 @@
         <fileset dir="${nativejarfile.tmpdir}" />
       </delete>
       </sequential>
-    </macrodef>  
+    </macrodef>
 
     <macrodef name="gluegen.make.libsymbols">
       <attribute name="builddir" />
@@ -2011,5 +2011,5 @@
       </exec>
       <delete file="@{symbolsfile}.raw" quiet="true" failonerror="false" />
       </sequential>
-    </macrodef>  
+    </macrodef>
 </project>
