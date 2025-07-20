@@ -31,8 +31,8 @@ Please also consider reading [GlueGen Manual](https://jogamp.org/gluegen/doc/man
 - [GlueGen Java™ API-Doc](https://jogamp.org/deployment/jogamp-next/javadoc/gluegen/javadoc/)
 - [GlueGen Manual](https://jogamp.org/gluegen/doc/manual/)
 - [GlueGen Project Page](https://jogamp.org/gluegen/www/)
+- [How To Build](https://jogamp.org/gluegen/doc/HowToBuild.html)
 - [JogAmp's Supported Platforms](https://jogamp.org/gluegen/doc/JogAmpPlatforms.html)
-- [How To Build](HowToBuild.html)
 
 ## Overview {#overview}
 [GlueGen](https://jogamp.org/gluegen/www/) is a compiler for function and data-structure declarations,
