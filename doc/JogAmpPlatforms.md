@@ -24,7 +24,7 @@ Jogamp 2.6.x runtime is supported on the described platforms below.
 Please ask for contracting options to
 have support added for your desired platform.
 
-## Java / OpenJFK
+## Java / OpenJDK
    - [OpenJDK](http://openjdk.java.net/) >= 11, tested on [Adoptium Builds](https://adoptium.net/temurin/releases/)
      - OpenJDK 11
      - OpenJDK 17
