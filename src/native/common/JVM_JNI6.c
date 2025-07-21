@@ -39,6 +39,6 @@ JNIEXPORT void JNICALL JNI_OnUnload_gluegen_rt(JavaVM *vm, void *reserved) {
 }
 
 #else
-    #error build toolchain doesn't supply JNI_VERSION_1_6
+    #error build toolchain does not supply JNI_VERSION_1_6
 #endif /* defined (JNI_VERSION_1_6) */
 
