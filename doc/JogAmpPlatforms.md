@@ -90,8 +90,8 @@ Currently not tested anymore, code may exist.
 *See contracting options above*
 
 ## Android/Linux
-- Android Version 7.0 Nougat API Level 24 or later
-  - *minSdkVersion*: 24 (Android 7, Nougat)
+- Android Version 8.0 Oreo, API Level 26 or later
+  - *minSdkVersion*: 26 (Android 8, Oreo)
   - *targetSdkVersion*: 35 (Android 15), as required as of 2025-08-31
 
 ### Current Architectures:

@@ -22,7 +22,7 @@
 #        /opt/android-sdk-linux_x86_64
 #        /usr/local/android-sdk-linux_x86_64
 #
-# - ANDROID_API_LEVEL - defaults to 24
+# - ANDROID_API_LEVEL - defaults to 26
 #
 # - ANDROID_HOST_TAG - defaults to linux-x86_64
 #
@@ -84,7 +84,7 @@
 #
 # Having
 #   ANDROID_HOME=~/Android/Sdk
-#   ANDROID_API_LEVEL 24
+#   ANDROID_API_LEVEL 26
 #   ANDROID_HOST_TAG linux-x86_64
 #   ANDROID_ABI arm64-v8a
 # Using derived values of
@@ -100,7 +100,7 @@ NDK_TOOLCHAIN_VERSION=clang
 echo "Setting NDK_TOOLCHAIN_VERSION to ${NDK_TOOLCHAIN_VERSION} default!"
 
 if [ -z "${ANDROID_API_LEVEL}" ] ; then
-    ANDROID_API_LEVEL=24
+    ANDROID_API_LEVEL=26
     echo "Setting undefined ANDROID_API_LEVEL to ${ANDROID_API_LEVEL} default!"
 fi
 if [ -z "${ANDROID_HOST_TAG}" ] ; then

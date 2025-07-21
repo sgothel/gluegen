@@ -10,7 +10,6 @@ LOGF=make.gluegen.all.android-armv6-cross.log
 rm -f ${LOGF}
 
 export ANDROID_HOME=/opt-linux-x86_64/android-sdk-linux_x86_64
-export ANDROID_API_LEVEL=24
 export ANDROID_HOST_TAG=linux-x86_64
 export ANDROID_ABI=armeabi-v7a
 

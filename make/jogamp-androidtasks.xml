@@ -192,7 +192,7 @@
         <exec dir="." executable="d8" logError="true" failonerror="true" failifexecutionfails="true">
             <arg line="--output ${m.aapt.build.apk}/image"/>
 
-            <arg line="--classpath ${android-min.jar}"/>
+            <arg line="--lib ${android-min.jar}"/>
             <d8-classpaths/>
 
             <arg line="--min-api ${android.api.level}"/>
