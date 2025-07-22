@@ -24,13 +24,68 @@ Jogamp 2.6.x runtime is supported on the described platforms below.
 Please ask for contracting options to
 have support added for your desired platform.
 
+## Unit Testing
+Thorough unit testing is performed on all our [jenkins build nodes](https://jogamp.org/chuck/job/jogl/).
+
+## Bring-up Testing
+### Non Android
+A quick bring-up testing covers `gluegen`, `joal` and `jogl`
+and is performed on non Android platforms:
+
+```
+#!/bin/sh
+
+type=archive/rc
+version=v2.6.0-rc-20250721
+folder=${type}/${version}
+
+mkdir ${version}
+cd ${version}
+
+curl --silent --output jogamp-fat.jar  https://jogamp.org/deployment/${folder}/fat/jogamp-fat.jar
+curl --silent --output jogl-demos.jar https://jogamp.org/deployment/${folder}/fat/jogl-demos.jar
+curl --silent --output jogl-fonts-p0.jar https://jogamp.org/deployment/${folder}/fat/jogl-fonts-p0.jar
+
+echo "Fetched from ${folder} to ${version}"
+
+java -cp jogamp-fat.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo20
+```
+
+However, you can also use the locally produced fat jar file for the
+building platform, e.g.
+
+```
+cd jogl/build-x86_64/jar
+java -cp jogl-fat-linux-amd64.jar:jogl-demos.jar com.jogamp.opengl.demos.graph.ui.UISceneDemo20
+```
+
+### Android
+For Android, the fat demo APK `jogl-demos-fat-android-${arch}.apk`
+inside the jogl build folder can be directly installed and tested
+on your device w/ developer mode enabled.
+
 ## Java / OpenJDK
-   - [OpenJDK](http://openjdk.java.net/) >= 11, tested on [Adoptium Builds](https://adoptium.net/temurin/releases/)
-     - OpenJDK 11
-     - OpenJDK 17
-     - OpenJDK 21
-   - [Azul's Zulu](https://www.azul.com/downloads/zulu-community/) (tested)
-   - [Avian](https://github.com/ReadyTalk/avian) (untested)
+Current runtime requirements
+
+- Java 8 (class file 52)
+- [OpenJDK](http://openjdk.java.net/) >= 8, tested on [Adoptium Builds](https://adoptium.net/temurin/releases/)
+  - OpenJDK 21
+  - OpenJDK 17
+  - OpenJDK 11
+  - Following [OpenJDK](http://openjdk.java.net/) versions are no more tested, but may work
+    - OpenJDK 10
+    - OpenJDK 9
+    - OpenJDK 8
+- [Azul's Zulu](https://www.azul.com/downloads/zulu-community/) (untested)
+- [Avian](https://github.com/ReadyTalk/avian) (untested)
+
+Future versions may use
+
+- Java 11 (class file 55)
+- Android SDK API level 32 (Version 12 Snow Cone, released 2022)
+  - Supposed to be [Java 11 API compliant](https://developer.android.com/build/jdks)
+
+*See contracting options above*
 
 ## Windows
 
@@ -93,6 +148,13 @@ Currently not tested anymore, code may exist.
 - Android Version 8.0 Oreo, API Level 26 or later
   - *minSdkVersion*: 26 (Android 8, Oreo)
   - *targetSdkVersion*: 35 (Android 15), as required as of 2025-08-31
+
+On 2025-07-20 we have tested `jogl-demos-fat-android-${arch}.apk`
+using an `x86` and `x86_64` emulator for
+
+- Android  8, API 26
+- Android 14, API 34
+- Android 15, API 35
 
 ### Current Architectures:
 - `x86_64`
