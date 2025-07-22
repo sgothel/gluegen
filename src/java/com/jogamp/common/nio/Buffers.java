@@ -2083,6 +2083,10 @@ public class Buffers {
         return bb;
     }
 
+    public static long getDirectBufferAddress(final Object directBuffer) {
+        return getDirectBufferAddressImpl(directBuffer);
+    }
+
     /* pp */ static ByteBuffer getDirectByteBuffer(final long aptr, final int byteCount) {
         final ByteBuffer r = getDirectByteBufferImpl(aptr, byteCount);
         return null != r ? nativeOrder( r ) : null;

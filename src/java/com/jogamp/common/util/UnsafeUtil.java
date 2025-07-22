@@ -1,5 +1,5 @@
 /**
- * Copyright 2019 JogAmp Community. All rights reserved.
+ * Copyright 2019-2025 JogAmp Community. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are
  * permitted provided that the following conditions are met:
@@ -30,10 +30,12 @@ package com.jogamp.common.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.security.PrivilegedAction;
 
 import com.jogamp.common.ExceptionUtils;
+import com.jogamp.common.nio.Buffers;
 
 import jogamp.common.Debug;
 import jogamp.common.os.PlatformPropsImpl;
@@ -54,21 +56,32 @@ public class UnsafeUtil {
     private static final Method unsafeCleanBB;
     private static volatile boolean hasUnsafeCleanBBError; /** OK to be lazy on thread synchronization, just for early out **/
 
-    private static final Method staticFieldOffset;
-    private static final Method getObjectVolatile;
-    private static final Method putObjectVolatile;
-    private static volatile boolean hasGetPutObjectVolatile;
+    private static final Method m_getObject;
+    private static final Method m_putObject;
+    private static final Method m_getObjectVolatile;
+    private static final Method m_putObjectVolatile;
 
-    private static final Class<?> illegalAccessLoggerClass;
-    private static final Long illegalAccessLoggerOffset;
-    private static final Object illegalAccessLoggerSync = new Object();
+    private static final Method m_getLong; // long getLong(Object o, long offset)
+    private static final Method m_putLong; // putLong(Object o, long offset, long x)
+
+    private static final Method m_staticFieldOffset;
+    private static final Method m_objectFieldOffset;
+
+    private static final Long addressFieldOffset;
+
+    private static final Class<?> c_illegalAccessLoggerClass;
+    private static final Long o_illegalAccessLoggerOffset;
+    private static final Object o_illegalAccessLoggerSync = new Object();
     private static volatile boolean hasIllegalAccessError;
 
     static {
         final Object[] _theUnsafe = { null };
         final Method[] _cleanBB = { null };
-        final Method[] _staticFieldOffset = { null };
-        final Method[] _objectVolatile = { null, null }; // unsafeGetObjectVolatile, unsafePutObjectVolatile
+        final Method[] _staticObjectFieldOffset = { null, null };
+        final Method[] _getPutObject = { null, null }; // getObject, putObject
+        final Method[] _getPutObjectVolatile = { null, null }; // getObjectVolatile, putObjectVolatile
+        final Method[] _getPutLong = { null, null }; // long getLong(Object o, long offset), putLong(Object o, long offset, long x)
+        final Long[]   _addressFieldOffset = { null };
         final Class<?>[] _illegalAccessLoggerClass = { null };
         final Long[] _loggerOffset = { null };
 
@@ -91,20 +104,59 @@ public class UnsafeUtil {
                         ExceptionUtils.dumpThrowable("UnsafeUtil", t);
                     }
                 }
-                if( null != _theUnsafe[0] && PlatformPropsImpl.JAVA_9 ) {
+                if( null != _theUnsafe[0] ) {
                     try {
-                        _staticFieldOffset[0] = unsafeClass.getDeclaredMethod("staticFieldOffset", Field.class);
-                        _objectVolatile[0] = unsafeClass.getDeclaredMethod("getObjectVolatile", Object.class, long.class);
-                        _objectVolatile[1] = unsafeClass.getDeclaredMethod("putObjectVolatile", Object.class, long.class, Object.class);
-
-                        if( PlatformPropsImpl.JAVA_9 ) {
-                            _illegalAccessLoggerClass[0] = Class.forName("jdk.internal.module.IllegalAccessLogger");
-                            final Field loggerField = _illegalAccessLoggerClass[0].getDeclaredField("logger");
-                            _loggerOffset[0] = (Long) _staticFieldOffset[0].invoke(_theUnsafe[0], loggerField);
-                        }
+                        _getPutObject[0] = unsafeClass.getDeclaredMethod("getObject", Object.class, long.class);
+                        _getPutObject[1] = unsafeClass.getDeclaredMethod("putObject", Object.class, long.class, Object.class);
                     } catch(final Throwable t) {
                         if( DEBUG ) {
                             ExceptionUtils.dumpThrowable("UnsafeUtil", t);
+                        }
+                    }
+                    try {
+                        _getPutObjectVolatile[0] = unsafeClass.getDeclaredMethod("getObjectVolatile", Object.class, long.class);
+                        _getPutObjectVolatile[1] = unsafeClass.getDeclaredMethod("putObjectVolatile", Object.class, long.class, Object.class);
+                    } catch(final Throwable t) {
+                        if( DEBUG ) {
+                            ExceptionUtils.dumpThrowable("UnsafeUtil", t);
+                        }
+                    }
+                    try {
+                        _getPutLong[0] = unsafeClass.getDeclaredMethod("getLong", Object.class, long.class);
+                        _getPutLong[1] = unsafeClass.getDeclaredMethod("putLong", Object.class, long.class, long.class);
+                    } catch(final Throwable t) {
+                        if( DEBUG ) {
+                            ExceptionUtils.dumpThrowable("UnsafeUtil", t);
+                        }
+                    }
+                    try {
+                        _staticObjectFieldOffset[0] = unsafeClass.getDeclaredMethod("staticFieldOffset", Field.class);
+                        _staticObjectFieldOffset[1] = unsafeClass.getDeclaredMethod("objectFieldOffset", Field.class);
+                    } catch(final Throwable t) {
+                        if( DEBUG ) {
+                            ExceptionUtils.dumpThrowable("UnsafeUtil", t);
+                        }
+                    }
+                    if( null != _staticObjectFieldOffset[1] ) {
+                        try {
+
+                            final Field f = Buffer.class.getDeclaredField("address");
+                            _addressFieldOffset[0] = (Long)_staticObjectFieldOffset[1].invoke(_theUnsafe[0], f);
+                        } catch(final Throwable t) {
+                            if( DEBUG ) {
+                                ExceptionUtils.dumpThrowable("UnsafeUtil", t);
+                            }
+                        }
+                    }
+                    if( PlatformPropsImpl.JAVA_9 && null != _staticObjectFieldOffset[0] ) {
+                        try {
+                            _illegalAccessLoggerClass[0] = Class.forName("jdk.internal.module.IllegalAccessLogger");
+                            final Field loggerField = _illegalAccessLoggerClass[0].getDeclaredField("logger");
+                            _loggerOffset[0] = (Long) _staticObjectFieldOffset[0].invoke(_theUnsafe[0], loggerField);
+                        } catch(final Throwable t) {
+                            if( DEBUG ) {
+                                ExceptionUtils.dumpThrowable("UnsafeUtil", t);
+                            }
                         }
                     }
                 }
@@ -116,16 +168,21 @@ public class UnsafeUtil {
         if( DEBUG ) {
             System.err.println("UnsafeUtil.init: hasTheUnsafe: "+(null!=theUnsafe)+", hasInvokeCleaner: "+!hasUnsafeCleanBBError);
         }
-
-        staticFieldOffset = _staticFieldOffset[0];
-        getObjectVolatile = _objectVolatile[0];
-        putObjectVolatile = _objectVolatile[1];
-        hasGetPutObjectVolatile = null != staticFieldOffset && null != getObjectVolatile && null != putObjectVolatile;
-        illegalAccessLoggerClass = _illegalAccessLoggerClass[0];
-        illegalAccessLoggerOffset = _loggerOffset[0];
-        hasIllegalAccessError = !hasGetPutObjectVolatile || null == illegalAccessLoggerClass || null == illegalAccessLoggerOffset;
+        m_staticFieldOffset = _staticObjectFieldOffset[0];
+        m_objectFieldOffset = _staticObjectFieldOffset[1];
+        addressFieldOffset = _addressFieldOffset[0];
+        m_getObject = _getPutObject[0];
+        m_putObject = _getPutObject[1];
+        m_getObjectVolatile = _getPutObjectVolatile[0];
+        m_putObjectVolatile = _getPutObjectVolatile[1];
+        m_getLong = _getPutLong[0];
+        m_putLong = _getPutLong[1];
+        c_illegalAccessLoggerClass = _illegalAccessLoggerClass[0];
+        o_illegalAccessLoggerOffset = _loggerOffset[0];
+        hasIllegalAccessError = null == m_getObjectVolatile || null == m_putObjectVolatile ||
+                                null == c_illegalAccessLoggerClass || null == o_illegalAccessLoggerOffset;
         if( DEBUG ) {
-            System.err.println("UnsafeUtil.init: hasUnsafeGetPutObjectVolatile: "+hasGetPutObjectVolatile+", hasUnsafeIllegalAccessLogger: "+!hasIllegalAccessError);
+            System.err.println("UnsafeUtil.init: hasUnsafeIllegalAccessLogger: "+!hasIllegalAccessError);
         }
     }
 
@@ -161,6 +218,120 @@ public class UnsafeUtil {
         }
     }
 
+    public static long staticFieldOffset(final Field f) {
+        if( null != m_staticFieldOffset) {
+            throw new UnsupportedOperationException("staticFieldOffset");
+        }
+        try {
+            final Long res = (Long)m_staticFieldOffset.invoke(theUnsafe, f);
+            if( null != res ) {
+                return res.longValue();
+            }
+            throw new RuntimeException("staticFieldOffset: f "+f);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+    public static long objectFieldOffset(final Field f) {
+        if( null != m_objectFieldOffset) {
+            throw new UnsupportedOperationException("objectFieldOffset");
+        }
+        try {
+            final Long res = (Long)m_objectFieldOffset.invoke(theUnsafe, f);
+            if( null != res ) {
+                return res.longValue();
+            }
+            throw new RuntimeException("objectFieldOffset: f "+f);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+
+    public static Object getObject(final Object o, final long offset) {
+        if( null != m_getObject) {
+            throw new UnsupportedOperationException("getObject");
+        }
+        try {
+            return m_getObject.invoke(theUnsafe, o, offset);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil: o "+o+", offset "+offset, e);
+        }
+    }
+    public static void putObject(final Object o, final long offset, final Object x) {
+        if( null != m_putObject) {
+            throw new UnsupportedOperationException("putObject");
+        }
+        try {
+            m_putObject.invoke(theUnsafe, o, offset, x);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+
+    public static Object getObjectVolatile(final Object o, final long offset) {
+        if( null != m_getObjectVolatile) {
+            throw new UnsupportedOperationException("getObjectVolatile");
+        }
+        try {
+            return m_getObjectVolatile.invoke(theUnsafe, o, offset);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+    public static void putObjectVolatile(final Object o, final long offset, final Object x) {
+        if( null != m_putObjectVolatile) {
+            throw new UnsupportedOperationException("putObjectVolatile");
+        }
+        try {
+            m_putObjectVolatile.invoke(theUnsafe, o, offset, x);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+
+    public static long getLong(final Object o, final long offset) {
+        if(null != m_getLong) {
+            throw new UnsupportedOperationException("getLong");
+        }
+        try {
+            final Long res = (Long)m_getLong.invoke(theUnsafe, o, offset);
+            if( null != res ) {
+                return res.longValue();
+            }
+            throw new RuntimeException("getLong: o "+o+", offset "+offset);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+    public static void putLong(final Object o, final long offset, final long x) {
+        if(null != m_putLong) {
+            throw new UnsupportedOperationException("putLong");
+        }
+        try {
+            m_putLong.invoke(theUnsafe, o, offset);
+            throw new RuntimeException("putLong: o "+o+", offset "+offset+", x "+x);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException("UnsafeUtil");
+        }
+    }
+
+    public static long getLong(final long address) {
+        return getLong(null, address);
+    }
+    public static void putLong(final long address, final long x) {
+        putLong(null, address, x);
+    }
+
+    public static long getDirectBufferAddress(final Buffer buffer) {
+        if( null == buffer ) {
+            return 0;
+        }
+        if( null != addressFieldOffset || null != m_getLong ) {
+            return Buffers.getDirectBufferAddress(buffer);
+        }
+        return getLong(buffer, addressFieldOffset.longValue());
+    }
+
     /**
      * Returns {@code true} if access to {@code jdk.internal.module.IllegalAcessLogger}'s {@code logger} field
      * is available and has not caused an exception.
@@ -183,12 +354,12 @@ public class UnsafeUtil {
      */
     public static <T> T doWithoutIllegalAccessLogger(final PrivilegedAction<T> action) throws RuntimeException {
         if( !hasIllegalAccessError ) {
-            synchronized(illegalAccessLoggerSync) {
+            synchronized(o_illegalAccessLoggerSync) {
                 final Object newLogger = null;
                 Object oldLogger = null;
                 try {
-                    oldLogger = getObjectVolatile.invoke(theUnsafe, illegalAccessLoggerClass, illegalAccessLoggerOffset);
-                    putObjectVolatile.invoke(theUnsafe, illegalAccessLoggerClass, illegalAccessLoggerOffset, newLogger);
+                    oldLogger = m_getObjectVolatile.invoke(theUnsafe, c_illegalAccessLoggerClass, o_illegalAccessLoggerOffset);
+                    m_putObjectVolatile.invoke(theUnsafe, c_illegalAccessLoggerClass, o_illegalAccessLoggerOffset, newLogger);
                 } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                     // unaccessible ..
                     hasIllegalAccessError = true;
@@ -206,7 +377,7 @@ public class UnsafeUtil {
                     throw new RuntimeException(t);
                 } finally {
                     try {
-                        putObjectVolatile.invoke(theUnsafe, illegalAccessLoggerClass, illegalAccessLoggerOffset, oldLogger);
+                        m_putObjectVolatile.invoke(theUnsafe, c_illegalAccessLoggerClass, o_illegalAccessLoggerOffset, oldLogger);
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         // should not happen, worked above @ logger setup
                         hasIllegalAccessError = true;
